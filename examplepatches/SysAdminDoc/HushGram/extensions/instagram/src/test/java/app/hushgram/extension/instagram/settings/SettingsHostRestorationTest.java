@@ -55,7 +55,7 @@ public class SettingsHostRestorationTest {
 
     @Before public void setup() {
         Application app = RuntimeEnvironment.getApplication();
-        app.getApplicationInfo().targetSdkVersion = 36;
+        app.getApplicationInfo().targetSdkVersion = 37;
         app.registerActivityLifecycleCallbacks(callbacks);
         SettingsEntry.onClosedByUser();
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);

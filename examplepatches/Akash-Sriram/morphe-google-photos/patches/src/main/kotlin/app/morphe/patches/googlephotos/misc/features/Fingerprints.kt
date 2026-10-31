@@ -25,9 +25,11 @@ internal object MfySectionDelegateFingerprint : Fingerprint(
 )
 
 internal object ByteSizeFeatureFactoryFingerprint : Fingerprint(
-    returnType = "Lbypk;",
     parameters = listOf("I", "Ljava/lang/Object;"),
     strings = listOf("byte_size"),
+    custom = { method, _ ->
+        method.name == "a" && (method.returnType == "Lbypk;" || method.returnType == "Lbzdh;")
+    },
 )
 
 

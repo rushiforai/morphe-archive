@@ -7,6 +7,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
 import app.ytvr.patches.shared.Constants.COMPATIBILITY_YOUTUBE_VR
 import app.ytvr.patches.shared.applicationOnCreateFingerprint
+import app.ytvr.patches.storedChoice
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -26,6 +27,23 @@ private const val EXTENSION_CLASS = "Lapp/ytvr/extension/VideoQuality;"
 
 /** The build option's default, also what the hub row shows until the viewer changes it. */
 private const val DEFAULT_QUALITY = "highest"
+
+/**
+ * The quality choices, display name to stored token, in the patcher 2.x `values` orientation
+ * (`storedChoice` explains why the 1.x orientation leaked display names into the stored value --
+ * which here would have been seeded into the app silently, since this option has no validator).
+ */
+internal val qualityChoices: Map<String, String> = linkedMapOf(
+    "Highest available (the video's best, 8K included)" to "highest",
+    "8K (4320p)" to "4320",
+    "4K (2160p)" to "2160",
+    "1440p" to "1440",
+    "1080p (Full HD)" to "1080",
+    "720p HD" to "720",
+    "480p" to "480",
+    "360p" to "360",
+    "Auto (the app's own per-video choice)" to "auto",
+)
 
 /**
  * The field's own type, and the reason the injected call ends in a `check-cast`: the extension's
@@ -103,24 +121,20 @@ val videoQualityPatch = bytecodePatch(
     val videoQuality by stringOption(
         key = "videoQuality",
         default = DEFAULT_QUALITY,
-        values = mapOf(
-            "highest" to "Highest available (the video's best, 8K included)",
-            "4320" to "8K (4320p)",
-            "2160" to "4K (2160p)",
-            "1440" to "1440p",
-            "1080" to "1080p (Full HD)",
-            "720" to "720p HD",
-            "480" to "480p",
-            "360" to "360p",
-            "auto" to "Auto (the app's own per-video choice)",
-        ),
+        values = qualityChoices,
         title = "Default video quality",
         description = "Seeds the in-headset setting on first launch; the Patch settings row " +
             "governs from the first change there.",
     )
 
     execute {
-        val configured = videoQuality ?: DEFAULT_QUALITY
+        val configured = videoQuality?.let { raw ->
+            storedChoice(qualityChoices, raw) ?: throw PatchException(
+                "Default video quality: unknown quality '$raw' " +
+                    "(want ${qualityChoices.values.joinToString(", ")}, or one of the picker's " +
+                    "display names)",
+            )
+        } ?: DEFAULT_QUALITY
 
         // The seed rides Application.onCreate like the SponsorBlock option's configure call, and
         // the extension writes it through to the setting on first read, so the hub row displays
@@ -182,6 +196,7 @@ val videoQualityPatch = bytecodePatch(
         }
         val fixedResolutionField = when (fieldReads.size) {
             1 -> (fieldReads.single() as ReferenceInstruction).reference as FieldReference
+
             else -> throw PatchException(
                 "Default video quality: expected exactly one field read into register " +
                     "$valueRegister for the marker's segment, found ${fieldReads.size}",

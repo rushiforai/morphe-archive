@@ -16,36 +16,60 @@ installer-source spoof.
 
 ## Start here: creating or modifying a patch
 
-For Monet 1.0.97 **Displayed Cards** above 20, see
+For Monet **1.1.0** **Displayed Cards** above 20 (existing 1.0.97 support retained), see
 [MonetDisplayedCards.md](docs/MonetDisplayedCards.md). The optional **Monet - Unlimited
 displayed cards** patch adds ten-card steps and Max to the native themed picker,
-and removes the shared preference/schema cap. Run `verifyMonetDisplayedCards`,
-`verifyMonetDisplayedCardsRuntime`, `verifyMonetDisplayedCardsBundle` and
-`verifyMorpheDesktopImport`; `verifyMonetDisplayedCardsApk` checks the Desktop rebuild.
+and removes the shared preference/schema cap. Separate `MonetDisplayedCards110`
+contracts cover the specialized native Apply renderer and direct numeric summaries.
+Max's label survives text restarts; the patch selects reviewed runtime bindings.
+Run `verifyMonetDisplayedCards110`, `verifyMonetDisplayedCards110Runtime`,
+`verifyMonetDisplayedCards110Bundle` and `verifyMorpheDesktopImport`;
+`verifyMonetDisplayedCards110Apk` checks the actual standalone/combined rebuild.
+Catalog rows also support 1.1.0, including combined card/premium selections.
 
-For individual Nuvio catalogs in Monet 1.0.97 custom media rows, see
+For individual Nuvio catalogs in Monet 1.1.0 custom media rows (existing 1.0.97 support retained), see
 [MonetCatalogChannels.md](docs/MonetCatalogChannels.md). The optional **Monet -
 Individual Nuvio catalog rows** patch belongs to Monet; Nuvio keeps publishing its
 existing separate Android TV channels. Catalogs are now choices inside the real
 Nuvio app's Content picker, use its installed icon, and refresh independently of
 Recommendations through a foreground provider subscription and native revision
 flow. Preserve saved synthetic IDs while resolving their real package for icons.
-Validate the actual signed delivery APK, not just the bundle/unsigned fixture:
+The 1.1.0 port preserves native channel/filter choices and saved IDs; ten native
+hooks, host runtime, all six bundle combinations and actual unsigned APK audits
+passed. Use `verifyMonetCatalog110Apk` with `monetCatalog110Cards`,
+`monetCatalog110Premium` and `monetCatalog110Apk` for combined delivery checks.
+It is not installed/device-tested; diagnostics use `Catalog content 1.1.0`.
+The reported 1.1.0 Content-picker crash was a null secondary section label:
+native `f24.B1` calls `String.length()` without a null guard. Return an empty
+string for synthetic catalog section labels; retain the adjacent-label runtime
+regression. The current rebuilt combined output is
+`Apps/Monet/monet-1.1.0-catalog-cards-premium-picker-fix-unsigned.apk`;
+earlier unsigned catalog APKs predate this fix. Device confirmation is pending.
+Historical 1.0.97 delivery lesson: validate the actual signed APK, not just the bundle/unsigned fixture:
 the previous `Monet-1.0.97-patches-0.14.0.apk` remained stale and the installed
 emulator matched it byte-for-byte. The verified replacement is
 `Apps/Monet/Monet-1.0.97-patches-0.14.0-catalog-content-v2.apk` (workspace-relative),
 also copied to the usual versioned output. Use `-PmonetCatalogCombined=true` to
-verify the catalog/card-limit/premium delivery and `Catalog content v2` runtime
+verify the historical catalog/card-limit/premium delivery and `Catalog content v2` runtime
 markers to distinguish it from the old integration. No installation was performed.
 The user subsequently confirmed on 2026-10-26 that the updated APK appears to work
 correctly. Keep this user-reported device result distinct from local APK checks.
 The local Desktop JAR is now 1.19.1; pass its path to verifyMorpheDesktopImport. Run `verifyMonetCatalog`,
 `verifyMonetCatalogRuntime`, `verifyMonetCatalogBundle` and `verifyMorpheDesktopImport`.
 
-For Monet Launcher `com.klevico.monet` 1.0.97, see [Monet.md](docs/Monet.md).
+For Monet Launcher `com.klevico.monet` **1.1.0** (code 134), see [Monet.md](docs/Monet.md).
 The exact-version and unrestricted experimental premium patches are alternatives;
 select only one. Both use the shared native evaluator for startup and refreshes.
-Run `verifyMonet` and `verifyMonetBundle`; other versions remain unverified.
+The 1.1.0 evaluator is `La/dl5;->a()Z`; R8 removed `final`, breaking the previous
+experimental matcher despite unchanged semantics. The shared matcher now proves
+all 16 boolean cases and billing/lifecycle ownership, tolerating final/register/
+branch layout changes. It still fails closed; unrestricted versions are not a
+future-compatibility guarantee. Existing 1.0.97 support is retained, not extended.
+The user reported on 2026-10-29 that the updated premium patch appears to work on
+their device; the selected alternative and individual lifecycle checks were not
+specified. Keep this user-reported result distinct from local DEX/rebuild checks.
+Run `verifyMonet`, `verifyMonetBundle`, `verifyAndroidBundle` and
+`verifyMorpheDesktopImport`. Both card-limit and catalog-row patches also support 1.1.0.
 
 The bundle targets Morphe Patcher **2.0.0** / Desktop **1.19.0**. Read
 `docs/MorpheCompatibility.md` for compatibility constructors, form factors,
@@ -95,7 +119,7 @@ Paths below are relative to `E:\Morphe\santodan-patches` unless stated otherwise
 | `../Apps/` | Patched app outputs; do not use as original patch inputs |
 
 At this guide update, relevant original inputs include NuvioTV `1.1.0-beta.8`,
-Pillo `0.6.20`, Reddit `2026.37.0`, MEO Android TV `5.7.0`, and Peafowl
+Pillo `0.6.27`, Reddit `2026.37.0`, MEO Android TV `5.7.0`, and Peafowl
 `GMS_27.5.1`. These are discovery hints, not a permanent version allowlist.
 Rescan inputs for each task. Apps without existing patches need their own inspection.
 
@@ -384,7 +408,59 @@ verification, APK signature verification, and inspection of all resulting manife
 authorities. No resulting authority or app-owned permission may equal one from the
 official installation. Device testing is still required for server-side behavior.
 
+## Pillo 0.6.27
+
+All six Pillo patches support `xyz.rtrvr.pillo` **0.6.27**, version code **472**.
+The optional **Pillo - Premium and ad-free** replaces the external **Unlock
+Premium** patch whose old provider path/Job fingerprint fails on 0.6.27. Deselect
+that external patch when using this replacement. It changes only the two native
+setter boolean inputs, after validating their coroutine captures and persistence.
+Read [Pillo627.md](docs/Pillo627.md) for current contracts, schema and runtime checks.
+`Pillo627*` Java contracts and `*627` runtime classes isolate the new R8/Compose ABI
+from historical implementations. The database identity changed; 0.6.27 local archives
+are tagged 0.6.27. Restore also accepts the user-requested 0.6.20/schema-51 archives,
+then upgrades only their staged database with 0.6.27's native Room migrations 51-52-53
+and schema validation before confirmation/live replacement. Never just relabel an old
+archive: native migration converts reminder interval values from hours to minutes. The early
+restore hook skips secondary processes; the post-create hook preserves the native
+crash-report process return. Run `verifyPillo627Bundle` and `verifyPillo627Runtime`,
+then `generatePatchesList`, `verifyAndroidBundle`, and `verifyMorpheDesktopImport`
+with the workspace Desktop 1.19.1 JAR. The bundle verifier exercises each individual
+selection (including the Progress dependency), all six together, full DEX reload
+and an unsigned rebuild of the original base APK. Keep the original XAPK splits.
+The user reports successful installation on emulator and phone using their Play Store
+ARM64 `pillo-0.6.27.apks`; its base DEX matches the inspected APKPure build byte-for-byte.
+The staged migration of their actual backup passed native Room/SQLite on the emulator;
+wrong-identity rejection and rollback after a native migration failure were verified.
+A later restore failure at the staged-file guard was caused by comparing absolute
+and canonical paths; resolve the parent first and retain leaf-link rejection.
+The device fixture now preserves aliased paths and checks full original-archive
+extraction plus migration through an alias, as well as leaf-symlink rejection.
+The agent did not perform the full live restore. After the path-guard fix, the user
+reported on 2026-10-30 that everything seemed to be working; preserve this as a
+user-reported device result, not agent-run UI verification. See Pillo627.md for the compatible converted backup
+and exact migration restrictions. No new app signing/installation was performed for
+this restore fix.
+
 ## Pillo 0.6.19 and 0.6.20
+
+**Pillo - Weight in Progress** targets 0.6.20 and depends on **Weight change
+summaries**. It appends the native weight chart and date-grouped record list
+below existing Progress content/calendar in the same LazyColumn. It reuses the
+native Hilt reading ViewModel, profile selector and editor, and cancels native
+initialization observers through a Compose DisposableEffect. See
+`docs/PilloProgressWeight.md` for original DEX contracts and remaining device
+checks. Run `:patches:verifyPilloProgressWeightBundle` for standalone/dependency
+and all-Pillo combination checks, plus `:patches:verifyPilloWeightSummaryBundle`.
+The chart must receive the resolved native selected profile ID, observed through
+`collectAsStateWithLifecycle` with an explicit activity owner (default mask 6);
+unlike the list initializer, it does not treat an empty ID as a first-profile
+fallback. Defer chart composition while selection is pending. Passing the list
+fallback sentinel caused empty charts/summary labels.
+The profile-ID fix was rebuilt/signed from the original XAPK and update-installed
+on `emulator-5554` with data preserved: plotted history, populated summaries,
+tab re-entry and cold restart passed. Tested output:
+`Apps/Pillo/Pillo-0.6.20-progress-profile-fix.apk` (workspace-relative).
 
 **Pillo - Local backup and restore** supports 0.6.20, independently of the other
 Pillo patches. Its Settings callback hook offers Local file / Google backup before
@@ -663,6 +739,14 @@ preview dates retain precedence. Setting-change diagnostics include the scope,
 while normal settings rendering stays silent. Runtime checks cover these rules.
 
 ## Car Scanner managed premium-status patch
+
+For the 2.2.21 settings-reset regression, `CarScanner221.patchDecoder` must
+preserve **both** native normal seed selections: variant 1 settings at
+`0x23fcc` and variant 2 profiles at `0x25d68`. Fixing profiles alone leaves
+settings unreadable after restart. See `docs/CarScanner221.md` for the native
+read/write contract and emulator reproduction; retain the byte-round-trip test.
+The agent verified settings persistence across force-stop and normal exit on
+`emulator-5554`; the user subsequently confirmed correct operation on 2026-10-30.
 
 The latest local input is `com.ovz.carscanner` **2.2.21**, versionCode 42002021.
 `CarScanner221` handles its XABA v3 assembly store, premium getter and ECU

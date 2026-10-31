@@ -31,7 +31,12 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  *   attribute selector, and a pick in either sets the speed on the reel's FbGrootPlayer (found by
  *   the reel's PlayerOrigin and video id), then posts, 150 ms later, the speed toast: the one
  *   static (Context, float) method holding "InlinePlaybackSpeedAttributeSelector" (580
- *   LX/Txd;->A02, 577 LX/Het;->A02). Only the two pickers' runnables call it.
+ *   LX/Txd;->A02, 577 LX/Het;->A02). Only the two pickers' runnables call it. 585 (Redex) turned it
+ *   into the run() of a Runnable (LX/0LFG, fields A00 float and A01 Context) that the selector's
+ *   items lambda builds, so [isSpeedToastRun] reads the speed from the Runnable's float field.
+ *   585's menu dropdown (LX/0dWH;->A08, "fds_control_playback_speed") no longer fills a Float[] itself:
+ *   it calls the attribute selector (LX/0KZd;->A00, a static answering FDSAttributeSelectorHScroll),
+ *   which fills both speed lists and now sits in a class apart from the toast.
  * - The gear menu's speed sheet, which is where some accounts get Playback speed in a reel's More
  *   menu: its pick, the one method holding "gear_playback_speed_selection_tap" (580 LX/UO1;->Dy6),
  *   finds the reel's FbGrootPlayer by its PlayerOrigin and video id and sets the speed with the
@@ -276,6 +281,25 @@ private fun Method.parameters() = parameterTypes.map(CharSequence::toString)
 internal fun isSpeedToast(method: Method): Boolean =
     method.isStatic() && method.returnType == "V" && method.parameters() == listOf(CONTEXT, "F") &&
         holdsString(method, SPEED_TOAST)
+
+/**
+ * Whether [method] is the Reels menu's speed toast as 585 has it. Redex turned the static
+ * (Context, float) method into the run() of a Runnable that keeps the context and the picked speed
+ * in fields (the one holder of the selector's name), so the hook reads the speed from the Runnable.
+ */
+internal fun isSpeedToastRun(holder: ClassDef, method: Method): Boolean =
+    !method.isStatic() && method.name == "run" && method.returnType == "V" && method.parameters().isEmpty() &&
+        holder.interfaces.any { it == "Ljava/lang/Runnable;" } && holdsString(method, SPEED_TOAST) &&
+        speedToastField(holder, method) != null
+
+/** The one float field of [holder] that its toast Runnable's [method] reads, the speed picked. */
+internal fun speedToastField(holder: ClassDef, method: Method): FieldReference? {
+    val floats = holder.fields.filter { it.type == "F" && !AccessFlags.STATIC.isSet(it.accessFlags) }
+    return method.implementation?.instructions?.mapNotNull { instruction ->
+        (instruction as? ReferenceInstruction)?.reference?.takeIf { instruction.opcode == Opcode.IGET } as? FieldReference
+    }?.filter { read -> read.definingClass == holder.type && floats.any { it.name == read.name } }
+        ?.distinctBy { it.name }?.singleOrNull()
+}
 
 /** [owner]'s speed setters: instance (F)V methods reading HeroPlayerSetting's speed cache switch. */
 internal fun speedSetters(owner: ClassDef): List<Method> = owner.methods.filter { method ->

@@ -1,3 +1,21 @@
+## [1.17.0](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.16.1...v1.17.0) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Deps:** bump undici to 6.29.1 and ip-address to 10.7.5 to resolve Dependabot alerts ([2c512f6](https://github.com/Akash-Sriram/morphe-google-photos/commit/2c512f63fb76c1432727ee8bfac5dde18bfabb30))
+* **Google Photos - Phenotype:** restore official baseline values on custom flag removal and align curated registry ([9da405c](https://github.com/Akash-Sriram/morphe-google-photos/commit/9da405ccf11b17b633d7ccddac57bd7e722f058f))
+
+### ✨ New Features
+
+* **Google Photos - Flag Manager:** add clear saved creations registry action to options menu ([09d7951](https://github.com/Akash-Sriram/morphe-google-photos/commit/09d7951e08810e42b3430cdd4de1e76f329670eb))
+* **Google Photos - Patches:** align fingerprints, GmsCore support, and AMOLED theme hooks ([6722bce](https://github.com/Akash-Sriram/morphe-google-photos/commit/6722bce1191568bcd2de7f703bde3082fd896969))
+* **Google Photos - Settings:** integrate native Morphe settings item with Material 3 Expressive styling ([b45a1ed](https://github.com/Akash-Sriram/morphe-google-photos/commit/b45a1ed00d606eb3a085c02bf72332f17fe4fbdf))
+* **Google Photos - Toolkit:** enhance native toolkit dialog and local creation downloader ([d30aed3](https://github.com/Akash-Sriram/morphe-google-photos/commit/d30aed30e2885b5b78110c5491132e40ee273f21))
+
+### 🚀 Updated App Support
+
+* **Google Photos - Compat:** next app version release ([59e66b8](https://github.com/Akash-Sriram/morphe-google-photos/commit/59e66b8a6603a93eb7a810b1495106a9a5027b3e))
+
 ## [1.16.1](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.16.0...v1.16.1) (2026-10-26)
 
 ### 🐛 Bug Fixes

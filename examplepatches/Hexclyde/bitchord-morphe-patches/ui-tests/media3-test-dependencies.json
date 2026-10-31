@@ -1,0 +1,23 @@
+[
+  {
+    "artifact": "media3-common",
+    "version": "1.11.0",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-common/1.11.0/media3-common-1.11.0.aar",
+    "aar_sha256": "6641b3779dc4a160183b94eefe641fa077bd262543c3c6fe303342a3c29c6ec9",
+    "classes_sha256": "fad3cb29c07e44874c8dcada6e700fdb790874f650d6c53ebb5b98cb27f924e7"
+  },
+  {
+    "artifact": "media3-datasource",
+    "version": "1.11.0",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-datasource/1.11.0/media3-datasource-1.11.0.aar",
+    "aar_sha256": "490fd23c7562a6a1183d63bf854b291ae3a77dce5a151450aa1937148c80c60b",
+    "classes_sha256": "b9c76f3740a48fc2e17ae7333f934396acc4bf713f25b5a2ccdf30e9125bd480"
+  },
+  {
+    "artifact": "media3-database",
+    "version": "1.11.0",
+    "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-database/1.11.0/media3-database-1.11.0.aar",
+    "aar_sha256": "520e6f814e42a7d428db187ac073b453c0fcba0f4f5f4edd1cf33fafd2cfb740",
+    "classes_sha256": "d4b0509ee93605d4d43da2d458e78bbf728f865dbcd00aa2a726f4daf91d5da2"
+  }
+]

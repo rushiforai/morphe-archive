@@ -1,15 +1,58 @@
 # Monet individual Nuvio catalog rows
 
 Select **Monet - Individual Nuvio catalog rows** for original Monet
-`com.klevico.monet` **1.0.97** (version code 131). The patch is independent of the
+`com.klevico.monet` **1.1.0** (version code 134), retaining existing **1.0.97** support. The patch is independent of the
 premium and displayed-card patches and can be combined with them. Select only
 one premium alternative.
 
-The user confirmed on **2026-10-26** that the signed catalog-content-v2 update
+For **1.0.97**, the user confirmed on **2026-10-26** that the signed catalog-content-v2 update
 now appears to work correctly on their Android TV setup. This is user-reported
 device confirmation; the local checks below separately cover build and APK
 integrity. Extended profile-switching and long-running lifecycle checks remain
 useful follow-up coverage rather than prerequisites for the reported fix.
+
+## Monet 1.1.0 port
+
+Device log `logs_patch.log` subsequently exposed a Content-picker crash: native
+`f24.B1` compares section labels and calls `String.length()` without a null guard.
+The synthetic secondary-label callback now returns an empty string instead of
+null. The runtime regression exercises adjacent native/catalog section labels.
+Runtime, all six bundle combinations, Android bundle and actual combined APK
+audits passed after the fix. Updated combined output:
+`Apps/Monet/monet-1.1.0-catalog-cards-premium-picker-fix-unsigned.apk`.
+Earlier unsigned APKs listed below predate this fix; rebuild with the current
+bundle instead of using them. The fix still needs device confirmation.
+
+The reviewed 1.1.0 implementation preserves native Content modes and channel
+filters, replacing matching Nuvio channel choices rather than duplicating them.
+Saved owner/provider-based `santodan-channel:` IDs survive numeric channel-ID
+recreation. Catalogs refresh independently of Recommendations, including empty
+channels, provider failure/recovery, and foreground lifecycle cancellation.
+Ordinary apps retain their native empty/loading picker behavior.
+
+`MonetCatalogChannels110` validates the latest native contracts before applying ten
+hooks; the extension's `NativeLayout.modern` binding is explicitly selected by the
+patch. The shared card-summary/Content-label method is verified in both patch
+orders. Existing older-version support is preserved without new mappings.
+
+Local verification passed: `:patches:verifyMonetCatalog110`,
+`:patches:verifyMonetCatalog110Runtime`, `:patches:verifyMonetCatalog110Bundle`
+(catalog alone, cards, either premium alternative, and cards plus either premium),
+Desktop 1.19.1 import, and Android bundle checks. The unversioned catalog tasks now
+delegate to these latest-version checks.
+
+Actual standalone and catalog/cards/regular-premium APKs were rebuilt from the
+original 1.1.0 input and audited using `:patches:verifyMonetCatalog110Apk`.
+For the combined audit, set `-PmonetCatalog110Cards=true
+-PmonetCatalog110Premium=true -PmonetCatalog110Apk=<path>`.
+Audits cover native hooks, extension callbacks, all 9,041 original classes, and
+unchanged non-DEX/non-signature entries including the manifest.
+
+Workspace outputs: `Apps/Monet/monet-1.1.0-catalog-rows-unsigned.apk` and
+`Apps/Monet/monet-1.1.0-catalog-cards-premium-unsigned.apk`. These are **unsigned**,
+not installed, and **not device-tested**. Latest runtime diagnostics begin with
+`Catalog content 1.1.0`; the device confirmation above applies only to 1.0.97.
+The remaining implementation/delivery notes below describe that historical port.
 
 ## Use
 

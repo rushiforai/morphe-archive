@@ -53,11 +53,15 @@ public final class MediaApps {
                     .getConstructor(String.class, int.class, int.class);
             Method add = method(builder.getClass(), addMethod());
             Set<String> seen = new HashSet<>();
+            // Issue #78: an app without Android Auto support joins while it has a media session open (Follow
+            // playing media). Every app listed is connected to at each navigation start; one already playing is
+            // already running, the rest would all be started for it.
+            Set<String> open = PlayingMedia.sessionPackages(c);
             for (ResolveInfo r : pm.queryIntentServices(new Intent("android.media.browse.MediaBrowserService"), 0)) {
                 if (r.serviceInfo == null) continue;
                 String pkg = r.serviceInfo.packageName;
                 if (PARTNERS.contains(pkg) || pkg.equals(c.getPackageName()) || !seen.add(pkg)) continue;
-                if (!androidAuto(pm, pkg)) continue;
+                if (!androidAuto(pm, pkg) && !open.contains(pkg)) continue;
                 add.invoke(builder, entry.newInstance(pkg, COLOR, TOUCH_COLOR));
             }
         } catch (Throwable t) {
@@ -114,6 +118,26 @@ public final class MediaApps {
         } catch (Throwable t) {
             android.util.Log.w("UA", "media apps", t);
             return list;
+        }
+    }
+
+    /**
+     * Navigation's "open the media app" (issue #78): Maps starts ACTION_MAIN for the package without a category,
+     * which only reaches apps with a MAIN activity in the default category -- its partners have one, most apps
+     * (Jellyfin, Pocket Casts) only have their launcher activity, so it said "Failed to launch application". Start
+     * the app's own launcher entry instead, with Maps' flags and referrer.
+     */
+    public static Intent launchable(Context c, Intent intent) {
+        try {
+            String pkg = intent.getPackage();
+            if (c == null || pkg == null) return intent;
+            Intent launch = c.getPackageManager().getLaunchIntentForPackage(pkg);
+            if (launch == null) return intent;
+            launch.addFlags(intent.getFlags());
+            if (intent.getExtras() != null) launch.putExtras(intent.getExtras());
+            return launch;
+        } catch (Throwable t) {
+            return intent;
         }
     }
 }

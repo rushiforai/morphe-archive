@@ -8,16 +8,19 @@ body:
       value: |
         # Zeldris Patches feature request
 
-        Before creating a new feature request, please keep the following in mind:
-
-        - **Do not submit a duplicate feature request**: Search for existing feature requests [here](https://github.com/zeldrisho/morphe-patches/issues?q=label%3A%22Feature+request%22).
-        - **Contributor docs**: Start with the [development guide](https://github.com/zeldrisho/morphe-patches/blob/main/docs/development.md), then follow its reading order (patch development, fingerprint guide, QA checklist).
+        Search [existing feature requests](https://github.com/zeldrisho/morphe-patches/issues?q=label%3A%22Feature+request%22) before submitting. Do not include account information or other private data.
   - type: textarea
     attributes:
       label: Feature description
       description: |
         - Describe your feature in detail
         - Add images, videos, links, examples, references, etc. if possible
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Target app and version
+      description: Name the app and the version where you want the feature, if known.
   - type: textarea
     attributes:
       label: Motivation

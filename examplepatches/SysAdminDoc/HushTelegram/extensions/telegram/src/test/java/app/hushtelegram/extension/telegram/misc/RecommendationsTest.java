@@ -6,6 +6,8 @@ package app.hushtelegram.extension.telegram.misc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
@@ -16,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.util.ArrayList;
 import java.util.Collections;
 
 import app.hushtelegram.extension.shared.SettingsContextRule;
@@ -41,7 +44,9 @@ public class RecommendationsTest {
     public void tearDown() {
         PauseForTests.resume();
         SettingReadsForTests.mend(Settings.HIDE_RECOMMENDATIONS);
+        SettingReadsForTests.mend(Settings.HIDE_KEYBOARD_FEATURED);
         Settings.HIDE_RECOMMENDATIONS.resetToDefault();
+        Settings.HIDE_KEYBOARD_FEATURED.resetToDefault();
         HookStatus.clear();
     }
 
@@ -89,6 +94,39 @@ public class RecommendationsTest {
         assertEquals(Collections.singletonList("a working 'switch read' hook (it threw java.lang.NullPointerException)"),
                 HookStatus.missing(FamilyNames.HIDE_RECOMMENDATIONS));
         assertFalse("failed reads don't count as hidden recommendations", HookStatus.report().get(0).contains("Counted:"));
+    }
+
+    @Test
+    public void trendingPacksStayUntilTheirOwnSwitchIsOnAndTelegramsListIsNeverEmptied() {
+        ArrayList<Object> featured = new ArrayList<>(Collections.singletonList("pack"));
+        assertFalse("the trending packs switch starts off", Settings.HIDE_KEYBOARD_FEATURED.get());
+        assertSame(featured, Recommendations.keyboardFeatured(featured));
+        Settings.HIDE_KEYBOARD_FEATURED.save(true);
+        ArrayList<?> hidden = Recommendations.keyboardFeatured(featured);
+        assertTrue(hidden.isEmpty());
+        assertNotSame("the keyboards get their own empty list", featured, hidden);
+        assertEquals(Collections.singletonList("pack"), featured);
+        assertEquals(Collections.singletonList("Hide recommendations: invoked 2, 0 found, 0 missing. "
+                + "Counted: trending packs hidden 1"), HookStatus.report());
+    }
+
+    @Test
+    public void trendingPacksStayWhilePausedBeforeSettingsAreReadyOrWhenTheSwitchCantBeRead() {
+        ArrayList<Object> featured = new ArrayList<>(Collections.singletonList("pack"));
+        Settings.HIDE_KEYBOARD_FEATURED.save(true);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            assertSame(reason.name(), featured, Recommendations.keyboardFeatured(featured));
+            PauseForTests.resume();
+        }
+        SettingsContextRule.withoutContext(() -> assertSame(featured, Recommendations.keyboardFeatured(featured)));
+        SettingReadsForTests.breakReads(Settings.HIDE_KEYBOARD_FEATURED);
+        assertSame(featured, Recommendations.keyboardFeatured(featured));
+        assertEquals(Collections.singletonList("a working 'trending packs switch' hook (it threw java.lang.NullPointerException)"),
+                HookStatus.missing(FamilyNames.HIDE_RECOMMENDATIONS));
+        assertEquals(Collections.singletonList("pack"), featured);
+        assertFalse("kept lists don't count as hidden", HookStatus.report().get(0).contains("Counted:"));
     }
 
     private void assertStockBehavior() {

@@ -1,0 +1,848 @@
+From 8b4adc590944ddd177d3fdc42bf47518b3eb0c9d Mon Sep 17 00:00:00 2001
+From: Pengusto <106893073+pengusto@users.noreply.github.com>
+Date: Fri, 30 Oct 2026 11:26:22 +0100
+Subject: [PATCH] fix: backport reviewed player menu actions and gesture
+ settings
+
+Upstream PR: finamp-app/finamp#1836
+
+Final reviewed upstream: 0092a0593a9d69dfc461834d0e4e6c580d112379
+
+Production source: f731afb2273813002ab1e8dda96628fe8eafdb2a
+---
+ .../PlayerScreen/player_buttons_more.dart     |   4 +-
+ .../player_screen_album_image.dart            |   5 +-
+ .../PlayerScreen/track_name_content.dart      |   6 +-
+ .../menuEntries/lyrics_menu_entry.dart        |  40 ++
+ .../menuEntries/queue_menu_entry.dart         |  26 ++
+ lib/menus/track_menu.dart                     |  23 +-
+ lib/screens/lyrics_screen.dart                |   4 +-
+ lib/screens/player_screen.dart                |  18 +-
+ test/player_output_access_test.dart           | 391 ++++++++++++++++--
+ 9 files changed, 463 insertions(+), 54 deletions(-)
+ create mode 100644 lib/menus/components/menuEntries/lyrics_menu_entry.dart
+ create mode 100644 lib/menus/components/menuEntries/queue_menu_entry.dart
+
+diff --git a/lib/components/PlayerScreen/player_buttons_more.dart b/lib/components/PlayerScreen/player_buttons_more.dart
+index b46a5fae..33070df9 100644
+--- a/lib/components/PlayerScreen/player_buttons_more.dart
++++ b/lib/components/PlayerScreen/player_buttons_more.dart
+@@ -16,8 +16,9 @@ class PlayerButtonsMore extends ConsumerWidget {
+   final audioHandler = GetIt.instance<MusicPlayerBackgroundTask>();
+   final BaseItemDto? item;
+   final FinampQueueItem? queueItem;
++  final bool showHiddenPlayerActions;
+ 
+-  PlayerButtonsMore({super.key, required this.item, required this.queueItem});
++  PlayerButtonsMore({super.key, required this.item, required this.queueItem, this.showHiddenPlayerActions = false});
+ 
+   @override
+   Widget build(BuildContext context, WidgetRef ref) {
+@@ -38,6 +39,7 @@ class PlayerButtonsMore extends ConsumerWidget {
+               context: context,
+               item: item!,
+               showPlaybackControls: true, // show controls on player screen
++              showHiddenPlayerActions: showHiddenPlayerActions,
+               parentItem: inPlaylist ? queueItem!.source.item : null,
+               showQueueActions: true,
+             );
+diff --git a/lib/components/PlayerScreen/player_screen_album_image.dart b/lib/components/PlayerScreen/player_screen_album_image.dart
+index e2233742..51aae48b 100644
+--- a/lib/components/PlayerScreen/player_screen_album_image.dart
++++ b/lib/components/PlayerScreen/player_screen_album_image.dart
+@@ -18,7 +18,9 @@ import '../../services/favorite_provider.dart';
+ import '../album_image.dart';
+ 
+ class PlayerScreenAlbumImage extends ConsumerWidget {
+-  const PlayerScreenAlbumImage({super.key});
++  const PlayerScreenAlbumImage({super.key, this.showHiddenPlayerActions = false});
++
++  final bool showHiddenPlayerActions;
+ 
+   @override
+   Widget build(BuildContext context, WidgetRef ref) {
+@@ -48,6 +50,7 @@ class PlayerScreenAlbumImage extends ConsumerWidget {
+                   context: context,
+                   item: queueItem!.baseItem,
+                   showPlaybackControls: true,
++                  showHiddenPlayerActions: showHiddenPlayerActions,
+                   // show controls on player screen
+                   parentItem: inPlaylist ? queueItem.source.item : null,
+                 );
+diff --git a/lib/components/PlayerScreen/track_name_content.dart b/lib/components/PlayerScreen/track_name_content.dart
+index 9056fd75..cb9b37ca 100644
+--- a/lib/components/PlayerScreen/track_name_content.dart
++++ b/lib/components/PlayerScreen/track_name_content.dart
+@@ -104,7 +104,11 @@ class TrackNameContent extends ConsumerWidget {
+           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+           crossAxisAlignment: CrossAxisAlignment.center,
+           children: [
+-            PlayerButtonsMore(item: trackBaseItemDto, queueItem: currentTrack),
++            PlayerButtonsMore(
++              item: trackBaseItemDto,
++              queueItem: currentTrack,
++              showHiddenPlayerActions: !controller.shouldShow(PlayerHideable.bottomActions),
++            ),
+             Flexible(
+               child: ArtistChips(
+                 baseItem: trackBaseItemDto,
+diff --git a/lib/menus/components/menuEntries/lyrics_menu_entry.dart b/lib/menus/components/menuEntries/lyrics_menu_entry.dart
+new file mode 100644
+index 00000000..716b7508
+--- /dev/null
++++ b/lib/menus/components/menuEntries/lyrics_menu_entry.dart
+@@ -0,0 +1,40 @@
++import 'package:finamp/l10n/app_localizations.dart';
++import 'package:finamp/menus/components/menuEntries/menu_entry.dart';
++import 'package:finamp/screens/lyrics_screen.dart';
++import 'package:finamp/services/current_track_metadata_provider.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_riverpod/flutter_riverpod.dart';
++import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
++
++class LyricsMenuEntry extends ConsumerWidget implements HideableMenuEntry {
++  const LyricsMenuEntry({super.key});
++
++  @override
++  Widget build(BuildContext context, WidgetRef ref) {
++    final metadata = ref.watch(currentTrackMetadataProvider).unwrapPrevious();
++    final isLoading = metadata.isLoading || metadata.isRefreshing;
++    final isAvailable =
++        (metadata.valueOrNull?.hasLyrics ?? false) &&
++        (metadata.valueOrNull?.lyrics != null || metadata.isLoading) &&
++        !metadata.hasError;
++
++    return MenuEntry(
++      icon: !isLoading && !isAvailable ? TablerIcons.microphone_2_off : TablerIcons.microphone_2,
++      title: AppLocalizations.of(context)!.lyricsScreenButtonTitle,
++      // Like the bottom action, keep this accessible to show loading/missing lyrics.
++      onTap: () async {
++        final navigator = Navigator.of(context);
++        navigator.pop();
++        await navigator.push(
++          MaterialPageRoute<void>(
++            settings: const RouteSettings(name: LyricsScreen.routeName),
++            builder: (context) => const LyricsScreen(),
++          ),
++        );
++      },
++    );
++  }
++
++  @override
++  bool get isVisible => true;
++}
+diff --git a/lib/menus/components/menuEntries/queue_menu_entry.dart b/lib/menus/components/menuEntries/queue_menu_entry.dart
+new file mode 100644
+index 00000000..c30165d4
+--- /dev/null
++++ b/lib/menus/components/menuEntries/queue_menu_entry.dart
+@@ -0,0 +1,26 @@
++import 'package:finamp/components/PlayerScreen/queue_list.dart';
++import 'package:finamp/l10n/app_localizations.dart';
++import 'package:finamp/menus/components/menuEntries/menu_entry.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_riverpod/flutter_riverpod.dart';
++import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
++
++class QueueMenuEntry extends ConsumerWidget implements HideableMenuEntry {
++  const QueueMenuEntry({super.key});
++
++  @override
++  Widget build(BuildContext context, WidgetRef ref) {
++    return MenuEntry(
++      icon: TablerIcons.playlist,
++      title: AppLocalizations.of(context)!.queue,
++      onTap: () async {
++        final navigator = Navigator.of(context);
++        navigator.pop();
++        await showQueueBottomSheet(navigator.context, ref);
++      },
++    );
++  }
++
++  @override
++  bool get isVisible => true;
++}
+diff --git a/lib/menus/track_menu.dart b/lib/menus/track_menu.dart
+index 5f822d7c..1b273cc2 100644
+--- a/lib/menus/track_menu.dart
++++ b/lib/menus/track_menu.dart
+@@ -10,8 +10,10 @@ import 'package:finamp/menus/components/menuEntries/clear_queue_menu_entry.dart'
+ import 'package:finamp/menus/components/menuEntries/create_playlist_from_current_queue.dart';
+ import 'package:finamp/menus/components/menuEntries/delete_from_server_menu_entry.dart';
+ import 'package:finamp/menus/components/menuEntries/instant_mix_menu_entry.dart';
++import 'package:finamp/menus/components/menuEntries/lyrics_menu_entry.dart';
+ import 'package:finamp/menus/components/menuEntries/menu_entry.dart';
+ import 'package:finamp/menus/components/menuEntries/output_menu_entry.dart';
++import 'package:finamp/menus/components/menuEntries/queue_menu_entry.dart';
+ import 'package:finamp/menus/components/menuEntries/remove_from_current_playlist_menu_entry.dart';
+ import 'package:finamp/menus/components/menuEntries/remove_from_queue_menbu_entry.dart';
+ import 'package:finamp/menus/components/menuEntries/restore_queue_menu_entry.dart';
+@@ -25,6 +27,7 @@ import 'package:finamp/menus/components/speed_menu.dart';
+ import 'package:finamp/menus/sleep_timer_menu.dart';
+ import 'package:finamp/models/finamp_models.dart';
+ import 'package:finamp/models/jellyfin_models.dart';
++import 'package:finamp/screens/lyrics_screen.dart';
+ import 'package:finamp/services/current_track_metadata_provider.dart';
+ import 'package:finamp/services/feedback_helper.dart';
+ import 'package:finamp/services/finamp_settings_helper.dart';
+@@ -49,6 +52,7 @@ Future<void> showModalTrackMenu({
+   required BuildContext context,
+   required BaseItemDto item,
+   bool showPlaybackControls = false,
++  bool showHiddenPlayerActions = false,
+   BaseItemDto? parentItem,
+   VoidCallback? onRemoveFromList,
+   bool confirmPlaylistRemoval = true,
+@@ -57,7 +61,8 @@ Future<void> showModalTrackMenu({
+   FinampQueueItem? queueItem,
+   QueueItemSource? source,
+ }) async {
+-  await showThemedBottomSheet(
++  final showLyricsAction = ModalRoute.of(context)?.settings.name != LyricsScreen.routeName;
++  await showThemedBottomSheet<void>(
+     context: context,
+     item: item,
+     routeName: TrackMenu.routeName,
+@@ -67,6 +72,8 @@ Future<void> showModalTrackMenu({
+         item: item,
+         parentItem: parentItem,
+         showPlaybackControls: showPlaybackControls,
++        showHiddenPlayerActions: showHiddenPlayerActions,
++        showLyricsAction: showLyricsAction,
+         onRemoveFromList: onRemoveFromList,
+         confirmPlaylistRemoval: confirmPlaylistRemoval,
+         showQueueActions: showQueueActions,
+@@ -89,6 +96,8 @@ class TrackMenu extends ConsumerStatefulWidget {
+     super.key,
+     required this.item,
+     required this.showPlaybackControls,
++    this.showHiddenPlayerActions = false,
++    this.showLyricsAction = true,
+     required this.onRemoveFromList,
+     required this.confirmPlaylistRemoval,
+     required this.showQueueActions,
+@@ -103,6 +112,10 @@ class TrackMenu extends ConsumerStatefulWidget {
+   final BaseItemDto item;
+   final BaseItemDto? parentItem;
+   final bool showPlaybackControls;
++
++  /// Replaces the bottom actions when the player layout cannot show them.
++  final bool showHiddenPlayerActions;
++  final bool showLyricsAction;
+   final VoidCallback? onRemoveFromList;
+   final bool confirmPlaylistRemoval;
+   final bool showQueueActions;
+@@ -227,7 +240,7 @@ class _TrackMenuState extends ConsumerState<TrackMenu> with TickerProviderStateM
+     );
+ 
+     final metadata = ref.watch(currentTrackMetadataProvider).unwrapPrevious();
+-    return widget.childBuilder(stackHeight, menu(context, menuEntries, metadata.value));
++    return widget.childBuilder(stackHeight, menu(context, menuEntries, metadata.valueOrNull));
+   }
+ 
+   // Normal track menu entries, excluding headers
+@@ -239,7 +252,6 @@ class _TrackMenuState extends ConsumerState<TrackMenu> with TickerProviderStateM
+     }
+ 
+     return [
+-      if (widget.showPlaybackControls) const OutputMenuEntry(),
+       if (widget.queueInfo != null) RestoreQueueMenuEntry(queueInfo: widget.queueInfo!),
+       AddToPlaylistMenuEntry(item: playableItem, queueItem: queueItem),
+       RemoveFromCurrentPlaylistMenuEntry(
+@@ -257,6 +269,11 @@ class _TrackMenuState extends ConsumerState<TrackMenu> with TickerProviderStateM
+       if (widget.showQueueActions) ClearQueueMenuEntry(baseItem: widget.item),
+       DeleteFromServerMenuEntry(baseItem: widget.item),
+       RemoveFromQueueMenuEntry(queueItem: widget.queueItem),
++      if (widget.showPlaybackControls && widget.showHiddenPlayerActions) ...[
++        const OutputMenuEntry(),
++        const QueueMenuEntry(),
++        if (widget.showLyricsAction) const LyricsMenuEntry(),
++      ],
+     ];
+   }
+ 
+diff --git a/lib/screens/lyrics_screen.dart b/lib/screens/lyrics_screen.dart
+index 17eee95f..6ebbc2b8 100644
+--- a/lib/screens/lyrics_screen.dart
++++ b/lib/screens/lyrics_screen.dart
+@@ -62,9 +62,7 @@ class _LyricsScreenContentState extends ConsumerState<_LyricsScreenContent> {
+     return SimpleGestureDetector(
+       onVerticalSwipe: (direction) {
+         if (direction == SwipeDirection.up) {
+-          // This should never actually be called until widget finishes build and controller is initialized
+-          if (!FinampSettingsHelper.finampSettings.disableGesture ||
+-              !controller.shouldShow(PlayerHideable.bottomActions)) {
++          if (!FinampSettingsHelper.finampSettings.disableGesture) {
+             showQueueBottomSheet(context, ref);
+           }
+         }
+diff --git a/lib/screens/player_screen.dart b/lib/screens/player_screen.dart
+index 6f80a93b..f03ab0d9 100644
+--- a/lib/screens/player_screen.dart
++++ b/lib/screens/player_screen.dart
+@@ -167,17 +167,14 @@ class _PlayerScreenContent extends ConsumerWidget {
+               Navigator.of(context).pop();
+             }
+           } else if (direction == SwipeDirection.up) {
+-            // This should never actually be called until widget finishes build and controller is initialized
+-            if (!FinampSettingsHelper.finampSettings.disableGesture ||
+-                !controller.shouldShow(PlayerHideable.bottomActions)) {
++            if (!FinampSettingsHelper.finampSettings.disableGesture) {
+               showQueueBottomSheet(context, ref);
+             }
+           }
+         },
+         onHorizontalSwipe: (direction) {
+           if (direction == SwipeDirection.left && isLyricsAvailable) {
+-            if (!FinampSettingsHelper.finampSettings.disableGesture ||
+-                !controller.shouldShow(PlayerHideable.bottomActions)) {
++            if (!FinampSettingsHelper.finampSettings.disableGesture) {
+               Navigator.of(context).push(
+                 _buildSlideRouteTransition(
+                   playerScreen,
+@@ -288,7 +285,12 @@ class _PlayerScreenContent extends ConsumerWidget {
+                                     bottom: constraints.maxHeight * 0.03,
+                                     right: max(0, constraints.maxHeight * 0.03 - 20),
+                                   ),
+-                                  child: Hero(tag: "player", child: const PlayerScreenAlbumImage()),
++                                  child: Hero(
++                                    tag: "player",
++                                    child: PlayerScreenAlbumImage(
++                                      showHiddenPlayerActions: !controller.shouldShow(PlayerHideable.bottomActions),
++                                    ),
++                                  ),
+                                 ),
+                               ),
+                               const Spacer(),
+@@ -324,7 +326,9 @@ class _PlayerScreenContent extends ConsumerWidget {
+                               SizedBox(
+                                 height: controller.albumSize.height,
+                                 width: controller.albumSize.width,
+-                                child: const PlayerScreenAlbumImage(),
++                                child: PlayerScreenAlbumImage(
++                                  showHiddenPlayerActions: !controller.shouldShow(PlayerHideable.bottomActions),
++                                ),
+                               ),
+                               SizedBox(
+                                 height: controller.controlsSize.height,
+diff --git a/test/player_output_access_test.dart b/test/player_output_access_test.dart
+index 3aeeec60..01ca319a 100644
+--- a/test/player_output_access_test.dart
++++ b/test/player_output_access_test.dart
+@@ -1,8 +1,19 @@
+ import 'dart:async';
++import 'dart:convert';
+ import 'dart:io';
+ 
+ import 'package:audio_service/audio_service.dart';
+ import 'package:finamp/l10n/app_localizations.dart';
++import 'package:finamp/components/PlayerScreen/player_buttons_more.dart';
++import 'package:finamp/components/PlayerScreen/player_screen_album_image.dart';
++import 'package:finamp/components/PlayerScreen/queue_button.dart';
++import 'package:finamp/components/PlayerScreen/queue_list.dart';
++import 'package:finamp/screens/player_screen.dart';
++import 'package:finamp/screens/lyrics_screen.dart';
++import 'package:finamp/services/current_album_image_provider.dart' as artwork;
++import 'package:finamp/services/metadata_provider.dart';
++import 'package:flutter/gestures.dart';
++import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+ import 'package:finamp/hive_registrar.g.dart';
+ import 'package:finamp/models/theme_mode_adapter.dart';
+ import 'package:finamp/models/locale_adapter.dart';
+@@ -22,10 +33,12 @@ import 'package:finamp/services/jellyfin_api_helper.dart';
+ import 'package:finamp/services/radio_service_helper.dart';
+ import 'package:finamp/services/theme_provider.dart';
+ import 'package:flutter/material.dart';
++import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+ import 'package:flutter/foundation.dart';
+ import 'package:flutter/services.dart';
+ import 'package:flutter_riverpod/flutter_riverpod.dart';
+ import 'package:flutter_test/flutter_test.dart';
++import 'package:visibility_detector/visibility_detector.dart';
+ import 'package:get_it/get_it.dart';
+ import 'package:rxdart/rxdart.dart';
+ 
+@@ -37,11 +50,48 @@ final song = BaseItemDto(
+ );
+ 
+ class FixtureQueue extends Fake implements QueueService {
++  late final track = FinampQueueItem(
++    item: MediaItem(
++      id: song.id.toString(),
++      title: song.name!,
++      duration: const Duration(minutes: 3),
++      extras: {'itemJson': song.toJson()},
++    ),
++    source: QueueItemSource.fromBaseItem(song),
++  );
++  late final info = FinampQueueInfo(
++    id: 'fixture',
++    previousTracks: [],
++    currentTrack: track,
++    nextUp: [],
++    queue: [],
++    source: track.source,
++    saveState: SavedQueueState.init,
++    sourceLibrary: null,
++  );
++  late final current = BehaviorSubject<FinampQueueItem?>.seeded(track);
++  late final queue = BehaviorSubject<FinampQueueInfo?>.seeded(info);
++  @override
++  FinampQueueInfo getQueue() => info;
++  @override
++  BehaviorSubject<FinampQueueInfo?> getQueueStream() => queue;
++  @override
++  BehaviorSubject<FinampQueueItem?> getCurrentTrackStream() => current;
++  @override
++  List<FinampQueueItem> peekQueue({int? next, int previous = 0, bool current = false}) => [];
++  @override
++  FinampPlaybackOrder get playbackOrder => order.value;
++  @override
++  FinampLoopMode get loopMode => loop.value;
++  @override
++  double get playbackSpeed => speed.value;
++  @override
++  Future<void> skipByOffset(int offset) async {}
+   final order = BehaviorSubject<FinampPlaybackOrder>.seeded(FinampPlaybackOrder.linear);
+   final loop = BehaviorSubject<FinampLoopMode>.seeded(FinampLoopMode.none);
+   final speed = BehaviorSubject<double>.seeded(1);
+   @override
+-  FinampQueueItem? getCurrentTrack() => null;
++  FinampQueueItem? getCurrentTrack() => track;
+   @override
+   BehaviorSubject<FinampPlaybackOrder> getPlaybackOrderStream() => order;
+   @override
+@@ -51,6 +101,8 @@ class FixtureQueue extends Fake implements QueueService {
+ }
+ 
+ class FixtureAudio extends Fake implements MusicPlayerBackgroundTask {
++  @override
++  Future<List<FinampOutputRoute>> getRoutes() async => [];
+   @override
+   final ValueNotifier<SleepTimer?> timer = ValueNotifier<SleepTimer?>(null);
+   @override
+@@ -67,6 +119,8 @@ class FixtureUser extends Fake implements FinampUserHelper {
+ }
+ 
+ class FixtureDownloads extends Fake implements DownloadsService {
++  @override
++  bool? isFavorite(BaseItemDto item) => false;
+   @override
+   DownloadItemStatus getStatus(DownloadStub stub, int? recursive) => DownloadItemStatus.notNeeded;
+   @override
+@@ -75,18 +129,51 @@ class FixtureDownloads extends Fake implements DownloadsService {
+   );
+ }
+ 
++class FixtureCache extends Fake implements BaseCacheManager {}
++
+ class FixtureAudioHelper extends Fake implements AudioServiceHelper {}
+ 
+ class FixtureApi extends Fake implements JellyfinApiHelper {}
+ 
+-Future<void> mount(WidgetTester tester, {required bool playerMenu, bool hideBottomActions = true}) async {
+-  tester.view.physicalSize = const Size(700, 1400);
++class FixtureMetadata extends Fake implements MetadataProvider {
++  FixtureMetadata({this.hasLyrics = true});
++  @override
++  final bool hasLyrics;
++  @override
++  BaseItemDto get item => song;
++  @override
++  LyricDto get lyrics => LyricDto(lyrics: [LyricLine(text: 'Fixture lyric')]);
++  @override
++  bool get qualifiesForPlaybackSpeedControl => false;
++}
++
++class RouteLog extends NavigatorObserver {
++  final routes = <Route<dynamic>>[];
++  @override
++  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) => routes.add(route);
++  @override
++  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) => routes.remove(route);
++}
++
++Future<RouteLog> mount(
++  WidgetTester tester, {
++  bool playerMenu = true,
++  bool hideBottomActions = true,
++  bool disableGestures = true,
++  bool artworkMenu = false,
++  bool openMenu = true,
++  bool legacyCaller = false,
++  Size size = const Size(700, 1400),
++  AsyncValue<MetadataProvider?>? metadata,
++}) async {
++  tester.view.physicalSize = size;
+   tester.view.devicePixelRatio = 1;
+   addTearDown(tester.view.resetPhysicalSize);
+   addTearDown(tester.view.resetDevicePixelRatio);
+   final audio = FixtureAudio();
+   GetIt.instance.registerSingleton<MusicPlayerBackgroundTask>(audio);
+   final queue = FixtureQueue();
++  audio.mediaItem.add(queue.track.item);
+   GetIt.instance.registerSingleton<QueueService>(queue);
+   GetIt.instance.registerSingleton<FinampUserHelper>(FixtureUser());
+   GetIt.instance.registerSingleton<DownloadsService>(FixtureDownloads());
+@@ -98,23 +185,27 @@ Future<void> mount(WidgetTester tester, {required bool playerMenu, bool hideBott
+     tabSortBy: {},
+     tabSortOrder: {},
+     homeScreenConfiguration: const FinampHomeScreenConfiguration(actions: [], sections: []),
++    featureChipsConfiguration: const FinampFeatureChipsConfiguration(enabled: false, features: [], migrated: true),
++    previousTracksPersistenceMode: PreviousTracksPersistenceMode.persistent,
+     gridImageSize: 160,
+     homeScreenImageSize: 160,
+     deviceId: 'output-menu-test',
+     isOffline: true,
+     hidePlayerBottomActions: hideBottomActions,
+     useCoverAsBackground: false,
++    showLyricsScreenAlbumPrelude: false,
+     enableVibration: false,
+   );
+-  settings.disableGesture = true;
++  settings.disableGesture = disableGestures;
+   await Hive.box<FinampSettings>("FinampSettings").put("FinampSettings", settings);
+   final container = ProviderContainer(
+     overrides: [
+       localThemeProvider.overrideWithValue(ColorScheme.fromSeed(seedColor: Colors.blue)),
++      artwork.currentAlbumImageProvider.overrideWithValue(FinampImage.empty()),
+       finampSettingsProvider.overrideWith((ref) => Stream.value(settings)),
+-      currentTrackMetadataProvider.overrideWithValue(const AsyncValue.data(null)),
+-      currentTrackProvider.overrideWith((ref) => Stream.value(null)),
+-      QueueService.queueProvider.overrideWithValue(null),
++      currentTrackMetadataProvider.overrideWithValue(metadata ?? AsyncValue.data(FixtureMetadata())),
++      currentTrackProvider.overrideWith((ref) => Stream.value(queue.track)),
++      QueueService.queueProvider.overrideWithValue(queue.info),
+       currentRadioAvailabilityStatusProvider.overrideWithValue(RadioModeAvailabilityStatus.disabled),
+       radioStateProvider.overrideWithValue(null),
+     ],
+@@ -122,8 +213,11 @@ Future<void> mount(WidgetTester tester, {required bool playerMenu, bool hideBott
+   GetIt.instance.registerSingleton<ProviderContainer>(container);
+   await container.read(finampSettingsProvider.future);
+   addTearDown(() async {
++    await tester.pumpWidget(const SizedBox.shrink());
+     container.dispose();
+     audio.timer.dispose();
++    await queue.current.close();
++    await queue.queue.close();
+     await queue.order.close();
+     await queue.loop.close();
+     await queue.speed.close();
+@@ -132,18 +226,35 @@ Future<void> mount(WidgetTester tester, {required bool playerMenu, bool hideBott
+     await audio.fadeState.close();
+     await GetIt.instance.reset();
+   });
++  final routeLog = RouteLog();
+   await tester.pumpWidget(
+     UncontrolledProviderScope(
+       container: container,
+-      child: MaterialApp(
+-        locale: const Locale('en'),
+-        localizationsDelegates: AppLocalizations.localizationsDelegates,
+-        supportedLocales: AppLocalizations.supportedLocales,
+-        home: Scaffold(
+-          body: Builder(
+-            builder: (context) => TextButton(
+-              child: const Text('Open track menu'),
+-              onPressed: () => showModalTrackMenu(context: context, item: song, showPlaybackControls: playerMenu),
++      child: RepaintBoundary(
++        key: const ValueKey('capture'),
++        child: MaterialApp(
++          locale: const Locale('en'),
++          debugShowCheckedModeBanner: false,
++          theme: ThemeData(
++            fontFamily: 'Roboto',
++            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
++          ),
++          localizationsDelegates: AppLocalizations.localizationsDelegates,
++          supportedLocales: AppLocalizations.supportedLocales,
++          navigatorObservers: [routeLog],
++          routes: {PlayerScreen.routeName: (context) => const PlayerScreen(key: ValueKey('player'))},
++          home: Scaffold(
++            body: Builder(
++              builder: (context) => TextButton(
++                child: const Text('Open fixture'),
++                onPressed: () {
++                  if (playerMenu && !legacyCaller) {
++                    Navigator.of(context).pushNamed(PlayerScreen.routeName);
++                  } else {
++                    showModalTrackMenu(context: context, item: song, showPlaybackControls: legacyCaller);
++                  }
++                },
++              ),
+             ),
+           ),
+         ),
+@@ -151,11 +262,63 @@ Future<void> mount(WidgetTester tester, {required bool playerMenu, bool hideBott
+     ),
+   );
+   await tester.pumpAndSettle();
+-  await tester.tap(find.text('Open track menu'));
++  await tester.tap(find.text('Open fixture'));
+   await tester.pumpAndSettle();
++  if (playerMenu && !legacyCaller && openMenu) {
++    if (artworkMenu) {
++      await tester.tap(find.byType(PlayerScreenAlbumImage), buttons: kSecondaryMouseButton);
++    } else {
++      await tester.tap(find.byType(PlayerButtonsMore));
++    }
++    await tester.pumpAndSettle();
++  }
++  return routeLog;
++}
++
++Finder menuTile(String title) =>
++    find.descendant(of: find.byType(TrackMenu), matching: find.widgetWithText(ListTile, title));
++
++Future<void> capture(WidgetTester tester, String name) async {
++  const directory = String.fromEnvironment('EVIDENCE_DIR');
++  if (directory.isEmpty) return;
++  const stage = String.fromEnvironment('EVIDENCE_STAGE', defaultValue: 'after');
++  await expectLater(find.byKey(const ValueKey('capture')), matchesGoldenFile(Uri.file('$directory/$name-$stage.png')));
+ }
+ 
+ void main() {
++  TestWidgetsFlutterBinding.ensureInitialized();
++  late StreamSubscription<Duration> positionSubscription;
++  setUpAll(() async {
++    VisibilityDetectorController.instance.updateInterval = Duration.zero;
++    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
++      const MethodChannel('com.ryanheise.audio_service.client.methods'),
++      (call) async => <String, dynamic>{},
++    );
++    await AudioService.init(builder: BaseAudioHandler.new, cacheManager: FixtureCache());
++    // audio_service retains its position timer after the last listener; create it
++    // outside individual widget tests' fake clocks and share the subscription.
++    positionSubscription = AudioService.position.listen((_) {});
++    const font = String.fromEnvironment('EVIDENCE_FONT');
++    if (font.isNotEmpty) {
++      final bytes = ByteData.sublistView(File(font).readAsBytesSync());
++      // The bottom sheet creates its own ThemeData, including Apple's font family.
++      for (final family in ['Roboto', '.AppleSystemUIFont']) {
++        await (FontLoader(family)..addFont(Future.value(bytes))).load();
++      }
++      final manifest = jsonDecode(await rootBundle.loadString('FontManifest.json')) as List<dynamic>;
++      for (final family in manifest) {
++        final loader = FontLoader(family['family'] as String);
++        for (final asset in family['fonts'] as List<dynamic>) {
++          loader.addFont(rootBundle.load(asset['asset'] as String));
++        }
++        await loader.load();
++      }
++    }
++  });
++  tearDownAll(() async {
++    await positionSubscription.cancel();
++    VisibilityDetectorController.instance.updateInterval = const Duration(milliseconds: 500);
++  });
+   final nativeTarget = TargetPlatformVariant.only(Platform.isMacOS ? TargetPlatform.macOS : TargetPlatform.android);
+   late Directory directory;
+   setUp(() async {
+@@ -183,29 +346,181 @@ void main() {
+     await Hive.close();
+     await directory.delete(recursive: true);
+   });
+-  testWidgets('hidden bottom actions retain Output through the real player menu', (tester) async {
+-    await mount(tester, playerMenu: true);
+-    expect(find.text('Output'), findsOneWidget);
+-  }, variant: nativeTarget);
+-  testWidgets('visible bottom actions keep the same player-menu Output entry', (tester) async {
+-    await mount(tester, playerMenu: true, hideBottomActions: false);
+-    expect(find.text('Output'), findsOneWidget);
+-  }, variant: nativeTarget);
+-  testWidgets('ordinary library track menus do not gain player Output controls', (tester) async {
+-    await mount(tester, playerMenu: false);
+-    expect(find.text('Output'), findsNothing);
+-  }, variant: nativeTarget);
+-  testWidgets('Output replaces the track sheet and closes back to its surviving player route', (tester) async {
+-    await mount(tester, playerMenu: true);
+-    await tester.tap(find.text('Output'));
++  for (final hidden in [false, true]) {
++    for (final gestures in [false, true]) {
++      for (final artwork in [false, true]) {
++        testWidgets('player actions: hidden=$hidden disabled gestures=$gestures artwork=$artwork', (tester) async {
++          await mount(tester, hideBottomActions: hidden, disableGestures: gestures, artworkMenu: artwork);
++          for (final title in ['Output', 'Queue', 'Lyrics']) {
++            expect(menuTile(title), hidden ? findsOneWidget : findsNothing);
++          }
++          if (hidden) {
++            await tester.ensureVisible(menuTile('Lyrics'));
++            await tester.pumpAndSettle();
++            final tiles = tester
++                .widgetList<ListTile>(find.descendant(of: find.byType(TrackMenu), matching: find.byType(ListTile)))
++                .map((tile) => (tile.title as Text).data)
++                .toList();
++            expect(tiles.sublist(tiles.length - 3), ['Output', 'Queue', 'Lyrics']);
++          }
++        }, variant: nativeTarget);
++      }
++    }
++  }
++  for (final size in [const Size(1400, 700), const Size(480, 280)]) {
++    for (final artwork in [false, true]) {
++      testWidgets('adaptive player layout $size artwork=$artwork', (tester) async {
++        await mount(tester, hideBottomActions: false, size: size, artworkMenu: artwork);
++        final playerHasBottomActions = find.byType(QueueButton).evaluate().isNotEmpty;
++        for (final title in ['Output', 'Queue', 'Lyrics']) {
++          if (!playerHasBottomActions) {
++            await tester.scrollUntilVisible(
++              menuTile(title),
++              100,
++              scrollable: find.descendant(of: find.byType(TrackMenu), matching: find.byType(Scrollable)).first,
++            );
++          }
++          expect(menuTile(title), playerHasBottomActions ? findsNothing : findsOneWidget);
++        }
++        if (size.height == 280) expect(playerHasBottomActions, isFalse);
++      }, variant: nativeTarget);
++    }
++  }
++  for (final state in ['loading', 'missing', 'error']) {
++    testWidgets('lyrics stays reachable with $state metadata', (tester) async {
++      final metadata = switch (state) {
++        'loading' => const AsyncValue<MetadataProvider?>.loading(),
++        'error' => AsyncValue<MetadataProvider?>.error(StateError('fixture'), StackTrace.empty),
++        _ => AsyncValue<MetadataProvider?>.data(FixtureMetadata(hasLyrics: false)),
++      };
++      await mount(tester, metadata: metadata);
++      await tester.ensureVisible(menuTile('Lyrics'));
++      final tile = tester.widget<ListTile>(menuTile('Lyrics'));
++      expect((tile.leading as Icon).icon, state == 'loading' ? TablerIcons.microphone_2 : TablerIcons.microphone_2_off);
++      await tester.tap(menuTile('Lyrics'));
++      await tester.pumpAndSettle();
++      expect(find.byType(LyricsScreen), findsOneWidget);
++      final l10n = AppLocalizations.of(tester.element(find.byType(LyricsScreen)))!;
++      expect(
++        find.text(switch (state) {
++          'loading' => l10n.lyricsEmptyStateLoading,
++          'missing' => l10n.lyricsEmptyStateNoLyrics,
++          _ => l10n.lyricsEmptyStateFailed,
++        }),
++        findsOneWidget,
++      );
++    }, variant: nativeTarget);
++  }
++  for (final disabled in [false, true]) {
++    testWidgets('lyrics queue swipe respects disabled gestures=$disabled', (tester) async {
++      await mount(tester, disableGestures: disabled);
++      await tester.ensureVisible(menuTile('Lyrics'));
++      await tester.tap(menuTile('Lyrics'));
++      await tester.pumpAndSettle();
++      await tester.flingFrom(const Offset(690, 180), const Offset(0, -100), 1000);
++      await tester.pumpAndSettle();
++      expect(find.byType(QueueList), disabled ? findsNothing : findsOneWidget);
++    }, variant: nativeTarget);
++  }
++  testWidgets('lyrics menu keeps Output and Queue without opening duplicate lyrics routes', (tester) async {
++    final log = await mount(tester);
++    await tester.ensureVisible(menuTile('Lyrics'));
++    await tester.tap(menuTile('Lyrics'));
++    await tester.pumpAndSettle();
++    await tester.tap(find.byType(PlayerButtonsMore));
++    await tester.pumpAndSettle();
++    expect(menuTile('Output'), findsOneWidget);
++    expect(menuTile('Queue'), findsOneWidget);
++    expect(menuTile('Lyrics'), findsNothing);
++    await tester.tap(menuTile('Output'));
+     await tester.pumpAndSettle();
+     expect(find.byType(TrackMenu), findsNothing);
+-    expect(find.byType(OutputMenuHeader), findsOneWidget);
+-    expect(find.byType(VolumeSlider), findsOneWidget);
+-    final context = tester.element(find.byType(OutputMenuHeader));
+-    Navigator.of(context).pop();
++    expect(log.routes.map((route) => route.settings.name), [
++      '/',
++      PlayerScreen.routeName,
++      LyricsScreen.routeName,
++      outputMenuRouteName,
++    ]);
++    log.routes.last.navigator!.pop();
+     await tester.pumpAndSettle();
+-    expect(find.byType(OutputMenuHeader), findsNothing);
+-    expect(find.text('Open track menu'), findsOneWidget);
++    expect(find.byType(LyricsScreen), findsOneWidget);
++    expect(log.routes.length, 3);
+   }, variant: nativeTarget);
++  if (const String.fromEnvironment('EVIDENCE_DIR').isNotEmpty) {
++    for (final hidden in [false, true]) {
++      testWidgets('capture player menu hidden=$hidden', (tester) async {
++        await mount(tester, hideBottomActions: hidden);
++        await capture(tester, hidden ? 'menu-hidden' : 'menu-visible');
++      }, variant: nativeTarget);
++    }
++  }
++  testWidgets('ordinary library track menus do not gain player actions', (tester) async {
++    await mount(tester, playerMenu: false);
++    for (final title in ['Output', 'Queue', 'Lyrics']) {
++      expect(menuTile(title), findsNothing);
++    }
++  }, variant: nativeTarget);
++  testWidgets('existing callers with playback controls retain their default menu', (tester) async {
++    await mount(tester, legacyCaller: true);
++    expect(menuTile('Output'), findsNothing);
++    expect(menuTile('Queue'), findsNothing);
++    expect(menuTile('Lyrics'), findsNothing);
++  }, variant: nativeTarget);
++  for (final title in ['Output', 'Queue', 'Lyrics']) {
++    testWidgets('$title replaces the menu and Back returns directly to the player', (tester) async {
++      final log = await mount(tester);
++      await tester.ensureVisible(menuTile(title));
++      await tester.tap(menuTile(title));
++      await tester.pumpAndSettle();
++      expect(find.byType(TrackMenu), findsNothing);
++      expect(log.routes.map((route) => route.settings.name), [
++        '/',
++        PlayerScreen.routeName,
++        switch (title) {
++          'Queue' => QueueList.routeName,
++          'Lyrics' => LyricsScreen.routeName,
++          _ => '/output-menu',
++        },
++      ]);
++      if (title == 'Output') {
++        expect(find.byType(VolumeSlider), findsOneWidget);
++        await capture(tester, 'output-opened');
++      } else if (title == 'Queue') {
++        expect(find.byType(QueueList), findsOneWidget);
++        await capture(tester, 'queue-opened');
++      } else {
++        expect(find.byType(LyricsScreen), findsOneWidget);
++        expect(find.text('Fixture lyric', findRichText: true), findsOneWidget);
++        await capture(tester, 'lyrics-opened');
++      }
++      log.routes.last.navigator!.pop();
++      await tester.pumpAndSettle();
++      expect(log.routes.map((route) => route.settings.name), ['/', PlayerScreen.routeName]);
++      expect(find.byType(PlayerButtonsMore), findsOneWidget);
++    }, variant: nativeTarget);
++  }
++  for (final hidden in [false, true]) {
++    for (final disabled in [false, true]) {
++      testWidgets('player swipes respect settings: hidden=$hidden disabled=$disabled', (tester) async {
++        final log = await mount(tester, hideBottomActions: hidden, disableGestures: disabled, openMenu: false);
++        await tester.flingFrom(const Offset(350, 500), const Offset(0, -180), 1000);
++        await tester.pumpAndSettle();
++        expect(find.byType(QueueList), disabled ? findsNothing : findsOneWidget);
++        if (!disabled) {
++          log.routes.last.navigator!.pop();
++          await tester.pumpAndSettle();
++        }
++        await tester.flingFrom(const Offset(650, 1350), const Offset(-180, 0), 1000);
++        await tester.pumpAndSettle();
++        expect(find.byType(LyricsScreen), disabled ? findsNothing : findsOneWidget);
++        if (!disabled) {
++          log.routes.last.navigator!.pop();
++          await tester.pumpAndSettle();
++        }
++        await tester.flingFrom(const Offset(350, 500), const Offset(0, 180), 1000);
++        await tester.pumpAndSettle();
++        expect(log.routes.length, disabled ? 2 : 1);
++      }, variant: nativeTarget);
++    }
++  }
+ }
+-- 
+2.54.0 (Apple Git-157)
+

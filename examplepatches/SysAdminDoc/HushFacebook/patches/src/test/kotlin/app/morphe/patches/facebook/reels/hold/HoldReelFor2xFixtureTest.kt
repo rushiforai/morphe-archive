@@ -187,7 +187,7 @@ class HoldReelFor2xFixtureTest {
                 val attaches = attachHolders.flatMap { c -> c.methods.mapNotNull { m -> attachedPlayerParameter(m, player.type)?.let { m to it } } }
                 assertEquals("$name: attaches of ${player.type}'s view: ${attaches.map { key(it.first) }}", 1, attaches.size)
                 val (attach, playerParameter) = attaches.single()
-                val written = containersWritten(attach, player.type)
+                val written = containersWritten(attach, player)
                 assertEquals("$name: ViewGroup fields of ${player.type} the attach writes: $written", 1, written.size)
                 val container = written.single()
                 val containerField = player.fields.single { it.name == container.name && it.type == container.type }

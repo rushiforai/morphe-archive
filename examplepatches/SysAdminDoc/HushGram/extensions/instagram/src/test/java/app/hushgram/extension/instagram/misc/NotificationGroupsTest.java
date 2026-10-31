@@ -14,6 +14,7 @@ import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -30,10 +31,16 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
+import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowNotificationManager;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
@@ -72,6 +79,7 @@ public class NotificationGroupsTest {
         HookStatus.clear();
         NotificationGroups.resetForTests();
         context = RuntimeEnvironment.getApplication();
+        context.getApplicationInfo().targetSdkVersion = 37; // Instagram 453's target on every runtime.
         manager = context.getSystemService(NotificationManager.class);
     }
 
@@ -79,6 +87,7 @@ public class NotificationGroupsTest {
     public void restore() {
         Settings.GROUP_NOTIFICATIONS.resetToDefault();
         Settings.GROUP_NOTIFICATIONS_BY_TYPE.resetToDefault();
+        Settings.MUTED_NOTIFICATION_CHANNELS.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         HookStatus.clear();
@@ -235,6 +244,120 @@ public class NotificationGroupsTest {
         assertEquals(NotificationGroups.TYPE_GROUP + "comments", shown(null, 7).getGroup());
         assertEquals(NotificationGroups.TYPE_GROUP + NotificationGroups.NO_CHANNEL,
                 NotificationGroups.groupFor(new Notification(), true));
+    }
+
+    private static final String PROMO = "ig_product_announcements";
+
+    private long mutedLines(String channel) {
+        return ShadowLog.getLogs().stream()
+                .filter(item -> item.msg.contains("Notification groups: muted " + channel + ",")).count();
+    }
+
+    @Test
+    public void aMutedChannelNeverReachesTheManagerAndIsLoggedOnce() {
+        Settings.MUTED_NOTIFICATION_CHANNELS.save(PROMO + ",ig_shopping_drops");
+        // The fake manager throws at the next post it gets, so any post that reached it would fail here.
+        platform().failNextPost = true;
+
+        NotificationGroups.notify(manager, "promo", 1, built(PROMO, "a promo"));
+        NotificationGroups.notify(manager, 2, built(PROMO, "another promo"));
+
+        assertTrue("the manager was never asked to post", platform().failNextPost);
+        platform().failNextPost = false;
+        assertEquals(0, shadowOf(manager).size());
+        assertEquals(1, mutedLines(PROMO));
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(NotificationGroups.MUTED + " 2"));
+        assertTrue(HookStatus.missing(FamilyNames.NOTIFICATION_GROUPS).toString(),
+                HookStatus.missing(FamilyNames.NOTIFICATION_GROUPS).isEmpty());
+    }
+
+    @Test
+    public void otherChannelsStillGroupAndCountWhileOneIsMuted() {
+        Settings.MUTED_NOTIFICATION_CHANNELS.save(PROMO);
+        Notification message = built("ig_direct", "a message");
+        NotificationGroups.post(manager, null, 4, message, OFF, OFF);
+        assertSame("with grouping off, other channels post as built", message, shown(null, 4));
+        manager.cancel(null, 4);
+
+        NotificationGroups.post(manager, "like", 1, built("ig_likes", "first like"), ON, OFF);
+        NotificationGroups.post(manager, "promo", 2, built(PROMO, "a promo"), ON, OFF);
+        NotificationGroups.post(manager, "like", 3, built("ig_likes", "second like"), ON, OFF);
+
+        assertNull(shown("promo", 2));
+        assertEquals(NotificationGroups.ONE_GROUP, shown("like", 1).getGroup());
+        assertEquals(NotificationGroups.ONE_GROUP, shown("like", 3).getGroup());
+        assertEquals("the muted one isn't counted", 2, summary(NotificationGroups.ONE_GROUP).number);
+        assertEquals(3, shadowOf(manager).size());
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(NotificationGroups.GROUPED + " 2") && report.contains(NotificationGroups.MUTED + " 1"));
+    }
+
+    @Test
+    public void unmutingDeliversTheNextOneWithoutARestart() {
+        Settings.MUTED_NOTIFICATION_CHANNELS.save(PROMO);
+        NotificationGroups.notify(manager, "promo", 1, built(PROMO, "a promo"));
+        assertNull(shown("promo", 1));
+
+        Settings.MUTED_NOTIFICATION_CHANNELS.save("");
+        Notification promo = built(PROMO, "the next promo");
+        NotificationGroups.notify(manager, "promo", 1, promo);
+
+        assertSame(promo, shown("promo", 1));
+    }
+
+    @Test
+    public void pausedUnreadyOrThrowingMutesNothing() {
+        Settings.MUTED_NOTIFICATION_CHANNELS.save(PROMO);
+        Notification promo = built(PROMO, "a promo");
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(app.hushgram.extension.shared.settings.HushgramPause.Reason.SWITCH);
+        NotificationGroups.notify(manager, "promo", 1, promo);
+        assertSame(promo, shown("promo", 1));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+
+        SettingsContextRule.withoutContext(() -> NotificationGroups.notify(manager, "promo", 2, promo));
+        assertSame(promo, shown("promo", 2));
+
+        NotificationGroups.post(manager, "promo", 3, promo, OFF, OFF, () -> {
+            throw new IllegalStateException("settings went away");
+        });
+        assertSame(promo, shown("promo", 3));
+        assertFalse(HookStatus.missing(FamilyNames.NOTIFICATION_GROUPS).isEmpty());
+        assertEquals(0, mutedLines(PROMO));
+    }
+
+    @Test
+    public void theMutedListKeepsInstagramsChannelIdsInOrder() {
+        Set<String> parsed = NotificationGroups.mutedChannels(" " + PROMO + ",ig_likes,,ig likes,hushgram_saves ");
+
+        assertEquals(new TreeSet<>(Arrays.asList("ig_likes", PROMO)), parsed);
+        assertEquals("ig_likes," + PROMO, NotificationGroups.joinChannels(parsed));
+        assertTrue(NotificationGroups.mutedChannels(null).isEmpty());
+        assertEquals("", NotificationGroups.joinChannels(NotificationGroups.mutedChannels("")));
+    }
+
+    @Test
+    public void theOfferedListIsInstagramsChannelsByNameWithGoneMutedOnesLast() {
+        for (String[] channel : new String[][]{{"ig_likes", "Likes"}, {PROMO, "Product announcements"},
+                {"ig_heads_up_comments", "Comments"}, {"ig_comments_old", "Comments"}, {"ig_blank", " "},
+                {"hushgram_saves", "Saves"}}) {
+            manager.createNotificationChannel(new NotificationChannel(channel[0], channel[1], NotificationManager.IMPORTANCE_DEFAULT));
+        }
+
+        List<String[]> offered = NotificationGroups.offeredChannels(context, new TreeSet<>(Arrays.asList("ig_likes", "ig_gone")));
+
+        List<String> ids = new ArrayList<>();
+        List<String> labels = new ArrayList<>();
+        for (String[] each : offered) {
+            ids.add(each[0]);
+            labels.add(each[1]);
+        }
+        assertEquals(Arrays.asList("Comments (ig_comments_old)", "Comments (ig_heads_up_comments)", "ig_blank", "Likes",
+                "Product announcements", "ig_gone"), labels);
+        assertEquals(Arrays.asList("ig_comments_old", "ig_heads_up_comments", "ig_blank", "ig_likes", PROMO, "ig_gone"), ids);
     }
 
     private Notification summary(String group) {

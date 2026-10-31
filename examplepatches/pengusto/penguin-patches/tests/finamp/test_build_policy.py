@@ -5,7 +5,7 @@ import unittest
 import tempfile
 from copy import deepcopy
 from pfd import make_delta
-from build_native_payloads import sha, verify_receipts
+from build_native_payloads import sha, verify_receipts, source_test_receipt
 
 from build_native_payloads import PRODUCTION, payload_output
 
@@ -37,7 +37,11 @@ class OutputPolicyTests(unittest.TestCase):
             self.assertEqual(set(entry['features']), expected, mask)
             self.assertRegex(entry['commit'], r'^[0-9a-f]{40}$')
             self.assertRegex(entry['tree'], r'^[0-9a-f]{40}$')
-            self.assertEqual(entry['branch'], f'penguin/finamp-native-1.0.1-mask-{mask}')
+            # Review backports use distinct public branches while other chats
+            # update the canonical matrix. Every branch still identifies its
+            # exact mask; immutable commit/tree pins establish the source.
+            self.assertRegex(entry['branch'],
+                             rf'^penguin/finamp-native-1\.0\.1-(?:[a-z0-9]+-)*mask-{mask}$')
 
     def test_complete_matrix_can_replace_production(self):
         self.assertEqual(payload_output(range(1, 128), None, Path('/tmp/finamp-test')),
@@ -68,3 +72,30 @@ class ResumeTests(unittest.TestCase):
             payload.write_bytes(delta[:-1])
             with self.assertRaises(ValueError):
                 verify_receipts(receipt, matrix, output, before)
+
+    def test_tested_resume_rejects_untested_or_replaced_log(self):
+        before, after = b'original', b'patched'
+        delta = make_delta(before, after)
+        log = b'00:13 +27: All tests passed!\n'
+        matrix = {'masks': {'32': {'commit': 'source32'}}}
+        receipt = {'32': {'source': 'source32', 'delta_sha256': sha(delta),
+                          'native_sha256': sha(after), 'native_bytes': len(after),
+                          'delta_bytes': len(delta)}}
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / 'arm64-v8a').mkdir()
+            (output / 'arm64-v8a/32.pfd').write_bytes(delta)
+            (output / 'test-32.log').write_bytes(log)
+            with self.assertRaises(ValueError):
+                verify_receipts(receipt, matrix, output, before, output)
+            receipt['32']['source_tests'] = source_test_receipt(log)
+            verify_receipts(receipt, matrix, output, before, output)
+            (output / 'test-32.log').write_bytes(log + b'replaced\n')
+            with self.assertRaises(ValueError):
+                verify_receipts(receipt, matrix, output, before, output)
+
+    def test_source_log_needs_one_positive_success_summary(self):
+        for log in [b'', b'00:01 +0: All tests passed!', b'00:01 +1 -1: Some tests failed.',
+                    b'00:01 +1: All tests passed!\n00:02 +2: All tests passed!']:
+            with self.subTest(log=log), self.assertRaises(ValueError):
+                source_test_receipt(log)

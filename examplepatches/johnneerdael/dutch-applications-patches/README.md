@@ -47,7 +47,7 @@ The bilingual Markdown source is in [docs/site](docs/site). App pages distinguis
 ## Supported apps
 
 <!-- PATCHES_START SUMMARY -->
-**Patch bundles:** [Stable v1.19.2](https://github.com/johnneerdael/dutch-applications-patches/releases/tag/v1.19.2) · [Pre-release v1.20.0-dev.4](https://github.com/johnneerdael/dutch-applications-patches/releases/tag/v1.20.0-dev.4) · 28 apps
+**Patch bundles:** [Stable v1.31.0](https://github.com/johnneerdael/dutch-applications-patches/releases/tag/v1.31.0) · [Pre-release v1.31.0-dev.2](https://github.com/johnneerdael/dutch-applications-patches/releases/tag/v1.31.0-dev.2) · 35 apps
 
 ### Weather
 
@@ -63,19 +63,23 @@ The bilingual Markdown source is in [docs/site](docs/site). App pages distinguis
 | App | Changes | Target app versions | Input | Patches |
 | --- | --- | --- | --- | --- |
 | [AD](https://morphe-patches.neerdael.nl/apps/ad/) | Ads · Tracking · Prompts · Articles | 9.22.0 | APKS | 5 |
-| [De Morgen](https://morphe-patches.neerdael.nl/apps/demorgen/) **Pre-release** | Ads · Tracking · Prompts · Articles | 7.53.1 | APKS | 5 |
-| [DS Nieuws](https://morphe-patches.neerdael.nl/apps/dsnieuws/) **Pre-release** | Ads · Tracking · Prompts | 22.0.0 | APKS | 4 |
+| [De Morgen](https://morphe-patches.neerdael.nl/apps/demorgen/) | Ads · Tracking · Prompts · Articles | 7.53.1 | APKS | 5 |
+| [De Tijd](https://morphe-patches.neerdael.nl/apps/detijd/) | Ads · Tracking · Prompts · Articles | 5.6.1 | APKS | 7 |
+| [DS Nieuws](https://morphe-patches.neerdael.nl/apps/dsnieuws/) | Ads · Tracking · Prompts | 22.0.0 | APKS | 4 |
 | [FTM](https://morphe-patches.neerdael.nl/apps/ftm/) | Ads · Tracking · Prompts · Articles | 2.6.8 | APKS | 5 |
-| [HLN](https://morphe-patches.neerdael.nl/apps/hln/) **Pre-release** | Ads · Tracking · Prompts · Articles | 9.22.0 | APKS | 5 |
-| [Humo](https://morphe-patches.neerdael.nl/apps/humo/) **Pre-release** | Ads · Tracking · Prompts · Articles | 7.53.1 | APKS | 5 |
-| [Nieuwsblad](https://morphe-patches.neerdael.nl/apps/nieuwsblad/) **Pre-release** | Ads · Tracking · Prompts | 22.0.0 | APKS | 4 |
+| [HBVL](https://morphe-patches.neerdael.nl/apps/hbvl/) | Ads · Tracking · Prompts | 22.0.0 | APKS | 4 |
+| [HLN](https://morphe-patches.neerdael.nl/apps/hln/) | Ads · Tracking · Prompts · Articles | 9.22.0 | APKS | 5 |
+| [Humo](https://morphe-patches.neerdael.nl/apps/humo/) | Ads · Tracking · Prompts · Articles | 7.53.1 | APKS | 5 |
+| [Nieuwsblad](https://morphe-patches.neerdael.nl/apps/nieuwsblad/) | Ads · Tracking · Prompts | 22.0.0 | APKS | 4 |
 | [NOS Teletekst](https://morphe-patches.neerdael.nl/apps/nos-teletekst/) | Tracking | 2.8.10 | APKS | 2 |
 | [NRC](https://morphe-patches.neerdael.nl/apps/nrc/) | Ads · Tracking · Prompts · Articles · Newspaper tab | 5.12.24 | APK | 6 |
 | [NU.nl](https://morphe-patches.neerdael.nl/apps/nunl/) | Ads · Tracking · Prompts | 26.9.0 | APKS | 4 |
 | [Omroep Brabant](https://morphe-patches.neerdael.nl/apps/omroep-brabant/) | Ads · Tracking · Prompts | 11.1.0 | APKS | 3 |
+| [Omroep West](https://morphe-patches.neerdael.nl/apps/omroep-west/) | Ads · Tracking · Prompts | 20.1 | APKS | 3 |
 | [Parool](https://morphe-patches.neerdael.nl/apps/parool/) | Ads · Tracking · Prompts · Articles | 7.53.1 | APKS | 5 |
 | [RTL Nieuws](https://morphe-patches.neerdael.nl/apps/rtl-nieuws/) | Ads · Tracking · Prompts | 12.7.1 | APKS | 4 |
 | [Trouw](https://morphe-patches.neerdael.nl/apps/trouw/) | Ads · Tracking · Prompts · Articles | 7.53.1 | APKS | 5 |
+| [Tubantia](https://morphe-patches.neerdael.nl/apps/tubantia/) | Ads · Tracking · Prompts · Articles | 9.23.2 | APKS | 5 |
 | [Voetbal International](https://morphe-patches.neerdael.nl/apps/voetbal-international/) | Ads · Tracking · Prompts · Articles | 5.13.52 | APKS | 4 |
 | [Volkskrant](https://morphe-patches.neerdael.nl/apps/volkskrant/) | Ads · Tracking · Prompts · Articles | 7.53.1 | APKS | 5 |
 
@@ -91,10 +95,13 @@ The bilingual Markdown source is in [docs/site](docs/site). App pages distinguis
 | App | Changes | Target app versions | Input | Patches |
 | --- | --- | --- | --- | --- |
 | [Dumpert](https://morphe-patches.neerdael.nl/apps/dumpert/) | Ads · Tracking · Prompts | 5.8.0 | APKS | 3 |
+| [KIJK Android](https://morphe-patches.neerdael.nl/apps/kijk/) | Ads · Tracking · Prompts | 9.8.0 | APK | 3 |
 | [KIJK Android TV](https://morphe-patches.neerdael.nl/apps/kijk-android-tv/) | Ads · Tracking | 7.2.7 | APKS | 3 |
+| [NPO Start](https://morphe-patches.neerdael.nl/apps/npo-start/) | Ads · Tracking · Compatibility | 1.48.2-2405 | APKS | 3 |
 | [NPO Start Android TV](https://morphe-patches.neerdael.nl/apps/npo-start-android-tv/) | Ads · Tracking · Compatibility | 1.48.2-2405 | APKS | 3 |
 | [TVgids.nl](https://morphe-patches.neerdael.nl/apps/tvgids-nl/) | Ads · Tracking · Prompts | 7.0.16 | APK | 3 |
-| [Videoland Android TV](https://morphe-patches.neerdael.nl/apps/videoland-android-tv/) **Pre-release** | Ads · Tracking | 1.117.0 | APKS | 2 |
+| [Videoland Android](https://morphe-patches.neerdael.nl/apps/videoland/) | Ads · Tracking · Prompts | 1.116.4 | APKS | 3 |
+| [Videoland Android TV](https://morphe-patches.neerdael.nl/apps/videoland-android-tv/) | Ads · Tracking | 1.117.0 | APKS | 3 |
 
 ### Other apps
 

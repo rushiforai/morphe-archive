@@ -1,0 +1,11 @@
+{
+  "serial": "emulator-5586",
+  "avd": "finamp-isolated-artist",
+  "properties": {
+    "ro.kernel.qemu": "1",
+    "ro.hardware": "ranchu",
+    "ro.build.version.sdk": "35",
+    "sys.boot_completed": "1"
+  },
+  "verifiedAt": "2026-10-30T11:44:05.214211+00:00"
+}

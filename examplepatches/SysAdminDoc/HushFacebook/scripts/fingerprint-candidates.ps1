@@ -45,7 +45,7 @@
     scripts/fingerprint-candidates.ps1 -Calibrate
 
 .EXAMPLE
-    scripts/fingerprint-candidates.ps1 -Calibrate -CalibrationPath 584-to-585.txt -OldApk 584.0.0.51.56-arm64 -NewApk <585 .apkm>
+    scripts/fingerprint-candidates.ps1 -Calibrate -CalibrationPath 585-to-586.txt -OldApk 585.0.0.47.54-arm64 -NewApk <586 .apkm>
 
     Checks the ranking against transitions confirmed on a later pair of builds.
 #>

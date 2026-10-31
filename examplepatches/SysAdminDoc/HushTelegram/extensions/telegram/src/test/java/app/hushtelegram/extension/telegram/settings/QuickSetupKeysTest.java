@@ -48,6 +48,7 @@ public class QuickSetupKeysTest {
                 declared.add((BooleanSetting) field.get(null));
             }
         }
+        declared.addAll(Arrays.asList(SettingsRoutes.all()));
         assertTrue("found too few switches to compare against: " + declared.size(), declared.size() > 20);
         for (List<BooleanSetting> list : Arrays.asList(QuickSetupKeys.QUIET, QuickSetupKeys.PRIVACY, QuickSetupKeys.DEFAULTS)) {
             assertFalse(list.isEmpty());

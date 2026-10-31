@@ -5217,7 +5217,8 @@ public class StorageScanner {
             db = SQLiteDatabase.openDatabase(dbFile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY | SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING);
             if (hasTable(db, "local_media")) {
                 String pathCol = null;
-                if (hasColumn(db, "local_media", "filepath")) pathCol = "filepath";
+                if (hasColumn(db, "local_media", "content_uri")) pathCol = "content_uri";
+                else if (hasColumn(db, "local_media", "filepath")) pathCol = "filepath";
                 else if (hasColumn(db, "local_media", "_data")) pathCol = "_data";
                 else if (hasColumn(db, "local_media", "file_path")) pathCol = "file_path";
 
@@ -5227,6 +5228,14 @@ public class StorageScanner {
                             String p = c.getString(0);
                             if (p != null && !p.isEmpty()) return p;
                         }
+                    }
+                }
+            }
+            if (hasTable(db, "synced_folder_media_metadata")) {
+                try (Cursor c = db.rawQuery("SELECT file_path FROM synced_folder_media_metadata WHERE dedup_key = ? LIMIT 1", new String[]{dedupKey})) {
+                    if (c != null && c.moveToFirst()) {
+                        String p = c.getString(0);
+                        if (p != null && !p.isEmpty()) return p;
                     }
                 }
             }

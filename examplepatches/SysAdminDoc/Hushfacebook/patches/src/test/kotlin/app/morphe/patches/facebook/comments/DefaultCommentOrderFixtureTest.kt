@@ -8,6 +8,9 @@ import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patches.facebook.feed.FixtureDex
+import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.namesString
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.Opcode
@@ -19,6 +22,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -52,6 +56,22 @@ class DefaultCommentOrderFixtureTest {
     private fun Method.body(): List<Instruction> = implementation!!.instructions.toList()
 
     private fun Method.parameters() = parameterTypes.map { it.toString() }
+
+    /** A string's interface getters, and the classes the patch reads to find them: the literal's holders and the models. */
+    private class Getters(val signatures: Set<String>, val classes: List<ClassDef>)
+
+    /** The interface getters whose models name [literal], held or asked of a string table, as the patch finds them. */
+    private fun sheetGetters(bundle: File, literal: String): Getters {
+        val holders = FixtureDex.classesHolding(bundle, literal)
+        val tables = holders.associateBy { it.type }
+        val resolve: (MethodReference) -> Method? = { call -> tables[call.definingClass]?.let { resolveStatic(it, call) } }
+        val getters = holders.flatMap { holder -> holder.methods.filter { isSheetGetter(it) && holdsString(it, literal) } } +
+            FixtureDex.methodsWhere(bundle, { dex -> dex.typeSection.any { it in tables } }) {
+                isSheetGetter(it) && !holdsString(it, literal) && namesString(it, literal, resolve)
+            }
+        val models = FixtureDex.classes(bundle, getters.map { it.definingClass }.toSet()).values
+        return Getters(interfaceGetters(models, getters), holders + models)
+    }
 
     private fun makesFeedbackParams(method: Method): Boolean = method.body().any {
         val call = (it as? ReferenceInstruction)?.reference as? MethodReference
@@ -97,10 +117,17 @@ class DefaultCommentOrderFixtureTest {
                 val keyOwners = FixtureDex.classesHolding(bundle, SELECTOR_KEY)
                 val keyMaps = selectorKeyMaps(keyOwners)
                 assertTrue("$name: no static map beside \"$SELECTOR_KEY\"", keyMaps.isNotEmpty())
-                val renderers = FixtureDex.classesHolding(bundle, INTENT_FLAG)
-                val headers = renderers.flatMap { owner -> owner.methods.mapNotNull { sortHeaderIn(it, keyMaps) } }
+                // 585's renderer holds neither string, so it's looked for among the methods naming the key's class.
+                val keyTypes = keyOwners.map { it.type }.toSet()
+                val intent = sheetGetters(bundle, INTENT_FLAG)
+                val interranked = sheetGetters(bundle, INTERRANKED)
+                val renders = FixtureDex.methodsWhere(bundle, { dex -> dex.typeSection.any { it in keyTypes } }) {
+                    sortHeaderIn(it, keyMaps, intent.signatures, interranked.signatures) != null
+                }
+                val headers = renders.mapNotNull { sortHeaderIn(it, keyMaps, intent.signatures, interranked.signatures) }
                     .distinctBy { it.toString() }
                 assertEquals("$name: comment sort menu headers", 1, headers.size)
+                val renderers = FixtureDex.classes(bundle, renders.map { it.definingClass }.toSet()).values
                 val headerClass = FixtureDex.classes(bundle, setOf(headers.single().definingClass))
                     .getValue(headers.single().definingClass)
                 val headerConstructor = headerClass.methods.single {
@@ -139,7 +166,8 @@ class DefaultCommentOrderFixtureTest {
                 val owners = mutableMapOf<String, ClassDef>()
                 owners[params.type] = params
                 owners[storyParams.type] = storyParams
-                (builderOwners + handlerOwners + keyOwners + renderers).forEach { owners[it.type] = it }
+                (builderOwners + handlerOwners + keyOwners + renderers + intent.classes + interranked.classes)
+                    .forEach { owners[it.type] = it }
                 owners[headerClass.type] = headerClass
                 owners[pageOwner.type] = pageOwner
                 val context = PatchContexts.of(owners.values + ExtensionDex.classDef(SETTINGS_STATUS))

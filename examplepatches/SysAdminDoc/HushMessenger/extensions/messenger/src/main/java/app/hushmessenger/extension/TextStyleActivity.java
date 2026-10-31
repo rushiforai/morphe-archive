@@ -305,6 +305,14 @@ public final class TextStyleActivity extends Activity {
         }
     }
 
+    /**
+     * Samsung's text menu shows another app's entries only once they're ticked under its More options, Manage apps, and
+     * entries that were just enabled start unticked there (S22, One UI, 2026-10-30), so the row says where to turn them on.
+     */
+    static boolean hiddenByPhone() {
+        return "samsung".equalsIgnoreCase(android.os.Build.MANUFACTURER);
+    }
+
     /** A Root Mount install keeps Messenger's own manifest, which has no menu entries to enable. */
     static boolean present(Context context) {
         try {

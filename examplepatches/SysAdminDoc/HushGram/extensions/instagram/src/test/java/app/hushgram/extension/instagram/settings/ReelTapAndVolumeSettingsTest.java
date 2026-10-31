@@ -37,7 +37,7 @@ public class ReelTapAndVolumeSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.REEL_TAP_CHOICE.resetToDefault();
         Settings.KEEP_REELS_MUTED.resetToDefault();
         BaseSettings.PAUSED.save(false);

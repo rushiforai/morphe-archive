@@ -19,6 +19,48 @@ object PhotosAboutSettingsActivityV2OnCreateFingerprint : Fingerprint(
 
 
 
+object InternalActivityOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/apps/photos/settings/InternalActivity;",
+    name = "onCreate",
+    parameters = listOf("Landroid/os/Bundle;"),
+    returnType = "V",
+)
+
+object StringResourceResolverFingerprint : Fingerprint(
+    parameters = listOf("I", "Lelp;"),
+    returnType = "Ljava/lang/String;",
+    custom = { method, classDef ->
+        classDef.methods.count() == 2 &&
+        method.implementation?.instructions?.any {
+            it is com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction &&
+            it.reference.toString() == "Landroid/content/res/Resources;->getString(I)Ljava/lang/String;"
+        } == true
+    },
+)
+
+object SettingsMenuBuilderFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        method.name != "<init>" &&
+        method.parameterTypes.size == 1 &&
+        method.implementation?.instructions?.any {
+            it is com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction &&
+            it.reference.toString().contains("-><init>(Ljava/util/List;)V") &&
+            it.reference.toString().contains("bgcm")
+        } == true
+    },
+)
+
+object SettingsMenuBuilderClinitFingerprint : Fingerprint(
+    name = "<clinit>",
+    custom = { method, _ ->
+        method.implementation?.instructions?.any {
+            it is com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction &&
+            it.reference.toString().contains("->r:Lbgcj;")
+        } == true
+    },
+)
+
 internal object SkottieFontUriResolverFingerprint : Fingerprint(
     returnType = "Landroid/net/Uri;",
     parameters = listOf("Ljava/lang/String;", "Landroid/os/CancellationSignal;"),

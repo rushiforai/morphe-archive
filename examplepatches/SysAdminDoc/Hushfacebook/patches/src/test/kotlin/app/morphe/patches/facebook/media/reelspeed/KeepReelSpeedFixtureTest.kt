@@ -126,16 +126,22 @@ class KeepReelSpeedFixtureTest {
                 val holding = toastHolders.flatMap { it.methods }.filter { holdsString(it, SPEED_TOAST) }
                 assertEquals("$name: methods holding \"$SPEED_TOAST\"", 1, holding.size)
                 val toast = holding.single()
-                assertTrue("$name: ${toast.definingClass}->${toast.name} isn't the static (Context, float) toast", isSpeedToast(toast))
-                val toastKey = toast.definingClass + "->" + toast.name
+                val toastClass = toastHolders.single { it.type == toast.definingClass }
+                // 585 made the toast a Runnable's run() keeping the speed in a float field, built by one items lambda.
+                val toastRuns = !isSpeedToast(toast)
+                assertTrue("$name: ${toast.definingClass}->${toast.name} isn't the speed toast",
+                    toastRuns && isSpeedToastRun(toastClass, toast) || !toastRuns)
+                val toastKey = if (toastRuns) toast.definingClass + "-><init>" else toast.definingClass + "->" + toast.name
                 val callers = FixtureDex.methodsWhere(bundle, dexFilter = { dex ->
-                    dex.methodSection.any { it.definingClass == toast.definingClass && it.name == toast.name }
+                    dex.methodSection.any { it.definingClass == toast.definingClass && (toastRuns || it.name == toast.name) }
                 }) { method -> method.implementation?.instructions?.any { it.call?.let { c -> c.definingClass + "->" + c.name } == toastKey } == true }
                 val callerClasses = FixtureDex.classes(bundle, callers.map { it.definingClass }.toSet()).values
-                assertEquals("$name: the toast's callers", 2, callers.size)
+                assertEquals("$name: the toast's callers", if (toastRuns) 1 else 2, callers.size)
+                // 585's items lambda has no original name, but the Runnable it builds keeps the util's.
+                val namedBy = if (toastRuns) listOf(toastClass) else callerClasses
                 assertTrue("$name: a caller of the toast isn't one of FbShortsInlinePlaybackSpeedUtil's pickers: " +
-                    callerClasses.map { it.type + " " + redexOriginalName(it) },
-                    callerClasses.all { redexOriginalName(it)?.startsWith("FbShortsInlinePlaybackSpeedUtil\$") == true })
+                    namedBy.map { it.type + " " + redexOriginalName(it) },
+                    namedBy.all { redexOriginalName(it)?.startsWith("FbShortsInlinePlaybackSpeedUtil\$") == true })
 
                 // The gear menu's speed sheet sets a pick through the same setter, and shows no toast.
                 val gearHolders = FixtureDex.classesHolding(bundle, GEAR_PICK)
@@ -147,21 +153,32 @@ class KeepReelSpeedFixtureTest {
                 val gearCalls = setterCalls(gearPick, owner.type, setter)
                 val gearClass = gearHolders.single { it.type == gearPick.definingClass }
 
-                val toastClass = toastHolders.single { it.type == toast.definingClass }
-
-                // The Reels menu's two speed pickers each fill a Float[] and list it in one place (#95).
-                val selectors = toastClass.methods.filter {
+                // The Reels menu's speed lists: each picker fills a Float[] and lists it in one place (#95). Up to
+                // 584 the selector sits in the toast's class and the dropdown fills its own; 585 has the dropdown
+                // call the selector, which sits in a class of its own.
+                val selectorHolders = FixtureDex.methodsWhere(bundle, { true }) {
+                    AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == ATTRIBUTE_SELECTOR
+                }
+                val selectorClasses = FixtureDex.classes(bundle, selectorHolders.map { it.definingClass }.toSet()).values
+                    .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+                val selectors = selectorClasses.flatMap { it.methods }.filter {
                     AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == ATTRIBUTE_SELECTOR && speedLists(it).isNotEmpty()
                 }
-                assertEquals("$name: speed selectors answering $ATTRIBUTE_SELECTOR in ${toastClass.type}", 1, selectors.size)
+                assertEquals("$name: speed selectors answering $ATTRIBUTE_SELECTOR", 1, selectors.size)
                 val dropdownHolders = FixtureDex.classesHolding(bundle, SPEED_DROPDOWN).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
-                val dropdowns = dropdownHolders.flatMap { it.methods }.filter { holdsString(it, SPEED_DROPDOWN) && speedLists(it).isNotEmpty() }
-                assertEquals("$name: speed dropdowns holding \"$SPEED_DROPDOWN\" and filling a Float[]", 1, dropdowns.size)
+                val menus = dropdownHolders.flatMap { it.methods }.filter { holdsString(it, SPEED_DROPDOWN) }
+                assertEquals("$name: speed dropdowns holding \"$SPEED_DROPDOWN\"", 1, menus.size)
+                val dropdowns = menus.filter { speedLists(it).isNotEmpty() }
+                if (dropdowns.isEmpty()) {
+                    assertTrue("$name: the dropdown fills no list and doesn't call the selector", menus.single().code().any {
+                        it.call?.let { c -> c.definingClass == selectors.single().definingClass && c.name == selectors.single().name } == true
+                    })
+                }
                 val pickers = selectors + dropdowns
                 for (picker in pickers) {
                     assertEquals("$name: the lists of speeds ${picker.definingClass}->${picker.name} makes", 1, speedLists(picker).size)
                 }
-                val dropdownClass = dropdownHolders.single { it.type == dropdowns.single().definingClass }
+                val dropdownClass = dropdownHolders.single { it.type == menus.single().definingClass }
 
                 // The gear menu's speed sheet builder makes the gear pick's class, takes its flag for
                 // reading speeds from floats last (584 reads it from MobileConfig), and reads a speed for
@@ -198,7 +215,7 @@ class KeepReelSpeedFixtureTest {
                 assertTrue("$name: the floor isn't kept with Math.max", callsFloatMax(speedRange, resolveClamp))
                 val rangeClass = rangeHolders.single { it.type == speedRange.definingClass }
 
-                fun classes() = (listOf(owner, toastClass, gearClass, paramsClass, dropdownClass, sheetClass, rangeClass) + clamps +
+                fun classes() = (listOf(owner, toastClass, gearClass) + selectorClasses + listOf( paramsClass, dropdownClass, sheetClass, rangeClass) + clamps +
                     listOf(ExtensionDex.classDef(REEL_SPEED), ExtensionDex.classDef(SETTINGS_STATUS))).distinctBy { it.type }
                 val context = PatchContexts.of(classes())
                 keepReelSpeedPatch.execute(context)
@@ -217,7 +234,19 @@ class KeepReelSpeedFixtureTest {
                 val self = setter.localRegisterCount()
                 assertFirst("speed setter", setter, SPEED_SET, listOf(self, self + 1))
                 assertFirst("start", starts.single(), STARTED, listOf(starts.single().localRegisterCount()))
-                assertFirst("toast", toast, PICKED, listOf(toast.localRegisterCount() + 1))
+                if (toastRuns) {
+                    val hooked = patched(toast.definingClass, toast)
+                    val field = speedToastField(toastClass, toast)!!
+                    assertEquals("$name: the toast's first instruction", Opcode.IGET, hooked[0].opcode)
+                    assertEquals("$name: the toast's speed field", field.toString(), (hooked[0] as ReferenceInstruction).reference.toString())
+                    assertEquals("$name: the Runnable it reads from", toast.localRegisterCount(), (hooked[0] as TwoRegisterInstruction).registerB)
+                    assertEquals("$name: the toast's second instruction", Opcode.INVOKE_STATIC_RANGE, hooked[1].opcode)
+                    assertEquals("$name: the toast's call", PICKED, hooked[1].call.toString())
+                    assertEquals("$name: the speed it hands over", listOf((hooked[0] as TwoRegisterInstruction).registerA), hooked[1].registers())
+                    assertEquals("$name: the toast gains two instructions", toast.code().size + 2, hooked.size)
+                } else {
+                    assertFirst("toast", toast, PICKED, listOf(toast.localRegisterCount() + 1))
+                }
 
                 // Straight after each of the gear pick's setter calls, the pick, with the speed that call handed over.
                 val gearCode = patched(gearPick.definingClass, gearPick)

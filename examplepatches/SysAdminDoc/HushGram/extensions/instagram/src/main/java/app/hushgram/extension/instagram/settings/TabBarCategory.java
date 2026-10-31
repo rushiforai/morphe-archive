@@ -87,6 +87,9 @@ final class TabBarCategory {
                                     + "of the buttons when it isn't. Tap it to turn Ghost mode on or off. Restart Instagram "
                                     + "to see the change.")));
                 }
+                glass.addPreference(toggle(context, Settings.SETTINGS_BUTTON_ON_HOME, L10n.t("Settings button on Home's header"),
+                        L10n.t("Adds a gear at the top of Home that opens HushGram settings. Restart Instagram "
+                                + "to see the change.")));
                 glass.addPreference(toggle(context, Settings.CENTER_HOME_LOGO, L10n.t("Center the logo on Home's header"),
                         L10n.t("Puts Instagram's logo in the middle of the top of Home, even with header buttons hidden "
                                 + "or added. A feed's name shown there is centered too. Restart Instagram to see the change.")));
@@ -122,6 +125,9 @@ final class TabBarCategory {
                 glass.addPreference(toggle(context, Settings.GLASS_TAB_BAR_KEEP_SIZE, L10n.t("Keep the pill full size"),
                         L10n.t("Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart "
                                 + "Instagram after changing it.")));
+                glass.addPreference(toggle(context, Settings.GLASS_TAB_BAR_REFRACT, L10n.t("Bend light at the edges"),
+                        L10n.t("The liquid pill's rim bends what's behind it like real glass, so what passes under the "
+                                + "edge shows upside down. Android 13 and newer. Restart Instagram after changing it.")));
                 glass.addPreference(toggle(context, Settings.GLASS_TAB_BAR_HAPTICS, L10n.t("Haptics on the tab bar"),
                         L10n.t("A light tick each time the highlight slides past a tab, so it follows the bar as you tap "
                                 + "or swipe between screens.")));
@@ -138,6 +144,8 @@ final class TabBarCategory {
                         L10n.t("Home, Reels and the other tabs run down behind the pill, so the glass has real content "
                                 + "to blur.")));
                 glass.addPreference(glassLiftRow(context));
+                glass.addPreference(toggle(context, Settings.GLASS_TAB_BAR_REELS_BEHIND, L10n.t("Run Reels behind the tab bar"),
+                        L10n.t("The Reels video fills the screen behind the pill. Its caption, buttons and seek bar sit just above the pill.")));
             }
         }
     }

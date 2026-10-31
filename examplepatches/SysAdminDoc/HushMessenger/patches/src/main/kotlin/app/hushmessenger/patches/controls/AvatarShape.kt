@@ -14,6 +14,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -198,10 +199,128 @@ internal fun Method.tileOvals(): List<Int>? {
 }
 
 /**
+ * The story ring around a picture. Square profile pictures squares it and Hide stories and notes leaves it out, so
+ * both controls take these two hooks, and the first of them to patch puts them in.
+ */
+internal const val STORY_RING = "story_ring"
+
+/** The story ring's gradient, the colors the ring's mount reads from strings. */
+internal val RING_COLORS = listOf("#0099FF", "#A033FF", "#FF5280", "#FF7061")
+internal const val DRAW_ARC = "Landroid/graphics/Canvas;->drawArc(Landroid/graphics/RectF;FFZLandroid/graphics/Paint;)V"
+internal const val RING_ARC = "$SETTINGS->storyRingArc(Landroid/graphics/Canvas;Landroid/graphics/RectF;FFZLandroid/graphics/Paint;Ljava/lang/Object;)V"
+internal const val RING_MADE = "$SETTINGS->storyRingMade(Ljava/lang/Object;)V"
+private const val DRAWABLE = "Landroid/graphics/drawable/Drawable;"
+
+private fun storyRingChanged(detail: String): Nothing =
+    throw PatchException("Messenger controls: the story ring changed ($detail)")
+
+private fun ClassDef.paintsRing(): Boolean = methods.any { method ->
+    val strings = method.code().mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }.toSet()
+    strings.containsAll(RING_COLORS)
+}
+
+/**
+ * The register a Litho mount spec's onCreateMountContent makes its content in, when that's all it does: a new
+ * drawable of one type, its no-argument constructor, returned. The ring's spec makes its ring this way, and the hook
+ * names the new ring to Settings before it's returned.
+ */
+internal fun Method.ringContent(): Int? {
+    if (name != "onCreateMountContent" || AccessFlags.STATIC.isSet(accessFlags) || returnType != "Ljava/lang/Object;" ||
+        parameterTypes.map { it.toString() } != listOf("Landroid/content/Context;")) return null
+    return code().madeRing()
+}
+
+private fun List<Instruction>.madeRing(): Int? {
+    if (size != 3 || this[2].opcode != Opcode.RETURN_OBJECT) return null
+    val made = this[0].createdType() ?: return null
+    val ring = (this[0] as OneRegisterInstruction).registerA
+    if (this[1].opcode != Opcode.INVOKE_DIRECT || this[1].invoked()?.toString() != "$made-><init>()V" || this[1].reads() != listOf(ring)) return null
+    if ((this[2] as OneRegisterInstruction).registerA != ring || ring > 15) return null
+    return ring
+}
+
+/** A mount the other control sharing the ring already went through: ringContent's three, naming the ring before it's returned. */
+private fun Method.ringNamed(): Boolean {
+    if (name != "onCreateMountContent") return false
+    val code = code()
+    if (code.size != 4 || code[2].opcode != Opcode.INVOKE_STATIC || code[2].invoked()?.toString() != RING_MADE) return false
+    val ring = listOf(code[0], code[1], code[3]).madeRing() ?: return false
+    return code[2].reads() == listOf(ring)
+}
+
+/** The type ringContent makes. */
+internal fun Method.ringType(): String? = if (ringContent() == null) null else code()[0].createdType()
+
+/**
+ * The ring's draw: one drawArc, called as a range whose next register is the drawable itself, which nothing in the
+ * method writes. So the same range one register longer hands Settings the arc and the drawable it's for.
+ */
+internal fun Method.ringArc(): Int? {
+    if (name != "draw" || AccessFlags.STATIC.isSet(accessFlags) || returnType != "V" ||
+        parameterTypes.map { it.toString() } != listOf("Landroid/graphics/Canvas;")) return null
+    val code = code()
+    val found = code.withIndex().singleOrNull { it.value.invoked()?.toString() == DRAW_ARC } ?: return null
+    val arc = found.value as? RegisterRangeInstruction ?: return null
+    if (arc.opcode != Opcode.INVOKE_VIRTUAL_RANGE || arc.registerCount != 6) return null
+    val self = parameterRegister(0)
+    if (arc.startRegister + 6 != self) return null
+    fun writesSelf(at: Instruction): Boolean {
+        val written = (at as? OneRegisterInstruction)?.registerA ?: return false
+        return at.opcode.setsRegister() && (written == self || (at.opcode.setsWideRegister() && written + 1 == self))
+    }
+    if (code.any(::writesSelf)) return null
+    return found.index
+}
+
+/** A draw the other control sharing the ring already went through: its one arc now goes through Settings. */
+private fun Method.ringRouted(): Boolean {
+    if (name != "draw") return false
+    val calls = code().mapNotNull { it.invoked()?.toString() }
+    return DRAW_ARC !in calls && calls.count { it == RING_ARC } == 1
+}
+
+/**
+ * The one mount spec that paints the story ring's gradient and makes its content as ringContent does, and the draw of
+ * that content, a direct Drawable whose draw is ringArc's. The ring is only that spec's: the same drawable type also
+ * draws the chat's overscroll indicator, which nothing names to Settings and so stays as it is.
+ */
+internal fun findStoryRing(classes: Iterable<ClassDef>): List<Method> {
+    val all = classes.toList()
+    val mounts = all.filter { it.methods.any { m -> m.ringContent() != null } && it.paintsRing() }
+        .flatMap { cls -> cls.methods.filter { it.ringContent() != null } }
+    val mount = mounts.singleOrNull() ?: return emptyList()
+    val ring = all.singleOrNull { it.type == mount.ringType() }?.takeIf { it.superclass == DRAWABLE } ?: return emptyList()
+    val draw = ring.methods.filter { it.ringArc() != null }.singleOrNull() ?: return emptyList()
+    return listOf(mount, draw)
+}
+
+internal fun MutableMethod.validateStoryRing() {
+    if (name == "onCreateMountContent") {
+        if (ringContent() == null && !ringNamed()) storyRingChanged("its mount ${hookId()}")
+    } else if (ringArc() == null && !ringRouted()) storyRingChanged("its draw ${hookId()}")
+}
+
+/**
+ * Each story ring is named to Settings as it's made, and its arc goes through Settings with the ring it's for, which
+ * leaves a named ring out or draws the square's outline. A method the other control already put in is left as it is.
+ */
+internal fun MutableMethod.injectStoryRing() {
+    validateStoryRing()
+    if (name == "onCreateMountContent") {
+        val ring = ringContent() ?: return
+        addInstructions(2, "invoke-static {v$ring}, $RING_MADE")
+        return
+    }
+    val at = ringArc() ?: return
+    val start = getInstruction<RegisterRangeInstruction>(at).startRegister
+    replaceInstruction(at, "invoke-static/range {v$start .. v${start + 6}}, $RING_ARC")
+}
+
+/**
  * The one RoundingOptions class by its toString(), its one constructor in the proven shape, and the one legacy helper.
  * Then the user tile: its one shape setter, the one setup in that class that hands it a clip path, and the draw of the
  * placeholder type that setup takes. A second of any, or any in another shape, leaves the switch unapplied rather than
- * changing only some pictures.
+ * changing only some pictures. The ring around the tile is findStoryRing's.
  */
 internal fun findAvatarShape(classes: Iterable<ClassDef>): List<Method> {
     vitoCircleField = ""

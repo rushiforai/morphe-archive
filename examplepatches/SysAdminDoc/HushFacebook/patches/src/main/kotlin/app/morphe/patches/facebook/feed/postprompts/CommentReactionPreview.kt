@@ -12,6 +12,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutab
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
+import app.morphe.util.ControlFlow
 import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -29,6 +30,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import java.util.BitSet
 
 /*
  * The reaction faces in the corner of a comment bubble (#158). Read from 583, 2026-10-18, arm64 and
@@ -43,8 +45,12 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  * - A boolean field is added to the component and to the Drawable.
  * - Right after the comment component's constructor call for the FDSInlineReactions, an added static
  *   method on the component sets its flag.
- * - Right after the lambda gets the Drawable from the factory, an added static method on the Drawable
- *   copies the component's flag onto it (and does nothing for a null Drawable).
+ * - Right before the lambda reads a field of the component, an added static method on the component
+ *   leaves its flag with the extension for this thread, and right after the lambda gets the Drawable
+ *   from the factory, an added static method on the Drawable takes it back and sets the Drawable's
+ *   (nothing for a null Drawable). 585's lambda reuses the component's register and its own for the
+ *   factory's arguments, so no register holds the component once the Drawable is back: the copy
+ *   straight from the component's register that 584 took failed the verifier there.
  * - The Drawable's draw asks the extension with its flag, so each surface answers to its own switch.
  * The other caller of the factory (arm64 LX/cP4;->A0Q) reads no FDSInlineReactions, so it never gets
  * the flag and stays a post's.
@@ -59,7 +65,10 @@ internal const val COMMENT_COMPONENT_NAME = "FDSComment"
 internal const val COMMENT_REACTION_KEY = "inline_reaction_transition_key"
 internal const val COMMENT_FLAG = "hushCommentFaces"
 internal const val COMMENT_MARK = "hushMarkCommentFaces"
+internal const val COMMENT_STASH = "hushStashCommentFaces"
 internal const val COMMENT_COPY = "hushCopyCommentFaces"
+internal const val STASH_COMMENT_FACES = "$POST_PROMPTS->stashCommentFaces(Z)V"
+internal const val TAKE_COMMENT_FACES = "$POST_PROMPTS->takeCommentFaces()Z"
 internal const val HIDE_FACEPILE = "$POST_PROMPTS->hideReactionPreview(Z)Z"
 internal const val GRAPHQL_COMMENT = "Lcom/facebook/graphql/model/GraphQLComment;"
 
@@ -111,13 +120,47 @@ internal fun componentConstructions(method: Method, component: String): List<Pai
     return found
 }
 
-/** A call of the factory: the index after its move-result-object, the Drawable's register and the component's. */
-internal data class FaceCaller(val method: Method, val afterIndex: Int, val drawable: Int, val component: Int)
+/**
+ * A call of the factory: the last read of a component field before it and the register holding the
+ * component there, then the index after the call's move-result-object and the Drawable's register.
+ */
+internal data class FaceCaller(val method: Method, val read: Int, val component: Int, val afterIndex: Int, val drawable: Int)
+
+private val instanceReads = setOf(
+    Opcode.IGET, Opcode.IGET_WIDE, Opcode.IGET_OBJECT, Opcode.IGET_BOOLEAN, Opcode.IGET_BYTE, Opcode.IGET_CHAR,
+    Opcode.IGET_SHORT,
+)
+
+/** Whether execution gets to [index] only by falling through from the instruction before it. */
+private fun onlyFallsInto(flow: ControlFlow, index: Int): Boolean = flow.normal.indices.none { from ->
+    (from != index - 1 && index in flow.normal[from]) || index in flow.exceptional[from]
+}
+
+/** Whether some way from the method's start gets to [target] without passing [gate]. */
+private fun reachesAround(flow: ControlFlow, target: Int, gate: Int): Boolean {
+    val seen = BitSet()
+    val pending = ArrayDeque<Int>()
+    fun enqueue(at: Int) {
+        if (at != gate && !seen[at]) {
+            seen.set(at)
+            pending += at
+        }
+    }
+    enqueue(0)
+    while (pending.isNotEmpty()) {
+        val at = pending.removeFirst()
+        if (at == target) return true
+        flow.normal[at].forEach(::enqueue)
+        flow.exceptional[at].forEach(::enqueue)
+    }
+    return false
+}
 
 /**
- * [method]'s call of [factory] if its result is taken with move-result-object and a register that
- * holds an instance of [component] (a field of it is read from that register earlier and the
- * register isn't written in between) is there to pair it with. Null for anything else.
+ * [method]'s call of [factory] if its result is taken with move-result-object and every way to it
+ * reads a field of [component] first, where the read's object register holds the component. Null
+ * for anything else. The flag is left before that read and taken after the move-result-object, so
+ * neither may be a branch target: a way in there would skip the added call.
  */
 internal fun faceCaller(method: Method, factory: MethodReference, component: String): FaceCaller? {
     val code = method.implementation?.instructions?.toList() ?: return null
@@ -125,18 +168,17 @@ internal fun faceCaller(method: Method, factory: MethodReference, component: Str
         (it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_STATIC_RANGE) &&
             ((it as ReferenceInstruction).reference as? MethodReference)?.sameCall(factory) == true
     }
-    if (call < 0 || call + 1 >= code.size || code[call + 1].opcode != Opcode.MOVE_RESULT_OBJECT) return null
+    if (call < 0 || call + 2 >= code.size || code[call + 1].opcode != Opcode.MOVE_RESULT_OBJECT) return null
     val read = code.subList(0, call).indexOfLast {
-        it is TwoRegisterInstruction && it is ReferenceInstruction &&
-            (it.reference as? FieldReference)?.definingClass == component && it.opcode.name.startsWith("iget")
+        it.opcode in instanceReads && ((it as ReferenceInstruction).reference as? FieldReference)?.definingClass == component
     }
     if (read < 0) return null
-    val register = (code[read] as TwoRegisterInstruction).registerB
-    val overwritten = code.subList(read + 1, call).any {
-        it.opcode.setsRegister() && (it as? OneRegisterInstruction)?.registerA == register
-    }
-    if (overwritten) return null
-    return FaceCaller(method, call + 2, (code[call + 1] as OneRegisterInstruction).registerA, register)
+    val flow = ControlFlow.of(method)
+    if (!onlyFallsInto(flow, read) || !onlyFallsInto(flow, call + 2) || reachesAround(flow, call, read)) return null
+    return FaceCaller(
+        method, read, (code[read] as TwoRegisterInstruction).registerB,
+        call + 2, (code[call + 1] as OneRegisterInstruction).registerA,
+    )
 }
 
 private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
@@ -173,7 +215,6 @@ internal fun BytecodePatchContext.tagCommentFaces(component: ClassDef, facepile:
     val caller = callers.singleOrNull() ?: refuse(
         "expected one method that takes ${factory.name}'s Drawable beside a ${component.type}, found ${callers.size}",
     )
-    if (caller.drawable > 15 || caller.component > 15) refuse("${caller.method.name}'s registers are past v15")
     val rows = builders.keys.filter { it in commentReturns }
     val row = rows.singleOrNull() ?: refuse(
         "expected one ${component.type} builder that a method taking a GraphQLComment returns, found $rows",
@@ -204,17 +245,33 @@ internal fun BytecodePatchContext.tagCommentFaces(component: ClassDef, facepile:
             )
         },
     )
-    facepileClass.methods.add(
+    componentClass.methods.add(
         ImmutableMethod(
-            facepile.type, COMMENT_COPY,
-            listOf(facepile.type, component.type).map { ImmutableMethodParameter(it, null, null) }, "V",
-            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, MutableMethodImplementation(3),
+            component.type, COMMENT_STASH, listOf(ImmutableMethodParameter(component.type, null, null)), "V",
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, MutableMethodImplementation(2),
         ).toMutable().apply {
             addInstructions(
                 0,
                 """
+                    iget-boolean v0, p0, ${component.type}->$COMMENT_FLAG:Z
+                    invoke-static { v0 }, $STASH_COMMENT_FACES
+                    return-void
+                """,
+            )
+        },
+    )
+    // Takes the flag back even for a null Drawable, so it never waits on the thread for the next one.
+    facepileClass.methods.add(
+        ImmutableMethod(
+            facepile.type, COMMENT_COPY, listOf(ImmutableMethodParameter(facepile.type, null, null)), "V",
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, MutableMethodImplementation(2),
+        ).toMutable().apply {
+            addInstructions(
+                0,
+                """
+                    invoke-static { }, $TAKE_COMMENT_FACES
+                    move-result v0
                     if-eqz p0, :facebooks_none
-                    iget-boolean v0, p1, ${component.type}->$COMMENT_FLAG:Z
                     iput-boolean v0, p0, ${facepile.type}->$COMMENT_FLAG:Z
                     :facebooks_none
                     return-void
@@ -236,11 +293,19 @@ internal fun BytecodePatchContext.tagCommentFaces(component: ClassDef, facepile:
             }
         }
     }
+    // The take after the factory first, so the read before it stays where it was found.
     mutableClassDefBy(caller.method.definingClass).methods
         .first { it.name == caller.method.name && it.parameterTypes == caller.method.parameterTypes }
-        .addInstructions(
-            caller.afterIndex,
-            "invoke-static { v${caller.drawable}, v${caller.component} }, " +
-                "${facepile.type}->$COMMENT_COPY(${facepile.type}${component.type})V",
-        )
+        .apply {
+            addInstructions(
+                caller.afterIndex,
+                "invoke-static/range { v${caller.drawable} .. v${caller.drawable} }, " +
+                    "${facepile.type}->$COMMENT_COPY(${facepile.type})V",
+            )
+            addInstructions(
+                caller.read,
+                "invoke-static/range { v${caller.component} .. v${caller.component} }, " +
+                    "${component.type}->$COMMENT_STASH(${component.type})V",
+            )
+        }
 }

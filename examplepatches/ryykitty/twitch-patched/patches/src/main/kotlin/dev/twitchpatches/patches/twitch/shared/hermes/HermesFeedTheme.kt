@@ -26,8 +26,13 @@ internal object HermesFeedTheme {
         }
         val dark = code.withIndex().single { it.value.reads("darkTheme") }
         val parent = code.getOrNull(dark.index - 4)
-        require(dark.value.name == "GetById" && parent?.name == "Mov" &&
-            parent.args == listOf(dark.value.args[0], call.args[0]) &&
+        val copiedParent = parent?.name == "Mov" && parent.args == listOf(dark.value.args[0], call.args[0])
+        val retainedParent = dark.value.args[0] == call.args[0] && parent?.name == "StoreToEnvironment" &&
+            code.subList(theme.index + 2, dark.index).none { instruction ->
+                instruction.args.firstOrNull() == call.args[0] && !instruction.name.startsWith("J") &&
+                    !instruction.name.startsWith("Store") && !instruction.name.startsWith("Put")
+            }
+        require(dark.value.name == "GetById" && (copiedParent || retainedParent) &&
             code[dark.index - 3].name == "JmpFalse" && code[dark.index - 2].name == "GetByIndex" &&
             code[dark.index - 1].name == "Call2") { "Feed theme: forced-dark selection changed." }
         val destination = dark.value.args[0]

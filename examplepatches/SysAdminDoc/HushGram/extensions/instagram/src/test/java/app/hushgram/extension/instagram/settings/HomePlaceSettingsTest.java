@@ -37,7 +37,7 @@ public class HomePlaceSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.KEEP_HOME_PLACE.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();

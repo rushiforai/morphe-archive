@@ -3383,3 +3383,159 @@
     return-object p0
 .end method
 
+.method public static isProDevice()Z
+    .locals 3
+
+    :try_start_0
+    sget-object v0, Landroid/os/Build;->MODEL:Ljava/lang/String;
+
+    if-eqz v0, :cond_check_device
+
+    sget-object v1, Ljava/util/Locale;->ROOT:Ljava/util/Locale;
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->toLowerCase(Ljava/util/Locale;)Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "pro"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_device
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_device
+    sget-object v0, Landroid/os/Build;->DEVICE:Ljava/lang/String;
+
+    if-eqz v0, :cond_check_product
+
+    sget-object v1, Ljava/util/Locale;->ROOT:Ljava/util/Locale;
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->toLowerCase(Ljava/util/Locale;)Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "husky"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "cheetah"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "raven"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "caiman"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "komodo"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "comet"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro
+
+    const-string v1, "pro"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_product
+
+    :cond_is_pro
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_product
+    sget-object v0, Landroid/os/Build;->PRODUCT:Ljava/lang/String;
+
+    if-eqz v0, :cond_ret_false
+
+    sget-object v1, Ljava/util/Locale;->ROOT:Ljava/util/Locale;
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->toLowerCase(Ljava/util/Locale;)Ljava/lang/String;
+
+    move-result-object v0
+
+    const-string v1, "pro"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro_prod
+
+    const-string v1, "husky"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro_prod
+
+    const-string v1, "cheetah"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_is_pro_prod
+
+    const-string v1, "raven"
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_ret_false
+
+    :cond_is_pro_prod
+    const/4 v0, 0x1
+
+    return v0
+    :try_end_0
+    .catchall {:try_start_0 .. :try_end_0} :catch_all
+
+    :catch_all
+    :cond_ret_false
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+

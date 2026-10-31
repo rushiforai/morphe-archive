@@ -132,7 +132,7 @@ jobs:
         run: ./gradlew clean :patches:buildAndroid --no-daemon
 
       - name: Save audit verification bundle
-        if: (github.ref == 'refs/heads/perf/audit-194' || github.ref == 'refs/heads/fix/post-194') && steps.release.outputs.new_release_published != 'true'
+        if: (github.ref == 'refs/heads/perf/audit-194' || github.ref == 'refs/heads/fix/post-194' || github.ref == 'refs/heads/verification/v1.9.12') && steps.release.outputs.new_release_published != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: nicoid-audit-verification

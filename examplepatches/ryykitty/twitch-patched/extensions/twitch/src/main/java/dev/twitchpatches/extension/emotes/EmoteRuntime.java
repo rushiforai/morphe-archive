@@ -48,6 +48,9 @@ public final class EmoteRuntime implements Application.ActivityLifecycleCallback
     public static boolean providerEnabled(int provider) { return EmotePolicy.includes(providerMask(), provider); }
 
     static EmoteCatalog catalog() { return instance == null ? null : instance.catalog; }
+    static EmoteImages images() { return instance == null ? null : instance.images; }
+    static boolean foreground() { return instance != null && instance.resumed > 0; }
+    static String currentChannel() { return instance == null ? null : instance.channel; }
     static String channelName(String id) { return instance != null && id != null && id.equals(instance.channel) ? instance.channelName : null; }
 
     public static void setEnabled(boolean value) {
@@ -79,6 +82,7 @@ public final class EmoteRuntime implements Application.ActivityLifecycleCallback
         runtime.images.cancelPending();
         runtime.main.post(() -> {
             if (!valid.equals(runtime.channel)) return;
+            EmoteDraftRuntime.refresh(null);
             if (runtime.providerMask != 0 && runtime.resumed > 0) runtime.catalog.ensure(valid);
         });
     }
@@ -108,6 +112,7 @@ public final class EmoteRuntime implements Application.ActivityLifecycleCallback
     }
 
     private void refresh(String changedChannel, String image) {
+        EmoteDraftRuntime.refresh(image);
         if (image == null) EmotePickerRuntime.refresh(changedChannel);
         for (TextView view : new ArrayList<>(rows.keySet())) {
             EmoteRows.Bound bound = rows.get(view);
@@ -160,6 +165,7 @@ public final class EmoteRuntime implements Application.ActivityLifecycleCallback
     @Override public void onActivityPaused(Activity activity) {
         resumed = Math.max(0, resumed - 1);
         if (resumed == 0) {
+            EmoteDraftRuntime.pause();
             EmotePickerImages.pause();
             preview.close();
             rows.keySet().forEach(view -> EmoteRows.stop(view.getText()));

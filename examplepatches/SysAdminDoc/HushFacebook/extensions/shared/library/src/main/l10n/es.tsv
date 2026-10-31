@@ -1719,6 +1719,8 @@ Hide the Facebook logo	Ocultar el logotipo de Facebook
 Hides the Facebook logo in the top bar. The empty spot is the same size and still opens Hushfacebook settings when you press and hold it. Restart Facebook to see the change.	Oculta el logotipo de Facebook en la barra superior. El hueco tiene el mismo tamaño y, al mantenerlo pulsado, sigue abriendo los ajustes de Hushfacebook. Reinicia Facebook para ver el cambio.
 Hide the Create button	Ocultar el botón Crear
 Takes the + button for making a post, reel or story out of the top bar. Restart Facebook to see the change.	Quita de la barra superior el botón + para crear publicaciones, reels e historias. Reinicia Facebook para ver el cambio.
+Hide the search button	Ocultar el botón de búsqueda
+Takes the search button out of the top bar. Restart Facebook to see the change.	Quita el botón de búsqueda de la barra superior. Reinicia Facebook para ver el cambio.
 # context: switch title under News feed; the counts are the numbers on the Like, Comment and Share buttons under a post
 Hide counts on posts	Ocultar los números en las publicaciones
 # context: summary of that switch; Like, Comment and Share are Facebook's own button labels, so use Facebook's wording in your language
@@ -1974,7 +1976,7 @@ The app holding that picture is taking too long, so Hushfacebook stopped waiting
 # context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
 The app holding the last picture still hasn't answered. Try again later.	La app de la última imagen aún no ha respondido. Inténtalo más tarde.
 Inline feed video controls	Controles de video en el feed
-Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls.	Añade un botón de reproducción y pausa a los videos del feed. Toca el video para abrirlo a pantalla completa. Los videos en directo y los anuncios conservan sus propios controles.
+Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls. With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.	Añade un botón de reproducción y pausa a los videos del feed. Toca el video para abrirlo a pantalla completa. Los videos en directo y los anuncios conservan sus propios controles. Si “Toca para reproducir” también está activado, el ajuste de reproducción automática de Facebook se queda como lo elegiste para que el botón pueda aparecer, y los videos siguen esperando a que los toques.
 Play feed video	Reproducir video del feed
 Pause feed video	Pausar video del feed
 Support	Ayuda
@@ -2112,3 +2114,170 @@ Done	Listo
 Oldest	Más antiguos
 Comments open oldest first, on every post. Facebook's sort menu then shows All comments.	Los comentarios se abren con los más antiguos primero, en todas las publicaciones. El menú de orden de Facebook muestra entonces Todos los comentarios.
 Comments will open oldest first.	Los comentarios se abrirán con los más antiguos primero.
+# context: title of the News feed row counting what Hushfacebook hid in Home since Facebook was opened; it resets when Facebook restarts
+Hidden since Facebook started	Ocultado desde que se abrió Facebook
+# context: that row's summary before anything was hidden
+Nothing hidden yet. Scroll Home and come back.	Todavía no se ocultó nada. Desplázate por Inicio y vuelve.
+# context: one kind in that row's list with how many of it were hidden, such as ads (12)
+%1$s (%2$d)	%1$s (%2$d)
+# context: the last item of that list, one hidden post of the kinds not named
+%1$d other	%1$d más
+# context: the last item of that list, several hidden posts of the kinds not named
+%1$d others	%1$d más
+# context: that row's summary when one thing was hidden; %2$s is the list of kinds with counts
+%1$d post or card: %2$s	%1$d publicación o tarjeta: %2$s
+# context: that row's summary when several things were hidden; %2$s is the list of kinds with counts
+%1$d posts and cards: %2$s	%1$d publicaciones y tarjetas: %2$s
+# context: a kind in that list, sponsored posts
+ads	anuncios
+# context: a kind in that list, reels in the feed
+reels	reels
+# context: a kind in that list, suggested posts and cards
+suggestions	sugerencias
+# context: a kind in that list, cards like Memories and friend requests
+Memories and other cards	recuerdos y otras tarjetas
+# context: a kind in that list
+posts from groups you're not in	publicaciones de grupos en los que no estás
+# context: a kind in that list, the Stories row at the top of Home
+rows of Stories	filas de Historias
+# context: a kind in that list, posts made with AI
+AI posts	publicaciones de IA
+# context: a kind in that list, posts hidden by the user's own word, people and Page filters
+posts your filters matched	publicaciones que coincidieron con tus filtros
+# context: a kind in that list, posts hidden because the user already saw them
+posts you've seen	publicaciones que ya viste
+# context: row title in News feed settings and the title of its list: Facebook's own names for kinds of post and card the user can pick to hide
+Feed types to hide	Tipos del feed que ocultar
+# context: warning under that row: hiding a type Home's ordinary posts use can leave Home with nothing to show
+Picking a type Home needs can leave it empty.	Si eliges un tipo que Inicio necesita, puede quedarse vacío.
+# context: that row's summary while nothing is picked; Debug logging is the name of a switch
+None picked. Hides posts and cards by Facebook's own type name, as Debug logging records it.	No elegiste ninguno. Oculta publicaciones y tarjetas por el nombre de tipo que les da Facebook, tal como lo anota el Registro de depuración.
+# context: message when the list has no types to offer because Home hasn't been scrolled since Facebook started
+No types seen yet. Scroll Home and come back.	Todavía no se vio ningún tipo. Desplázate por Inicio y vuelve.
+# context: import preview and toast, no feed type will be in that list after the import
+Your list of feed types to hide will be empty.	Tu lista de tipos del feed que ocultar quedará vacía.
+# context: import preview and toast, one feed type will be in that list after the import
+Your list of feed types to hide will hold %1$d type.	Tu lista de tipos del feed que ocultar tendrá %1$d tipo.
+# context: import preview and toast, several feed types will be in that list after the import
+Your list of feed types to hide will hold %1$d types.	Tu lista de tipos del feed que ocultar tendrá %1$d tipos.
+# context: title of the full screen cover the Opening pause puts over Facebook's first screen when it's opened from its icon
+Still want to open Facebook?	¿Seguro que quieres abrir Facebook?
+# context: line under that title while it counts down, one second left before the Open now button works
+You can open it in %1$d second.	Puedes abrirlo en %1$d segundo.
+# context: line under that title while it counts down, several seconds left before the Open now button works
+You can open it in %1$d seconds.	Puedes abrirlo en %1$d segundos.
+# context: line under that title once the countdown is over and both buttons work
+Open it, or close it and do something else.	Ábrelo, o ciérralo y haz otra cosa.
+# context: button on that cover that shows Facebook, working only once the countdown is over
+Open now	Abrir ahora
+# context: button on that cover that sends Facebook to the background
+Close	Cerrar
+# context: switch title in the Opening Facebook settings: a short countdown before Facebook shows when it's opened from its icon
+Opening pause	Pausa al abrir
+# context: that switch's summary
+Opening Facebook from its icon shows a short countdown first, so you can change your mind. Links, notifications and shares open it straight away, and so does coming back within a minute.	Al abrir Facebook desde su icono, primero aparece una breve cuenta atrás para que puedas cambiar de idea. Los enlaces, las notificaciones y lo que se comparte lo abren al instante, igual que volver en menos de un minuto.
+# context: row title and list title under that switch: how long the countdown lasts
+Pause length	Duración de la pausa
+# context: a choice in that list
+5 seconds	5 segundos
+# context: a choice in that list
+10 seconds	10 segundos
+# context: that row's summary; Open now is the cover's button and %1$s is the chosen length, such as 5 seconds
+Open now works after %1$s.	Abrir ahora funciona después de %1$s.
+# context: import preview and toast; Opening pause is the switch's name and %1$s is the length the import sets, such as 10 seconds
+With Opening pause on, Facebook will wait %1$s before it opens.	Con Pausa al abrir activada, Facebook esperará %1$s antes de abrirse.
+# context: a row on the Playback page that opens a list of 7 days, 30 days and Until you clear it; entries are the reels, videos and stories on the Recently watched list
+Keep watched entries for	Conservar lo visto durante
+# context: a choice in that list; it means the list itself is cleared with its Clear button
+Until you clear it	Hasta que borres la lista
+# context: that row's summary when Until you clear it is picked
+Reels, videos and stories stay on the list until you clear it.	Los reels, videos e historias se quedan en la lista hasta que la borres.
+# context: that row's summary; %1$s is the chosen time, 7 days or 30 days
+Reels, videos and stories leave the list %1$s after you watch them.	Los reels, videos e historias salen de la lista %1$s después de verlos.
+# context: screen reader label of the remove button on one Recently watched row; %1$s is the row's title, such as Reel, Video or the poster's name
+Remove %1$s	Quitar %1$s
+# context: line under the Recently watched list, next to its Undo button, after one entry was removed; %1$s is that row's title
+Removed %1$s	Se quitó %1$s
+# context: toast when Undo can't put a removed entry back
+It wasn't put back. It was watched again since, or its time on the list is up.	No se restauró. Se volvió a ver desde entonces o ya se cumplió su tiempo en la lista.
+# context: import preview and toast; Recently watched is the list's name
+Recently watched will keep entries until you clear them.	Vistos recientemente conservará las entradas hasta que las borres.
+# context: import preview and toast; Recently watched is the list's name and %1$s is 7 days or 30 days
+Recently watched will keep entries for %1$s.	Vistos recientemente conservará las entradas durante %1$s.
+# context: a switch on the Feeds page, under Opening pause; it covers Home, Feeds, Video and Reels after a chosen time of use
+Take breaks	Tomar descansos
+# context: that switch's summary; Home, Feeds, Video and Reels are Facebook's tabs, Menu is Facebook's Menu tab; the last part means being away from Facebook as long as a break also counts as a break
+After the time you pick on Home, Feeds, Video and Reels, they're covered for a break. Chats, your profile and the Menu still work, and time away as long as a break counts as one.	Tras el tiempo que elijas en Inicio, Feeds, Video y Reels, se cubren para un descanso. Los chats, tu perfil y el Menú siguen funcionando, y estar fuera tanto como dura un descanso cuenta como uno.
+# context: a row under Take breaks that opens a list of times; it's how long you can browse before a break starts
+Break after	Descanso tras
+# context: a row under Take breaks that opens a list of times; it's how long a break lasts
+Break length	Duración del descanso
+# context: a choice in those lists
+10 minutes	10 minutos
+# context: a choice in those lists
+30 minutes	30 minutos
+# context: a choice in those lists
+45 minutes	45 minutos
+# context: the Break after row's summary; %1$s is the chosen time, such as 30 minutes
+A break starts after %1$s of Home, Feeds, Video and Reels.	Un descanso empieza tras %1$s en Inicio, Feeds, Video y Reels.
+# context: the Break length row's summary; %1$s is the chosen time, such as 5 minutes
+Home, Feeds, Video and Reels stay covered for %1$s.	Inicio, Feeds, Video y Reels quedan cubiertos durante %1$s.
+# context: title of the cover shown over Home, Feeds, Video and Reels during a break
+Time for a break	Hora de un descanso
+# context: line on the break cover; %1$d is the whole minutes left, here 1
+Home, Feeds, Video and Reels open again in %1$d minute.	Inicio, Feeds, Video y Reels se abren de nuevo en %1$d minuto.
+# context: line on the break cover; %1$d is the whole minutes left, more than 1
+Home, Feeds, Video and Reels open again in %1$d minutes.	Inicio, Feeds, Video y Reels se abren de nuevo en %1$d minutos.
+# context: line on the break cover in its last minute
+Home, Feeds, Video and Reels open again in under a minute.	Inicio, Feeds, Video y Reels se abren de nuevo en menos de un minuto.
+# context: line on the break cover; Menu is Facebook's Menu tab
+Chats, your profile and the Menu still work.	Los chats, tu perfil y el Menú siguen funcionando.
+# context: button on the break cover that switches to Facebook's Menu tab
+Go to the Menu	Ir al Menú
+# context: button on the break cover that sends Facebook to the background
+Close Facebook	Cerrar Facebook
+# context: button on the break cover that opens the Take breaks settings
+Break settings	Ajustes de descansos
+# context: toast when a break's time is up and the cover goes away
+Your break is over.	Tu descanso terminó.
+# context: import preview and toast; Take breaks is the switch's name and %1$s is a time such as 30 minutes
+With Take breaks on, a break will start after %1$s of browsing.	Con Tomar descansos activado, un descanso empezará tras %1$s de navegación.
+# context: import preview and toast; Take breaks is the switch's name and %1$s is a time such as 5 minutes
+With Take breaks on, a break will last %1$s.	Con Tomar descansos activado, un descanso durará %1$s.
+# context: Marketplace search, the Advanced Marketplace search switch and its Adv. Filters button and dialog
+Advanced Marketplace search	Búsqueda avanzada en Marketplace
+Lets you type rules into Marketplace search. Put a word in quotes, like "word", to keep only titles with it, put a minus in front, like -word, to hide titles with it, and add in:place to keep listings in that place.	Te permite escribir reglas en la búsqueda de Marketplace. Pon una palabra entre comillas, como "palabra", para conservar solo los títulos que la tienen, pon un signo menos delante, como -palabra, para ocultar los títulos que la tienen, y añade in:lugar para conservar los anuncios de ese lugar.
+Adv. Filters button	Botón Filtros av.
+Adds an Adv. Filters button under Marketplace's Filters on search results. It opens lists of words to keep, words to hide and places, and writes the rules into the search for you.	Añade un botón Filtros av. bajo los Filtros de Marketplace en los resultados de búsqueda. Abre listas de palabras para conservar, palabras para ocultar y lugares, y escribe las reglas en la búsqueda por ti.
+How Adv. Filters works	Cómo funcionan los Filtros av.
+Type a word or a phrase and tap Add. A phrase of more than one word has to be in the title as written. A term matches anywhere in a title, so cat also matches cats. Put it in quotes with a space after it, like "cat ", to leave out cats. Go puts these into the search box and searches again.	Escribe una palabra o una frase y toca Añadir. Una frase de más de una palabra tiene que estar en el título tal cual. Un término coincide en cualquier parte del título, así que cat también coincide con cats. Ponlo entre comillas con un espacio detrás, como "cat ", para dejar fuera cats. Ir los pone en el cuadro de búsqueda y busca de nuevo.
+You can also type "word", -word or in:place straight into the search box.	También puedes escribir "palabra", -palabra o in:lugar directamente en el cuadro de búsqueda.
+Adv. Filters	Filtros av.
+Adv. Filters (%1$d)	Filtros av. (%1$d)
+Advanced Marketplace filters	Filtros avanzados de Marketplace
+Advanced Marketplace filters, %1$d on	Filtros avanzados de Marketplace, %1$d activos
+Add	Añadir
+Title must include	El título debe incluir
+Hide titles with	Ocultar títulos con
+Only show listings in	Mostrar solo anuncios en
+Go	Ir
+Clear all	Borrar todo
+Search box not found. Type the search again.	No se encontró el cuadro de búsqueda. Vuelve a escribir la búsqueda.
+The search box didn't open. Type the search again.	El cuadro de búsqueda no se abrió. Vuelve a escribir la búsqueda.
+Hide stories from Pages	Ocultar historias de páginas
+Hide seen stories	Ocultar historias vistas
+Shows only people's stories in the Stories tray, without the Pages you follow. Applies when Facebook next loads the tray.	Muestra solo historias de personas en la bandeja de historias, sin las páginas que sigues. Se aplica cuando Facebook cargue la bandeja de nuevo.
+Stories you've already watched leave the Stories tray until there's a new one. Applies when Facebook next loads the tray.	Las historias que ya viste salen de la bandeja de historias hasta que haya una nueva. Se aplica cuando Facebook cargue la bandeja de nuevo.
+90 days	90 días
+Tap a reel above its comments	Tocar un reel sobre sus comentarios
+Tapping the reel above its comments plays or pauses it, and the comments stay open. Works while comments open part way up, not at full height.	Al tocar el reel encima de sus comentarios se pausa o se reproduce, y los comentarios siguen abiertos. Funciona mientras los comentarios no se abren a altura completa.
+# context: sentence added after the summary of the Download feed and Watch videos switch; Save video is the row's name, keep it as translated for that row
+A video comment gets Save video when you long-press it.	Al mantener pulsado un comentario con vídeo aparece Guardar vídeo.
+# context: switch title next to Hide the Follow button on reels; Subscribe is Facebook's own button name, keep it as Facebook translates it
+Hide the Subscribe button on videos	Ocultar el botón Suscribirse en los videos
+# context: summary under that switch; "there" is next to the author of a reel or video, Subscribe and Follow are Facebook's button names
+The Subscribe button some authors get there instead, which subscribes with one tap. Follow buttons stay.	El botón Suscribirse que algunos autores tienen ahí en su lugar, que te suscribe con un toque. Los botones Seguir se quedan.
+# context: switch title under Play SDR versions of HDR videos; washed-out means pale, faded colors
+Fix washed-out video colors	Corregir colores apagados en vídeos
+# context: summary under that switch; Disable HW overlays and developer options are Android's own setting names, use the names Android shows in this language
+Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery.	Los vídeos y reels se dibujan junto con el resto de la pantalla, como Inhabilitar superposiciones HW en las opciones para desarrolladores. Pruébalo si los reels se ven pálidos hasta que algo los tapa. Gasta un poco más de batería.

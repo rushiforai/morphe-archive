@@ -1,0 +1,61 @@
+{
+  "PR#1683": {
+    "ref": "799f3d5ac0a0f76dd56ef82d7a042bb13248d68b",
+    "faultyGuardPresent": true
+  },
+  "PR#1356": {
+    "ref": "c970ac2fb6d805c164e8f50d7888d2b0c3f189df",
+    "faultyGuardPresent": true
+  },
+  "PR#1845": {
+    "ref": "9b9edd0e232c9117caec51fd8d70981d58e96233",
+    "faultyGuardPresent": true
+  },
+  "PR#1128": {
+    "ref": "ec78197c7b0c62afd3f9052a6cdc3a4f3004dcf0",
+    "faultyGuardPresent": true
+  },
+  "PR#1127": {
+    "ref": "8e79db23b118e69c409144bd665e1910f37dc28b",
+    "faultyGuardPresent": true
+  },
+  "PR#904": {
+    "ref": "e3479f30e7f66fb8b4d7350aac59d8c232c71572",
+    "faultyGuardPresent": true
+  },
+  "master": {
+    "ref": "1656575e8fdaaef010c652f9758130c2a01d8890",
+    "faultyGuardPresent": true
+  },
+  "stable": {
+    "ref": "e30ff83265d7affcc14e172ea9eadf469db1f4aa",
+    "faultyGuardPresent": true
+  },
+  "search-engine": {
+    "ref": "d78614bc8e2920a8361cd6090431cdaf396623ee",
+    "faultyGuardPresent": true
+  },
+  "database-maintainance": {
+    "ref": "87930eb4ee58313dac82fd3e6df5466aa508c94b",
+    "faultyGuardPresent": true
+  },
+  "clean-storage": {
+    "ref": "598926a84cf46672f6b352d27a31bb673045f2db",
+    "faultyGuardPresent": true
+  },
+  "claude/global-search-hanging-sources-8csqb0": {
+    "ref": "c29596013f834cad8c8c0d44196a68a8859a4a0a",
+    "faultyGuardPresent": true
+  },
+  "pr1128Behavior": {
+    "tests": 8,
+    "failures": 2,
+    "failed": [
+      "unrelatedExclusionKeepsLocalManga",
+      "localSourceIsNotMatchedAsNumericZero"
+    ],
+    "head": "ec78197c7b0c62afd3f9052a6cdc3a4f3004dcf0",
+    "testBase": "1656575e8fdaaef010c652f9758130c2a01d8890",
+    "method": "Applied PR #1128 source-name replacements to current master, preserving its unchanged source-ID null guard; invoked the real filterManga through the same regression class."
+  }
+}

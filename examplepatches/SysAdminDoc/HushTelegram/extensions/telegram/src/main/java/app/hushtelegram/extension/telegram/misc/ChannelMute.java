@@ -55,9 +55,13 @@ public final class ChannelMute {
         View view = (View) bar;
         try {
             if (mute && on()) {
-                if (!TAKEN_OFF.containsKey(bar)) TAKEN_OFF.put(bar, view.getVisibility());
+                Integer asked = TAKEN_OFF.get(bar);
+                if (asked == null) asked = view.getVisibility();
+                TAKEN_OFF.put(bar, asked);
                 HookStatus.counted(FamilyNames.HIDE_CHANNEL_BUTTONS, "channel Mute button hidden");
                 view.setVisibility(View.GONE);
+                // The bar's own setVisibility comes through visibility() too, and this hide isn't Telegram's ask.
+                TAKEN_OFF.put(bar, asked);
             } else {
                 Integer asked = TAKEN_OFF.remove(bar);
                 if (asked != null) view.setVisibility(asked);
@@ -75,10 +79,11 @@ public final class ChannelMute {
      * @return what the bar gets
      */
     public static int visibility(Object bar, int visibility) {
-        if (visibility == View.GONE || bar == null || !TAKEN_OFF.containsKey(bar)) return visibility;
+        if (bar == null || !TAKEN_OFF.containsKey(bar)) return visibility;
         try {
-            if (!on()) return visibility;
+            // Every ask counts, a hide or one made with the switch off too, so the bar comes back as last asked.
             TAKEN_OFF.put(bar, visibility);
+            if (visibility == View.GONE || !on()) return visibility;
             return View.GONE;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.HIDE_CHANNEL_BUTTONS, "mute visibility", failure);

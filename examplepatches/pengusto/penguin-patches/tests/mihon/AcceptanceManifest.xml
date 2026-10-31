@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.github.pengusto.patches.mihon.acceptance">
+  <uses-sdk android:minSdkVersion="35" android:targetSdkVersion="35" />
+  <application android:label="Penguin Mihon fixture tests" />
+  <instrumentation android:name="io.github.pengusto.patches.mihon.tests.MihonRetention" android:targetPackage="app.mihon" />
+</manifest>

@@ -124,6 +124,32 @@ public final class AffiliateLinks {
     }
 
     /**
+     * The entry the patch calls where the floating card plugin asks a yes-or-no question instead of
+     * reading the model (Facebook 585), handed the answer as an int for the same reason as
+     * {@link #keepReelCard(int)}.
+     */
+    public static boolean keepCommentCard(int showsCard) {
+        return keepCommentCard(showsCard != 0);
+    }
+
+    /**
+     * The hook at each return of the floating card plugin's check, handed what it was about to
+     * answer. False for a post that would get the card while the switch is on, and Facebook's answer
+     * otherwise.
+     */
+    public static boolean keepCommentCard(boolean showsCard) {
+        try {
+            HookStatus.invoked(FAMILY);
+            if (!showsCard || !hiding()) return showsCard;
+            kept("comment card check", COMMENT_CARD);
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "comment card check", failure);
+            return showsCard;
+        }
+    }
+
+    /**
      * The hook at each return of the reel overlay's filter of its call-to-action kinds, handed what it
      * was about to answer and the full list it was given. The filter answers null when Facebook leaves
      * no category out, and the overlay then keeps the full list. While the switch is on and the list

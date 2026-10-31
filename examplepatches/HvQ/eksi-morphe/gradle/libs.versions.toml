@@ -4,7 +4,7 @@
 morphe-patcher = "1.3.3"
 morphe-patches-library = "1.2.0"
 # Tracking https://github.com/google/smali/issues/100.
-smali = "d92701d947"
+smali = "4220ae75f7"
 agp = "9.1.0"
 annotation = "1.9.1"
 androidx-core = "1.16.0"

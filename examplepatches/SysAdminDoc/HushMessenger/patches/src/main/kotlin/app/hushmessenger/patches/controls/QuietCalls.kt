@@ -43,9 +43,11 @@ internal const val RTC_NOTIFICATION_SERVICE = "Lcom/facebook/rtc/notification/Rt
 internal const val QUIET_CALLS_HELPER = "Lapp/hushmessenger/extension/QuietCalls;"
 internal const val QUIET_CALL_NOTIFICATION_CALL =
     "$QUIET_CALLS_HELPER->incomingNotification(Landroid/app/Notification;Landroid/content/Context;)Landroid/app/Notification;"
+internal const val QUIET_CALL_CHAT_CALL = "$QUIET_CALLS_HELPER->incoming(Ljava/lang/String;J)V"
 
 private const val NOTIFICATION = "Landroid/app/Notification;"
 private const val CONTEXT = "Landroid/content/Context;"
+private const val THREAD_KEY = "Lcom/facebook/messaging/model/threadkey/ThreadKey;"
 
 private fun quietCallsChanged(detail: String): Nothing =
     throw PatchException("Messenger controls: the incoming call alert changed ($detail)")
@@ -82,13 +84,31 @@ private fun List<Instruction>.loggedFlag(logged: Int): Int? {
     return if (getOrNull(logged + 2)?.namedFlag(name) == copy.registerA) copy.registerB else null
 }
 
-/** Where the guard goes, the ringtone-off flag it sets, and the skip block that flag's branch lands on. */
-internal class QuietRing(val index: Int, val flag: Int, val skip: Int)
+/**
+ * Where the guard goes, the ringtone-off flag it sets, and the skip block that flag's branch lands on. [chat] is the
+ * call's chat lookup and [thread] the first of its thread id and caller id registers.
+ */
+internal class QuietRing(val index: Int, val flag: Int, val skip: Int, val chat: Int, val thread: Int)
+
+/**
+ * The register of the thread id when this is the decision's chat lookup: a static range call that takes the thread
+ * key, the engine, the participants, then the thread id as a string and the caller id parsed from the call, and a
+ * flag. Null for anything else.
+ */
+private fun Instruction.chatLookup(): Int? {
+    if (opcode != Opcode.INVOKE_STATIC_RANGE) return null
+    val target = (this as ReferenceInstruction).reference as? MethodReference ?: return null
+    val types = target.parameterTypes.map { it.toString() }
+    if (target.returnType != "V" || types.size != 6 || types[0] != THREAD_KEY || types[2] != IMMUTABLE_LIST ||
+        types[3] != "Ljava/lang/String;" || types[4] != "J" || types[5] != "Z") return null
+    return (this as RegisterRangeInstruction).startRegister + 3
+}
 
 /**
  * The decision's ringtone-off branch: the one `if-nez` on the flag the skip block logs as ringtone_disabled, placed
  * before "Maybe start ringing" and landing between it and that log, past the vibration. The guard goes right after
- * the branch, where only the branch's fall-through arrives, so it runs on every way in. Null when the method isn't the
+ * the branch, where only the branch's fall-through arrives, so it runs on every way in. Before both sits the one chat
+ * lookup, which nothing jumps to, so the chat is known before the guard asks about it. Null when the method isn't the
  * decision or the shape changed.
  */
 internal fun Method.quietRing(): QuietRing? {
@@ -102,8 +122,10 @@ internal fun Method.quietRing(): QuietRing? {
     val branch = (0 until ring).filter { i ->
         code[i].opcode == Opcode.IF_NEZ && (code[i] as OneRegisterInstruction).registerA == flag && code.branchTarget(i) in ring + 1..logged
     }.singleOrNull() ?: return null
-    if (branch + 1 in jumpTargets()) return null
-    return QuietRing(branch + 1, flag, code.branchTarget(branch))
+    val chat = code.indices.filter { code[it].chatLookup() != null }.singleOrNull() ?: return null
+    val targets = jumpTargets()
+    if (branch + 1 in targets || chat > branch || chat in targets) return null
+    return QuietRing(branch + 1, flag, code.branchTarget(branch), chat, code[chat].chatLookup()!!)
 }
 
 /** The app's only method that logs both "Maybe start ringing" and ringtone_disabled, when it has that branch. */
@@ -121,7 +143,8 @@ internal fun MutableMethod.validateQuietCallRing(): QuietRing = quietRing() ?: q
  * While the switch is on the decision takes Messenger's own ringtone-off path, the one Do Not Disturb and a silenced
  * call use: no ringtone and no vibration, and ring_alert_suppressed logs ringtone_disabled as true. On that path the
  * flag was false, so with the switch off the guard writes false back and Messenger's code runs unchanged. Off, Pause
- * and safe mode leave it false.
+ * and safe mode leave it false. Earlier, the chat lookup's thread id and caller id go to the extension first, so Only
+ * chosen chats can tell whose call it is.
  */
 internal fun MutableMethod.injectQuietCallRing() {
     val ring = validateQuietCallRing()
@@ -130,6 +153,7 @@ internal fun MutableMethod.injectQuietCallRing() {
         move-result v${ring.flag}
         if-nez v${ring.flag}, :quiet_call
     """.trimIndent(), ExternalLabel("quiet_call", getInstruction(ring.skip)))
+    addInstructions(ring.chat, "invoke-static/range {v${ring.thread} .. v${ring.thread + 2}}, $QUIET_CALL_CHAT_CALL")
 }
 
 private fun Method.callsStartForeground() = implementation?.instructions?.any { instruction ->

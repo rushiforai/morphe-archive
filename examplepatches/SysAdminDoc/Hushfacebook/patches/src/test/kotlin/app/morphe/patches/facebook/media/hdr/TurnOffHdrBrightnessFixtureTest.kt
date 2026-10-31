@@ -78,13 +78,14 @@ class TurnOffHdrBrightnessFixtureTest {
         // Probed on all three builds (2026-10-07): ExoPlayer's Dolby Vision checks and the device
         // details ask isHdr; the inverse tone mapping check, a surface check and the device details
         // read a mode's types; the Dolby Vision checks, the device details and two more read the
-        // capabilities' types.
+        // capabilities' types. 585 (2026-10-30) folds the two Dolby Vision checks into one
+        // (Context)Z method, so it asks isHdr twice and reads the capabilities' types four times.
         val isHdr = calls(OWN_IS_HDR)
         val modeTypes = calls(OWN_MODE_HDR_TYPES)
         val capabilityTypes = calls(OWN_CAPABILITY_HDR_TYPES)
-        assertTrue("${bundle.name}: $isHdr isHdr calls", isHdr >= 3)
+        assertTrue("${bundle.name}: $isHdr isHdr calls", isHdr >= 2)
         assertTrue("${bundle.name}: $modeTypes mode type reads", modeTypes >= 4)
-        assertTrue("${bundle.name}: $capabilityTypes capability type reads", capabilityTypes >= 5)
+        assertTrue("${bundle.name}: $capabilityTypes capability type reads", capabilityTypes >= 4)
         // Probed on 582 (2026-10-11): ExoPlayer's platform adapter (SyncMediaCodecAdapterExt), the
         // player's codec helper, webrtc, the camera roll and the encoders, about 25 in all.
         val decoders = calls(OWN_CODEC_CONFIGURE)

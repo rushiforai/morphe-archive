@@ -47,7 +47,8 @@ public final class MonetCatalogChannelsPatch {
             "Select individual NuvioTV catalogs in the app's content picker, with Nuvio icons and refresh independent of Recommendations.",
             false, builder -> {
                 builder.compatibleWith(new Compatibility("com.klevico.monet", "Monet", null, ApkFileType.APK,
-                    null, null, Collections.singletonList(new AppTarget("1.0.97", null, false, 26, null)), FormFactor.TV, false));
+                    null, null, Arrays.asList(new AppTarget("1.0.97", null, false, 26, null),
+                        new AppTarget("1.1.0", null, false, 26, null)), FormFactor.TV, false));
                 builder.extendWith(() -> {
                     var input = MonetCatalogChannelsPatch.class.getClassLoader().getResourceAsStream("extensions/monet-catalog-channels.mpe");
                     if (input == null) throw new IllegalStateException("Missing Monet catalog channels extension");
@@ -55,15 +56,17 @@ public final class MonetCatalogChannelsPatch {
                 });
                 builder.execute(context -> {
                     if (!"com.klevico.monet".equals(context.getPackageMetadata().getPackageName())
-                        || !"1.0.97".equals(context.getPackageMetadata().getVersionName())) throw unsupported("Unexpected package/version");
+                        || !Set.of("1.0.97","1.1.0").contains(context.getPackageMetadata().getVersionName())) throw unsupported("Unexpected package/version");
                     List<ClassDef> classes = new ArrayList<>();
                     context.classDefForEach(c -> { classes.add(c); return Unit.INSTANCE; });
-                    Map<String, Method> contracts = validate(classes);
-                    for (String signature : TARGETS) {
+                    boolean modern="1.1.0".equals(context.getPackageMetadata().getVersionName());
+                    Map<String, Method> contracts = modern?MonetCatalogChannels110.validate(classes):validate(classes);
+                    if (modern) MonetCatalogChannels110.selectLayout(context.mutableClassDefBy(MonetCatalogChannels110.LAYOUT));
+                    for (String signature : modern?MonetCatalogChannels110.TARGETS:TARGETS) {
                         Method original = contracts.get(signature);
                         MutableMethod method = context.mutableClassDefBy(original.getDefiningClass()).getMethods().stream()
                             .filter(m -> m.equals(original)).findFirst().orElseThrow();
-                        apply(method);
+                        if (modern) MonetCatalogChannels110.apply(method); else apply(method);
                     }
                     return Unit.INSTANCE;
                 });
@@ -71,7 +74,7 @@ public final class MonetCatalogChannelsPatch {
             });
     }
     static IllegalStateException unsupported(String reason) {
-        return new IllegalStateException("Unsupported Monet catalog channels bytecode: " + reason + ". Use original Monet 1.0.97.");
+        return new IllegalStateException("Unsupported Monet catalog channels bytecode: " + reason + ". Use a supported original Monet APK.");
     }
     static Map<String, Method> validate(List<? extends ClassDef> classes) {
         Map<String, Method> found = new HashMap<>();

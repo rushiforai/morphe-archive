@@ -1,17 +1,21 @@
 {
   "schema": 2,
-  "facebook": "584.0.0.51.56",
-  "written": "2026-10-26",
-  "patchBuild": "sha256=371436f4b640a141220359f235085095f2241167a981312aba43f585b3d302fa; source=clean:5c090d87020c19aa79ca56af1f12192d3d7b7907; tree=c1bd11aeed067fee45628bcb2cb6afb178d08c73; inputs=60c046270bba057285bd966dd58623f605dd7a3cf91b11bad93c0cea96b5941d",
-  "installedApkSha256": "bb595ad7cffe3184277a3c26fac52582c072266109bea88e1fb49a5ab5b6434c",
+  "facebook": "585.0.0.47.54",
+  "written": "2026-10-30",
+  "patchBuild": "sha256=c192a0f4f82808b69e1122a91156224bc2d03d9aa7d493980b77afff8803eb63; source=dirty:390eb992a6423818092dd465c4635b7211c18dac; tree=ca41e7c5d3a50fcc55e8159e5fae568bd8184c73; inputs=2cad6cdce0bebf5c1ef2ecd3707af5edf36522f45ae96ad8ece1e8c2af14688c",
+  "installedApkSha256": "355bae18c46a246e8c2ed55a68b8d03e7a0b6bc58990cadc5be688388d61ba9f",
   "abi": "arm64-v8a",
   "sdk": 36,
   "device": "Hushfacebook_API36_577",
-  "settingsSha256": "3e649a71e4044b8b75e612a6be7c17df3db98a6a670b0b87a70ca6d69a2dc1c1",
+  "settingsSha256": "ef46785f9437c960c3367bf8ade393144cdade801581f95cc63409a381662639",
   "profile": {
     "name": "all-on",
     "on": [],
-    "off": [],
+    "off": [
+      "hushfacebook_hide_post_comment_button",
+      "hushfacebook_hold_reel_right_edge",
+      "hushfacebook_long_press_opens_comments"
+    ],
     "visit": [
       "fb://feed",
       "tap:Comment",
@@ -59,6 +63,7 @@
   "ranOnWalk": [
     "Accent color",
     "AMOLED black theme",
+    "Badge and logo colors",
     "Block background-return feed refresh",
     "Block screenshot detection",
     "Clean up Reels",
@@ -119,8 +124,10 @@
     "Open on a chosen tab",
     "Picture-in-picture",
     "Pinch to zoom",
+    "Post action buttons",
     "Restore screens on re-signed builds",
     "Resume long videos",
+    "Show full post text",
     "Skip silent parts",
     "Tab bar at the bottom",
     "Tap to play",

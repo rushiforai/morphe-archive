@@ -112,7 +112,8 @@ internal object BoxDecorationBorderFingerprint : Fingerprint(
 internal const val NATIVE_TEMPLATE_BOX = "NTBox3Builder#build"
 
 /**
- * Native Templates' component builder (584 `LX/4Kb;->D9f(LX/3tD;LX/5en;LX/4Km;)LX/3T3;`): the
+ * Native Templates' component builder (584 `LX/4Kb;->D9f(LX/3tD;LX/5en;LX/4Km;)LX/3T3;`, 585 the
+ * static `LX/04d0;->A00(LX/01PR;LX/062H;LX/04e3;I)LX/03G2;`): the
  * method that builds each node of a native template by its kind, such as the Menu's profile card,
  * and traces a box as [NATIVE_TEMPLATE_BOX]. It and its child builder set a box's server colour
  * with Litho's backgroundColor ([hookNativeTemplateBackgrounds]).

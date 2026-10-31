@@ -302,6 +302,40 @@ class GenAiReelShapesTest {
         assertFalse("another attribution type", readsReelDetectedFlag(decision(), "Lfixture/Chip;", model))
     }
 
+    // 585's form: an instance method taking the model picks the attribution by getTypeName() and
+    // reads the flag on it, cast to the attribution and then to TreeJNI.
+    private fun walkBody(source: String = "v0", key: Int = treeFieldKey(DETECTED_FLAG), typeName: String = "getTypeName") = """
+        invoke-static { p1 }, Lfixture/Walk;->first($model)Ljava/lang/Object;
+        move-result-object v0
+        move-object v1, v0
+        check-cast v1, $attribution
+        invoke-interface { v1 }, $attribution->$typeName()Ljava/lang/String;
+        move-result-object v2
+        check-cast v0, $attribution
+        move-object v3, $source
+        check-cast v3, $TREE_JNI
+        const v2, $key
+        invoke-virtual { v3, v2 }, $TREE_JNI->getBooleanValue(I)Z
+        move-result v0
+        return v0
+    """
+
+    private fun walk(parameters: List<String> = listOf(model), smali: String = walkBody()) =
+        method("rows", parameters, "Z", 4 + parameters.size + 1, false, smali, definingClass = "Lfixture/Sheet;")
+
+    @Test
+    fun `the attribution walk reads the detected flag on the attribution it picked`() {
+        assertTrue(readsReelDetectedFlag(walk(), attribution, model))
+
+        assertFalse("the flag read on the model", readsReelDetectedFlag(walk(smali = walkBody(source = "p1")), attribution, model))
+        assertFalse("another flag", readsReelDetectedFlag(walk(smali = walkBody(key = 0x1234)), attribution, model))
+        assertFalse("no pick by type name", readsReelDetectedFlag(walk(smali = walkBody(typeName = "getId")), attribution, model))
+        assertFalse("no model taken", readsReelDetectedFlag(walk(parameters = listOf("Lfixture/Other;"),
+            smali = walkBody().replace("($model)", "(Lfixture/Other;)")), attribution, model))
+        assertFalse("more than the model taken", readsReelDetectedFlag(walk(parameters = listOf(model, "Ljava/lang/String;")), attribution, model))
+        assertFalse("another attribution type", readsReelDetectedFlag(walk(), "Lfixture/Chip;", model))
+    }
+
     private fun tree(vararg methods: Method): ClassDef =
         ImmutableClassDef(TREE_JNI, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null, methods.toList())
 

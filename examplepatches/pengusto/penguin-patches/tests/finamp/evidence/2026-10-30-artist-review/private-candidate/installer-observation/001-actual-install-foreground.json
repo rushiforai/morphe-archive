@@ -1,0 +1,52 @@
+{
+  "capturedAt": "2026-10-30T14:08:43.231692+00:00",
+  "serial": "emulator-5586",
+  "package": "com.android.packageinstaller",
+  "labels": [
+    {
+      "text": "Morphe",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[260,797][900,851]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "For your security, your phone currently isn’t allowed to install unknown apps from this source. You can change this in Settings.",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[132,872][948,991]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "CANCEL",
+      "content-desc": "",
+      "class": "android.widget.Button",
+      "bounds": "[590,999][744,1107]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "SETTINGS",
+      "content-desc": "",
+      "class": "android.widget.Button",
+      "bounds": "[744,999][924,1107]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "b15d147730a6e9028ef4cd33a620b5349c0e669d9b3e2c3d61adc5cd7f71001a"
+}

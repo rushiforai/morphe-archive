@@ -8,6 +8,7 @@ import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
 import app.hushtelegram.extension.telegram.settings.Settings;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,8 @@ import java.util.Map;
  * <p>Only a reaction the server marks unread counts, which it does for reactions to your own
  * messages, and only a recent one, so catching up after a while offline doesn't bring back old
  * reactions. Telegram keys its notifications by message, so a push for the same reaction, before
- * or after, shows once. Custom emoji and paid reactions are left to the push.
+ * or after, shows once. A custom emoji shows as the emoji it stands for once this phone has loaded
+ * it. Until then, and for paid reactions, it's left to the push.
  */
 public final class ReactionAlerts {
     private ReactionAlerts() {}
@@ -46,8 +48,14 @@ public final class ReactionAlerts {
         final int date;
         final boolean unread;
         final boolean mine;
+        /** A custom emoji's document ID, or 0 for any other reaction. */
+        final long custom;
 
         Reaction(long dialog, int id, int topic, long from, String emoji, int date, boolean unread, boolean mine) {
+            this(dialog, id, topic, from, emoji, date, unread, mine, 0);
+        }
+
+        Reaction(long dialog, int id, int topic, long from, String emoji, int date, boolean unread, boolean mine, long custom) {
             this.dialog = dialog;
             this.id = id;
             this.topic = topic;
@@ -56,6 +64,7 @@ public final class ReactionAlerts {
             this.date = date;
             this.unread = unread;
             this.mine = mine;
+            this.custom = custom;
         }
     }
 
@@ -86,6 +95,9 @@ public final class ReactionAlerts {
 
         /** Hands Telegram's notifications the reaction, with the message's text or null. */
         void show(Reaction reaction, String text) throws Exception;
+
+        /** The emoji the custom emoji [document] stands for, or null when this phone hasn't loaded it. */
+        String emojiOf(long document) throws Exception;
     }
 
     /** The account behind a message controller. */
@@ -121,7 +133,7 @@ public final class ReactionAlerts {
             if (reactions.isEmpty()) return;
             Source source = sources.of(controller);
             long self = source.self();
-            Reaction newest = pick(reactions, self, source.now());
+            Reaction newest = pick(named(reactions, source), self, source.now());
             if (newest == null || !first(self, newest)) return;
             source.post(() -> show(source, newest));
         } catch (Throwable failure) {
@@ -138,6 +150,62 @@ public final class ReactionAlerts {
             HookStatus.threw(FamilyNames.UNIFIED_PUSH, "reaction switch", failure);
             return false;
         }
+    }
+
+    /**
+     * Asked by Telegram's silent notification check right after it reads whether a notification is
+     * for a reaction. Telegram keeps every reaction notification silent, pushed or not. With the
+     * sound switch on, a reaction plays the sound and vibration set for reactions in Telegram's own
+     * Notifications and Sounds, the way a message does.
+     *
+     * @param reaction non-zero when the notification is for a reaction
+     * @return whether it still counts as a reaction, which keeps it silent
+     */
+    public static boolean quiet(int reaction) {
+        if (reaction == 0) return false;
+        try {
+            HookStatus.invoked(FamilyNames.UNIFIED_PUSH);
+            if (Utils.settingsReady() && Settings.REACTION_SOUND.get()) {
+                HookStatus.counted(FamilyNames.UNIFIED_PUSH, "reaction sounds let through");
+                return false;
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.UNIFIED_PUSH, "reaction sound", failure);
+        }
+        return true;
+    }
+
+    /**
+     * Telegram's loaded copy of the custom emoji [document] on [account], or null when it hasn't
+     * loaded one. The patch writes the body, which asks AnimatedEmojiDrawable.findDocument; this one
+     * stays when it can't.
+     */
+    public static Object emojiDocument(int account, long document) {
+        return null;
+    }
+
+    /**
+     * The reactions with each custom emoji this phone has loaded named by the emoji it stands for. A
+     * lookup that fails leaves that one unnamed, so the emoji reactions beside it still count.
+     */
+    static List<Reaction> named(List<Reaction> reactions, Source source) {
+        List<Reaction> named = null;
+        for (int i = 0; i < reactions.size(); i++) {
+            Reaction reaction = reactions.get(i);
+            if (reaction == null || reaction.custom == 0 || (reaction.emoji != null && !reaction.emoji.isEmpty())) continue;
+            String emoji;
+            try {
+                emoji = source.emojiOf(reaction.custom);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.UNIFIED_PUSH, "custom emoji", failure);
+                continue;
+            }
+            if (emoji == null || emoji.isEmpty()) continue;
+            if (named == null) named = new ArrayList<>(reactions);
+            named.set(i, new Reaction(reaction.dialog, reaction.id, reaction.topic, reaction.from, emoji, reaction.date,
+                    reaction.unread, reaction.mine, reaction.custom));
+        }
+        return named == null ? reactions : named;
     }
 
     /** The newest unread emoji reaction someone else left within the last {@link #RECENT} seconds, or null. */

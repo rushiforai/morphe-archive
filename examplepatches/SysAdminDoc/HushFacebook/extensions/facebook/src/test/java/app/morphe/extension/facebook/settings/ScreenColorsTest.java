@@ -279,6 +279,65 @@ public class ScreenColorsTest {
         }
     }
 
+    /**
+     * The black page wears Astryx's dark tokens (issue #302): the card, popover, text and accent
+     * as the kit gives them, and its border, white-grey at 0x19, laid over the card. White reads
+     * at 3.1:1 on that accent, so what sits on it is black.
+     */
+    @Test
+    public void theBlackPageWearsAstryxDarkTokens() {
+        ScreenColors black = ScreenColors.DEFAULT;
+        assertEquals(Color.BLACK, black.background);
+        assertEquals(0xFF1F1F22, black.card);
+        assertEquals(0xFF28292C, black.dialog);
+        assertEquals(0xFFDFE2E5, black.title);
+        assertEquals(0xFFAAAFB5, black.summary);
+        assertEquals(0xFF3E9EFB, black.heading);
+        assertEquals(0xFF2694FE, black.accent);
+        assertEquals(over(0x19F2F4F6, black.card), black.outline);
+        assertTrue(contrast(Color.WHITE, black.accent) < TEXT);
+        assertEquals(Color.BLACK, black.onAccent);
+        assertEquals(Color.BLACK, black.offThumb());
+    }
+
+    /** Rows space in Astryx's 4 dp steps, dialogs round at its container radius and buttons at its element radius. */
+    @Test
+    public void theBlackPageTakesAstryxSpacingAndCorners() {
+        PatchFamily.inBuildForTests = EnumSet.complementOf(EnumSet.of(PatchFamily.MATERIAL_YOU_THEME));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            SettingsDialog dialog = show(controller.get());
+            float density = controller.get().getResources().getDisplayMetrics().density;
+            int cards = 0;
+            for (View row : rows(dialog)) {
+                if (surfaceColour(row.getBackground()) == null) continue;
+                assertEquals(Math.round(8 * density), row.getPaddingTop());
+                assertEquals(Math.round(8 * density), row.getPaddingBottom());
+                cards++;
+            }
+            assertTrue("no row sits on a card", cards > 10);
+            android.app.AlertDialog alert = new android.app.AlertDialog.Builder(controller.get())
+                    .setTitle("Import settings").setPositiveButton("Import", null).create();
+            alert.show();
+            try {
+                ScreenColors.dialog(alert);
+                GradientDrawable panel = (GradientDrawable) alert.getWindow().getDecorView().getBackground();
+                assertEquals(Math.round(12 * density), panel.getCornerRadius(), 0.01);
+                RippleDrawable button = (RippleDrawable) alert.getButton(android.app.AlertDialog.BUTTON_POSITIVE).getBackground();
+                assertEquals(Math.round(8 * density), ((GradientDrawable) button.getDrawable(0)).getCornerRadius(), 0.01);
+            } finally {
+                alert.dismiss();
+            }
+        }
+    }
+
+    /** [colour], with its own alpha, laid over the opaque [under]. */
+    private static int over(int colour, int under) {
+        float alpha = Color.alpha(colour) / 255f;
+        return Color.rgb(Math.round(Color.red(colour) * alpha + Color.red(under) * (1 - alpha)),
+                Math.round(Color.green(colour) * alpha + Color.green(under) * (1 - alpha)),
+                Math.round(Color.blue(colour) * alpha + Color.blue(under) * (1 - alpha)));
+    }
+
     /** The fill of a row's card or a dialog's panel, through the ripple and inset around it. */
     private static Integer surfaceColour(android.graphics.drawable.Drawable drawable) {
         if (drawable instanceof RippleDrawable && ((RippleDrawable) drawable).getNumberOfLayers() > 0) {
@@ -641,8 +700,8 @@ public class ScreenColorsTest {
         list.setOnItemClickListener(page.getPreferenceScreen());
         assertNotNull("no list in the dialog", list);
         list.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(40000, View.MeasureSpec.EXACTLY));
-        list.layout(0, 0, 1080, 40000);
+                View.MeasureSpec.makeMeasureSpec(80000, View.MeasureSpec.EXACTLY));
+        list.layout(0, 0, 1080, 80000);
         List<View> rows = new ArrayList<>();
         for (int index = 0; index < list.getChildCount(); index++) rows.add(list.getChildAt(index));
         return rows;

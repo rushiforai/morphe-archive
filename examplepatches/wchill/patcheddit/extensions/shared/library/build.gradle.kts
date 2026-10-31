@@ -15,4 +15,7 @@ dependencies {
     implementation(libs.gson)
     compileOnly(libs.annotation)
     compileOnly(libs.okhttp)
+    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.okhttp)
+    testImplementation("org.json:json:20240303")
 }

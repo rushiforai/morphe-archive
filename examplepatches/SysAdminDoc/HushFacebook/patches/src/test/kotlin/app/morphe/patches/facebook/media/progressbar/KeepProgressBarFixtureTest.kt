@@ -470,7 +470,7 @@ class KeepProgressBarFixtureTest {
         assertEquals("$where asks its controller for more than the hide", 1, asked.size)
         val hide = controllers.single { it.type == asked.single().definingClass }.methods.single { it.name == asked.single().name }
         assertTrue("$where: ${hide.name} doesn't hand the updater the hide",
-            hide.code().any { it.opcode == (if (updater.folded) Opcode.INVOKE_STATIC else Opcode.INVOKE_INTERFACE) &&
+            hide.code().any { it.opcode == (if (updater.folded) Opcode.INVOKE_STATIC else if (updater.virtual) Opcode.INVOKE_VIRTUAL else Opcode.INVOKE_INTERFACE) &&
                 it.reference() == updater.update })
         assertTrue("$where has no local register for the hook", run.implementation!!.registerCount - 1 >= 1)
 

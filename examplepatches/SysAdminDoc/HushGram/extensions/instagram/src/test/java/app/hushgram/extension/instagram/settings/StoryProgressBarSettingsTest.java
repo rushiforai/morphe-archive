@@ -40,7 +40,7 @@ public class StoryProgressBarSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.THICKER_STORY_BAR.resetToDefault();
         Settings.STORY_BAR_THICKNESS.resetToDefault();
         BaseSettings.PAUSED.save(false);

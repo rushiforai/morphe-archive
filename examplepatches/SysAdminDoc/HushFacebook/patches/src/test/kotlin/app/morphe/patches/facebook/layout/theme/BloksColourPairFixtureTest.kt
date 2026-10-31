@@ -70,8 +70,10 @@ class BloksColourPairFixtureTest {
                 val accessor = owners.single { it.type == anchor.definingClass }.interfaces.single { type ->
                     owners.any { it.type == type && AccessFlags.INTERFACE.isSet(it.accessFlags) && it.methods.any { m -> m.sameAs(anchor) } }
                 }
+                // 585's models without colours of their own only answer the fallback; those are left alone.
                 val readers = owners.filter { accessor in it.interfaces }
                     .mapNotNull { model -> model.methods.singleOrNull { it.sameAs(anchor) && it.implementation != null } }
+                    .filterNot(::answersFallbackOnly)
                 assertTrue("$name: the logging model and the sparse one, at least (${readers.map { it.descriptor() }})", readers.size >= 2)
                 val parses = readers.associate { reader ->
                     val calls = reader.body().withIndex().filter { it.value.call()?.toString() == PARSE_COLOR }

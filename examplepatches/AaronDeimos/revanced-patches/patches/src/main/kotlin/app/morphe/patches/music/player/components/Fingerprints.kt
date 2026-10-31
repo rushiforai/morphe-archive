@@ -1,0 +1,630 @@
+/*
+ * Copyright (C) 2026 anddea
+ *
+ * This file is part of the revanced-patches project:
+ * https://github.com/anddea/revanced-patches
+ *
+ * Original author(s):
+ * - anddea (https://github.com/anddea)
+ * - inotia00 (https://github.com/inotia00)
+ *
+ * Licensed under the GNU General Public License v3.0.
+ *
+ * ------------------------------------------------------------------------
+ * GPLv3 Section 7 – Additional Terms & Attribution Requirements
+ * ------------------------------------------------------------------------
+ *
+ * This file contains substantial original work by the author(s) listed above.
+ *
+ * In accordance with Section 7 of the GNU General Public License v3.0,
+ * the following additional terms apply to this file:
+ *
+ * 1. Source Credit Preservation (Section 7(b)): This specific copyright notice
+ *    and the list of original authors above must be preserved in any copy
+ *    or derivative work. You may add your own copyright notice below it,
+ *    but you may not remove the original one.
+ *
+ * 2. Origin & Modification Marking (Section 7(c)): Modified versions must be
+ *    clearly marked as such (e.g., by adding a "Modified by" line or a new
+ *    copyright notice) and must not be misrepresented as the original work.
+ *
+ * 3. Version Control Attribution (Section 7(b)): Any ports or substantial
+ *    modifications must retain historical authorship credit in version control
+ *    systems (e.g., Git), listing original author(s) appropriately and
+ *    modifiers as committers or co-authors.
+ *
+ * 4. User Interface Attribution (Section 7(b)): Any works containing or
+ *    derived from this material must maintain a visible credit or
+ *    acknowledgment to the original author(s) within the application's
+ *    user interface (e.g., in an "About" or "Credits" section).
+ */
+
+/*
+ * Portions of this file are ported from Morphe:
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
+ */
+
+package app.morphe.patches.music.player.components
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.InstructionLocation.MatchAfterWithin
+import app.morphe.patcher.OpcodesFilter.Companion.opcodesToFilters
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.opcode
+import app.morphe.patcher.string
+import app.morphe.patches.music.utils.extension.Constants.PLAYER_CLASS_DESCRIPTOR
+import app.morphe.patches.music.utils.playservice.is_7_18_or_greater
+import app.morphe.patches.music.utils.resourceid.colorGrey
+import app.morphe.patches.music.utils.resourceid.darkBackground
+import app.morphe.patches.music.utils.resourceid.inlineTimeBarProgressColor
+import app.morphe.patches.music.utils.resourceid.miniPlayerDefaultText
+import app.morphe.patches.music.utils.resourceid.miniPlayerMdxPlaying
+import app.morphe.patches.music.utils.resourceid.miniPlayerPlayPauseReplayButton
+import app.morphe.patches.music.utils.resourceid.miniPlayerViewPager
+import app.morphe.patches.music.utils.resourceid.playerViewPager
+import app.morphe.patches.music.utils.resourceid.remixGenericButtonSize
+import app.morphe.patches.music.utils.resourceid.tapBloomView
+import app.morphe.patches.shared.mapping.ResourceType
+import app.morphe.patches.shared.mapping.resourceLiteral
+import app.morphe.util.containsLiteralInstruction
+import app.morphe.util.fingerprint.legacyFingerprint
+import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstInstruction
+import app.morphe.util.or
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import app.morphe.patcher.methodCall as patcherMethodCall
+
+const val AUDIO_VIDEO_SWITCH_TOGGLE_VISIBILITY =
+    "/AudioVideoSwitcherToggleView;->setVisibility(I)V"
+
+internal const val AUDIO_VIDEO_SWITCH_TOGGLE_FEATURE_FLAG = 45671274L
+
+internal val audioVideoSwitchToggleFeatureFlagsFingerprint = legacyFingerprint(
+    name = "audioVideoSwitchToggleFeatureFlagsFingerprint",
+    returnType = "Z",
+    parameters = emptyList(),
+    literals = listOf(AUDIO_VIDEO_SWITCH_TOGGLE_FEATURE_FLAG),
+)
+
+internal val audioVideoSwitchToggleFingerprint = legacyFingerprint(
+    name = "audioVideoSwitchToggleFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = emptyList(),
+    customFingerprint = { method, _ ->
+        method.indexOfFirstInstruction {
+            opcode == Opcode.INVOKE_VIRTUAL &&
+                    getReference<MethodReference>()
+                        ?.toString()
+                        ?.endsWith(AUDIO_VIDEO_SWITCH_TOGGLE_VISIBILITY) == true
+        } >= 0
+    }
+)
+
+internal val engagementPanelHeightFingerprint = legacyFingerprint(
+    name = "engagementPanelHeightFingerprint",
+    returnType = "L",
+    // In YouTube Music 7.21.50+, there are two methods with similar structure, so this Opcode pattern must be used.
+    opcodes = listOf(
+        Opcode.IGET_OBJECT,
+        Opcode.IGET_OBJECT,
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT,
+    ),
+    parameters = emptyList(),
+    customFingerprint = { method, _ ->
+        AccessFlags.FINAL.isSet(method.accessFlags) &&
+                method.containsLiteralInstruction(1) &&
+                method.indexOfFirstInstruction {
+                    opcode == Opcode.INVOKE_VIRTUAL &&
+                            getReference<MethodReference>()?.name == "booleanValue"
+                } >= 0
+    }
+)
+
+internal val engagementPanelHeightParentFingerprint = legacyFingerprint(
+    name = "engagementPanelHeightParentFingerprint",
+    returnType = "L",
+    opcodes = listOf(Opcode.NEW_ARRAY),
+    parameters = emptyList(),
+    customFingerprint = custom@{ method, _ ->
+        if (method.definingClass.startsWith("Lcom/")) {
+            return@custom false
+        }
+        if (method.returnType == "Ljava/lang/Object;") {
+            return@custom false
+        }
+        if (!AccessFlags.FINAL.isSet(method.accessFlags)) {
+            return@custom false
+        }
+        method.indexOfFirstInstruction {
+            opcode == Opcode.CHECK_CAST &&
+                    getReference<TypeReference>()?.type == "Lcom/google/android/libraries/youtube/engagementpanel/size/EngagementPanelSizeBehavior;"
+        } >= 0
+    }
+)
+
+internal val handleSearchRenderedFingerprint = legacyFingerprint(
+    name = "handleSearchRenderedFingerprint",
+    returnType = "V",
+    parameters = listOf("L"),
+    customFingerprint = { method, _ -> method.name == "handleSearchRendered" }
+)
+
+internal val handleSignInEventFingerprint = legacyFingerprint(
+    name = "handleSignInEventFingerprint",
+    returnType = "V",
+    parameters = listOf("L"),
+    opcodes = listOf(
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.RETURN_VOID
+    ),
+    customFingerprint = { method, _ -> method.name == "handleSignInEvent" }
+)
+
+internal val interactionLoggingEnumFingerprint = legacyFingerprint(
+    name = "interactionLoggingEnumFingerprint",
+    returnType = "V",
+    strings = listOf("INTERACTION_LOGGING_GESTURE_TYPE_SWIPE")
+)
+
+internal val minimizedPlayerFingerprint = legacyFingerprint(
+    name = "minimizedPlayerFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = listOf("L", "L"),
+    opcodes = listOf(
+        Opcode.MOVE_RESULT,
+        Opcode.IF_NEZ,
+        Opcode.IF_EQZ
+    ),
+    strings = listOf("w_st")
+)
+
+internal object ModernMinimizedPlayerFingerprint : Fingerprint(
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("L", "L"),
+    filters = listOf(string("w_st"))
+)
+
+internal object ModernMiniPlayerConstructorFingerprint : Fingerprint(
+    name = "<init>",
+    filters = listOf(
+        resourceLiteral(ResourceType.ID, "mini_player_play_pause_replay_button"),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            name = "findViewById",
+            location = MatchAfterWithin(5)
+        ),
+        string("sharedToggleMenuItemMutations")
+    )
+)
+
+internal object ModernSwitchToggleColorFingerprint : Fingerprint(
+    classFingerprint = ModernMiniPlayerConstructorFingerprint,
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("L", "J"),
+    filters = listOf(
+        methodCall(opcode = Opcode.INVOKE_VIRTUAL, parameters = emptyList(), returnType = "L"),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        opcode(Opcode.CHECK_CAST, MatchAfterImmediately()),
+        opcode(Opcode.GOTO, MatchAfterWithin(5)),
+        fieldAccess(opcode = Opcode.IGET, type = "I"),
+        opcode(Opcode.INVOKE_VIRTUAL, MatchAfterImmediately())
+    )
+)
+
+// 9.40: the color source is no longer read via `Lpzt;->a()` + check-cast + iget. The state object
+// exposes a field (`iget-object Liuq;->f`) that holds the int colors, so match that shape instead.
+internal object ModernSwitchToggleColorFieldFingerprint : Fingerprint(
+    classFingerprint = ModernMiniPlayerConstructorFingerprint,
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("L", "J"),
+    filters = listOf(
+        methodCall(opcode = Opcode.INVOKE_STATIC, name = "ofMillis"),
+        opcode(Opcode.IF_NE),
+        fieldAccess(opcode = Opcode.IGET_OBJECT, location = MatchAfterImmediately()),
+        fieldAccess(opcode = Opcode.IGET, type = "I", location = MatchAfterImmediately()),
+        opcode(Opcode.GOTO, MatchAfterImmediately()),
+        fieldAccess(opcode = Opcode.IGET_OBJECT, location = MatchAfterImmediately()),
+        fieldAccess(opcode = Opcode.IGET, type = "I", location = MatchAfterImmediately())
+    )
+)
+
+// 9.40: the miniplayer background color is no longer loaded with `getColor(ytm_color_grey_12)`;
+// it is resolved from the theme attribute `playerPageDefaultBackgroundColor` and stored with an iput.
+internal object ModernMiniPlayerDefaultColorFieldFingerprint : Fingerprint(
+    classFingerprint = ModernMiniPlayerConstructorFingerprint,
+    name = "<init>",
+    filters = listOf(
+        resourceLiteral(ResourceType.ATTR, "playerPageDefaultBackgroundColor"),
+        methodCall(opcode = Opcode.INVOKE_STATIC, returnType = "I", location = MatchAfterWithin(3)),
+        opcode(Opcode.MOVE_RESULT, MatchAfterImmediately()),
+        fieldAccess(opcode = Opcode.IPUT, type = "I", location = MatchAfterImmediately())
+    )
+)
+
+internal object ModernMiniPlayerDefaultTextFingerprint : Fingerprint(
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = emptyList(),
+    filters = listOf(resourceLiteral(ResourceType.STRING, "mini_player_default_text"))
+)
+
+/**
+ * Matches the player-page motion handler which must be bypassed for swipe dismissal on 9.00+.
+ */
+internal object PlayerPageBehaviorFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/apps/youtube/music/watchpage/ui/PlayerPageBehavior;",
+    accessFlags = listOf(AccessFlags.FINAL),
+    parameters = emptyList(),
+    returnType = "V",
+    filters = opcodesToFilters(
+        Opcode.CONST_4,
+        Opcode.IPUT_BOOLEAN,
+        Opcode.RETURN_VOID
+    )
+)
+
+internal val miniPlayerConstructorFingerprint = legacyFingerprint(
+    name = "miniPlayerConstructorFingerprint",
+    returnType = "V",
+    strings = listOf("sharedToggleMenuItemMutations"),
+    literals = listOf(colorGrey, miniPlayerPlayPauseReplayButton)
+)
+
+internal val miniPlayerDefaultTextFingerprint = legacyFingerprint(
+    name = "miniPlayerDefaultTextFingerprint",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/Object;"),
+    opcodes = listOf(
+        Opcode.SGET_OBJECT,
+        Opcode.IF_NE
+    ),
+    literals = listOf(miniPlayerDefaultText)
+)
+
+internal val miniPlayerDefaultViewVisibilityFingerprint = legacyFingerprint(
+    name = "miniPlayerDefaultViewVisibilityFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = listOf("Landroid/view/View;", "F"),
+    opcodes = listOf(
+        Opcode.IGET_OBJECT,
+        Opcode.SUB_FLOAT_2ADDR,
+        Opcode.SGET_OBJECT,
+        Opcode.INVOKE_VIRTUAL
+    ),
+    customFingerprint = { method, classDef ->
+        method.name == "a" &&
+                classDef.methods.count() == 3
+    }
+)
+
+internal val miniPlayerParentFingerprint = legacyFingerprint(
+    name = "miniPlayerParentFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = emptyList(),
+    literals = listOf(miniPlayerMdxPlaying)
+)
+
+internal val mppWatchWhileLayoutFingerprint = legacyFingerprint(
+    name = "mppWatchWhileLayoutFingerprint",
+    returnType = "V",
+    opcodes = listOf(Opcode.NEW_ARRAY),
+    literals = listOf(miniPlayerPlayPauseReplayButton),
+    customFingerprint = custom@{ method, _ ->
+        if (!method.definingClass.endsWith("/MppWatchWhileLayout;")) {
+            return@custom false
+        }
+        if (method.name != "onFinishInflate") {
+            return@custom false
+        }
+        if (!is_7_18_or_greater) {
+            return@custom true
+        }
+
+        indexOfCallableInstruction(method) >= 0
+    }
+)
+
+internal object ModernMppWatchWhileLayoutFingerprint : Fingerprint(
+    definingClass = "WatchWhileLayout;",
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        opcode(Opcode.NEW_ARRAY),
+        methodCall(
+            opcode = Opcode.INVOKE_STATIC,
+            parameters = listOf("[Landroid/view/View;"),
+            returnType = "V"
+        )
+    )
+)
+
+internal fun indexOfCallableInstruction(method: Method) =
+    method.indexOfFirstInstruction {
+        val reference = getReference<MethodReference>()
+        opcode == Opcode.INVOKE_VIRTUAL &&
+                reference?.returnType == "V" &&
+                reference.parameterTypes.size == 1 &&
+                reference.parameterTypes.firstOrNull() == "Ljava/util/concurrent/Callable;"
+    }
+
+internal val musicActivityWidgetFingerprint = legacyFingerprint(
+    name = "musicActivityWidgetFingerprint",
+    literals = listOf(79500L),
+    customFingerprint = { method, _ ->
+        method.definingClass.endsWith("/MusicActivity;")
+    }
+)
+
+internal val musicPlaybackControlsFingerprint = legacyFingerprint(
+    name = "musicPlaybackControlsFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = listOf("Z"),
+    opcodes = listOf(
+        Opcode.IPUT_BOOLEAN,
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.RETURN_VOID
+    ),
+    customFingerprint = { method, _ ->
+        method.definingClass.endsWith("/MusicPlaybackControls;")
+    }
+)
+
+internal val nextButtonVisibilityFingerprint = legacyFingerprint(
+    name = "nextButtonVisibilityFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = emptyList(),
+    opcodes = listOf(
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT,
+        Opcode.CONST_16,
+        Opcode.IF_EQZ
+    )
+)
+
+internal const val OLD_ENGAGEMENT_PANEL_FEATURE_FLAG = 45427672L
+
+internal val oldEngagementPanelFingerprint = legacyFingerprint(
+    name = "oldEngagementPanelFingerprint",
+    returnType = "Z",
+    parameters = emptyList(),
+    literals = listOf(OLD_ENGAGEMENT_PANEL_FEATURE_FLAG),
+)
+
+internal const val OLD_PLAYER_BACKGROUND_FEATURE_FLAG = 45415319L
+
+/**
+ * Deprecated in YouTube Music v6.34.51+
+ */
+internal val oldPlayerBackgroundFingerprint = legacyFingerprint(
+    name = "oldPlayerBackgroundFingerprint",
+    returnType = "Z",
+    parameters = emptyList(),
+    literals = listOf(OLD_PLAYER_BACKGROUND_FEATURE_FLAG),
+)
+
+internal const val OLD_PLAYER_LAYOUT_FEATURE_FLAG = 45399578L
+
+/**
+ * Deprecated in YouTube Music v6.31.55+
+ */
+internal val oldPlayerLayoutFingerprint = legacyFingerprint(
+    name = "oldPlayerLayoutFingerprint",
+    returnType = "Z",
+    parameters = emptyList(),
+    literals = listOf(OLD_PLAYER_LAYOUT_FEATURE_FLAG),
+)
+
+internal val playerPatchConstructorFingerprint = legacyFingerprint(
+    name = "playerPatchConstructorFingerprint",
+    returnType = "V",
+    customFingerprint = { method, _ ->
+        method.definingClass == PLAYER_CLASS_DESCRIPTOR &&
+                method.name == "<init>"
+    }
+)
+
+internal val playerViewPagerConstructorFingerprint = legacyFingerprint(
+    name = "playerViewPagerConstructorFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.CONSTRUCTOR,
+    literals = listOf(miniPlayerViewPager, playerViewPager),
+)
+
+internal val quickSeekOverlayFingerprint = legacyFingerprint(
+    name = "quickSeekOverlayFingerprint",
+    returnType = "V",
+    parameters = emptyList(),
+    literals = listOf(darkBackground, tapBloomView),
+)
+
+internal val remixGenericButtonFingerprint = legacyFingerprint(
+    name = "remixGenericButtonFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.CONSTRUCTOR,
+    opcodes = listOf(
+        Opcode.CONST,
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT,
+        Opcode.FLOAT_TO_INT
+    ),
+    literals = listOf(remixGenericButtonSize),
+)
+
+internal val repeatTrackFingerprint = legacyFingerprint(
+    name = "repeatTrackFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = listOf("L", "L"),
+    opcodes = listOf(
+        Opcode.IGET_OBJECT,
+        Opcode.IGET_OBJECT,
+        Opcode.SGET_OBJECT,
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT,
+        Opcode.IF_NEZ
+    ),
+    strings = listOf("w_st")
+)
+
+// 9.40: fallback for repeatTrackFingerprint; `equals` is now preceded by check-casts.
+internal object ModernRepeatTrackFingerprint : Fingerprint(
+    returnType = "V",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("L", "L"),
+    filters = listOf(
+        string("w_st"),
+        patcherMethodCall(opcode = Opcode.INVOKE_VIRTUAL, name = "equals"),
+        opcode(Opcode.MOVE_RESULT, MatchAfterImmediately()),
+        opcode(Opcode.IF_NEZ, MatchAfterImmediately())
+    )
+)
+
+internal const val SHUFFLE_BUTTON_ID = 45468L
+
+internal val shuffleOnClickFingerprint = legacyFingerprint(
+    name = "shuffleOnClickFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = listOf("Landroid/view/View;"),
+    literals = listOf(SHUFFLE_BUTTON_ID),
+    customFingerprint = { method, _ ->
+        method.name == "onClick"
+    }
+)
+
+internal val shuffleEnumFingerprint = legacyFingerprint(
+    name = "shuffleEnumFingerprint",
+    returnType = "V",
+    parameters = emptyList(),
+    strings = listOf(
+        "SHUFFLE_OFF",
+        "SHUFFLE_ALL",
+        "SHUFFLE_DISABLED",
+    ),
+    customFingerprint = { method, _ ->
+        method.name == "<clinit>"
+    }
+)
+
+internal const val SMOOTH_TRANSITION_ANIMATION_FEATURE_FLAG = 45679250L
+
+internal val smoothTransitionAnimationFingerprint = legacyFingerprint(
+    name = "smoothTransitionAnimationFingerprint",
+    returnType = "Z",
+    parameters = emptyList(),
+    literals = listOf(SMOOTH_TRANSITION_ANIMATION_FEATURE_FLAG),
+)
+
+internal val smoothTransitionAnimationInvertedParentFingerprint = legacyFingerprint(
+    name = "smoothTransitionAnimationInvertedParentFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PRIVATE or AccessFlags.FINAL,
+    parameters = listOf("F", "F", "F", "F", "F"),
+    opcodes = listOf(
+        Opcode.INVOKE_STATIC,
+        Opcode.RETURN_VOID,
+    )
+)
+
+internal val swipeToCloseFingerprint = legacyFingerprint(
+    name = "swipeToCloseFingerprint",
+    returnType = "Z",
+    parameters = emptyList(),
+    literals = listOf(45398432L),
+)
+
+internal val switchToggleColorFingerprint = legacyFingerprint(
+    name = "switchToggleColorFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PRIVATE or AccessFlags.FINAL,
+    parameters = listOf("L", "J"),
+    opcodes = listOf(
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT_OBJECT,
+        Opcode.CHECK_CAST,
+        Opcode.IGET
+    )
+)
+
+internal val thickSeekBarColorFingerprint = legacyFingerprint(
+    name = "thickSeekBarColorFingerprint",
+    returnType = "V",
+    parameters = listOf("L"),
+    literals = listOf(inlineTimeBarProgressColor),
+    customFingerprint = { method, _ ->
+        method.definingClass.endsWith("/MusicPlaybackControls;")
+    }
+)
+
+internal val thickSeekBarFeatureFlagFingerprint = legacyFingerprint(
+    name = "thickSeekBarFeatureFlagFingerprint",
+    returnType = "Z",
+    parameters = emptyList(),
+    literals = listOf(45659062L),
+)
+
+internal val thickSeekBarInflateFingerprint = legacyFingerprint(
+    name = "thickSeekBarInflateFingerprint",
+    returnType = "V",
+    parameters = emptyList(),
+    customFingerprint = { method, _ ->
+        method.definingClass.endsWith("/MusicPlaybackControls;") &&
+                method.name == "onFinishInflate"
+    }
+)
+
+internal val zenModeFingerprint = legacyFingerprint(
+    name = "zenModeFingerprint",
+    returnType = "V",
+    accessFlags = AccessFlags.PUBLIC or AccessFlags.FINAL,
+    parameters = listOf("L", "J"),
+    opcodes = listOf(
+        Opcode.MOVE_RESULT,
+        Opcode.INVOKE_STATIC,
+        Opcode.MOVE_RESULT,
+        Opcode.GOTO,
+        Opcode.NOP,
+        Opcode.SGET_OBJECT
+    )
+)
+
+internal object ModernPlayerBackgroundFingerprint : Fingerprint(
+    classFingerprint = ModernMiniPlayerConstructorFingerprint,
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("I", "I", "J"),
+    filters = listOf(
+        opcode(Opcode.FILLED_NEW_ARRAY),
+        patcherMethodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            name = "setImageTintList",
+            parameters = listOf("Landroid/content/res/ColorStateList;"),
+            returnType = "V"
+        ),
+        patcherMethodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            name = "setBackground",
+            parameters = listOf("Landroid/graphics/drawable/Drawable;"),
+            returnType = "V"
+        )
+    )
+)

@@ -46,7 +46,7 @@ internal const val MESSAGE_ID = "Lcom/instagram/model/direct/messageid/MessageId
 
 /**
  * The server flag behind Instagram's own chat reels test. On 453 it's read once, in a test taking
- * the session and answering it (LX/01Oo;->A00 on 385914285, LX/01PZ;->A00 on 385914282, an instance
+ * the session and answering it (LX/01On;->A00 on 385914557, LX/01PZ;->A00 on 385914556, an instance
  * method of a singleton), which the opener of a reel shared in a chat asks before it hands the chat's
  * other shared reels to the Reels viewer, and which the chat and the Reels viewer ask too. 452.1's
  * was 0x81155f00006ed0.
@@ -54,20 +54,20 @@ internal const val MESSAGE_ID = "Lcom/instagram/model/direct/messageid/MessageId
 internal const val CHAT_REELS_FLAG = 0x81153c00006fb6L
 
 /**
- * The trace name of the Reels viewer's dual paging request (LX/0Dyx;->A03 on 385914285, LX/0Fit;->A03
- * on 385914282), which pages a source with two sides: a chat's own shared reels and, after them,
+ * The trace name of the Reels viewer's dual paging request (LX/0Dyz;->A03 on 385914557, LX/0Fit;->A03
+ * on 385914556), which pages a source with two sides: a chat's own shared reels and, after them,
  * Instagram's suggested ones. Only that request loads it.
  */
 internal const val DUAL_PAGING = "AbstractPaginatingClipsItemsFetcher.makeDualPaginationRequest"
 
 /**
  * What the source of a chat's reels asks the server for to page the chat's own shared reels
- * (LX/0Mfh;->BYn on 385914285, LX/0Mkl;->BYs on 385914282). Only that method loads it.
+ * (LX/0Mes;->BYn on 385914557, LX/0Mkk;->BYs on 385914556). Only that method loads it.
  */
 internal const val CHAT_REELS_PATH = "clips/direct_thread_clips/"
 
 /**
- * What the Reels viewer's request for more reels past the ones it holds logs (LX/02HP;->A1R on 453).
+ * What the Reels viewer's request for more reels past the ones it holds logs (LX/02HQ;->A1Q on 453's 385914557).
  * Opened from a chat with the chain, the viewer holds the chat's reels and this request asks the
  * default source, or Instagram's prefetched Reels, for suggested ones. Only that request loads it.
  */
@@ -83,7 +83,7 @@ internal const val STOP_CACHED = "$CHAT_REELS->stopCached(Ljava/lang/Object;)Z"
 
 /**
  * The trace name of the Reels viewer's insert of a reel Instagram keeps cached for the Reels tab
- * (LX/04HZ;->A0A on 453's 385914283, in ClipsViewerFlashMediaController). As a viewer nears its last
+ * (LX/04HZ;->A0A on 453's 385914557, in ClipsViewerFlashMediaController). As a viewer nears its last
  * reel the controller puts a cached one after it, without asking the server, which is where the
  * suggested reels after a chat's own come from. Only that insert loads it.
  */
@@ -95,7 +95,7 @@ internal const val VIEWER_SOURCE = "Lcom/instagram/clips/intf/ClipsViewerSource;
 internal const val PLACEHOLDER = "$CHAT_REELS->placeholder(Ljava/lang/Object;I)Z"
 
 /**
- * The trace name of the Reels viewer adapter's add of reels (LX/045b;->A0a on 453's 385914283,
+ * The trace name of the Reels viewer adapter's add of reels (LX/044l;->A0a on 453's 385914557,
  * ClipsViewerAdapter.addClipsItems). With its flag set it puts Instagram's loading placeholder, a
  * gray reel, after the reels it adds, for the next ones to replace. With the viewer's other ways to
  * more reels stopped nothing replaces it, so a chat's reels end on it. Only that add loads it.
@@ -104,12 +104,16 @@ internal const val ADD_REELS = "ClipsViewerAdapter.addClipsItems"
 
 private const val LIST = "Ljava/util/List;"
 private const val POSITION = "Ljava/lang/Integer;"
+private const val VIEW = "Landroid/view/View;"
+
+internal const val OPEN = "$CHAT_REELS->open(Ljava/lang/Object;Landroid/view/View;)Z"
 
 /**
  * Swiping up on a reel opened from a chat goes through the other reels shared in that chat before
  * any suggested reels (#350), and with the second switch stops after them (#390). In the default
  * selection with both switches off. The first answers Instagram's own test, so the chain, its order
- * and Back to the chat are Instagram's.
+ * and Back to the chat are Instagram's. Whatever the switches, a repeat tap on media in a chat waits
+ * for the first tap's viewer instead of opening another (#390).
  */
 @Suppress("unused")
 val swipeChatReelsPatch = bytecodePatch(
@@ -129,11 +133,13 @@ val swipeChatReelsPatch = bytecodePatch(
         val more = findMoreReels()
         val cached = findCachedReels()
         val placeholders = findPlaceholders()
+        val tap = findChatMediaTap(read)
         chainChatReels(read)
         stopAfterChatReels(end)
         stopMoreReels(more)
         stopCachedReels(cached)
         skipPlaceholders(placeholders)
+        guardChatMediaTaps(tap)
         enableStatus("chatReels")
     }
 }
@@ -160,12 +166,70 @@ internal fun BytecodePatchContext.findChatReels(): FlagLoad {
     if (read.parameters != listOf(USER_SESSION) || read.returnType != "Z") {
         refuse("$flag is read in $where(${read.parameters.joinToString("")})${read.returnType}, not in a test of the session")
     }
-    val openers = methodsCalling(read.type, read.name).filter { caller ->
-        val takes = caller.parameterTypes.map(CharSequence::toString)
-        THREAD_KEY in takes && MESSAGE_ID in takes
-    }
-    if (openers.isEmpty()) refuse("nothing handed a chat and a message asks $where, so it isn't the chat reels test")
+    if (openersOf(read).isEmpty()) refuse("nothing handed a chat and a message asks $where, so it isn't the chat reels test")
     return read
+}
+
+/** The methods handed a chat and a message that ask the chat reels test [read]: the openers of a reel shared in a chat. */
+private fun BytecodePatchContext.openersOf(read: FlagLoad) = methodsCalling(read.type, read.name).filter { caller ->
+    val takes = caller.parameterTypes.map(CharSequence::toString)
+    THREAD_KEY in takes && MESSAGE_ID in takes
+}
+
+/** The tap on media in a chat, and the parameter registers its tapped view and message come in. */
+internal class ChatMediaTap(val tap: MutableMethod, val view: Int, val message: Int)
+
+/**
+ * Finds the tap on media in a chat before anything changes (LX/0QbG;->F1J on 453's 385914557, which
+ * opens a shared post or reel, slowly on some phones, through the opener [findChatReels] checks).
+ * It's the one instance method returning nothing in an opener's class that is handed the tapped
+ * view and the message ([MESSAGE_ID]), one of each, with two locals for the hook and nothing jumping
+ * to its first instruction. Fails when any of it isn't so.
+ */
+internal fun BytecodePatchContext.findChatMediaTap(read: FlagLoad = findChatReels()): ChatMediaTap {
+    val owners = openersOf(read).map { it.definingClass }.distinct()
+    val taps = owners.flatMap { owner ->
+        classDefBy(owner).methods.filter { method ->
+            val takes = method.parameterTypes.map(CharSequence::toString)
+            !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && VIEW in takes && MESSAGE_ID in takes
+        }
+    }
+    val tap = taps.singleOrNull()
+        ?: refuse("expected one tap in ${owners.joinToString()} handed a view and a message, found ${taps.size}")
+    val takes = tap.parameterTypes.map(CharSequence::toString)
+    val where = "${tap.definingClass}->${tap.name}"
+    if (takes.count { it == VIEW } != 1 || takes.count { it == MESSAGE_ID } != 1) {
+        refuse("$where(${takes.joinToString("")})V is handed more than one view or message")
+    }
+    if (tap.localRegisterCount() < 2) refuse("$where has fewer than two locals for the hook")
+    if (0 in tap.jumpTargets()) refuse("a jump or exception handler enters $where at its first instruction")
+    fun register(type: String) = 1 + takes.take(takes.indexOf(type)).sumOf { if (it == "J" || it == "D") 2 else 1 }
+
+    val mutable = mutableClassDefBy(tap.definingClass).methods.single { method ->
+        method.name == tap.name && method.parameterTypes.map(CharSequence::toString) == takes
+    }
+    return ChatMediaTap(mutable, register(VIEW), register(MESSAGE_ID))
+}
+
+/**
+ * Asks the extension through [OPEN] first on a tap on media in a chat, handing it the message and
+ * the tapped view. A no (a repeat tap while the first tap's viewer is on its way) returns, so the
+ * viewers don't stack. Everything else goes on to Instagram.
+ */
+internal fun BytecodePatchContext.guardChatMediaTaps(found: ChatMediaTap = findChatMediaTap()) {
+    val tap = found.tap
+    tap.addInstructionsWithLabels(
+        0,
+        """
+            move-object/from16 v0, p${found.message}
+            move-object/from16 v1, p${found.view}
+            invoke-static { v0, v1 }, $OPEN
+            move-result v0
+            if-nez v0, :instagram
+            return-void
+        """,
+        ExternalLabel("instagram", tap.getInstruction(0)),
+    )
 }
 
 /** The viewer's dual paging request, and the class of the source of a chat's reels it pages. */
@@ -379,7 +443,7 @@ internal class Placeholders(val add: MutableMethod, val shimmer: MutableMethod, 
  * add is the one method loading [ADD_REELS], an instance method handed reels and a flag and returning
  * nothing, with two locals for the hook and nothing jumping to its first instruction. It reads one
  * [VIEWER_CONFIG] field of its own class and one [VIEWER_SOURCE] field of the config. The placeholder
- * (LX/045b;->A0X on 385914283) is the one instance method of the same class handed a position that
+ * (LX/044l;->A0X on 385914557) is the one instance method of the same class handed a position that
  * calls the add, with a local and nothing jumping to its first instruction. Fails when any of it
  * isn't so.
  */

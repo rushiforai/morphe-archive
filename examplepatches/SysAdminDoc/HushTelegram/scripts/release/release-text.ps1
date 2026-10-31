@@ -67,6 +67,58 @@ function Get-ChangelogBullets {
     return $bullets.ToArray()
 }
 
+# The "### " headings a version's section sorts its bullets under, and the heading each gets in the
+# GitHub release notes, in the order the notes list them. Tooling bullets go under "Behind the
+# scenes" whichever group holds them.
+$script:ChangelogGroups = [ordered]@{ 'Added' = 'New in this release'; 'Fixed' = 'Fixes'; 'Changed' = 'Other changes' }
+
+function Get-ChangelogGroups {
+    <#
+    .SYNOPSIS
+        A section body's bullets by the "### Added", "### Changed" or "### Fixed" heading above
+        each: an ordered dictionary from group to bullets, groups in the order of
+        $ChangelogGroups and bullets in CHANGELOG order. Throws on a bullet above every group
+        heading or under any other "### " heading, since the release notes would have nowhere
+        to put it.
+    #>
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Body)
+    $found = @{}
+    $group = $null
+    foreach ($line in ($Body -split "`n")) {
+        $heading = [regex]::Match($line, '^###\s+(.+?)\s*$')
+        if ($heading.Success) {
+            $group = $heading.Groups[1].Value
+            if (-not $script:ChangelogGroups.Contains($group)) {
+                throw "The CHANGELOG section has a ""### $group"" heading. Sort its bullets under ### Added, ### Changed or ### Fixed."
+            }
+            continue
+        }
+        if (-not $line.StartsWith('* ')) { continue }
+        if (-not $group) {
+            throw "A CHANGELOG bullet sits above the section's ### Added, ### Changed and ### Fixed headings. Put it under one: $line"
+        }
+        if (-not $found.ContainsKey($group)) { $found[$group] = New-Object System.Collections.Generic.List[string] }
+        $found[$group].Add($line.TrimEnd())
+    }
+    $groups = [ordered]@{}
+    foreach ($name in $script:ChangelogGroups.Keys) {
+        if ($found.ContainsKey($name)) { $groups[$name] = $found[$name].ToArray() }
+    }
+    return $groups
+}
+
+function ConvertTo-NotesBullet {
+    <#
+    .SYNOPSIS
+        A CHANGELOG bullet the way the GitHub release notes show it: "- " and its text, without
+        the "**Telegram:**" or "**Tooling:**" scope Manager needs (the repository patches one
+        app), and with each bold setting name in backticks.
+    #>
+    param([Parameter(Mandatory = $true)][string]$Bullet)
+    $text = $Bullet -replace '^\* \*\*[^*]+:\*\* ', ''
+    return '- ' + [regex]::Replace($text, '\*\*([^*]+)\*\*', '`$1`')
+}
+
 function Invoke-ChangelogCut {
     <#
     .SYNOPSIS
@@ -74,8 +126,9 @@ function Invoke-ChangelogCut {
         heading is there, it changes nothing and says so.
     .DESCRIPTION
         The section keeps its text and bullets as they are, less the "Working version X.Y.Z." line
-        source preparation uses. Every bullet has to be one line, and there has to be at least one.
-        No new Unreleased heading goes above it: the next change adds one.
+        source preparation uses. Every bullet has to be one line under ### Added, ### Changed or
+        ### Fixed, and there has to be at least one. No new Unreleased heading goes above it: the
+        next change adds one.
     #>
     param(
         [Parameter(Mandatory = $true)][string]$Path,
@@ -96,6 +149,7 @@ function Invoke-ChangelogCut {
     $body = (@($unreleased.Body -split "`n" | Where-Object { $_ -notmatch $marker }) -join "`n").Trim("`n")
     $bullets = @(Get-ChangelogBullets -Body $body)
     if ($bullets.Count -eq 0) { throw 'The Unreleased section has no bullets to release.' }
+    Get-ChangelogGroups -Body $body | Out-Null
     $heading = "## $Version ($Date)"
     $rest = $text.Substring($unreleased.Start + $unreleased.Length)
     $cut = $text.Substring(0, $unreleased.Start) + "$heading`n`n$body`n" + $(if ($rest) { "`n$rest" } else { '' })
@@ -106,20 +160,24 @@ function Invoke-ChangelogCut {
 function New-ReleaseNotes {
     <#
     .SYNOPSIS
-        The GitHub release notes: the intro, then every bullet of the version's CHANGELOG section
-        under "What's new" (development-only Tooling bullets under their own heading), then the
-        install steps and what was validated.
+        The GitHub release notes, laid out like every Hush repository's: the intro, then every
+        bullet of the version's CHANGELOG section under New in this release, Fixes and Other
+        changes (development-only Tooling bullets under Behind the scenes), a link to the
+        CHANGELOG, How to update with the install steps and a note on the .mpp, and What was
+        checked.
     .DESCRIPTION
-        The bullets are copied as the CHANGELOG has them, so none is dropped or reworded. The
-        intro, install and validation text is written for each release and passed in. An em or en
-        dash anywhere refuses the notes, and so does an undated section.
+        Each bullet keeps its CHANGELOG words, less its scope, with bold names in backticks
+        (ConvertTo-NotesBullet), so none is dropped or reworded. The intro, install and
+        validation text is written for each release and passed in. An em or en dash anywhere
+        refuses the notes, and so does an undated section or a bullet under no group heading.
     #>
     param(
         [Parameter(Mandatory = $true)][string]$Changelog,
         [Parameter(Mandatory = $true)][string]$Version,
         [Parameter(Mandatory = $true)][string]$Intro,
         [Parameter(Mandatory = $true)][string]$Install,
-        [Parameter(Mandatory = $true)][string]$Validation
+        [Parameter(Mandatory = $true)][string]$Validation,
+        [Parameter(Mandatory = $true)][string]$Repository
     )
     $section = Get-ChangelogSection -Text ($Changelog -replace "`r`n", "`n") -Name $Version
     if (-not $section -or -not $section.Date) {
@@ -127,12 +185,25 @@ function New-ReleaseNotes {
     }
     $bullets = @(Get-ChangelogBullets -Body $section.Body)
     if ($bullets.Count -eq 0) { throw "The $Version section has no bullets." }
-    $tooling = @($bullets | Where-Object { $_.StartsWith('* **Tooling:**') })
-    $app = @($bullets | Where-Object { -not $_.StartsWith('* **Tooling:**') })
-    $parts = @(($Intro -replace "`r`n", "`n").Trim(), "## What's new")
-    if ($app.Count -gt 0) { $parts += ($app -join "`n") }
-    if ($tooling.Count -gt 0) { $parts += '### Tooling'; $parts += ($tooling -join "`n") }
-    $parts += @('## Install', ($Install -replace "`r`n", "`n").Trim(), '## Validation', ($Validation -replace "`r`n", "`n").Trim())
+    $groups = Get-ChangelogGroups -Body $section.Body
+    $parts = @(($Intro -replace "`r`n", "`n").Trim())
+    $tooling = New-Object System.Collections.Generic.List[string]
+    foreach ($group in $groups.Keys) {
+        $app = @($groups[$group] | Where-Object { -not $_.StartsWith('* **Tooling:**') })
+        foreach ($bullet in @($groups[$group] | Where-Object { $_.StartsWith('* **Tooling:**') })) { $tooling.Add($bullet) }
+        if ($app.Count -eq 0) { continue }
+        $parts += $script:ChangelogGroups[$group]
+        $parts += @($app | ForEach-Object { ConvertTo-NotesBullet $_ })
+    }
+    if ($tooling.Count -gt 0) {
+        $parts += 'Behind the scenes'
+        $parts += @($tooling | ForEach-Object { ConvertTo-NotesBullet $_ })
+    }
+    $parts += @(
+        "The [changelog](https://github.com/$Repository/blob/main/CHANGELOG.md) has every earlier release too.",
+        'How to update', ($Install -replace "`r`n", "`n").Trim(),
+        "The ``.mpp`` download is a patch bundle, not a Telegram APK. [Installation instructions](https://github.com/$Repository#install).",
+        'What was checked', ($Validation -replace "`r`n", "`n").Trim())
     $notes = ($parts -join "`n`n") + "`n"
     $dash = [regex]::Match($notes, "[^\n]*[$([char]0x2013)$([char]0x2014)][^\n]*")
     if ($dash.Success) { throw "The release notes carry an em or en dash. Reword it: $($dash.Value)" }
@@ -145,7 +216,8 @@ function Get-MissingChangelogBullets {
     <#
     .SYNOPSIS
         The bullets of the version's CHANGELOG section that a release body doesn't carry word for
-        word. Empty when it carries them all, which is what a published release has to do.
+        word, as ConvertTo-NotesBullet writes them. Empty when it carries them all, which is what a
+        published release has to do.
     #>
     param(
         [Parameter(Mandatory = $true)][string]$Changelog,
@@ -156,7 +228,7 @@ function Get-MissingChangelogBullets {
     if (-not $section) { throw "The CHANGELOG has no $Version section." }
     $lines = [Collections.Generic.HashSet[string]]::new([string[]]@(($Notes -replace "`r`n", "`n") -split "`n" |
         ForEach-Object { $_.TrimEnd() }), [StringComparer]::Ordinal)
-    return @(Get-ChangelogBullets -Body $section.Body | Where-Object { -not $lines.Contains($_) })
+    return @(Get-ChangelogBullets -Body $section.Body | Where-Object { -not $lines.Contains((ConvertTo-NotesBullet $_)) })
 }
 
 function Get-ManagerChanges {

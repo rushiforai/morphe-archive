@@ -1,0 +1,24 @@
+{
+  "method": "controlled original-test-APK cache fault; not an APK-picker test",
+  "original_cache_sha256": "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581",
+  "fault_input_sha256": "614a7ab28e61de1e092241b06b03b297ede9b52cf9d385584f4d8d477fa3be28",
+  "database_or_key_manually_modified": false,
+  "installed": false,
+  "verified_selection_states": {
+    "Fix offline artist tracks": "Fix offline artist tracks, Disabled",
+    "Fix quick settings banner contrast": "Fix quick settings banner contrast, Disabled",
+    "Fix section title validation": "Fix section title validation, Disabled",
+    "Fix track alphabet navigation": "Fix track alphabet navigation, Disabled",
+    "Keep player output controls accessible": "Keep player output controls accessible, Enabled",
+    "Load artist pages faster": "Load artist pages faster, Disabled",
+    "Song artist order": "Song artist order, Disabled"
+  },
+  "failure_visible": true,
+  "success_actions_absent": true,
+  "selected_failed_patch": "Keep player output controls accessible",
+  "guard": "unsupported ARM64 libflutter.so",
+  "runtime": "art",
+  "runtime_log": "10-30 13:34:19.300  2234 13716 I Morphe Patcher: Runtime: name=art memoryLimit=576",
+  "original_cache_restored": true,
+  "owner_mode_restored": true
+}

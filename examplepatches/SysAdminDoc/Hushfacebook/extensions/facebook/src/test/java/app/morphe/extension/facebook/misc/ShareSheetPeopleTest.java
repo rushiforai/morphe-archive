@@ -17,6 +17,7 @@ import org.robolectric.annotation.Config;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
@@ -90,6 +91,24 @@ public class ShareSheetPeopleTest {
         PauseForTests.resume();
         assertFalse(ShareSheetPeople.addRow(children, new Object()));
         assertEquals(1, children.size());
+    }
+
+    @Test
+    public void theSharedAddKeepsWhatFollowsTheRow() {
+        Object next = new Object();
+        ShareSheetPeople.addRowThen(row, next, children);
+        assertEquals(Arrays.asList(row, next), new ArrayList<>(children));
+        ShareSheetPeople.addRowThen(row, null, children);
+        assertEquals(Arrays.asList(row, next, row), new ArrayList<>(children));
+
+        children.clear();
+        Settings.HIDE_SHARE_PEOPLE_ROW.save(true);
+        ShareSheetPeople.addRowThen(row, next, children);
+        assertEquals(Arrays.asList(next), new ArrayList<>(children));
+        ShareSheetPeople.addRowThen(row, null, children);
+        assertEquals(Arrays.asList(next), new ArrayList<>(children));
+        String line = statusLine();
+        assertTrue(line, line.contains(ShareSheetPeople.ROW_KEPT_OUT + " 2"));
     }
 
     @Test

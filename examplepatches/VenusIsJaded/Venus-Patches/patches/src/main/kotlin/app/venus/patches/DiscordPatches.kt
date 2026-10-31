@@ -42,7 +42,6 @@ private fun runtimeRevision(source: String): String =
 private var pickerSelected = false
 private var voiceSelected = false
 private var copyBiosSelected = false
-private var dashlessSelected = false
 private var favouriteAnythingSelected = false
 private var freeNitroSelected = false
 private var questAgentGuarded = false
@@ -59,7 +58,6 @@ private val runtimeAssets = rawResourcePatch {
         pickerSelected = false
         voiceSelected = false
         copyBiosSelected = false
-        dashlessSelected = false
         favouriteAnythingSelected = false
         freeNitroSelected = false
         questAgentGuarded = false
@@ -74,9 +72,9 @@ private val runtimeAssets = rawResourcePatch {
         val selected = bootstrap.replace(
             "/*__FEATURES__*/",
             "{picker:$pickerSelected,voice:$voiceSelected,copyBios:$copyBiosSelected," +
-                "dashless:$dashlessSelected,favouriteAnything:$favouriteAnythingSelected,freeNitro:$freeNitroSelected," +
+                "favouriteAnything:$favouriteAnythingSelected,freeNitro:$freeNitroSelected," +
                 listOf("noTyping", "quickDelete", "noDelete", "jumpToTop", "hiddenChannels", "pastelize", "platformIndicators", "reviewDB", "readAll", "quests", "badges", "systemFont",
-                    "systemEmoji", "hideGift", "hideQuestDock", "hideButtons", "gestures", "hideCall", "validUser", "youBarSettings", "splitMessages", "translate", "userNotif", "accountSwitcher", "appIcons", "nitroThemes", "customThemes", "materialYou", "iconPacks", "messageHighlight", "serverInfo", "fixEmbeds", "tenorGifs", "hideBlocked", "bulkDelete", "experiments", "cleanChannels", "noHandsfree")
+                    "systemEmoji", "gestures", "validUser", "youBarSettings", "splitMessages", "translate", "userNotif", "accountSwitcher", "appIcons", "nitroThemes", "customThemes", "materialYou", "iconPacks", "messageHighlight", "serverInfo", "serverEdit", "fixEmbeds", "tenorGifs", "hideBlocked", "bulkDelete", "experiments", "cleanChannels", "noHandsfree", "voiceOptions", "anonFiles", "staffTag", "removedAlerts", "fullImages", "hideAnything", "alwaysTrust", "noConfirmPin", "clickableMentions")
                     .joinToString(",") { "$it:${it in additionalSelections}" } + "}"
         )
         asset.writeText(selected)
@@ -249,6 +247,34 @@ val fileSizeOnPicker = rawResourcePatch(
 }
 
 @Suppress("unused")
+val anonymousFileNames = bundledPlugin("anonFiles", "Anonymous file names",
+    "Files you send get a random name instead of the one on your phone. Based on Anonymous File Names by k1ng_op.")
+
+@Suppress("unused")
+val staffTags = bundledPlugin("staffTag", "Show owner and mod tags",
+    "Shows an Owner, Admin, Manager or Mod tag next to people's names in chat. Based on StaffTag by mwittrien.")
+
+@Suppress("unused")
+val removedConnectionAlerts = bundledPlugin("removedAlerts", "Alert when you're removed",
+    "Get a heads-up when a friend unfriends you, or a server kicks or bans you. Based on RemovedConnectionAlerts by iyu46.")
+
+@Suppress("unused")
+val fullQualityImages = bundledPlugin("fullImages", "Load full-quality images",
+    "Pictures in chat and full screen load as uploaded, not as Discord's smaller, compressed copy, and profile pictures stay sharp. Based on Uncompressed Discord Images by Knewest and HighResProfileImages by Kawtious.")
+
+@Suppress("unused")
+val alwaysTrust = bundledPlugin("alwaysTrust", "Always trust links and files",
+    "Opens links and files without Discord's \"Are you sure?\" warnings. Based on AlwaysTrust by zt and Trwy.")
+
+@Suppress("unused")
+val noConfirmPin = bundledPlugin("noConfirmPin", "Skip pin confirmation",
+    "Pins and unpins messages without asking first. Based on NoConfirmPin by Skamt.")
+
+@Suppress("unused")
+val clickableMentions = bundledPlugin("clickableMentions", "Tap mentions to open profiles",
+    "Tap an @mention in the message bar to see who it is. Based on ClickableMentions by mwittrien.")
+
+@Suppress("unused")
 val copyBios = rawResourcePatch(
     name = "Copy profile bios",
     description = "Hold a bio to select and copy it."
@@ -260,19 +286,8 @@ val copyBios = rawResourcePatch(
 }
 
 @Suppress("unused")
-val dashless = rawResourcePatch(
-    name = "Spaces in channel names",
-    description = "Shows \"general chat\" instead of \"general-chat\"."
-) {
-    compatibleWith(discord)
-    section(PLUGINS)
-    dependsOn(venusSettings)
-    execute { dashlessSelected = true }
-}
-
-@Suppress("unused")
 val cleanChannels = bundledPlugin("cleanChannels", "Clean channel names",
-    "Removes emoji and symbols from channel and category names.")
+    "Removes emoji and symbols from channel names, and can show spaces instead of dashes.")
 
 @Suppress("unused")
 val favouriteAnything = rawResourcePatch(
@@ -462,6 +477,9 @@ val readAll = bundledPlugin("readAll", "Read all button", "A button under Direct
 
 @Suppress("unused")
 val serverInfo = bundledPlugin("serverInfo", "Server info", "Hold a server's icon to see its details, boosts and friends there. Based on ServerInfo by fshin.")
+
+@Suppress("unused")
+val serverEdit = bundledPlugin("serverEdit", "Edit servers locally", "Give any server your own name and icon. Only you see them. Based on EditServers by mwittrien.")
 
 internal const val FONT_MANAGER = "Lcom/facebook/react/common/assets/ReactFontManager;"
 internal const val FONT_STYLE = "Lcom/facebook/react/common/assets/ReactFontManager\$TypefaceStyle;"
@@ -657,24 +675,12 @@ val forceSystemEmojis = bytecodePatch(
 }
 
 @Suppress("unused")
-val hideGiftButton = bundledPlugin("hideGift", "Hide the gift button",
-    "Removes the Nitro gift button from the message bar.")
-
-@Suppress("unused")
 val messageGestures = bundledPlugin("gestures", "Double-tap to reply",
     "Double-tap a message to reply, or your own to edit it. Triple-tap your own to delete it. Based on Geastures+ by kmmiio99o.")
 
 @Suppress("unused")
-val hideCallButton = bundledPlugin("hideCall", "Hide the call button",
-    "Removes Call from people's profiles. Message fills the space.")
-
-@Suppress("unused")
-val hideExtraButtons = bundledPlugin("hideButtons", "Hide extra buttons",
-    "Removes the Quests, Shop, Nitro and Apps buttons you don't use. Pick which ones, including Polls and Photos in the attach menu; the rest close up with no gaps.")
-
-@Suppress("unused")
-val hideQuestDock = bundledPlugin("hideQuestDock", "Hide the Quests banner",
-    "Removes the Quest promotion above your profile bar. Quests still work.")
+val removeAnything = bundledPlugin("hideAnything", "Remove anything",
+    "Tap a button you never use to remove it, right where it is: turn on removal mode, then tap the red X on the voice message, attach, gift, call, video, search, Quests, Shop or Nitro buttons, the Quests banner, attach menu items, profile menu items, Settings rows and more. Bring them back any time in Venus.")
 
 @Suppress("unused")
 val validUser = bundledPlugin("validUser", "Fix unknown mentions",
@@ -690,7 +696,7 @@ val bringBackTenorGifs = bundledPlugin("tenorGifs", "Bring back Tenor GIFs",
 
 @Suppress("unused")
 val fixLinkPreviews = bundledPlugin("fixEmbeds", "Fix link previews",
-    "Links to X, Instagram, TikTok, Tumblr and more show the post. Links you send go through an embed service like FxTwitter, without tracking. Inspired by FixEmbed by the ShiggyCord team.")
+    "Links to X, Instagram, TikTok, Tumblr and more show the post. Links you send go through an embed service like FxTwitter, without tracking, and X and Bluesky posts can be translated. Inspired by FixEmbed by the ShiggyCord team.")
 
 @Suppress("unused")
 val splitLargeMessages = bundledPlugin("splitMessages", "Send long messages",
@@ -1134,6 +1140,10 @@ internal fun readHandsfreeContext(method: app.morphe.patcher.util.proxy.mutableT
         throw PatchException("MainApplication.onCreate no longer starts with super.onCreate()")
     method.addInstructions(1, "invoke-static {p0}, $HANDSFREE->init(Landroid/content/Context;)V")
 }
+
+@Suppress("unused")
+val voiceChannelOptions = bundledPlugin("voiceOptions", "Voice channel options",
+    "Choose the volume, audio output and sounds for voice channels.")
 
 @Suppress("unused")
 val keepBluetoothAudioClear = bytecodePatch(

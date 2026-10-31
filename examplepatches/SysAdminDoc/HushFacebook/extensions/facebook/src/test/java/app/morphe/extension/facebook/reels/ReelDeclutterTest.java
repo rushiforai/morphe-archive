@@ -74,6 +74,7 @@ public class ReelDeclutterTest {
         Settings.HIDE_REEL_COMMENT_BUTTON.resetToDefault();
         Settings.HIDE_REEL_SHARE_BUTTON.resetToDefault();
         Settings.SHOW_REEL_COMMENT_BUTTON.resetToDefault();
+        Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON.resetToDefault();
         Settings.HIDE_REEL_SOUND_BUTTON.resetToDefault();
         Settings.HIDE_REEL_AUDIO_LINE.resetToDefault();
         Settings.HIDE_SLOW_CONNECTION_MESSAGE.resetToDefault();
@@ -209,6 +210,43 @@ public class ReelDeclutterTest {
                 line(ReelDeclutter.AUDIO_ROUTE));
     }
 
+    /**
+     * "Made with Edits" under a caption (#314) goes with the chips switch, which already hides the
+     * Edits chip, and comes back paused, before the settings are ready and once the switch is off.
+     * The audio line switch doesn't touch it.
+     */
+    @Test
+    public void theEditsLineGoesWithTheChipsSwitch() {
+        Settings.HIDE_REEL_CHIPS.save(false);
+        Settings.HIDE_REEL_AUDIO_LINE.save(true);
+        assertFalse("the audio line switch took the Edits line", ReelDeclutter.hideEditsLabel());
+        Settings.HIDE_REEL_CHIPS.save(true);
+        assertTrue(ReelDeclutter.hideEditsLabel());
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("the Edits line went while paused", ReelDeclutter.hideEditsLabel());
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> assertFalse("the Edits line went before the settings were ready",
+                ReelDeclutter.hideEditsLabel()));
+        Settings.HIDE_REEL_CHIPS.save(false);
+        assertFalse("turning the switch off didn't bring the Edits line back", ReelDeclutter.hideEditsLabel());
+        assertEquals(ReelDeclutter.EDITS_ROUTE + ": 5 lists, 5 items, 1 removed. Last reason: " + ReelDeclutter.EDITS_LABEL
+                + ". Removed: " + ReelDeclutter.EDITS_LABEL + " 1. Kinds: " + ReelDeclutter.EDITS_LABEL + " 5",
+                line(ReelDeclutter.EDITS_ROUTE));
+    }
+
+    /** A chips switch that can't be read draws the Edits line, and the report names the hook. */
+    @Test
+    public void anEditsLineSwitchThatCantBeReadDrawsTheLine() {
+        SettingReadsForTests.breakReads(Settings.HIDE_REEL_CHIPS);
+        try {
+            assertFalse(ReelDeclutter.hideEditsLabel());
+        } finally {
+            SettingReadsForTests.mend(Settings.HIDE_REEL_CHIPS);
+        }
+        assertTrue(HookStatus.missing(FamilyNames.REEL_DECLUTTER).toString(), HookStatus.missing(FamilyNames.REEL_DECLUTTER)
+                .contains("a working '" + ReelDeclutter.EDITS_LABEL + "' hook (it threw " + NullPointerException.class.getName() + ")"));
+    }
+
     /** A Reels tab audio line switch that can't be read draws the line, and the report names the hook. */
     @Test
     public void aReelsTabAudioLineSwitchThatCantBeReadDrawsTheLine() {
@@ -310,6 +348,61 @@ public class ReelDeclutterTest {
         Settings.SHOW_REEL_COMMENT_BUTTON.save(false);
         assertFalse("turning the switch off didn't take the button away", ReelDeclutter.showsCommentButton(false));
         assertTrue(ReelDeclutter.showsCommentButton(true));
+    }
+
+    /**
+     * A video author's Subscribe pill (#291) goes only with the switch on, from the viewer's row and
+     * from a shared row's slot. A Follow pill stays, a slot takes the builder's note once, and the
+     * pill comes back paused, before the settings are ready and when the switch can't be read.
+     */
+    @Test
+    public void theSubscribePillGoesOnlyWithTheSwitchOn() {
+        assertFalse(Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON.defaultValue);
+        assertFalse("asked as each row is built, so no restart", Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON.rebootApp);
+        Object slot = new Object();
+        assertTrue(ReelDeclutter.showAuthorPill(true, true));
+        ReelDeclutter.noteAuthorPill(true);
+        assertSame(slot, ReelDeclutter.authorPillSlot(slot));
+
+        Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON.save(true);
+        assertFalse("the row built the Subscribe pill", ReelDeclutter.showAuthorPill(true, true));
+        assertTrue("the row lost its Follow pill", ReelDeclutter.showAuthorPill(false, true));
+        assertFalse("a row with no pill got one", ReelDeclutter.showAuthorPill(false, false));
+        assertFalse(ReelDeclutter.showAuthorPill(true, false));
+        ReelDeclutter.noteAuthorPill(true);
+        assertNull("the slot kept the Subscribe pill", ReelDeclutter.authorPillSlot(slot));
+        assertSame("the note outlived its slot", slot, ReelDeclutter.authorPillSlot(slot));
+        ReelDeclutter.noteAuthorPill(false);
+        assertSame("the slot lost its Follow pill", slot, ReelDeclutter.authorPillSlot(slot));
+
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertTrue("the pill went while paused", ReelDeclutter.showAuthorPill(true, true));
+        ReelDeclutter.noteAuthorPill(true);
+        assertSame("the slot emptied while paused", slot, ReelDeclutter.authorPillSlot(slot));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() ->
+                assertTrue("the pill went before the settings were ready", ReelDeclutter.showAuthorPill(true, true)));
+        SettingReadsForTests.breakReads(Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON);
+        try {
+            assertTrue("a switch that can't be read hid the pill", ReelDeclutter.showAuthorPill(true, true));
+            ReelDeclutter.noteAuthorPill(true);
+            assertSame("a switch that can't be read emptied the slot", slot, ReelDeclutter.authorPillSlot(slot));
+        } finally {
+            SettingReadsForTests.mend(Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON);
+        }
+        Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON.save(false);
+        assertTrue("turning the switch off didn't bring the pill back", ReelDeclutter.showAuthorPill(true, true));
+    }
+
+    /** The report counts each pill under its kind and the Subscribe pills it took away. */
+    @Test
+    public void theReportCountsBothPillsAndTheSubscribeOnesTaken() {
+        Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON.save(true);
+        assertTrue(ReelDeclutter.showAuthorPill(false, true));
+        assertFalse(ReelDeclutter.showAuthorPill(true, true));
+        assertEquals(ReelDeclutter.SUBSCRIBE_ROUTE + ": 2 lists, 2 items, 1 removed. Last reason: " + ReelDeclutter.SUBSCRIBE
+                + ". Removed: " + ReelDeclutter.SUBSCRIBE + " 1. Kinds: " + ReelDeclutter.FOLLOW + " 1, "
+                + ReelDeclutter.SUBSCRIBE + " 1", line(ReelDeclutter.SUBSCRIBE_ROUTE));
     }
 
     /** A whole reel switch that can't be read keeps Facebook's clip and end, and the report names the hook. */

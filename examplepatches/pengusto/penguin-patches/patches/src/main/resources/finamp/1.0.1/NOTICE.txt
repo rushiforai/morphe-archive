@@ -5,6 +5,7 @@ Finamp source and modifications: Mozilla Public License 2.0.
 Original source: https://github.com/finamp-app/finamp/tree/65c1a78b1d04dd8525825ecdf2cf39c7442b51e9
 Modified source: https://github.com/pengusto/finamp (native mask source commits recorded in manifest.properties and tests/finamp/native-sources.json).
 Upstream source contributions: finamp-app/finamp PRs1830,1831,1832,1834,1835,1836,1837.
+Player menu review backport: PR1836 final source 0092a0593a9d69dfc461834d0e4e6c580d112379; production source f731afb2273813002ab1e8dda96628fe8eafdb2a. Exact composed source pins remain in the native manifest and source matrix.
 
 Flutter SDK3.47.2 / Dart3.13.2, Flutter frameworkd3b14c876900e553bc736ca19295fc09e3853e8e, enginea804b261645ef8c13eb3d5c44a5c2fb0340c5539. Flutter's BSD license is included.
 

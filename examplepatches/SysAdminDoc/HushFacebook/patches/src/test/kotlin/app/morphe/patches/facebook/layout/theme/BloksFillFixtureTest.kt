@@ -154,7 +154,8 @@ class BloksFillFixtureTest {
      * reaches the box builder: the template builder that traces [NATIVE_TEMPLATE_BOX], and the child
      * builder it hands its own parameters to, give it to Litho's backgroundColor (584 `LX/3T3;->A1H`),
      * which wraps it in a ColorDrawable. Each of those colours has to go through AmoledTheme.bloksFill
-     * just before the call, on the call's own register.
+     * just before the call, on the call's own register. On 585 the builder is a static taking the
+     * node's kind as a trailing int, and the child builder takes the other parameters.
      */
     @Test
     fun `each native template box's background goes through the light background before it's set, on each declared build`() {
@@ -167,10 +168,13 @@ class BloksFillFixtureTest {
                 val owner = owners.single()
                 val builder = owner.methods.single { holdsString(it, NATIVE_TEMPLATE_BOX) }
                 val parameters = builder.parameterTypes.map(CharSequence::toString)
+                // 585's static builder takes the node's kind as a trailing int its child builder doesn't take.
+                val childShapes = setOf(parameters, parameters.dropLastWhile { it == "I" })
                 val childCalls = builder.body()
                     .filter { it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_STATIC_RANGE }
                     .mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
-                    .filter { it.returnType == builder.returnType && it.parameterTypes.map(CharSequence::toString) == parameters }
+                    .filter { it.returnType == builder.returnType && it.parameterTypes.map(CharSequence::toString) in childShapes }
+                    .filterNot { it.toString() == builder.descriptor() }
                     .distinctBy { it.toString() }
                 assertTrue("$name: the builder hands its parameters to its child builders", childCalls.isNotEmpty())
                 val childClasses = FixtureDex.classes(bundle, childCalls.map { it.definingClass }.toSet()).values.toList()

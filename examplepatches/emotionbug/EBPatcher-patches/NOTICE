@@ -1,0 +1,65 @@
+EBPatcher patches is an independent derivative, not an official Morphe release.
+Music patch sources originate from Morphe patches v1.48.0, commit f3acc10e2691ffc4db29c6a6a651ee61fb54c047.
+Original EBPatcher code remains available under LICENSES/Apache-2.0.txt;
+the combined distribution follows GPLv3 and the preserved upstream terms below.
+Shizuku retains its MIT terms in runtime/THIRD-PARTY-NOTICES.txt.
+
+Morphe NOTICE
+
+https://github.com/MorpheApp/morphe-patches
+
+=============
+
+GPLv3 Section 7b: Preservation of User Notices
+
+All derivative works (source code and binaries) must include this
+NOTICE text and provide it to the software user.
+
+Portions of this software are provided "AS IS" by the Morphe software project.
+Any express or implied warranties, including the implied warranties of
+merchantability and fitness for a particular purpose, are disclaimed.
+
+
+GPLv3 Section 7c: Prohibiting Misrepresentation of Origin
+
+You are prohibited from misrepresenting the origin of the Program,
+and modified versions of the Program must be identified and marked in
+reasonable ways as different from the original version so as not to cause
+confusion regarding their origin.
+
+
+GPLv3 Section 7e: Declining Grant of Trademark Rights
+
+This License does not grant any rights or permission under trademark law
+to use the name "Morphe" or any of the Program's trade names, trademarks,
+service marks, or logos.
+
+Morphe patches library 2.0.0
+
+Morphe NOTICE
+
+https://github.com/MorpheApp/morphe-patches-library
+
+=============
+
+Portions of this software are provided "AS IS" by the Morphe software project.
+Any express or implied warranties, including the implied warranties of
+merchantability and fitness for a particular purpose, are disclaimed.
+
+GPLv3 Section 7c: Prohibiting Misrepresentation of Origin
+
+You are prohibited from misrepresenting the origin of the Program,
+and modified versions of the Program must be identified and marked in
+reasonable ways as different from the original version so as not to cause
+confusion regarding their origin.
+
+GPLv3 Section 7e: Declining Grant of Trademark Rights
+
+This License does not grant any rights or permission under trademark law
+to use the name "Morphe" or any of the Program's trade names, trademarks,
+service marks, or logos.
+
+Android apksig 8.13.2
+Copyright (c) 2016, The Android Open Source Project
+Licensed under the Apache License, Version 2.0; see LICENSES/Apache-2.0.txt
+(EBPATCHER_APACHE_2_0.txt in the packaged license resources).

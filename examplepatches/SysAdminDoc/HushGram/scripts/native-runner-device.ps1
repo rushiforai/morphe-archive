@@ -38,7 +38,8 @@ $NativeRunnerControlCases = @('bind', 'control-positive', 'control-negative')
 # Then, only once they hold, the feature cases in this order, each with the case it builds on:
 # presence-paused needs the settings presence saves, so it runs only after presence passed, and
 # visual-paused the same for visual.
-$NativeRunnerFeatureCases = [ordered]@{ 'presence' = $null; 'presence-paused' = 'presence'; 'visual' = $null; 'visual-paused' = 'visual' }
+$NativeRunnerFeatureCases = [ordered]@{ 'presence' = $null; 'presence-paused' = 'presence'; 'visual' = $null; 'visual-paused' = 'visual'
+    'notifications' = $null; 'share' = $null }
 # What every result carries. Anything else a case reports is what it observed.
 $NativeRunnerResultKeys = @('case', 'verdict', 'package', 'versionName', 'versionCode', 'signerSha256', 'baseApkSha256', 'user',
     'process', 'network', 'missingHook', 'prerequisite', 'buildIdentity', 'error', 'detail')
@@ -436,7 +437,8 @@ function Invoke-NativeRunnerSession {
         and its data are never touched. The network is off, and the host has seen the default
         network go away, before that user exists, so nothing the target's providers or the new
         user's system apps start can send. Each case has CaseTimeoutSeconds to finish, then the
-        target is stopped in that user and no later case runs.
+        target is stopped in that user and no later case runs. Background ANRs are shown for the
+        run and put back as they were afterwards.
 
         Emulators only: a phone's network can't be cut for one user, and the target's providers
         run before the runner does.
@@ -467,12 +469,15 @@ function Invoke-NativeRunnerSession {
         throw "The $($Target.Package) installed on $serial isn't the target APK: it hashes to $installedSha, the target to $($Target.Sha256)."
     }
     $limit = Invoke-NativeRunnerAdb @call -Arguments @('shell', 'pm', 'get-max-users') -Failure 'Could not read the Android user limit'
-    $maximum = [regex]::Match((@($limit.Stdout) -join ' '), 'Maximum supported users: (\d+)')
+    # Android 17 words it "Maximum supported switchable users: 4".
+    $maximum = [regex]::Match((@($limit.Stdout) -join ' '), 'Maximum supported (?:switchable )?users: (\d+)')
     if (-not ($maximum.Success -and [int]$maximum.Groups[1].Value -ge 2)) {
         throw "$serial supports one Android user, so there is no signed-out user to run in."
     }
 
     $airplaneBefore = $null
+    $anrBefore = $null
+    $anrRaised = $false
     $networkOff = $false
     $createdUser = $null
     $runnerAttempted = $false
@@ -503,6 +508,18 @@ function Invoke-NativeRunnerSession {
         }
         $networkOff = $true
 
+        # The new user's first target start unpacks Instagram's native libraries on the main thread,
+        # which under ARM translation can outlast the bind's startup timeout. With background ANRs
+        # silent the system kills that process and the case reads "Process crashed"; shown, the
+        # process waits behind the ANR and the case runs.
+        $anr = Invoke-NativeRunnerAdb @call -Arguments @('shell', 'settings', 'get', 'secure', 'anr_show_background') -Failure 'Could not read whether background ANRs are shown'
+        $anrBefore = (@($anr.Stdout) -join '').Trim()
+        if ($anrBefore -cnotmatch '^(null|-?\d{1,9})$') { throw "Showing background ANRs answered '$anrBefore'." }
+        if ($anrBefore -ceq 'null' -or [int]$anrBefore -eq 0) {
+            $anrRaised = $true
+            [void](Invoke-NativeRunnerAdb @call -Arguments @('shell', 'settings', 'put', 'secure', 'anr_show_background', '1') -Failure 'Could not show background ANRs')
+        }
+
         $created = Invoke-NativeRunnerAdb @call -Arguments @('shell', 'pm', 'create-user', $NativeRunnerUserName)
         $newUser = [regex]::Match((@($created.Stdout) -join ' '), 'Success: created user id (\d+)')
         if ($newUser.Success) {
@@ -523,6 +540,15 @@ function Invoke-NativeRunnerSession {
         [void](Invoke-NativeRunnerAdb @call -Arguments @('shell', 'am', 'start-user', '-w', $user) -Failure "Could not start user $user")
         $existing = Invoke-NativeRunnerAdb @call -Arguments @('shell', 'pm', 'install-existing', '--user', $user, $Target.Package) -Failure "Could not add $($Target.Package) to user $user"
         if (-not ((@($existing.Stdout) -join ' ') -match 'installed for user')) { throw (Format-HushgramAdbFailure -Message "$($Target.Package) was not added to user $user" -Result $existing) }
+        # Android 13 and later post nothing for an app without this, and the new user never granted it.
+        # Older releases have no such permission, so pm would refuse the grant.
+        $sdk = Invoke-NativeRunnerAdb @call -Arguments @('shell', 'getprop', 'ro.build.version.sdk') -Failure "Could not read the Android version of $serial"
+        $sdkLevel = 0
+        if (-not [int]::TryParse((@($sdk.Stdout) -join '').Trim(), [ref]$sdkLevel)) { throw (Format-HushgramAdbFailure -Message "$serial gave no Android version" -Result $sdk) }
+        if ($sdkLevel -ge 33) {
+            [void](Invoke-NativeRunnerAdb @call -Arguments @('shell', 'pm', 'grant', '--user', $user, $Target.Package, 'android.permission.POST_NOTIFICATIONS') `
+                -Failure "Could not let $($Target.Package) post notifications in user $user")
+        }
         $runnerAttempted = $true
         [void](Invoke-NativeRunnerAdb @call -Arguments @('install', '--user', $user, $RunnerApk) -Failure 'Could not install the runner')
         $runnerInstalled = $true
@@ -565,6 +591,10 @@ function Invoke-NativeRunnerSession {
         # The runner went into the test user alone, so it comes out of that user alone.
         if ($runnerAttempted) { $cleanup += , @(@('shell', 'pm', 'uninstall', '--user', $createdUser, $NativeRunnerPackage), "remove $NativeRunnerPackage", $runnerInstalled) }
         if ($createdUser) { $cleanup += , @(@('shell', 'pm', 'remove-user', $createdUser), "remove user $createdUser", $true) }
+        if ($anrRaised) {
+            $anrBack = if ($anrBefore -ceq 'null') { @('shell', 'settings', 'delete', 'secure', 'anr_show_background') } else { @('shell', 'settings', 'put', 'secure', 'anr_show_background', $anrBefore) }
+            $cleanup += , @($anrBack, 'put back whether background ANRs are shown', $true)
+        }
         if ($airplaneBefore -ceq 'disabled') { $cleanup += , @(@('shell', 'cmd', 'connectivity', 'airplane-mode', 'disable'), 'turn the network back on', $true) }
         foreach ($step in $cleanup) {
             try {

@@ -1,0 +1,15 @@
+package e.e.a;
+import android.content.*;import android.net.Uri;import android.os.Handler;import org.json.*;import java.util.*;
+/** Feed the existing video-list adapter and paging callback for both ranking kinds. */
+public final class RankingPages190 {
+ static int offset(Object loader)throws Exception{java.lang.reflect.Field page=loader.getClass().getField("j");int n=page.getInt(loader);if(n<1){n=1;page.setInt(loader,n);}return RankingCatalog190.offset(n);}
+ public static void install(Object fragment){if(fragment==null)return;try{Object loader=Review181.field(fragment,"c0");if(loader==null)return;String url=String.valueOf(Review181.field(loader,"a"));if(isRanking(url)){fragment.getClass().getField("i0").setInt(fragment,100);if(url.contains("/custom-")){loader.getClass().getField("g").setInt(loader,6);fragment.getClass().getField("h0").setInt(fragment,6);Object adapter=Review181.field(fragment,"p0");adapter.getClass().getField("e").setInt(adapter,6);}}}catch(Exception e){record("Ranking pagination binding failed: "+e.getClass().getSimpleName());}}
+ public static boolean isRanking(String url){return url!=null&&(url.startsWith("http://www.nicovideo.jp/ranking/")||url.startsWith("https://www.nicovideo.jp/ranking/")||url.startsWith("https://sp.nicovideo.jp/api/ranking/"));}
+ static void record(String message){try{Class.forName("e.e.a.ModernDebug").getMethod("record",String.class).invoke(null,message);}catch(Exception ignored){}}
+
+ public static String url(Object loader)throws Exception{Uri uri=Uri.parse(String.valueOf(Review181.field(loader,"a")));String key=uri.getLastPathSegment(),term=uri.getQueryParameter("term");if(term==null)term="24h";if(!RankingRules190.known(key)){String[] old={"all","game","anime","music_sound","dance","animal","nature","cooking","traveling_outdoor","vehicle","sports","society_politics_news","technology_craft","commentary_lecture","entertainment","radio","other"};String[] keys={"e9uj2uks","4eet3ca4","zc49b03a","wq76qdin","6yuf530c","ne72lua2","24aa8fkw","lq8d5918","k1libcse","3d8zlls9","4w3p65pf","lzicx0y6","n46kcz9u","v6wdx6p5","8kjl94d9","oxzi6bje","ramuboyn"};for(int i=0;i<old.length;i++)if(old[i].equals(key)){key=keys[i];break;}}return "https://nvapi.nicovideo.jp/v1/ranking/teiban/"+key+"?term="+Uri.encode(term)+"&pageSize=100&page="+(offset(loader)/100+1);}
+ public static void loaded(Object loader,ArrayList<?> rows)throws Exception{loader.getClass().getField("f").setInt(loader,rows.size());record("Ranking page="+(offset(loader)/100+1)+" rows="+rows.size());JSONObject data=RankingFetch190.PAGE.get();boolean next=data!=null&&data.optBoolean("hasNext",false);RankingFetch190.PAGE.remove();loader.getClass().getField("i").setInt(loader,next&&offset(loader)<900&&rows.size()>0?rows.size():0);}
+ public static String rank(Object loader,int index)throws Exception{return Integer.toString(offset(loader)+index+1);}
+ static void set(Object o,String name,Object value)throws Exception{o.getClass().getField(name).set(o,value);}
+ public static boolean custom(Object loader){return RankingPager196.custom(loader);}
+}

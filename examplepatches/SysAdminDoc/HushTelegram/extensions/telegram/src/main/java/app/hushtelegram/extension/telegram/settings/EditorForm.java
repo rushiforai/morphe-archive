@@ -100,9 +100,15 @@ final class EditorForm extends ScrollView {
         error.getViewTreeObserver().addOnGlobalLayoutListener(new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
             @Override public void onGlobalLayout() {
                 error.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                if (invalid == field && error.getVisibility() == VISIBLE) {
-                    error.requestRectangleOnScreen(new android.graphics.Rect(0, 0, error.getWidth(), error.getHeight()), true);
-                }
+                // The focused field's cursor asks for its line later in this frame, and at large
+                // text with the keyboard up there's no room for both, so the reason went straight
+                // back out of sight. Scrolled after the frame, it replaces the cursor's scroll.
+                post(() -> {
+                    if (invalid != field || error.getVisibility() != VISIBLE) return;
+                    android.graphics.Rect shown = new android.graphics.Rect(0, 0, error.getWidth(), error.getHeight());
+                    offsetDescendantRectToMyCoords(error, shown);
+                    smoothScrollBy(0, computeScrollDeltaToGetChildRectOnScreen(shown));
+                });
             }
         });
     }

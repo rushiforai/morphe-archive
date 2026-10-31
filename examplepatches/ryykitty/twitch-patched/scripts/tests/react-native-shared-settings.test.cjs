@@ -16,7 +16,9 @@ function install(file, symbol, placeholder, original) {
     };
     vm.runInContext(fs.readFileSync(path.join(root, 'bootstrap.js'), 'utf8')
         .replace('__TWITCH_REACT_MODULE__', '7'), context);
-    vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8').replace(placeholder, '12'), context);
+    vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8').replace(placeholder, '12')
+        .replace('__TWITCH_PLAYBACK_SETTINGS_MODULE__', '13').replace('__TWITCH_BACKGROUND_AUDIO_MODULE__', '13')
+        .replace('__TWITCH_AUDIO_RENDITION_MODULE__', '13').replace('__TWITCH_BACKGROUND_VETO_MODULE__', '13'), context);
     let factory;
     context.__d = function (value) { factory = value; };
     context.__d(function (global, require, a, b, module, exports) { exports[symbol] = original; }, 12, []);
@@ -62,4 +64,51 @@ test('DJ settings retain rendition availability and the original actions', () =>
     }
     const ordinary = {...actions, isParticipatingDJ: false};
     assert.deepEqual(state.render(ordinary).props, ordinary);
+});
+
+test('DJ background playback uses the normal lifecycle and respects the selected preference', () => {
+    const decisions = [];
+    function manager(props) {
+        return state => {
+            if (state === 'background' && props.isPlaying && !props.isPipActive) {
+                if (props.playInBackground && !props.isParticipatingDJ) props.audioOnlyMode.beginBackgroundAudio();
+                else props.onPlayingChange(false);
+            }
+            if (state === 'active') props.audioOnlyMode.endBackgroundAudio();
+        };
+    }
+    const state = install('playback-settings.js', 'BackgroundAudioManager', '__TWITCH_BACKGROUND_AUDIO_MODULE__', manager);
+    const props = {isParticipatingDJ: true, isPlaying: true, isPipActive: false, playInBackground: true,
+        audioOnlyMode: {beginBackgroundAudio() { decisions.push('begin'); }, endBackgroundAudio() { decisions.push('end'); }},
+        onPlayingChange(value) { decisions.push(value); }};
+    const lifecycle = state.render(props);
+    lifecycle('background');
+    lifecycle('active');
+    state.render({...props, playInBackground: false})('background');
+    state.render({...props, isPlaying: false})('background');
+    state.render({...props, isPipActive: true})('background');
+    assert.deepEqual(decisions, ['begin', 'end', false]);
+    assert.equal(props.isParticipatingDJ, true);
+});
+
+test('DJ background veto preserves chat-only and the saved playback preference', () => {
+    const veto = install('playback-settings.js', 'backgroundAudioVeto', '__TWITCH_BACKGROUND_VETO_MODULE__',
+        props => props.isParticipatingDJ || props.chatOnly ? 'never' : undefined);
+    for (const saved of ['always', 'headphones', 'never']) {
+        const props = {isParticipatingDJ: true, chatOnly: false};
+        assert.equal(veto.render(props) ?? saved, saved);
+        assert.equal(veto.render({...props, chatOnly: true}), 'never');
+        assert.equal(props.isParticipatingDJ, true);
+    }
+});
+
+test('DJ audio rendition policy keeps player, available qualities and lifecycle inputs', () => {
+    const state = install('playback-settings.js', 'useAudioOnlyRendition', '__TWITCH_AUDIO_RENDITION_MODULE__', props => props);
+    const props = {isParticipatingDJ: true, playerApiRef: {}, qualities: [], audioOnly: false,
+        playInBackground: false, isPlaying: false, isPipSettled: true, isPlayingExternally: true};
+    const result = state.render(props);
+    assert.equal(result.isParticipatingDJ, false);
+    for (const key of Object.keys(props).filter(key => key !== 'isParticipatingDJ'))
+        assert.equal(result[key], props[key]);
+    assert.equal(props.isParticipatingDJ, true);
 });

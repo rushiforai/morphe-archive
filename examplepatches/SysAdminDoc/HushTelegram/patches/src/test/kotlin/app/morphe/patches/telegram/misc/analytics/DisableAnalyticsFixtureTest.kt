@@ -9,7 +9,9 @@ import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patches.telegram.ads.MESSAGES_CONTROLLER
+import app.morphe.patches.telegram.misc.extension.CONNECTIONS_MANAGER
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
+import app.morphe.patches.telegram.misc.extension.SEND_REQUEST_INTERNAL
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -54,7 +56,7 @@ class DisableAnalyticsFixtureTest {
                 method.instructions().any { it.opcode == Opcode.NEW_INSTANCE &&
                     (it as? ReferenceInstruction)?.reference?.toString() == SAVE_APP_LOG }
             }
-            val context = PatchContexts.of(ExtensionDex.classes() + (appLogClasses + metricsClass).distinctBy { it.type })
+            val context = PatchContexts.of(ExtensionDex.classes() + (appLogClasses + metricsClass + ghostModeHosts(build)).distinctBy { it.type })
             val warnings = PatchLogCapture.warnings { disableAnalyticsPatch.execute(context) }
             assertEquals("$where: the patch log", emptyList<String>(), warnings)
 
@@ -73,6 +75,14 @@ class DisableAnalyticsFixtureTest {
             assertEquals("$where: readMetrics is an injected build fact", Opcode.CONST_4, capability[0].opcode)
             assertEquals("$where: missing readMetrics coverage", 1, (capability[0] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals(Opcode.RETURN, capability[1].opcode)
+
+            val connections = ghostModeHosts(build).single()
+            GhostModeFixtureTest.assertGhostGate(
+                "$where: request send", connections.methods.single { it.name == SEND_REQUEST_INTERNAL },
+                context.mutableClassDefBy(CONNECTIONS_MANAGER).methods.single { it.name == SEND_REQUEST_INTERNAL },
+            )
+            val ghost = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "ghostMode" }.instructions()
+            assertEquals("$where: ghostMode is an injected build fact", 1, (ghost[0] as NarrowLiteralInstruction).narrowLiteral)
         }
     }
     /**

@@ -9,7 +9,9 @@ import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
 import app.hushtelegram.extension.telegram.settings.Settings;
 
-/** Runtime guards for Telegram's shared recommendation request and its separate cache getter. */
+import java.util.ArrayList;
+
+/** Runtime guards for Telegram's shared recommendation request, its separate cache getter and the keyboards' trending packs. */
 public final class Recommendations {
     private Recommendations() {}
 
@@ -44,5 +46,23 @@ public final class Recommendations {
         }
         HookStatus.counted(FamilyNames.HIDE_RECOMMENDATIONS, "cached recommendations hidden");
         return true;
+    }
+
+    /**
+     * The sticker and emoji keyboards copy Telegram's featured packs from this answer. With the
+     * switch on they get a new empty list, so the Trending tab, the trending row and the emoji
+     * keyboard's trending packs aren't drawn. Telegram's own list is never changed, and search and
+     * the Stickers and Emoji screen keep reading it. Never throws.
+     */
+    public static ArrayList<?> keyboardFeatured(ArrayList<?> featured) {
+        HookStatus.invoked(FamilyNames.HIDE_RECOMMENDATIONS);
+        try {
+            if (!Utils.settingsReady() || !Settings.HIDE_KEYBOARD_FEATURED.get()) return featured;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_RECOMMENDATIONS, "trending packs switch", failure);
+            return featured;
+        }
+        HookStatus.counted(FamilyNames.HIDE_RECOMMENDATIONS, "trending packs hidden");
+        return new ArrayList<>();
     }
 }

@@ -117,6 +117,7 @@ param(
         'Hide ads',
         'Install as clone',
         'QUIC (HTTP/3)',
+        'Patch settings',
         'Remove viewer discretion dialog',
         'SponsorBlock',
         'Spoof app version',
@@ -175,14 +176,33 @@ function Resolve-Java {
 function Resolve-MorpheCli {
     if ($script:MorpheCli) { return $script:MorpheCli }
     if ($env:MORPHE_CLI) { return $env:MORPHE_CLI }
-    $candidates = @(
-        (Join-Path $PSScriptRoot '..\apk\morphe-desktop-all.jar'),
-        (Join-Path $PSScriptRoot '..\tools\morphe\morphe-desktop-all.jar'),
-        (Join-Path $HOME 'tools\morphe\morphe-desktop-all.jar')
+    # The bundle needs a patcher 2.x host (docs/INTERNALS.md, "The patcher 2.x alignment"):
+    # Desktop releases now ship versioned jar names (morphe-desktop-<v>-all.jar), and the old
+    # unversioned morphe-desktop-all.jar can be a pre-2.x host that fails the bundle with a
+    # misleading NoSuchMethodError at patch time. Prefer the highest versioned jar found, then
+    # fall back to the unversioned name; the winner's version is probed below.
+    $dirs = @(
+        (Join-Path $PSScriptRoot '..\apk'),
+        (Join-Path $PSScriptRoot '..\tools\morphe'),
+        (Join-Path $HOME 'tools\morphe')
     )
-    foreach ($candidate in $candidates) {
-        $full = [System.IO.Path]::GetFullPath($candidate)
-        if (Test-Path $full) { return $full }
+    $versioned = @()
+    foreach ($dir in $dirs) {
+        $full = [System.IO.Path]::GetFullPath($dir)
+        if (Test-Path $full) {
+            $versioned += @(Get-ChildItem $full -Filter 'morphe-desktop-*-all.jar' -ErrorAction SilentlyContinue)
+        }
+    }
+    $best = $versioned |
+        ForEach-Object { if ($_.Name -match 'morphe-desktop-(\d+(\.\d+)*)-all\.jar') {
+            [pscustomobject]@{ Jar = $_.FullName; Ver = [version]$Matches[1] }
+        } } |
+        Sort-Object Ver -Descending |
+        Select-Object -First 1
+    if ($best) { return $best.Jar }
+    foreach ($dir in $dirs) {
+        $legacy = Join-Path ([System.IO.Path]::GetFullPath($dir)) 'morphe-desktop-all.jar'
+        if (Test-Path $legacy) { return $legacy }
     }
     Fail 'morphe-desktop-all.jar not found: set -MorpheCli or MORPHE_CLI'
 }
@@ -226,26 +246,78 @@ function Invoke-Patch {
         [string[]] $Enable = @(),
         [string[]] $Disable = @(),
         [hashtable] $PatchOptions = @{},
-        [switch] $Exclusive
+        [switch] $Exclusive,
+        # When set, the options file marks exactly these patches enabled and every other one
+        # enabled=false. Desktop 2.x applies a patch that the file marks enabled even in an
+        # --exclusive run (measured: the official bundle's universal 'Spoof signature' ran in a
+        # --exclusive pass), so a whitelist pass must speak through the file, not through the
+        # flag. The file is written for this list alone; it does not also need -PatchOptions.
+        [string[]] $OnlyEnable = @()
     )
     $resultFile = [System.IO.Path]::ChangeExtension($OutputApk, '.result.json')
     $arguments = @('-jar', $script:MorpheCliPath, 'patch', '--patches', $Bundle)
-    if ($PatchOptions.Count -gt 0) {
-        $patches = [ordered]@{}
-        foreach ($patchName in $PatchOptions.Keys) {
-            $patches[$patchName] = @{ enabled = $true; options = $PatchOptions[$patchName] }
-        }
-        # The root must be a JSON array; a bare object is rejected outright.
-        $json = ConvertTo-Json -InputObject @([ordered]@{ patches = $patches }) -Depth 8
+    # -OnlyEnable writes the file even with no option values to overlay: the whitelist is an
+    # enabled=false on every other patch, and that only exists once the file exists.
+    if ($PatchOptions.Count -gt 0 -or $OnlyEnable.Count -gt 0) {
+        # Full-coverage options file: a bundle-generated skeleton (every patch + every option,
+        # defaults explicit) with this run's values overlaid. A minimal hand-rolled file used to
+        # make the CLI warn "Options file is out of date" on every run, because the bundle's new
+        # options (updatePermissions, the category pickers, ...) were never listed in it.
         $optionsFile = [System.IO.Path]::ChangeExtension($OutputApk, '.options.json')
+        # Start clean: options-create MERGES with an existing file, and a legacy-shaped leftover
+        # (array root, minimal patch set) merges into a malformed skeleton (measured: array of 2
+        # entries, 9 added patches lost). The file is a per-run artifact -- regenerate it whole.
+        if (Test-Path $optionsFile) { Remove-Item $optionsFile -Force }
+        & $script:JavaPath -jar $script:MorpheCliPath options-create `
+            -p $Bundle -o $optionsFile | ForEach-Object { Write-Host "   $_" }
+        if ($LASTEXITCODE -ne 0) { Fail "options-create failed (exit $LASTEXITCODE) -> $optionsFile" }
+        $skeleton = Get-Content $optionsFile -Raw | ConvertFrom-Json
+        foreach ($patchName in $PatchOptions.Keys) {
+            $prop = $skeleton.patches.PSObject.Properties[$patchName]
+            if (-not $prop) {
+                Fail "options skeleton from the bundle has no patch '$patchName' (name drift?)"
+            }
+            $entry = $prop.Value
+            $entry | Add-Member -NotePropertyName enabled -NotePropertyValue $true -Force
+            foreach ($key in $PatchOptions[$patchName].Keys) {
+                $value = $PatchOptions[$patchName][$key]
+                if ($entry.PSObject.Properties['options']) {
+                    $entry.options | Add-Member -NotePropertyName $key -NotePropertyValue $value -Force
+                } else {
+                    $entry | Add-Member -NotePropertyName options `
+                        -NotePropertyValue ([pscustomobject]@{ $key = $value }) -Force
+                }
+            }
+        }
+        if ($OnlyEnable.Count -gt 0) {
+            $known = @($skeleton.patches.PSObject.Properties.Name)
+            foreach ($name in $OnlyEnable) {
+                if ($known -notcontains $name) {
+                    Fail "options skeleton from the bundle has no patch '$name' (OnlyEnable)"
+                }
+            }
+            # Force the flag both ways. Clearing only the others would leave a default-off
+            # whitelist entry disabled in the file, so the file itself would not be what
+            # enables it.
+            foreach ($p in $skeleton.patches.PSObject.Properties) {
+                $on = $OnlyEnable -contains $p.Name
+                $p.Value | Add-Member -NotePropertyName enabled -NotePropertyValue $on -Force
+            }
+        }
+        # The patch command's --options-file wants an ARRAY root ("The root must be a JSON
+        # array; a bare object is rejected outright" -- measured in the original shape) even
+        # though options-create itself writes a bare object, so wrap the skeleton.
+        # Depth 8 stops inside a nested option value and stringifies it as a type name.
+        # The skeleton today is shallower than that; 16 leaves room for a map or list value.
+        $json = ConvertTo-Json -InputObject @($skeleton) -Depth 16
         [System.IO.File]::WriteAllText(
             $optionsFile, $json, (New-Object System.Text.UTF8Encoding($false)))
         $arguments += @('--options-file', $optionsFile)
     }
     if ($Exclusive) { $arguments += '--exclusive' }
     foreach ($name in $Enable) { $arguments += @('--enable', $name) }
-    # --disable rather than an options-file entry: every patch the options file mentions is
-    # written as enabled = $true there, so disabling through it would contradict the file.
+    # Desktop checks --disable before the file, so this still wins over a patch the file
+    # marks enabled. -OnlyEnable already writes enabled=false for everyone else.
     foreach ($name in $Disable) { $arguments += @('--disable', $name) }
     $arguments += @('--result-file', $resultFile, '-o', $OutputApk, $InputApk)
 
@@ -258,10 +330,11 @@ function Invoke-Patch {
 
 function Assert-NoFailedPatches($result, [string] $stage) {
     if ($result.failedPatches -and $result.failedPatches.Count -gt 0) {
-        $names = ($result.failedPatches | ForEach-Object { $_.name }) -join ', '
+        $names = ($result.failedPatches | ForEach-Object { if ($_.PSObject.Properties['name']) { $_.name } else { $_ } }) -join ', '
         Fail "${stage}: patch(es) failed: $names"
     }
-    $applied = ($result.appliedPatches | ForEach-Object { $_.name }) -join ', '
+    # Desktop 2.x writes appliedPatches as plain strings; older hosts wrote objects with .name.
+    $applied = ($result.appliedPatches | ForEach-Object { if ($_.PSObject.Properties['name']) { $_.name } else { $_ } }) -join ', '
     Write-Host "   applied ($stage): $applied" -ForegroundColor Green
 }
 
@@ -272,7 +345,7 @@ function Assert-NoFailedPatches($result, [string] $stage) {
 #>
 function Assert-RequiredPatches($result, [string[]] $required, [string] $stage) {
     if (-not $required -or $required.Count -eq 0) { return }
-    $applied = @($result.appliedPatches | ForEach-Object { $_.name })
+    $applied = @($result.appliedPatches | ForEach-Object { if ($_.PSObject.Properties['name']) { $_.name } else { $_ } })
     $missing = @($required | Where-Object { $applied -notcontains $_ })
     if ($missing.Count -gt 0) {
         Fail ("${stage}: expected patch(es) were not applied: " + ($missing -join ', ') +
@@ -283,11 +356,75 @@ function Assert-RequiredPatches($result, [string[]] $required, [string] $stage) 
 }
 
 function Get-OptionValue($result, [string] $patchName, [string] $key) {
-    $patch = $result.appliedPatches | Where-Object { $_.name -eq $patchName } | Select-Object -First 1
-    if (-not $patch -or -not $patch.options) { return $null }
+    # Desktop 2.x result files carry no per-patch options at all (name-only appliedPatches), so
+    # every readback here returns $null on such a host and the assertions below must tolerate
+    # that: each one fails only when the value is PRESENT and wrong.
+    $patch = $result.appliedPatches | Where-Object { $_.PSObject.Properties['name'] -and $_.name -eq $patchName } | Select-Object -First 1
+    if (-not $patch -or -not $patch.PSObject.Properties['options']) { return $null }
     $option = $patch.options | Where-Object { $_.key -eq $key } | Select-Object -First 1
     if (-not $option) { return $null }
     return $option.value
+}
+
+# Desktop 2.x result files carry no per-patch options, so Get-OptionValue cannot verify the
+# run's options there. The options file CAN: it is this script's own deterministic product
+# (bundle skeleton + overlay), and re-reading it catches an overlay that silently failed to
+# merge (Add-Member mistakes, name drift) -- the input half of the verification the result-file
+# assertions used to provide on 1.x hosts.
+function Assert-OptionsFileValues([string] $File, [hashtable] $Options) {
+    if ($Options.Count -eq 0) { return }
+    if (-not (Test-Path $File)) { Fail "options file missing: $File" }
+    $doc = Get-Content $File -Raw | ConvertFrom-Json
+    $patches = if ($doc -is [array]) { $doc[0].patches } else { $doc.patches }
+    if (-not $patches) { Fail "options file has no patches object: $File" }
+    foreach ($patchName in $Options.Keys) {
+        $entry = $patches.PSObject.Properties[$patchName]
+        if (-not $entry) { Fail "options file has no patch '$patchName': $File" }
+        foreach ($key in $Options[$patchName].Keys) {
+            $opt = if ($entry.Value.PSObject.Properties['options']) {
+                $entry.Value.options.PSObject.Properties[$key]
+            } else { $null }
+            if (-not $opt) { Fail "options file: '$patchName' carries no option '$key'" }
+            if ("$($opt.Value)" -ne "$($Options[$patchName][$key])") {
+                Fail ("options file: '{0}'.'{1}' = '{2}', expected '{3}'" -f `
+                    $patchName, $key, $opt.Value, $Options[$patchName][$key])
+            }
+        }
+    }
+    Write-Host "   options file carries every value this run configured ($($Options.Keys.Count) patch option set(s))" -ForegroundColor Green
+}
+
+# Output-side check for the renames that matter, host-agnostic (no result-file options needed):
+# a string a patch wrote must be findable in the compiled archive. The clone's package id lives
+# in AndroidManifest.xml; the app name is a resource reference there -- its literal lands in
+# resources.arsc (UTF-8 pool, measured). Byte search over both pool encodings (UTF-16LE and
+# UTF-8) via a byte-preserving latin1 roundtrip.
+function Assert-ApkEntryString([string] $ApkPath, [string] $Entry, [string] $Expected, [string] $What) {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $ApkPath).Path)
+    try {
+        # Not $entry: that name collides case-insensitively with the $Entry parameter, and under
+        # StrictMode the lookup below hands back the parameter string (the $java-shadowing trap's
+        # cousin). A distinct name keeps the ZipArchiveEntry a ZipArchiveEntry.
+        $zipEntry = $zip.Entries | Where-Object { $_.FullName -eq $Entry } | Select-Object -First 1
+        if (-not $zipEntry) { Fail "no $Entry entry in $ApkPath" }
+        $ms = New-Object System.IO.MemoryStream
+        $stream = $zipEntry.Open()
+        try {
+            $stream.CopyTo($ms)
+            $bytes = $ms.ToArray()
+        } finally {
+            $stream.Dispose()
+            $ms.Dispose()
+        }
+        $latin = [System.Text.Encoding]::GetEncoding('ISO-8859-1').GetString($bytes)
+        $found = $latin.Contains([System.Text.Encoding]::GetEncoding('ISO-8859-1').GetString([System.Text.Encoding]::Unicode.GetBytes($Expected))) -or
+                 $latin.Contains([System.Text.Encoding]::GetEncoding('ISO-8859-1').GetString([System.Text.Encoding]::UTF8.GetBytes($Expected)))
+        if (-not $found) {
+            Fail "${What}: '$Expected' is not in the patched APK's $Entry -- the rename did not take"
+        }
+        Write-Host ("   {0}: '{1}' present in the patched {2}" -f $What, $Expected, $Entry) -ForegroundColor Green
+    } finally { $zip.Dispose() }
 }
 
 function Resolve-Adb {
@@ -317,6 +454,21 @@ $script:OurBundle = $OurBundle
 $script:Adb = $Adb
 $script:JavaPath = Resolve-Java
 $script:MorpheCliPath = Resolve-MorpheCli
+# The bundle is built for patcher 2.x hosts: Desktop 1.19 and earlier load it but fail it at
+# patch time (docs/INTERNALS.md). Desktop 1.20.0 is the first release carrying patcher 2.x, so
+# the resolved host is probed once, here, where the failure can say what is wrong instead of
+# leaving a NoSuchMethodError to be diagnosed from a patch log.
+$cliVersionLine = & $script:JavaPath -jar $script:MorpheCliPath --version 2>&1 |
+    Where-Object { $_ -match 'Morphe Desktop v(\d+)\.(\d+)' } | Select-Object -First 1
+if ($cliVersionLine -match 'Morphe Desktop v(\d+)\.(\d+)') {
+    $cliVer = [version]("$($Matches[1]).$($Matches[2])")
+    if ($cliVer -lt [version]'1.20') {
+        Fail ("resolved CLI '{0}' is Desktop v{1}, but this bundle needs Desktop 1.20+ (patcher 2.x). " +
+            "Set -MorpheCli to a current jar." -f $script:MorpheCliPath, $cliVer)
+    }
+} else {
+    Write-Host "   note: could not read the resolved CLI's version (expected 'Morphe Desktop v...'); continuing" -ForegroundColor Yellow
+}
 $bundle = Resolve-OurBundle
 if (-not (Test-Path $Apk)) { Fail "input APK not found: $Apk" }
 
@@ -435,6 +587,18 @@ Assert-NoFailedPatches $result1 'our patches'
 $required1 = @($RequirePatches | Where-Object { $_ -ne 'Install as clone' -or (-not $NoClone -and -not $OfficialClone) })
 Assert-RequiredPatches $result1 $required1 'our patches'
 
+# Option verification, host-agnostic: the result-file assertions below only bite on hosts whose
+# result JSON carries options (1.x-shaped); on Desktop 2.x the input file and the patched
+# manifest carry the proof instead.
+$optionsFile1 = [System.IO.Path]::ChangeExtension($step1, '.options.json')
+Assert-OptionsFileValues $optionsFile1 $patchOptions
+if (-not $NoClone -and -not $OfficialClone) {
+    Assert-ApkEntryString $step1 'AndroidManifest.xml' $PackageName 'clone package id'
+}
+if ($AppName) {
+    Assert-ApkEntryString $step1 'resources.arsc' $AppName 'app name'
+}
+
 $spoof = Get-OptionValue $result1 'Extension' 'enableStreamSpoof'
 $diagnostics = Get-OptionValue $result1 'Extension' 'enableDiagnostics'
 $forceLog = Get-OptionValue $result1 'Extension' 'forceVerboseLogging'
@@ -443,31 +607,31 @@ $native = Get-OptionValue $result1 'Extension' 'enableNativeFormats'
 $name = Get-OptionValue $result1 'App name' 'appName'
 Write-Host "   enableStreamSpoof=$spoof (ad-free requires true), enableDiagnostics=$diagnostics, forceVerboseLogging=$forceLog, enableIdentityMatrix=$identity, enableNativeFormats=$native"
 Write-Host "   app name = '$name'"
-# The options file should make a dropped option impossible, but the failure it guards against is
-# silent (a patched app that is not the app that was asked for), so assert the effective values.
-if ($NoSpoof -and "$spoof" -ne 'false') {
+# Result-file option assertions: bite only on hosts whose result JSON carries options (1.x-
+# shaped). On Desktop 2.x the two Assert-* calls above carry the verification instead.
+if ($NoSpoof -and $null -ne $spoof -and "$spoof" -ne 'false') {
     Fail "enableStreamSpoof did not take false (effective '$spoof'): the streaming spoof would be on"
 }
-if (-not $NoSpoof -and "$spoof" -ne 'true') {
+if (-not $NoSpoof -and $null -ne $spoof -and "$spoof" -ne 'true') {
     Fail "enableStreamSpoof should default to true but is '$spoof'"
 }
-if ($AppName -and "$name" -ne $AppName) {
+if ($AppName -and $null -ne $name -and "$name" -ne $AppName) {
     Fail "the App name patch did not take '$AppName' (effective '$name')"
 }
-if ($Diagnostics -and "$diagnostics" -ne 'true') {
+if ($Diagnostics -and $null -ne $diagnostics -and "$diagnostics" -ne 'true') {
     Fail "enableDiagnostics did not take true (effective '$diagnostics')"
 }
-if ($VerboseLogging -and "$forceLog" -ne 'true') {
+if ($VerboseLogging -and $null -ne $forceLog -and "$forceLog" -ne 'true') {
     Fail "forceVerboseLogging did not take true (effective '$forceLog')"
 }
-if ($IdentityProbe -and "$identity" -ne 'true') {
+if ($IdentityProbe -and $null -ne $identity -and "$identity" -ne 'true') {
     Fail "enableIdentityMatrix did not take true (effective '$identity')"
 }
 if ($NativeFormats) {
-    if ("$native" -ne 'true') {
+    if ($null -ne $native -and "$native" -ne 'true') {
         Fail "enableNativeFormats did not take true (effective '$native')"
     }
-    if ("$spoof" -ne 'true') {
+    if ($null -ne $spoof -and "$spoof" -ne 'true') {
         Fail "native-formats mode needs the spoof option ON to install the ad-free infrastructure"
     }
     Write-Host '   NOTE: native-formats mode: the app plays its OWN format list (8K VP9) with the SABR URI blanked.' -ForegroundColor Yellow
@@ -490,11 +654,12 @@ if (-not $NoClone -and -not $OfficialClone) {
             "asks for; a clone needs a distinct id. Pass one, or -NoClone for a build that is not " +
             "meant to be installed.")
     }
-    if ("$clonePackage" -ne $PackageName) {
+    if ($null -ne $clonePackage -and "$clonePackage" -ne $PackageName) {
         Fail ("the Install as clone patch did not take '$PackageName' (effective '$clonePackage'): " +
             "the APK would install under an id nobody asked for, or under the store app's")
     }
-    if ("$clonePermissions" -ne 'true' -or "$cloneProviders" -ne 'true') {
+    if ($null -ne $clonePermissions -and $null -ne $cloneProviders -and
+        ("$clonePermissions" -ne 'true' -or "$cloneProviders" -ne 'true')) {
         Fail ("Install as clone must rewrite permissions and providers (effective " +
             "updatePermissions=$clonePermissions, updateProviders=$cloneProviders): the stock " +
             "manifest's DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION and its ...tracing / " +
@@ -510,24 +675,30 @@ if (-not $NoClone -and -not $OfficialClone) {
 
 # --- 2. clone -------------------------------------------------------------------------
 if ($OfficialClone) {
-    # Escape hatch: rename with the official universal "Clone app" instead. It is applied on its
-    # own, on the original package name: these patches are filtered by package, so anything after
-    # the rename applies 0 patches. Ours was disabled in pass 1, so exactly one renamer finalises.
-    #
-    # The official bundle's "Custom branding" is deliberately NOT used: it is a resource
-    # patch for the phone YouTube/Music apps and is filtered out for YouTube VR (verified
-    # -- enabling it applies 0 patches), so this app's library name stays "YouTube", from
-    # its own `youtube_vr_app_name` string. Renaming it would need a small branding patch
-    # of our own.
+    # Escape hatch: rename with the official universal "Clone app" instead, and ONLY it. Pass 2
+    # feeds the official bundle our already-patched APK, so the whitelist ($OnlyEnable) marks
+    # every other official patch disabled in the options file: package filtering used to be the
+    # only guard on 1.x ("anything after the rename applies 0 patches"), but on Desktop 2.x a
+    # patch the file marks enabled runs even under --exclusive, and the official bundle carries
+    # universal default-on patches that do not belong in this pass (measured: 'Spoof signature'
+    # ran and failed -- it wants the original APK's signing certificate, which pass 2's input,
+    # our already-signed output, is not). 'Custom branding' stays unused by design: it is
+    # filtered out for YouTube VR, and this app's library name comes from its own
+    # `youtube_vr_app_name` string.
     Write-Host "`n[2/3] cloning to $PackageName with the official Clone app" -ForegroundColor Cyan
     $result2 = Invoke-Patch -Bundle (Resolve-Path $OfficialBundle).Path -InputApk $step1 `
-        -OutputApk $final -Exclusive -Enable @('Clone app') `
+        -OutputApk $final -Exclusive -Enable @('Clone app') -Disable @('Spoof signature') `
+        -OnlyEnable @('Clone app') `
         -PatchOptions @{ 'Clone app' = @{ packageName = $PackageName } }
     Assert-NoFailedPatches $result2 'clone'
-    $clonedTo = Get-OptionValue $result2 'Clone app' 'packageName'
-    if ("$clonedTo" -ne $PackageName) {
-        Fail "the clone's package name is '$clonedTo', not '$PackageName'"
-    }
+    # Host-agnostic verification: Desktop 2.x result files carry no per-patch options, so the
+    # old Get-OptionValue readback returned null here and failed a rename that succeeded -- on
+    # every host this bundle accepts (the script already refuses Desktop < 1.20). The proof
+    # lives in the output APK itself: the official rename rewrites the manifest package, so the
+    # requested id must be findable in AndroidManifest.xml (same check pass 1's clone uses).
+    Assert-ApkEntryString $final 'AndroidManifest.xml' $PackageName 'official clone package id'
+    $optionsFile2 = [System.IO.Path]::ChangeExtension($final, '.options.json')
+    Assert-OptionsFileValues $optionsFile2 @{ 'Clone app' = @{ packageName = $PackageName } }
 } else {
     Write-Host "`n[2/3] no second pass: our bundle renames in pass 1" -ForegroundColor Cyan
     if ($NoClone) {

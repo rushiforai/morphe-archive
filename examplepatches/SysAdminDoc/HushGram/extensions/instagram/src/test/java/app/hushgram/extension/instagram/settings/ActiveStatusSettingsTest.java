@@ -37,7 +37,7 @@ public class ActiveStatusSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.HIDE_ACTIVE_STATUS.resetToDefault();
         Settings.HIDE_TYPING.resetToDefault();
         BaseSettings.PAUSED.save(false);

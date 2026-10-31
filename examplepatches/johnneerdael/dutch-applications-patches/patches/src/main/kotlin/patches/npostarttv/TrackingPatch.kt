@@ -7,12 +7,16 @@ import patches.atv.exact
 @Suppress("unused")
 val disableTrackingPatch = bytecodePatch(
     name = "Disable tracking",
-    description = "Stops NPO Tag/Topspin/DAM, STER targeting, Bitmovin/Sentry collection, Cast/TV-ad diagnostics and Google telemetry collection/uploads, including queued batches. Preserves playback, authentication and functional Cast controls.",
+    description = "Stops NPO Tag/Topspin/DAM, STER targeting, Bitmovin/Sentry collection, Cast diagnostics and Google telemetry collection/uploads, including queued batches. Preserves playback, authentication and functional Cast controls.",
     default = true,
 ) {
-    compatibleWith(npoTv)
+    compatibleWith(npoTv, npoPhone)
     dependsOn(originalInput, startupCompatibility, trackingResources, trackingEgress)
     execute {
+        if (packageMetadata.isNpoPhone) {
+            disablePhoneTracking()
+            return@execute
+        }
         // tagConstructor
         exact("Lnl/npo/player/library/z00/d;",
             "<init>(Lnl/npo/tag/sdk/internal/domain/model/TagContext;Lnl/npo/player/library/ow/b;Lnl/npo/player/library/z00/e;Lio/sentry/x3;Lnl/npo/player/library/a10/h;Lnl/npo/player/library/a10/c;Lnl/npo/player/library/y00/a;Lnl/npo/player/library/x00/c;Ljava/util/Set;Lnl/npo/player/library/l00/a;Lnl/npo/player/library/m00/b;Lio/sentry/android/core/q0;Lnl/npo/player/library/cp/l0;)V",

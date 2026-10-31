@@ -43,6 +43,25 @@ boot completed, emulator hardware. All ADB commands include the serial. English
 UI, a portrait disposable AVD, and `su 0` for read-only package-state archives are
 assumed. There is no physical-device or arbitrary-serial override.
 
+When another chat owns this shared AVD, `isolated_android.py` runs the same tools
+on a separately created disposable API35 ARM64 AVD. Its explicit `--target` JSON
+must live inside this checkout's `.scratch`, declare `schema: 1` and
+`disposable: true`, and contain `serial` (an even-port `emulator-*`), `avd`
+(`finamp-isolated-*`), `avd_directory` (below the descriptor's directory, with
+`config.ini`) and a separate `fixture_port`. The runtime AVD, emulator hardware
+and API guards remain active. After creating the dedicated AVD:
+
+```sh
+python3 -B tests/finamp/isolated_android.py --target "$OWNED_TARGET" \
+  android_acceptance --adb "$ADB" verify
+python3 -B tests/finamp/isolated_android.py --target "$OWNED_TARGET" \
+  manager_ui --adb "$ADB" inspect
+```
+
+Use the wrapper for every controller in that run. It does not start, stop or
+modify the shared AVD. The default controller and pure `self-check` still use
+the original fixed target.
+
 Default evidence root: **`.scratch/finamp/android`** in this repository, derived
 from the script location rather than the current machine. `--out` must be below
 that safety root. `--out-root` may select another directory inside this repo's
@@ -79,6 +98,13 @@ only A Guest as song artist and Z Lead as album artist, distinguishing union
 `ArtistIds` from `ContributingArtistIds`. IDs are stable 32-character hex. UserData
 has varied dates/play counts/favorites and changes in memory on reports/toggles.
 
+`ContributingArtistIds` follows Jellyfin 10.10.7's
+[track-credit AND NOT album-credit predicate](https://github.com/jellyfin/jellyfin/blob/v10.10.7/Emby.Server.Implementations/Data/SqliteItemRepository.cs#L3594).
+For Z Lead the union contains eight tracks, while contributing contains zero;
+for B Guest, without an album credit, both contain six. Earlier fixture code
+incorrectly treated contributing as every track credit. Finamp uses `ArtistIds`;
+this correction does not change that fixture response.
+
 Implemented routes include public info, synthetic authentication/user/views,
 items/details/latest/counts, artists/album artists/genres, favorites, playback
 info/reports, primary artwork, lyrics, and direct audio. Normal Finamp playback
@@ -107,6 +133,15 @@ artist IDs. Limit 0/1/5 queries succeed while unbounded queries are held. Holds
 have a ceiling and a 32-waiter cap. Logs include lifecycle/status/timing and
 redacted queries, never request bodies or auth headers. Disk JSONL has multiple
 events per request ID; memory retains up to 5,000 final/live snapshots.
+
+The control endpoint also accepts `scope: "artist-count"`: hold or reject only
+artist Audio requests with `Limit=1`. Preview pages and complete playback
+enumeration are not held by the server. The release API isolate serializes
+requests, so a held count can still delay a subsequently queued preview request.
+Installed-APK acceptance records that behavior separately from provider/widget
+tests. It checks the count's Loading/Error row and the deferred download warning;
+it is not a timing benchmark. Use the compiled APK's actual localized text
+(`Loading...` in English), rather than assuming a newer source translation.
 
 ## Actual APK commands
 

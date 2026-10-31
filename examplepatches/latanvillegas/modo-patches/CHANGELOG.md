@@ -1,3 +1,31 @@
+## [1.53.0](https://github.com/latanvillegas/modo-patches/compare/v1.52.2...v1.53.0) (2026-10-30)
+
+### ✨ New Features
+
+* **tv360:** integrate Bitel Huawei 1.6 patches and independent Media3 player ([8d876bc](https://github.com/latanvillegas/modo-patches/commit/8d876bc290be4d84971af3ec9b7d5bbfe946bc4a))
+
+## [1.52.2](https://github.com/latanvillegas/modo-patches/compare/v1.52.1...v1.52.2) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **main:** remove four universal patches and unused version-code extension ([6f7ecbd](https://github.com/latanvillegas/modo-patches/commit/6f7ecbd98131673de57b09b25f9c353ab52246bc))
+
+## [1.52.1](https://github.com/latanvillegas/modo-patches/compare/v1.52.0...v1.52.1) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **release:** disable automatic backmerge into divergent dev branch ([adaf7c5](https://github.com/latanvillegas/modo-patches/commit/adaf7c5707e103a5345bfc0a625f42ab94ad2b6d))
+
+## [1.52.0](https://github.com/latanvillegas/modo-patches/compare/v1.51.0...v1.52.0) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **shared:** use provided activity fingerprint instead of removed YouTube reference ([1b07b34](https://github.com/latanvillegas/modo-patches/commit/1b07b34151af34dc813d44560494e3122ebeafba))
+
+### ✨ New Features
+
+* **main:** replace legacy Cromite patches with 20 validated developer patches ([3e66d3e](https://github.com/latanvillegas/modo-patches/commit/3e66d3ea4d77a6232a340b7e04c6049f8ff99a86))
+
 ## [1.51.0](https://github.com/latanvillegas/modo-patches/compare/v1.50.2...v1.51.0) (2026-10-19)
 
 ### ✨ New Features

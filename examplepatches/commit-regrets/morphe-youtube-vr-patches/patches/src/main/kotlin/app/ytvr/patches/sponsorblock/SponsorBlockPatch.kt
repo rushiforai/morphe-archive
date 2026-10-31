@@ -16,6 +16,7 @@ import app.ytvr.patches.shared.callsMethodOn
 import app.ytvr.patches.shared.holdsStringLiteral
 import app.ytvr.patches.shared.skipAdCountdownFingerprints
 import app.ytvr.patches.shared.videoStreamingDataCtorFingerprint
+import app.ytvr.patches.storedChoice
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -973,6 +974,24 @@ private fun Method.invokesStaticReturningReference(parameterTypes: List<String>)
 private fun requireValue(value: String?, optionKey: String): String = value ?: throw PatchException("SponsorBlock: option '$optionKey' has no value")
 
 /**
+ * The behaviour choices the per-category options offer, in the orientation patcher 2.x hosts
+ * expect: `values` maps the *display name* to the value stored and handed to the patch -- both
+ * Manager 2.2 and Desktop render the keys and save the values (issue #45: this map used to be
+ * declared 1.x-style as `{token: label}`, so changing a category in Manager 2.2 stored
+ * 'Show on the seekbar only (never skips)' and the patch refused it at patch time).
+ *
+ * The display names are exactly the labels the 1.x-shaped map carried, so `storedChoice` also
+ * resolves what a Manager 2.2 has already persisted -- the user is not asked to reset options.
+ */
+internal val behaviourChoices: Map<String, String> = linkedMapOf(
+    "Skip automatically (a backwards seek skips it again)" to "skip",
+    "Skip automatically once (a backwards seek stays)" to "skip-once",
+    "Show a Skip button in the player (nothing is skipped until it is pressed)" to "manual-skip",
+    "Show on the seekbar only (never skips)" to "seekbar-only",
+    "Leave alone" to "ignore",
+)
+
+/**
  * SponsorBlock for YouTube VR: skips crowd-sourced segments (sponsors, self-promos,
  * intros, ...) automatically while a video plays.
  *
@@ -1017,13 +1036,7 @@ val sponsorBlockPatch = bytecodePatch(
     fun categoryBehaviourOption(key: String, title: String, default: String) = stringOption(
         key = key,
         default = default,
-        values = mapOf(
-            "skip" to "Skip automatically (a backwards seek skips it again)",
-            "skip-once" to "Skip automatically once (a backwards seek stays)",
-            "manual-skip" to "Show a Skip button in the player (nothing is skipped until it is pressed)",
-            "seekbar-only" to "Show on the seekbar only (never skips)",
-            "ignore" to "Leave alone",
-        ),
+        values = behaviourChoices,
         title = title,
     )
 
@@ -1058,7 +1071,7 @@ val sponsorBlockPatch = bytecodePatch(
     //
     // The colours themselves live in the extension's CategoryColours, next to the seek-bar
     // palette, so a row and its marker cannot disagree. (The rewrite itself is inside `execute`,
-    // below, next to the other bytecode edits: `getAllClassesWithString` is only in that scope.)
+    // below, next to the other bytecode edits: `classDefByStrings` is only in that scope.)
 
     execute {
         // ---- the colour legend on the category rows: the hook half; CategoryColours has the why.
@@ -1078,8 +1091,8 @@ val sponsorBlockPatch = bytecodePatch(
         // The class is reached the way everything else that needs a *non-app* class is reached
         // here: by a literal it holds (`Preference already has a SummaryProvider set.` is thrown by
         // that class's own summary setter), then re-resolved through the mutable class repository,
-        // because `getAllClassesWithString` returns raw dex defs that cannot be edited.
-        val preferenceClasses = getAllClassesWithString(SUMMARY_PROVIDER_LITERAL)
+        // because `classDefByStrings` returns raw dex defs that cannot be edited.
+        val preferenceClasses = classDefByStrings(SUMMARY_PROVIDER_LITERAL)
             .filter { classDef -> classDef.type == PREFERENCE_TYPE }
             .map { classDef -> mutableClassDefBy(classDef) }
         check(preferenceClasses.size == 1) {
@@ -1109,6 +1122,8 @@ val sponsorBlockPatch = bytecodePatch(
             "invoke-static {p1}, Lapp/ytvr/extension/CategoryRows;->bindRow(Ljava/lang/Object;)V",
         )
 
+        // Normalizing *is* the validation: a value that is neither a behaviour token nor one of
+        // the picker's display names fails the patch here, before any bytecode is touched.
         val behaviours: Map<String, String> = mapOf(
             "sponsor" to requireValue(sponsor, "sponsorCategory"),
             "selfpromo" to requireValue(selfpromo, "selfpromoCategory"),
@@ -1120,14 +1135,12 @@ val sponsorBlockPatch = bytecodePatch(
             "filler" to requireValue(filler, "fillerCategory"),
             "music_offtopic" to requireValue(musicOfftopic, "musicOfftopicCategory"),
             "poi_highlight" to requireValue(poiHighlight, "poiHighlightCategory"),
-        )
-        behaviours.values.forEach { behaviour ->
-            if (behaviour !in listOf("skip", "skip-once", "seekbar-only", "manual-skip", "ignore")) {
-                throw PatchException(
-                    "SponsorBlock: unknown category behaviour '$behaviour' " +
-                        "(want skip, skip-once, seekbar-only, manual-skip or ignore)",
-                )
-            }
+        ).mapValues { (_, stored) ->
+            storedChoice(behaviourChoices, stored) ?: throw PatchException(
+                "SponsorBlock: unknown category behaviour '$stored' " +
+                    "(want ${behaviourChoices.values.joinToString(", ")}, or one of the picker's " +
+                    "display names)",
+            )
         }
         val apiBaseValue = requireValue(apiBase, "sponsorBlockApi")
         if (!Regex("^https?://[A-Za-z0-9.-]+(:[0-9]+)?$").matches(apiBaseValue)) {
@@ -1670,9 +1683,9 @@ val sponsorBlockPatch = bytecodePatch(
         // own wiring skipped.
         // ------------------------------------------------------------------
 
-        // `getAllClassesWithString` returns raw dex class defs, so each candidate is
+        // `classDefByStrings` returns raw dex class defs, so each candidate is
         // re-resolved through the mutable class repository before its methods are touched.
-        val clickHandlers = getAllClassesWithString(DEV_ROW_KEY).map { classDef ->
+        val clickHandlers = classDefByStrings(DEV_ROW_KEY).map { classDef ->
             mutableClassDefBy(classDef)
         }.flatMap { classDef ->
             classDef.methods.filter { method ->
@@ -1689,7 +1702,7 @@ val sponsorBlockPatch = bytecodePatch(
         // Mine each handler: the key field it compares, the holder field and swap call its
         // developer-settings branch uses, the fragment class that branch opens (validated by the
         // title literal), and the super-call prototype its tail falls back to.
-        val titleHolderTypes = getAllClassesWithString(DEV_TITLE_LITERAL).map { it.type }.toSet()
+        val titleHolderTypes = classDefByStrings(DEV_TITLE_LITERAL).map { it.type }.toSet()
         val minings = mutableListOf<SettingsClickMining>()
         for (clickHandler in clickHandlers) {
             val instructions = clickHandler.implementation?.instructions?.toList()
@@ -1897,6 +1910,26 @@ val sponsorBlockPatch = bytecodePatch(
             argsField = args,
             sbXmlId = sbId,
         )
-        restructureSettingsXmls(fileWorkspace, sbId, behaviours)
+        // The settings screens' XML is the Patch settings resource patch's job: under the 2.x
+        // hosts that decode resources on request, nothing exists under the decode tree until a
+        // resource patch asks for it (measured 2026-10-30, see PatchSettingsPatch's kdoc). This
+        // patch publishes what only bytecode access can mine.
+        PatchSettingsState.screenXmlId = sbId
+        PatchSettingsState.behaviours = behaviours
+    }
+
+    finalize {
+        // Disable-coupling guard. This patch's bytecode wires the "Patch settings" row and the
+        // hub click handlers onto screens that ONLY the Patch settings patch fills (it executes
+        // in the execute phase; every finalize runs after every execute). If it was disabled or
+        // failed, this wiring would point at the app's dead developer screen -- degraded, not
+        // crashing, which is exactly how it would slip through a green run. Fail here instead.
+        if (!PatchSettingsState.restructured) {
+            throw PatchException(
+                "SponsorBlock: the 'Patch settings' patch did not run, so the settings screens' " +
+                    "XML was never restructured -- this patch's hub wiring would point at empty " +
+                    "screens. Enable 'Patch settings' (default-on), or disable SponsorBlock too.",
+            )
+        }
     }
 }

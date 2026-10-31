@@ -14,9 +14,9 @@ The CHANGELOG section can open with one **Instagram:** summary bullet before its
 which the GitHub body needs (or --summary). The rest sorts under ### Features, ### Bug Fixes and
 ### Improvements, or under #### type headings after a ### HushGram v<version> heading in
 Unreleased, and each bullet opens with **Instagram:** or **Tooling:** and names its patch in
-backticks in the text. Sections from 0.0.16 and before also scope bullets **Instagram - Patch
+backticks in the text. Sections from 0.0.17 and before also scope bullets **Instagram - Patch
 name:** (Manager keeps a scoped bullet for an app when the scope, or the part before " - ", is the
-app's name), which the builder still reads and Unreleased no longer takes. The run stops on a
+app's name), which the builder still reads and newer sections don't take. The run stops on a
 bullet outside a type heading, an unknown heading, an unscoped bullet, an unknown scope or patch,
 a missing section, a bullet count that doesn't add up, dashes the project's writing rules keep out
 of public text and a bullet that runs over 40 words (its closing credit, like Asked for in #12 or
@@ -53,6 +53,9 @@ SECTIONS = ("Features", "Bug Fixes", "Improvements")
 DASHES = (chr(0x2014), chr(0x2013), " - ")
 # A patch scope's label may hold " - ": it's how Manager splits the app from the patch.
 PATCH_SCOPE_RE = re.compile(r"\*\*Instagram - [^*:]+:\*\*")
+# The last release whose bullets may carry a patch scope. They were retired on 2026-10-24, and
+# 0.0.17 still shipped with them because a dated section took them whatever its version.
+LAST_PATCH_SCOPED = (0, 0, 17)
 BULLET_RE = re.compile(r"\* \*\*([^*:]+):\*\* (.+)")
 # A bullet's text after its scope runs at most this many words, so Manager's card stays short.
 MAX_WORDS = 40
@@ -160,6 +163,11 @@ def check_scopes(found: dict[str, list[str]], patches: set[str] | None, patch_sc
                 raise NotesError(f"a bullet is scoped to {patch}, which isn't a patch in patches-list.json: {bullet[:80]}")
 
 
+def takes_patch_scopes(version: str | None) -> bool:
+    """Whether a section's bullets may be scoped to a patch: dated 0.0.17 or older, never Unreleased."""
+    return version is not None and version_key(version) <= LAST_PATCH_SCOPED
+
+
 def check_summary(summary: str | None) -> None:
     """The bullet before the first heading, when there is one: scoped Instagram, one paragraph, no dashes."""
     if summary is None:
@@ -260,7 +268,7 @@ def build_notes(section: str, validation: str, version: str, date: str, previous
     total = sum(len(bullets) for bullets in found.values())
     if not total:
         raise NotesError("the section has no bullets")
-    check_scopes(found, patches)
+    check_scopes(found, patches, takes_patch_scopes(version))
     check_length(found)
     check_summary(read_summary(section))
     parts = [version_heading(version, date, previous)]
@@ -281,7 +289,7 @@ def build_notes(section: str, validation: str, version: str, date: str, previous
 def plain(bullet: str) -> str:
     """A CHANGELOG bullet as the GitHub body writes it: no scope label, bold names in backticks.
 
-    A patch scope from 0.0.16 and before keeps its patch name, "`Patch name`: text"."""
+    A patch scope from 0.0.17 and before keeps its patch name, "`Patch name`: text"."""
     scoped = BULLET_RE.match(bullet)
     _, _, patch = scoped.group(1).partition(" - ")
     text = re.sub(r"\*\*([^*]+)\*\*", r"`\1`", scoped.group(2))
@@ -300,16 +308,17 @@ def update_steps(target: str, floor: str) -> str:
 
 def build_github_notes(section: str, validation: str, target: str, floor: str,
                        patches: set[str] | None = None, summary: str | None = None,
-                       checked: str | None = None) -> tuple[str, int]:
+                       checked: str | None = None, version: str | None = None) -> tuple[str, int]:
     """The GitHub release body in Hushfacebook's layout, and how many CHANGELOG bullets it carries.
 
-    summary is the opening paragraph when the section has no summary bullet of its own, and
-    checked an extra paragraph for What was checked."""
+    summary is the opening paragraph when the section has no summary bullet of its own, checked
+    an extra paragraph for What was checked, and version the section's release (patch scopes need
+    one from 0.0.17 or before)."""
     found = read_bullets(section)
     total = sum(len(bullets) for bullets in found.values())
     if not total:
         raise NotesError("the section has no bullets")
-    check_scopes(found, patches)
+    check_scopes(found, patches, takes_patch_scopes(version))
     check_length(found)
     own = read_summary(section)
     check_summary(own)
@@ -377,7 +386,7 @@ def main(argv: list[str] | None = None) -> int:
             total = sum(len(bullets) for bullets in found.values())
             if not total:
                 raise NotesError("the section has no bullets")
-            check_scopes(found, patches, patch_scopes=args.version is not None)
+            check_scopes(found, patches, takes_patch_scopes(args.version))
             check_length(found)
             check_summary(read_summary(section))
             everything = "\n".join(b for bullets in found.values() for b in bullets)
@@ -397,7 +406,8 @@ def main(argv: list[str] | None = None) -> int:
             summary = pathlib.Path(args.summary).read_text(encoding="utf-8") if args.summary else None
             checked = pathlib.Path(args.checked).read_text(encoding="utf-8") if args.checked else None
             github, _ = build_github_notes(section, validation, read_target(patches_path),
-                                           read_manager_floor(pathlib.Path(args.catalog)), patches, summary, checked)
+                                           read_manager_floor(pathlib.Path(args.catalog)), patches, summary, checked,
+                                           args.version)
     except (NotesError, OSError, KeyError, json.JSONDecodeError) as error:
         print(f"[notes] refused: {error}", file=sys.stderr)
         return 1

@@ -11,7 +11,9 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireParameterIntact
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.requireThisIntact
@@ -21,6 +23,10 @@ import app.morphe.patches.telegram.misc.forward.IS_PREMIUM
 import app.morphe.patches.telegram.misc.forward.MESSAGE_TYPE
 import app.morphe.patches.telegram.misc.forward.premiumHideSenderTypes
 import app.morphe.patches.telegram.misc.localcontrols.Mention
+import app.morphe.patches.telegram.misc.savedownloads.CONTROLLER_INSTANCE
+import app.morphe.patches.telegram.misc.savedownloads.IS_ENCRYPTED
+import app.morphe.patches.telegram.misc.savedownloads.NO_FORWARDS
+import app.morphe.patches.telegram.misc.savedownloads.PEER_NO_FORWARDS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlField
 import app.morphe.patches.telegram.misc.localcontrols.controlHook
@@ -89,7 +95,7 @@ internal const val APPLICATION_ID = "Lorg/telegram/messenger/ApplicationLoader;-
 private const val NAME = "Add Repeat to the message menu"
 
 /** The extension's option numbers, Repeat, Message details, Copy photo and Quick forward, which Telegram's own may never use. */
-internal val MENU_OPTIONS = listOf(0x48544d01, 0x48544d02, 0x48544d03, 0x48544d04)
+internal val MENU_OPTIONS = listOf(0x48544d01, 0x48544d02, 0x48544d03, 0x48544d04, 0x48544d05, 0x48544d06, 0x48544d07)
 private val MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_WIDE, Opcode.MOVE_WIDE_FROM16)
 
 @Suppress("unused")
@@ -105,12 +111,19 @@ val messageMenuPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveMessageMenu()
+        val selection = resolveSelectionCopy()
         // Assembled on copies first, so a refusal leaves the app untouched.
         site.insertFill(MutableMethod(ImmutableMethod.of(site.fill)))
         site.insertChosen(MutableMethod(ImmutableMethod.of(site.choose)))
         writeMessageMenuStubs(site)
         site.insertFill(site.fill)
         site.insertChosen(site.choose)
+        if (selection.missing == null) {
+            selection.apply()
+            enableCapability("copySelection")
+        } else {
+            patchLog.warning("Add Repeat to the message menu: ${selection.missing}. The patch goes on without selecting text in chats that don't allow saving.")
+        }
         enableStatus("messageMenuRepeat")
     }
 }
@@ -148,6 +161,8 @@ internal class MessageMenuSite(
  */
 internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     requireStatusMethod("messageMenuRepeat")
+    requireStatusMethod("copySelection")
+    controlHook(MESSAGE_MENU, "selectionCopy", listOf(), "Z")
     controlHook(MESSAGE_MENU, "fill", listOf(OBJECT, OBJECT, LIST, LIST, LIST), "V")
     controlHook(MESSAGE_MENU, "chosen", listOf(OBJECT, "I"), "V")
     controlHook(MESSAGE_MENU, "selected", listOf(OBJECT), OBJECT)
@@ -163,12 +178,16 @@ internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     controlHook(MESSAGE_MENU, "reachable", listOf("I", "J"), "Z")
     controlHook(MESSAGE_MENU, "title", listOf("I", "J"), STRING)
     controlHook(MESSAGE_MENU, "forwardTo", listOf("I", LIST, "J", "Z"), "I")
-    for (name in listOf("canSend", "blocked", "premium", "forwarded", "photo")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "Z")
+    for (name in listOf("canSend", "blocked", "premium", "forwarded", "photo", "restricted")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "Z")
     for (name in listOf("type", "id", "date", "edited", "forwardDate", "fileDc", "photoSize")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "I")
     for (name in listOf("dialog", "sender", "forwardFrom", "documentSize")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "J")
-    for (name in listOf("forwardName", "attachPath")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "Ljava/lang/String;")
+    for (name in listOf("forwardName", "attachPath", "text", "documentName")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "Ljava/lang/String;")
     controlHook(MESSAGE_MENU, "photoSizes", listOf(OBJECT), LIST)
     controlHook(MESSAGE_MENU, "photoFile", listOf(OBJECT), FILE)
+    controlHook(MESSAGE_MENU, "sending", listOf(), "Z")
+    controlHook(MESSAGE_MENU, "sendText", listOf("I", "J", STRING), "Z")
+    controlHook(MESSAGE_MENU, "sendPhoto", listOf("I", "J", STRING, STRING), "Z")
+    controlHook(MESSAGE_MENU, "sendFile", listOf("I", "J", STRING, STRING, STRING), "Z")
     controlHook(MESSAGE_MENU, "uri", listOf(CONTEXT, FILE), URI)
 
     // The builder, and the Premium gate on hiding an article's sender.
@@ -318,9 +337,9 @@ private fun requireForwardArguments(forward: Method) {
 private fun BytecodePatchContext.requireHostMembers() {
     controlMembers(MESSAGE, "messageOwner:$TL_MESSAGE", "type:I", "currentAccount:I", "scheduled:Z",
         "getId()I", "getDialogId()J", "getFromChatId()J", "getForwardedName()Ljava/lang/String;", "getDocument()$DOCUMENT",
-        "isPoll()Z", "isTodo()Z", "isPhoto()Z", "isHiddenSensitive()Z", "static getPeerId($PEER)J", "static getMedia($MESSAGE)$MEDIA")
+        "isPoll()Z", "isTodo()Z", "isPhoto()Z", "isHiddenSensitive()Z", "getDocumentName()$STRING", "static getPeerId($PEER)J", "static getMedia($MESSAGE)$MEDIA")
     controlMembers(GROUPED, "messages:$LIST")
-    controlMembers(TL_MESSAGE, "date:I", "edit_date:I", "fwd_from:$FWD_HEADER", "action:$ACTION", "attachPath:Ljava/lang/String;")
+    controlMembers(TL_MESSAGE, "message:$STRING", "noforwards:Z", "date:I", "edit_date:I", "fwd_from:$FWD_HEADER", "action:$ACTION", "attachPath:Ljava/lang/String;")
     controlMembers(FILE_LOADER, "static getInstance(I)$FILE_LOADER", "getPathToMessage($TL_MESSAGE)$FILE")
     controlMembers("Lorg/telegram/messenger/ApplicationLoader;", "static getApplicationId()Ljava/lang/String;")
     controlMembers(FWD_HEADER, "date:I", "from_id:$PEER")
@@ -330,7 +349,7 @@ private fun BytecodePatchContext.requireHostMembers() {
     controlMembers(DOCUMENT, "dc_id:I", "size:J")
     controlMembers(PAID_MEDIA)
     controlMembers(ACTION_EMPTY)
-    controlMembers(CONTROLLER, "static getInstance(I)$CONTROLLER", "getChat(Ljava/lang/Long;)$TL_CHAT", "getUser(Ljava/lang/Long;)$TL_USER", "getAllDialogs()$LIST")
+    controlMembers(CONTROLLER, "isPeerNoForwards(J)Z", "static getInstance(I)$CONTROLLER", "getChat(Ljava/lang/Long;)$TL_CHAT", "getUser(Ljava/lang/Long;)$TL_USER", "getAllDialogs()$LIST")
     controlMembers(CHAT_OBJECT, "static isNotInChat($TL_CHAT)Z", "static canSendMessages($TL_CHAT)Z", "static isForum($TL_CHAT)Z", "static isMonoForum($TL_CHAT)Z")
     controlMembers(USER_OBJECT, "static isDeleted($TL_USER)Z", "static isReplyUser(J)Z", "static isService(J)Z", "static getUserName($TL_USER)$STRING")
     controlMembers(TL_CHAT, "title:$STRING")
@@ -374,6 +393,47 @@ internal fun BytecodePatchContext.writeMessageMenuStubs(site: MessageMenuSite) {
         const-wide/16 v6, 0x0
         invoke-virtual/range {v0 .. v7}, ${signature(site.forward)}
         return-void
+    """)
+    // A chat that doesn't allow saving, or a message with its own flag; never a secret chat's.
+    writeStub(MESSAGE_MENU, "restricted", 4, """
+        check-cast p0, $MESSAGE
+        invoke-virtual {p0}, $MESSAGE->getDialogId()J
+        move-result-wide v1
+        invoke-static {v1, v2}, $IS_ENCRYPTED
+        move-result v0
+        if-nez v0, :hush_no
+        iget-object v0, p0, $MESSAGE->messageOwner:$TL_MESSAGE
+        if-eqz v0, :hush_no
+        iget-boolean v0, v0, $NO_FORWARDS
+        if-nez v0, :hush_yes
+        iget v0, p0, $MESSAGE->currentAccount:I
+        invoke-static {v0}, $CONTROLLER_INSTANCE
+        move-result-object v0
+        invoke-virtual {v0, v1, v2}, $PEER_NO_FORWARDS
+        move-result v0
+        return v0
+        :hush_yes
+        const/4 v0, 0x1
+        return v0
+        :hush_no
+        const/4 v0, 0x0
+        return v0
+    """)
+    writeStub(MESSAGE_MENU, "text", 2, """
+        check-cast p0, $MESSAGE
+        iget-object v0, p0, $MESSAGE->messageOwner:$TL_MESSAGE
+        if-eqz v0, :hush_none
+        iget-object v0, v0, $TL_MESSAGE->message:$STRING
+        return-object v0
+        :hush_none
+        const/4 v0, 0x0
+        return-object v0
+    """)
+    writeStub(MESSAGE_MENU, "documentName", 2, """
+        check-cast p0, $MESSAGE
+        invoke-virtual {p0}, $MESSAGE->getDocumentName()$STRING
+        move-result-object v0
+        return-object v0
     """)
     writeStub(MESSAGE_MENU, "activity", 2, """
         check-cast p0, $chat
@@ -478,6 +538,7 @@ internal fun BytecodePatchContext.writeMessageMenuStubs(site: MessageMenuSite) {
         return v1
     """)
     writeQuickForwardStubs()
+    writeSendCopyStubs()
     writeStub(MESSAGE_MENU, "blocked", 2, """
         check-cast p0, $MESSAGE
         invoke-virtual {p0}, $MESSAGE->getId()I

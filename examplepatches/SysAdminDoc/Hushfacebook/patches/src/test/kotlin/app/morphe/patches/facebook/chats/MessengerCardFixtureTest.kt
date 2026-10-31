@@ -41,7 +41,7 @@ class MessengerCardFixtureTest {
      * passes on the one card class that loads it, and an unpacked table is the check still owed.
      */
     private val upsellText = mapOf(
-        "584.0.0.51.56" to 0x7f143b08,
+        "585.0.0.47.54" to 0x7f143ba6,
     )
 
     private val packageManager = "Landroid/content/pm/PackageManager;"

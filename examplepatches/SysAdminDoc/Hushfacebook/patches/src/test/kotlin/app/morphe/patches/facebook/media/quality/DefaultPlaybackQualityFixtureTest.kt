@@ -80,57 +80,41 @@ class DefaultPlaybackQualityFixtureTest {
                 val holders = FixtureDex.classesHolding(bundle, SET_CUSTOM_QUALITY).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
                 val holding = holders.flatMap { it.methods }.filter { holdsString(it, SET_CUSTOM_QUALITY) }
                 assertEquals("$name: methods holding \"$SET_CUSTOM_QUALITY\"", 1, holding.size)
-                val calls = customQualityCalls(holding.single())
-                assertEquals("$name: (String)V calls there", 1, calls.size)
-                val call = calls.single()
+                val arrays = trackArrayReads(holding.single())
+                assertEquals("$name: arrays of tracks read there", 1, arrays.size)
+                val formats = arrays.single()
+                val format = formats.type.removePrefix("[")
 
-                val evaluator = FixtureDex.classes(bundle, setOf(call.definingClass)).values.single()
+                val evaluator = FixtureDex.classes(bundle, setOf(formats.definingClass)).values.single()
                 assertTrue("$name: ${evaluator.type} isn't public", AccessFlags.PUBLIC.isSet(evaluator.accessFlags))
                 assertTrue("$name: ${evaluator.type} isn't built with an $ABR_CONFIGURATION", takesAbrConfiguration(evaluator))
-                val setter = evaluator.methods.single { it.name == call.name && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;") }
                 val constructor = evaluator.methods.single { it.name == "<init>" }
 
-                val formatsFields = formatsFields(setter)
-                assertEquals("$name: arrays of tracks the setter reads", 1, formatsFields.size)
-                val formats = formatsFields.single()
-                val format = formats.type.removePrefix("[")
-                val labelReads = labelReads(setter, format)
-                assertEquals("$name: ways the setter reads a track's label", 1, labelReads.size)
+                val labelReads = labelReads(holding.single(), format)
+                assertEquals("$name: ways the method reads a track's label", 1, labelReads.size)
                 val (labelOf, label) = labelReads.single()
 
-                val preselects = preselectedReads(evaluator, setter)
-                assertEquals("$name: labels the evaluator hands its own setter", 1, preselects.size)
-                val preselected = preselects.single()
+                val preselects = preselectedReads(evaluator, constructor, labelOf)
+                assertEquals("$name: labels the evaluator compares with the tracks' labels", 1, preselects.size)
+                val firstChoice = preselects.single()
+                val preselected = firstChoice.field
                 assertTrue("$name: the constructor doesn't fill in ${preselected.name}",
                     constructor.code().any { it.opcode == Opcode.IPUT_OBJECT && it.field.toString() == preselected.toString() })
 
-                // The first choice hands the label over once: it empties the field straight after.
-                val firstChoice = evaluator.methods.single { method ->
-                    method.code().any { it.call?.let { c -> c.definingClass == evaluator.type && c.name == setter.name } == true }
-                }
-                val code = firstChoice.code()
-                val at = code.indexOfFirst { it.call?.let { c -> c.definingClass == evaluator.type && c.name == setter.name } == true }
-                assertEquals("$name: what ${firstChoice.name} does after handing the label over",
-                    Opcode.IPUT_OBJECT to preselected.toString(), code[at + 1].opcode to code[at + 1].field.toString())
+                // The first choice looks the label up once and empties the field in the same method.
+                val choiceCode = firstChoice.method.code()
+                assertTrue("$name: ${firstChoice.method.name} doesn't empty ${preselected.name} after reading it",
+                    choiceCode.drop(firstChoice.index).any { it.opcode == Opcode.IPUT_OBJECT && it.field.toString() == preselected.toString() })
 
-                // Nothing else in the build writes the label, and only the Hero player and the first
-                // choice call the setter.
+                // Nothing else in the build writes the label.
                 val writers = FixtureDex.methodsWhere(bundle, dexFilter = { dex ->
                     dex.fieldSection.any { it.definingClass == evaluator.type && it.name == preselected.name }
                 }) { method ->
                     method.implementation?.instructions?.any { it.opcode == Opcode.IPUT_OBJECT && it.field.toString() == preselected.toString() } == true
                 }
                 assertEquals("$name: methods writing ${preselected.name}",
-                    setOf("<init>", firstChoice.name), writers.map { it.name }.toSet())
+                    setOf("<init>", firstChoice.method.name), writers.map { it.name }.toSet())
                 assertTrue("$name: a writer of ${preselected.name} outside ${evaluator.type}", writers.all { it.definingClass == evaluator.type })
-                val callers = FixtureDex.methodsWhere(bundle, dexFilter = { dex ->
-                    dex.methodSection.any { it.definingClass == evaluator.type && it.name == setter.name }
-                }) { method ->
-                    method.implementation?.instructions?.any { it.call?.let { c -> c.definingClass == evaluator.type && c.name == setter.name } == true } == true
-                }
-                assertEquals("$name: callers of ${setter.name}",
-                    setOf("${evaluator.type}->${firstChoice.name}", "${holding.single().definingClass}->${holding.single().name}"),
-                    callers.map { it.definingClass + "->" + it.name }.toSet())
 
                 // Where the video plays: the configuration the evaluator keeps, and the two names its
                 // playback preferences carry, each compared once by the configuration's constructor.
@@ -166,8 +150,8 @@ class DefaultPlaybackQualityFixtureTest {
 
                 val formatClass = FixtureDex.classes(bundle, setOf(format)).values.single()
                 val labelClass = FixtureDex.classes(bundle, setOf(labelOf.definingClass)).values.single()
-                val infoClass = FixtureDex.classes(bundle, setOf(label.definingClass)).values.single()
-                val context = PatchContexts.of((listOf(holders.single(), evaluator, formatClass, labelClass, infoClass, configuration, preferencesClass) +
+                val infoClass = label?.let { FixtureDex.classes(bundle, setOf(it.definingClass)).values.single() }
+                val context = PatchContexts.of((listOfNotNull(holders.single(), evaluator, formatClass, labelClass, infoClass, configuration, preferencesClass) +
                     tables.values).distinctBy { it.type } + listOf(ExtensionDex.classDef(QUALITY_CHOICE), ExtensionDex.classDef(SETTINGS_STATUS)))
                 defaultPlaybackQualityPatch.execute(context)
 
@@ -175,15 +159,20 @@ class DefaultPlaybackQualityFixtureTest {
                     it.name == method.name && it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)
                 }.implementation!!.instructions.toList()
 
-                // First in the setter: the extension gets the evaluator and the label and answers the label.
-                val self = setter.localRegisterCount()
-                val setterCode = patched(setter)
-                assertEquals("$name: the setter's first instruction", Opcode.INVOKE_STATIC_RANGE, setterCode[0].opcode)
-                assertEquals("$name: the setter's first call", CUSTOM_QUALITY, setterCode[0].call.toString())
-                assertEquals("$name: the registers the setter hands over", listOf(self, self + 1), setterCode[0].registers())
-                assertEquals("$name: the answer takes the label's place", Opcode.MOVE_RESULT_OBJECT to self + 1,
-                    setterCode[1].opcode to (setterCode[1] as OneRegisterInstruction).registerA)
-                assertEquals("$name: the setter's own code follows", setter.code().size + 2, setterCode.size)
+                // Right after the first choice reads the label: the extension gets the evaluator and the label and answers the label.
+                val labelRead = firstChoice.method.code()[firstChoice.index] as TwoRegisterInstruction
+                val patchedChoice = patched(firstChoice.method)
+                val hookAt = firstChoice.index + 1
+                assertEquals("$name: the first choice's read of ${preselected.name}", Opcode.IGET_OBJECT to preselected.toString(),
+                    patchedChoice[firstChoice.index].opcode to patchedChoice[firstChoice.index].field.toString())
+                assertEquals("$name: the hook's call", Opcode.INVOKE_STATIC, patchedChoice[hookAt].opcode)
+                assertEquals("$name: the hook's callee", CUSTOM_QUALITY, patchedChoice[hookAt].call.toString())
+                assertEquals("$name: the hook hands over the evaluator and the label", listOf(labelRead.registerB, labelRead.registerA),
+                    patchedChoice[hookAt].registers())
+                assertEquals("$name: the answer takes the label's place", Opcode.MOVE_RESULT_OBJECT to labelRead.registerA,
+                    patchedChoice[hookAt + 1].opcode to (patchedChoice[hookAt + 1] as OneRegisterInstruction).registerA)
+                val stock = firstChoice.method.code().filter { it.opcode != Opcode.NOP }
+                assertEquals("$name: the first choice grew by the hook alone", stock.size + 2, patchedChoice.count { it.opcode != Opcode.NOP })
 
                 // Before every return of the constructor, and a branch that went to a return lands on its hook.
                 val original = constructor.code()
@@ -229,8 +218,10 @@ class DefaultPlaybackQualityFixtureTest {
                 val labelStub = stub(LABEL_STUB)
                 assertEquals("$name: the label stub's cast", format, cast(labelStub[0]))
                 assertEquals("$name: the label stub's call", labelOf.toString(), labelStub[1].call.toString())
-                assertEquals("$name: the label stub's read", Opcode.IGET_OBJECT to label.toString(), labelStub[3].opcode to labelStub[3].field.toString())
-                assertEquals("$name: the label stub's answer", Opcode.RETURN_OBJECT, labelStub[4].opcode)
+                if (label != null) {
+                    assertEquals("$name: the label stub's read", Opcode.IGET_OBJECT to label.toString(), labelStub[3].opcode to labelStub[3].field.toString())
+                }
+                assertEquals("$name: the label stub's answer", Opcode.RETURN_OBJECT, labelStub.last().opcode)
                 for ((stubName, field) in listOf(ORIGIN_STUB to origin, SUB_ORIGIN_STUB to subOrigin)) {
                     val stubMethod = stubs.methods.single { it.name == stubName }
                     val parameter = stubMethod.implementation!!.registerCount - 1

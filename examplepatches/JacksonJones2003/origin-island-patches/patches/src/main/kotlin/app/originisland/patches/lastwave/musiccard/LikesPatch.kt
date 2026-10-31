@@ -10,6 +10,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val LIKES_CLASS = "Lapp/originisland/extension/LastWaveLikes;"
@@ -48,6 +49,15 @@ private fun MethodReference.toSmali() =
  * they call each other, and the bridges of the extension are filled with calls to them.
  */
 internal fun BytecodePatchContext.addLastWaveLikes(extensionClass: String) {
+    // LastWave answers the heart of the card itself since version 5.0.0, which also mirrors the like
+    // to YouTube Music. Toggling the like here as well would undo it again.
+    val answersCard = classDefBy(PLAYBACK_SERVICE_CLASS).methods.any { method ->
+        method.implementation?.instructions?.any { instruction ->
+            ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string?.startsWith("vivomusicmix") == true
+        } == true
+    }
+    if (answersCard) return
+
     fun Fingerprint.methodCalls() = method.implementation!!.instructions.mapNotNull { instruction ->
         ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.let { instruction to it }
     }

@@ -27,10 +27,11 @@ async function repository(fn) {
 }
 test('keeps conflicting dev release files and imports real main changes',()=>repository(({dir,git})=>{
   git('merge','main','--no-edit');
-  for(const file of retainedPaths) assert.equal(fs.readFileSync(path.join(dir,file),'utf8'),'preview\n');
+  for(const file of retainedPaths.filter(file=>file!=='CHANGELOG.md')) assert.equal(fs.readFileSync(path.join(dir,file),'utf8'),'preview\n');
   assert.equal(fs.readFileSync(path.join(dir,'new-source.kt'),'utf8'),'new main feature\n');
   const history=fs.readFileSync(path.join(dir,'CHANGELOG.md'),'utf8');
-  for(const heading of ['## stable','## preview','## old']) assert.equal(history.split(heading).length-1,1);
+  for(const heading of ['## preview','## old']) assert.equal(history.split(heading).length-1,1);
+  assert.ok(!history.includes('## stable'));
 }));
 test('source conflicts still fail instead of silently choosing a branch',()=>repository(({git,write})=>{
   git('switch','main');write('source.kt','main change\n');git('add','.');git('commit','-m','main source');
@@ -57,7 +58,8 @@ test('real plugin preserves channel files on its pushed dev merge',()=>repositor
        options:{repositoryUrl:remote},logger:{log(){},error(){},success(){}}});
     git('fetch','origin');
     assert.equal(git('show','origin/dev:new-source.kt'),'new main feature');
-    for(const file of retainedPaths) assert.equal(git('show','origin/dev:'+file),file==='README.md'?'base':'preview');
+    for(const file of retainedPaths.filter(file=>file!=='CHANGELOG.md')) assert.equal(git('show','origin/dev:'+file),file==='README.md'?'base':'preview');
+    assert.ok(!git('show','origin/dev:CHANGELOG.md').includes('## stable'));
   } finally {fs.rmSync(remote,{recursive:true,force:true});}
 }));
 
@@ -67,4 +69,24 @@ test('nested documentation conflicts are never covered by release-file drivers',
   git('switch','dev');for(const file of files) write(file,'dev doc\n');git('add','.');git('commit','-m','dev docs');
   assert.throws(()=>git('merge','main','--no-edit'));
   assert.deepEqual(git('diff','--name-only','--diff-filter=U').split('\n').sort(),files.sort());
+}));
+
+test('a stable promotion does not enter the dev changelog again',()=>repository(({git})=>{
+  git('merge','main','--no-edit');
+  const history=git('show','HEAD:CHANGELOG.md');
+  assert.ok(history.includes('## preview'));
+  assert.ok(!history.includes('## stable'));
+}));
+
+test('managed driver configuration migrates old changelog union settings',()=>repository(({dir,git})=>{
+  const attrs=path.resolve(dir,git('rev-parse','--git-path','info/attributes'));
+  fs.writeFileSync(attrs,'# unrelated\n/custom merge=custom\n# Morphe dev release metadata\n/README.md merge=morpheKeepDev\n/CHANGELOG.md merge=union\n/after merge=custom\n');
+  configureMergeDrivers(dir,process.env);
+  const updated=fs.readFileSync(attrs,'utf8');
+  assert.ok(updated.includes('/custom merge=custom'));
+  assert.ok(updated.includes('/after merge=custom'));
+  assert.ok(updated.includes('/CHANGELOG.md merge=morpheKeepDev'));
+  assert.ok(!updated.includes('merge=union'));
+  configureMergeDrivers(dir,process.env);
+  assert.equal(fs.readFileSync(attrs,'utf8'),updated);
 }));

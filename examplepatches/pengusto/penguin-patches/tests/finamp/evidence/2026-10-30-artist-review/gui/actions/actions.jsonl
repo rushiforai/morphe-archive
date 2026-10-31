@@ -1,0 +1,10 @@
+{"time": "2026-10-30T13:42:13.769361+00:00", "action": "tap", "anchor": "Fixture Music", "selectorGap": "unlabelled drawer ImageView", "bounds": "[38,58][108,128]"}
+{"time": "2026-10-30T13:42:18.181757+00:00", "action": "tap", "selector": "Offline Mode", "class": "android.widget.Button", "index": null, "actualText": "", "actualDesc": "Offline Mode", "bounds": "[0,338][844,466]"}
+{"time": "2026-10-30T13:42:22.730568+00:00", "action": "tap", "selector": "Fixture Music", "class": "android.widget.Button", "index": null, "actualText": "", "actualDesc": "Fixture Music", "bounds": "[16,986][828,1082]"}
+{"time": "2026-10-30T13:44:39.934709+00:00", "action": "tap", "selector": "Install", "class": "android.widget.TextView", "index": null, "actualText": "Install", "actualDesc": "", "bounds": "[415,1560][506,1608]"}
+{"time": "2026-10-30T13:44:52.399835+00:00", "action": "tap", "selector": "Open", "class": "android.widget.TextView", "index": null, "actualText": "Open", "actualDesc": "", "bounds": "[421,1560][499,1608]"}
+{"time": "2026-10-30T13:48:53.039186+00:00", "action": "tap", "selector": "Install", "class": "android.widget.TextView", "index": null, "actualText": "Install", "actualDesc": "", "bounds": "[415,1560][506,1608]"}
+{"time": "2026-10-30T13:49:01.092390+00:00", "action": "tap", "selector": "Open", "class": "android.widget.TextView", "index": null, "actualText": "Open", "actualDesc": "", "bounds": "[421,1560][499,1608]"}
+{"time": "2026-10-30T13:53:06.906696+00:00", "action": "tap", "selector": "Install", "class": "android.widget.TextView", "index": null, "actualText": "Install", "actualDesc": "", "bounds": "[415,1560][506,1608]"}
+{"time": "2026-10-30T13:53:18.083963+00:00", "action": "tap", "selector": "Open", "class": "android.widget.TextView", "index": null, "actualText": "Open", "actualDesc": "", "bounds": "[421,1560][499,1608]"}
+{"time": "2026-10-30T14:04:44.883563+00:00", "action": "tap", "selector": "Install", "class": "android.widget.TextView", "index": null, "actualText": "Install", "actualDesc": "", "bounds": "[415,1560][506,1608]"}

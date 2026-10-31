@@ -84,6 +84,14 @@ final class ScreenColors {
     static volatile ScreenColors shown;
     static final ScreenColors DEFAULT = new ScreenColors();
 
+    /**
+     * Astryx's corner radii in dp (issue #302): a small mark inside a control, a button or field,
+     * and a dialog or a card that holds others.
+     */
+    static final int INNER_RADIUS = 4;
+    static final int ELEMENT_RADIUS = 8;
+    static final int CONTAINER_RADIUS = 12;
+
     /** WCAG 2.2 AA for text, and for the parts of a control that show its state. */
     private static final double TEXT_CONTRAST = 4.5;
     private static final double CONTROL_CONTRAST = 3.0;
@@ -92,18 +100,26 @@ final class ScreenColors {
     @Nullable
     private static volatile ScreenColors tinted;
 
+    /**
+     * The black page, in the dark tokens of Astryx, Meta's own design system (issue #302): its card,
+     * popover, primary and secondary text, text accent and accent, and its 10% border laid over the
+     * card. The page stays black for AMOLED. Astryx puts white on its accent, which reads at 3.1:1,
+     * so the text and thumbs on it are black, as Material's dark scheme draws them. Its switch track
+     * is under 3:1 on the card, so a switch that's off takes its disabled text tone, the nearest
+     * grey of its scale that reads at 3:1 under the black thumb and on the card.
+     */
     private ScreenColors() {
         light = false;
         background = Color.BLACK;
-        dialog = 0xFF10151D;
-        title = 0xFFF3F5F9;
-        summary = 0xFFA6AFBE;
-        heading = 0xFF6AA7FF;
-        accent = 0xFF236BE7;
-        switchOff = 0xFF858D9C;
-        card = 0xFF10151D;
-        outline = 0xFF222C3A;
-        onAccent = Color.WHITE;
+        dialog = 0xFF28292C;
+        title = 0xFFDFE2E5;
+        summary = 0xFFAAAFB5;
+        heading = 0xFF3E9EFB;
+        accent = 0xFF2694FE;
+        switchOff = 0xFF6F747C;
+        card = 0xFF1F1F22;
+        outline = 0xFF343437;
+        onAccent = Color.BLACK;
     }
 
     private ScreenColors(TonePalette palette, boolean light) {
@@ -182,7 +198,7 @@ final class ScreenColors {
     /**
      * The thumb of a switch that's off, read against its track. On a dark wallpaper palette the
      * title's light tone sat at 2.46:1 on the neutral track, under the 3:1 a control's state
-     * needs; the dark tone that fills the on thumb reads above 5:1 there. The black page's white
+     * needs; the dark tone that fills the on thumb reads above 5:1 there. The black page's black
      * and the light page's dark title already clear 3:1.
      */
     int offThumb() {
@@ -204,8 +220,8 @@ final class ScreenColors {
     }
 
     /**
-     * The text of a dialog's outlined actions, such as Cancel. The black page's accent reads at
-     * 3.4:1 on its dialog, under the 4.5:1 text needs, so these take the heading colour. The
+     * The text of a dialog's outlined actions, such as Cancel: the heading colour, the text accent
+     * that's held to 4.5:1 on the dialog. The black page's accent once read at 3.4:1 there. The
      * Material You palettes draw both in one tone, so only the black page changes.
      */
     int secondaryActionText() {
@@ -303,7 +319,8 @@ final class ScreenColors {
         row.setBackground(preference.isSelectable()
                 ? new RippleDrawable(ColorStateList.valueOf(half(accent)), inset, null) : inset);
         // Explicit padding after the inset background prevents its padding from moving the text.
-        row.setPaddingRelative(dp(row, 16), dp(row, 7), dp(row, 16), dp(row, 7));
+        // Astryx spaces in 4 dp steps, so 8 above and below rather than 7.
+        row.setPaddingRelative(dp(row, 16), dp(row, 8), dp(row, 16), dp(row, 8));
         row.setMinimumHeight(dp(row, 52));
     }
 
@@ -476,7 +493,7 @@ final class ScreenColors {
         }
         GradientDrawable surface = new GradientDrawable();
         surface.setColor(primary ? accent : Color.TRANSPARENT);
-        surface.setCornerRadius(dp(row, 6));
+        surface.setCornerRadius(dp(row, ELEMENT_RADIUS));
         if (primary) surface.setStroke(dp(row, 1), accent);
         row.setBackground(new RippleDrawable(ColorStateList.valueOf(half(primary ? onAccent : accent)),
                 new InsetDrawable(surface, dp(row, 20), dp(row, 4), dp(row, 20), dp(row, 4)), null));
@@ -534,7 +551,7 @@ final class ScreenColors {
         if (window != null) {
             GradientDrawable panel = new GradientDrawable();
             panel.setColor(this.dialog);
-            panel.setCornerRadius(dp(window.getDecorView(), 8));
+            panel.setCornerRadius(dp(window.getDecorView(), CONTAINER_RADIUS));
             panel.setStroke(dp(window.getDecorView(), 1), outline);
             window.setBackgroundDrawable(panel);
             int width = Math.min(dialog.getContext().getResources().getDisplayMetrics().widthPixels
@@ -578,7 +595,7 @@ final class ScreenColors {
             GradientDrawable surface = new GradientDrawable();
             surface.setColor(new ColorStateList(new int[][]{{-android.R.attr.state_enabled}, {}},
                     new int[]{primary ? outline : this.dialog, primary ? accent : this.dialog}));
-            surface.setCornerRadius(dp(button, 6));
+            surface.setCornerRadius(dp(button, ELEMENT_RADIUS));
             surface.setStroke(dp(button, 2), new ColorStateList(
                     new int[][]{{-android.R.attr.state_enabled}, {android.R.attr.state_focused}, {}},
                     new int[]{Color.TRANSPARENT, this.title, primary ? accent : Color.TRANSPARENT}));
@@ -609,7 +626,7 @@ final class ScreenColors {
         field.setHintTextColor(summary);
         GradientDrawable outline = new GradientDrawable();
         outline.setColor(dialog);
-        outline.setCornerRadius(dp(field, 8));
+        outline.setCornerRadius(dp(field, ELEMENT_RADIUS));
         outline.setStroke(dp(field, 2), new ColorStateList(
                 new int[][]{{-android.R.attr.state_enabled}, {android.R.attr.state_focused}, {}},
                 new int[]{this.outline, heading, switchOff}));
@@ -690,10 +707,10 @@ final class ScreenColors {
      */
     static void pressFeedback(View button, int color, boolean round) {
         GradientDrawable mask = new GradientDrawable();
-        mask.setCornerRadius(dp(button, round ? 6 : 4));
+        mask.setCornerRadius(dp(button, round ? ELEMENT_RADIUS : INNER_RADIUS));
         mask.setColor(Color.WHITE);
         GradientDrawable focus = new GradientDrawable();
-        focus.setCornerRadius(dp(button, round ? 6 : 4));
+        focus.setCornerRadius(dp(button, round ? ELEMENT_RADIUS : INNER_RADIUS));
         focus.setColor(Color.TRANSPARENT);
         focus.setStroke(dp(button, 2), focusStroke(color, Color.TRANSPARENT));
         button.setBackground(new RippleDrawable(ColorStateList.valueOf(half(color)), focus, mask));
@@ -710,7 +727,7 @@ final class ScreenColors {
     void outlineAction(Button button) {
         GradientDrawable surface = new GradientDrawable();
         surface.setColor(card);
-        surface.setCornerRadius(dp(button, 6));
+        surface.setCornerRadius(dp(button, ELEMENT_RADIUS));
         surface.setStroke(dp(button, 2), focusStroke(title, heading));
         RippleDrawable background = new RippleDrawable(ColorStateList.valueOf(half(heading)), surface, null);
         background.setLayerInsetRelative(0, 0, dp(button, 6), 0, dp(button, 6));

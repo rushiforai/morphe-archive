@@ -493,7 +493,7 @@ private fun BytecodePatchContext.resolveHashtagPosts(): HashtagPosts {
     val asked = search.parameterRegisterNumber(2)
     val first = search.instructions().firstOrNull()
     shape(first?.call()?.let { it.definingClass == HASHTAG_SEARCH && it.name == "getSearchResult" } == true &&
-        first!!.namedRegisters() == listOf(self, asked), "the hashtag search no longer starts by picking its results by kind")
+        first.namedRegisters() == listOf(self, asked), "the hashtag search no longer starts by picking its results by kind")
     // The hook borrows v0, which holds nothing before the method's first instruction, and passes this,
     // the tag, the screen and the kind.
     shape(self >= 1 && listOf(hashtag, guid, asked).all { it <= 15 }, "the hashtag search keeps its registers where the hook can't use them")

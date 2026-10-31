@@ -1,0 +1,8 @@
+Successful release: https://github.com/pengusto/penguin-patches/actions/runs/41066785073
+Input commit: 2d4cb59d1e7b9bd4ceca6f0e9368f8dbc9de45b4
+Release tag: v1.6.1 / 4707aa5580a591b45c9433271495c036a844a4c9
+
+Release	Release	2026-10-30T13:58:18.3265379Z Verified native replay 127/127
+Release	Release	2026-10-30T13:58:18.3373535Z All 127 shipped PFD1 payloads, source pins and native output hashes verified
+Release	Release	2026-10-30T14:03:13.1576099Z Verified native replay 127/127
+Release	Release	2026-10-30T14:03:13.1682917Z All 127 shipped PFD1 payloads, source pins and native output hashes verified

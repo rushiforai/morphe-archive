@@ -1,16 +1,11 @@
 [versions]
-morphe-patcher = "1.14.1"
+morphe-patcher = "2.0.0"
 #noinspection GradleDependency
-smali = "d92701d947"
+smali = "4220ae75f7"
 gson = "2.14.0"
-# synced with Kotlin plugin; bump together
-kotlin-test = "2.4.10"
-junit = "4.13.2"
-robolectric = "4.17"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
-junit = { module = "junit:junit", version.ref = "junit" }
-robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin-test" }
-smali = { module = "com.github.MorpheApp.smali:smali-dexlib2", version.ref = "smali" }
+# Gradle plugins adds the dependency during build, this declaration is here only for dependabot to provide updates.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

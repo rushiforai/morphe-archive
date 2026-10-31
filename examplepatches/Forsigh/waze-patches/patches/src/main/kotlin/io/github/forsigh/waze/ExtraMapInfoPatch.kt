@@ -21,6 +21,7 @@ val extraMapInfoPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("Privacy & Updates")
 
     dependsOn(configOverridesPatch)
 

@@ -1,3 +1,28 @@
+## [1.6.2](https://github.com/pengusto/penguin-patches/compare/v1.6.1...v1.6.2) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **Finamp:** complete reviewed artist pages backport ([fca7661](https://github.com/pengusto/penguin-patches/commit/fca7661dfc98aa3fbf49f68628ddcbb7da128447))
+
+## [1.6.1](https://github.com/pengusto/penguin-patches/compare/v1.6.0...v1.6.1) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **Finamp:** keep hidden player actions reachable in reviewed menus ([d9005af](https://github.com/pengusto/penguin-patches/commit/d9005af90ccc2915dc04449c99818ed1193c1ba5))
+* **Finamp:** make same-size native writes detectable on Android ART ([9c7c9f7](https://github.com/pengusto/penguin-patches/commit/9c7c9f7915964b68170c29d4df067ee2cf1debc4))
+
+## [1.6.0](https://github.com/pengusto/penguin-patches/compare/v1.5.0...v1.6.0) (2026-10-30)
+
+### ✨ New Features
+
+* **Komikku:** preserve local manga in exclusion searches ([bbd60d4](https://github.com/pengusto/penguin-patches/commit/bbd60d42f85952f17205d8465f07e3d06686002c))
+
+## [1.5.0](https://github.com/pengusto/penguin-patches/compare/v1.4.0...v1.5.0) (2026-10-30)
+
+### ✨ New Features
+
+* **Mihon:** preserve excluded Default-category downloads ([5e0c20f](https://github.com/pengusto/penguin-patches/commit/5e0c20fe1fb198bcc91ceffeb09c4225154cf954))
+
 ## [1.4.0](https://github.com/pengusto/penguin-patches/compare/v1.3.0...v1.4.0) (2026-10-29)
 
 ### ✨ New Features

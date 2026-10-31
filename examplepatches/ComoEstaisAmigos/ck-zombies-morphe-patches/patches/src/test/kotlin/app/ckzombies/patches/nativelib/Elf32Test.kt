@@ -186,6 +186,7 @@ class Elf32Test {
             "JNI_ARGUMENTS" to NativeEdits.JNI_ARGUMENTS,
             "SOUND_CACHE_MODE" to NativeEdits.SOUND_CACHE_MODE,
             "DAILY_DEAL" to NativeEdits.DAILY_DEAL,
+            "HIDDEN_WEAPONS" to NativeEdits.HIDDEN_WEAPONS,
             "CURRENCY" to NativeEdits.CURRENCY.mapValues { (_, plan) -> plan.edits },
         )
         for ((name, table) in tables) {
@@ -236,6 +237,18 @@ class Elf32Test {
             val menu = edits.single { it.old and 0xFFFFFF00L == 0xE2853000L }
             assertEquals(0xE2853000L or 8L + 4 * 0x14, menu.old, "$abi: the table end covers four entries")
             assertEquals(0xE2853000L or 8L + 2 * 0x14, menu.new, "$abi: and then two")
+        }
+    }
+
+    @Test
+    fun `the hidden weapons edit forces isHidden to return false`() {
+        for (abi in ABIS) {
+            val edits = NativeEdits.HIDDEN_WEAPONS.getValue(abi)
+            assertEquals(1, edits.size, "$abi: one word")
+            val edit = edits.single()
+            val at = "$abi at 0x%X".format(edit.vaddr)
+            assertEquals(0xE5D00004L, edit.old, "$at: ldrb r0, [r0, #4]")
+            assertEquals(0xE3A00000L, edit.new, "$at: mov r0, #0")
         }
     }
 

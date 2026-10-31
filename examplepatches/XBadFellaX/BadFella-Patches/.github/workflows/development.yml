@@ -1,0 +1,59 @@
+name: Development
+
+on:
+  push:
+    branches: [dev, 'feat/**', 'fix/**', 'build/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: development-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate and build preview
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+      - name: Install release tooling
+        run: npm ci
+      - name: Check release version policy
+        run: npm test
+      - name: Check source metadata and update tooling
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Build preview bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid :patches:generatePatchesList --no-daemon
+      - name: Check generated metadata
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Upload preview for device testing
+        uses: actions/upload-artifact@v7
+        with:
+          name: patches-dev-${{ github.sha }}
+          path: |
+            patches/build/libs/patches-*.mpp
+            !patches/build/libs/*-sources.mpp
+            !patches/build/libs/*-javadoc.mpp
+          if-no-files-found: error
+          retention-days: 14
+      - name: Attest preview
+        if: github.event_name != 'pull_request'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: patches/build/libs/patches-*.mpp

@@ -7,6 +7,7 @@ package app.hushgram.extension.instagram.stories;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -419,9 +420,132 @@ public class StoryMentionsTest {
         assertSame("the pill isn't in the name's row", row, pill.getParent());
         assertEquals("the pill goes after the time", row.getChildCount() - 1, row.indexOfChild(pill));
         assertEquals("the column grew", 1, header.getChildCount());
+        layOut(pill);
+        idle();
+        assertSame("a pill that fits left the name's row", row, pill.getParent());
+        assertFalse(StoryMentions.crowdsName(row));
         bind(BO);
         assertSame("a later story made a second pill", pill, pill());
         assertEquals("1 mention", pill.getText().toString());
+    }
+
+    /**
+     * Instagram's name row shrinks the name to make room, so on the S22 a highlight's "January 16"
+     * plus the pill left "creatives" showing only its verified badge. When a layout shows the name
+     * cut short, the pill goes under the header, lined up with the name, and the name gets its
+     * whole width back.
+     */
+    @Test
+    public void aPillThatCutsTheNameShortGoesUnderTheHeader() {
+        root.removeView(header);
+        LinearLayout column = new LinearLayout(activity);
+        column.setOrientation(LinearLayout.VERTICAL);
+        FrameLayout headerRow = new FrameLayout(activity);
+        LinearLayout row = new LinearLayout(activity);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        TextView title = new TextView(activity);
+        title.setId(View.generateViewId());
+        title.setSingleLine(true);
+        title.setText("creatives");
+        TextView time = new TextView(activity);
+        time.setSingleLine(true);
+        time.setText("January 16");
+        // Like Instagram's: the name takes what the row has left once everything else is measured.
+        row.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        row.addView(time);
+        header.removeAllViews();
+        header.addView(row, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        // Room for the name and the time, not the pill too.
+        int room = wanted(title) + wanted(time) + 2;
+        FrameLayout.LayoutParams besideTheAvatar = new FrameLayout.LayoutParams(room, ViewGroup.LayoutParams.WRAP_CONTENT);
+        besideTheAvatar.leftMargin = 88;
+        headerRow.addView(header, besideTheAvatar);
+        column.addView(headerRow);
+        root.addView(column);
+        StoryMentions.titleIdForTests = title.getId();
+        layOut(header);
+        assertFalse("the name is cut short before there's a pill", StoryMentions.crowdsName(row));
+
+        bind(ANA, BO);
+        StoryMentions.Pill pill = pill();
+        assertNotNull(pill);
+        // The first layout with the pill in the row is what moves it.
+        layOut(header);
+        idle();
+
+        assertSame("the pill stayed in the row", column, pill.getParent());
+        assertEquals("the pill isn't right under the header's row", column.indexOfChild(headerRow) + 1, column.indexOfChild(pill));
+        // A name view that starts at its row's edge puts the pill at the header's edge too.
+        assertEquals("the pill doesn't line up with the name", 88,
+                ((LinearLayout.LayoutParams) pill.getLayoutParams()).getMarginStart());
+        layOut(pill);
+        assertTrue("the row had room for the pill, so this proves nothing",
+                wanted(title) + wanted(time) + pill.getWidth() > room);
+        assertFalse("the name is still cut short", StoryMentions.crowdsName(row));
+        assertTrue("the pill isn't below the header", pill.getTop() >= headerRow.getBottom());
+        String missing = HookStatus.missing(FamilyNames.STORY_MENTIONS).toString();
+        assertFalse(missing, missing.contains("threw"));
+        bind(BO);
+        assertSame("a later story made a second pill", pill, pill());
+        assertSame("a later story moved the pill back", column, pill.getParent());
+        assertEquals("1 mention", pill.getText().toString());
+        bind();
+        assertEquals(View.GONE, pill.getVisibility());
+    }
+
+    /** What [text] needs across to show whole. */
+    private static int wanted(TextView text) {
+        return (int) Math.ceil(android.text.Layout.getDesiredWidth(text.getText(), text.getPaint()))
+                + text.getCompoundPaddingLeft() + text.getCompoundPaddingRight();
+    }
+
+    /**
+     * #405: on Instagram 453 the name's row is a Compose view with no name view in it, and the
+     * header centers the name's column, so a pill under the name moved the name up under the
+     * progress bars. With the header's row inside a column, the pill goes right under that row,
+     * lined up with the name's text (the row keeps an inset before it, so lined up with the row's
+     * edge the pill sat left of the name on the S22), and the name's column keeps what it had.
+     */
+    @Test
+    public void withAComposeNameRowThePillGoesUnderTheHeader() {
+        root.removeView(header);
+        LinearLayout column = new LinearLayout(activity);
+        column.setOrientation(LinearLayout.VERTICAL);
+        View progress = new View(activity);
+        column.addView(progress, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 3));
+        FrameLayout headerRow = new FrameLayout(activity);
+        header.removeAllViews();
+        View composeTitleRow = new View(activity);
+        header.addView(composeTitleRow, new LinearLayout.LayoutParams(280, 34));
+        FrameLayout attribution = new FrameLayout(activity);
+        header.addView(attribution, new LinearLayout.LayoutParams(362, 75));
+        FrameLayout.LayoutParams besideTheAvatar = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        besideTheAvatar.leftMargin = 88;
+        headerRow.addView(header, besideTheAvatar);
+        column.addView(headerRow);
+        root.addView(column);
+        layOut(header);
+        assertEquals(88, header.getLeft());
+
+        bind(ANA, BO);
+
+        StoryMentions.Pill pill = pill();
+        assertNotNull(pill);
+        assertSame("the pill isn't under the header", column, pill.getParent());
+        assertEquals("the pill isn't right under the header's row", column.indexOfChild(headerRow) + 1, column.indexOfChild(pill));
+        assertEquals("the name's column grew", 2, header.getChildCount());
+        // The Compose row keeps a little room before its text, and the pill lines up with the text, not the row.
+        assertEquals("the pill doesn't line up with the name's text", 88 + Dim.dp(StoryMentions.COMPOSE_NAME_INSET_DP),
+                ((LinearLayout.LayoutParams) pill.getLayoutParams()).getMarginStart());
+        layOut(pill);
+        assertTrue("the pill isn't below the header", pill.getTop() >= headerRow.getBottom());
+        assertEquals("2 mentions", pill.getText().toString());
+        bind(BO);
+        assertSame("a later story made a second pill", pill, pill());
+        assertEquals("1 mention", pill.getText().toString());
+        bind();
+        assertEquals(View.GONE, pill.getVisibility());
     }
 
     /**
@@ -461,6 +585,80 @@ public class StoryMentionsTest {
         assertTrue(StoryMentions.touch(activity, event(MotionEvent.ACTION_DOWN, center[0], between)));
         assertTrue(StoryMentions.touch(activity, event(MotionEvent.ACTION_UP, center[0], between)));
         assertNotNull("the tap didn't open the list", ShadowDialog.getLatestDialog());
+    }
+
+    private AlertDialog openedList() {
+        assertTrue(pill().performClick());
+        AlertDialog dialog = (AlertDialog) ShadowDialog.getLatestDialog();
+        assertNotNull(dialog);
+        return dialog;
+    }
+
+    private void tapAccount(AlertDialog dialog, String description) {
+        View row = find(dialog.getWindow().getDecorView(), view -> description.contentEquals(String.valueOf(view.getContentDescription())));
+        assertNotNull(row);
+        assertTrue(row.performClick());
+    }
+
+    /** #403: the list comes back when the story does, so the next account is one tap away. */
+    @Test
+    public void theListComesBackAfterAProfileWhenTheStoryReturns() {
+        bind(ANA, BO);
+        AlertDialog first = openedList();
+        tapAccount(first, "Ana Lima, @ana");
+        assertFalse(first.isShowing());
+        StoryMentions.Pill pill = pill();
+        pill.setVisibility(View.GONE);
+        idle();
+        pill.setVisibility(View.VISIBLE);
+        idle();
+        AlertDialog again = (AlertDialog) ShadowDialog.getLatestDialog();
+        assertNotSame(first, again);
+        assertTrue("the list is open again", again.isShowing());
+        assertNotNull(find(again.getWindow().getDecorView(), view -> "@bo.k".equals(textOf(view))));
+    }
+
+    @Test
+    public void theListStaysClosedWhileTheProfileIsStillUp() {
+        bind(ANA, BO);
+        AlertDialog first = openedList();
+        tapAccount(first, "Ana Lima, @ana");
+        idle();
+        bind(ANA, BO);
+        assertFalse("the pill never went away, so the profile still has the screen", ((AlertDialog) ShadowDialog.getLatestDialog()).isShowing());
+    }
+
+    @Test
+    public void closingTheListEndsTheComeBack() {
+        bind(ANA, BO);
+        AlertDialog first = openedList();
+        first.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+        StoryMentions.Pill pill = pill();
+        pill.setVisibility(View.GONE);
+        idle();
+        pill.setVisibility(View.VISIBLE);
+        idle();
+        assertSame("Close ends it", first, ShadowDialog.getLatestDialog());
+    }
+
+    @Test
+    public void anotherStoryEndsTheComeBack() {
+        bind(ANA, BO);
+        AlertDialog first = openedList();
+        tapAccount(first, "Ana Lima, @ana");
+        StoryMentions.Pill pill = pill();
+        pill.setVisibility(View.GONE);
+        idle();
+        bind(BO);
+        idle();
+        assertSame("a story with other mentions doesn't open the list", first, ShadowDialog.getLatestDialog());
+        bind(ANA, BO);
+        idle();
+        assertSame("and the old list is forgotten", first, ShadowDialog.getLatestDialog());
+    }
+
+    private static String textOf(View view) {
+        return view instanceof TextView ? String.valueOf(((TextView) view).getText()) : null;
     }
 
     private void bind(Account... mentioned) {

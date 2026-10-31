@@ -79,7 +79,7 @@ public class ShareSheetButtonsSettingsTest {
         PauseForTests.pause(HushgramPause.Reason.SWITCH);
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
         assertEquals("", Settings.HIDDEN_SHARE_SHEET_BUTTONS.get());
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SHARE_SHEET);
         controller = Robolectric.buildActivity(Activity.class).setup();
         HushgramPreferenceFragment page = new HushgramPreferenceFragment();

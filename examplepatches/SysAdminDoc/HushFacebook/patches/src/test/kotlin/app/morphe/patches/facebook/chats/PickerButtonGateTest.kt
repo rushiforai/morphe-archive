@@ -128,4 +128,69 @@ class PickerButtonGateTest {
         assertEquals("Lfixture/Row;", pickerRowOf(asking, resolving(table(PEOPLE_PICKER_ENTRY))))
         assertNull(pickerRowOf(asking, resolving(table("messaging_inbox_in_blue:thread_list"))))
     }
+
+    private val launch = "invoke-virtual {v1, v0, v1, v1}, $META_AI_LAUNCHER->A09(Landroid/content/Context;" +
+        "Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaginginblue/aibot/model/MetaAIThreadViewParam;)V"
+
+    /** 585's merged tap: one lambda switching on [selector], the Meta AI case 0xe reading the row's AtomicBoolean. */
+    private fun merged(selector: String) = MutableMethod(
+        ImmutableMethod(
+            "Lfixture/Opener;", "invoke", listOf(ImmutableMethodParameter("Ljava/lang/Object;", null, null)),
+            "Ljava/lang/Object;", AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
+            ImmutableMethodImplementation(4, emptyList(), null, null),
+        ),
+    ).apply {
+        addInstructionsWithLabels(0, """
+            $selector
+            packed-switch v0, :cases
+            :other
+            sget-object v1, Lfixture/Other;->A00:Ljava/util/concurrent/atomic/AtomicBoolean;
+            return-object v1
+            :meta
+            sget-object v0, Lfixture/Row;->A0G:Ljava/util/concurrent/atomic/AtomicBoolean;
+            const-string v0, "$PEOPLE_PICKER_ENTRY"
+            $launch
+            return-object v0
+            :cases
+            .packed-switch 0xd
+                :other
+                :meta
+            .end packed-switch
+        """.trimIndent())
+    }
+
+    @Test
+    fun `585's merged tap names its row by the static its case reads, with the case`() {
+        val tap = pickerTapOf(owner(merged("iget v0, p0, Lfixture/Opener;->t:I")))
+        assertEquals(listOf<Any?>("Lfixture/Row;", 0xe), listOf(tap?.row, tap?.case))
+        // A switch on anything but the lambda's own int isn't a merged lambda, and without a
+        // CallerContext there's no row.
+        assertNull(pickerTapOf(owner(merged("iget v0, p0, Lfixture/Elsewhere;->t:I"))))
+        assertNull(pickerTapOf(owner(merged("const/4 v0, 0x1"))))
+    }
+
+    /** A row render building two [tap] actions, cases 0x3 and 0xe, the 0xe one behind the flag. */
+    private val mergedRow = """
+        const/4 v0, 0x0
+        if-eqz p0, :skip
+        const/4 v0, 0x1
+        :skip
+        const/4 v1, 0x3
+        new-instance v2, $tap
+        invoke-direct {v2, v1, v1, v1, v1}, $tap-><init>(ILjava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+        if-eqz v0, :done
+        const/16 v1, 0xe
+        new-instance v2, $tap
+        invoke-direct {v2, v1, v1, v1, v1}, $tap-><init>(ILjava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+        :done
+        return-void
+    """
+
+    @Test
+    fun `with a case only the tap built with it counts`() {
+        assertNull(pickerButtonGate(smali(mergedRow), tap))
+        val gate = pickerButtonGate(smali(mergedRow), tap, 0xe)
+        assertEquals(listOf(2, 6, 0), listOf(gate?.set, gate?.test, gate?.register))
+        assertNull(pickerButtonGate(smali(mergedRow), tap, 0x5))
+    }
 }

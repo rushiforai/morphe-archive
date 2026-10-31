@@ -7,6 +7,7 @@ package app.hushtelegram.extension.telegram.misc;
 import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
+import app.hushtelegram.extension.telegram.settings.PatchFamily;
 import app.hushtelegram.extension.telegram.settings.Settings;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,9 +37,12 @@ public final class MessageTime {
     }
 
     static boolean on() {
-        HookStatus.invoked(FamilyNames.MESSAGE_SECONDS);
         try {
-            return Utils.settingsReady() && Settings.MESSAGE_SECONDS.get();
+            if (!Utils.settingsReady()) return false;
+            // Keep deleted messages sends its times here without this patch, which then has no switch to read (#49).
+            if (!PatchFamily.MESSAGE_SECONDS.inBuild()) return false;
+            HookStatus.invoked(FamilyNames.MESSAGE_SECONDS);
+            return Settings.MESSAGE_SECONDS.get();
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.MESSAGE_SECONDS, "switch", failure);
             return false;

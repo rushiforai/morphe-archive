@@ -53,7 +53,7 @@ public class LikeAnimationSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.CHANGE_LIKE_ANIMATION.resetToDefault();
         Settings.LIKE_ANIMATION.resetToDefault();
         BaseSettings.PAUSED.save(false);

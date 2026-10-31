@@ -18,9 +18,11 @@ import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlField
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.util.namedRegisters
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -41,6 +43,7 @@ class HideChannelBarButtonsFixtureTest {
             val before = ImmutableMethod.of(plan.update).controlBody()
             val elsewhere = placeCallers(context, plan.place) - signature(plan.update)
             assertTrue("$name: Recent actions places a button of the same bar", elsewhere.isNotEmpty())
+            val stockShare = ImmutableMethod.of(shareDecision(context)).controlBody()
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideChannelBarButtonsPatch.execute(context) })
 
             val afterAll = plan.update.controlBody()
@@ -99,6 +102,16 @@ class HideChannelBarButtonsFixtureTest {
             assertEquals("$name: the guard keeps the bubble's draw", "Landroid/graphics/drawable/Drawable;->draw(Landroid/graphics/Canvas;)V", draw[asked + 4].controlRef())
             val muteStatus = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideChannelMute" }.controlBody()
             assertEquals("$name: the Mute capability", 1L, (muteStatus.first() as WideLiteralInstruction).wideLiteral)
+            // The share button's decision asks Telegram's own answer, kept whole and private, before the switch and the extension.
+            val asks = shareDecision(context).controlBody().mapNotNull { it.controlRef() }
+            assertEquals("$name: the share decision's order", listOf("$SHARE_MESSAGE->$STOCK_SHARE()Z", SHARE_ON, SHARE_SHOWN),
+                asks.filter { it == "$SHARE_MESSAGE->$STOCK_SHARE()Z" || it.startsWith(CHANNEL_SHARE) })
+            assertEquals("$name: asked first", "$SHARE_MESSAGE->$STOCK_SHARE()Z", asks.first())
+            val kept = context.mutableClassDefBy(SHARE_MESSAGE).methods.single { it.name == STOCK_SHARE }
+            assertTrue("$name: the copy is private", AccessFlags.PRIVATE.isSet(kept.accessFlags))
+            assertEquals("$name: the copy keeps Telegram's code", shape(stockShare), shape(kept.controlBody()))
+            val shareStatus = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideChannelShare" }.controlBody()
+            assertEquals("$name: the share capability", 1L, (shareStatus.first() as WideLiteralInstruction).wideLiteral)
             assertEquals("$name: Recent actions untouched", elsewhere, placeCallers(context, plan.place) - signature(plan.update))
 
             val sides = stub(context, "sideButtons")
@@ -134,6 +147,27 @@ class HideChannelBarButtonsFixtureTest {
         }
     }
 
+    @Test fun `a build whose share decision reads differently keeps the button and logs why`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+            val decision = shareDecision(context)
+            val body = decision.controlBody()
+            // The decision no longer reads whether the message is in Saved Messages.
+            for (at in body.indices.filter { body[it].controlRef() == "$SHARE_MESSAGE->isSaved:Z" }) {
+                decision.replaceInstruction(at, "const/16 v${body[at].namedRegisters().first()}, 0x0")
+            }
+            val warnings = PatchLogCapture.warnings { hideChannelBarButtonsPatch.execute(context) }
+            assertEquals("${build.name}: $warnings", 1, warnings.size)
+            assertTrue(warnings.single(), warnings.single().endsWith("The patch goes on without the share button switch."))
+            assertTrue(shareDecision(context).controlBody().none { it.controlRef()?.startsWith(CHANNEL_SHARE) == true })
+            assertTrue(context.mutableClassDefBy(SHARE_MESSAGE).methods.none { it.name == STOCK_SHARE })
+            val share = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideChannelShare" }.controlBody()
+            assertEquals(0L, (share.first() as WideLiteralInstruction).wideLiteral)
+            val mute = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideChannelMute" }.controlBody()
+            assertEquals(1L, (mute.first() as WideLiteralInstruction).wideLiteral)
+        }
+    }
+
     @Test fun `Hide Premium's Gift guard and this patch both land in either order`() {
         for (build in Fixtures.declaredBuilds()) {
             for (commerceFirst in listOf(true, false)) {
@@ -163,8 +197,17 @@ class HideChannelBarButtonsFixtureTest {
         val views = FixtureDex.classesWhere(build, { true }) { m -> m.name == "setVisibility" && m.definingClass in fieldTypes }
         // The view holding the bar draws the bubble behind it.
         val holder = FixtureDex.classesWhere(build, { true }) { m -> m.name == "getInputIslandBubbleContainer" }
-        return (bars + users + views + holder).distinctBy { it.type }
+        // A message decides whether it gets the round share button.
+        val message = FixtureDex.classesWhere(build, { true }) { m -> m.definingClass == SHARE_MESSAGE && m.name == SHARE_DECISION }
+        return (bars + users + views + holder + message).distinctBy { it.type }
     }
+
+    private fun shareDecision(context: BytecodePatchContext) =
+        context.mutableClassDefBy(SHARE_MESSAGE).methods.single { it.name == SHARE_DECISION }
+
+    /** Each instruction's opcode, registers and reference, padding nops left out. */
+    private fun shape(body: List<Instruction>) =
+        body.filter { it.opcode != Opcode.NOP }.map { listOf(it.opcode, it.namedRegisters(), it.controlRef()) }
 
     private fun placeCallers(context: BytecodePatchContext, place: String): Set<String> {
         val found = mutableSetOf<String>()

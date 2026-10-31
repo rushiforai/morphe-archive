@@ -22,14 +22,16 @@ import java.lang.reflect.Field;
 /**
  * Telegram never turns the video viewer by itself. While a video is on screen the activity follows
  * the phone's sensor like any other screen, so with auto-rotate on the viewer goes landscape the
- * moment the phone is turned (#27). Only the full screen button, and the two places that undo it,
+ * moment the phone is turned (#27). Only the full screen button, and the three places that undo it
+ * (its exit button, closing the viewer, and its sensor listener once the phone turns upright again),
  * ask for an orientation.
  *
  * <p>With the switch on, the viewer asks the activity to stay in portrait for as long as a video
  * is showing, and hands the app's own orientation back afterwards. Telegram's reads and restores of
- * the orientation come through here so it never sees the pin as the app's own. Whatever the switch
- * says, the transitions are counted, content-free, so the diagnostic report shows which path fired.
- * All of it runs on the main thread.
+ * the orientation come through here so it never sees the pin as the app's own, and its sensor
+ * listener stays off while either of the two switches is on, so only the button ends a full screen
+ * it opened. Whatever the switches say, the transitions are counted, content-free, so the
+ * diagnostic report shows which path fired. All of it runs on the main thread.
  */
 public final class VideoUpright {
     private VideoUpright() {}
@@ -37,6 +39,7 @@ public final class VideoUpright {
     static final String FROM_BUTTON = "full screen from the button";
     static final String FROM_TURNING = "full screen from turning the phone";
     static final String KEPT_UPRIGHT = "turn kept upright";
+    static final String ONLY_BUTTON_ENDS = "full screen ending only from the button";
 
     /** How long the pin outlasts a video's player, so the next video in the viewer keeps it. */
     private static final long RELEASE_DELAY_MILLIS = 250;
@@ -54,24 +57,40 @@ public final class VideoUpright {
 
     /**
      * Called in place of the viewer switching its sensor listener on, which it does whenever a
-     * video starts to play.
+     * video starts to play. That listener does one thing: once the phone has been on its side in
+     * a full screen the button opened, turning it upright puts the saved orientation back and
+     * ends full screen (#27). With either switch on the button is the only thing that turns a
+     * video, so the listener stays off and full screen lasts until the button or the video
+     * closes. Telegram's listener runs as it always did when a switch can't be read.
      *
      * @param listener Telegram's listener, which holds the viewer
      */
     public static void listenerOn(OrientationEventListener listener) {
-        listener.enable();
         HookStatus.invoked(FamilyNames.KEEP_VIDEOS_MUTED);
+        boolean telegramsExit = true;
         try {
-            if (!active()) return;
-            Activity current = activityOf(listener);
-            if (current == null) {
-                HookStatus.missingMember(FamilyNames.KEEP_VIDEOS_MUTED, "field", "video viewer", "activity");
-                return;
+            if (active()) {
+                Activity current = activityOf(listener);
+                if (current == null) {
+                    HookStatus.missingMember(FamilyNames.KEEP_VIDEOS_MUTED, "field", "video viewer", "activity");
+                } else {
+                    shown(current);
+                    telegramsExit = !onlyTheButtonTurns();
+                }
             }
-            shown(current);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.KEEP_VIDEOS_MUTED, "video shown", failure);
         }
+        if (telegramsExit) {
+            listener.enable();
+        } else {
+            HookStatus.counted(FamilyNames.KEEP_VIDEOS_MUTED, ONLY_BUTTON_ENDS);
+        }
+    }
+
+    /** Whether a switch leaves turning a video, into full screen and back out, to the button alone. */
+    private static boolean onlyTheButtonTurns() {
+        return Settings.VIDEO_EITHER_LANDSCAPE.get() || Settings.VIDEO_ONLY_FROM_BUTTON.get();
     }
 
     /** Called in place of the viewer switching its sensor listener off, when a video's player is let go. */

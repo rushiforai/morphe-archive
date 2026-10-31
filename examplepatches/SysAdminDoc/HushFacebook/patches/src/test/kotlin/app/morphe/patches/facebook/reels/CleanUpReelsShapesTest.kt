@@ -194,19 +194,23 @@ class CleanUpReelsShapesTest {
         method.definingClass, method.name, method.parameterTypes, method.returnType,
     )
 
-    /** An author row whose body makes each of [calls] with invoke-static, the first as a range call. */
+    /**
+     * An author row whose body makes each of [calls], the first as a range call: invoke-static for a
+     * static callee, invoke-virtual for an instance one (585's check lives on a singleton).
+     */
     private fun authorCalling(vararg calls: Method): Method = ImmutableMethod(
         "Lfixture/Author;", "A1F", emptyList(), "V", AccessFlags.PUBLIC.value, null, null,
         ImmutableMethodImplementation(
             2,
             calls.mapIndexed { index, call ->
+                val static = AccessFlags.STATIC.isSet(call.accessFlags)
                 if (index == 0) {
                     com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc(
-                        Opcode.INVOKE_STATIC_RANGE, 1, 1, reference(call),
+                        if (static) Opcode.INVOKE_STATIC_RANGE else Opcode.INVOKE_VIRTUAL_RANGE, 1, 1, reference(call),
                     )
                 } else {
                     com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c(
-                        Opcode.INVOKE_STATIC, 1, 1, 0, 0, 0, 0, reference(call),
+                        if (static) Opcode.INVOKE_STATIC else Opcode.INVOKE_VIRTUAL, 1, 1, 0, 0, 0, 0, reference(call),
                     )
                 }
             } + com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x(Opcode.RETURN_VOID),
@@ -224,7 +228,6 @@ class CleanUpReelsShapesTest {
         callee("Lfixture/Check;", "oneSurface", "Z", FB_USER_SESSION, surfaces.first()),
         callee("Lfixture/Check;", "sessionNotFirst", "Z", "Landroid/content/Context;", *surfaces),
         callee("Lfixture/Check;", "notABoolean", "Ljava/lang/String;", FB_USER_SESSION, *surfaces),
-        callee("Lfixture/Check;", "notStatic", "Z", FB_USER_SESSION, *surfaces, static = false),
     )
 
     private fun resolver(vararg methods: Method): (MethodReference) -> Method? = { call ->
@@ -246,6 +249,38 @@ class CleanUpReelsShapesTest {
         }
         // Asked twice, it's still one check.
         assertEquals(check, followCheck(authorCalling(check, builder, check), resolve).check)
+    }
+
+    /** 585 moved the check onto a singleton, called with invoke-virtual, and the row holds the button's key itself. */
+    @Test
+    fun `an instance Follow check called virtually is found, and the row may hold the button's key itself`() {
+        val instance = callee("Lfixture/Singleton;", "offersFollow", "Z", FB_USER_SESSION, *surfaces, static = false)
+        val resolve = resolver(instance, *lookalikes.toTypedArray())
+        val buildsItself = ImmutableMethod(
+            "Lfixture/Author;", "A17", emptyList(), "V", AccessFlags.PUBLIC.value, null, null,
+            ImmutableMethodImplementation(
+                2,
+                listOf(
+                    com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c(
+                        Opcode.CONST_STRING, 0,
+                        com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference(FOLLOW_BUTTON_KEY),
+                    ),
+                    com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc(
+                        Opcode.INVOKE_VIRTUAL_RANGE, 1, 1, reference(instance),
+                    ),
+                    com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x(Opcode.RETURN_VOID),
+                ),
+                null,
+                null,
+            ),
+        )
+        val found = followCheck(buildsItself, resolve)
+        assertNull(found.problem)
+        assertEquals(instance, found.check)
+        // The key is still needed: without it (here or in a call) the row isn't the one that builds the button.
+        val noKey = followCheck(authorCalling(instance), resolve)
+        assertNull(noKey.check)
+        assertTrue(noKey.problem!!, noKey.problem!!.contains(FOLLOW_BUTTON_KEY))
     }
 
     @Test
@@ -462,6 +497,60 @@ class CleanUpReelsShapesTest {
         assertThrows(PatchException::class.java) { noLocal.returnNullWhen(HIDE_AUDIO_LINE) }
     }
 
+    /** A tree read of [key] into v0, on to `:none` when it's false. */
+    private fun readFlag(key: Int) = """
+        const v1, $key
+        invoke-virtual { p1, v1 }, Lcom/facebook/graphservice/tree/TreeJNI;->getBooleanValue(I)Z
+        move-result v0
+        if-eqz v0, :none
+    """
+
+    /**
+     * "Made with Edits" under a caption (#314) is the render that reads the video's Edits flag and
+     * nothing else from the tree. A render that reads another flag beside it, a static helper reading
+     * it, and a method that isn't a render are the other readers 585 has. The hook asks first and
+     * answers null.
+     */
+    @Test
+    fun `the Edits line is the render reading only the Edits flag`() {
+        val tail = """
+            new-instance v2, Lfixture/Row;
+            return-object v2
+            :none
+            const/4 v2, 0x0
+            return-object v2
+        """
+        val line = render(readFlag(MADE_WITH_EDITS) + tail)
+        assertTrue(isEditsLabelRender(line))
+        val alsoReadsAnother = render(readFlag(MADE_WITH_EDITS) + readFlag("can_viewer_comment".hashCode()) + tail)
+        assertTrue("a render reading a second flag was taken", !isEditsLabelRender(alsoReadsAnother))
+        val readsNoFlag = render("""
+            new-instance v2, Lfixture/Row;
+            return-object v2
+        """)
+        assertTrue("a render reading no flag was taken", !isEditsLabelRender(readsNoFlag))
+        val helper = method(RENDER, listOf("Lfixture/Context;"), "Lfixture/Component;", 6, static = true,
+            readFlag(MADE_WITH_EDITS).replace("p1", "p0") + tail)
+        assertTrue("a static helper was taken", !isEditsLabelRender(helper))
+        val notRender = render(readFlag(MADE_WITH_EDITS) + tail, name = "A1C")
+        assertTrue("a method that isn't a render was taken", !isEditsLabelRender(notRender))
+        val answersFlag = method(RENDER, listOf("Lfixture/Context;"), "Z", 6, static = false, """
+            const v1, $MADE_WITH_EDITS
+            invoke-virtual { p1, v1 }, Lcom/facebook/graphservice/tree/TreeJNI;->getBooleanValue(I)Z
+            move-result v0
+            return v0
+        """)
+        assertTrue("a method answering the flag itself was taken", !isEditsLabelRender(answersFlag))
+
+        line.returnNullWhen(HIDE_EDITS_LABEL)
+        val body = line.body()
+        assertEquals(HIDE_EDITS_LABEL, body[0].call)
+        assertEquals(Opcode.IF_EQZ, body[2].opcode)
+        assertEquals("off draws Facebook's line", 5, line.target(2))
+        assertEquals("the hook answers null", 0, (body[3] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(Opcode.RETURN_OBJECT, body[4].opcode)
+    }
+
     /** A reel header: p0 the row, p1 the search bar, p2 its send button, each wrapped and tagged when there is one. */
     private fun header(add: String = "Lfixture/Row;->add(Lfixture/Component;)V", sendTag: String = SEARCH_BAR_SEND) = method(
         "A00", listOf("Lfixture/Row;", "Lfixture/Component;", "Lfixture/Component;"), "Lfixture/Component;", 6, static = true, """
@@ -623,6 +712,150 @@ class CleanUpReelsShapesTest {
         assertEquals("a case of invoke() itself", "A01", lambdaCase(lambda, 1)?.name)
         assertEquals("a case of the first hand-on", "A05", lambdaCase(lambda, 5)?.name)
         assertNull("a key the last switch has no case for", lambdaCase(lambda, 0x30))
+    }
+
+    /** A static of the synthetic flag lambda with the lambda as its first parameter. */
+    private fun lambdaStatic(name: String, parameters: List<String>, registers: Int, smali: String): Method = MutableMethod(
+        ImmutableMethod(
+            lambdaType, name, parameters.map { ImmutableMethodParameter(it, null, null) },
+            "Ljava/lang/Object;", AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+            ImmutableMethodImplementation(registers, emptyList(), null, null),
+        ),
+    ).apply { addInstructionsWithLabels(0, smali) }
+
+    /**
+     * A merged lambda shaped like 585's Follow flags: key 1 calls a static method that reads the flag
+     * (the 584 form), key 3 has the read written into the second switch behind a holder lookup that
+     * answers the holder, not an Object (585's first flag), key 4 is written the same way but reads
+     * a flag of no config class, and key 5 has no case.
+     */
+    private fun flagLambda(): ClassDef {
+        val invoke = MutableMethod(
+            ImmutableMethod(
+                lambdaType, "invoke", emptyList(), "Ljava/lang/Object;", AccessFlags.PUBLIC.value, null, null,
+                ImmutableMethodImplementation(2, emptyList(), null, null),
+            ),
+        ).apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    iget v0, p0, $lambdaType->key:I
+                    packed-switch v0, :cases
+                    invoke-static { p0, v0 }, $lambdaType->A1Z(${lambdaType}I)Ljava/lang/Object;
+                    move-result-object v0
+                    return-object v0
+                    :one
+                    invoke-static { p0 }, $lambdaType->A01($lambdaType)Ljava/lang/Object;
+                    move-result-object v0
+                    return-object v0
+                    :cases
+                    .packed-switch 0x1
+                        :one
+                    .end packed-switch
+                """,
+            )
+        }
+        val flagRead = lambdaStatic(
+            "A01", listOf(lambdaType), 3,
+            """
+                invoke-static { p0 }, $lambdaType->holder($lambdaType)Lfixture/Holder;
+                move-result-object v0
+                invoke-static { v0 }, Lcom/facebook/mobileconfig/fixture/Flags;->read(Ljava/lang/Object;)Z
+                move-result v0
+                invoke-static { v0 }, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+                move-result-object v0
+                return-object v0
+            """,
+        )
+        val written = lambdaStatic(
+            "A1Z", listOf(lambdaType, "I"), 4,
+            """
+                packed-switch p1, :cases
+                const/4 v0, 0x0
+                return-object v0
+                :flag
+                invoke-static { p0 }, $lambdaType->holder($lambdaType)Lfixture/Holder;
+                move-result-object v0
+                invoke-static { v0 }, Lcom/facebook/mobileconfig/fixture/Flags;->read(Ljava/lang/Object;)Z
+                move-result v0
+                goto :box
+                :other
+                invoke-static { p0 }, $lambdaType->holder($lambdaType)Lfixture/Holder;
+                move-result-object v0
+                invoke-static { v0 }, Lfixture/Other;->read(Ljava/lang/Object;)Z
+                move-result v0
+                :box
+                invoke-static { v0 }, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+                move-result-object v0
+                return-object v0
+                :cases
+                .packed-switch 0x3
+                    :flag
+                    :other
+                .end packed-switch
+            """,
+        )
+        return ImmutableClassDef(
+            lambdaType, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, emptyList(), listOf(invoke, flagRead, written),
+        )
+    }
+
+    @Test
+    fun `a flag read written into a lambda's switch is found, and a read of another kind is not`() {
+        val lambda = flagLambda()
+        assertEquals("a case that calls its own method", "A01", flagReader(lambda, 1)?.name)
+        assertEquals("a case written into the second switch", "A1Z", flagReader(lambda, 3)?.name)
+        assertNull("that case has no static method of its own", lambdaCase(lambda, 3))
+        assertNull("a case that reads no config flag", flagReader(lambda, 4))
+        assertNull("a key the switch has no case for", flagReader(lambda, 5))
+        assertEquals("key", lambdaKeyField(lambda)?.name)
+        assertNull("a lambda with no key read before its switch", lambdaKeyField(lambdaWithoutKey()))
+    }
+
+    private fun lambdaWithoutKey(): ClassDef {
+        val invoke = MutableMethod(
+            ImmutableMethod(
+                lambdaType, "invoke", emptyList(), "Ljava/lang/Object;", AccessFlags.PUBLIC.value, null, null,
+                ImmutableMethodImplementation(2, emptyList(), null, null),
+            ),
+        ).apply { addInstructionsWithLabels(0, "const/4 v0, 0x0\nreturn-object v0") }
+        return ImmutableClassDef(
+            lambdaType, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, emptyList(), listOf(invoke),
+        )
+    }
+
+    /**
+     * 585 has no method to hook for the first Follow flag, so the lambda's invoke() answers a boxed
+     * true for the flag's key when the extension says so and runs Facebook's switch for any other
+     * key. `this` is reached through a 16-bit move, so a lambda whose invoke() keeps it above v15
+     * still gets a valid hook.
+     */
+    @Test
+    fun `a lambda answers a boxed true for its key first when the extension says so`() {
+        val key = requireNotNull(lambdaKeyField(flagLambda()))
+        val invoke = method("invoke", emptyList(), "Ljava/lang/Object;", 20, static = false,
+            """
+                const/4 v0, 0x0
+                return-object v0
+            """)
+        invoke.returnTrueObjectForKeyWhen(key, 155, HIDE_FOLLOWING_BUTTON)
+        val body = invoke.body().filter { it.opcode != Opcode.NOP }
+        assertEquals(Opcode.MOVE_OBJECT_FROM16, body[0].opcode)
+        assertEquals(Opcode.IGET, body[1].opcode)
+        assertEquals("the key is compared as an int", 155, (body[2] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(Opcode.IF_NE, body[3].opcode)
+        assertEquals(HIDE_FOLLOWING_BUTTON, body[4].call)
+        assertEquals(Opcode.MOVE_RESULT, body[5].opcode)
+        assertEquals(Opcode.IF_EQZ, body[6].opcode)
+        assertEquals(Opcode.SGET_OBJECT, body[7].opcode)
+        assertEquals(Opcode.RETURN_OBJECT, body[8].opcode)
+        assertEquals("another key runs Facebook's own switch", 9, invoke.target(3))
+        assertEquals("off runs it too", 9, invoke.target(6))
+        assertEquals(Opcode.CONST_4, invoke.body()[9].opcode)
+        assertEquals("this is read from p0, v19 here", 19, (body[0] as com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction).registerB)
+
+        val noLocals = method("invoke", emptyList(), "Ljava/lang/Object;", 1, static = false, "const/4 p0, 0x0\nreturn-object p0")
+        assertThrows(PatchException::class.java) { noLocals.returnTrueObjectForKeyWhen(key, 155, HIDE_FOLLOWING_BUTTON) }
     }
 
     private val loopFlag = com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference(

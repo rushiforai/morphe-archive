@@ -1,0 +1,32 @@
+{
+  "baselineRetention": {
+    "tests": 7,
+    "failures": 1
+  },
+  "fixedApp": {
+    "tests": 37,
+    "failures": 0
+  },
+  "suites": [
+    {
+      "name": "mihon.core.migration.MigratorTest",
+      "tests": "6",
+      "failures": "0"
+    },
+    {
+      "name": "eu.kanade.tachiyomi.data.download.DownloadProviderTest",
+      "tests": "16",
+      "failures": "0"
+    },
+    {
+      "name": "eu.kanade.tachiyomi.data.backup.BackupStreamTest",
+      "tests": "8",
+      "failures": "0"
+    },
+    {
+      "name": "eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest",
+      "tests": "7",
+      "failures": "0"
+    }
+  ]
+}

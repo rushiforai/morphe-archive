@@ -795,14 +795,18 @@ What the shipped version is:
 - The extension reads what the user picks from the screens' preference file, **`youtube.xml`** (measured 2026-10-11: the screens' fragment sets its storage name to `"youtube"` via `fyp.g("youtube")`; the earlier belief that androidx's default `<package>_preferences` was used was wrong — that file never existed), with `enabled()`, `markersEnabled()` and
   `behaviour()` each consulting it and falling back to the baked defaults until the screen is used.
   `behaviour()` maps a category switch to `skip`/`ignore`, and the "only once" switch to `skip-once`.
-- Two patcher facts, learned by failing:
+- Two patcher facts, learned by failing — **both mechanisms are now superseded** (2026-10-30:
+  the settings rows live in the dedicated **Patch settings** resource patch. That patch
+  `dependsOn`s SponsorBlock — not the other way around — and is `default = true`, so a default
+  apply runs it and it runs SponsorBlock first. The first point's constraint was about a
+  `default = false` companion, and patcher 2.x's on-request resource decode removed the
+  workspace-path guessing entirely; see docs/INTERNALS.md "The patcher 2.x alignment"). Kept
+  because both lessons still govern how the replacement works:
   1. A patch with `default = false` is **not** pulled in by `dependsOn`; the patcher logs "Skipping
-     disabled" and continues. So the settings rows cannot live in a second patch that SponsorBlock
-     depends on — they are written by the SponsorBlock patch itself.
-  2. A bytecode patch's `fileWorkspace` is a scratch directory, not the decoded resource tree. The
-     resources sit beside it under `apk/resources/package_<n>/`. The XML is therefore *found* by name
-     from the session root (`fileWorkspace.parentFile`), and a miss **throws** rather than silently
-     doing nothing — which is how the first attempt failed unnoticed.
+     disabled" and continues — which is why PatchSettingsPatch is `default = true`.
+  2. A bytecode patch's `fileWorkspace` is a scratch directory, not the decoded resource tree, and
+     a resource search that guesses paths must **throw** on a miss rather than silently doing
+     nothing — the resource patch now *requests* the decode, so there is nothing to guess.
 - Verification worth repeating: the compiled XML inside the built APK is path-shortened and
   compressed, so a byte grep of the APK proves nothing. Read the entries instead — the installed APK's
   `res/4I.xml` and `res/B0.xml` both contain the switch key, and the patch log's "rebuilding 4 entries"
@@ -884,12 +888,16 @@ developer-settings screen. 1.88.10 has **two** parallel settings stacks sharing 
 live `fzf`/`fzb`/`fyp` one, and `fqg`/`fqa`/`fnj`, reachable through `fni`/`fvt`); the patch handles
 both, because both click handlers match the same shape.
 
+What the patch did at this point: a single-level screen. Addendum 18 replaced that shape the same
+day with the hub (one "Patch settings" row, then a feature entry, then the SponsorBlock screen).
+The click-handler lookup below is `classDefByStrings` now.
+
 What the patch does (SettingsXml.kt rewrites + three structural bytecode edits per stack):
 
 | edit | what it is | why it is safe |
 |---|---|---|
 | the entry row | a plain `<Preference android:key="ytvr_mod_settings" android:title="Patch settings"/>` at the top of `settings_prefs.xml` and `panel2_settings_prefs.xml` (the flat rows of Addendum 14 are removed) | a plain `Preference` with no `android:fragment`/intent is inert on its own; the click handler is what routes it |
-| the click handler's key | the `const-string "developer_settings"` comparison in the `(Preference)Z` click handler is replaced with `"ytvr_mod_settings"` — mined via `getAllClassesWithString`, matched by shape, **validated** by requiring the `const-class` that follows to belong to a class carrying the `"Developer Settings"` title literal | the app keeps removing its own dead row (that lookup still says `developer_settings` and `PreferenceGroup.ab`'s list remove is guarded); ours routes instead |
+| the click handler's key | the `const-string "developer_settings"` comparison in the `(Preference)Z` click handler is replaced with `"ytvr_mod_settings"` — mined via `classDefByStrings`, matched by shape, **validated** by requiring the `const-class` that follows to belong to a class carrying the `"Developer Settings"` title literal | the app keeps removing its own dead row (that lookup still says `developer_settings` and `PreferenceGroup.ab`'s list remove is guarded); ours routes instead |
 | the sub-screen's XML | `developer_settings_prefs.xml` keeps its root element (and thus its resource id and inflation path) but its **children are replaced** with the SponsorBlock rows | no id is minted; the switches persist to the screens' shared `youtube.xml` file (`fyp.g("youtube")`) |
 | the wiring skip | the sub-screen fragment's `()V` setup (the class's only `()V` method holding exactly one `0x7f1800xx` literal — the `xml` id window) gets `return-void` inserted right after its `o(R.xml...)` call; the rest becomes dead code | the skipped wiring dereferences app-only rows (`experiment_ids`, `keyboard_settings`, `oculus_mobile_feature_2`, ...) **without null checks** and would NPE on the slimmed XML; our plain switches need none of it |
 | the title | the `"Developer Settings"` literal in the fragment's view-created callback becomes `"SponsorBlock"` | the header is the app's own `aF(String)` |

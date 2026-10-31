@@ -67,7 +67,10 @@ private val trackingCollectionResources = resourcePatch {
  * and Sessions return disabled settings and stop their own config/event paths.
  * Sessions' suspend settings update returns real Unit synchronously.
  *
- * Insider does not register its core/lifecycle handlers. getCurrentUser already
+ * Insider does not register its core/lifecycle handlers. Its in-app message
+ * toggles must also complete without touching that absent core: the driving
+ * service disables marketing messages when DriveState.isDriving becomes true.
+ * Keep that caller and its drive-state handling intact. getCurrentUser already
  * returns the SDK's inactive user when uninitialized; retain that typed fallback.
  * Event builders return a real empty event without adding it to the pre-init
  * queue. Its geofence receiver exits before goAsync, and persisted job services
@@ -385,6 +388,38 @@ val disableTracking = bytecodePatch(
                 ),
                 listOf(Edit(0, "body", "return-void")),
                 mapOf("Lc6l;->h()Lc6l;" to 1, "Lc6l;->f()Lo3l;" to 1, "Le4l;" to 1),
+            ),
+            MethodPlan(
+                "Lcom/useinsider/insider/Insider;->disableInAppMessages()V", 6, 36,
+                listOf(
+                    Guard(0, Opcode.CONST_4, listOf(0)),
+                    Guard(1, Opcode.SPUT_BOOLEAN, listOf(0), "Ll2l;->s:Z"),
+                    Guard(3, Opcode.CONST_STRING, listOf(1), "Inapp display disabled for the current session."),
+                    Guard(12, Opcode.IGET_OBJECT, listOf(0, 5), "Lcom/useinsider/insider/Insider;->a:Lcom/useinsider/insider/v;"),
+                    Guard(13, Opcode.IGET_BOOLEAN, listOf(1, 0), "Lcom/useinsider/insider/v;->q:Z"),
+                    Guard(14, Opcode.IF_EQZ, listOf(1), target = 16),
+                    Guard(30, Opcode.INVOKE_VIRTUAL, listOf(0, 1), "Lcom/useinsider/insider/v;->u(Ljava/lang/Exception;)V"),
+                    Guard(33, Opcode.IGET_OBJECT, listOf(5, 5), "Lcom/useinsider/insider/Insider;->a:Lcom/useinsider/insider/v;"),
+                    Guard(34, Opcode.INVOKE_VIRTUAL, listOf(5, 0), "Lcom/useinsider/insider/v;->u(Ljava/lang/Exception;)V"),
+                    Guard(35, Opcode.RETURN_VOID, listOf()),
+                ),
+                listOf(Edit(0, "body", "return-void")),
+                mapOf("Ll2l;->s:Z" to 2, "Lcom/useinsider/insider/Insider;->a:Lcom/useinsider/insider/v;" to 2, "Lcom/useinsider/insider/v;->u(Ljava/lang/Exception;)V" to 2),
+            ),
+            MethodPlan(
+                "Lcom/useinsider/insider/Insider;->enableInAppMessages()V", 6, 20,
+                listOf(
+                    Guard(0, Opcode.CONST_4, listOf(0)),
+                    Guard(1, Opcode.SPUT_BOOLEAN, listOf(0), "Ll2l;->s:Z"),
+                    Guard(3, Opcode.CONST_STRING, listOf(1), "Inapp display enabled for the current session."),
+                    Guard(12, Opcode.SGET_OBJECT, listOf(0), "Lcom/useinsider/insider/DebuggingTag;->enableInAppMessages:Lcom/useinsider/insider/DebuggingTag;"),
+                    Guard(14, Opcode.INVOKE_STATIC, listOf(0, 1), "Lcom/useinsider/insider/Debugger;->a(Lcom/useinsider/insider/DebuggingTag;I)V"),
+                    Guard(17, Opcode.IGET_OBJECT, listOf(5, 5), "Lcom/useinsider/insider/Insider;->a:Lcom/useinsider/insider/v;"),
+                    Guard(18, Opcode.INVOKE_VIRTUAL, listOf(5, 0), "Lcom/useinsider/insider/v;->u(Ljava/lang/Exception;)V"),
+                    Guard(19, Opcode.RETURN_VOID, listOf()),
+                ),
+                listOf(Edit(0, "body", "return-void")),
+                mapOf("Ll2l;->s:Z" to 2, "Lcom/useinsider/insider/Insider;->a:Lcom/useinsider/insider/v;" to 1, "Lcom/useinsider/insider/v;->u(Ljava/lang/Exception;)V" to 1),
             ),
             MethodPlan(
                 "Lcom/useinsider/insider/Insider;->f()Z", 2, 12,

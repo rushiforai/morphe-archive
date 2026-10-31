@@ -1,0 +1,154 @@
+[
+  {
+    "png": "android-reapply-update.png",
+    "png_bytes": 220766,
+    "png_sha256": "a9fa61a025ac79f5f742e84fb3b913229c568a794f29638560d24ec186b0db99",
+    "xml": "android-reapply-update.xml",
+    "xml_sha256": "53954784a134fed0306e9fcf1eefcd2ce655bf5a4fc1964d0a2df3eb2718f018",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "compact-lyrics.png",
+    "png_bytes": 57681,
+    "png_sha256": "7a089d59fed84f59aff7be7c8b9bdc6597bc9d93fa1215de453cb58526ed908e",
+    "xml": "compact-lyrics.xml",
+    "xml_sha256": "2d5f1d058697c2b55baa48d135cb006b1b9c53a9cb824d55f104647d7c56cc87",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "compact-menu-lyrics.png",
+    "png_bytes": 45078,
+    "png_sha256": "305d9da9dc8f0b04931a46001869f8946efb2c471bad45c9b3e029db389f9ec8",
+    "xml": "compact-menu-lyrics.xml",
+    "xml_sha256": "cd268b8f8bb5072085082e7006ec3cb7a628f2764a79b3d532142ef7156d888c",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "compact-menu-output.png",
+    "png_bytes": 55276,
+    "png_sha256": "f83848c95d1a332435ab30149d53e70eb2dd7328d44865051354221e137b2a24",
+    "xml": "compact-menu-output.xml",
+    "xml_sha256": "92042b509cbf38aa432525285256c78e3f35a0d58414ead8cd890b2a15f6f1a3",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "compact-menu-queue.png",
+    "png_bytes": 44259,
+    "png_sha256": "64e42a7d03c0ef4ad44285b1641e18d3be4c229a1a1a3d200f8fcc41cc4f4f5a",
+    "xml": "compact-menu-queue.xml",
+    "xml_sha256": "005f7cfed6a1d0ebe0d220eafdc8bf7edea2047b2fcf45fab636afccfbba31f0",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "compact-output.png",
+    "png_bytes": 38677,
+    "png_sha256": "f3ed3d8c79bc50190219c331da6ac9d9723984dd20649cdfaf50b098147f3d6c",
+    "xml": "compact-output.xml",
+    "xml_sha256": "27bf26e22a05184e0cd2bf53602eb33bb22f58f0833a3547fbbe03e738118ace",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "compact-player.png",
+    "png_bytes": 58433,
+    "png_sha256": "e91a68347072ad6ab4c684e76a21db167fa0cab9c3eb196579f7bb1813df15e7",
+    "xml": "compact-player.xml",
+    "xml_sha256": "4ab69df5849d939bf89fab90204a65a1b87521762cc400a96aed6383eddfe376",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "compact-queue.png",
+    "png_bytes": 73882,
+    "png_sha256": "fe4ddf3bb8927d61f6fd5bded329613657d14023a334a72fc02245468e26c07b",
+    "xml": "compact-queue.xml",
+    "xml_sha256": "82f5df332a142e394c649e8364a3e78f28c48c4b0562bfaf30a601fd669ce152",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "lyrics-menu-no-recursive-route.png",
+    "png_bytes": 124874,
+    "png_sha256": "5da93b35ab3c402efcc29f877aa10933ffbaaf5171b3d1083299b71fdc3b363c",
+    "xml": "lyrics-menu-no-recursive-route.xml",
+    "xml_sha256": "5c317904d523af1c93d352275699b50a82b87e8123dadc001f89e598f2444e90",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "lyrics-output-route.png",
+    "png_bytes": 74728,
+    "png_sha256": "601ecc69ea85416d0ed68be8d13e1064b6ceb018336567c5dc9acf5996052b89",
+    "xml": "lyrics-output-route.xml",
+    "xml_sha256": "2f3af7a24bff44e0dc6f6feab69251c2c0ca5020f0659ddde8c1f7dbaf068a6c",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "lyrics-queue-route.png",
+    "png_bytes": 88185,
+    "png_sha256": "3e4012fea4e5da42b4a601c259a56732e1ecd758a30d76692906700ab63a38e8",
+    "xml": "lyrics-queue-route.xml",
+    "xml_sha256": "7e457a087ae2ef301b1b63121dcc9f0f67cb45faa135426c79f044e64eb9e514",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "lyrics-route.png",
+    "png_bytes": 112827,
+    "png_sha256": "8f436eb733f5738d9a2d5c83c1cad515854ea34ce627e6b71577d90a98d957c7",
+    "xml": "lyrics-route.xml",
+    "xml_sha256": "43c93b3e362489b7d356f51868eef1f4301e0ac79163b832db103944b59edf00",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "manager-reapplied.png",
+    "png_bytes": 241510,
+    "png_sha256": "cf811a68eabb6bf123b0cfcee638601746ddfa3f4fc016703509fc97967ac3a4",
+    "xml": "manager-reapplied.xml",
+    "xml_sha256": "e6b4643bd4c0424d6adb2620a0367c60f57c5b4e388ffc5afe1ed6ed51d8d57e",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "player-after.png",
+    "png_bytes": 117731,
+    "png_sha256": "a2902646288c7db5a3764d74a3e1976327d0c4d01bb66682099d40cae6ad2e36",
+    "xml": "player-after.xml",
+    "xml_sha256": "d3d082a8d057d000633ec5e7a15704bae301af679dd12084ffc60485c1ffe8f2",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "player-artwork-context.png",
+    "png_bytes": 117207,
+    "png_sha256": "6645bcc7b83e506572c21861e0e6a078df266700247b427f246e2570eecb1d78",
+    "xml": "player-artwork-context.xml",
+    "xml_sha256": "fb760a5ed4b977fdfc5f3aa01b75374df4cf7b1e7a4a8388ae7fb95d6e26782b",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "player-before.png",
+    "png_bytes": 132667,
+    "png_sha256": "6456d8adcc005a74a6884b3a103d6e43cc0a80a9db11a5d59ba22c746e1249f2",
+    "xml": "player-before.xml",
+    "xml_sha256": "e14209c70ae2608b8983d2cc444ec11ef150d766cd4ae43fe1af096399be4a6b",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "queue-route.png",
+    "png_bytes": 88726,
+    "png_sha256": "112952e92786520e200bea3ff76a11b87c5cc3f993c1cd3949d06275c4083398",
+    "xml": "queue-route.xml",
+    "xml_sha256": "7e457a087ae2ef301b1b63121dcc9f0f67cb45faa135426c79f044e64eb9e514",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "visible-actions-no-duplicates.png",
+    "png_bytes": 131357,
+    "png_sha256": "5c966627255ae11bca96b355456fc668bcadc1b278174e146eccf346334d6ad7",
+    "xml": "visible-actions-no-duplicates.xml",
+    "xml_sha256": "e14209c70ae2608b8983d2cc444ec11ef150d766cd4ae43fe1af096399be4a6b",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "visible-bottom-actions.png",
+    "png_bytes": 98405,
+    "png_sha256": "3f0d000549697b504b83728651ecdf153908d6c9c17aec6124fe12edcf48f42f",
+    "xml": "visible-bottom-actions.xml",
+    "xml_sha256": "f3d0dfa1b76bbd353ff778689f3c24a7d0a52b2909a81c41c28729e517fe7bb9",
+    "raw_unedited_adb_capture": true
+  }
+]

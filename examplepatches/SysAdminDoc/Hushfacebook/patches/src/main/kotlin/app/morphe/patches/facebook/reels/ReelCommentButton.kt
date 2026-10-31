@@ -34,6 +34,9 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  *   the UDD sidebar's own builder (LX/AF0;->A01, the one method creating the class whose click
  *   handler holds "tap_comment_button") and the shared per-type factory (LX/93I;->A06, see
  *   ReelSaveButton.kt).
+ * - 585 (arm64 and armeabi-v7a) keeps the builder in the button's own class: an instance method (arm64
+ *   LX/09eL;->A01, next to the click handler A00) reads both keys, and nothing outside the class news
+ *   the class up and reads a key. The shared factory is the same shape (arm64 LX/09eO;->A06).
  * - A server flag (LX/73v;->A0O) swaps the key for a newer field of the same meaning, 0x4a100fb9, in
  *   both. The builder reads one or the other into one register before the same read, which is how
  *   the patch learns the second key without its name.
@@ -78,6 +81,16 @@ internal fun alternateCommentKey(builder: Method): Int? =
     treeBooleanReads(builder).filter { CAN_VIEWER_COMMENT in it.keys }
         .flatMap { it.keys - CAN_VIEWER_COMMENT }.distinct().singleOrNull()
 
+/**
+ * Whether [method] builds the Comment button of class [button]: it either news the class up or is a
+ * method of the class itself, and it reads the comment key and one other into one register
+ * ([alternateCommentKey]). The button's own click handler and constructor read no tree.
+ */
+internal fun buildsCommentButton(method: Method, button: String): Boolean =
+    (method.definingClass == button || method.implementation?.instructions?.any {
+        it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == button
+    } == true) && alternateCommentKey(method) != null
+
 /** The reads in [method] of either comment key, plain and swapped. */
 internal fun commentGateReads(method: Method, alternate: Int): List<BooleanRead> =
     treeBooleanReads(method).filter { read -> read.keys.all { it == CAN_VIEWER_COMMENT || it == alternate } }
@@ -91,16 +104,14 @@ internal fun BytecodePatchContext.showReelCommentButton() {
     val buttons = classDefByStrings(COMMENT_TAP, StringComparisonType.EQUALS).filter { owner ->
         owner.methods.count { isCommentClick(it, owner) } == 1
     }
-    val button = buttons.singleOrNull()?.type
+    val buttonClass = buttons.singleOrNull()
         ?: throw PatchException("$PATCH: expected one Comment button class with a click handler holding \"$COMMENT_TAP\", found ${buttons.size}")
-    val builders = mutableListOf<Method>()
+    val button = buttonClass.type
+    // 585 moved the builder into the button's own class; before, a method elsewhere created it.
+    val builders = buttonClass.methods.filterTo(mutableListOf()) { buildsCommentButton(it, button) }
     classDefForEachReferencing(types = listOf(button)) { classDef ->
         if (classDef.type == button || classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
-        classDef.methods.filterTo(builders) { method ->
-            method.implementation?.instructions?.any {
-                it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == button
-            } == true
-        }
+        classDef.methods.filterTo(builders) { method -> buildsCommentButton(method, button) }
     }
     val builder = builders.singleOrNull()
         ?: throw PatchException("$PATCH: expected one method building the Comment button $button, found ${builders.size}")

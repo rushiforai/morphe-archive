@@ -36,7 +36,7 @@ public class CommentCopySettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.COPY_COMMENTS.resetToDefault();
         Settings.COPY_COMMENT_AUTHORS.resetToDefault();
         Settings.COPY_COMMENTS_WITHOUT_MENTIONS.resetToDefault();
@@ -101,7 +101,7 @@ public class CommentCopySettingsTest {
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         assertTrue(Settings.COPY_COMMENTS.get());
-        assertEquals(36, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
+        assertEquals(37, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
     }
     /** #35: a build whose Copy username didn't go in keeps Copy comment and doesn't offer a switch that does nothing. */
     @Test public void aBuildWithoutCopyUsernameKeepsCopyWithoutTheSecondSwitch() throws Exception {

@@ -91,6 +91,7 @@ val speedometerScalePatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("UI Customization")
 
     // Without the emitter patch the keys recorded below are never written, so ticking this row on
     // its own would produce a build with no override at all.

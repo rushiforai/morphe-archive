@@ -136,6 +136,7 @@ val morpheMusicPartnerPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("Driving & Voice")
     dependsOn(morpheMusicSupportPatch)
     // The flags recorded below need the emitter patch in the build; ticking this row alone must
     // still produce an APK carrying them (same contract as every other override).

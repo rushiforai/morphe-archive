@@ -12,6 +12,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import java.nio.file.Files
 import java.nio.file.Path
@@ -101,6 +102,35 @@ invoke-virtual {p1, v0, v1}, $DRAW_OVAL
 invoke-virtual {p1, v0, v1}, $DRAW_OVAL
 return-void"""
 
+private const val RING_SPEC = "LX/Av13;"
+private const val RING = "LX/Av14;"
+internal const val SYNTHETIC_RING_MOUNT = "$RING_SPEC->onCreateMountContent(Landroid/content/Context;)Ljava/lang/Object;"
+internal const val SYNTHETIC_RING_DRAW = "$RING->draw(Landroid/graphics/Canvas;)V"
+private const val PLAIN_DRAWABLE = "Landroid/graphics/drawable/Drawable;"
+
+/** The story ring spec's mount content as 585 writes it: a new ring drawable, returned. */
+private const val RING_MOUNT_BODY = """new-instance v0, $RING
+invoke-direct {v0}, $RING-><init>()V
+return-object v0"""
+
+/** Its mount, cut down to the gradient's four colors. */
+private val RING_PAINT_BODY = RING_COLORS.joinToString("\n", postfix = "\nreturn-void") { "const-string v0, \"$it\"" }
+
+/** The ring's draw as 585 writes it: the arc's box, start, sweep times progress and paint in v1 to v6, the ring in v7. */
+private const val RING_DRAW_BODY = """const/4 v5, 0x0
+move-object v1, p1
+invoke-static {p1, v5}, LX/Av15;->A0m(Ljava/lang/Object;I)V
+iget-object v2, p0, $RING->A08:Landroid/graphics/RectF;
+iget v0, p0, $RING->A03:I
+int-to-float v3, v0
+iget v0, p0, $RING->A04:I
+int-to-float v4, v0
+iget v0, p0, $RING->A00:F
+mul-float/2addr v4, v0
+iget-object v6, p0, $RING->A07:Landroid/graphics/Paint;
+invoke-virtual/range {v1 .. v6}, $DRAW_ARC
+return-void"""
+
 private val STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 
 private fun printer(body: String = PRINTER_BODY, type: String = OPTIONS) = fixtureMethod("$type->toString()Ljava/lang/String;", body.replace(OPTIONS, type), 5)
@@ -109,15 +139,27 @@ private fun legacy(body: String = LEGACY_BODY, id: String = SYNTHETIC_LEGACY_ROU
 private fun tileShape(body: String = TILE_SHAPE_BODY, id: String = SYNTHETIC_TILE_SHAPE) = fixtureMethod(id, body, 4)
 private fun tileSetup(body: String = TILE_SETUP_BODY) = fixtureMethod(SYNTHETIC_TILE_SETUP, body, 5)
 private fun placeholder(body: String = PLACEHOLDER_BODY) = fixtureMethod(SYNTHETIC_TILE_PLACEHOLDER, body, 4)
+private fun ringMount(body: String = RING_MOUNT_BODY, spec: String = RING_SPEC) =
+    fixtureMethod(SYNTHETIC_RING_MOUNT.replace(RING_SPEC, spec), body, 3)
+private fun ringPaint(body: String = RING_PAINT_BODY, spec: String = RING_SPEC) = fixtureMethod("$spec->A0k(Ljava/lang/Object;)V", body, 2)
+private fun ringDraw(body: String = RING_DRAW_BODY, registers: Int = 9) = fixtureMethod(SYNTHETIC_RING_DRAW, body, registers)
 
-/** Vito's options class, the legacy helper's class, the user tile and its placeholder. */
+/** Vito's options class, the legacy helper's class, the user tile, its placeholder, the story ring's spec and the ring. */
 internal fun avatarShapeFixture(
     options: List<MutableMethod> = listOf(printer(), constructor()),
     helper: MutableMethod = legacy(),
     tile: List<MutableMethod> = listOf(tileShape(), tileSetup()),
     placeholderDraw: List<MutableMethod> = listOf(placeholder()),
+    ringSpec: List<MutableMethod> = listOf(ringMount(), ringPaint()),
+    ring: List<MutableMethod> = listOf(ringDraw()),
+    ringParent: String = PLAIN_DRAWABLE,
 ): List<MutableClass> = listOf(fixtureClass(OPTIONS, options), fixtureClass("LX/Av2;", listOf(helper)),
-    fixtureClass(TILE, tile), fixtureClass(PLACEHOLDER, placeholderDraw))
+    fixtureClass(TILE, tile), fixtureClass(PLACEHOLDER, placeholderDraw), fixtureClass(RING_SPEC, ringSpec),
+    fixtureClass(RING, ring, superclass = ringParent))
+
+private val ALL_FIVE = setOf(SYNTHETIC_VITO_ROUNDING, SYNTHETIC_LEGACY_ROUNDING, SYNTHETIC_TILE_SHAPE, SYNTHETIC_TILE_SETUP,
+    SYNTHETIC_TILE_PLACEHOLDER)
+private val BOTH_RING = setOf(SYNTHETIC_RING_MOUNT, SYNTHETIC_RING_DRAW)
 
 private fun Method.code() = implementation!!.instructions.toList()
 
@@ -132,12 +174,13 @@ class AvatarShapeTest {
     }
 
     private fun found(classes: List<MutableClass>) = mirroredControls(classes).getValue(AVATAR_SHAPE).map { it.hookId() }.toSet()
+    private fun rings(classes: List<MutableClass>) = mirroredControls(classes).getValue(STORY_RING).map { it.hookId() }.toSet()
 
-    @Test fun theVitoConstructorTheLegacyHelperAndTheUserTileAreFound() {
-        assertEquals(setOf(SYNTHETIC_VITO_ROUNDING, SYNTHETIC_LEGACY_ROUNDING, SYNTHETIC_TILE_SHAPE, SYNTHETIC_TILE_SETUP, SYNTHETIC_TILE_PLACEHOLDER),
-            found(avatarShapeFixture()))
+    @Test fun theVitoConstructorTheLegacyHelperTheUserTileAndTheStoryRingAreFound() {
+        assertEquals(ALL_FIVE, found(avatarShapeFixture()))
+        assertEquals(BOTH_RING, rings(avatarShapeFixture()))
         assertEquals("$OPTIONS->A02:Z", vitoCircleField)
-        validateControls(mirroredControls(avatarShapeFixture()), setOf(AVATAR_SHAPE))
+        validateControls(mirroredControls(avatarShapeFixture()), setOf(AVATAR_SHAPE, STORY_RING))
     }
 
     @Test fun eachFamilyMapsItsOwnHooks() {
@@ -145,13 +188,19 @@ class AvatarShapeTest {
             "LX/$tile;->A09(Landroid/content/Context;Landroid/graphics/Path;Landroid/graphics/drawable/Drawable;" +
                 "Lcom/facebook/auth/usersession/FbUserSession;LX/$a;LX/$b;LX/$placeholder;FIIZZ)V",
             "LX/$placeholder;->draw(Landroid/graphics/Canvas;)V")
+        fun ring(spec: String, drawable: String) = setOf("LX/$spec;->onCreateMountContent(Landroid/content/Context;)Ljava/lang/Object;",
+            "LX/$drawable;->draw(Landroid/graphics/Canvas;)V")
         val arm64 = setOf("LX/4dq;-><init>([FFZZZ)V", "LX/QE4;->A04(LX/Sli;LX/4cM;)V") + tile("2lH", "2jg", "2lQ", "2lt")
-        assertEquals(arm64, PROFILE_347015062.hooks.getValue(AVATAR_SHAPE))
-        assertEquals(arm64, PROFILE_347014996.hooks.getValue(AVATAR_SHAPE))
+        for (profile in listOf(PROFILE_347015062, PROFILE_347014996)) {
+            assertEquals(arm64, profile.hooks.getValue(AVATAR_SHAPE))
+            assertEquals(ring("2mD", "31X"), profile.hooks.getValue(STORY_RING))
+        }
         assertEquals(setOf("LX/4gQ;-><init>([FFZZZ)V", "LX/NhC;->A04(LX/QIU;LX/4ev;)V") + tile("2mn", "2lC", "2mw", "2nP"),
             PROFILE_347014974.hooks.getValue(AVATAR_SHAPE))
+        assertEquals(ring("2nj", "33B"), PROFILE_347014974.hooks.getValue(STORY_RING))
         assertEquals(setOf("LX/4dE;-><init>([FFZZZ)V", "LX/NEI;->A04(LX/Q7X;LX/4bk;)V") + tile("2lh", "2k6", "2lq", "2mJ"),
             PROFILE_347014990.hooks.getValue(AVATAR_SHAPE))
+        assertEquals(ring("2md", "31x"), PROFILE_347014990.hooks.getValue(STORY_RING))
     }
 
     // Only some pictures changing would look broken, so anything we can't prove about either path gets no hook at all.
@@ -212,6 +261,56 @@ class AvatarShapeTest {
             fixtureMethod("$TILE->A09(Landroid/graphics/Path;${PLACEHOLDER}LX/Av12;)V", TILE_SETUP_BODY, 6))) +
             fixtureClass("LX/Av12;", listOf(fixtureMethod("LX/Av12;->draw(Landroid/graphics/Canvas;)V", "return-void", 2)))
         assertEquals(5, found(plain).size)
+    }
+
+    // A ring that only some pictures lose or square would look broken, so both controls go without it instead.
+    @Test fun anyOtherRingLeavesBothControlsUnapplied() {
+        val cases = mapOf(
+            "no story ring spec" to avatarShapeFixture(ringSpec = emptyList()),
+            "a spec with another gradient" to avatarShapeFixture(ringSpec = listOf(ringMount(), ringPaint(RING_PAINT_BODY.replace("#FF7061", "#FF7062")))),
+            "two ring specs" to avatarShapeFixture() + fixtureClass("LX/Av16;", listOf(ringMount(spec = "LX/Av16;"), ringPaint(spec = "LX/Av16;"))),
+            "a mount that sets the ring up" to avatarShapeFixture(ringSpec = listOf(ringPaint(), ringMount(RING_MOUNT_BODY
+                .replace("return-object", "invoke-virtual {v0}, $RING->A01()V\nreturn-object")))),
+            "a ring that isn't a plain drawable" to avatarShapeFixture(ringParent = "LX/Av17;"),
+            "a ring drawn as two arcs" to avatarShapeFixture(ring = listOf(ringDraw(RING_DRAW_BODY
+                .replace("return-void", "invoke-virtual/range {v1 .. v6}, $DRAW_ARC\nreturn-void")))),
+            "an arc the ring doesn't follow" to avatarShapeFixture(ring = listOf(ringDraw(registers = 10))),
+            "a draw that overwrites the ring" to avatarShapeFixture(ring = listOf(ringDraw(RING_DRAW_BODY
+                .replace("invoke-virtual/range", "move-object v7, v1\ninvoke-virtual/range")))),
+        )
+        for ((case, classes) in cases) {
+            assertTrue(rings(classes).isEmpty(), case)
+            assertEquals(ALL_FIVE, found(classes), case)
+            for (control in listOf(AVATAR_SHAPE, "stories").map { controlHooks.getValue(it) }) {
+                assertFailsWith<PatchException>(case) { validateControls(mirroredControls(classes), control) }
+            }
+        }
+    }
+
+    // Square profile pictures and Hide stories and notes both take the ring; whichever patches first puts it in.
+    @Test fun eachStoryRingIsNamedAndItsArcGoesThroughSettingsOnce() {
+        assertTrue(STORY_RING in controlHooks.getValue(AVATAR_SHAPE) && STORY_RING in controlHooks.getValue("stories"))
+        rings(avatarShapeFixture())
+        val mount = ringMount()
+        injectControl(AVATAR_SHAPE, mapOf(STORY_RING to listOf(mount)))
+        val made = mount.code()
+        assertEquals(listOf(Opcode.NEW_INSTANCE, Opcode.INVOKE_DIRECT, Opcode.INVOKE_STATIC, Opcode.RETURN_OBJECT), made.map { it.opcode })
+        assertEquals(RING_MADE to listOf(0), call(made, 2))
+        injectControl("stories", mapOf(STORY_RING to listOf(mount)))
+        assertEquals(made, mount.code())
+
+        val draw = ringDraw()
+        val before = draw.code()
+        injectControl("stories", mapOf(STORY_RING to listOf(draw)))
+        val after = draw.code()
+        assertEquals(before.size, after.size)
+        assertTrue(after.none { (it as? ReferenceInstruction)?.reference?.toString() == DRAW_ARC })
+        val arc = after.single { it.opcode == Opcode.INVOKE_STATIC_RANGE }
+        assertEquals(RING_ARC, (arc as ReferenceInstruction).reference.toString())
+        // The arc's v1 to v6 and the ring, p0, which is v7 in nine registers.
+        assertEquals(listOf(1, 7), (arc as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
+        injectControl(AVATAR_SHAPE, mapOf(STORY_RING to listOf(draw)))
+        assertEquals(after, draw.code())
     }
 
     @Test fun vitoAsksForTheShapeRightAfterTheParentConstructor() {
@@ -297,9 +396,21 @@ class AvatarShapeTest {
             assertFailsWith<PatchException>(case) { injectControl(AVATAR_SHAPE, mapOf(AVATAR_SHAPE to listOf(bad))) }
             assertEquals(badBefore, bad.code(), case)
         }
+        val rings = mapOf(
+            "a mount that sets the ring up" to ringMount(RING_MOUNT_BODY.replace("return-object", "invoke-virtual {v0}, $RING->A01()V\nreturn-object")),
+            "a mount that names something else" to ringMount(RING_MOUNT_BODY.replace("return-object", "invoke-static {v1}, $RING_MADE\nreturn-object")),
+            "a ring that no longer follows its arc" to ringDraw(registers = 10),
+            "a draw that also keeps an arc of its own" to ringDraw(RING_DRAW_BODY.replace("return-void",
+                "invoke-static/range {v1 .. v7}, $RING_ARC\ninvoke-virtual/range {v1 .. v6}, $DRAW_ARC\nreturn-void")),
+        )
+        for ((case, bad) in rings) {
+            val badBefore = bad.code()
+            assertFailsWith<PatchException>(case) { injectControl("stories", mapOf(STORY_RING to listOf(bad))) }
+            assertEquals(badBefore, bad.code(), case)
+        }
     }
 
-    @Test fun everySupportedBuildRoundsThroughTheSameFiveHooks() {
+    @Test fun everySupportedBuildRoundsThroughTheSameFiveHooksAndRing() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
         val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
@@ -310,11 +421,31 @@ class AvatarShapeTest {
             val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
             activeProfile = controlProfileFor(code)
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
-            val hooks = findAvatarShape(dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes })
-            expected[code] = activeProfile.hooks.getValue(AVATAR_SHAPE)
-            actual[code] = hooks.map { it.hookId() }.toSet()
+            val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
+            val hooks = findAvatarShape(classes)
+            val rings = findStoryRing(classes)
+            expected[code] = activeProfile.hooks.getValue(AVATAR_SHAPE) + activeProfile.hooks.getValue(STORY_RING)
+            actual[code] = (hooks + rings).map { it.hookId() }.toSet()
             if (actual[code] != expected[code]) continue
-            validateControls(mapOf(AVATAR_SHAPE to hooks), setOf(AVATAR_SHAPE))
+            validateControls(mapOf(AVATAR_SHAPE to hooks, STORY_RING to rings), setOf(AVATAR_SHAPE, STORY_RING))
+            for (hook in rings) {
+                val method = MutableMethod(hook)
+                val before = method.code()
+                method.injectStoryRing()
+                val after = method.code()
+                // Hide stories and notes patching after Square profile pictures leaves it as it was.
+                method.injectStoryRing()
+                val id = "$code ${hook.hookId()}"
+                assertEquals(after, method.code(), id)
+                val calls = after.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
+                if (hook.name == "onCreateMountContent") {
+                    assertEquals(before.size + 1, after.size, id)
+                    assertEquals(RING_MADE, calls.single { it.startsWith(SETTINGS) }, id)
+                } else {
+                    assertEquals(before.size, after.size, id)
+                    assertTrue(DRAW_ARC !in calls && RING_ARC in calls, id)
+                }
+            }
             for (hook in hooks) {
                 val method = MutableMethod(hook)
                 val before = method.code()
@@ -326,8 +457,8 @@ class AvatarShapeTest {
                     hook.name == "<init>" -> { assertEquals(before.size + 6, after.size, id); assertEquals(CIRCLE, asked(5), id) }
                     hook.name == "draw" -> {
                         assertEquals(before.size, after.size, id)
-                        assertTrue(after.none { (it as? ReferenceInstruction)?.reference?.toString() == DRAW_OVAL }, id)
-                        assertTrue(after.any { (it as? ReferenceInstruction)?.reference?.toString() == TILE_OVAL }, id)
+                        val calls = after.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
+                        assertTrue(DRAW_OVAL !in calls && TILE_OVAL in calls, id)
                     }
                     hook.hookId() == tileShapeSetter -> { assertEquals(before.size + 2, after.size, id); assertEquals(CIRCLE, asked(0), id) }
                     hook.parameterTypes.any { it.toString() == "Landroid/graphics/Path;" } -> {

@@ -1,0 +1,8 @@
+PASS: calendarreminders, 8 runtime classes
+PASS: clock, 4 runtime classes
+PASS: extension, 1134 runtime classes
+PASS: feeder, 22 runtime classes
+PASS: kvaesitso, 14 runtime classes
+PASS: readyou, 3 runtime classes
+PASS: tasks, 12 runtime classes
+PASS: all 7 previously released MPEs byte-identical

@@ -1,0 +1,8 @@
+{
+  "uiSelectionDisabledObserved": true,
+  "uiSelectionEnabledObserved": true,
+  "uiPatchedObserved": true,
+  "runtime": "jvm",
+  "patch": "Keep local manga in exclusion searches",
+  "initiallyEnabled": true
+}

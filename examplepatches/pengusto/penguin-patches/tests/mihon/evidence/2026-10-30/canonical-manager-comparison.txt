@@ -1,0 +1,1 @@
+PASS: all 19958 class digests equal across both APKs

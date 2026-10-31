@@ -1,0 +1,55 @@
+{
+  "lyrics_right_disabled": {
+    "unchanged_route_and_track": true,
+    "points": [
+      368,
+      966,
+      728,
+      966
+    ]
+  },
+  "lyrics_up_disabled": {
+    "unchanged_route_and_track": true,
+    "points": [
+      548,
+      1146,
+      548,
+      786
+    ]
+  },
+  "player_left_disabled": {
+    "unchanged_route_and_track": true,
+    "points": [
+      720,
+      689,
+      360,
+      689
+    ]
+  },
+  "player_up_disabled": {
+    "unchanged_route_and_track": true,
+    "points": [
+      540,
+      869,
+      540,
+      509
+    ]
+  },
+  "player_down_disabled": {
+    "unchanged_route_and_track": true,
+    "points": [
+      540,
+      509,
+      540,
+      869
+    ]
+  },
+  "player-artwork-context": {
+    "actual_actions": [
+      "Output",
+      "Queue",
+      "Lyrics"
+    ],
+    "method": "Android shell InputManagerGlobal secondary mouse MotionEvent on fresh artwork bounds"
+  }
+}

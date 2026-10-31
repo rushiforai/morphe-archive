@@ -1,0 +1,121 @@
+{
+  "phase": "patched",
+  "cases": [
+    {
+      "query": "-meteor",
+      "expected": [
+        "Lyra",
+        "Orion"
+      ],
+      "actual": [
+        "Lyra",
+        "Orion"
+      ],
+      "passed": true
+    },
+    {
+      "query": "-orion",
+      "expected": [
+        "Lyra",
+        "Meteor"
+      ],
+      "actual": [
+        "Lyra",
+        "Meteor"
+      ],
+      "passed": true
+    },
+    {
+      "query": "-space",
+      "expected": [],
+      "actual": [],
+      "passed": true
+    },
+    {
+      "query": "-0",
+      "expected": [
+        "Lyra",
+        "Meteor",
+        "Orion"
+      ],
+      "actual": [
+        "Lyra",
+        "Meteor",
+        "Orion"
+      ],
+      "passed": true
+    },
+    {
+      "query": "-42",
+      "expected": [
+        "Meteor",
+        "Orion"
+      ],
+      "actual": [
+        "Meteor",
+        "Orion"
+      ],
+      "passed": true
+    },
+    {
+      "query": "-43",
+      "expected": [
+        "Lyra",
+        "Meteor",
+        "Orion"
+      ],
+      "actual": [
+        "Lyra",
+        "Meteor",
+        "Orion"
+      ],
+      "passed": true
+    },
+    {
+      "query": "orion",
+      "expected": [
+        "Orion"
+      ],
+      "actual": [
+        "Orion"
+      ],
+      "passed": true
+    },
+    {
+      "query": "meteor",
+      "expected": [
+        "Meteor"
+      ],
+      "actual": [
+        "Meteor"
+      ],
+      "passed": true
+    },
+    {
+      "query": "src:local",
+      "expected": [
+        "Meteor",
+        "Orion"
+      ],
+      "actual": [
+        "Meteor",
+        "Orion"
+      ],
+      "passed": true
+    },
+    {
+      "query": "",
+      "expected": [
+        "Lyra",
+        "Meteor",
+        "Orion"
+      ],
+      "actual": [
+        "Lyra",
+        "Meteor",
+        "Orion"
+      ],
+      "passed": true
+    }
+  ]
+}

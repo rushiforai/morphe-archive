@@ -18,8 +18,9 @@ fun main(args: Array<String>) = runBlocking {
         check(selected.size == 1)
         val compatibility = selected.single().compatibility!!.single()
         check(compatibility.packageName == "com.klevico.monet")
-        check(compatibility.targets.single().version == if (index == 0) "1.0.97" else null)
-        check(compatibility.targets.single().isExperimental == (index == 1))
+        if (index == 0) check(compatibility.targets.map { it.version }.toSet() == setOf("1.0.97", "1.1.0"))
+        else check(compatibility.targets.single().version == null)
+        check(compatibility.targets.all { it.isExperimental == (index == 1) })
         val output = File(args[2], "selection-$index").apply { mkdirs() }
         Patcher(PatcherConfig(apkFile = File(args[0]), temporaryFilesPath = File(output, "work"))).use { patcher ->
             patcher += selected

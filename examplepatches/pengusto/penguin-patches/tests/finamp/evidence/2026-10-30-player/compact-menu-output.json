@@ -1,0 +1,129 @@
+{
+  "capturedAt": "2026-10-30T13:01:11.759222+00:00",
+  "serial": "emulator-5580",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Output Controls",
+      "class": "android.view.View",
+      "bounds": "[74,128][1026,408]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "A Guest (Artist)\nA Guest",
+      "class": "android.widget.Button",
+      "bounds": "[370,202][544,250]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "B Guest (Artist)\nB Guest",
+      "class": "android.widget.Button",
+      "bounds": "[552,202][725,250]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Z Lead (Artist)\nZ Lead",
+      "class": "android.widget.Button",
+      "bounds": "[733,202][892,250]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Fixture Credits (Album)",
+      "class": "android.widget.Button",
+      "bounds": "[370,266][574,314]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Fixture Pop",
+      "class": "android.widget.Button",
+      "bounds": "[428,330][590,378]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Add to playlist, Tap to add to playlist. Long press to toggle favorite.",
+      "class": "android.widget.Button",
+      "bounds": "[954,336][1026,408]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Stop playback and clear queue",
+      "class": "android.widget.Button",
+      "bounds": "[66,429][1050,474]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Output",
+      "class": "android.widget.Button",
+      "bounds": "[66,474][1050,586]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Queue",
+      "class": "android.widget.Button",
+      "bounds": "[66,586][1050,680]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Scrim",
+      "class": "android.view.View",
+      "bounds": "[0,0][1100,48]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "f83848c95d1a332435ab30149d53e70eb2dd7328d44865051354221e137b2a24"
+}

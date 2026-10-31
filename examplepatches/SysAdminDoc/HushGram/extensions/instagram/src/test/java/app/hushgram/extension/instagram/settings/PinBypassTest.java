@@ -62,7 +62,7 @@ public class PinBypassTest {
 
     @Before
     public void setup() throws Exception {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         MessagesLockForTests.reset();
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
         Settings.LOCK_MESSAGES.save(true);

@@ -60,7 +60,7 @@ public class RestartReopensSettingsTest {
     @Before
     public void prepare() {
         Application app = RuntimeEnvironment.getApplication();
-        app.getApplicationInfo().targetSdkVersion = 36;
+        app.getApplicationInfo().targetSdkVersion = 37;
         SettingsEntry.onClosedByUser();
         Settings.CATEGORY_PAGES.save(true);
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);

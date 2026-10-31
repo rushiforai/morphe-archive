@@ -38,6 +38,8 @@ internal const val CONNECTIONS = "Lorg/telegram/tgnet/ConnectionsManager;"
 private const val STRING = "Ljava/lang/String;"
 private const val PASSKEYS = "Lorg/telegram/messenger/PasskeysController;"
 private const val UNKNOWN = -1
+internal const val QUOTE_ID_HINT =
+    "On the command line, quote the ID (-O \"apiId='12345'\"): a bare number never reaches this option."
 
 /** Own registered application identity, configured while patching, before native initialization. */
 @Suppress("unused")
@@ -79,7 +81,9 @@ internal fun checkedApiCredentials(id: String?, hash: String?): ApiCredentials? 
     val givenId = id?.trim()?.takeIf { it.isNotEmpty() }
     val givenHash = hash?.trim()?.takeIf { it.isNotEmpty() }
     if (givenId == null && givenHash == null) return null
-    if (givenId == null || givenHash == null) throw PatchException("$PATCH: supply both apiId and apiHash.")
+    // The CLI's -O turns a bare number into an Integer, which this string option drops, so only the hash arrives.
+    if (givenId == null) throw PatchException("$PATCH: supply both apiId and apiHash. $QUOTE_ID_HINT")
+    if (givenHash == null) throw PatchException("$PATCH: supply both apiId and apiHash.")
     val number = givenId.takeIf { it.matches(Regex("[1-9][0-9]*")) }?.toIntOrNull()
         ?: throw PatchException("$PATCH: apiId must be a positive 32-bit decimal integer.")
     if (!givenHash.matches(Regex("[0-9a-fA-F]{32}"))) {

@@ -59,8 +59,10 @@ start-call Lapp/morphe/extension/facebook/feed/ReturnRefresh;->skip()Z holding F
 # row asks before it builds a Follow button, and which names the two surfaces where Facebook holds
 # the button back for a friend. Left out or put later, the Follow button stays on every reel of an
 # author you don't follow, the Reels tab's among them. Nineteen methods name both surfaces; the check
-# is the one that's static, takes the session first and answers a boolean.
-start-call Lapp/morphe/extension/facebook/reels/ReelDeclutter;->hideFollowButton()Z in static (Lcom/facebook/auth/usersession/FbUserSession;*)Z holding friendly_feed friends_tab_ifu
+# takes the session first, ends on a string and two flags, and answers a boolean. It was static
+# through 584; 585 made it an instance method of a singleton, beside a video check of the same kind
+# that ends on a string and three flags.
+start-call Lapp/morphe/extension/facebook/reels/ReelDeclutter;->hideFollowButton()Z in instance (Lcom/facebook/auth/usersession/FbUserSession;*Ljava/lang/String;ZZ)Z holding friendly_feed friends_tab_ifu
 # Its Threads card filter reads each mid-card's type through a stub the patch fills with the mid-card
 # item's reads, whose classes are Redex names that no type name answers, so the rule asks only that
 # the stub's first call leaves the extension. Left unfilled it answers its marker, and every Threads
@@ -102,10 +104,11 @@ start-call Lapp/morphe/extension/facebook/reels/DoubleTapLike;->holdBackLike(Lja
 # keeps from liking.
 start-call Lapp/morphe/extension/facebook/reels/DoubleTapLike;->holdBackTap()Z in instance (Landroid/view/MotionEvent;)Z holding translationY
 # Keep the reel speed asks the extension first thing in the Reels menu's speed toast, which a pick in
-# either of the menu's speed pickers shows right after it sets the speed: the one method of 580 and
-# 577 holding its selector's name, a static method taking a context and the speed. Left out or put
-# later, a speed picked in the Reels menu isn't kept for the next reels.
-start-call Lapp/morphe/extension/facebook/media/ReelSpeed;->picked(F)V in static (Landroid/content/Context;F)V holding InlinePlaybackSpeedAttributeSelector
+# either of the menu's speed pickers shows right after it sets the speed: the one method holding its
+# selector's name. Through 584 a static method taking a context and the speed; 585 made it the run()
+# of a Runnable keeping both in fields, and the hook reads the speed from its field first. Left out or
+# put later, a speed picked in the Reels menu isn't kept for the next reels.
+start-call Lapp/morphe/extension/facebook/media/ReelSpeed;->picked(F)V in instance ()V holding InlinePlaybackSpeedAttributeSelector
 # Facebook ranks its own launcher shortcuts ahead of the Hushfacebook one with these calls, so the
 # settings patch sends every one to SettingsEntry, which makes it and puts the Hushfacebook shortcut
 # back in front (#2). One left in Facebook's code would let it drop out of the long-press menu.

@@ -1,0 +1,206 @@
+{
+  "capturedAt": "2026-10-30T13:55:58.198096+00:00",
+  "serial": "emulator-5586",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Back",
+      "class": "android.view.View",
+      "bounds": "[0,48][112,160]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Layout & Theme",
+      "class": "android.view.View",
+      "bounds": "[144,76][460,132]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Reset to defaults",
+      "class": "android.widget.Button",
+      "bounds": "[984,56][1080,152]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Customization",
+      "class": "android.widget.Button",
+      "bounds": "[0,160][1080,272]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Player Screen",
+      "class": "android.widget.Button",
+      "bounds": "[0,272][1080,384]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Lyrics View",
+      "class": "android.widget.Button",
+      "bounds": "[0,384][1080,496]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Album Screen",
+      "class": "android.widget.Button",
+      "bounds": "[0,496][1080,608]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Artist Screen",
+      "class": "android.widget.Button",
+      "bounds": "[0,608][1080,720]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Genre Screen",
+      "class": "android.widget.Button",
+      "bounds": "[0,720][1080,832]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Tabs",
+      "class": "android.widget.Button",
+      "bounds": "[0,832][1080,944]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Theme",
+      "class": "android.view.View",
+      "bounds": "[0,976][1080,1168]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Dark",
+      "content-desc": "",
+      "class": "android.widget.Button",
+      "bounds": "[32,1040][1032,1152]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Use AMOLED Theme\nReplaces the dark color scheme with a pure black theme.",
+      "class": "android.widget.Switch",
+      "bounds": "[0,1168][1080,1312]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "true",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Use Monochrome Logo\nThis only affect the icon within the app, not the launcher icon.",
+      "class": "android.widget.Switch",
+      "bounds": "[0,1312][1080,1456]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "true",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Accent Color\nDefault",
+      "class": "android.view.View",
+      "bounds": "[0,1456][1080,1568]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Use System Accent Color",
+      "class": "android.view.View",
+      "bounds": "[0,1568][1080,1680]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Music Screen Display Type\nControls grid or list mode for all music screen tabs, excepting the home screen.",
+      "class": "android.view.View",
+      "bounds": "[0,1712][1080,1920]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Albums only in grid",
+      "content-desc": "",
+      "class": "android.widget.Button",
+      "bounds": "[32,1864][1032,1920]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "a4649230dddfe3977bab81d785f1f5cb6276ea02e1f2101caf810b4b535489ce"
+}

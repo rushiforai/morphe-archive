@@ -5,8 +5,8 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 
 /**
- * What the selected patches ask of the native caption flow. Each patch sets its flag in `execute`; the hooks are
- * installed once in `finalize`, when every selected patch has executed.
+ * What the selected patches ask of the native caption flow. The public root installs the hooks in
+ * `finalize`, when every selected patch has executed.
  */
 internal object CaptionFeatures {
     var translation = false
@@ -48,7 +48,7 @@ private val captionResourcesPatch = resourcePatch {
 
 /**
  * The part that every caption patch of the add-on needs: the extension itself, and the call that hands YouTube's main
- * activity to it. The native caption hooks are installed here, once, for whatever was selected.
+ * activity to it. The public AI root finalizes the native caption hooks after all patches execute.
  */
 internal val captionSupportPatch = bytecodePatch {
     dependsOn(captionResourcesPatch)
@@ -60,9 +60,5 @@ internal val captionSupportPatch = bytecodePatch {
             0,
             "invoke-static/range {p0 .. p0}, ${EXTENSION}CaptionAddonSupport;->initialize(Landroid/app/Activity;)V",
         )
-    }
-
-    finalize {
-        installNativeCaptionBridge(CaptionFeatures.translation)
     }
 }

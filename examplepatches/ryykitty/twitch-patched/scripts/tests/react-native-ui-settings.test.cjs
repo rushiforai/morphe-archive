@@ -27,7 +27,8 @@ function install(djFirst = true) {
         16: {ChatSettingsSheet: props => React.createElement(Sheet, props)}};
     vm.runInContext(fs.readFileSync(path.join(root, 'bootstrap.js'), 'utf8').replace('__TWITCH_REACT_MODULE__', '7'), context);
     const loadDj = () => vm.runInContext(fs.readFileSync(path.join(root, 'playback-settings.js'), 'utf8')
-        .replace('__TWITCH_PLAYBACK_SETTINGS_MODULE__', '15'), context);
+        .replace('__TWITCH_PLAYBACK_SETTINGS_MODULE__', '15').replace('__TWITCH_BACKGROUND_AUDIO_MODULE__', '17')
+        .replace('__TWITCH_AUDIO_RENDITION_MODULE__', '18').replace('__TWITCH_BACKGROUND_VETO_MODULE__', '19'), context);
     if (djFirst) loadDj();
     vm.runInContext(fs.readFileSync(path.join(root, 'ui-settings.js'), 'utf8')
         .replace('__TWITCH_UI_SHEET_MODULE__', '12').replace('__TWITCH_UI_ROW_MODULE__', '13')

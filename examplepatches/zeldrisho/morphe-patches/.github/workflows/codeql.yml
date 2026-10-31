@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [dev, main]
   schedule:
     # Weekly, matching the previous default-setup cadence.
     - cron: '0 6 * * 1'
@@ -47,7 +47,7 @@ jobs:
 
       - name: Set up Java 21
         if: matrix.language == 'java-kotlin'
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: 21
@@ -68,12 +68,12 @@ jobs:
       - name: Build Java/Kotlin sources
         if: matrix.build-mode == 'manual'
         env:
-          # Morphe Gradle plugin resolves from GitHub Packages, which needs
-          # auth even for public packages (see docs/toolchain.md).
+          # The Morphe Gradle plugin resolves from GitHub Packages, which needs
+          # auth even for public packages (see docs/development.md).
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # clean + no-build-cache so CodeQL observes compilation instead of
-        # reusing cached outputs.
-        run: ./gradlew clean buildAndroid --no-daemon --no-build-cache
+        # reusing cached outputs. Only the patches module produces the bundle.
+        run: ./gradlew :patches:clean :patches:buildAndroid --no-daemon --no-build-cache
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@88585263c0627ee42c0e1c5143a112c8d6f4aa18 # v4.38.2

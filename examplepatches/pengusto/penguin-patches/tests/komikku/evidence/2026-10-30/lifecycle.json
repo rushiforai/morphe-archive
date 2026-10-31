@@ -1,0 +1,24 @@
+{
+  "removal": {
+    "allUserStateEqual": true,
+    "manga": 3,
+    "chapters": 3,
+    "fixtureFiles": 4
+  },
+  "reapply": {
+    "allUserStateEqual": true,
+    "manga": 3,
+    "chapters": 3,
+    "fixtureFiles": 4
+  },
+  "removed": {
+    "cases": 8,
+    "expectedFailures": 2,
+    "actualFailures": 2
+  },
+  "reapplied": {
+    "cases": 8,
+    "expectedFailures": 0,
+    "actualFailures": 0
+  }
+}

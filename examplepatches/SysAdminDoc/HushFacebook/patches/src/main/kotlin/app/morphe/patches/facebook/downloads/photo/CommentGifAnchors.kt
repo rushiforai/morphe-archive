@@ -47,12 +47,16 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  *
  * The hook goes right after that test: the extension is asked for a tap action for the comment, and
  * when it answers one, a row of Facebook's own kind is built the way Save photo's is, with Save
- * photo's icon, and added to the list.
+ * photo's icon, and added to the list. Download any video puts Save video (#318) in the same way at
+ * the same point, so a video comment's sheet gets it too.
  */
 
 internal const val COMMENT_SHEET_SOCKET = "CommentBottomSheetMenuSocket"
 internal const val GIF_ROW_CLICK = "$EXTENSION_PACKAGE/download/CommentGif;->clickFor(Ljava/lang/Object;)Lkotlin/jvm/functions/Function1;"
 internal const val GIF_ROW_TITLE = "$EXTENSION_PACKAGE/download/CommentGif;->title()Ljava/lang/String;"
+internal const val VIDEO_PATCH = "Download any video"
+internal const val VIDEO_ROW_CLICK = "$EXTENSION_PACKAGE/download/CommentVideo;->clickFor(Ljava/lang/Object;)Lkotlin/jvm/functions/Function1;"
+internal const val VIDEO_ROW_TITLE = "$EXTENSION_PACKAGE/download/CommentVideo;->title()Ljava/lang/String;"
 
 private const val STRING = "Ljava/lang/String;"
 private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
@@ -184,12 +188,22 @@ internal fun commentGifPoint(method: Method, attachmentsGetter: String): Comment
     )
 }
 
+/** Finds the comment sheet's render and returns the step that adds Save GIF to it. */
+internal fun BytecodePatchContext.commentSheetGifRow(): () -> Unit = commentSheetRow(PHOTO_PATCH, GIF_ROW_CLICK, GIF_ROW_TITLE)
+
 /**
- * Finds the comment sheet's render and returns the step that adds Save GIF to it. Refuses unless
- * exactly one method outside the extension has the shape [commentGifPoint] looks for. Nothing
- * changes until the step runs.
+ * Finds the comment sheet's render and returns the step that adds Download any video's Save video
+ * to it (#318). It goes at the same point as Save GIF, so with both patches in, whichever runs
+ * second puts its row in front of the other's, and each row asks its own switch.
  */
-internal fun BytecodePatchContext.commentSheetGifRow(): () -> Unit {
+internal fun BytecodePatchContext.commentSheetVideoRow(): () -> Unit = commentSheetRow(VIDEO_PATCH, VIDEO_ROW_CLICK, VIDEO_ROW_TITLE)
+
+/**
+ * Finds the comment sheet's render and returns the step that adds the row the extension's [click]
+ * and [title] describe. Refuses, naming [patch], unless exactly one method outside the extension has
+ * the shape [commentGifPoint] looks for. Nothing changes until the step runs.
+ */
+private fun BytecodePatchContext.commentSheetRow(patch: String, click: String, title: String): () -> Unit {
     val attachmentsGetter = graphQlGetter(GRAPHQL_COMMENT, IMMUTABLE_LIST, ATTACHMENTS_FIELD, "a comment's attachments")
     val found = mutableListOf<Pair<String, Method>>()
     classDefForEachReferencing(types = listOf(GRAPHQL_COMMENT), strings = listOf(COMMENT_SHEET_SOCKET)) { classDef ->
@@ -197,7 +211,7 @@ internal fun BytecodePatchContext.commentSheetGifRow(): () -> Unit {
         classDef.methods.filter { commentGifPoint(it, attachmentsGetter) != null }.mapTo(found) { classDef.type to it }
     }
     val (owner, holder) = found.singleOrNull() ?: throw PatchException(
-        "$PHOTO_PATCH: expected one comment sheet render ($COMMENT_SHEET_SOCKET) that builds Save photo's row from a " +
+        "$patch: expected one comment sheet render ($COMMENT_SHEET_SOCKET) that builds Save photo's row from a " +
             "comment's attachments, found ${found.size}",
     )
     return {
@@ -205,7 +219,7 @@ internal fun BytecodePatchContext.commentSheetGifRow(): () -> Unit {
             it.name == holder.name && it.parameterTypes.map(CharSequence::toString) == holder.parameterTypes.map(CharSequence::toString)
         }
         val point = commentGifPoint(method, attachmentsGetter)
-            ?: throw PatchException("$PHOTO_PATCH: $owner->${holder.name} lost its Save photo row before it was hooked")
+            ?: throw PatchException("$patch: $owner->${holder.name} lost its Save photo row before it was hooked")
         val registers = method.getFreeRegisterProvider(point.insert, 4, point.comment, point.context, point.list)
         val action = registers.getFreeRegister4Bit()
         val wrapper = registers.getFreeRegister4Bit()
@@ -215,21 +229,21 @@ internal fun BytecodePatchContext.commentSheetGifRow(): () -> Unit {
             point.insert,
             """
                 move-object/from16 v$action, v${point.comment}
-                invoke-static { v$action }, $GIF_ROW_CLICK
+                invoke-static { v$action }, $click
                 move-result-object v$action
-                if-eqz v$action, :hush_no_gif
+                if-eqz v$action, :hush_no_row
                 new-instance v$wrapper, ${point.wrapper}
                 const/4 v$none, 0x0
                 invoke-direct { v$wrapper, v$none, v$none, v$action }, ${point.wrapperInit}
-                invoke-static { }, $GIF_ROW_TITLE
+                invoke-static { }, $title
                 move-result-object v$action
                 const v$icon, ${point.icon}
                 invoke-static { v$wrapper, v${point.context}, v$action, v$none, v$icon }, ${point.builder}
                 move-result-object v$action
-                if-eqz v$action, :hush_no_gif
+                if-eqz v$action, :hush_no_row
                 invoke-virtual { v${point.list}, v$action }, ${point.add}
             """,
-            ExternalLabel("hush_no_gif", method.getInstruction(point.insert)),
+            ExternalLabel("hush_no_row", method.getInstruction(point.insert)),
         )
     }
 }

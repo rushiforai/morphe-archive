@@ -50,6 +50,7 @@ import app.morphe.extension.facebook.chats.OriginalChatMediaForTests;
 import app.morphe.extension.facebook.composer.TagSuggestionsForTests;
 import app.morphe.extension.facebook.download.ClipboardLinkForTests;
 import app.morphe.extension.facebook.download.CommentGifForTests;
+import app.morphe.extension.facebook.download.CommentVideoForTests;
 import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PhotoMenuItemForTests;
 import app.morphe.extension.facebook.download.PlayerSourcesForTests;
@@ -257,6 +258,7 @@ public class ColdStartHooksTest {
         assertFalse("a reel's More sheet built before the context got Copy caption", ReelCaptionForTests.addsTheRow());
         assertNull(ReelDeclutter.filterChips(Arrays.asList(new TypedFeedUnit("XFBFBShortsRemixAttribution"))));
         assertFalse("a Reels tab audio line drawn before the context came off", ReelDeclutter.hideAudioLine());
+        assertFalse("a Made with Edits line taken before the context came off", ReelDeclutter.hideEditsLabel());
         assertFalse("a slow connection message posted before the context was held back",
                 ReelDeclutter.hideSlowConnectionMessage());
         assertTrue("a feed Reels row tile lost its clip before the context came off", ReelDeclutter.allowsPreviewClip(true));
@@ -350,6 +352,7 @@ public class ColdStartHooksTest {
         assertFalse("a post menu built before the context got the video item", VideoMenuItemForTests.addsAnItem());
         assertFalse("a post menu built before the context got the photo item", PhotoMenuItemForTests.addsAnItem());
         assertFalse("a comment sheet built before the context got Save GIF", CommentGifForTests.addsARow());
+        assertFalse("a comment sheet built before the context got Save video", CommentVideoForTests.addsARow());
         assertFalse(PlayerSourcesForTests.recordsAVideoPlayer());
         assertFalse("a screen resumed before the context read the clipboard", ClipboardLinkForTests.readsTheClipboard());
         assertFalse("a start before the context asked Facebook for a tab", StartTabRouteForTests.routes());
@@ -391,6 +394,9 @@ public class ColdStartHooksTest {
                 FullHeightComments.skipSplitScreen());
         assertFalse("a comment sheet sized before the context was made full screen",
                 FullHeightComments.fillsScreen(1f));
+        assertFalse("a comment sheet over a reel set up before the context let taps through",
+                FullHeightComments.tapThrough(
+                        new android.app.Dialog(Robolectric.buildActivity(Activity.class).setup().get()), 20));
         android.widget.FrameLayout earlyHeader = new android.widget.FrameLayout(RuntimeEnvironment.getApplication());
         earlyHeader.setId(0x7f0a0612);
         earlyHeader.addView(new android.view.TextureView(RuntimeEnvironment.getApplication()));

@@ -325,6 +325,18 @@ public class TextStyleTest {
         assertEquals(java.util.Collections.singleton(TextStyleActivity.KEY), Settings.hookErrors.keySet());
     }
 
+    @Test public void onASamsungPhoneTheRowSaysWhereToShowTheEntries() {
+        String hint = SettingsText.english("text_style_samsung");
+        for (String maker : new String[] {"samsung", "Google"}) {
+            org.robolectric.shadows.ShadowBuild.setManufacturer(maker);
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                android.widget.Switch control = screen.get().getWindow().getDecorView().findViewWithTag(TextStyleActivity.KEY);
+                assertEquals(maker, maker.equals("samsung"), control.getContentDescription().toString().contains(hint));
+            }
+        }
+        assertTrue(hint.contains("Manage apps"));
+    }
+
     @Test public void theSwitchSitsUnderConversationsAndStartsOff() {
         assertTrue(Settings.installed.contains(TextStyleActivity.KEY));
         String[] row = Arrays.stream(SettingsActivity.CONTROLS).filter(c -> c[0].equals(TextStyleActivity.KEY)).findFirst().orElseThrow();

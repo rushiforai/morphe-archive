@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -28,10 +29,13 @@ class MessageSecondsFixtureTest {
                 m.definingClass == FAST_DATE_FORMAT || m.controlBody().any { it.controlRef() == EDITED_MESSAGE }
             }.map(ImmutableClassDef::of)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
-            val (method, indices) = context.resolveMessageSeconds()
+            val (method, indices) = context.resolveMessageTime()
             val before = indices.map { method.controlBody()[it].namedRegisters() }
             assertTrue("$name: the sent, scheduled and edited times, ${indices.size}", indices.size >= 3)
             val size = method.controlBody().size
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageTimePatch.execute(context) })
+            // The time hook alone, as Keep deleted messages brings it, leaves the seconds switch hidden (#49).
+            assertEquals("$name: no switch from the hook alone", 0L, secondsStatus(context))
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageSecondsPatch.execute(context) })
 
             val body = method.controlBody()
@@ -41,8 +45,11 @@ class MessageSecondsFixtureTest {
             assertTrue("$name: no time is formatted around the extension", body.none { it.controlRef() == TIME_FORMAT })
             val stub = context.mutableClassDefBy(MESSAGE_TIME).methods.single { it.name == "stockFormat" }.controlBody()
             assertTrue(stub.any { it.controlRef() == TIME_FORMAT })
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "messageSeconds" }.controlBody()
-            assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
+            assertEquals(1L, secondsStatus(context))
         }
     }
+
+    private fun secondsStatus(context: BytecodePatchContext) =
+        (context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "messageSeconds" }.controlBody().first()
+            as WideLiteralInstruction).wideLiteral
 }

@@ -1,0 +1,17 @@
+name: Feature request
+description: A new patch or a change to an existing one.
+title: "feat: "
+labels: ["Feature request"]
+body:
+  - type: textarea
+    attributes:
+      label: What you want
+      description: What the patch should do, and on which device or pen if it is hardware related.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Why
+      description: What you can't do today without it.
+    validations:
+      required: true

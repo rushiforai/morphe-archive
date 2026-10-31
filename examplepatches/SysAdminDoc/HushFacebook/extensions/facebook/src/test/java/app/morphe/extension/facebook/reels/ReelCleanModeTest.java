@@ -30,6 +30,8 @@ import app.morphe.extension.shared.settings.PauseForTests;
  * Always use Clean mode: with the switch on, each part of the Reels viewer that reads Facebook's
  * remembered Clean mode flag as it's made gets a yes, and each one is counted. A yes from Facebook
  * passes as it came. Off, paused, or before the settings are ready, Facebook's answer is kept.
+ * The Clean mode button (#304) takes the sticky way, and a reel taken out keeps its button while
+ * an ad's plain no doesn't.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -104,6 +106,73 @@ public class ReelCleanModeTest {
         String line = statusLine();
         assertFalse("an answer that left it to Facebook was counted: " + line, line != null && line.contains("Counted"));
         assertTrue("on again after the pause, the reel didn't start clean", ReelCleanMode.startClean(false));
+    }
+
+    @Test
+    public void onTheButtonTakesTheStickyWayAndIsCounted() {
+        Settings.REEL_CLEAN_MODE.save(true);
+        // The tap and the store's setter each ask the sticky check once.
+        assertTrue("the tap didn't take the sticky way", ReelCleanMode.stickyClean(false));
+        assertTrue("the setter didn't take the sticky way", ReelCleanMode.stickyClean(false));
+        assertTrue("an account with sticky Clean mode lost it", ReelCleanMode.stickyClean(true));
+        assertEquals(FamilyNames.REEL_DECLUTTER + ": invoked 3, 1 found, 0 missing. Counted: "
+                + ReelCleanMode.SWITCHED_BY_BUTTON + " 2", statusLine());
+    }
+
+    @Test
+    public void onAReelTakenOutKeepsItsButtonAndAnAdDoesNot() {
+        Settings.REEL_CLEAN_MODE.save(true);
+        Object[] left = {Boolean.FALSE};
+        assertSame("the listener's update changed", left, ReelCleanMode.markLeftClean(left));
+        assertSame("a reel taken out wasn't marked", ReelCleanMode.LEFT_CLEAN, left[0]);
+        assertEquals("the mark doesn't read as a no to Facebook", Boolean.FALSE, left[0]);
+        assertSame("the button left a reel the person took out", Boolean.TRUE, ReelCleanMode.cleanButtonState(left[0]));
+
+        Object[] back = {Boolean.TRUE};
+        ReelCleanMode.markLeftClean(back);
+        assertSame("a reel put back in Clean mode was marked", Boolean.TRUE, back[0]);
+        assertSame("a clean reel's value changed", Boolean.TRUE, ReelCleanMode.cleanButtonState(Boolean.TRUE));
+
+        // An ad starts with Facebook's own no and never hears the event, so it keeps no button.
+        assertSame("an ad got the button", Boolean.FALSE, ReelCleanMode.cleanButtonState(Boolean.FALSE));
+        assertNull("a missing value was filled in", ReelCleanMode.cleanButtonState(null));
+        Object[] other = {Boolean.FALSE, Boolean.FALSE};
+        ReelCleanMode.markLeftClean(other);
+        assertSame("an update with more than the value was marked", Boolean.FALSE, other[0]);
+        assertNull("a missing update broke", ReelCleanMode.markLeftClean(null));
+    }
+
+    @Test
+    public void offOrPausedTheButtonIsFacebooks() {
+        assertFalse("off, the button took the sticky way", ReelCleanMode.stickyClean(false));
+        Object[] left = {Boolean.FALSE};
+        ReelCleanMode.markLeftClean(left);
+        assertSame("off, a reel taken out was marked", Boolean.FALSE, left[0]);
+
+        // A reel marked while on, then the switch goes off: Facebook's no again, and its button goes.
+        Settings.REEL_CLEAN_MODE.save(true);
+        ReelCleanMode.markLeftClean(left);
+        Settings.REEL_CLEAN_MODE.save(false);
+        assertSame("off, a marked reel kept its button", ReelCleanMode.LEFT_CLEAN, ReelCleanMode.cleanButtonState(left[0]));
+
+        Settings.REEL_CLEAN_MODE.save(true);
+        for (HushfacebookPause.Reason reason : new HushfacebookPause.Reason[] {
+                HushfacebookPause.Reason.SWITCH, HushfacebookPause.Reason.CRASH_LOOP,
+                HushfacebookPause.Reason.MARKER_FILE}) {
+            PauseForTests.pause(reason);
+            assertFalse("a Hushfacebook paused by " + reason + " took the sticky way", ReelCleanMode.stickyClean(false));
+            Object[] paused = {Boolean.FALSE};
+            ReelCleanMode.markLeftClean(paused);
+            assertSame("a Hushfacebook paused by " + reason + " marked a reel", Boolean.FALSE, paused[0]);
+            assertSame("a Hushfacebook paused by " + reason + " kept a marked reel's button",
+                    ReelCleanMode.LEFT_CLEAN, ReelCleanMode.cleanButtonState(left[0]));
+            PauseForTests.resume();
+        }
+        SettingsContextRule.withoutContext(() ->
+                assertFalse("the button took the sticky way before the settings were ready", ReelCleanMode.stickyClean(false)));
+
+        String line = statusLine();
+        assertFalse("an answer that left it to Facebook was counted: " + line, line != null && line.contains("Counted"));
     }
 
     @Test

@@ -31,6 +31,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.facebook.ads.affiliate.writesRegister
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.classDefForEachReferencing
+import app.morphe.util.literalReads
 import app.morphe.util.returnEarly
 import app.morphe.util.superclassChain
 import com.android.tools.smali.dexlib2.Opcode
@@ -772,19 +773,30 @@ private const val COLOR_DRAWABLE_INIT = "Landroid/graphics/drawable/ColorDrawabl
  * box builder ([hookBloksFills]). [NativeTemplateBuilderFingerprint]'s builder and the child builder
  * it calls with its own parameters (584 `LX/4Kd;->A00`) each set a background colour that way, and
  * each of those colours goes through [target] just before the call.
+ *
+ * 585 (arm64, read 2026-10-30) made the builder a static `LX/04d0;->A00(LX/01PR;LX/062H;LX/04e3;I)LX/03G2;`
+ * that its instance entry calls with the node's kind as a trailing int. The child builder
+ * `LX/04d2;->A00(LX/01PR;LX/062H;LX/04e3;)LX/03G2;` takes the rest, and backgroundColor is `LX/03G2;->A0e(I)V`.
  */
 internal fun BytecodePatchContext.hookNativeTemplateBackgrounds(target: String = AMOLED_BLOKS_FILL) {
     val builder = NativeTemplateBuilderFingerprint.method
     val parameters = builder.parameterTypes.map(CharSequence::toString)
+    // Why: 585's builder takes the node's kind as a trailing int that its child builder doesn't take.
+    val childShapes = setOf(parameters, parameters.dropLastWhile { it == "I" })
     val children = builder.implementation!!.instructions
         .filter { it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_STATIC_RANGE }
         .mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
-        .filter { it.returnType == builder.returnType && it.parameterTypes.map(CharSequence::toString) == parameters }
+        .filter { it.returnType == builder.returnType && it.parameterTypes.map(CharSequence::toString) in childShapes }
+        // A static builder can call itself, and it's hooked once already.
+        .filterNot {
+            it.definingClass == builder.definingClass && it.name == builder.name &&
+                it.parameterTypes.map(CharSequence::toString) == parameters
+        }
         .distinctBy { it.toString() }
         .map { child ->
             mutableClassDefBy(child.definingClass).methods.single { method ->
                 method.name == child.name && method.returnType == child.returnType &&
-                    method.parameterTypes.map(CharSequence::toString) == parameters
+                    method.parameterTypes.map(CharSequence::toString) == child.parameterTypes.map(CharSequence::toString)
             }
         }
     val hooked = (listOf(builder) + children).sumOf { hookBackgroundColours(it, target) }
@@ -1078,7 +1090,15 @@ private fun MutableMethod.hookBarColour(what: String, window: Int, colour: Int, 
  *
  * Route three leaves their colours as Facebook wrote them, for the painters' hooks to decide. The
  * Video tab keeps a dark surface in light mode as well, and writes its bars' #252728 into code for
- * both themes. A literal can't say which theme is on, and the hooks ask Facebook.
+ * both themes. A literal can't say which theme is on, and the hooks ask Facebook. A static helper
+ * answering an int, whose answer a painter's caller hands straight to the painter, is one of them
+ * too ([barColourHelpers]).
+ *
+ * 585, read 2026-10-30: apply is the static `A01(Window, LX/02Xv, SystemBarsController)` on arm64,
+ * the receiver trailing, and still calls `StatusBarUtil.A0A`. The Video tab's #252728 left
+ * VideoHomeRootFragment for `LX/0Ao9;->A00(LX/0DhY;Z)I`, which answers it or black; the fragment's
+ * `A0K` and `A0P` hand that answer to `StatusBarUtil.A0A`, and `LX/0Ao9;->A02` builds the tab's
+ * config from it.
  */
 internal fun BytecodePatchContext.systemBarColourMethods(): (Method) -> Boolean {
     fun Method.descriptor() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
@@ -1092,18 +1112,46 @@ internal fun BytecodePatchContext.systemBarColourMethods(): (Method) -> Boolean 
         .filter { it.parameterTypes.lastOrNull()?.toString() == "I" && it.calls(setOf(navigation.descriptor())) }
     val painters = passesOn.map { it.descriptor() }.toSet() + navigation.descriptor() + status
 
-    val applies = classDefBy(SYSTEM_BARS_CONTROLLER).methods.filter {
-        it.parameterTypes.size == 2 && it.parameterTypes[0].toString() == WINDOW && it.calls(setOf(status))
+    val applies = classDefBy(SYSTEM_BARS_CONTROLLER).methods.filter { method ->
+        val types = method.parameterTypes.map(CharSequence::toString)
+        // Why: 585 made apply static, (Window, config, SystemBarsController), the controller trailing.
+        types.size >= 2 && types[0] == WINDOW && types[1] != SYSTEM_BARS_CONTROLLER &&
+            types.drop(2).all { it == SYSTEM_BARS_CONTROLLER } && types.size <= 3 && method.calls(setOf(status))
     }
     val config = applies.singleOrNull()?.parameterTypes?.get(1)?.toString() ?: throw PatchException(
-        "SystemBarsController has ${applies.size} (Window, config) methods that paint the status bar, expected one",
+        "SystemBarsController has ${applies.size} (Window, config[, SystemBarsController]) methods that paint the status bar, expected one",
     )
 
+    // Why: 585 moved the Video tab's bar grey into a static int helper the tab hands to the painter.
+    val helpers = mutableSetOf<String>()
+    classDefForEachReferencing(types = painters.map { it.substringBefore("->") }.distinct()) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
+        classDef.methods.filter { it.calls(painters) }.forEach { helpers += barColourHelpers(it, painters) }
+    }
+
     return { method ->
-        method.calls(painters) || method.implementation?.instructions?.any {
+        method.calls(painters) || method.descriptor() in helpers || method.implementation?.instructions?.any {
             it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as? TypeReference)?.type == config
         } == true
     }
+}
+
+/**
+ * The static methods answering an int that [method] calls and hands the answer of, as it is, to one
+ * of [painters]: a bar colour Facebook keeps in a helper of its own, the way 585's Video tab does.
+ * The sweep skips a helper for all its callers, so ColourResolverFixtureTest holds the helpers found
+ * that write a dark grey to the Video tab's.
+ */
+internal fun barColourHelpers(method: Method, painters: Set<String>): Set<String> {
+    val code = method.implementation?.instructions?.toList() ?: return emptySet()
+    return code.indices.filter { index ->
+        val call = (code[index] as? ReferenceInstruction)?.reference as? MethodReference
+        (code[index].opcode == Opcode.INVOKE_STATIC || code[index].opcode == Opcode.INVOKE_STATIC_RANGE) &&
+            call?.returnType == "I" && code.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT &&
+            method.literalReads(index + 1).any { use ->
+                ((code[use] as? ReferenceInstruction)?.reference as? MethodReference)?.toString() in painters
+            }
+    }.map { ((code[it] as ReferenceInstruction).reference as MethodReference).toString() }.toSet()
 }
 
 /**
@@ -1339,7 +1387,7 @@ internal fun BytecodePatchContext.hookDarkModeAnswer() {
 }
 
 /** True when this method writes a dark grey. It only reads, thus it needs no proxy of the class. */
-private fun Method.hasDarkColor(): Boolean =
+internal fun Method.hasDarkColor(): Boolean =
     implementation?.instructions?.any { it.isDarkColor() } == true
 
 /**

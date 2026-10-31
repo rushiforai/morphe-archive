@@ -1,3 +1,15 @@
+## [0.30.44](https://github.com/Forsigh/waze-patches/compare/v0.30.43...v0.30.44) (2026-10-30)
+
+### New
+
+* **Launch screen background colour**: pick a preset (AMOLED black, Waze blue, green, transparent) or your own colour for the screen behind the Waze logo
+* **Hide recent destinations**: keeps the places you drove to out of Waze's recent lists on the phone and in the car
+* **Hide launch logo**: option on **Change Waze icon** that removes the ghost from the launch screen
+
+### Changed
+
+* Waze patches are now grouped into **UI Customization**, **Map & Alerts**, **Driving & Voice**, **Privacy & Updates**, **Android Auto** and **Experimental**
+
 ## [0.30.43](https://github.com/Forsigh/waze-patches/compare/v0.30.42...v0.30.43) (2026-10-29)
 
 ### New

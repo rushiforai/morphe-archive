@@ -22,6 +22,16 @@ public final class PatchFamilyForTests {
         PatchFamily.inBuildForTests = null;
     }
 
+    /** Which capabilities the build says are installed, until {@link #resetCapabilities()}. */
+    public static void installed(PatchFamily.Capability... capabilities) {
+        PatchFamily.capabilitiesForTests = capabilities.length == 0 ? EnumSet.noneOf(PatchFamily.Capability.class)
+                : EnumSet.copyOf(Arrays.asList(capabilities));
+    }
+
+    public static void resetCapabilities() {
+        PatchFamily.capabilitiesForTests = null;
+    }
+
     /** Runs the body with this family in the build as well, then puts back what was there. */
     public static boolean alsoInBuild(PatchFamily family, BooleanSupplier body) {
         Set<PatchFamily> saved = PatchFamily.inBuildForTests;

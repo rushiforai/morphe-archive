@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Original EB block-letter artwork, copyright 2026 EBPatcher contributors. GPL-3.0-only. Not Morphe artwork. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FDE68A" android:pathData="M28,34H34V74H28Z M34,34H48V40H34Z M34,51H46V57H34Z M34,68H48V74H34Z M57,34H63V74H57Z M63,34H75V40H63Z M63,51H75V57H63Z M63,68H75V74H63Z M75,40H81V51H75Z M75,57H81V68H75Z" />
+</vector>

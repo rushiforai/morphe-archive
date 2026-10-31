@@ -82,6 +82,13 @@ internal const val OWN_CODEC_CONFIGURE = "$HDR_BRIGHTNESS->configure($MEDIA_CODE
  * string Facebook parses goes to the extension's SdrRenditions first, which takes out an HDR
  * rendition when the manifest also has an SDR one at least as tall, so the player never picks it.
  *
+ * A third, Fix washed-out video colors (#308), is for phones whose display hardware shows a
+ * video's own layer pale until something covers it, which Disable HW overlays fixes: each answer
+ * of Facebook's must-use-a-SurfaceView decision goes to the extension's TextureVideo, which says
+ * no, and so does each read of the player's own TextureView preference behind that no, which says
+ * yes. The player then draws into a TextureView, composed by the GPU with the rest of the screen.
+ * The map is in TextureVideo.kt.
+ *
  * In the default selection with its switch off: HDR is how Facebook means those videos to look,
  * and some people want it.
  */
@@ -90,8 +97,8 @@ val turnOffHdrBrightnessPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Turn off HDR brightness",
     description = "Stops HDR videos and photos from turning your screen up to full brightness, which can be " +
-        "harsh in the dark. They keep their resolution. Starts off. Turn it on in Hushfacebook settings > " +
-        "Video and audio.",
+        "harsh in the dark. They keep their resolution. A second switch fixes pale, washed-out reels on " +
+        "phones that show them that way. Its switches start off. Turn them on in Hushfacebook settings > Video and audio.",
 ) {
     category("Playback")
     dependsOn(settingsPatch, facebookExtensionPatch)
@@ -102,6 +109,9 @@ val turnOffHdrBrightnessPatch = bytecodePatch(
         val windows = windowCallers()
         val surfaces = surfaceViewBuilders()
         val manifest = manifestParse()
+        val texture = textureHooks()
+        // First: its sites are indices, and the hooks below can add code to the same methods.
+        hookTextureVideo(texture)
         hookWindowCalls(windows)
         hookSurfaceViews(surfaces)
         hookManifestParse(manifest)

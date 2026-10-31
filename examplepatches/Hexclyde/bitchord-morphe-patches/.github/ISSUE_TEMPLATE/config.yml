@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Setup help
+    url: https://github.com/Hexclyde/bitchord-morphe-patches/blob/main/docs/TROUBLESHOOTING.md
+    about: Common installation and login problems.

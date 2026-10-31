@@ -14,7 +14,9 @@ internal val reactNativeEmotesPatch = resourcePatch {
         val exports = MetroExports(bundle)
         val row = exports.resolveMemo("ChatMessageRow", "ChatMessageRowComponent",
             setOf("message", "channelID", "sourceRoomID", "body", "emotes", "stripReplyMention", "MessageBody"))
-        val image = exports.resolve("EmotePart", setOf("emoteId", "forceStatic", "emoteAnimationsEnabled", "CoreImage"))
+        val image = exports.resolve("EmotePart", setOf("emoteId", "forceStatic", "emoteAnimationsEnabled", "onPress"))
+        exports.requireNestedContract("EmotePart", setOf("src", "style", "testID", "chat-emote-wrapper-",
+            "https://static-cdn.jtvnw.net/emoticons/v2/"))
         val card = exports.resolve("EmoteCard", setOf("emote", "imageURL", "fetchEmoteCardData", "useTheme", "testID"))
         val sheet = exports.resolveDeferred("BottomSheet", setOf("visible", "onClose", "onClosed", "accessibilityLabel", "children"))
         val picker = exports.resolveDeferred("EmotePickerTray", setOf("channelID", "sections", "recents", "onSelectEmote",
@@ -38,5 +40,6 @@ internal val reactNativeEmotesPatch = resourcePatch {
                 .replace("__TWITCH_EMOTE_PREFETCH_MODULE__", prefetch.module.toString())
                 .replace("__TWITCH_CORE_IMAGE_MODULE__", coreImage.module.toString()))
         }
+        get(RN_ASSET).appendText("\n" + renderEmoteInput(bundle))
     }
 }

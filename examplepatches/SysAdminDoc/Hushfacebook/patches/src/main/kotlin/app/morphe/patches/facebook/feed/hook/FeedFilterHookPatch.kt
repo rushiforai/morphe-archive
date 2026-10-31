@@ -71,9 +71,9 @@ private fun hidesEdgeHelper(categoryGetter: String, feedUnit: Method) = Immutabl
  * The one guard every feed filter shares, at the start of `addNewEdgeToCollection`.
  *
  * <p>It reads the edge's story category and its feed unit and asks the extension whether the edge
- * stays out. The feed patches only switch their rule on there. On 583 the guard goes on the static
- * method `addNewEdgeToCollection` hands its edge to, since the feed's batch add calls that method
- * without the wrapper ([feedFunnelBody]). The reads happen in a static helper the patch adds to the
+ * stays out. The feed patches only switch their rule on there. From 583 on the guard goes on the
+ * method `addNewEdgeToCollection` hands its edge to (a static one on 583, a private instance one on
+ * 585), since the feed's batch add calls that method without the wrapper ([feedFunnelBody]). The reads happen in a static helper the patch adds to the
  * edge class, so the guard is one call first thing and needs one local, whichever method it's on. One guard rather than one per patch
  * is deliberate: FroggoMorphePatches prepended several label-bearing guards to this method and
  * users got "target dex pc is not at instruction start" crashes, because only the guard inserted

@@ -1,0 +1,4 @@
+{"time": "2026-10-30T13:46:33.342398+00:00", "action": "tap", "selector": "Home\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Home\nTab 1 of 6", "bounds": "[127,152][251,220]"}
+{"time": "2026-10-30T13:46:35.821001+00:00", "action": "tap", "selector": "Albums\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Albums\nTab 2 of 6", "bounds": "[251,152][397,220]"}
+{"time": "2026-10-30T13:46:38.345192+00:00", "action": "tap", "selector": "Fixture Credits\nZ Lead", "class": null, "index": null, "actualText": "", "actualDesc": "Fixture Credits\nZ Lead", "bounds": "[12,296][256,648]"}
+{"time": "2026-10-30T13:46:42.866065+00:00", "action": "tap", "selector": "Z Lead (Artist)\nZ Lead", "class": null, "index": null, "actualText": "", "actualDesc": "Z Lead (Artist)\nZ Lead", "bounds": "[274,175][434,223]"}

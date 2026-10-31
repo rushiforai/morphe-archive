@@ -23,6 +23,8 @@ public final class VerifyCarScanner221 {
         rejectDecoder(patchedDecoder);
         byte[] damagedDecoder = decoder.clone(); damagedDecoder[0x25d68] ^= 1;
         rejectDecoder(damagedDecoder);
+        byte[] damagedSettingsDecoder = decoder.clone(); damagedSettingsDecoder[0x23fcc] ^= 1;
+        rejectDecoder(damagedSettingsDecoder);
         reject(patched.store(), aot, guard);
         reject(store, patched.aot(), guard);
         reject(store, aot, patched.guard());
@@ -35,7 +37,7 @@ public final class VerifyCarScanner221 {
         // Rejection never mutates the caller's inputs.
         if (!Arrays.equals(store, read(args[0], CarScanner221.ENTRY)))
             throw new AssertionError("Input mutated");
-        System.out.println("PASS: 2.2.21 IL/AOT premium + ECU gate, profile decoder seed, failure-only exit scheduler; 215 unrelated assemblies, ELF reload and rejection checks");
+        System.out.println("PASS: 2.2.21 IL/AOT premium + ECU gate, settings/profile decoder seeds, failure-only exit scheduler; 215 unrelated assemblies, ELF reload and rejection checks");
     }
 
     private static byte[] read(String apkPath, String entry) throws Exception {
@@ -47,14 +49,46 @@ public final class VerifyCarScanner221 {
     public static void verifyDecoder(byte[] original, byte[] patched) {
         if (original.length != patched.length || CarScanner221.integer(patched, 0x25d68) != 0x2a0903e8)
             throw new AssertionError("Profile normal seed selection missing");
+        if (CarScanner221.integer(patched, 0x23fcc) != 0x2a0903e8)
+            throw new AssertionError("Settings normal seed selection missing");
         for (int i = 0; i < original.length; i++) {
             if (i >= 0x25d68 && i < 0x25d6c) continue;
+            if (i >= 0x23fcc && i < 0x23fd0) continue;
             if (original[i] != patched[i]) throw new AssertionError("Unrelated decoder byte changed");
         }
         // Independent interpretation of the original AArch64 mixing sequence:
         // success must yield the profile database's normal seed, failure must not.
         if (profileSeed(0xec225c72) != 0 || profileSeed(0x9dac8f86) != 0x143a)
             throw new AssertionError("Unexpected profile seed contract");
+        if (settingsSeed(0x3c6ef372) != 0 || settingsSeed(0xa54ff53a) != 0x4566)
+            throw new AssertionError("Unexpected settings seed contract");
+        // Native variant 1 writes with position + 0x38 (seed is only 16 bits),
+        // but reads with (seed ^ 0xffffffc7) - (seed >>> 8) - position + 1.
+        // A nonzero failure seed therefore breaks even same-process round trips.
+        for (int position : new int[] {0, 1, 255, 256, 65537}) {
+            for (int value = 0; value < 256; value++) {
+                int encoded = (value + position + 0x38) & 255;
+                if (readSettingsByte(encoded, position, settingsSeed(0x3c6ef372)) != value)
+                    throw new AssertionError("Settings byte round trip failed");
+                if (readSettingsByte(encoded, position, settingsSeed(0xa54ff53a)) == value)
+                    throw new AssertionError("Failure seed unexpectedly decoded settings");
+            }
+        }
+    }
+
+    private static int readSettingsByte(int value, int position, int seed) {
+        return (value + (seed ^ 0xffffffc7) - (seed >>> 8) - position + 1) & 255;
+    }
+
+    private static int settingsSeed(int input) {
+        int mixed = Integer.rotateRight(input ^ 0xa2fa3cdc, 19) * 0x85ebca77 ^ 0x162f2a9e;
+        boolean nonzero = mixed != 0;
+        mixed ^= nonzero ? 0x91e10da5 : 0;
+        mixed = (mixed ^ mixed >>> 16) * 0x7feb352d;
+        mixed = (mixed ^ mixed >>> 15) * 0x846ca68b;
+        int high = (mixed >>> 18 & 127) + (nonzero ? 1 : 0);
+        int low = ((mixed >>> 18 ^ mixed >>> 2) & 127) + (nonzero ? 1 : 0);
+        return high << 8 | low;
     }
 
     private static int profileSeed(int input) {

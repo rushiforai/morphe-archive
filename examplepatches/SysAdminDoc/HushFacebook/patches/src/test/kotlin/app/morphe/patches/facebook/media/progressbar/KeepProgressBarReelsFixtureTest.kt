@@ -698,7 +698,11 @@ class KeepProgressBarReelsFixtureTest {
         val inline = another.mount.definingClass == owner.type && another.mount.sameAs(handOver.method)
         assertTrue("$where no longer binds the scrubber's player or runs the light mount", inline || original.drop(handOver.at).any { instruction ->
             val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-            instruction.opcode.name.startsWith("invoke-virtual") && call != null && call.returnType == "V" && call.parameterTypes.size == 6
+            (instruction.opcode == Opcode.INVOKE_VIRTUAL || instruction.opcode == Opcode.INVOKE_VIRTUAL_RANGE) &&
+                call != null && call.returnType == "V" &&
+                // 585 binds the player through small calls on the scrubber itself (a start and a bind taking the
+                // player's session) instead of one six-parameter call, and the mount sits in a method those reach.
+                (call.parameterTypes.size == 6 || call.definingClass == base.type)
         })
         assertEquals("$where: the scrubber's holder field isn't a ${base.type}", base.type, handOver.scrubber.substringAfter(":"))
 

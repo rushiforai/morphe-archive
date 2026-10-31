@@ -229,6 +229,12 @@ def execute(program, registers, invoke, start=0, limit=10000, memory=None, stop_
                 assert isinstance(array, Reference) and isinstance(array.value, list), 'RTL object array required'
                 assert type(index) is int and 0 <= index < len(array.value), 'RTL array index outside bounds'
                 registers[args[0]] = array.value[index]
+            elif op == 'aput-object':
+                array, index, value = registers[args[1]], registers[args[2]], registers[args[0]]
+                assert isinstance(array, Reference) and isinstance(array.value, list) and (array.descriptor or '').startswith(('[L', '[[')), 'RTL object array required'
+                assert type(index) is int and 0 <= index < len(array.value), 'RTL array index outside bounds'
+                assert is_zero(value) or memory.instance_of(value, array.descriptor[1:]), 'RTL incompatible object array element'
+                array.value[index] = value
             elif op in {'filled-new-array','filled-new-array/range'}:
                 match = re.fullmatch(r'\{([^}]*)\}, (\[.+)', operands)
                 assert match, 'Malformed RTL filled array'

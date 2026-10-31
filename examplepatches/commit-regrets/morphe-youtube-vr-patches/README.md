@@ -100,7 +100,7 @@ on first launch; the headset row governs from the first change there.
 
 Skips crowd-sourced segments from [sponsor.ajay.app](https://sponsor.ajay.app) while a video plays.
 **It is on by default**, with upstream's recommended configuration (`sponsor` = `skip-once`;
-`selfpromo`/`interaction`/`highlight`/`intro`/`outro`/`music_offtopic` = `seekbar-only`;
+`selfpromo`/`interaction`/`highlight`/`intro`/`outro`/`music_offtopic` = `manual-skip`;
 `preview`/`hook`/`filler` = `ignore`), configurable per category in the headset's Patch settings and at
 build time (a self-hosted API instance works too). Segments are also drawn **on the VR seek bar** in
 their category colours, so you can see what is coming and where a segment was skipped.
@@ -138,15 +138,16 @@ override the patch options, which stay the defaults. The streaming spoof and the
 rather than a switch.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.28.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/releases/tag/v1.28.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.29.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/releases/tag/v1.29.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
-<summary>📦 YouTube VR&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
+<summary>📦 YouTube VR&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
 | 1.89.09 | 1.88.10 |
 | :---: | :---: |
+| Verified: every fingerprint was re-derived against this build. | Verified: every fingerprint was re-derived against this build. |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -155,6 +156,7 @@ rather than a switch.
 | [Extension](#extension) | Injects the extension the other patches run through: its streaming spoof is what removes the pre-roll (ad-free playback) and provides the 8K format support. Turning this patch off restores ads. | • Ad-free streaming spoof (recommended)<br>• Verbose diagnostics (development only)<br>• Force verbose logging (development builds)<br>• Force the native fallback (development only)<br>• Probe identity matrix (~14 requests; needs Verbose diagnostics)<br>• Native formats without SABR (retired experiment)<br>• 8K: accept the AV1 8K HDR tier as SDR (experiment) |
 | [Hide ads](#hide-ads) | Hides video ads, including the pre-roll when the streaming spoof is unavailable and the app falls back to its own player response. |  |
 | [Install as clone](#install-as-clone) | Installs the patched app as a separate app by default, so it sits alongside the store's YouTube VR instead of replacing it. Replace mode keeps the official package name: the store copy has to be removed to satisfy the signing difference, Horizon OS then treats this build as the YouTube VR app (a restore prompt, and a warning on every reboot), and a store update will collide with it because this build is signed differently. | • Package name<br>• Update permissions<br>• Update providers |
+| [Patch settings](#patch-settings) | Builds the in-headset "Patch settings" hub and the SponsorBlock settings screen. The resource half of the SponsorBlock patch, which mines what this patch restructures the XML with. |  |
 | [QUIC (HTTP/3)](#quic-http-3) | Adds the in-headset switch for QUIC, the transport under HTTP/3: TLS over UDP, used for this app's API and media requests. Leave it on unless playback stalls on a network that blocks or throttles UDP 443 (corporate Wi-Fi, many VPNs), where turning it off forces TCP/TLS. A change applies after the app restarts. | • QUIC (HTTP/3) |
 | [Remove viewer discretion dialog](#remove-viewer-discretion-dialog) | Removes the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction. |  |
 | [SponsorBlock](#sponsorblock) | Automatically skips SponsorBlock segments (sponsors, self-promos, intros, ...). On by default (sponsors: skip once); configure per-category behaviour below or in the headset's Patch settings screen. | • SponsorBlock API base<br>• Sponsor<br>• Self-promotion<br>• Interaction reminder<br>• Intermission/intro<br>• Outro/endcards<br>• Preview/recap<br>• Hook (padding after intro)<br>• Filler tangent<br>• Music: non-music<br>• Highlight (jump to point) |

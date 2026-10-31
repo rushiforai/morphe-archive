@@ -282,3 +282,22 @@ The optional **Fix quick settings banner contrast** Penguin patch remains
 available for the original Finamp 1.0.1 APK. Its source regressions and matched
 original/patched Android captures are documented in
 [the UI-fix acceptance record](../tests/finamp/README-ui-fixes.md).
+
+## Player menu actions (#1355, reviewed 2026-10-30)
+
+[PR #1836](https://github.com/finamp-app/finamp/pull/1836), final reviewed
+commit `0092a0593a9d69dfc461834d0e4e6c580d112379`, keeps Output, Queue and Lyrics
+at the bottom of the existing track menu whenever the actual bottom action row
+is hidden by preference or compact layout. Both the menu button and artwork
+context menu use this behavior. Visible bottom actions produce no menu duplicates.
+The Lyrics screen offers Output and Queue without a recursive Lyrics route, and
+both screens respect disabled gestures. Failed metadata no longer crashes menu
+construction. No setting or stored schema is added.
+
+The native backport passes 27 focused regressions on pinned Flutter 3.47.2; the
+previous player source passes five and fails 22 of those same cases. All 64
+compositions containing the player patch were rebuilt after their complete source
+suites (4,096 overlapping test executions; 101 in the all-seven tree). The other
+63 nonempty payloads remain byte-identical. Exact sources and applicable diffs
+are in [source-diffs](../tests/finamp/source-diffs/README.md); actual Android APK
+evidence is separate from these source tests.

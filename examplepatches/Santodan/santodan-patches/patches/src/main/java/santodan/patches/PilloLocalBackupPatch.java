@@ -37,9 +37,14 @@ public final class PilloLocalBackupPatch {
             "Adds local-file export and restore of Pillo's database, settings and app-managed files, without Google sign-in. Restore replaces current data, keeps a recovery backup and restarts Pillo.",
             false, builder -> {
                 builder.compatibleWith(new Compatibility("xyz.rtrvr.pillo", "Pillo", null, ApkFileType.APK,
-                    null, null, List.of(new AppTarget("0.6.20", null, false, null, null)), app.morphe.patcher.patch.FormFactor.MOBILE, false));
+                    null, null, List.of(new AppTarget("0.6.27", null, false, null, null), new AppTarget("0.6.20", null, false, null, null)), app.morphe.patcher.patch.FormFactor.MOBILE, false));
                 builder.extendWith(PilloLocalBackupPatch::extensionStream);
                 builder.execute(context -> {
+                    if ("xyz.rtrvr.pillo".equals(context.getPackageMetadata().getPackageName())
+                        && "0.6.27".equals(context.getPackageMetadata().getVersionName())) {
+                        Pillo627.localBackup(context);
+                        return Unit.INSTANCE;
+                    }
                     if (!"xyz.rtrvr.pillo".equals(context.getPackageMetadata().getPackageName())
                         || !"0.6.20".equals(context.getPackageMetadata().getVersionName())) throw unsupported("Expected original Pillo 0.6.20");
                     List<ClassDef> classes = new ArrayList<>();

@@ -20,8 +20,17 @@ import app.morphe.util.returnEarly
 import app.ahmedyarub.patches.shared.loadedStrings
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
+import app.morphe.util.getReference
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val MIDCARDS_PACKAGE = "Lcom/instagram/reels/midcards/"
+
+private const val REEL_ITEM = "Lcom/instagram/model/reels/ReelItem;"
+private const val USER_SESSION = "Lcom/instagram/common/session/UserSession;"
+
+/** A story viewer interstitial kind, as the methods naming those kinds spell it. */
+private const val INTERSTITIAL_KIND = "story_interstitial_music_midcard"
 
 private object OnlyOrganicStoriesFingerprint : Fingerprint(
     definingClass = "Lapp/ahmedyarub/extension/instagram/StoryTray;",
@@ -108,6 +117,63 @@ val filterStoriesPatch = bytecodePatch(
                 }
             }
             if (midcardFetches == 0) throw PatchException("No story midcard fetch found under $MIDCARDS_PACKAGE")
+
+            // Every card is then put between stories by its own injector, whatever its data
+            // came from (the music card's playlist, for one, is not a GraphQL midcard). Each builds
+            // the card's reel with the interstitial reel constructor, which names the reel after its
+            // kind, then either inserts it into the viewer's reel list and returns whether it did,
+            // or returns it with its position for the viewer to insert (null for none). Returning
+            // false or null at once leaves the list as it was, for every kind of card.
+            fun MethodReference.isSameAs(other: MethodReference) =
+                definingClass == other.definingClass && name == other.name &&
+                    parameterTypes.map { it.toString() } == other.parameterTypes.map { it.toString() } &&
+                    returnType == other.returnType
+            // More than one method maps a kind to its name; the constructor calls one of them.
+            val interstitialNames = mutableListOf<MethodReference>()
+            classDefForEach { classDef ->
+                classDef.methods.filter { method ->
+                    method.returnType == "Ljava/lang/String;" && method.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Integer;") &&
+                        INTERSTITIAL_KIND in method.loadedStrings
+                }.forEach { interstitialNames += it }
+            }
+            val interstitialConstructors = mutableListOf<MethodReference>()
+            classDefForEach { classDef ->
+                if (classDef.type == REEL_ITEM) return@classDefForEach
+                classDef.methods.filter { method ->
+                    method.name == "<init>" && method.implementation?.instructions?.any { instruction ->
+                        instruction.getReference<MethodReference>()?.let { reference ->
+                            interstitialNames.any { reference.isSameAs(it) }
+                        } == true
+                    } == true
+                }.forEach { interstitialConstructors += it }
+            }
+            if (interstitialConstructors.isEmpty()) {
+                throw PatchException("No interstitial reel constructor calls any of $interstitialNames")
+            }
+
+            var injectors = 0
+            classDefForEach { classDef ->
+                val matches = classDef.methods.filter { method ->
+                    AccessFlags.STATIC.isSet(method.accessFlags) &&
+                        (method.returnType == "Z" || method.returnType.startsWith("L")) &&
+                        method.parameterTypes.any { it == "Ljava/util/List;" } &&
+                        method.parameterTypes.any { it == USER_SESSION } &&
+                        method.implementation?.instructions?.any { instruction ->
+                            instruction.getReference<MethodReference>()?.let { reference ->
+                                interstitialConstructors.any { reference.isSameAs(it) }
+                            } == true
+                        } == true
+                }
+                if (matches.isEmpty()) return@classDefForEach
+                val mutable = mutableClassDefBy(classDef)
+                matches.forEach { injector ->
+                    mutable.methods.first {
+                        it.name == injector.name && it.parameterTypes == injector.parameterTypes && it.returnType == injector.returnType
+                    }.addInstructions(0, "const/4 v0, 0x0\n" + if (injector.returnType == "Z") "return v0" else "return-object v0")
+                    injectors++
+                }
+            }
+            if (injectors == 0) throw PatchException("No story interstitial injector found")
         }
 
         if (hideAds == true) filterStories("ads_reel")

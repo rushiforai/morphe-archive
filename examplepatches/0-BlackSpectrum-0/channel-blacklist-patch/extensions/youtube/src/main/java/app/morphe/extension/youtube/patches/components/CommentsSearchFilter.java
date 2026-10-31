@@ -81,6 +81,17 @@ public final class CommentsSearchFilter extends Filter {
 
     private static final String SEARCH_BUTTON_TAG = "morphe_search_comments_button";
 
+    /**
+     * The comments panels of videos and Shorts. Newer app versions use the first id for videos.
+     * Other panels with "comment" in their id are not searched, such as the replies of a comment,
+     * which open in a panel of their own.
+     */
+    private static final List<String> COMMENTS_PANEL_IDS = List.of(
+            "comment-item-section",
+            "engagement-panel-comments-section",
+            "shorts-comments-panel"
+    );
+
     private static final int ID_CLOSE_BUTTON =
             ResourceUtils.getIdentifier(ResourceType.ID, "close_button");
 
@@ -431,25 +442,29 @@ public final class CommentsSearchFilter extends Filter {
 
     /**
      * Injection point.
-     * Called on the main thread when the header of an engagement panel is shown.
+     * Called on the main thread when the header of an engagement panel is set up.
+     * Panels reuse their header, so the search button is shown or hidden for every panel,
+     * also for the panels with no subheader, such as the comments of Shorts and the description.
+     *
+     * @param panel The layout of the panel, which holds its header.
      */
-    public static void onPanelSubheaderShown(View subheader) {
-        if (subheader == null || !Settings.SEARCH_COMMENTS.get() || ID_CLOSE_BUTTON == 0) {
+    public static void onPanelHeaderSetUp(View panel) {
+        if (panel == null || !Settings.SEARCH_COMMENTS.get() || ID_CLOSE_BUTTON == 0) {
             return;
         }
 
         // The panel is opened after its header is set up.
-        subheader.post(() -> {
+        panel.post(() -> {
             try {
-                updateSearchButton(subheader);
+                updateSearchButton(panel);
             } catch (Exception ex) {
                 Logger.printException(() -> "updateSearchButton failure", ex);
             }
         });
     }
 
-    private static void updateSearchButton(View subheader) {
-        View closeButton = findCloseButton(subheader);
+    private static void updateSearchButton(View panel) {
+        View closeButton = panel.findViewById(ID_CLOSE_BUTTON);
         if (closeButton == null || !(closeButton.getParent() instanceof ViewGroup header)) {
             Logger.printDebug(() -> "Panel close button not found");
             return;
@@ -463,33 +478,11 @@ public final class CommentsSearchFilter extends Filter {
             }
         }
 
-        final boolean isCommentsPanel = isCommentsPanelOpen();
+        final boolean isCommentsPanel = COMMENTS_PANEL_IDS.contains(EngagementPanel.getLastOpenedPanelId());
         searchButton.setVisibility(isCommentsPanel ? View.VISIBLE : View.GONE);
         if (isCommentsPanel) {
             updateSearchButtonIcon(searchButton);
         }
-    }
-
-    /**
-     * The header of the panel holds the close button, and the subheader is below it.
-     */
-    @Nullable
-    private static View findCloseButton(View subheader) {
-        ViewParent parent = subheader.getParent();
-        while (parent instanceof ViewGroup group) {
-            View closeButton = group.findViewById(ID_CLOSE_BUTTON);
-            if (closeButton != null) {
-                return closeButton;
-            }
-            parent = group.getParent();
-        }
-        return null;
-    }
-
-    private static boolean isCommentsPanelOpen() {
-        String panelId = EngagementPanel.getLastOpenedPanelId();
-        // The comments of videos and Shorts, and the replies of a comment.
-        return panelId != null && panelId.contains("comment");
     }
 
     @Nullable
@@ -567,7 +560,7 @@ public final class CommentsSearchFilter extends Filter {
                         updateSearchButtonIcon(searchButton);
                         if (!reloadPanelList(searchButton)) {
                             // Such as only quotes, which are not a search.
-                            Utils.showToastLong(str(!isSearching()
+                            Utils.showSnackbarLong(str(!isSearching()
                                     ? "morphe_search_comments_cleared"
                                     : "morphe_search_comments_applied"));
                         }
@@ -578,7 +571,7 @@ public final class CommentsSearchFilter extends Filter {
                         setSearch("");
                         updateSearchButtonIcon(searchButton);
                         if (!reloadPanelList(searchButton)) {
-                            Utils.showToastLong(str("morphe_search_comments_cleared"));
+                            Utils.showSnackbarLong(str("morphe_search_comments_cleared"));
                         }
                     },
                     true

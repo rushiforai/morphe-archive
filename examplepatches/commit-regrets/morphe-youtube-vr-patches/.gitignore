@@ -140,3 +140,7 @@ extensions/dex/
 
 # Local patch-authoring scratch: never commit (see docs/INTERNALS.md).
 docs/LOCAL-NOTES.md
+
+# Bundle-signing private key (MorpheSig1; the public half morphe-signing.pub IS committed --
+# mirrors the official bundle's .gitignore, see docs/INTERNALS.md "The patcher 2.x alignment")
+morphe-signing.key

@@ -25,29 +25,20 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 /**
- * Runs the *real* compiled {@code SettingsXmlKt.restructureSettingsXmls} against the layouts the
- * two patcher hosts actually produce, because the layouts differ and only one of them used to work.
- * Ported from the build/probe {@code SettingsXmlLayoutCheck} harness so it runs on every build.
- * (It is Java rather than Kotlin because the Morphe plugin does not put the main output on the
- * test <em>Kotlin</em> compilation's classpath, and the function is {@code internal}.)
+ * Runs the *real* compiled {@code SettingsXmlKt.restructureSettingsXmls} against a decoded
+ * {@code res} directory in the shape the patcher's decoder produces. Ported from the build/probe
+ * {@code SettingsXmlLayoutCheck} harness so it runs on every build. (It is Java rather than Kotlin
+ * because the Morphe plugin does not put the main output on the test <em>Kotlin</em> compilation's
+ * classpath, and the function is {@code internal}.)
  *
- * <p>The layouts are not guesses, they are read off the sources:</p>
- *
- * <ul>
- *   <li><b>CLI</b>: {@code PatcherConfig.fileWorkspace = temporaryFilesPath.resolve("workspace")}
- *       and the decoded tree is {@code temporaryFilesPath/apk/resources/...}, so the workspace's
- *       parent is the session root. Measured on a real run:
- *       {@code <morphe-data>/tmp/patching-<id>/apk/resources/package_1/res/xml/}, with no
- *       {@code workspace/} directory on disk at all.</li>
- *   <li><b>Morphe Manager</b>: {@code Session.kt} passes
- *       {@code fileWorkspacePath = context.cacheDir/patch-workspace}, and its patcher temp dir is
- *       {@code cacheDir/patcher} where {@code cacheDir = Filesystem.tempDir =
- *       app.getDir("ephemeral")}. So the tree is at {@code <data>/app_ephemeral/patcher/apk/resources/...}
- *       while the workspace is at {@code <data>/cache/patch-workspace} — a search from the
- *       workspace's parent finds nothing, which is the Manager 1.35.0 failure
- *       ({@code PatchException: Patch settings: no settings preferences XML under …}) this test
- *       reproduces and pins.</li>
- * </ul>
+ * <p>The function takes the decoded {@code res} directories since 2026-10-30: Morphe patcher 2.x
+ * hosts that decode resources <em>on request</em> (Desktop 2.x) hold nothing under the decode tree
+ * until a resource patch asks for it, so the old search that derived the tree from the bytecode
+ * patch's {@code fileWorkspace} found nothing there and threw on a real Desktop 2.x run. The
+ * discovery moved into {@code patchSettingsPatch} (a resource patch whose {@code decode(**)} is
+ * the sanctioned trigger); what is tested here is everything that survives it -- the edits and
+ * their idempotence, against the directory shape the decoder actually writes:
+ * {@code <decode tree>/resources/package_<n>/res/...}.</p>
  */
 public final class SettingsXmlLayoutTest {
 
@@ -61,92 +52,47 @@ public final class SettingsXmlLayoutTest {
     @TempDir
     public File tempDir;
 
-    // --- case 1: Morphe Manager's split session ------------------------------------------------
-
     @Test
-    public void managersSplitLayoutIsFoundAndRestructured() throws Exception {
-        // <data>/app_ephemeral/patcher  <- the patcher's temporaryFilesPath
-        // <data>/cache/patch-workspace  <- Session.kt's fileWorkspacePath
-        File dataRoot = new File(tempDir, "manager-data");
-        File resDir = buildDecodedTree(new File(dataRoot, "app_ephemeral/patcher"));
-        File workspace = new File(dataRoot, "cache/patch-workspace");
-        assertTrue(workspace.mkdirs() || workspace.isDirectory(), "workspace created");
+    public void restructuresADecodedResDirectory() throws Exception {
+        File resDir = buildDecodedTree(new File(tempDir, "decode/resources/package_1"));
 
-        // The regression trigger: the old code started at the workspace's parent, which is `cache`
-        // and holds no decoded tree at all.
-        assertFalse(new File(workspace.getParentFile(), "apk").exists(),
-                "the workspace's parent must hold no apk/ (that was the old search root)");
-        assertTrue(new File(workspace, "../../app_ephemeral/patcher/apk/resources").isDirectory(),
-                "the decoded tree is two levels above the workspace (the app-data root)");
-
-        SettingsXmlKt.restructureSettingsXmls(workspace, SB_SCREEN_XML_ID, behaviours());
-        assertRestructured(resDir, "manager-split");
+        SettingsXmlKt.restructureSettingsXmls(List.of(resDir), SB_SCREEN_XML_ID, behaviours());
+        assertRestructured(resDir, "decoded-res");
     }
 
-    // --- case 2: the CLI's single session directory --------------------------------------------
-
     @Test
-    public void cliSingleSessionLayoutKeepsWorking() throws Exception {
-        // PatcherConfig with no fileWorkspacePath: workspace = temporaryFilesPath/workspace, tree
-        // = temporaryFilesPath/apk/resources/... -- the layout that has always worked.
-        File session = new File(tempDir, "cli-session");
-        File resDir = buildDecodedTree(session);
-        File workspace = new File(session, "workspace");
-        // Deliberately not created: the patcher only *computes* the path, and the real CLI session
-        // (measured: <morphe-data>/tmp/patching-<id>/) had no workspace/ directory at all -- this
-        // function must need the path, not the directory.
-        assertFalse(workspace.exists(), "CLI session has no workspace/ directory, as measured");
-        assertTrue(new File(workspace.getParentFile(), "apk").isDirectory(),
-                "the workspace's parent is the session root (holds apk/)");
-
-        SettingsXmlKt.restructureSettingsXmls(workspace, SB_SCREEN_XML_ID, behaviours());
-        assertRestructured(resDir, "cli-single-session");
-    }
-
-    // --- case 3: no tree anywhere --------------------------------------------------------------
-
-    @Test
-    public void absentTreeThrowsABoundedPatchException() throws Exception {
-        // Four ancestors exist above the workspace, the last one is the app-data analogue.
-        // Nothing below any of them is a decode.
-        File workspace = new File(new File(tempDir, "absent-tree"), "l1/l2/l3/workspace");
-        assertTrue(workspace.mkdirs() || workspace.isDirectory(), "workspace created");
+    public void missingFilesNameTheDirectoriesSearched() throws Exception {
+        // A decoded res directory that holds none of the settings files -- what a decode of the
+        // wrong app would look like. The diagnosis must say what was missing and where it looked,
+        // which is what made the original Manager failure diagnosable at all.
+        File resDir = new File(tempDir, "decode/resources/package_1/res");
+        assertTrue(resDir.mkdirs() || resDir.isDirectory(), "res directory created");
 
         try {
-            SettingsXmlKt.restructureSettingsXmls(workspace, SB_SCREEN_XML_ID, behaviours());
-            fail("an absent decoded tree must throw");
+            SettingsXmlKt.restructureSettingsXmls(List.of(resDir), SB_SCREEN_XML_ID, behaviours());
+            fail("a res directory without the settings files must throw");
         } catch (Exception thrown) {
             assertTrue(thrown instanceof PatchException,
                     "expected PatchException, got " + thrown.getClass().getName());
             String message = thrown.getMessage() == null ? "" : thrown.getMessage();
+            assertTrue(message.contains("no settings preferences XML in any of"),
+                    "the message must lead with the settings-XML diagnosis: " + message);
             assertTrue(message.contains("looked for settings_prefs.xml, panel2_settings_prefs.xml"),
                     "the message must keep the looked-for names: " + message);
-            assertTrue(message.contains("no settings preferences XML in any of"),
-                    "the message must still lead with the settings-XML diagnosis: " + message);
-
-            // Bounded ancestors, nearest first -- the walk runs inside Application.onCreate, and
-            // a wider search would hang or crawl the filesystem.
-            List<String> expectedRoots = new ArrayList<>();
-            File cursor = workspace.getAbsoluteFile().getParentFile();
-            for (int level = 1; level <= 4 && cursor != null; level++) {
-                expectedRoots.add(cursor.getAbsolutePath());
-                cursor = cursor.getParentFile();
-            }
-            assertEquals(expectedRoots, namedRoots(message),
-                    "the named roots must be exactly the four bounded ancestors");
-            assertFalse(namedRoots(message).contains(tempDir.getAbsolutePath()),
-                    "the search must never go above the bounded ancestors");
+            assertTrue(message.contains(resDir.getAbsolutePath()),
+                    "the message must name the directory that was searched: " + message);
         }
     }
 
     // --- the decoded-tree fixture ---------------------------------------------------------------
 
     /**
-     * Writes {@code <tempRoot>/apk/resources/package_1/res/...}, the shape the patcher's decoder
-     * produces, with the resource files this function edits. Returns the {@code res} directory.
+     * Writes {@code <tempRoot>/res/...}, the shape the patcher's decoder produces under
+     * {@code apk/resources/package_<n>/}, with the resource files this function edits. Returns the
+     * {@code res} directory.
      */
     private static File buildDecodedTree(File tempRoot) throws IOException {
-        File res = new File(tempRoot, "apk/resources/package_1/res");
+        File res = new File(tempRoot, "res");
         writeXml(new File(res, "xml"), "settings_prefs.xml", preferenceScreen(
                 "<Preference android:key=\"ytvr_mod_old_flat_row\" android:title=\"Old flat row\" />\n"
                         + "    <Preference android:key=\"developer_settings\" android:title=\"Developer\" />"));
@@ -271,18 +217,6 @@ public final class SettingsXmlLayoutTest {
                 label + ": the back button must move to the top-left");
         assertEquals("true", backButton.getAttribute("android:layout_alignParentStart"),
                 label + ": the back button must move to the top-left");
-    }
-
-    /** The roots named in an "... in any of <root>; <root>; looked for ..." message. */
-    private static List<String> namedRoots(String message) {
-        String marker = "any of ";
-        int start = message.indexOf(marker);
-        int end = message.indexOf("; looked for");
-        if (start < 0 || end < 0 || end < start) {
-            fail("the exception does not name its roots: " + message);
-            return new ArrayList<>();
-        }
-        return Arrays.asList(message.substring(start + marker.length(), end).split("; "));
     }
 
     // --- tiny DOM helpers -----------------------------------------------------------------------

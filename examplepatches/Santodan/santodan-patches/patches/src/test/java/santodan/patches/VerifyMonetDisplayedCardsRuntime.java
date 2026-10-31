@@ -19,6 +19,6 @@ public final class VerifyMonetDisplayedCardsRuntime {
         try(var loader=new URLClassLoader(new java.net.URL[]{output.toUri().toURL()},null)) {
             loader.loadClass("Fixture").getMethod("run").invoke(null);
         }
-        System.out.println("PASS: native themed renderer, original controls, -10/+10/Max, q15 state, remote focus, theme changes, remembered actions, overflow/minimum, unrelated controls and balanced Compose groups");
+        System.out.println("PASS: native themed renderer, original controls, -10/+10/Max, native draft state, remote focus, theme changes, remembered actions, overflow/minimum, unrelated controls and balanced Compose groups");
     }
 }

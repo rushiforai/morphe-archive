@@ -11,6 +11,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
+import app.morphe.patches.youtube.layout.buttons.navigation.translucentNavigationBarFeatureFlagsPatch
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playertype.playerTypeHookPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
@@ -18,6 +19,7 @@ import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.shared.YouTubeActivityOnCreateFingerprint
 import app.morphe.util.insertLiteralOverride
+import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
@@ -32,6 +34,9 @@ val hideStatusBarPatch = bytecodePatch(
         sharedExtensionPatch,
         settingsPatch,
         playerTypeHookPatch,
+        // The flags of the translucent navigation bar must be turned off with the edge to edge
+        // top bar, also if the Navigation bar patch is not included.
+        translucentNavigationBarFeatureFlagsPatch,
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)
@@ -48,7 +53,8 @@ val hideStatusBarPatch = bytecodePatch(
         // so the status bar and its background view cover them. Every class uses the first value read,
         // instead of always turning the flag off: the edge to edge layout is the stock layout of most accounts
         // (transparent status bar over Shorts and the player). The flag is turned off only when the
-        // status bar is hidden, as it then leaves an empty bar above the player.
+        // status bar is hidden, as it then leaves an empty bar above the player, and when the window
+        // is laid out below the status bar, as the room left for the status bar then covers the top bars.
         EdgeToEdgeTopBarFeatureFlagFingerprint.matchAll().forEach {
             // Overrides every read of the flag in the method.
             it.method.insertLiteralOverride(
@@ -64,6 +70,8 @@ val hideStatusBarPatch = bytecodePatch(
                 "$EXTENSION_CLASS->useStatusBarScrollColor(Z)Z"
             )
         }
+
+        setExtensionIsPatchIncluded(EXTENSION_CLASS)
 
         YouTubeActivityOnCreateFingerprint.method.addInstruction(
             0,

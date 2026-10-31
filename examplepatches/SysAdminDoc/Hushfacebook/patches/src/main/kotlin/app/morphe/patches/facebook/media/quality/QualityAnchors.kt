@@ -54,6 +54,12 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  *   (A08 on 581 and 580, A07 on 577). The extension sorts reels and stories by those two names.
  *   582 (read 2026-10-10) keeps the shape, playbackPreferences LX/3wX; with the origin in A07 and
  *   the sub-origin in A08, but asks a string table (arm64 LX/192;->A00) for both sub-origin names.
+ * - 585 (read 2026-10-29, arm64 and v7a) inlines the custom-quality setter into the method holding
+ *   "HeroServicePlayer.setCustomQualityInternal" (LX/04RP;->A1V on arm64), so the evaluator (LX/05R1;)
+ *   is found from the track array that method reads. The label getter is a static call taking a track
+ *   and answering the String itself, with no info class between. The first choice (Bfa) reads the
+ *   preselected label (A0M) and compares it with the tracks' labels through String.equals, so the
+ *   hook sits right after that read instead of in a setter.
  */
 
 internal const val QUALITY_CHOICE = "$EXTENSION_PACKAGE/media/QualityChoice;"
@@ -87,61 +93,74 @@ private fun Method.code(): List<Instruction> = implementation?.instructions?.toL
 
 private fun MethodReference.parameters() = parameterTypes.map(CharSequence::toString)
 
-/** The instance calls in [method] of a (String)V method, the shape of the evaluator's custom-quality setter. */
-internal fun customQualityCalls(method: Method): List<MethodReference> = method.code()
-    .filter { it.opcode == Opcode.INVOKE_VIRTUAL }
-    .mapNotNull { it.call }
-    .filter { it.returnType == "V" && it.parameters() == listOf(STRING) }
+/**
+ * The array fields [method] reads, each once: in the method holding the custom-quality trace, the
+ * evaluator's tracks. 585 inlined the evaluator's custom-quality setter into that method.
+ */
+internal fun trackArrayReads(method: Method): List<FieldReference> = method.code()
+    .filter { it.opcode == Opcode.IGET_OBJECT }
+    .mapNotNull { it.field }
+    .filter { it.type.startsWith("[L") }
+    .distinctBy { it.toString() }
 
 /** Whether [evaluator]'s constructor takes an AbrContextAwareConfiguration. */
 internal fun takesAbrConfiguration(evaluator: ClassDef): Boolean = evaluator.methods.any { method ->
     method.name == "<init>" && method.parameterTypes.any { it.toString() == ABR_CONFIGURATION }
 }
 
-/** [setter]'s reads of an array field of its own class: the tracks it looks among. */
-internal fun formatsFields(setter: Method): List<FieldReference> = setter.code()
-    .filter { it.opcode == Opcode.IGET_OBJECT }
-    .mapNotNull { it.field }
-    .filter { it.definingClass == setter.definingClass && it.type.startsWith("[L") }
-    .distinctBy { it.toString() }
-
 /**
- * How [setter] reads a track's label: a static call taking one [format], then a String field of
- * what it answers. One pair per place it does.
+ * How [method] reads a track's label: a static call taking one [format] that answers the String
+ * itself (the field is null, 585), or an object with a String field read right after (580 to 584).
+ * One pair per place it does.
  */
-internal fun labelReads(setter: Method, format: String): List<Pair<MethodReference, FieldReference>> {
-    val code = setter.code()
+internal fun labelReads(method: Method, format: String): List<Pair<MethodReference, FieldReference?>> {
+    val code = method.code()
     return code.indices.mapNotNull { index ->
         val call = code[index].call?.takeIf {
             code[index].opcode == Opcode.INVOKE_STATIC && it.parameters() == listOf(format) && it.returnType.startsWith("L")
         } ?: return@mapNotNull null
+        if (call.returnType == STRING) return@mapNotNull call to null
         val read = code.drop(index + 1).take(3).firstOrNull { it.opcode == Opcode.IGET_OBJECT }?.field
             ?.takeIf { it.definingClass == call.returnType && it.type == STRING } ?: return@mapNotNull null
         call to read
     }
 }
 
+/** A read of the preselected label in [method] at [index], right before the first choice compares it with the tracks' labels. */
+internal class PreselectedRead(val method: Method, val index: Int, val field: FieldReference)
+
 /**
- * The String fields of [evaluator] its own methods read and hand straight to [setter] on the same
- * evaluator: the preselected label its first choice applies.
+ * The String fields of [evaluator] that its constructor fills in and one of its own methods reads
+ * into a register it then compares, with String.equals, to a track's label (a call to [labelOf]):
+ * the preselected label its first choice looks for among the tracks. 585 inlined the setter there.
  */
-internal fun preselectedReads(evaluator: ClassDef, setter: Method): List<FieldReference> =
-    evaluator.methods.flatMap { method ->
+internal fun preselectedReads(evaluator: ClassDef, constructor: Method, labelOf: MethodReference): List<PreselectedRead> {
+    val filled = constructor.code().filter { it.opcode == Opcode.IPUT_OBJECT }.mapNotNull { it.field }
+        .filter { it.definingClass == evaluator.type && it.type == STRING }.map { it.name }.toSet()
+    return evaluator.methods.filter { it.name != "<init>" && it.implementation != null }.flatMap { method ->
         val code = method.code()
-        code.indices.mapNotNull { index ->
-            val call = code[index].call ?: return@mapNotNull null
-            if (code[index].opcode != Opcode.INVOKE_VIRTUAL || call.definingClass != evaluator.type ||
-                call.name != setter.name || call.parameters() != listOf(STRING)
-            ) return@mapNotNull null
-            val read = code.getOrNull(index - 1)?.takeIf { it.opcode == Opcode.IGET_OBJECT } ?: return@mapNotNull null
-            val field = read.field?.takeIf { it.definingClass == evaluator.type && it.type == STRING } ?: return@mapNotNull null
-            val registers = (code[index] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) }
-            val fieldRead = read as TwoRegisterInstruction
-            // The label read goes in as the argument, and the call and the read are on one evaluator.
-            if (registers != listOf(fieldRead.registerB, fieldRead.registerA)) return@mapNotNull null
-            field
+        val readsLabels = code.any { instruction ->
+            instruction.opcode == Opcode.INVOKE_STATIC && instruction.call?.let {
+                it.definingClass == labelOf.definingClass && it.name == labelOf.name && it.parameters() == labelOf.parameters()
+            } == true
         }
-    }.distinctBy { it.toString() }
+        if (!readsLabels) return@flatMap emptyList()
+        code.indices.mapNotNull { index ->
+            val field = code[index].takeIf { it.opcode == Opcode.IGET_OBJECT }?.field
+                ?.takeIf { it.definingClass == evaluator.type && it.type == STRING && it.name in filled } ?: return@mapNotNull null
+            val label = (code[index] as TwoRegisterInstruction).registerA
+            val window = code.drop(index + 1).take(14)
+            val compare = window.indexOfFirst {
+                it.opcode == Opcode.INVOKE_VIRTUAL && it.call?.let { call -> call.definingClass == STRING && call.name == "equals" } == true &&
+                    (it as FiveRegisterInstruction).registerC == label
+            }
+            if (compare < 0 || window.take(compare).any { it.opcode.setsRegister() && (it as? OneRegisterInstruction)?.registerA == label }) {
+                return@mapNotNull null
+            }
+            PreselectedRead(method, index, field)
+        }
+    }
+}
 
 /**
  * The String fields of [preferences] that [configuration]'s constructors read and compare, ignoring

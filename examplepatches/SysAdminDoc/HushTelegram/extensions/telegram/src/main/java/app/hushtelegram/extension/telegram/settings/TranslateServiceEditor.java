@@ -123,7 +123,11 @@ final class TranslateServiceEditor {
         EditText field = new EditText(HushTelegramPreferenceFragment.themed(activity));
         field.setId(id);
         field.setSingleLine(true);
+        // A password type turns a field monospace, so the key's hint read unlike the labels and
+        // fields around it. The dots don't need it.
+        android.graphics.Typeface face = field.getTypeface();
         field.setInputType(type);
+        field.setTypeface(face);
         field.setHint(hint);
         field.setText(text);
         return field;

@@ -274,7 +274,7 @@ private fun emojiEdit(method: MutableMethod): Pair<CommerceEdit, Map<String, Str
     val free = xor?.let { body.getOrNull(it + 1) }
     val ask = body.indexOfFirst { it.reference() == PREMIUM_EMOJI_PACK }
     drift(free?.opcode == Opcode.IPUT_BOOLEAN &&
-        body.drop(ask).firstOrNull { it.opcode == Opcode.IPUT_BOOLEAN }?.reference() == free?.reference(),
+        body.drop(ask).firstOrNull { it.opcode == Opcode.IPUT_BOOLEAN }?.reference() == free.reference(),
         "the emoji pack pass no longer marks a pack free the same way for installed and featured packs")
     val freeField = free!!.reference()!!
 

@@ -1,8 +1,14 @@
 # Weight change summaries
 
+**Pillo 0.6.27 (code 472) is supported.** See [the 0.6.27 port notes](Pillo627.md)
+for current contracts, verification, and version-specific backup restrictions.
+Existing 0.6.20 support is retained; contracts below describe that historical implementation.
+
 Supported app: **Pillo 0.6.20** (`xyz.rtrvr.pillo`). Select
 **Pillo - Weight change summaries** when patching the original app.
 It can be combined with the notification, weight-import and local-backup patches.
+**[Weight in Progress](PilloProgressWeight.md)** includes this patch automatically
+and adds the same graph, summaries and record list below the Progress calendar/cards.
 
 - **All** is the initial weight-chart filter. The existing record-count choices
   remain available in the native filter sheet.

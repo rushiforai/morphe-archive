@@ -45,7 +45,7 @@ class MessageMenuFixtureTest {
         "Lorg/telegram/messenger/MessagesController;", "Lorg/telegram/messenger/ChatObject;", "Lorg/telegram/messenger/UserObject;",
         "Lorg/telegram/messenger/DialogObject;", "Lorg/telegram/messenger/UserConfig;", "Lorg/telegram/messenger/R\$drawable;",
         "Lorg/telegram/messenger/FileLoader;", "Lorg/telegram/messenger/ApplicationLoader;", "Landroidx/core/content/FileProvider;",
-        "Lorg/telegram/messenger/SendMessagesHelper;", "Lorg/telegram/tgnet/TLRPC\$Dialog;", "Lorg/telegram/tgnet/TLRPC\$Chat;",
+        "Lorg/telegram/messenger/SendMessagesHelper;", "Lorg/telegram/messenger/AccountInstance;", "Lorg/telegram/tgnet/TLRPC\$Dialog;", "Lorg/telegram/tgnet/TLRPC\$Chat;",
         "Lorg/telegram/messenger/LocaleController;", "Lorg/telegram/messenger/R\$string;",
     )
 
@@ -57,7 +57,7 @@ class MessageMenuFixtureTest {
             val params = m.parameterTypes.map(CharSequence::toString)
             params == listOf("Lorg/telegram/messenger/MessageObject;", list, list, list) && m.controlBody().any { it.controlRef() == FORWARD_LABEL } ||
                 AccessFlags.STATIC.isSet(m.accessFlags) && params == listOf("I", "I", list, list) && m.returnType == "V" ||
-                m.name == "getParentActivity" && params.isEmpty() ||
+                m.name == "getParentActivity" && params.isEmpty() || m.isSelectionCanCopy() ||
                 m.controlBody().map { it.controlRef() }.let { IS_PREMIUM in it && FORWARDS in it && NAME_HIDE in it }
         }
         return (FixtureDex.classes(build, fixed).values + found).distinctBy { it.type }.map(ImmutableClassDef::of)

@@ -5,6 +5,7 @@ import app.ckzombies.patches.compat.modernAndroidPatch
 import app.ckzombies.patches.compat.obbMessagePatch
 import app.ckzombies.patches.compat.unusedPermissionsPatch
 import app.ckzombies.patches.intro.playIntroOncePatch
+import app.ckzombies.patches.nativelib.hiddenWeaponsPatch
 import app.ckzombies.patches.nativelib.hideDailyDealPatch
 import app.ckzombies.patches.nativelib.unlimitedCurrencyPatch
 import app.ckzombies.patches.screen.screenFitPatch
@@ -19,11 +20,12 @@ class PatchListTest {
     @Test
     fun `every patch is on by default`() {
         val patches = listOf(
-            hideDailyDealPatch, modernAndroidPatch, playIntroOncePatch, unusedPermissionsPatch, screenFitPatch,
-            soundCachePatch, deadServersPatch, unlimitedCurrencyPatch,
+            hiddenWeaponsPatch, hideDailyDealPatch, modernAndroidPatch, playIntroOncePatch, unusedPermissionsPatch,
+            screenFitPatch, soundCachePatch, deadServersPatch, unlimitedCurrencyPatch,
         )
         assertEquals(
             mapOf(
+                "Hidden weapons" to true,
                 "Hide Daily Deal popup" to true,
                 "Modern Android compatibility" to true,
                 "Play intro once" to true,

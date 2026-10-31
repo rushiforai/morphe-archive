@@ -43,7 +43,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * opening from a feed, while a Warion viewer that opened within that time of one is open, or while a
  * full-screen player screen created within that time of one is in front. It gets no more reels (its
  * seed video alone, in the data source's case, unless the video is a feed's ordinary video rather
- * than a reel) then and on every later ask. One held for a Warion
+ * than a reel) then and on every later ask, except the data source's first seed check, which starts
+ * the video loading and keeps Facebook's answer ({@link #seedCheck}). One held for a Warion
  * viewer is decided again on its first ask after that viewer closes. One that first asked from the
  * main screen with no viewer open, the Reels and Video tabs' among them, keeps Facebook's answer, and
  * so does one asking in a viewer or player screen no feed video opened: the Watch page on a screen of
@@ -119,6 +120,8 @@ public final class FeedVideoAlone {
         final boolean player;
         /** The Warion viewer open when it first asked, whose closing ends the hold, or null. */
         @Nullable final Viewer viewer;
+        /** Whether it already asked {@link #seedCheck} once. Guarded by FEEDS. */
+        boolean asked;
 
         Feed(Object feed, boolean player, @Nullable Viewer viewer) {
             this.feed = new WeakReference<>(feed);
@@ -357,11 +360,44 @@ public final class FeedVideoAlone {
 
     /**
      * Injection point, first thing in a reels data source's answer to whether it shows its seed video
-     * alone, which skips both the reels Facebook would add after it and every later fetch more. True
-     * answers yes. The data source of a feed's ordinary video keeps Facebook's answer: the yes also
-     * skips the first page that brings that video to the viewer, which then stands empty for up to a
-     * second longer (#237, 584 emulator 2026-10-27), and no reels follow such a video anyway, its feed's
-     * fetch more being held and its list showing no loading page. Never throws.
+     * alone. True answers yes. A data source {@link #seedOnly} holds for a tapped feed video gets the
+     * yes from its second ask on. Its first comes from its own start as the viewer opens, where a no
+     * starts loading the video: the yes there left the viewer black for a moment until the first page
+     * brought the video in (#237, a group's reel and a home feed reel, 585 emulator 2026-10-30). The
+     * asks after it get the yes, the one that would bring Facebook's "Up next" reel in among them.
+     * Never throws.
+     *
+     * @param source the data source asking.
+     */
+    public static boolean seedCheck(@Nullable Object source) {
+        if (!seedOnly(source)) return false;
+        try {
+            boolean first = false;
+            synchronized (FEEDS) {
+                for (Feed seen : FEEDS) {
+                    if (seen.feed.get() == source) {
+                        first = !seen.asked;
+                        seen.asked = true;
+                        break;
+                    }
+                }
+            }
+            if (!first) return true;
+            Logger.printDebug(() -> "Feed videos on their own: a tapped feed video's reels data source keeps Facebook's answer on its first ask, so the video starts loading");
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "seed video only", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Whether a reels data source shows its seed video alone, which skips both the reels Facebook
+     * would add after it and every later fetch more. True answers yes. The data source of a feed's
+     * ordinary video keeps Facebook's answer: the yes also skips the first page that brings that
+     * video to the viewer, which then stands empty for up to a second longer (#237, 584 emulator
+     * 2026-10-27), and no reels follow such a video anyway, its feed's fetch more being held and its
+     * list showing no loading page. Never throws.
      *
      * @param source the data source asking.
      */

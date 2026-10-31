@@ -78,6 +78,7 @@
           "Stop swiping between tabs",
           "Ask before a like",
           "Ask before a refresh",
+          "Skip the collections tray",
           "Show a post's exact time",
           "Show hidden like counts",
           "Back leaves Home",
@@ -88,7 +89,9 @@
           "Long press to zoom",
           "Rounded post corners",
           "Full screen Reels and Home",
-          "Hide Follow on feed posts"
+          "Hide Follow on feed posts",
+          "Hide captions",
+          "Keep Home's top bar"
         ]
       },
       "anchors": [
@@ -200,6 +203,7 @@
           "Allow screenshots",
           "Keep in chat",
           "Swipe through a chat's reels",
+          "Chat history tools",
           "Ask before a call",
           "Message box buttons",
           "Full screen Reels and Home"
@@ -240,6 +244,7 @@
           "Hide AI-labeled reels",
           "Hide reels by caption words",
           "Clean up Reels",
+          "Keep the Reels top bar",
           "Don't send reel watch history",
           "Download any reel",
           "Turn off double tap to like",
@@ -485,6 +490,7 @@
           "HushGram launch screen",
           "Font",
           "Pick the app icon",
+          "Use the highest refresh rate",
           "Hide rows in Instagram's settings"
         ]
       },
@@ -504,6 +510,15 @@
             "op": "any",
             "patches": [
               "Accent color"
+            ]
+          }
+        },
+        {
+          "title": "Use the highest refresh rate",
+          "when": {
+            "op": "any",
+            "patches": [
+              "Use the highest refresh rate"
             ]
           }
         }

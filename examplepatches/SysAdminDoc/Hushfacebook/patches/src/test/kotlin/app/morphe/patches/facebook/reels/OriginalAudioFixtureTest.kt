@@ -13,10 +13,13 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.junit.Assert.assertEquals
@@ -102,13 +105,78 @@ class OriginalAudioFixtureTest {
         assertEquals("a declared build has no fixture", versions, checked)
     }
 
+    /**
+     * #148: the manifest parser reads the filtering mode and both dubbing switches once each, for a
+     * period with more than one audio set, and each read goes through the extension into the same
+     * register before Facebook's own code sees it.
+     */
     @Test
-    fun `the extension has the hook`() {
+    fun `each declared build's manifest parser hands its dubbing reads to the extension`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        try {
+            for (version in versions) {
+                for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                    val name = bundle.name
+                    AudioTrackFilterFingerprint.clearMatch()
+                    val context = PatchContexts.of(FixtureDex.classesHolding(bundle, FILTER_PERIOD_LOG))
+                    val parser = with(context) { AudioTrackFilterFingerprint.method }
+                    assertTrue("$name: the parser is static", AccessFlags.STATIC.isSet(parser.accessFlags))
+                    val stock = parser.code()
+                    assertEquals("$name: one read of each, in this order",
+                        listOf(AUDIO_FILTERING, DUBBING_SUPPORT, IN_PLAY_DUBBING), audioTrackReads(parser).map { it.second })
+
+                    // Positive control: this is the parser that picks a video's audio set. It checks the
+                    // language getter's answer against "device", and tells a dub (role 0x10) from the rest.
+                    assertTrue("$name: the parser doesn't check \"device\"", stock.any { it.string() == "device" })
+                    assertTrue("$name: the parser has no dub role",
+                        stock.any { it.opcode == Opcode.CONST_16 && (it as NarrowLiteralInstruction).narrowLiteral == DUB_ROLE })
+
+                    context.hookOriginalAudioTracks()
+                    context.hookOriginalAudioTracks()
+                    val patched = parser.code()
+                    assertEquals("$name: two instructions a read, once", stock.size + 6, patched.size)
+                    val reads = audioTrackReads(parser)
+                    for ((index, field) in reads) {
+                        val register = (patched[index] as TwoRegisterInstruction).registerA
+                        val ask = patched[index + 1]
+                        val hook = if (field == AUDIO_FILTERING) ORIGINAL_AUDIO_FILTERING else ORIGINAL_AUDIO_DUBBING
+                        assertEquals("$name: $field goes to the extension", hook, ask.called()?.toString())
+                        assertEquals("$name: handed $field", listOf(Opcode.INVOKE_STATIC, 1, register),
+                            listOf(ask.opcode, (ask as FiveRegisterInstruction).registerCount, ask.registerC))
+                        assertEquals("$name: its answer back in the same register", listOf(Opcode.MOVE_RESULT, register),
+                            listOf(patched[index + 2].opcode, (patched[index + 2] as OneRegisterInstruction).registerA))
+                    }
+                    val added = reads.flatMap { (index, _) -> listOf(index + 1, index + 2) }.toSet()
+                    assertEquals("$name: the rest is Facebook's", stock.map { it.opcode },
+                        patched.filterIndexed { index, _ -> index !in added }.map { it.opcode })
+                    checked += version
+                }
+            }
+        } finally {
+            AudioTrackFilterFingerprint.clearMatch()
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    @Test
+    fun `the extension has the hooks`() {
         val type = ORIGINAL_AUDIO.substringBefore("->")
-        val hook = ExtensionDex.classDef(type).methods.singleOrNull { it.name == "language" }
-        assertNotNull("the extension has no OriginalAudio.language", hook)
-        assertEquals("language's shape", ORIGINAL_AUDIO,
-            "${hook!!.definingClass}->${hook.name}(${hook.parameterTypes.joinToString("")})${hook.returnType}")
-        assertTrue("language isn't static", AccessFlags.STATIC.isSet(hook.accessFlags))
+        for (shape in listOf(ORIGINAL_AUDIO, ORIGINAL_AUDIO_DUBBING, ORIGINAL_AUDIO_FILTERING)) {
+            val name = shape.substringAfter("->").substringBefore("(")
+            val hook = ExtensionDex.classDef(type).methods.singleOrNull { it.name == name }
+            assertNotNull("the extension has no OriginalAudio.$name", hook)
+            assertEquals("$name's shape", shape,
+                "${hook!!.definingClass}->${hook.name}(${hook.parameterTypes.joinToString("")})${hook.returnType}")
+            assertTrue("$name isn't static", AccessFlags.STATIC.isSet(hook.accessFlags))
+        }
+    }
+
+    private companion object {
+        /** A log line only the manifest parser holds, the way to its class. */
+        const val FILTER_PERIOD_LOG = "Finish filterPeriod() for "
+
+        /** ExoPlayer's role flag for a dubbed track. */
+        const val DUB_ROLE = 0x10
     }
 }

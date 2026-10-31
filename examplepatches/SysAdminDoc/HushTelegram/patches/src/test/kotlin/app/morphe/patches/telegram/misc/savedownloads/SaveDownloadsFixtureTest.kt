@@ -56,7 +56,24 @@ class SaveDownloadsFixtureTest {
             val callback = context.resolveSaveDownloads()
             assertTrue("$name: ${callback.definingClass}", callback.definingClass.startsWith("Lorg/telegram/messenger/ImageLoader$"))
             val old = ImmutableMethod.of(callback)
+            val finishing = context.resolveFoundFiles()
+            assertEquals("$name: ${finishing.definingClass}", LOAD_OPERATION, finishing.definingClass)
+            val oldFinishing = ImmutableMethod.of(finishing)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { saveDownloadsPatch.execute(context) })
+
+            // Ahead of the state check, the three fields that say whether the finished file was downloaded.
+            val finish = finishing.controlBody()
+            val operation = finishing.implementation!!.registerCount - 4
+            assertTrue("$name: three locals below p0", operation >= 3)
+            assertEquals(listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC),
+                finish.take(5).map { it.opcode })
+            assertEquals(listOf(PATH_SAVE_DATA, CACHE_FILE_TEMP, STORAGE_CACHE_FINAL,
+                "$SAVE_DOWNLOADS->finishing(Ljava/lang/Object;Ljava/io/File;Ljava/io/File;)V"), finish.take(5).refs())
+            assertEquals(listOf(listOf(2, operation), listOf(0, 2), listOf(1, 2), listOf(2, 2), listOf(0, 1, 2)),
+                finish.take(5).map { it.namedRegisters() })
+            val stockFinish = oldFinishing.controlBody().filter { it.opcode != Opcode.NOP }
+            assertEquals("$name: onFinishLoadingFile's own code", stockFinish.map { it.opcode to it.controlRef() },
+                finish.drop(5).filter { it.opcode != Opcode.NOP }.map { it.opcode to it.controlRef() })
 
             val before = old.controlBody()
             val after = callback.controlBody()
@@ -90,8 +107,10 @@ class SaveDownloadsFixtureTest {
             assertEquals(listOf(MESSAGE_OBJECT, IS_SECRET_MEDIA, IS_GIF, IS_ROUND_VIDEO, IS_PHOTO, IS_VIDEO),
                 context.stub("photoOrVideo").refs())
             assertEquals(listOf(MESSAGE_OBJECT, PHOTO_THUMBS, PHOTO_SIZE, CLOSEST_PHOTO_SIZE), context.stub("photo").refs())
+            // View-once and timed media in any chat; the extension turns a secret chat's away (#9).
+            assertEquals(listOf(MESSAGE_OBJECT, IS_SECRET_MEDIA), context.stub("timedMedia").refs())
             for (stub in listOf("messageDocument", "fileOrSong", "savingForbidden", "secretChat", "attachName", "documentName",
-                "storedMessage", "photoOrVideo", "photo")) {
+                "storedMessage", "photoOrVideo", "photo", "timedMedia")) {
                 val method = context.mutableClassDefBy(SAVE_DOWNLOADS).method(stub)
                 assertTrue("$name: $stub", AccessFlags.PUBLIC.isSet(method.accessFlags) && AccessFlags.STATIC.isSet(method.accessFlags))
             }
@@ -132,11 +151,21 @@ class SaveDownloadsFixtureTest {
                 val read = storage.methods.single { it.toString() == STORED_MESSAGE }
                 read.accessFlags = read.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value
             },
+            "FileLoadOperation's download file isn't set in start alone" to { context ->
+                val operation = context.mutableClassDefBy(LOAD_OPERATION)
+                val start = operation.methods.single { method ->
+                    method.controlBody().any { it.opcode == Opcode.IPUT_OBJECT && it.controlRef() == CACHE_FILE_TEMP }
+                }
+                val at = start.controlBody().indexOfFirst { it.opcode == Opcode.IPUT_OBJECT && it.controlRef() == CACHE_FILE_TEMP }
+                start.replaceInstruction(at, "nop")
+            },
         )
         for ((why, change) in shapes) {
             val context = context(build)
             val callback = context.resolveSaveDownloads()
             val untouched = callback.controlBody().map { it.opcode to it.namedRegisters() }
+            val finishing = context.resolveFoundFiles()
+            val finishUntouched = finishing.controlBody().map { it.opcode to it.namedRegisters() }
             val stub = context.stub("attachName").map { it.opcode }
             change(context)
             try {
@@ -146,6 +175,7 @@ class SaveDownloadsFixtureTest {
                 assertTrue("$why: ${refused.message}", refused.message!!.contains(why))
             }
             assertEquals(why, untouched, callback.controlBody().map { it.opcode to it.namedRegisters() })
+            assertEquals(why, finishUntouched, finishing.controlBody().map { it.opcode to it.namedRegisters() })
             assertEquals(why, stub, context.stub("attachName").map { it.opcode })
             assertEquals(why, 0L, (context.mutableClassDefBy(SETTINGS_STATUS).method("saveDownloads").controlBody().first()
                 as WideLiteralInstruction).wideLiteral)

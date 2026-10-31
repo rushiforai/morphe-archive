@@ -107,46 +107,7 @@ val hideSponsoredReelsPatch = bytecodePatch(
         // Banners over a reel and mid-rolls are fetched while the reel plays, not in the page, so
         // the filters cannot see them. Their fetches return a failed future instead. Each caller
         // handles it as a network error: it stores no ad, and no query goes out.
-        val adBreakFetch = AdBreakFetchFingerprint.method.instructions()
-
-        // The banner helper. All banner requests go through it.
-        val bannerFetch = adBreakFetch.futureCallBefore(BANNER_FETCH_LOG)
-        mutableClassDefBy(bannerFetch.definingClass).methods
-            .filter { MethodUtil.methodSignaturesMatch(it, bannerFetch) }
-            .singleOrPatchException("$PATCH: the banner query helper $bannerFetch, declared on its own class")
-            .let(::returnFailedFuture)
-
-        // The ad-break server API. Each of its methods that returns a future is an ad query.
-        val videoFetcher = adBreakFetch.futureCallBefore(VIDEO_FETCH_LOG).definingClass
-        mutableClassDefBy(videoFetcher).methods
-            .filter { it.returnType == LISTENABLE_FUTURE }
-            .also { check(it.isNotEmpty()) { "$videoFetcher has no method that returns a future" } }
-            .forEach(::returnFailedFuture)
-
-        // The idle state runs its own video ad query on the GraphQL executor, which the whole app
-        // shares. Thus only this one executor call changes. The helper call has the same size and
-        // no arguments, so the next move-result gets the failed future.
-        val idleVideoFetch = ReelsVideoAdQueryFingerprint.method
-        val executeIndex = idleExecutorCallIndex(
-            idleVideoFetch.instructions(),
-            "${idleVideoFetch.definingClass}->${idleVideoFetch.name}",
-        )
-        idleVideoFetch.replaceInstruction(
-            executeIndex,
-            "invoke-static { }, ${failedFutureOn(idleVideoFetch.definingClass)}",
-        )
-
-        // An extended break, the longer ad break a video can queue up, runs its own query on the
-        // same shared executor, so its executor call gets the failed future too.
-        val extendedBreak = ExtendedBreakQueryFingerprint.method
-        extendedBreak.replaceInstruction(
-            idleExecutorCallIndex(
-                extendedBreak.instructions(),
-                "${extendedBreak.definingClass}->${extendedBreak.name}",
-                EXTENDED_BREAK_QUERY,
-            ),
-            "invoke-static { }, ${failedFutureOn(extendedBreak.definingClass)}",
-        )
+        holdAdBreakFetches()
 
         // The ad-break lookup retries a failed fetch each second while the reel plays. Its tick
         // returns -1, the value for a reel with no media, which stops the poller. The lookup then
@@ -166,6 +127,57 @@ val hideSponsoredReelsPatch = bytecodePatch(
 }
 
 /**
+ * Makes every ad-break fetch return a failed future: the banner helper, the ad-break server API's
+ * queries, and the idle state's and the extended break's own queries on the shared executor.
+ *
+ * <p>585 (Redex): the banner helper returns the SettableFuture it creates where 584 declared
+ * ListenableFuture, so [futureCallBefore] reads either. AdBreakFixtureTest runs this on every
+ * declared build.
+ */
+internal fun BytecodePatchContext.holdAdBreakFetches() {
+    val adBreakFetch = AdBreakFetchFingerprint.method.instructions()
+
+    // The banner helper. All banner requests go through it.
+    val bannerFetch = adBreakFetch.futureCallBefore(BANNER_FETCH_LOG)
+    mutableClassDefBy(bannerFetch.definingClass).methods
+        .filter { MethodUtil.methodSignaturesMatch(it, bannerFetch) }
+        .singleOrPatchException("$PATCH: the banner query helper $bannerFetch, declared on its own class")
+        .let(::returnFailedFuture)
+
+    // The ad-break server API. Each of its methods that returns a future is an ad query.
+    val videoFetcher = adBreakFetch.futureCallBefore(VIDEO_FETCH_LOG).definingClass
+    mutableClassDefBy(videoFetcher).methods
+        .filter { it.returnType == LISTENABLE_FUTURE }
+        .also { check(it.isNotEmpty()) { "$videoFetcher has no method that returns a future" } }
+        .forEach(::returnFailedFuture)
+
+    // The idle state runs its own video ad query on the GraphQL executor, which the whole app
+    // shares. Thus only this one executor call changes. The helper call has the same size and
+    // no arguments, so the next move-result gets the failed future.
+    val idleVideoFetch = ReelsVideoAdQueryFingerprint.method
+    val executeIndex = idleExecutorCallIndex(
+        idleVideoFetch.instructions(),
+        "${idleVideoFetch.definingClass}->${idleVideoFetch.name}",
+    )
+    idleVideoFetch.replaceInstruction(
+        executeIndex,
+        "invoke-static { }, ${failedFutureOn(idleVideoFetch.definingClass)}",
+    )
+
+    // An extended break, the longer ad break a video can queue up, runs its own query on the
+    // same shared executor, so its executor call gets the failed future too.
+    val extendedBreak = ExtendedBreakQueryFingerprint.method
+    extendedBreak.replaceInstruction(
+        idleExecutorCallIndex(
+            extendedBreak.instructions(),
+            "${extendedBreak.definingClass}->${extendedBreak.name}",
+            EXTENDED_BREAK_QUERY,
+        ),
+        "invoke-static { }, ${failedFutureOn(extendedBreak.definingClass)}",
+    )
+}
+
+/**
  * Makes the tick of the deferred-card ad-break state answer -1 ("no media"), so its poller stops.
  *
  * <p>577 names each state in the state's own class, so the class holding the literal is the state
@@ -174,7 +186,7 @@ val hideSponsoredReelsPatch = bytecodePatch(
  * other states. There the state is the type tested just before the literal, and the tick answers
  * -1 only for an instance of it, so the other states keep their own behaviour.
  */
-private fun BytecodePatchContext.stopDeferredCardPoller() {
+internal fun BytecodePatchContext.stopDeferredCardPoller() {
     val nameMethod = UnresolvedAdStateFingerprint.method
     val instructions = nameMethod.instructions()
     val literal = instructions.indexOfFirst { it.string == DEFERRED_CARD_STATE }
@@ -283,15 +295,21 @@ private fun BytecodePatchContext.returnFailedFuture(method: MutableMethod) =
         """,
     )
 
-/** The last call before [log] that returns a future. This is the fetch that the log reports. */
+/**
+ * The last call before [log] that returns a future. This is the fetch that the log reports. A
+ * call may declare either future type: 585's banner helper returns the SettableFuture it creates
+ * (584's declared ListenableFuture), and the caller stores both into a ListenableFuture field.
+ */
 internal fun List<Instruction>.futureCallBefore(log: String): MethodReference {
     val logIndex = indexOfFirst { it.string == log }
     check(logIndex >= 0) { "\"$log\" is not in the ad-break fetch" }
 
     return take(logIndex)
         .mapNotNull { it.methodReference }
-        .lastOrNull { it.returnType == LISTENABLE_FUTURE }
-        ?: throw PatchException("$PATCH: the ad-break fetch makes no call returning ListenableFuture before \"$log\"")
+        .lastOrNull { it.returnType == LISTENABLE_FUTURE || it.returnType == SETTABLE_FUTURE }
+        ?: throw PatchException(
+            "$PATCH: the ad-break fetch makes no call returning ListenableFuture or SettableFuture before \"$log\"",
+        )
 }
 
 /**

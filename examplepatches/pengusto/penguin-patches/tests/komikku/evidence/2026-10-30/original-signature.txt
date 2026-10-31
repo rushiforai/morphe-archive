@@ -1,0 +1,4 @@
+Signer #1 certificate DN: C=VN, ST=HN, L=Hanoi, O=Poupa Ltd., CN=Cuong Tran
+Signer #1 certificate SHA-256 digest: cbec121aa82ebb02aaa73806992e0368a97d47b5451ed6524816d03084c45905
+Signer #1 certificate SHA-1 digest: 65a6ab41021506b70279565b4e942a86fad2aa31
+Signer #1 certificate MD5 digest: 44093863ed008b93d94e1979cc893c71

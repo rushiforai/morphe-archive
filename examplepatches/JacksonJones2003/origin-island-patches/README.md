@@ -21,7 +21,7 @@ risk. See the [license](LICENSE) for details.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.10.0](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v1.10.1](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.10.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -62,8 +62,8 @@ risk. See the [license](LICENSE) for details.
 
 **🎯 Supported versions:**
 
-| 4.3.1 |
-| :---: |
+| 4.3.1 | 5.0.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -243,6 +243,7 @@ with the music apps vivo supports:
   Liking it in LastWave fills it on the card as well
 - the playlist shows the queue, and plays the song that is tapped
 - the lyrics LastWave loads for the song are shown, line by line
+- on LastWave 5.0.0 and later, the favorites and download lists LastWave has for the card stay available
 
 The patch also lets LastWave play a song asked for by voice when Android Auto prepares it before
 playing it, which LastWave ignored. Gemini only asks the music apps it works with for a song, so
@@ -260,6 +261,11 @@ The patch declares the action the card looks for on the media browser service of
 the card when it connects, and adds to the metadata what the card may show and control. It only hooks
 calls of the Android framework, which have the same names in every version of LastWave, except for
 the heart.
+
+Since version 5.0.0, LastWave answers the card itself: it declares the action, and has the heart, the
+loop mode button and the favorites and download lists. The patch leaves the heart and those lists to
+LastWave there, which also mirrors a like to YouTube Music, and adds the lyrics, the covers and the
+fix for voice searches. The rest of this section on the heart is about the versions before that.
 
 LastWave keeps its liked songs in a manager that it toggles a like with in a coroutine. Its classes are
 obfuscated, so the patch finds the manager, the toggle and how a coroutine is started by the text they

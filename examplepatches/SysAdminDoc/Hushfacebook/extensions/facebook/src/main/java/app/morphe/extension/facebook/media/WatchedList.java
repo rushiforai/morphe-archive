@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import app.morphe.extension.facebook.media.RecentlyWatched.Entry;
 
@@ -29,16 +30,30 @@ import app.morphe.extension.facebook.media.RecentlyWatched.Entry;
  * <p>The list lives in a preferences file of its own as one JSON array, so it never reaches the
  * settings export or the diagnostic report. It's read once, the first time it's needed, and every
  * change writes the whole array back. An entry that doesn't parse is left out of it.
+ *
+ * <p>Every read and write first drops the entries past {@link RecentlyWatched#keepTime}, and writes
+ * the array back when any went. An entry stamped more than {@link #CLOCK_SLACK_MS} ahead of the
+ * phone's clock goes too, since its age can't be told once the clock has been set back.
  */
 final class WatchedList {
     /** The preferences file, in Facebook's own preferences folder. Only this class writes it. */
     static final String FILE = "hushfacebook_recently_watched";
 
-    /** The one key the file holds. */
+    /** The key that holds the entries. */
     static final String KEY = "entries";
+
+    /**
+     * The key every write since entries expire adds. A list without it was kept by an earlier build,
+     * when entries stayed until they were cleared.
+     */
+    static final String VERSION = "v";
+    private static final int FORMAT = 1;
 
     /** How many entries are kept. The one watched longest ago goes first. */
     static final int MAX_ENTRIES = 500;
+
+    /** How far ahead of the clock an entry's time can be before it's taken as unknowable. */
+    static final long CLOCK_SLACK_MS = RecentlyWatched.DAY_MS;
 
     // The JSON names, short since the array is written whole on every change.
     private static final String KIND = "k";
@@ -67,13 +82,48 @@ final class WatchedList {
         String key = key(entry.kind, entry.id);
         Entry earlier = entries.remove(key);
         entries.put(key, earlier == null ? entry : entry.over(earlier));
-        Iterator<String> oldest = entries.keySet().iterator();
-        while (entries.size() > MAX_ENTRIES && oldest.hasNext()) {
-            oldest.next();
-            oldest.remove();
-        }
+        trim();
         save();
         return earlier == null;
+    }
+
+    /** Takes the entry for [kind] and [id] off. The one taken off, or null when there was none. */
+    @Nullable
+    synchronized Entry remove(String kind, String id) {
+        load();
+        Entry gone = entries.remove(key(kind, id));
+        if (gone != null) save();
+        return gone;
+    }
+
+    /**
+     * Puts [entry] back among the others by its time. False, and nothing changes, when its video or
+     * story is listed already, which is a newer watch, or its time is up.
+     */
+    synchronized boolean restore(Entry entry) {
+        load();
+        String key = key(entry.kind, entry.id);
+        if (entries.containsKey(key)) return false;
+        if (expired(entry.watchedAt, RecentlyWatched.clock.getAsLong(), RecentlyWatched.keepTime().ms())) return false;
+        List<Map.Entry<String, Entry>> others = new ArrayList<>(entries.entrySet());
+        entries.clear();
+        boolean placed = false;
+        for (Map.Entry<String, Entry> other : others) {
+            if (!placed && other.getValue().watchedAt > entry.watchedAt) {
+                entries.put(key, entry);
+                placed = true;
+            }
+            entries.put(other.getKey(), other.getValue());
+        }
+        if (!placed) entries.put(key, entry);
+        trim();
+        save();
+        return entries.containsKey(key);
+    }
+
+    /** Settles the list now: reads it, and writes it back without what's past its time. */
+    synchronized void age() {
+        load();
     }
 
     /** Every entry, the one watched last first. */
@@ -96,9 +146,16 @@ final class WatchedList {
         store.edit().clear().apply();
     }
 
+    /** Reads the list the first time, then drops what's past its time and writes it back if any went. */
     private void load() {
-        if (loaded) return;
-        loaded = true;
+        if (!loaded) {
+            loaded = true;
+            read();
+        }
+        if (dropExpired()) save();
+    }
+
+    private void read() {
         String saved = store.getString(KEY, null);
         if (saved == null) return;
         List<Entry> read = decode(saved);
@@ -111,8 +168,54 @@ final class WatchedList {
         }
     }
 
+    /** True when an entry went. */
+    private boolean dropExpired() {
+        if (entries.isEmpty()) return false;
+        long keepMs = RecentlyWatched.keepTime().ms();
+        if (keepMs <= 0) return false;
+        long now = RecentlyWatched.clock.getAsLong();
+        boolean dropped = false;
+        Iterator<Entry> each = entries.values().iterator();
+        while (each.hasNext()) {
+            if (expired(each.next().watchedAt, now, keepMs)) {
+                each.remove();
+                dropped = true;
+            }
+        }
+        return dropped;
+    }
+
+    /** Drops the one watched longest ago until there are {@link #MAX_ENTRIES}. */
+    private void trim() {
+        Iterator<String> oldest = entries.keySet().iterator();
+        while (entries.size() > MAX_ENTRIES && oldest.hasNext()) {
+            oldest.next();
+            oldest.remove();
+        }
+    }
+
     private void save() {
-        store.edit().putString(KEY, encode(entries.values())).apply();
+        store.edit().putString(KEY, encode(entries.values())).putInt(VERSION, FORMAT).apply();
+    }
+
+    /**
+     * Whether an entry watched at [at] is past a keep time of [keepMs] at [now]: as old as that or
+     * older, or stamped more than {@link #CLOCK_SLACK_MS} ahead of [now]. Never, for no limit.
+     */
+    static boolean expired(long at, long now, long keepMs) {
+        if (keepMs <= 0) return false;
+        if (at - now > CLOCK_SLACK_MS) return true;
+        return now - Math.min(at, now) >= keepMs;
+    }
+
+    /** Whether [store] holds a list an earlier build kept, before entries expired. */
+    static boolean olderList(SharedPreferences store) {
+        return store.contains(KEY) && !store.contains(VERSION);
+    }
+
+    /** Marks [store]'s list as this build's, so it's never taken for an older one again. */
+    static void markCurrent(SharedPreferences store) {
+        store.edit().putInt(VERSION, FORMAT).apply();
     }
 
     /** Where an entry sits: a reel's and a video's with one id are the same place. A story's is its card's. */

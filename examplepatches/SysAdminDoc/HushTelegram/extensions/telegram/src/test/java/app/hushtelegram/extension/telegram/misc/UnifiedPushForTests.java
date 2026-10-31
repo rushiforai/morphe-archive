@@ -21,6 +21,7 @@ public final class UnifiedPushForTests {
 
     private static final UnifiedPush.Telegram TELEGRAM = UnifiedPush.telegram;
     private static final Executor WORK = UnifiedPush.work;
+    private static final Runnable APPLY = OwnConnection.apply;
 
     /**
      * ntfy installed and signed up with an address in hand, through the real messages, with Telegram's
@@ -34,6 +35,7 @@ public final class UnifiedPushForTests {
             @Override public void release(String endpoint) {}
         };
         UnifiedPush.work = Runnable::run;
+        OwnConnection.apply = () -> {};
         ResolveInfo info = new ResolveInfo();
         info.activityInfo = new ActivityInfo();
         info.activityInfo.packageName = UnifiedPush.NTFY;
@@ -54,8 +56,11 @@ public final class UnifiedPushForTests {
         Context context = RuntimeEnvironment.getApplication();
         UnifiedPush.telegram = TELEGRAM;
         UnifiedPush.work = WORK;
+        OwnConnection.apply = APPLY;
         shadowOf(context.getPackageManager()).removeResolveInfosForIntent(new Intent(UnifiedPush.REGISTER), UnifiedPush.NTFY);
         UnifiedPush.prefs(context).edit().clear().commit();
+        OwnConnection.telegramStore.apply(context).edit().clear().commit();
+        OwnConnection.store.apply(context).edit().clear().commit();
     }
 
     private static String token(Context context) {

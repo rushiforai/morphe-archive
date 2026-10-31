@@ -39,10 +39,11 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
 /**
  * Hide posts from groups you're not in (#195) in the shared feed guard: a story posted in a group
  * whose join state is one Facebook shows its Join button for goes, and so does a story wrapping
- * one, the way a group post a friend commented on or shared reaches Home. A post in a group
- * you're in, a post you asked to join, a post with no group and a post whose state Home didn't
- * fetch stay, and so does one that can't be read. Off reads nothing, paused is stock, and the
- * report counts what each read found.
+ * one, the way a group post a friend commented on or shared reaches Home, and a story naming its
+ * group as its {@code target_group} instead of its {@code to}. A post in a group you're in, a post
+ * you asked to join, a post with no group and a post whose state Home didn't fetch stay, and so
+ * does one that can't be read. Off reads nothing, paused is stock, and the report counts what each
+ * read found.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -52,11 +53,12 @@ public class GroupPostsTest {
     enum Category { ORGANIC }
 
     /**
-     * Stands in for the accessors the rule reads through: a target per story, a state per target,
-     * and the post a story wraps.
+     * Stands in for the accessors the rule reads through: a target and a target group per story, a
+     * state per target, and the post a story wraps.
      */
     private static final class Stand {
         final Map<Object, Object> targets = new IdentityHashMap<>();
+        final Map<Object, Object> targetGroups = new IdentityHashMap<>();
         final Map<Object, Object> states = new IdentityHashMap<>();
         final Map<Object, Object> wrapped = new IdentityHashMap<>();
         int calls;
@@ -66,6 +68,15 @@ public class GroupPostsTest {
             BaseModelWithTree group = FeedGuardForTests.group();
             GraphQLStory story = new GraphQLStory();
             targets.put(story, group);
+            states.put(group, state);
+            return story;
+        }
+
+        /** A story posted to no profile that names a group whose join state is [state] as its target group. */
+        GraphQLStory inTargetGroup(Object state) {
+            BaseModelWithTree group = FeedGuardForTests.group();
+            GraphQLStory story = new GraphQLStory();
+            targetGroups.put(story, group);
             states.put(group, state);
             return story;
         }
@@ -83,6 +94,9 @@ public class GroupPostsTest {
                 Object target = targets.get(story);
                 if (target instanceof RuntimeException) throw (RuntimeException) target;
                 return target;
+            }, story -> {
+                calls++;
+                return targetGroups.get(story);
             }, target -> {
                 calls++;
                 Object state = states.get(target);
@@ -91,7 +105,7 @@ public class GroupPostsTest {
             }, story -> {
                 calls++;
                 return wrapped.get(story);
-            });
+            }, GroupPosts.SHAPE_PATCHED);
         }
     }
 
@@ -124,9 +138,13 @@ public class GroupPostsTest {
         assertTrue(GroupPosts.notJoined("CAN_JOIN"));
         assertTrue(GroupPosts.notJoined("CAN_REQUEST"));
         assertTrue("read through the wrapped post", GroupPosts.notJoined(GroupPosts.WRAPPED + "CAN_JOIN"));
+        assertTrue("read through the target group", GroupPosts.notJoined(GroupPosts.TARGET_GROUP + "CAN_JOIN"));
+        assertTrue("read through the wrapped post's target group",
+                GroupPosts.notJoined(GroupPosts.WRAPPED + GroupPosts.TARGET_GROUP + "CAN_REQUEST"));
         for (String kept : new String[] {"MEMBER", "REQUESTED", "CANNOT_JOIN_OR_REQUEST",
                 "UNSET_OR_UNRECOGNIZED_ENUM_VALUE", GroupPosts.NOT_A_GROUP, GroupPosts.READ_FAILED,
                 GroupPosts.WRAPPED + "MEMBER", GroupPosts.WRAPPED + GroupPosts.NOT_A_GROUP,
+                GroupPosts.TARGET_GROUP + "MEMBER", GroupPosts.WRAPPED + GroupPosts.TARGET_GROUP + "MEMBER",
                 GroupPosts.NO_WRAPPED_READER, null}) {
             assertFalse(kept, GroupPosts.notJoined(kept));
         }
@@ -180,7 +198,7 @@ public class GroupPostsTest {
         stand.targets.put(onAPage, page);
         stand.states.put(page, JoinState.CAN_JOIN);
         assertFalse(guard(onAPage, stand.readers()));
-        assertEquals("the two targets and the own post's wrapped post were read", 3, stand.calls);
+        assertEquals("the two targets, both target groups and the own post's wrapped post were read", 5, stand.calls);
 
         String route = line(GroupPosts.ROUTE);
         assertNotNull(route);
@@ -229,6 +247,50 @@ public class GroupPostsTest {
         String feed = line(FeedFilter.FEED_ROUTE);
         assertNotNull(feed);
         assertTrue(feed, feed.contains("Group:" + GroupPosts.WRAPPED + "CAN_JOIN 1"));
+    }
+
+    /**
+     * A group post whose {@code to} is empty, or is a Page, can still name its group as its
+     * {@code target_group} (the fourth report on #195): that group decides, straight or wrapped in
+     * a friend's activity, and the report says the read went through it. A group as {@code to}
+     * wins, and a build whose story has no {@code target_group} reads {@code to} alone.
+     */
+    @Test
+    public void aPostNamingItsGroupAsItsTargetGroupGoesByThatGroup() {
+        Settings.HIDE_GROUP_POSTS_NOT_JOINED.save(true);
+        Stand stand = new Stand();
+        assertTrue("posted to no profile, a public group as its target group",
+                guard(stand.inTargetGroup(JoinState.CAN_JOIN), stand.readers()));
+        assertTrue("a group that asks first as its target group",
+                guard(stand.inTargetGroup(JoinState.CAN_REQUEST), stand.readers()));
+        assertFalse("your group as its target group", guard(stand.inTargetGroup(JoinState.MEMBER), stand.readers()));
+        GraphQLStory onAPage = stand.inTargetGroup(JoinState.CAN_JOIN);
+        stand.targets.put(onAPage, new BaseModelWithTree("Page") { });
+        assertTrue("posted to a Page, a public group as its target group", guard(onAPage, stand.readers()));
+        assertTrue("a friend's comment on one",
+                guard(stand.wrapping(stand.inTargetGroup(JoinState.CAN_JOIN)), stand.readers()));
+        assertFalse("a friend's comment on one from your group",
+                guard(stand.wrapping(stand.inTargetGroup(JoinState.MEMBER)), stand.readers()));
+        GraphQLStory both = stand.inGroup(JoinState.MEMBER);
+        BaseModelWithTree other = FeedGuardForTests.group();
+        stand.targetGroups.put(both, other);
+        stand.states.put(other, JoinState.CAN_JOIN);
+        assertFalse("your group as to wins over the target group", guard(both, stand.readers()));
+        assertFalse("no reader of the target group", guard(stand.inTargetGroup(JoinState.CAN_JOIN),
+                new GroupPosts.Readers(story -> stand.targets.get(story), target -> stand.states.get(target))));
+
+        String route = line(GroupPosts.ROUTE);
+        assertNotNull(route);
+        assertTrue(route, route.contains("8 lists, 8 items, 4 removed"));
+        assertTrue(route, route.contains("Group:" + GroupPosts.TARGET_GROUP + "CAN_JOIN 2"));
+        assertTrue(route, route.contains("Group:" + GroupPosts.TARGET_GROUP + "CAN_REQUEST 1"));
+        assertTrue(route, route.contains(GroupPosts.TARGET_GROUP + "MEMBER 1"));
+        assertTrue(route, route.contains("Group:" + GroupPosts.WRAPPED + GroupPosts.TARGET_GROUP + "CAN_JOIN 1"));
+        assertTrue(route, route.contains(GroupPosts.WRAPPED + GroupPosts.TARGET_GROUP + "MEMBER 1"));
+        assertTrue(route, route.contains(GroupPosts.NO_WRAPPED_READER + " 1"));
+        String feed = line(FeedFilter.FEED_ROUTE);
+        assertNotNull(feed);
+        assertTrue(feed, feed.contains("Group:" + GroupPosts.TARGET_GROUP + "CAN_JOIN 2"));
     }
 
     @Test
@@ -308,9 +370,9 @@ public class GroupPostsTest {
 
     /**
      * A story posted to no profile and wrapping no story (the third report on #195) gets its shape on
-     * the debug line: the type names its title's ranges point at, its shareable, and each attachment's
-     * target, a group's with its join state. At most {@link GroupPosts#SHAPE_LIMIT} a list, and a post
-     * in a group gets no shape.
+     * the debug line: its target group with its join state, the type names its title's ranges point
+     * at, its shareable, and each attachment's target, a group's with its join state. At most
+     * {@link GroupPosts#SHAPE_LIMIT} a list, and a post in a group gets no shape.
      */
     @Test
     public void theDebugLineSaysWhereAStoryPostedToNoProfileNamesAGroup() {
@@ -344,16 +406,19 @@ public class GroupPostsTest {
                     entities::get,
                     s -> s == story ? Arrays.asList(toGroup, toVideo) : null,
                     targets::get,
-                    target -> stand.states.get(target));
-            GroupPosts.Readers readers = new GroupPosts.Readers(stand.targets::get, stand.states::get, s -> null, shape);
+                    target -> stand.states.get(target),
+                    s -> s == longTitle ? group : null);
+            GroupPosts.Readers readers = new GroupPosts.Readers(stand.targets::get, s -> null, stand.states::get, s -> null,
+                    shape);
 
             guard(story, readers);
             guard(longTitle, readers);
             guard(stand.inGroup(JoinState.MEMBER), readers);
             String log = LogBufferManager.buildExportText();
             assertTrue(log, log.contains(" group=" + GroupPosts.NO_TARGET
-                    + " shape=title:User+Group;shareable:-;attachments:Group/CAN_JOIN+Video"));
-            assertTrue(log, log.contains(" shape=title:User+User+User+User+more;shareable:-;attachments:-"));
+                    + " shape=target_group:-;title:User+Group;shareable:-;attachments:Group/CAN_JOIN+Video"));
+            assertTrue(log, log.contains(
+                    " shape=target_group:Group/CAN_JOIN;title:User+User+User+User+more;shareable:-;attachments:-"));
             assertTrue(log, log.contains(" group=MEMBER"));
             assertFalse(log, log.contains(" group=MEMBER shape="));
             assertNull("the debug line counted as a read of the rule", line(GroupPosts.ROUTE));
@@ -366,12 +431,12 @@ public class GroupPostsTest {
     /** A build whose patch filled none of the shape's accessors says so with a "?" each, and nothing throws. */
     @Test
     public void theShapeOfAnUnpatchedBuildSaysSo() {
-        assertEquals("title:?;shareable:?;attachments:?",
+        assertEquals("target_group:?;title:?;shareable:?;attachments:?",
                 GroupPosts.shape(new GraphQLStory(), GroupPosts.SHAPE_PATCHED));
         assertEquals(GroupPosts.RELEASED, GroupPosts.shape(new GraphQLStory().released(), GroupPosts.SHAPE_PATCHED));
         GroupPosts.ShapeReaders throwing = new GroupPosts.ShapeReaders(s -> {
             throw new IllegalStateException("tree gone");
-        }, s -> null, t -> null, r -> null, s -> null, a -> null, g -> null);
+        }, s -> null, t -> null, r -> null, s -> null, a -> null, g -> null, s -> null);
         assertEquals(GroupPosts.READ_FAILED, GroupPosts.shape(new GraphQLStory(), throwing));
     }
 

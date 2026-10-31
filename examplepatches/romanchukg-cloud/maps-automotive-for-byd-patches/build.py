@@ -12,8 +12,8 @@ import sys
 import zipfile
 
 CLI_SHA256 = "1b506ab5f03d16a2f65026d5e0e1910d01fc1e2152f21eaeb44ed2f30856597b"
-ARTIFACT = "maps-automotive-for-byd-morphe-preview.10.mpp"
-VERSION = "0.1.0-preview.10"
+ARTIFACT = "maps-automotive-for-byd-morphe-preview.11.mpp"
+VERSION = "0.1.0-preview.11"
 PATCH_NAME = "Maps Automotive for BYD (MicroG-RE TEST)"
 ROOT = Path(__file__).resolve().parent
 
@@ -126,7 +126,7 @@ def main():
     manifest = (
         "Manifest-Version: 1.0\r\n"
         "Name: Maps Automotive for BYD + Gemini (TEST)\r\n"
-        "Description: TEST Maps55J (car icon, 3D car, Send to car) and optional Google20 Gemini support for MicroG-RE\r\n"
+        "Description: TEST Maps55K (car icon, still 3D car, Send to car) and optional Google20 Gemini support for MicroG-RE\r\n"
         "Version: " + VERSION + "\r\n"
         "Author: romanchukg-cloud\r\n"
         "License: GPL-3.0-only\r\n"
@@ -164,7 +164,7 @@ def main():
     record = {
         "agent": "Claude",
         "status": "prepared_not_published",
-        "maps_functional_revision": "55J",
+        "maps_functional_revision": "55K",
         "google_functional_revision": "20",
         "google_input": "17.62.11.ve.arm64/301813762/API32+",
         "patch_names": [PATCH_NAME, "Google app for BYD (MicroG-RE TEST)"],

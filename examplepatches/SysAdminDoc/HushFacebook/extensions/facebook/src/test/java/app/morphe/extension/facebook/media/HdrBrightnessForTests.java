@@ -37,4 +37,9 @@ public final class HdrBrightnessForTests {
     public static boolean dropsTheHdrRendition() {
         return !SdrRenditions.manifest(SDR_AND_HDR_MANIFEST).equals(SDR_AND_HDR_MANIFEST);
     }
+
+    /** Whether a player Facebook puts on a SurfaceView draws into its TextureView instead. */
+    public static boolean drawsVideosWithTheScreen() {
+        return !TextureVideo.surfaceView(true) && TextureVideo.preferTextureView(false);
+    }
 }

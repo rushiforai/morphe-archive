@@ -1,0 +1,63 @@
+{
+  "capturedAt": "2026-10-30T13:02:36.814416+00:00",
+  "serial": "emulator-5580",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Back",
+      "class": "android.view.View",
+      "bounds": "[0,48][112,154]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Playing From All Tracks\nAll Tracks (from \"Output Controls\")",
+      "class": "android.view.View",
+      "bounds": "[336,66][764,136]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Artwork for Output Controls. Tap to toggle playback. Swipe left or right to switch tracks.",
+      "class": "android.view.View",
+      "bounds": "[428,176][688,412]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Penguin synthetic lyrics",
+      "class": "android.view.View",
+      "bounds": "[40,434][1076,518]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Player actions remain reachable.",
+      "class": "android.view.View",
+      "bounds": "[40,518][1076,584]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "7a089d59fed84f59aff7be7c8b9bdc6597bc9d93fa1215de453cb58526ed908e"
+}

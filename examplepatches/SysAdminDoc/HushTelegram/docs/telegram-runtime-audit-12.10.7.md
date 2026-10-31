@@ -244,6 +244,25 @@ The guest PCAP held 128 packets, with 130 reported received by the filter and no
 
 The initial emulator-console captures missed guest Wi-Fi traffic and were rejected for endpoint analysis. A separate app-stopped counter control recorded zero bytes over 120.238 seconds. That isn't a background or natural-Doze control. Temporary emulator power/timeout changes were restored, the emulator was stopped, and later work used the S22 as requested.
 
+## Patched 13.1.0 recheck (2026-10-30)
+
+Telegram web 13.1.0 patched with HushTelegram 0.0.21 ran signed in on the S22. Every state used the same steps: a global search for "android" from the chat list, then a visit to the public @telegram channel, scrolled back through older posts and down to the newest. Nothing was joined, opened or tapped. Counts are the change in HushTelegram's diagnostic report between exports taken before and after each state.
+
+| State | Search | Channel | Diagnostic counters |
+|---|---|---|---|
+| Hide ads and Stop usage reports on (two searches, two visits) | Three results, no Ad row | Every post shows its view count | 8 search ad requests, 7 sponsored message requests and 11 read metrics reports skipped |
+| Both off | An Ad row above the same three results | Every post shows its view count, no sponsored post | Hooks called 7 and 5 times, nothing skipped |
+| Hide ads back on | Three results, no Ad row | | 4 search ad requests skipped |
+| Paused, both saved on | No Ad row for "android", an Ad row for "music" | Every post shows its view count | Hooks called, nothing skipped, every family line marked paused |
+
+Each search counted four skipped requests, since Telegram asks again for each prefix of four or more letters as the query is typed. Read metrics stopped only while Stop usage reports was on, and view counts kept loading in every state. No dual-camera report went out in any state, and the report lists none, so it doesn't claim a suppression that never happened.
+
+Telegram doesn't serve a search ad every time. A repeat of the "android" search with Hide ads still off showed no Ad row, so the switched-back-on row in the table isn't proof by itself. The code covers the cached case. Global search keeps the sponsored list from its last request while the query text stays the same and asks again only when the text changes, which is where Hide ads hooks in. Reaching HushTelegram settings closes search, and that clears both the query and the list. The channel and video hooks sit at the start of their methods, ahead of Telegram's own caches.
+
+With Hide ads off, neither @telegram nor @durov showed a sponsored post below the newest one. Channel ad suppression still has no positive control on this account.
+
+Samsung TalkBack, moved by keyboard over the paused "music" search, read the sponsored row as its name, username and subscriber count and never said "Ad". The badge is drawn on the row rather than exposed as text, the same gap the 12.10.7 hierarchy showed. That's stock Telegram behavior.
+
 ## Coverage limits
 
 The stock walkthrough doesn't validate patched behavior. Video-player ads, bot ads and Stories ad delivery were not positively observed. Calls, incoming push delivery, dual-camera events, background media playback, overnight idle and natural Doze remain separate checks. Native request logs established several local request paths, but the packet capture cannot associate individual encrypted packets with those requests or verify their payloads.
@@ -253,8 +272,8 @@ This beta is covered by the repository's declared fixture tests for channel/vide
 | Area | Evidence available | Remaining acceptance |
 |---|---|---|
 | Welcome and sign-in | Signed-out web screenshots, manually completed beta login | Verification delivery variants and account recovery |
-| Search ads | Visible Ad badge, sponsored fetch and impression send lines | Patched on/off/paused states, cached ads, TalkBack label |
-| Public-channel browsing | Navigation, media fetches, channel reads/views, read-metrics send lines | Controlled channel/video ad inventory and patched suppression |
+| Search ads | Visible Ad badge, sponsored fetch and impression send lines, patched 13.1.0 on/off/paused states | Stock TalkBack doesn't speak the Ad badge |
+| Public-channel browsing | Navigation, media fetches, channel reads/views, read-metrics send lines, patched 13.1.0 read metrics and view counts | Channel/video ad inventory for a patched off-state control |
 | Settings and privacy | Five detailed settings areas, OS permission snapshot, reviewed screenshots | Effects of changing sync, download, autoplay or notification controls |
 | Background operation | Bounded UID/CPU counters, services/jobs/alarms and capture observations | Repeated unplugged tests, natural Doze, incoming message delivery |
 | Customization | Native themes, gestures, browser, media and notification controls | Patch-specific rendering, gesture and accessibility checks |

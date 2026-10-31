@@ -46,7 +46,7 @@ table, and verify with the recipe in the "Verifying a change" section.
 | seek-bar binder (VR player controls) | `gtw.<init>(View, …)`: binds `R.id.seekbar` (0x7f0b0a23), `seekbar_buffered` (a25), `seekbar_container` (a26), `seekbar_position` (a29), `seekbar_thumb` (a2a) | those five inlined ints, referenced together by no other method (`findint`; `R.id.seekbar` on its own also appears in `SeekBarPreference.a`) | SponsorBlock seek-bar markers (attaches the marker layer over the played bar; the two ids it needs are baked in at app start) |
 | seek-bar timeline update | `gtw.e(J,J,J,J)V` = `(positionMs, windowStartMs, durationMs, bufferedMs)`; the body sets `seekbar_position.width = (position-windowStart)/(duration-windowStart) × (parentWidth − track margins)`, the buffered bar's width, and the two time labels | same class + the `(J J J J)V` shape + a `setLayoutParams` call (the class's synthetic `k(JJJJ)V` bridge only forwards and is deliberately not hooked) | SponsorBlock seek-bar markers (mirrors exactly that geometry to place the category bars) |
 | the settings column | `R.id.settings_fragment_holder` (0x7f0b0a51) inside the settings card — the FrameLayout the app's settings content is added to; its siblings are `sign_in_fragment_holder` (0x7f0b0aa8) and `environment_settings_fragment_holder` (0x7f0b03af) | the ids' names (looked up in `R.java`); the layout references them, no code does | **no longer used**: the "Patch settings" rows are preferences in the app's own `res/xml/settings_prefs.xml` now (Addendum 14), and the holder was only ever a way to place a view over that list |
-| where the settings rows come from | `res/xml/settings_prefs.xml` (immersive) / `panel2_settings_prefs.xml` (panel mode), inflated by the fragment `fzf` instantiates into `R.id.settings_fragment` (`fyr` for environments, `fzb` for the main screen) | the files themselves; androidx inflates them by element name | Patch settings: the section and its switches are appended to those files at the top, so the app builds them as its own rows |
+| where the settings rows come from | `res/xml/settings_prefs.xml` (immersive) / `panel2_settings_prefs.xml` (panel mode), inflated by the fragment `fzf` instantiates into `R.id.settings_fragment` (`fyr` for environments, `fzb` for the main screen) | the files themselves; androidx inflates them by element name | Patch settings: one "Patch settings" row is inserted at the top of those lists and opens the hub. The hub and the SponsorBlock screen replace the contents of two dead preference XMLs; the switches are not appended onto the main lists |
 | the player-controls layout | `R.layout.watch_layer_panel`, inflated by the controls fragment (`ftp.fQ`) and hosted in `R.id.player_controls_holder`; the settings panel (`fyi`, entity `SETTINGS_PANEL`) inflates `R.layout.accounts_and_settings_fragment` instead. **The controls view is built at launch**; the earlier "built lazily" note was a symptom of our own bad injection (a wide-argument `invoke` without `/range` made ART reject `gtw`, so the watch UI never built) | layout ids / the inflate call | not hooked — the "Patch settings" screen turned out not to need it (Addendum 14) |
 | client identity | VISIONOS 1.03 profile (`requireSABR=false`), upstream's `ANDROID_VR_SABR` (1.73.21 / Pico 4) for comparison | our own request construction | Extension (the streaming spoof) |
 
@@ -142,14 +142,18 @@ something we tested.
 
 - **Every `-O` on a command line belongs to the first `--enable`.** A second patch's option is silently
   dropped — the patcher binds `-O` to whichever patch was enabled first — so pass options through a
-  generated `--options-file` (which is what `scripts/patch-and-install.ps1` does) and assert the
-  *effective* values back out of `--result-file`. That assertion is the only place a dropped option
-  becomes visible at all.
-- **The official *Clone app* has to be its own pass**, with `--exclusive --enable "Clone app"`: patches
-  are filtered by package name, so anything after a rename applies 0 patches. And never select both
-  renamers in one run — both finalise, and the **official one wins**, because patches execute
-  alphabetically while their finalize blocks run in reverse. `-OfficialClone` disables ours for that
-  run so the script cannot walk into it.
+  generated `--options-file` (which is what `scripts/patch-and-install.ps1` does). Desktop 2.x
+  result files list applied patch names only, so a `--result-file` option readback is empty there.
+  The install script checks the options file it wrote, and checks the clone package id and the app
+  name in the patched APK (`AndroidManifest.xml`, `resources.arsc`).
+- **The official *Clone app* has to be its own pass**, with `--exclusive --enable "Clone app"` and
+  an options file that marks every other patch `enabled=false` (`-OnlyEnable`). `--exclusive` does
+  not stop a patch the file marks enabled, and the official bundle has universal default-on patches
+  (`Spoof signature` ran and then failed, because pass 2's input is already signed). Package
+  filtering is not what keeps that pass to one patch. Never select both renamers in one run — both
+  finalise, and the **official one wins**, because patches execute alphabetically while their
+  finalize blocks run in reverse. `-OfficialClone` disables ours for that run so the script cannot
+  walk into it.
 
 ## Traps that cost real time
 
@@ -229,6 +233,93 @@ something we tested.
   first; in a small method `p0` *is* `v0`, so copying clobbers `this` (VerifyError).
 - **`ad_playback` in the QOE ping is a late signal** and reads "no ad" in short sessions; the skip-ad
   countdown is the immediate one.
+
+## The patcher 2.x alignment (2026-10-30)
+
+The bundle compiles against `morphe-patcher = 2.0.0` — the version the official bundle builds
+against, binary-compatible with both current hosts (Manager 2.2.0 runs patcher 2.0.1, Desktop 1.20
+runs 2.1.0). The alignment is three changes and one measured discovery:
+
+- **Option data (issue #45).** On patcher 2.x a `values` map is `{display name: stored value}` —
+  both hosts render the keys and save the values, and the official bundle declares
+  `"Pure black" to "@android:color/black"`. This bundle's 1.x-shaped maps made Manager 2.2.0 store
+  the *label* (`Show on the seekbar only (never skips)`) when a category was changed, and the
+  patch refused it. All three option maps are declared 2.x-style now, `storedChoice` still resolves
+  the label a Manager has already persisted, and `PatchOptionValuesTest` pins them. The patcher's
+  own kdoc ("Eligible option values mapped to a human-readable name") still documents the 1.x
+  reading — trust the hosts and the official bundle, not the kdoc (see the AGENTS.md trap row).
+- **Source API: one rename.** `BytecodePatchContext.getAllClassesWithString(literal)` still exists
+  on 2.0/2.1 but is `@Deprecated(DeprecationLevel.HIDDEN)` — invisible to Kotlin source — and
+  delegates to `classDefByStrings(literal)`, which is the same exact-literal lookup and exists with
+  the same signature back to 2.0.0. (Do not confuse it with `getAllClassesWithStrings()` (plural),
+  the fingerprint scanner's walk over *every* class holding any string.) Everything else survived:
+  `Fingerprint` keeps its constructors, `strings`, and `val method`/`val classDef`;
+  `mutableClassDefBy(...)` keeps its three overloads — the ~30 compile errors the first 2.1 build
+  produced were entirely cascade from the one hidden method.
+- **The settings screens moved into a resource patch.** Desktop 2.x decodes resources **on
+  request** ("Decoding resources on request, N files can be decoded" — the
+  `ON_REQUEST_RESOURCE_DECODING` behavior on top of FULL mode): nothing exists under the decode
+  tree until a resource patch asks for it, so the old design — a bytecode patch walking the tree
+  off `fileWorkspace` — found an empty directory there and threw on a real 1.88.10 run (measured
+  2026-10-30). Manager 2.2.0 decodes everything up front ("Decoding all resources"), which is why
+  it never saw this. The XML restructuring now lives in the **Patch settings** resource patch,
+  whose `decode("**/res/xml/*", "**/res/values/*")` is the sanctioned trigger (a no-op on hosts
+  that already decoded); `sponsorBlockPatch` mines what only bytecode can (the dead screen's xml
+  resource id, the per-category behaviours from its options) and passes it through
+  `PatchSettingsState`, ordered by `dependsOn`. The final FULL encode compiles the edited XML and
+  the added `@array` resources on the on-request hosts too — verified on device: a Desktop-2.x
+  patch with the issue-#45 label values applied all eleven patches, installed, played, and logged
+  `effective: sponsor=seekbar-only` from the label it was fed.
+- **The audit reads merged dexes.** 2.x hosts merge the extension dex into the app's own dexes
+  instead of appending one — measured: injected call sites in `classes6.dex`, extension classes in
+  `classes7.dex` — so `audit-patched-apk.ps1` asks `DexAudit extmembers` for every
+  `Lapp/ytvr/extension/…` method and field across all dexes. A text scan of those dexes false-passed
+  on names the app already contains (`log`, `init`); taking the first dex that mentions
+  `CategoryRows` was the call-site dex and reported every source member missing.
+
+Known 2.x items deliberately **not** adopted here (revisit when they pinch):
+
+- The ExtensionPlugin half of the patches Gradle plugin: it applies **AGP** (compileSdk 36, a real
+  Android SDK, R8 minify) to every `extensions/` subproject. Adopting that means replacing this
+  repo's javac+d8 extension pipeline — its own decision; the settings plugin skips dirs without
+  build files, so `extensions/src` stays plugin-dormant.
+
+**Adopted on the same day (2026-10-30), completing the 2.x alignment:**
+
+- **The Gradle plugin itself**: `app.morphe.patches` 1.3.4 → 2.1.0-dev.1 (the settings-plugin
+  model; the stable v2.0.0 tag was never published to the registry — the official bundle rides
+  this dev line). It brings the same `buildAndroid`/`.mpp`/`patches { about { … } }` surface the
+  scripts and release flow already use, plus `Patcher-Version: 2.0.0` in the bundle manifest. The
+  extension pipeline in `patches/build.gradle.kts` is untouched. Catalog needed the `smali`
+  library alias the plugin reads. Resolving the plugin needs `read:packages` on the GitHub token
+  (one `gh auth refresh -h github.com -s read:packages`; the mavenLocal publish fallback was
+  tried and dropped — the plugin's Maven publications GPG-sign, which is a dev-machine setup the
+  README assumes).
+- **Bundle signing (`PatchBundleSignature`)**: `./gradlew :patches:generateSigningKey` wrote the
+  Ed25519 pair — `morphe-signing.pub` is committed (the pinned-key half Desktop 1.20+ verifies),
+  `morphe-signing.key` is gitignored (the official repo ignores exactly that name) and must reach
+  `release.yml` as the `MORPHE_SIGNING_KEY` secret, the same way the official repo wires it.
+  `buildAndroid` signs every bundle it assembles (verified: `MorpheSig1` zip comment with the
+  public key + Ed25519 signature); a mismatched key against the committed `.pub` fails the build,
+  and a key-less environment ships unsigned (hosts do not require a signature yet).
+- **Release-notes preset**: `.releaserc` → `.releaserc.js` with the
+  `.github/scripts/changelog-preset.mjs` wrapper (release-notes-generator `config` option). Two
+  fixes for the generated notes, which are read in Morphe Desktop's "Patch notes" viewer, not
+  only on GitHub: housekeeping types (`chore`/`docs`/`ci`/`test`/`refactor`/`style`/`build`) are
+  `effect: 'hidden'` — the Dependabot-bullet dump that v1.25.0 shipped above its first heading is
+  gone — and commit bodies render as an indented continuation under each entry (the
+  conventionalcommits template has no body slot, so the wrapper appends the body into `subject`
+  after the preset's own transform; the preset field is `effect`, **not** `hidden` — v10 renamed
+  it, and a `hidden: true` key silently keeps the entry). Release triggering (commit-analyzer
+  rules) is byte-equal to the old config. Dry test: `build/probe/changelog-drytest.mjs`.
+
+Building against 2.0.0 needs either `read:packages` on the GitHub token
+(`gh auth refresh -s read:packages`) or a `morphe-patcher` clone next to this repo whose
+`gradle.properties` `version` equals the catalog pin. `settings.gradle.kts` substitutes that
+sibling only then — a 2.1.0 checkout next to a 2.0.0 pin is left unused and resolved from the
+registry, because the smali jar is paired with the pin. CI never sees the sibling. The
+bundle now requires a 2.x host at run time: patcher 1.x runtimes have neither `classDefByStrings`
+nor the resource APIs (`decode`/`get`/`dependsOn`), so Desktop 1.19-and-earlier cannot apply it.
 
 ## Where the raw material is
 

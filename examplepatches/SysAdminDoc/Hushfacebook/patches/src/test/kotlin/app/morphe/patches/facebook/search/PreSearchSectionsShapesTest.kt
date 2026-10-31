@@ -36,7 +36,8 @@ import org.junit.Test
 /**
  * The pre-search item case in both shapes Facebook has built (#80): 583 reads an entry's module off
  * its node with a static reader, 584 tests the node for null first and reads the module with the
- * node's own accessor. Each gets its own hook, and a near miss of 584's shape gets none.
+ * node's own accessor. Each gets its own hook, and a near miss of 584's shape gets none. 585 asks for
+ * the node through an interface the entry's class declares, and gets 584's hook.
  */
 class PreSearchSectionsShapesTest {
     private val section = "Lfixture/Section;"
@@ -60,7 +61,10 @@ class PreSearchSectionsShapesTest {
             ImmutableMethodImplementation(8, body, null, null),
         )
 
-    private fun nodeRead() = call(Opcode.INVOKE_VIRTUAL, ref(entry, "A00", emptyList(), node), 1)
+    private val entryRows = "Lfixture/EntryRows;"
+
+    private fun nodeRead(opcode: Opcode = Opcode.INVOKE_VIRTUAL, owner: String = entry) =
+        call(opcode, ref(owner, "A00", emptyList(), node), 1)
 
     /** 583: node, its null test, the static reader, the module and its null test, then a tree to draw. */
     private fun staticItemCase() = method(section, "A2c", listOf(
@@ -80,14 +84,22 @@ class PreSearchSectionsShapesTest {
 
     /**
      * 584: node, its null test, the node's accessor, the module and its null test to the same empty
-     * row ([moduleJump] moves the second), then a tree to draw.
+     * row ([moduleJump] moves the second), then a tree to draw. 585 asks both with invoke-interface:
+     * [nodeCall] on [nodeOwner], and [accessorCall].
      */
-    private fun accessorItemCase(accessorOwner: String = node, receiver: Int = 0, moduleJump: Int = 10) =
+    private fun accessorItemCase(
+        accessorOwner: String = node,
+        receiver: Int = 0,
+        moduleJump: Int = 10,
+        nodeCall: Opcode = Opcode.INVOKE_VIRTUAL,
+        nodeOwner: String = entry,
+        accessorCall: Opcode = Opcode.INVOKE_VIRTUAL,
+    ) =
         method(section, "A2S", listOf(
-            nodeRead(), // 0, 3 units
+            nodeRead(nodeCall, nodeOwner), // 0, 3 units
             ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0), // 1, address 3
             ImmutableInstruction21t(Opcode.IF_EQZ, 0, 16), // 2, address 4, to 20
-            call(Opcode.INVOKE_VIRTUAL, ref(accessorOwner, "A00", emptyList(), module), receiver), // 3, address 6
+            call(accessorCall, ref(accessorOwner, "A00", emptyList(), module), receiver), // 3, address 6
             ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0), // 4, address 9
             ImmutableInstruction21t(Opcode.IF_EQZ, 0, moduleJump), // 5, address 10, to 20
             call(Opcode.INVOKE_STATIC, ref("Lfixture/Trees;", "A0M", listOf(module), tree), 0), // 6, address 12
@@ -122,8 +134,13 @@ class PreSearchSectionsShapesTest {
         ), static = true)),
     )
 
-    private fun hooked(itemCase: Method): List<Instruction> {
-        val context = PatchContexts.of(listOf(sectionClass(itemCase), listClass()))
+    /** The entry's tree class, declaring the interface 585's section asks for the node. */
+    private fun entryClass(): ClassDef = ImmutableClassDef(
+        entry, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", listOf(entryRows), null, null, null, emptyList<Method>(),
+    )
+
+    private fun hooked(itemCase: Method, extra: List<ClassDef> = emptyList()): List<Instruction> {
+        val context = PatchContexts.of(listOf(sectionClass(itemCase), listClass()) + extra)
         context.hookPreSearchSections()
         return context.mutableClassDefBy(section).methods.single { it.name == itemCase.name }.implementation!!.instructions.toList()
     }
@@ -163,6 +180,33 @@ class PreSearchSectionsShapesTest {
         assertEquals(0, preSearchSites(sectionClass(accessorItemCase(accessorOwner = "Lfixture/Other;")), entry).size)
         assertEquals(0, preSearchSites(sectionClass(accessorItemCase(receiver = 1)), entry).size)
         val refusal = assertThrows(PatchException::class.java) { hooked(accessorItemCase(moduleJump = 9)) }
+        assertTrue(refusal.message, refusal.message!!.contains("0 places"))
+    }
+
+    private fun interfaceItemCase(nodeOwner: String = entryRows) = accessorItemCase(
+        nodeCall = Opcode.INVOKE_INTERFACE, nodeOwner = nodeOwner, accessorCall = Opcode.INVOKE_INTERFACE,
+    )
+
+    @Test
+    fun `585 asks the entry's interface for the node and hands that over`() {
+        val site = preSearchSites(sectionClass(interfaceItemCase()), entry, setOf(entryRows)).single()
+        assertEquals(listOf(1, 0, 0, node, true), listOf(site.read, site.node, site.module, site.type, site.byNode))
+        val code = hooked(interfaceItemCase(), listOf(entryClass()))
+        val hand = code[2] as FiveRegisterInstruction
+        assertEquals(listOf(PRE_SEARCH_NODE, 1, 0), listOf(hand.call(), hand.registerCount, hand.registerC))
+        assertEquals(listOf(Opcode.MOVE_RESULT_OBJECT, 0), listOf(code[3].opcode, (code[3] as OneRegisterInstruction).registerA))
+        assertEquals(listOf(Opcode.CHECK_CAST, 0, node),
+            listOf(code[4].opcode, (code[4] as OneRegisterInstruction).registerA, ((code[4] as ReferenceInstruction).reference as TypeReference).type))
+        assertEquals("the node's null test follows", Opcode.IF_EQZ, code[5].opcode)
+    }
+
+    @Test
+    fun `an interface the entry doesn't declare, or no entry class to ask, is no site`() {
+        // Controls: the node asked of another interface, the entry's interfaces left out, and a patch
+        // with no entry class to read them from.
+        assertEquals(0, preSearchSites(sectionClass(interfaceItemCase("Lfixture/OtherRows;")), entry, setOf(entryRows)).size)
+        assertEquals(0, preSearchSites(sectionClass(interfaceItemCase()), entry).size)
+        val refusal = assertThrows(PatchException::class.java) { hooked(interfaceItemCase()) }
         assertTrue(refusal.message, refusal.message!!.contains("0 places"))
     }
 }

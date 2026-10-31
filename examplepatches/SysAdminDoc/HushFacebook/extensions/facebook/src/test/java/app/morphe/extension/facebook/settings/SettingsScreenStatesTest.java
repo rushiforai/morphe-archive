@@ -208,6 +208,23 @@ public class SettingsScreenStatesTest {
         }
     }
 
+    /** TalkBack read the News feed's "Hidden since Facebook started" and its count as two stops. */
+    @Test
+    public void aRowThatOnlyShowsSomethingIsOneScreenReaderStop() {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            ListView list = new ListView(controller.get());
+            Preference tally = HushfacebookPreferenceFragment.info(controller.get(),
+                    "Hidden since Facebook started", "87 posts and cards");
+            android.view.View shown = tally.getView(null, list);
+            assertTrue(shown.isScreenReaderFocusable());
+
+            // The list hands the same view to a row a tap acts on, which the list itself focuses.
+            SettingsRows.Row action = new SettingsRows.Row(controller.get());
+            action.setTitle("Import settings");
+            assertFalse(action.getView(shown, list).isScreenReaderFocusable());
+        }
+    }
+
     private static int alphaOf(android.view.View row, int id) {
         android.widget.TextView text = row.findViewById(id);
         assertNotNull(text);

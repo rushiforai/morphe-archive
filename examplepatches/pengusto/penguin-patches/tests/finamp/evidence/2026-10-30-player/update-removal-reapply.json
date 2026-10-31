@@ -1,0 +1,137 @@
+{
+  "bundle_sha256": "72921cf82a2a0787e5597721fa9e9291751e3f316e85614047593142df3eda12",
+  "sequence": [
+    127,
+    31,
+    0,
+    127
+  ],
+  "stages": [
+    {
+      "stage": "fixed-all127-jvm",
+      "mask": 127,
+      "method": "Manager Install / Android PackageInstaller",
+      "ui": {
+        "login_preserved_without_authentication": true,
+        "theme": "Dark",
+        "artist_order": "Metadata order",
+        "hide_bottom_actions": true,
+        "disable_gestures": true,
+        "downloads": {
+          "complete": 22,
+          "tracks": 8,
+          "images": 14,
+          "failed": 0
+        },
+        "stage": "fixed-all127-jvm",
+        "mask": 127,
+        "installed": {
+          "package": "com.unicornsonlsd.finamp",
+          "sha256": "0e133cb7f657fb06c52c101152d3ef7498381f3931fe907047569486c7f8c538"
+        },
+        "time": "2026-10-30T13:05:35.354854+00:00"
+      },
+      "all_22_download_files_byte_identical": true,
+      "download_manifest_sha256": "ea1a67db5561faf8f477a5bd7db93aaf6a4fc02be0a4846fa74ad2f512460c41",
+      "artist_preference_auxiliary_box": {
+        "bytes": 23,
+        "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af"
+      }
+    },
+    {
+      "stage": "fixed-no-player31",
+      "mask": 31,
+      "method": "Manager Install / Android PackageInstaller",
+      "ui": {
+        "login_preserved_without_authentication": true,
+        "theme": "Dark",
+        "artist_order": "Metadata order",
+        "hide_bottom_actions": true,
+        "disable_gestures": true,
+        "downloads": {
+          "complete": 22,
+          "tracks": 8,
+          "images": 14,
+          "failed": 0
+        },
+        "stage": "fixed-no-player31",
+        "mask": 31,
+        "installed": {
+          "package": "com.unicornsonlsd.finamp",
+          "sha256": "ee7e80c76bbb3a74f041a3142919fe40e94be9a5266a3ab1bd3d912d0f75259a"
+        },
+        "time": "2026-10-30T13:12:59.028513+00:00"
+      },
+      "all_22_download_files_byte_identical": true,
+      "download_manifest_sha256": "ea1a67db5561faf8f477a5bd7db93aaf6a4fc02be0a4846fa74ad2f512460c41",
+      "artist_preference_auxiliary_box": {
+        "bytes": 23,
+        "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af"
+      }
+    },
+    {
+      "stage": "fixed-original0",
+      "mask": 0,
+      "method": "same-key original-code baseline via adb install -r",
+      "ui": {
+        "login_preserved_without_authentication": true,
+        "theme": "Dark",
+        "hide_bottom_actions": true,
+        "disable_gestures": true,
+        "downloads": {
+          "complete": 22,
+          "tracks": 8,
+          "images": 14,
+          "failed": 0
+        },
+        "stage": "fixed-original0",
+        "mask": 0,
+        "installed": {
+          "package": "com.unicornsonlsd.finamp",
+          "sha256": "d26d87552850c50d5d178fd8636c6bc0f66493aad5c009ce9410454a48e9fcf0"
+        },
+        "time": "2026-10-30T13:14:54.075780+00:00"
+      },
+      "all_22_download_files_byte_identical": true,
+      "download_manifest_sha256": "ea1a67db5561faf8f477a5bd7db93aaf6a4fc02be0a4846fa74ad2f512460c41",
+      "artist_preference_auxiliary_box": {
+        "bytes": 23,
+        "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af"
+      }
+    },
+    {
+      "stage": "fixed-reapplied127",
+      "mask": 127,
+      "method": "fresh Manager apply/export/Install / Android PackageInstaller",
+      "ui": {
+        "login_preserved_without_authentication": true,
+        "theme": "Dark",
+        "artist_order": "Metadata order",
+        "hide_bottom_actions": true,
+        "disable_gestures": true,
+        "downloads": {
+          "complete": 22,
+          "tracks": 8,
+          "images": 14,
+          "failed": 0
+        },
+        "stage": "fixed-reapplied127",
+        "mask": 127,
+        "installed": {
+          "package": "com.unicornsonlsd.finamp",
+          "sha256": "8cd8fa6321c1142dea5347795a1e11efae672e036f9f10130cce15a058b042b0"
+        },
+        "time": "2026-10-30T13:18:46.158356+00:00"
+      },
+      "all_22_download_files_byte_identical": true,
+      "download_manifest_sha256": "ea1a67db5561faf8f477a5bd7db93aaf6a4fc02be0a4846fa74ad2f512460c41",
+      "artist_preference_auxiliary_box": {
+        "bytes": 23,
+        "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af"
+      }
+    }
+  ],
+  "same_signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+  "no_data_clear_or_uninstall": true,
+  "passed": true
+}

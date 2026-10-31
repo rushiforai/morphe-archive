@@ -38,7 +38,7 @@ public class InboxSearchSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.HIDE_INBOX_SEARCH.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
@@ -86,7 +86,7 @@ public class InboxSearchSettingsTest {
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         assertTrue(Settings.HIDE_INBOX_SEARCH.get());
-        assertEquals(36, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
+        assertEquals(37, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
     }
     @Test public void withTheNotesRowBothSitTogetherAtTheTopOfMessages() throws Exception {
         open(EnumSet.of(PatchFamily.NOTES_ROW, PatchFamily.INBOX_SEARCH));

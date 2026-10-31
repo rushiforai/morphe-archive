@@ -1,0 +1,48 @@
+name: Morphe patch bundle CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@v4
+      - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'ndk;29.0.14206865' 'cmake;3.22.1'
+      - run: ./gradlew --no-daemon :runtime:test :summary-engine:test :patches:build :patches:generatePatchesList :patches:buildAndroid --stacktrace
+      - name: Validate complete dual-runtime bundle
+        run: |
+          VERSION="$(jq -r '.version | ltrimstr("v")' patches-list.json)"
+          python3 scripts/prepare_release.py --binary "patches/build/libs/patches-$VERSION.mpp" \
+            --tag "v$VERSION" --output build/patches-bundle-candidate.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EBPatcher-patches-candidate
+          path: |
+            patches/build/libs/*.mpp
+            patches/build/libs/*.sha256
+            patches-list.json
+            build/patches-bundle-candidate.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: patch-test-reports
+          path: |
+            patches/build/reports/tests/
+            summary-engine/build/reports/tests/
+            runtime/build/reports/tests/

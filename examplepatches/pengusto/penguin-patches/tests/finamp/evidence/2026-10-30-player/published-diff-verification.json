@@ -1,0 +1,9 @@
+{
+  "source_base": "98f45b17686b1887849482d2fd9d0c20fc2477e3",
+  "source_feature": "8b4adc590944ddd177d3fdc42bf47518b3eb0c9d",
+  "expected_tree": "4eabc83ab4d2a2adeb2cbb4f08426afa011c8e99",
+  "applied_tree": "4eabc83ab4d2a2adeb2cbb4f08426afa011c8e99",
+  "published_diff_sha256": "f9576b01d15cf81994095037ae22ad4cd0daebadd4ce447b2fcbc04a62f434de",
+  "diff_applies_to_pinned_original_release_tree": true,
+  "working_tree_modified": false
+}

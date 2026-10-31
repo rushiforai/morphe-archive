@@ -570,7 +570,10 @@ public final class LastWaveMusicCardPatch {
     }
 
     private static MediaMetadata withMusicCardKeys(MediaMetadata metadata) {
-        long supportEvent = EVENT_PLAY_CONTROL | EVENT_MUSIC_INFO | EVENT_MUSIC_IMAGE
+        // LastWave tells the card what it may control itself since version 5.0.0, such as the heart
+        // and its lists, which this only adds to.
+        long supportEvent = metadata.getLong(KEY_SUPPORT_EVENT)
+                | EVENT_PLAY_CONTROL | EVENT_MUSIC_INFO | EVENT_MUSIC_IMAGE
                 | EVENT_SEEK_POSITION | EVENT_LIST_CURRENT | EVENT_MUSIC_LRC;
 
         Boolean liked = LastWaveLikes.isLiked();

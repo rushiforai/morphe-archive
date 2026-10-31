@@ -1,0 +1,2228 @@
+{
+  "1": {
+    "selected": [
+      "Fix section title validation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "32e636d9006092e77b6783b2db37061c688e7f03fd3aa3b28e4615484659bcbf",
+    "unsigned_apk_retained": false
+  },
+  "2": {
+    "selected": [
+      "Song artist order"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "f587692b27a8d10df7f0917da6737a05769242e10f2f27ec60089c2bec240a96",
+    "unsigned_apk_retained": false
+  },
+  "3": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "a866e443a19bebcf0c47ba004f9417b80d023132c51e80cc356c66e6abf88e97",
+    "unsigned_apk_retained": false
+  },
+  "4": {
+    "selected": [
+      "Load artist pages faster"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "9083bc938f92de25d51cec5de1b0ccdc4f11321cfa52c539443ef7b8b929ceba",
+    "unsigned_apk_retained": false
+  },
+  "5": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "2cd02423ca1b5ab260c2358857770254bdb2cd0b600286a033c2122ac98c0ffa",
+    "unsigned_apk_retained": false
+  },
+  "6": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "2e46cfc566cfbcf682908a9ba59b7c0af2b602ffb97faacf2c31a49e2050d018",
+    "unsigned_apk_retained": false
+  },
+  "7": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "b5827a4cdecd28de0b495ffc44c41cb209668fb840d76360659279ff46ef8cf2",
+    "unsigned_apk_retained": false
+  },
+  "8": {
+    "selected": [
+      "Fix offline artist tracks"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "640536784666b2429e5ec7bbb8ae5afa3843c22ab99a9daa1317f29d5449e46e",
+    "unsigned_apk_retained": false
+  },
+  "9": {
+    "selected": [
+      "Fix section title validation",
+      "Fix offline artist tracks"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "558e365762f33dece9a946e50c206a443b9c3e6c4b0b4177795978ebe2e702ba",
+    "unsigned_apk_retained": false
+  },
+  "10": {
+    "selected": [
+      "Song artist order",
+      "Fix offline artist tracks"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "efe874fe02c370e916e169b66619e674c655941fe767918f30e39b44a7dc05bf",
+    "unsigned_apk_retained": false
+  },
+  "11": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix offline artist tracks"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "41b69910f9a54044e1883d19a3e0f343e8cb3763c68b6fe00c08bf1af44e4650",
+    "unsigned_apk_retained": false
+  },
+  "12": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix offline artist tracks"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "254240ca9c55586425bdfc2787b5b04db5922ae5a2b624e106ef91fa1e4a370b",
+    "unsigned_apk_retained": false
+  },
+  "13": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix offline artist tracks"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "4d38273009c594b5971056c9fba5a9daad15efae2eeb278b7c72ee869ac93b4c",
+    "unsigned_apk_retained": false
+  },
+  "14": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "8426ac1409329d68bccb2e5cc27280be7db70ead268f7fc305b4d5969ca15e13",
+    "unsigned_apk_retained": false
+  },
+  "15": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "6840117785a6bc90c13c4b9cc946aa975a069c2e1d59260131db469cbaf225e0",
+    "unsigned_apk_retained": false
+  },
+  "16": {
+    "selected": [
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "4de6774f68727f1beecb2f617dd87dd6ce456e2b00b08aef722f77543f995311",
+    "unsigned_apk_retained": false
+  },
+  "17": {
+    "selected": [
+      "Fix section title validation",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "adeea2380152a5eac0172e5e2c5dfbeffdcb0c7dfef947841a575f7a73e75d68",
+    "unsigned_apk_retained": false
+  },
+  "18": {
+    "selected": [
+      "Song artist order",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "00c1049abca1db346e043aef588ce36538e8db1cc4f1fc2a053827ea1821eed2",
+    "unsigned_apk_retained": false
+  },
+  "19": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "55313c8880fab6298fb38afec6844ba00bbc7f0449edb95c8e7b31b326f6403d",
+    "unsigned_apk_retained": false
+  },
+  "20": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "fce2988bd60833ec65b52c4efa1dd8fc1715d1bb324ccf7b00189e0aee876ef5",
+    "unsigned_apk_retained": false
+  },
+  "21": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "dc64b003faec3528e1d2b5a143e7d74199e5705d6f257bcd1722975b6200f3e8",
+    "unsigned_apk_retained": false
+  },
+  "22": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "7eef29ea0d0a4e65a7a6dbc6ef23586abe2a26301dee6b6c3a0dd61e587d3924",
+    "unsigned_apk_retained": false
+  },
+  "23": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "7cbb150fa666746dcaa2e63be183e5b5f5e6a054e4903315e7166c09e37dcc4f",
+    "unsigned_apk_retained": false
+  },
+  "24": {
+    "selected": [
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "748e8c6ef243c19efd316377c4306dcc58059d67a59c45747215243fb077d542",
+    "unsigned_apk_retained": false
+  },
+  "25": {
+    "selected": [
+      "Fix section title validation",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "5481a89a037a299aee9f3b87b493ff442fe25b78e5fa3e504616560964cb3e59",
+    "unsigned_apk_retained": false
+  },
+  "26": {
+    "selected": [
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "87d77b44d12afb1073c9f2b9763ef2d53862242a8c394ee5e7ce51337d117046",
+    "unsigned_apk_retained": false
+  },
+  "27": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "32461f5fc2f3205ba7ecf76fc4423f9a5a6f55063b2530e565734affe81aa42e",
+    "unsigned_apk_retained": false
+  },
+  "28": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "9a23d7f072092d9748a9caa860f88ee71ae36c6c7c1e346e345e60b90b8c43d6",
+    "unsigned_apk_retained": false
+  },
+  "29": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "0d5b7854b3afe40fc8a4df5783fb864d0378eaacf2aad1c92dd949339d9657f0",
+    "unsigned_apk_retained": false
+  },
+  "30": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "66bc4876294ae9f3fec8f7ccf34d6bb76ad650a3cf7cdd1f519e5573926eabc5",
+    "unsigned_apk_retained": false
+  },
+  "31": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "11b8e674a79d1c29d281f1efe813e89456d76a3a0907e5d4a6e885add3646b16",
+    "unsigned_apk_retained": false
+  },
+  "32": {
+    "selected": [
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "b4a0c228b93b61c0868b36f1d4a3e02611cf2578477e2ff001fda510ff2ff7ad",
+    "unsigned_apk_retained": false
+  },
+  "33": {
+    "selected": [
+      "Fix section title validation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "a85001e02849b0ae7ea3bbd978fcd9f0836f64f5f6a30d728f7f0741a1810ed2",
+    "unsigned_apk_retained": false
+  },
+  "34": {
+    "selected": [
+      "Song artist order",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "965b8d8b9579e2a243c56a1a6be610169e4ac64fbb2f3af779ff4fe841dda1d4",
+    "unsigned_apk_retained": false
+  },
+  "35": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "528942a68dd4f44685922e9ead069a2b26ae9d3555fe4e2d5f43174dcd97261a",
+    "unsigned_apk_retained": false
+  },
+  "36": {
+    "selected": [
+      "Load artist pages faster",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "8267c8eb6bcae8561edba57aaf66616afa693ccbd3674b5187a6b39a058dc75c",
+    "unsigned_apk_retained": false
+  },
+  "37": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "d215d90f010098916716dc8a223600b1f2cde2df57f9a0f891097d3d9950accc",
+    "unsigned_apk_retained": false
+  },
+  "38": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "7478a8c13ba847e2eec7b2538dc46763b6f828ca633cf985de79581aabcde6cb",
+    "unsigned_apk_retained": false
+  },
+  "39": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "4a3a6b5f7d803d5b78e0da901e32d90e3209834540c4a8d543abac688cac985c",
+    "unsigned_apk_retained": false
+  },
+  "40": {
+    "selected": [
+      "Fix offline artist tracks",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "46d2453108cf93a43beb39de4dc663fad4de89e6fd46f8041007b2416766fbbb",
+    "unsigned_apk_retained": false
+  },
+  "41": {
+    "selected": [
+      "Fix section title validation",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "9352f74e5fe572dae6e1481aec65b174ea7acfb718bed4fbe8ae69bd359faae2",
+    "unsigned_apk_retained": false
+  },
+  "42": {
+    "selected": [
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "6fa65527eb6b6923a0aa18a54a672106bc4731be0ca71912004b249662af0f10",
+    "unsigned_apk_retained": false
+  },
+  "43": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "73a74e4625492f67b6f23857f0bd58d46ff5a0caadc8b3c8f33811c89022f942",
+    "unsigned_apk_retained": false
+  },
+  "44": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "658ee4dcf53265c27c7002fa380601bb6b44d0b8b2359cc702838b7b33948f67",
+    "unsigned_apk_retained": false
+  },
+  "45": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "a25d7943f428df4a017359df7ed4a04532a35e1fa76a82ee8c20db245c71bec7",
+    "unsigned_apk_retained": false
+  },
+  "46": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "5930d211dc77c4a8a3295437c3739c28859c3ab92c7dca55e6c9ac12e4463e19",
+    "unsigned_apk_retained": false
+  },
+  "47": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "c9a9db671ccd7c6cd96c5ae8dc70e74b08f565c47258a118cb881a173b365464",
+    "unsigned_apk_retained": false
+  },
+  "48": {
+    "selected": [
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "040c9668c211c08718db9a66d170d99ea20d02b826f19dac296417ae04e2fd33",
+    "unsigned_apk_retained": false
+  },
+  "49": {
+    "selected": [
+      "Fix section title validation",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "f8af8488cdbacbe40420df7295b011f9a3d94dd32e974a4b85f447bf7a13a25d",
+    "unsigned_apk_retained": false
+  },
+  "50": {
+    "selected": [
+      "Song artist order",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "5779d227a022792b4291b1a5166a1e89bd8464735f14c481008232136ec9be1a",
+    "unsigned_apk_retained": false
+  },
+  "51": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "3615f6a4b7580ce44c027d25f9df7cc63e18b1a6dc00f23fe56424500d75b1fc",
+    "unsigned_apk_retained": false
+  },
+  "52": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "eaa57e3c9346ac6cb9941a9435f9f529ebb14a43bc9239681d92081b35771bc5",
+    "unsigned_apk_retained": false
+  },
+  "53": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "e15c91fcd2aa349287ee003de39b60486818f740f53e85f867e1f692bb489398",
+    "unsigned_apk_retained": false
+  },
+  "54": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "b7f35e5c00876eb296707874eb95fcd90b8689e47f4dea7376bd4812d5e41fba",
+    "unsigned_apk_retained": false
+  },
+  "55": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "16d51f921f7078443e3627c09897a30c27441835d531359321fe5825a5e58cba",
+    "unsigned_apk_retained": false
+  },
+  "56": {
+    "selected": [
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "5a1dfcece28e01decb55326a4996fabcf3e8740cdce93dbc5b5afd51c95e2fa5",
+    "unsigned_apk_retained": false
+  },
+  "57": {
+    "selected": [
+      "Fix section title validation",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "0d0c956432d1ae76c107ffc5b3406e2f4945cd029e4929044eaf1e7c72a7f3a2",
+    "unsigned_apk_retained": false
+  },
+  "58": {
+    "selected": [
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "4badb312e43499687d703762d6be31b0691f2283ebbd7a91f455639b97f57802",
+    "unsigned_apk_retained": false
+  },
+  "59": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "36aacfcf28b64678b10c77f4943521130d56a099391aa185ed43007f1b421908",
+    "unsigned_apk_retained": false
+  },
+  "60": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "c69f252dbb36d1e828bc92b0e75b46be90113b48932fceaf3d8eba116890b54c",
+    "unsigned_apk_retained": false
+  },
+  "61": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "189d3d03bcad34be564d355919515ca31e7da87d6f77bb29752e317e67cdaa6b",
+    "unsigned_apk_retained": false
+  },
+  "62": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "0e2492395f81b13646517a0652f95a39e3b3c59cd32181bd9afda318d2c5dbac",
+    "unsigned_apk_retained": false
+  },
+  "63": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "444d9a23d873146843989681dd767ba6377badf8e5e8669db03367b88f5c566b",
+    "unsigned_apk_retained": false
+  },
+  "64": {
+    "selected": [
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "3ab3c194bb3d8c74a05df13b3ca517d5978e934283f4ecf8fd06462639982ee6",
+    "unsigned_apk_retained": false
+  },
+  "65": {
+    "selected": [
+      "Fix section title validation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "20f610a3697f2ddf515e278fd0beb259aedc5328bf3581272ef1f30ccce9a67b",
+    "unsigned_apk_retained": false
+  },
+  "66": {
+    "selected": [
+      "Song artist order",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "c81d2b0133ba47362321b035876e764eaabedd6909d4507c7e6a4d326421f812",
+    "unsigned_apk_retained": false
+  },
+  "67": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "025807ec2a4eeedfd15f22abae80e87fe89b67e5a07a1f1867d8eafee9b2f7a7",
+    "unsigned_apk_retained": false
+  },
+  "68": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "b7662b9121c1d8ce9b0ead2f9749e29fc2fa5f5224e1a26e367972f493531da1",
+    "unsigned_apk_retained": false
+  },
+  "69": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "ed3f90ec72b1ad4c31faba8e4f3fe06b30edb9a9324baa52df4f9f9f3be8ccdb",
+    "unsigned_apk_retained": false
+  },
+  "70": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "f77b8eda712e9e63966267d057913b887fac2d20b990c5f5233f4ea62f10608c",
+    "unsigned_apk_retained": false
+  },
+  "71": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "9ccbb28139611af4604a21753a5203c49e3debafbe769aa40c6b59565051e4aa",
+    "unsigned_apk_retained": false
+  },
+  "72": {
+    "selected": [
+      "Fix offline artist tracks",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "41c96654a58b4801d3f9634d4ce31821b7e524725a99759966931ae5c3836cd3",
+    "unsigned_apk_retained": false
+  },
+  "73": {
+    "selected": [
+      "Fix section title validation",
+      "Fix offline artist tracks",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "ad368e058c9eb08f3b047c2a048917abe23c43a30311454859b15e621492facd",
+    "unsigned_apk_retained": false
+  },
+  "74": {
+    "selected": [
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "a2f957f555fdfce1fc5c3c2a16c97d106c70a13965fceec6f49d947b72ccfc41",
+    "unsigned_apk_retained": false
+  },
+  "75": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "9d14b2b22d58b211dc2c380255627c74bc46e3a1905b872836493c4c05522025",
+    "unsigned_apk_retained": false
+  },
+  "76": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "b703711397721435337d0953cc77ac645707d954d6b5b6c8419e7f06a8083f85",
+    "unsigned_apk_retained": false
+  },
+  "77": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "1046e5ac873498e02079742b9a5caef78bf8857891a8b945109d0748b623f826",
+    "unsigned_apk_retained": false
+  },
+  "78": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "b1c1cea9459c1b24cb06193b052501017cc990baf943d72c79bc5e670adcae0f",
+    "unsigned_apk_retained": false
+  },
+  "79": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "ea41d9d2786158b1896297cbabda5c1477289b06acb7903c538c5b1cd3150c51",
+    "unsigned_apk_retained": false
+  },
+  "80": {
+    "selected": [
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "815ea5f41c57a819d2063f553b55681d30e5b475bd18f0dde8589edd4da78196",
+    "unsigned_apk_retained": false
+  },
+  "81": {
+    "selected": [
+      "Fix section title validation",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "d6cfca32f346dbcb0202a799ebda84a15cd566bf0ac4f88f268e7bde787b2a64",
+    "unsigned_apk_retained": false
+  },
+  "82": {
+    "selected": [
+      "Song artist order",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "ea7c489a6df90edf9b732e7cd5b60e921e92ed07b21d2e18135ea5228adf4fba",
+    "unsigned_apk_retained": false
+  },
+  "83": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "040211a0077a2f8474119e67c32ac72d94d80657bb15065a050057103311aa36",
+    "unsigned_apk_retained": false
+  },
+  "84": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "1072c837fde74da051cfd2cdeaf0ff66f6420ed946576798274d3b78ed6e66b7",
+    "unsigned_apk_retained": false
+  },
+  "85": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "402fe71f7cacbe84bb3d481ba896fb6b5e8c634212cf13361c3fb11f07de0a28",
+    "unsigned_apk_retained": false
+  },
+  "86": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "02cd2b9cb2ea3e3284f9d40451bd6f106ebf1ba24d3949f2a41869b8a1e01367",
+    "unsigned_apk_retained": false
+  },
+  "87": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "ba9c65b23ad7df198e48849dac21cffaa3c95ae347c446bb3a4b12f5b55c2170",
+    "unsigned_apk_retained": false
+  },
+  "88": {
+    "selected": [
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "1d16d888a52ebf65e175a5d5018a32a8af185e6430347a7a507646dde0dbcb86",
+    "unsigned_apk_retained": false
+  },
+  "89": {
+    "selected": [
+      "Fix section title validation",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "b5cc923ea895ed22b015cd11a8d842a4b3d1a5c1256f2d7b141a1bf7441cf0cb",
+    "unsigned_apk_retained": false
+  },
+  "90": {
+    "selected": [
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "488207f745b915187d0ecf72ee6ef21f5d7b47338b7a430430d99b3878e6308a",
+    "unsigned_apk_retained": false
+  },
+  "91": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "8d584177b71de5eb49529426bc46a6e81019d6a6aac66280f191be5130b9ca09",
+    "unsigned_apk_retained": false
+  },
+  "92": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "f65e10cb73cfa287b7824773ff9f14268791f1543e90aaf26662065419fceb46",
+    "unsigned_apk_retained": false
+  },
+  "93": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "81a1bece701bfdc812abb8d278ee059f13b9f933296402d2d12284c34a203157",
+    "unsigned_apk_retained": false
+  },
+  "94": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "77a7e736d5c80d4b97e6a94de2dbf5505c388f7bcf0455ecc7a4d6fccde1a51d",
+    "unsigned_apk_retained": false
+  },
+  "95": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "96f60b1fe2949eb36513030db05dc36e3d7274c01f4ad28792f2e3303a5c154c",
+    "unsigned_apk_retained": false
+  },
+  "96": {
+    "selected": [
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "533c94037851924423648018bdd454795a7bbb5b48da46ac671f737753837a8a",
+    "unsigned_apk_retained": false
+  },
+  "97": {
+    "selected": [
+      "Fix section title validation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "f319689819645bdde1962f1da225b42735229796158bdd944f7fd6b74e15ccc3",
+    "unsigned_apk_retained": false
+  },
+  "98": {
+    "selected": [
+      "Song artist order",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "604f2ea538298fdec8e693778c84799d91bfc60f3e2f459fa0427b0cf8d2ea21",
+    "unsigned_apk_retained": false
+  },
+  "99": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "47b0acb42de79127422a02135072dfe801736c8f27a796b137677f6bc4b9bc17",
+    "unsigned_apk_retained": false
+  },
+  "100": {
+    "selected": [
+      "Load artist pages faster",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "706e7f16b60ca27bb1df3b3dffe0f94fe2075d38503a91ede5f2a9622844618e",
+    "unsigned_apk_retained": false
+  },
+  "101": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "96f6a0cffc5305b96a031a77b4fbf0d1dc2410d47250ada7a321deca0c4d6281",
+    "unsigned_apk_retained": false
+  },
+  "102": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "5036bc8c02e8390441deed0a003ec5fb0c673dc19435cb30b6b2091718c7550b",
+    "unsigned_apk_retained": false
+  },
+  "103": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "b9d5c69d0282545a575389bbec7ff9bb3f8b9653d6767e4b5cfd764d4dbde734",
+    "unsigned_apk_retained": false
+  },
+  "104": {
+    "selected": [
+      "Fix offline artist tracks",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "f241b1f17e9374c21e9f49b682abefb4fe2563200a1fbb1be43fad657b71b87f",
+    "unsigned_apk_retained": false
+  },
+  "105": {
+    "selected": [
+      "Fix section title validation",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "31eff7d2e47144ba9a911b5d8406816f649a6ef85b9a9f9a73c814d759a17ab2",
+    "unsigned_apk_retained": false
+  },
+  "106": {
+    "selected": [
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "6e3930ab0b2f463eff2d99865266c5670dffa9b2d2030e23e00ed6781569b6e4",
+    "unsigned_apk_retained": false
+  },
+  "107": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "544283739c7a432aa45284613a4e0d74d97f1a226f523788a10f7409f9cca91e",
+    "unsigned_apk_retained": false
+  },
+  "108": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "4e8222ce19d5ed009022d8d899851dd6c2ceb6c7f63852918205a4bf1c01ecf3",
+    "unsigned_apk_retained": false
+  },
+  "109": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "437fdc792c2f1662e97e2a32c055d94618fb92a067ce3896d84d9f60d329193e",
+    "unsigned_apk_retained": false
+  },
+  "110": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "9f7465fe0b4780c3fe96ff2de52c3c8214b3fd5ef9a7b5f26b3e1831de4520f0",
+    "unsigned_apk_retained": false
+  },
+  "111": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "8bd24844c98471b45b891af1b7a750a86e7a884124e0204605809ed0d2364ef0",
+    "unsigned_apk_retained": false
+  },
+  "112": {
+    "selected": [
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "f566f1afeff0f0246dcfae07e43a0df84c903233fffe178fa5824c711c384ab3",
+    "unsigned_apk_retained": false
+  },
+  "113": {
+    "selected": [
+      "Fix section title validation",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "40247a9b5c9a227d5013608b36a4c69a8366500b22cff0acff5aa0b4ee301552",
+    "unsigned_apk_retained": false
+  },
+  "114": {
+    "selected": [
+      "Song artist order",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "cf44ffe2a03a1dab5df0ec26ce1fc809e561119444605f2c593730e53d2307b4",
+    "unsigned_apk_retained": false
+  },
+  "115": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "ef37cae0f0a24f09b88da2156b4dfa349b0bfe2eca170d03191e563b8dc4f55a",
+    "unsigned_apk_retained": false
+  },
+  "116": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "cba6c963403d8f14394074b6525deab1b80ea869ff16001ae6303883278c9981",
+    "unsigned_apk_retained": false
+  },
+  "117": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "7b7c110f7f136a0e8c6a1fb343c74b72920732b79ac100ce793bccf537a4e8cc",
+    "unsigned_apk_retained": false
+  },
+  "118": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "ad1d02e6f87fa5596cfb6e7a9b66bcdac18c95821f380c49b881333de3079b97",
+    "unsigned_apk_retained": false
+  },
+  "119": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "398f7405f15708268c5ca6be979cb1c412fda354c1965deffd924d2e91edceab",
+    "unsigned_apk_retained": false
+  },
+  "120": {
+    "selected": [
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "c5b9fd3726589b171674e19e46d19e9e41697aafd5a7f9ac32eda706655144d6",
+    "unsigned_apk_retained": false
+  },
+  "121": {
+    "selected": [
+      "Fix section title validation",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "f6b6cae4849a41efd148ae5f378c6931d412d4c7ea257bf05c66b040e1ad6924",
+    "unsigned_apk_retained": false
+  },
+  "122": {
+    "selected": [
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "191efa9cda33ac3502bb1c02a60df3a94bbef6fb8bc2cae7d3f2793772c2580e",
+    "unsigned_apk_retained": false
+  },
+  "123": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "5740542f9073e65369ed782c26948afea935f09327d7345c9f2f43a51d275386",
+    "unsigned_apk_retained": false
+  },
+  "124": {
+    "selected": [
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "8bbff5087f96d6b78d55d5c8196959c751877917c82e994605ce5bfa7255b7e9",
+    "unsigned_apk_retained": false
+  },
+  "125": {
+    "selected": [
+      "Fix section title validation",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "1335f00ce9b4c0accd0cf2fe6fe4abc10afb182791c1b6f64f90cc9b128c9362",
+    "unsigned_apk_retained": false
+  },
+  "126": {
+    "selected": [
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "b21eda4d5a513c76f516139d612a80ffc0d3703ab79d4e112ef24177ac7db150",
+    "unsigned_apk_retained": false
+  },
+  "127": {
+    "selected": [
+      "Fix section title validation",
+      "Song artist order",
+      "Load artist pages faster",
+      "Fix offline artist tracks",
+      "Fix track alphabet navigation",
+      "Keep player output controls accessible",
+      "Fix quick settings banner contrast"
+    ],
+    "patcher_succeeded": true,
+    "changed_retained_entries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "abis": [
+      "arm64-v8a"
+    ],
+    "unsigned_apk": null,
+    "unsigned_apk_sha256": "086e85b2f7dc9408f123e328bc71bdf5ba12513b0075b31dad1f1b013de7dd2e",
+    "unsigned_apk_retained": false
+  }
+}

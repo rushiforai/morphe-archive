@@ -73,7 +73,8 @@ public final class SeenPosts {
         ONE_DAY(1, "1_day"),
         THREE_DAYS(3, "3_days"),
         SEVEN_DAYS(7, "7_days"),
-        THIRTY_DAYS(30, "30_days");
+        THIRTY_DAYS(30, "30_days"),
+        NINETY_DAYS(90, "90_days");
 
         public final int days;
 
@@ -96,8 +97,8 @@ public final class SeenPosts {
         }
     }
 
-    /** Most posts remembered. The oldest go first. */
-    static final int CAP = 5000;
+    /** Most posts remembered, about 220 a day for 90 days (#317). The oldest go first. */
+    static final int CAP = 20_000;
 
     /** Counted under the patch's name each time a seen post is kept out of the feed. */
     static final String HIDDEN = "Already seen posts hidden";

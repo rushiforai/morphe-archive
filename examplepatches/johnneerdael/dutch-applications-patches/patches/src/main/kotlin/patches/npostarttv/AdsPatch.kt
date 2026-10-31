@@ -10,9 +10,13 @@ val hideAdsPatch = bytecodePatch(
     description = "Suppresses nullable preroll inputs and the optional IMA ad loader. Uses the player's existing content-only path while retaining real content, DRM, subtitles and player state.",
     default = true,
 ) {
-    compatibleWith(npoTv)
+    compatibleWith(npoTv, npoPhone)
     dependsOn(originalInput, startupCompatibility)
     execute {
+        if (packageMetadata.isNpoPhone) {
+            hidePhoneAds()
+            return@execute
+        }
         // The shipped media-source factory explicitly returns the content source when this
         // optional loader is null. Avoid instantiating IMA/OMID for an ad-free source.
         exact("Lnl/npo/player/library/sterads/presentation/ads/ImaAdManager;",

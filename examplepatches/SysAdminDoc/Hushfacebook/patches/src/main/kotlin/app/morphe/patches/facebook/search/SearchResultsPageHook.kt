@@ -17,6 +17,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 
 /**
  * The one hook first in the constructor every page of search results is built with, shared by the
@@ -28,6 +29,45 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  */
 internal const val SEARCH_RESULTS_PAGE = "$EXTENSION_PACKAGE/search/SearchResultsPage;"
 internal const val KEPT_MODULES = "$SEARCH_RESULTS_PAGE->keptModules(Ljava/util/List;Ljava/lang/String;)Ljava/util/List;"
+
+/**
+ * The page's own constructor among [methods], the page class's methods: the one constructor of the
+ * shape the hook reads ([isPageConstructor]). On 585 the page class (arm64 LX/0D1n) also has a short
+ * `(ImmutableList, ImmutableList, String, String, String, Z)` constructor that fills in an empty
+ * list and a null header and hands everything to the full one; the Meta AI answer builder and one
+ * other caller build their pages through it. So every other constructor has to call the full one
+ * and never [superclass]'s own, or a page could be built past the hook, and [patch] names the patch
+ * asking in the refusal.
+ */
+internal fun <T : Method> pageConstructorOf(methods: Iterable<T>, superclass: String?, patch: String): T {
+    val constructors = methods.filter { it.name == "<init>" }
+    val shaped = constructors.filter {
+        isPageConstructor(ImmutableMethodReference(it.definingClass, it.name, it.parameterTypes, it.returnType))
+    }
+    val page = shaped.singleOrNull() ?: throw PatchException(
+        "$patch: expected one search results page constructor taking a header, the modules, two more lists, " +
+            "four strings and two flags, found ${shaped.size} among ${constructors.size}",
+    )
+    val parameters = page.parameterTypes.map { it.toString() }
+    // 585 adds a shorter constructor that hands everything to the full one: hold every other to that.
+    constructors.filter { it !== page }.forEach { other ->
+        val calls = other.directConstructorCalls()
+        val delegates = calls.any { it.definingClass == page.definingClass && it.parameterTypes.map(CharSequence::toString) == parameters }
+        if (!delegates || calls.any { it.definingClass == superclass }) {
+            throw PatchException(
+                "$patch: ${other.definingClass}-><init>(${other.parameterTypes.joinToString("")}) doesn't hand its page " +
+                    "to the full constructor, so the page hook would miss the pages it builds",
+            )
+        }
+    }
+    return page
+}
+
+/** The constructors [this] calls with invoke-direct, its own class's and its superclass's included. */
+private fun Method.directConstructorCalls(): List<MethodReference> =
+    implementation?.instructions?.toList().orEmpty()
+        .filter { it.opcode == Opcode.INVOKE_DIRECT || it.opcode == Opcode.INVOKE_DIRECT_RANGE }
+        .mapNotNull { ((it as ReferenceInstruction).reference as? MethodReference)?.takeIf { call -> call.name == "<init>" } }
 
 /** Whether the page hook is already the first thing in [method]: the other patch put it there. */
 internal fun Method.hasPageModulesHook(): Boolean {

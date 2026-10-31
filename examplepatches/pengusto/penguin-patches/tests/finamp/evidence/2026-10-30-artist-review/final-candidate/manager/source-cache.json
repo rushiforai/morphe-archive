@@ -1,0 +1,8 @@
+{
+  "source_uid": 1648682502,
+  "source_kind": "Local",
+  "bundle_sha256": "c0ff605a009773103ea229b6dcd2512c2acf80d442d741cec0f762d03b858388",
+  "published_base_sha256": "dc0b8fbc780befbbc6c25d5a448b6f21b4b285fe6dfea47529d87a5d4a0cc81b",
+  "manager_restarted_after_import": true,
+  "source_capture": "../../gui/ui/018-official-core-artist-source-enabled.json"
+}

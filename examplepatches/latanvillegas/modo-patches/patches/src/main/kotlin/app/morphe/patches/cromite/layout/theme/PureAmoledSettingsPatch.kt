@@ -7,6 +7,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.Opcode
 
 /**
  * Bytecode recovery from the original PureAmoledSettingsPatchKt.class
@@ -19,6 +20,14 @@ private val settingsActivityBackgroundFingerprint = Fingerprint(
         methodCall("Ldr7;->e(Landroid/content/Context;ILjava/lang/String;)Landroid/util/TypedValue;"),
         methodCall("Lis7;->f(Landroid/content/Context;Landroid/util/TypedValue;)I"),
     ),
+)
+
+// Original Cromite SettingsActivity.onResume() is verified in the supplied Smali.
+private val settingsActivityResumeFingerprint = Fingerprint(
+    definingClass = "Lorg/chromium/chrome/browser/settings/SettingsActivity;",
+    name = "onResume",
+    returnType = "V",
+    parameters = listOf(),
 )
 
 private val chromeImageViewPreferenceBindFingerprint = Fingerprint(
@@ -42,65 +51,57 @@ private val settingsContainmentDrawableFingerprint = Fingerprint(
     parameters = listOf("Landroid/content/Context;", "F", "F", "I"),
 )
 
+// Cromite 153.0.8010.37: Ldic;.q(Bundle) inflates the two Settings
+// search layouts and assigns the same tinted drawable to both containers.
+private val settingsSearchLayoutFingerprint = Fingerprint(
+    definingClass = "Ldic;",
+    name = "q",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
+)
+
+private val settingsSetBackgroundDrawableCall =
+    methodCall("Landroid/view/View;->setBackground(Landroid/graphics/drawable/Drawable;)V")
+
 private val settingsContextColorCall =
     methodCall("Lis7;->f(Landroid/content/Context;Landroid/util/TypedValue;)I")
-
-private fun settingsContextColorSmali(theme: String, contextRegister: Int, colorRegister: Int): String =
-    when (theme) {
-        "black" -> "const v$colorRegister, -0x1000000"
-        "white" -> "const v$colorRegister, -0x1"
-        else -> """
-            invoke-virtual {v$contextRegister}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
-            move-result-object v$colorRegister
-            invoke-virtual {v$colorRegister}, Landroid/content/res/Resources;->getConfiguration()Landroid/content/res/Configuration;
-            move-result-object v$colorRegister
-            iget v$colorRegister, v$colorRegister, Landroid/content/res/Configuration;->uiMode:I
-            and-int/lit8 v$colorRegister, v$colorRegister, 0x20
-            ushr-int/lit8 v$colorRegister, v$colorRegister, 0x5
-            neg-int v$colorRegister, v$colorRegister
-            ushr-int/lit8 v$colorRegister, v$colorRegister, 0x8
-            not-int v$colorRegister, v$colorRegister
-        """.trimIndent()
-    }
 
 private val settingsSetBackgroundColorCall =
     methodCall("Landroid/view/View;->setBackgroundColor(I)V")
 
-private fun settingsBackgroundSmali(theme: String, viewRegister: Int, colorRegister: Int): String =
-    when (theme) {
-        "black" -> """
-            const v$colorRegister, -0x1000000
-            invoke-virtual {v$viewRegister, v$colorRegister}, Landroid/view/View;->setBackgroundColor(I)V
-        """.trimIndent()
-        "white" -> """
-            const v$colorRegister, -0x1
-            invoke-virtual {v$viewRegister, v$colorRegister}, Landroid/view/View;->setBackgroundColor(I)V
-        """.trimIndent()
-        else -> """
-            invoke-virtual {v$viewRegister}, Landroid/view/View;->getResources()Landroid/content/res/Resources;
-            move-result-object v$colorRegister
-            invoke-virtual {v$colorRegister}, Landroid/content/res/Resources;->getConfiguration()Landroid/content/res/Configuration;
-            move-result-object v$colorRegister
-            iget v$colorRegister, v$colorRegister, Landroid/content/res/Configuration;->uiMode:I
-            and-int/lit8 v$colorRegister, v$colorRegister, 0x20
-            ushr-int/lit8 v$colorRegister, v$colorRegister, 0x5
-            neg-int v$colorRegister, v$colorRegister
-            ushr-int/lit8 v$colorRegister, v$colorRegister, 0x8
-            not-int v$colorRegister, v$colorRegister
-            invoke-virtual {v$viewRegister, v$colorRegister}, Landroid/view/View;->setBackgroundColor(I)V
-        """.trimIndent()
-    }
+private fun settingsBackgroundSmali(viewRegister: Int): String =
+    "invoke-static {v$viewRegister}, " +
+        "Lapp/morphe/extension/cromite/amoled/AmoledBrightnessController;->applyNativeSurfaceBackground(Landroid/view/View;)V"
+
+private const val SETTINGS_CONTAINMENT_RUNTIME_COLOR = """
+    invoke-static {v11}, Lapp/morphe/extension/cromite/amoled/AmoledBrightnessController;->resolvedPureThemeColor(Landroid/content/Context;)I
+    move-result v14
+"""
 
 @Suppress("unused")
 val pureAmoledSettingsPatch = bytecodePatch(
     name = "AMOLED - Settings",
-    description = "Recovers SettingsActivity, preference backgrounds, and the original containment-card color override.",
+    description = "Uses the saved runtime theme for SettingsActivity, preference backgrounds and containment-card colors.",
 ) {
     compatibleWith("org.cromite.cromite"("153.0.8010.37"))
-    val browserTheme = recoveredBrowserThemeOption
+    dependsOn(cromiteAmoledBrightnessPatch)
 
     execute {
-        val theme = browserTheme.value ?: "device"
+
+        // Settings owns the status-bar appearance; apply after its native
+        // onResume logic, before returning, without changing the theme selector.
+        val resume = settingsActivityResumeFingerprint.method
+        val returns = resume.implementation!!.instructions.withIndex()
+            .filter { it.value.opcode == Opcode.RETURN_VOID }
+            .map { it.index }
+        check(returns.size == 1) {
+            "AMOLED Settings: expected one onResume return; found ${returns.size}"
+        }
+        resume.addInstructions(
+            returns.single(),
+            "invoke-static {p0}, " +
+                "Lapp/morphe/extension/cromite/amoled/AmoledBrightnessController;->applySettingsStatusBar(Landroid/app/Activity;)V",
+        )
 
         val activity = settingsActivityBackgroundFingerprint.method
         val activityIndices = activity.findInstructionIndicesReversedOrThrow(settingsSetBackgroundColorCall)
@@ -111,7 +112,7 @@ val pureAmoledSettingsPatch = bytecodePatch(
             val instruction = activity.getInstruction(index) as FiveRegisterInstruction
             activity.addInstructions(
                 index + 1,
-                settingsBackgroundSmali(theme, instruction.registerC, instruction.registerD),
+                settingsBackgroundSmali(instruction.registerC),
             )
         }
 
@@ -127,7 +128,7 @@ val pureAmoledSettingsPatch = bytecodePatch(
             val instruction = method.getInstruction(index) as FiveRegisterInstruction
             method.addInstructions(
                 index + 1,
-                settingsBackgroundSmali(theme, instruction.registerC, instruction.registerD),
+                settingsBackgroundSmali(instruction.registerC),
             )
         }
 
@@ -139,6 +140,26 @@ val pureAmoledSettingsPatch = bytecodePatch(
             chromeSwitchPreferenceBindFingerprint.method,
             "ChromeSwitchPreference",
         )
+
+        // Only the two drawable setters in Ldic.q(Bundle) are the Settings
+        // search_box and search_query_container (verified from original Smali).
+        val search = settingsSearchLayoutFingerprint.method
+        val searchSetters = search.findInstructionIndicesReversedOrThrow(settingsSetBackgroundDrawableCall)
+        check(searchSetters.size == 2) {
+            "AMOLED Settings search: expected two verified drawable setters, found ${searchSetters.size}"
+        }
+        searchSetters.forEach { index ->
+            val instruction = search.getInstruction(index) as? FiveRegisterInstruction
+                ?: error("AMOLED Settings search: unexpected invoke encoding")
+            check(instruction.opcode == Opcode.INVOKE_VIRTUAL && instruction.registerCount == 2) {
+                "AMOLED Settings search: unexpected View.setBackground invocation"
+            }
+            search.addInstructions(
+                index + 1,
+                "invoke-static {v${instruction.registerC}}, " +
+                    "Lapp/morphe/extension/cromite/amoled/AmoledBrightnessController;->applySettingsSearchSurface(Landroid/view/View;)V",
+            )
+        }
 
         // Restore the original containment-card override at the verified call site.
         val containment = settingsContainmentDrawableFingerprint.method
@@ -152,11 +173,11 @@ val pureAmoledSettingsPatch = bytecodePatch(
             "AMOLED Settings: expected move-result after containment color lookup"
         }
         // Verified in the original patches-1.50.0.mpp bytecode:
-        // settingsContextColorSmali(theme, 11, 14), not registers inferred
+        // SETTINGS_CONTAINMENT_RUNTIME_COLOR, not registers inferred
         // from the Lis7.f call. Preserve the original method's register mapping.
         check(containment.implementation!!.registerCount > 14) {
             "AMOLED Settings: containment method lacks original v14 register"
         }
-        containment.addInstructions(resultIndex + 1, settingsContextColorSmali(theme, 11, 14))
+        containment.addInstructions(resultIndex + 1, SETTINGS_CONTAINMENT_RUNTIME_COLOR)
     }
 }

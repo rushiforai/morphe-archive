@@ -41,7 +41,9 @@ import java.io.File
  * helper's view setup is found by its trace, its first findViewById on the sheet's views loads the
  * header's id, the sheet's parameters print one boolean after their watch-and-comment label, and the
  * hook hands the views, that id and that boolean (false without parameters) to the extension first
- * through four locals.
+ * through four locals. The popover's dialog setup reads the surface a part-height sheet opened from
+ * and compares it with the Reels tab's, and the hook hands the dialog and that surface to the
+ * extension in between, ending the setup on a yes and landing a no on Facebook's comparison.
  * Reads the fixture bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class FullHeightCommentsFixtureTest {
@@ -228,6 +230,47 @@ class FullHeightCommentsFixtureTest {
             listOf(call.registerCount, call.registerC, call.registerD, call.registerE))
         assertEquals("$where: four separate locals", 4, setOf(move.registerA, load, paramsMove.registerA, flagRegister).size)
         assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(7).map { it.opcode })
+    }
+
+    private fun tapThrough(bundle: File) {
+        val popover = FixtureDex.classes(bundle, setOf(SIMPLE_POPOVER)).values.single()
+        val site = tapThroughSite(popover)
+        val where = "${bundle.name}: ${site.method.descriptor()}"
+        val code = site.method.implementation!!.instructions.toList()
+        val at = site.index
+        assertEquals("$where: the hook follows the surface's unboxing", Opcode.MOVE_RESULT, code[at - 1].opcode)
+        assertEquals("$where: the hook follows the surface's unboxing", "Ljava/lang/Number;->intValue()I", code[at - 2].reference())
+        assertEquals("$where: Facebook's own tap-through takes the Reels tab's surface", 20,
+            (code[at] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals("$where: and compares it next", Opcode.IF_NE, code[at + 1].opcode)
+        assertEquals("$where: the dialog is the one parameter", site.method.implementation!!.registerCount - 1, site.dialog)
+        assertEquals("$where: the surface is the one unboxed", (code[at - 1] as OneRegisterInstruction).registerA, site.source)
+
+        val context = PatchContexts.of(listOf(popover))
+        val method = context.mutableClassDefBy(SIMPLE_POPOVER).methods.single { it.descriptor() == site.method.descriptor() }
+        val original = method.implementation!!.instructions.toList()
+        method.tapThrough(site)
+        val patched = method.implementation!!.instructions.toList()
+        assertEquals("$where gains four instructions", original.size + 4, patched.size)
+        assertEquals("$where: the extension is asked", Opcode.INVOKE_STATIC, patched[at].opcode)
+        assertEquals("$where: the extension is asked", TAP_THROUGH, patched[at].reference())
+        val call = patched[at] as FiveRegisterInstruction
+        assertEquals("$where: with the dialog and the surface", listOf(2, site.dialog, site.source),
+            listOf(call.registerCount, call.registerC, call.registerD))
+        assertEquals("$where: its answer is kept", Opcode.MOVE_RESULT, patched[at + 1].opcode)
+        val answer = (patched[at + 1] as OneRegisterInstruction).registerA
+        assertTrue("$where: the hook writes v$answer, which isn't a local", answer < method.localRegisterCount())
+        assertTrue("$where: the hook writes v$answer, which is still read", answer !in RegisterLiveness.of(site.method).liveInto(at))
+        assertEquals("$where: a no goes on to Facebook", Opcode.IF_EQZ, patched[at + 2].opcode)
+        assertEquals("$where: a yes ends the setup", Opcode.RETURN_VOID, patched[at + 3].opcode)
+        assertEquals("$where: Facebook's code stays", original.map { it.opcode },
+            patched.filterIndexed { index, _ -> index !in at until at + 4 }.map { it.opcode })
+        assertEquals("$where: a no lands on Facebook's comparison", setOf(at + 3, at + 4), ControlFlow.of(method).normal[at + 2].toSet())
+    }
+
+    @Test
+    fun `each declared build hands a part-height comment sheet's dialog and the surface it opened from to the extension`() = bundles { bundle ->
+        tapThrough(bundle)
     }
 
     @Test

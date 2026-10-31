@@ -5,8 +5,8 @@ the `.mpp`, and everything they write goes to `work/` (ignored by git). The port
 
 | Tool | What it does |
 |---|---|
-| `setup.sh [Discord.apkm]` | Extracts `base.apk` and `index.android.bundle` into `work/new/` and indexes the bundle |
-| `find_apkm.py` | Prints the newest complete `.apkm` in `~/uploaded_files` (skips half-uploaded files) |
+| `setup.sh [Discord.apkm]` | Extracts `base.apk` and `index.android.bundle` into `work/new/` (shared with `tests/ui/setup.sh`) and indexes the bundle; an explicit APKM always re-extracts |
+| `find_apkm.py [--list]` | Prints the `.apkm` the tools use from `~/uploaded_files`: complete files only, the supported Discord build (from `AppTarget`) before any other, then the newest; `--list` says why each was or wasn't picked |
 | `port_check.py` | Prints the constants for `HbcPrelude.kt`/`HbcPrivacy.kt`, finds moved Metro modules and privacy targets, lists module IDs it doesn't check yet; exits 1 when anything needs attention. `--map` regenerates `module-map.md` |
 | `privacy_targets.py <bundle> --locate` | Regenerates the `Target(...)` lists in `HbcPrivacy.kt` |
 | `module-map.md` | Every Metro module Venus uses, generated from `BOOTSTRAP_MODULES` |
@@ -19,7 +19,8 @@ the `.mpp`, and everything they write goes to `work/` (ignored by git). The port
 | `probe.sh`, `probe_runtime.py` | Boot the real bundle with the runtime and run a probe script inside it |
 
 Related: `scripts/verify_apk.sh` patches the APKM with every patch using the newest Morphe CLI
-(`scripts/morphe_cli.py`, prerelease or stable) and runs `tests/native/VerifyApk.kt`.
+(`scripts/morphe_cli.py`, prerelease or stable), checks every patch was applied and runs `tests/native/VerifyApk.kt`
+(`REUSE=1` re-checks the last patched APK). `tests/test_all.sh` runs every check in the repository in order.
 
 ## Inspecting the bundle
 

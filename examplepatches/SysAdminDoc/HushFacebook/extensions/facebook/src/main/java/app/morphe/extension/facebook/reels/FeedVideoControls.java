@@ -33,17 +33,22 @@ import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.facebook.settings.SettingsStatus;
 import app.morphe.extension.shared.L10n;
+import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.DiagnosticCategory;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.BaseSettings;
 
 /**
  * A separate play/pause button on a feed video's own visible surface, and a cast button across
- * from it (#182). Facebook keeps its video taps and fullscreen controls. The Tap to play patch
+ * from it (#182). A video Tap to play holds may not have drawn yet, so with no surface the buttons
+ * sit on the player's container, where the video will show (#239). Facebook keeps its video taps and fullscreen controls. The Tap to play patch
  * supplies these bridges independently of its autoplay switch and of Hold a feed video for 2x.
  * The cast button also needs the video patch, whose player record holds the file it hands over.
  */
 public final class FeedVideoControls {
     private static final String FAMILY = FamilyNames.TAP_TO_PLAY;
+    private static final String SOURCE = "FeedVideoControls";
     /** Touch target, its gap from the video's edge, and the disc drawn in it, sized like Facebook's speaker icon (#301). */
     static final int SIZE_DP = 40, MARGIN_DP = 4, DISC_DP = 28;
     private static final Map<Object, Control> players = new WeakHashMap<>();
@@ -224,9 +229,23 @@ public final class FeedVideoControls {
         return current;
     }
 
+    /**
+     * Takes [button] off the screen. A feed list recycling a video row in its own layout pass gets
+     * here while the content frame is laying out its children, from a count taken before the loop,
+     * so then the button only hides and comes off once that pass is done.
+     */
     private static void detach(View button) {
         ViewParent parent = button.getParent();
-        if (parent instanceof ViewGroup) ((ViewGroup) parent).removeView(button);
+        if (!(parent instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) parent;
+        if (!group.isInLayout()) {
+            group.removeView(button);
+            return;
+        }
+        button.setVisibility(View.GONE);
+        group.post(() -> {
+            if (button.getParent() == group) group.removeView(button);
+        });
     }
 
     /** Where the buttons go on the video [control] shows, or null when none fit. [both] needs room for two. */
@@ -239,48 +258,78 @@ public final class FeedVideoControls {
         Object params = access.params(player);
         Object origin = access.origin(player);
         String id = params == null ? null : access.videoId(params);
-        if (params == null || id == null || id.isEmpty() || !access.eligible(params)
-                || origin == null || !origin.toString().startsWith("newsfeed::")) return null;
+        if (params == null || id == null || id.isEmpty() || !access.eligible(params)) {
+            return miss(control, "no video id, or a live video, ad, audio or GIF");
+        }
+        if (origin == null || !origin.toString().startsWith("newsfeed::")) return miss(control, "origin", origin);
         View row = container;
         View list = null;
         for (ViewParent parent = container.getParent(); parent instanceof View; parent = parent.getParent()) {
             View view = (View) parent;
             if (PostLongPress.isNamed(view, PostLongPress.LIST)) {
                 if ((!view.canScrollVertically(1) && !view.canScrollVertically(-1))
-                        || (row.getWidth() == view.getWidth() && row.getHeight() == view.getHeight())) return null;
+                        || (row.getWidth() == view.getWidth() && row.getHeight() == view.getHeight())) {
+                    return miss(control, "its list doesn't scroll or the video fills it");
+                }
                 list = view;
                 break;
             }
-            if (PostLongPress.isScroller(view)) return null;
+            if (PostLongPress.isScroller(view)) return miss(control, "inside a side scroller");
             row = view;
         }
-        if (list == null) return null;
+        if (list == null) return miss(control, "not in the feed's list");
         List<View> surfaces = new ArrayList<>(2);
         surfaces(container, surfaces);
-        if (surfaces.size() != 1) return null;
-        View surface = surfaces.get(0);
+        if (surfaces.size() > 1) return miss(control, "more than one video surface");
+        if (surfaces.isEmpty() && container.getAlpha() <= 0f) return miss(control, "no surface, container transparent");
+        View surface = surfaces.isEmpty() ? container : surfaces.get(0);
         for (Control other : snapshot()) {
             Object owner = other.player.get();
             if (other == control || other.released || owner == null) continue;
             ViewGroup otherContainer = access.view(owner);
             if (otherContainer != null && otherContainer == other.expected.get()
-                    && descendant(surface, otherContainer)) return null;
+                    && (descendant(surface, otherContainer)
+                        || surface == container && descendant(otherContainer, container))) {
+                return miss(control, "another player shares it");
+            }
         }
         View content = container.getRootView().findViewById(android.R.id.content);
-        if (!(content instanceof FrameLayout) || !descendant(container, content)) return null;
+        if (!(content instanceof FrameLayout) || !descendant(container, content)) return miss(control, "outside the screen's content");
         Rect visible = new Rect();
         Rect clip = new Rect();
-        if (!surface.getGlobalVisibleRect(visible) || !list.getGlobalVisibleRect(clip) || !visible.intersect(clip)) return null;
-        if (!content.getGlobalVisibleRect(clip) || !visible.intersect(clip)) return null;
+        if (!surface.getGlobalVisibleRect(visible) || !list.getGlobalVisibleRect(clip) || !visible.intersect(clip)
+                || !content.getGlobalVisibleRect(clip) || !visible.intersect(clip)) {
+            return miss(control, "scrolled out of view");
+        }
         float density = container.getResources().getDisplayMetrics().density;
         int size = Math.round(SIZE_DP * density);
         int margin = Math.round(MARGIN_DP * density);
         int across = both ? size * 2 + margin * 3 : size + margin * 2;
-        if (visible.width() < across || visible.height() < size + margin * 2) return null;
+        if (visible.width() < across || visible.height() < size + margin * 2) return miss(control, "too little of it shows");
         int[] at = new int[2];
         content.getLocationInWindow(at);
+        control.missed = null;
         return new Target(params, id, surface, (FrameLayout) content, size,
                 visible.left - at[0] + margin, visible.right - at[0] - margin - size, visible.top - at[1] + margin);
+    }
+
+    @Nullable
+    private static Target miss(Control control, String why) { return miss(control, why, null); }
+
+    /**
+     * Puts why [control]'s video gets no button in the debug log, once until that changes, so
+     * turning Debug logging on later still names a video already missing one. Answers null.
+     */
+    @Nullable
+    private static Target miss(Control control, String why, @Nullable Object detail) {
+        if (!BaseSettings.DEBUG.get()) {
+            control.missed = null;
+        } else if (!why.equals(control.missed)) {
+            control.missed = why;
+            Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE,
+                    () -> "Inline feed button: none, " + why + (detail == null ? "" : " " + detail));
+        }
+        return null;
     }
 
     private static void surfaces(View view, List<View> found) {
@@ -351,6 +400,8 @@ public final class FeedVideoControls {
         volatile WeakReference<ViewGroup> expected = new WeakReference<>(null);
         volatile long generation;
         volatile boolean released;
+        /** The last reason the debug log gave for no button, or null since one showed. */
+        @Nullable String missed;
         private WeakReference<ViewGroup> observed = new WeakReference<>(null);
         private WeakReference<ViewTreeObserver> observer = new WeakReference<>(null);
         @Nullable Button button;

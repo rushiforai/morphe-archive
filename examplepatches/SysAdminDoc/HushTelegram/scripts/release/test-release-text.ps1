@@ -45,29 +45,31 @@ New-Item -ItemType Directory -Path $scratch | Out-Null
 try {
     # --- The CHANGELOG cut --------------------------------------------------------------------
     $changelogPath = Join-Path $scratch 'CHANGELOG.md'
+    $groupedBullets = "### Added`n`n* **Telegram:** A new **Quiet mode** switch.`n`n### Changed`n`n" +
+        "* **Tooling:** A faster gate.`n* **Telegram:** A clearer row.`n`n### Fixed`n`n* **Telegram:** Another fix.`n`n"
     $before = "# Changelog`n`nEvery HushTelegram release, newest first.`n`n## Unreleased`n`nWorking version 0.0.12.`n`n" +
-        "* **Telegram:** A new switch.`n`n* **Tooling:** A faster gate.`n`n* **Telegram:** Another fix.`n`n" +
-        "## 0.0.11 (2026-10-08)`n`n* **Telegram:** The old release.`n"
+        $groupedBullets + "## 0.0.11 (2026-10-08)`n`n* **Telegram:** The old release.`n"
     Write-ReleaseText -Path $changelogPath -Text $before
     $said = Invoke-ChangelogCut -Path $changelogPath -Version '0.0.12' -Date '2026-10-20'
     $expected = "# Changelog`n`nEvery HushTelegram release, newest first.`n`n## 0.0.12 (2026-10-20)`n`n" +
-        "* **Telegram:** A new switch.`n`n* **Tooling:** A faster gate.`n`n* **Telegram:** Another fix.`n`n" +
-        "## 0.0.11 (2026-10-08)`n`n* **Telegram:** The old release.`n"
+        $groupedBullets + "## 0.0.11 (2026-10-08)`n`n* **Telegram:** The old release.`n"
     $cut = [IO.File]::ReadAllText($changelogPath)
     Assert-True ($cut -ceq $expected) "The cut did not date the Unreleased section and drop the working version line:`n$cut"
-    Assert-True ($said -ceq '3 bullets under ## 0.0.12 (2026-10-20)') "The cut did not say what it did: $said"
+    Assert-True ($said -ceq '4 bullets under ## 0.0.12 (2026-10-20)') "The cut did not say what it did: $said"
     $said = Invoke-ChangelogCut -Path $changelogPath -Version '0.0.12' -Date '2026-10-21'
     Assert-True ([IO.File]::ReadAllText($changelogPath) -ceq $expected -and $said -like '*already has ## 0.0.12 (2026-10-20)*') `
         "A second cut changed the file or said something else: $said"
     # CRLF in, LF out, and a section that's the last in the file ends the file once.
-    Write-ReleaseText -Path $changelogPath -Text "# Changelog`r`n`r`n## Unreleased`r`n`r`n* **Telegram:** Only one.`r`n"
+    Write-ReleaseText -Path $changelogPath -Text "# Changelog`r`n`r`n## Unreleased`r`n`r`n### Fixed`r`n`r`n* **Telegram:** Only one.`r`n"
     Invoke-ChangelogCut -Path $changelogPath -Version '0.0.1' -Date '2026-10-01' | Out-Null
-    Assert-True ([IO.File]::ReadAllText($changelogPath) -ceq "# Changelog`n`n## 0.0.1 (2026-10-01)`n`n* **Telegram:** Only one.`n") `
+    Assert-True ([IO.File]::ReadAllText($changelogPath) -ceq "# Changelog`n`n## 0.0.1 (2026-10-01)`n`n### Fixed`n`n* **Telegram:** Only one.`n") `
         "The cut of a last section left CR or extra newlines: $([IO.File]::ReadAllText($changelogPath))"
     foreach ($refused in @(
             @{ Text = "# Changelog`n`n## 0.0.11 (2026-10-08)`n`n* **Telegram:** Old.`n"; Pattern = '*no "## Unreleased"*' },
             @{ Text = "## Unreleased`n`nWorking version 0.0.12.`n`n## 0.0.11 (2026-10-08)`n"; Pattern = '*no bullets*' },
-            @{ Text = "## Unreleased`n`n* **Telegram:** One bullet`nwrapped onto a second line.`n"; Pattern = '*runs onto a second line*' },
+            @{ Text = "## Unreleased`n`n### Added`n`n* **Telegram:** One bullet`nwrapped onto a second line.`n"; Pattern = '*runs onto a second line*' },
+            @{ Text = "## Unreleased`n`n* **Telegram:** Under no group.`n`n### Added`n`n* **Telegram:** Grouped.`n"; Pattern = '*sits above*' },
+            @{ Text = "## Unreleased`n`n### Removed`n`n* **Telegram:** An odd group.`n"; Pattern = '*"### Removed" heading*' },
             @{ Text = "## 0.0.12`n`n* **Telegram:** Undated.`n"; Pattern = '*0.0.12 heading with no date*' })) {
         Write-ReleaseText -Path $changelogPath -Text $refused.Text
         Assert-Throws { Invoke-ChangelogCut -Path $changelogPath -Version '0.0.12' -Date '2026-10-20' } $refused.Pattern `
@@ -79,30 +81,44 @@ try {
     $intro = "HushTelegram v0.0.12 has 57 patches.`r`n"
     $install = "1. Install Morphe Manager.`n2. Patch Telegram."
     $validation = 'Every test passed.'
-    $notes = New-ReleaseNotes -Changelog $expected -Version '0.0.12' -Intro $intro -Install $install -Validation $validation
-    $expectedNotes = "HushTelegram v0.0.12 has 57 patches.`n`n## What's new`n`n* **Telegram:** A new switch.`n" +
-        "* **Telegram:** Another fix.`n`n### Tooling`n`n* **Tooling:** A faster gate.`n`n## Install`n`n" +
-        "1. Install Morphe Manager.`n2. Patch Telegram.`n`n## Validation`n`nEvery test passed.`n"
-    Assert-True ($notes -ceq $expectedNotes) "The notes are not the intro, every bullet, the install steps and the validation:`n$notes"
+    $repo = 'SysAdminDoc/HushTelegram'
+    $notes = New-ReleaseNotes -Changelog $expected -Version '0.0.12' -Intro $intro -Install $install -Validation $validation -Repository $repo
+    # Fixed before Changed, Tooling out of its group into Behind the scenes, no scope, bold in backticks.
+    $expectedNotes = "HushTelegram v0.0.12 has 57 patches.`n`nNew in this release`n`n- A new ``Quiet mode`` switch.`n`n" +
+        "Fixes`n`n- Another fix.`n`nOther changes`n`n- A clearer row.`n`nBehind the scenes`n`n- A faster gate.`n`n" +
+        "The [changelog](https://github.com/$repo/blob/main/CHANGELOG.md) has every earlier release too.`n`n" +
+        "How to update`n`n1. Install Morphe Manager.`n2. Patch Telegram.`n`n" +
+        "The ``.mpp`` download is a patch bundle, not a Telegram APK. [Installation instructions](https://github.com/$repo#install).`n`n" +
+        "What was checked`n`nEvery test passed.`n"
+    Assert-True ($notes -ceq $expectedNotes) "The notes are not the intro, every bullet by group, the install steps and what was checked:`n$notes"
     Assert-True (@(Get-MissingChangelogBullets -Changelog $expected -Version '0.0.12' -Notes $notes).Count -eq 0) `
         'Notes that carry every bullet were found to leave one out.'
-    $short = $notes -replace "\* \*\*Telegram:\*\* Another fix\.`n", ''
+    $short = $notes -replace "- Another fix\.`n", ''
     $missing = @(Get-MissingChangelogBullets -Changelog $expected -Version '0.0.12' -Notes $short)
     Assert-True ($missing.Count -eq 1 -and $missing[0] -ceq '* **Telegram:** Another fix.') `
         "A body missing one bullet was not caught: $($missing -join '; ')"
-    $reworded = $notes -replace 'A new switch\.', 'A new switch!'
+    $reworded = $notes -replace 'A clearer row\.', 'A clearer row!'
     Assert-True (@(Get-MissingChangelogBullets -Changelog $expected -Version '0.0.12' -Notes $reworded).Count -eq 1) `
         'A reworded bullet passed for the CHANGELOG one.'
+    $scoped = $notes -replace '- A clearer row\.', '* **Telegram:** A clearer row.'
+    Assert-True (@(Get-MissingChangelogBullets -Changelog $expected -Version '0.0.12' -Notes $scoped).Count -eq 1) `
+        'A bullet still carrying its scope passed for the notes form.'
     Assert-Throws { New-ReleaseNotes -Changelog $expected -Version '0.0.12' -Intro "Fast $([char]0x2014) and safe." `
-            -Install $install -Validation $validation } '*em or en dash*' 'Notes with an em dash went out.'
-    Assert-Throws { New-ReleaseNotes -Changelog $expected -Version '0.0.13' -Intro $intro -Install $install -Validation $validation } `
-        '*no dated 0.0.13 section*' 'Notes were built for a version the CHANGELOG has no section for.'
+            -Install $install -Validation $validation -Repository $repo } '*em or en dash*' 'Notes with an em dash went out.'
+    Assert-Throws { New-ReleaseNotes -Changelog $expected -Version '0.0.13' -Intro $intro -Install $install -Validation $validation `
+            -Repository $repo } '*no dated 0.0.13 section*' 'Notes were built for a version the CHANGELOG has no section for.'
     Assert-Throws { New-ReleaseNotes -Changelog "## 0.0.12`n`n* **Telegram:** Undated.`n" -Version '0.0.12' -Intro $intro `
-            -Install $install -Validation $validation } '*no dated 0.0.12 section*' 'Notes were built from an undated section.'
+            -Install $install -Validation $validation -Repository $repo } '*no dated 0.0.12 section*' 'Notes were built from an undated section.'
+    Assert-Throws { New-ReleaseNotes -Changelog "## 0.0.12 (2026-10-20)`n`n* **Telegram:** Ungrouped.`n" -Version '0.0.12' `
+            -Intro $intro -Install $install -Validation $validation -Repository $repo } '*sits above*' 'Notes were built with a bullet under no group.'
+    $toolingOnly = New-ReleaseNotes -Changelog "## 0.0.13 (2026-10-21)`n`n### Changed`n`n* **Tooling:** Only a gate.`n" -Version '0.0.13' `
+        -Intro $intro -Install $install -Validation $validation -Repository $repo
+    Assert-True ($toolingOnly -notlike '*Other changes*' -and $toolingOnly -like "*Behind the scenes`n`n- Only a gate.*") `
+        "A Tooling-only release gave the notes an empty group:`n$toolingOnly"
 
     # --- The changes Morphe Manager lists under the description -------------------------------
     $changes = Get-ManagerChanges -Changelog $expected -Version '0.0.12'
-    Assert-True ($changes -ceq "### What's new`n`n* **Telegram:** A new switch.`n* **Telegram:** Another fix.") `
+    Assert-True ($changes -ceq "### What's new`n`n* **Telegram:** A new **Quiet mode** switch.`n* **Telegram:** A clearer row.`n* **Telegram:** Another fix.") `
         "The Manager changes are not every non-Tooling bullet under ### What's new:`n$changes"
     Assert-True ((Get-ManagerChanges -Changelog "## 0.0.13 (2026-10-21)`n`n* **Tooling:** Only a gate.`n" -Version '0.0.13') -ceq '') `
         'A Tooling-only release gave Manager a What''s new heading with nothing under it.'

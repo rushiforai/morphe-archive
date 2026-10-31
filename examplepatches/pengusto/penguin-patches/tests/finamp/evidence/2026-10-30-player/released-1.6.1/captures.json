@@ -1,0 +1,74 @@
+[
+  {
+    "png": "all-installed-art.png",
+    "png_bytes": 235387,
+    "png_sha256": "d475a57ad4aa50642a7e1cc5c3c1bc87ce50e6549d1a74c9a0a6dc549c5a55e9",
+    "xml": "all-installed-art.xml",
+    "xml_sha256": "7d02b08fe57d750544a0a37982f648dcc59f4a9d97c2389539c5e1fa3ddf4c6c",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "all-success-art.png",
+    "png_bytes": 229474,
+    "png_sha256": "4c4cc7a00d3d64742123ce9c292db599e010ce70d226b856bbc7528e7e48047a",
+    "xml": "all-success-art.xml",
+    "xml_sha256": "f95ff1e5187aa3f9a6632a494b934f263378ff38d01e3cdb99b1296068a332e9",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "artist-order-retained.png",
+    "png_bytes": 233791,
+    "png_sha256": "5224114db6a88264c354f8285573d27ae493013ec212eb22653c3b51db71bf42",
+    "xml": "artist-order-retained.xml",
+    "xml_sha256": "78c9dbad9ec7b9310aba7eaf7c3af13fe15e09a1eb27502cba96b59c7712c87a",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "downloads-retained.png",
+    "png_bytes": 179798,
+    "png_sha256": "afb6ed36c3cf464516a0b7f9c29ddc04403e7926418bcc68a9b17d4d269a7fd5",
+    "xml": "downloads-retained.xml",
+    "xml_sha256": "fb4047dc4a440faf684b78227182ddc0f48527881669ce70c9f3a0b1795b5116",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "player-selection-jvm.png",
+    "png_bytes": 325519,
+    "png_sha256": "fe9e32041e6af9ee6176f4cb4ed9c8f914cc2c5efdce3faf62cabe5c9bf0ff51",
+    "xml": "player-selection-jvm.xml",
+    "xml_sha256": "62408355a1712e60c597050e60db184f2b2e9b5d038939350779c55fc8483e7d",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "player-success-jvm.png",
+    "png_bytes": 225159,
+    "png_sha256": "60d646d388e86e3102b0afae5d08ddc9ec696bf7e6d54362f46feee1fe4cdc40",
+    "xml": "player-success-jvm.xml",
+    "xml_sha256": "701b5f8784cd963cc2c18760e16fffb6c216bd7965e0bf4900b3b070170dbd89",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "recommended-zero.png",
+    "png_bytes": 325574,
+    "png_sha256": "2c5da304975f74ee95a153dc9015fe933e7358aa3ea79463e708d65c017f05b5",
+    "xml": "recommended-zero.xml",
+    "xml_sha256": "c553d6c9720850a75332e56f71a2f7457af74038ddd7e912393aa52855790c36",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "remote-source.png",
+    "png_bytes": 256952,
+    "png_sha256": "cd1ff1e4936c79f23d2e8c2f024ab6f3dbcea7e63e477ffbaaf9c8e751dcb1ff",
+    "xml": "remote-source.xml",
+    "xml_sha256": "b423157eefc292254e2b0d724ea666d4c5be9c06c304c046a7c9fad649742432",
+    "raw_unedited_adb_capture": true
+  },
+  {
+    "png": "theme-retained.png",
+    "png_bytes": 153580,
+    "png_sha256": "b894b82cdc78646e655a08bf09b4e2f3103b1218885e411e6f75e9619a668809",
+    "xml": "theme-retained.xml",
+    "xml_sha256": "9d4542cf9d4eaaccb0a9229b094e86267797c0891daa47a67d8427f2d9bb0380",
+    "raw_unedited_adb_capture": true
+  }
+]

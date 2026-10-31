@@ -3,10 +3,59 @@ import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import java.io.File
+
+/** Must-alias dataflow: a menu hook must receive the original Object panel on every incoming path. */
+private fun panelAliases(method: Method): List<Set<Int>?> {
+    val code = method.implementation!!.instructions.toList()
+    val offsets = mutableMapOf<Int, Int>()
+    var offset = 0
+    code.forEachIndexed { index, instruction -> offsets[offset] = index; offset += instruction.codeUnits }
+    check(AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Object;"))
+    val states = MutableList<Set<Int>?>(code.size) { null }
+    states[0] = setOf(method.implementation!!.registerCount - 1)
+    val pending = ArrayDeque<Int>(); pending.add(0)
+    while (pending.isNotEmpty()) {
+        val index = pending.removeFirst()
+        val instruction = code[index]
+        val after = states[index]!!.toMutableSet()
+        if (instruction.opcode.setsRegister() && instruction.opcode != com.android.tools.smali.dexlib2.Opcode.CHECK_CAST) {
+            val destination = (instruction as OneRegisterInstruction).registerA
+            val copied = instruction.opcode in listOf(com.android.tools.smali.dexlib2.Opcode.MOVE_OBJECT,
+                com.android.tools.smali.dexlib2.Opcode.MOVE_OBJECT_FROM16, com.android.tools.smali.dexlib2.Opcode.MOVE_OBJECT_16) &&
+                (instruction as TwoRegisterInstruction).registerB in after
+            after.remove(destination)
+            if (copied) after.add(destination)
+        }
+        check(instruction.opcode !in listOf(com.android.tools.smali.dexlib2.Opcode.PACKED_SWITCH,
+            com.android.tools.smali.dexlib2.Opcode.SPARSE_SWITCH)) { "Menu dataflow needs an audited switch successor" }
+        val successors = mutableListOf<Int>()
+        if (instruction is OffsetInstruction) successors.add(offsets.getValue(offsets.entries.single { it.value == index }.key + instruction.codeOffset))
+        if (!instruction.opcode.name.startsWith("GOTO") && !instruction.opcode.name.startsWith("RETURN") &&
+            instruction.opcode != com.android.tools.smali.dexlib2.Opcode.THROW && index + 1 < code.size) successors.add(index + 1)
+        for (next in successors) {
+            val merged = states[next]?.intersect(after) ?: after.toSet()
+            if (states[next] != merged) { states[next] = merged; pending.add(next) }
+        }
+    }
+    return states
+}
+
+private fun Instruction.argumentRegisters(): List<Int> = when (this) {
+    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+    else -> error("Expected an invoke with typed argument registers")
+}
 
 /** Read-only verification of generated DEX, including the new native reselect invocation's access. */
 fun main(args:Array<String>){
@@ -35,6 +84,31 @@ fun main(args:Array<String>){
     } }
     println("HOST_HOOKS=$hostHooks")
     if(flags["aiInstalled"]==1L) {
+        val clockApi=classes.getValue("Lapp/morphe/extension/youtube/addon/AddOnApi;")
+        val clock=clockApi.methods.single { it.name=="videoTimeChanged" && it.parameterTypes.map { p->p.toString() }==listOf("J") && it.returnType=="V" }
+        check(AccessFlags.PUBLIC.isSet(clock.accessFlags) && AccessFlags.STATIC.isSet(clock.accessFlags))
+        val dispatch=classes.values.filterNot { it.type.startsWith("Lapp/morphe/") || it.type.startsWith("Lapp/yydarlinker/") }
+            .flatMap { it.methods.toList() }.single { method -> method.implementation?.instructions?.filterIsInstance<ReferenceInstruction>()?.any {
+                val call=it.reference as? MethodReference
+                call?.definingClass=="Lapp/yydarlinker/deepseekcaptions/DeepSeekCaptionHookV2;" && call.name=="onVideoTime"
+            }==true }
+        val clockCode=dispatch.implementation!!.instructions.toList()
+        val tickIndex=clockCode.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name=="onVideoTime" }
+        val apiCall=(clockCode[tickIndex+1] as ReferenceInstruction).reference as MethodReference
+        check(apiCall.toString()==clock.toString()) { "AI clock must observe the official public clock dispatch" }
+        val tick=clockCode[tickIndex].argumentRegisters()
+        check(tick.size==2 && tick[1]==tick[0]+1 && tick==clockCode[tickIndex+1].argumentRegisters()) {
+            "AI and official clocks must receive the same unmodified long"
+        }
+        val clockOffsets=IntArray(clockCode.size);var clockOffset=0
+        clockCode.forEachIndexed { index,instruction -> clockOffsets[index]=clockOffset;clockOffset+=instruction.codeUnits }
+        clockCode.forEachIndexed { index,instruction ->
+            if(instruction is OffsetInstruction) check(clockOffsets[index]+instruction.codeOffset!=clockOffsets[tickIndex+1]) {
+                "Native branch bypasses AI clock observation"
+            }
+        }
+        check(hostHooks["onVideoTime"]==1)
+        println("PUBLIC_CLOCK_PROVENANCE_PASS dispatch=$dispatch same_long=true branches_preserved=true")
         val application=classes.getValue("Lapp/yydarlinker/deepseekcaptions/CaptionApplication;")
         for(name in listOf("stopped","sessionOpened")) {
             val callbacks=application.methods.single { it.name==name }.implementation!!.instructions
@@ -44,8 +118,13 @@ fun main(args:Array<String>){
             }
         }
         println("N73_ENGINE_PLAYER_LIFECYCLE_PASS callbacks=2")
-        val shorts=classes.getValue("Lapp/morphe/extension/youtube/shared/ShortsPlayerState\$Companion;")
-        val setter=shorts.methods.single { it.name=="setOpen" && it.parameterTypes.map { p->p.toString() }==listOf("Z") }
+        val shorts=classes.getValue("Lapp/morphe/extension/youtube/shared/ShortsPlayerState;")
+        val publicSetter=shorts.methods.single { it.name=="setOpen" && AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.map { p->p.toString() }==listOf("Z") }
+        val delegate=publicSetter.implementation!!.instructions.filterIsInstance<ReferenceInstruction>()
+            .mapNotNull { it.reference as? MethodReference }.filter { it.name=="setOpen" && it.parameterTypes.map { p->p.toString() }==listOf("Z") }.singleOrNull()
+        val setter=if(delegate==null)publicSetter else classes.getValue(delegate.definingClass).methods.single {
+            it.name==delegate.name && it.parameterTypes==delegate.parameterTypes && !AccessFlags.STATIC.isSet(it.accessFlags)
+        }
         val code=setter.implementation!!.instructions.toList()
         val returns=code.indices.filter { code[it].opcode==com.android.tools.smali.dexlib2.Opcode.RETURN_VOID }
         check(returns.isNotEmpty())
@@ -59,7 +138,7 @@ fun main(args:Array<String>){
         val read=quick.methods.single { it.name=="shortsOpen" }.implementation!!.instructions.filterIsInstance<ReferenceInstruction>()
             .mapNotNull { it.reference as? MethodReference }
         check(read.any { it.definingClass=="Lapp/morphe/extension/youtube/shared/ShortsPlayerState;" && it.name=="isOpen" })
-        println("N72_SHORTS_LIFECYCLE_PASS returns=${returns.size} official_state_read=true")
+        println("N72_SHORTS_LIFECYCLE_PASS returns=${returns.size} official_state_read=true setter=${setter.definingClass}")
         val v2=classes.getValue("Lapp/yydarlinker/deepseekcaptions/DeepSeekCaptionHookV2;")
         val outer=v2.methods.single { it.name=="onPlayerType" }
         val outerCalls=outer.implementation!!.instructions.filterIsInstance<ReferenceInstruction>().mapNotNull { it.reference as? MethodReference }
@@ -78,7 +157,10 @@ fun main(args:Array<String>){
         // The quick-toggle hook must pass the live panel register and the index the divider uses.
         // 1.48's VideoDelay row turns p0 into a Boolean scratch before this point, so p0 was wrong.
         val flyout=classes.getValue("Lapp/morphe/extension/youtube/patches/utils/FlyoutUtils;")
-        val menuBody=flyout.methods.single { it.name=="addFlyoutElements" && it.parameterTypes.map { p->p.toString() }==listOf("Ljava/lang/Object;") }
+        val menuBody=flyout.methods.single { method -> method.implementation?.instructions?.filterIsInstance<ReferenceInstruction>()?.any {
+            val call=it.reference as? MethodReference
+            call?.name=="onMenu" && call.definingClass=="Lapp/yydarlinker/deepseekcaptions/CaptionQuickToggle;"
+        }==true }
         val menuCode=menuBody.implementation!!.instructions.toList()
         val onMenuIndex=menuCode.indexOfFirst { ins ->
             ((ins as? ReferenceInstruction)?.reference as? MethodReference)?.let { it.name=="onMenu" && it.definingClass.startsWith("Lapp/yydarlinker/deepseekcaptions/") }==true
@@ -86,10 +168,20 @@ fun main(args:Array<String>){
         check(onMenuIndex>=0){"quick toggle onMenu hook missing"}
         val onMenu=menuCode[onMenuIndex] as com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
         val guard=menuCode[onMenuIndex+2] as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-        val divider=menuCode[onMenuIndex+3] as com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-        check(onMenu.registerCount==2 && onMenu.registerC==divider.registerC){"quick toggle must pass the divider's panel register, not a clobbered p0"}
+        val dividerIndex=menuCode.indices.single { index ->
+            val call=(menuCode[index] as? ReferenceInstruction)?.reference as? MethodReference
+            index>onMenuIndex && call?.definingClass==flyout.type && call.name in listOf("addDivider","addFlyoutMenuItem")
+        }
+        val divider=menuCode[dividerIndex].argumentRegisters()
+        val dividerRef=(menuCode[dividerIndex] as ReferenceInstruction).reference as MethodReference
+        val aliases=panelAliases(menuBody)
+        check(onMenu.registerCount==2 && onMenu.registerC in aliases[onMenuIndex].orEmpty()) {
+            "quick toggle panel is not the original Object on every incoming path"
+        }
+        check(divider.first() in aliases[dividerIndex].orEmpty()) { "Official divider lost the original Object panel" }
         check(onMenu.registerD==guard.registerA){"quick toggle index register must be the divider guard register"}
-        println("QUICK_TOGGLE_REGISTERS_PASS panel=v${onMenu.registerC} index=v${onMenu.registerD}")
+        check(divider[if(dividerRef.name=="addDivider")1 else 4]==guard.registerA) { "Divider must consume the updated insertion index" }
+        println("QUICK_TOGGLE_REGISTERS_PASS panel=v${onMenu.registerC} index=v${onMenu.registerD} live_object_all_paths=true")
         val renderer=classes.getValue("Lcom/google/android/libraries/youtube/player/subtitles/ui/SubtitleWindowView;")
         val draw=renderer.methods.filter { it.name=="draw" && it.parameterTypes.map { t->t.toString() }==listOf("Landroid/graphics/Canvas;") && it.returnType=="V" }.singleOrNull()
         check(draw!=null) { "AI finalizer incomplete: SubtitleWindowView.draw missing/nonunique" }

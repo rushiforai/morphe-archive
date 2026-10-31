@@ -126,11 +126,17 @@ class FixtureHTTPTests(unittest.TestCase):
         guest_b, guest_a = mock.ARTIST_IDS["B Guest"], mock.ARTIST_IDS["A Guest"]
         # Last track has only A Guest as song artist and Z Lead as album artist.
         union = self.items(IncludeItemTypes="Audio", ArtistIds=lead)
-        performing = self.items(IncludeItemTypes="Audio", ContributingArtistIds=lead)
+        contributing = self.items(IncludeItemTypes="Audio", ContributingArtistIds=lead)
         self.assertEqual(union["TotalRecordCount"], 8)
-        self.assertEqual(performing["TotalRecordCount"], 7)
+        self.assertEqual(contributing["TotalRecordCount"], 0)
         self.assertIn(mock.TRACK_IDS[-1], [i["Id"] for i in union["Items"]])
-        self.assertNotIn(mock.TRACK_IDS[-1], [i["Id"] for i in performing["Items"]])
+        self.assertEqual(contributing["Items"], [])
+        self.assertEqual(self.items(IncludeItemTypes="Audio", ContributingArtistIds=guest_b)["TotalRecordCount"], 6)
+        # A Guest has no album credit, including on the album-artist-only track
+        # for Z Lead. The union's count remains independent of its bounded page.
+        self.assertEqual(self.items(IncludeItemTypes="Audio", ContributingArtistIds=guest_a)["TotalRecordCount"], 7)
+        bounded = self.items(IncludeItemTypes="Audio", ArtistIds=lead, Limit=1, Fields="")
+        self.assertEqual((len(bounded["Items"]), bounded["TotalRecordCount"]), (1, 8))
         self.assertEqual(self.items(IncludeItemTypes="Audio", AlbumArtistIds=lead)["TotalRecordCount"], 8)
         self.assertEqual(self.items(IncludeItemTypes="Audio", AlbumArtistIds=guest_a)["TotalRecordCount"], 0)
         self.assertEqual(self.items(IncludeItemTypes="Audio", ArtistIds=guest_b)["TotalRecordCount"], 6)
@@ -279,6 +285,25 @@ class FixtureHTTPTests(unittest.TestCase):
         self.assertEqual(len(released), 2)
         self.assertTrue(all(r["state"] == "completed" and r["status"] == 200 for r in released))
 
+    def test_count_gate_does_not_hold_previews_or_enumeration(self):
+        lead = mock.ARTIST_IDS["Z Lead"]
+        query = {"IncludeItemTypes": "Audio", "ArtistIds": lead}
+        self.control("/_fixture/control", method="POST", body={"mode": "hold", "scope": "artist-count"})
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            held = pool.submit(self.items, **query, Limit=1, Fields="")
+            try:
+                pending = self.wait_for_pending(1)
+                self.assertTrue(pending["requests"][-1]["artistCountQuery"])
+                self.assertEqual(len(self.items(**query, Limit=5)["Items"]), 5)
+                self.assertEqual(len(self.items(**query)["Items"]), 8)
+                self.assertFalse(held.done())
+            finally:
+                self.control("/_fixture/release", method="POST")
+            self.assertEqual(held.result(timeout=3)["TotalRecordCount"], 8)
+        self.control("/_fixture/control", method="POST", body={"mode": "reject", "scope": "artist-count"})
+        self.assertEqual(self.request("/Items", query={**query, "Limit": 1})[0], 503)
+        self.assertEqual(len(self.items(**query, Limit=5)["Items"]), 5)
+
     def test_reject_all_scope_timeout_and_invalid_queries(self):
         self.control("/_fixture/control", method="POST", body={"mode": "reject", "scope": "all"})
         path = "/Users/" + mock.USER_ID + "/Items"
@@ -388,6 +413,47 @@ class NavigationProfileTests(unittest.TestCase):
             self.assertEqual(len(fixture.manifest(18961)["trackIds"]), 113)
         finally:
             fixture.close()
+
+
+class PlayerProfileTests(unittest.TestCase):
+    def test_player_lyrics_are_served_without_changing_original_tracks(self):
+        original = mock.Fixture()
+        fixture = mock.Fixture(profile="player")
+        server = mock.FixtureServer(("127.0.0.1", 0), fixture)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            for track_id in mock.TRACK_IDS:
+                self.assertEqual(fixture.items[track_id], original.items[track_id])
+                self.assertEqual(fixture.audio[track_id], original.audio[track_id])
+            track_id = mock.stable_id("player-output-track")
+            self.assertTrue(fixture.items[track_id]["HasLyrics"])
+            connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=5)
+            try:
+                connection.request("GET", "/Items/" + track_id + "/PlaybackInfo",
+                                   headers={"X-Emby-Token": mock.ACCESS_TOKEN})
+                playback_response = connection.getresponse()
+                playback_info = json.loads(playback_response.read())
+                self.assertEqual(playback_response.status, 200)
+                self.assertTrue(any(stream["Type"] == "Lyric"
+                                    for stream in playback_info["MediaSources"][0]["MediaStreams"]),
+                                "Finamp detects lyrics from PlaybackInfo.MediaStreams, not HasLyrics")
+                connection.request("GET", "/Audio/" + track_id + "/Lyrics",
+                                   headers={"X-Emby-Token": mock.ACCESS_TOKEN})
+                response = connection.getresponse()
+                lyrics = json.loads(response.read())
+                self.assertEqual(response.status, 200)
+                self.assertFalse(lyrics["Metadata"]["IsSynced"])
+                self.assertEqual([line["Text"] for line in lyrics["Lyrics"]],
+                                 ["Penguin synthetic lyrics", "Player actions remain reachable."])
+            finally:
+                connection.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(2)
+            fixture.close()
+            original.close()
 
 
 if __name__ == "__main__":

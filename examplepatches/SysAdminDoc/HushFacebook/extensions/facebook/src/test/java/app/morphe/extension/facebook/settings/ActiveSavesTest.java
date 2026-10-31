@@ -19,6 +19,7 @@ import android.graphics.Canvas;
 import android.preference.Preference;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -169,6 +170,8 @@ public class ActiveSavesTest {
         assertEquals("Cancel", cancel.getText().toString());
         assertEquals("Cancel saving this video", String.valueOf(cancel.getContentDescription()));
         assertEquals(Button.class.getName(), cancel.createAccessibilityNodeInfo().getClassName());
+        assertTrue("a screen reader stops on the save's title and its status separately", row.isScreenReaderFocusable());
+        assertTrue("Cancel lost its own screen reader stop", cancel.isFocusable() && cancel.isClickable());
         int touch = Math.round(48 * cancel.getResources().getDisplayMetrics().density);
         assertTrue(cancel.getHeight() >= touch && cancel.getWidth() >= touch);
         assertNull("saving asked for a permission", Shadows.shadowOf(controller.get()).getLastRequestedPermission());
@@ -286,6 +289,48 @@ public class ActiveSavesTest {
         clock.advanceMillis(3_000);
         ShadowLooper.idleMainLooper(1, java.util.concurrent.TimeUnit.SECONDS);
         assertEquals("Joining the picture and sound\n0:11 elapsed", summaryOf(row(id)));
+    }
+
+    /**
+     * TalkBack reads a focused row again whenever its text changes, so with it on the time moves
+     * every ten seconds instead of every second, and a new phase still shows at once.
+     */
+    @Test public void withAScreenReaderOnTheRowsTimeMovesEveryTenSeconds() {
+        Shadows.shadowOf(notifications()).setNotificationsEnabled(false);
+        AccessibilityManager a11y = RuntimeEnvironment.getApplication().getSystemService(AccessibilityManager.class);
+        Shadows.shadowOf(a11y).setEnabled(true);
+        Shadows.shadowOf(a11y).setTouchExplorationEnabled(true);
+        try {
+            int id = SavesForTests.begin(RuntimeEnvironment.getApplication(), true);
+            show();
+            assertEquals("Downloading\n0:00 elapsed", summaryOf(row(id)));
+
+            // The page opens part of a second into the tick, so the first move lands on the 10th or 11th.
+            int waited = 0;
+            while ("Downloading\n0:00 elapsed".equals(summaryOf(row(id))) && waited < 20) {
+                aSecondGoesBy();
+                waited++;
+            }
+            assertTrue("with TalkBack on the time moved after " + waited + " s, not ten", waited == 10 || waited == 11);
+            String moved = summaryOf(row(id));
+            assertEquals("Downloading\n0:" + waited + " elapsed", moved);
+            for (int second = 1; second <= 8; second++) aSecondGoesBy();
+            assertEquals("the time moved again within ten seconds", moved, summaryOf(row(id)));
+
+            SavesForTests.joining(id);
+            ShadowLooper.idleMainLooper();
+            assertTrue("a new phase waited for its turn: " + summaryOf(row(id)),
+                    summaryOf(row(id)).startsWith("Joining the picture and sound\n"));
+        } finally {
+            Shadows.shadowOf(a11y).setTouchExplorationEnabled(false);
+            Shadows.shadowOf(a11y).setEnabled(false);
+        }
+    }
+
+    /** The save's clock and the tick move together, as on a phone. */
+    private void aSecondGoesBy() {
+        clock.advanceMillis(1_000);
+        ShadowLooper.idleMainLooper(1, java.util.concurrent.TimeUnit.SECONDS);
     }
 
     /** Rebuilt for a rotation, the page lists each save once, and goes on following it. */

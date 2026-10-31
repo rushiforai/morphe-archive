@@ -92,7 +92,7 @@ public class SettingsVisualCaptureTest {
     }
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         RuntimeEnvironment.getApplication().getApplicationInfo().flags |= ApplicationInfo.FLAG_SUPPORTS_RTL;
         RuntimeEnvironment.setFontScale(1f);
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);

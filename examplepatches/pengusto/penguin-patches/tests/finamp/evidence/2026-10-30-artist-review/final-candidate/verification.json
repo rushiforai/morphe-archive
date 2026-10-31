@@ -1,0 +1,15 @@
+{
+  "bundle_sha256": "c0ff605a009773103ea229b6dcd2512c2acf80d442d741cec0f762d03b858388",
+  "published_base": true,
+  "native_masks": 127,
+  "actual_desktop_masks": 127,
+  "rejected_inputs": 4,
+  "expected_targets_match_independent_replay": true,
+  "full_manager_suite": false,
+  "official_core_art_cases": [
+    "4-art",
+    "127-art"
+  ],
+  "actual_manager_installations_match_exports": true,
+  "settings_and_22_files_preserved_after_both_updates": true
+}

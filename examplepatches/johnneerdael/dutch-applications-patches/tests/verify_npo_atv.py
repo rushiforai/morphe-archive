@@ -4,7 +4,7 @@ from bisect import bisect_left
 import json
 import re
 from pathlib import Path
-from atv_smali import methods, classes, class_methods, instructions, without_prefix, graph
+from atv_smali import classes, class_methods, instructions, without_prefix, graph
 
 
 def split_catches(rows):
@@ -78,27 +78,56 @@ def initializer_writes(rows):
     return writes
 
 
-def verify(original, patched, ads, tracking, startup_data=None, embedded_original=None):
+def verify_embedded_helpers(embedded_original, after_classes):
+    """Retain the complete independently decoded helper method graphs."""
+    for owner, original_path in classes(embedded_original).items():
+        assert owner in after_classes, 'Original embedded lifecycle helper removed: ' + owner
+        assert class_methods(after_classes[owner]) == class_methods(original_path), \
+            'Original embedded lifecycle helper method graph changed: ' + owner
+
+
+def verify(original, patched, ads, tracking, startup_data=None, embedded_original=None, phone=False):
     before_classes, after_classes = classes(original), classes(patched)
-    contracts = json.loads(Path(__file__).with_name('npo_atv_contracts.json').read_text())
+    contracts = json.loads(Path(__file__).with_name('npo_phone_contracts.json' if phone else 'npo_atv_contracts.json').read_text())
     edits = {x['owner'] + '->' + x['signature']: x['prefix'] for x in contracts
              if (ads if x['selection'] == 'ads' else tracking)}
     callbacks = {}
+    added_initializers = set()
     if startup_data:
         from run_npo_runtime import prefixes
         from run_npo_token import prefix as token_prefix
-        restored = prefixes()
-        callbacks = {
-            'Lnl/npo/player/library/l6/v;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V': restored['networkAudioReceiverCode'],
-            'Lnl/npo/player/library/zt/j;->doInBackground([Ljava/lang/Object;)Ljava/lang/Object;': restored['appAuthDiscoveryCode'],
-            'Lnl/npo/player/library/zt/i;->doInBackground([Ljava/lang/Object;)Ljava/lang/Object;': token_prefix(),
-        }
+        if phone:
+            source = Path(__file__).resolve().parents[1] / 'patches/src/main/kotlin/patches/npostarttv/PhoneRuntimeCallbacks.kt'
+            restored = prefixes(source, ('phoneAppAuthDiscoveryCode', 'phoneReceiverCode'))
+            callbacks = {
+                'Lnl/npo/player/library/j9/e2;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V': restored['phoneReceiverCode'],
+                'Lnl/npo/player/library/ru/k;->doInBackground([Ljava/lang/Object;)Ljava/lang/Object;': restored['phoneAppAuthDiscoveryCode'],
+            }
+            bitmap_source = source.with_name('PhoneBitmapFetch.kt')
+            callbacks['Lnl/npo/player/library/ll/c;->doInBackground([Ljava/lang/Object;)Ljava/lang/Object;'] = prefixes(bitmap_source, ('phoneBitmapFetchCode',))['phoneBitmapFetchCode']
+            indicator_source = source.with_name('PhoneRouteIndicator.kt')
+            callbacks['Lnl/npo/player/library/m9/a;->doInBackground([Ljava/lang/Object;)Ljava/lang/Object;'] = prefixes(indicator_source, ('phoneRouteIndicatorCode',))['phoneRouteIndicatorCode']
+        else:
+            restored = prefixes()
+            callbacks = {
+                'Lnl/npo/player/library/l6/v;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V': restored['networkAudioReceiverCode'],
+                'Lnl/npo/player/library/zt/j;->doInBackground([Ljava/lang/Object;)Ljava/lang/Object;': restored['appAuthDiscoveryCode'],
+                'Lnl/npo/player/library/zt/i;->doInBackground([Ljava/lang/Object;)Ljava/lang/Object;': token_prefix(),
+            }
         edits['Lcom/pairip/SignatureCheck;->verifyIntegrity(Landroid/content/Context;)V'] = ['return-void']
         edits['Lcom/pairip/StartupLauncher;->launch()V'] = ['return-void']
+        captured = json.loads(Path(startup_data).read_text())
+        added_initializers = {owner + '-><clinit>()V' for owner in captured['strings']}
+        added_initializers.update(field.split('->')[0] + '-><clinit>()V' for field in captured['methods'])
+        assert embedded_original, 'Independent original embedded helpers are required'
+        assert set(after_classes) == set(before_classes) | set(classes(embedded_original)), 'Unexpected injected NPO classes'
+    else:
+        assert set(after_classes) == set(before_classes), 'Unexpected added NPO classes'
     count = 0
     for owner, path in before_classes.items():
         assert owner in after_classes, 'Original NPO class removed: ' + owner
         before, after = class_methods(path), class_methods(after_classes[owner])
+        assert set(after) == set(before) | {key for key in added_initializers if key.startswith(owner + '->')}, 'Unexpected added NPO methods: ' + owner
         for key, body in before.items():
             count += 1
             assert key in after, 'Original NPO method removed: ' + key
@@ -111,8 +140,7 @@ def verify(original, patched, ads, tracking, startup_data=None, embedded_origina
             else:
                 assert after[key] == body, 'Unrelated NPO method changed: ' + key
     if startup_data:
-        captured = json.loads(Path(startup_data).read_text())
-        assert len(captured['strings']) == 32 and sum(map(len, captured['strings'].values())) == 1437
+        assert len(captured['strings']) == 32 and sum(map(len, captured['strings'].values())) == (1494 if phone else 1437)
         for owner, fields in captured['strings'].items():
             writes = initializer_writes(class_methods(after_classes[owner])[owner + '-><clinit>()V'])
             assert writes == {owner + '->' + name + ':Ljava/lang/String;': value for name, value in fields.items()}, owner
@@ -121,12 +149,11 @@ def verify(original, patched, ads, tracking, startup_data=None, embedded_origina
             owner = field.split('->')[0]
             grouped.setdefault(owner, {})[field + ':Ljava/lang/reflect/Method;'] = (
                 descriptor(info['helper']), info['name'], [descriptor(p) for p in info['parameters']])
-        assert sum(map(len, grouped.values())) == 9
+        assert sum(map(len, grouped.values())) == (10 if phone else 9)
         for owner, expected in grouped.items():
             assert initializer_writes(class_methods(after_classes[owner])[owner + '-><clinit>()V']) == expected, owner
         assert embedded_original, 'Independent original embedded helpers are required'
-        for key, body in methods(embedded_original).items():
-            assert class_methods(after_classes[key.split('->')[0]])[key] == body, 'Original embedded lifecycle helper changed: ' + key
+        verify_embedded_helpers(embedded_original, after_classes)
     if tracking:
         from npo_manifest import load_manifest, verify_manifest
         verify_manifest(load_manifest(original), load_manifest(patched))
@@ -139,8 +166,9 @@ if __name__ == '__main__':
     parser.add_argument('patched')
     parser.add_argument('--ads', action='store_true')
     parser.add_argument('--tracking', action='store_true')
+    parser.add_argument('--phone', action='store_true')
     parser.add_argument('--startup-data')
     parser.add_argument('--embedded-original')
     args = parser.parse_args()
     print('PASS: NPO effects and', verify(args.original, args.patched, args.ads, args.tracking,
-          args.startup_data, args.embedded_original), 'original method contracts')
+          args.startup_data, args.embedded_original, args.phone), 'original method contracts')

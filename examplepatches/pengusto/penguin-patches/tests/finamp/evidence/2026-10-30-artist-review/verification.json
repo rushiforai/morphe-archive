@@ -1,0 +1,110 @@
+{
+  "outcome": "PASS",
+  "scope": "Private complete Artist candidate; published release verification is recorded separately",
+  "candidate_bundle_sha256": "eb48836340eb74d59d817859d238659fd216cbe4f3a16bcac99678023f1aa1a6",
+  "native_masks": 127,
+  "real_desktop_masks": 127,
+  "rejected_inputs": 4,
+  "actual_manager_cases": [
+    "12-jvm",
+    "123-jvm",
+    "127-art",
+    "127-jvm",
+    "36-jvm",
+    "4-art",
+    "4-jvm"
+  ],
+  "data_sequence": [
+    {
+      "mask": 4,
+      "receipt": "private-candidate/persistence-4/persistence.json",
+      "installed_apk_sha256": "e09de0330375a1814e2e1ce5d8689a7c4a1fef1b72152e7c05a55b786bf22c1a",
+      "metadata": null,
+      "auxiliary_box": {
+        "present": false,
+        "bytes": 0,
+        "sha256": null,
+        "verifiedSizeFromStat": false
+      }
+    },
+    {
+      "mask": 12,
+      "receipt": "private-candidate/persistence-12/persistence.json",
+      "installed_apk_sha256": "2605492628aba0e2eb908e23344074f69bb668fc5e4d11966dea7a4713f47124",
+      "metadata": null,
+      "auxiliary_box": {
+        "present": false,
+        "bytes": 0,
+        "sha256": null,
+        "verifiedSizeFromStat": false
+      }
+    },
+    {
+      "mask": 36,
+      "receipt": "private-candidate/persistence-36-jvm/persistence.json",
+      "installed_apk_sha256": "ae64d8edbca9c53bf9b0e56bd49ad53a5cfab91584ca82c5c8e2bb760db47121",
+      "metadata": null,
+      "auxiliary_box": {
+        "present": false,
+        "bytes": 0,
+        "sha256": null,
+        "verifiedSizeFromStat": false
+      }
+    },
+    {
+      "mask": 127,
+      "receipt": "private-candidate/persistence-127-jvm/persistence.json",
+      "installed_apk_sha256": "97cf628eb5d96ac8a3d0c214f2052a7983464101efea1a8b828e9b30ad486f2b",
+      "metadata": "Metadata order",
+      "auxiliary_box": {
+        "present": true,
+        "bytes": 23,
+        "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af",
+        "verifiedSizeFromStat": true
+      }
+    },
+    {
+      "mask": 123,
+      "receipt": "private-candidate/persistence-123-jvm/persistence.json",
+      "installed_apk_sha256": "7a37f9b47b4ca55b216b77d6be31f6e35dfabe4e5c6abc7a35a528903d399899",
+      "metadata": "Metadata order",
+      "auxiliary_box": {
+        "present": true,
+        "bytes": 23,
+        "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af",
+        "verifiedSizeFromStat": true
+      }
+    },
+    {
+      "mask": 0,
+      "receipt": "private-candidate/persistence-0/persistence.json",
+      "installed_apk_sha256": "a43d9464b2bc778b506575ab7a3a84c4368a94f6f51a9dff7902d2b7828a67a8",
+      "metadata": null,
+      "auxiliary_box": {
+        "present": true,
+        "bytes": 23,
+        "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af",
+        "verifiedSizeFromStat": true
+      }
+    },
+    {
+      "mask": 127,
+      "receipt": "private-candidate/persistence-127-art/persistence.json",
+      "installed_apk_sha256": "4bc6f9706a82134f2c236246f043759b5c98fcb5d9f03a8115f5e9c2a1d6d506",
+      "metadata": "Metadata order",
+      "auxiliary_box": {
+        "present": true,
+        "bytes": 23,
+        "sha256": "e776b3b310b2be7b347da12ed2e494325a25efc080cc8b4f70e7f3138012e4af",
+        "verifiedSizeFromStat": true
+      }
+    }
+  ],
+  "same_key_updates_only": true,
+  "app_data_cleared": false,
+  "baseline_media_files": 22,
+  "baseline_tracks": 8,
+  "count_state_checkpoint_native_sha256": "d7cd3de98598ecac533c957a08ecedcb5e38fd9ad788e069c909b706acc2db3a",
+  "checkpoint_scope": "Loading/Error/fault recovery on byte-identical Artist-only snapshot and IO core, separate exact checkpoint MPP hashes retained",
+  "physical_devices_tested": false
+}

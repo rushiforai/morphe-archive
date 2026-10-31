@@ -1,0 +1,19 @@
+{
+  "id": "gemma-4-E4B-it-litert-lm",
+  "title": "Gemma 4 E4B (text summaries and comparison)",
+  "url": "https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm/resolve/e6a3892a8c22cf87ff99583996149cf3cb32452b/gemma-4-E4B-it.litertlm",
+  "sha256": "0b2a8980ce155fd97673d8e820b4d29d9c7d99b8fa6806f425d969b145bd52e0",
+  "size": 3659530240,
+  "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+  "licenseName": "Apache-2.0",
+  "revision": "e6a3892a8c22cf87ff99583996149cf3cb32452b",
+  "modelCardUrl": "https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm/blob/e6a3892a8c22cf87ff99583996149cf3cb32452b/README.md",
+  "gated": false,
+  "abi": ["arm64-v8a", "x86_64"],
+  "minSdk": 29,
+  "backend": "GPU",
+  "fallbackBackend": "CPU",
+  "audioBackend": null,
+  "visionBackend": null,
+  "sdk": "com.google.ai.edge.litertlm:litertlm-android:0.18.1"
+}

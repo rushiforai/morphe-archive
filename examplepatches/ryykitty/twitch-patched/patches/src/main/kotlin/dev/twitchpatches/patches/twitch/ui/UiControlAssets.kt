@@ -12,15 +12,11 @@ internal fun ResourcePatchContext.appendUiControls(bundle: HermesBundle) {
 internal fun renderUiControls(bundle: HermesBundle): String {
     val exports = MetroExports(bundle)
     val support = exports.resolve("SupportActionRow", setOf("buttons", "expanded", "compact", "onOpenSubscribe"))
-    val skylineSupport = if (bundle.functions.any { bundle.strings[it.name] == "SkylineSupportActionRow" })
-        exports.resolve("SkylineSupportActionRow", setOf("buttons", "expanded", "compact", "onOpenSubscribe")) else support
+    val skylineSupport = exports.resolve("SkylineSupportActionRow", setOf("buttons", "expanded", "compact", "onOpenSubscribe"))
     exports.requireNestedContract(support.name, setOf("FollowButton", "notificationSetting", "map"))
-    val trophy = bundle.functions.filter { bundle.strings[it.name] == "SkylineLeaderboardTrophy" }
-    val leaderboard = if (trophy.isNotEmpty()) {
-        val params = trophy.single().params
-        exports.requireFunctionContract("SkylineLeaderboardTrophy", params, setOf("skyline-leaderboard-trophy", "openSheetOnBoard"))
-        exports.resolve("SkylineLeaderboardTrophy", setOf("useChannelLeaderboard", "hasBoards", "IconButton"), params = params)
-    } else null
+    val trophy = bundle.functions.single { bundle.strings[it.name] == "SkylineLeaderboardTrophy" }
+    exports.requireFunctionContract("SkylineLeaderboardTrophy", trophy.params, setOf("skyline-leaderboard-trophy", "onPress"))
+    val leaderboard = exports.resolve("SkylineLeaderboardTrophy", setOf("useChannelLeaderboard", "IconButton"), params = trophy.params)
     val targets = mapOf(
         "CLASSIC" to exports.resolve("PlayerControlsOverlay", setOf("onMuteToggle", "visible", "IconButton", "Tooltip")),
         "VERTICAL" to exports.resolve("SkylineControlsOverlay", setOf("onMuteToggle", "onShare", "TheatreClipButton", "IconButton")),
@@ -38,12 +34,11 @@ internal fun renderUiControls(bundle: HermesBundle): String {
     exports.requireNestedContract("PlayerControlsOverlay", setOf("player-controls-cast", "player-controls-share"))
     exports.requireNestedContract("SkylineControlsOverlay", setOf("-share"))
     exports.requireNestedContract("OverlayActionButtons", setOf("-subscribe", "-upgrade", "-gift", "-bits"))
-    val extensionEntry = if (bundle.functions.any { bundle.strings[it.name] == "ExtensionsEntryButton" })
-        exports.resolve("ExtensionsEntryButton", setOf("onPress", "testID", "IconExtensions", "IconButton")) else null
+    val extensionEntry = exports.resolve("ExtensionsEntryButton", setOf("onPress", "testID", "IconExtensions", "IconButton"))
     exports.requireNestedContract("ClassicExtensionsIcon", setOf("extensions-icon"))
     exports.requireNestedContract("ChannelMetadata", setOf("channel-metadata-persistent-row", "channel-metadata-actions"))
-    var source = assetSource("ui-controls.js").replace("__TWITCH_UI_LEADERBOARD_MODULE__", leaderboard?.module?.toString() ?: "null")
-        .replace("__TWITCH_UI_EXTENSION_ENTRY_MODULE__", extensionEntry?.module?.toString() ?: "null")
+    var source = assetSource("ui-controls.js").replace("__TWITCH_UI_LEADERBOARD_MODULE__", leaderboard.module.toString())
+        .replace("__TWITCH_UI_EXTENSION_ENTRY_MODULE__", extensionEntry.module.toString())
         .replace("__TWITCH_UI_SKYLINE_ROW_EXPORT__", skylineSupport.name)
     targets.forEach { (key, target) -> source = source.replace("__TWITCH_UI_${key}_MODULE__", target.module.toString()) }
     return source + "\n" + renderUiChatOverlays(bundle)

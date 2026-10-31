@@ -18,6 +18,7 @@ import time
 from datetime import datetime, timezone
 from urllib.parse import urljoin, urlparse
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 import zipfile
 
 
@@ -216,44 +217,88 @@ def update_target(version_name: str, version_code: int) -> None:
     temporary.replace(CONSTANTS_FILE)
 
 
-def latest_apkmirror_release() -> tuple[str, str]:
+def fetch_apkmirror_page() -> str:
     request = Request(
         APK_MIRROR_URL,
         headers={"User-Agent": "Mozilla/5.0 (compatible; F1TVPatchUpdateCheck/1.0)"},
     )
-    with urlopen(request, timeout=25) as response:
-        if urlparse(response.geturl()).hostname != APK_MIRROR_HOST:
-            raise RuntimeError("APKMirror check redirected away from the approved host")
-        page = response.read(4 * 1024 * 1024).decode("utf-8", errors="replace")
+    try:
+        with urlopen(request, timeout=25) as response:
+            if urlparse(response.geturl()).hostname != APK_MIRROR_HOST:
+                raise RuntimeError("APKMirror check redirected away from the approved host")
+            return response.read(4 * 1024 * 1024).decode("utf-8", errors="replace")
+    except (HTTPError, URLError, TimeoutError) as error:
+        print(f"Standard APKMirror request failed: {error}; trying browser TLS transport.", file=sys.stderr)
+
+    try:
+        from curl_cffi import requests
+    except ImportError as error:
+        raise RuntimeError("Install scripts/f1tv/requirements-watch.txt to enable the APKMirror fallback") from error
+    for attempt in range(3):
+        try:
+            # Match browser TLS as well as HTTP headers; a User-Agent alone is insufficient.
+            response = requests.get(APK_MIRROR_URL, impersonate="chrome", timeout=25, allow_redirects=False)
+            response.raise_for_status()
+            if response.status_code != 200:
+                raise RuntimeError(f"Unexpected APKMirror HTTP status: {response.status_code}")
+            return response.text
+        except requests.RequestsError as error:
+            if attempt == 2:
+                raise RuntimeError(f"APKMirror unavailable after browser transport retries: {error}") from error
+            time.sleep(2 ** attempt)
+    raise RuntimeError("APKMirror unavailable")
+
+
+def latest_apkmirror_release() -> tuple[str, str]:
+    page = fetch_apkmirror_page()
 
     parser = LinkParser()
     parser.feed(page)
+    releases = []
     for href, label in parser.links:
         absolute_url = urljoin(APK_MIRROR_URL, href)
         if urlparse(absolute_url).hostname != APK_MIRROR_HOST:
             continue
         version_match = re.search(r"(\d+\.\d+[^<>]*?-mobile)", label, re.IGNORECASE)
-        if not version_match or not VERSION_RE.search(version_match.group(1)):
+        if not version_match or not VERSION_RE.search(version_match.group(1)) or "-release/" not in urlparse(absolute_url).path:
             continue
-        return version_match.group(1).strip(), absolute_url
+        releases.append((version_match.group(1).strip(), absolute_url))
+    if releases:
+        return max(releases, key=lambda release: version_key(release[0]))
     raise RuntimeError("APKMirror page layout changed or no mobile release link was found")
 
 
+def version_key(name: str) -> tuple[int, ...]:
+    # Include SP and R components so builds with the same app version remain ordered.
+    return tuple(int(part) for part in re.findall(r"\d+", name))
+
+
 def command_check(args: argparse.Namespace) -> None:
-    latest_name, latest_url = latest_apkmirror_release()
+    try:
+        latest_name, latest_url = latest_apkmirror_release()
+    except Exception as error:
+        if args.result_file:
+            args.result_file.write_text(json.dumps({"status": "error", "error": str(error)}), encoding="utf-8")
+        raise
     target_name, target_code = current_target()
-    matches = latest_name == target_name
+    newer = version_key(latest_name) > version_key(target_name)
+    matches = not newer
+    if args.result_file:
+        args.result_file.write_text(json.dumps({
+            "status": "update" if newer else "current", "latest": latest_name,
+            "target": target_name, "url": latest_url,
+        }), encoding="utf-8")
     print(f"APKMirror latest mobile APK: {latest_name}")
     print(f"Target in checkout:          {target_name} (versionCode {target_code})")
     print(f"APKMirror page:              {latest_url}")
     if matches:
-        print("Target matches the newest APKMirror listing.")
+        print("No newer APKMirror mobile release found.")
     else:
         print("New APK available: download it from APKMirror, then run ingest/stage before patch testing.")
 
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
-        status = "✅ Patch target matches the latest listing" if matches else "⚠️ A newer APK is listed"
+        status = "✅ No newer mobile release listed" if matches else "⚠️ A newer APK is listed"
         summary = (
             "## F1 TV APK check\n\n"
             f"- **Result:** {status}\n"
@@ -290,7 +335,7 @@ def command_watch(args: argparse.Namespace) -> None:
         try:
             latest_name, latest_url = latest_apkmirror_release()
             target_name, _ = current_target()
-            if latest_name != target_name and latest_name != last_notified:
+            if version_key(latest_name) > version_key(target_name) and latest_name != last_notified:
                 message = f"APKMirror lists {latest_name}; current patch target is {target_name}"
                 print(f"NEW VERSION: {message}\n{latest_url}", flush=True)
                 notify = shutil.which("notify-send")
@@ -400,6 +445,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Return a failure when APKMirror lists a newer version than the patch target",
     )
     check.set_defaults(func=command_check)
+    check.add_argument("--result-file", type=Path, help="Write current/update/error JSON for notifications")
 
     watch = commands.add_parser("watch", help="Poll APKMirror and archive F1 APKs downloaded to a folder")
     watch.add_argument("--downloads", type=Path, default=Path.home() / "Downloads")
@@ -442,3 +488,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

@@ -334,7 +334,7 @@ def patch_vku_smali():
 
     with open(vku_path, "w", encoding="utf-8") as f:
         f.write(content)
-    print("    [+] vku.smali patched: l() returns true (sauce eligible). g() and f() preserved.")
+    print("    [+] vku.smali patched: l() returns true (sauce eligible). e(), g() and f() preserved.")
 
 def patch_ksf_smali():
     print("[*] Patching ksf.smali (Gouda flags, Mantis, Looks, Segmenter model interception, was klm)...")
@@ -987,9 +987,46 @@ def patch_ksf_smali():
 
     move-result v1
 
-    if-eqz v1, :cond_check_creator_x_0
+    if-eqz v1, :cond_check_lobster_x
 
     const/4 v0, 0x1
+
+    return v0
+
+    :cond_check_lobster_x
+    const-string v1, "camera.lobster"
+
+    invoke-virtual {{v0, v1}}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_check_creator_x_0
+
+    invoke-static {{}}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v1
+
+    if-eqz v1, :cond_lobster_disabled_x
+
+    const-string v1, "camera.lobster.default"
+
+    invoke-virtual {{v0, v1}}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-eqz v1, :cond_lobster_enabled_x
+
+    const/4 v0, 0x0
+
+    return v0
+
+    :cond_lobster_enabled_x
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_lobster_disabled_x
+    const/4 v0, 0x0
 
     return v0
 
@@ -1918,6 +1955,16 @@ def patch_aaog_smali():
 def patch_libgcastartup():
     print("[*] Patching libgcastartup.so (Bypassing EdgeTPU Darwinn assertion for Motion Blur / Lasagna)...")
     so_path = os.path.join(APKTOOL_DIR, "lib", "arm64-v8a", "libgcastartup.so")
+    bak_path = so_path + ".bak"
+    if os.path.exists(bak_path):
+        os.remove(bak_path)
+    for root, dirs, files in os.walk(os.path.join(APKTOOL_DIR, "lib")):
+        for f in files:
+            if f.endswith(".bak"):
+                try:
+                    os.remove(os.path.join(root, f))
+                except Exception:
+                    pass
     if not os.path.exists(so_path):
         print("    [!] Warning: libgcastartup.so not found, skipping patch.")
         return
@@ -2433,6 +2480,92 @@ def patch_msr_smali():
     if opt_d_target in content:
         content = content.replace(opt_d_target, opt_d_repl)
         print("    [+] mjy.smali: khw.d guarded with isPresent().")
+
+    # Guard SENSOR_INFO_PIXEL_ARRAY_SIZE_MAXIMUM_RESOLUTION in msr.smali
+    max_res_target = """    sget-object v1, Landroid/hardware/camera2/CameraCharacteristics;->SENSOR_INFO_PIXEL_ARRAY_SIZE_MAXIMUM_RESOLUTION:Landroid/hardware/camera2/CameraCharacteristics$Key;
+
+    invoke-interface {v0, v1}, Lvgr;->p(Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;
+
+    move-result-object v1
+
+    check-cast v1, Landroid/util/Size;
+
+    invoke-virtual {v1}, Landroid/util/Size;->getWidth()I
+
+    move-result v7
+
+    invoke-virtual {v5, v7}, Lcom/google/googlex/gcam/StaticMetadata;->t(I)V
+
+    invoke-virtual {v1}, Landroid/util/Size;->getHeight()I
+
+    move-result v7
+
+    invoke-virtual {v5, v7}, Lcom/google/googlex/gcam/StaticMetadata;->s(I)V
+
+    sget-object v7, Landroid/hardware/camera2/CameraCharacteristics;->SENSOR_INFO_PRE_CORRECTION_ACTIVE_ARRAY_SIZE_MAXIMUM_RESOLUTION:Landroid/hardware/camera2/CameraCharacteristics$Key;
+
+    invoke-interface {v0, v7}, Lvgr;->p(Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;
+
+    move-result-object v7
+
+    check-cast v7, Landroid/graphics/Rect;"""
+
+    max_res_repl = """    sget-object v1, Landroid/hardware/camera2/CameraCharacteristics;->SENSOR_INFO_PIXEL_ARRAY_SIZE_MAXIMUM_RESOLUTION:Landroid/hardware/camera2/CameraCharacteristics$Key;
+
+    invoke-interface {v0, v1}, Lvgr;->n(Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;
+
+    move-result-object v1
+
+    check-cast v1, Landroid/util/Size;
+
+    if-nez v1, :cond_has_pixel_max
+
+    sget-object v1, Landroid/hardware/camera2/CameraCharacteristics;->SENSOR_INFO_PIXEL_ARRAY_SIZE:Landroid/hardware/camera2/CameraCharacteristics$Key;
+
+    invoke-interface {v0, v1}, Lvgr;->p(Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;
+
+    move-result-object v1
+
+    check-cast v1, Landroid/util/Size;
+
+    :cond_has_pixel_max
+    invoke-virtual {v1}, Landroid/util/Size;->getWidth()I
+
+    move-result v7
+
+    invoke-virtual {v5, v7}, Lcom/google/googlex/gcam/StaticMetadata;->t(I)V
+
+    invoke-virtual {v1}, Landroid/util/Size;->getHeight()I
+
+    move-result v7
+
+    invoke-virtual {v5, v7}, Lcom/google/googlex/gcam/StaticMetadata;->s(I)V
+
+    sget-object v7, Landroid/hardware/camera2/CameraCharacteristics;->SENSOR_INFO_PRE_CORRECTION_ACTIVE_ARRAY_SIZE_MAXIMUM_RESOLUTION:Landroid/hardware/camera2/CameraCharacteristics$Key;
+
+    invoke-interface {v0, v7}, Lvgr;->n(Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;
+
+    move-result-object v7
+
+    check-cast v7, Landroid/graphics/Rect;
+
+    if-nez v7, :cond_has_pre_max
+
+    sget-object v7, Landroid/hardware/camera2/CameraCharacteristics;->SENSOR_INFO_PRE_CORRECTION_ACTIVE_ARRAY_SIZE:Landroid/hardware/camera2/CameraCharacteristics$Key;
+
+    invoke-interface {v0, v7}, Lvgr;->p(Landroid/hardware/camera2/CameraCharacteristics$Key;)Ljava/lang/Object;
+
+    move-result-object v7
+
+    check-cast v7, Landroid/graphics/Rect;
+
+    :cond_has_pre_max"""
+
+    if max_res_target in content:
+        content = content.replace(max_res_target, max_res_repl)
+        print("    [+] msr.smali: SENSOR_INFO_PIXEL_ARRAY_SIZE_MAXIMUM_RESOLUTION guarded against missing keys.")
+    elif "cond_has_pixel_max" in content:
+        print("    [+] msr.smali: SENSOR_INFO_PIXEL_ARRAY_SIZE_MAXIMUM_RESOLUTION already guarded.")
 
     with open(msr_path, "w", encoding="utf-8") as f:
         f.write(content)
@@ -3934,13 +4067,82 @@ def patch_pyp_smali():
         print("    [+] pyp.smali patched successfully.")
 
 def patch_rdb_smali():
-    print("[*] Patching rdb.smali (Unrestricted 50MP Capture - neutralizing automatic 12MP downgrade)...")
+    print("[*] Patching rdb.smali (Enforce stock 12MP resolution downgrade)...")
     rdb_path = os.path.join(APKTOOL_DIR, "smali", "rdb.smali")
     if not os.path.exists(rdb_path):
         print("    [!] Warning: rdb.smali not found.")
         return
     with open(rdb_path, "r", encoding="utf-8") as f:
         content = f.read()
+
+    stock_c = """.method public static C(Lusf;Lppk;)V
+    .locals 1
+
+    sget-object v0, Lppp;->ax:Lppp;
+
+    invoke-interface {p0, v0}, Lusf;->a(Ljava/lang/Object;)V
+
+    const/4 p0, 0x0
+
+    sget-object v0, Lpph;->m:Lpph;
+
+    invoke-interface {p1, p0, v0}, Lppk;->q(ZLpph;)V
+
+    return-void
+.end method"""
+
+    # Gated C: on Pro devices, do not force reset to 12MP
+    target_c = """.method public static C(Lusf;Lppk;)V
+    .locals 1
+
+    sget-object v0, Lppp;->ax:Lppp;
+
+    invoke-interface {p0, v0}, Lusf;->a(Ljava/lang/Object;)V
+
+    const/4 p0, 0x0
+
+    sget-object v0, Lpph;->m:Lpph;
+
+    invoke-interface {p1, p0, v0}, Lppk;->q(ZLpph;)V
+
+    return-void
+.end method"""
+
+    nop_c = """.method public static C(Lusf;Lppk;)V
+    .locals 0
+
+    return-void
+.end method"""
+
+    repl_c = """.method public static C(Lusf;Lppk;)V
+    .locals 1
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_non_pro
+
+    return-void
+
+    :cond_non_pro
+    sget-object v0, Lppp;->ax:Lppp;
+
+    invoke-interface {p0, v0}, Lusf;->a(Ljava/lang/Object;)V
+
+    const/4 p0, 0x0
+
+    sget-object v0, Lpph;->m:Lpph;
+
+    invoke-interface {p1, p0, v0}, Lppk;->q(ZLpph;)V
+
+    return-void
+.end method"""
+
+    if target_c in content:
+        content = content.replace(target_c, repl_c)
+    elif nop_c in content:
+        content = content.replace(nop_c, repl_c)
 
     target_d = """.method public static D(ZLusf;Lppk;Lnhz;Lyia;)V
     .locals 1
@@ -3975,55 +4177,65 @@ def patch_rdb_smali():
     return-void
 .end method"""
 
-    repl_d = """.method public static D(ZLusf;Lppk;Lnhz;Lyia;)V
+    nop_d = """.method public static D(ZLusf;Lppk;Lnhz;Lyia;)V
     .locals 0
 
     return-void
 .end method"""
 
-    target_c = """.method public static C(Lusf;Lppk;)V
+    repl_d = """.method public static D(ZLusf;Lppk;Lnhz;Lyia;)V
     .locals 1
 
-    sget-object v0, Lppp;->ax:Lppp;
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
 
-    invoke-interface {p0, v0}, Lusf;->a(Ljava/lang/Object;)V
+    move-result v0
 
-    const/4 p0, 0x0
+    if-eqz v0, :cond_non_pro
 
-    sget-object v0, Lpph;->m:Lpph;
+    return-void
 
-    invoke-interface {p1, p0, v0}, Lppk;->q(ZLpph;)V
+    :cond_non_pro
+    if-nez p0, :cond_0
 
+    invoke-interface {p1}, Lusf;->d()Ljava/lang/Object;
+
+    move-result-object p0
+
+    check-cast p0, Lppp;
+
+    sget-object v0, Lppp;->ay:Lppp;
+
+    invoke-virtual {p0, v0}, Lppp;->equals(Ljava/lang/Object;)Z
+
+    move-result p0
+
+    if-eqz p0, :cond_0
+
+    invoke-static {p1, p2}, Lrdb;->C(Lusf;Lppk;)V
+
+    check-cast p4, Lyig;
+
+    iget-object p0, p4, Lyig;->a:Ljava/lang/Object;
+
+    check-cast p0, Lnib;
+
+    invoke-virtual {p3, p0}, Lnhz;->a(Lnib;)Luww;
+
+    :cond_0
     return-void
 .end method"""
 
-    repl_c = """.method public static C(Lusf;Lppk;)V
-    .locals 0
-
-    return-void
-.end method"""
-
-    modified = False
     if target_d in content:
         content = content.replace(target_d, repl_d)
-        modified = True
-        print("    [+] rdb.smali: D() neutralized (no 50MP downgrade).")
-    elif ".method public static D(ZLusf;Lppk;Lnhz;Lyia;)V\n    .locals 0\n\n    return-void\n.end method" in content:
-        print("    [+] rdb.smali: D() already neutralized.")
+    elif nop_d in content:
+        content = content.replace(nop_d, repl_d)
 
-    if target_c in content:
-        content = content.replace(target_c, repl_c)
-        modified = True
-        print("    [+] rdb.smali: C() neutralized (no forced 12MP).")
-    elif ".method public static C(Lusf;Lppk;)V\n    .locals 0\n\n    return-void\n.end method" in content:
-        print("    [+] rdb.smali: C() already neutralized.")
-
-    if modified:
-        with open(rdb_path, "w", encoding="utf-8") as f:
-            f.write(content)
+    with open(rdb_path, "w", encoding="utf-8") as f:
+        f.write(content)
+    print("    [+] rdb.smali: C() and D() gated via isProDevice().")
 
 def patch_ons_smali():
-    print("[*] Patching ons.smali (Unrestricted 50MP in Pro Controls UI)...")
+    print("[*] Patching ons.smali (50MP CAPTURE_RESOLUTION visibility based on Pro device)...")
     ons_path = os.path.join(APKTOOL_DIR, "smali", "ons.smali")
     if not os.path.exists(ons_path):
         print("    [!] Warning: ons.smali not found.")
@@ -4033,6 +4245,14 @@ def patch_ons_smali():
 
     target = """    iget-object p0, p0, Looa;->j:Lppk;
 
+    const/4 v0, 0x1
+
+    sget-object v1, Lpph;->m:Lpph;
+
+    invoke-interface {p0, v0, v1}, Lppk;->q(ZLpph;)V"""
+
+    target_v0 = """    iget-object p0, p0, Looa;->j:Lppk;
+
     const/4 v0, 0x0
 
     sget-object v1, Lpph;->m:Lpph;
@@ -4041,21 +4261,76 @@ def patch_ons_smali():
 
     repl = """    iget-object p0, p0, Looa;->j:Lppk;
 
-    const/4 v0, 0x1
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v0
 
     sget-object v1, Lpph;->m:Lpph;
 
     invoke-interface {p0, v0, v1}, Lppk;->q(ZLpph;)V"""
 
-    if target in content:
+    if repl in content:
+        print("    [+] ons.smali: already uses isProDevice().")
+    elif target in content:
         content = content.replace(target, repl)
         with open(ons_path, "w", encoding="utf-8") as f:
             f.write(content)
-        print("    [+] ons.smali: e() patched to keep 50MP option enabled in UI.")
-    elif "const/4 v0, 0x1\n\n    sget-object v1, Lpph;->m:Lpph;" in content:
-        print("    [+] ons.smali: 50MP UI already kept enabled.")
+        print("    [+] ons.smali: e() patched to use isProDevice() for CAPTURE_RESOLUTION.")
+    elif target_v0 in content:
+        content = content.replace(target_v0, repl)
+        with open(ons_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("    [+] ons.smali: e() patched from v0=0 to isProDevice().")
+
+def patch_moo_smali():
+    print("[*] Patching moo.smali (Resolution 12MP/50MP row shown on Pro devices, hidden on non-Pro)...")
+    moo_path = os.path.join(APKTOOL_DIR, "smali", "moo.smali")
+    if not os.path.exists(moo_path):
+        print("    [!] Warning: moo.smali not found.")
+        return
+    with open(moo_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    target_stock = """    if-nez v8, :cond_0
+
+    sget-object v0, Lyuq;->a:Lyuq;
+
+    goto/16 :goto_0
+
+    :cond_0"""
+
+    target_patched = """    sget-object v0, Lyuq;->a:Lyuq;
+
+    goto/16 :goto_0
+
+    :cond_0"""
+
+    repl = """    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isProDevice()Z
+
+    move-result v8
+
+    if-nez v8, :cond_0
+
+    sget-object v0, Lyuq;->a:Lyuq;
+
+    goto/16 :goto_0
+
+    :cond_0"""
+
+    if repl in content:
+        print("    [+] moo.smali: Resolution row already uses isProDevice().")
+    elif target_stock in content:
+        content = content.replace(target_stock, repl, 1)
+        with open(moo_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("    [+] moo.smali: Resolution row conditionally gated via isProDevice().")
+    elif target_patched in content:
+        content = content.replace(target_patched, repl, 1)
+        with open(moo_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("    [+] moo.smali: Resolution row restored for Pro devices via isProDevice().")
     else:
-        print("    [!] Warning: target not found in ons.smali")
+        print("    [!] Warning: moo.smali target not found.")
 
 def patch_poy_smali():
     print("[*] Patching poy.smali (Inject TomteProSettingsPanel in bottomsheet M(I))...")
@@ -4126,6 +4401,66 @@ def patch_pji_smali():
     else:
         print("    [+] pji.smali already contains TomteProSettingsPanel.")
 
+def patch_stock_raw_mode():
+    # Preserved as clean no-op: RAW mode output is managed natively or via TomteProSettingsPanel
+    pass
+
+def patch_autobahn_viewpager():
+    print("[*] Patching AutobahnViewPager.smali (onMeasure height expansion)...")
+    tab_xml_path = os.path.join(APKTOOL_DIR, "res", "layout", "options_bottomsheet_tab.xml")
+    if os.path.exists(tab_xml_path):
+        with open(tab_xml_path, "r", encoding="utf-8") as f:
+            tab_content = f.read()
+        if 'android:layout_marginBottom="48.0dp"' in tab_content:
+            tab_content = tab_content.replace('android:layout_marginBottom="48.0dp"', 'android:layout_marginBottom="0.0dp"')
+            with open(tab_xml_path, "w", encoding="utf-8") as f:
+                f.write(tab_content)
+            print("    [+] options_bottomsheet_tab.xml: removed 48dp bottom margin on AutobahnViewPager.")
+
+    vp_path = os.path.join(APKTOOL_DIR, "smali", "com", "google", "android", "apps", "camera", "optionsbar", "view", "AutobahnViewPager.smali")
+    if not os.path.exists(vp_path):
+        print("    [!] Warning: AutobahnViewPager.smali not found.")
+        return
+    with open(vp_path, "r", encoding="utf-8") as f:
+        vp_content = f.read()
+
+    repl_loop = """    :goto_0
+    invoke-virtual {p0}, Lcom/google/android/apps/camera/optionsbar/view/AutobahnViewPager;->getChildCount()I
+
+    move-result v2
+
+    if-ge v0, v2, :cond_1
+
+    invoke-virtual {p0, v0}, Lcom/google/android/apps/camera/optionsbar/view/AutobahnViewPager;->getChildAt(I)Landroid/view/View;
+
+    move-result-object v2
+
+    invoke-virtual {v2, p1, p2}, Landroid/view/View;->measure(II)V
+
+    invoke-virtual {v2}, Landroid/view/View;->getMeasuredHeight()I
+
+    move-result v2
+
+    invoke-static {v1, v2}, Ljava/lang/Math;->max(II)I
+
+    move-result v1
+
+    add-int/lit8 v0, v0, 0x1
+
+    goto :goto_0"""
+
+    if repl_loop in vp_content:
+        print("    [+] AutobahnViewPager.smali: already patched with Math.max.")
+        return
+
+    orig_pattern = re.compile(r'    :goto_0\s+invoke-virtual \{p0\}, Lcom/google/android/apps/camera/optionsbar/view/AutobahnViewPager;->getChildCount\(\)I.*?goto :goto_0', re.DOTALL)
+    if orig_pattern.search(vp_content):
+        vp_content = orig_pattern.sub(repl_loop, vp_content, count=1)
+        with open(vp_path, "w", encoding="utf-8") as f:
+            f.write(vp_content)
+        print("    [+] AutobahnViewPager.smali: patched onMeasure to use Math.max height.")
+    else:
+        print("    [!] Warning: Could not match onMeasure loop in AutobahnViewPager.smali.")
 
 def patch_qfr_smali():
     print("[*] Patching qfr.smali (Gouda TPU configuration, was pvz)...")
@@ -6491,6 +6826,9 @@ def patch_creator_suite_smali():
             "camera.ark_ISO_available",
             "camera.ark_lens_selector_available",
             "camera.ark_lens_selector",
+            "camera.crawfish",
+            "camera.raw_mode",
+            "camera.enable_raw_setting",
         ]
 
         q_start = content.find(".method public final q(Lkps;)Z")
@@ -7684,30 +8022,30 @@ def copy_to_desktop(signed_apk):
     if os.path.isdir(desktop_dir):
         dest_apk = os.path.join(desktop_dir, os.path.basename(signed_apk))
         shutil.copy2(signed_apk, dest_apk)
-        dest_v108 = os.path.join(desktop_dir, "PixelCamera-1.0.8.apk")
-        shutil.copy2(signed_apk, dest_v108)
+        dest_v109 = os.path.join(desktop_dir, "PixelCamera-1.0.9.apk")
+        shutil.copy2(signed_apk, dest_v109)
         size_mb = os.path.getsize(dest_apk) / (1024 * 1024)
-        print(f"    [+] Successfully copied APK to Desktop: {dest_apk} and {dest_v108} ({size_mb:.2f} MB)")
+        print(f"    [+] Successfully copied APK to Desktop: {dest_apk} and {dest_v109} ({size_mb:.2f} MB)")
 
         # Also copy the Morphe .mpp patch file to Desktop
-        mpp_src = os.path.join(ROOT_DIR, "morphe-patches-pixelcamera-1.0.8.mpp")
+        mpp_src = os.path.join(ROOT_DIR, "morphe-patches-pixelcamera-1.0.9.mpp")
         if not os.path.exists(mpp_src):
-            built_mpp = os.path.join(ROOT_DIR, "morphe-patches", "patches", "build", "libs", "patches-1.0.8.mpp")
+            built_mpp = os.path.join(ROOT_DIR, "morphe-patches", "patches", "build", "libs", "patches-1.0.9.mpp")
             if os.path.exists(built_mpp):
                 mpp_src = built_mpp
         if os.path.exists(mpp_src):
-            shutil.copy2(mpp_src, os.path.join(desktop_dir, "morphe-patches-pixelcamera-1.0.8.mpp"))
-            shutil.copy2(mpp_src, os.path.join(desktop_dir, "patches-1.0.8.mpp"))
-            print(f"    [+] Successfully copied patch to Desktop: {os.path.join(desktop_dir, 'morphe-patches-pixelcamera-1.0.8.mpp')}")
+            shutil.copy2(mpp_src, os.path.join(desktop_dir, "morphe-patches-pixelcamera-1.0.9.mpp"))
+            shutil.copy2(mpp_src, os.path.join(desktop_dir, "patches-1.0.9.mpp"))
+            print(f"    [+] Successfully copied patch to Desktop: {os.path.join(desktop_dir, 'morphe-patches-pixelcamera-1.0.9.mpp')}")
         
         pixelcam_dir = os.path.join(desktop_dir, "PixelCam")
         if os.path.isdir(pixelcam_dir):
             shutil.copy2(signed_apk, os.path.join(pixelcam_dir, os.path.basename(signed_apk)))
-            shutil.copy2(signed_apk, os.path.join(pixelcam_dir, "PixelCamera-1.0.8.apk"))
+            shutil.copy2(signed_apk, os.path.join(pixelcam_dir, "PixelCamera-1.0.9.apk"))
             if os.path.exists(mpp_src):
-                shutil.copy2(mpp_src, os.path.join(pixelcam_dir, "morphe-patches-pixelcamera-1.0.8.mpp"))
-            print(f"    [+] Also copied to {pixelcam_dir}/PixelCamera-1.0.8.apk")
-        return dest_v108
+                shutil.copy2(mpp_src, os.path.join(pixelcam_dir, "morphe-patches-pixelcamera-1.0.9.mpp"))
+            print(f"    [+] Also copied to {pixelcam_dir}/PixelCamera-1.0.9.apk")
+        return dest_v109
     else:
         print("    [!] Warning: Desktop directory not found, skipping Desktop copy.")
         return None
@@ -8331,11 +8669,21 @@ def patch_fzf_smali():
     with open(fzf_path, "w", encoding="utf-8") as f:
         f.write(content)
 
+def patch_gei_smali():
+    # Preserved as clean no-op: gei.i is for Pixel 9 Pro Centaur/Boba only and must not be forced on Pixel 8 Pro
+    pass
+
+def patch_viewfinder_and_hires_fix():
+    # Preserved as clean no-op: viewfinder and stream resolutions are handled natively by stock CameraCharacteristics
+    pass
+
 def main():
     clean_build_artifacts()
     patch_manifest()
     patch_app_name()
     patch_vku_smali()
+    patch_gei_smali()
+    patch_viewfinder_and_hires_fix()
     patch_qko_smali()
     patch_camera_app_smali()
     inject_tomte_init_helper()
@@ -8353,8 +8701,11 @@ def main():
     patch_pyp_smali()
     patch_rdb_smali()
     patch_ons_smali()
+    patch_moo_smali()
     patch_poy_smali()
     patch_pji_smali()
+    patch_stock_raw_mode()
+    patch_autobahn_viewpager()
     patch_sauce_onboarding()
     patch_sof_smali()
     patch_creator_suite_smali()

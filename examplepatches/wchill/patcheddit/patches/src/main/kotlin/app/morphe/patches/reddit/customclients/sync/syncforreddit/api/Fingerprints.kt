@@ -8,6 +8,8 @@
 package app.morphe.patches.reddit.customclients.sync.syncforreddit.api
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 internal object GetAuthorizationStringFingerprint : Fingerprint(
     // This is evaluated after replaceStringPatch, so the modified string is used for matching.
@@ -15,14 +17,13 @@ internal object GetAuthorizationStringFingerprint : Fingerprint(
 )
 
 internal object GetBearerTokenFingerprint : Fingerprint(
-    classFingerprint = Fingerprint(
-        strings = listOf("authorize.compact?client_id")
-    ),
-    strings = listOf("Basic")
+    classFingerprint = GetAuthorizationStringFingerprint,
+    strings = listOf("Basic ")
 )
 
 internal object GetUserAgentFingerprint : Fingerprint(
-    strings = listOf("android:com.laurencedawson.reddit_sync")
+    returnType = "Ljava/lang/String;",
+    filters = listOf(string("android:com.laurencedawson.reddit_sync", StringComparisonType.STARTS_WITH))
 )
 
 internal object ImgurImageAPIFingerprint : Fingerprint(

@@ -28,41 +28,19 @@ private val omniboxSetBackgroundCall = methodCall(
     "Landroid/view/View;->setBackground(Landroid/graphics/drawable/Drawable;)V",
 )
 
-private fun linearBackgroundSmali(theme: String, viewRegister: Int, colorRegister: Int): String =
-    when (theme) {
-        "black" -> """
-            const v$colorRegister, -0x1000000
-            invoke-virtual {v$viewRegister, v$colorRegister}, Landroid/view/View;->setBackgroundColor(I)V
-        """.trimIndent()
-        "white" -> """
-            const v$colorRegister, -0x1
-            invoke-virtual {v$viewRegister, v$colorRegister}, Landroid/view/View;->setBackgroundColor(I)V
-        """.trimIndent()
-        else -> """
-            invoke-virtual {v$viewRegister}, Landroid/view/View;->getResources()Landroid/content/res/Resources;
-            move-result-object v$colorRegister
-            invoke-virtual {v$colorRegister}, Landroid/content/res/Resources;->getConfiguration()Landroid/content/res/Configuration;
-            move-result-object v$colorRegister
-            iget v$colorRegister, v$colorRegister, Landroid/content/res/Configuration;->uiMode:I
-            and-int/lit8 v$colorRegister, v$colorRegister, 0x20
-            ushr-int/lit8 v$colorRegister, v$colorRegister, 0x5
-            neg-int v$colorRegister, v$colorRegister
-            ushr-int/lit8 v$colorRegister, v$colorRegister, 0x8
-            not-int v$colorRegister, v$colorRegister
-            invoke-virtual {v$viewRegister, v$colorRegister}, Landroid/view/View;->setBackgroundColor(I)V
-        """.trimIndent()
-    }
+private fun runtimeBackgroundSmali(viewRegister: Int): String =
+    "invoke-static {v$viewRegister}, " +
+        "Lapp/morphe/extension/cromite/amoled/AmoledBrightnessController;->applyNativeSurfaceBackground(Landroid/view/View;)V"
 
 @Suppress("unused")
 val pureAmoledOmniboxPatch = bytecodePatch(
     name = "AMOLED - Omnibox and search UI",
-    description = "Applies Device default / Pure Black / Pure White to verified LocationBarTablet background setters without adding control-flow branches.",
+    description = "Uses the saved runtime theme for verified LocationBarTablet background setters.",
 ) {
     compatibleWith("org.cromite.cromite"("153.0.8010.37"))
-    val browserTheme = recoveredBrowserThemeOption
+    dependsOn(cromiteAmoledBrightnessPatch)
 
     execute {
-        val theme = browserTheme.value ?: "device"
 
         fun patchVerifiedBackgroundSetters(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
             val indices = method.findInstructionIndicesReversedOrThrow(omniboxSetBackgroundCall)
@@ -70,7 +48,7 @@ val pureAmoledOmniboxPatch = bytecodePatch(
                 val instruction = method.getInstruction(index) as FiveRegisterInstruction
                 method.addInstructions(
                     index + 1,
-                    linearBackgroundSmali(theme, instruction.registerC, instruction.registerD),
+                    runtimeBackgroundSmali(instruction.registerC),
                 )
             }
         }

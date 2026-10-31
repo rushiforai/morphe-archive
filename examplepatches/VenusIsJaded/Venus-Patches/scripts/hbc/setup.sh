@@ -4,9 +4,11 @@
 set -e
 cd "$(dirname "$0")/../.."
 mkdir -p work/new
-if [ ! -f work/new/assets/index.android.bundle ]; then
+# base.apk is shared with tests/ui/setup.sh; an explicit APKM always re-extracts (a port to a new Discord build).
+if [ -n "$1" ] || [ ! -f work/new/assets/index.android.bundle ]; then
   APKM="${1:-$(python3 scripts/hbc/find_apkm.py)}"
-  unzip -o -q "$APKM" base.apk -d work/new
+  [ -n "$1" ] && rm -f work/new/base.apk work/new/split_config.xxhdpi.apk work/new/assets/index.android.bundle
+  [ -f work/new/base.apk ] || unzip -o -q "$APKM" base.apk -d work/new
   unzip -o -q work/new/base.apk assets/index.android.bundle -d work/new
 fi
 sha256sum work/new/assets/index.android.bundle

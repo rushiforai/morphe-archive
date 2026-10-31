@@ -83,7 +83,9 @@ class OriginalInputRegression {
                 unique=production.getDeclaredMethod("uniqueMatch",BytecodePatchContext.class,Fingerprint.class);
             }
             PackageMetadata original=originalsMeta.get(i);
-            int sdk=originalsSdk.get(i);
+            // Direct validation uses the catalogue SDK. Variant acceptance is
+            // scoped to each resource guard and tested with the actual manifest.
+            int sdk=target.getTargets().getFirst().getMinSdk();
             validate(target,original,sdk);check(true,app[0]+" actual original metadata accepted");
             List<X509Certificate> lineage=new ArrayList<>();
             if(app[1].equals("volkskrant")||app[1].equals("trouw")||app[1].equals("ad")) {
@@ -117,7 +119,7 @@ class OriginalInputRegression {
             PatcherConfig config=config(new File(originals,app[0]+"/base.apk"),scratch,app[0]);
             try(ResourcePatchContext context=new ResourcePatchContext(config)) {
                 context.get("AndroidManifest.xml",false).getParentFile().mkdirs();
-                java.nio.file.Files.writeString(context.get("AndroidManifest.xml",false).toPath(),"<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"><uses-sdk android:minSdkVersion=\""+sdk+"\"/></manifest>");
+                java.nio.file.Files.writeString(context.get("AndroidManifest.xml",false).toPath(),"<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"><uses-sdk android:minSdkVersion=\""+originalsSdk.get(i)+"\"/></manifest>");
                 guard.execute(context);check(true,app[0]+" actual resource guard original accepted");
                 Field resourceMetadata=ResourcePatchContext.class.getDeclaredField("packageMetadata");
                 resourceMetadata.setAccessible(true);

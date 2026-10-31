@@ -42,10 +42,13 @@ import app.hushgram.extension.instagram.download.SaveLeftovers;
 import app.hushgram.extension.instagram.feed.CarouselPeek;
 import app.hushgram.extension.instagram.feed.CommentEmojiRow;
 import app.hushgram.extension.instagram.feed.FeedFollowButton;
+import app.hushgram.extension.instagram.feed.HideCaptions;
 import app.hushgram.extension.instagram.feed.FollowingFeed;
 import app.hushgram.extension.instagram.feed.ReelCorners;
 import app.hushgram.extension.instagram.feed.StoryCorners;
+import app.hushgram.extension.instagram.metaai.MuseCard;
 import app.hushgram.extension.instagram.misc.MediaCache;
+import app.hushgram.extension.instagram.misc.RefreshRate;
 import app.hushgram.extension.instagram.misc.GlassTabBar;
 import app.hushgram.extension.instagram.reels.BurnInGuard;
 import app.hushgram.extension.instagram.reels.FullScreenBars;
@@ -146,6 +149,7 @@ public final class SettingsEntry {
         }
         GlassTabBar.install(context);
         FullScreenBars.install(context);
+        RefreshRate.install(context);
         ReelsTopBar.install(context);
         BurnInGuard.install(context);
         ScrollBreak.install(context);
@@ -153,6 +157,7 @@ public final class SettingsEntry {
         ProfileSaved.install(context);
         CommentEmojiRow.install(context);
         FeedFollowButton.install(context);
+        HideCaptions.install(context);
         FollowingFeed.install(context);
         ReelCorners.install(context);
         StoryCorners.install(context);
@@ -160,6 +165,7 @@ public final class SettingsEntry {
         StoryProgressBar.install(context);
         ProfileMenuPress.install(context);
         ProfileTitle.install(context);
+        MuseCard.install(context);
         LaunchScreen.install(context);
         AppIcon.install(context);
         if (SettingsStatus.messagesLock()) MessagesLock.watch(context);
@@ -753,7 +759,7 @@ public final class SettingsEntry {
     }
 
     /** Queues a gesture through the shortcut's same resume/account handoff, without starting a tab. */
-    static boolean requestOpen(Activity activity) {
+    public static boolean requestOpen(Activity activity) {
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return false;
         if (!closedByUser && ((host != null && host.get() == activity)
                 || (openPending && SystemClock.elapsedRealtime() - requestedAt <= REQUEST_LIFETIME_MS))) return true;

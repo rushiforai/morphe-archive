@@ -41,8 +41,9 @@ val addArchiveLinks = bytecodePatch(
                     BoostApi.BoostMenuView.setMenuOptions.toString()
             }
             val listRegister = getInstruction<FiveRegisterInstruction>(index).registerD
+            // Several paths branch directly to setMenuOptions, so inject after their convergence point.
             addInstructions(
-                index,
+                index + 1,
                 """
                 invoke-static {v$listRegister}, $SETTINGS_UTILS_EXTENSION_CLASS_DESCRIPTOR->addMenuOptions(Ljava/util/List;)V
                 """
@@ -66,9 +67,7 @@ val addArchiveLinks = bytecodePatch(
                 iget-object v0, p0, ${BoostApi.LinkMenuListener.linkMenu}
                 iget-object v1, v0, ${BoostApi.LinkMenu.context}
                 iget-object v0, v0, ${BoostApi.LinkMenu.url}
-                invoke-virtual {v2, v0}, Ljava/lang/String;->concat(Ljava/lang/String;)Ljava/lang/String;
-                move-result-object v0
-                invoke-static {v1, v0}, ${BoostApi.Navigation.openUrl}
+                invoke-static {v1, v0, v2}, $SETTINGS_UTILS_EXTENSION_CLASS_DESCRIPTOR->openArchiveLink(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)V
                 iget-object v0, p0, ${BoostApi.LinkMenuListener.linkMenu}
                 iget-object v0, v0, ${BoostApi.LinkMenu.dialog}
                 if-eqz v0, :morphe_archive_menu_closed

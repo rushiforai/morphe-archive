@@ -161,7 +161,8 @@ final class SettingsText {
         ENGLISH.put("camera_unsupported", "This install has no screen for opening the phone's camera app, so the chat camera stays Messenger's own. Root Mount installs can't add one. Your choice is saved.");
         ENGLISH.put("gallery_unsupported", "No app on this phone can pick a photo for Messenger, so the chat gallery stays Messenger's own. Your choice is saved.");
         ENGLISH.put("text_style_unsupported", "This install has no Bold and Italic entries for the text menu. Root Mount installs can't add them. Your choice is saved.");
-        ENGLISH.put("text_style_read_only", "Bold and Italic only work on text you're typing.");
+        ENGLISH.put("text_style_samsung", "Samsung phones hide them at first. To show them, select a word, tap the three dots, tap Manage apps and turn on Messenger's Bold and Italic.");
+        ENGLISH.put("text_style_read_only","Bold and Italic only work on text you're typing.");
         ENGLISH.put("text_style_bold_none", "Bold works only on A to Z, accented letters and digits.");
         ENGLISH.put("text_style_italic_none", "Italic works only on A to Z and accented letters.");
         ENGLISH.put("bubble_stock", "Stock");
@@ -178,6 +179,9 @@ final class SettingsText {
         ENGLISH.put("facebook_keep_profile_help", "Leaves the Profile button on a chat's details page and the View profile button at the top of a new chat, so you can still open the person's Facebook profile. The other Facebook shortcuts stay hidden.");
         ENGLISH.put("avatar_shape_rounded", "Round the corners");
         ENGLISH.put("avatar_shape_rounded_help", "Gives the squares rounded corners instead of sharp ones.");
+        ENGLISH.put("quiet_calls_chosen", "Only chosen chats");
+        ENGLISH.put("quiet_calls_chosen_help", "Calls from the chats you turn on below come in quietly. Every other call rings as usual.");
+        ENGLISH.put("quiet_calls_recent_empty", "Chats that call you show up here, newest first.");
         ENGLISH.put("tab_badges_keep_chats", "Keep the Chats badge");
         ENGLISH.put("tab_badges_keep_people", "Keep the People badge");
         ENGLISH.put("tab_badges_keep_notifications", "Keep the Notifications badge");
@@ -369,6 +373,9 @@ final class SettingsText {
         ENGLISH.put("message_log_unknown_thread", "Unknown chat");
         ENGLISH.put("message_log_in_group", "%s in %s");
         ENGLISH.put("message_log_no_text", "(no text)");
+        ENGLISH.put("message_log_unsent", "Unsent");
+        ENGLISH.put("message_log_unsent_only", "Show only unsent");
+        ENGLISH.put("message_log_show_all", "Show all messages");
         ENGLISH.put("message_log_cleared", "Message log cleared");
         ENGLISH.put("message_log_restored", "Message log put back");
         ENGLISH.put("message_log_restore_failed", "Couldn't put the log back");

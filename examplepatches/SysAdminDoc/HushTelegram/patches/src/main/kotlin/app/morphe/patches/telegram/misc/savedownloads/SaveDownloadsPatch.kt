@@ -9,6 +9,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.telegram.misc.downloadspeed.LOAD_OPERATION
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
@@ -71,6 +72,9 @@ internal const val PHOTO_THUMBS = "$MESSAGE_OBJECT->photoThumbs:Ljava/util/Array
 internal const val ANDROID_UTILITIES = "Lorg/telegram/messenger/AndroidUtilities;"
 internal const val PHOTO_SIZE = "$ANDROID_UTILITIES->getPhotoSize()I"
 internal const val CLOSEST_PHOTO_SIZE = "$FILE_LOADER->getClosestPhotoSizeWithSize(Ljava/util/ArrayList;I)Lorg/telegram/tgnet/TLRPC\$PhotoSize;"
+internal const val PATH_SAVE_DATA = "$LOAD_OPERATION->pathSaveData:Lorg/telegram/messenger/FilePathDatabase\$PathData;"
+internal const val CACHE_FILE_TEMP = "$LOAD_OPERATION->cacheFileTemp:$FILE"
+internal const val FINISH_LOADING = "onFinishLoadingFile(ZIZ)V"
 /** FileLoader's parser for the key the background download queue hands over instead of the message. */
 internal const val SENT_KEY = "sent_.*_([0-9]+)_([0-9]+)_([0-9]+)_([0-9]+)"
 
@@ -87,6 +91,7 @@ val saveDownloadsPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.telegram())
     execute {
         val callback = resolveSaveDownloads()
+        val finishing = resolveFoundFiles()
         val account = delegateAccount(callback)
         requireGalleryFolderRuntime()
         val gallery = resolveGalleryFolder()
@@ -96,11 +101,13 @@ val saveDownloadsPatch = bytecodePatch(
         val olderLoads = resolveOlderLoads()
         // Assembled on copies first, so a refusal leaves the app untouched.
         insertSaveDownloadsHook(MutableMethod(ImmutableMethod.of(callback)), account)
+        insertFoundFileHook(MutableMethod(ImmutableMethod.of(finishing)))
         if (gallery.missing == null) gallery.rehearse()
         if (storage.missing == null) storage.rehearse()
         if (storage.missing == null && older.missing == null) older.rehearse()
         if (storage.missing == null && olderLoads.missing == null) olderLoads.rehearse()
         insertSaveDownloadsHook(callback, account)
+        insertFoundFileHook(finishing)
         if (storage.missing == null) {
             storage.apply()
             if (older.missing == null) {
@@ -140,6 +147,48 @@ internal fun insertSaveDownloadsHook(method: MutableMethod, account: String) {
         iget v0, p0, $account
         invoke-static {v0, p1, p2, p3}, $SAVE_DOWNLOADS->fileLoaded(I$STRING$FILE$OBJECT)V
     """)
+}
+
+/**
+ * Ahead of anything in onFinishLoadingFile, the extension sees whether Telegram stores the document
+ * under its own name with no path saved, the file a download went into, and the finished file.
+ * v0 to v2 are locals the method writes before it reads, below p0.
+ */
+internal fun insertFoundFileHook(method: MutableMethod) {
+    method.addInstructions(0, """
+        move-object/from16 v2, p0
+        iget-object v0, v2, $PATH_SAVE_DATA
+        iget-object v1, v2, $CACHE_FILE_TEMP
+        iget-object v2, v2, $STORAGE_CACHE_FINAL
+        invoke-static {v0, v1, v2}, $SAVE_DOWNLOADS->finishing($OBJECT$FILE$FILE)V
+    """)
+}
+
+/**
+ * FileLoadOperation.start counts a file as downloaded when one is already at its path at the size
+ * Telegram expects, and for a document with no path saved that path is its own name in Telegram
+ * Files, which another document of that name and size can have. It then calls
+ * onFinishLoadingFile(increment, code, preload) with nothing in cacheFileTemp, which only start
+ * sets, to the file a download goes into. The extension keeps such a file out of Downloads when
+ * fileDidLoaded comes for it, since it may be another document's.
+ */
+internal fun BytecodePatchContext.resolveFoundFiles(): MutableMethod {
+    controlHook(SAVE_DOWNLOADS, "finishing", listOf(OBJECT, FILE, FILE), "V")
+    val owner = mutableClassDefByOrNull(LOAD_OPERATION)
+    controlShape(owner != null, "FileLoadOperation is missing")
+    val fields = owner!!.instanceFields.map { "${it.definingClass}->${it.name}:${it.type}" }.toSet()
+    controlShape(PATH_SAVE_DATA in fields && CACHE_FILE_TEMP in fields && STORAGE_CACHE_FINAL in fields,
+        "FileLoadOperation's file fields changed")
+    val finishing = owner.methods.filter { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == FINISH_LOADING }
+        .controlSingle("FileLoadOperation.onFinishLoadingFile")
+    controlShape(!AccessFlags.STATIC.isSet(finishing.accessFlags) && finishing.controlBody().isNotEmpty(),
+        "FileLoadOperation.onFinishLoadingFile has no body of its own")
+    controlShape(finishing.implementation!!.registerCount - 4 >= 3, "FileLoadOperation.onFinishLoadingFile's registers changed")
+    val writers = owner.methods.filter { method ->
+        method.controlBody().any { it.opcode == Opcode.IPUT_OBJECT && it.controlRef() == CACHE_FILE_TEMP }
+    }
+    controlShape(writers.map { it.name } == listOf("start"), "FileLoadOperation's download file isn't set in start alone")
+    return finishing
 }
 
 /** ImageLoader makes one delegate per account and keeps that account in its one int field. */
@@ -251,6 +300,13 @@ private fun BytecodePatchContext.writeSaveDownloadsStubs() {
         const/4 v0, 0x0
         return v0
     """)
+    // View-once and timed media, in any chat; the extension keeps secret chats out itself (#9).
+    writeStub(SAVE_DOWNLOADS, "timedMedia", 2, """
+        check-cast p0, $MESSAGE_OBJECT
+        invoke-virtual {p0}, $IS_SECRET_MEDIA
+        move-result v0
+        return v0
+    """)
     // The size a chat shows and Save to Gallery saves, the way ChatMessageCell picks it.
     writeStub(SAVE_DOWNLOADS, "photo", 3, """
         check-cast p0, $MESSAGE_OBJECT
@@ -317,6 +373,7 @@ internal fun BytecodePatchContext.resolveSaveDownloads(): MutableMethod {
     controlHook(SAVE_DOWNLOADS, "secretChat", listOf(OBJECT), "Z")
     controlHook(SAVE_DOWNLOADS, "photoOrVideo", listOf(OBJECT), "Z")
     controlHook(SAVE_DOWNLOADS, "photo", listOf(OBJECT), OBJECT)
+    controlHook(SAVE_DOWNLOADS, "timedMedia", listOf(OBJECT), "Z")
     controlHook(SAVE_DOWNLOADS, "attachName", listOf(OBJECT), STRING)
     controlHook(SAVE_DOWNLOADS, "documentName", listOf(OBJECT), STRING)
 
@@ -345,7 +402,8 @@ internal fun BytecodePatchContext.resolveSaveDownloads(): MutableMethod {
         "the background download key changed")
     val types = mutableClassDefByOrNull(MESSAGE_OBJECT)?.staticFields
         ?.associate { it.name to (it.initialValue as? IntEncodedValue)?.value }.orEmpty()
-    controlShape(types["TYPE_FILE"] == 9 && types["TYPE_MUSIC"] == 14 && types["TYPE_PHOTO"] == 1 && types["TYPE_VIDEO"] == 3,
+    controlShape(types["TYPE_FILE"] == 9 && types["TYPE_MUSIC"] == 14 && types["TYPE_PHOTO"] == 1 && types["TYPE_VIDEO"] == 3
+            && types["TYPE_VOICE"] == 2 && types["TYPE_ROUND_VIDEO"] == 5,
         "Telegram's message types changed")
 
     for ((reference, static) in listOf(GET_DOCUMENT to false, IS_SECRET_MEDIA to false, IS_MUSIC to false,

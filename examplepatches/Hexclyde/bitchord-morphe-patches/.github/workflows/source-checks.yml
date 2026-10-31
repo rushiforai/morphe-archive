@@ -1,0 +1,75 @@
+name: Checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Check repository files and documentation
+        run: python3 tools/check_release.py
+      - name: Python unit tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      # google-java-format 1.24 does not run on Java 25, which newer runner images ship.
+      - name: Set up JDK 21
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Download formatters
+        run: |
+          curl -fsSL --retry 5 --retry-all-errors -o gjf.jar https://repo1.maven.org/maven2/com/google/googlejavaformat/google-java-format/1.24.0/google-java-format-1.24.0-all-deps.jar
+          curl -fsSL --retry 5 --retry-all-errors -o ktfmt.jar https://repo1.maven.org/maven2/com/facebook/ktfmt/0.53/ktfmt-0.53-jar-with-dependencies.jar
+          sha256sum -c <<'EOF'
+          812f805f58112460edf01bf202a8e61d0fd1f35c0d4fabd54220640776ec57a1  gjf.jar
+          76d05c614fe1864788557170fe89410f75134866a9f84011f9bd570ca12526b1  ktfmt.jar
+          EOF
+      - name: Java
+        run: java -jar gjf.jar --aosp --dry-run --set-exit-if-changed $(git ls-files '*.java' | grep -v '^vendor/')
+      - name: Kotlin
+        run: java -jar ktfmt.jar --kotlinlang-style --dry-run --set-exit-if-changed $(git ls-files '*.kt')
+      - name: Python
+        run: pipx run --spec black==26.5.1 black --check $(git ls-files '*.py')
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Cache build tools
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: .deps/tools
+          key: tools-${{ hashFiles('PROVENANCE.json') }}
+      # A release is published moments after its commit is pushed, so a 404 is retried
+      # for a few minutes rather than failing the run.
+      - name: Download released bundle for native libraries
+        run: |
+          mkdir -p .deps
+          curl -fsSL --retry 12 --retry-delay 15 --retry-all-errors -o .deps/release.mpp "$(python3 -c "import json; print(json.load(open('patches-bundle.json'))['download_url'])")"
+      - name: Bootstrap
+        run: python3 tools/bootstrap_from_release.py --bundle .deps/release.mpp --download-tools
+      - name: Build
+        run: python3 build.py
+      - name: Host tests
+        run: python3 test.py

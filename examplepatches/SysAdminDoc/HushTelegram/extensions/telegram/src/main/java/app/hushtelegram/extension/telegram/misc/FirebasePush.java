@@ -147,12 +147,15 @@ public final class FirebasePush {
         public final List<Reply> pushReplies;
         /** Telegram's Keep-Alive Service and Background Connection both on, or null when unread. */
         public final Boolean ownConnection;
-        /** Whether a refused sign-up turned them on, rather than the user. */
+        /** Whether a refused sign-up or UnifiedPush turned them on, rather than the user. */
         public final boolean ownConnectionTurnedOnHere;
+        /** Whether UnifiedPush is what turned them on. */
+        public final boolean ownConnectionBesideUnifiedPush;
 
         private LocalStatus(Boolean notificationPermission, Boolean backgroundRestricted, Boolean batteryOptimized,
                             String unifiedPush, Boolean tokenPresent, int activeAccounts, int acknowledgedAccounts,
-                            List<Reply> pushReplies, Boolean ownConnection, boolean ownConnectionTurnedOnHere) {
+                            List<Reply> pushReplies, Boolean ownConnection, boolean ownConnectionTurnedOnHere,
+                            boolean ownConnectionBesideUnifiedPush) {
             this.notificationPermission = notificationPermission;
             this.backgroundRestricted = backgroundRestricted;
             this.batteryOptimized = batteryOptimized;
@@ -163,6 +166,7 @@ public final class FirebasePush {
             this.pushReplies = pushReplies;
             this.ownConnection = ownConnection;
             this.ownConnectionTurnedOnHere = ownConnectionTurnedOnHere;
+            this.ownConnectionBesideUnifiedPush = ownConnectionBesideUnifiedPush;
         }
 
         /**
@@ -259,7 +263,8 @@ public final class FirebasePush {
                 for (Reply reply : pushReplies) lines.add(reply.reported());
             }
             lines.add("keep-alive and background connection: " + (ownConnection == null ? "unknown"
-                    : ownConnection ? "on" + (ownConnectionTurnedOnHere ? " (after a refused sign-up)" : "")
+                    : ownConnection ? "on" + (ownConnectionBesideUnifiedPush ? " (beside UnifiedPush)"
+                            : ownConnectionTurnedOnHere ? " (after a refused sign-up)" : "")
                     : "off"));
             lines.add("local state only; notification delivery is unverified");
             return lines;
@@ -465,6 +470,7 @@ public final class FirebasePush {
         List<Reply> replies = null;
         Boolean ownConnection = null;
         boolean ownConnectionHere = false;
+        boolean ownConnectionBeside = false;
         if (Utils.settingsReady() && PatchFamily.REPAIR_FIREBASE_PUSH.inBuild()
                 && PatchFamily.Capability.FIREBASE_LOCAL_STATUS.installed()) {
             try {
@@ -472,6 +478,7 @@ public final class FirebasePush {
             } catch (Throwable unreadable) { }
             ownConnection = OwnConnection.bothOn(context);
             ownConnectionHere = OwnConnection.turnedOnHere(context);
+            ownConnectionBeside = OwnConnection.turnedOnBesideUnifiedPush(context);
             try {
                 int presence = nativeTokenPresence();
                 if (presence == 0 || presence == 1) token = presence == 1;
@@ -487,7 +494,7 @@ public final class FirebasePush {
             } catch (Throwable unreadable) { }
         }
         return new LocalStatus(permission, restricted, optimized, unifiedPush, token, active, acknowledged, replies,
-                ownConnection, ownConnectionHere);
+                ownConnection, ownConnectionHere, ownConnectionBeside);
     }
 
     /** Replaced only after the patch verifies the retained native fields and their local readers. */

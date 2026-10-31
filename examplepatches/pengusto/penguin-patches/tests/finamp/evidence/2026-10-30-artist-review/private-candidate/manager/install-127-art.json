@@ -1,0 +1,9 @@
+{
+  "method": "Actual Manager Install, Android UPDATE, Manager Installed/Open",
+  "installed_apk_sha256": "4bc6f9706a82134f2c236246f043759b5c98fcb5d9f03a8115f5e9c2a1d6d506",
+  "matches_actual_export": true,
+  "android_update_confirmation": true,
+  "data_reset": false,
+  "installer_observations": "../installer-observation",
+  "controller_correction": "A previously enabled install-source control was mistakenly toggled off, then restored on through its observed checked state; UPDATE and Installed were observed afterwards."
+}

@@ -17,14 +17,14 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'patches/src/main/kotlin/patches/npostarttv/RuntimeCallbacks.kt'
 
 
-def prefixes():
-    assert SOURCE.is_file(), f'Missing production callback implementation: {SOURCE}'
-    source = SOURCE.read_text()
+def prefixes(source=SOURCE, names=('appAuthDiscoveryCode', 'networkAudioReceiverCode')):
+    assert source.is_file(), f'Missing production callback implementation: {source}'
+    source = source.read_text()
     result = {}
-    for name in ('appAuthDiscoveryCode', 'networkAudioReceiverCode'):
+    for name in names:
         match = re.search(r'val\s+' + name + r'\s*=\s*"""(.*?)"""\.trimIndent\(\)', source, re.S)
         assert match, f'Missing actual instruction prefix: {name}'
-        result[name] = textwrap.dedent(match[1]).strip()
+        result[name] = textwrap.dedent(match[1]).strip().replace("${'$'}", '$')
     return result
 
 
@@ -262,7 +262,7 @@ def execute(serial, code, sdk, java_home, morphe):
     java = java_home / 'bin/java'
     javac = java_home / 'bin/javac'
     platforms = sorted((sdk / 'platforms').glob('android-*/android.jar'),
-                       key=lambda p: int(p.parent.name.split('-')[1]))
+                       key=lambda p: int(p.parent.name.split('-')[1].split('.')[0]))
     assert platforms, f'No Android platform found in {sdk}'
     android_jar = platforms[-1]
     versions = sorted((sdk / 'build-tools').iterdir(),
@@ -296,7 +296,7 @@ def execute(serial, code, sdk, java_home, morphe):
         run([java, '-cp', morphe, 'com.android.tools.smali.smali.Main', 'assemble',
              '--output', actual_dex, smali])
         environment = dict(os.environ, JAVA_HOME=str(java_home))
-        run([d8, '--min-api', '28', '--lib', android_jar, '--output', output,
+        run([d8, '--min-api', '24', '--lib', android_jar, '--output', output,
              actual_dex, *classes.rglob('*.class')], env=environment)
         dexes = list(output.glob('*.dex'))
         assert len(dexes) == 1, 'Expected one synthetic test DEX'
@@ -321,8 +321,8 @@ def main():
     parser.add_argument('--java-home', type=Path, default=Path(os.environ.get('JAVA_HOME', '/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home')))
     parser.add_argument('--morphe-jar', type=Path, default=ROOT / '.tools/morphe-desktop-1.19.1-all.jar')
     args = parser.parse_args()
-    if args.serial != '192.168.50.89:5555':
-        parser.error('Harness is restricted to the spare 192.168.50.89:5555 device')
+    if args.serial != '192.168.50.89:5555' and not re.fullmatch(r'emulator-\d+', args.serial):
+        parser.error('Harness requires the spare 192.168.50.89:5555 device or a local emulator')
     code = decoded_bodies(args.decoded) if args.decoded else prefixes()
     print(f'ART callback input: {args.decoded if args.decoded else SOURCE}', flush=True)
     execute(args.serial, code, args.sdk, args.java_home, args.morphe_jar)

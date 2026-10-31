@@ -103,7 +103,7 @@ def main():
             if a.files and 0 < len(hits) <= 20:
                 print("\n".join("      " + x for x in hits))
     print(
-        "\nNext: run targeted searches per bucket above, then smali-verify (see docs/reverse-engineering.md)."
+        "\nNext: run targeted searches per bucket above, then smali-verify (see docs/bytecode.md)."
     )
 
 

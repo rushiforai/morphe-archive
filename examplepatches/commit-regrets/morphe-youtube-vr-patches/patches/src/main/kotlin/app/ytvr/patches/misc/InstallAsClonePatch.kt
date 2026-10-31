@@ -38,6 +38,7 @@ import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.ytvr.patches.shared.Constants.COMPATIBILITY_YOUTUBE_VR
+import app.ytvr.patches.storedChoice
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
@@ -51,6 +52,17 @@ private const val OFFICIAL_PACKAGE_NAME = "com.google.android.apps.youtube.vr.oc
 
 /** The package-id shape the official patch accepts for a custom id: dotted, lower-case segments. */
 private val PACKAGE_NAME_PATTERN = Regex("^[a-z]\\w*(\\.[a-z]\\w*)+$")
+
+/**
+ * The two presets, display name to package name, in the patcher 2.x `values` orientation
+ * (`storedChoice` explains the 1.x orientation this replaces, issue #45). A package name typed
+ * by hand matches neither entry and is validated against [PACKAGE_NAME_PATTERN] instead.
+ */
+internal val clonePackageChoices: Map<String, String> = linkedMapOf(
+    "Clone — separate app next to the store app (recommended)" to CLONE_PACKAGE_NAME,
+    "Replace the official app — removes the store copy; " +
+        "Meta then treats this build as YouTube VR" to OFFICIAL_PACKAGE_NAME,
+)
 
 /**
  * Installs the patched app as a clone, chosen at patch time, by default.
@@ -90,11 +102,7 @@ val installAsClonePatch = resourcePatch(
     val packageName by stringOption(
         key = "packageName",
         default = CLONE_PACKAGE_NAME,
-        values = mapOf(
-            CLONE_PACKAGE_NAME to "Clone — separate app next to the store app (recommended)",
-            OFFICIAL_PACKAGE_NAME to "Replace the official app — removes the store copy; " +
-                "Meta then treats this build as YouTube VR",
-        ),
+        values = clonePackageChoices,
         title = "Package name",
         description = "Clone installs a second app under its own package name and leaves the store " +
             "app untouched (recommended). Replace keeps com.google.android.apps.youtube.vr.oculus: " +
@@ -102,7 +110,7 @@ val installAsClonePatch = resourcePatch(
             "store update fails on the signature mismatch.",
         required = true,
     ) {
-        it == CLONE_PACKAGE_NAME || it == OFFICIAL_PACKAGE_NAME || it!!.matches(PACKAGE_NAME_PATTERN)
+        it != null && (storedChoice(clonePackageChoices, it) != null || it.matches(PACKAGE_NAME_PATTERN))
     }
 
     val updatePermissions by booleanOption(
@@ -125,7 +133,11 @@ val installAsClonePatch = resourcePatch(
         // Both names are certain here -- `compatibleWith` pins the app's own, and the option is
         // required with a default -- so the null check is only the type system's price for that.
         val originalPackageName = requireNotNull(packageMetadata.packageName)
-        val newPackageName = requireNotNull(packageName) { "the packageName option is required" }
+        val storedPackageName = requireNotNull(packageName) { "the packageName option is required" }
+        // A preset picked in a 2.x host arrives as the package name already; a display name left
+        // in storage by a host that rendered the 1.x map (issue #45) resolves here. A custom typed
+        // id matches neither and passes through, as the validator let it.
+        val newPackageName = storedChoice(clonePackageChoices, storedPackageName) ?: storedPackageName
 
         // Replace mode asks for the package name the app already has. Nothing below may run then:
         // a permission "renamed" to itself or an authority prefixed with its own package name is a
@@ -193,8 +205,10 @@ private fun renameDeclaredPermissions(
         val oldName = permission.getAttribute("android:name")
         val newName = when {
             oldName.startsWith('.') -> return@forEach
+
             oldName.startsWith("$oldPackageName.") ->
                 oldName.replaceFirst(oldPackageName, newPackageName)
+
             else -> "${newPackageName}_$oldName"
         }
         permission.setAttribute("android:name", newName)
@@ -230,10 +244,12 @@ private fun rewriteProviderAuthorities(
             when {
                 authority.startsWith("$oldPackageName.") ->
                     authority.replaceFirst(oldPackageName, newPackageName)
+
                 authority.startsWith('@') -> {
                     stringResources.add(authority.removePrefix("@string/"))
                     authority
                 }
+
                 else -> "${newPackageName}_$authority"
             }
         }

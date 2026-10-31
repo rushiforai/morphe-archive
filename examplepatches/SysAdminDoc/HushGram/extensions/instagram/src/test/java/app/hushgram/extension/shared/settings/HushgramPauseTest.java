@@ -46,7 +46,7 @@ public class HushgramPauseTest {
 
     @Before public void setUp() {
         context = RuntimeEnvironment.getApplication();
-        context.getApplicationInfo().targetSdkVersion = 36; // Instagram 449's target on every runtime.
+        context.getApplicationInfo().targetSdkVersion = 37; // Instagram 453's target on every runtime.
         Utils.setContext(context);
         HushgramPause.resetForTests();
         record = new File(context.getFilesDir(), HushgramPause.START_RECORD_NAME);

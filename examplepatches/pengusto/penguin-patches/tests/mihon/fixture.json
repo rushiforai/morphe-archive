@@ -1,0 +1,48 @@
+{
+  "manga": [
+    {
+      "id": 9900000001,
+      "source_id": 9900000002,
+      "remote_url": "/penguin/offline-test",
+      "remote_title": "Penguin offline test",
+      "remote_author": "Penguin synthetic fixture",
+      "remote_artist": null,
+      "remote_description": null,
+      "remote_genre": null,
+      "remote_status": 2,
+      "remote_cover": null,
+      "remote_update_strategy": 0,
+      "remote_memo": {
+        "hex": "7b7d"
+      },
+      "user_favorite_at": 1793228400000,
+      "user_notes": "Synthetic data only",
+      "user_reader_flags": 0,
+      "user_chapter_flags": 0,
+      "state_chapter_last_update": null,
+      "state_chapter_next_update": null,
+      "state_chapter_fetch_interval": 0,
+      "state_cover_last_modified": 1793228400000,
+      "state_initialized": 1
+    }
+  ],
+  "chapter": [
+    {
+      "id": 9900000003,
+      "manga_id": 9900000001,
+      "remote_url": "/penguin/chapter-1",
+      "remote_name": "Chapter 1",
+      "remote_scanlator": null,
+      "remote_chapter_number": 1.0,
+      "remote_date_upload": null,
+      "remote_order": 0,
+      "remote_memo": {
+        "hex": "7b7d"
+      },
+      "user_read": 1,
+      "user_bookmark": 0,
+      "user_last_page_read": 0,
+      "state_date_fetch": 1793228400000
+    }
+  ]
+}

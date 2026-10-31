@@ -315,10 +315,12 @@ $descriptionTargetVersion = $targetVersion
 if ($hasIndex) {
 $bundleVersion = [string]$bundle.version
 $publishedFacts = Get-DescriptionFacts -Text ([string]$bundle.description) -Source 'The patches-bundle.json description'
+# Either fact the description names is enough. It has named no count since 0.0.9, so a retarget
+# held at the published version read as this release's own index and was refused.
 $publishedFactsDifferAtSameVersion = $AllowPublishedIndexLag -and
     $bundleVersion -eq $releaseVersion -and
-    $null -ne $publishedFacts.PatchCount -and $null -ne $publishedFacts.TargetVersion -and
-    ($publishedFacts.PatchCount -ne $patchCount -or $publishedFacts.TargetVersion -ne $targetVersion)
+    (($null -ne $publishedFacts.PatchCount -and $publishedFacts.PatchCount -ne $patchCount) -or
+        ($null -ne $publishedFacts.TargetVersion -and $publishedFacts.TargetVersion -ne $targetVersion))
 $indexLagsSource = $bundleVersion -ne $releaseVersion -or $publishedFactsDifferAtSameVersion
 if ($indexLagsSource) {
     if (-not $AllowPublishedIndexLag) {
@@ -380,6 +382,12 @@ Require-Match -Text $readme -Pattern "\b$patchCount patches\b" -Description 'REA
 # release_notes.py writes: "## [X.Y.Z](compare link) (date)", or "## X.Y.Z (date)" for a first release.
 # The patch count and the Instagram build live in the GitHub description and the README, and a
 # description that names them anyway has to name them right.
+# Only an index a release of this version wrote is held to the new layout, the published one at this
+# version included. An index left on an older version is history and stands as it is.
+if (-not $indexLagsSource -or $publishedFactsDifferAtSameVersion) {
+    Require-Match -Text ([string]$bundle.description) -Pattern "\A\s*##\s+(?:\[$([regex]::Escape($publishedVersion))\]\(|$([regex]::Escape($publishedVersion))\s+\()" `
+            -Description 'published bundle description version heading'
+}
 if ($indexLagsSource) {
     $descriptionVersion = "v$publishedVersion"
     $taggedFacts = if ($null -eq $publishedFacts.PatchCount -or $null -eq $publishedFacts.TargetVersion) {
@@ -394,10 +402,6 @@ if ($indexLagsSource) {
     if ($null -ne $publishedFacts.TargetVersion) { $descriptionTargetVersion = $publishedFacts.TargetVersion }
     elseif ($taggedFacts) { $descriptionTargetVersion = $taggedFacts.TargetVersion }
 } else {
-    # Only an index this release wrote is held to the new layout. While it lags, the old
-    # description is history and stands as it is.
-    Require-Match -Text ([string]$bundle.description) -Pattern "\A\s*##\s+(?:\[$([regex]::Escape($publishedVersion))\]\(|$([regex]::Escape($publishedVersion))\s+\()" `
-            -Description 'published bundle description version heading'
     if ($null -ne $publishedFacts.PatchCount -and $publishedFacts.PatchCount -ne $patchCount) {
         throw 'bundle description patch count does not match the generated release facts.'
     }
@@ -1203,6 +1207,9 @@ function Test-ReleaseReceiptHere {
         -WorkingPath (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt')
     if ($resolvedAllowlist.Note) { Write-Host "[release] $($resolvedAllowlist.Note)" }
     $approvedDelta = @($resolvedAllowlist.Entries)
+    # And the coverage census it reviewed: a retarget replaces the old build's entry.
+    $resolvedCoverage = Resolve-ReceiptCoveragePolicy -Root $rootPath -Commit $receiptCommit
+    if ($resolvedCoverage.Note) { Write-Host "[release] $($resolvedCoverage.Note)" }
     $receiptTarget = Get-PatchTarget -PatchList $resolvedList.PatchList
     # From schema 2 a receipt names the release SBOM, and which schema is read at the receipt's own
     # commit, so a release cut before there was an SBOM is read as it was written.
@@ -1246,7 +1253,7 @@ function Test-ReleaseReceiptHere {
         -ExpectedManagerFloor $expectedToolchain.ManagerFloor `
         -ExpectedPackageName $receiptTarget.PackageName -ExpectedPackageVersions $receiptTarget.PackageVersions `
         -ExpectedPackageVersionCodes $receiptTarget.PackageVersionCodes `
-        -BundlePath $BundleForComparison -ApprovedManifestDelta $approvedDelta `
+        -BundlePath $BundleForComparison -ApprovedManifestDelta $approvedDelta -CoveragePolicy $resolvedCoverage.Policy `
         -ActualCommitTimestamp $actualEpoch -ExpectedCommit $expectedCommit `
         -ExpectedSchemaVersion $schema.Version -SbomPath $sbomForComparison
     if (-not $receiptCheck.Valid) {

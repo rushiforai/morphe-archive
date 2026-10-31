@@ -484,7 +484,7 @@ private class NativeCaptionBridgeInstaller(
     private fun verifyHooks() {
         val required = mutableMapOf("onNativeTrackApplied" to 1, "initialize" to 1)
         if (translation) {
-            for (name in listOf("onMenu", "observeMenuPath", "suppressNativeDraw", "consumePathCopy")) required[name] = 1
+            for (name in listOf("onMenu", "observeMenuPath", "suppressNativeDraw", "consumePathCopy", "onVideoTime")) required[name] = 1
         }
         val counts = mutableMapOf<String, Int>()
         context.classDefForEach { app ->

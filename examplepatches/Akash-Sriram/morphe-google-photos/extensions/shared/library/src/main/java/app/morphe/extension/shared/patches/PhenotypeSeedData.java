@@ -92,21 +92,132 @@ public final class PhenotypeSeedData {
         return count;
     }
 
-    public static final long LATEST_SEED_VERSION = 1792807800L;
+    public static void restoreOfficialFlags(Context context, SharedPreferences prefs, java.util.Set<String> targetFlagNames) {
+        if (context == null || prefs == null || targetFlagNames == null || targetFlagNames.isEmpty()) return;
+        try (java.io.InputStream is = context.getAssets().open("phenotype/com.google.android.apps.photos.phenotype.xml")) {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(is);
+            doc.getDocumentElement().normalize();
+
+            SharedPreferences.Editor edit = prefs.edit();
+            java.util.Set<String> remaining = new java.util.HashSet<>(targetFlagNames);
+            NodeList children = doc.getDocumentElement().getChildNodes();
+            for (int i = 0; i < children.getLength(); i++) {
+                Node node = children.item(i);
+                if (node.getNodeType() != Node.ELEMENT_NODE) continue;
+                Element el = (Element) node;
+                String name = el.getAttribute("name");
+                if (!remaining.contains(name)) continue;
+
+                String tagName = el.getTagName();
+                switch (tagName) {
+                    case "boolean": {
+                        edit.putBoolean(name, Boolean.parseBoolean(el.getAttribute("value")));
+                        break;
+                    }
+                    case "long": {
+                        try {
+                            edit.putLong(name, Long.parseLong(el.getAttribute("value")));
+                        } catch (NumberFormatException ignored) {}
+                        break;
+                    }
+                    case "int": {
+                        try {
+                            edit.putInt(name, Integer.parseInt(el.getAttribute("value")));
+                        } catch (NumberFormatException ignored) {}
+                        break;
+                    }
+                    case "float": {
+                        try {
+                            edit.putFloat(name, Float.parseFloat(el.getAttribute("value")));
+                        } catch (NumberFormatException ignored) {}
+                        break;
+                    }
+                    case "string": {
+                        String text = el.getTextContent();
+                        edit.putString(name, text != null ? text : "");
+                        break;
+                    }
+                }
+                remaining.remove(name);
+                if (remaining.isEmpty()) break;
+            }
+            // For any flags that were purely custom (never existed in the official baseline), remove them
+            for (String notInOfficial : remaining) {
+                edit.remove(notInOfficial);
+            }
+            edit.commit();
+            Logger.printInfo(() -> "PhenotypeSeedData: Reverted " + targetFlagNames.size() + " custom overrides to official baseline values");
+        } catch (Throwable t) {
+            Logger.printException(() -> "PhenotypeSeedData: Failed to revert custom flags to official baseline", t);
+        }
+    }
+
+    public static long getAssetCrc(Context context) {
+        if (context == null) return 0L;
+        try (java.io.InputStream is = context.getAssets().open("phenotype/com.google.android.apps.photos.phenotype.xml")) {
+            java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+            byte[] buf = new byte[8192];
+            int r;
+            while ((r = is.read(buf)) != -1) {
+                crc.update(buf, 0, r);
+            }
+            return crc.getValue();
+        } catch (Throwable t) {
+            return 0L;
+        }
+    }
 
     public static void ensureSeeded(Context context) {
+        if (context == null) return;
         SharedPreferences seedPrefs = context.getSharedPreferences("morphe_seed_meta", Context.MODE_PRIVATE);
-        long seededVersion = seedPrefs.getLong("seeded_preset_version", 0L);
+        long seededCrc = seedPrefs.getLong("seeded_asset_crc", 0L);
+        long currentCrc = getAssetCrc(context);
+
         SharedPreferences phenoPrefs = context.getSharedPreferences(
             "com.google.android.apps.photos.phenotype", Context.MODE_PRIVATE);
-        boolean needSeed = seededVersion < LATEST_SEED_VERSION || !phenoPrefs.getBoolean("_presets_loaded", false);
+        boolean needSeed = (currentCrc != 0L && currentCrc != seededCrc) || !phenoPrefs.getBoolean("_presets_loaded", false);
         if (needSeed) {
+            // Backup user's custom manual flag overrides so they are preserved
+            java.util.Set<String> customKeys = phenoPrefs.getStringSet(
+                PhenotypeFlagManager.CUSTOM_FLAGS_KEY, java.util.Collections.emptySet());
+            java.util.Map<String, Object> customValues = new java.util.HashMap<>();
+            if (customKeys != null && !customKeys.isEmpty()) {
+                java.util.Map<String, ?> allPrefs = phenoPrefs.getAll();
+                for (String k : customKeys) {
+                    if (allPrefs.containsKey(k)) {
+                        customValues.put(k, allPrefs.get(k));
+                    }
+                }
+            }
+
             int restored = restoreOfficialFlags(context, phenoPrefs);
             app.morphe.extension.shared.patches.flags.PhotoFlagsRegistry.applyCuratedDefaults(phenoPrefs);
-            seedPrefs.edit().putLong("seeded_preset_version", LATEST_SEED_VERSION).commit();
-            Logger.printInfo(() -> "Seeded " + restored + " official baseline flags + " +
+
+            // Re-apply preserved custom overrides
+            if (!customValues.isEmpty()) {
+                SharedPreferences.Editor edit = phenoPrefs.edit();
+                for (java.util.Map.Entry<String, Object> entry : customValues.entrySet()) {
+                    Object val = entry.getValue();
+                    if (val instanceof Boolean) edit.putBoolean(entry.getKey(), (Boolean) val);
+                    else if (val instanceof Long) edit.putLong(entry.getKey(), (Long) val);
+                    else if (val instanceof Integer) edit.putInt(entry.getKey(), (Integer) val);
+                    else if (val instanceof Float) edit.putFloat(entry.getKey(), (Float) val);
+                    else if (val instanceof String) edit.putString(entry.getKey(), (String) val);
+                }
+                edit.commit();
+            }
+
+            seedPrefs.edit()
+                .putLong("seeded_asset_crc", currentCrc)
+                .putLong("seeded_preset_version", System.currentTimeMillis())
+                .commit();
+
+            Logger.printInfo(() -> "Seeded " + restored + " official baseline flags from updated asset (CRC " +
+                Long.toHexString(currentCrc) + ") + " +
                 app.morphe.extension.shared.patches.flags.PhotoFlagsRegistry.CURATED_FLAGS.size() +
-                " Morphe preset flags (version " + LATEST_SEED_VERSION + ")");
+                " curated flags");
         }
         syncActiveAccount(context);
     }

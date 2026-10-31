@@ -17,6 +17,8 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
@@ -66,12 +68,20 @@ internal fun BytecodePatchContext.prepareCaptionQuickToggle(): () -> Unit {
     }
     filter.methods.staticMethod(FLYOUT_FILTER, "getTopFlyoutMenuVisible", "Z")
     classDefBy(SHORTS_STATE).methods.staticMethod(SHORTS_STATE, "isOpen", "Z")
-    // Hook the implementation, not just its @JvmStatic wrapper: Kotlin callers use Companion.
-    val shortsCompanion = mutableClassDefBy(SHORTS_STATE.removeSuffix(";") + "\$Companion;")
-    val shortsSetter = shortsCompanion.methods.filter {
-        it.name == "setOpen" && !it.isStatic() && it.returnType == "V" &&
-            it.parameterNames() == listOf("Z") && it.implementation != null
-    }.unique("official Shorts state implementation")
+    // Follow a Kotlin @JvmStatic delegate when present; 2.0 uses a Java static implementation.
+    // Resolve the actual setter from the public API instead of assuming its source language.
+    val publicSetter = mutableClassDefBy(SHORTS_STATE).methods
+        .staticMethod(SHORTS_STATE, "setOpen", "V", "Z")
+    val delegates = publicSetter.code().mapNotNull { it.call() }.filter {
+        it.name == "setOpen" && it.returnType == "V" && it.parameterNames() == listOf("Z")
+    }
+    val shortsSetter = if (delegates.isEmpty()) publicSetter else {
+        val delegate = delegates.unique("official Shorts setter delegate")
+        mutableClassDefBy(delegate.definingClass).methods.filter {
+            it.id() == delegate.id() && !it.isStatic()
+        }.unique("official Shorts state implementation")
+    }
+    if (shortsSetter.implementation == null) throw PatchException("AI captions: Shorts setter has no implementation")
     val shortsReturns = shortsSetter.code().indices.filter { shortsSetter.code()[it].opcode == Opcode.RETURN_VOID }
     if (shortsReturns.isEmpty()) throw PatchException("AI captions: Shorts lifecycle has no return")
     utils.methods.staticMethod(FLYOUT_UTILS, "dismissFlyout", "V")
@@ -98,16 +108,42 @@ internal fun BytecodePatchContext.prepareCaptionQuickToggle(): () -> Unit {
 
     val menuBody = findMenuBody(utils)
     val code = menuBody.code()
-    val dividerCall = code.indices
-        .filter { code[it].call()?.let { call -> call.definingClass == utils.type && call.name == "addDivider" } == true }
-        .unique("shared divider call")
+    val dividerCall = code.indices.filter { index ->
+        code[index].call()?.let { call ->
+            call.definingClass == utils.type && (
+                call.name == "addDivider" && call.returnType == "I" && call.parameterNames() == listOf(OBJECT, "I") ||
+                call.name == "addFlyoutMenuItem" && call.returnType == "I" && call.parameterNames() == listOf(
+                    OBJECT, DRAWABLE, STRING, CLICK_LISTENER, "I", "Z", utils.type.removeSuffix(";") + "\$FlyoutButtonResource;"
+                )
+            )
+        } == true
+    }.unique("shared divider call")
     val guard = (dividerCall - 1 downTo 0).firstOrNull { code[it].opcode == Opcode.IF_LEZ }
         ?: throw PatchException("AI captions: shared divider guard unavailable")
     val indexRegister = (code[guard] as OneRegisterInstruction).registerA
     // The panel is the first argument of the divider call, not necessarily p0: since 1.48 the
     // official VideoDelay row uses p0's register as a Boolean scratch before this point.
-    val panelRegister = (code[dividerCall] as? FiveRegisterInstruction)?.registerC
-        ?: throw PatchException("AI captions: divider panel register unavailable")
+    val dividerRegisters = when (val call = code[dividerCall]) {
+        is FiveRegisterInstruction -> listOf(call.registerC, call.registerD, call.registerE, call.registerF, call.registerG).take(call.registerCount)
+        is RegisterRangeInstruction -> (call.startRegister until call.startRegister + call.registerCount).toList()
+        else -> throw PatchException("AI captions: divider registers unavailable")
+    }
+    var panelRegister = dividerRegisters.first()
+    // A range invoke can copy the panel into its argument window only inside the guarded
+    // divider block. Trace those object moves back to the value that is live at the hook.
+    for (index in dividerCall - 1 downTo guard + 1) {
+        val instruction = code[index]
+        if (instruction.opcode.setsRegister() && (instruction as OneRegisterInstruction).registerA == panelRegister) {
+            if (instruction.opcode !in listOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)) {
+                throw PatchException("AI captions: divider panel is not available before its guard")
+            }
+            panelRegister = (instruction as TwoRegisterInstruction).registerB
+        }
+    }
+    val dividerIndex = if (code[dividerCall].call()!!.name == "addDivider") 1 else 4
+    if (dividerRegisters.getOrNull(dividerIndex) != indexRegister) {
+        throw PatchException("AI captions: divider guard does not use the insertion index")
+    }
     val afterDivider = (code[guard] as? BuilderOffsetInstruction)?.target?.location?.instruction
         ?: throw PatchException("AI captions: divider guard target unavailable")
 
@@ -171,13 +207,18 @@ internal fun BytecodePatchContext.prepareCaptionQuickToggle(): () -> Unit {
  * generated lambda name.
  */
 private fun BytecodePatchContext.findMenuBody(utils: MutableClass): MutableMethod {
-    fun dividers(method: Method) = method.code().count {
-        it.call()?.let { call -> call.definingClass == utils.type && call.name == "addDivider" } == true
+    // The menu clears its visibility signal after adding all rows and the shared divider.
+    // This lifecycle boundary survives changes to the divider's inflater implementation.
+    fun resets(method: Method) = method.code().count {
+        it.call()?.let { call ->
+            call.definingClass == FLYOUT_FILTER && call.name == "resetTopFlyoutMenuVisible" &&
+                call.returnType == "V" && call.parameterTypes.isEmpty()
+        } == true
     }
 
     val entry = utils.methods.staticMethod(FLYOUT_UTILS, "addFlyoutElements", null, OBJECT)
-    if (dividers(entry) == 1) return entry
-    if (dividers(entry) != 0) throw PatchException("AI captions: unexpected divider count in the menu binding")
+    if (resets(entry) == 1) return entry
+    if (resets(entry) != 0) throw PatchException("AI captions: unexpected menu visibility reset count")
 
     val outer = entry.code()
     outer.filter {
@@ -200,6 +241,6 @@ private fun BytecodePatchContext.findMenuBody(utils: MutableClass): MutableMetho
                 .flatMap { it.code() }.mapNotNull { it.call() }
                 .filter { it.definingClass == utils.type && it.returnType == "V" && it.parameterNames() == listOf(OBJECT) }
                 .mapNotNull { reference -> utils.methods.singleOrNull { it.id() == reference.id() && it.isStatic() } }
-        }.distinct().filter { dividers(it) == 1 }
+        }.distinct().filter { resets(it) == 1 }
     return bodies.unique("reachable deferred divider body")
 }

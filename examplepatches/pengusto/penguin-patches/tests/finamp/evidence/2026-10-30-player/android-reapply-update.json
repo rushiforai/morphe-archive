@@ -1,0 +1,52 @@
+{
+  "capturedAt": "2026-10-30T13:16:57.998968+00:00",
+  "serial": "emulator-5580",
+  "package": "com.android.packageinstaller",
+  "labels": [
+    {
+      "text": "Finamp",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[260,811][900,865]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Do you want to update this app?",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[180,886][634,929]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "CANCEL",
+      "content-desc": "",
+      "class": "android.widget.Button",
+      "bounds": "[618,985][772,1093]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "UPDATE",
+      "content-desc": "",
+      "class": "android.widget.Button",
+      "bounds": "[772,985][924,1093]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "a9fa61a025ac79f5f742e84fb3b913229c568a794f29638560d24ec186b0db99"
+}

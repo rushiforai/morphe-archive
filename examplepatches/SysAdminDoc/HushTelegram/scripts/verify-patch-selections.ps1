@@ -227,7 +227,11 @@ function Test-SelectionRefusal {
             $PrivateLog -cmatch '(?m)^\s+at app\.morphe\.desktop\.command\.PatchCommand\.call\('
     }
     $suffix = switch -CaseSensitive ($Selection.Id) {
-        { $_ -cin @('api-incomplete-id', 'api-incomplete-hash', 'api-array-id') } { 'supply both apiId and apiHash.' }
+        { $_ -ceq 'api-incomplete-id' } { 'supply both apiId and apiHash.' }
+        # Only the hash arrives in these two, so the refusal adds how to quote a numeric ID.
+        { $_ -cin @('api-incomplete-hash', 'api-array-id') } {
+            'supply both apiId and apiHash. On the command line, quote the ID (-O "apiId=''12345''"): a bare number never reaches this option.'
+        }
         { $_ -cin @('api-invalid-id', 'api-boolean-id') } { 'apiId must be a positive 32-bit decimal integer.' }
         { $_ -cin @('api-invalid-hash', 'api-object-hash') } { 'apiHash must contain exactly 32 hexadecimal characters.' }
         { $_ -cin @('maps-invalid', 'maps-boolean') } { 'apiKey must be a 39-character Google API key.' }

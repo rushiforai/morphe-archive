@@ -46,7 +46,7 @@ public class SpoofLocationSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.SPOOF_LOCATION.resetToDefault();
         Settings.SPOOF_LOCATION_PLACE.resetToDefault();
         BaseSettings.PAUSED.save(false);

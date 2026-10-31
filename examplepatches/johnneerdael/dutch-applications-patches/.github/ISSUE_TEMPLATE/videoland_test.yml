@@ -1,12 +1,12 @@
-name: Videoland Android TV dev test
-description: Share a successful dev test or a playback/ad problem.
+name: Videoland Android TV test or problem
+description: Share a successful account test or a playback, ad or catalogue problem.
 title: "test(videoland-tv): "
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for testing the Videoland Android TV dev prerelease. Successful
-        tests are welcome, especially with the paid ad-supported tier.
+        Thanks for testing the stable Videoland Android TV patches. Successful
+        Premium and free-account tests are welcome, along with catalogue issues.
         Premium playback alone cannot establish ad removal on that tier.
         Do not share credentials, pairing codes, tokens or personal logs.
   - type: dropdown
@@ -14,6 +14,7 @@ body:
     attributes:
       label: Subscription tier
       options:
+        - Free / TV Gemist account
         - Paid ad-supported tier
         - Premium / ad-free tier
         - Other / not sure
@@ -24,7 +25,7 @@ body:
     attributes:
       label: Patch bundle version
       description: Find Version on the Dutch App Patches source card in Morphe.
-      placeholder: "1.x.0-dev.x"
+      placeholder: "1.x.x"
     validations:
       required: true
   - type: input
@@ -45,7 +46,9 @@ body:
     attributes:
       label: Selected controls
       options:
-        - Both recommended controls
+        - All three default controls
+        - Ads and tracking only
+        - Hide unavailable content only
         - Hide ads only
         - Disable tracking only
         - Other / not sure
@@ -59,6 +62,8 @@ body:
         - Works as expected
         - Playback works but ads still play
         - Playback or sign-in fails
+        - Unavailable cards or empty season headings remain
+        - Available episodes are missing
         - Other
     validations:
       required: true
@@ -66,6 +71,6 @@ body:
     id: playback
     attributes:
       label: Programme/channel and observed behaviour
-      description: Include VOD/live, preroll/midroll or pause ads, seeking, next episode and whether content continues. For a problem, include the approximate playback time, visible error and reproducible steps.
+      description: Include VOD/live, preroll/midroll or pause ads, seeking, next episode and whether content continues. For a problem, include the visible error and reproducible steps. For catalogue issues, name the season/episode and whether the same account can play it in the original app.
     validations:
       required: true

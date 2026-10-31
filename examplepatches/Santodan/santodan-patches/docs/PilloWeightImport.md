@@ -1,5 +1,9 @@
 # Import weight history into Pillo
 
+**Pillo 0.6.27 (code 472) is supported.** See [the 0.6.27 port notes](Pillo627.md)
+for current contracts, verification, and version-specific backup restrictions.
+Existing 0.6.20 support is retained; contracts below describe that historical implementation.
+
 Supported app: **Pillo 0.6.20** (`xyz.rtrvr.pillo`).
 
 1. Import the locally built `patches/build/libs/patches-0.9.0.mpp` bundle into Morphe.

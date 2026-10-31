@@ -150,7 +150,11 @@ public class PausedHooksTest {
                 () -> Stories.hideAvatarStories(DIALOG_AVATAR),
                 () -> Stories.hideAvatarStoryTouches(DIALOG_AVATAR)));
         probes.put(PatchFamily.HIDE_RECOMMENDATIONS, Arrays.asList(
-                Recommendations::skipRecommendations, Recommendations::skipCachedRecommendations));
+                Recommendations::skipRecommendations, Recommendations::skipCachedRecommendations,
+                () -> {
+                    ArrayList<Object> featured = new ArrayList<>();
+                    return Recommendations.keyboardFeatured(featured) != featured;
+                }));
         probes.put(PatchFamily.HIDE_COMMERCE, Arrays.asList(
                 () -> !app.hushtelegram.extension.telegram.misc.Commerce.addSettingsRow(new ArrayList<>(), new Object()),
                 () -> !app.hushtelegram.extension.telegram.misc.Commerce.showGiftsTab(true),
@@ -159,7 +163,10 @@ public class PausedHooksTest {
                 () -> !app.hushtelegram.extension.telegram.misc.Commerce.showMenuWallet(true),
                 () -> !app.hushtelegram.extension.telegram.misc.Commerce.showProfileSendGram(true),
                 () -> !app.hushtelegram.extension.telegram.misc.Commerce.showAddressSendGram(true),
-                () -> !app.hushtelegram.extension.telegram.misc.Commerce.showTransferSendGram(true)));
+                () -> !app.hushtelegram.extension.telegram.misc.Commerce.showTransferSendGram(true),
+                app.hushtelegram.extension.telegram.misc.EmojiStatus::hide,
+                () -> !app.hushtelegram.extension.telegram.misc.AppIcons.premium(1),
+                () -> app.hushtelegram.extension.telegram.misc.LocalEmojiStatus.premium(0)));
         probes.put(PatchFamily.HIDE_PROMOTIONAL_BANNERS, Arrays.asList(
                 () -> !Suggestions.filterChatList(Collections.singleton("PREMIUM_UPGRADE")).contains("PREMIUM_UPGRADE"),
                 () -> Suggestions.birthdayGiftBannerDismissed(false)));
@@ -169,7 +176,10 @@ public class PausedHooksTest {
         probes.put(PatchFamily.DISABLE_CALL_DEBUG, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.CallDebug.skipCallDebugUpload(true),
                 app.hushtelegram.extension.telegram.misc.CallDebug::skipCallLogFileUpload,
-                app.hushtelegram.extension.telegram.misc.CallDebug::skipCallLogUpload));
+                app.hushtelegram.extension.telegram.misc.CallDebug::skipCallLogUpload,
+                app.hushtelegram.extension.telegram.misc.CallRecorderForTests::takesAFrame,
+                app.hushtelegram.extension.telegram.misc.CallRecorderForTests::takesAFrameAfterATap,
+                app.hushtelegram.extension.telegram.misc.CallRecorderForTests::addsARecordButton));
         // An unsent message's link preview is never asked for, on any compose surface, its draft
         // stays off Telegram's server, and what's typed in search stays here too.
         probes.put(PatchFamily.DISABLE_DRAFT_PREVIEWS, Arrays.asList(
@@ -199,7 +209,10 @@ public class PausedHooksTest {
                 app.hushtelegram.extension.telegram.misc.MyChatsSearchForTests::dropsPublicResults,
                 app.hushtelegram.extension.telegram.misc.MyChatsSearchForTests::dropsPublicTabs,
                 app.hushtelegram.extension.telegram.misc.MyChatsSearchForTests::movesDownloads,
-                () -> "ann".equals(app.hushtelegram.extension.telegram.misc.NameFold.fold("𝐀𝐧𝐧", true, false))));
+                () -> "ann".equals(app.hushtelegram.extension.telegram.misc.NameFold.fold("𝐀𝐧𝐧", true, false)),
+                // New channels and groups join and open, as Telegram's do, while paused.
+                () -> app.hushtelegram.extension.telegram.misc.NewChatsBlock.drop(new org.telegram.tgnet.TLRPC.TL_channels_joinChannel(), null),
+                app.hushtelegram.extension.telegram.misc.NewChatsBlock::refuseOpen));
         // A sideways swipe on a chat row starts nothing.
         probes.put(PatchFamily.DISABLE_CHAT_SWIPE, Collections.singletonList(
                 app.hushtelegram.extension.telegram.misc.ChatSwipe::keepRowStill));
@@ -221,8 +234,11 @@ public class PausedHooksTest {
             return menu.getChildCount() == 1;
         }, () -> app.hushtelegram.extension.telegram.misc.ProfileDcForTests.row(
                 new android.widget.FrameLayout(RuntimeEnvironment.getApplication()))));
-        probes.put(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS, Collections.singletonList(
-                app.hushtelegram.extension.telegram.misc.DoubleTapReactions::stopReaction));
+        probes.put(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS, Arrays.asList(
+                app.hushtelegram.extension.telegram.misc.DoubleTapReactions::stopReaction,
+                () -> app.hushtelegram.extension.telegram.misc.DoubleTapReactions.rows(new Object(), false, false) == null,
+                () -> app.hushtelegram.extension.telegram.misc.DoubleTapReactions.spoken(new org.telegram.tgnet.TLRPC.TL_messageReactions()) == null,
+                () -> !app.hushtelegram.extension.telegram.misc.DoubleTapReactions.picker(true)));
         probes.put(PatchFamily.HIDE_CONTACTS_BLOCK, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.ContactsBlock.rows(new java.util.ArrayList<>(Collections.singletonList("contact"))) == null,
                 () -> !app.hushtelegram.extension.telegram.misc.ContactsBlock.placeholder(true)));
@@ -311,11 +327,12 @@ public class PausedHooksTest {
                 () -> app.hushtelegram.extension.telegram.misc.DownloadSpeed.fast(false),
                 () -> app.hushtelegram.extension.telegram.misc.DataSaverDownloadsForTests.holdsOnMeteredDataSaver(),
                 () -> app.hushtelegram.extension.telegram.misc.DataSaverDownloadsForTests.holdsMaskOnMeteredDataSaver()));
-        // A finished file from a message is queued for a copy in Download/Telegram, and so is one from
-        // a chat that doesn't allow saving.
+        // A finished file from a message is queued for a copy in Download/Telegram, and so are one from
+        // a chat that doesn't allow saving and a view-once photo.
         probes.put(PatchFamily.SAVE_DOWNLOADS, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.SaveDownloadsForTests.queuesACopy(),
-                () -> app.hushtelegram.extension.telegram.misc.SaveDownloadsForTests.queuesARestrictedCopy()));
+                () -> app.hushtelegram.extension.telegram.misc.SaveDownloadsForTests.queuesARestrictedCopy(),
+                () -> app.hushtelegram.extension.telegram.misc.SaveDownloadsForTests.queuesATimedCopy()));
         // Flipping the switch on asks Telegram for the folders.
         probes.put(PatchFamily.CHAT_TYPE_FOLDERS, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.ChatTypeFoldersForTests.asksForFolders()));
@@ -368,10 +385,11 @@ public class PausedHooksTest {
         // Translation only works while the switch is on.
         probes.put(PatchFamily.OUTSIDE_TRANSLATE, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.OutsideTranslateForTests.active()));
-        // A channel's bar keeps Search, Direct messages and Info.
+        // A channel's bar keeps Search, Direct messages and Info, and its posts keep their share button.
         probes.put(PatchFamily.HIDE_CHANNEL_BUTTONS, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.ChannelButtonsForTests.on(),
-                () -> app.hushtelegram.extension.telegram.misc.ChannelMuteForTests.on()));
+                () -> app.hushtelegram.extension.telegram.misc.ChannelMuteForTests.on(),
+                () -> app.hushtelegram.extension.telegram.misc.ChannelShare.on()));
         // The message box keeps its Send as button.
         probes.put(PatchFamily.HIDE_SEND_AS, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.ChannelButtonsForTests.sendAsOn()));
@@ -397,7 +415,16 @@ public class PausedHooksTest {
                 () -> Analytics.skipPremiumAppLog("premium.promo_screen_tap"),
                 () -> Analytics.skipPremiumAppLog("premium.promo_screen_accept"),
                 () -> Analytics.skipPremiumAppLog("premium.promo_screen_fail"),
-                () -> Analytics.skipDeviceAppLog("android_dual_camera")));
+                () -> Analytics.skipDeviceAppLog("android_dual_camera"),
+                // Ghost mode keeps story views back, and a pause lets them go out.
+                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(
+                        new org.telegram.tgnet.tl.TL_stories.TL_stories_readStories()),
+                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(
+                        new org.telegram.tgnet.tl.TL_stories.TL_stories_incrementStoryViews()),
+                // Typing and going online are kept back too, and a pause lets both go out.
+                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.TLRPC.TL_messages_setTyping()),
+                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.TLRPC.TL_messages_setEncryptedTyping()),
+                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.tl.TL_account.updateStatus())));
         // Links open in the browser, and Mini Apps and web pages inside Telegram get no location.
         probes.put(PatchFamily.OPEN_EXTERNAL_LINKS, Arrays.asList(
                 PausedHooksTest::externalBrowserOpened,

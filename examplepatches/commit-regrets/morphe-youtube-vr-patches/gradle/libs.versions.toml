@@ -1,11 +1,27 @@
 [versions]
-morphe-patcher = "1.12.0"
-#noinspection GradleDependency
-smali = "d92701d947"
+# 2.0.0 -- the version the official bundle builds against, and binary-compatible with both
+# current hosts (Manager 2.2.0 runs patcher 2.0.1, Desktop 1.20 runs 2.1.0). The bundle stayed on
+# 1.12.0 until issue #45: its sources compiled there, but `getAllClassesWithString` is
+# `DeprecationLevel.HIDDEN` from Kotlin on 2.0 (the JVM method still exists, which is why the
+# 1.12-built bundle ran), so the 2.x move is the rename to `classDefByStrings` plus the option
+# `values` orientation fix (see docs/INTERNALS.md, "The patcher 2.x alignment").
+morphe-patcher = "2.0.0"
+# Must be the commit the compiled-against patcher pins (morphe-patcher 2.0.0 -> 4220ae75f7):
+# R8's whole-program view over the bundle finds the patcher referencing dexlib2 APIs a
+# mismatched smali jar lacks, and the assembly step fails -- measured against the v2.0.0
+# composite 2026-10-30 with the 1.x-era d92701d947 pin still here. jitpack hashes do not
+# order, so Gradle will not resolve the conflict for us. Bump this together with
+# morphe-patcher above; the current pin is readable from the patcher's libs.versions.toml
+# at that tag.
+smali = "4220ae75f7"
 gson = "2.14.0"
 junit = "5.11.4"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
+# The patches Gradle plugin (2.x) reads this alias and puts it on the patcher-provided
+# compile classpath; it must stay the commit the compiled-against patcher pins (see the
+# smali version note above).
+smali = { module = "com.github.MorpheApp.smali:smali", version.ref = "smali" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }

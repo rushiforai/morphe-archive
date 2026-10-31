@@ -24,10 +24,13 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
-/** The literal only the method that lists a post's row buttons loads (584: X.36P's A06). */
-internal const val ROW_TYPES_LITERAL = "XFBUFIButtonWithFallbackOptions"
-
-/** The tag Facebook's own Save item carries, loaded in its case of the item builder. */
+/**
+ * The tag Facebook's own Save item carries, loaded in its case of the item builder. Up to 584 the
+ * row was found by "XFBUFIButtonWithFallbackOptions", which only its type list loaded (584 `LX/36P;->A06`).
+ * 585 (arm64 `LX/03E8;`, read 2026-10-29) dropped that literal from the type list, which now holds
+ * no string at all, while the item builder (`A01`) still loads "Save" in Save's case, so the row is
+ * found from the item builder.
+ */
 internal const val SAVE_TAG = "Save"
 
 internal const val LIST = "Ljava/util/List;"
@@ -40,10 +43,11 @@ internal const val FUNCTION1 = "Lkotlin/jvm/functions/Function1;"
 /**
  * Where Facebook builds the row of buttons under a post, and what an item of the row is made of.
  *
- * One class lists the row's button types ([types]: a static method answering a List, the one that
- * loads [ROW_TYPES_LITERAL]), builds the item of one type ([item]: static, taking the type enum,
- * the row's state and a Map, the one whose cases load [SAVE_TAG]), and builds the row from both
- * ([items]). Save's case of [item] shows how an item is put together: an icon from Facebook's icon
+ * One class lists the row's button types ([types]: a static method answering a List), builds the
+ * item of one type ([item]: static, taking the type enum, which names SAVE, the row's state and a
+ * Map, the one whose cases load [SAVE_TAG]), and builds the row from both ([items]). The item
+ * builder is found first; the type list is the one static List method of its class that the row
+ * builder calls beside it. Save's case of [item] shows how an item is put together: an icon from Facebook's icon
  * enum and a style enum, two texts holding the icon, a label holding the text and the click (a
  * Function1), a tag, and the item's constructor taking those among nulls.
  */
@@ -73,23 +77,31 @@ internal class ActionRow(
 
 /** Finds the [ActionRow] of this build. Throws naming what moved. */
 internal fun BytecodePatchContext.actionRow(): ActionRow {
-    val types = methodsNaming(ROW_TYPES_LITERAL) {
-        AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == LIST
-    }.singleOrNull() ?: refuse("no single static method answering a List names $ROW_TYPES_LITERAL")
-    val owner = types.definingClass
-    val ownerClass = classDefBy(owner)
-
-    val item = ownerClass.methods.filter {
+    // "Save" is a common literal, so the item builder is the static (type, state, Map) holder of it
+    // whose type enum names a SAVE button.
+    val item = methodsNaming(SAVE_TAG) {
         AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.size == 3 &&
             it.parameterTypes[2].toString() == MAP && holdsString(it, SAVE_TAG)
-    }.singleOrNull() ?: refuse("$owner has no single static (type, state, Map) item builder loading \"$SAVE_TAG\"")
+    }.filter { method ->
+        classDefByOrNull(method.parameterTypes[0].toString())?.let { enumConstant(it, "SAVE") } != null
+    }.distinctBy { "${it.definingClass}->${it.name}${it.parameterTypes}" }.singleOrNull()
+        ?: refuse("no single static (type, state, Map) item builder loading \"$SAVE_TAG\" with a type naming SAVE")
+    val owner = item.definingClass
+    val ownerClass = classDefBy(owner)
     val typeEnum = item.parameterTypes[0].toString()
     val state = item.parameterTypes[1].toString()
 
-    val items = ownerClass.methods.filter { method ->
+    // The row builder calls the item builder and the type list, the class's one static List method it calls.
+    val lists = ownerClass.methods.filter {
+        AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == LIST && it.implementation != null
+    }
+    val builders = ownerClass.methods.mapNotNull { method ->
         val calls = method.code().mapNotNull { it.methodReference() }
-        calls.any { it.matches(types) } && calls.any { it.matches(item) }
-    }.singleOrNull() ?: refuse("$owner has no single method building the row from ${types.name} and ${item.name}")
+        if (calls.none { it.matches(item) }) return@mapNotNull null
+        lists.filter { list -> calls.any { it.matches(list) } }.singleOrNull()?.let { method to it }
+    }
+    val (items, types) = builders.singleOrNull()
+        ?: refuse("$owner has no single method building the row from ${item.name} and one static List method, found ${builders.size}")
 
     val save = enumConstant(classDefBy(typeEnum), "SAVE") ?: refuse("$typeEnum names no SAVE button")
 

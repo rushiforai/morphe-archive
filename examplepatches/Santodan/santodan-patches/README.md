@@ -14,12 +14,14 @@ https://github.com/Santodan/santodan-patches
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v0.15.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.15.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;33 patches total
+> **[v0.16.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.16.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
 <details>
 <summary>📦 Car Scanner ELM OBD2&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **Premium status** supports Car Scanner ELM OBD2 **2.2.21**, with existing **2.1.50** support preserved. Select **Car Scanner - Premium status** when patching; it is disabled by default. On 2.2.21, the patch also preserves profile decoding and ECU initialization after repackaging and prevents the native delayed exit. The user reported successful emulator navigation and subsequent device operation, including ECU connection. This is user-reported validation; individual premium features and purchase/restore behavior have not all been verified. See [implementation and verification details](docs/CarScanner221.md).
+
+The 2.2.21 patch also fixes settings resetting after exit/restart. Emulator persistence tests passed, and the user subsequently confirmed correct operation on 2026-10-30.
 
 **🎯 Supported versions:**
 
@@ -54,23 +56,23 @@ MEO 5.7.0 patches provide a separately installable clone and compatibility handl
 <summary>📦 Monet&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
-The original premium unlock is from [Doom's Patches](https://github.com/rushiranpise/morphe-patches), updated here for Monet Launcher **1.0.97**. A separate experimental variant has no version restriction. Select **only one**; both are disabled by default. The experimental variant requires a matching native layout, and other versions remain unverified. Both variants passed original-DEX verification and APK rebuilding on 1.0.97; device testing remains outstanding. See [implementation and verification details](docs/Monet.md).
+The original premium unlock is from [Doom's Patches](https://github.com/rushiranpise/morphe-patches), updated here for Monet Launcher **1.1.0**, retaining the existing 1.0.97 target. A separate experimental variant has no version restriction and validates billing ownership and all 16 evaluator input states rather than exact compiler flags/registers. Future compatibility is not guaranteed; unsupported layouts fail safely. Select **only one**; both are disabled by default. Both variants passed original-DEX, packaged-bundle and APK rebuild checks on 1.1.0. The user reported that the updated premium patch works on their device; the selected alternative and individual lifecycle checks were not specified. See [implementation and verification details](docs/Monet.md).
 
-The optional **Monet - Individual Nuvio catalog rows** patch adds published catalogs inside **NuVioTV > Content**, with NuVio's installed icon and refresh independent of Recommendations. It targets **1.0.97** and preserves existing catalog selections. Build, runtime, DEX, combined-patch and signed-APK checks passed; the user confirmed the updated APK works on their Android TV setup. See [setup and verification details](docs/MonetCatalogChannels.md).
+The optional **Monet - Individual Nuvio catalog rows** patch adds published catalogs inside **NuVioTV > Content**, with NuVio's installed icon and refresh independent of Recommendations. It supports **1.1.0**, retaining existing **1.0.97** support and saved selections. Native channel/filter choices are preserved without duplicate catalogs. Native/runtime, all six bundle combinations and rebuilt unsigned-APK audits passed; **1.1.0 device testing remains necessary**. The earlier device confirmation applies to 1.0.97 only. See [setup and verification details](docs/MonetCatalogChannels.md).
 
-The optional **Monet - Unlimited displayed cards** patch removes the 20-card display cap and adds -10/+10 and Max to the original themed picker. It supports **1.0.97**, including custom catalog rows. See [usage and verification details](docs/MonetDisplayedCards.md).
+The optional **Monet - Unlimited displayed cards** patch removes the 20-card display cap and adds -10/+10 and Max to the original themed picker. It now supports **1.1.0**, retaining existing **1.0.97** support. The port preserves native Apply rendering, scoped numeric summaries and Max labels across text redraws. Original-DEX, runtime and standalone/premium/catalog bundle checks passed; device testing remains necessary. See [usage and verification details](docs/MonetDisplayedCards.md).
 
 **🎯 Supported versions:**
 
-| 1.0.97 |
-| :---: |
+| 1.0.97 | 1.1.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Monet - Individual Nuvio catalog rows](docs/MonetCatalogChannels.md) | Select individual NuvioTV catalogs in the app's content picker, with Nuvio icons and refresh independent of Recommendations. |  |
 | [Monet - Unlimited displayed cards](docs/MonetDisplayedCards.md) | Remove the 20-card limit from Displayed Cards. Add -10, +10 and Max to the original themed picker, preserving its layout and single-card steps. |  |
-| [Monet - Unlock premium](docs/Monet.md) | Original premium unlock from Doom's Patches, updated here for Monet 1.0.97. Unlock local premium features. Select only one Monet premium patch. |  |
-| [Monet - Unlock premium (Experimental, any version)](docs/Monet.md) | Original premium unlock from Doom's Patches, updated here for Monet 1.0.97. Experimental variant with no version restriction; requires a matching native layout. Select only one Monet premium patch. |  |
+| [Monet - Unlock premium](docs/Monet.md) | Original premium unlock from Doom's Patches, updated here for Monet 1.1.0. Unlock local premium features. Select only one Monet premium patch. |  |
+| [Monet - Unlock premium (Experimental, any version)](docs/Monet.md) | Original premium unlock from Doom's Patches, verified on Monet 1.1.0. No version restriction; validates billing ownership and evaluator semantics, not obfuscated names or final flags. Future layouts may still be unsupported. Select only one Monet premium patch. |  |
 
 </details>
 
@@ -184,30 +186,37 @@ The patch settings are under **Layout > Santodan-Patches**, grouped under **Cont
 </details>
 
 <details>
-<summary>📦 Pillo&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 Pillo&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
-Pillo's hybrid notification patch supports both 0.6.19 and 0.6.20. In Pillo's Banner/Light mode, it keeps fullscreen alarms while the device is locked and uses banner notifications while the device is unlocked.
+Pillo's hybrid notification patch supports 0.6.27, with existing 0.6.19/0.6.20 support retained. In Pillo's Banner/Light mode, it keeps fullscreen alarms while the device is locked and uses banner notifications while the device is unlocked.
 
-**Import weight history from JSON** supports Pillo 0.6.20. Open **Weight > Add record**, select the profile, and tap the blue **+ Import weights JSON** button above **Skip** in the weight-entry step. Choose kilograms or pounds (kilograms is the default), select an SWT JSON backup, review its date range, and tap **Import**. The importer preserves each epoch-millisecond date as Pillo's epoch-second recording time, converts kilograms to Pillo's internal pounds, and adds ordinary extra weight records. Existing records stay unchanged; entries with the same recording time and weight in that profile are skipped. The import runs locally and does not upload the file.
+**Import weight history from JSON** supports Pillo 0.6.27 and 0.6.20. Open **Weight > Add record**, select the profile, and tap **Import weights JSON** above **Skip** in the weight-entry step. Choose kilograms or pounds (kilograms is the default), select an SWT JSON backup, review its date range, and tap **Import**. The importer preserves each epoch-millisecond date as Pillo's epoch-second recording time, converts kilograms to Pillo's internal pounds, and adds ordinary extra weight records. Existing records stay unchanged; entries with the same recording time and weight in that profile are skipped. The import runs locally and does not upload the file.
 
-**Local backup and restore** supports Pillo 0.6.20. Open **Settings > Backup and restore > Local file** to export Pillo's database, settings and app-managed files to a `.pillo-backup.zip`, or restore a previously exported file without Google sign-in. Restore replaces current data, saves a recovery copy, and restarts Pillo. The existing Google flow is available through **Google backup**. See [local backup details](docs/PilloLocalBackup.md) for included data, format limits and device-bound credential limitations.
+**Local backup and restore** supports Pillo 0.6.27 and 0.6.20. Open **Settings > Backup and restore > Local file** to export Pillo's database, settings and app-managed files to a `.pillo-backup.zip`, or restore a previously exported file without Google sign-in. Restore replaces current data, saves a recovery copy, and restarts Pillo. On 0.6.27, original 0.6.20 local backups are upgraded with the app's native database migrations before confirmation; no manual archive changes are required. The existing Google flow is available through **Google backup**. See [local backup details](docs/PilloLocalBackup.md) for included data, format limits and device-bound credential limitations.
 
-**Weight change summaries** supports Pillo 0.6.20. Adds **Total** beside **Latest** for signed weight change across the selected records, makes **All** the default filter, and replaces **Avg** with a tappable **Last since** date comparison. Choose a date to compare the first weight recorded on or after it with the latest weight; the selected date is saved locally. **Last 30 days / Last 15 days / Change** appear between **Last since / Min / Max** and the graph. Negative values mean weight lost, positive values mean weight gained, and insufficient data shows **—**. See [weight summary details](docs/PilloWeightSummary.md) for calculation periods and signs.
+**Weight change summaries** supports Pillo 0.6.27 and 0.6.20. Adds **Total** beside **Latest** for signed weight change across the selected records, makes **All** the default filter, and replaces **Avg** with a tappable **Last since** date comparison. Choose a date to compare the first weight recorded on or after it with the latest weight; the selected date is saved locally. **Last 30 days / Last 15 days / Change** appear between **Last since / Min / Max** and the graph. Negative values mean weight lost, positive values mean weight gained, and insufficient data shows **—**. See [weight summary details](docs/PilloWeightSummary.md) for calculation periods and signs.
 
 <img src="images/PilloWeightSummary.png" width="400" alt="Pillo weight chart with signed total, selectable comparison date, and 30-day and 15-day changes">
 
+**Weight in Progress** supports Pillo 0.6.27 and 0.6.20. Adds the native Weight graph and dated record list below the existing Progress calendar/cards in the same scrolling page. Includes **Weight change summaries** automatically, retaining its filters and comparisons while keeping the original Weight screen available. Uses the resolved native profile for both chart and records; the populated graph and summaries were verified on an emulator, including tab re-entry and cold restart. See [Weight in Progress details](docs/PilloProgressWeight.md).
+
+
+**Premium and ad-free** supports only Pillo 0.6.27. Select **Pillo - Premium and ad-free** instead of the external **Unlock Premium** patch, whose fingerprint no longer matches this app version. See [0.6.27 compatibility and restore notes](docs/Pillo627.md).
+
 **🎯 Supported versions:**
 
-| 0.6.20 | 0.6.19 |
-| :---: | :---: |
+| 0.6.27 | 0.6.20 | 0.6.19 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Pillo - Hybrid Lock-Screen Notifications](#pillo-hybrid-lock-screen-notifications) | Use fullscreen alarms while the phone is locked and banner notifications while it is unlocked. Select Pillo's Banner/Light notification mode. |  |
-| [Pillo - Import weight history from JSON](#pillo-import-weight-history-from-json) | Adds a native Import weights JSON button above Skip in Weight > Add record. Imports SWT backup weights with their dates into the selected profile, with kg/lb selection and duplicate skipping. |  |
-| [Pillo - Local backup and restore](#pillo-local-backup-and-restore) | Adds local-file export and restore of Pillo's database, settings and app-managed files, without Google sign-in. Restore replaces current data, keeps a recovery backup and restarts Pillo. |  |
-| [Pillo - Weight change summaries](#pillo-weight-change-summaries) | Adds signed Total weight change, an All default filter, a selectable Last since date, and Last 30 days / Last 15 days / Change summaries using full profile history. |  |
+| [Pillo - Hybrid Lock-Screen Notifications](docs/Pillo627.md) | Use fullscreen alarms while the phone is locked and banner notifications while it is unlocked. Select Pillo's Banner/Light notification mode. |  |
+| [Pillo - Import weight history from JSON](docs/PilloWeightImport.md) | Adds a native Import weights JSON button above Skip in Weight > Add record. Imports SWT backup weights with their dates into the selected profile, with kg/lb selection and duplicate skipping. |  |
+| [Pillo - Local backup and restore](docs/PilloLocalBackup.md) | Adds local-file export and restore of Pillo's database, settings and app-managed files, without Google sign-in. Restore replaces current data, keeps a recovery backup and restarts Pillo. |  |
+| [Pillo - Premium and ad-free](docs/Pillo627.md) | Enables premium and ad-free state through Pillo's native subscription setters. For 0.6.27; select instead of an external Unlock Premium patch. |  |
+| [Pillo - Weight change summaries](docs/PilloWeightSummary.md) | Adds signed Total weight change, an All default filter, a selectable Last since date, and Last 30 days / Last 15 days / Change summaries using full profile history. |  |
+| [Pillo - Weight in Progress](docs/PilloProgressWeight.md) | Shows the native weight graph, weight-change summaries and dated record list below the existing Progress calendar. Includes Weight change summaries. |  |
 
 </details>
 
@@ -283,7 +292,8 @@ The generated bundle is written to `patches/build/libs/patches-<version>.mpp`. `
 | NuvioTV | `com.nuvio.tv` | `1.1.0-beta.8` | Android TV launcher channels; Finale dates in library and collections; Keep airing series in Upcoming; Merge tracking progress; Preload streams for next episode; Preload streams in Continue Watching; Preload streams on detail page; Remaining episodes in Continue Watching; Upcoming movie dates in library and collections; Side-by-side installation |
 | Reddit | `com.reddit.frontpage` | `2026.37.0` | Content filters (Experimental); Show flairs in home feed (Experimental); Start as guest |
 | Peafowl Theme Maker for EMUI | `h7.hamzio.emuithemeotg` | `GMS_27.5.1` | Unlock Theme Ownership (Experimental) |
-| Pillo | `xyz.rtrvr.pillo` | `0.6.19`, `0.6.20` | Hybrid Lock-Screen Notifications |
-| Pillo | `xyz.rtrvr.pillo` | `0.6.20` | Import weight history from JSON; Local backup and restore; Weight change summaries |
+| Pillo | `xyz.rtrvr.pillo` | `0.6.27`, `0.6.20`, `0.6.19` | Hybrid Lock-Screen Notifications |
+| Pillo | `xyz.rtrvr.pillo` | `0.6.27`, `0.6.20` | Import weight history from JSON; Local backup and restore; Weight change summaries; Weight in Progress |
+| Pillo | `xyz.rtrvr.pillo` | `0.6.27` | Premium and ad-free |
 
 See [AI_Guide.md](AI_Guide.md) for implementation details and device-testing notes.

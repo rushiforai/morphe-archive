@@ -1,0 +1,44 @@
+# Gradle and build outputs
+.gradle/
+.kotlin/
+build/
+out/
+local.properties
+
+# APKs, bundles and patcher outputs (never commit Google binaries or patched apps)
+*.apk
+*.apks
+*.xapk
+*.apkm
+*.aab
+*.mpp
+*.mpe
+*.dex
+*.so
+output-metadata.json
+*-result.json
+patch-scratch/
+archive/
+
+# Signing material and credentials
+*.jks
+*.keystore
+*.p12
+*.pem
+morphe-data/
+.env
+.env.*
+!.env.example
+
+# Tool jars and logs
+morphe-cli-*.jar
+morphe-desktop-*.jar
+*.log
+*.hprof
+
+# IDE and OS files
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db

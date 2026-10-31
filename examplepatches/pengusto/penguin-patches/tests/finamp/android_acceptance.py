@@ -470,7 +470,7 @@ class FixtureControl:
         try:
             with urllib.request.urlopen(BASE_URL + "/System/Info/Public", timeout=1) as response:
                 if response.headers.get("X-Synthetic-Fixture") != "finamp-morphe-v1":
-                    raise RuntimeError("Port 18961 is occupied by an unknown server")
+                    raise RuntimeError(f"Port {PORT} is occupied by an unknown server")
             self.manifest = json.loads((self.directory / "manifest.json").read_text())
             if self.manifest["baseUrl"] != BASE_URL:
                 raise RuntimeError("Unexpected fixture manifest address")
@@ -497,8 +497,8 @@ class FixtureControl:
                     time.sleep(0.1)
             else:
                 raise RuntimeError("Fixture did not start")
-        android.adb("reverse", "tcp:18961", "tcp:18961")
-        write_json(android.out / "fixture-connection.json", {"baseUrl": BASE_URL, "reverse": "tcp:18961 tcp:18961",
+        android.adb("reverse", f"tcp:{PORT}", f"tcp:{PORT}")
+        write_json(android.out / "fixture-connection.json", {"baseUrl": BASE_URL, "reverse": f"tcp:{PORT} tcp:{PORT}",
                                                            "process": json.loads((self.directory / "process.json").read_text())})
         return self.manifest
 

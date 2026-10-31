@@ -8,10 +8,9 @@
 package app.morphe.patches.youtube.interaction.searchcomments
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.cloneParameters
 import app.morphe.patches.all.misc.resources.addResourcesPatch
 import app.morphe.patches.shared.misc.bridge.addBridge
 import app.morphe.patches.shared.misc.litho.filter.addLithoFilter
@@ -24,12 +23,10 @@ import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.video.information.videoInformationPatch
 import app.morphe.util.ResourceGroup
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.copyResources
-import app.morphe.util.indexOfFirstInstructionOrThrow
-import app.morphe.util.indexOfFirstInstructionReversedOrThrow
+import app.morphe.util.findInstructionIndicesReversedOrThrow
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION_FILTER =
     "Lapp/morphe/extension/youtube/patches/components/CommentsSearchFilter;"
@@ -68,24 +65,15 @@ val searchCommentsPatch = bytecodePatch(
 
         addLithoFilter(EXTENSION_FILTER)
 
-        // The search button is added next to the close button of the comments panel.
-        PanelSubheaderFingerprint.let {
-            it.method.apply {
-                val removeAllViewsIndex = indexOfFirstInstructionReversedOrThrow {
-                    opcode == Opcode.INVOKE_VIRTUAL &&
-                            getReference<MethodReference>()?.name == "removeAllViews"
-                }
-
-                val setVisibilityIndex = indexOfFirstInstructionOrThrow(removeAllViewsIndex) {
-                    opcode == Opcode.INVOKE_VIRTUAL &&
-                            getReference<MethodReference>()?.name == "setVisibility"
-                }
-
-                val subheaderRegister = getInstruction<FiveRegisterInstruction>(setVisibilityIndex).registerC
-
-                addInstruction(
-                    setVisibilityIndex + 1,
-                    "invoke-static { v$subheaderRegister }, $EXTENSION_FILTER->onPanelSubheaderShown(Landroid/view/View;)V"
+        // The search button is added next to the close button of the panel header. The header
+        // of a panel with no subheader, such as the comments of Shorts, is set up without
+        // reaching the end of the method, so every return is hooked. Panels reuse their header,
+        // so the button is shown or hidden for every panel.
+        PanelSubheaderFingerprint.method.cloneParameters().apply {
+            findInstructionIndicesReversedOrThrow(Opcode.RETURN_VOID).forEach { index ->
+                addInstructionsAtControlFlowLabel(
+                    index,
+                    "invoke-static/range { p0 .. p0 }, $EXTENSION_FILTER->onPanelHeaderSetUp(Landroid/view/View;)V"
                 )
             }
         }

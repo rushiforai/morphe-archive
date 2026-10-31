@@ -1,16 +1,15 @@
 # De Morgen
 
-**Ondersteunde app:** 7.53.1 · **Build:** 23136515 · **Invoer:** APKS · **Kanaal:** Pre-release
+**Ondersteunde app:** 7.53.1 · **Build:** 23136515 · **Invoer:** APKS
 
 `be.persgroep.android.news.mobiledm`
 
-[Gebruik je eigen APKS](../guides/downloads.md#local-original-inputs){ .md-button }
+[Download de originele APKS](https://buzzheavier.com/ci8cm8ebuwf2){ .md-button .md-button--primary }
 
 Selecteer dit bestand in Morphe Manager om de patches toe te passen.
 
 De Morgen gebruikt de DPG-editieapp met afzonderlijke Belgische publieksmetingen. De patches verwijderen de onderzochte advertentieverzoeken, optionele metingen en automatische instelschermen. Leesverbeteringen gelden voor artikelgegevens die de server al levert; anonieme toegang tot ieder premiumartikel is voor deze app niet vastgesteld.
 
-Deze opties zijn beschikbaar in [pre-release v1.20.0-dev.4](https://github.com/johnneerdael/dutch-applications-patches/releases/tag/v1.20.0-dev.4).
 
 ## Wat vonden we in de app? {#welke-activiteit-registreren-de-onderzochte-paden}
 
@@ -35,7 +34,6 @@ Disable tracking, Hide Premium banner, Hide ads, Read full articles, Skip consen
 
 Alle vijf opties staan standaard aan. Disable tracking omvat Hide ads; Skip consent screens omvat beide. Bij Skip consent screens stoppen ook de Catsure-uploads en de hierboven beschreven uitgaande synchronisatie van wachtrij/afspeelstatus.
 
-[Volledige definities voor deze pre-release](https://github.com/johnneerdael/dutch-applications-patches/blob/v1.20.0-dev.4/docs/site/nl/reference/catalogue.md).
 
 [Bekijk wat elke patch aanpast](../reference/catalogue.md). Lees [installeren](../guides/install.md) voor uitleg over originele bestanden en ondertekening, en [patches kiezen](../guides/choose-patches.md) om te zien welke patches elkaar nodig hebben.
 

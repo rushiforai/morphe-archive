@@ -5,6 +5,12 @@
 # Log file
 *.log
 
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
 # Package Files #
 *.jar
 *.war
@@ -18,22 +24,83 @@
 hs_err_pid*
 
 ### JetBrains template
-# Covers IntelliJ / Android Studio. Blanket .idea/ ignore lives below;
-# only module-file fallout outside .idea/ needs separate rules.
+# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
+# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+
+# User-specific stuff
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+
+# Generated files
+.idea/**/contentModel.xml
+
+# Sensitive or high-churn files
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+
+# Gradle
+.idea/**/gradle.xml
+.idea/**/libraries
+
+# Gradle and Maven with auto-import
+# When using Gradle or Maven with auto-import, you should exclude module files,
+# since they will be recreated, and may cause churn.  Uncomment if using
+# auto-import.
+.idea/artifacts
+.idea/compiler.xml
+.idea/jarRepositories.xml
+.idea/modules.xml
+.idea/*.iml
+.idea/modules
 *.iml
 *.ipr
+
+# CMake
+cmake-build-*/
+
+# Mongo Explorer plugin
+.idea/**/mongoSettings.xml
+
+# File-based project format
 *.iws
 
-# IntelliJ build output
+# IntelliJ
 out/
 
-### Gradle template
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Cursive Clojure plugin
+.idea/replstate.xml
+
+# Crashlytics plugin (for Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# Editor-based Rest Client
+.idea/httpRequests
+
+# Android studio 3.1+ serialized cache file
+.idea/caches/build_file_checksums.ser
+
+### Gradle and Kotlin
 .gradle
+.kotlin/
 **/build/
 !src/**/build/
-
-# Kotlin compiler/session caches
-.kotlin/
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -47,36 +114,36 @@ gradle-app.setting
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
 # gradle/wrapper/gradle-wrapper.properties
 
-# Potentially copyrighted test APK
+# Private app inputs and reverse-engineering evidence
 *.apk
-
-# Ignore vscode config
-.vscode/
-
-# Dependency directories
-node_modules/
-
-# Python bytecode caches (created by unittest discovery)
-__pycache__/
-
-# Project gradle.properties is tracked and release-owned (version pin).
-# Never put tokens in it; use ~/.gradle/gradle.properties instead.
-
-# Ignore IDEA files
-.idea/
-local.properties
-
-# Per-app reverse-engineering work (APK, smali, decompiled)
-analysis/
-
-# Legacy repo-root copy of the extension dex (no longer generated nor consumed;
-# the .mpp embeds extensions/extension.mpe via plugin resources). Kept ignored
-# so a stale local copy can never be committed.
-/extensions/extension.mpe
-
-# Local signing keys (never commit private keys)
+*.apkm
+*.apks
+*.xapk
+/analysis/
 *.keystore
 *.bks
 *.jks
 *.p12
 *.pfx
+*.pem
+*.key
+/extensions/extension.mpe
+
+# Ignore vscode config
+.vscode/
+
+# Dependency directories and Python caches
+node_modules/
+__pycache__/
+*.py[cod]
+
+# Local environment files; keep example files available.
+.env
+.env.*
+!.env.example
+
+# gradle.properties is tracked and release-owned; credentials belong in ~/.gradle/gradle.properties.
+
+# Ignore IDEA files
+.idea/
+local.properties

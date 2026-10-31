@@ -1,9 +1,10 @@
 # Monet unlimited displayed cards
 
 Select **Monet - Unlimited displayed cards** for original Monet
-`com.klevico.monet` **1.0.97** (version code 131, Android 8.0+).
-It works independently or with **Monet - Individual Nuvio catalog rows** and either
-premium alternative. Select only one premium alternative.
+`com.klevico.monet` **1.1.0** (version code 134, Android 8.0+), retaining existing
+**1.0.97** support. It works independently or with either premium alternative.
+Select only one premium alternative. **Individual Nuvio catalog rows** also
+supports 1.1.0; combined catalog/cards/premium checks cover the shared menu method.
 
 ## Use
 
@@ -30,7 +31,105 @@ This removes the display-count cap. It does not fetch more titles or change
 Monet's native preview scans, cache limits or provider contents. Original number
 pickers such as cards per row and grid columns remain unchanged.
 
-## Original input and DEX contracts
+## 1.1.0 native contracts and verification
+
+Input: `../OriginalApps/monet-1.1.0.apk`, manifest package `com.klevico.monet`,
+version **1.1.0**, code **134**, minimum SDK 26. SHA-256:
+`3fdd45e7ed85f4a26ab6a56924e8a9c298c42c3cb036cb121d15ed6504b9a69c`.
+All 9,041 original classes are scanned. The separate `MonetDisplayedCards110`
+implementation checks 22 full native method fingerprints, access flags and
+extension-facing symbols before mutation. The historical native contracts below
+are unchanged. Eight native methods change:
+
+- `b13.k(I):I`: index 2's 4..20 clamp becomes `Math.max(value,4)`.
+- `ux2.s0(String,int,int,int,boolean,y95,wu1,uu1,jw1,int):void`: original native
+  picker (70 registers, 560 instructions). A five-instruction prefix updates the
+  4..20 maximum. Adapt native button calls at 316/441, number text at 323 and
+  footer at 539. Copy arguments into dead v42-v55; native text-style construction
+  fully redefines this range before using it between button calls. State is v37
+  / v21, bounds v62/v63. Footer inputs are flags/focus/up/apply/composer at
+  v0/v7/v6/v1/v8, followed by state/bounds. No live saved register is clobbered.
+  The picker gains 44 instructions, without changing register count or try regions.
+- `th6.w(String,int,int,int,int,wu1):uh6`: adapt only the three card-limit schema
+  keys after the original min/max copies.
+- `ux2.B0(int,wp1,wp1,uu1,jw1):void`: adapt the native focus lambda at index 52
+  only for the registered Max/Apply requesters.
+- `u42.a(long,jw1,int):void`: adapt resolved Apply text at index 77, retaining
+  native typography, colors, icon and layout.
+- `g30.f(Object,Object):Object`, `jz3.f(Object,Object):Object`, `ux2.u0(...)`:
+  replace only displayed-card integer summaries at indexes 92/187/456. 1.1.0 no
+  longer uses `media_action_visible_cards_value`, so no stale summary resource ID
+  is used. `aapt2 dump resources` identifies the title at `0x7f11032d`.
+
+Runtime bindings: draft `xb5.g()/i(int)`, focus `wp1()`, buttons `ux2.C0`, Apply
+`ux2.B0`, composer `jw1.h0/T/r0/r`, callbacks `uu1.b()/wu1.a(Object)`, focus
+setters `qp1.e/k/j(wp1)`, empty slot `pp0.a`, Unit `lo7.a`. The patch explicitly
+sets the injected `NativeLayout.modern` DEX field initializer after checking its
+false default and empty class initializer. No speculative runtime fallback is used.
+
+Apply's label is specialized in 1.1.0. Max and Apply both use that native renderer,
+including its icon. Max's scoped label is remembered inside the native text
+composition: independent restarts retain Max without leaking it into another
+Apply instance or replacing localized Apply text. Scope and groups are restored
+on exceptions. No Android widgets, windows, services or preferences are added.
+
+The generic picker has an O(count) decorative preview loop. Its three card entry
+points (`fp3`, `fy3`, `zo2`) are fingerprinted too: all supply min=4/max=20 and
+disable that preview, so Max cannot cause a huge decorative render loop.
+
+Raw original DEX/resource evidence is under `../.inspect-monet-1.1.0/`, notably
+`cards-contracts.log`, `cards-picker.txt`, `cards-button.txt`, `cards-footer.txt`,
+`cards-apply-text.txt`, `cards-schema.txt`, `cards-directions-addresses.txt`,
+`cards-open*.txt` and `resources.txt`.
+`cards-schema-entries.txt`, `cards-preference-keys.txt` and
+`cards-clamp-callers.txt` trace the existing keys, schema constructor calls and
+shared clamp consumers in the new original.
+
+Run with Java 21 from the repository:
+
+Unversioned `verifyMonetDisplayedCards*` task names now delegate to these latest
+1.1.0 tasks; historical verifier source and fixture files are retained unchanged.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ./build-local.ps1 :patches:buildAndroid :patches:verifyMonetDisplayedCards110 :patches:verifyMonetDisplayedCards110Runtime :patches:verifyMonetDisplayedCards110Bundle :patches:generatePatchesList :patches:verifyMorpheDesktopImport :patches:verifyAndroidBundle -PmorpheDesktopJar=E:/Morphe/morphe-desktop-1.19.1-all.jar --offline
+```
+
+Native tests check missing/duplicate/changed/already-patched rejection, all argument
+types/registers, full original-body restoration, safe preview inputs, arithmetic
+and DEX write/reload. Host-runtime tests execute production code with the 1.1.0
+API shapes: all steps/Max, finite restoration, focus at minimum/finite/Max, unchanged
+Apply persistence, theme changes, draft isolation/replacement, overflow, unrelated
+pickers, text restarts/localized fallback and failure/group/scope cleanup.
+
+Packaged tests apply cards alone, with regular premium and with experimental
+premium. They require eight hooks, modern bindings, all 9,041 original classes,
+only nine card-extension classes, no duplicates and no unrelated method changes.
+Catalog rows are not selected. Bundle: `patches/build/libs/patches-0.15.0.mpp`.
+No release version was changed.
+
+Desktop 1.19.1 rebuild outputs:
+
+- `../Apps/Monet/monet-1.1.0-displayed-cards-unsigned.apk`
+- `../Apps/Monet/monet-1.1.0-displayed-cards-premium-unsigned.apk`
+
+`verifyMonetDisplayedCards110Apk` audits the standalone rebuild by default. For
+the combined output, pass `-PmonetCards110Premium=true` and
+`-PmonetCards110Apk=E:/Morphe/Apps/Monet/monet-1.1.0-displayed-cards-premium-unsigned.apk`.
+It audits native methods/classes/bindings and all 674 unchanged non-DEX/non-signature
+entries, including the manifest. Outputs are deliberately unsigned validation
+fixtures, not installable as-is. No signing, installation or device testing was
+performed. Device checks remain: actual TV focus/styling, Save/Back, restart,
+30/372/Max and large-row scrolling. Host checks do not replace those checks.
+
+Local verification on 2026-10-29 passed the native/runtime/bundle tasks, both
+rebuilt-APK audits, Desktop import (33 patches/eight apps), Android bundle DEX
+check and ZIP alignment. Each APK retains all 9,041 original classes and all
+674 non-DEX/non-signature contents. `apksigner verify` reports the expected
+missing signature manifest for these unsigned fixtures. Logs include
+`cards-final.log`, `cards-combined-apk.log` and `cards*-desktop.{json,log}` in
+the inspection directory. No user-reported device result for this port yet.
+
+## Historical 1.0.97 original input and DEX contracts
 
 Input: `../OriginalApps/monet-1.0.97.apk`. Manifest: `com.klevico.monet`, version
 `1.0.97`, code `131`, minimum SDK 26. SHA-256:
@@ -100,7 +199,7 @@ map uses weak keys and weak values, retaining no closed picker. The Java-only
 extension has no Android window/widget, lifecycle, network or preference code,
 and excludes Kotlin runtime dependencies.
 
-## Verification
+## Historical 1.0.97 verification
 
 Run with Java 21 through `build-local.ps1`:
 

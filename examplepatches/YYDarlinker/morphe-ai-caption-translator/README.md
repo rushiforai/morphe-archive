@@ -22,9 +22,11 @@ You need a video with an available subtitle track and an API service that suppor
 
 | Component | Current declaration | Evidence boundary |
 | --- | --- | --- |
-| Official Morphe Patches / Patcher | **1.48.0 / 2.0.0** | actual local input metadata; other selections require their own checks |
-| Original YouTube APK | stable target declarations: **21.20.405, 21.16.256**; experimental: **21.42.241, 21.41.525, 21.28.208, 21.23.492** | discrete list; stable labels come from metadata, not current candidate device certification |
-| Android | minSdk 28; **21.42.241, 21.41.525, 21.28.208** require minSdk 29 | use the exact APK's minSdk/ABI and signature; other variants are separate inputs |
+| Official Morphe Patches / Patcher | **2.0.0 / 2.0.0**; retained **1.48.0 / 2.0.0** combinations | see the exact compositions in the compatibility guide |
+| Original YouTube APK | official 2.0.0: **21.30.216, 21.28.208, 21.23.492**; experimental: **21.43.523, 21.42.241**; retained 1.48.0 targets: **21.41.525, 21.20.405, 21.16.256** | finite declarations; experimental status is preserved; device acceptance is separate |
+| Android | minSdk 28; **21.28.208 and newer declared targets** require minSdk 29 | use the exact APK's minSdk/ABI and signature; other variants are separate inputs |
+
+The compatibility repair supports host bindings changed in official Morphe Patches 2.0.0. The older 1.5.9 release fails with that official bundle even when its settings screen is present. See [current state](docs/PROJECT-STATE.md) for verification and device limits.
 
 See [Releases](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases) for downloads and changes, and [compatibility](docs/COMPATIBILITY.md) for checked combinations and limitations.
 
@@ -69,16 +71,18 @@ Use a chat-completion endpoint compatible with the request protocol, and compare
 
 ## Available patches
 
+The section below is generated from the latest published patch metadata.
+
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.9](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.5.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
+> **[v1.6.0](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 🧪&nbsp;21.42.241 | 🧪&nbsp;21.41.525 | 🧪&nbsp;21.28.208 | 🧪&nbsp;21.23.492 | 21.20.405 | 21.16.256 |
-| :---: | :---: | :---: | :---: | :---: | :---: |
+| 🧪&nbsp;21.43.523 | 🧪&nbsp;21.42.241 | 🧪&nbsp;21.41.525 | 21.30.216 | 21.28.208 | 21.23.492 | 21.20.405 | 21.16.256 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

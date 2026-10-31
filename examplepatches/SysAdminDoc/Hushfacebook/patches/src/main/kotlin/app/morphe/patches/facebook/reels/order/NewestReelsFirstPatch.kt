@@ -45,8 +45,8 @@ val newestReelsFirstPatch = bytecodePatch(
             owner.methods.mapNotNull { method -> rerankList(method)?.let { method to it } }
         }
         val (rerank, list) = reranks.singleOrNull() ?: refuse(
-            "expected one void (object, List, int) method loading \"$RANKER_TAG\" with one (List, Comparator) sort " +
-                "whose list register holds the List parameter at every return, found ${reranks.size}",
+            "expected one void (object, List, int) method loading \"$RANKER_TAG\" that never writes its List parameter " +
+                "and sorts it in place with a (List, Comparator) call, found ${reranks.size}",
         )
 
         val makers = mutableListOf<Pair<Method, SignalReads>>()

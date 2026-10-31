@@ -221,6 +221,18 @@ public class KeepEditsTest {
         assertEquals(1_790_000_000, back.get(2).replaced);
         assertThrows(IllegalArgumentException.class, () -> KeepEdits.decode("12,99:short"));
         assertThrows(IllegalArgumentException.class, () -> KeepEdits.decode("garbage"));
+        assertThrows(IllegalArgumentException.class, () -> KeepEdits.decode("1,2147483647:x"));
+    }
+
+    /** A message whose kept text can't be read starts its history again at the next edit instead of keeping none for good. */
+    @Test public void anUnreadableKeptTextIsReplacedByTheNextEdit() {
+        Settings.KEEP_EDIT_HISTORY.save(true);
+        for (String unreadable : Arrays.asList("garbage", "1,2147483647:x")) {
+            KeepEdits.remember(SELF, FRIEND, 7, "before", 100);
+            memory.values.put("m_" + SELF + "_" + FRIEND + ":7", unreadable);
+            assertTrue(unreadable, KeepEdits.remember(SELF, FRIEND, 7, "next", 200));
+            assertEquals(unreadable, Arrays.asList("next"), texts(KeepEdits.earlier(SELF, FRIEND, 7)));
+        }
     }
 
     @Test public void anUnreadableKeptTextReadsAsNoneAndIsReported() {

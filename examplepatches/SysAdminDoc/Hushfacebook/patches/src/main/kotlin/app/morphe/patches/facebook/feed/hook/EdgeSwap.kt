@@ -56,6 +56,10 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * swaps it in (`LX/3qZ;->Ejz`) and logs the same line, and every way through it ends at one
  * `sget-object` of Kotlin's Unit (`LX/0MT;->A00`) and its `return-object`.
  *
+ * 585 (2026-10-29) keeps that Function0 (`LX/0XKh;`, `LX/0XK5;` on armeabi-v7a) with the same
+ * captures, but the swap is an invoke-virtual (`LX/0203;->A0J`) where the older builds called an
+ * interface, which is why the swap's rule takes any call on an instance.
+ *
  * The guard goes right after the cast, before the runnable touches anything, and asks the extension
  * about the edge the way the funnel guard does. Returning there leaves the old edge where it was:
  * run() returns void, and invoke() jumps to its own Unit return.

@@ -8,6 +8,7 @@ import app.morphe.patcher.patch.rawResourcePatch
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.nio.file.Files
 import java.util.Properties
 import java.util.WeakHashMap
 
@@ -106,7 +107,7 @@ val finampTrackAlphabetPatch = finampFeature(
 
 @Suppress("unused")
 val finampPlayerOutputPatch = finampFeature(
-    "Keep player output controls accessible", "Open the existing output controls from the player menu even when bottom actions are hidden (#1355).", 32,
+    "Keep player output controls accessible", "Keep Output, Queue and Lyrics at the bottom of the player menu when bottom actions are hidden, while respecting disabled gestures (#1355).", 32,
 )
 
 @Suppress("unused")
@@ -163,7 +164,9 @@ private fun ResourcePatchContext.applyFinampComposition(mask: Int) {
         "composite delta output does not match manifest size/SHA-256 for mask $mask")
 
     // All identity, resource, decoder and output checks complete before modifying any APK content.
+    val originalModified = Files.getLastModifiedTime(library.toPath())
     library.writeBytes(output)
+    FinampNativeOutput.markWritten(library.toPath(), originalModified)
     nativeEntries.filter { !it.endsWith('/') && !it.startsWith("lib/$FINAMP_ABI/") }
         .forEach { delete(it) }
 }

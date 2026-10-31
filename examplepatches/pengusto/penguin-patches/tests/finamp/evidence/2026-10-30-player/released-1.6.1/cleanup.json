@@ -1,0 +1,40 @@
+{
+  "complete": true,
+  "time": "2026-10-30T14:17:20.703788+00:00",
+  "original_local_source_restored_via_normal_file_picker": true,
+  "original_local_source_name": "Penguin Patches",
+  "original_local_version": "1.5.0-candidate",
+  "original_local_cache_sha256": "71803756e6371d8420bff51fdb64a15a94f0206a71786695762d454294135e1b",
+  "original_local_source_enabled": true,
+  "released_remote_source_enabled": true,
+  "morphe_universal_source_enabled": true,
+  "last_finamp_source_is_released_remote": true,
+  "original_patcher_runtime_restored": "ART",
+  "actual_final_runtime": "art",
+  "demo_state": {
+    "sysui_tuner_demo_on": "0",
+    "sysui_demo_allowed": "1"
+  },
+  "display_size": "Physical size: 1080x1920",
+  "display_density": "Physical density: 420\nOverride density: 320",
+  "existing_signing_key_preserved": true,
+  "owned_device_exports_removed_after_hash_verification": [
+    {
+      "owned_device_export": "/sdcard/Download/player-release-manager-mask-32-jvm.apk",
+      "preserved_host_sha256": "c60e6f8787aa32704ce482c6593a77a4a5581900b0f895aaa54899cfa947b08b"
+    },
+    {
+      "owned_device_export": "/sdcard/Download/player-release-manager-mask-127-art.apk",
+      "preserved_host_sha256": "16c67b6439578bc219ab349dc8d48618fa5ba10678d6d3f398f822f2b70dca47"
+    }
+  ],
+  "owned_input_helper_and_empty_folder_removed": true,
+  "owned_fixture_port": 18961,
+  "owned_fixture_stopped": true,
+  "owned_emulator_serial": "emulator-5580",
+  "owned_emulator_avd": "penguin",
+  "owned_emulator_stopped": true,
+  "other_avds_not_modified": true,
+  "app_data_cleared": false,
+  "uninstalled": false
+}

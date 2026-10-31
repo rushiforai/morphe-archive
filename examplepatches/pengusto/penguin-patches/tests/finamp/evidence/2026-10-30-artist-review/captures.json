@@ -1,0 +1,56 @@
+{
+  "capture_method": "Unedited raw ADB screenshots and fresh UIAutomator XML from installed APKs",
+  "device": {
+    "serial": "emulator-5586",
+    "avd": "finamp-isolated-artist",
+    "android_api": 35,
+    "architecture": "arm64-v8a",
+    "pixels": [
+      1080,
+      1920
+    ],
+    "density": 320,
+    "locale": "English",
+    "theme": "Dark",
+    "demo_clock": "09:41"
+  },
+  "matched_fixture": "credits:8 generated WAV tracks,14 downloaded PNGs",
+  "same_baseline_download_files": 22,
+  "original_official_apk_sha256": "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581",
+  "fixture_signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+  "original_resigned_install": {
+    "package": "com.unicornsonlsd.finamp",
+    "path": "/data/app/~~O4toaNgGoFIKyoBCxKbYHg==/com.unicornsonlsd.finamp-gIe3QKclKAYatR1RUASVkg==/base.apk",
+    "sha256": "a43d9464b2bc778b506575ab7a3a84c4368a94f6f51a9dff7902d2b7828a67a8"
+  },
+  "after_install": {
+    "package": "com.unicornsonlsd.finamp",
+    "path": "/data/app/~~93VF_y934qDXmfbmeLg8qA==/com.unicornsonlsd.finamp-mBQZR19fgq34T8CKL7uoOg==/base.apk",
+    "sha256": "e09de0330375a1814e2e1ce5d8689a7c4a1fef1b72152e7c05a55b786bf22c1a"
+  },
+  "after_native_source": {
+    "commit": "5eb9d7baaf197a369cf740e11e620b4a8159d8e3",
+    "tree": "2509ccdb5aa076c7a5963f7c817ba7c4745c4b0a",
+    "branch": "penguin/finamp-native-1.0.1-artist-review-mask-4",
+    "features": [
+      "558800d09d7e958aece9572016e98116aea278d4",
+      "6b2724c9011c8da3701734577d7f45d3fd7e4208",
+      "5eb9d7baaf197a369cf740e11e620b4a8159d8e3"
+    ]
+  },
+  "after_native_sha256": "d7cd3de98598ecac533c957a08ecedcb5e38fd9ad788e069c909b706acc2db3a",
+  "tested_candidate_bundle_sha256": "eb48836340eb74d59d817859d238659fd216cbe4f3a16bcac99678023f1aa1a6",
+  "captures": {
+    "artist-held-before": {
+      "png_sha256": "81966948ff883cceb6c9ac2f7a989c86a086b462cf327da0c91fa7b085bed9f8",
+      "xml_sha256": "e2d82c489783dcbf8c916b61e95dc836ba4a77f7ec65b6216b93d6a936ff4c14",
+      "raw_capture_json": "artist-held-before.json"
+    },
+    "artist-held-after": {
+      "png_sha256": "ac1d111cca471d5f0dc17a48911f13011bae5c1ce6ab38ee8f51fce27d7d7566",
+      "xml_sha256": "0a36468a581947fcdf9d2b46a9f541a437f751635ce2c8097410fda507975a59",
+      "raw_capture_json": "artist-held-after.json"
+    }
+  },
+  "claim": "Bounded online preview/count versus a deliberately held full-track query; not a live-server timing or RAM benchmark"
+}

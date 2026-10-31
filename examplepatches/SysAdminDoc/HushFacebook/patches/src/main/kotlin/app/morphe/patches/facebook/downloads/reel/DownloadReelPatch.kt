@@ -26,7 +26,6 @@ import app.morphe.patches.facebook.misc.extension.liveAcrossInjection
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import app.morphe.patches.facebook.misc.extension.patchLog
-import app.morphe.patches.facebook.misc.extension.requireFreeAt
 import app.morphe.patches.facebook.misc.extension.requireParameterIntact
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -39,12 +38,16 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.singleOrPatchException
 import app.morphe.util.findMutableMethodOf
+import app.morphe.util.readsAfter
+import app.morphe.util.writersReaching
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Field
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -122,6 +125,12 @@ private const val TAP_SLOT = 1
 
 /** The helper this patch adds to the component. */
 private const val HELPER = "hushfacebookDownloadButton"
+
+/** The MobileConfig flag that picks a reel's button layout: on draws the UDD sidebar, off the older strip (#316). */
+internal const val VERTICAL_UFI_FLAG = "fdsConfig.enableFDSVerticalUfiFbReels"
+
+/** Handed Facebook's answer for [VERTICAL_UFI_FLAG], returns the one the render goes by. */
+private const val VERTICAL_UFI = "$HANDLER->verticalUfi(Z)Z"
 
 /**
  * Adds a download button beside every reel.
@@ -211,10 +220,17 @@ val downloadReelPatch = bytecodePatch(
 
         // Up to 583 the builder calls the button factory itself. 584 calls it from a static of the
         // component instead (LX/AF0;->A01, which the render LX/AF0;->A0l calls before and in its
-        // button loop), so the factory, its mode constant and the icon wrapper are read there.
-        val factoryCaller = buttonFactoryCallers(sidebar, builderClass.methods)
-            .singleOrPatchException("$PATCH: the one method of $sidebarClass calling the button factory for $sidebarName")
-        val factoryCalls = factoryCaller.instructions()
+        // button loop). 585 goes one step further: the render hands the button's kind to a static
+        // (LX/0B7e;->A0D) that news up one small class for each kind, and each of those calls the
+        // factory from a method of its own. So the factory, its mode constant and the icon wrapper
+        // are read from every method that reaches it ([reachedFactoryCallers]).
+        val factoryCallers = reachedFactoryCallers(sidebar, builderClass.methods) { call ->
+            classDefByOrNull(call.definingClass)?.let { resolveMethod(it, call) }
+        }
+        if (factoryCallers.isEmpty()) {
+            throw PatchException("$PATCH: no method of $sidebarClass, nor any it hands a button to, calls the button factory for $sidebarName")
+        }
+        val factoryCalls = factoryCallers.flatMap { it.instructions() }
 
         // ---- the render ---------------------------------------------------------------------------
         //
@@ -272,7 +288,7 @@ val downloadReelPatch = bytecodePatch(
             .distinctBy { "${it.definingClass}->${it.name}" }
 
         check(factories.size == 1) {
-            "Expected 1 button factory in $sidebarClass->${factoryCaller.name}, found ${factories.size}"
+            "Expected 1 button factory behind $sidebarClass->$sidebarName, found ${factories.size}"
         }
 
         val factory = factories.single()
@@ -291,25 +307,33 @@ val downloadReelPatch = bytecodePatch(
         val labelType = parameters[3]
         val iconType = parameters[5]
 
-        // The mode constant that method already uses for its own buttons.
-        val mode = factoryCalls.firstNotNullOfOrNull { instruction ->
+        // The mode constant that every one of Facebook's own buttons is built with.
+        val modes = factoryCalls.mapNotNull { instruction ->
             instruction.fieldReference()?.takeIf {
                 instruction.opcode == Opcode.SGET_OBJECT && it.type == modeType
             }
+        }.distinctBy { "${it.definingClass}->${it.name}" }
+
+        check(modes.size == 1) {
+            "Expected 1 constant of $modeType in the button builders behind $sidebarName, found ${modes.size}"
         }
 
-        check(mode != null) { "No constant of $modeType is used in ${factoryCaller.name}" }
+        val mode = modes.single()
 
         // The icon is wrapped by a class that extends the icon parameter and takes the enum.
-        val iconWrapper = factoryCalls.firstNotNullOfOrNull { instruction ->
+        val iconWrappers = factoryCalls.mapNotNull { instruction ->
             instruction.methodReference()?.takeIf {
                 it.name == "<init>" &&
                     it.parameterTypes.size == 1 &&
                     mutableClassDefByOrNull(it.definingClass)?.superclass == iconType
             }
+        }.distinctBy { it.definingClass }
+
+        check(iconWrappers.size == 1) {
+            "Expected 1 wrapper of $iconType in the button builders behind $sidebarName, found ${iconWrappers.size}"
         }
 
-        check(iconWrapper != null) { "No wrapper of $iconType is built in ${factoryCaller.name}" }
+        val iconWrapper = iconWrappers.single()
 
         val iconEnumType = iconWrapper.parameterTypes.single().toString()
 
@@ -353,7 +377,18 @@ val downloadReelPatch = bytecodePatch(
         // ---- the helper -------------------------------------------------------------------------
         //
         // Its own method, so it has a fresh set of registers. The sidebar runs with more than
-        // ninety and every one of them is live somewhere.
+        // ninety and every one of them is live somewhere. It builds the button and adds it and
+        // its marker to the two lists itself, so the sidebar's block only has to hand it six values.
+        val markers = iconMarkers(sidebar, iconEnumType) { call ->
+            classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) }
+        }
+
+        check(markers.size == 1) {
+            "Expected 1 marker for an icon, found ${markers.size}"
+        }
+
+        val marker = markers.single()
+
         val helper = ImmutableMethod(
             sidebarClass,
             HELPER,
@@ -362,12 +397,14 @@ val downloadReelPatch = bytecodePatch(
                 ImmutableMethodParameter(scopedType, null, null),
                 ImmutableMethodParameter(playerField.type.toString(), null, null),
                 ImmutableMethodParameter(OBJECT, null, null),
+                ImmutableMethodParameter(LIST, null, null),
+                ImmutableMethodParameter(LIST, null, null),
             ),
-            factory.returnType.toString(),
+            "V",
             AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
             null,
             null,
-            MutableMethodImplementation(64),
+            MutableMethodImplementation(HELPER_LOCALS + 6),
         ).toMutable().apply {
             addInstructions(
                 0,
@@ -386,6 +423,7 @@ val downloadReelPatch = bytecodePatch(
                     hdField = hdField,
                     sdField = sdField,
                     manifestField = manifestField,
+                    marker = "${marker.definingClass}->${marker.name}($iconEnumType)${marker.returnType}",
                 ),
             )
         }
@@ -397,9 +435,7 @@ val downloadReelPatch = bytecodePatch(
         // The sidebar hands three lists to the call that assembles it: one of buttons, one of a
         // marker for each, one of a name for each. The injection goes before that call, where the
         // lists are the same objects that the call receives.
-        val assemblyIndex = instructions.indexOfFirst { instruction ->
-            instruction.methodReference()?.parameterTypes?.count { it.toString() == ARRAY_LIST } == 2
-        }
+        val assemblyIndex = sidebarAssemblyIndex(instructions)
 
         check(assemblyIndex > 0) { "$sidebarName does not assemble a sidebar" }
 
@@ -472,69 +508,69 @@ val downloadReelPatch = bytecodePatch(
             }
             .singleOrPatchException("$PATCH: the one argument of the sidebar assembly, besides the session, the component also holds")
 
-        // Each button of the strip is registered twice: the component in one list, and a marker
-        // for what kind of button it is in another. A component added without its marker draws
-        // but does not answer a tap.
-        val markers = iconMarkers(sidebar, iconEnumType) { call ->
-            classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) }
-        }
-
-        check(markers.size == 1) {
-            "Expected 1 marker for an icon, found ${markers.size}"
-        }
-
-        val marker = markers.single()
-
-        // Up to 583, three instructions before the call the object moves are done, so v0 to v2
-        // hold nothing that is still wanted. 583 copies three lambdas out of v0 to v2 last, so
-        // there the block goes in nearer the call, after the last of them. 584 parks the scoped
-        // context over the player while it makes the call's event handles (LX/AF0;->A0l writes
-        // v29 at instruction 549 of 601), so there the block goes at the start of the call's
-        // straight run, where the button loop ends, before the lambdas are made (sidebarBlockIndex).
+        // Up to 584 the strip's own code leaves v0 to v2 free a few instructions before the call. 585
+        // keeps the scoped context in v2 and a constant in v0 for the whole method, and the render
+        // reuses the register that held the component, so the block goes where the call's straight
+        // run starts, where the button loop ends, and writes six consecutive registers that nothing
+        // reads again (sidebarBlockPlace). The player was parked early and is overwritten by the
+        // event handle setup further down the run, so the block comes before that.
         //
         // None of that is self-evident, so it is proved rather than trusted: an earlier version of
         // this patch read `p0` here, which is live nowhere near the end of this method, and the app
         // died with a VerifyError on every reel. A build that fails with a message below is the same
         // fault found early. Every path to the block has to bring the parked player, and every
-        // argument it reads has to be what the call gets. The story goes to the helper in its own
-        // register when that's v3 to v15, as in 582, whose assembly arguments start at v3 and fill
-        // every local up to v19, and on 584, which keeps it in v14. Otherwise it takes a fourth
-        // local, found the same way.
-        val injectAt = sidebar.sidebarBlockIndex(assemblyIndex, parking?.second)
-        parking?.let { (parkedAt, register) -> sidebar.requireParkedAt("$PATCH: the player", register, parkedAt, injectAt) }
-        playerParameter?.let { sidebar.requireParameterIntact("$PATCH: the player", it, listOf(injectAt)) }
-        fun heldAtBlock(type: String) = sidebar.argumentAt(injectAt, assemblyIndex, argumentRegister(type))
-        val session = heldAtBlock(FB_USER_SESSION)
-        val scoped = heldAtBlock(scopedType)
-        val story = heldAtBlock(storyType)
-        val buttons = heldAtBlock(LIST)
-        val markerList = heldAtBlock(ARRAY_LIST)
-        val reads = listOf(session, scoped, playerRegister, story, buttons, markerList)
-        val storyScratch = sidebar.storyScratchRegister(injectAt, reads, story)
-        val borrowed = if (storyScratch == story) SIDEBAR_BLOCK_SCRATCH else SIDEBAR_BLOCK_SCRATCH + storyScratch
-        sidebar.requireSidebarBlockFits(injectAt, borrowed, reads)
+        // argument it reads has to be what the call gets.
+        val place = sidebar.sidebarBlockPlace(
+            assemblyIndex = assemblyIndex,
+            session = argumentRegister(FB_USER_SESSION),
+            scoped = argumentRegister(scopedType),
+            story = argumentRegister(storyType),
+            buttons = argumentRegister(LIST),
+            markers = argumentRegister(ARRAY_LIST),
+            player = playerRegister,
+            parkedAt = parking?.first,
+            playerParameter = playerParameter,
+        )
 
         // The switch is asked first, every time a reel's sidebar is built. Off, paused, or before the
         // settings are ready, the branch goes straight to the instruction the block was put in
         // front of, so the sidebar is Facebook's own and none of the button's code runs. That
         // keeps a paused or safe-mode start clear of this injection, and a Download button that
         // crashed a start away from the next one. The block takes over that instruction's label,
-        // so a jump to it, like 584's loop exit, runs the block first.
+        // so a jump to it, like the button loop's exit, runs the block first.
         sidebar.addInstructionsAtControlFlowLabel(
-            injectAt,
+            place.index,
             sidebarButtonBlock(
-                session = session,
-                scoped = scoped,
-                player = playerRegister,
-                story = story,
-                storyScratch = storyScratch,
-                helper = "$sidebarClass->$HELPER($FB_USER_SESSION$scopedType${playerField.type}$OBJECT)${factory.returnType}",
-                buttons = buttons,
-                icon = "${icon!!.definingClass}->${icon!!.name}:$iconEnumType",
-                marker = "${marker.definingClass}->${marker.name}($iconEnumType)${marker.returnType}",
-                markers = markerList,
+                place = place,
+                helper = "$sidebarClass->$HELPER($FB_USER_SESSION$scopedType${playerField.type}$OBJECT$LIST$LIST)V",
             ),
         )
+
+        // ---- the older button layout --------------------------------------------------------------
+        //
+        // The render draws a reel's buttons one of two ways (#316, #298). The newer layout goes on to
+        // the sidebar assembly, where the block above adds the button. The older one, which a server
+        // flag still gives some accounts, draws its own strip (585 LX/0B7e;->A17 from 499) and never
+        // reaches that call, so those reels had Facebook's buttons alone. On 585 the render is the
+        // builder itself. It reads the flag once into a boolean and branches on it, so the hook goes
+        // where both of its writes meet and hands Facebook's answer to the extension, which says yes
+        // while the button is on. The block's scratch registers include the flag's (v8 on 585), but
+        // the block comes after the flag's one branch, where the flag is dead.
+        try {
+            val reader = verticalUfiReader()
+            val method = component.findMutableMethodOf(render)
+            val branch = layoutBranch(method, reader)
+                ?: throw PatchException("$PATCH: $renderClass->${render.name} doesn't pick its button layout by $reader the way 585 does")
+            method.addInstructionsAtControlFlowLabel(
+                branch.join,
+                """
+                    invoke-static/range { v${branch.register} .. v${branch.register} }, $VERTICAL_UFI
+                    move-result v${branch.register}
+                """,
+            )
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so reels Facebook draws with its older button layout keep Facebook's own buttons.")
+        }
 
         // ---- the More sheet -----------------------------------------------------------------------
         //
@@ -634,32 +670,82 @@ internal fun BytecodePatchContext.addMissingSidebarDiagnostic() {
     )
 }
 
-/** The locals [sidebarButtonBlock] writes besides the story's: v0 to v2. */
-internal val SIDEBAR_BLOCK_SCRATCH = listOf(0, 1, 2)
+/** How many values [sidebarButtonBlock] hands the helper: the session, the scoped context, the player, the story and the two lists. */
+internal const val SIDEBAR_BLOCK_ARGUMENTS = 6
+
+/** The locals the helper keeps for the button's factory call, whose 20 arguments sit in v40 and up. */
+private const val HELPER_LOCALS = 60
+
+/** The instructions that take the answer of the call before them, which nothing may be put in front of. */
+private val ANSWERS = setOf(Opcode.MOVE_RESULT, Opcode.MOVE_RESULT_WIDE, Opcode.MOVE_RESULT_OBJECT, Opcode.MOVE_EXCEPTION)
 
 /**
- * Where [sidebarButtonBlock] goes in front of the assembly call at [assemblyIndex]: three
- * instructions before it, as up to 582, or the first instruction after that from which nothing
- * reads v0 to v2 again. 583 moves three lambdas from v2, v1 and v0 into the call's argument range
- * in the three instructions before the last boolean (arm64 LX/APP;->A02), so its block goes in front
- * of that boolean. When none qualifies it's the old place, which [requireSidebarBlockFits] refuses.
- *
- * The block reads the player from [parked], the register the builder parked it in, when it has
- * one. If the call's straight run ([straightRunStart]) writes that register before the place
- * above, the block goes in front of the first such write instead, as late as v0 to v2 are free
- * there. 584's render (LX/AF0;->A0l) parks the scoped context over the player in v29 at
- * instruction 549, while it makes the call's event handles, and holds three lambdas for the call
- * in v0 to v2 from 532 on. So its block goes at 532, the start of the run, where the button loop
- * ends. When nothing in the run qualifies it's the place above, which [requireParkedAt] refuses.
+ * Where [sidebarButtonBlock] goes and what it reads and writes: at [index], the registers holding
+ * the session, scoped context, player, story and the two lists, and [scratch], the first of six
+ * consecutive locals the block writes with the values it hands the helper.
  */
-internal fun Method.sidebarBlockIndex(assemblyIndex: Int, parked: Int? = null): Int {
-    fun free(index: Int) = liveAcrossInjection(index).none { it in SIDEBAR_BLOCK_SCRATCH }
-    val near = (maxOf(0, assemblyIndex - 3)..assemblyIndex).firstOrNull(::free) ?: (assemblyIndex - 3)
-    if (parked == null) return near
-    val instructions = implementation!!.instructions.toList()
-    val runStart = straightRunStart(assemblyIndex)
-    val overwrite = (runStart until near).firstOrNull { parked in writtenRegisters(instructions[it]) } ?: return near
-    return (overwrite downTo runStart).firstOrNull(::free) ?: near
+internal class SidebarBlockPlace(
+    val index: Int,
+    val session: Int,
+    val scoped: Int,
+    val player: Int,
+    val story: Int,
+    val buttons: Int,
+    val markers: Int,
+    val scratch: Int,
+)
+
+/**
+ * Where [sidebarButtonBlock] goes in front of the assembly call at [assemblyIndex]: the first
+ * instruction of the call's straight run ([straightRunStart]) where the block can stand.
+ *
+ * At that instruction each of the call's arguments the block reads ([argumentAt]) has to be
+ * what the call gets, the player has to be what the builder parked in [player] ([requireParkedAt])
+ * or the parameter it came in as, and six consecutive locals have to exist that nothing reads
+ * again and the block doesn't read either. A run for the block's own writes is needed because
+ * 585's render holds a constant in v0 and the scoped context in v2 to the end, so no fixed
+ * scratch registers are ever free there. The block never goes between a call and the instruction
+ * taking its answer. A run that offers no such instruction is refused with the first reason.
+ */
+internal fun Method.sidebarBlockPlace(
+    assemblyIndex: Int,
+    session: Int,
+    scoped: Int,
+    story: Int,
+    buttons: Int,
+    markers: Int,
+    player: Int,
+    parkedAt: Int?,
+    playerParameter: Int?,
+): SidebarBlockPlace {
+    val code = implementation!!.instructions.toList()
+    val locals = localRegisterCount()
+    val refusals = mutableListOf<String>()
+    for (index in straightRunStart(assemblyIndex) until assemblyIndex) {
+        if (code[index].opcode in ANSWERS) continue
+        try {
+            val held = listOf(session, scoped, story, buttons, markers).map { argumentAt(index, assemblyIndex, it) }
+            parkedAt?.let { requireParkedAt("$PATCH: the player", player, it, index) }
+            playerParameter?.let { requireParameterIntact("$PATCH: the player", it, listOf(index)) }
+            val reads = held + player
+            val live = liveAcrossInjection(index)
+            // The block writes its six locals as 8-bit destinations (move-result, if-eqz,
+            // move-object/from16), so the run has to end at v255 even in a bigger frame.
+            val scratch = (0..minOf(locals, 256) - SIDEBAR_BLOCK_ARGUMENTS).firstOrNull { first ->
+                (first until first + SIDEBAR_BLOCK_ARGUMENTS).none { it in live || it in reads }
+            } ?: throw PatchException(
+                "$PATCH: $definingClass->$name has no $SIDEBAR_BLOCK_ARGUMENTS consecutive locals at or below v255 " +
+                    "that nothing reads after instruction $index",
+            )
+            return SidebarBlockPlace(index, held[0], held[1], player, held[2], held[3], held[4], scratch)
+        } catch (exception: PatchException) {
+            refusals += "instruction $index: ${exception.message}"
+        }
+    }
+    throw PatchException(
+        "$PATCH: $definingClass->$name has no place for the button before the assembly call at $assemblyIndex " +
+            "(${refusals.size} tried); first refusal, ${refusals.firstOrNull() ?: "the call has no run in front of it"}",
+    )
 }
 
 /**
@@ -775,40 +861,85 @@ internal fun rendersThrough(method: Method, builder: Method): Boolean {
 }
 
 /**
- * The register the helper call names for the reel's story, which sits in [story] at instruction
- * [index]. The helper call names its registers in four bits, so it's [story] itself when that's
- * above v2 and v15 or below: the call only reads it, and the block writes nothing there. Otherwise
- * it's the local the block borrows for a copy: the lowest one above v2, and v15 or below, that
- * nothing reads from [index] on and that isn't one of [reads], the registers the block reads.
+ * The calls [method] reads [VERTICAL_UFI_FLAG] with. Facebook's config dump (585
+ * LX/0Ap7;->getExtraFileFromWorkerThread, armeabi-v7a LX/0ApA) asks the config for the flag, turns
+ * the answer into a string and names it, so the reader is the interface call closest before the
+ * name, a few instructions up, and it answers a boolean with no arguments (585 LX/0DhM;->BUD()Z).
  */
-internal fun Method.storyScratchRegister(index: Int, reads: Collection<Int>, story: Int): Int {
-    if (story in SIDEBAR_BLOCK_SCRATCH.size until 16) return story
-    val live = liveAcrossInjection(index)
-    return (SIDEBAR_BLOCK_SCRATCH.size until minOf(localRegisterCount(), 16))
-        .firstOrNull { it !in live && it !in reads }
-        ?: throw PatchException(
-            "$PATCH: $definingClass->$name has no local from v3 to v15 that nothing reads after instruction $index, " +
-                "for the reel's story",
-        )
-}
-
-/**
- * Proves [sidebarButtonBlock] can go in front of instruction [index] of the sidebar builder.
- * Nothing the builder reads from [index] on may sit in one of [borrowed], which the block writes.
- * Each of [reads], which the block reads, has to be none of those. That they hold the very session,
- * scoped context, story and lists the call gets is [argumentAt]'s to prove, and the player is
- * [requireParkedAt]'s or [requireParameterIntact]'s.
- */
-internal fun Method.requireSidebarBlockFits(index: Int, borrowed: Collection<Int>, reads: Collection<Int>) {
-    requireFreeAt(PATCH, index, borrowed)
-    val clash = reads.filter { it in borrowed }.distinct().sorted()
-    if (clash.isNotEmpty()) {
-        throw PatchException(
-            "$PATCH: $definingClass->$name keeps ${clash.joinToString { "v$it" }} for the assembly call, " +
-                "which the block overwrites before reading",
-        )
+internal fun verticalUfiReadersIn(method: Method): List<MethodReference> {
+    val code = method.instructions()
+    return code.indices.filter { code[it].stringReference() == VERTICAL_UFI_FLAG }.mapNotNull { named ->
+        (named - 1 downTo maxOf(0, named - 6)).firstNotNullOfOrNull { at ->
+            code[at].takeIf { it.opcode == Opcode.INVOKE_INTERFACE || it.opcode == Opcode.INVOKE_INTERFACE_RANGE }?.methodReference()
+        }?.takeIf { it.returnType == "Z" && it.parameterTypes.isEmpty() }
     }
 }
+
+/** The one call the app reads [VERTICAL_UFI_FLAG] with, found by the name its config dump gives it. */
+internal fun BytecodePatchContext.verticalUfiReader(): MethodReference {
+    val readers = classDefByStrings(VERTICAL_UFI_FLAG, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        .flatMap { classDef -> classDef.methods.flatMap(::verticalUfiReadersIn) }
+        .distinctBy(MethodReference::toString)
+    return readers.singleOrNull()
+        ?: throw PatchException("$PATCH: ${readers.size} config reads name $VERTICAL_UFI_FLAG, not one")
+}
+
+/** Where the render's layout flag is settled: the instruction both its writes run into, and its register. */
+internal class LayoutBranch(val join: Int, val register: Int)
+
+/**
+ * The render's choice of button layout, read the way 585 reads it (LX/0B7e;->A17, 208 to 216):
+ *
+ *     invoke-interface {v7}, LX/0DhM;->BUD()Z   # the flag, through [reader]
+ *     move-result v7
+ *     const/4 v8, 0x1
+ *     if-eq v7, v0, :join                        # v0 is 1 on every way in
+ *     const/4 v8, 0x0
+ *   :join
+ *
+ * so v8 is the flag, and 0 when the config is missing (the null checks before the call jump to the
+ * second write). Both writes have to be all that reaches the join, and the flag has to feed one
+ * `if-eqz` (233, to the older strip at 499) and nothing else. Null when the render reads [reader]
+ * any other way or more than once, or the flag's register is beyond `move-result`'s reach.
+ */
+internal fun layoutBranch(render: Method, reader: MethodReference): LayoutBranch? {
+    val code = render.instructions()
+    val ask = code.indices.filter { code[it].methodReference()?.toString() == reader.toString() }.singleOrNull() ?: return null
+    val join = ask + 5
+    if (join > code.lastIndex) return null
+    val answer = code[ask + 1]
+    if (answer.opcode != Opcode.MOVE_RESULT) return null
+    val read = (answer as OneRegisterInstruction).registerA
+    val flag = literalWrite(code[ask + 2], 1) ?: return null
+    if (literalWrite(code[ask + 4], 0) != flag || flag == read || flag > 255) return null
+    val test = code[ask + 3]
+    if (test.opcode != Opcode.IF_EQ) return null
+    test as TwoRegisterInstruction
+    val one = when (read) {
+        test.registerA -> test.registerB
+        test.registerB -> test.registerA
+        else -> return null
+    }
+    val flow = ControlFlow.of(render)
+    if (flow.normal[ask + 3].toSet() != setOf(ask + 4, join) || flow.normal[ask + 4] != listOf(join)) return null
+    if (render.writersReaching(ask + 3, one).any { it < 0 || literalWrite(code[it], 1) != one }) return null
+    if (render.writersReaching(join, flag) != listOf(ask + 2, ask + 4)) return null
+    val branches = listOf(ask + 2, ask + 4).map { render.readsAfter(it, flag).singleOrNull() ?: return null }.distinct()
+    val branch = code[branches.singleOrNull() ?: return null]
+    if (branch.opcode != Opcode.IF_EQZ || (branch as OneRegisterInstruction).registerA != flag) return null
+    return LayoutBranch(join, flag)
+}
+
+private val NARROW_CONSTANTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
+
+/** The register [instruction] sets to [literal], or null when it sets no such constant. */
+private fun literalWrite(instruction: Instruction, literal: Int): Int? =
+    if (instruction.opcode in NARROW_CONSTANTS && (instruction as NarrowLiteralInstruction).narrowLiteral == literal) {
+        (instruction as OneRegisterInstruction).registerA
+    } else {
+        null
+    }
 
 /** The registers [instruction] writes: its destination, and the one above for a wide value. */
 private fun writtenRegisters(instruction: Instruction): Set<Int> {
@@ -818,48 +949,33 @@ private fun writtenRegisters(instruction: Instruction): Set<Int> {
 }
 
 /**
- * What goes in front of the sidebar assembly: ask the switch, then build the button through the
- * helper and add it to the list of buttons, and its marker to the list of markers. Each number is
- * the register that holds that value at the insertion point; v0 to v2 are free there, and so is
- * [storyScratch], a fourth local for the story, unless it's [story] itself, which is then named
- * as it is and not copied.
+ * What goes in front of the sidebar assembly: ask the switch, then copy the six values the helper
+ * needs (the session, the scoped context, the player, the story and the two lists) into the six
+ * locals from [SidebarBlockPlace.scratch] up and call the helper over that range. The helper builds
+ * the button and adds it and its marker to the two lists itself, so nothing comes back and the
+ * block writes nothing but those six locals.
  *
- * Both adds go through [LIST_ADD], an interface call, so they verify whatever List the builder
- * hands the assembly. The switch's no jumps to the block's own last label, on a nop, which falls
- * through to the instruction the block goes in front of; the block takes over that instruction's
- * label (`addInstructionsAtControlFlowLabel`), so the jump can't name it.
+ * The switch's no jumps to the block's own last label, on a nop, which falls through to the
+ * instruction the block goes in front of; the block takes over that instruction's label
+ * (`addInstructionsAtControlFlowLabel`), so the jump can't name it.
  */
-internal fun sidebarButtonBlock(
-    session: Int,
-    scoped: Int,
-    player: Int,
-    story: Int,
-    storyScratch: Int,
-    helper: String,
-    buttons: Int,
-    icon: String,
-    marker: String,
-    markers: Int,
-): String = """
-    invoke-static { }, $HANDLER->showsButton()Z
-    move-result v0
-    if-eqz v0, :facebooks_own
-    move-object/from16 v0, v$session
-    move-object/from16 v1, v$scoped
-    move-object/from16 v2, v$player
-    ${if (storyScratch == story) "" else "move-object/from16 v$storyScratch, v$story"}
-    invoke-static { v0, v1, v2, v$storyScratch }, $helper
-    move-result-object v1
-    move-object/from16 v0, v$buttons
-    invoke-interface { v0, v1 }, $LIST_ADD
-    sget-object v2, $icon
-    invoke-static { v2 }, $marker
-    move-result-object v2
-    move-object/from16 v0, v$markers
-    invoke-interface { v0, v2 }, $LIST_ADD
-    :facebooks_own
-    nop
-"""
+internal fun sidebarButtonBlock(place: SidebarBlockPlace, helper: String): String {
+    val r = place.scratch
+    return """
+        invoke-static { }, $HANDLER->showsButton()Z
+        move-result v$r
+        if-eqz v$r, :facebooks_own
+        move-object/from16 v$r, v${place.session}
+        move-object/from16 v${r + 1}, v${place.scoped}
+        move-object/from16 v${r + 2}, v${place.player}
+        move-object/from16 v${r + 3}, v${place.story}
+        move-object/from16 v${r + 4}, v${place.buttons}
+        move-object/from16 v${r + 5}, v${place.markers}
+        invoke-static/range { v$r .. v${r + 5} }, $helper
+        :facebooks_own
+        nop
+    """
+}
 
 /** The one field among [fields] whose type is [type], or a refusal naming [what]. */
 internal fun <T : Field> fieldOfType(fields: Iterable<T>, type: String, what: String): T =
@@ -874,8 +990,10 @@ internal fun <T : Field> fieldOfType(fields: Iterable<T>, type: String, what: St
  * registers, so its block sits high at `v40` and each value is moved up once it is built.
  * `new-instance` and `const-string` take 8-bit registers, so those can write high directly.
  *
- * The four parameters are the session, the scoped context, the player and the reel's story, and
- * the story goes to every handler beside the player, as `v3`.
+ * The six parameters are the session, the scoped context, the player, the reel's story and the
+ * sidebar's lists of buttons and markers. The story goes to every handler beside the player, as
+ * `v3`. The button the factory builds and its icon's marker are added to the two lists here, so the
+ * sidebar's own code only has to call this, and `v0` to `v2` are scratch of this method alone.
  */
 private fun buildButton(
     factory: MethodReference,
@@ -892,6 +1010,7 @@ private fun buildButton(
     hdField: String,
     sdField: String,
     manifestField: String,
+    marker: String,
 ): String {
     val signature = "${factory.definingClass}->${factory.name}" +
         parameters.joinToString("", "(", ")") + factory.returnType
@@ -941,7 +1060,15 @@ ${trailingBooleanArguments(trailingBooleans)}
 
         invoke-static/range { v40 .. v${55 + trailingBooleans} }, $signature
         move-result-object v0
-        return-object v0
+        move-object/from16 v1, p4
+        invoke-interface { v1, v0 }, $LIST_ADD
+
+        sget-object v2, ${icon.definingClass}->${icon.name}:$iconEnumType
+        invoke-static { v2 }, $marker
+        move-result-object v2
+        move-object/from16 v1, p5
+        invoke-interface { v1, v2 }, $LIST_ADD
+        return-void
     """
 }
 
@@ -992,10 +1119,26 @@ private fun handlers(hd: String, sd: String, manifest: String) = (0..6).joinToSt
  * session is what tells the button apart. On 583 it's the spec's method the render calls
  * (arm64 LX/APP;->A02, armeabi-v7a LX/AR8;->A02), not the render; see [rendersThrough]. On 584
  * it's the render again (LX/AF0;->A0l), which builds its buttons through a static of its own
- * class; see [buttonFactoryCallers]. [siblings] are the methods of [method]'s class.
+ * class; see [buttonFactoryCallers]. 585 keeps the render (arm64 LX/0B7e;->A17, armeabi-v7a
+ * LX/0B7h;->A17) but moves the factory two calls away, into per-button classes, so the render
+ * itself neither calls it nor a sibling that does. What it still does is name the sidebar and hand
+ * the buttons, markers and story to the assembly call ([sidebarAssemblyIndex]), which no other
+ * method naming the sidebar does. [siblings] are the methods of [method]'s class.
  */
 internal fun isSidebarBuilder(method: Method, siblings: Iterable<Method>): Boolean =
-    method.instructions().any { it.stringReference() == SIDEBAR } && buttonFactoryCallers(method, siblings).isNotEmpty()
+    method.instructions().any { it.stringReference() == SIDEBAR } &&
+        (sidebarAssemblyIndex(method.instructions()) >= 0 || buttonFactoryCallers(method, siblings).isNotEmpty())
+
+/**
+ * The index of the call that assembles the sidebar from its lists: the first call in [code] with
+ * exactly two `ArrayList` parameters, the buttons' markers and their names. -1 when there is none.
+ * Why this and not the call's name: the name is renamed every build, while the two lists the render
+ * builds up are the call's shape on every build from 577 to 585.
+ */
+internal fun sidebarAssemblyIndex(code: List<Instruction>): Int = code.indexOfFirst { instruction ->
+    (instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_STATIC_RANGE) &&
+        instruction.methodReference()?.let { call -> call.parameterTypes.count { it.toString() == ARRAY_LIST } == 2 } == true
+}
 
 /**
  * The methods that call the button factory for [builder]: [builder] itself up to 583, or the
@@ -1007,6 +1150,14 @@ internal fun isSidebarBuilder(method: Method, siblings: Iterable<Method>): Boole
  */
 internal fun buttonFactoryCallers(builder: Method, siblings: Iterable<Method>): List<Method> {
     if (callsButtonFactory(builder)) return listOf(builder)
+    return calledStatics(builder, siblings).filter(::callsButtonFactory)
+}
+
+/**
+ * The statics among [siblings], the methods of [builder]'s class, that [builder] calls: the call
+ * names the sibling's name, return type and parameter types.
+ */
+internal fun calledStatics(builder: Method, siblings: Iterable<Method>): List<Method> {
     val called = builder.instructions()
         .filter { it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_STATIC_RANGE }
         .mapNotNull { it.methodReference() }
@@ -1016,9 +1167,42 @@ internal fun buttonFactoryCallers(builder: Method, siblings: Iterable<Method>): 
             called.any { call ->
                 call.name == sibling.name && call.returnType == sibling.returnType &&
                     call.parameterTypes.map(CharSequence::toString) == sibling.parameterTypes.map(CharSequence::toString)
-            } &&
-            callsButtonFactory(sibling)
+            }
     }
+}
+
+/**
+ * The method of [owner] that [call] names (name, return type and parameter types, any access), or
+ * null when [owner] has none. Used to follow a call into a class the patch reads but doesn't change.
+ */
+internal fun resolveMethod(owner: ClassDef, call: MethodReference): Method? = owner.methods.firstOrNull { method ->
+    method.name == call.name && method.returnType == call.returnType &&
+        method.parameterTypes.map(CharSequence::toString) == call.parameterTypes.map(CharSequence::toString)
+}
+
+/**
+ * The methods that call the button factory for [builder], found from the builder outward: the ones
+ * [buttonFactoryCallers] finds, or, when the render calls none, the methods the statics it calls
+ * call in turn, which [resolve] finds from a call. 585's render calls a static of its class
+ * (arm64 LX/0B7e;->A0D, armeabi-v7a LX/0B7h;->A0D) that switches on the button's kind and news up one
+ * small class for each, whose method calls the factory (LX/02cD;->A00); the factory is read off
+ * those classes' methods, so a kind added or dropped changes nothing here.
+ */
+internal fun reachedFactoryCallers(
+    builder: Method,
+    siblings: Iterable<Method>,
+    resolve: (MethodReference) -> Method?,
+): List<Method> {
+    val direct = buttonFactoryCallers(builder, siblings)
+    if (direct.isNotEmpty()) return direct
+    return calledStatics(builder, siblings)
+        .flatMap { it.instructions() }
+        .filter { it.opcode == Opcode.INVOKE_VIRTUAL || it.opcode == Opcode.INVOKE_VIRTUAL_RANGE }
+        .mapNotNull { it.methodReference() }
+        .distinctBy { it.toString() }
+        .mapNotNull(resolve)
+        .filter(::callsButtonFactory)
+        .distinctBy { "${it.definingClass}->${it.name}${it.parameterTypes}" }
 }
 
 /** The button factory: a call taking the session first and four handlers. */

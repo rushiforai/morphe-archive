@@ -42,6 +42,7 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.hushtelegram.extension.shared.L10n;
 import app.hushtelegram.extension.shared.Logger;
 import app.hushtelegram.extension.shared.Utils;
 
@@ -169,6 +170,7 @@ public class CustomDialog {
         titleView.setTextColor(Utils.getAppForegroundColor());
         titleView.setGravity(Gravity.CENTER);
         titleView.setAccessibilityHeading(true);
+        L10n.hyphenate(titleView);
         // In Telegram's blues, as every HushTelegram title is, where the theme's dialog is dark
         // enough for every stop to read. A light theme keeps its own text colour.
         if (ShimmerTitle.readsOn(Utils.getDialogBackgroundColor())) ShimmerTitle.wear(titleView);
@@ -232,6 +234,7 @@ public class CustomDialog {
             messageView.setText(message);
             messageView.setTextSize(16);
             messageView.setTextColor(Utils.getAppForegroundColor());
+            L10n.hyphenate(messageView);
             // Enable HTML link clicking if the message contains links.
             if (message instanceof Spanned) {
                 messageView.setMovementMethod(LinkMovementMethod.getInstance());

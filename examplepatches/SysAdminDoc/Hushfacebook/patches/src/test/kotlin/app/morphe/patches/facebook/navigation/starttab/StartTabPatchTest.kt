@@ -144,6 +144,51 @@ class StartTabPatchTest {
     )
 
     /**
+     * 585's form of the step: the dispatcher's case for [step] only calls [body]'s method, which
+     * builds the copy in v3 and hands it to the screen in p1, as the inline step does.
+     */
+    private fun outlinedSanitizer(step: String = SANITIZE_INTENT, kept: String = KEPT_EXTRA): List<Method> {
+        val body = "Lfixture/Sanitizer;"
+        return listOf(
+            method(
+                startOps, "run", listOf("Landroid/app/Activity;", "Ljava/lang/String;"), "V", 3, static = true,
+                smali = """
+                    const-string v0, "$step"
+                    invoke-virtual { p1, v0 }, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                    move-result v0
+                    if-eqz v0, :done
+                    new-instance v0, $body
+                    invoke-virtual { v0, p0 }, $body->apply(Landroid/app/Activity;)V
+                    goto :done
+                    :done
+                    return-void
+                """,
+            ),
+            method(
+                body, "apply", listOf("Landroid/app/Activity;"), "V", 6, static = false,
+                smali = """
+                    invoke-virtual { p1 }, Landroid/app/Activity;->getIntent()Landroid/content/Intent;
+                    move-result-object v1
+                    invoke-virtual { v1 }, Landroid/content/Intent;->getAction()Ljava/lang/String;
+                    move-result-object v2
+                    invoke-virtual { v1 }, Landroid/content/Intent;->getData()Landroid/net/Uri;
+                    move-result-object v0
+                    new-instance v3, Landroid/content/Intent;
+                    invoke-direct { v3, v2, v0 }, Landroid/content/Intent;-><init>(Ljava/lang/String;Landroid/net/Uri;)V
+                    const-string v2, "$kept"
+                    invoke-virtual { v1, v2 }, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
+                    move-result-object v0
+                    if-eqz v0, :set
+                    invoke-virtual { v3, v2, v0 }, Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;
+                    :set
+                    invoke-virtual { p1, v3 }, Landroid/app/Activity;->setIntent(Landroid/content/Intent;)V
+                    return-void
+                """,
+            ),
+        )
+    }
+
+    /**
      * The tab bar's start position, trimmed: with the boolean off it asks the MobileConfig gate, and
      * with the gate on it hands the start tab it was built with, a long, to a lookup answering the
      * tab's position. [branchOn] and [handed] name the registers the branch and the lookup read.
@@ -216,6 +261,44 @@ class StartTabPatchTest {
             const/4 p0, 0x1
             :done
             return p0
+        """,
+    )
+
+    /**
+     * The keep check as 585 runs it inline in its start-up, trimmed: the intent's tab against the
+     * long the main views in p1 keep, every no landing on the reset of that long to the default in
+     * v4, a yes from the config past it. v0 is free at the reset: the next instruction writes it.
+     * [resetField] makes the reset write another field, and [owner] names the class.
+     */
+    private fun inlineKeepCheck(
+        owner: String = "Lfixture/StartUp;",
+        resetField: String = "startTab",
+        literal: String = TARGET_TAB_ID,
+    ) = method(
+        owner, "start", listOf(MAIN_TAB_ACTIVITY, mainViews), "V", 10, static = true,
+        smali = """
+            const-wide/16 v4, -0x1
+            invoke-virtual { p0 }, $fragmentActivity->getIntent()Landroid/content/Intent;
+            move-result-object v3
+            if-eqz v3, :reset
+            const-string v2, "$literal"
+            invoke-virtual { v3, v2 }, Landroid/content/Intent;->hasExtra(Ljava/lang/String;)Z
+            move-result v0
+            if-eqz v0, :reset
+            const-wide/16 v0, -0x1
+            invoke-virtual { v3, v2, v0, v1 }, Landroid/content/Intent;->getLongExtra(Ljava/lang/String;J)J
+            move-result-wide v2
+            iget-wide v0, p1, $mainViews->startTab:J
+            cmp-long v0, v2, v0
+            if-nez v0, :reset
+            sget-boolean v0, Lfixture/Config;->keep:Z
+            if-nez v0, :kept
+            :reset
+            iput-wide v4, p1, $mainViews->$resetField:J
+            :kept
+            iget-wide v0, p1, $mainViews->startTab:J
+            invoke-static { v0, v1 }, Lfixture/Tabs;->show(J)V
+            return-void
         """,
     )
 
@@ -337,6 +420,31 @@ class StartTabPatchTest {
     }
 
     @Test
+    fun `a step body moved out of the dispatcher is the method its case calls, and the patch goes in there`() {
+        val (dispatcher, body) = outlinedSanitizer()
+        assertNull("the dispatcher builds no copy itself", sanitizedIntentHandOver(dispatcher))
+        assertEquals(listOf("Lfixture/Sanitizer;->apply(Landroid/app/Activity;)V"), sanitizeStepCalls(dispatcher).map { it.toString() })
+        assertNull("the body doesn't name the step", sanitizedIntentHandOver(body))
+        assertEquals(ACTIVITY_SET_INTENT, body.body()[sanitizedCopyHandOver(body)!!].reference)
+        assertEquals("another step's case", emptyList<Any>(), sanitizeStepCalls(outlinedSanitizer(step = "sanitize_intents").first()))
+
+        val context = PatchContexts.of(build(sanitizers = outlinedSanitizer()))
+        openOnChosenTabPatch.execute(context)
+        val step = context.mutableClassDefBy("Lfixture/Sanitizer;").methods.single().body()
+        val handOver = step.single { (it as? ReferenceInstruction)?.reference?.toString() == SET_SANITIZED_INTENT }
+        // p1 of a six-register instance method is v5; the copy stays in v3.
+        assertEquals(listOf(5, 3), handOver.callRegisters())
+        assertTrue("the old setIntent is still there", step.none { (it as? ReferenceInstruction)?.reference?.toString() == ACTIVITY_SET_INTENT })
+        assertEquals("the dispatcher changed", dispatcher.body().map { it.opcode },
+            context.mutableClassDefBy(startOps).methods.single().body().map { it.opcode })
+
+        val noCase = assertThrows(PatchException::class.java) {
+            openOnChosenTabPatch.execute(PatchContexts.of(build(sanitizers = outlinedSanitizer(kept = "app_switch_source_user"))))
+        }
+        assertTrue(noCase.message, noCase.message!!.contains("\"$SANITIZE_INTENT\"), found 0"))
+    }
+
+    @Test
     fun `the start position gate is the first MobileConfig read, branched on, guarding the start tab lookup`() {
         val position = startPosition()
         val index = startPositionGate(position)!!
@@ -356,6 +464,43 @@ class StartTabPatchTest {
         assertFalse("another literal", keepsAskedStartTab(keepsCheck(literal = "target_tab")))
         assertFalse("not the main screen", keepsAskedStartTab(keepsCheck(screen = fragmentActivity)))
         assertFalse("keeps no long of its own", keepsAskedStartTab(keepsCheck(keptLongOwner = "Lfixture/Other;")))
+    }
+
+    @Test
+    fun `an inline keep check is the getLongExtra of the asked tab compared with the kept one, and the reset its no lands on`() {
+        val inline = inlineKeepCheck()
+        val reset = inlineKeepReset(inline)!!
+        assertEquals(Opcode.IPUT_WIDE, inline.body()[reset].opcode)
+        assertNull("the no resets another field", inlineKeepReset(inlineKeepCheck(resetField = "lastTab")))
+        assertNull("another literal", inlineKeepReset(inlineKeepCheck(literal = "target_tab")))
+        assertNull("the static check runs nothing inline", inlineKeepReset(keepsCheck()))
+        assertNull("the picker", inlineKeepReset(picker()))
+        assertFalse(keepsAskedStartTab(inline))
+
+        val context = PatchContexts.of(build(checks = listOf(inline)))
+        openOnChosenTabPatch.execute(context)
+        val guarded = context.mutableClassDefBy("Lfixture/StartUp;").methods.single()
+        val body = guarded.body()
+        assertEquals(inline.body().size + 4, body.size)
+        // v0 is the lowest register nothing reads at the reset or after it.
+        assertEquals(Opcode.CONST_16, body[reset].opcode)
+        assertEquals(0, body[reset].register)
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, body[reset + 1].opcode)
+        assertEquals(KEEP_ASKED_START_TAB, body[reset + 1].reference)
+        assertEquals(listOf(0), body[reset + 1].callRegisters())
+        assertEquals(Opcode.MOVE_RESULT, body[reset + 2].opcode)
+        assertEquals(0, body[reset + 2].register)
+        assertEquals(Opcode.IF_NEZ, body[reset + 3].opcode)
+        assertEquals(0, body[reset + 3].register)
+        assertEquals(Opcode.IPUT_WIDE, body[reset + 4].opcode)
+        val branches = guarded.implementation!!.instructions.filterIsInstance<BuilderOffsetInstruction>()
+        // The three noes reach the extension; the extension's yes and the config's go past the reset.
+        assertEquals(listOf(reset, reset, reset, reset + 5, reset + 5), branches.map { it.target.location.index })
+
+        // A static check wins; the inline one is left alone.
+        val both = PatchContexts.of(build(checks = listOf(keepsCheck(), inlineKeepCheck())))
+        openOnChosenTabPatch.execute(both)
+        assertEquals(inline.body().map { it.opcode }, both.mutableClassDefBy("Lfixture/StartUp;").methods.single().body().map { it.opcode })
     }
 
     @Test
@@ -539,6 +684,12 @@ class StartTabPatchTest {
 
         val twoChecks = refusal(build(checks = listOf(keepsCheck(), keepsCheck(owner = "Lfixture/OtherViews;"))))
         assertTrue(twoChecks, twoChecks.contains("keeps the start tab") && twoChecks.contains("found 2"))
+
+        val noCheck = refusal(build(checks = listOf(inlineKeepCheck(resetField = "lastTab"))))
+        assertTrue(noCheck, noCheck.contains("keeps the start tab") && noCheck.contains("found 0 and 0"))
+
+        val twoInline = refusal(build(checks = listOf(inlineKeepCheck(), inlineKeepCheck(owner = "Lfixture/OtherStartUp;"))))
+        assertTrue(twoInline, twoInline.contains("found 0 and 2"))
     }
 
     @Test

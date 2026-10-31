@@ -4,7 +4,7 @@
   <a href="https://github.com/SysAdminDoc/Hushfacebook/releases"><img src="https://img.shields.io/badge/version-0.19.0-0866FF" alt="Version 0.19.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%2011%2B-3DDC84" alt="Platform Android 11+">
-  <img src="https://img.shields.io/badge/Facebook-584.0.0.51.56-0866FF" alt="Facebook 584.0.0.51.56">
+  <img src="https://img.shields.io/badge/Facebook-585.0.0.47.54-0866FF" alt="Facebook 585.0.0.47.54">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.2.0%2B-8A2BE2" alt="For Morphe Manager 2.2.0 or newer">
 </p>
 
@@ -33,7 +33,7 @@ The latest release is [v0.19.0](https://github.com/SysAdminDoc/Hushfacebook/rele
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.2.0 or newer.
 2. Add Hushfacebook as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushfacebook
-3. Download Facebook 584.0.0.51.56 from [APKMirror](https://www.apkmirror.com/apk/facebook-2/facebook/). Take the bundle labelled (arm64-v8a) (480-640dpi) (Android 11+), build 475817393, or on a phone with only a 32-bit processor the one labelled (arm-v7a) (320dpi) (Android 11+), build 475817404. Both are .apkm files.
+3. Download Facebook 585.0.0.47.54 from [APKMirror](https://www.apkmirror.com/apk/facebook-2/facebook/). Take the bundle labelled (arm64-v8a) (120-640dpi) (Android 11+), build 476015655, or on a phone with only a 32-bit processor the one labelled (arm-v7a) (320dpi) (Android 11+), build 476015543. Both are .apkm files.
 4. In Morphe Manager, tap **Select other apps**, then **Open APK file**, and pick that file. Android may ask for file access the first time.
 5. Patch with the default selection and install. If Meta's own Facebook is on the phone, Android makes you uninstall it first, as [Package conflict](#package-conflict) explains.
 
@@ -61,13 +61,13 @@ Changing one of those brings up a **Restart Facebook** row at the top of the pag
 
 Morphe Manager can back up your patch choices but not these switches. **Export settings** saves them to a JSON file, word lists included, and **Import settings** reads one back on this phone or a new one. It shows what the file would change before anything does. **Check for new Hushfacebook releases** under Updates is off until you turn it on. Then it asks GitHub once a day and tells you when there's a newer release, and you update through Morphe Manager as usual.
 
-The settings follow the language Facebook shows. German, Spanish, Indonesian, Brazilian Portuguese, Turkish, Vietnamese, Simplified Chinese and Traditional Chinese (Taiwan) are translated. Other languages get English.
+The settings follow the language Facebook shows. German, Spanish, Indonesian, Brazilian Portuguese, Turkish, Vietnamese, Simplified Chinese and Traditional Chinese (Taiwan) are translated. Other languages get English. [Translating](CONTRIBUTING.md#translating) explains how to fix a string or add a language.
 
 To keep Reel downloads in More without the sidebar button, leave **Download** on under **Reels and Watch** and turn off **Download button on reels** on the same page.
 
 **Hide WhatsApp on reels**, also under **Reels and Watch**, removes the direct WhatsApp button beside a reel or video. It starts off. WhatsApp stays available in the Share menu.
 
-**Inline feed video controls**, under **Video and audio**, adds a separate play/pause button to feed videos. It starts off and works independently of **Tap to play**. Tap the video itself for full screen. Live videos and ads keep their own controls.
+**Inline feed video controls**, under **Video and audio**, adds a separate play/pause button to feed videos. It starts off. With **Tap to play** on as well, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for you. Tap the video itself for full screen. Live videos and ads keep their own controls.
 
 **Cast button on feed videos**, right below it, puts a cast button in a feed video's top right corner. Facebook has no casting of its own anymore, so the button hands the video to a casting app you have, like Web Video Caster. It starts off.
 
@@ -103,14 +103,14 @@ Each row says what the patch does, how its switch starts and which settings sect
 | `Block screenshot detection` | Stops Facebook noticing when you take a screenshot or record the screen, in the feed, Reels, chats and everywhere else, so it can't react to it. Starts off. Turn it on in Hushfacebook settings > Privacy. |
 | `Hide typing indicator` | Others don't see that you're typing, in chats that open inside Facebook and in comment boxes, so you can write without anyone watching. Your messages send as usual. Starts off. Turn on the parts you want in Hushfacebook settings > Privacy. |
 | `Hide read receipts` | People you chat with in chats that open inside Facebook don't see that you've read their messages, so you can read now and reply later. Replying may still show you've read it. Starts off. Turn it on in Hushfacebook settings > Privacy. |
-| `Clean up Reels` | Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template buttons and Threads cards between reels, so more of the video shows, and can play each reel once instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Share, Save or speaker button, or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it, stop the "This is taking a while" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch. |
+| `Clean up Reels` | Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template buttons and Threads cards between reels, so more of the video shows, and can play each reel once instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Share, Save or speaker button, or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it, stop the "This is taking a while" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, and hide the one-tap Subscribe button some authors get instead of Follow. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch. |
 | `Default playback quality` | Plays videos, reels and video stories at the quality you choose, such as Data saver or up to 720p, instead of what Facebook picks. Lower saves data, higher looks sharper. Starts off. Turn it on and pick a quality in Hushfacebook settings > Video and audio. |
 | `Default comment order` | Opens comments in the order you choose, Most relevant, Newest, All comments or Oldest, instead of the one Facebook picks. Handy if you always want the newest first. Starts off. Turn it on and pick an order in Hushfacebook settings > Comments and writing. |
 | `Disable Audience Network` | Stops Facebook serving its ads inside other apps on your phone. Those apps show their own ads or none, and their rewarded ads may fail. Works as soon as you patch it in, with no switch. |
 | `Disable Play Store updates` | Stops Google Play offering Facebook updates, which a patched app can't take anyway. It isn't selected by default because once it's installed, a build without it can't install over it. It doesn't work on a Root Mount install. Turn on Expert mode in Manager to pick it. |
 | `Don't send reel watch history` | Stops sending Facebook the list of reels you've watched, so it learns less about what you watch. Reels you've already seen may come back. Starts off. Turn it on in Hushfacebook settings > Reels and Watch. |
 | `Download any reel` | Adds a Download button beside every reel and a Download row to its More menu, so you can keep reels on your phone. Videos save at the quality you set, best by default. The More menu also gets Copy caption, which copies the reel's whole caption. On by default. Turn either off in Hushfacebook settings > Reels and Watch. |
-| `Download any video` | Adds Download to phone to the menu of videos in the feed and in Watch, so you can save them to watch later. Videos save at the quality you set, best by default. Starts off. Turn it on in Hushfacebook settings > Downloads. |
+| `Download any video` | Adds Download to phone to the menu of videos in the feed and in Watch, so you can save them to watch later. A video comment gets Save video when you long-press it. Videos save at the quality you set, best by default. Starts off. Turn it on in Hushfacebook settings > Downloads. |
 | `Download any story` | Adds Save to the menu of any story, including stories with music, so you can keep the ones you like. Videos save at the quality you set, best by default. On by default. Turn it off in Hushfacebook settings > Stories. |
 | `Download any photo` | Shows Save photo on every photo you open, even where the poster turned saving off, and saves the largest size so you get the best copy. A GIF comment gets Save GIF when you long-press it. On by default. Turn it off in Hushfacebook settings > Downloads. |
 | `Following feed on Home` | Makes Home show the newest posts from the friends, groups and Pages you follow instead of Facebook's ranked feed, so you see what they posted rather than what Facebook picks. Home shows, right below it, asks Facebook for one of the Feeds tab's filters (Friends, Favorites, Groups or Pages) instead. When that filter has nothing new, Facebook can fill Home with suggested posts and reels, so pair it with Hide "Suggested for you" posts and Hide Reels in the feed. Starts off. Turn it on in Hushfacebook settings > Opening Facebook. |
@@ -119,14 +119,14 @@ Each row says what the patch does, how its switch starts and which settings sect
 | `Hide affiliate product links` | Removes the shopping cards that affiliate links add to reels, feed posts and comments, plus Shop now cards on reels, so you see fewer sales pitches while you scroll. On by default. Turn it off in Hushfacebook settings > News feed. |
 | `Hide AI-detected posts` | Removes posts and reels Facebook marked as made with AI, posts creators labeled as AI, posts with Meta's AI characters and Meta AI cards in the feed. Only the Meta AI cards switch starts on. Change them in Hushfacebook settings > News feed and Reels and Watch. |
 | `Hide carrier data banners` | On carriers with Facebook Flex, hides the Data mode bar with its buy mobile data button, or the purple Free mode bar, so the feed gets that space back. Both switches start off. Turn them on in Hushfacebook settings > Appearance. |
-| `Hide sponsored Marketplace listings` | Removes ads and boosted listings from Marketplace's feed and search results, so you see more of what people are selling. Listings people post stay. On by default. Turn it off in Hushfacebook settings > Marketplace. |
+| `Hide sponsored Marketplace listings` | Removes ads and boosted listings from Marketplace's feed and search results, so you see more of what people are selling. Listings people post stay. It also reads rules typed into Marketplace search: "word" keeps titles with the word, -word hides titles with it and in:place keeps listings in that place, and an Adv. Filters button writes them for you. The search rules and the button are off until you turn them on in Hushfacebook settings > Marketplace. |
 | `Hide posts by words` | Hides feed posts with words you list, or from people, Pages or sites you list, so you skip topics you're tired of. Photo, video, link and colored background posts, or every post a Page wrote, can go too. Starts off. Turn it on in Hushfacebook settings > News feed. |
 | `Hide post prompts` | Removes the strip Facebook adds to some posts, like "Are you interested in this post?", "Show less" or follow suggestions, so posts look less cluttered. No gap is left. On by default. Turn it off in Hushfacebook settings > News feed. Three more switches there, Hide the Follow link on posts, Hide counts on posts and Hide the reaction preview on posts, start off. |
-| `Hide seen posts` | Keeps posts you've already scrolled past out of the feed when it loads again, for 1, 3, 7 or 30 days, so you see something new. The list stays on your phone. Starts off. Turn it on in Hushfacebook settings > News feed. |
+| `Hide seen posts` | Keeps posts you've already scrolled past out of the feed when it loads again, for 1, 3, 7, 30 or 90 days, so you see something new. The list stays on your phone. Starts off. Turn it on in Hushfacebook settings > News feed. |
 | `Hide Meta AI questions under posts` | Removes the row of Meta AI questions Facebook adds under some posts, for a cleaner feed. The post and its buttons stay. On by default. Turn it off in Hushfacebook settings > News feed. |
 | `Hide Meta AI comment summaries` | Removes Meta AI's summary of the comments from the top of the comment sheet and from under posts, so you read what people actually wrote. Starts off. Turn it on in Hushfacebook settings > Comments and writing. |
 | `Comment sheet options` | Small fixes for comments. Stop a long press on Like from opening reactions, hide the GIF and sticker buttons, show every reply without tapping View replies, load a whole reply thread as you scroll, open more replies with a tap anywhere on their row, hide the comments under feed posts or the thumbs-down on comments, hide Related groups under group posts, hide comments with shop links or your words, hide who is typing and the new comments pop-up, hide the emoji row over the comment box, and hide the comment box under full-screen videos. Starts off. Turn on the parts you want in Hushfacebook settings > Comments and writing. |
-| `Open comments at full height` | Opens the comment sheet at the full height of the screen instead of part way up, on posts, videos, reels and stories. On reels and videos, Comment opens that sheet instead of the split view. A second switch pauses a reel while its comments are open. Both start off. Turn them on in Hushfacebook settings > Comments and writing. |
+| `Open comments at full height` | Opens the comment sheet at the full height of the screen instead of part way up, on posts, videos, reels and stories. On reels and videos, Comment opens that sheet instead of the split view. A second switch pauses a reel while its comments are open, and a third lets a tap on the reel above a half-open sheet play or pause it. All start off. Turn them on in Hushfacebook settings > Comments and writing. |
 | `Hide the Feeds header` | Takes the title row and the All, Favorites, Friends, Groups and Pages filters off the top of the Feeds tab, so it opens straight on posts. Starts off. Turn it on in Hushfacebook settings > News feed, then restart Facebook. |
 | `Keep post dates` | Keeps the date under the poster's name, so you can always tell how old a post is. Facebook's newer header can swap it for rotating details, and on some phones the line goes blank. On by default. Turn it off in Hushfacebook settings > News feed. |
 | `Show full post text` | Shows all of a post's text in the feed, so you don't have to tap See more. Starts off. Turn it on in Hushfacebook settings > News feed. |
@@ -139,7 +139,7 @@ Each row says what the patch does, how its switch starts and which settings sect
 | `Hide sponsored search results` | Removes the ads from Facebook's search results, so you see the people, Pages and posts you searched for. On by default. Turn it off in Hushfacebook settings > Search. |
 | `Hide sponsored stories` | Removes ad cards from the story viewer, so swiping through stories shows only what people posted. On by default. Turn it off in Hushfacebook settings > Stories. |
 | `Hide Stories tray` | Hides the row of stories at the top of the feed, the stories between posts, or the "What's on your mind?" row at the top of Home, so you reach posts sooner. Starts off. Turn on the parts you want in Hushfacebook settings > News feed. |
-| `Hide suggested stories` | Removes stories Facebook suggests from people and Pages you don't follow, and the "Find friends from contacts" card, so the Stories tray sticks to people you know. On by default. Turn it off in Hushfacebook settings > Stories. |
+| `Hide suggested stories` | Removes stories Facebook suggests from people and Pages you don't follow, and the "Find friends from contacts" card, so the Stories tray sticks to people you know. On by default. Turn it off in Hushfacebook settings > Stories, where two more switches, both off at first, also hide the Pages you follow and the stories you've already watched. |
 | `Hide Reels in the feed` | Removes the rows of reels between posts and the reels Facebook adds where your feed ends, so the feed sticks to posts. A reel a friend posts stays. Starts off. Turn it on in Hushfacebook settings > News feed. |
 | `Hide tabs` | Takes the tabs you pick off the tab bar, such as Friends, Marketplace, Groups, Gaming or Events, so the bar only has what you use. Each page stays in the Menu. Starts off. Turn on the ones you want in Hushfacebook settings > Tabs and navigation, then restart Facebook. |
 | `Hide the Reels tab` | Takes the Reels tab, called Video on some accounts, off the tab bar, so Reels isn't one tap away. Reels in your feed and reel links still open. Starts off. Turn it on in Hushfacebook settings > Reels and Watch, then restart Facebook. |
@@ -164,12 +164,12 @@ Each row says what the patch does, how its switch starts and which settings sect
 | `Marketplace only` | Turns Facebook into a Marketplace app for buying and selling without the feed. The tab bar keeps only Marketplace, Notifications and your profile or Menu, and Facebook opens on Marketplace. The Events only switch does the same for Events once you pin Events in Facebook's Customize the bar. Both start off. Turn one on in Hushfacebook settings > Opening Facebook, then restart Facebook. |
 | `Material You theme` | Gives Facebook the colors of your wallpaper on Android 12 and newer, so it matches your phone. Dark mode takes them everywhere, and light mode on its grays, blues and selected tab. It isn't selected by default because undoing it means patching again. Turn on Expert mode in Manager to pick it. |
 | `Newest reels first` | Plays the newest posted of the reels Facebook has loaded for you first in the Reels tab, instead of Facebook's own pick. It can't fetch newer reels. Starts off. Turn it on in Hushfacebook settings > Reels and Watch. |
-| `Open links in external browser` | Opens web links in your own browser instead of Facebook's built-in one, without Facebook tracking the click. Facebook pages still open in the app. On by default. Turn it off in Hushfacebook settings > Links and sharing. A second switch, on by default under Privacy, stops Facebook's browser keeping a history of the links you open in it. |
+| `Open links in external browser` | Opens web links in your own browser instead of Facebook's built-in one, without Facebook tracking the click. Facebook pages still open in the app. On by default. Turn it off in Hushfacebook settings > Links and sharing. A second switch, on by default under Privacy, stops Facebook's browser keeping a history of the links you open in it. A Page's Events link opens on that Page's Events tab instead of Home, whichever way the switches are set. |
 | `Open Messenger from the top bar` | Makes the Messenger icon at the top of Facebook open the Messenger app instead of Facebook's own Chats, if you'd rather chat in Messenger. Without Messenger installed, Chats opens as before. Starts off. Turn it on in Hushfacebook settings > Chats and Messenger. Also carries Leave calls and chats to Messenger, a separate switch that starts off and leaves calls and chat notifications to Messenger while it's installed and enabled. Restart Facebook after changing the switch or whether Messenger is installed or enabled, so call routing updates. |
 | `Open on a chosen tab` | Opens Facebook on the tab you pick when you start it from its icon, so you can skip the feed. It's Marketplace unless you change it. Starts off. Turn it on in Hushfacebook settings > Opening Facebook. |
 | `Picture-in-picture` | Keeps reels and videos from the Reels and Video tabs, or full screen, playing in a small window when you leave Facebook, so you can watch while using another app. Needs Android 12 or later. Starts off. Turn it on in Hushfacebook settings > Video and audio. |
 | `Pinch to zoom` | Pinch a story or a photo on someone's profile to zoom in, like you can on photos in the feed. It goes back when you let go, unless you turn on Stay zoomed under it, which keeps the zoom until you tap or press Back. Starts off. Turn it on in Hushfacebook settings > Stories. |
-| `Restore screens on re-signed builds` | Fixes profiles, photos, posts and some Settings pages that won't open on a patched Facebook, and lets a Messenger or Facebook Lite patched in the same Manager sign in through it. Root Mount installs don't need it. Works as soon as you patch it in, with no switch. |
+| `Restore screens on re-signed builds` | Fixes profiles, photos, posts and some Settings pages that won't open on a patched Facebook, lets a Messenger or Facebook Lite patched in the same Manager sign in through it, and opens Instagram and Threads links in a patched Instagram or Threads. Root Mount installs don't need it. Works as soon as you patch it in, with no switch. |
 | `Resume long videos` | A video longer than two minutes picks up where you left off the next time it plays, in the feed or full screen, so you don't lose your place. Reels, live videos and ads start as usual. Remember what you watch, a second switch, keeps a list on your phone of the reels, videos and stories you watched, under Recently watched. Both start off. Turn them on in Hushfacebook settings > Video and audio. |
 | `Sanitize sharing links` | Takes Facebook's tracking tags off links you share or copy, so you share a clean link. A facebook.com/share/ link is made for one share, so Facebook can still trace that kind back to you, and a switch that starts off shares the post's own link in its place. On by default. Both are in Hushfacebook settings > Links and sharing. |
 | `Send chat photos and videos at original quality` | Photos and videos you send from chats that open inside Facebook go out as the originals instead of smaller copies, so they arrive sharp. Very large files are still shrunk. Starts off. Turn it on in Hushfacebook settings > Chats and Messenger. |
@@ -187,7 +187,7 @@ Each row says what the patch does, how its switch starts and which settings sect
 | `Tap shows the controls` | A tap on a playing reel shows its controls and lets it keep playing, so you can skip or mute without stopping it. The button in the middle still pauses. Starts off. Turn it on in Hushfacebook settings > Reels and Watch. |
 | `Open comments with a gesture` | Open a reel's comments with a double tap or a long press, on the sheet the Comment button opens, instead of liking or holding, and a feed post's with a long press on its photo or name line. Starts off. Turn it on in Hushfacebook settings > Reels and Watch. It also lets a long press on a post's text open that text to select part of it, a switch in Hushfacebook settings > News feed. |
 | `Turn off haptics` | Stops the short vibrations Facebook plays when you tap and swipe in it, if you find them distracting. Your keyboard and your phone's own vibrations stay. Starts off. Turn it on in Hushfacebook settings > Appearance. |
-| `Turn off HDR brightness` | Stops HDR videos and photos from turning your screen up to full brightness, which can be harsh in the dark. They keep their resolution. Starts off. Turn it on in Hushfacebook settings > Video and audio. |
+| `Turn off HDR brightness` | Stops HDR videos and photos from turning your screen up to full brightness, which can be harsh in the dark. They keep their resolution. A second switch fixes pale, washed-out reels on phones that show them that way. Its switches start off. Turn them on in Hushfacebook settings > Video and audio. |
 | `Turn off screen transitions` | Shows Facebook's tabs, Menu, photos and new screens at once, without the slide or zoom between them, so the app feels quicker. Swipes and animations inside a page stay. Starts off. Turn it on in Hushfacebook settings > Appearance. |
 | `Unlock app icons` | Lets you pick the app icons Facebook keeps for Facebook Plus on its App icon page (Menu > Settings and privacy > App icon), so your home screen icon can be any of them. A second switch, Use the icon at the top of Home, puts your pick at the top of Home too. Both start off. Turn them on in Hushfacebook settings > Appearance. |
 | `Home header text` | Shows your own words or picture at the top of Home instead of the Facebook logo. Words take Facebook's own colors for light and dark mode. Type them in Hushfacebook settings > Appearance > Home header text, or pick a picture under Home header picture. Blank keeps Facebook's logo. |
@@ -203,7 +203,9 @@ Morphe Manager's default selection has every patch except `AMOLED black theme`, 
 
 Videos save to your gallery at the quality you pick under Downloads, best by default. A running save shows its progress in a notification and at the top of the Downloads page, each with a Cancel button. Turn on **Quiet saves** there if the toasts at the start and end of a save bother you. A save that fails still says why.
 
-Under Video and audio > Recently watched, Clear also discards watches waiting to be saved. Turning Remember what you watch off stops new entries and discards pending watches. It keeps the entries already on the list.
+Under Video and audio > Recently watched, Clear also discards watches waiting to be saved. Turning Remember what you watch off stops new entries and discards pending watches. It keeps the entries already on the list, and they still leave once they're older than Keep watched entries for (30 days unless you pick 7 days or until you clear it). The remove button on a row takes just that one off, with Undo under the list.
+
+Under Opening Facebook, **Opening pause** makes you wait a few seconds before Facebook opens from its icon, and **Take breaks** covers the feeds and Reels with a break screen after the browsing time you pick. Chats, your profile and the Menu still work during a break. Both start off.
 
 ## Help
 
@@ -211,7 +213,7 @@ Questions about setting up, or about whether a Facebook build works, go in [Disc
 
 ### Unsupported Version
 
-Manager shows this before it patches, usually with "This is a different build of the same version". Facebook 584.0.0.51.56 comes in several builds, each compiled separately, and Hushfacebook declares only the two its patches are checked against, 475817393 for 64-bit phones and 475817404 for 32-bit ones. Download one of those as [Install](#install) describes and the warning goes away. **Proceed anyway** patches the build you have, but other builds haven't been tried, and if a patch can't find what it changes, patching stops and names it. The same check is why Manager won't offer the Facebook you installed from Google Play unless it's that exact build.
+Manager shows this before it patches, usually with "This is a different build of the same version". Facebook 585.0.0.47.54 comes in several builds, each compiled separately, and Hushfacebook declares only the two its patches are checked against, 476015655 for 64-bit phones and 476015543 for 32-bit ones. Download one of those as [Install](#install) describes and the warning goes away. **Proceed anyway** patches the build you have, but other builds haven't been tried, and if a patch can't find what it changes, patching stops and names it. The same check is why Manager won't offer the Facebook you installed from Google Play unless it's that exact build.
 
 ### Patching stops on one patch
 
@@ -242,6 +244,22 @@ Android only installs an update signed with the same key as the app it replaces,
 ### INSTALL_FAILED_DUPLICATE_PERMISSION
 
 Messenger, Facebook Lite, Meta Business Suite and Workplace declare two permissions under the same names as Facebook, and Android lets only one signing key own each name. `Install beside Meta's apps` renames Facebook's two, and it's on by default. If you patched without it, patch again with it, install over the top and then install the other app.
+
+### Android blocks apps from unverified developers
+
+Google now checks that apps on certified Android phones come from a developer registered with it. Phones running Android 7 or newer in Brazil, Indonesia, Singapore and Thailand have done this since September 30, 2026, and Google plans to bring it to every country in 2027. Manager signs the patched Facebook with your own key, which Google has no record of, so a phone that checks can stop the install. Updates fail the same way. There are two ways through.
+
+The first is Android's advanced flow. Turn on Developer options (tap **Build number** seven times under **Settings → About phone**), open them and turn on the setting that allows apps from unverified developers. Android asks you to confirm nobody is coaching you through it, restarts the phone and makes you wait a day before you confirm with your fingerprint or PIN. You can allow it for 7 days or for good. After that the install shows a warning that the app comes from an unverified developer, and **Install Anyway** goes ahead. If you picked 7 days, updates stop going through again once the week is up.
+
+The second is a computer with adb, because Google doesn't check apps installed that way. In Manager, open **Settings → Storage management → Patched APKs**, tap Facebook and **Export** (Manager keeps that copy unless you turned off **Keep patched APKs**). Copy the file to the computer, plug the phone in with USB debugging on and run this with your file's name:
+
+```
+adb install -r patched-facebook.apk
+```
+
+`-r` installs over the Facebook already on the phone and keeps its data, as long as both carry the same key ([Keep your signing key](#keep-your-signing-key)).
+
+If Android refuses Facebook some other way, please [report it](https://github.com/SysAdminDoc/Hushfacebook/issues/new?template=bug_report.yml) with the exact words it shows. Google hasn't said whether an app its owner signed again counts as unregistered, and that message is what will settle it.
 
 ### Facebook links from other apps don't open in Facebook
 
@@ -301,20 +319,19 @@ A few rows hand a link to another app instead of going online themselves. **Send
 | Field | Value |
 |---|---|
 | Package | `com.facebook.katana` |
-| Version | `584.0.0.51.56` |
-| 64-bit phones | build `475817393`, the (arm64-v8a) (480-640dpi) (Android 11+) bundle |
-| 32-bit phones | build `475817404`, the (arm-v7a) (320dpi) (Android 11+) bundle |
+| Version | `585.0.0.47.54` |
+| 64-bit phones | build `476015655`, the (arm64-v8a) (120-640dpi) (Android 11+) bundle |
+| 32-bit phones | build `476015543`, the (arm-v7a) (320dpi) (Android 11+) bundle |
 | Minimum Android version | Android 11 |
 | Download | [APKMirror](https://www.apkmirror.com/apk/facebook-2/facebook/) |
 
-There are 105 patches for `com.facebook.katana`, and a release only goes out once every one of them has applied to that build. Older Facebook versions like 583 and 582 aren't supported any more, so update Facebook before you patch. When a newer stable Facebook comes out, Hushfacebook moves to it and drops the one before. Meta's builds for Android 9 and 8 can't be patched at all, since their code sits in a compressed archive the patcher can't read.
+There are 105 patches for `com.facebook.katana`, and a release only goes out once every one of them has applied to that build. Older Facebook versions like 584 and 583 aren't supported any more, so update Facebook before you patch. When a newer stable Facebook comes out, Hushfacebook moves to it and drops the one before. Meta's builds for Android 9 and 8 can't be patched at all, since their code sits in a compressed archive the patcher can't read. The 64-bit build is the 120-640dpi one because 585 has no 480-640dpi bundle for Android 11; it carries every screen density, so it fits any 64-bit phone.
 
-SHA-256 of the .apkm file the patches are checked against. APKMirror swapped its arm64 file for a fuller one on October 22 with the same code inside, so either arm64 hash is fine:
+SHA-256 of the .apkm files the patches are checked against:
 
 ```text
-475817393  c60b0f709dea1c58e05be83168ba26a1cf09c3b109025b01c9a63a19e164951e  arm64-v8a
-475817393  093b1406eb7eac8741bb9fafea5324abd2355e66c9e4b4b2aab9a218b569f5cc  arm64-v8a (earlier upload)
-475817404  8116f5cbe39051718ac28c9be5cc68d792487a9e32f3ed485a7159684d43e6b8  armeabi-v7a
+476015655  1090dff6c9fe4903dd7c590f4d340bf0a912e43cd0a79c019c43bc265f5dda53  arm64-v8a
+476015543  ec6bb38a25349ab6eba4750f04486ceb3e3d8b268efc6733928d8669bd489c28  armeabi-v7a
 ```
 
 On Windows, compare yours with `Get-FileHash -Algorithm SHA256 .\facebook.apkm`, or use `sha256sum facebook.apkm` on Linux and macOS.

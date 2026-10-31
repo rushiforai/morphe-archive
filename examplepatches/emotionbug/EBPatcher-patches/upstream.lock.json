@@ -1,0 +1,109 @@
+{
+  "repository": "https://github.com/MorpheApp/morphe-patches",
+  "tag": "v1.48.0",
+  "commit": "f3acc10e2691ffc4db29c6a6a651ee61fb54c047",
+  "morphePatcher": "2.0.0",
+  "minimumManagerRelease": "2.1.0",
+  "musicPatchNames": [
+    "Android Auto",
+    "App refresh rate",
+    "Change header",
+    "Change miniplayer color",
+    "Change start page",
+    "Check watch history domain name resolution",
+    "Crossfade",
+    "Custom branding",
+    "Custom font",
+    "Disable DRC audio",
+    "Disable QUIC protocol",
+    "Disable dislike redirection",
+    "Downloads",
+    "Enable audio/video switch",
+    "Enable debugging",
+    "Enable exclusive audio playback",
+    "Enable forced miniplayer",
+    "Enable swipe to dismiss miniplayer",
+    "Force original audio",
+    "Force portrait orientation",
+    "GmsCore support",
+    "Hide ads",
+    "Hide buttons",
+    "Hide flyout menu components",
+    "Hide layout components",
+    "Hide music action buttons",
+    "Jam queue sharing",
+    "Media notification controls",
+    "Miniplayer previous and next buttons",
+    "Navigation bar",
+    "Network proxy",
+    "Play albums songs",
+    "Playback speed",
+    "Playlist track tap action",
+    "PoToken provider",
+    "Remember repeat state",
+    "Remember shuffle state",
+    "Remove background playback restrictions",
+    "Remove viewer discretion dialog",
+    "Return YouTube Dislike",
+    "Sanitize sharing links",
+    "Scrobbling",
+    "Settings menu filter",
+    "Skip silence",
+    "SponsorBlock",
+    "Spoof app version",
+    "Spoof video streams",
+    "Theme",
+    "Third-party lyrics"
+  ],
+  "musicCompatibility": [
+    {
+      "packageName": "com.google.android.apps.youtube.music",
+      "name": "YouTube Music",
+      "description": null,
+      "apkFileType": "APK_REQUIRED",
+      "appIconColor": "#FF0000",
+      "signatures": [
+        "6a2f65ec694a6a632acdcb5080912a565f903d4b8d83f0eb8e44fbdf2660d8e1",
+        "a2a1ad7ba7f41dfca4514e2afeb90691719af6d0fdbed4b09bbf0ed897701ceb"
+      ],
+      "formFactor": "MOBILE",
+      "targets": [
+        {
+          "version": "9.42.52",
+          "versionCodes": null,
+          "isExperimental": true,
+          "minSdk": 26,
+          "description": null
+        },
+        {
+          "version": "9.41.52",
+          "versionCodes": null,
+          "isExperimental": true,
+          "minSdk": 26,
+          "description": null
+        },
+        {
+          "version": "9.40.51",
+          "versionCodes": null,
+          "isExperimental": true,
+          "minSdk": 26,
+          "description": null
+        },
+        {
+          "version": "9.20.53",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 26,
+          "description": null
+        },
+        {
+          "version": "9.15.51",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 26,
+          "description": null
+        }
+      ]
+    }
+  ]
+}

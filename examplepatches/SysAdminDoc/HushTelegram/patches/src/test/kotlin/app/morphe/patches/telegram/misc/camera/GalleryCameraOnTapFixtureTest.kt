@@ -100,7 +100,7 @@ class GalleryCameraOnTapFixtureTest {
                     assertEquals("$name: from its own gallery field", ask.load, body[ask.index].field())
                     assertEquals("$name: of this", listOf(ask.layout, ask.method.implementation!!.registerCount - 1 - original.parameterTypes.size),
                         body[ask.index].namedRegisters())
-                    assertEquals("$name: the button's field is a gallery", PHOTO_LAYOUT, ask.load!!.type)
+                    assertEquals("$name: the button's field is a gallery", PHOTO_LAYOUT, ask.load.type)
                 }
                 assertTrue("$name: ${ask.method.name} asks right after the wake",
                     body[ask.index + size].call()?.name == "requestPermissions" || ask.load == null &&

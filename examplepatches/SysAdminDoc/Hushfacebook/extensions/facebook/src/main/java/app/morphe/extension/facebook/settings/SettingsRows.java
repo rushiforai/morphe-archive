@@ -13,12 +13,14 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.SwitchPreference;
 import android.preference.TwoStatePreference;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -117,6 +119,9 @@ final class SettingsRows {
             showAllText(view);
             ScreenColors.row(view, this);
             view.setAccessibilityDelegate(isSelectable() ? new RowSemantics(this, Button.class) : null);
+            // A row that only shows something, such as the feed's hidden count, is one stop for a
+            // screen reader: TalkBack read its title and its summary as two.
+            view.setScreenReaderFocusable(!isSelectable());
         }
     }
 
@@ -127,10 +132,16 @@ final class SettingsRows {
     static final class SaveRow extends Preference {
         /** Before every setting of the section, oldest save first. */
         private static final int FIRST = Integer.MIN_VALUE / 2;
+        /**
+         * How often the amount and time move with a screen reader on. TalkBack reads a focused row
+         * again at every change, which at the once-a-second tick never let it stop talking.
+         */
+        static final long READ_ALOUD_EVERY_MILLIS = 10_000L;
 
         final int id;
         private final boolean video;
         private String status;
+        private long shownAt;
         private boolean canCancel;
         private Button cancelButton;
         @Nullable
@@ -141,6 +152,7 @@ final class SettingsRows {
             id = save.id;
             video = save.video;
             status = SaveControl.status(save);
+            shownAt = SystemClock.uptimeMillis();
             canCancel = save.canCancel;
             setKey("running_save_" + save.id);
             setPersistent(false);
@@ -161,11 +173,25 @@ final class SettingsRows {
                 cancelButton.setEnabled(canCancel);
                 cancelButton.setAlpha(canCancel ? 1f : .38f);
             }
-            if (!next.equals(status)) {
-                status = next;
-                TextView summary = bound == null ? null : bound.findViewById(android.R.id.summary);
-                if (summary != null) summary.setText(next);
-            }
+            if (next.equals(status)) return;
+            long now = SystemClock.uptimeMillis();
+            // A new phase shows at once; with a screen reader on, the amount and time wait their turn.
+            if (samePhase(next, status) && now - shownAt < READ_ALOUD_EVERY_MILLIS && readAloud()) return;
+            status = next;
+            shownAt = now;
+            TextView summary = bound == null ? null : bound.findViewById(android.R.id.summary);
+            if (summary != null) summary.setText(next);
+        }
+
+        private boolean readAloud() {
+            AccessibilityManager manager = getContext().getSystemService(AccessibilityManager.class);
+            return manager != null && manager.isEnabled() && manager.isTouchExplorationEnabled();
+        }
+
+        /** The status's first line is what the save is doing. */
+        private static boolean samePhase(String a, String b) {
+            int end = a.indexOf('\n');
+            return end > 0 && b.length() > end && b.charAt(end) == '\n' && a.regionMatches(0, b, 0, end);
         }
 
         @Override
@@ -174,6 +200,8 @@ final class SettingsRows {
             bound = view;
             showAllText(view);
             ScreenColors.row(view, this);
+            // What it is and how far it has got are one stop; Cancel keeps its own.
+            view.setScreenReaderFocusable(true);
             android.view.ViewGroup frame = view.findViewById(android.R.id.widget_frame);
             if (frame == null) return;
             frame.removeAllViews();

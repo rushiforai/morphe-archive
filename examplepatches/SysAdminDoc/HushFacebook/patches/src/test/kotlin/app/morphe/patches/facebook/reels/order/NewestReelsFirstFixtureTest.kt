@@ -28,7 +28,7 @@ import org.junit.Test
 
 /**
  * Newest reels first's two hooks on every Facebook build the bundle declares: the Reels ranker's
- * one rerank, whose list register holds the List parameter at every return, and each
+ * one rerank, which never writes its List parameter and sorts it in place, and each
  * createSignalForModel, whose model has one FeedType field and an edge getter. Then the patch
  * itself, run on those classes, with the sort call in front of every return of the rerank (branches
  * into a return included) and the signal hook in front of every return of each signal maker,
@@ -53,8 +53,14 @@ class NewestReelsFirstFixtureTest {
                 val reranks = rankers.flatMap { owner -> owner.methods.mapNotNull { m -> rerankList(m)?.let { m to it } } }
                 assertEquals("$name: reranks", 1, reranks.size)
                 val (rerank, list) = reranks.single()
-                assertEquals("$name: the list register is the sort's", list,
-                    rerank.code().single { it.isListSort() }.callRegisters().first())
+                // The hook reads the List parameter (this, the context, then the list), which no code
+                // writes, and Facebook's own code sorts it somewhere (585 also sorts a copy).
+                assertEquals("$name: the list register is the List parameter",
+                    rerank.implementation!!.registerCount - 2, list)
+                assertTrue("$name: the rerank has no (List, Comparator) sort", rerank.code().any { it.isListSort() })
+                assertTrue("$name: the rerank never writes its List parameter", rerank.code().none { instruction ->
+                    instruction.opcode.setsRegister() && (instruction as? OneRegisterInstruction)?.registerA == list
+                })
 
                 val makers = FixtureDex.methodsWhere(fixture, { dex -> dex.stringSection.any { it == SIGNAL_MAKER } }, ::isSignalMaker)
                 assertTrue("$name: no signal maker", makers.isNotEmpty())
@@ -90,7 +96,8 @@ class NewestReelsFirstFixtureTest {
                 }
                 assertTrue("$name: a branch still lands on a return", sorted.filterIsInstance<BuilderOffsetInstruction>()
                     .none { it.target.location.instruction?.opcode == Opcode.RETURN_VOID })
-                assertEquals("$name: the rerank lost its own code", rerank.code().size + returns, sorted.size)
+                assertEquals("$name: the rerank lost its own code", rerank.code().count { it.opcode != Opcode.NOP } + returns,
+                    sorted.count { it.opcode != Opcode.NOP })
 
                 // Every return of each signal maker gets the hook: the model's FeedType goes to
                 // records, a no skips to the return, a yes reads the edge and hands the FeedType, the

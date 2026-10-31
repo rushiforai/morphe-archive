@@ -54,20 +54,40 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation(libs.kotlinx.coroutines.core)
+    testImplementation(libs.protobuf.javalite)
     testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 tasks {
     test {
         useJUnitPlatform()
+        dependsOn(":extensions:youtube:generateReleaseProto", ":extensions:youtube:compileReleaseJavaWithJavac")
+        // The Android-boundary tests load release bytecode in isolated class loaders.
+        // Declare those actual classes as inputs so runtime changes invalidate cached results.
+        inputs.dir(rootProject.file(
+            "extensions/youtube/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes"
+        )).withPropertyName("queueRuntimeClasses").withNormalizer(ClasspathNormalizer::class)
+        inputs.file(rootProject.file(
+            "extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/OpenVideosFullscreenHookPatch.java"
+        )).withPropertyName("queueFullscreenBoundarySource")
+        inputs.files(
+            rootProject.file("extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/queue/QueueSaveActions.java"),
+            rootProject.file("extensions/youtube/src/main/java/app/morphe/extension/youtube/patches/queue/QueueSaveFeedback.java"),
+            rootProject.file("extensions/youtube/src/main/proto/app/morphe/extension/youtube/innertube/playlist_queue.proto"),
+            rootProject.file("extensions/youtube/src/main/proto/app/morphe/extension/youtube/innertube/icon.proto")
+        ).withPropertyName("queueSaveBoundarySources")
     }
 
     register<JavaExec>("checkStringResources") {
         description = "Checks resource strings for invalid formatting"
 
-        dependsOn(build)
-
-        classpath = sourceSets["main"].runtimeClasspath
+        // Only the compiled patches and the raw string resources are needed. Using the full
+        // main runtime classpath would run processResources, which builds and minifies all extensions.
+        classpath = files(
+            sourceSets["main"].output.classesDirs,
+            configurations.runtimeClasspath,
+            layout.projectDirectory.dir("src/main/resources"),
+        )
         mainClass.set("app.morphe.patches.util.resource.CheckStringResourcesKt")
     }
 
@@ -80,6 +100,20 @@ tasks {
         mainClass.set("app.morphe.util.PatchListGeneratorKt")
     }
 
+    register<JavaExec>("validatePlaylistQueue") {
+        description = "Applies Native playlist queue to a stock APK and verifies it with Android SDK tools"
+        group = "verification"
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("app.morphe.patches.youtube.interaction.nativeplaylistqueue.PlaylistQueueApkBuildKt")
+        doFirst {
+            val apk = providers.gradleProperty("playlistQueueApk").orNull
+                ?: throw GradleException("validatePlaylistQueue requires -PplaylistQueueApk=/absolute/path/youtube.apk")
+            val mode = providers.gradleProperty("playlistQueueMode").getOrElse("standalone")
+            val output = providers.gradleProperty("playlistQueueOutput").orNull
+            setArgs(listOfNotNull(apk, mode, output))
+        }
+    }
     // Used by gradle-semantic-release-plugin.
     publish {
         dependsOn("generatePatchesList")

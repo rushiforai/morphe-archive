@@ -83,6 +83,17 @@ internal object NativeEdits {
             WordEdit(0x00390B24, 0x0A00000BL, 0xEA00000BL),
         ),
     )
+    // CItem::isHidden() is `ldrb r0, [r0, #4]; bx lr`: it returns the item's hidden byte, and the
+    // shop skips any item whose isHidden() is true. The shipped config leaves exactly two items
+    // hidden, AA-2012 (id 24) and Dual MP-643 (id 32), so `mov r0, #0` shows only those two.
+    val HIDDEN_WEAPONS: Map<String, List<WordEdit>> = mapOf(
+        "armeabi" to listOf(
+            WordEdit(0x0038A010, 0xE5D00004L, 0xE3A00000L),
+        ),
+        "armeabi-v7a" to listOf(
+            WordEdit(0x0036D8C0, 0xE5D00004L, 0xE3A00000L),
+        ),
+    )
     val JNI_GUARDS: Map<String, List<WordEdit>> = mapOf(
         "armeabi" to listOf(
             WordEdit(0x000F39A0, 0xE5906040L, 0xE3A06001L),

@@ -1,5 +1,5 @@
 {
-  "version": "1.2.2",
+  "version": "1.2.4",
   "patches": [
     {
       "name": "Debug settings long-press",
@@ -23,6 +23,18 @@
                 "ARMEABI_V7A": 1061801514,
                 "X86_64": 1061801514,
                 "X86": 1061801514
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "14.0.0.4.149",
+              "versionCodes": {
+                "ARM64_V8A": 1061901406,
+                "ARMEABI_V7A": 1061901406,
+                "X86_64": 1061901406,
+                "X86": 1061901406
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -59,6 +71,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "14.0.0.4.149",
+              "versionCodes": {
+                "ARM64_V8A": 1061901406,
+                "ARMEABI_V7A": 1061901406,
+                "X86_64": 1061901406,
+                "X86": 1061901406
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -87,6 +111,18 @@
                 "ARMEABI_V7A": 1061801514,
                 "X86_64": 1061801514,
                 "X86": 1061801514
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "14.0.0.4.149",
+              "versionCodes": {
+                "ARM64_V8A": 1061901406,
+                "ARMEABI_V7A": 1061901406,
+                "X86_64": 1061901406,
+                "X86": 1061901406
               },
               "isExperimental": false,
               "minSdk": 29,
@@ -123,6 +159,18 @@
               "isExperimental": false,
               "minSdk": 29,
               "description": null
+            },
+            {
+              "version": "14.0.0.4.149",
+              "versionCodes": {
+                "ARM64_V8A": 1061901406,
+                "ARMEABI_V7A": 1061901406,
+                "X86_64": 1061901406,
+                "X86": 1061901406
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
             }
           ]
         }
@@ -151,6 +199,18 @@
                 "ARMEABI_V7A": 1061801514,
                 "X86_64": 1061801514,
                 "X86": 1061801514
+              },
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "14.0.0.4.149",
+              "versionCodes": {
+                "ARM64_V8A": 1061901406,
+                "ARMEABI_V7A": 1061901406,
+                "X86_64": 1061901406,
+                "X86": 1061901406
               },
               "isExperimental": false,
               "minSdk": 29,

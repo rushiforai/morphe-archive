@@ -22,6 +22,7 @@ import com.android.tools.smali.dexlib2.Opcode
 
 /**
  * Sets up the header of an engagement panel, such as the comments panel.
+ * The first parameter is the layout of the panel, which holds its header.
  */
 internal object PanelSubheaderFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),

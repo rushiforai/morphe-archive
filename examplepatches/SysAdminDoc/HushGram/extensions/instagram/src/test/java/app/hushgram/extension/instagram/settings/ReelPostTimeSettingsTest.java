@@ -43,7 +43,7 @@ public class ReelPostTimeSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.SHOW_REEL_POST_TIME.resetToDefault();
         Settings.REEL_POST_TIME_SECONDS.resetToDefault();
         Settings.REEL_POST_TIME_AGO.resetToDefault();

@@ -1,0 +1,4 @@
+Signer #1 certificate DN: CN=AntsyLich, O=WorkshopOfAntsyLich
+Signer #1 certificate SHA-256 digest: 9add655a78e96c4ec7a53ef89dccb557cb5d767489fac5e785d671a5a75d4da2
+Signer #1 certificate SHA-1 digest: 76b61d8e8bf66f61077c780182f8fec20f75bdda
+Signer #1 certificate MD5 digest: f677b11e0dbe6d6b106873e136d8c39b

@@ -22,6 +22,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.util.MethodUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
@@ -40,12 +41,13 @@ class ReelsAdPoolTest {
     /**
      * The pool class and its two vends in each declared build, then by the bundle's ABI. On 583 the
      * two builds shared the vends' names but not the pool's. 584 keeps the pool's name and moves
-     * both vends one letter on.
+     * both vends one letter on. 585 moves the pool again (one per ABI) and the vends one more
+     * letter, to A0V and A0X.
      */
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
-            "arm64-v8a" to ("LX/5pp;" to listOf("A0T", "A0V")),
-            "armeabi-v7a" to ("LX/5pp;" to listOf("A0T", "A0V")),
+            "arm64-v8a" to ("LX/06EV;" to listOf("A0V", "A0X")),
+            "armeabi-v7a" to ("LX/06EZ;" to listOf("A0V", "A0X")),
         ),
     )
 
@@ -98,8 +100,8 @@ class ReelsAdPoolTest {
                 val vends = with(context) { reelsAdPoolVends() }
                 val (pool, names) = expected.getValue(version)[bundle.name.substringAfter("-$version-").substringBefore(".apkm")]
                     ?: throw AssertionError("${bundle.name} has no pin")
-                assertEquals("${bundle.name}: the pool", setOf(pool), vends.map { it.definingClass }.toSet())
-                assertEquals("${bundle.name}: the vends", names, vends.map { it.name }.sorted())
+                assertEquals("${bundle.name}: the pool and its vends", pool to names,
+                    vends.map { it.definingClass }.toSet().single() to vends.map { it.name }.sorted())
 
                 for (vend in vends) {
                     val before = vend.implementation!!.instructions.size
@@ -118,8 +120,8 @@ class ReelsAdPoolTest {
      */
     private val rowPool = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
-            "arm64-v8a" to Triple("LX/5RW;", "LX/3T6;", setOf("A0V")),
-            "armeabi-v7a" to Triple("LX/5RW;", "LX/3T6;", setOf("A0V")),
+            "arm64-v8a" to Triple("LX/05Yg;", "LX/064A;", setOf("A0X")),
+            "armeabi-v7a" to Triple("LX/05Ym;", "LX/064G;", setOf("A0X")),
         ),
     )
 
@@ -135,6 +137,12 @@ class ReelsAdPoolTest {
                 val reelVends = with(context) { reelsAdPoolVends() }
                 val (pool, base, own) = rowPool.getValue(version)[bundle.name.substringAfter("-$version-").substringBefore(".apkm")]
                     ?: throw AssertionError("${bundle.name} has no pin")
+                // What the row pool declares itself before the patch adds its base-calling overrides.
+                val rowPool = FixtureDex.classesHolding(bundle, FB_SHORTS_POOL).single()
+                val declared = reelVends.filter { vend -> rowPool.methods.any { MethodUtil.methodSignaturesMatch(it, vend) } }
+                    .map { it.name }.toSet()
+                assertEquals("${bundle.name}: the row pool, its base and the vends it overrides itself",
+                    Triple(pool, base, own), Triple(rowPool.type, rowPool.superclass, declared))
                 val vends = with(context) { fbShortsAdPoolVends(reelVends) }
                 assertEquals("${bundle.name}: the pool", setOf(pool), vends.map { it.definingClass }.toSet())
                 assertEquals("${bundle.name}: one per Reels pool vend", reelVends.map { it.name }, vends.map { it.name })

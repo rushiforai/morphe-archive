@@ -7,6 +7,7 @@ import patches.atv.exact
 internal val trackingEgress = bytecodePatch {
     dependsOn(originalInput)
     execute {
+        if (packageMetadata.isNpoPhone) return@execute
         // Optional advertising configuration: the existing DI branch then omits STER
         // targeting at construction, before reflective request serialization.
         exact("Lnl/npo/player/library/sterads/presentation/ads/ImaAdManager;",

@@ -10,12 +10,16 @@ stable release.
 
 All patches that modify Twitch include the shared settings integration. It provides
 Patch settings, notification registration, theme synchronization and DJ playback
-settings. These fixes have no separate selection or toggle. APK inspection remains
-read-only.
+controls. These fixes have no separate selection or toggle. APK
+inspection remains read-only.
 
 Keep reduced-selection coverage alongside full patch builds. Check theme changes
 across Following, Live and Clips, and retain Twitch's player and rendition checks
 when updating DJ controls.
+
+The patched app loads React Native code from its APK. Downloaded UI bundles can
+change Metro module identifiers and omit Hermes changes, so the shared integration
+pins the host's bundle source to the packaged asset.
 
 ## Verification
 
@@ -48,7 +52,7 @@ after the development tests pass.
 records its identity and optionally decompiles or patches it. For example:
 
 ```powershell
-./scripts/evaluate-update.ps1 -InputApk '.local/inputs/twitch.apkm' -ExpectedVersion '31.7.0' -Decompile
+./scripts/evaluate-update.ps1 -InputApk '.local/inputs/twitch.apkm' -ExpectedVersion '31.8.0' -Decompile
 ```
 
 Review the candidate's hooks before updating `TwitchTarget.kt`. Evaluate native
@@ -56,7 +60,7 @@ and React Native playback, chat, settings and ad handling before declaring a
 version supported. Originals, signing keys and run artifacts stay under `.local/`.
 
 Use the APK's exact version name for prereleases and keep experimental targets
-marked as experimental. The current stable baseline is 31.7.0; 31.8.0_BETA is
+marked as experimental. The current stable baseline is 31.8.0; 31.9.0_BETA is
 being evaluated separately. The [screen inventory](SCREENS.md) lists the surfaces
 to include in regression checks.
 
@@ -87,6 +91,12 @@ run before publication. Release runs share a queue across `dev` and `main`.
 The automatic run starts after a push or merge. Use **Run workflow** to retry a
 failed run or release changes already on the branch. A second run checks for
 unreleased commits before publishing.
+
+If a dev release stops after creating its tag, preserve the tag and release commit.
+Restore its `refs/notes/semantic-release-<tag>` channel metadata if the push failed.
+Run **Release** on `dev` with **recover_tag** set to the existing tag. Recovery builds
+that exact commit, checks the version and channel, and publishes a draft after
+attestation. It rejects published releases and mismatched existing assets.
 
 The patch-bundle version is independent of the supported Twitch app versions.
 A Twitch update uses `bump:`; a new feature uses `feat:`. Release notes group these

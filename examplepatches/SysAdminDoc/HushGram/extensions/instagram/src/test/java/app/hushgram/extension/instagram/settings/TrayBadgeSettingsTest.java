@@ -42,7 +42,7 @@ public class TrayBadgeSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.FILTER_TRAY_BY_BADGE.resetToDefault();
         Settings.TRAY_BADGE.resetToDefault();
         BaseSettings.PAUSED.save(false);

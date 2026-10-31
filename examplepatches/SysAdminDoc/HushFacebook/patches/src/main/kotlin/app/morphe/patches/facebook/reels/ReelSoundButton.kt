@@ -8,6 +8,7 @@ import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.feed.methodsHolding
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.search.branchTarget
@@ -43,6 +44,14 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  *   than the speaker with it, so the matcher refuses one.
  * - The hook goes between the move-result and the if-eqz: the extension is handed the check's
  *   answer and answers back in the same register, so false takes Facebook's own branch.
+ * - 585 (read 2026-10-29, both ABIs) has no check there. Redex moved the speaker into an instance
+ *   builder on a singleton (arm64 LX/08QK;->A01, held in its A00 field; armv7 LX/08QP;->A01) that
+ *   news up the sound toggle and wraps it with the key, and the control component's render (arm64
+ *   LX/091d;->A17, armv7 LX/091i;->A17) calls it with invoke-virtual/range, moves the answer and
+ *   null-checks it before adding it to the column. The key now sits in that builder and in the
+ *   transition list (A1A), which builds all the keys unconditionally. With no gate to find, the
+ *   patch hooks the builder's answer the way the footer's is hooked, matching the call by what the
+ *   builder is (it holds the key and news up the toggle), not by its name or shape.
  *
  * The footer:
  * - The methods loading exactly "FbShortsViewerFooterComponent" (arm64 LX/AOL;'s constructor, A1C,
@@ -61,6 +70,7 @@ internal const val REEL_SOUND_BUTTON = "$EXTENSION_PACKAGE/reels/ReelDeclutter;-
 internal const val REEL_FOOTER_SOUND_BUTTON = "$EXTENSION_PACKAGE/reels/ReelDeclutter;->soundButton(Ljava/lang/Object;)Ljava/lang/Object;"
 internal const val SOUND_BUTTON_KEY = "mute_button_transition_key"
 internal const val FOOTER_COMPONENT = "FbShortsViewerFooterComponent"
+internal const val SPEAKER_CONTROLS = "FbShortsVideoControlComponent"
 internal const val SOUND_TOGGLE_STRING = "video_unified_sound_toggle_copyright_force_mute"
 private const val TRANSITION_KEY = "_transition_key"
 
@@ -100,6 +110,8 @@ internal fun BytecodePatchContext.hideReelSoundButton() {
     val found = classDefByStrings(SOUND_BUTTON_KEY, StringComparisonType.EQUALS)
         .filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.distinctBy { it.type }
         .flatMap { owner -> methodsHolding(owner, SOUND_BUTTON_KEY).flatMap { method -> soundButtonGates(method).map { owner.type to method } } }
+    // 585 has no such check: the controls build the speaker through a builder, hooked on its answer.
+    if (found.isEmpty()) return hideControlsSpeakerBuild()
     val (owner, holder) = found.singleOrNull() ?: throw PatchException(
         "$PATCH: expected one static check whose false skips \"$SOUND_BUTTON_KEY\", found ${found.size}",
     )
@@ -131,15 +143,28 @@ internal fun isCalledBy(method: Method, call: MethodReference): Boolean =
     method.name == call.name && method.returnType == call.returnType &&
         method.parameterTypes.map(CharSequence::toString) == call.parameterTypes.map(CharSequence::toString)
 
+private val STATIC_CALLS = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+private val STATIC_OR_VIRTUAL_CALLS = STATIC_CALLS + setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE)
+
 /**
  * The static calls in [method] that [buildsSpeaker] picks, whose object answer goes by
  * move-result-object straight into an if-eqz on the same register: built, or nothing to add.
  */
-internal fun speakerBuilds(method: Method, buildsSpeaker: (MethodReference) -> Boolean): List<SpeakerBuild> {
+internal fun speakerBuilds(method: Method, buildsSpeaker: (MethodReference) -> Boolean): List<SpeakerBuild> =
+    buildsIn(method, STATIC_CALLS, buildsSpeaker)
+
+/**
+ * [speakerBuilds] for the video controls, whose builder on 585 is an instance method of a singleton,
+ * so a virtual call counts as well as a static one.
+ */
+internal fun controlSpeakerBuilds(method: Method, buildsSpeaker: (MethodReference) -> Boolean): List<SpeakerBuild> =
+    buildsIn(method, STATIC_OR_VIRTUAL_CALLS, buildsSpeaker)
+
+private fun buildsIn(method: Method, opcodes: Set<Opcode>, buildsSpeaker: (MethodReference) -> Boolean): List<SpeakerBuild> {
     val code = method.implementation?.instructions?.toList() ?: return emptyList()
     return (0 until code.size - 2).mapNotNull { at ->
         val call = code[at]
-        if (call.opcode != Opcode.INVOKE_STATIC && call.opcode != Opcode.INVOKE_STATIC_RANGE) return@mapNotNull null
+        if (call.opcode !in opcodes) return@mapNotNull null
         val reference = (call as ReferenceInstruction).reference as MethodReference
         if (reference.returnType.first() != 'L' && reference.returnType.first() != '[') return@mapNotNull null
         val result = code[at + 1]
@@ -170,13 +195,50 @@ internal fun BytecodePatchContext.hideReelFooterSoundButton() {
     }
     val found = pieces.filter(::outsideExtension).mapNotNull { classDefByOrNull(it) }
         .flatMap { piece -> piece.methods.filter { speakerBuilds(it, buildsSpeaker).isNotEmpty() }.map { piece.type to it } }
-    val (owner, holder) = found.singleOrNull() ?: throw PatchException(
-        "$PATCH: expected one piece of \"$FOOTER_COMPONENT\" to build the speaker button, found ${found.size}",
-    )
+    hookSpeakerBuild(
+        found, "expected one piece of \"$FOOTER_COMPONENT\" to build the speaker button, found ${found.size}",
+    ) { speakerBuilds(it, buildsSpeaker) }
+}
+
+/**
+ * Hands the speaker button the reel controls build to the extension before their null check. On 585
+ * the controls have no check in front of the speaker: a builder on a singleton (called virtually)
+ * news up the sound toggle under [SOUND_BUTTON_KEY] and answers it wrapped, or null, and render adds
+ * what comes back. Refuses unless exactly one method of [SPEAKER_CONTROLS] calls such a builder that way.
+ */
+private fun BytecodePatchContext.hideControlsSpeakerBuild() {
+    val toggles = classDefByStrings(SOUND_TOGGLE_STRING, StringComparisonType.EQUALS)
+        .map { it.type }.filterNot { it.startsWith(EXTENSION_PACKAGE) }.toSet()
+    if (toggles.isEmpty()) throw PatchException("$PATCH: no class loads \"$SOUND_TOGGLE_STRING\"")
+    val buildsSpeaker = { call: MethodReference ->
+        classDefByOrNull(call.definingClass)?.methods?.any { buildsControlsSpeaker(it, call, toggles) } == true
+    }
+    val found = classDefByStrings(SPEAKER_CONTROLS, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.distinctBy { it.type }
+        .flatMap { owner -> methodsHolding(owner, SPEAKER_CONTROLS).map { owner.type to it } }
+        .filter { (_, method) -> controlSpeakerBuilds(method, buildsSpeaker).isNotEmpty() }
+    hookSpeakerBuild(
+        found,
+        "expected one static check whose false skips \"$SOUND_BUTTON_KEY\", or one method of \"$SPEAKER_CONTROLS\" " +
+            "building the speaker button, found ${found.size}",
+    ) { controlSpeakerBuilds(it, buildsSpeaker) }
+}
+
+/** Whether [method] is the builder [call] names, holds [SOUND_BUTTON_KEY] and news up one of the sound [toggles]. */
+internal fun buildsControlsSpeaker(method: Method, call: MethodReference, toggles: Set<String>): Boolean =
+    isCalledBy(method, call) && holdsString(method, SOUND_BUTTON_KEY) && newInstanceTypes(method).any(toggles::contains)
+
+/** The one place in [found] that builds the speaker, hooked on the builder's answer before the null check. */
+private fun BytecodePatchContext.hookSpeakerBuild(
+    found: List<Pair<String, Method>>,
+    problem: String,
+    builds: (Method) -> List<SpeakerBuild>,
+) {
+    val (owner, holder) = found.singleOrNull() ?: throw PatchException("$PATCH: $problem")
     val method = mutableClassDefBy(owner).methods.single {
         it.name == holder.name && it.parameterTypes.map(CharSequence::toString) == holder.parameterTypes.map(CharSequence::toString)
     }
-    val build = speakerBuilds(method, buildsSpeaker).singleOrNull()
+    val build = builds(method).singleOrNull()
         ?: throw PatchException("$PATCH: $owner->${holder.name} doesn't build the speaker button exactly once")
     // check-cast takes an 8-bit register.
     if (build.register > 0xFF) throw PatchException("$PATCH: $owner->${holder.name} keeps the speaker in v${build.register}")

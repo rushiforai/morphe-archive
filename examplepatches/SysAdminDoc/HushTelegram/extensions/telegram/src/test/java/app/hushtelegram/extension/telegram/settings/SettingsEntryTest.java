@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.view.View;
 import android.widget.TextView;
 
@@ -386,6 +387,29 @@ public class SettingsEntryTest {
         ActivityController<Activity> loggedOut = replace(login);
 
         assertNotNull("the screen was lost when its host went away", dialogOver(loggedOut.get()));
+    }
+
+    /**
+     * A link tapped in another app reaches Telegram through onNewIntent while the screen is open,
+     * and Telegram opens its chat under the screen. On a phone that left the settings in front with
+     * the chat hidden behind them. A tap on Telegram's icon asks for nothing and keeps the screen.
+     */
+    @Test public void aLinkFromAnotherAppClosesTheScreenForItsChat() {
+        ActivityController<Activity> activity = openedOverNewActivity();
+        activity.pause().stop();
+        SettingsEntry.onNewIntent(activity.get(), new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER));
+        activity.restart().resume();
+        ShadowLooper.idleMainLooper();
+        assertNotNull("a tap on Telegram's icon closed the screen", dialogOver(activity.get()));
+
+        activity.pause().stop();
+        SettingsEntry.onNewIntent(activity.get(), new Intent(Intent.ACTION_VIEW, Uri.parse("tg://resolve?domain=telegram")));
+        activity.restart().resume();
+        ShadowLooper.idleMainLooper();
+        assertNull("the screen stayed over the link's chat", dialogOver(activity.get()));
+
+        ActivityController<Activity> next = replace(activity);
+        assertNull("the screen came back after a link closed it", dialogOver(next.get()));
     }
 
     @Test public void aScreenThePersonClosedStaysClosedWhenItsHostGoesAway() {

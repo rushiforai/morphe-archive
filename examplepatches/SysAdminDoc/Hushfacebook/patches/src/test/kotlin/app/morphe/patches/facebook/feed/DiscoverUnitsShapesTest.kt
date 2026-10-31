@@ -82,8 +82,8 @@ class DiscoverUnitsShapesTest {
         assertFalse(readsUnconnectedStoriesFlag(other))
     }
 
-    private fun classDef(type: String, vararg methods: Method): ClassDef = ImmutableClassDef(
-        type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null, methods.toList(),
+    private fun classDef(type: String, vararg methods: Method, interfaces: List<String>? = null): ClassDef = ImmutableClassDef(
+        type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", interfaces, null, null, null, methods.toList(),
     )
 
     private fun layout(vararg parameters: String): ClassDef = classDef(
@@ -104,5 +104,53 @@ class DiscoverUnitsShapesTest {
         assertEquals(listOf(component), found.map { it.type })
         // The control: a layout that doesn't take the component finds nothing.
         assertEquals(emptyList<String>(), unconnectedStoriesReaders(layout("Lcom/example/Other;")) { classes[it] }.map { it.type })
+    }
+
+    private val unitModel = "Lcom/example/UnitModel;"
+    private val treeUnitModel = "Lcom/example/TreeUnitModel;"
+
+    /** 585's accessor implementation: `isUnconnected()Z` loads [readKey] into the tree's boolean reader. */
+    private fun accessor(readKey: String = key): Method = MutableMethod(
+        ImmutableMethod(
+            treeUnitModel, "isUnconnected", emptyList(), "Z",
+            AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
+            ImmutableMethodImplementation(2, emptyList(), null, null),
+        ),
+    ).apply {
+        addInstructionsWithLabels(
+            0,
+            """
+                const v0, $readKey
+                invoke-virtual {p0, v0}, $reader
+                move-result v0
+                return v0
+            """.trimIndent(),
+        )
+    }
+
+    /** 585's component: asks the unit model's [name] accessor instead of the tree. */
+    private fun asks(name: String = "isUnconnected") = method(
+        """
+            invoke-interface {p1}, $unitModel->$name()Z
+            move-result v0
+            return v0
+        """,
+    )
+
+    @Test
+    fun `585's component asking the unit model's accessor that reads the flag is the reader`() {
+        val implementation = classDef(treeUnitModel, accessor(), interfaces = listOf(unitModel))
+        assertEquals(setOf("$unitModel->isUnconnected"), unconnectedStoriesAccessors(implementation, setOf(unitModel)))
+        val flagAccessors = { owners: Set<String> -> unconnectedStoriesAccessors(implementation, owners) }
+        val classes = mapOf(component to classDef(component, asks()))
+        assertEquals(listOf(component), unconnectedStoriesReaders(layout(component), flagAccessors) { classes[it] }.map { it.type })
+        // Controls: no accessor walk, another accessor of the model, an implementation of another
+        // key, and one that doesn't declare the model's interface.
+        assertEquals(emptyList<String>(), unconnectedStoriesReaders(layout(component)) { classes[it] }.map { it.type })
+        val asksOther = mapOf(component to classDef(component, asks("isSeen")))
+        assertEquals(emptyList<String>(), unconnectedStoriesReaders(layout(component), flagAccessors) { asksOther[it] }.map { it.type })
+        val otherKey = classDef(treeUnitModel, accessor(hex(treeFieldKey("is_mbsu"))), interfaces = listOf(unitModel))
+        assertEquals(emptySet<String>(), unconnectedStoriesAccessors(otherKey, setOf(unitModel)))
+        assertEquals(emptySet<String>(), unconnectedStoriesAccessors(classDef(treeUnitModel, accessor()), setOf(unitModel)))
     }
 }

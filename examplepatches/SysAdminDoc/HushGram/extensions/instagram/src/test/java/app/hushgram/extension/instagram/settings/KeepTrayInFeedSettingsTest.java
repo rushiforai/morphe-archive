@@ -36,7 +36,7 @@ public class KeepTrayInFeedSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.KEEP_TRAY_IN_FEED.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();

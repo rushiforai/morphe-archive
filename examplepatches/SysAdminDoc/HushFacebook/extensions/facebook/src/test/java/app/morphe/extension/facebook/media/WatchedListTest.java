@@ -14,6 +14,7 @@ import android.content.SharedPreferences;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -24,26 +25,47 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.morphe.extension.facebook.media.RecentlyWatched.Entry;
+import app.morphe.extension.facebook.media.RecentlyWatched.Keep;
+import app.morphe.extension.facebook.settings.Settings;
+import app.morphe.extension.shared.SettingsContextRule;
+import app.morphe.extension.shared.settings.Setting;
 
 /**
  * The Recently watched list as it's kept: one entry per reel, video or story, the one watched last
- * first, a second watch moving it up, the oldest dropped past the limit, and the file read back as
- * it was written.
+ * first, a second watch moving it up, the oldest dropped past the limit, entries leaving once their
+ * time is up, one taken off and put back, and the file read back as it was written.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
 public class WatchedListTest {
+    @Rule
+    public final SettingsContextRule settingsContext = new SettingsContextRule();
+
+    /** Where the clock stands unless a test moves it: well past the small times most entries carry. */
+    private static final long NOW = 1_000_000L;
+    private static final long DAY = RecentlyWatched.DAY_MS;
+
     private SharedPreferences store;
 
     @Before
     public void start() {
         store = RuntimeEnvironment.getApplication().getSharedPreferences("watched_list_test", Context.MODE_PRIVATE);
         store.edit().clear().commit();
+        // A keep time saved below ages the installed list, at once and on this thread.
+        RecentlyWatchedForTests.install();
+        RecentlyWatchedForTests.clockAt(NOW);
     }
 
     @After
     public void restore() {
         store.edit().clear().commit();
+        Settings.RECENTLY_WATCHED_KEEP.resetToDefault();
+        Settings.RECENTLY_WATCHED.resetToDefault();
+        RecentlyWatchedForTests.forget();
+    }
+
+    private static void keep(Keep time) {
+        Settings.RECENTLY_WATCHED_KEEP.save(time);
     }
 
     private static Entry reel(String id, long at) {
@@ -189,5 +211,224 @@ public class WatchedListTest {
         assertEquals(0, new WatchedList(store).size());
         assertTrue(list.add(reel("a", 3)));
         assertEquals(1, list.size());
+    }
+
+    // ------------------------------------------------------------------ how long entries stay
+
+    @Test
+    public void theAgeRuleAtItsEdges() {
+        long week = 7 * DAY;
+        assertTrue("a week old stayed", WatchedList.expired(0, week, week));
+        assertFalse("a millisecond short of a week went", WatchedList.expired(1, week, week));
+        assertFalse("no limit dropped one", WatchedList.expired(0, 100 * week, 0));
+        assertFalse("a day ahead of the clock went", WatchedList.expired(week + DAY, week, week));
+        assertTrue("past a day ahead of the clock stayed", WatchedList.expired(week + DAY + 1, week, week));
+    }
+
+    @Test
+    public void anEntryLeavesTheMomentItsTimeIsUp() {
+        keep(Keep.SEVEN_DAYS);
+        long now = 100 * DAY;
+        RecentlyWatchedForTests.clockAt(now);
+        WatchedList list = new WatchedList(store);
+        list.add(reel("due", now - 7 * DAY));
+        list.add(reel("kept", now - 7 * DAY + 1));
+        assertEquals("[reel:kept]", ids(list.newestFirst()).toString());
+        assertEquals("the file kept what left", "[reel:kept]", ids(new WatchedList(store).newestFirst()).toString());
+
+        RecentlyWatchedForTests.clockAt(now + 1);
+        assertEquals(0, list.size());
+    }
+
+    @Test
+    public void aNewListKeepsEntriesThirtyDays() {
+        assertEquals(Keep.THIRTY_DAYS, Settings.RECENTLY_WATCHED_KEEP.savedValue());
+        long now = 100 * DAY;
+        RecentlyWatchedForTests.clockAt(now);
+        WatchedList list = new WatchedList(store);
+        list.add(reel("month", now - 30 * DAY));
+        list.add(reel("week", now - 8 * DAY));
+        assertEquals("[reel:week]", ids(list.newestFirst()).toString());
+    }
+
+    @Test
+    public void untilClearedKeepsEveryEntryWhateverTheClockSays() {
+        keep(Keep.UNTIL_CLEARED);
+        long now = 1000 * DAY;
+        RecentlyWatchedForTests.clockAt(now);
+        WatchedList list = new WatchedList(store);
+        list.add(reel("old", 1));
+        list.add(reel("ahead", now + 5 * DAY));
+        assertEquals(2, list.size());
+    }
+
+    @Test
+    public void aClockSetBackALittleKeepsTheListAndALotDropsWhatCantBeAged() {
+        long now = 100 * DAY;
+        RecentlyWatchedForTests.clockAt(now);
+        WatchedList list = new WatchedList(store);
+        list.add(reel("a", now - DAY));
+        list.add(reel("b", now));
+        RecentlyWatchedForTests.clockAt(now - DAY / 2);
+        assertEquals("half a day back dropped an entry", 2, list.size());
+        RecentlyWatchedForTests.clockAt(now - DAY - 1);
+        assertEquals("[reel:a]", ids(list.newestFirst()).toString());
+    }
+
+    @Test
+    public void aShorterTimeTakesWhatsPastItOffAtOnce() {
+        long now = 100 * DAY;
+        RecentlyWatchedForTests.clockAt(now);
+        RecentlyWatchedForTests.watched(RecentlyWatched.REEL, "old", null, null, null, now - 10 * DAY, 0);
+        RecentlyWatchedForTests.watched(RecentlyWatched.REEL, "new", null, null, null, now - DAY, 0);
+        keep(Keep.SEVEN_DAYS);
+        assertEquals("[reel:new]", ids(savedList()).toString());
+    }
+
+    @Test
+    public void theRunsFirstStartAgesTheListWithRecordingOff() {
+        Settings.RECENTLY_WATCHED.save(false);
+        keep(Keep.SEVEN_DAYS);
+        long now = 100 * DAY;
+        // Both written two days back, when neither was past seven days; a write ages the list too.
+        RecentlyWatchedForTests.clockAt(now - 2 * DAY);
+        RecentlyWatchedForTests.watched(RecentlyWatched.REEL, "old", null, null, null, now - 8 * DAY, 0);
+        RecentlyWatchedForTests.watched(RecentlyWatched.REEL, "new", null, null, null, now - 2 * DAY, 0);
+        assertEquals(2, savedList().size());
+
+        RecentlyWatchedForTests.clockAt(now);
+        RecentlyWatched.started(new Object());
+        assertEquals("[reel:new]", ids(savedList()).toString());
+        assertTrue("a start with recording off was checked", RecentlyWatchedForTests.CHECKS.isEmpty());
+    }
+
+    /** What the installed list's file holds, oldest first. */
+    private static List<Entry> savedList() {
+        String saved = RecentlyWatchedForTests.store().getString(WatchedList.KEY, null);
+        return saved == null ? new ArrayList<>() : WatchedList.decode(saved);
+    }
+
+    // ------------------------------------------------------------------ a list from an earlier build
+
+    @Test
+    public void aListFromBeforeEntriesExpiredStaysUntilCleared() {
+        SharedPreferences settings = settingsStore();
+        store.edit().putString(WatchedList.KEY, "[{\"k\":\"reel\",\"i\":\"1\",\"t\":1}]").commit();
+        try {
+            assertTrue(RecentlyWatched.keepOlderListAsItWas(settings, store));
+            assertEquals(Keep.UNTIL_CLEARED.name(), settings.getString(RecentlyWatched.KEEP_KEY, null));
+            assertFalse("the list is still taken for an older one", WatchedList.olderList(store));
+            assertEquals("[reel:1]", ids(WatchedList.decode(store.getString(WatchedList.KEY, null))).toString());
+
+            // Picking 30 days, the default, takes the saved time away again. That's no older list.
+            settings.edit().remove(RecentlyWatched.KEEP_KEY).commit();
+            assertFalse(RecentlyWatched.keepOlderListAsItWas(settings, store));
+            assertFalse(settings.contains(RecentlyWatched.KEEP_KEY));
+        } finally {
+            settings.edit().clear().commit();
+        }
+    }
+
+    @Test
+    public void aNewListOrASavedTimeIsLeftAsItIs() {
+        SharedPreferences settings = settingsStore();
+        try {
+            assertFalse("nothing listed yet", RecentlyWatched.keepOlderListAsItWas(settings, store));
+            assertFalse(settings.contains(RecentlyWatched.KEEP_KEY));
+
+            new WatchedList(store).add(reel("a", NOW));
+            assertFalse("this build's list taken for an older one", WatchedList.olderList(store));
+            assertFalse(RecentlyWatched.keepOlderListAsItWas(settings, store));
+            assertFalse(settings.contains(RecentlyWatched.KEEP_KEY));
+
+            store.edit().clear().putString(WatchedList.KEY, "[]").commit();
+            settings.edit().putString(RecentlyWatched.KEEP_KEY, Keep.SEVEN_DAYS.name()).commit();
+            assertTrue(RecentlyWatched.keepOlderListAsItWas(settings, store));
+            assertEquals("a saved time was replaced", Keep.SEVEN_DAYS.name(),
+                    settings.getString(RecentlyWatched.KEEP_KEY, null));
+            assertFalse(WatchedList.olderList(store));
+        } finally {
+            settings.edit().clear().commit();
+        }
+    }
+
+    @Test
+    public void theSettingsFirstLoadSettlesTheAppsOwnFiles() {
+        SharedPreferences listStore = RuntimeEnvironment.getApplication()
+                .getSharedPreferences(WatchedList.FILE, Context.MODE_PRIVATE);
+        SharedPreferences settings = Setting.preferences.preferences;
+        listStore.edit().clear().putString(WatchedList.KEY, "[]").commit();
+        settings.edit().remove(RecentlyWatched.KEEP_KEY).commit();
+        try {
+            RecentlyWatched.keepOlderListAsItWas();
+            assertEquals(Keep.UNTIL_CLEARED.name(), settings.getString(RecentlyWatched.KEEP_KEY, null));
+            assertFalse(WatchedList.olderList(listStore));
+        } finally {
+            listStore.edit().clear().commit();
+            settings.edit().remove(RecentlyWatched.KEEP_KEY).commit();
+        }
+    }
+
+    private static SharedPreferences settingsStore() {
+        SharedPreferences settings = RuntimeEnvironment.getApplication()
+                .getSharedPreferences("watched_keep_settings_test", Context.MODE_PRIVATE);
+        settings.edit().clear().commit();
+        return settings;
+    }
+
+    // ------------------------------------------------------------------ one taken off, and Undo
+
+    @Test
+    public void oneTakenOffGoesBackWhereItsTimePutsIt() {
+        WatchedList list = new WatchedList(store);
+        list.add(reel("a", 1));
+        list.add(reel("b", 2));
+        list.add(reel("c", 3));
+        Entry gone = list.remove(RecentlyWatched.REEL, "b");
+        assertEquals("b", gone.id);
+        assertNull("taken off twice", list.remove(RecentlyWatched.REEL, "b"));
+        assertEquals("[reel:c, reel:a]", ids(new WatchedList(store).newestFirst()).toString());
+
+        assertTrue(list.restore(gone));
+        assertEquals("[reel:c, reel:b, reel:a]", ids(list.newestFirst()).toString());
+        assertEquals("[reel:c, reel:b, reel:a]", ids(new WatchedList(store).newestFirst()).toString());
+    }
+
+    @Test
+    public void undoNeverWritesOverANewerWatch() {
+        WatchedList list = new WatchedList(store);
+        list.add(reel("a", 1));
+        Entry gone = list.remove(RecentlyWatched.REEL, "a");
+        list.add(new Entry(RecentlyWatched.VIDEO, "a", null, null, null, 9, 0));
+        assertFalse(list.restore(gone));
+        List<Entry> entries = list.newestFirst();
+        assertEquals("[video:a]", ids(entries).toString());
+        assertEquals(9, entries.get(0).watchedAt);
+    }
+
+    @Test
+    public void undoPutsNothingBackPastItsTime() {
+        keep(Keep.SEVEN_DAYS);
+        long now = 100 * DAY;
+        RecentlyWatchedForTests.clockAt(now);
+        WatchedList list = new WatchedList(store);
+        list.add(reel("a", now - 7 * DAY + 10));
+        Entry gone = list.remove(RecentlyWatched.REEL, "a");
+        RecentlyWatchedForTests.clockAt(now + 10);
+        assertFalse(list.restore(gone));
+        assertEquals(0, list.size());
+    }
+
+    @Test
+    public void puttingOneBackKeepsTheLimit() {
+        WatchedList list = new WatchedList(store);
+        for (int i = 0; i < WatchedList.MAX_ENTRIES; i++) list.add(reel("v" + i, i + 1));
+        Entry gone = list.remove(RecentlyWatched.REEL, "v10");
+        list.add(reel("new", 10_000));
+        assertTrue(list.restore(gone));
+        assertEquals(WatchedList.MAX_ENTRIES, list.size());
+        List<Entry> entries = list.newestFirst();
+        assertEquals("new", entries.get(0).id);
+        assertEquals("the oldest didn't make room", "v1", entries.get(entries.size() - 1).id);
     }
 }

@@ -1,15 +1,6 @@
 name: Documentation
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'docs/site/**'
-      - 'docs/site-requirements.txt'
-      - 'scripts/*docs*'
-      - 'patches-list.json'
-      - 'mkdocs.yml'
-      - '.github/workflows/pages.yml'
   pull_request:
     paths:
       - 'docs/site/**'
@@ -24,8 +15,10 @@ on:
       - 'mkdocs.yml'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
-  # Release metadata is written in a [skip ci] commit. Build current main
-  # after stable or dev Release finishes so both channels stay current.
+  # Main source and docs-only pushes already run Release. Build after it
+  # succeeds so promoted pages use its [skip ci] metadata commit; a parallel
+  # push build can read the previous stable catalogue instead. Also refresh
+  # prerelease cards after dev Release succeeds.
   workflow_run:
     workflows: [Release]
     types: [completed]

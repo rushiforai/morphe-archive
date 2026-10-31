@@ -77,6 +77,7 @@ public class GlassTabBarTest {
         Settings.GLASS_TAB_BAR.resetToDefault();
         Settings.GLASS_TAB_BAR_BLUR.resetToDefault();
         Settings.GLASS_TAB_BAR_FLOAT.resetToDefault();
+        Settings.GLASS_TAB_BAR_REELS_BEHIND.resetToDefault();
         Settings.GLASS_TAB_BAR_HEIGHT.resetToDefault();
         Settings.GLASS_TAB_BAR_CORNERS.resetToDefault();
         Settings.GLASS_TAB_BAR_LIFT.resetToDefault();
@@ -87,6 +88,7 @@ public class GlassTabBarTest {
         Settings.GLASS_TAB_BAR_SLIDE.resetToDefault();
         Settings.GLASS_TAB_BAR_LIQUID.resetToDefault();
         Settings.GLASS_TAB_BAR_KEEP_SIZE.resetToDefault();
+        Settings.GLASS_TAB_BAR_REFRACT.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         GlassTabBar.resetForTests();
@@ -1204,6 +1206,7 @@ public class GlassTabBarTest {
             Settings.GLASS_TAB_BAR_SLIDE.save(false);
             Settings.GLASS_TAB_BAR_LIQUID.save(false);
             Settings.GLASS_TAB_BAR_KEEP_SIZE.save(false);
+            Settings.GLASS_TAB_BAR_REFRACT.save(false);
             controller = Robolectric.buildActivity(Activity.class).setup();
             activity = controller.get();
             activity.getApplicationInfo().flags |= android.content.pm.ApplicationInfo.FLAG_SUPPORTS_RTL;
@@ -1294,6 +1297,19 @@ public class GlassTabBarTest {
             root.measure(View.MeasureSpec.makeMeasureSpec(dp(411), View.MeasureSpec.EXACTLY),
                     View.MeasureSpec.makeMeasureSpec(dp(104), View.MeasureSpec.EXACTLY));
             root.layout(0, 0, dp(411), dp(104));
+        }
+
+        /** Draws the bar's background into a canvas recorded for the GPU, the way the bar draws on a phone. */
+        void recordBackground() {
+            android.graphics.RenderNode target = new android.graphics.RenderNode("target");
+            target.setPosition(0, 0, bar.getWidth(), bar.getHeight());
+            Canvas canvas = target.beginRecording(bar.getWidth(), bar.getHeight());
+            try {
+                bar.getBackground().setBounds(0, 0, bar.getWidth(), bar.getHeight());
+                bar.getBackground().draw(canvas);
+            } finally {
+                target.endRecording();
+            }
         }
 
         Pixels background() {
@@ -1711,6 +1727,74 @@ public class GlassTabBarTest {
             target.endRecording();
         }
         lens.discard();
+    }
+
+    /**
+     * #369: the rim mirrors the band at the pill's edge. The very edge shows what's two bands in, the order runs
+     * backwards across the band, it meets the plain backdrop at the band's inner line, and past it nothing moves.
+     */
+    @Test
+    public void theRimMirrorsTheBandAtTheEdge() {
+        float band = 10f;
+        assertEquals("the edge shows what's two bands in", 20f, GlassLens.rimSource(0f, band), 0f);
+        float last = Float.MAX_VALUE;
+        for (float depth = 0f; depth < band; depth += 0.5f) {
+            float source = GlassLens.rimSource(depth, band);
+            assertTrue("upside down across the band at " + depth, source < last);
+            assertTrue("drawn from deeper in at " + depth, source > depth);
+            last = source;
+        }
+        assertEquals("meets the backdrop at the band's inner line", band, GlassLens.rimSource(band - 0.001f, band), 0.01f);
+        assertEquals(band, GlassLens.rimSource(band, band), 0f);
+        assertEquals("past the band, as it is", 17f, GlassLens.rimSource(17f, band), 0f);
+    }
+
+    /**
+     * #369: Bend light at the edges paints a rim over the liquid pill and over Search's circle beside it, where
+     * the pill is blurred on Android 13 and newer. Off, no rim is made. Paused, the bar is the plain pill and
+     * no rim is asked for.
+     */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(sdk = 33, qualifiers = "en-rUS-w411dp-h891dp-xhdpi")
+    public void bendLightAtTheEdgesPaintsTheRimsOnlyWhenOn() {
+        GlassTabBar.animationsOnForTests = false;
+        for (boolean refract : new boolean[]{true, false}) {
+            try (GlassHost host = new GlassHost(Color.BLACK, true, GlassHeight.STANDARD, false, true)) {
+                FrameLayout feed = new FrameLayout(host.activity);
+                feed.setBackgroundColor(Color.RED);
+                host.root.addView(feed, 0, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                host.nameSearch(1);
+                Settings.GLASS_TAB_BAR_LIQUID.save(true);
+                Settings.GLASS_TAB_BAR_REFRACT.save(refract);
+                GlassTabBar.apply(host.activity);
+                host.frame();
+                host.frame();
+                Object pill = host.bar.getBackground();
+                assertTrue("no backdrop recorded", (boolean) ReflectionHelpers.getField(pill, "recorded"));
+                host.recordBackground();
+                assertTrue("the pill wasn't blurred", (boolean) ReflectionHelpers.getField(pill, "blurShown"));
+                GlassLens rim = ReflectionHelpers.getField(pill, "rimLens");
+                GlassLens circle = ReflectionHelpers.getField(pill, "circleRim");
+                if (!refract) {
+                    assertNull("off, no rim", rim);
+                    assertNull("off, no rim on Search", circle);
+                    continue;
+                }
+                assertNotNull(rim);
+                assertNotNull("Search's circle gets a rim of its own", circle);
+                assertEquals(1, rim.asked);
+                assertEquals(1, circle.asked);
+
+                PauseForTests.pause(HushgramPause.Reason.SWITCH);
+                try {
+                    host.recordBackground();
+                    assertEquals("paused, the plain pill", 1, rim.asked);
+                } finally {
+                    PauseForTests.resume();
+                }
+            }
+        }
     }
 
     @Test
@@ -2371,6 +2455,44 @@ public class GlassTabBarTest {
         assertTrue("a Reels tab tucked out of the bar", GlassTabBar.reelsKeepTheSlot(bar, reelsTab));
         reels.setSelected(false);
         assertFalse(GlassTabBar.reelsKeepTheSlot(bar, reelsTab));
+    }
+
+    /**
+     * #372: with the switch on, the viewer fills the screen behind the pill and its caption, buttons and
+     * seek bar are raised by the slot; off, today's layout. A slot not kept (bar hidden) changes nothing.
+     */
+    @Test
+    public void reelsBehindThePillRaiseTheControlsInsteadOfStoppingTheViewer() {
+        assertFalse("off by default", Settings.GLASS_TAB_BAR_REELS_BEHIND.defaultValue);
+        assertEquals(126, GlassTabBar.reelsViewerMargin(true, false, 126));
+        assertEquals(0, GlassTabBar.reelsBandLift(true, false, 126));
+        assertEquals(0, GlassTabBar.reelsViewerMargin(true, true, 126));
+        assertEquals(126, GlassTabBar.reelsBandLift(true, true, 126));
+        assertEquals("no slot kept, nothing raised", 0, GlassTabBar.reelsBandLift(false, true, 126));
+        assertEquals(0, GlassTabBar.reelsViewerMargin(false, true, 126));
+        assertEquals(0, GlassTabBar.reelsViewerMargin(false, false, 126));
+        assertEquals(0, GlassTabBar.reelsBandLift(true, true, -5));
+    }
+
+    /**
+     * #335: with the Reels auto-hide holding the pill all the way off, the reel gets the slot's space
+     * instead of a black band, in the Reels tab and wherever else the slot would be kept.
+     */
+    @Test
+    public void reelsGiveUpTheSlotWhileTheAutoHideHasThePillOff() {
+        Context context = RuntimeEnvironment.getApplication();
+        int reelsTab = 0x7f0b0c68;
+        FrameLayout bar = new FrameLayout(context);
+        View reels = new View(context);
+        reels.setId(reelsTab);
+        bar.addView(reels);
+        reels.setSelected(true);
+
+        assertTrue("pill showing", GlassTabBar.reelsKeepTheSlot(bar, reelsTab, false));
+        assertFalse("pill slid all the way off", GlassTabBar.reelsKeepTheSlot(bar, reelsTab, true));
+        bar.setVisibility(View.GONE);
+        assertTrue("a paused reel's hidden bar still keeps it (#221)", GlassTabBar.reelsKeepTheSlot(bar, reelsTab, false));
+        assertFalse(GlassTabBar.reelsKeepTheSlot(bar, reelsTab, true));
     }
 
     /**

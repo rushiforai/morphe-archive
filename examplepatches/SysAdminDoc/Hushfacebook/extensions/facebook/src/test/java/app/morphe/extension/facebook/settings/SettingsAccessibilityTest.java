@@ -284,8 +284,8 @@ public class SettingsAccessibilityTest {
         list.setAdapter(page.getPreferenceScreen().getRootAdapter());
         list.setOnItemClickListener(page.getPreferenceScreen());
         list.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(40000, View.MeasureSpec.EXACTLY));
-        list.layout(0, 0, 1080, 40000);
+                View.MeasureSpec.makeMeasureSpec(80000, View.MeasureSpec.EXACTLY));
+        list.layout(0, 0, 1080, 80000);
         List<View> rows = new ArrayList<>();
         for (int index = 0; index < list.getChildCount(); index++) {
             View row = list.getChildAt(index);

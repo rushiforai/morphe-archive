@@ -22,10 +22,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -55,10 +53,9 @@ class ReelCommentButtonFixtureTest {
                     .filter { owner -> owner.methods.count { isCommentClick(it, owner) } == 1 }
                 assertEquals("$name: Comment button classes", 1, buttons.size)
                 val button = buttons.single()
+                // The builder is one that creates the button or, on 585, an instance method of the button's own class.
                 val builders = FixtureDex.methodsWhere(bundle, { dex -> dex.typeSection.contains(button.type) }) { method ->
-                    method.definingClass != button.type && method.implementation?.instructions?.any {
-                        it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == button.type
-                    } == true
+                    buildsCommentButton(method, button.type)
                 }
                 assertEquals("$name: methods building the Comment button", 1, builders.size)
                 val builder = builders.single()
@@ -73,7 +70,8 @@ class ReelCommentButtonFixtureTest {
                 val alternate = alternateCommentKey(builder)
                 assertNotNull("$name: the builder reads no second comment key", alternate)
                 assertTrue("$name: the second key is can_viewer_comment", alternate != CAN_VIEWER_COMMENT)
-                assertNull("$name: the factory never reads both keys into one register", alternateCommentKey(factory))
+                // 584 read the two keys in different branches of the factory; 585 reads them into one register as the builder does.
+                alternateCommentKey(factory)?.let { assertEquals("$name: the factory's second key matches the builder's", alternate, it) }
 
                 val owners = FixtureDex.classes(bundle, setOf(builder.definingClass))
                 val classes = (owners.values + button + factoryClass).distinctBy { it.type }

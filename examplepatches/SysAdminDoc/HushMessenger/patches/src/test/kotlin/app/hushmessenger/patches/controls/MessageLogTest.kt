@@ -111,6 +111,7 @@ internal fun messageLogFixture(
     idFlags: Int = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
     hiddenReader: String = HIDDEN_READER_BODY,
     hiddenFlags: Int = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+    unsentClear: String = UNSENT_CLEAR_BODY,
 ): List<MutableClass> {
     val notificationCtor = newMessageNotificationCtor("LX/5qJ;", "LX/5Yc;")
     val secret = fixtureClass(SECRET_STRING, listOf(
@@ -137,7 +138,7 @@ internal fun messageLogFixture(
             move-result v1
             const-string v2, "$retraction"
             return-void
-        """.trimIndent(), 6)))
+        """.trimIndent(), 6), fixtureMethod(SYNTHETIC_UNSENT_CLEAR, unsentClear, 10)))
     val unsent = fixtureClass(UNSENT_OWNER, listOf(fixtureMethod(UNSENT_CHECK, unsentBody, 6, unsentFlags)), flags = unsentOwnerFlags)
     val decoy = fixtureClass("LX/2Ji;", listOf(fixtureMethod("LX/2Ji;->A0S($MESSAGE)Z",
         "iget-object v0, p0, $MESSAGE->A0e:$THREAD_KEY_TYPE\nif-eqz v0, :none\nconst/4 v0, 0x1\n:none\nreturn v0", 2, STATIC_PUBLIC)))
@@ -149,6 +150,51 @@ internal fun messageLogFixture(
     ))
     return listOf(secret, message, notification, manager, unsent, decoy, launcher, texts)
 }
+
+private const val RECALLER_TYPE = "LX/98W;"
+private const val RECALL_SHAPE = "(${FB_USER_SESSION}Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z"
+private const val RECALLER_BODY = "const-string v0, \"NotificationRecaller\"\nconst/4 v0, 0x0\nreturn v0"
+
+internal const val SYNTHETIC_UNSENT_CLEAR = "$MESSAGES_NOTIFICATION_MANAGER->A0G($FB_USER_SESSION$NEW_MESSAGE_NOTIFICATION)V"
+private const val CLEAR_CALL = "$MESSAGES_NOTIFICATION_MANAGER->A0D($FB_USER_SESSION${THREAD_KEY_TYPE}Ljava/lang/String;)V"
+private const val DROP_LOG = "$MESSAGES_NOTIFICATION_MANAGER->A09(${MESSAGES_NOTIFICATION_MANAGER}Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V"
+private const val CLEAR_DROP_LOG = "invoke-static {p0, v0, v6, v5}, $DROP_LOG"
+private const val RECALLED_BY_CLEARING_LOAD = "const-string v5, \"new_message_notification_recalled_by_clearing\""
+
+/**
+ * The notification manager's unsend step, cut down: v6 holds the message id. With more than one message showing it asks
+ * the recaller, else it clears the chat's notification with "UnsendMessage" and logs v6 as the dropped messageId. As in
+ * Messenger, the branch lands on the step before the load, not on the load.
+ */
+private val UNSENT_CLEAR_BODY = """
+    iget-object v6, p2, $NEW_MESSAGE_NOTIFICATION->A07:Ljava/lang/String;
+    iget-object v3, p2, $NEW_MESSAGE_NOTIFICATION->A0O:Ljava/lang/String;
+    if-eqz v3, :clear
+    const/4 v2, 0x0
+    invoke-virtual {v2, p1, v6, v3, v3}, $RECALLER_TYPE->A00$RECALL_SHAPE
+    move-result v2
+    return-void
+    :clear
+    invoke-static {p2}, $MESSAGES_NOTIFICATION_MANAGER->A0A($NEW_MESSAGE_NOTIFICATION)V
+    const-string v5, "UnsendMessage"
+    invoke-virtual {p0, p1, v3, v5}, $CLEAR_CALL
+    $RECALLED_BY_CLEARING_LOAD
+    const-string v0, "Notification dropped (New message notification recalled by clearing), messageId:"
+    $CLEAR_DROP_LOG
+    return-void
+""".trimIndent()
+
+/**
+ * Messenger's notification recaller, with a twin of the same shape that logs nothing and a static one that logs the
+ * same tag, neither of which is the recaller.
+ */
+private fun unsentRecallFixture(registers: Int = 24, body: String = RECALLER_BODY, extra: List<MutableMethod> = emptyList()) = listOf(
+    fixtureClass(RECALLER_TYPE, listOf(fixtureMethod("$RECALLER_TYPE->A00$RECALL_SHAPE", body, registers))),
+    fixtureClass("LX/98X;", listOf(
+        fixtureMethod("LX/98X;->A00$RECALL_SHAPE", "const/4 v0, 0x0\nreturn v0", 24),
+        fixtureMethod("LX/98X;->A01$RECALL_SHAPE", RECALLER_BODY, 24, STATIC_PUBLIC),
+    ) + extra),
+)
 
 private fun MutableMethod.code() = implementation!!.instructions.toList()
 private fun reference(at: Int, code: List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>) =
@@ -381,6 +427,129 @@ class MessageLogTest {
             assertFailsWith<PatchException>(case) { injectControl(MESSAGE_LOG, mapOf(MESSAGE_LOG to listOf(ctor))) }
             assertFailsWith<PatchException>(case) { injectControl(AUTO_REPLY, mapOf(AUTO_REPLY to listOf(ctor))) }
             assertEquals(before, ctor.code(), case)
+        }
+    }
+
+    /**
+     * The message log and Keep unsent messages both claim the recaller. The first one in hands the message id over and,
+     * when the extension says so, returns true before Messenger takes the message out of its notification. The second
+     * finds the call already there and leaves the method alone.
+     */
+    @Test fun bothUnsentControlsShareOneRecallerHook() {
+        val classes = unsentRecallFixture()
+        val found = mirroredControls(classes)
+        assertEquals(activeProfile.hooks.getValue(UNSENT_RECALL).toList(), found.getValue(UNSENT_RECALL).map { it.hookId() })
+        validateControls(found, setOf(UNSENT_RECALL))
+        val recaller = classes.single { it.type == RECALLER_TYPE }.methods.single()
+        val before = recaller.code()
+        injectControl(UNSENT_RECALL, mapOf(UNSENT_RECALL to listOf(recaller)))
+        val code = recaller.code()
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, code[0].opcode)
+        assertEquals("$SETTINGS->unsentRecall(Ljava/lang/String;)Z", reference(0, code))
+        // p2, the message id, of an instance method with 24 registers and four parameter words.
+        assertEquals(21, (code[0] as com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction).startRegister)
+        assertEquals(Opcode.MOVE_RESULT, code[1].opcode)
+        assertEquals(Opcode.IF_EQZ, code[2].opcode)
+        assertEquals(5, code.branchTarget(2))
+        assertEquals(Opcode.RETURN, code[4].opcode)
+        assertEquals(before, code.drop(5))
+        injectControl(UNSENT_RECALL, mapOf(UNSENT_RECALL to listOf(recaller)))
+        assertEquals(code, recaller.code())
+    }
+
+    @Test fun aRecallerThatDoesNotMatchIsRefusedBeforeAnyEdit() {
+        // Two methods logging as the recaller can't be told apart, so neither control gets the hook.
+        val twin = fixtureMethod("LX/98X;->A02$RECALL_SHAPE", RECALLER_BODY, 24)
+        assertEquals(emptyList(), findUnsentRecall(unsentRecallFixture(extra = listOf(twin))))
+        val cases = mapOf(
+            "no log tag" to unsentRecallFixture(body = "const/4 v0, 0x0\nreturn v0"),
+            // An instance method with four parameter words and no register to spare.
+            "no scratch register" to unsentRecallFixture(registers = 5),
+        )
+        for ((case, classes) in cases) {
+            val recaller = classes.single { it.type == RECALLER_TYPE }.methods.single()
+            val before = recaller.code()
+            assertFailsWith<PatchException>(case) { injectControl(UNSENT_RECALL, mapOf(UNSENT_RECALL to listOf(recaller))) }
+            assertEquals(before, recaller.code(), case)
+        }
+    }
+
+    private fun clearOf(classes: List<MutableClass>) = classes.single { it.type == MESSAGES_NOTIFICATION_MANAGER }
+        .methods.single { it.hookId() == SYNTHETIC_UNSENT_CLEAR }
+
+    /**
+     * A one-message notification never reaches the recaller: the manager clears the whole chat notification instead.
+     * Both unsent controls claim that clear too. The first hands the message id over before the clear and, when the
+     * extension keeps the message, loads the reason as stock does and jumps past the clear call. The second leaves it.
+     */
+    @Test fun bothUnsentControlsShareOneClearHookThatSkipsOnlyTheClearCall() {
+        val classes = messageLogFixture()
+        val found = mirroredControls(classes)
+        assertEquals(activeProfile.hooks.getValue(UNSENT_CLEAR).toList(), found.getValue(UNSENT_CLEAR).map { it.hookId() })
+        validateControls(found, setOf(UNSENT_CLEAR))
+        val clear = clearOf(classes)
+        val before = clear.code()
+        injectControl(UNSENT_CLEAR, mapOf(UNSENT_CLEAR to listOf(clear)))
+        val code = clear.code()
+        assertEquals(before.take(8), code.take(8))
+        val handover = code[8] as com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+        assertEquals("$SETTINGS->unsentRecall(Ljava/lang/String;)Z", reference(8, code))
+        assertEquals(6 to 1, handover.startRegister to handover.registerCount)
+        assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_STRING, Opcode.GOTO), code.subList(9, 13).map { it.opcode })
+        assertEquals(5, (code[9] as OneRegisterInstruction).registerA)
+        assertEquals("UnsendMessage", reference(11, code).trim('"'))
+        assertEquals(13, code.branchTarget(10))
+        assertEquals(15, code.branchTarget(12))
+        assertEquals(CLEAR_CALL, reference(14, code))
+        assertEquals(7, code.branchTarget(2))
+        assertEquals(before.drop(8), code.drop(13))
+        injectControl(UNSENT_CLEAR, mapOf(UNSENT_CLEAR to listOf(clear)))
+        assertEquals(code, clear.code())
+    }
+
+    @Test fun aClearThatDoesNotProveTheMessageIdIsRefusedBeforeAnyEdit() {
+        val cases = mapOf(
+            "the drop log prints another register" to UNSENT_CLEAR_BODY.replace(CLEAR_DROP_LOG, CLEAR_DROP_LOG.replace("v6", "v3")),
+            "the id changes before the drop log" to UNSENT_CLEAR_BODY.replace(RECALLED_BY_CLEARING_LOAD, "$RECALLED_BY_CLEARING_LOAD\nconst/4 v6, 0x0"),
+            "no drop log after the clear" to UNSENT_CLEAR_BODY.replace("$CLEAR_DROP_LOG\n", ""),
+            "a jump lands on the load" to UNSENT_CLEAR_BODY.replace("invoke-static {p2}, $MESSAGES_NOTIFICATION_MANAGER->A0A($NEW_MESSAGE_NOTIFICATION)V\n", ""),
+            "two recaller calls" to UNSENT_CLEAR_BODY.replace("move-result v2", "move-result v2\ninvoke-virtual {v2, p1, v3, v3, v3}, $RECALLER_TYPE->A00$RECALL_SHAPE"),
+            "the clear takes another reason" to UNSENT_CLEAR_BODY.replace("invoke-virtual {p0, p1, v3, v5}", "invoke-virtual {p0, p1, v3, v0}"),
+            "no clearing log tag" to UNSENT_CLEAR_BODY.replace("_by_clearing\"", "\""),
+        )
+        for ((case, body) in cases) {
+            val classes = messageLogFixture(unsentClear = body)
+            assertEquals(emptyList(), findUnsentClear(classes), case)
+            val clear = clearOf(classes)
+            val before = clear.code()
+            assertFailsWith<PatchException>(case) { injectControl(UNSENT_CLEAR, mapOf(UNSENT_CLEAR to listOf(clear))) }
+            assertEquals(before, clear.code(), case)
+        }
+    }
+
+    @Test fun everySupportedBuildHandsTheClearedMessageIdOver() {
+        val root = System.getenv("HUSH_NATIVE_FIXTURES")
+        assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
+        val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
+        assertEquals(controlProfiles.size, apks.size)
+        for (apk in apks) {
+            val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
+            val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
+            val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
+            val found = findUnsentClear(classes)
+            assertEquals(controlProfiles.getValue(code.toInt()).hooks.getValue(UNSENT_CLEAR).toList(), found.map { it.hookId() }, code)
+            val clear = MutableMethod(found.single())
+            val before = clear.code()
+            val recall = before.single { (it as? ReferenceInstruction)?.reference?.toString()?.endsWith(RECALL_SHAPE) == true }
+            val id = (recall as com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction).registerE
+            clear.injectUnsentClear()
+            val after = clear.code()
+            assertEquals(before.size + 5, after.size, code)
+            val at = after.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == "$SETTINGS->unsentRecall(Ljava/lang/String;)Z" }
+            assertEquals(id, (after[at] as com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction).startRegister, code)
+            assertEquals(at + 5, after.branchTarget(at + 2), code)
+            assertEquals(at + 7, after.branchTarget(at + 4), code)
+            assertTrue(reference(at + 6, after).endsWith("(${FB_USER_SESSION}${THREAD_KEY_TYPE}Ljava/lang/String;)V"), code)
         }
     }
 

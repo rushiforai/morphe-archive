@@ -47,7 +47,11 @@
     (HUSHTELEGRAM_DEVICE_LEASE_DIRECTORY), checks it before every adb call and releases it when it's
     done. It changes no device setting, only wakes the screen, and stops when the phone is locked
     rather than unlocking it. It never uninstalls or clears the installed app; an install that
-    can't update the app in place is a problem the walk reports, not one it forces past.
+    can't update the app in place is a problem the walk reports, not one it forces past. A fresh
+    install of the Play build asks for contacts and then photos over the first screens; when a
+    screen won't open behind one of those asks, the walk says no to it (Don't allow, or Not now on
+    Telegram's own contacts prompt, never Allow or Continue, since a walk can run on a real account)
+    and opens the screen again. An ask that stays is named in the problem.
 
 .EXAMPLE
     scripts/walk-app.ps1 -Serial emulator-5580 -Apk fixtures/telegram-web-13.1.0-72299.apk
@@ -221,6 +225,95 @@ function Get-WalkSectionState {
     if ($next -and $next.Text -ceq $Name) { return 'open' }
     if (-not $next -or @($Headings) -ccontains $next.Text -or $WalkHomeTail -ccontains $next.Text) { return 'closed' }
     return 'open'
+}
+
+function Find-WalkPermissionAsk {
+    <#
+    .SYNOPSIS
+        A permission ask in a `dump --windows`: what it asks and the centre of the button that
+        says no, or $null when none shows. Android's own ask answers no with
+        permission_deny_button the first time and only has permission_deny_and_dont_ask_again_button
+        on a repeat ask. Telegram's contacts prompt (a -Package dialog) answers no with Not now.
+        Allow and Continue are never looked for: a walk can run on a real account, and allowing
+        contacts would upload them.
+    #>
+    param([string]$Xml, [string]$Package = 'org.telegram.messenger.web')
+    if ([string]::IsNullOrWhiteSpace($Xml) -or $Xml -notmatch '<hierarchy') { return $null }
+    $question = ''
+    $prompt = ''
+    $no = $null
+    $notNow = $null
+    foreach ($node in ([xml]$Xml).SelectNodes('//node')) {
+        $id = [string]$node.GetAttribute('resource-id')
+        $text = [string]$node.GetAttribute('text')
+        $own = [string]$node.GetAttribute('package') -ceq $Package
+        if ($id -ceq 'com.android.permissioncontroller:id/permission_message') { $question = $text }
+        if ($own -and $text -match 'access to your contacts') { $prompt = ($text -split '(?<=\.)\s', 2)[0] }
+        if ($node.GetAttribute('bounds') -notmatch '^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$') { continue }
+        $centre = @([int](([int]$Matches[1] + [int]$Matches[3]) / 2), [int](([int]$Matches[2] + [int]$Matches[4]) / 2))
+        if (-not $no -and $id -cmatch '^com\.android\.permissioncontroller:id/permission_deny(?:_and_dont_ask_again)?_button$') { $no = $centre }
+        if (-not $notNow -and $own -and $text -ceq 'Not now') { $notNow = $centre }
+    }
+    if ($no) { return [pscustomobject]@{ Question = $question; X = $no[0]; Y = $no[1] } }
+    if ($prompt -and $notNow) { return [pscustomobject]@{ Question = $prompt; X = $notNow[0]; Y = $notNow[1] } }
+    return $null
+}
+
+function Clear-WalkPermissionAsk {
+    <#
+    .SYNOPSIS
+        Says no to each permission ask in front, one at a time, each read from a fresh
+        `dump --windows` (Find-WalkPermissionAsk), and returns what they asked. Stayed is set when an
+        ask was still there after -Rounds answers. -Shell runs one adb command and returns its output
+        lines.
+    #>
+    param(
+        [scriptblock]$Shell, [string]$AskDump, [string]$Package = 'org.telegram.messenger.web', [int]$Rounds = 3,
+        [int]$SettleMilliseconds = 2000
+    )
+    $questions = [Collections.Generic.List[string]]::new()
+    for ($round = 0; $round -le $Rounds; $round++) {
+        [void](& $Shell @('shell', 'rm', '-f', $AskDump))
+        [void](& $Shell @('shell', 'uiautomator', 'dump', '--windows', $AskDump))
+        $xml = @(& $Shell @('shell', 'cat', $AskDump)) -join "`n"
+        [void](& $Shell @('shell', 'rm', '-f', $AskDump))
+        $ask = Find-WalkPermissionAsk $xml $Package
+        if (-not $ask) { return [pscustomobject]@{ Questions = [string[]]$questions; Stayed = $false } }
+        if ($questions -cnotcontains $ask.Question) { $questions.Add($ask.Question) }
+        if ($round -eq $Rounds) { break }
+        Write-Host "[walk] said no to `"$($ask.Question)`""
+        [void](& $Shell @('shell', 'input', 'tap', [string]$ask.X, [string]$ask.Y))
+        Start-Sleep -Milliseconds $SettleMilliseconds
+    }
+    return [pscustomobject]@{ Questions = [string[]]$questions; Stayed = $true }
+}
+
+function Invoke-WalkScreen {
+    <#
+    .SYNOPSIS
+        Opens a screen with -Open, a scriptblock that returns whether it opened. When it didn't and
+        a permission ask was in front, the ask gets its no (Clear-WalkPermissionAsk) and -Open runs
+        once more. Note is what a problem line adds about the ask: it stayed, or the screen still
+        didn't open after it went.
+    #>
+    param(
+        [scriptblock]$Open, [scriptblock]$Shell, [string]$AskDump, [string]$Package = 'org.telegram.messenger.web',
+        [int]$SettleMilliseconds = 2000
+    )
+    $screenOpened = [bool](& $Open)
+    $cleared = $null
+    if (-not $screenOpened) {
+        $cleared = Clear-WalkPermissionAsk -Shell $Shell -AskDump $AskDump -Package $Package -SettleMilliseconds $SettleMilliseconds
+        if ($cleared.Questions.Count -gt 0 -and -not $cleared.Stayed) { $screenOpened = [bool](& $Open) }
+    }
+    $note = ''
+    if (-not $screenOpened -and $cleared -and $cleared.Questions.Count -gt 0) {
+        $asked = '"' + ($cleared.Questions -join '" and "') + '"'
+        $note = if ($cleared.Stayed) { " behind $asked, which stayed after it was told no" } else { " even after $asked was told no" }
+    }
+    # @() keeps no asks an empty list: a bare if-expression with no output would make it $null.
+    [string[]]$asks = @(if ($cleared) { $cleared.Questions })
+    return [pscustomobject]@{ Opened = $screenOpened; Asked = $asks; Note = $note }
 }
 
 function ConvertTo-WalkArgument {
@@ -443,6 +536,10 @@ function Invoke-WalkApp {
                 Where-Object { $_ -match 'ResumedActivity' }) -join ' '
             $resumed -match "\b$([regex]::Escape($Package))/"
         }
+        # A screen behind a permission ask gets one more try once the ask is told no
+        # (Invoke-WalkScreen), through the same lease-checked adb.
+        $askShell = { param([string[]]$Arguments) (& $walkAdb $Arguments).Output }
+        $openScreen = { param([scriptblock]$Open) Invoke-WalkScreen -Open $Open -Shell $askShell -AskDump $dumpPath -Package $Package }
         $screenSize = {
             $size = ((& $walkAdb @('shell', 'wm', 'size')).Output -join ' ')
             if ($size -match '(\d+)x(\d+)\s*$') { return @([int]$Matches[1], [int]$Matches[2]) }
@@ -469,12 +566,19 @@ function Invoke-WalkApp {
             }
             [void](& $walkAdb @('shell', 'input', 'tap', [string]$row.X, [string]$row.Y))
             Start-Sleep -Seconds 2
-            $nodes = & $readScreen
-            if ((Test-WalkSettingsPage $nodes $Name $Package) -and (& $inFront)) {
+            # The tap isn't repeated: after an ask the page is read again, since another tap could
+            # land on the page itself.
+            $pageRead = @{ Nodes = @() }
+            $pageShown = & $openScreen {
+                $pageRead.Nodes = @(& $readScreen)
+                (Test-WalkSettingsPage $pageRead.Nodes $Name $Package) -and (& $inFront)
+            }
+            $nodes = $pageRead.Nodes
+            if ($pageShown.Opened) {
                 $seen.Screens++; $seen.Scenarios.Add("$Prefix$Name")
                 Write-Host "[walk] opened the settings page $Name"
             } else {
-                $problems.Add("the settings page $Name would not open")
+                $problems.Add("the settings page $Name would not open$($pageShown.Note)")
                 Write-Host "[walk] the settings page $Name would not open"
                 # A tap that changed nothing leaves the list on screen, and Back would close it.
                 if (& $OnList $nodes) { return $true }
@@ -511,10 +615,17 @@ function Invoke-WalkApp {
             foreach ($want in @('open', 'closed')) {
                 [void](& $walkAdb @('shell', 'input', 'tap', [string]$heading.X, [string]$heading.Y))
                 Start-Sleep -Seconds 2
-                $nodes = & $readScreen
-                $state = Get-WalkSectionState $nodes $Name $Headings $Package
-                if ($state -cne $want -or -not (Test-WalkSettingsHome $nodes $Package) -or -not (& $inFront)) {
-                    $problems.Add("the settings section $Name would not $(if ($want -ceq 'open') { 'open' } else { 'close' })")
+                # Read again after an ask, never tapped again: a second tap would flip the section back.
+                $sectionRead = @{ Nodes = @(); State = $null }
+                $shown = & $openScreen {
+                    $sectionRead.Nodes = @(& $readScreen)
+                    $sectionRead.State = Get-WalkSectionState $sectionRead.Nodes $Name $Headings $Package
+                    $sectionRead.State -ceq $want -and (Test-WalkSettingsHome $sectionRead.Nodes $Package) -and (& $inFront)
+                }
+                $nodes = $sectionRead.Nodes
+                $state = $sectionRead.State
+                if (-not $shown.Opened) {
+                    $problems.Add("the settings section $Name would not $(if ($want -ceq 'open') { 'open' } else { 'close' })$($shown.Note)")
                     Write-Host "[walk] the settings section $Name stayed $(if ($state) { $state } else { 'off screen' })"
                     return (Test-WalkSettingsHome $nodes $Package)
                 }
@@ -556,28 +667,35 @@ function Invoke-WalkApp {
         $started = [DateTimeOffset]::UtcNow
         $startedEpoch = [long]((& $walkAdb @('shell', 'date', '+%s')).Output -join '').Trim()
         [void](& $walkAdb @('shell', 'am', 'force-stop', $Package))
-        $launch = & $walkAdb @('shell', 'am', 'start', '-W', '-n', "$Package/$WalkMainActivity")
-        Start-Sleep -Seconds ($SettleSeconds * 2)
-        if (($launch.Output -join "`n") -match '(?m)^Status:\s*ok\s*$' -and (& $inFront)) {
+        $launched = & $openScreen {
+            $launch = & $walkAdb @('shell', 'am', 'start', '-W', '-n', "$Package/$WalkMainActivity")
+            Start-Sleep -Seconds ($SettleSeconds * 2)
+            ($launch.Output -join "`n") -match '(?m)^Status:\s*ok\s*$' -and (& $inFront)
+        }
+        if ($launched.Opened) {
             $seen.Screens++; $seen.Scenarios.Add('launch')
             $nodes = & $readScreen
             $account = if (Find-WalkRow $nodes $WalkSignedOutMarker $Package) { 'signed out' } else { 'signed in' }
             Write-Host "[walk] opened Telegram ($account)"
         } else {
-            $problems.Add('Telegram would not start')
+            $problems.Add("Telegram would not start$($launched.Note)")
         }
 
         if ($account -ceq 'signed in') {
             foreach ($link in $Visit) {
-                $opened = & $walkAdb @('shell', 'am', 'start', '-W', '-a', 'android.intent.action.VIEW', '-d', "'$link'", '-p', $Package)
-                Start-Sleep -Seconds $SettleSeconds
-                $ok = ($opened.Output -join "`n") -match '(?m)^Status:\s*ok\s*$'
-                $front = & $inFront
-                if ($ok -and $front) {
+                $visitRead = @{ Ok = $false; Front = $false }
+                $visited = & $openScreen {
+                    $reply = & $walkAdb @('shell', 'am', 'start', '-W', '-a', 'android.intent.action.VIEW', '-d', "'$link'", '-p', $Package)
+                    Start-Sleep -Seconds $SettleSeconds
+                    $visitRead.Ok = ($reply.Output -join "`n") -match '(?m)^Status:\s*ok\s*$'
+                    $visitRead.Front = [bool](& $inFront)
+                    $visitRead.Ok -and $visitRead.Front
+                }
+                if ($visited.Opened) {
                     $seen.Screens++; $seen.Scenarios.Add("visit:$link")
                     Write-Host "[walk] opened $link"
                 } else {
-                    $problems.Add("$link would not open (status ok: $ok, Telegram in front: $front)")
+                    $problems.Add("$link would not open$($visited.Note) (status ok: $($visitRead.Ok), Telegram in front: $($visitRead.Front))")
                     Write-Host "[walk] $link would not open"
                 }
             }
@@ -587,11 +705,13 @@ function Invoke-WalkApp {
 
         $full = -not $SkipSettings
         if (-not $SkipSettings) {
-            [void](& $walkAdb @('shell', 'am', 'start', '-W', '-a', 'android.intent.action.APPLICATION_PREFERENCES', '-p', $Package))
-            Start-Sleep -Seconds $SettleSeconds
-            $nodes = & $readScreen
-            if (-not (Test-WalkSettingsHome $nodes $Package)) {
-                $problems.Add('the Hush settings would not open from App info''s intent')
+            $settingsHome = & $openScreen {
+                [void](& $walkAdb @('shell', 'am', 'start', '-W', '-a', 'android.intent.action.APPLICATION_PREFERENCES', '-p', $Package))
+                Start-Sleep -Seconds $SettleSeconds
+                Test-WalkSettingsHome (& $readScreen) $Package
+            }
+            if (-not $settingsHome.Opened) {
+                $problems.Add("the Hush settings would not open from App info's intent$($settingsHome.Note)")
                 Write-Host '[walk] the Hush settings would not open'
             } else {
                 $seen.Screens++; $seen.Scenarios.Add('settings:home')

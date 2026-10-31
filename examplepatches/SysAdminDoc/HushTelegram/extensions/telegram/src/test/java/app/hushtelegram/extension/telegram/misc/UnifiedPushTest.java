@@ -49,6 +49,8 @@ public class UnifiedPushTest {
     private UnifiedPush.Telegram real;
     private java.util.concurrent.Executor realWork;
     private final java.util.function.Function<Context, android.content.SharedPreferences> realStore = UnifiedPush.store;
+    private final Runnable realApply = OwnConnection.apply;
+    private int ownConnectionApplied;
     private Context context;
 
     @Before public void setUp() {
@@ -61,8 +63,11 @@ public class UnifiedPushTest {
             @Override public void release(String endpoint) { released.add(endpoint); }
         };
         UnifiedPush.work = Runnable::run;
+        OwnConnection.apply = () -> ownConnectionApplied++;
         PatchFamilyForTests.inBuild(PatchFamily.UNIFIED_PUSH);
         UnifiedPush.prefs(context).edit().clear().commit();
+        OwnConnection.telegramStore.apply(context).edit().clear().commit();
+        OwnConnection.store.apply(context).edit().clear().commit();
         Settings.UNIFIED_PUSH.resetToDefault();
     }
 
@@ -70,6 +75,7 @@ public class UnifiedPushTest {
         UnifiedPush.telegram = real;
         UnifiedPush.work = realWork;
         UnifiedPush.store = realStore;
+        OwnConnection.apply = realApply;
         PatchFamilyForTests.reset();
         PauseForTests.resume();
         UnifiedPush.prefs(context).edit().clear().commit();
@@ -216,6 +222,42 @@ public class UnifiedPushTest {
         assertEquals(UnifiedPush.WEB_PUSH, UnifiedPush.type(2));
     }
 
+    /** A failed save leaves the keys in Android's memory, so they're taken back out and a later ask this run signs nothing up either. */
+    @Test public void keysAFailedSaveLeftInMemoryAreTakenBackOut() {
+        signedUp();
+        Flaky flaky = new Flaky(UnifiedPush.prefs(context));
+        UnifiedPush.store = ignored -> flaky;
+        flaky.failWrites = true;
+        flaky.failedWritesStay = true;
+        assertEquals("fcm-token", UnifiedPush.token(2, "fcm-token"));
+        assertEquals(2, UnifiedPush.type(2));
+        assertNull(UnifiedPush.prefs(context).getString(UnifiedPush.WEB_PUSH_KEY, null));
+        assertEquals("fcm-token", UnifiedPush.token(2, "fcm-token"));
+        assertEquals(2, UnifiedPush.type(2));
+    }
+
+    /**
+     * Telegram's sign-up thread and the main thread asking for the first time at once get the one
+     * key pair that's kept, so the token Telegram holds still counts as its own when switching off.
+     */
+    @Test public void twoFirstAsksAtOnceGetTheKeysThatAreKept() throws Exception {
+        Flaky flaky = new Flaky(UnifiedPush.prefs(context));
+        flaky.readers = new java.util.concurrent.CountDownLatch(2);
+        UnifiedPush.store = ignored -> flaky;
+        String[] tokens = new String[2];
+        Thread first = new Thread(() -> tokens[0] = webPush());
+        Thread second = new Thread(() -> tokens[1] = webPush());
+        first.start();
+        second.start();
+        first.join(10_000);
+        second.join(10_000);
+        assertNotNull(tokens[0]);
+        assertEquals(tokens[0], tokens[1]);
+        flaky.readers = null;
+        assertEquals(tokens[0], webPush());
+        assertTrue(UnifiedPush.holds(tokens[1], context, ENDPOINT));
+    }
+
     /** Switching off hands Telegram back to Firebase whether it holds the Web Push token or the bare address a 0.0.17 sign-up left. */
     @Test public void telegramHoldsTheAddressAsAWebPushTokenOrAsTheBareOldOne() {
         signedUp();
@@ -283,6 +325,27 @@ public class UnifiedPushTest {
         UnifiedPush.receive(context, from(UnifiedPush.NEW_ENDPOINT, token()).putExtra("endpoint", ENDPOINT + "2"), () -> {});
         assertEquals(ENDPOINT + "2", UnifiedPush.prefs(context).getString(UnifiedPush.ENDPOINT, null));
         assertTrue(registered.isEmpty());
+    }
+
+    /**
+     * Issue #50: with only the address signed up, messages waited until Telegram was opened, so the
+     * address going to Telegram also turns its own connection on. Paused, neither happens.
+     */
+    @Test public void anAddressGoingToTelegramKeepsTelegramsOwnConnectionOnBesideIt() {
+        install(UnifiedPush.NTFY);
+        Settings.UNIFIED_PUSH.save(true);
+        UnifiedPush.sync(context, true);
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+        UnifiedPush.receive(context, from(UnifiedPush.NEW_ENDPOINT, token()).putExtra("endpoint", ENDPOINT), () -> {});
+        assertNotEquals(Boolean.TRUE, OwnConnection.bothOn(context));
+        assertEquals(0, ownConnectionApplied);
+
+        PauseForTests.resume();
+        UnifiedPush.receive(context, from(UnifiedPush.NEW_ENDPOINT, token()).putExtra("endpoint", ENDPOINT), () -> {});
+        assertEquals(java.util.Collections.singletonList(ENDPOINT), registered);
+        assertEquals(Boolean.TRUE, OwnConnection.bothOn(context));
+        assertTrue(OwnConnection.turnedOnBesideUnifiedPush(context));
+        assertEquals(1, ownConnectionApplied);
     }
 
     @Test public void aMessageWakesTelegramAndIsAcknowledged() {
@@ -550,13 +613,28 @@ public class UnifiedPushTest {
     private static final class Flaky implements android.content.SharedPreferences {
         final android.content.SharedPreferences real;
         boolean failWrites;
+        /** A failed write still changes what reads see, the way Android's own commit leaves it in memory. */
+        boolean failedWritesStay;
+        /** When set, each read of the auth secret waits up to a second for the others, so first asks overlap if they can. */
+        java.util.concurrent.CountDownLatch readers;
 
         Flaky(android.content.SharedPreferences real) {
             this.real = real;
         }
 
         @Override public java.util.Map<String, ?> getAll() { return real.getAll(); }
-        @Override public String getString(String key, String fallback) { return real.getString(key, fallback); }
+        @Override public String getString(String key, String fallback) {
+            String value = real.getString(key, fallback);
+            if (readers != null && UnifiedPush.WEB_PUSH_AUTH.equals(key)) {
+                readers.countDown();
+                try {
+                    readers.await(1, java.util.concurrent.TimeUnit.SECONDS);
+                } catch (InterruptedException stopped) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            return value;
+        }
         @Override public java.util.Set<String> getStringSet(String key, java.util.Set<String> fallback) { return real.getStringSet(key, fallback); }
         @Override public int getInt(String key, int fallback) { return real.getInt(key, fallback); }
         @Override public long getLong(String key, long fallback) { return real.getLong(key, fallback); }
@@ -570,7 +648,7 @@ public class UnifiedPushTest {
             real.unregisterOnSharedPreferenceChangeListener(listener);
         }
 
-        /** Changes wait in the real editor and are dropped when the write fails. */
+        /** Changes wait in the real editor and are dropped when the write fails, unless {@link #failedWritesStay}. */
         @Override public Editor edit() {
             Editor writes = real.edit();
             return new Editor() {
@@ -582,8 +660,12 @@ public class UnifiedPushTest {
                 @Override public Editor putBoolean(String key, boolean value) { writes.putBoolean(key, value); return this; }
                 @Override public Editor remove(String key) { writes.remove(key); return this; }
                 @Override public Editor clear() { writes.clear(); return this; }
-                @Override public boolean commit() { return !failWrites && writes.commit(); }
-                @Override public void apply() { if (!failWrites) writes.apply(); }
+                @Override public boolean commit() {
+                    if (!failWrites) return writes.commit();
+                    if (failedWritesStay) writes.commit();
+                    return false;
+                }
+                @Override public void apply() { if (!failWrites || failedWritesStay) writes.apply(); }
             };
         }
     }

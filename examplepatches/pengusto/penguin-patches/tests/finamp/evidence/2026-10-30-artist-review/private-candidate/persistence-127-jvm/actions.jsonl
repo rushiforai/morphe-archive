@@ -1,0 +1,16 @@
+{"time": "2026-10-30T13:49:14.328444+00:00", "action": "tap", "selector": "Home\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Home\nTab 1 of 6", "bounds": "[127,152][251,220]"}
+{"time": "2026-10-30T13:49:18.784819+00:00", "action": "tap", "anchor": "Fixture Music", "selectorGap": "unlabelled drawer ImageView", "bounds": "[38,58][108,128]"}
+{"time": "2026-10-30T13:49:21.196911+00:00", "action": "tap", "selector": "Settings", "class": null, "index": null, "actualText": "", "actualDesc": "Settings", "bounds": "[0,1728][844,1824]"}
+{"time": "2026-10-30T13:49:25.645061+00:00", "action": "tap", "selector": "Layout & Theme", "class": null, "index": null, "actualText": "", "actualDesc": "Layout & Theme", "bounds": "[0,1168][1080,1280]"}
+{"time": "2026-10-30T13:49:41.497317+00:00", "action": "tap", "selector": "Album artists first", "class": "android.widget.Button", "index": null, "actualText": "Album artists first", "actualDesc": "", "bounds": "[32,1571][1032,1683]"}
+{"time": "2026-10-30T13:49:59.727672+00:00", "action": "tap", "selector": "Home\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Home\nTab 1 of 6", "bounds": "[127,152][251,220]"}
+{"time": "2026-10-30T13:50:04.229461+00:00", "action": "tap", "anchor": "Fixture Music", "selectorGap": "unlabelled drawer ImageView", "bounds": "[38,58][108,128]"}
+{"time": "2026-10-30T13:50:06.633405+00:00", "action": "tap", "selector": "Settings", "class": null, "index": null, "actualText": "", "actualDesc": "Settings", "bounds": "[0,1728][844,1824]"}
+{"time": "2026-10-30T13:50:11.046392+00:00", "action": "tap", "selector": "Layout & Theme", "class": null, "index": null, "actualText": "", "actualDesc": "Layout & Theme", "bounds": "[0,1168][1080,1280]"}
+{"time": "2026-10-30T13:50:44.296255+00:00", "action": "tap", "selector": "Home\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Home\nTab 1 of 6", "bounds": "[127,152][251,220]"}
+{"time": "2026-10-30T13:50:46.697295+00:00", "action": "tap", "selector": "Albums\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Albums\nTab 2 of 6", "bounds": "[251,152][397,220]"}
+{"time": "2026-10-30T13:50:49.179289+00:00", "action": "tap", "selector": "Fixture Credits\nZ Lead", "class": null, "index": null, "actualText": "", "actualDesc": "Fixture Credits\nZ Lead", "bounds": "[12,296][256,648]"}
+{"time": "2026-10-30T13:51:00.155027+00:00", "action": "tap", "selector": "Home\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Home\nTab 1 of 6", "bounds": "[127,152][252,220]"}
+{"time": "2026-10-30T13:51:04.566764+00:00", "action": "tap", "anchor": "Fixture Music", "selectorGap": "unlabelled drawer ImageView", "bounds": "[38,58][108,128]"}
+{"time": "2026-10-30T13:51:06.980604+00:00", "action": "tap", "selector": "Settings", "class": null, "index": null, "actualText": "", "actualDesc": "Settings", "bounds": "[0,1728][844,1824]"}
+{"time": "2026-10-30T13:51:11.352299+00:00", "action": "tap", "selector": "Downloads", "class": null, "index": null, "actualText": "", "actualDesc": "Downloads", "bounds": "[0,496][1080,608]"}

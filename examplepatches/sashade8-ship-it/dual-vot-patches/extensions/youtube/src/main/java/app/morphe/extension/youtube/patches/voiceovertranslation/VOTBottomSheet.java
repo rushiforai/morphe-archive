@@ -43,6 +43,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.IntConsumer;
 
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
@@ -112,7 +113,7 @@ public final class VOTBottomSheet {
         translationRow.setOnClickListener(v -> showTranslationServicePicker(context, mainRef[0]));
         refreshTranslation.run();
 
-        TextView title = makeTitle(context, str("morphe_vot_screen_title"), fg);
+        TextView title = SheetBottomDialog.createTitle(context, str("morphe_vot_screen_title"), fg);
         ((LinearLayout.LayoutParams) title.getLayoutParams()).setMargins(Dim.dp16, Dim.dp8, Dim.dp16, Dim.dp16);
         root.addView(title);
 
@@ -225,7 +226,7 @@ public final class VOTBottomSheet {
                 SheetBottomDialog.createMainLayout(context, getDialogBackgroundColor());
         pickerRoot.setPadding(Dim.dp16, 0, Dim.dp16, Dim.dp16);
         final int fg = ThemeUtils.getAppForegroundColor();
-        pickerRoot.addView(makeTitle(context, str("morphe_vot_translation_service_title"), fg));
+        pickerRoot.addView(SheetBottomDialog.createTitle(context, str("morphe_vot_translation_service_title"), fg));
 
         String selectedService = Settings.VOT_TRANSLATION_SERVICE.get();
 
@@ -311,7 +312,7 @@ public final class VOTBottomSheet {
         SheetBottomDialog.DraggableLinearLayout pickerRoot =
                 SheetBottomDialog.createMainLayout(context, getDialogBackgroundColor());
         pickerRoot.setPadding(Dim.dp16, 0, Dim.dp16, Dim.dp16);
-        pickerRoot.addView(makeTitle(context, str("morphe_vot_tts_voice_type"), fg));
+        pickerRoot.addView(SheetBottomDialog.createTitle(context, str("morphe_vot_tts_voice_type"), fg));
         SheetBottomDialog.SlideDialog pickerDialog =
                 SheetBottomDialog.createSlideDialog(context, pickerRoot, fadeInDuration);
         ScrollView scroll = new ScrollView(context);
@@ -548,7 +549,7 @@ public final class VOTBottomSheet {
         SheetBottomDialog.DraggableLinearLayout pickerRoot =
                 SheetBottomDialog.createMainLayout(context, getDialogBackgroundColor());
         pickerRoot.setPadding(Dim.dp16, 0, Dim.dp16, Dim.dp16);
-        pickerRoot.addView(makeTitle(context, title, ThemeUtils.getAppForegroundColor()));
+        pickerRoot.addView(SheetBottomDialog.createTitle(context, title, ThemeUtils.getAppForegroundColor()));
 
         ListView listView = new ListView(context);
         listView.setDivider(null);
@@ -581,20 +582,6 @@ public final class VOTBottomSheet {
             if (langValues[i].equals(code)) return langEntries[i];
         }
         return langEntries[0];
-    }
-
-    private static TextView makeTitle(Context context, String text, int fgColor) {
-        TextView tv = new TextView(context);
-        tv.setText(text);
-        tv.setTextSize(18);
-        tv.setTypeface(Typeface.DEFAULT_BOLD);
-        tv.setTextColor(fgColor);
-        tv.setGravity(Gravity.CENTER_HORIZONTAL);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, Dim.dp8, 0, Dim.dp16);
-        tv.setLayoutParams(params);
-        return tv;
     }
 
     private static View makeDivider(Context context, int fgColor) {
@@ -712,10 +699,5 @@ public final class VOTBottomSheet {
 
     private static int secondaryColor(int fg) {
         return Color.argb(153, Color.red(fg), Color.green(fg), Color.blue(fg));
-    }
-
-    @FunctionalInterface
-    private interface IntConsumer {
-        void accept(int value);
     }
 }

@@ -42,7 +42,7 @@ import org.robolectric.shadows.ShadowAlertDialog;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.Utils;
 
-/** Real framework/font boundaries. Instagram 449 declares minSdk 28 and targetSdk 36. */
+/** Real framework/font boundaries. Instagram 453 declares minSdk 28 and targetSdk 37. */
 @RunWith(RobolectricTestRunner.class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(qualifiers = "w320dp-h640dp-xhdpi")
@@ -54,7 +54,7 @@ public class SettingsDialogBoundaryTest {
 
     @Before public void host() {
         ApplicationInfo info = RuntimeEnvironment.getApplication().getApplicationInfo();
-        info.targetSdkVersion = 36;
+        info.targetSdkVersion = 37;
         info.flags |= ApplicationInfo.FLAG_SUPPORTS_RTL;
         PatchFamily.inBuildForTests = EnumSet.noneOf(PatchFamily.class);
         RuntimeEnvironment.setFontScale(2f);
@@ -368,7 +368,7 @@ public class SettingsDialogBoundaryTest {
     }
 
     private void checkInsets(boolean rtl) throws Exception {
-        assertEquals(36, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
+        assertEquals(37, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
         controller = Robolectric.buildActivity(Activity.class).setup().visible();
         dialog = new SettingsDialog();
         dialog.show(controller.get().getFragmentManager(), "boundary_settings");

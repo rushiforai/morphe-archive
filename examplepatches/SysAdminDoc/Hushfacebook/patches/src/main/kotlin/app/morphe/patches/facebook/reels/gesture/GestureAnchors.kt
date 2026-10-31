@@ -97,6 +97,7 @@ internal const val CONFIG_FIELD = "\$immersiveFeedPlayerConfig"
 
 internal const val CONTEXT = "Landroid/content/Context;"
 internal const val STRING = "Ljava/lang/String;"
+internal const val LIST = "Ljava/util/List;"
 internal const val INTEGER = "Ljava/lang/Integer;"
 internal const val FB_USER_SESSION = "Lcom/facebook/auth/usersession/FbUserSession;"
 internal const val GRAPHQL_STORY = "Lcom/facebook/graphql/model/GraphQLStory;"

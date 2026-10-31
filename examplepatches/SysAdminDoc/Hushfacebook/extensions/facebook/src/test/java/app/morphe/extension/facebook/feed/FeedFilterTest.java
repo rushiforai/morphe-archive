@@ -22,6 +22,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collections;
 
 import app.morphe.extension.facebook.settings.Settings;
@@ -169,6 +170,36 @@ public class FeedFilterTest {
         assertTrue(report, report.contains(FeedFilter.FEED_ROUTE + ": 4 lists, 4 items, 2 removed"));
         assertTrue(report, report.contains("Last reason: GraphQLPagesYouMayLikeFeedUnit"));
         assertTrue(report, report.contains("Kinds: ORGANIC 2, SPONSORED 2"));
+    }
+
+    /**
+     * The settings tally counts each hidden edge under the group of rules that hid it, and a kept
+     * one nowhere. A memory or friend request card counts as a card of your own, not a suggestion.
+     */
+    @Test
+    public void aHiddenEdgeCountsOnTheTallyUnderItsKind() {
+        HiddenTally.clearForTests();
+        try {
+            FeedFilter.hideEdge(Category.SPONSORED, new Object(), true, true);
+            FeedFilter.hideEdge(Category.ORGANIC, new GraphQLPagesYouMayLikeFeedUnit(), true, true);
+            reelsOnly(Category.FB_SHORTS, new Object(), true);
+            reelsOnly(Category.FB_SHORTS, new Object(), true);
+            FeedFilter.hideEdge(Category.ORGANIC, new Object(), true, true);
+
+            long[] counts = HiddenTally.counts();
+            assertEquals(1, counts[HiddenTally.Kind.ADS.ordinal()]);
+            assertEquals(1, counts[HiddenTally.Kind.SUGGESTED.ordinal()]);
+            assertEquals(2, counts[HiddenTally.Kind.REELS.ordinal()]);
+            assertEquals("the kept post counts nowhere", 4, Arrays.stream(counts).sum());
+        } finally {
+            HiddenTally.clearForTests();
+        }
+
+        assertTrue(FeedFilter.cardType(FeedFilter.FRIEND_REQUESTS_TYPE));
+        assertTrue(FeedFilter.cardType(FeedFilter.FRIENDS_LOCATIONS_TYPE));
+        assertTrue(FeedFilter.cardType(FeedFilter.MEMORIES_TYPES[0]));
+        assertFalse(FeedFilter.cardType("GraphQLPagesYouMayLikeFeedUnit"));
+        assertFalse(FeedFilter.cardType(null));
     }
 
     /**

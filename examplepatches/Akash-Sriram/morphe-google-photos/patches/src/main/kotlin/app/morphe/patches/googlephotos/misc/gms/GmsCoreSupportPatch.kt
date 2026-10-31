@@ -124,28 +124,145 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
             }
         }
 
-        // Unified single pass over all classes:
-        //  - Google Play Services availability & signature check hooks
-        //  - Relax MDD and WorkManager network constraints from UNMETERED/NOT_ROAMING to CONNECTED
-        //  - Places Map photo grid scroll jump (Lahuf.h)
-        //  - Map Explore bottom sheet photo count
-        //  - MarsGridActivity.onCreate hook
-        //  - Discover photos.killswitch_info_panel_map field
-        var killswitchFieldRef: FieldReference? = null
-        val candidateSgetMethods = mutableListOf<Pair<ClassDef, com.android.tools.smali.dexlib2.iface.Method>>()
+        // Places Map photo grid scroll jump
+        PlacesMapScrollJumpFingerprint.methodOrNull?.let { method ->
+            val mutableClass = mutableClassDefBy(method.definingClass)
+            val mutableMethod = mutableClass.findMutableMethodOf(method)
+            mutableMethod.addInstruction(
+                0,
+                "invoke-static {v2}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->adjustScrollPosition(I)I",
+            )
+            mutableMethod.addInstruction(
+                1,
+                "move-result v2",
+            )
+            mutableMethod.addInstruction(
+                2,
+                "invoke-static {v2, v3}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->adjustScrollOffset(II)I",
+            )
+            mutableMethod.addInstruction(
+                3,
+                "move-result v3",
+            )
+        }
 
-        classDefForEach { classDef ->
-            val mutableClass by lazy { mutableClassDefBy(classDef) }
-
-            // MarsGridActivity.onCreate hook
-            if (classDef.type == "Lcom/google/android/apps/photos/mars/grid/MarsGridActivity;") {
-                classDef.methods.find { it.name == "onCreate" }?.let { method ->
-                    mutableClass.findMutableMethodOf(method).addInstruction(
-                        0,
-                        "invoke-static {p0}, Lapp/morphe/extension/shared/patches/toolkit/StorageScanner;->onMarsGridActivityCreated(Landroid/app/Activity;)V",
-                    )
+        // Map Explore bottom sheet header photo count
+        MapExploreDateRangeFingerprint.methodOrNull?.let { method ->
+            val mutableClass = mutableClassDefBy(method.definingClass)
+            val mutableMethod = mutableClass.findMutableMethodOf(method)
+            val impl = method.implementation
+            if (impl != null) {
+                var aPIndex = -1
+                var ifNezIndex = -1
+                impl.instructions.forEachIndexed { idx, instr ->
+                    if (aPIndex == -1) {
+                        if (instr is ReferenceInstruction && instr.opcode.name.lowercase().startsWith("iget-boolean")) {
+                            val ref = instr.reference as? FieldReference
+                            if (ref != null && ref.name == "aP") {
+                                aPIndex = idx
+                            }
+                        }
+                    } else if (ifNezIndex == -1 && idx == aPIndex + 1 && instr.opcode.name.lowercase().startsWith("if-nez")) {
+                        ifNezIndex = idx
+                    }
+                }
+                if (ifNezIndex != -1) {
+                    mutableMethod.replaceInstruction(ifNezIndex, "nop")
                 }
             }
+        }
+
+        // MarsGridActivity.onCreate hook
+        classDefByOrNull("Lcom/google/android/apps/photos/mars/grid/MarsGridActivity;")?.let { classDef ->
+            classDef.methods.find { it.name == "onCreate" }?.let { method ->
+                mutableClassDefBy(classDef).findMutableMethodOf(method).addInstruction(
+                    0,
+                    "invoke-static {p0}, Lapp/morphe/extension/shared/patches/toolkit/StorageScanner;->onMarsGridActivityCreated(Landroid/app/Activity;)V",
+                )
+            }
+        }
+
+        // Hook photos.killswitch_info_panel_map to prevent crash when MicroG lacks location
+        KillswitchInfoPanelMapFingerprint.methodOrNull?.let { clinitMethod ->
+            var foundDist = -1
+            var targetField: FieldReference? = null
+            clinitMethod.implementation?.instructions?.forEach { instr ->
+                val ref = (instr as? ReferenceInstruction)?.reference
+                if (ref is StringReference && ref.string == "photos.killswitch_info_panel_map") {
+                    foundDist = 0
+                } else if (foundDist in 0..15 && ref is FieldReference && instr.opcode.name.startsWith("sput", ignoreCase = true)) {
+                    targetField = ref
+                    foundDist = -1
+                } else if (foundDist >= 0) {
+                    foundDist++
+                }
+            }
+
+            if (targetField != null) {
+                val killswitchClassDef = classDefBy(clinitMethod.definingClass)
+                val supplierClassTypes = mutableSetOf<String>()
+                killswitchClassDef.methods.filter { it.name == "<init>" }.forEach { initMethod ->
+                    initMethod.implementation?.instructions?.forEach { instr ->
+                        val ref = (instr as? ReferenceInstruction)?.reference
+                        if (ref is com.android.tools.smali.dexlib2.iface.reference.TypeReference) {
+                            val type = ref.type
+                            if (!type.startsWith("Landroid/") && !type.startsWith("Ljava/") && !type.contains("Context")) {
+                                supplierClassTypes.add(type)
+                            }
+                        }
+                    }
+                }
+
+                fun patchMethodIfMatches(cDef: ClassDef, method: Method): Boolean {
+                    val impl = method.implementation ?: return false
+                    val instructions = impl.instructions.toList()
+                    var sgetDistance = -1
+                    var patched = false
+                    instructions.forEachIndexed { index, instruction ->
+                        val ref = (instruction as? ReferenceInstruction)?.reference
+                        if (ref is FieldReference && ref.definingClass == targetField.definingClass && ref.name == targetField.name && instruction.opcode.name.startsWith("sget", ignoreCase = true)) {
+                            sgetDistance = 0
+                        } else if (sgetDistance in 0..5 && ref is MethodReference && ref.returnType == "Z" && instruction.opcode.name.startsWith("invoke", ignoreCase = true)) {
+                            sgetDistance = -1
+                            val nextIndex = index + 1
+                            if (nextIndex < instructions.size) {
+                                val nextIns = instructions[nextIndex]
+                                if (nextIns is OneRegisterInstruction && nextIns.opcode.name.startsWith("move-result", ignoreCase = true)) {
+                                    val reg = nextIns.registerA
+                                    val mutableMethod = mutableClassDefBy(cDef).findMutableMethodOf(method)
+                                    mutableMethod.addInstruction(
+                                        nextIndex + 1,
+                                        "invoke-static {v$reg}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->isInfoPanelMapKillswitched(Z)Z",
+                                    )
+                                    mutableMethod.addInstruction(
+                                        nextIndex + 2,
+                                        "move-result v$reg",
+                                    )
+                                    patched = true
+                                }
+                            }
+                        } else if (sgetDistance >= 0) {
+                            sgetDistance++
+                        }
+                    }
+                    return patched
+                }
+
+                var didPatch = false
+                for (supplierType in supplierClassTypes) {
+                    classDefByOrNull(supplierType)?.let { sClass ->
+                        sClass.methods.forEach { m ->
+                            if (patchMethodIfMatches(sClass, m)) didPatch = true
+                        }
+                    }
+                    if (didPatch) break
+                }
+            }
+        }
+
+        // Fast metadata scan: Google Play Services availability & signature check hooks
+        classDefForEach { classDef ->
+            val mutableClass by lazy { mutableClassDefBy(classDef) }
 
             classDef.methods.forEach classLoop@{ method ->
                 // Check A: Google Play Services availability check
@@ -157,7 +274,7 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
                 if (isAvailabilityCheck) {
                     val impl = method.implementation
                     if (impl != null && impl.instructions.any { instr ->
-                        val str = (instr.getReference<com.android.tools.smali.dexlib2.iface.reference.StringReference>())?.string
+                        val str = (instr.getReference<StringReference>())?.string
                         str?.contains("android.gms") == true || str?.contains("GooglePlayServices") == true
                     }) {
                         mutableClass.findMutableMethodOf(method).returnEarly(0)
@@ -173,117 +290,26 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
                     mutableClass.findMutableMethodOf(method).returnEarly(true)
                     return@classLoop
                 }
-
-                // Check D: Places Map photo grid scroll jump (Lahuf.h)
-                if (AccessFlags.STATIC.isSet(method.accessFlags) &&
-                    method.returnType == "V" && method.parameterTypes.size == 3 &&
-                    method.parameterTypes[1] == "I" && method.parameterTypes[2] == "I" &&
-                    !method.parameterTypes[0].contains("RecyclerView;")) {
-                    val impl = method.implementation
-                    if (impl != null) {
-                        val isLahufH = impl.instructions.any { instr ->
-                            val ref = (instr as? ReferenceInstruction)?.reference?.toString()
-                            ref?.contains("TwoWayLayoutManager") == true
-                        } && impl.instructions.any { instr ->
-                            val ref = (instr as? ReferenceInstruction)?.reference?.toString()
-                            ref?.contains("LinearLayoutManager") == true
-                        }
-                        if (isLahufH) {
-                            val mutableMethod = mutableClass.findMutableMethodOf(method)
-                            mutableMethod.addInstruction(
-                                0,
-                                "invoke-static {v2}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->adjustScrollPosition(I)I",
-                            )
-                            mutableMethod.addInstruction(
-                                1,
-                                "move-result v2",
-                            )
-                            mutableMethod.addInstruction(
-                                2,
-                                "invoke-static {v2, v3}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->adjustScrollOffset(II)I",
-                            )
-                            mutableMethod.addInstruction(
-                                3,
-                                "move-result v3",
-                            )
-                        }
-                    }
-                }
-
-                // Check E: Map Explore bottom sheet header photo count
-                if (method.returnType == "V" && method.parameterTypes.size == 2 && method.parameterTypes[0] == "I") {
-                    val impl = method.implementation
-                    if (impl != null && impl.instructions.any { instr ->
-                        (instr as? ReferenceInstruction)?.reference?.toString()?.contains("mapexplore.GetMediaCollectionDateRangeTask") == true
-                    }) {
-                        var aPIndex = -1
-                        var ifNezIndex = -1
-                        impl.instructions.forEachIndexed { idx, instr ->
-                            if (aPIndex == -1) {
-                                if (instr is ReferenceInstruction && instr.opcode.name.lowercase().startsWith("iget-boolean")) {
-                                    val ref = instr.reference as? FieldReference
-                                    if (ref != null && ref.name == "aP") {
-                                        aPIndex = idx
-                                    }
-                                }
-                            } else if (ifNezIndex == -1 && idx == aPIndex + 1 && instr.opcode.name.lowercase().startsWith("if-nez")) {
-                                ifNezIndex = idx
-                            }
-                        }
-                        if (ifNezIndex != -1) {
-                            val mutableMethod = mutableClass.findMutableMethodOf(method)
-                            mutableMethod.replaceInstruction(ifNezIndex, "nop")
-                        }
-                    }
-                }
-
-                val implementation = method.implementation ?: return@classLoop
-
-                // Check C: WorkManager / MDD network constraints & Killswitch discovery & Mars strings
-                var foundStringDistance = -1
-                val mutableMethod by lazy { mutableClass.findMutableMethodOf(method) }
-
-                implementation.instructions.forEachIndexed { index, instruction ->
-                    val ref = (instruction as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference
-
-                    // Candidate methods that perform an sget opcode
-                    if (instruction.opcode.name.startsWith("sget", ignoreCase = true)) {
-                        candidateSgetMethods.add(classDef to method)
-                    }
-
-                    // WorkManager network constraints
-                    if (ref is FieldReference && ref.definingClass == "Landroidx/work/NetworkType;" &&
-                        (ref.name == "UNMETERED" || ref.name == "NOT_ROAMING")) {
-                        val register = (instruction as OneRegisterInstruction).registerA
-                        mutableMethod.replaceInstruction(
-                            index,
-                            "sget-object v$register, Landroidx/work/NetworkType;->CONNECTED:Landroidx/work/NetworkType;",
-                        )
-                    }
-
-                    // Killswitch discovery
-                    if (killswitchFieldRef == null) {
-                        if (ref is StringReference && ref.string == "photos.killswitch_info_panel_map") {
-                            foundStringDistance = 0
-                        } else if (foundStringDistance in 0..15 && ref is FieldReference && instruction.opcode.name.startsWith("sput", ignoreCase = true)) {
-                            killswitchFieldRef = ref
-                        } else if (foundStringDistance >= 0) {
-                            foundStringDistance++
-                        }
-                    }
-                }
             }
         }
 
         // 2) Disable the AccountValidityMonitor check that runs on resume.
-        AccountValidityMonitorCheckFingerprint.method.addInstruction(
+        val avmClass = mutableClassDefBy(AccountValidityMonitorFingerprint.method.definingClass)
+        val checkAccountMethod = avmClass.methods.first {
+            it.name == "d" && it.parameterTypes.isEmpty() && it.returnType == "V"
+        }
+        checkAccountMethod.addInstruction(
             0,
             "return-void",
         )
 
         // 3) Keep the frictionless eligibility result intact, but prevent the
         //    MicroG failure path from clearing the selected account.
-        FrictionlessEligibilityFingerprint.method.apply {
+        val frictionlessClass = mutableClassDefBy(FrictionlessEligibilityTaskFingerprint.method.definingClass)
+        val eligibilityMethod = frictionlessClass.methods.first {
+            it.name == "f" && it.parameterTypes.isEmpty() && it.returnType == "Z"
+        }
+        eligibilityMethod.apply {
             val clearSelectedAccountIndex = indexOfFirstInstructionOrThrow {
                 getReference<MethodReference>()?.let { ref ->
                     ref.name == "o" &&
@@ -298,8 +324,12 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
             replaceInstruction(clearSelectedAccountIndex, "invoke-virtual {p0}, $accountHandlerClass->p()V")
         }
 
-        // 4) Hook CurrentLocationMixin.a() to immediately obtain device location and animate map camera.
-        CurrentLocationMixinFingerprint.method.apply {
+        // 4, 5, 6) Hook CurrentLocationMixin methods
+        val currentLocationClass = mutableClassDefBy(CurrentLocationMixinOnViewCreatedFingerprint.method.definingClass)
+        val currentLocationMethodA = currentLocationClass.methods.first {
+            it.name == "a" && it.parameterTypes.isEmpty() && it.returnType == "V"
+        }
+        currentLocationMethodA.apply {
             addInstruction(
                 0,
                 "invoke-static {p0}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->handleCurrentLocation(Ljava/lang/Object;)V",
@@ -310,56 +340,19 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
             )
         }
 
-        // 5) Hook CurrentLocationMixin.ar(View, Bundle) to eagerly wire location source to map on view creation.
         CurrentLocationMixinOnViewCreatedFingerprint.method.addInstruction(
             0,
             "invoke-static {p0}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->initMapLocation(Ljava/lang/Object;)V",
         )
 
-        // 6) Hook CurrentLocationMixin.b(boolean) to detect if toggle-off was triggered by onClick.
-        CurrentLocationMixinUpdateTintFingerprint.method.addInstruction(
+        val currentLocationMethodB = currentLocationClass.methods.first {
+            it.name == "b" && it.parameterTypes.toList() == listOf("Z") && it.returnType == "V"
+        }
+        currentLocationMethodB.addInstruction(
             0,
             "invoke-static {p0, p1}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->onCurrentLocationMixinTintUpdated(Ljava/lang/Object;Z)V",
         )
 
-        // 7) Hook photos.killswitch_info_panel_map to prevent crash when MicroG lacks location.
-        val targetField = killswitchFieldRef
-        if (targetField != null) {
-            candidateSgetMethods.distinctBy { it.second }.forEach { pair ->
-                val classDef = pair.first
-                val method = pair.second
-                val mutableClass by lazy { mutableClassDefBy(classDef) }
-                val impl = method.implementation ?: return@forEach
-                val instructions = impl.instructions.toList()
-                var sgetDistance = -1
-                instructions.forEachIndexed { index, instruction ->
-                    val ref = (instruction as? ReferenceInstruction)?.reference
-                    if (ref is FieldReference && ref.definingClass == targetField.definingClass && ref.name == targetField.name && instruction.opcode.name.startsWith("sget", ignoreCase = true)) {
-                        sgetDistance = 0
-                    } else if (sgetDistance in 0..5 && ref is MethodReference && ref.returnType == "Z" && instruction.opcode.name.startsWith("invoke", ignoreCase = true)) {
-                        sgetDistance = -1
-                        val nextIndex = index + 1
-                        if (nextIndex < instructions.size) {
-                            val nextIns = instructions[nextIndex]
-                            if (nextIns is OneRegisterInstruction && nextIns.opcode.name.startsWith("move-result", ignoreCase = true)) {
-                                val reg = nextIns.registerA
-                                val mutableMethod = mutableClass.findMutableMethodOf(method)
-                                mutableMethod.addInstruction(
-                                    nextIndex + 1,
-                                    "invoke-static {v$reg}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->isInfoPanelMapKillswitched(Z)Z",
-                                )
-                                mutableMethod.addInstruction(
-                                    nextIndex + 2,
-                                    "move-result v$reg",
-                                )
-                            }
-                        }
-                    } else if (sgetDistance >= 0) {
-                        sgetDistance++
-                    }
-                }
-            }
-        }
 
         // 8) Bypass concurrent permission request crash guard (Cannot request permissions X when already requested Y)
         val permCoordMethod = PermissionCoordinatorRequestPermissionsFingerprint.methodOrNull

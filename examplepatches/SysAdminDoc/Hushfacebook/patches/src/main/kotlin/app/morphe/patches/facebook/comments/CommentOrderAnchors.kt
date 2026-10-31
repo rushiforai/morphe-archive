@@ -216,6 +216,16 @@ internal fun isPickHandler(method: Method): Boolean =
  * tree, a string and the Function1 a tap on a row calls with that row's token, and files it under
  * "OrderingModeSelector", a key Redex keeps in a static map of its own class, read right after.
  * First thing in that header's constructor, the extension gets the feedback tree and the Function1.
+ *
+ * 585 holds neither string in the renderer. It asks the answer's models for them through interface
+ * getters, and the models answer by naming them: arm64's renderer `LX/09yb;->A0o` calls
+ * `LX/0AhN;->AFx()` (implemented by `LX/0AvH;`, which asks the string table `LX/07kI;` for
+ * "fetch_comment_intent") and `LX/0DtX;->DsC()` (implemented by `LX/0B0U;`, which holds
+ * "interranked_comment_order_pagination"); armeabi-v7a's models are `LX/0AvK;->AFx` and
+ * `LX/0B0X;->DsA`. It still builds the header (`LX/09xM;` on arm64) and reads the key's map
+ * (`LX/09xN;->A00`, the only reader besides its class's initializer) four instructions below. So
+ * the renderer is looked for among the classes naming the key's class, and a call to such a getter
+ * stands in for each string ([interfaceGetters]).
  */
 
 /** Strings the comment sheet's section renderer holds. */
@@ -246,14 +256,50 @@ internal fun selectorKeyMaps(keyOwners: List<ClassDef>): Set<String> =
     keyOwners.flatMap { owner -> owner.staticFields.filter { it.type == MAP }.map { "${owner.type}->${it.name}:$MAP" } }
         .toSet()
 
+/** Whether [method] could be a model's getter for a string: an instance method with a body, no parameters and an object answer. */
+internal fun isSheetGetter(method: Method): Boolean =
+    method.implementation != null && !AccessFlags.STATIC.isSet(method.accessFlags) &&
+        method.parameterTypes.isEmpty() && method.returnType.startsWith("L")
+
+private fun getterSignature(type: String, name: String, parameters: List<CharSequence>, returns: String) =
+    "$type->$name(${parameters.joinToString("")})$returns"
+
+/**
+ * [getters], methods of [models] that name a string, as declared on each interface their class
+ * implements, `interface->name(parameters)return`. 585's renderer reaches the strings only through
+ * calls on those interfaces, so a call to one of these stands in for holding the string.
+ */
+internal fun interfaceGetters(models: Collection<ClassDef>, getters: Collection<Method>): Set<String> {
+    val byType = models.associateBy { it.type }
+    return getters.flatMapTo(mutableSetOf()) { getter ->
+        (byType[getter.definingClass]?.interfaces ?: emptyList()).map { face ->
+            getterSignature(face, getter.name, getter.parameterTypes, getter.returnType)
+        }
+    }
+}
+
+private fun callsOneOf(code: List<Instruction>, getters: Set<String>): Boolean = getters.isNotEmpty() && code.any {
+    val call = (it as? ReferenceInstruction)?.reference as? MethodReference ?: return@any false
+    getterSignature(call.definingClass, call.name, call.parameterTypes, call.returnType) in getters
+}
+
 /**
  * The constructor of the sort menu's header that [render] builds, when [render] is the comment
- * sheet's section renderer: a constructor call [isSortHeaderConstructor] matches, with a read of one
- * of [keyMaps] at most [KEY_WINDOW] instructions below it. Null when [render] isn't that renderer.
+ * sheet's section renderer: it holds [INTENT_FLAG] and [INTERRANKED], or calls one of
+ * [intentGetters] and one of [interrankedGetters] ([interfaceGetters]), and a constructor call
+ * [isSortHeaderConstructor] matches, with a read of one of [keyMaps] at most [KEY_WINDOW]
+ * instructions below it. Null when [render] isn't that renderer.
  */
-internal fun sortHeaderIn(render: Method, keyMaps: Set<String>): MethodReference? {
-    if (!holdsString(render, INTENT_FLAG) || !holdsString(render, INTERRANKED)) return null
+internal fun sortHeaderIn(
+    render: Method,
+    keyMaps: Set<String>,
+    intentGetters: Set<String> = emptySet(),
+    interrankedGetters: Set<String> = emptySet(),
+): MethodReference? {
     val code = render.implementation?.instructions?.toList() ?: return null
+    val holds = holdsString(render, INTENT_FLAG) && holdsString(render, INTERRANKED)
+    // 585's renderer asks its answer's models for both strings through interface getters instead of holding them.
+    if (!holds && !(callsOneOf(code, intentGetters) && callsOneOf(code, interrankedGetters))) return null
     return code.withIndex().mapNotNull { (index, instruction) ->
         if (instruction.opcode != Opcode.INVOKE_DIRECT && instruction.opcode != Opcode.INVOKE_DIRECT_RANGE) {
             return@mapNotNull null

@@ -1,0 +1,45 @@
+{
+  "tag": "v1.30.0-dev.2",
+  "url": "https://github.com/johnneerdael/dutch-applications-patches/releases/tag/v1.30.0-dev.2",
+  "bundle": "patches-1.30.0-dev.2.mpp",
+  "sha256": "0eb1f0b95b6819f699e27df273dffec7ec3255c659b569275af0252ec84871b4",
+  "verified_west_class_payloads": 15,
+  "controls": [
+    "Disable tracking",
+    "Hide ads",
+    "Skip consent screens"
+  ],
+  "target": "20.1/10596",
+  "asset_bytes": 8047341,
+  "release_workflow": 41153568749,
+  "original_apks_sha256": "8d72f5494d2a6c224efb3322ce9967f4d80455be4fde4239abb542a127657798",
+  "combined_output_report": {
+    "success": true,
+    "outputPath": "/private/tmp/dutch-omroep-west-20261031/build/validation/west/west-all.apk",
+    "packageName": "nl.omroepwest.android",
+    "packageVersion": "20.1",
+    "appliedPatches": [
+      "Disable tracking",
+      "Hide ads",
+      "Skip consent screens"
+    ],
+    "failedPatches": [],
+    "stepResults": [
+      {
+        "step": "PATCHING",
+        "success": true
+      },
+      {
+        "step": "REBUILDING",
+        "success": true
+      },
+      {
+        "step": "SIGNING",
+        "success": true
+      }
+    ]
+  },
+  "combined_output_sha256": "1b5db80d919e1390571fc18d7c168e1e6723941b75a53ae838573abb54211fdb",
+  "native_method_graphs": 1029,
+  "physical_device_acceptance": "pending user testing"
+}

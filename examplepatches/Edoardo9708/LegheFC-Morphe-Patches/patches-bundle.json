@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-29T18:19:40",
-  "description": "## [1.5.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.4.0...v1.5.0) (2026-10-29)\n\n### ✨ New Features\n\n* **dnschanger:** publish stable Force Pro test D2 without Spotify ([e3d914e](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e3d914eb52f48706d29a866972172d04505a0381))",
-  "download_url": "https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/download/v1.5.0/patches-1.5.0.mpp",
+  "created_at": "2026-10-31T01:00:20",
+  "description": "## [1.7.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.6.1...v1.7.0) (2026-10-31)\n\n### ✨ New Features\n\n* **skisafari:** add experimental unlock-all patch for 2.5 ([7fe0e28](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/7fe0e2888bee2c85daefe35e7cfefcf11049f5dc))",
+  "download_url": "https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/download/v1.7.0/patches-1.7.0.mpp",
   "signature_download_url": "",
-  "version": "1.5.0"
+  "version": "1.7.0"
 }

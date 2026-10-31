@@ -1,0 +1,74 @@
+{
+  "capturedAt": "2026-10-30T14:10:11.059557+00:00",
+  "serial": "emulator-5586",
+  "package": "com.android.settings",
+  "labels": [
+    {
+      "text": "Morphe",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[470,564][611,611]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "2.2.0",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[508,623][573,656]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Allow from this source",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[48,724][469,771]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Your phone and personal data are more vulnerable to attack by unknown apps. By installing apps from this source, you agree that you are responsible for any damage to your phone or loss of data that may result from their use.",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[48,919][1048,1032]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Navigate up",
+      "class": "android.view.View",
+      "bounds": "[32,80][80,128]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Install unknown apps",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[48,276][728,364]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "e77c3e7833dd63fccc131ea4f04ed45a5248b7ec68166869ba79693d93c47d81"
+}

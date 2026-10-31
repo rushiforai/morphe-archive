@@ -563,6 +563,9 @@ function Get-Focus { "$(Invoke-DeviceShell 'dumpsys window' | Select-String 'mCu
 function Restart-TikTok {
     $script:settingsOpen = $false
     Invoke-DeviceShell "am force-stop $package" | Out-Null
+    # A link check can leave a Chrome custom tab in the app's task (a first-run tooltip eats its
+    # Back). The tab outlives the app's force-stop, and the relaunch would bring it back on top.
+    Invoke-DeviceShell 'am force-stop com.android.chrome' | Out-Null
     Start-Sleep -Milliseconds 800
     $marker = Write-Marker
     Invoke-DeviceShell "am instrument $($probeProfile.ProbePackage)/$($probeProfile.Instrumentation)" 2>&1 | Out-Null

@@ -15,10 +15,12 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.8.1](https://github.com/ch3thanhs/stylus/releases/tag/v1.8.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.8.2](https://github.com/ch3thanhs/stylus/releases/tag/v1.8.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
 <summary>📦 GitHub&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
+
+**Package name:** `com.github.android`
 
 **🎯 Supported versions:**
 
@@ -38,6 +40,8 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 <summary>📦 Where is my Train&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
+**Package name:** `com.whereismytrain.android`
+
 **🎯 Supported versions:**
 
 | 7.1.5.974952539 |
@@ -54,6 +58,8 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 <summary>📦 Bitwarden&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
+**Package name:** `com.x8bit.bitwarden`
+
 **🎯 Supported versions:**
 
 | 2026.10.0 |
@@ -69,9 +75,11 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 <summary>📦 Telegram&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
+**Package name:** `org.telegram.messenger`
+
 **🎯 Supported versions:**
 
-| 13.1.0 |
+| 13.1.1 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -84,9 +92,11 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 <summary>📦 Telegram (web version)&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
+**Package name:** `org.telegram.messenger.web`
+
 **🎯 Supported versions:**
 
-| 13.0.2 |
+| 13.1.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -99,7 +109,9 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 
 #### How to use these patches
 
-Click here to add these patches to Morphe: https://morphe.software/add-source?github=ch3thanhs/stylus
+<a href="https://morphe.software/add-source?github=ch3thanhs/stylus">
+  <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
+</a>
 
 Or manually add this repository url as a patch source in Morphe: https://github.com/ch3thanhs/stylus
 

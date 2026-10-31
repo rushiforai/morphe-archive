@@ -1,0 +1,85 @@
+{
+  "capturedAt": "2026-10-30T13:01:18.293259+00:00",
+  "serial": "emulator-5580",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Change Output",
+      "class": "android.view.View",
+      "bounds": "[417,141][663,193]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Volume",
+      "class": "android.view.View",
+      "bounds": "[82,267][1018,315]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "100%",
+      "class": "android.view.View",
+      "bounds": "[50,331][1050,459]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "100%",
+      "class": "android.widget.SeekBar",
+      "bounds": "[922,347][1018,443]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Available Devices",
+      "class": "android.view.View",
+      "bounds": "[82,499][1018,547]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Phone\nDevice Speaker",
+      "class": "android.widget.Button",
+      "bounds": "[50,563][1050,680]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Scrim",
+      "class": "android.view.View",
+      "bounds": "[0,0][1100,48]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "f3ed3d8c79bc50190219c331da6ac9d9723984dd20649cdfaf50b098147f3d6c"
+}

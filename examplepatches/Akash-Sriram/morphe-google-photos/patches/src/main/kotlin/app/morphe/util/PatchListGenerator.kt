@@ -79,7 +79,6 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
             description = patch.description,
             default = patch.default,
             category = patch.category,
-            dependencies = patch.dependencies.map { it.javaClass.simpleName },
             // Map each Compatibility to a JsonCompatibility object with full metadata.
             // Patches with null compatiblePackages are universal (apply to any app).
             compatiblePackages = patch.compatibility?.map { compat ->
@@ -91,6 +90,7 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
                     // Format as #RRGGBB string for readability; null if not set
                     appIconColor = compat.appIconColor?.let { "#%06X".format(it) },
                     signatures = compat.signatures,
+                    formFactor = compat.formFactor?.name,
                     targets = compat.targets.map { target ->
                         JsonCompatibility.Target(
                             version = target.version,
@@ -143,7 +143,6 @@ private class JsonPatch(
     val default: Boolean = true,
     /** Null when the patch declares no category and is left ungrouped. */
     val category: String? = null,
-    val dependencies: List<String>,
     /** Null means the patch is universal and applies to any app. */
     val compatiblePackages: List<JsonCompatibility>? = null,
     val options: List<Option>,
@@ -174,6 +173,8 @@ private class JsonCompatibility(
     val appIconColor: String?,
     /** Valid SHA-256 signatures of the app. */
     val signatures: Set<String>?,
+    /** Device form factor of the app, e.g. MOBILE, TV. Null means all form factors. */
+    val formFactor: String?,
     val targets: List<Target>,
 ) {
     class Target(

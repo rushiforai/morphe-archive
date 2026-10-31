@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.5.9...v1.6.0) (2026-10-30)
+
+### ✨ New Features
+
+* support newer YouTube versions and Morphe Patches 2.0.0 ([5ba7287](https://github.com/YYDarlinker/morphe-ai-caption-translator/commit/5ba728752a5c3c600f0dfad41bac15e67ee1beae))
+
 ## [1.5.9](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.5.8...v1.5.9) (2026-10-30)
 
 - Reduce missing translated text when a passage spans several source subtitle lines.

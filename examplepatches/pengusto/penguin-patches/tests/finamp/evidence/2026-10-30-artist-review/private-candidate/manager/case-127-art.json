@@ -1,0 +1,30 @@
+{
+  "mask": 127,
+  "runtime": "art",
+  "runtime_log": "10-30 15:03:59.007 21210  6955 I Morphe Patcher: Runtime: name=art memoryLimit=576",
+  "ui_success": true,
+  "apk_sha256": "4bc6f9706a82134f2c236246f043759b5c98fcb5d9f03a8115f5e9c2a1d6d506",
+  "native_sha256": "4cf0b6acf56e791ede95260dcbac448745cb160a91fefb46546211eb1c03d148",
+  "changed_retained_entries": [
+    "lib/arm64-v8a/libapp.so"
+  ],
+  "abis": [
+    "arm64-v8a"
+  ],
+  "stable_export_bytes": 47040964,
+  "signature_verified": true,
+  "signer_sha256": "5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628",
+  "recovery": false,
+  "available_patch_mask": 127,
+  "actual_export_path": "/sdcard/Download/finamp-manager-test/artist-full-manager-mask-127-art.apk",
+  "verified_save_directory": "/sdcard/Download/finamp-manager-test",
+  "verified_selection_states": {
+    "Fix offline artist tracks": "Fix offline artist tracks, Enabled",
+    "Fix quick settings banner contrast": "Fix quick settings banner contrast, Enabled",
+    "Fix section title validation": "Fix section title validation, Enabled",
+    "Fix track alphabet navigation": "Fix track alphabet navigation, Enabled",
+    "Keep player output controls accessible": "Keep player output controls accessible, Enabled",
+    "Load artist pages faster": "Load artist pages faster, Enabled",
+    "Song artist order": "Song artist order, Enabled"
+  }
+}

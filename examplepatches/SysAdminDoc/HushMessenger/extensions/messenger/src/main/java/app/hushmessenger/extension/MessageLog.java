@@ -31,10 +31,11 @@ import javax.crypto.spec.GCMParameterSpec;
 
 /**
  * A local log of the messages that reached a notification, kept so an unsend can't take them back. It's the only way to
- * cover end-to-end encrypted chats, which "Keep unsent messages" can't reach. The file and its key stay on the phone,
- * and the key lives in the Android keystore, so nothing here leaves the device and clearing the log throws the key away
- * with it. Writing happens off Messenger's notification thread, and any failure is swallowed into the control's
- * hook-error record the way the other controls handle theirs.
+ * keep an end-to-end encrypted chat's message past the notification, which is as far as "Keep unsent messages" reaches
+ * there. The file and its key stay on the phone, and the key lives in the Android keystore, so nothing here leaves the
+ * device and clearing the log throws the key away with it. Writing happens off Messenger's notification thread, and any failure is swallowed into the control's
+ * hook-error record the way the other controls handle theirs. When the sender unsends a logged message, its entry is
+ * marked Unsent, found by Messenger's id for it or by the notification that showed it.
  *
  * Retention: entries older than 30 days are removed from the file itself, by a check shortly after Messenger starts and
  * every six hours after, whether or not the switch is on. Turning the switch off, pausing or safe mode stop new entries
@@ -107,8 +108,10 @@ public final class MessageLog {
         public final String text;
         public final String sender;
         public final String chat;
-        /** Messenger's id for the message, empty when the hook had none. Kept in memory only, never in the file. */
+        /** Messenger's id for the message, empty when the hook had none. An unsend finds the message by it. */
         final String id;
+        /** The sender unsent the message after it was logged. */
+        public final boolean unsent;
         Entry(long time, String thread, String text) {
             this(time, thread, text, "", "");
         }
@@ -116,12 +119,20 @@ public final class MessageLog {
             this(time, thread, text, sender, chat, "");
         }
         Entry(long time, String thread, String text, String sender, String chat, String id) {
+            this(time, thread, text, sender, chat, id, false);
+        }
+        Entry(long time, String thread, String text, String sender, String chat, String id, boolean unsent) {
             this.time = time;
             this.thread = thread;
             this.text = text;
             this.sender = sender == null ? "" : sender;
             this.chat = chat == null ? "" : chat;
             this.id = id == null ? "" : id;
+            this.unsent = unsent;
+        }
+
+        Entry markedUnsent() {
+            return new Entry(time, thread, text, sender, chat, id, true);
         }
     }
 
@@ -293,6 +304,70 @@ public final class MessageLog {
         }
     }
 
+    /**
+     * Messenger is about to take [id] out of its notification because the sender unsent it. The notification is read
+     * now, while it still shows the message, and the mark is written on the log's own thread: the entry with that id,
+     * else the newest one in the same chat with the same text.
+     */
+    static void markUnsent(String id) {
+        if (id == null || id.isEmpty()) return;
+        String[] shown = null;
+        try {
+            shown = ChatNotifications.showing(Settings.appContext, id);
+        } catch (RuntimeException unreadable) {
+            // The id alone can still find it.
+        }
+        String thread = shown == null ? null : clip(shown[0], MAX_THREAD_CHARS);
+        String text = shown == null ? null : clip(shown[1], MAX_TEXT_CHARS);
+        String clipped = clip(id, MAX_ID_CHARS);
+        WRITER.execute(() -> markNow(clipped, thread, text));
+    }
+
+    /** Marks the message on the calling thread. Tests use it to skip the background thread. Returns whether it found one. */
+    static boolean markNow(String id, String thread, String text) {
+        synchronized (LOCK) {
+            synchronized (PENDING) {
+                List<Entry> queued = new ArrayList<>(PENDING);
+                Boolean marked = markIn(queued, id, thread, text);
+                if (marked != null) {
+                    PENDING.clear();
+                    PENDING.addAll(queued);
+                    return marked;
+                }
+            }
+            Context context = Settings.appContext;
+            if (context == null) return false;
+            try {
+                List<Entry> entries = load(context);
+                if (!Boolean.TRUE.equals(markIn(entries, id, thread, text))) return false;
+                save(context, entries);
+                Settings.activeAt.put(KEY, System.currentTimeMillis());
+                return true;
+            } catch (Throwable failure) {
+                Settings.hookFailedPrivately(KEY, "Can't mark an unsent message in the log", failure);
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Marks the message in [entries]: true when it marked one, false when the message was already marked, null when
+     * it isn't there. Only the newest entry with the same chat and text can stand in for it, marked or not, so a second
+     * call for one unsend never marks an older message that happens to say the same thing.
+     */
+    private static Boolean markIn(List<Entry> entries, String id, String thread, String text) {
+        int found = -1;
+        for (int i = entries.size() - 1; i >= 0 && found < 0; i--) if (id.equals(entries.get(i).id)) found = i;
+        for (int i = entries.size() - 1; i >= 0 && found < 0 && thread != null && text != null; i--) {
+            Entry entry = entries.get(i);
+            if (thread.equals(entry.thread) && text.equals(entry.text)) found = i;
+        }
+        if (found < 0) return null;
+        if (entries.get(found).unsent) return false;
+        entries.set(found, entries.get(found).markedUnsent());
+        return true;
+    }
+
     static void drain() {
         // Taking the queue under the file lock means a Clear either runs before this (and empties the queue) or after
         // it (and deletes what this wrote). A message that arrived before Clear can't land after it.
@@ -387,7 +462,7 @@ public final class MessageLog {
             }
             if (sender == null && chat == null) return entry;
             return new Entry(entry.time, entry.thread, entry.text, clip(sender == null ? "" : sender, MAX_NAME_CHARS),
-                clip(chat == null || chat.equals(sender) ? "" : chat, MAX_NAME_CHARS), entry.id);
+                clip(chat == null || chat.equals(sender) ? "" : chat, MAX_NAME_CHARS), entry.id, entry.unsent);
         } catch (RuntimeException unreadable) {
             return entry;
         }
@@ -632,7 +707,7 @@ public final class MessageLog {
         long latest = System.currentTimeMillis() + FUTURE_SLACK_MS;
         for (String line : plain.split("\n", -1)) {
             if (line.isEmpty()) continue;
-            // Logs written before names were kept have three columns.
+            // Logs written before names were kept have three columns, and before unsends were marked five.
             String[] parts = line.split("\t", -1);
             if (parts.length < 3) continue;
             long time;
@@ -647,7 +722,9 @@ public final class MessageLog {
             }
             entries.add(new Entry(time, clip(unescape(parts[1]), MAX_THREAD_CHARS), clip(unescape(parts[2]), MAX_TEXT_CHARS),
                 parts.length > 3 ? clip(unescape(parts[3]), MAX_NAME_CHARS) : "",
-                parts.length > 4 ? clip(unescape(parts[4]), MAX_NAME_CHARS) : ""));
+                parts.length > 4 ? clip(unescape(parts[4]), MAX_NAME_CHARS) : "",
+                parts.length > 5 ? clip(unescape(parts[5]), MAX_ID_CHARS) : "",
+                parts.length > 6 && "1".equals(parts[6])));
         }
         return entries;
     }
@@ -686,8 +763,12 @@ public final class MessageLog {
     }
 
     private static String line(Entry entry) {
-        if (entry.sender.isEmpty() && entry.chat.isEmpty()) return entry.time + "\t" + escape(entry.thread) + "\t" + escape(entry.text) + "\n";
-        return entry.time + "\t" + escape(entry.thread) + "\t" + escape(entry.text) + "\t" + escape(entry.sender) + "\t" + escape(entry.chat) + "\n";
+        String start = entry.time + "\t" + escape(entry.thread) + "\t" + escape(entry.text);
+        if (!entry.id.isEmpty() || entry.unsent) {
+            return start + "\t" + escape(entry.sender) + "\t" + escape(entry.chat) + "\t" + escape(entry.id) + "\t" + (entry.unsent ? "1" : "") + "\n";
+        }
+        if (entry.sender.isEmpty() && entry.chat.isEmpty()) return start + "\n";
+        return start + "\t" + escape(entry.sender) + "\t" + escape(entry.chat) + "\n";
     }
 
     /** Cuts long text, never between the two halves of an emoji, and marks the cut. */

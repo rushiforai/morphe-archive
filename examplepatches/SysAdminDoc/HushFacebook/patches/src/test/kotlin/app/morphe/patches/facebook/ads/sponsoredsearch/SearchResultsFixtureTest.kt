@@ -9,6 +9,7 @@ import app.morphe.PatchContexts
 import app.morphe.patches.facebook.search.COPY_OF
 import app.morphe.patches.facebook.search.KEPT_MODULES
 import app.morphe.patches.facebook.search.filterPageModulesFirst
+import app.morphe.patches.facebook.search.pageConstructorOf
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -31,9 +32,12 @@ import org.junit.Test
  * constructor, which the filter then goes first in with v0 and the list's own register.
  */
 class SearchResultsFixtureTest {
-    /** Registers of the page constructor and the register of its module list, per build. */
+    /**
+     * Registers of the page constructor, the register of its module list, and how many constructors
+     * the page class has (585 adds a short one that hands its page to the full one), per build.
+     */
     private val expected = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to (12 to 3),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to Triple(12, 3, 2),
     )
 
     private fun locals(method: Method): Int {
@@ -84,10 +88,21 @@ class SearchResultsFixtureTest {
                 assertEquals("${bundle.name}: the role enum", role.type, search.role)
                 assertEquals("${bundle.name}: the module list is the constructor's first ImmutableList", 1, search.moduleList)
 
-                // The shared page hook goes first in the one constructor, once, reading the modules
-                // and the page's name in their own registers.
-                val constructor = with(context) { mutableClassDefBy(page) }.methods.single { it.name == "<init>" }
-                val (registers, list) = expected.getValue(version)
+                // The shared page hook goes first in the page-shaped constructor, once, reading the
+                // modules and the page's name in their own registers. Every other constructor hands
+                // its page to that one (pageConstructorOf refuses the class otherwise).
+                val pageClass = with(context) { mutableClassDefBy(page) }
+                val (registers, list, constructors) = expected.getValue(version)
+                assertEquals("${bundle.name}: the page's constructors", constructors, pageClass.methods.count { it.name == "<init>" })
+                val constructor = pageConstructorOf(pageClass.methods, pageClass.superclass, PATCH)
+                pageClass.methods.filter { it.name == "<init>" && it !== constructor }.forEach { other ->
+                    val calls = other.implementation!!.instructions.mapNotNull {
+                        ((it as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf { call -> call.name == "<init>" }
+                    }
+                    assertEquals("${bundle.name}: the short constructor calls only the full one",
+                        listOf(constructor.parameterTypes.map(CharSequence::toString)),
+                        calls.map { call -> call.parameterTypes.map(CharSequence::toString) })
+                }
                 assertEquals("${bundle.name}: constructor registers", registers, constructor.implementation!!.registerCount)
                 assertTrue("${bundle.name}: the constructor has no local", locals(constructor) >= 1)
                 requireSharedPageShape(constructor, search.moduleList)

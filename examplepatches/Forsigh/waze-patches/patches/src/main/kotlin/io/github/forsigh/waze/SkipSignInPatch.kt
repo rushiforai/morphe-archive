@@ -192,6 +192,7 @@ val skipSignInPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("Privacy & Updates")
 
     execute {
         val screensToSkip = listOf(

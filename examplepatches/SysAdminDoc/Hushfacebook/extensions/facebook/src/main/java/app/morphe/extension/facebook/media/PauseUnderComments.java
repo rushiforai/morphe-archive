@@ -37,6 +37,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * doesn't hold a start no tap made.
  *
  * <p>Off, or without Tap to play's bridge in the build, nothing is paused or held.
+ *
+ * <p>Tap a reel above its comments plays or pauses the reel under the Reels tab's sheet through
+ * {@link #tapReel}, the same bridge, whether this switch is on or not.
  */
 public final class PauseUnderComments {
     /** The member the report names once a comment sheet has been handed over. */
@@ -140,6 +143,35 @@ public final class PauseUnderComments {
         }
     }
 
+    /**
+     * A tap on the reel above an open comment sheet (#315), whatever this switch says: the reel
+     * playing on screen pauses, and with none playing, the one a sheet paused or else the one shown
+     * plays, armed in Tap to play like a reel played on after its comments. A reel you play or pause
+     * this way is yours, so closing the sheet leaves it as it is. False when Tap to play's bridge
+     * shows no reel, or for a throw.
+     */
+    public static boolean tapReel() {
+        try {
+            Object playing = playingReel();
+            if (playing != null) {
+                access.command(playing, false);
+                Logger.printDebug(() -> "Tap a reel above its comments: paused the reel under the sheet");
+                return true;
+            }
+            Object reel = paused.get();
+            if (reel == null) reel = shownReel();
+            if (reel == null) return false;
+            paused = new WeakReference<>(null);
+            TapToPlay.armForResume(reel);
+            access.command(reel, true);
+            Logger.printDebug(() -> "Tap a reel above its comments: played the reel under the sheet");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "reel tap", failure);
+            return false;
+        }
+    }
+
     /** The reel playing on screen, or null. One whose view is shown wins over one that isn't. */
     @Nullable
     static Object playingReel() {
@@ -151,6 +183,17 @@ public final class PauseUnderComments {
             if (hidden == null) hidden = player;
         }
         return hidden;
+    }
+
+    /** A reel whose view is shown, playing or not, or null. */
+    @Nullable
+    static Object shownReel() {
+        for (Object player : access.known()) {
+            if (!access.reel(player)) continue;
+            View view = access.view(player);
+            if (view != null && view.isShown()) return player;
+        }
+        return null;
     }
 
     /** [content]'s sheet has closed: once none is open, the reel it paused plays on. */

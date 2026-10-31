@@ -35,7 +35,7 @@ public class ReelReplyBarSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.HIDE_REEL_REPLY_BAR.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();

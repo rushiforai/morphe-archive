@@ -1,0 +1,173 @@
+{
+  "capturedAt": "2026-10-30T10:26:08.854285+00:00",
+  "serial": "emulator-5582",
+  "package": "app.morphe.manager",
+  "labels": [
+    {
+      "text": "Patched",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[503,555][626,597]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Mihon",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[437,640][643,735]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Version",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[153,830][258,872]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "v0.21.3",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[153,875][275,928]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Patches",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[153,973][264,1015]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "1 patch",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[153,1018][278,1071]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Source",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[153,1116][250,1158]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Penguin Patches 1.5.0-mihon-candidate",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[153,1161][815,1214]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Install",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[375,1447][496,1510]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Save",
+      "class": "android.view.View",
+      "bounds": "[739,1405][886,1552]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Share",
+      "class": "android.view.View",
+      "bounds": "[891,1405][1038,1552]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Logs",
+      "class": "android.view.View",
+      "bounds": "[42,1615][524,1762]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Logs",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[285,1662][365,1715]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Home",
+      "class": "android.view.View",
+      "bounds": "[556,1615][1038,1762]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Home",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[790,1662][888,1715]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "786d662e325afa044ead6e2d2eb673349c4c42fe39282678ddc1cd5279fd1593"
+}

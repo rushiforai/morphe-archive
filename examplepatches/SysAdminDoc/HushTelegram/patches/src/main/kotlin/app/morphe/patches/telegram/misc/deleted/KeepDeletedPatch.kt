@@ -34,7 +34,7 @@ import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
 import app.morphe.patches.telegram.misc.settings.settingsPatch
 import app.morphe.patches.telegram.misc.time.EDITED_MESSAGE
 import app.morphe.patches.telegram.misc.time.MESSAGE_TIME_SHOWN
-import app.morphe.patches.telegram.misc.time.messageSecondsPatch
+import app.morphe.patches.telegram.misc.time.messageTimePatch
 import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -84,7 +84,7 @@ val keepDeletedPatch = bytecodePatch(
     default = true,
 ) {
     category("Conversations")
-    dependsOn(settingsPatch, telegramExtensionPatch, messageSecondsPatch)
+    dependsOn(settingsPatch, telegramExtensionPatch, messageTimePatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {
         val plan = resolveKeepDeleted()

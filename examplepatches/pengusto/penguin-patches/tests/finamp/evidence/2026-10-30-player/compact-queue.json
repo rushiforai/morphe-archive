@@ -1,0 +1,118 @@
+{
+  "capturedAt": "2026-10-30T13:01:55.104508+00:00",
+  "serial": "emulator-5580",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Queue",
+      "class": "android.view.View",
+      "bounds": "[497,146][603,198]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Previous Tracks",
+      "class": "android.view.View",
+      "bounds": "[28,254][1072,310]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Output Controls\nA Guest, B Guest, Z Lead\n0:17\n/\n2:00",
+      "class": "android.view.View",
+      "bounds": "[0,338][1100,478]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Add to playlist, Tap to add to playlist. Long press to toggle favorite.",
+      "class": "android.widget.Button",
+      "bounds": "[908,364][996,460]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "More actions",
+      "class": "android.widget.Button",
+      "bounds": "[996,360][1084,456]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Playing from \nAll Tracks (from \"Output Controls\")\nTrack 9 of 9 (0 Seconds remaining)",
+      "class": "android.view.View",
+      "bounds": "[24,478][788,607]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Playing in order. Tap to shuffle.",
+      "class": "android.view.View",
+      "bounds": "[788,478][884,574]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Not looping",
+      "class": "android.view.View",
+      "bounds": "[884,478][980,574]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Enable Radio",
+      "class": "android.view.View",
+      "bounds": "[980,478][1076,574]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Scrim",
+      "class": "android.view.View",
+      "bounds": "[0,0][1100,99]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "fe4ddf3bb8927d61f6fd5bded329613657d14023a334a72fc02245468e26c07b"
+}

@@ -32,6 +32,11 @@ object AppCompatibility {
             targets = listOf(AppTarget(version = null))
         ),
         Compatibility(
+            name = "Infinity for Reddit++",
+            packageName = "ml.docilealligator.infinityforreddit.plus2",
+            targets = listOf(AppTarget(version = null))
+        ),
+        Compatibility(
             name = "Infinity for Reddit (Patreon)",
             packageName = "ml.docilealligator.infinityforreddit.patreon",
             targets = listOf(AppTarget(version = null))

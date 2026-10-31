@@ -1,0 +1,30 @@
+{
+  "extensions/calendarreminders.mpe": {
+    "same": true,
+    "sha256": "99bc81ee7803e6f7d50f18fe0a16ab439cdcd3752a9554e69e96d8c6d60ff183"
+  },
+  "extensions/clock.mpe": {
+    "same": true,
+    "sha256": "5f41a177b3d9de20508611b48f286db62dba231206832a8dc89760a3ba697ba6"
+  },
+  "extensions/extension.mpe": {
+    "same": true,
+    "sha256": "660817763b4b92caf2af07c0d74ce8a8fb64bfb4f3e4729057c040778a13e432"
+  },
+  "extensions/feeder.mpe": {
+    "same": true,
+    "sha256": "bf171f44b5d3077d94fecb3b56b625c03f24bad9169af3bac4d1d94d76e596c6"
+  },
+  "extensions/kvaesitso.mpe": {
+    "same": true,
+    "sha256": "c8adbd97565ef744d704eb1f3f4a0c848f09ca2bddc7ade1a1ab8a732c78b355"
+  },
+  "extensions/readyou.mpe": {
+    "same": true,
+    "sha256": "531037106b7574b347fb943455597cb555796ee347374015f3b44c5e7b95a0b4"
+  },
+  "extensions/tasks.mpe": {
+    "same": true,
+    "sha256": "772b109c825f61319b07db03c79aa5d14e0e26b56c858f1fba583c9ff9486449"
+  }
+}

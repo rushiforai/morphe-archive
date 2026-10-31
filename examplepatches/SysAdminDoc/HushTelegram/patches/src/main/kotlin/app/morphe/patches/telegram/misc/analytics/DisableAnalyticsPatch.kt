@@ -19,9 +19,12 @@ import app.morphe.patches.telegram.misc.extension.enableStatus
 import app.morphe.patches.telegram.misc.extension.freeLocalsAt
 import app.morphe.patches.telegram.misc.extension.handleTargets
 import app.morphe.patches.telegram.misc.extension.parameterRegisterNumber
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
+import app.morphe.patches.telegram.misc.extension.resolveSendRequestGate
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
 import app.morphe.patches.telegram.misc.localcontrols.Mention
+import app.morphe.patches.telegram.misc.localcontrols.controlHook
 import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
 import app.morphe.patches.telegram.misc.settings.settingsPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -45,6 +48,10 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 private const val PATCH = "Disable analytics"
 
 private const val ANALYTICS = "$EXTENSION_PACKAGE/misc/Analytics;"
+
+/** Ghost mode's answer to every request on its way out: true keeps a read receipt or story view back. */
+internal const val GHOST_MODE = "$EXTENSION_PACKAGE/misc/GhostMode;"
+internal const val GHOST_MODE_DROP = "$GHOST_MODE->drop(Ljava/lang/Object;)Z"
 
 /** A channel's batch of read metrics: how long each post stayed on screen as you scrolled. */
 internal const val REPORT_READ_METRICS = "Lorg/telegram/tgnet/TLRPC\$TL_messages_reportReadMetrics;"
@@ -97,6 +104,8 @@ val disableAnalyticsPatch = bytecodePatch(
         requireStatusMethod("disableAnalytics")
         requireStatusMethod("readMetrics")
         AppLogEvent.entries.forEach { requireStatusMethod(it.capability) }
+        requireStatusMethod("ghostMode")
+        controlHook(GHOST_MODE, "drop", listOf("Ljava/lang/Object;"), "Z")
 
         val metrics = SendReadMetricsFingerprint.methodOrNull
         val metricsMissing = metrics?.skipReadMetricsWhen("$ANALYTICS->skipReadMetrics(Ljava/util/List;)Z", dryRun = true)
@@ -130,6 +139,15 @@ val disableAnalyticsPatch = bytecodePatch(
                     }
                 }
             }
+        }
+
+        // Ghost mode stands on its own: a build without the gate keeps every other report stopped.
+        val ghost = resolveSendRequestGate(GHOST_MODE_DROP)
+        if (ghost.missing == null) {
+            ghost.apply(GHOST_MODE_DROP)
+            enableCapability("ghostMode")
+        } else {
+            patchLog.warning("$PATCH: ${ghost.missing}. The patch goes on without Ghost mode.")
         }
 
         enableStatus("disableAnalytics")

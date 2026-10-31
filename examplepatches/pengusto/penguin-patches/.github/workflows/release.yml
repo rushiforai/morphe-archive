@@ -3,6 +3,10 @@ name: Release
 on:
   workflow_dispatch:
 
+concurrency:
+  group: penguin-patches-release
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Release
@@ -28,7 +32,8 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
-          cache: 'npm'
+          # Avoid Actions cache egress limits blocking the publishing runner.
+          package-manager-cache: false
 
       - name: Install dependencies
         run: npm install
@@ -41,6 +46,30 @@ jobs:
           gh release download 1.0.1 --repo finamp-app/finamp \
             --pattern Finamp-1.0.1-universal.apk --dir "$RUNNER_TEMP/finamp-input"
           echo "FINAMP_ORIGINAL_APK=$RUNNER_TEMP/finamp-input/Finamp-1.0.1-universal.apk" >> "$GITHUB_ENV"
+
+      - name: Fetch pinned Mihon verification inputs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/mihon-input"
+          gh release download v0.21.3 --repo mihonapp/mihon \
+            --pattern mihon-arm64-v8a-v0.21.3.apk --dir "$RUNNER_TEMP/mihon-input"
+          gh release download v1.19.1 --repo MorpheApp/morphe-desktop \
+            --pattern morphe-desktop-1.19.1-all.jar --dir "$RUNNER_TEMP/mihon-input"
+          echo "MIHON_ORIGINAL_APK=$RUNNER_TEMP/mihon-input/mihon-arm64-v8a-v0.21.3.apk" >> "$GITHUB_ENV"
+          echo "MORPHE_DESKTOP_JAR=$RUNNER_TEMP/mihon-input/morphe-desktop-1.19.1-all.jar" >> "$GITHUB_ENV"
+
+      - name: Verify same-size Finamp native writes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew :patches:compileKotlin --no-daemon
+          mkdir -p "$RUNNER_TEMP/finamp-output-probe"
+          javac -cp "patches/build/classes/kotlin/main:$MORPHE_DESKTOP_JAR" \
+            -d "$RUNNER_TEMP/finamp-output-probe" tests/finamp/VerifyNativeOutput.java
+          java -cp "$RUNNER_TEMP/finamp-output-probe:patches/build/classes/kotlin/main:$MORPHE_DESKTOP_JAR" \
+            io.github.pengusto.patches.finamp.VerifyNativeOutput \
+            "$RUNNER_TEMP/finamp-output-probe" "$FINAMP_ORIGINAL_APK"
 
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc

@@ -46,6 +46,16 @@ public final class ShareSheetPeople {
         return children.add(row);
     }
 
+    /**
+     * The hook in place of the shared helper some builds add a people row through, which adds the
+     * row and then {@code next} when there is one. The row goes through {@link #addRow}; {@code next}
+     * is another part of the sheet and is always added.
+     */
+    public static void addRowThen(@Nullable Object row, @Nullable Object next, AbstractCollection<Object> children) {
+        addRow(children, row);
+        if (next != null) children.add(next);
+    }
+
     private static boolean hidden() {
         // Settings mustn't load before the extension has its context.
         if (!Utils.settingsReady()) return false;

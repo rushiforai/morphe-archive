@@ -19,6 +19,7 @@ import android.graphics.Color;
 import android.preference.Preference;
 import android.view.View;
 
+import app.morphe.extension.shared.BackCallbacksForTests;
 import app.morphe.extension.shared.SettingsContextRule;
 
 import org.junit.After;
@@ -134,6 +135,24 @@ public class SettingsDialogTest {
     public void theBackKeyClosesOnlyTheSettings() {
         Activity activity = controller.get();
         show(activity).getDialog().onBackPressed();
+        activity.getFragmentManager().executePendingTransactions();
+        ShadowLooper.idleMainLooper();
+
+        assertNull("the settings stayed open", activity.getFragmentManager().findFragmentByTag(TAG));
+        assertFalse("Back finished the host activity", activity.isFinishing());
+    }
+
+    /**
+     * Facebook 585 targets Android 16, so there Back reaches the settings as the dialog window's
+     * own callback, never as a key. It still closes only the settings.
+     */
+    @Test
+    @Config(sdk = 36)
+    public void backThroughTheWindowsCallbackClosesOnlyTheSettings() throws ReflectiveOperationException {
+        BackCallbacksForTests.on(true);
+        Activity activity = controller.get();
+        SettingsDialog dialog = show(activity);
+        BackCallbacksForTests.top(dialog.getDialog().getWindow().getDecorView()).onBackInvoked();
         activity.getFragmentManager().executePendingTransactions();
         ShadowLooper.idleMainLooper();
 

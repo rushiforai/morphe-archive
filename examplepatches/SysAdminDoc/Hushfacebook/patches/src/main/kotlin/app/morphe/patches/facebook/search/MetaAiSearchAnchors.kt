@@ -8,6 +8,8 @@ import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.feed.namesString
 import app.morphe.patches.facebook.feed.treeFieldKey
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.facebook.misc.extension.localRegisterCount
+import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -62,6 +64,17 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  * copies from the builder's. So the boolean is found by following those two steps back, not by its
  * renamed names. The Meta AI button beside the search box sets the same builder field to true with
  * a constant, and nothing here touches that.
+ *
+ * 585 gives the page class (arm64 LX/0D1n) a short constructor, (ImmutableList, ImmutableList,
+ * String, String, String, Z), that moves its arguments into place, fills in a null header, an empty
+ * third list, a null fourth string and a false second flag, and hands everything to the full one. The
+ * answer page builder (arm64 LX/0DyI;->A00) and the Meta AI tab's builder (LX/0lDL;->BdR) both build
+ * their pages through it, so a builder's call is read through that constructor's moves onto the full
+ * one's arguments (see [pageCall]): the modules are its first argument and the page's name its fourth.
+ * 585's suggestion parser (arm64 LX/0iKn;->apply) no longer reads the route flag off TreeJNI itself:
+ * it calls the suggestion model's accessor (LX/0mDN;->Cvd()Z, the interface it also asks getName()
+ * of), whose implementations (LX/0HaV and five more) load the key 0xc35386fc and ask the tree
+ * (LX/0srD;->CPO(I)Z), and stores that into the builder's field (LX/0iKK;->A0X) as before.
  */
 internal const val PATCH = "Hide Meta AI in search"
 
@@ -244,18 +257,81 @@ internal fun isPageConstructor(constructor: MethodReference): Boolean {
 }
 
 /**
+ * A call that builds a results page: the page constructor [page] that runs, and for each of its
+ * declared arguments the index among the call's own registers that carries it, or null where the
+ * call doesn't pass that argument in.
+ */
+internal class PageCall(val page: MethodReference, val positions: List<Int?>)
+
+/** The moves that copy a register unchanged, which a delegating constructor puts its arguments in place with. */
+private val PLAIN_MOVES = setOf(
+    Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16, Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16,
+)
+
+/**
+ * The register whose value [register] holds at [at] of branchless [code], followed back through
+ * plain moves to one nothing before wrote. Null when anything else wrote it on the way.
+ */
+private fun movedFrom(code: List<Instruction>, at: Int, register: Int): Int? {
+    var current = register
+    var before = at
+    while (true) {
+        val write = (before - 1 downTo 0).firstOrNull { writes(code[it], current) } ?: return current
+        if (code[write].opcode !in PLAIN_MOVES) return null
+        current = (code[write] as TwoRegisterInstruction).registerB
+        before = write
+    }
+}
+
+/**
+ * The page [call] builds, or null when it builds none: a call straight to a page constructor, or a
+ * call to a constructor [resolve] reads that hands its page to its own class's page constructor.
+ * Why: 585's short page constructor sits between the builders and the full one. It must have no
+ * branch, make exactly one constructor call, and pass `this` and its own arguments to it through
+ * plain moves alone; an argument it fills in itself has no position.
+ */
+internal fun pageCall(call: MethodReference, resolve: (MethodReference) -> Method?): PageCall? {
+    if (call.name != "<init>") return null
+    // Every page argument is one register wide, so declared argument i is register 1 + i after the new page.
+    if (isPageConstructor(call)) return PageCall(call, call.parameterTypes.indices.map { it + 1 })
+    val delegate = resolve(call) ?: return null
+    val code = delegate.code()
+    if (code.isEmpty() || isStatic(delegate) || code.any { it is OffsetInstruction }) return null
+    val hands = code.indices.filter { index ->
+        code[index].opcode in setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE) && code[index].call?.name == "<init>"
+    }
+    val hand = hands.singleOrNull() ?: return null
+    val page = code[hand].call ?: return null
+    if (page.definingClass != delegate.definingClass || !isPageConstructor(page)) return null
+    val registers = code[hand].callArguments()
+    val self = delegate.localRegisterCount()
+    if (registers.size != 1 + page.parameterTypes.size || movedFrom(code, hand, registers[0]) != self) return null
+    // Each of the delegate's own arguments by the register it arrives in.
+    val own = delegate.parameterTypes.indices.associateBy { delegate.parameterRegisterNumber(it) }
+    val positions = page.parameterTypes.indices.map { index ->
+        movedFrom(code, hand, registers[1 + index])?.let(own::get)?.let { delegate.parameterRegisterNumber(it) - self }
+    }
+    return PageCall(page, positions)
+}
+
+/**
  * The page constructor [builder] calls, held to the evidence that its first list is the page's
  * modules: [builder] builds that list with a static `(ImmutableList)ImmutableList` method of the
  * [module] class, and the register that list lands in reaches the constructor unchanged as its
- * modules. Null when the builder doesn't build its page that way.
+ * modules. A call through a constructor [resolve] reads counts as its page's (see [pageCall]). Null
+ * when the builder doesn't build its page that way.
  */
-internal fun answerPageConstructor(builder: Method, module: String): MethodReference? {
+internal fun answerPageConstructor(
+    builder: Method,
+    module: String,
+    resolve: (MethodReference) -> Method? = { null },
+): MethodReference? {
     val code = builder.code()
-    val pages = code.indices.filter { index ->
-        code[index].opcode in setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE) &&
-            code[index].call?.let(::isPageConstructor) == true
+    val pages = code.indices.mapNotNull { index ->
+        if (code[index].opcode !in setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE)) return@mapNotNull null
+        code[index].call?.let { pageCall(it, resolve) }?.let { index to it }
     }
-    val page = pages.singleOrNull() ?: return null
+    val (page, built) = pages.singleOrNull() ?: return null
     val lists = code.indices.filter { index ->
         code[index].opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) && code[index].call?.let {
             it.definingClass == module && it.returnType == IMMUTABLE_LIST && it.parameters() == listOf(IMMUTABLE_LIST)
@@ -266,25 +342,32 @@ internal fun answerPageConstructor(builder: Method, module: String): MethodRefer
     val result = code.getOrNull(list + 1) ?: return null
     if (result.opcode != Opcode.MOVE_RESULT_OBJECT) return null
     val modules = (result as OneRegisterInstruction).registerA
-    // Argument 0 is the new page, 1 its header, 2 its modules.
-    if (code[page].callArguments().getOrNull(2) != modules) return null
+    // Straight to the page constructor, argument 0 is the new page, 1 its header, 2 its modules.
+    val slot = built.positions.getOrNull(PAGE_MODULES) ?: return null
+    if (code[page].callArguments().getOrNull(slot) != modules) return null
     if (code.subList(list + 2, page).any { writes(it, modules) }) return null
-    return code[page].call
+    return built.page
 }
 
 /**
  * Whether [builder] builds a page with [constructor] and names it [name]: the register the call
- * passes as the page's name (argument 6 after the new page) is loaded with [name] and not written
- * again before the call.
+ * passes as the page's name (argument 6 after the new page, or wherever a constructor [resolve]
+ * reads takes it, see [pageCall]) is loaded with [name] and not written again before the call.
  */
-internal fun namesPage(builder: Method, constructor: MethodReference, name: String): Boolean {
+internal fun namesPage(
+    builder: Method,
+    constructor: MethodReference,
+    name: String,
+    resolve: (MethodReference) -> Method? = { null },
+): Boolean {
     val code = builder.code()
-    val calls = code.indices.filter { index ->
-        code[index].opcode in setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE) &&
-            code[index].call?.let { isConstructorCall(it, constructor) } == true
+    val calls = code.indices.mapNotNull { index ->
+        if (code[index].opcode !in setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE)) return@mapNotNull null
+        code[index].call?.let { pageCall(it, resolve) }?.takeIf { isConstructorCall(it.page, constructor) }?.let { index to it }
     }
-    val call = calls.singleOrNull() ?: return false
-    val register = code[call].callArguments().getOrNull(PAGE_NAME + 1) ?: return false
+    val (call, built) = calls.singleOrNull() ?: return false
+    val slot = built.positions.getOrNull(PAGE_NAME) ?: return false
+    val register = code[call].callArguments().getOrNull(slot) ?: return false
     val loads = code.indices.filter { index ->
         index < call && code[index].opcode in setOf(Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO) &&
             (code[index] as OneRegisterInstruction).registerA == register &&
@@ -370,11 +453,17 @@ internal data class RouteStore(
 
 /**
  * Every place [parser] stores into [field] a boolean it just read off the server's tree: the
- * `iput-boolean` right after the `move-result` of TreeJNI's `getBooleanValue(int)`, both on the same
- * register. A store of anything else, a constant say, isn't one.
+ * `iput-boolean` right after the `move-result` of TreeJNI's `getBooleanValue(int)`, or of a `()Z`
+ * accessor of the suggestion's own model, both on the same register. A store of anything else, a
+ * constant say, isn't one.
  */
 internal fun routeStores(parser: Method, field: FieldReference): List<RouteStore> {
     val code = parser.code()
+    // Why: 585 reads the flag through the suggestion model's own accessor, so a `()Z` call counts when
+    // its class is one the parser also asks the suggestion's kept getName() of.
+    val models = code.mapNotNull { it.call }.filter {
+        it.name == "getName" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;"
+    }.map { it.definingClass }.toSet()
     return code.indices.mapNotNull { index ->
         val put = code[index]
         if (put.opcode != Opcode.IPUT_BOOLEAN || put.field?.let { sameField(it, field) } != true) return@mapNotNull null
@@ -383,9 +472,10 @@ internal fun routeStores(parser: Method, field: FieldReference): List<RouteStore
         if (result.opcode != Opcode.MOVE_RESULT) return@mapNotNull null
         val register = (result as OneRegisterInstruction).registerA
         if ((put as TwoRegisterInstruction).registerA != register) return@mapNotNull null
-        if (read.definingClass != TREE_JNI || read.name != "getBooleanValue" || read.returnType != "Z" ||
-            read.parameters() != listOf("I")
-        ) return@mapNotNull null
+        val fromTree = read.definingClass == TREE_JNI && read.name == "getBooleanValue" && read.returnType == "Z" &&
+            read.parameters() == listOf("I")
+        val fromModel = read.definingClass in models && read.returnType == "Z" && read.parameterTypes.isEmpty()
+        if (!fromTree && !fromModel) return@mapNotNull null
         RouteStore(index, register)
     }
 }

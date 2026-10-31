@@ -15,17 +15,17 @@ For Android Auto visibility, install with Morphe Manager's **Install as Play Sto
 KingInstaller as a fallback).
 
 > GPLv3 · Not affiliated with Waze. Targets the Waze versions in the patch list below.
-> Twenty-one rows are **off by default** - *Allow high refresh rate*, *Disable Play Store updates*,
+> Twenty-three rows are **off by default** - *Allow high refresh rate*, *Disable Play Store updates*,
 > *Skip sign-in*, *Theme*, *AMOLED Dark Mode For UI*, *Bigger speedometer & limit sign*, *Change Waze icon*,
-> *Rename app*, the four **Android Auto** rows, the seven **Experimental** rows, and *Report speed limit*
-> and *Speed-limit sign style*.
+> *Rename app*, *Launch screen background colour*, *Hide recent destinations*, the four **Android Auto**
+> rows, the seven **Experimental** rows, and *Report speed limit* and *Speed-limit sign style*.
 
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.30.43](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.43)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
+> **[v0.30.44](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.44)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;33 patches total
 <details open>
-<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;31 patches</summary>
+<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;33 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -35,37 +35,39 @@ KingInstaller as a fallback).
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [AMOLED Dark Mode For UI](#amoled-dark-mode-for-ui) | Makes the dark UI pure black. |  |
-| [Alert distances](#alert-distances) | How early alerts sound, plus a speed-bump switch and per-alert distances. | • Alert distance level<br>• Speed bump (ramp) warnings<br>• Police<br>• Hazards<br>• Crashes<br>• Traffic jams<br>• Speed cams - streets<br>• Speed cams - highways<br>• Speed cams - freeways<br>• Blocked lanes<br>• Gap between alerts |
-| [Allow high refresh rate](#allow-high-refresh-rate) | Runs above 60 Hz, up to your screen's limit. | • Target refresh rate (Hz) |
-| [Auto zoom](#auto-zoom) | Keeps your auto-zoom choice from being reset. | • Auto-zoom mode |
-| [Brief voice guidance](#brief-voice-guidance) | Shorter spoken directions. |  |
-| [Cameras & hazards](#cameras-hazards) | Shows every camera and road hazard, with switches for the extra kinds. | • Average-speed zones<br>• Camera chime below the limit<br>• The other camera types<br>• Crosswalk hazards |
-| [Car alerts as notifications](#car-alerts-as-notifications) | Shows car alerts as notifications. |  |
-| [Car map zoom](#car-map-zoom) | Zooms the map on the car screen. | • Car map zoom |
-| [Car trip screen text](#car-trip-screen-text) | Adds arrival time and time left to the car trip bar. |  |
-| [Change Waze icon](#change-waze-icon) | Reaper artwork, the stock ghost in any colour, or your own image (square PNG/JPG/WebP, 432x432 recommended, 192x192 minimum). | • Icon<br>• Ghost background<br>• Custom image |
-| [Disable Play Store updates](#disable-play-store-updates) | Stops the Play Store updating Waze. |  |
-| [Enable police & enforcement alerts](#enable-police-enforcement-alerts) | Turns police and enforcement alerts on. |  |
-| [Extra map info](#extra-map-info) | Compass always shown and toll price on routes. | • Always show compass<br>• Toll price on route |
-| [Instrument cluster support](#instrument-cluster-support) | Shows the map and alerts on the car's cluster screen. | • Large cluster layout |
-| [Keep Waze alive](#keep-waze-alive) | Stops Waze closing when you leave it. | • Where<br>• Minutes alive |
-| [Lane guidance](#lane-guidance) | Shows lane guidance, including straight-ahead hints. |  |
-| [Live drive sharing](#live-drive-sharing) | Adds the hidden share-your-drive link. |  |
-| [Morphe YouTube Music as a Waze audio partner](#morphe-youtube-music-as-a-waze-audio-partner) | Lets Morphe YouTube Music play through Waze. |  |
-| [New alert icons](#new-alert-icons) | Uses Waze's newer alert icons. |  |
-| [No Android Auto telemetry](#no-android-auto-telemetry) | Stops Waze sending Android Auto screen-switch timings to its analytics. |  |
-| [Picture-in-picture](#picture-in-picture) | Floats Waze in a 9:16 window every time you leave it. Known issues: touch does not work on the floating window, and the UI does not scale down. |  |
-| [Remove ads](#remove-ads) | Removes ads. | • Block beacon popups |
-| [Rename app](#rename-app) | Stock name by default. Type your own to replace what the launcher shows. The package stays com.waze. | • App name |
-| [Show FPS counter](#show-fps-counter) | Shows the frame-rate counter. |  |
-| [Skip sign-in](#skip-sign-in) | Starts as a guest, straight to the map. |  |
-| [Smoother Android Auto map](#smoother-android-auto-map) | Smooths map movement on Android Auto. |  |
-| [Speed limits](#speed-limits) | Sign always shown, limit-drop warnings, reporting and sign style. | • Sign always shown<br>• Limit-drop warnings<br>• Report the speed limit<br>• Sign style |
-| [Speedometer & limit sign](#speedometer-limit-sign) | Size of the speedometer and limit sign, and keeps them on screen. | • Always show speedometer<br>• Speedometer size<br>• Speed limit sign size |
-| [Theme](#theme) | Picks the map theme for day and night. | • Day theme<br>• Night theme |
-| [Traffic meter](#traffic-meter) | Shows the traffic meter on the car screen. |  |
-| [Unlock driver moods](#unlock-driver-moods) | Unlocks all moods on the device. |  |
+| **AMOLED Dark Mode For UI** | Makes the dark UI pure black. |  |
+| **Alert distances** | How early alerts sound, plus a speed-bump switch and per-alert distances. | • Alert distance level<br>• Speed bump (ramp) warnings<br>• Police<br>• Hazards<br>• Crashes<br>• Traffic jams<br>• Speed cams - streets<br>• Speed cams - highways<br>• Speed cams - freeways<br>• Blocked lanes<br>• Gap between alerts |
+| **Allow high refresh rate** | Runs above 60 Hz, up to your screen's limit. | • Target refresh rate (Hz) |
+| **Auto zoom** | Keeps your auto-zoom choice from being reset. | • Auto-zoom mode |
+| **Brief voice guidance** | Shorter spoken directions. |  |
+| **Cameras & hazards** | Shows every camera and road hazard, with switches for the extra kinds. | • Average-speed zones<br>• Camera chime below the limit<br>• The other camera types<br>• Crosswalk hazards |
+| **Car alerts as notifications** | Shows car alerts as notifications. |  |
+| **Car map zoom** | Zooms the map on the car screen. | • Car map zoom |
+| **Car trip screen text** | Adds arrival time and time left to the car trip bar. |  |
+| **Change Waze icon** | Reaper artwork, the stock ghost in any colour, or your own image (square PNG/JPG/WebP, 432x432 recommended, 192x192 minimum). | • Icon<br>• Ghost background<br>• Hide launch logo<br>• Custom image |
+| **Disable Play Store updates** | Stops the Play Store updating Waze. |  |
+| **Enable police & enforcement alerts** | Turns police and enforcement alerts on. |  |
+| **Extra map info** | Compass always shown and toll price on routes. | • Always show compass<br>• Toll price on route |
+| **Hide recent destinations** | Keeps the places you navigated to out of every recent list. Waze still stores them. |  |
+| **Instrument cluster support** | Shows the map and alerts on the car's cluster screen. | • Large cluster layout |
+| **Keep Waze alive** | Stops Waze closing when you leave it. | • Where<br>• Minutes alive |
+| **Lane guidance** | Shows lane guidance, including straight-ahead hints. |  |
+| **Launch screen background colour** | Colour behind the Waze logo while the app starts. #00000000 makes it transparent. | • Background colour<br>• Custom colour |
+| **Live drive sharing** | Adds the hidden share-your-drive link. |  |
+| **Morphe YouTube Music as a Waze audio partner** | Lets Morphe YouTube Music play through Waze. |  |
+| **New alert icons** | Uses Waze's newer alert icons. |  |
+| **No Android Auto telemetry** | Stops Waze sending Android Auto screen-switch timings to its analytics. |  |
+| **Picture-in-picture** | Floats Waze in a 9:16 window every time you leave it. Known issues: touch does not work on the floating window, and the UI does not scale down. |  |
+| **Remove ads** | Removes ads. | • Block beacon popups |
+| **Rename app** | Stock name by default. Type your own to replace what the launcher shows. The package stays com.waze. | • App name |
+| **Show FPS counter** | Shows the frame-rate counter. |  |
+| **Skip sign-in** | Starts as a guest, straight to the map. |  |
+| **Smoother Android Auto map** | Smooths map movement on Android Auto. |  |
+| **Speed limits** | Sign always shown, limit-drop warnings, reporting and sign style. | • Sign always shown<br>• Limit-drop warnings<br>• Report the speed limit<br>• Sign style |
+| **Speedometer & limit sign** | Size of the speedometer and limit sign, and keeps them on screen. | • Always show speedometer<br>• Speedometer size<br>• Speed limit sign size |
+| **Theme** | Picks the map theme for day and night. | • Day theme<br>• Night theme |
+| **Traffic meter** | Shows the traffic meter on the car screen. |  |
+| **Unlock driver moods** | Unlocks all moods on the device. |  |
 
 </details>
 

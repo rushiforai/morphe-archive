@@ -53,6 +53,7 @@ public final class AdSettings {
             instance.preferences.edit().putBoolean(KEYS[feature], checked).apply();
         }
         if (feature == 2) AdRuntime.policyChanged();
+        if (feature == 1) ChannelSkinRuntime.refresh();
         if (feature == 1 || feature == 2) ReactNativeRuntime.refresh();
     }
 

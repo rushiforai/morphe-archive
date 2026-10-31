@@ -73,10 +73,9 @@ public final class PhotoFlagsRegistry {
     }
 
     private static void initFlags() {
-        // ✨ Stories & Memories Hub (5 Flags)
+        // ✨ Stories & Memories Hub (4 Flags)
         register("3023", "Story Player Navigation Gestures", "Enhanced swipe gestures, tap-to-pause, and story navigation controls.", "✨ Stories & Memories Hub", "Story Player Navigation Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("3026", "Redesigned Memories Carousel", "Header carousel layout and transition effects for active memory stories.", "✨ Stories & Memories Hub", "Memories Carousel Engine", FlagType.BOOLEAN, Boolean.TRUE);
-        register("45764779", "Flying Memories Carousel (FMC) Physics", "Ultra-fluid spring physics and inertia when swiping through the memories header.", "✨ Stories & Memories Hub", "Flying Memories Physics", FlagType.BOOLEAN, Boolean.TRUE);
         register("45662994", "MemoryCard Layout Templates", "Graphic scrapbooking frames, background textures, and dynamic card pacing.", "✨ Stories & Memories Hub", "Dynamic Story Pacing & Templates", FlagType.BOOLEAN, Boolean.TRUE);
         register("45737826", "Over the Years Scrapbook Theme", "Unlocks Over the Years commemorative memory layout and fluid edge-to-edge transitions.", "✨ Stories & Memories Hub", "Edge-to-Edge Navigation & Themes", FlagType.BOOLEAN, Boolean.TRUE);
 
@@ -91,13 +90,8 @@ public final class PhotoFlagsRegistry {
         register("45835545", "Collage Grid Layout 45835545", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
         register("45836696", "Collage Grid Layout 45836696", "Controls multi-photo collage layout grids, cutout borders, and scrapbook art styles via Lcnzc.", "📑 Create Tab: Collage & Scrapbook (Stamp M2)", "Collage Template & Grid Engine", FlagType.BOOLEAN, Boolean.TRUE);
 
-        // 📁 Collections V2 & Shelves (7 Flags)
-        register("45762698", "Collections V2 Shelves Layout", "Reorganizes the Library tab into modern categorized Collections V2 horizontal shelves (0=Off, 1=Legacy, 2=Full V2).", "📁 Collections V2 & Shelves", "Collections Shelves Structure", FlagType.LONG, 2L);
-        register("45802110", "Collections V2 Content Activation", "Populates dynamic categorized content cards within the Collections V2 shelves.", "📁 Collections V2 & Shelves", "Dynamic Shelf Content", FlagType.LONG, 2L);
-        register("45794037", "Screenshots Shelf", "Dedicated shelf grouping on-device screenshots with quick share options.", "📁 Collections V2 & Shelves", "Screenshots Category Shelf", FlagType.BOOLEAN, Boolean.TRUE);
-        register("45794038", "Documents Shelf", "Dedicated shelf filtering receipts, documents, identity cards, and notes.", "📁 Collections V2 & Shelves", "Documents Category Shelf", FlagType.BOOLEAN, Boolean.TRUE);
-        register("photos.flowers.bouquet_creation", "Bouquet Album Creation & Naming", "Enables custom title and naming support when creating albums and envelopes natively.", "📁 Collections V2 & Shelves", "Album Creation Title Engine", FlagType.BOOLEAN, Boolean.TRUE);
-        register("photos.flowers.bouquet", "Bouquet Album Master", "Master flag for Bouquet collection and envelope features.", "📁 Collections V2 & Shelves", "Album Creation Master Engine", FlagType.BOOLEAN, Boolean.TRUE);
+        // 📁 Collections V2 & Shelves (2 Flags)
+        register("45762698", "Collections V2 Shelves Layout", "Reorganizes the Library tab into modern categorized Collections V2 horizontal shelves (0=Off, 1=Legacy, 2=Full V2, 8=Modern Redesign).", "📁 Collections V2 & Shelves", "Collections Shelves Structure", FlagType.LONG, 8L);
         register("3226", "Bouquet Album Title Online", "Enables title string creation in CreateEnvelope RPC.", "📁 Collections V2 & Shelves", "Album Title Engine", FlagType.BOOLEAN, Boolean.TRUE);
 
         // 🤖 Gemini & Ask Photos Search (2 Flags)

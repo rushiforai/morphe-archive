@@ -27,13 +27,17 @@ internal const val SYNTHETIC_CALL_POSTER = "$RTC_NOTIFICATION_SERVICE->A00(Landr
 private const val ON_START = "$RTC_NOTIFICATION_SERVICE->onStartCommand(Landroid/content/Intent;II)I"
 private const val START_FOREGROUND = "$RTC_NOTIFICATION_SERVICE->startForeground(ILandroid/app/Notification;)V"
 private const val ENTRY = "LX/A4J;->A12(Ljava/lang/Object;Z)LX/0Bi;"
+/** The call's chat lookup, with the thread id at v6 and the caller id at v7 and v8. */
+private const val LOOKUP = "invoke-static/range {v3 .. v9}, $DECIDER->A0C(Lcom/facebook/messaging/model/threadkey/ThreadKey;" +
+    "${DECIDER}Lcom/google/common/collect/ImmutableList;Ljava/lang/String;JZ)V"
 private val STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 
 /**
  * The decision as Messenger 585 writes it, cut down to two of its four flags: either one skips the ringtone and the
- * vibration, and the skip block logs both flags, each paired with its name.
+ * vibration, and the skip block logs both flags, each paired with its name. The chat lookup comes first.
  */
 private val DECISION_BODY = """
+    $LOOKUP
     iget-boolean v1, p0, $DECIDER->A00:Z
     iget-boolean v2, p0, $DECIDER->A01:Z
     if-nez v1, :skip
@@ -66,7 +70,7 @@ private val COPY_DECISION_BODY = DECISION_BODY
 /** The poster, with no local register at all: it posts with the call id it was given through the service it was handed. */
 private const val POSTER_BODY = "invoke-virtual {p2, p3, p0}, $START_FOREGROUND\nreturn-void"
 
-private fun decision(body: String = DECISION_BODY, id: String = SYNTHETIC_RING_DECISION, registers: Int = 4, flags: Int = AccessFlags.PUBLIC.value) =
+private fun decision(body: String = DECISION_BODY, id: String = SYNTHETIC_RING_DECISION, registers: Int = 11, flags: Int = AccessFlags.PUBLIC.value) =
     fixtureMethod(id, body, registers, flags)
 
 private fun poster(body: String = POSTER_BODY, id: String = SYNTHETIC_CALL_POSTER, flags: Int = STATIC, registers: Int = 4) =
@@ -137,8 +141,15 @@ class QuietCallsTest {
             "a copy over the name" to quietCallsFixture(decision(COPY_DECISION_BODY.replace("move/from16 v3, v24\ninvoke-static {v0, v3}",
                 "move/from16 v0, v24\ninvoke-static {v0, v0}").also { check(it != COPY_DECISION_BODY) }, registers = 26)),
             "a static run" to quietCallsFixture(decision(DECISION_BODY.replace("p0", "v3"), flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)),
-            "a run with a parameter" to quietCallsFixture(decision(id = "$DECIDER->run(I)V", registers = 5)),
+            "a run with a parameter" to quietCallsFixture(decision(id = "$DECIDER->run(I)V", registers = 12)),
             "a second method that rings" to quietCallsFixture() + secondRinger,
+            // Only chosen chats needs to know whose call it is before the guard asks.
+            "no chat lookup" to changed("$LOOKUP\n", ""),
+            "two chat lookups" to changed(LOOKUP, "$LOOKUP\n$LOOKUP"),
+            "a lookup without the caller id" to changed(LOOKUP, LOOKUP.replace("v9", "v8").replace("JZ)V", "IZ)V")),
+            "a lookup after the branch" to quietCallsFixture(decision(DECISION_BODY.replace("$LOOKUP\n", "")
+                .replace("if-nez v2, :skip", "if-nez v2, :skip\n$LOOKUP"))),
+            "a way into the lookup" to changed("$LOOKUP\n", ":lookup\n$LOOKUP\nif-eqz v0, :lookup\n"),
         )
         for ((case, classes) in cases) {
             assertTrue(found(classes, QUIET_CALL_RING).isEmpty(), case)
@@ -172,20 +183,23 @@ class QuietCallsTest {
         val before = method.code()
         injectControl(QUIET_CALLS, mapOf(QUIET_CALL_RING to listOf(method)))
         val code = method.code()
+        // The lookup's thread id and caller id go to the extension first, and the lookup runs as it was.
+        assertEquals(QUIET_CALL_CHAT_CALL, (code[0] as ReferenceInstruction).reference.toString())
+        assertEquals(listOf(6, 3), (code[0] as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) })
         // Both flags are read and the ringtone-off branch runs first, as in stock.
-        assertEquals(before.take(3), code.take(3))
-        assertEquals(10, code.branchTarget(2))
-        assertEquals("$SETTINGS->quietIncomingCalls()Z", (code[3] as ReferenceInstruction).reference.toString())
+        assertEquals(before.take(4), code.subList(1, 5))
+        assertEquals(12, code.branchTarget(4))
+        assertEquals("$SETTINGS->quietIncomingCalls()Z", (code[5] as ReferenceInstruction).reference.toString())
         // On, the flag the skip block logs as ringtone_disabled turns true and the call takes that path.
-        assertEquals(Opcode.MOVE_RESULT, code[4].opcode)
-        assertEquals(1, (code[4] as OneRegisterInstruction).registerA)
-        assertEquals(Opcode.IF_NEZ, code[5].opcode)
-        assertEquals(1, (code[5] as OneRegisterInstruction).registerA)
-        assertEquals(10, code.branchTarget(5))
-        assertEquals(RINGTONE_DISABLED, ((code[10] as ReferenceInstruction).reference as StringReference).string)
+        assertEquals(Opcode.MOVE_RESULT, code[6].opcode)
+        assertEquals(1, (code[6] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_NEZ, code[7].opcode)
+        assertEquals(1, (code[7] as OneRegisterInstruction).registerA)
+        assertEquals(12, code.branchTarget(7))
+        assertEquals(RINGTONE_DISABLED, ((code[12] as ReferenceInstruction).reference as StringReference).string)
         // Off, Pause and safe mode leave it false and Messenger rings and vibrates exactly as it wrote it.
-        assertEquals(before.drop(3).map { it.opcode }, code.drop(6).map { it.opcode })
-        assertEquals(10, code.branchTarget(6))
+        assertEquals(before.drop(4).map { it.opcode }, code.drop(8).map { it.opcode })
+        assertEquals(12, code.branchTarget(8))
     }
 
     @Test fun theRangeFormGuardsTheHighFlagRegister() {
@@ -265,14 +279,22 @@ class QuietCallsTest {
             val decider = MutableMethod(deciders.single())
             val ring = decider.quietRing()!!
             val before = decider.code()
+            // The lookup's long is the caller id Messenger parsed from the call, ahead of the lookup.
+            val parsed = before.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == "Ljava/lang/Long;->parseLong(Ljava/lang/String;)J" }
+            assertTrue(parsed in 0 until ring.chat, code)
+            assertEquals(Opcode.MOVE_RESULT_WIDE, before[parsed + 1].opcode, code)
+            assertEquals(ring.thread + 1, (before[parsed + 1] as OneRegisterInstruction).registerA, code)
             decider.injectQuietCallRing()
             val after = decider.code()
-            assertEquals("$SETTINGS->quietIncomingCalls()Z", (after[ring.index] as ReferenceInstruction).reference.toString(), code)
-            assertEquals(ring.flag, (after[ring.index + 1] as OneRegisterInstruction).registerA, code)
-            assertEquals(Opcode.IF_NEZ, after[ring.index + 2].opcode, code)
-            assertEquals(after.branchTarget(ring.index - 1), after.branchTarget(ring.index + 2), code)
+            assertEquals(QUIET_CALL_CHAT_CALL, (after[ring.chat] as ReferenceInstruction).reference.toString(), code)
+            assertEquals(listOf(ring.thread, 3), (after[ring.chat] as RegisterRangeInstruction).let { listOf(it.startRegister, it.registerCount) }, code)
+            val guard = ring.index + 1
+            assertEquals("$SETTINGS->quietIncomingCalls()Z", (after[guard] as ReferenceInstruction).reference.toString(), code)
+            assertEquals(ring.flag, (after[guard + 1] as OneRegisterInstruction).registerA, code)
+            assertEquals(Opcode.IF_NEZ, after[guard + 2].opcode, code)
+            assertEquals(after.branchTarget(guard - 1), after.branchTarget(guard + 2), code)
             assertEquals(before.map { it.opcode }.filter { it != Opcode.NOP },
-                (after.take(ring.index) + after.drop(ring.index + 3)).map { it.opcode }.filter { it != Opcode.NOP }, code)
+                (after.take(ring.chat) + after.subList(ring.chat + 1, guard) + after.drop(guard + 3)).map { it.opcode }.filter { it != Opcode.NOP }, code)
 
             val poster = MutableMethod(posters.single())
             val posterBefore = poster.code()

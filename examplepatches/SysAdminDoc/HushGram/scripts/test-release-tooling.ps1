@@ -1280,6 +1280,57 @@ Set-Content -LiteralPath $Result -Value $lines
         $factsSource -notmatch 'Read-ManifestDeltaAllowlist') `
         'validate-release-facts.ps1 no longer holds the receipt to the allowlist its own commit carried.'
 
+    # The coverage census, the same way. A retarget replaces the old build's entry, and the shipped
+    # receipt for that build read as uncertified on every push after it. A commit with no census,
+    # or no commit, gets the working one, the first with a note, and a census at the commit that
+    # isn't strict JSON says where it is.
+    $censusFile = Join-Path $toolchainRoot 'scripts/patch-coverage-expectations.json'
+    function Save-FixtureCensus([string]$Text) {
+        [System.IO.File]::WriteAllText($censusFile, $Text, (New-Object System.Text.UTF8Encoding($false)))
+        Invoke-FixtureGit -Root $toolchainRoot -Arguments @('add', '-A') | Out-Null
+        Invoke-FixtureGit -Root $toolchainRoot -Arguments @('commit', '-m', 'census', '--quiet') | Out-Null
+        return "$(Invoke-FixtureGit -Root $toolchainRoot -Arguments @('rev-parse', 'HEAD') | Select-Object -First 1)".Trim()
+    }
+    function Get-FixtureCensus([string]$Build) {
+        return ('{"schemaVersion": 1, "fixtures": [{"package": "com.example", "versionName": "' + $Build +
+            '", "versionCode": "1", "families": [{"family": "sanitizeSharingLinks", "patch": "Sanitize sharing links", ' +
+            '"targets": ["alpha"], "optional": []}]}]}' + "`n")
+    }
+    $censusReleased = Save-FixtureCensus (Get-FixtureCensus '1.0.0')
+    $censusNow = Save-FixtureCensus (Get-FixtureCensus '1.0.1')
+    $atCensusRelease = Resolve-ReceiptCoveragePolicy -Root $toolchainRoot -Commit $censusReleased
+    Assert-True ([string]@($atCensusRelease.Policy.fixtures)[0].versionName -eq '1.0.0' -and
+        $atCensusRelease.Note -like "*coverage census at its own commit $($censusReleased.Substring(0, 8))*") `
+        "The receipt was not held to the coverage census its own commit carried: $($atCensusRelease.Note)"
+    $atCensusHead = Resolve-ReceiptCoveragePolicy -Root $toolchainRoot -Commit $censusNow
+    Assert-True ([string]@($atCensusHead.Policy.fixtures)[0].versionName -eq '1.0.1' -and $null -eq $atCensusHead.Note) `
+        "A census the working tree still holds as committed reported a difference: $($atCensusHead.Note)"
+    # The verdict reads the census that comes back: the receipt's own build is certified against the
+    # census its commit carried, and the working one, which reviews only the newer build, can't.
+    $censusArguments = @{ Names = @('Sanitize sharing links'); Package = 'com.example'; VersionName = '1.0.0'; VersionCode = '1'
+        Coverage = @([pscustomobject]@{ family = 'sanitizeSharingLinks'; matched = 1; expected = 1; targets = @('alpha'); missing = @() }) }
+    $atReleaseVerdict = Test-TargetCoverage @censusArguments -Policy $atCensusRelease.Policy
+    Assert-True ($atReleaseVerdict.Valid -and $atReleaseVerdict.Reviewed) `
+        "The census at the receipt's commit did not certify the build it reviewed: $($atReleaseVerdict.Reason)"
+    $atHeadVerdict = Test-TargetCoverage @censusArguments -Policy $atCensusHead.Policy
+    Assert-True ($atHeadVerdict.Valid -and -not $atHeadVerdict.Reviewed) `
+        "The working census certified a build only the receipt's own census reviewed: $($atHeadVerdict.Reason)"
+    $atNoCensus = Resolve-ReceiptCoveragePolicy -Root $toolchainRoot -Commit $releaseCommitSha
+    Assert-True ($null -eq $atNoCensus.Policy -and $atNoCensus.Note -like '*has no reviewed coverage census*') `
+        "A commit with no census did not fall back to the working one, saying so: $($atNoCensus.Note)"
+    $noCommitCensus = Resolve-ReceiptCoveragePolicy -Root $toolchainRoot -Commit ''
+    Assert-True ($null -eq $noCommitCensus.Policy -and $null -eq $noCommitCensus.Note) `
+        'A receipt naming no commit was not held quietly to the working census.'
+    $brokenCensus = Save-FixtureCensus '{"schemaVersion": 1, "schemaVersion": 1}'
+    Assert-Throws { Resolve-ReceiptCoveragePolicy -Root $toolchainRoot -Commit $brokenCensus } `
+        "*coverage census at $($brokenCensus.Substring(0, 8)) is not strict JSON*" `
+        'A census at the receipt''s commit that reads two ways was read without complaint.'
+    $receiptSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'release-receipt.ps1') -Raw
+    Assert-True ($factsSource -match '\$resolvedCoverage = Resolve-ReceiptCoveragePolicy -Root \$rootPath -Commit \$receiptCommit' -and
+        $factsSource -match '-CoveragePolicy \$resolvedCoverage\.Policy' -and
+        $receiptSource -match '-VersionCode \$target\.source\.versionCode `\s+-Policy \$CoveragePolicy') `
+        'validate-release-facts.ps1 no longer holds the receipt to the coverage census its own commit carried.'
+
     # The receipt schema, read the same way: out of scripts/release-receipt.ps1 at the receipt's
     # commit. A release cut before the SBOM is held to schema 1 and says so, one cut since to this
     # checkout's schema, one from a newer checkout is refused rather than misread, and a commit
@@ -2865,6 +2916,41 @@ param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$SkipTestResults
         Remove-Item -LiteralPath $heldFile -Force -ErrorAction SilentlyContinue
         if (Test-Path -LiteralPath $factsGit) { Remove-Item -LiteralPath $factsGit -Recurse -Force }
         Reset-FactsFile 'README.md'
+    }
+
+    # A retarget held at the published version: the index description names the build it shipped
+    # for and no count. The lenient check the hook runs takes that as the published facts, and a
+    # release writing its own index can't.
+    Set-FactsFile 'patches-bundle.json' { param($text) $text.Replace('Validation: ', 'Built for Instagram 448.0.0.1.1. Validation: ') }
+    try {
+        $said = Invoke-LenientFacts
+        Assert-True ($said -like "*source $versionHere has an unreleased catalog while the working index remains on its published facts*") `
+            "The lenient check refused a held retarget whose index names only the published build: $said"
+        Assert-Throws { Invoke-Facts } '*bundle description target version*' `
+            'The strict check accepted an index naming a build the source no longer targets.'
+        # That index is still the one this version's release wrote, so it keeps the version heading.
+        Set-FactsFile 'patches-bundle.json' { param($text) $text -replace '## \[[^\]]+\]', '## [0.0.1]' }
+        Assert-Throws { Invoke-LenientFacts } '*bundle description version heading*' `
+            'The lenient check took a held retarget whose index opens on another version.'
+    } finally {
+        Reset-FactsFile 'patches-bundle.json'
+    }
+
+    # A patch removed on main while the version waits at the published one: an index that still names
+    # the release's own count, one more than the source has, is the published one, and only the
+    # lenient check takes it.
+    Set-FactsFile 'patches-bundle.json' { param($text) $text.Replace('Validation: ', "It has $($countHere + 1) patches. Validation: ") }
+    try {
+        $said = Invoke-LenientFacts
+        Assert-True ($said -like "*source $versionHere has an unreleased catalog while the working index remains on its published facts*") `
+            "The lenient check refused an index naming only the published count: $said"
+        Assert-Throws { Invoke-Facts } '*bundle description patch count*' `
+            'The strict check accepted an index counting patches the source no longer has.'
+        Set-FactsFile 'patches-bundle.json' { param($text) $text -replace '## \[[^\]]+\]', '## [0.0.1]' }
+        Assert-Throws { Invoke-LenientFacts } '*bundle description version heading*' `
+            'The lenient check took an index naming only the published count under another version heading.'
+    } finally {
+        Reset-FactsFile 'patches-bundle.json'
     }
 
     # A dead link: the address has every right shape and names a release nobody published. GitHub

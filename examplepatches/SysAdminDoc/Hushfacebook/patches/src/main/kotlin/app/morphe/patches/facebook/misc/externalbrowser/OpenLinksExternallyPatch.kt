@@ -12,6 +12,7 @@ import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.freeLocalsAt
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.util.namedRegisters
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -58,7 +59,8 @@ val openLinksExternallyPatch = bytecodePatch(
     description = "Opens web links in your own browser instead of Facebook's built-in one, without Facebook " +
         "tracking the click. Facebook pages still open in the app. On by default. Turn it off in Hushfacebook " +
         "settings > Links and sharing. A second switch, on by default under Privacy, stops Facebook's browser keeping a " +
-        "history of the links you open in it.",
+        "history of the links you open in it. A Page's Events link opens on that Page's Events tab instead of Home, " +
+        "whichever way the switches are set.",
     default = true,
 ) {
     category("Interface")
@@ -96,6 +98,15 @@ val openLinksExternallyPatch = bytecodePatch(
         linkHistoryFactories().forEach { mutableFactory(it).holdLinkHistory() }
         mutableFactory(linkHistoryUpload()).holdLinkHistoryUpload()
         autofillReports().forEach { mutableFactory(it).holdAutofillReport() }
+
+        // A Page's Events link, which Facebook's server sends to Home, opens the Page's Events tab
+        // (#319, PageEventsLinkHook.kt). A build whose mapper has another shape keeps the rest.
+        try {
+            UriIntentMapperFingerprint.method.routePageEventsLinks()
+        } catch (missing: Exception) {
+            val why = if (missing is PatchException) missing.message else "${missing::class.java.name}: ${missing.message}"
+            patchLog.warning("$PATCH: $why. Page events links stay as Facebook opens them.")
+        }
 
         enableStatus("externalBrowser")
     }

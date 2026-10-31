@@ -81,54 +81,21 @@ private fun ClassDef.hasMethodReferencingStringContaining(value: String) =
     methods.any { it.referencesStringContaining(value) }
 
 /**
- * Matches `aext.d()` — the AccountValidityMonitor method that enqueues `CheckAccountTask`
- * and (under MicroG) clears the selected account on resume.
+ * Matches `<clinit>` of AccountValidityMonitor.
  */
-internal object AccountValidityMonitorCheckFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf(),
-    custom = { method, classDef ->
-        classDef.hasMethodReferencingString("AccountValidityMonitor") &&
-            classDef.hasMethodReferencingString("com.google.android.apps.photos.login.AccountValidityMonitor.CheckAccountTask") &&
-            method.implementation?.instructions?.let { instructions ->
-                instructions.any {
-                    it.getReference<FieldReference>()?.let { ref ->
-                        ref.name == "a" && ref.type == "I"
-                    } == true
-                } && method.referencesVoidMethodWithSingleObjectParameter()
-            } == true
-    },
+internal object AccountValidityMonitorFingerprint : Fingerprint(
+    name = "<clinit>",
+    strings = listOf("AccountValidityMonitor"),
 )
 
 /**
- * Matches `aeye.f()` — the frictionless-login eligibility check.
- *
- * Under MicroG this can return false and clear the selected account.
+ * Matches method `c` in FrictionlessAccountHandler which contains "ProvideFrctAccountTask".
  */
-internal object FrictionlessEligibilityFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Z",
-    parameters = listOf(),
-    custom = { method, classDef ->
-        classDef.hasMethodReferencingString("ProvideFrctAccountTask") &&
-            method.referencesMethod("Z", emptyList()) &&
-            method.referencesMethod("V", listOf("I")) &&
-            method.referencesIntLiteral(-1)
-    },
-)
-
-/**
- * Matches `Lahwe;->a()V` — the CurrentLocationMixin method that requests device location.
- */
-internal object CurrentLocationMixinFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+internal object FrictionlessEligibilityTaskFingerprint : Fingerprint(
+    name = "c",
     returnType = "V",
     parameters = listOf(),
-    custom = { method, classDef ->
-        classDef.hasMethodReferencingString("CurrentLocationMixin") &&
-            method.name == "a"
-    },
+    strings = listOf("ProvideFrctAccountTask"),
 )
 
 /**
@@ -137,9 +104,7 @@ internal object CurrentLocationMixinFingerprint : Fingerprint(
 internal object CurrentLocationMixinOnViewCreatedFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/view/View;", "Landroid/os/Bundle;"),
-    custom = { method, classDef ->
-        classDef.hasMethodReferencingString("CurrentLocationMixin")
-    },
+    strings = listOf("state_my_location_enabled"),
 )
 
 /**
@@ -162,18 +127,6 @@ internal object UncertifiedDeviceActivityOnCreateFingerprint : Fingerprint(
     name = "onCreate",
     returnType = "V",
     parameters = listOf("Landroid/os/Bundle;"),
-)
-
-/**
- * Matches `CurrentLocationMixin.b(boolean)` — updates FAB icon tint based on whether current location is active.
- */
-internal object CurrentLocationMixinUpdateTintFingerprint : Fingerprint(
-    returnType = "V",
-    parameters = listOf("Z"),
-    custom = { method, classDef ->
-        classDef.hasMethodReferencingString("CurrentLocationMixin") &&
-            method.name == "b"
-    },
 )
 
 /**
@@ -214,5 +167,32 @@ internal object PermissionCoordinatorRequestPermissionsFingerprint : Fingerprint
         " when already requested ",
     ),
 )
+
+/**
+ * Matches Places Map photo grid scroll jump method (Lazlv.o in 7.99, Lakia.c in 7.98).
+ */
+internal object PlacesMapScrollJumpFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("L", "I", "I"),
+    strings = listOf("Cannot scroll to position using layout manager "),
+)
+
+/**
+ * Matches mapexplore.GetMediaCollectionDateRangeTask caller method (Lallu.h in 7.99, Lalgt.h in 7.98).
+ */
+internal object MapExploreDateRangeFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("I", "L"),
+    strings = listOf("mapexplore.GetMediaCollectionDateRangeTask"),
+)
+
+/**
+ * Matches <clinit> of the class defining photos.killswitch_info_panel_map flag.
+ */
+internal object KillswitchInfoPanelMapFingerprint : Fingerprint(
+    name = "<clinit>",
+    strings = listOf("photos.killswitch_info_panel_map"),
+)
+
 
 

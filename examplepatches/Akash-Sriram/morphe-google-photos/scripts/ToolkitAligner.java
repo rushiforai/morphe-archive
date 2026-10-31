@@ -63,8 +63,8 @@ public class ToolkitAligner {
         public String archiveActionClass = "rsw";
         public String moveToTrashActionClass = "bfjt";
         public String glideSingletonClass = "mdm";
-        public String remoteMediaModelClass = "amrp";
-        public String remoteMediaOptionsClass = "amrq";
+        public String remoteMediaModelClass = null;
+        public String remoteMediaOptionsClass = null;
     }
 
     private static String stripDescriptor(String type) {
@@ -549,19 +549,24 @@ public class ToolkitAligner {
                             if (ref instanceof StringReference) {
                                 String s = ((StringReference) ref).getString();
                                 if (s.contains("RemoteMediaModel")) {
-                                    res.remoteMediaModelClass = simpleClassName(cd.getType());
+                                    String candModel = simpleClassName(cd.getType());
+                                    String candOpts = null;
                                     for (Method ctor : cd.getMethods()) {
                                         if (ctor.getName().equals("<init>") && ctor.getParameters().size() == 3) {
                                             String p0 = ctor.getParameters().get(0).getType();
                                             String p1 = ctor.getParameters().get(1).getType();
                                             String p2 = ctor.getParameters().get(2).getType();
                                             if (p0.equals("Ljava/lang/String;") && p1.equals("I") && p2.startsWith("L")) {
-                                                res.remoteMediaOptionsClass = simpleClassName(p2);
+                                                candOpts = simpleClassName(p2);
                                                 break;
                                             }
                                         }
                                     }
-                                    break;
+                                    if (candOpts != null) {
+                                        res.remoteMediaModelClass = candModel;
+                                        res.remoteMediaOptionsClass = candOpts;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -571,6 +576,8 @@ public class ToolkitAligner {
             }
             if (res.remoteMediaOptionsClass != null && !res.remoteMediaOptionsClass.isEmpty()) break;
         }
+        if (res.remoteMediaModelClass == null) res.remoteMediaModelClass = "amwm";
+        if (res.remoteMediaOptionsClass == null) res.remoteMediaOptionsClass = "amwn";
 
         // 16. Glide Singleton (Class with static e(Context) calling RequestManagerRetriever)
         String retrieverClass = null;

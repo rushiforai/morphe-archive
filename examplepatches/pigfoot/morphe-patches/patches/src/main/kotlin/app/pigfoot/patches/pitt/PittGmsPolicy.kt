@@ -1,5 +1,7 @@
 package app.pigfoot.patches.pitt
 
+import app.pigfoot.patches.shared.firebase.FirebaseCertificateHeaderContract
+import app.pigfoot.patches.shared.firebase.restoreFirebaseCertificateHeader
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -7,7 +9,6 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction31c
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.immutable.*
@@ -102,7 +103,8 @@ internal fun requirePittGmsBaseContract(methods: Iterable<Method>) {
 }
 
 /** No package rename, permission removal, client-ID replacement or global GMS redirect. */
-internal fun applyPittGmsManifest(doc: Document) {
+internal fun applyPittGmsManifest(doc: Document, certificateSha1: String) {
+    require(certificateSha1 == PITT_STOCK_SHA1) { "Unsupported PiTT certificate identity" }
     val manifest = doc.documentElement
     require(manifest.tagName == "manifest" && manifest.getAttribute("package") == PITT_PACKAGE &&
         manifest.getAttribute("android:versionName") == PITT_VERSION &&
@@ -126,7 +128,7 @@ internal fun applyPittGmsManifest(doc: Document) {
     val visible = doc.createElement("package")
     visible.setAttribute("android:name", PITT_GMS_PACKAGE)
     query.appendChild(visible)
-    for ((key, value) in mapOf("NAME" to PITT_PACKAGE, "SIGNATURE" to PITT_STOCK_SHA1)) {
+    for ((key, value) in mapOf("NAME" to PITT_PACKAGE, "SIGNATURE" to certificateSha1)) {
         val node = doc.createElement("meta-data")
         node.setAttribute("android:name", prefix + key)
         node.setAttribute("android:value", value)
@@ -134,43 +136,21 @@ internal fun applyPittGmsManifest(doc: Document) {
     }
 }
 
-/** Only the pinned Firebase Auth HTTP certificate header, never a global signer hook. */
-internal fun restorePittFirebaseClientIdentity(method: MutableMethod) {
-    require(method.pittId() == PITT_FIREBASE_HEADERS) { "Unsupported PiTT Firebase header owner" }
-    val impl = requireNotNull(method.implementation)
-    val code = impl.instructions.toList()
-    fun reference(index: Int) = (code.getOrNull(index) as? ReferenceInstruction)?.reference?.toString()
-    fun unique(value: String): Int {
-        val sites = code.indices.filter { reference(it) == value }
-        require(sites.size == 1) { "Missing or ambiguous PiTT Firebase header site" }
-        return sites.single()
-    }
-    require(impl.registerCount == 5 && code.none { (it as? ReferenceInstruction)?.reference?.toString()?.equals(PITT_STOCK_SHA1, true) == true }) {
-        "Unsupported or already modified PiTT Firebase headers"
-    }
-    val cert = unique("X-Android-Cert")
-    val pkg = unique("X-Android-Package")
-    val setHeader = "Ljava/net/URLConnection;->setRequestProperty(Ljava/lang/String;Ljava/lang/String;)V"
-    fun header(index: Int, getter: String) {
-        val key = code[index] as? OneRegisterInstruction
-        val result = code.getOrNull(index - 1) as? OneRegisterInstruction
-        val source = code.getOrNull(index - 2) as? FiveRegisterInstruction
-        val call = code.getOrNull(index + 1) as? FiveRegisterInstruction
-        require(code[index].opcode == Opcode.CONST_STRING && key?.registerA == 2 &&
-            code[index - 1].opcode == Opcode.MOVE_RESULT_OBJECT && result?.registerA == 1 &&
-            code[index - 2].opcode == Opcode.INVOKE_VIRTUAL && reference(index - 2) == "$PITT_FIREBASE_IDENTITY->$getter()Ljava/lang/String;" &&
-            source?.registerCount == 1 && source.registerC == 1 &&
-            code[index + 1].opcode == Opcode.INVOKE_VIRTUAL && reference(index + 1) == setHeader &&
-            call?.registerCount == 3 && call.registerC == 4 && call.registerD == 2 && call.registerE == 1) {
-            "Unsupported PiTT Firebase header call/register contract"
-        }
-    }
-    require(pkg >= 2 && cert >= pkg + 5 && cert + 2 < code.size) { "Unsupported PiTT Firebase header order" }
-    header(pkg, "zzb")
-    header(cert, "zza")
-    require(code[cert + 2].opcode == Opcode.CONST_STRING && reference(cert + 2) == "Accept-Language" &&
-        (code[cert + 2] as OneRegisterInstruction).registerA == 1) { "Unsupported PiTT Firebase header register lifetime" }
-    // The SDK uses upper-case hex; Android's installed signing identity is untouched.
-    impl.addInstruction(cert + 1, BuilderInstruction21c(Opcode.CONST_STRING, 1,
-        ImmutableStringReference(PITT_STOCK_SHA1.uppercase(java.util.Locale.ROOT))))
+/** App-specific Auth transport/getter/register contract; never match other Firebase products. */
+private val pittFirebaseHeaderContract = FirebaseCertificateHeaderContract(
+    methodId = PITT_FIREBASE_HEADERS,
+    identityOwner = PITT_FIREBASE_IDENTITY,
+    packageGetter = "zzb",
+    certificateGetter = "zza",
+    registerCount = 5,
+    identityRegister = 1,
+    connectionRegister = 4,
+    keyRegister = 2,
+    valueRegister = 1,
+    nextHeader = "Accept-Language"
+)
+
+internal fun restorePittFirebaseClientIdentity(method: MutableMethod, certificateSha1: String) {
+    require(certificateSha1 == PITT_STOCK_SHA1) { "Unsupported PiTT certificate identity" }
+    restoreFirebaseCertificateHeader(method, certificateSha1, pittFirebaseHeaderContract)
 }

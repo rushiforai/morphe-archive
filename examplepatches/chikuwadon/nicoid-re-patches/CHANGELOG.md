@@ -1,3 +1,36 @@
+## 1.9.12 (2026-10-30)
+
+### ✨ New Features
+
+* **nicoid:** Add a Refresh action to reload the current tab.
+* **nicoid:** Add a close button to the selected tab with an Undo action.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix crashes and playback getting stuck when switching from popup to background playback and returning to the normal player.
+* **nicoid:** Fix video information remaining stuck loading after returning from background playback.
+* **nicoid:** Use the mini player when starting background playback from customized playback controls, and correct the background playback and mute icons. ([#94](https://github.com/chikuwadon/nicoid-re-patches/issues/94))
+* **nicoid:** Fix popup playback crashing when activating hold-to-speed playback. ([#96](https://github.com/chikuwadon/nicoid-re-patches/issues/96))
+* **nicoid:** Fix popup playback controls and the seek bar flickering when set to remain visible.
+* **nicoid:** Fix playback speed and quality text overlapping when resizing the popup.
+* **nicoid:** Place the popup play/pause button in the toolbar when playback controls are set to remain visible.
+* **nicoid:** Fix popup resizing gestures interfering with the seek bar.
+* **nicoid:** Fix videos failing to be removed from Watch Later.
+* **nicoid:** Fix the notification close button not responding after the app process exits.
+* **nicoid:** Fix long-pressing a tab unexpectedly switching tabs, and correct the available tab movement actions.
+* **nicoid:** Prevent related videos from creating tabs labeled “nicoid Re.”
+* **nicoid:** Fix search suggestions not returning after being disabled and enabled again.
+* **nicoid:** Correct the size of the Cast stop icon in normal playback. ([#88](https://github.com/chikuwadon/nicoid-re-patches/issues/88))
+
+### 🔧 Improvements
+
+* **nicoid:** Keep the selected tab visible in the tab bar when switching with horizontal swipes.
+* **nicoid:** Improve tab switching stability and recovery from empty video lists.
+* **nicoid:** Reduce unnecessary layout updates when resizing popup playback.
+* **nicoid:** Cancel unnecessary search suggestion requests when changing the search text or leaving the search dialog.
+* **nicoid:** Improve resource cleanup after popup playback ends.
+* **nicoid:** Improve video list initialization and remove redundant processing.
+
 ## 1.9.11 (2026-10-29)
 
 ### 🐛 Bug Fixes

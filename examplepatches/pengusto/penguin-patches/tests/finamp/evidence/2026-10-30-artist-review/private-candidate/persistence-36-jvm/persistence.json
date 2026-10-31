@@ -1,0 +1,62 @@
+{
+  "outcome": "PASS",
+  "mask": 36,
+  "installed": {
+    "package": "com.unicornsonlsd.finamp",
+    "path": "/data/app/~~V7h3O3TcPN4oPvx1QvprNw==/com.unicornsonlsd.finamp-lTBhV3AvgXcLGxdt90sh5A==/base.apk",
+    "sha256": "ae64d8edbca9c53bf9b0e56bd49ad53a5cfab91584ca82c5c8e2bb760db47121"
+  },
+  "native_sha256": "650484ada102e5a76a417cb9758ec274cfaa9e07f5f57ebaa3fd0c3b58943ed1",
+  "device": {
+    "serial": "emulator-5586",
+    "avd": "finamp-isolated-artist",
+    "properties": {
+      "ro.kernel.qemu": "1",
+      "ro.hardware": "ranchu",
+      "ro.build.version.sdk": "35",
+      "sys.boot_completed": "1"
+    },
+    "verifiedAt": "2026-10-30T13:45:04.119528+00:00"
+  },
+  "metadata_seed_requested": false,
+  "login": {
+    "syntheticLibraryVisible": true,
+    "previousLoginPreserved": true,
+    "requiredPreservation": true,
+    "fixtureUrl": "http://127.0.0.1:18966"
+  },
+  "theme": "Dark",
+  "warning_cutoff": 4,
+  "download_files": {
+    "images/41e0939c-16d2-4e23-bab0-8f3ba0cd8fd3.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/4375b48a-ef6a-4676-a73f-c4a4b62dd104.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/43bd09ca-ee11-4337-9daa-21dc88194c56.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/520a9a7b-caf0-4526-96a8-26d953b482ca.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/5d8cb026-9a47-4829-889d-efafe90e56b4.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/649f2a53-7301-4ca9-97b2-8b66f709c207.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/80ade952-bc66-473d-87a7-c146fa4a73ca.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/81c21061-87b1-4c35-9002-9f7811f3c00b.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/8be42a67-ecb0-4fc6-93d1-b00a75a36889.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/a27d5b7e-d0ca-4ceb-ab92-b65e0a3546e4.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/b7a62309-9192-4cb1-a6c3-acd1be68ade3.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/b811b611-16d5-48e3-8583-375974e70dc0.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/cb21bfa9-0c93-4aaa-9c83-a1f633aaa422.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "images/e1852b83-d420-4762-b679-05819271d0e6.png": "d1a82ba145cc7adcf1e8cd2c6635ade6bfe2c830970e1ca1bd3f32e25a3a10cc",
+    "songs/23f09f26b35954adb130625ea3a6e329.wav": "921b2f21c91e43e5c0a69ff02df563193c49a82a259172d0c35892f2f0c89d20",
+    "songs/2d296e6345a0590aa6b6bef9e05d6050.wav": "e9f81ecc21f9e9354f6912ee59c953423d50e72478b3b8d931efd4c7d0c2274a",
+    "songs/78c7453976a05d9d8995678296cb354e.wav": "9e55d7d99466ab291b5f813e3f7b0fc026cb940eb40905173483531b003f445e",
+    "songs/93281c715fb7511683855615777f326f.wav": "c90699258060ad71fde87426c9ffd698c75d514c777b5403ce6365508f1856a1",
+    "songs/b05424eb192f542babd64b7f748fcc94.wav": "0213c3f0f6ef98affc9b025cceddeeac1bca776c6962ee73dea7f613184e7a1c",
+    "songs/bb694d91d70e5289a131ace1cfd432ce.wav": "95d738aecc96640792ad9c0c934645a76023d18cb18df072acb8ae1cd869594a",
+    "songs/d923bee7c0fb5f28ba7ef77cc357eca3.wav": "4d94c5a8a31877412801e2f30e12b6a68012c60c87b2e7ae799f7ab53fb51f62",
+    "songs/eb2ecfe73d155f59b1c1f5cfde3b215f.wav": "c97f80c9f54c8904624c26b627c141db65ae987cf30fb8bdaf9f188ee71d26f8"
+  },
+  "preserved_baseline_files": 22,
+  "preserved_baseline_tracks": 8,
+  "auxiliary_box": {
+    "present": false,
+    "bytes": 0,
+    "sha256": null,
+    "verifiedSizeFromStat": false
+  }
+}

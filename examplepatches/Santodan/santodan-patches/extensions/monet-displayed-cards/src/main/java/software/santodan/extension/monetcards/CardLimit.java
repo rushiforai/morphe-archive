@@ -14,6 +14,9 @@ public final class CardLimit {
     public static String number(int value, int minimum, int maximum) {
         return isCardPicker(minimum, maximum) && value == MAX ? "Max" : Integer.toString(value);
     }
+    public static String summary(int value) {
+        return value == MAX ? "Max" : Integer.toString(value);
+    }
     public static int step(int value, int delta, int finite) {
         long next = (long) (value == MAX ? finite : value) + delta;
         return (int) Math.max(MIN, Math.min(MAX, next));

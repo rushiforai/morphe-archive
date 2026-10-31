@@ -3,8 +3,6 @@ package app.yydarlinker.patches.deepseekcaptions
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
-import app.morphe.patcher.OpcodesFilter
-import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
@@ -61,18 +59,6 @@ internal object YouTubeActivityOnCreateFingerprint : Fingerprint(
     name = "onCreate",
     returnType = "V",
     parameters = listOf("Landroid/os/Bundle;"),
-)
-
-/**
- * Stable Morphe fingerprint for the player method that forwards the current position as a long.
- * The first matched invoke-direct/range targets the actual (J)V time callback, which is normally
- * called about once per second by YouTube.
- */
-internal object PlayerTimeReferenceFingerprint : Fingerprint(
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.INVOKE_DIRECT_RANGE,
-        Opcode.IGET_OBJECT,
-    ) + string("Media progress reported outside media playback: ", comparison = StringComparisonType.CONTAINS),
 )
 
 /** Parent and callback used by Morphe's stable current-video ID hook. */

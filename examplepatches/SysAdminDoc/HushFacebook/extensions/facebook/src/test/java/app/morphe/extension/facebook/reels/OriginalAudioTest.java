@@ -88,4 +88,45 @@ public class OriginalAudioTest {
         Settings.ORIGINAL_AUDIO.save(true);
         SettingsContextRule.withoutContext(() -> assertEquals("de", OriginalAudio.language("de")));
     }
+
+    @Test
+    public void offKeepsEveryAudioTrackFacebookKeeps() {
+        assertTrue(OriginalAudio.dubbing(true));
+        assertFalse(OriginalAudio.dubbing(false));
+        assertEquals(0, OriginalAudio.filtering(0));
+        assertEquals(2, OriginalAudio.filtering(2));
+        assertFalse(statusLine().contains(OriginalAudio.ONE_TRACK_KEPT));
+    }
+
+    /**
+     * #148: with Facebook's Languages menu on, the parser kept every dubbed track and the player
+     * chose the phone's language. On, both dubbing switches read off and filtering reads on, so the
+     * parser keeps the main track, and a mode Facebook already set stays as it is.
+     */
+    @Test
+    public void onKeepsOnlyTheOriginalTrack() {
+        Settings.ORIGINAL_AUDIO.save(true);
+        assertFalse(OriginalAudio.dubbing(true));
+        assertFalse(OriginalAudio.dubbing(false));
+        assertEquals(OriginalAudio.ONE_TRACK, OriginalAudio.filtering(0));
+        assertEquals(1, OriginalAudio.ONE_TRACK);
+        assertEquals(2, OriginalAudio.filtering(2));
+        String line = statusLine();
+        assertTrue(line, line.contains(OriginalAudio.ONE_TRACK_KEPT + " 2"));
+        assertTrue(line, line.contains("1 found, 0 missing"));
+    }
+
+    @Test
+    public void pausedOrNotReadyKeepsEveryAudioTrack() {
+        Settings.ORIGINAL_AUDIO.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertTrue(OriginalAudio.dubbing(true));
+        assertEquals(0, OriginalAudio.filtering(0));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> {
+            assertTrue(OriginalAudio.dubbing(true));
+            assertEquals(0, OriginalAudio.filtering(0));
+        });
+        assertFalse(OriginalAudio.dubbing(true));
+    }
 }

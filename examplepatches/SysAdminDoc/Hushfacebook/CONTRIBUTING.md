@@ -18,7 +18,7 @@ GitHub doesn't let the person who opened an issue reopen it once a maintainer cl
 
 Hushfacebook is a Morphe patch source for Facebook's Android app, package `com.facebook.katana`. It publishes a `.mpp` bundle for Morphe Manager. The bundle contains patch definitions and extension code, not Facebook's source or a ready-to-install Facebook APK. Manager starts from Facebook's original APKM, applies the selected patches and signs the result with its existing key. Keep that key when updating the installed copy.
 
-The current declared target is Facebook 584.0.0.51.56 on Android 11 or newer. `AppCompatibilities.kt` holds its version code and the Facebook signing certificates. It declares build 475817393 for arm64-v8a and build 475817404 for armeabi-v7a, each pinned to its own fixture. Fixtures for older builds can still help when tracing a rename, but the current catalog declares only 584. Read the README's unsupported-version section before promising that an undeclared build works, and rerun the full fixture check before changing that claim.
+The current declared target is Facebook 585.0.0.47.54 on Android 11 or newer. `AppCompatibilities.kt` holds its version code and the Facebook signing certificates. It declares build 476015655 for arm64-v8a and build 476015543 for armeabi-v7a, each pinned to its own fixture. Fixtures for older builds can still help when tracing a rename, but the current catalog declares only 585. Read the README's unsupported-version section before promising that an undeclared build works, and rerun the full fixture check before changing that claim.
 
 The bundle uses Morphe patcher 2.0.1 and needs Morphe Manager 2.2.0 or newer. `scripts/validate-release-facts.ps1` holds both numbers here to the pins in `gradle/libs.versions.toml`. The Gradle wrapper, dependency pins, and verification data live under `gradle/`. The Morphe plugin version is in `settings.gradle.kts`. Keep those pins aligned when updating the patcher.
 
@@ -95,6 +95,32 @@ Start from the stock Facebook build that the patch should support. Facebook rena
 6. Regenerate `patches-list.json`, then run the relevant fixture and extension checks. Update the README patch table, CHANGELOG, and release facts when a user-visible name, description, option, default, category, or target changes.
 
 For DEX edits, check the utilities in `patches/src/main/kotlin/app/morphe/util/` before writing register numbers by hand. `FreeRegisterProvider` and `RegisterLiveness` help keep injected instructions from overwriting values Facebook still needs. The register tests and `scripts/test-injected-registers.ps1` catch invalid injected code. Resource changes need a resource fixture check as well, since APKM bundles can hold resources in splits that a merged base APK does not show.
+
+## Translating
+
+Hushfacebook's own text (its settings, toasts and the menu rows it adds) comes from one table per language in `extensions/shared/library/src/main/l10n/`. Facebook's own text isn't in them. There's `de.tsv`, `es.tsv`, `in.tsv` (Indonesian, under Android's older code), `pt-rBR.tsv`, `tr.tsv`, `vi.tsv`, `zh-rCN.tsv` and `zh-rTW.tsv`.
+
+Each row is the English exactly as the code hands it to `L10n.t`, `L10n.f` or `L10n.quantity`, then one tab, then the translation. Lines starting with `#` are comments, and a `# context:` line above a row says where the text shows and what it does. Write a line break as `\n`. The English is the whole sentence, so change only the right-hand column. A row can keep the English as its translation, and that's how a string sits until someone translates it.
+
+Placeholders have to survive. When the English has numbered ones like `%1$s` and `%2$d`, the translation needs the same set and can put them in any order, so `%1$s of %2$s` may become `%2$s: %1$s`. Bare `%s` and `%d` have to stay in the same order, because they're filled by position. A count uses two English keys, the singular and the plural, and `L10n.quantity` picks by the language's plural rule. A language with more plural forms adds a row for each one, keyed by the plural English plus `|` and the CLDR name (`few`, `many`, `two` or `zero`). Use straight apostrophes, and no em or en dash anywhere. A hyphen standing in for one fails too.
+
+After editing a table, run this from the repository root and commit the table together with the regenerated `L10nTranslations.java`:
+
+```
+python scripts/gen-l10n.py
+```
+
+It stops at the first row it can't use and names the file and line: a missing translation, a duplicate, a key starting with `#`, an invisible or control character, or placeholders that don't match. Then run the catalog test. It needs the Gradle variables from [Building and checking](#building-and-checking), but no Facebook bundles.
+
+```
+./gradlew :extensions:facebook:testDebugUnitTest --tests "app.morphe.extension.shared.L10nCatalogTest"
+```
+
+It checks the generated class against the tables, and it holds every table to exactly the English the code shows, both ways. A row missing from any table fails it, and so does a row for text the code no longer shows. So when a change retires a string, delete its row from all eight tables. When a change rewords one, the key is the English, so update the key in every table and keep each translation that still fits. Where you can't say, put the new English in as the translation. A second `--tests "*L10nTest"` adds the other language tests, `SettingsL10nTest` among them, which builds the settings screens in each language.
+
+To add a language, copy `de.tsv` to the new code, named the way an Android resource folder would be (`fr.tsv`, `pt-rPT.tsv`), and translate the right-hand column. Every row has to be there, translated or not. Then add the code to the three language lists in `SettingsL10nTest` and to the README sentence that names the translated languages.
+
+To look for clipped text without knowing a language, turn on Developer options, add English (XA) or Arabic (XB) under the phone's languages and move it to the top. Under en-XA every Hushfacebook string comes out accented, bracketed and about a third longer. Under ar-XB it's mirrored right to left. Only the first language in the list counts, so a pseudo-locale lower down does nothing.
 
 ## Inspecting stock Facebook
 
@@ -490,6 +516,7 @@ The checks that matter before a release:
 
 - `:patches:test` and `:extensions:facebook:testDebugUnitTest`, with `HUSHFACEBOOK_FIXTURE_DIR` set so the tests that read real Facebook builds run instead of skipping. Those tests are the ones whose source calls `Fixtures` or `FixtureDex`, and they run in their own task, `:patches:fixtureTest`, which `:patches:test` runs first. Add `-x :patches:fixtureTest -x :patches:verifyPatchTestSelection` for a quick pass without them.
 - `scripts/verify-all-patches.ps1` on every retained fixture. It merges the split bundle into one APK the way the CLI does, applies all patches to that merge in one run, checks the CLI's own report and holds the rebuilt resource table to the merge's, so the resources only the splits carry are compared too.
+- `scripts/verify-injected-registers.ps1`, which `verify-all-patches.ps1` runs on each APK it patches. A patch can assemble and apply without a word and still fail on a phone, where ART verifies the class and throws a VerifyError on whatever screen reaches it first. Its static half, `scripts/DexDiff.java`, reads every method the bundle changed or added and checks the registers, branches, invoke arguments, move-results and try ranges. It also follows the class of every object register and checks each object handed on: an invoke's receiver and arguments, the object a field is read from or written to, and the value an `iput-object` or `sput-object` stores. An object that can't be the class asked for fails the run. That's how the comment faces hook broke at launch on Facebook 585, when the register it passed as the component had been reused for one of the factory's arguments. The type check only judges a class the APK defines, and only against an object it can follow to the platform's classes, so a class Facebook loads later from its own stores is left alone. What a class extends comes from the APK's own `classesN.dex` files only: Helium's standalone dexes carry their own copies of a few AndroidX classes for a loader of their own. With `-Serial` the script also puts both APKs through dex2oat on a phone or an emulator, but dex2oat doesn't report a single class failing, which is why the static half checks types itself. `scripts/test-injected-registers.ps1` runs its tests.
 - `scripts/build-release-receipt.ps1`, which writes the release receipt from those runs, and `scripts/validate-release-facts.ps1`, which holds the README, `patches-bundle.json`, the CHANGELOG and the bug form to the generated patch list. `verify-all-patches.ps1 -KeepIn <folder>` keeps a passing run with a stamp naming the bundle, APK, patch list and CLI it used and the SHA-256 of each file it kept. `build-release-receipt.ps1 -AppliedDir patches/build/fixture-apply` reads a kept run whose stamp matches and whose files still hash the same instead of patching that fixture a second time.
 - The advisory check inside the receipt script. It reads the SBOM `buildAndroid` writes beside the bundle and asks [OSV](https://osv.dev) about every library in it, and a high or critical advisory stops the release before anything gets patched. If one doesn't apply to what the bundle does with that library, accept it in `scripts/advisory-exceptions.txt` with the reason and a date at most 90 days out. With no network, `-SkipAdvisoryCheck` gets you a receipt anyway, and the index push asks OSV again.
 

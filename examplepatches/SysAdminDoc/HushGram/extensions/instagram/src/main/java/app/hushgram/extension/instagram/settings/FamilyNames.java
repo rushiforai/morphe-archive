@@ -77,6 +77,7 @@ public final class FamilyNames {
     public static final String FULL_SCREEN_BARS = "Full screen Reels and Home";
     public static final String SAVED_ON_PROFILE = "Saved on your profile";
     public static final String STOP_HEARTBEAT = "Stop background wake-ups";
+    public static final String REFRESH_RATE = "Use the highest refresh rate";
     public static final String EMOJI_STYLE = "Emoji style";
     public static final String ACCENT_COLOR = "Accent color";
     public static final String LAUNCH_SCREEN = "HushGram launch screen";
@@ -101,7 +102,10 @@ public final class FamilyNames {
     public static final String COMMENT_EMOJI_ROW = "Hide the comment emoji row";
     public static final String COMMENT_KEYBOARD = "Open comments without the keyboard";
     public static final String FEED_FOLLOW = "Hide Follow on feed posts";
+    public static final String HIDE_CAPTIONS = "Hide captions";
+    public static final String HOME_TOP_BAR = "Keep Home's top bar";
     public static final String REEL_DECLUTTER = "Clean up Reels";
+    public static final String KEEP_REELS_TOP_BAR = "Keep the Reels top bar";
     public static final String REEL_DOWNLOAD = "Download any reel";
     public static final String DOUBLE_TAP_LIKE = "Turn off double tap to like";
     public static final String LIKE_ANIMATION = "Change the like animation";
@@ -137,9 +141,11 @@ public final class FamilyNames {
     public static final String SCREENSHOT_BLOCK = "Allow screenshots";
     public static final String KEEP_IN_CHAT = "Keep in chat";
     public static final String CHAT_REELS = "Swipe through a chat's reels";
+    public static final String CHAT_HISTORY = "Chat history tools";
     public static final String ASK_BEFORE_CALL = "Ask before a call";
     public static final String MESSAGE_BOX = "Message box buttons";
     public static final String ASK_BEFORE_LIKE = "Ask before a like";
     public static final String ASK_BEFORE_REFRESH = "Ask before a refresh";
+    public static final String SAVE_TRAY = "Skip the collections tray";
     public static final String LIVE_SEEN = "View live anonymously";
 }

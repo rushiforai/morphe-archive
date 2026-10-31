@@ -31,6 +31,13 @@ The user reported successful login after this correction, then requested closeou
 
 ## Regression guards
 
+The adapter now uses the internal [shared certificate and Firebase helpers](shared-components.md).
+Read the original-input certificate from Morphe metadata and require the unchanged
+PiTT SHA-1 pin before any Google manifest mutation. Missing or ambiguous metadata
+and re-signed input reject; identical certificate copies across schemes are allowed.
+Keep the Auth method/class/getter/register contract in PiTT, not in a generic
+Firebase fingerprint. No extra user-selectable patch or certificate option is added.
+
 Reject wrong owner, missing/duplicate header, mismatched getter/call/register shape,
 wrong register lifetime, existing override/reapplication and missing/modified
 pinned classes. Check everything before attaching a changed method. Independently

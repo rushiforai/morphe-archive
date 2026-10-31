@@ -1,0 +1,38 @@
+name: Verify mobile patch source
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Set up JDK 21
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify published MPP and export its mobile metadata
+        run: python3 tools/prepare_mobile_source.py --fetch-bundle --download-patcher --check
+      - name: Check source and release policies
+        run: python3 tools/check_release.py
+      - name: Retain verification records
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mobile-source-metadata
+          path: |
+            patches-bundle.json
+            patches-list.json
+            PROVENANCE.json
+          if-no-files-found: error
+

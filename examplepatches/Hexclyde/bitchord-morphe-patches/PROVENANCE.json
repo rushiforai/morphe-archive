@@ -1,0 +1,93 @@
+{
+  "build_date": "2026-10-29",
+  "app_version": "1.8.1",
+  "app_source_commit": "7d956f211b8a46a87184fd3ff87432b51a111dfa",
+  "original_apk_url": "https://github.com/kushagrasinghx/BitChord/releases/download/v1.8.1/BitChord-v1.8.1_arm64-v8a.apk",
+  "original_apk_sha256": "057fb6321a1e1ecf956c8db9c421c2487ebb693017eebc9e717106ed693a25f6",
+  "tdlib_android_commit": "7ec241d026ee3563e615c25a700117c2abbaea19",
+  "tdlib_source_commit": "ea3f69ce11aef458bfbb09869b809ede4447486f",
+  "openssl_source_commit": "45e844fa2a14ec92d146bd8f5778ac130b6625fb",
+  "native_variant": "NDK 30.0.16248370 / android-24 / arm64-v8a, armeabi-v7a, x86_64",
+  "patcher_version": "2.0.1",
+  "downloads": [
+    {
+      "file": "jdk21.tar.gz",
+      "url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.13%2B9/OpenJDK21U-jdk_x64_linux_hotspot_21.0.13_9.tar.gz",
+      "sha256": "d7f5d5cf865a2902b70ff549b97586a7d3f234e016f041ab447ea740c7d66d1c"
+    },
+    {
+      "file": "kotlin.zip",
+      "url": "https://github.com/JetBrains/kotlin/releases/download/v2.3.21/kotlin-compiler-2.3.21.zip",
+      "sha256": "a8cfc1d62cd4d0de4d04f42575e40135bd620588c17d568a20eb9c7c259af14f"
+    },
+    {
+      "file": "platform35.zip",
+      "url": "https://dl.google.com/android/repository/platform-35_r02.zip",
+      "sha256": "0988cacad01b38a18a47bac14a0695f246bc76c1b06c0eeb8eb0dc825ab0c8e0"
+    },
+    {
+      "file": "ndk.zip",
+      "url": "https://dl.google.com/android/repository/android-ndk-r30-linux.zip",
+      "sha256": "753611f410d002cfcd3f3dc2ef49aad532089d3180b436c060a90bf0fcb64df2"
+    },
+    {
+      "file": "r8-latest.jar",
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/r8/9.6.0-alpha08/r8-9.6.0-alpha08.jar",
+      "sha256": "24f81876b6c3311d0dbb8ad88fb4650ef3c9ba3713ab8c925a0a8fbc9d03dc25"
+    },
+    {
+      "file": "annotation.jar",
+      "url": "https://dl.google.com/dl/android/maven2/androidx/annotation/annotation-jvm/1.9.1/annotation-jvm-1.9.1.jar",
+      "sha256": "1e343917ebf27ba96fe4dc52b1cad7fd32b738fbc6355bb6cd5b3b305d7212d0"
+    },
+    {
+      "file": "json.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/json/json/20250517/json-20250517.jar",
+      "sha256": "3ea61b2a06e31edf1c91134fe9106b0ebb16628be169f3db75bc7a2b06b45796"
+    },
+    {
+      "file": "morphe-desktop-1.19.1-all.jar",
+      "url": "https://github.com/MorpheApp/morphe-desktop/releases/download/v1.19.1/morphe-desktop-1.19.1-all.jar",
+      "sha256": "a51472252cd63b2eac635dbb5a154ff918bfc15268da89679feb3d760230c573"
+    }
+  ],
+  "generated_tdapi_sha256": "11155fabc41ca2a6d91bbde4fdf683603d60b50ed51cafab0068728aa7d8d74f",
+  "patch_bundle_version": "1.0.20",
+  "native_sha256": {
+    "lib/arm64-v8a/libc++_shared.so": "7466ed097631a564ed6bff0b47768caa76bf03270d2047b5a65c03f497b824df",
+    "lib/arm64-v8a/libcryptox.so": "9fdc85415c999a2c7383817a204d822f0e509515016b8fee14c45d5a1c40e4d6",
+    "lib/arm64-v8a/libsslx.so": "48194dfff5be214af8a50be0f13c020c9fdafc82f01ccf324e86056d841a5cb5",
+    "lib/arm64-v8a/libtdjni.so": "aab54f0e7d0bd478b36e2b9d23e46464bc50c15691085573975243ac33e6a2a0",
+    "lib/armeabi-v7a/libc++_shared.so": "2ee592c9ba3372da027384deb1070def5ae76f3ea2246bd447360faa73ac22f4",
+    "lib/armeabi-v7a/libcryptox.so": "c7061edd2d45570e27ff0c6e447f545d7999d0669206e7e6350eac52f3d5af9e",
+    "lib/armeabi-v7a/libsslx.so": "edfa2435d30126a4a2389c6843cf7e752270ffafd2b5a8565abfc1fce84a39dd",
+    "lib/armeabi-v7a/libtdjni.so": "17132a62fcc85ed275f7af55a04c266abc61e66cba79d94ff40be3027691eabe",
+    "lib/x86_64/libc++_shared.so": "7918ebd0b8074c312d0c610205d49760b98c008026e6b817cd92103a3e12241b",
+    "lib/x86_64/libcryptox.so": "6f52a70151a187dc8185c298caccbcd6c3f376d1a3c2c75c79510cb87728435c",
+    "lib/x86_64/libsslx.so": "4cac7d6efbfa233aa10a88220fe42f28a6fffabbdd28c7cbd89b367ae64cb77a",
+    "lib/x86_64/libtdjni.so": "84f99e5f191e6b0a1eb106611fc94582552cc323d2b669ce59e153650d1e490d"
+  },
+  "original_apks": [
+    {
+      "file": "BitChord-v1.8.1_arm64-v8a.apk",
+      "url": "https://github.com/kushagrasinghx/BitChord/releases/download/v1.8.1/BitChord-v1.8.1_arm64-v8a.apk",
+      "sha256": "057fb6321a1e1ecf956c8db9c421c2487ebb693017eebc9e717106ed693a25f6"
+    },
+    {
+      "file": "BitChord-v1.8.1_armeabi-v7a.apk",
+      "url": "https://github.com/kushagrasinghx/BitChord/releases/download/v1.8.1/BitChord-v1.8.1_armeabi-v7a.apk",
+      "sha256": "4dc6a02ec4bbb4831f7c22acd4a7eb5e3f21b2c58ee7e514d54ebf5f846d3c54"
+    },
+    {
+      "file": "BitChord-v1.8.1_x86_64.apk",
+      "url": "https://github.com/kushagrasinghx/BitChord/releases/download/v1.8.1/BitChord-v1.8.1_x86_64.apk",
+      "sha256": "ec3a7d0588ec2f2a78e263310d317099315deebfd684712dc157376f1d084b15"
+    }
+  ],
+  "native_version_strings_inspected": {
+    "tdlib": "1.8.69",
+    "openssl": "OpenSSL 3.5.9 29 Sep 2026"
+  },
+  "media3_host_version": "1.11.0",
+  "patch_bundle_sha256": "63be26ccf67760a174a9104552f7774d38f3771a0f053c5182c2e4d819fbe820"
+}

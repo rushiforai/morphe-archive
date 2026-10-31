@@ -64,7 +64,7 @@ public class SettingsSearchTest {
     private HushgramPreferenceFragment page;
 
     @Before public void host() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
         Settings.START_ON_FOLLOWING.resetToDefault();
         Settings.ONLY_FOLLOWING.resetToDefault();

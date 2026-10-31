@@ -1,3 +1,21 @@
+## [1.7.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.6.1...v1.7.0) (2026-10-31)
+
+### ✨ New Features
+
+* **skisafari:** add experimental unlock-all patch for 2.5 ([7fe0e28](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/7fe0e2888bee2c85daefe35e7cfefcf11049f5dc))
+
+## [1.6.1](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.6.0...v1.6.1) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **repo:** restore six stable apps alongside Prezzi Benzina and guard release inventory ([e3d8b84](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e3d8b84c3fcc3164b7ab03db3f07efd2d13bb1ae))
+
+## [1.6.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.5.0...v1.6.0) (2026-10-30)
+
+### ✨ New Features
+
+* **prezzibenzina:** keep F13 and ad removal patches ([e207587](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e207587c26168629896d99acea67d81b643b4f89))
+
 ## [1.5.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.4.0...v1.5.0) (2026-10-29)
 
 ### ✨ New Features

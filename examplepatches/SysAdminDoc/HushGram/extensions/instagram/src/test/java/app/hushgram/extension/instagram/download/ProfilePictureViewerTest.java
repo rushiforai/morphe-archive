@@ -74,7 +74,7 @@ public class ProfilePictureViewerTest {
 
     @Before public void setup() throws Exception {
         application = RuntimeEnvironment.getApplication();
-        application.getApplicationInfo().targetSdkVersion = 36;
+        application.getApplicationInfo().targetSdkVersion = 37;
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         BaseSettings.SAFE_MODE.save(false);

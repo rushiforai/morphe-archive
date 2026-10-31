@@ -40,9 +40,10 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
 /**
  * The filter first in the tray data's constructor: a bucket Facebook marks as suggested, by its
  * flag or by its first label, doesn't make it into the tray, and neither do the People you may know
- * and "Find friends from contacts" cards, by their bucket type, each behind its own switch; every
- * other bucket does, in order; and a switch off, a pause, anything it can't read or any failure
- * leaves the tray as Facebook sent it.
+ * and "Find friends from contacts" cards, by their bucket type, each behind its own switch, nor
+ * Pages' stories and stories you've watched when those switches are on; every other bucket does,
+ * in order; and a switch off, a pause, anything it can't read or any failure leaves the tray as
+ * Facebook sent it.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -62,6 +63,8 @@ public class SuggestedStoriesTest {
         Settings.HIDE_PEOPLE_YOU_MAY_KNOW.resetToDefault();
         Settings.HIDE_CONTACT_IMPORT_CARD.resetToDefault();
         Settings.HIDE_STORY_PROMPTS.resetToDefault();
+        Settings.HIDE_PAGE_STORIES.resetToDefault();
+        Settings.HIDE_SEEN_STORIES.resetToDefault();
         SuggestedStoriesForTests.peopleYouMayKnowInBuild(null);
         FeedFilterCounters.clear();
         HookStatus.clear();
@@ -575,13 +578,89 @@ public class SuggestedStoriesTest {
     public void switchesNotReadArentCalledOff() {
         assertEquals(" (switches not read)", SuggestedStories.Switches.NONE.offNote());
         assertEquals(" (off: suggested, contact import card)",
-                new SuggestedStories.Switches(false, false, false, false).offNote());
+                new SuggestedStories.Switches(false, false, false, false, false, false).offNote());
     }
 
     @Test
     public void theProbesHideTheCards() {
         assertTrue(SuggestedStoriesForTests.hidesPeopleYouMayKnow());
         assertTrue(SuggestedStoriesForTests.hidesContactImportCard());
+        assertFalse("Hide stories from Pages starts off", SuggestedStoriesForTests.hidesPageStories());
+        assertFalse("Hide seen stories starts off", SuggestedStoriesForTests.hidesSeenStories());
+        Settings.HIDE_PAGE_STORIES.save(true);
+        Settings.HIDE_SEEN_STORIES.save(true);
+        assertTrue(SuggestedStoriesForTests.hidesPageStories());
+        assertTrue(SuggestedStoriesForTests.hidesSeenStories());
+    }
+
+    /**
+     * Issue #313: with Hide stories from Pages on, a Page's bucket leaves the tray, whether its owner
+     * says Page or its type is one a Page's stories come as, and whether or not Facebook suggests it.
+     * A person's stories stay, and so does a bucket with no owner. Off, the tray is Facebook's.
+     */
+    @Test
+    public void pageStoriesLeaveWithTheirSwitch() {
+        assertFalse("the switch starts off", Settings.HIDE_PAGE_STORIES.get());
+        Bucket friend = new Bucket(false, null).ownedBy("User");
+        Bucket page = new Bucket(false, null).ownedBy(SuggestedStories.PAGE_OWNER);
+        Bucket suggestedPage = new Bucket(true, null).ownedBy(SuggestedStories.PAGE_OWNER);
+        Bucket typed = Bucket.of(Type.PAGE_STORY);
+        Bucket shared = Bucket.of(Type.SHARED_PAGE_STORY);
+        Bucket ownerless = new Bucket(false, null);
+        List<Bucket> tray = Arrays.asList(friend, page, suggestedPage, typed, shared, ownerless);
+        Settings.HIDE_SUGGESTED_STORIES.save(false);
+        assertSame("off, Facebook's tray", tray, SuggestedStoriesForTests.keptBuckets(tray));
+
+        Settings.HIDE_PAGE_STORIES.save(true);
+        assertEquals(Arrays.asList(friend, ownerless), SuggestedStoriesForTests.keptBuckets(tray));
+        assertTrue(counterLine(), counterLine().contains("Removed: " + SuggestedStories.PAGE_STORY + " 4."));
+        assertTrue(statusLine(), statusLine().endsWith(" 0 missing"));
+    }
+
+    /**
+     * Issue #317: with Hide seen stories on, a bucket you've watched to the end leaves the tray,
+     * a person's or a Page's alike. The Add to story tiles and the cards aren't stories you watch, so
+     * they stay whatever their flag says.
+     */
+    @Test
+    public void watchedStoriesLeaveWithTheirSwitch() {
+        assertFalse("the switch starts off", Settings.HIDE_SEEN_STORIES.get());
+        Bucket fresh = new Bucket(false, null).ownedBy("User");
+        Bucket watched = new Bucket(false, Label.FAMILY).ownedBy("User").watched();
+        Bucket page = new Bucket(false, null).ownedBy(SuggestedStories.PAGE_OWNER).watched();
+        Bucket create = new Bucket(false, null, Type.ADD_TO_STORY).watched();
+        Bucket self = new Bucket(false, null, Type.ADD_TO_STORY_SELF_VIEW).watched();
+        Bucket card = new Bucket(false, null, Type.CONTACT_IMPORTER_STORY).watched();
+        List<Bucket> tray = Arrays.asList(create, self, fresh, watched, page, card);
+        Settings.HIDE_CONTACT_IMPORT_CARD.save(false);
+        assertSame("off, Facebook's tray", tray, SuggestedStoriesForTests.keptBuckets(tray));
+
+        Settings.HIDE_SEEN_STORIES.save(true);
+        assertEquals(Arrays.asList(create, self, fresh, card), SuggestedStoriesForTests.keptBuckets(tray));
+        assertTrue(counterLine(), counterLine().contains("Last reason: " + SuggestedStories.SEEN + "."));
+        assertTrue(counterLine(), counterLine().contains("Removed: " + SuggestedStories.SEEN + " 2."));
+    }
+
+    /**
+     * A build where the patch couldn't fill the seen or owner stub: with those switches off nothing
+     * asks them, and with them on Hook status names what's missing and every bucket stays.
+     */
+    @Test
+    public void unfilledSeenAndOwnerStubsAreReportedOnlyWhenTheirSwitchIsOn() {
+        List<Bucket> tray = Arrays.asList(new Bucket(false, null).ownedBy("User").watched(),
+                new Bucket(false, null).ownedBy(SuggestedStories.PAGE_OWNER));
+        SuggestedStories.Buckets unfilled = typeReadBy(SuggestedStoriesForTests.STAND_IN::type);
+        assertSame(tray, SuggestedStories.keptBuckets(tray, unfilled));
+        assertTrue(statusLine(), statusLine().endsWith(" 0 missing"));
+
+        // Hook status names the first stub found missing and counts the rest.
+        Settings.HIDE_SEEN_STORIES.save(true);
+        assertSame(tray, SuggestedStories.keptBuckets(tray, unfilled));
+        assertTrue(statusLine(), statusLine().endsWith(" 1 missing. First missing: method tray bucket#" + SuggestedStories.SEEN_FIELD));
+
+        Settings.HIDE_PAGE_STORIES.save(true);
+        assertSame(tray, SuggestedStories.keptBuckets(tray, unfilled));
+        assertTrue(statusLine(), statusLine().endsWith(" 2 missing. First missing: method tray bucket#" + SuggestedStories.SEEN_FIELD));
     }
 
     /**

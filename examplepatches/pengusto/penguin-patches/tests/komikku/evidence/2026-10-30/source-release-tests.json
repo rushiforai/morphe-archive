@@ -1,0 +1,56 @@
+[
+  {
+    "suite": "eu.kanade.tachiyomi.ui.library.LocalExclusionSearchTest",
+    "tests": 8,
+    "failures": 0,
+    "errors": 0
+  },
+  {
+    "suite": "mihon.core.migration.MigratorTest",
+    "tests": 6,
+    "failures": 0,
+    "errors": 0
+  },
+  {
+    "suite": "Tester",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0
+  },
+  {
+    "suite": "eu.kanade.presentation.util.ScreenSerializationTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0
+  },
+  {
+    "suite": "tachiyomi.domain.manga.interactor.FetchIntervalTest",
+    "tests": 10,
+    "failures": 0,
+    "errors": 0
+  },
+  {
+    "suite": "tachiyomi.domain.release.interactor.GetApplicationReleaseTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0
+  },
+  {
+    "suite": "tachiyomi.domain.chapter.service.ChapterRecognitionTest",
+    "tests": 34,
+    "failures": 0,
+    "errors": 0
+  },
+  {
+    "suite": "tachiyomi.domain.chapter.service.MissingChaptersTest",
+    "tests": 6,
+    "failures": 0,
+    "errors": 0
+  },
+  {
+    "suite": "tachiyomi.domain.library.model.LibraryFlagsTest",
+    "tests": 5,
+    "failures": 0,
+    "errors": 0
+  }
+]

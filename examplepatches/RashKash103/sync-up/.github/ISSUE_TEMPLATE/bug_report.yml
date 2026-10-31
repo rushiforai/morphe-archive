@@ -1,0 +1,56 @@
+name: 🐞 Bug report
+description: Report a bug or an issue.
+title: "bug: "
+labels: ["Bug report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Sync Up bug report
+
+        Before creating a new bug report, please keep the following in mind:
+
+        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/RashKash103/sync-up/issues?q=label%3A%22Bug+report%22).
+        - **Review the contribution guidelines**: Make sure your bug report adheres to it. You can find the guidelines [here](https://github.com/RashKash103/sync-up/blob/main/CONTRIBUTING.md).
+        - **Only Sync for Reddit**: This repository only patches Sync for Reddit. For any other third party Reddit client, report the bug to [Patcheddit](https://github.com/wchill/patcheddit/issues) instead.
+        - **Check upstream first**: If the bug also reproduces with the [Patcheddit](https://github.com/wchill/patcheddit) bundle, it most likely belongs there.
+  - type: input
+    attributes:
+      label: App version
+      description: The version of Sync for Reddit you patched, and whether it is the free, Pro or Dev package.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Bug description
+      description: |
+        - Describe your bug in detail
+        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...)
+        - Add images and videos if possible
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Error logs
+      description: Exceptions can be captured by running `logcat | grep AndroidRuntime` in a shell.
+      render: shell
+  - type: textarea
+    attributes:
+      label: Solution
+      description: If applicable, add a possible solution to the bug.
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: Add additional context here.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      description: Your bug report will be closed if you don't follow the checklist below.
+      options:
+        - label: I have checked all open and closed bug reports and this is not a duplicate.
+          required: true
+        - label: I have chosen an appropriate title.
+          required: true
+        - label: All requested information has been provided properly.
+          required: true

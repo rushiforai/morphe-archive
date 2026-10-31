@@ -17,6 +17,7 @@ val liveDriveSharingPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("Driving & Voice")
 
     dependsOn(configOverridesPatch)
 

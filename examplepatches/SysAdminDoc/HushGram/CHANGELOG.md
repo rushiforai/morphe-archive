@@ -6,32 +6,89 @@ Every HushGram release, newest first.
 
 ### Features
 
-* **Instagram - Pinch to zoom on Reels:** new patch. `Pinch to zoom` under Reels lets two fingers zoom into a playing reel the way a photo zooms, and it goes back when you lift them. Starts off. Asked for in #382.
-* **Instagram - HushGram settings:** `Descriptions behind an info button` under Settings entry shows each switch by name alone, with a small i to tap for what it does. Off to start. Asked for in #130.
-* **Instagram - Swipe through a chat's reels:** `Stop after the chat's reels` under Messages ends reels you open from a chat at the last one shared there. No suggested reels follow. Starts off. Asked for in #390.
-* **Instagram - Download any video:** Copy media link under Details now says the link stops working after a few days, since Instagram's file addresses expire. Asked for in #364.
-* **Instagram - Download any video:** `Never save AV1 video` under Downloads is for a phone that plays AV1 badly. A video Instagram has at full size only as AV1 is saved as VP9, or at its largest H.264 size. Starts off. Asked for in #379 and #348.
-* **Instagram - Seek bar on feed videos:** new patch. A bar along the bottom of the video playing in your feed lets you drag to any point in it. The switch is under Feed and starts off. Asked for in #389.
-* **Instagram - Glass tab bar:** `Blur strength` and `Tab bar opacity` under Tab bar are sliders now, 2 to 48 dp and 0 to 150 percent, and the pill follows as you drag. Both start at the old look, and older backups still restore. Asked for in #391.
-* **Instagram - HushGram settings:** When Instagram crashes in the first minute after it opens, HushGram now keeps what crashed, and the diagnostics report you save from settings includes it. Turn on Debug logging to keep later crashes too.
+* **Instagram - Viewing history:** `Keep a viewing history` under Ads and privacy keeps a list of the posts, reels, stories and profiles you looked at, newest first, on this phone only. A `Clear viewing history` row empties it. Starts off. Asked for in #228.
+* **Instagram - Pick the app icon:** The `App icon` list now shows each choice's real icon next to its name, so you can see what you're picking before you leave Instagram. Asked for in #321 and #327.
+* **Instagram - Accent color:** On Android 11 and older, `Material You` now stays in the `Color` list, greyed out, with the reason written on it. Before, the choice just wasn't there. Asked for in #187 and #264.
+* **Instagram:** `Accent color` gets an `Icons in the accent color` switch, off to start. After a restart Instagram's icons on the top bar, your profile, the tab bar and under posts (the saved bookmark too) take the color you picked, a lighter shade in dark mode and a deeper one in light mode. Text keeps its color. Asked for in #8.
+* **Instagram:** `Keep Featured off the heart's dot` under Notifications stops a Featured item from lighting the red dot on the heart. Likes, comments and follows still do. Starts off. Asked for in #189.
+* **Instagram:** `Pinned chats` under Messages pins the chat you opened last to the top of your inbox. Pins stay on this phone, per account, and the same row unpins them. Asked for in #345.
+* **Instagram:** `App icon` adds Hand-drawn Instagram, a pencil sketch of Instagram's glyph on white. Themed icons show the same sketch. Asked for in #406.
+* **Instagram:** `Chat history tools` is a new patch. Its switch under Messages lets you long press a chat's name to jump to its first message or a date, loading older messages with a count and Cancel. Starts off. Asked for in #246.
+* **Instagram:** `Chat history tools` gets a second switch, `Export a chat as text`. Long press a chat's name and pick Export chat to save the whole chat to Downloads/HushGram, one line per message. Starts off. Asked for in #247.
+* **Instagram:** `Save comment photo` gets a second switch, `Reply with a comment's GIF` under Comments. When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply. It goes up animated, the way one picked in Instagram's GIF search does. Starts off. Asked for in #402.
+* **Instagram:** `Use the highest refresh rate` is a new patch. Its switch, under Layout, asks Android to run Instagram at your screen's fastest refresh rate at the same resolution. It takes effect the moment you flip it, no restart. Starts off. Asked for in #401.
+* **Instagram:** `Read messages without the seen receipt` gets a switch, `Mark a chat seen when you reply`. Replying lets that person see you read their earlier messages. Chats you don't answer stay unseen. Starts off. Reported in #365.
+* **Instagram:** `Hide captions` is a new patch. Its switch, under Feed, takes the caption off feed posts and reels and leaves the post. The comments sheet still shows it. Off to start. Asked for in #395.
+* **Instagram:** `Keep Home's top bar` is a new patch. Its switch, under Feed, keeps the Instagram logo and the buttons beside it at the top of Home while you scroll, so they don't slide away. Restart Instagram after you flip it. Starts off. Asked for in #408, #367 and #223.
+* **Instagram:** `Keep the Reels top bar` is a new patch. Its switch, under Reels, keeps the Reels title, the Friends tab and the buttons beside them at the top while you swipe through reels. No restart needed. Starts off. Asked for in #411.
+* **Instagram:** `Pinch to zoom on Reels` is a new patch. Its switch, `Pinch to zoom` under Reels, lets two fingers zoom into a playing reel the way a photo zooms, and it goes back when you lift them. Starts off. Asked for in #382.
+* **Instagram:** `HushGram settings` adds `Descriptions behind an info button` under Settings entry. It shows each switch by name alone, with a small i to tap for what it does. Off to start. Asked for in #130.
+* **Instagram:** `Swipe through a chat's reels` adds `Stop after the chat's reels` under Messages, which ends reels you open from a chat at the last one shared there. No suggested reels follow. Starts off. Asked for in #390.
+* **Instagram:** In `Download any video`, Copy media link under Details now says the link stops working after a few days, since Instagram's file addresses expire. Asked for in #364.
+* **Instagram:** `Download any video` adds `Never save AV1 video` under Downloads, for a phone that plays AV1 badly. A video Instagram has at full size only as AV1 is saved as VP9, or at its largest H.264 size. Starts off. Asked for in #379 and #348.
+* **Instagram:** `Download any video` adds `Never save HDR video` under Downloads, right under `Never save AV1 video`. A video Instagram has at full size only in HDR is saved at its largest standard size, so the yellow or green cast some apps give HDR, Messenger among them, doesn't follow it. Starts off. Reported in #352.
+* **Instagram:** `Seek bar on feed videos` is a new patch. A bar along the bottom of the video playing in your feed lets you drag to any point in it. The switch is under Feed and starts off. Asked for in #389.
+* **Instagram:** In `Glass tab bar`, `Blur strength` and `Tab bar opacity` under Tab bar are sliders (2 to 48 dp, 0 to 150 percent), and the pill follows as you drag. Both start at the old look. Older backups still restore. Asked for in #391.
+* **Instagram:** When Instagram crashes in the first minute after it opens, HushGram now keeps what crashed, and the diagnostics report you save from `HushGram settings` includes it. Turn on Debug logging to keep later crashes too.
+* **Instagram:** `Group Instagram's notifications` adds `Mute notification types` under Notifications. It stops the types you tick, like the betting and promo pushes Instagram's own notification settings can't turn off, and works with grouping off. Nothing's muted to start.
+* **Instagram:** `Lock your messages` adds `Fingerprint or face only` to Unlock with under Messages, on Android 11 and up. Its prompt has no PIN, pattern or password. Remove every fingerprint and face and your screen lock unlocks again.
+* **Instagram:** `Full screen Reels and Home` adds `Show the whole reel` under Reels. Every reel fits inside the screen with black bars where its shape differs, so nothing's cut off at the sides. Starts off.
+* **Instagram:** `Skip the collections tray` is a new patch. With its switch on under Feed, saving a post or reel shows Instagram's Saved message instead of the tray that asks you to start a collection. Starts off.
+* **Instagram:** `Hide the Reels tab` adds `Settings button on Home's header` under Tab bar. A gear at the top of Home opens HushGram settings with one tap. Starts off. Asked for in #404.
+* **Instagram:** `Download any story` adds `Download button on stories` under Stories. A button at the top of a story, beside the three dots, saves the photo or video in front with one tap. Starts off. Asked for in #400.
+* **Instagram:** `Start reels with sound` adds `Start reels muted` under Playback. Every reel starts silent, wherever you open it from, and the volume keys or the speaker icon unmute it. Off to start. Asked for in #342.
+* **Instagram:** `View live anonymously` adds `Mark as seen button on lives` under Stories. While you watch a live anonymously, an eye at the top beside the three dots puts you on that live's viewer list when you tap it. Every other live keeps you hidden. Starts off. Asked for in #412.
+* **Instagram:** `Glass tab bar` adds `Bend light at the edges` under Tab bar. With `Liquid glass look` on, the pill's rim bends what passes under it the way real glass does, on Android 13 and up. Starts off. Asked for in #369.
+* **Instagram:** `Glass tab bar` adds `Run Reels behind the tab bar` under Tab bar, next to `Show content behind the tab bar`. The reel fills the screen behind the pill, and its caption, buttons and seek bar sit just above it. Starts off. Asked for in #372.
+* **Instagram:** `Clean up Reels` adds `Hide suggested searches on reels`, `Hide shopping buttons on reels` and `Hide poll prompts on reels` under Reels. Each takes its prompt away from beside the reel's author. All three start off. Asked for in #332.
 
 ### Bug Fixes
 
-* **Instagram - Tab bar layout:** Picking Classic or Swipe under Tab bar works on Instagram 453 again. On 0.0.17 it changed nothing, since the patch was answering an Instagram setting the tab bar never reads. Reported in #356.
-* **Instagram - Tab bar layout:** A long press on the Search tab opens search with the keyboard up again on the classic bar. Instagram 453 waited for pages only the swipe bar has, so the press just switched to Explore. Reported in #383.
-* **Instagram - Full screen Reels and Home:** With `Full screen Reels` on, going back from a reel you'd opened on someone's profile left their name behind the clock in the status bar. The profile makes room for the bar again now. Reported in #385.
-* **Instagram - HushGram settings:** Typing fast in the settings search keeps every letter. The list used to take the focus from the field while it filtered, so a letter could go missing or come out twice.
-* **Instagram - View stories anonymously:** A story you've just watched with `Gray out stories you've watched` on stays where it was in the tray until you pull down to refresh. It used to jump to the right the moment you closed it. Reported in #377.
+* **Instagram:** `Turn off HDR brightness boosts` also stops the brighter white Instagram 452 and later give some reels on phones that report HDR headroom, like the Galaxy S25 FE. Those versions read a new option for it and check the screen first, and the switch now holds both. Reported in #85 and #26.
+* **Instagram:** `Full size covers` asks for covers up to 1440 pixels wide now. It used to stop at 1080, and some picked covers are 1290 wide. Reported in #214.
+* **Instagram:** Turning `Full size covers` on or off now reaches reels you'd already opened. Instagram keeps the cover sizes it was sent across restarts, so those reels kept the old size until its cache was cleared. Now the first start after a change drops just those saved answers. Reported in #214.
+* **Instagram:** `Hide Featured in notifications` works on Instagram 453 again, Threads suggestions included. Featured rows were back at the top of Notifications. Reported in #259.
+* **Instagram:** With `Hide the Muse card`, the Meet Muse card stays off Home and your profile when Instagram sends it some other way. It still showed up now and then. Reported in #294.
+* **Instagram:** With `Pure black dark mode`, a story now opens straight on black. It flashed Instagram's dark blue for a moment first. Reported in #360.
+* **Instagram:** With `Pure black dark mode`, the screen Instagram shows while it starts up is black in dark mode too. It stayed dark gray. Reported in #410.
+* **Instagram:** With `Gray out stories you've watched`, your own `Your story` now stays first in the tray, ahead of the watched stories pushed to the back. Before, it could end up among them. Reported in #241.
+* **Instagram:** With `Pure black dark mode`, HushGram's own settings cards and dialogs are black now. They stayed dark gray. Reported in #374.
+* **Instagram:** With `Glass tab bar` and `Hide the tab bar on Reels`, a reel fills the screen again once the pill slides away. It left a black band where the pill had been. Reported in #335.
+* **Instagram:** A save that comes out in lower quality because your phone's storage is low now says so in its toast, and a carousel's summary counts how many. It used to blame only Instagram's quality. Reported in #348.
+* **Instagram:** With `Tab bar layout`, picking Classic or Swipe under Tab bar works on Instagram 453 again. On 0.0.17 it changed nothing, since the patch was answering an Instagram setting the tab bar never reads. Reported in #356.
+* **Instagram:** With `Tab bar layout`, a long press on the classic bar's Search tab opens search with the keyboard up again. Instagram 453 waited for pages only the swipe bar has, so the press just switched to Explore. Reported in #383.
+* **Instagram:** `Full screen Reels and Home` makes room for the status bar on a profile again. With `Full screen Reels` on, going back from a reel you'd opened there left the person's name behind the clock. Reported in #385.
+* **Instagram:** Typing fast in the `HushGram settings` search keeps every letter. The list used to take the focus from the field while it filtered, so a letter could go missing or come out twice.
+* **Instagram:** With `Gray out stories you've watched` on in `View stories anonymously`, a story you've just watched keeps its place in the tray until you pull down to refresh. It used to jump right the moment you closed it. Reported in #377.
+* **Instagram:** `See who a story mentions` puts its pill just under the story's header on Instagram 453, whose name row can't hold it, lined up with the start of the name. Under the name, the pill pushed the name up into the progress bars. Reported in #405.
+* **Instagram:** With Hide shopping on in `Hide suggested posts`, Explore no longer leaves blank squares where a shop tile was. A shop tile inside a bigger block now takes the whole block out, so the grid closes up. Reported in #393.
+* **Instagram:** `Show all recent searches` now lists every recent search on accounts where Instagram builds the search screen the newer way. Those still stopped at five. Reported in #375.
+* **Instagram:** `Swipe through a chat's reels` makes a second tap on a post or reel in a chat wait for the first one to open. On a slow phone each tap while it loaded opened another copy, and Back had to close every one. Reported in #390.
+* **Instagram:** With `Logo and titles at the start` on and `Hide Create on Home's header` hiding the plus, Instagram's logo no longer sits against the screen's left edge. It keeps the same room from the edge as the heart has on the other side. Reported in #407.
+* **Instagram:** With the `Glass tab bar` pill floating, coming back to Reels from a reel's profile no longer lays the Reels screens out again. That second layout could leave the video stuck on its cover while the sound kept playing. Reported in #378.
+* **Instagram:** `See who a story mentions` no longer cuts the account's name short. When the name's row can't fit the pill, like on a highlight with a full date, the pill moves just under the header. Refs #405.
 * **Tooling:** When patching for a phone stops on an Instagram build with no reviewed coverage, the message now names the builds that have it, so you know which one to patch.
 * **Tooling:** Patching for a phone without `-Apk` takes the declared Instagram build from the fixture folder the way the release gate does, `.apks` bundles included. It used to skip `.apks` and take any file with the version in its name.
 * **Tooling:** The whole-app walk takes one more look, after a short pause, at a settings heading it caught mid-animation. It used to call the heading missing and fail the walk when a section was still opening or folding.
 * **Tooling:** When a settings heading isn't there, the whole-app walk says so as soon as the list stops moving. It used to keep swiping up past the top of the list, 24 times each way.
 * **Tooling:** Patch results, records and the patch catalog are read as strict JSON. A file that names a field twice could read as a pass and a failure at once, so it's refused.
+* **Tooling:** The release notes check refuses a bullet scoped to a patch name in any section after 0.0.17, Unreleased included, so each bullet names its patch in the text. It used to pass any dated section.
+* **Tooling:** The native runner reads the user limit the way Android 17 prints it, "Maximum supported switchable users", so it runs on an API 37 emulator. It used to stop there, saying the device takes one user.
+* **Tooling:** The release check reads an index description naming only the Instagram build as the published release's facts, still under that version's heading. A retarget held at the published version used to fail every push.
+* **Tooling:** The release check holds a published receipt to the coverage census its own commit reviewed. Once a retarget replaced the old build's entry, the shipped receipt read as uncertified and the check failed on every push.
+* **Tooling:** The source audit reports a source it couldn't read past a rate limit as unread, and fails GitLab code search when a limit keeps a hit's project unread. Both used to be treated as gone.
+* **Tooling:** The source audit waits out a rate limit for as long as the forge's Retry-After asks, up to five minutes. A longer one, like GitLab's hourly limit, fails that source at once and says when it resets.
+* **Tooling:** The source audit leaves a source unread when a rate limit stops a branch comparison, instead of reporting the branch as new work. A server error on a GitLab hit's project now fails the search too.
 
 ### Improvements
 
+* **Tooling:** Updated to Morphe patcher 2.1.0, so patching needs Morphe Manager 2.3.0 or newer. On a computer, use morphe-desktop 1.20.0 or newer. The dependency audit now reviews Morphe Desktop 1.20.0.
+* **Instagram:** `See who a story mentions` opens its list again when you come back from an account's profile, so you can go down the list without reopening it each time. Close ends it. Asked for in #403.
 * **Instagram:** HushGram now patches Instagram 453.0.0.57.79 instead of 453.0.0.55.79. Get APKMirror's (arm64-v8a) (480-640dpi) (Android 9.0+) variant, build 385914557. Its armeabi-v7a (385914556) and x86 (385914558) builds are declared too. Meta published no x86_64 build this time.
-* **Instagram - Keep a seek bar on Reels:** Manager lists it under Playback now, next to Seek bar on feed videos, so the Reels group stays short enough to scan. Its switch is still under Reels.
+* **Instagram:** Manager lists `Keep a seek bar on Reels` under Playback now, next to `Seek bar on feed videos`, so the Reels group stays short enough to scan. Its switch is still under Reels.
+* **Instagram:** Manager lists `Start feed videos with sound` and `Keep the reel speed` under Playback now, so the Feed and Reels groups stay short enough to scan. Their switches haven't moved.
+* **Instagram:** In `Download any reel`, Download audio's line in the diagnostics report says when a reel's only sound is xHE-AAC, which some players can't play. The file is still saved as it is, never re-encoded. A follow-up to #216.
+* **Tooling:** The native runner has a share case for the share sheet stand-in. The share and its sender always come through, and only Instagram's links get cleaned, only while `Sanitize sharing links` is on.
 
 ## 0.0.17 (2026-10-28)
 

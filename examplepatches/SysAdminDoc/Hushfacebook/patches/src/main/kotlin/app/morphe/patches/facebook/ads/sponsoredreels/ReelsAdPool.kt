@@ -41,7 +41,9 @@ internal const val POOL_NO_AD = "-WVCDF-NO-AD"
 private const val HOLD_POOL_AD = "$EXTENSION_PACKAGE/ads/ReelsAdFilter;->holdPoolAd()Z"
 
 /**
- * Facebook's other reel ad pool, FbShortsSponsoredPool (584 `LX/5RW;`). The Reels row in the News
+ * Facebook's other reel ad pool, FbShortsSponsoredPool (584 `LX/5RW;`, 585 `LX/05Yg;` on arm64 and
+ * `LX/05Ym;` on armeabi-v7a, which overrides the second vend itself and gets a base-calling
+ * override for the first). The Reels row in the News
  * feed builds one as its sponsored pool (FbShortsIFUSponsoredPool) next to its organic pool, so an
  * ad tile in that row comes from it and never asks the Reels tab's pool (#216). Its constructor
  * logs this literal, and no other class holds it.

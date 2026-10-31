@@ -17,6 +17,7 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.homeFeedSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.lightBackgroundSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.lockAfterSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.pauseLengthSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.photoNameSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.reelsOrderSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.seenKeepSummary;
@@ -35,6 +36,7 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.startTabSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.subfolderSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.surfaceQualitySummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.watchedKeepSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.ceilingSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.packResult;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsEditorLine;
@@ -60,6 +62,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.reels.ReelsOrder;
@@ -74,8 +77,10 @@ import app.morphe.extension.facebook.feed.ReactionCeiling;
 import app.morphe.extension.facebook.feed.TopicPacks;
 import app.morphe.extension.facebook.feed.SeenPosts;
 import app.morphe.extension.facebook.media.PlaybackQuality;
+import app.morphe.extension.facebook.media.RecentlyWatched;
 import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.misc.AppLock;
+import app.morphe.extension.facebook.misc.OpeningPause;
 import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.theme.AccentColor;
 import app.morphe.extension.facebook.theme.AmoledBackground;
@@ -1227,6 +1232,147 @@ final class ValueRows {
                 summary += " " + L10n.f("Turn on %1$s to use this.", L10n.isolate(SwitchLabels.title(Settings.HIDE_SEEN_POSTS)));
             }
             setSummary(summary);
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The opening pause length row. Its summary follows its value, whoever sets it: the person,
+     * the shared page syncing it from the setting, or an import.
+     */
+    static final class PauseLengthRow extends PlainSummaryList {
+        PauseLengthRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        /** It's greyed out while Opening pause is off, and its summary then says so. */
+        @Override
+        public void setEnabled(boolean enabled) {
+            super.setEnabled(enabled);
+            showSummary();
+        }
+
+        void showSummary() {
+            OpeningPause.Length length = OpeningPause.Length.FIVE_SECONDS;
+            for (OpeningPause.Length candidate : OpeningPause.Length.values()) {
+                if (candidate.name().equals(getValue())) length = candidate;
+            }
+            String summary = pauseLengthSummary(length);
+            if (!isEnabled()) {
+                summary += " " + L10n.f("Turn on %1$s to use this.", L10n.isolate(SwitchLabels.title(Settings.OPENING_PAUSE)));
+            }
+            setSummary(summary);
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * A Take breaks row, the use time or the break length. Its summary follows its value, whoever
+     * sets it: the person, the shared page syncing it from the setting, or an import.
+     */
+    static final class BreakRow extends PlainSummaryList {
+        private final Function<String, String> summaryOf;
+
+        BreakRow(Context context, Function<String, String> summaryOf) {
+            super(context);
+            this.summaryOf = summaryOf;
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        /** It's greyed out while Take breaks is off, and its summary then says so. */
+        @Override
+        public void setEnabled(boolean enabled) {
+            super.setEnabled(enabled);
+            showSummary();
+        }
+
+        void showSummary() {
+            // The list's constructor can set a value before this row has its summary.
+            if (summaryOf == null) return;
+            String summary = summaryOf.apply(getValue());
+            if (!isEnabled()) {
+                summary += " " + L10n.f("Turn on %1$s to use this.", L10n.isolate(SwitchLabels.title(Settings.TAKE_BREAKS)));
+            }
+            setSummary(summary);
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The Recently watched keep row: how long an entry stays on the list. Its summary follows its
+     * value, whoever sets it: the person, the shared page syncing it from the setting, or an import.
+     * It stays usable with recording off, since what's listed still ages.
+     */
+    static final class WatchedKeepRow extends PlainSummaryList {
+        WatchedKeepRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            RecentlyWatched.Keep keep = RecentlyWatched.Keep.THIRTY_DAYS;
+            for (RecentlyWatched.Keep candidate : RecentlyWatched.Keep.values()) {
+                if (candidate.name().equals(getValue())) keep = candidate;
+            }
+            setSummary(watchedKeepSummary(keep));
         }
 
         @Override

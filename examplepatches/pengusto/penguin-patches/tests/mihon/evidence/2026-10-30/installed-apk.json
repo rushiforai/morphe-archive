@@ -1,0 +1,6 @@
+{
+  "package": "app.mihon",
+  "apkSha256": "2a71924ada3f41cac5dd4adf9733ddc369bd7efea61f3bdb2391d5548933f1d3",
+  "matchesManagerExport": true,
+  "installation": "Manager Reinstall -> Android UPDATE confirmation -> Manager return"
+}

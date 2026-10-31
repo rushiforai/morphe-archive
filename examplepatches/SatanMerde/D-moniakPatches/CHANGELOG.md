@@ -1,3 +1,9 @@
+## [1.53.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.21...v1.53.0) (2026-10-30)
+
+### ✨ New Features
+
+* **cryptomator:** add full version unlock, screenshots, and AMOLED theme patches ([59bd1fe](https://github.com/SatanMerde/D-moniakPatches/commit/59bd1feba785fa6ba3e385f70144c95308999975))
+
 ## [1.52.21](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.20...v1.52.21) (2026-10-28)
 
 ### 🐛 Bug Fixes

@@ -37,7 +37,7 @@ public class ChatReelsSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.SWIPE_CHAT_REELS.resetToDefault();
         Settings.STOP_AFTER_CHAT_REELS.resetToDefault();
         BaseSettings.PAUSED.save(false);
@@ -118,7 +118,7 @@ public class ChatReelsSettingsTest {
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         assertTrue(Settings.SWIPE_CHAT_REELS.get());
-        assertEquals(36, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
+        assertEquals(37, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
     }
 
 }

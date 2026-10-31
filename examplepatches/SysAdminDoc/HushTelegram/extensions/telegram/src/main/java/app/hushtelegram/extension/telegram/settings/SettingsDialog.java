@@ -289,10 +289,19 @@ public final class SettingsDialog extends DialogFragment {
                 surface.setStroke(dp(focused ? 2 : 1), focused ? palette.accent : palette.fieldBorder));
         search.setPaddingRelative(dp(10), dp(8), 0, dp(8));
         search.setMinimumHeight(dp(48));
+        // A single-line field can't ellipsize its hint, so at a narrow width or large text the full
+        // hint was cut mid-word. It falls back to the short one there; the description stays whole.
+        search.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            String hint = hintThatFits(search.getPaint(), search.getWidth() - search.getTotalPaddingLeft() - search.getTotalPaddingRight());
+            if (!hint.contentEquals(search.getHint())) search.post(() -> search.setHint(hint));
+        });
         searchBox.addView(search, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         android.widget.ImageButton clear = new android.widget.ImageButton(getContext());
         clear.setImageDrawable(SettingsIcons.icon(getContext(), SettingsIcons.CLOSE, palette.summary));
-        clear.setBackground(palette.control(clear, palette.card, ScreenColors.BUTTON_RADIUS, false));
+        // Inset by the focused outline's width: the button sits on the box's edge, and its fill
+        // painted over the outline there.
+        clear.setBackground(new android.graphics.drawable.InsetDrawable(
+                palette.control(clear, palette.card, ScreenColors.BUTTON_RADIUS, false), dp(2)));
         clear.setPadding(dp(12), dp(12), dp(12), dp(12));
         clear.setContentDescription(L10n.t("Clear search"));
         clear.setVisibility(View.INVISIBLE);
@@ -337,6 +346,12 @@ public final class SettingsDialog extends DialogFragment {
                 && movesFocus(key) && focusList());
         root.requestFocus();
         searchBox.setVisibility(View.GONE);
+    }
+
+    /** The full search hint when it fits [room] pixels drawn with [paint], else the short one. */
+    static String hintThatFits(android.graphics.Paint paint, int room) {
+        String full = L10n.t("Search settings");
+        return room <= 0 || paint.measureText(full) <= room ? full : L10n.t("Search");
     }
 
     /** Up, down and Tab, the keys that move a keyboard's focus between rows. */

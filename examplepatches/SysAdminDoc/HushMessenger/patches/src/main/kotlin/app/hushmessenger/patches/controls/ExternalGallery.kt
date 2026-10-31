@@ -54,9 +54,9 @@ internal var galleryRoute: GalleryRoute? = null
 private fun galleryChanged(detail: String): Nothing =
     throw PatchException("Messenger controls: the chat gallery button moved ($detail)")
 
-private fun Instruction.galleryMethod() = (this as? ReferenceInstruction)?.reference as? MethodReference
-private fun Instruction.galleryField() = (this as? ReferenceInstruction)?.reference as? FieldReference
-private fun Instruction.galleryType() = ((this as? ReferenceInstruction)?.reference as? TypeReference)?.type
+internal fun Instruction.galleryMethod() = (this as? ReferenceInstruction)?.reference as? MethodReference
+internal fun Instruction.galleryField() = (this as? ReferenceInstruction)?.reference as? FieldReference
+internal fun Instruction.galleryType() = ((this as? ReferenceInstruction)?.reference as? TypeReference)?.type
 private fun Method.galleryStrings() = implementation?.instructions
     ?.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }?.toSet().orEmpty()
 private fun String.galleryPackage() = substringBeforeLast('/', "")
@@ -70,7 +70,7 @@ private fun Instruction.galleryArguments(): List<Int> = when (this) {
 }
 
 /** Whether this writes [register], whole or as half of a wide pair. */
-private fun Instruction.galleryWrites(register: Int): Boolean {
+internal fun Instruction.galleryWrites(register: Int): Boolean {
     if (!opcode.setsRegister()) return false
     val written = (this as? OneRegisterInstruction)?.registerA ?: return false
     return written == register || (opcode.setsWideRegister() && written + 1 == register)
@@ -95,8 +95,8 @@ private fun Instruction.galleryReads(): Set<Int> {
     return read.flatMap { if (wide) listOf(it, it + 1) else listOf(it) }.toSet()
 }
 
-private val GALLERY_ENDS = setOf(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW)
-private val GALLERY_GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
+internal val GALLERY_ENDS = setOf(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW)
+internal val GALLERY_GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
 
 /** What can run right after instruction [i]: none after a return or throw, null after a switch, which isn't followed. */
 private fun List<Instruction>.galleryNext(i: Int): List<Int>? {
@@ -263,7 +263,7 @@ private fun Method.startsFromProvider(providerType: String, start: String): Bool
 }
 
 /** The p-number of this method's one parameter of [type], or null when it has none or several. */
-private fun Method.onlyParameter(type: String): Int? {
+internal fun Method.onlyParameter(type: String): Int? {
     val types = parameterTypes.map { it.toString() }
     if (types.count { it == type } != 1) return null
     return types.take(types.indexOf(type)).sumOf { if (it == "J" || it == "D") 2 else 1 } +
@@ -280,7 +280,7 @@ private fun Method.onlyParameter(type: String): Int? {
  *     ...
  *     iget-object vIntent, pEvent, <event>->A02:Landroid/content/Intent;
  */
-private fun Method.galleryItemsIntent(byType: Map<String, ClassDef>): FieldReference? {
+internal fun Method.galleryItemsIntent(byType: Map<String, ClassDef>): FieldReference? {
     if (!AccessFlags.STATIC.isSet(accessFlags) || returnType != "V" || onlyParameter(THREAD_KEY_TYPE) == null) return null
     val code = implementation?.instructions?.toList() ?: return null
     val event = parameterRegister(onlyParameter(ACTIVITY_RESULT_EVENT) ?: return null)

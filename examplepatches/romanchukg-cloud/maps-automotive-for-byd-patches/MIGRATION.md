@@ -2,7 +2,7 @@
 
 We have ended development and support for **our phone edition of Google Maps for BYD**. Our work now focuses on the **Automotive edition**, designed for Android automotive systems. You can keep your existing phone edition installed while you try Automotive; it is not required by the new version.
 
-The current test release is **Morphe preview 10**, for **Maps Automotive 26.10.120001.E**. It provides our `.mpp` patches. You create the Maps APK locally by applying them to the matching clean original Maps Automotive APK. Google sign-in is provided by **MicroG-RE (7.2.1 tested for Maps-only; 7.2.2 tested for Gemini)**, independently of phone Maps.
+The current test release is **Morphe preview 11**, for **Maps Automotive 26.10.120001.E**. It provides our `.mpp` patches. You create the Maps APK locally by applying them to the matching clean original Maps Automotive APK. Google sign-in is provided by **MicroG-RE (7.2.1 tested for Maps-only; 7.2.2 tested for Gemini)**, independently of phone Maps.
 
 ## New optional Gemini setup in preview 6
 
@@ -22,7 +22,7 @@ Preview 4 needs a **different original APK** from preview 3. If you already made
 
 - [Morphe Manager for Android — official Releases](https://github.com/MorpheApp/morphe-manager/releases).
 - Preferred: [Add our TEST patch source to Morphe](https://morphe.software/add-source?github=romanchukg-cloud/maps-automotive-for-byd-patches&name=Maps%20Automotive%20for%20BYD%20%28TEST%29), or paste `https://github.com/romanchukg-cloud/maps-automotive-for-byd-patches` in **Sources → + → Remote**. Morphe fetches the `.mpp`; this source currently serves TEST previews only, including its default main feed.
-- [Our Morphe preview 10 patch bundle — Local fallback](https://github.com/romanchukg-cloud/maps-automotive-for-byd-patches/releases/download/morphe-preview.10/maps-automotive-for-byd-morphe-preview.10.mpp).
+- [Our Morphe preview 11 patch bundle — Local fallback](https://github.com/romanchukg-cloud/maps-automotive-for-byd-patches/releases/download/morphe-preview.11/maps-automotive-for-byd-morphe-preview.11.mpp).
 - [MicroG-RE — official Releases](https://github.com/MorpheApp/MicroG-RE/releases). Choose the matching **ARM64 APK**. Maps alone requires at least7.2.1 (previously tested). Gemini requires 7.2.2+; 7.2.2 was tested with Google 08. Later releases are not automatically verified.
 - Your own **clean original Maps Automotive 26.10.120001.E**, version code **1068833407**, ARM64 APK file (APKMirror variant arm64-v8a + x86_64, nodpi). We do not distribute Google's original APK. It is listed, for example, on [APKMirror](https://www.apkmirror.com/apk/google-inc/google-maps-android-automotive/google-maps-android-automotive-26-10-120001-e-release/), a third-party site; compare your file with the exact input below. A later 26.10 build such as 26.10.120003.E is not accepted.
 
@@ -92,4 +92,4 @@ The Remote import, source-card details, Local patch/export, separate installatio
 
 The optional reader/EV code is unchanged. Morphe revision 25 on one Tang supplied fresh charge/range after a full head-unit reboot without a computer and produced a stationary Paris preview with two automatic charging stops. These older results do not validate revision 54 reboot behavior, road predictions or charging duration. DiLink 3 and DiLink 5.1 have no car test of revision 54. Physical HUD/audio, satellite imagery in the Morphe cluster and the general native navigation-service startup timeout remain open; see the release notes.
 
-[Full guide and Desktop fallback](https://github.com/romanchukg-cloud/maps-automotive-for-byd-patches/blob/main/README.md) · [Morphe preview 10 release notes](RELEASE-NOTES.md)
+[Full guide and Desktop fallback](https://github.com/romanchukg-cloud/maps-automotive-for-byd-patches/blob/main/README.md) · [Morphe preview 11 release notes](RELEASE-NOTES.md)

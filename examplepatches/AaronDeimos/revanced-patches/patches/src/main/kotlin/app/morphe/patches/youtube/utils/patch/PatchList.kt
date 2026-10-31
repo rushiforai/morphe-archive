@@ -1,0 +1,350 @@
+package app.morphe.patches.youtube.utils.patch
+
+internal enum class PatchList(
+    val title: String,
+    val summary: String,
+    var included: Boolean? = false
+) {
+    SKIP_SILENCE(
+        "Skip silence",
+        "Adds an option to automatically skip silent pauses in audio playback."
+    ),
+    APP_REFRESH_RATE(
+        "App refresh rate",
+        "Adds an option to change the app refresh rate."
+    ),
+    DEARROW(
+        "DeArrow",
+        "Adds options to replace video thumbnails and titles using the DeArrow API, or replace video thumbnails with image captures from the video."
+    ),
+    AMBIENT_MODE_CONTROL(
+        "Ambient mode control",
+        "Forces Ambient mode on and adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen."
+    ),
+    BYPASS_IMAGE_REGION_RESTRICTIONS(
+        "Bypass image region restrictions",
+        "Adds an option to use a different host for static images, so that images blocked in some countries can be received."
+    ),
+    BYPASS_URL_REDIRECTS(
+        "Bypass URL redirects",
+        "Adds an option to bypass URL redirects and open the original URL directly."
+    ),
+    CHANGE_FORM_FACTOR(
+        "Change form factor",
+        "Adds an option to change the UI appearance to a phone, tablet, or automotive device."
+    ),
+    CHANGE_PLAYER_FLYOUT_MENU_TOGGLES(
+        "Change player flyout menu toggles",
+        "Adds an option to use text toggles instead of switch toggles within the additional settings menu."
+    ),
+    CHANGE_SHARE_SHEET(
+        "Change share sheet",
+        "Adds an option to change the in-app share sheet to the system share sheet."
+    ),
+    CHANGE_START_PAGE(
+        "Change start page",
+        "Adds an option to set which page the app opens in instead of the homepage."
+    ),
+    FEED_VIDEO_ACTIONS(
+        "Feed video actions",
+        "Adds a Watch later button to video thumbnails in feeds, " +
+                "and opens the video menu by tapping and holding anywhere on a video."
+    ),
+    COPY_TEXT(
+        "Copy text",
+        "Adds options to copy the video title and comments by tapping and holding them."
+    ),
+    CUSTOM_SHORTS_ACTION_BUTTONS(
+        "Custom Shorts action buttons",
+        "Changes, at compile time, the icon of the action buttons of the Shorts player."
+    ),
+    CUSTOM_BRANDING_FOR_YOUTUBE(
+        "Custom branding for YouTube",
+        "Adds in-app app-name, launcher-icon, header, splash, and settings-icon selection."
+    ),
+    CUSTOM_DOUBLE_TAP_LENGTH(
+        "Custom double tap length",
+        "Adds Double-tap to seek values that are specified in patch options."
+    ),
+    CUSTOM_DPI(
+        "Custom DPI",
+        "Forces a higher display density for this app only, so the whole UI scales up without changing system density."
+    ),
+    DESCRIPTION_COMPONENTS(
+        "Description components",
+        "Adds options to hide and disable description components."
+    ),
+    DISABLE_AUTO_FEED_REFRESH(
+        "Disable auto feed refresh",
+        "Adds an option to stop feeds from refreshing automatically after they become outdated."
+    ),
+    DISABLE_QUIC_PROTOCOL(
+        "Disable QUIC protocol",
+        "Adds an option to disable CronetEngine's QUIC protocol."
+    ),
+    FORCE_ORIGINAL_AUDIO(
+        "Force original audio",
+        "Adds an option to disable audio tracks from being automatically enabled."
+    ),
+    PREFERRED_CAPTION_LANGUAGE(
+        "Preferred caption language",
+        "Adds an option to automatically select captions in your preferred language."
+    ),
+    DISABLE_FORCED_AUTO_CAPTIONS(
+        "Disable forced auto captions",
+        "Adds an option to disable captions from being automatically enabled."
+    ),
+    DISABLE_HAPTIC_FEEDBACK(
+        "Disable haptic feedback",
+        "Adds options to disable haptic feedback when swiping in the video player."
+    ),
+    DISABLE_LAYOUT_UPDATES(
+        "Disable layout updates",
+        "Adds an option to disable layout updates by server."
+    ),
+    DISABLE_PLAYLIST_AUTOPLAY(
+        "Disable playlist autoplay",
+        "Adds an option to stop a playlist from automatically advancing to the next video."
+    ),
+    DISABLE_RESUMING_MINIPLAYER_ON_STARTUP(
+        "Disable resuming Miniplayer on startup",
+        "Adds an option to disable the Miniplayer 'Continue watching' from resuming on app startup."
+    ),
+    DISABLE_RESUMING_SHORTS_ON_STARTUP(
+        "Disable resuming Shorts on startup",
+        "Adds an option to disable the Shorts player from resuming on app startup when Shorts were last being watched."
+    ),
+    DISABLE_SCROLLING_SPEED_LIMIT(
+        "Disable scrolling speed limit",
+        "Adds an option to remove limits of how fast the home and subscription feed can be scrolled."
+    ),
+    DISABLE_SIGN_IN_TO_TV_POPUP(
+        "Disable sign in to TV popup",
+        "Adds an option to disable the popup asking to sign into a TV on the same local network."
+    ),
+    ENABLE_DEBUG_LOGGING(
+        "Enable debug logging",
+        "Adds an option for debugging and exporting RVX logs to the clipboard."
+    ),
+    ENABLE_GRADIENT_LOADING_SCREEN(
+        "Enable gradient loading screen",
+        "Adds an option to enable the gradient loading screen."
+    ),
+    FULLSCREEN_COMPONENTS(
+        "Fullscreen components",
+        "Adds options to hide or change components related to fullscreen."
+    ),
+    FULLSCREEN_VIDEO_SCALE(
+        "Fullscreen video scale",
+        "Adds options to stretch or zoom videos to fill the screen in fullscreen mode."
+    ),
+    GEMINI(
+        "Gemini",
+        "Adds options to use Gemini for video summaries, transcription, and settings search."
+    ),
+    GMSCORE_SUPPORT(
+        "GmsCore support",
+        "Allows patched Google apps to run without root and under a different package name by using GmsCore instead of Google Play Services."
+    ),
+    HIDE_ACCESSIBILITY_CONTROLS_DIALOG(
+        "Hide accessibility controls dialog",
+        "Removes, at compile time, accessibility controls dialog 'Turn on accessibility controls for the video player?'."
+    ),
+    HIDE_SHORTS_DIMMING(
+        "Hide Shorts dimming",
+        "Removes, at compile time, the dimming effect at the top and bottom of Shorts videos."
+    ),
+    HIDE_ACTION_BUTTONS(
+        "Hide action buttons",
+        "Adds options to hide action buttons under videos."
+    ),
+    HIDE_ADS(
+        "Hide ads",
+        "Adds options to hide ads."
+    ),
+    HIDE_COMMENTS_COMPONENTS(
+        "Hide comments components",
+        "Adds options to hide components related to comments."
+    ),
+    HIDE_FEED_COMPONENTS(
+        "Hide feed components",
+        "Adds options to hide components related to feeds."
+    ),
+    HIDE_FEED_FLYOUT_MENU(
+        "Hide feed flyout menu",
+        "Adds the ability to hide feed flyout menu components using a custom filter."
+    ),
+    HIDE_LAYOUT_COMPONENTS(
+        "Hide layout components",
+        "Adds options to hide general layout components."
+    ),
+    HIDE_PLAYER_BUTTONS(
+        "Hide player buttons",
+        "Adds options to hide buttons in the video player, and to hide or change the opacity of the player control buttons background."
+    ),
+    HIDE_PLAYER_FLYOUT_MENU(
+        "Hide player flyout menu",
+        "Adds options to hide player flyout menu components."
+    ),
+    HIDE_SHORTCUTS(
+        "Hide shortcuts",
+        "Remove, at compile time, the app shortcuts that appears when the app icon is long pressed."
+    ),
+    OVERRIDE_YOUTUBE_MUSIC_BUTTONS(
+        "Override YouTube Music buttons",
+        "Overrides YouTube Music buttons to open RVX Music or any compatible third-party client."
+    ),
+    // Built-in downloader and offline library.
+    HOOK_DOWNLOAD_ACTIONS(
+        "Hook download actions",
+        "Adds support to download videos with the built-in downloader or an external downloader app, and an offline library for downloaded videos."
+    ),
+    MINIPLAYER(
+        "Miniplayer",
+        "Adds options to change the in-app minimized player, and if patching target 19.16+ adds options to use modern miniplayers."
+    ),
+    NAVIGATION_BAR_COMPONENTS(
+        "Navigation bar components",
+        "Adds options to hide or change components related to the navigation bar."
+    ),
+    OPEN_CHANNEL_OF_LIVE_AVATAR(
+        "Open channel of live avatar",
+        "Adds an option to prevent a channel's current live video from opening when tapping its avatar."
+    ),
+    OPEN_LINKS_EXTERNALLY(
+        "Open links externally",
+        "Adds an option to always open links in your browser instead of the in-app browser."
+    ),
+    OVERLAY_BUTTONS(
+        "Overlay buttons",
+        "Adds options to display useful overlay buttons in the video player."
+    ),
+    PICTURE_IN_PICTURE_BUTTON(
+        "Picture-in-picture button",
+        "Adds an option to display a picture-in-picture button in the video player."
+    ),
+    PLAYBACK_BUFFER(
+        "Playback buffer",
+        "Adds an option to change the video playback buffer size."
+    ),
+    PLAYBACK_IN_FEEDS(
+        "Playback in feeds",
+        "Adds the 'Playback in feeds' setting of YouTube to the RVX settings, where it is always available even if YouTube hides it."
+    ),
+    PLAYER_COMPONENTS(
+        "Player components",
+        "Adds options to hide or change components related to the video player."
+    ),
+    POTOKEN_PROVIDER(
+        "PoToken provider",
+        "Adds option to get PoToken using the built-in PoToken provider."
+    ),
+    RELOAD_VIDEO(
+        "Reload video",
+        "Adds an option to display a button in the video player to reload the current video."
+    ),
+    SAVE_TO_WATCH_LATER(
+        "Save to Watch later",
+        "Adds options to save videos to Watch later from the video player or feed flyout menu."
+    ),
+    REMOVE_BACKGROUND_PLAYBACK_RESTRICTIONS(
+        "Remove background playback restrictions",
+        "Removes restrictions on background playback, including for music and kids videos."
+    ),
+    REMEMBER_LIVESTREAM_POSITION(
+        "Remember livestream playback position",
+        "Adds an option to remember the playback position of ongoing livestreams and resume from there when reopening a livestream."
+    ),
+    REMOVE_VIEWER_DISCRETION_DIALOG(
+        "Remove viewer discretion dialog",
+        "Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction."
+    ),
+    RESTORE_ORIGINAL_TITLES(
+        "Restore original titles",
+        "Adds an option to show the original video titles, video descriptions and channel descriptions instead of the auto-translated ones."
+    ),
+    RETURN_YOUTUBE_DISLIKE(
+        "Return YouTube Dislike",
+        "Adds an option to show the dislike count of videos using the Return YouTube Dislike API."
+    ),
+    RETURN_YOUTUBE_USERNAME(
+        "Return YouTube Username",
+        "Adds an option to replace YouTube handles with usernames in comments using YouTube Data API v3."
+    ),
+    SANITIZE_SHARING_LINKS(
+        "Sanitize sharing links",
+        "Adds an option to sanitize sharing links by removing tracking query parameters."
+    ),
+    SEEKBAR_COMPONENTS(
+        "Seekbar components",
+        "Adds options to hide or change components related to the seekbar."
+    ),
+    SET_TRANSCRIPT_COOKIES(
+        "Set transcript cookies",
+        "Adds an option to set Cookies in YouTube Transcript API requests."
+    ),
+    SETTINGS_FOR_YOUTUBE(
+        "Settings for YouTube",
+        "Applies mandatory patches to implement ReVanced Extended settings into the application."
+    ),
+    SETTINGS_MENU_FILTER(
+        "Settings menu filter",
+        "Adds an option to hide items on the standard YouTube settings screen by their visible name."
+    ),
+    SHORTS_COMPONENTS(
+        "Shorts components",
+        "Adds options to hide or change components related to YouTube Shorts."
+    ),
+    SNACK_BAR_COMPONENTS(
+        "Snack bar components",
+        "Adds options to hide or change components related to the snack bar."
+    ),
+    SPONSORBLOCK(
+        "SponsorBlock",
+        "Adds options to enable and configure SponsorBlock, which can skip undesired video segments, such as sponsored content."
+    ),
+    SPOOF_APP_VERSION(
+        "Spoof app version",
+        "Adds options to spoof the YouTube client version. This can be used to restore old UI elements and features."
+    ),
+    SPOOF_VIDEO_STREAMS(
+        "Spoof video streams",
+        "Adds options to spoof the client video streams to fix playback."
+    ),
+    SWIPE_CONTROLS(
+        "Swipe controls",
+        "Adds options for controlling volume and brightness with swiping, and whether to enter fullscreen when swiping down below the player."
+    ),
+    THEME(
+        "Theme",
+        "Adds options to change the app's themes and splash screen style."
+    ),
+    TOOLBAR_COMPONENTS(
+        "Toolbar components",
+        "Adds options to hide or change components located on the toolbar, such as the search bar, header, and toolbar buttons."
+    ),
+    TRANSLATIONS_FOR_YOUTUBE(
+        "Translations for YouTube",
+        "Add translations or remove string resources."
+    ),
+    VIDEO_PLAYBACK(
+        "Video playback",
+        "Adds options to customize settings related to video playback, such as default video quality and playback speed."
+    ),
+    VOICE_OVER_TRANSLATION(
+        "Voice Over Translation",
+        "Adds an option to enable Yandex voice-over translation of video audio tracks."
+    ),
+    VISUAL_PREFERENCES_ICONS_FOR_YOUTUBE(
+        "Visual preferences icons for YouTube",
+        "Adds icons to specific preferences in the settings."
+    ),
+    WATCH_HISTORY(
+        "Spoof watch history",
+        "Adds an option to change the domain of the watch history or check its status."
+    ),
+    WIDE_SEARCH_BAR(
+        "Wide search bar",
+        "Adds a wide search bar to the top of the home and subscription feed."
+    )
+}

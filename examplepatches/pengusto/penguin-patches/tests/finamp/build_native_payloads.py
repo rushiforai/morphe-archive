@@ -48,7 +48,14 @@ def run(command, cwd=None, log=None):
         subprocess.run(command, cwd=cwd, stdout=output, stderr=subprocess.STDOUT, check=True)
 
 
-def verify_receipts(receipts, matrix, output, original):
+def source_test_receipt(log):
+    counts = re.findall(rb'\+(\d+): All tests passed!', log)
+    if len(counts) != 1 or int(counts[0]) <= 0:
+        raise ValueError('Missing successful expanded Flutter source-test summary')
+    return {'passed': int(counts[0]), 'log_sha256': sha(log)}
+
+
+def verify_receipts(receipts, matrix, output, original, test_logs=None):
     """Resume only hash-bound completed payloads with the same pinned source."""
     for key, receipt in receipts.items():
         if int(key) not in MASKS or receipt['source'] != matrix['masks'][key]['commit']:
@@ -58,6 +65,10 @@ def verify_receipts(receipts, matrix, output, original):
         if (sha(delta) != receipt['delta_sha256'] or sha(replay) != receipt['native_sha256']
                 or len(delta) != receipt['delta_bytes'] or len(replay) != receipt['native_bytes']):
             raise ValueError('Resume payload does not match its completed receipt')
+        if test_logs is not None:
+            log = (test_logs / f'test-{key}.log').read_bytes()
+            if receipt.get('source_tests') != source_test_receipt(log):
+                raise ValueError('Resume requires matching successful source-test evidence')
 
 
 def main():
@@ -68,6 +79,7 @@ def main():
     parser.add_argument('--masks', default=','.join(map(str, MASKS)))
     parser.add_argument('--resume', action='store_true', help='Recheck and reuse completed receipts in this owned worker')
     parser.add_argument('--discard-intermediates', action='store_true', help='Discard compiled libraries after verified delta/checkpoint writes')
+    parser.add_argument('--test-source', action='store_true', help='Run every selected source tree\'s complete Flutter suite before compilation; require its hash-bound log on resume')
     args = parser.parse_args()
     masks = [int(value) for value in args.masks.split(',')]
     if not masks or len(set(masks)) != len(masks) or any(mask not in MASKS for mask in masks):
@@ -113,7 +125,7 @@ def main():
         previous = json.loads(report_path.read_text())
         if any(previous.get(key) != report[key] for key in report if key != 'masks'):
             raise ValueError('Resume receipt belongs to different input/toolchain')
-        verify_receipts(previous['masks'], matrix, output, old)
+        verify_receipts(previous['masks'], matrix, output, old, work if args.test_source else None)
         report['masks'].update(previous['masks'])
     manifest_path = output / 'manifest.properties'
     if set(masks) == set(MASKS) and manifest_path.exists():
@@ -136,6 +148,11 @@ def main():
             raise ValueError(f'Pinned source tree mismatch for mask {mask}')
         run([str(flutter), 'pub', 'get', '--enforce-lockfile'], cwd=source, log=work / f'pub-{mask}.log')
         run([str(flutter), 'gen-l10n'], cwd=source, log=work / f'l10n-{mask}.log')
+        tested = None
+        if args.test_source:
+            test_log = work / f'test-{mask}.log'
+            run([str(flutter), 'test', '--no-pub', '--reporter', 'expanded'], cwd=source, log=test_log)
+            tested = source_test_receipt(test_log.read_bytes())
         # Output paths participate in Flutter's cache key. Reuse a fixed path
         # inside this worker, rather than retaining a kernel/AOT cache per mask.
         bundle = source / 'build/native-current'
@@ -165,6 +182,8 @@ def main():
         temporary.replace(destination)
         record = {'source': revision, 'native_sha256': sha(new), 'native_bytes': len(new),
                   'delta_sha256': sha(delta), 'delta_bytes': len(delta), 'seconds': round(time.monotonic() - started, 2)}
+        if tested is not None:
+            record['source_tests'] = tested
         report['masks'][str(mask)] = record
         temporary_report = report_path.with_suffix('.json.tmp')
         temporary_report.write_text(json.dumps(report, indent=2) + '\n')

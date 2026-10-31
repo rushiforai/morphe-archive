@@ -4,7 +4,9 @@
  */
 package app.morphe.patches.facebook.reels
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -15,6 +17,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -31,6 +34,15 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  * manifest parser asks before its "device" check, keeping the one dubbed audio set in that language
  * and dropping the others, and what the track selector and the prefetch take their audio language
  * from. An empty answer makes the parser keep the main audio set instead.
+ *
+ * Read again from 585, 2026-10-30, for a reporter whose reels still played dubbed with the switch
+ * on and who gets Facebook's in-player Languages menu. The parser (arm64 LX/0AD2;->A0G) reads three
+ * HeroPlayerSetting fields in a row for a period with more than one audio set: audioTrackFilteringMode
+ * (0 keeps every set), enableAudioDubbingSupport and enableInPlayAudioDubbingSwitch. With the menu's
+ * switch on it keeps every dubbed set without asking the getter, and the track selector then
+ * prefers the request's or the phone's language. With dubbing off it keeps the first set whose role
+ * is main or none (a dub's role is 0x10), which is the original. So those three reads go through
+ * the extension too, which answers filtering on and both dubbing switches off.
  */
 
 internal const val VPS_CONTROLLER = "Lcom/facebook/video/exoserviceclient/FbVpsController;"
@@ -44,6 +56,23 @@ private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
 private const val STRING = "Ljava/lang/String;"
 
 internal const val ORIGINAL_AUDIO = "$EXTENSION_PACKAGE/reels/OriginalAudio;->language(Ljava/lang/String;)Ljava/lang/String;"
+
+internal const val AUDIO_FILTERING = "audioTrackFilteringMode"
+
+internal const val IN_PLAY_DUBBING = "enableInPlayAudioDubbingSwitch"
+
+internal const val ORIGINAL_AUDIO_DUBBING = "$EXTENSION_PACKAGE/reels/OriginalAudio;->dubbing(Z)Z"
+
+internal const val ORIGINAL_AUDIO_FILTERING = "$EXTENSION_PACKAGE/reels/OriginalAudio;->filtering(I)I"
+
+/** The DASH manifest parser, by its three reads in a row for a period with more than one audio set. */
+internal object AudioTrackFilterFingerprint : Fingerprint(
+    filters = listOf(
+        fieldAccess(definingClass = HERO_PLAYER_SETTING, name = AUDIO_FILTERING, type = "I", opcode = Opcode.IGET),
+        fieldAccess(definingClass = HERO_PLAYER_SETTING, name = DUBBING_SUPPORT, type = "Z", opcode = Opcode.IGET_BOOLEAN),
+        fieldAccess(definingClass = HERO_PLAYER_SETTING, name = IN_PLAY_DUBBING, type = "Z", opcode = Opcode.IGET_BOOLEAN),
+    ),
+)
 
 /**
  * The static Function0 field FbVpsController stores the audio language supplier in: in each of its
@@ -131,6 +160,43 @@ internal fun MutableMethod.keepOriginalAudio(cast: Int) {
             move-result-object v$register
         """,
     )
+}
+
+/** The parser's reads of the filtering mode and the two dubbing switches, as (index, field name). */
+internal fun audioTrackReads(parser: Method): List<Pair<Int, String>> =
+    parser.implementation?.instructions?.withIndex()?.mapNotNull { (index, instruction) ->
+        val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+        val read = (instruction.opcode == Opcode.IGET && field?.name == AUDIO_FILTERING) ||
+            (instruction.opcode == Opcode.IGET_BOOLEAN && (field?.name == DUBBING_SUPPORT || field?.name == IN_PLAY_DUBBING))
+        if (read && field?.definingClass == HERO_PLAYER_SETTING) index to field.name else null
+    }.orEmpty()
+
+/** Hands the manifest parser's audio reads to the extension, so the switch can keep a video's original audio set alone. */
+internal fun BytecodePatchContext.hookOriginalAudioTracks() = AudioTrackFilterFingerprint.method.keepOriginalAudioTracks()
+
+/**
+ * [hookOriginalAudioTracks] for the parser itself: the extension right after each read, on its
+ * register, last read first so the indices hold. A read already handed over is left alone. Refuses
+ * a parser without both the mode and the dubbing switch.
+ */
+internal fun MutableMethod.keepOriginalAudioTracks() {
+    val reads = audioTrackReads(this)
+    if (reads.none { it.second == AUDIO_FILTERING } || reads.none { it.second == DUBBING_SUPPORT }) {
+        throw PatchException("$definingClass->$name doesn't read both $AUDIO_FILTERING and $DUBBING_SUPPORT")
+    }
+    for ((index, field) in reads.asReversed()) {
+        val hook = if (field == AUDIO_FILTERING) ORIGINAL_AUDIO_FILTERING else ORIGINAL_AUDIO_DUBBING
+        val next = implementation!!.instructions.getOrNull(index + 1)
+        if (((next as? ReferenceInstruction)?.reference)?.toString() == hook) continue
+        val register = (implementation!!.instructions[index] as TwoRegisterInstruction).registerA
+        addInstructions(
+            index + 1,
+            """
+                invoke-static { v$register }, $hook
+                move-result v$register
+            """,
+        )
+    }
 }
 
 /** True when [method] calls [getter]. */

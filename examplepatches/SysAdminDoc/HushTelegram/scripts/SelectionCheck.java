@@ -257,6 +257,7 @@ public final class SelectionCheck {
         hook(calls, flags, "storyTouches", "misc/Stories", "hideAvatarStoryTouches");
         hook(calls, flags, "channelRecommendations", "misc/Recommendations", "skipRecommendations");
         hook(calls, flags, "cachedRecommendations", "misc/Recommendations", "skipCachedRecommendations");
+        hook(calls, flags, "keyboardFeatured", "misc/Recommendations", "keyboardFeatured");
         hook(calls, flags, "readMetrics", "misc/Analytics", "skipReadMetrics");
         int promo = calls.getOrDefault(OWN + "telegram/misc/Analytics;->skipPremiumAppLog", 0);
         int promoFlags = 0;
@@ -265,9 +266,12 @@ public final class SelectionCheck {
         }
         require(promo == promoFlags);
         hook(calls, flags, "dualCameraReport", "misc/Analytics", "skipDeviceAppLog");
+        hook(calls, flags, "ghostMode", "misc/GhostMode", "drop");
         hook(calls, flags, "callDebugUpload", "misc/CallDebug", "skipCallDebugUpload");
         hook(calls, flags, "callLogFileUpload", "misc/CallDebug", "skipCallLogFileUpload");
         hook(calls, flags, "callLogUpload", "misc/CallDebug", "skipCallLogUpload");
+        hook(calls, flags, "callRecording", "misc/CallRecorder", "modernRecorded", "modernPlayed", "legacyRecorded", "legacyPlayed");
+        hook(calls, flags, "callRecordButton", "misc/CallRecordButton", "attach");
         hook(calls, flags, "chatDraftPreviews", "misc/DraftPreviews", "skipChatPreview");
         hook(calls, flags, "shareDraftPreviews", "misc/DraftPreviews", "skipSharePreview");
         hook(calls, flags, "pollLinkPreviews", "misc/DraftPreviews", "skipPollPreview");
@@ -286,6 +290,16 @@ public final class SelectionCheck {
         hook(calls, flags, "commerceTransferSendGram", "misc/Commerce", "showTransferSendGram");
         hook(calls, flags, "commercePremiumEffects", "misc/Commerce", "skipPremiumEffect");
         hook(calls, flags, "commercePremiumEmojiPacks", "misc/Commerce", "dropLockedEmojiPacks");
+        hook(calls, flags, "commerceEmojiStatus", "misc/EmojiStatus", "hide");
+        // The App Icon list's tap, lock and filter each ask after reading an icon's Premium flag.
+        require(calls.getOrDefault(OWN + "telegram/misc/AppIcons;->premium", 0)
+                == (Boolean.TRUE.equals(flags.get("commercePremiumIcons")) ? 3 : 0));
+        // The chat list title reads its status and asks about Premium twice each, once for the
+        // stories strip's title and once for the action bar's; the account's own status send asks once.
+        boolean localStatus = Boolean.TRUE.equals(flags.get("commerceLocalEmojiStatus"));
+        require(calls.getOrDefault(OWN + "telegram/misc/LocalEmojiStatus;->documentId", 0) == (localStatus ? 2 : 0));
+        require(calls.getOrDefault(OWN + "telegram/misc/LocalEmojiStatus;->premium", 0) == (localStatus ? 2 : 0));
+        require(calls.getOrDefault(OWN + "telegram/misc/LocalEmojiStatus;->keep", 0) == (localStatus ? 1 : 0));
         // Both sticker targets ask premiumStickersBlocked: the two filters and the keyboard pass,
         // and the effect player's tooltip.
         int blocked = (Boolean.TRUE.equals(flags.get("commercePremiumStickers")) ? 3 : 0)
@@ -305,6 +319,7 @@ public final class SelectionCheck {
         hook(calls, flags, "myChatsSearch", "misc/MyChatsSearch", "keep", "sent", "phones", "dropPublicTabs", "downloadsAt",
                 "keepHashtag", "endPublicPosts", "dropPublicResults");
         hook(calls, flags, "nameFold", "misc/NameFold", "fold");
+        hook(calls, flags, "blockNewChats", "misc/NewChatsBlock", "drop", "refuseOpen");
         hook(calls, flags, "hideContactsBlock", "misc/ContactsBlock", "rows", "placeholder");
         hook(calls, flags, "hideGreetingStickers", "misc/GreetingStickers", "measure");
         hook(calls, flags, "disableChatSwipe", "misc/ChatSwipe", "keepRowStill");
@@ -325,7 +340,9 @@ public final class SelectionCheck {
         hook(calls, flags, "swipeBackOnProfiles", "misc/SwipeBack", "touchBlocks");
         hook(calls, flags, "hidePhoneNumber", "misc/HidePhone", "shown");
         hook(calls, flags, "shareNumberUnticked", "misc/ContactShare", "startsTicked");
-        hook(calls, flags, "messageSeconds", "misc/MessageTime", "shown");
+        // Keep deleted messages marks its label on the same time calls, so either patch puts them in (#49).
+        require(calls.getOrDefault(OWN + "telegram/misc/MessageTime;->shown", 0) > 0
+                == (Boolean.TRUE.equals(flags.get("messageSeconds")) || Boolean.TRUE.equals(flags.get("keepDeleted"))));
         hook(calls, flags, "allowChatBlur", "misc/ChatBlur", "allowed");
         hook(calls, flags, "voiceOneAtATime", "misc/VoicePlaylist", "queue");
         hook(calls, flags, "lockedVoice", "misc/LockedVoice", "refuse");
@@ -354,6 +371,7 @@ public final class SelectionCheck {
         hook(calls, flags, "outsideTranslate", "misc/OutsideTranslate", "show", "fill", "chosen", "headerMenu", "headerClick");
         hook(calls, flags, "hideChannelButtons", "misc/ChannelButtons", "set");
         hook(calls, flags, "hideChannelMute", "misc/ChannelMute", "begin", "muteLabelled", "finish", "visibility");
+        hook(calls, flags, "hideChannelShare", "misc/ChannelShare", "on", "shown");
         hook(calls, flags, "hideSendAs", "misc/SendAs", "show");
         hook(calls, flags, "hideContactsTab", "misc/MainTabs", "tabsShown", "blocksSwipe");
         hook(calls, flags, "compactTabBar", "misc/MainTabs", "barPadding", "barCorner", "barHeight", "barMinWidth");
@@ -364,6 +382,8 @@ public final class SelectionCheck {
         hook(calls, flags, "saveDownloads", "misc/SaveDownloads", "fileLoaded");
         hook(calls, flags, "storageFolder", "misc/StorageFolder", "telegramFolder", "olderFile");
         hook(calls, flags, "unifiedPush", "misc/UnifiedPush", "token", "type");
+        hook(calls, flags, "reactionAlerts", "misc/ReactionAlerts", "changed");
+        hook(calls, flags, "reactionSound", "misc/ReactionAlerts", "quiet");
         hook(calls, flags, "hideByKeyword", "misc/MessageFilters", "type");
         hook(calls, flags, "galleryCameraOnTap", "misc/GalleryCamera", "keepCameraOff", "wakeOnTap", "openWhenReady");
         hook(calls, flags, "disableUpdateChecks", "misc/UpdateChecks", "skipUpdateCheck");

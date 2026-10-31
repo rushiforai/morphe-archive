@@ -99,7 +99,7 @@ public final class CarScanner221 {
 
     public static final String GUARD_ENTRY = "lib/arm64-v8a/libusbtransport.so";
 
-    /** Preserves the original profile transform's normal seed after repackaging. */
+    /** Preserves the original settings and profile transforms' normal seeds after repackaging. */
     public static byte[] patchDecoder(byte[] original) {
         requireHash(original, "2c68f2179bc348ea18bd7e40ba18fb2c21a1b6d77cb98959387994336f2765c5",
             "profile decoder (unsupported or already modified)");
@@ -107,8 +107,12 @@ public final class CarScanner221 {
         // csel w8,w9,w8,ne chooses 0xec225c72 on context validation success,
         // 0x9dac8f86 on failure. Downstream mixing yields seed 0 or 0x143a.
         check(integer(original, 0x25d68) == 0x1a881128, "Unexpected profile seed selection");
+        // GetShiftStream uses variant 1 for both settings reads and writes.
+        // Its initializer at 0x230fc has a separate validation-dependent seed.
+        check(integer(original, 0x23fcc) == 0x1a881128, "Unexpected settings seed selection");
         byte[] result = original.clone();
         putInt(result, 0x25d68, 0x2a0903e8); // mov w8,w9: normal seed; transform stays intact
+        putInt(result, 0x23fcc, 0x2a0903e8); // same selection for settings, not just profiles
         return result;
     }
 

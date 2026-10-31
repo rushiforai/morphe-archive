@@ -129,16 +129,30 @@ val unifiedPushPatch = bytecodePatch(
     execute {
         val plan = resolveUnifiedPush()
         val (reactions, reactionsMissing) = resolveReactionAlerts()
+        val (sound, soundMissing) = resolveReactionSound()
+        val (lookup, lookupMissing) = if (reactions != null) resolveEmojiLookup() else Pair(null, null)
         // Assembled on copies first, so a refusal leaves the app untouched.
         insertUnifiedPushGate(MutableMethod(ImmutableMethod.of(plan.signUp)))
         reactions?.applyTo(MutableMethod(ImmutableMethod.of(reactions.updates)))
+        sound?.applyTo(MutableMethod(ImmutableMethod.of(sound.check)))
         insertUnifiedPushGate(plan.signUp)
         writeUnifiedPushStubs(plan.accounts)
         if (reactions != null) {
             reactions.applyTo(reactions.updates)
             enableCapability("reactionAlerts")
+            if (lookup != null) {
+                writeEmojiLookup(lookup)
+            } else {
+                patchLog.warning("UnifiedPush notifications: $lookupMissing. Reaction notifications without push go on without custom emoji.")
+            }
         } else {
             patchLog.warning("UnifiedPush notifications: $reactionsMissing. The patch goes on without reaction notifications without push.")
+        }
+        if (sound != null) {
+            sound.applyTo(sound.check)
+            enableCapability("reactionSound")
+        } else {
+            patchLog.warning("UnifiedPush notifications: $soundMissing. The patch goes on without the sound for reaction notifications.")
         }
         enableStatus("unifiedPush")
     }
@@ -231,6 +245,9 @@ internal fun BytecodePatchContext.resolveUnifiedPush(): UnifiedPushPlan {
     controlHook(UNIFIED_PUSH, "requestPushToken", emptyList(), "V")
     controlHook(REACTION_ALERTS, "changed", listOf("Ljava/lang/Object;", "Ljava/lang/Object;"), "V")
     requireStatusMethod("reactionAlerts")
+    controlHook(REACTION_ALERTS, "quiet", listOf("I"), "Z")
+    requireStatusMethod("reactionSound")
+    controlHook(REACTION_ALERTS, "emojiDocument", listOf("I", "J"), "Ljava/lang/Object;")
 
     val controller = mutableClassDefByOrNull(PUSH_CONTROLLER)
     controlShape(controller != null && AccessFlags.PUBLIC.isSet(controller.accessFlags), "PushListenerController is missing")

@@ -36,7 +36,7 @@ public class FollowingListSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.MARK_FOLLOWING_LIST.resetToDefault();
         Settings.FOLLOWING_NOT_BACK_FIRST.resetToDefault();
         Settings.SHOW_FRIENDSHIP_STATUS.resetToDefault();
@@ -95,7 +95,7 @@ public class FollowingListSettingsTest {
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         assertTrue(Settings.MARK_FOLLOWING_LIST.get());
-        assertEquals(36, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
+        assertEquals(37, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
     }
     /** Put accounts that don't follow you back first sits right under the mark's switch, starts off and is off while paused. */
     @Test public void orderSwitchStartsOffUnderTheMarkAndHonorsPause() throws Exception {

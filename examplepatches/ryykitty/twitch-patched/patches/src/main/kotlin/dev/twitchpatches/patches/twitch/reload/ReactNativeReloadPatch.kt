@@ -10,7 +10,8 @@ internal val reactNativeReloadPatch = resourcePatch {
     execute {
         val bundle = HermesBundle(get("assets/index.android.bundle").readBytes())
         val exports = MetroExports(bundle)
-        val screen = exports.resolve("TheatreScreen", setOf("TheatreStoreProvider", "PictureInPictureProvider"), 1)
+        val screen = exports.resolve("TheatreScreen", setOf("useState"), 1)
+        exports.requireFunctionContract("TheatreScreen", 1, setOf("TheatreStoreProvider", "PictureInPictureProvider"))
         val data = exports.resolve("useTheatreData", setOf("useState", "useVideoAccessToken", "refetchVideoToken"), 3)
         val controls = exports.resolve("PlayerControlsOverlay", setOf("onMuteToggle", "visible", "IconButton", "Tooltip"))
         val icon = exports.resolve("RawIconRefresh", setOf("Path", "default"))

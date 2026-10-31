@@ -8,12 +8,8 @@
 package app.morphe.patches.reddit.customclients.infinity.api
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.InstructionLocation
-import app.morphe.patcher.OpcodeFilter
-import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
-import com.android.tools.smali.dexlib2.Opcode
 
 internal object GetDefaultUserAgentFingerprint : Fingerprint(
     definingClass = EXTENSION_CLASS_NAME,
@@ -41,41 +37,26 @@ internal object ClientIdFingerprint : Fingerprint(
     )
 )
 
-internal fun userAgentFingerprint(versionName: String) = Fingerprint(
-    strings = listOf("android:ml.docilealligator.infinityforreddit:$versionName (by /u/Hostilenemy)")
+internal fun userAgentFingerprint(versionName: String, prefix: String) = Fingerprint(
+    strings = listOf("${prefix}ml.docilealligator.infinityforreddit:$versionName (by /u/Hostilenemy)"),
+    custom = { _, classDef -> !classDef.type.startsWith("Lapp/morphe/") }
 )
 
 internal object RedirectUriFingerprint : Fingerprint(
-    definingClass = "Lml/docilealligator",
-    strings = listOf("infinity://localhost")
-)
-
-internal object SettingsActivityOnBackStackChangedFingerprint : Fingerprint(
-    definingClass = "Lml/docilealligator/infinityforreddit/activities/SettingsActivity;",
-    filters = OpcodesFilter.opcodesToFilters(
-        Opcode.CONST,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.MOVE_RESULT_OBJECT,
-        Opcode.INSTANCE_OF,
-        Opcode.IF_EQZ,
-        Opcode.CONST,
-        Opcode.INVOKE_VIRTUAL,
-        Opcode.GOTO
-    )
+    strings = listOf("infinity://localhost"),
+    custom = { _, classDef -> !classDef.type.startsWith("Lapp/morphe/") }
 )
 
 internal object BillingClientOnServiceConnectedFingerprint : Fingerprint(
-    strings = listOf("Billing service connected")
+    name = "onServiceConnected",
+    returnType = "V",
+    parameters = listOf("Landroid/content/ComponentName;", "Landroid/os/IBinder;"),
+    strings = listOf("Billing service connected.")
 )
 
 internal object InfinityStartSubscriptionActivityFingerprint : Fingerprint(
     definingClass = "Lml/docilealligator/infinityforreddit/Infinity;",
-    filters = listOf(
-        methodCall(
-            definingClass = "Landroid/content/Intent;",
-            name = "<init>",
-            opcode = Opcode.INVOKE_DIRECT
-        ),
-        literal(0x10008000)
-    )
+    returnType = "V",
+    strings = listOf("account_name"),
+    filters = listOf(literal(0x10008000))
 )

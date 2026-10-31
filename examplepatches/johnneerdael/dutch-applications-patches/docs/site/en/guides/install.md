@@ -37,8 +37,12 @@ Read the patch report before installing. If a patch fails or is incompatible, ch
 
 ## 4. Install and check the result
 
+For [Android Auto apps](android-auto.md), follow the KingInstaller and Shizuku instructions before installing. The ordinary installer can leave Flitsmeister missing from the car launcher even when it works on your phone.
+
 The patched app has a different signing key from the publisher's app. Android normally cannot install one over the other. Updates between patched builds also require matching signing keys.
 
 Save important data before replacing an installation.
 
 After installation, check startup and the features you use: weather, maps, articles, audio or alerts. If audio plays or a banner disappears, you have checked that feature. You have not yet established which network requests the app sent. [Read the evidence guide](../reference/methodology.md).
+
+If your installation method asks for Shizuku, use the [setup and implementation guide](shizuku.md). On a TV, follow the [TV-specific instructions](shizuku-tv.md).

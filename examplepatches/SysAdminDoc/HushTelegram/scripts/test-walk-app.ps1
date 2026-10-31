@@ -133,6 +133,112 @@ try {
     Assert-True ((ConvertTo-WalkArgument 'C:\x y\') -ceq '"C:\x y\\"') 'A trailing backslash would have escaped the closing quote.'
     Assert-True ((ConvertTo-WalkArgument '') -ceq '""') 'An empty argument was dropped.'
 
+    # Find-WalkPermissionAsk, Clear-WalkPermissionAsk and Invoke-WalkScreen: a permission ask over a
+    # screen gets its no, never its yes, and the screen gets one more try. The fake phone shows the
+    # dumps in Screens front first, and a tap takes the front one away unless it's Sticky.
+    $playPackage = 'org.telegram.messenger'
+    $systemAsk = {
+        param([string]$Question, [string]$NoId)
+        @"
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation="0">
+<node text="" resource-id="" package="org.telegram.messenger" bounds="[0,0][1080,2340]" />
+<node text="$Question" resource-id="com.android.permissioncontroller:id/permission_message" package="com.google.android.permissioncontroller" bounds="[100,1500][980,1640]" />
+<node text="Allow" resource-id="com.android.permissioncontroller:id/permission_allow_button" package="com.google.android.permissioncontroller" bounds="[100,1880][980,1960]" />
+<node text="Don't allow" resource-id="com.android.permissioncontroller:id/$NoId" package="com.google.android.permissioncontroller" bounds="[100,1988][980,2068]" />
+</hierarchy>
+"@
+    }
+    $contactsQuestion = 'Allow Telegram to access your contacts?'
+    $photosQuestion = 'Allow Telegram to access photos and videos on this device?'
+    $telegramPrompt = @'
+<hierarchy rotation="0">
+<node text="Telegram needs access to your contacts so that you can connect with your friends across all your devices. Your contacts will be synced." package="org.telegram.messenger" bounds="[88,800][992,1100]" />
+<node text="Not now" package="org.telegram.messenger" bounds="[500,1450][720,1560]" />
+<node text="Continue" package="org.telegram.messenger" bounds="[740,1450][992,1560]" />
+</hierarchy>
+'@
+    $phone = @{ Screens = [Collections.Generic.List[string]]::new(); Taps = [Collections.Generic.List[string]]::new(); Sticky = $false; Calls = 0 }
+    $fakeAdb = {
+        param([string[]]$Arguments)
+        $phone.Calls++
+        $command = $Arguments -join ' '
+        if ($command -like 'shell input tap *') {
+            $phone.Taps.Add("$($Arguments[3]),$($Arguments[4])")
+            if (-not $phone.Sticky -and $phone.Screens.Count -gt 0) { $phone.Screens.RemoveAt(0) }
+        } elseif ($command -like 'shell cat *' -and $phone.Screens.Count -gt 0) {
+            $phone.Screens[0]
+        }
+    }
+    $opens = @{ Runs = 0 }
+    function Reset-WalkPhone([string[]]$Screens, [bool]$Sticky = $false) {
+        $phone.Screens.Clear(); $phone.Taps.Clear(); $phone.Sticky = $Sticky; $phone.Calls = 0; $opens.Runs = 0
+        foreach ($dump in $Screens) { $phone.Screens.Add($dump) }
+    }
+    function Invoke-FakeScreen([scriptblock]$Open) {
+        Invoke-WalkScreen -Open $Open -Shell $fakeAdb -AskDump '/sdcard/walk-ask.xml' -Package $playPackage -SettleMilliseconds 0
+    }
+    # Telegram is in front once no ask is left on the fake phone.
+    $openWhenClear = { $opens.Runs++; $phone.Screens.Count -eq 0 }
+
+    $firstAsk = Find-WalkPermissionAsk (& $systemAsk $contactsQuestion 'permission_deny_button') $playPackage
+    Assert-True ($null -ne $firstAsk -and $firstAsk.Question -ceq $contactsQuestion -and $firstAsk.X -eq 540 -and $firstAsk.Y -eq 2028) `
+        "A first permission ask's question or Don't allow button was not read."
+    $repeatAsk = Find-WalkPermissionAsk (& $systemAsk $contactsQuestion 'permission_deny_and_dont_ask_again_button') $playPackage
+    Assert-True ($null -ne $repeatAsk -and $repeatAsk.X -eq 540 -and $repeatAsk.Y -eq 2028) `
+        "A repeat ask's Don't allow (permission_deny_and_dont_ask_again_button) was not found."
+    Assert-True ($null -eq (Find-WalkPermissionAsk (& $systemAsk $contactsQuestion 'permission_allow_one_time_button') $playPackage)) `
+        "An ask with no Don't allow showed was answered with another button."
+    $prompt = Find-WalkPermissionAsk $telegramPrompt $playPackage
+    Assert-True ($null -ne $prompt -and $prompt.X -eq 610 -and $prompt.Y -eq 1505 -and $prompt.Question -clike 'Telegram needs access to your contacts*devices.') `
+        "Telegram's contacts prompt was not answered with Not now."
+    Assert-True ($null -eq (Find-WalkPermissionAsk $telegramPrompt $package)) 'A prompt of the other Telegram build was answered.'
+    Assert-True ($null -eq (Find-WalkPermissionAsk $homeDump $package)) 'The settings home list was read as a permission ask.'
+
+    Reset-WalkPhone @((& $systemAsk $contactsQuestion 'permission_deny_button'))
+    $screen = Invoke-FakeScreen $openWhenClear
+    $walkProblems = @(if (-not $screen.Opened) { "tg://settings would not open$($screen.Note)" })
+    Assert-True ($screen.Opened -and $opens.Runs -eq 2) 'A screen behind a permission ask was not opened again once the ask was told no.'
+    Assert-True ($phone.Taps.Count -eq 1 -and $phone.Taps[0] -ceq '540,2028') "The ask got taps $($phone.Taps -join ' ') instead of one on Don't allow."
+    Assert-True ($screen.Note -ceq '' -and @($screen.Asked).Count -eq 1 -and $screen.Asked[0] -ceq $contactsQuestion) `
+        'The ask that was told no was not recorded, or a screen that opened carried a note.'
+    Assert-True ((Resolve-WalkOutcome -Screens 1 -Crashes 0 -Problems $walkProblems -Full $true) -ceq 'PASS') `
+        'A walk that told a permission ask no and then opened its screen did not pass.'
+
+    Reset-WalkPhone @((& $systemAsk $contactsQuestion 'permission_deny_and_dont_ask_again_button'), (& $systemAsk $photosQuestion 'permission_deny_button'))
+    $screen = Invoke-FakeScreen $openWhenClear
+    Assert-True ($screen.Opened -and $phone.Taps.Count -eq 2 -and @($phone.Taps | Where-Object { $_ -cne '540,2028' }).Count -eq 0 -and
+        @($screen.Asked).Count -eq 2) "Two asks in a row (contacts, then photos) didn't each get Don't allow before the screen opened."
+
+    Reset-WalkPhone @($telegramPrompt)
+    $screen = Invoke-FakeScreen $openWhenClear
+    Assert-True ($screen.Opened -and $phone.Taps.Count -eq 1 -and $phone.Taps[0] -ceq '610,1505') `
+        "Telegram's contacts prompt got taps $($phone.Taps -join ' ') instead of one on Not now."
+
+    Reset-WalkPhone @((& $systemAsk $contactsQuestion 'permission_deny_and_dont_ask_again_button')) $true
+    $screen = Invoke-FakeScreen $openWhenClear
+    $walkProblems = @(if (-not $screen.Opened) { "tg://settings would not open$($screen.Note)" })
+    Assert-True (-not $screen.Opened -and $opens.Runs -eq 1 -and $phone.Taps.Count -eq 3 -and
+        @($phone.Taps | Where-Object { $_ -cne '540,2028' }).Count -eq 0) "An ask that stayed got $($phone.Taps.Count) taps, or another button, or a retry."
+    Assert-True ($walkProblems.Count -eq 1 -and $walkProblems[0] -clike "*behind `"$contactsQuestion`", which stayed*") `
+        "The problem for an ask that stayed doesn't name it: $walkProblems"
+    Assert-True ((Resolve-WalkOutcome -Screens 1 -Crashes 0 -Problems $walkProblems -Full $true) -ceq 'FAIL') `
+        'A screen kept behind a permission ask did not fail the walk.'
+
+    Reset-WalkPhone @((& $systemAsk $contactsQuestion 'permission_deny_button'))
+    $screen = Invoke-FakeScreen { $opens.Runs++; $false }
+    Assert-True (-not $screen.Opened -and $opens.Runs -eq 2 -and $screen.Note -clike "* even after `"$contactsQuestion`" was told no") `
+        "A screen that stayed shut after its ask went doesn't say so: '$($screen.Note)'"
+
+    Reset-WalkPhone @()
+    $screen = Invoke-FakeScreen { $opens.Runs++; $false }
+    Assert-True (-not $screen.Opened -and $opens.Runs -eq 1 -and $phone.Taps.Count -eq 0 -and $screen.Note -ceq '') `
+        'A screen that would not open with no ask in front was tapped at, retried or given a note.'
+    Assert-True ($null -ne $screen.Asked -and $screen.Asked.Count -eq 0) 'A screen with no ask in front came back with asks, or with $null for none.'
+
+    Reset-WalkPhone @()
+    $screen = Invoke-FakeScreen { $opens.Runs++; $true }
+    Assert-True ($screen.Opened -and $phone.Calls -eq 0) 'A screen that opened still had the phone read for asks.'
+
     # Enter-WalkLease, Update-WalkLease and Exit-WalkLease: the walk's hold on the device.
     $leases = Join-Path $scratch 'leases'
     New-Item -ItemType Directory -Force -Path $leases | Out-Null

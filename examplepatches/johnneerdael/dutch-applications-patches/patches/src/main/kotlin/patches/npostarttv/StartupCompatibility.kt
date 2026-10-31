@@ -19,10 +19,15 @@ private fun ByteArray.sha256() = MessageDigest.getInstance("SHA-256").digest(thi
 private val startupResources = rawResourcePatch {
     dependsOn(originalInput)
     execute {
-        val asset = get("assets/jAAULfkL9PCc9aKk").readBytes()
-        check(asset.size == 383850 && asset.sha256() == "80155c3fa0db0bd08326d397961c725cf9c1145e87f4855c8450f2c6ca74ebc6")
-        val dex = asset.copyOfRange(356690, 356690 + 12064)
-        check(dex.sha256() == "bdd57282142aaba6972e50c36246e53a33b5656f532405b0ca36027e96260184")
+        val phone = packageMetadata.isNpoPhone
+        val asset = get(if (phone) "assets/koMIKlhio0icA0mv" else "assets/jAAULfkL9PCc9aKk").readBytes()
+        check(asset.size == (if (phone) 393436 else 383850) && asset.sha256() ==
+            (if (phone) "8474b33b68a7c9493c0f9089dff7af382d013066e1a6d65ff892c2e28d9bc50c"
+             else "80155c3fa0db0bd08326d397961c725cf9c1145e87f4855c8450f2c6ca74ebc6"))
+        val offset = if (phone) 244836 else 356690
+        val dex = asset.copyOfRange(offset, offset + if (phone) 17472 else 12064)
+        check(dex.sha256() == (if (phone) "5a219dd911eb6bfc7123943b9f575d8f5a576f8a3e87243965c4f6ef82a5c44c"
+            else "bdd57282142aaba6972e50c36246e53a33b5656f532405b0ca36027e96260184"))
         embeddedStartup = dex
     }
 }
@@ -65,16 +70,19 @@ private fun classConstant(type: String) = when (type) {
 
 internal val startupCompatibility = bytecodePatch(
     name = "Fix PairIP startup",
-    description = "Restores the exact TV startup data and lifecycle helpers, AppAuth discovery and token requests, network updates and audio-route events. Retains native VM execution for other protected callbacks.",
+    description = "Restores build-specific startup data, lifecycle helpers, authentication and media/network callbacks. Preserves genuine token and entitlement checks and retains other protected native callbacks.",
     default = true,
 ) {
-    compatibleWith(npoTv)
+    compatibleWith(npoTv, npoPhone)
     dependsOn(originalInput, startupResources, runtimeCallbacks)
     extendWithAll { listOf(Supplier { checkNotNull(embeddedStartup).inputStream() }) }
     execute {
-        check(StartupRestoreData.strings.size == 32 && StartupRestoreData.strings.values.sumOf { it.size } == 1437)
-        check(StartupRestoreData.methods.size == 9)
-        for ((owner, fields) in StartupRestoreData.strings) {
+        val phone = packageMetadata.isNpoPhone
+        val strings = if (phone) PhoneStartupRestoreData.strings else StartupRestoreData.strings
+        val methods = if (phone) PhoneStartupRestoreData.methods else StartupRestoreData.methods
+        check(strings.size == 32 && strings.values.sumOf { it.size } == (if (phone) 1494 else 1437))
+        check(methods.size == if (phone) 10 else 9)
+        for ((owner, fields) in strings) {
             val cls = mutableClassDefBy(owner)
             val declared = cls.fields.filter { it.type == "Ljava/lang/String;" && it.accessFlags and AccessFlags.STATIC.value != 0 }
             check(declared.map { it.name }.toSet() == fields.keys) { "Changed TV startup String fields: $owner" }
@@ -86,7 +94,7 @@ internal val startupCompatibility = bytecodePatch(
                 append("return-void")
             })
         }
-        for ((owner, entries) in StartupRestoreData.methods.entries.groupBy { it.key.substringBefore("->") }) {
+        for ((owner, entries) in methods.entries.groupBy { it.key.substringBefore("->") }) {
             val declared = mutableClassDefBy(owner).fields.filter { it.type == "Ljava/lang/reflect/Method;" }
             check(declared.map { it.name }.toSet() == entries.map { it.key.substringAfter("->") }.toSet())
             initializer(owner, 5, buildString {

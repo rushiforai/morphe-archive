@@ -165,7 +165,14 @@ val dcimAndBackupControlPatch = bytecodePatch(
         }
 
         // 3. Make BackupNotificationManager safe from null-pointer crashes during sync scheduling
-        BackupNotificationManagerFingerprint.methodOrNull?.addInstructions(0, "return-void")
+        val backupNotificationClinit = BackupNotificationManagerFingerprint.methodOrNull
+        if (backupNotificationClinit != null) {
+            val classDef = mutableClassDefBy(backupNotificationClinit.definingClass)
+            val methodB = classDef.methods.firstOrNull { it.name == "b" }
+            if (methodB != null) {
+                classDef.findMutableMethodOf(methodB).addInstructions(0, "return-void")
+            }
+        }
 
         // 4. Decouple backup query from in_camera_folder so Camera photos do not auto-upload by default
         val backupQueryMethod = BackupEligibilityQueryFingerprint.methodOrNull
@@ -193,31 +200,41 @@ val dcimAndBackupControlPatch = bytecodePatch(
                 val mutableBadgeMethod = uploadStatusClassDef.findMutableMethodOf(badgeMethod)
                 val instructions = badgeMethod.implementation?.instructions?.toList() ?: emptyList()
 
-                // Find Lasym.g reference (photos_quantum_gm_ic_cloud_off_vd_theme_18)
-                var lasymGRef: FieldReference? = null
-                val lasymSgetIndices = mutableListOf<Int>()
+                // Find status enum reference with field "g" (photos_quantum_gm_ic_cloud_off_vd_theme_18)
+                var statusGRef: FieldReference? = null
                 for (idx in instructions.indices) {
                     val instr = instructions[idx]
                     if (instr.opcode == Opcode.SGET_OBJECT) {
                         val ref = (instr as? ReferenceInstruction)?.reference as? FieldReference
-                        if (ref != null && ref.type.endsWith("asym;")) {
-                            lasymSgetIndices.add(idx)
-                            if (ref.name == "g") {
-                                lasymGRef = ref
-                            }
+                        if (ref != null && ref.name == "g" && ref.type == ref.definingClass) {
+                            statusGRef = ref
+                            break
                         }
                     }
                 }
 
-                // The second-to-last SGET of Lasym is index 124 (stock loads Lasym.b when account backup is enabled and status is NONE)
-                if (lasymGRef != null && lasymSgetIndices.size >= 2) {
-                    val targetIdx = lasymSgetIndices[lasymSgetIndices.size - 2]
-                    val targetInstr = instructions[targetIdx] as OneRegisterInstruction
-                    val reg = targetInstr.registerA
-                    mutableBadgeMethod.replaceInstruction(
-                        targetIdx,
-                        "sget-object v$reg, ${lasymGRef.definingClass}->${lasymGRef.name}:${lasymGRef.type}"
-                    )
+                if (statusGRef != null) {
+                    val statusSgetIndices = mutableListOf<Int>()
+                    for (idx in instructions.indices) {
+                        val instr = instructions[idx]
+                        if (instr.opcode == Opcode.SGET_OBJECT) {
+                            val ref = (instr as? ReferenceInstruction)?.reference as? FieldReference
+                            if (ref != null && ref.type == statusGRef.type) {
+                                statusSgetIndices.add(idx)
+                            }
+                        }
+                    }
+
+                    // The second-to-last SGET of the status enum is index 124 (stock loads NONE when account backup is enabled and status is NONE)
+                    if (statusSgetIndices.size >= 2) {
+                        val targetIdx = statusSgetIndices[statusSgetIndices.size - 2]
+                        val targetInstr = instructions[targetIdx] as OneRegisterInstruction
+                        val reg = targetInstr.registerA
+                        mutableBadgeMethod.replaceInstruction(
+                            targetIdx,
+                            "sget-object v$reg, ${statusGRef.definingClass}->${statusGRef.name}:${statusGRef.type}"
+                        )
+                    }
                 }
             }
         }
@@ -369,27 +386,27 @@ val dcimAndBackupControlPatch = bytecodePatch(
             val mutableMethod = createItemClassDef.findMutableMethodOf(createItemMethod)
             val instructions = createItemMethod.implementation?.instructions?.toList() ?: emptyList()
 
-            // 1. Locate check-cast vX, Lslm; immediately preceding instance-of vX, vX, Lsll;
+            // 1. Locate check-cast vX immediately preceding instance-of
             for (idx in 0 until instructions.size - 1) {
                 val curr = instructions[idx]
                 val next = instructions[idx + 1]
                 if (curr.opcode == Opcode.CHECK_CAST && next.opcode == Opcode.INSTANCE_OF) {
                     val nextTypeRef = (next as? ReferenceInstruction)?.reference as? TypeReference
-                    if (nextTypeRef?.type == "Lsll;") {
+                    if (nextTypeRef?.type == "Lsll;" || nextTypeRef?.type == "Lsob;") {
                         mutableMethod.replaceInstruction(idx, "nop")
                         break
                     }
                 }
             }
 
-            // 2. Locate check-cast vY, Lslm; following Map.get(item.id) and preceding iget-object ..., skm->f
+            // 2. Locate check-cast vY following Map.get(item.id) and preceding iget-object ..., skm/sna->f
             val updatedInstructions = mutableMethod.implementation!!.instructions.toList()
             for (idx in 0 until updatedInstructions.size - 1) {
                 val curr = updatedInstructions[idx]
                 val next = updatedInstructions[idx + 1]
                 if (curr.opcode == Opcode.CHECK_CAST && next.opcode == Opcode.IGET_OBJECT) {
                     val fieldRef = (next as? ReferenceInstruction)?.reference as? FieldReference
-                    if (fieldRef != null && fieldRef.name == "f" && fieldRef.type.endsWith("slm;")) {
+                    if (fieldRef != null && fieldRef.name == "f" && (fieldRef.type.endsWith("slm;") || fieldRef.type.endsWith("soc;"))) {
                         val castInstr = curr as OneRegisterInstruction
                         val targetReg = castInstr.registerA
                         val nextInstr = next as TwoRegisterInstruction
@@ -500,7 +517,7 @@ val dcimAndBackupControlPatch = bytecodePatch(
                 val ins = instructions[idx]
                 if (ins.opcode == Opcode.NEW_INSTANCE) {
                     val typeRef = (ins as? ReferenceInstruction)?.reference as? TypeReference
-                    if (typeRef?.type?.endsWith("cthu;") == true) {
+                    if (typeRef?.type?.endsWith("cthu;") == true || typeRef?.type?.endsWith("cttj;") == true) {
                         mutableMethod.replaceInstruction(idx, "nop")
                         if (idx + 1 < instructions.size) mutableMethod.replaceInstruction(idx + 1, "nop")
                         if (idx + 2 < instructions.size) mutableMethod.replaceInstruction(idx + 2, "nop")

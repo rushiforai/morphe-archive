@@ -46,12 +46,17 @@ public final class PilloHybridNotificationPatch {
                     null,
                     null,
                     Arrays.asList(
-                        new AppTarget("0.6.20", null, false, null, null),
+                        new AppTarget("0.6.27", null, false, null, null), new AppTarget("0.6.20", null, false, null, null),
                         new AppTarget("0.6.19", null, false, null, null)
                     ),
                     app.morphe.patcher.patch.FormFactor.MOBILE, false
                 ));
                 builder.execute(context -> {
+                    if ("xyz.rtrvr.pillo".equals(context.getPackageMetadata().getPackageName())
+                        && "0.6.27".equals(context.getPackageMetadata().getVersionName())) {
+                        Pillo627.hybridNotification(context);
+                        return Unit.INSTANCE;
+                    }
                     if (!PACKAGE.equals(context.getPackageMetadata().getPackageName())
                         || !VERSIONS.contains(context.getPackageMetadata().getVersionName()))
                         throw unsupported("Expected " + PACKAGE + " version " + String.join(" or ", VERSIONS));

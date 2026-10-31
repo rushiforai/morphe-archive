@@ -67,7 +67,7 @@ internal fun BytecodePatchContext.installFeedVideoControls(play: Method) {
     val (attach, playerParameter) = attaches.singleOrNull()
         ?: refuse("expected one attach of the current player container, found ${attaches.size}")
     if (attach.localRegisterCount() < 2) refuse("the attach needs two local registers")
-    val container = containersWritten(attach, owner.type).singleOrNull()
+    val container = containersWritten(attach, owner).singleOrNull()
         ?: refuse("the attach doesn't write exactly one ViewGroup field")
     if (owner.fields.none {
         it.name == container.name && it.type == VIEW_GROUP && AccessFlags.PUBLIC.isSet(it.accessFlags)

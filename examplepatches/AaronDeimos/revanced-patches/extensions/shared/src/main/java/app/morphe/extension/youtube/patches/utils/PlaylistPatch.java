@@ -1,0 +1,746 @@
+/*
+ * Copyright (C) 2025-2026 anddea
+ *
+ * This file is part of the revanced-patches project:
+ * https://github.com/anddea/revanced-patches
+ *
+ * Original author(s):
+ * - anddea (https://github.com/anddea)
+ * - inotia00 (https://github.com/inotia00)
+ *
+ * Licensed under the GNU General Public License v3.0.
+ *
+ * ------------------------------------------------------------------------
+ * GPLv3 Section 7 – Additional Terms & Attribution Requirements
+ * ------------------------------------------------------------------------
+ *
+ * This file contains substantial original work by the author(s) listed above.
+ *
+ * In accordance with Section 7 of the GNU General Public License v3.0,
+ * the following additional terms apply to this file:
+ *
+ * 1. Source Credit Preservation (Section 7(b)): This specific copyright notice
+ *    and the list of original authors above must be preserved in any copy
+ *    or derivative work. You may add your own copyright notice below it,
+ *    but you may not remove the original one.
+ *
+ * 2. Origin & Modification Marking (Section 7(c)): Modified versions must be
+ *    clearly marked as such (e.g., by adding a "Modified by" line or a new
+ *    copyright notice) and must not be misrepresented as the original work.
+ *
+ * 3. Version Control Attribution (Section 7(b)): Any ports or substantial
+ *    modifications must retain historical authorship credit in version control
+ *    systems (e.g., Git), listing original author(s) appropriately and
+ *    modifiers as committers or co-authors.
+ *
+ * 4. User Interface Attribution (Section 7(b)): Any works containing or
+ *    derived from this material must maintain a visible credit or
+ *    acknowledgment to the original author(s) within the application's
+ *    user interface (e.g., in an "About" or "Credits" section).
+ */
+
+/*
+ * Portions of this file are ported from Morphe:
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ */
+
+package app.morphe.extension.youtube.patches.utils;
+
+import static app.morphe.extension.shared.utils.StringRef.str;
+import static app.morphe.extension.shared.utils.Utils.runOnMainThreadDelayed;
+import static app.morphe.extension.youtube.shared.RootView.getContext;
+import static app.morphe.extension.youtube.settings.YouTubeActivityHook.USE_BOLD_ICONS;
+import static app.morphe.extension.youtube.utils.VideoUtils.launchVideoExternalDownloader;
+import static app.morphe.extension.youtube.utils.VideoUtils.openPlaylist;
+import static app.morphe.extension.youtube.utils.VideoUtils.reloadVideo;
+
+import android.content.Context;
+import android.text.TextUtils;
+import android.view.KeyEvent;
+import android.widget.LinearLayout;
+
+import androidx.annotation.GuardedBy;
+import androidx.annotation.NonNull;
+
+import org.apache.commons.collections4.BidiMap;
+import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import app.morphe.extension.shared.innertube.utils.AuthUtils;
+import app.morphe.extension.shared.ui.CustomDialog;
+import app.morphe.extension.shared.utils.Logger;
+import app.morphe.extension.shared.utils.ResourceUtils;
+import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.patches.utils.requests.CreatePlaylistRequest;
+import app.morphe.extension.youtube.patches.utils.requests.DeletePlaylistRequest;
+import app.morphe.extension.youtube.patches.utils.requests.EditPlaylistRequest;
+import app.morphe.extension.youtube.patches.utils.requests.GetPlaylistsRequest;
+import app.morphe.extension.youtube.patches.utils.requests.SavePlaylistRequest;
+import app.morphe.extension.youtube.patches.utils.requests.VideoDetailsRequest;
+import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.shared.PlayerType;
+import app.morphe.extension.youtube.shared.VideoInformation;
+import app.morphe.extension.youtube.utils.ExtendedUtils;
+import app.morphe.extension.youtube.utils.GeminiManager;
+import kotlin.Pair;
+
+// TODO: Implement sync queue and clean up code.
+@SuppressWarnings({"unused", "StaticFieldLeak"})
+public class PlaylistPatch {
+    private static final boolean QUEUE_MANAGER =
+            Settings.OVERLAY_BUTTON_EXTERNAL_DOWNLOADER_QUEUE_MANAGER.get()
+                    || Settings.OVERRIDE_VIDEO_DOWNLOAD_BUTTON_QUEUE_MANAGER.get();
+    private static final long DELAY_MILLISECONDS = 1500L;
+
+    private static volatile String playlistId = "";
+    private static volatile String videoId = "";
+
+    private static String checkFailedAuth;
+    private static String checkFailedPlaylistId;
+    private static String checkFailedQueue;
+    private static String checkFailedVideoId;
+    private static String checkFailedGeneric;
+
+    private static String fetchFailedAdd;
+    private static String fetchFailedCreate;
+    private static String fetchFailedDelete;
+    private static String fetchFailedRemove;
+    private static String fetchFailedSave;
+    private static String fetchFailedVideoInformation;
+
+    private static String fetchSucceededAdd;
+    private static String fetchSucceededCreate;
+    private static String fetchSucceededDelete;
+    private static String fetchSucceededRemove;
+    private static String fetchSucceededSave;
+
+    static {
+        Context mContext = Utils.getContext();
+        if (mContext != null && mContext.getResources() != null) {
+            checkFailedAuth = str("revanced_queue_manager_check_failed_auth");
+            checkFailedPlaylistId = str("revanced_queue_manager_check_failed_playlist_id");
+            checkFailedQueue = str("revanced_queue_manager_check_failed_queue");
+            checkFailedVideoId = str("revanced_queue_manager_check_failed_video_id");
+            checkFailedGeneric = str("revanced_queue_manager_check_failed_generic");
+
+            fetchFailedAdd = str("revanced_queue_manager_fetch_failed_add");
+            fetchFailedCreate = str("revanced_queue_manager_fetch_failed_create");
+            fetchFailedDelete = str("revanced_queue_manager_fetch_failed_delete");
+            fetchFailedRemove = str("revanced_queue_manager_fetch_failed_remove");
+            fetchFailedSave = str("revanced_queue_manager_fetch_failed_save");
+            fetchFailedVideoInformation =
+                    str("revanced_queue_manager_fetch_failed_video_information");
+
+            fetchSucceededAdd = str("revanced_queue_manager_fetch_succeeded_add");
+            fetchSucceededCreate = str("revanced_queue_manager_fetch_succeeded_create");
+            fetchSucceededDelete = str("revanced_queue_manager_fetch_succeeded_delete");
+            fetchSucceededRemove = str("revanced_queue_manager_fetch_succeeded_remove");
+            fetchSucceededSave = str("revanced_queue_manager_fetch_succeeded_save");
+        }
+    }
+
+    @GuardedBy("itself")
+    private static final BidiMap<String, String> lastVideoIds = new DualHashBidiMap<>();
+
+    /**
+     * Injection point.
+     */
+    public static boolean onKeyLongPress(int keyCode) {
+        if (!QUEUE_MANAGER || keyCode != KeyEvent.KEYCODE_BACK) {
+            return false;
+        }
+        if (getContext() == null) {
+            handleCheckError(checkFailedQueue);
+            return false;
+        }
+        prepareDialogBuilder("");
+        return true;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void removeFromQueue(@Nullable String setVideoId) {
+        if (!TextUtils.isEmpty(setVideoId)) {
+            synchronized (lastVideoIds) {
+                String videoId = lastVideoIds.inverseBidiMap().get(setVideoId);
+                if (videoId != null) {
+                    lastVideoIds.remove(videoId, setVideoId);
+                    EditPlaylistRequest.clearVideoId(videoId);
+                    Logger.printDebug(() -> "Video removed by YouTube flyout menu: " + videoId);
+                }
+            }
+        }
+    }
+
+    /**
+     * Invoked by extension.
+     */
+    public static void prepareDialogBuilder(@NonNull String currentVideoId) {
+        if (AuthUtils.isNotLoggedIn()) {
+            handleCheckError(checkFailedAuth);
+            return;
+        }
+        if (currentVideoId.isEmpty()) {
+            buildBottomSheetDialog(QueueManager.noVideoIdQueueEntries);
+        } else {
+            videoId = currentVideoId;
+            synchronized (lastVideoIds) {
+                QueueManager[] customActionsEntries;
+                boolean canReload = !PlayerType.getCurrent().isNoneOrHidden() &&
+                        lastVideoIds.get(VideoInformation.getVideoId()) != null;
+                if (playlistId.isEmpty() || lastVideoIds.get(currentVideoId) == null) {
+                    if (canReload) {
+                        customActionsEntries = QueueManager.addToQueueWithReloadEntries;
+                    } else {
+                        customActionsEntries = QueueManager.addToQueueEntries;
+                    }
+                } else {
+                    if (canReload) {
+                        customActionsEntries = QueueManager.removeFromQueueWithReloadEntries;
+                    } else {
+                        customActionsEntries = QueueManager.removeFromQueueEntries;
+                    }
+                }
+
+                buildBottomSheetDialog(customActionsEntries);
+            }
+        }
+    }
+
+    /**
+     * Creates a fresh temporary queue from the supplied videos and opens it.
+     *
+     * @param searchVideoIds video IDs in the order in which they should appear in the queue
+     */
+    public static void addVideosToQueueAndOpen(@NonNull String[] searchVideoIds) {
+        if (AuthUtils.isNotLoggedIn()) {
+            handleCheckError(checkFailedAuth);
+            return;
+        }
+        if (getContext() == null) {
+            handleCheckError(checkFailedQueue);
+            return;
+        }
+
+        Set<String> uniqueVideoIds = new LinkedHashSet<>();
+        for (String searchVideoId : searchVideoIds) {
+            if (!TextUtils.isEmpty(searchVideoId) && searchVideoId.length() == 11) {
+                uniqueVideoIds.add(searchVideoId);
+            }
+        }
+        if (uniqueVideoIds.isEmpty()) {
+            handleCheckError(checkFailedVideoId);
+            return;
+        }
+
+        List<String> videoIds = new ArrayList<>(uniqueVideoIds);
+        String firstVideoId = videoIds.get(0);
+        Map<String, String> requestHeader = AuthUtils.getRequestHeader();
+        try {
+            Logger.printDebug(() -> "Creating temporary queue from " + videoIds.size() + " videos");
+            CreatePlaylistRequest.fetchRequestIfNeeded(videoIds, requestHeader);
+            runOnMainThreadDelayed(() -> {
+                CreatePlaylistRequest request = CreatePlaylistRequest.getRequestForVideoIds(videoIds);
+                if (request != null) {
+                    Pair<String, String> playlistIds = request.getPlaylistId();
+                    if (playlistIds != null) {
+                        String createdPlaylistId = playlistIds.getFirst();
+                        String setVideoId = playlistIds.getSecond();
+                        if (!TextUtils.isEmpty(createdPlaylistId) && !TextUtils.isEmpty(setVideoId)) {
+                            playlistId = createdPlaylistId;
+                            synchronized (lastVideoIds) {
+                                lastVideoIds.clear();
+                                lastVideoIds.put(firstVideoId, setVideoId);
+                            }
+                            EditPlaylistRequest.clear();
+                            showToast(fetchSucceededCreate);
+                            openQueue();
+                            return;
+                        }
+                    }
+                }
+                showToast(fetchFailedCreate);
+            }, DELAY_MILLISECONDS);
+        } catch (Exception ex) {
+            Logger.printException(() -> "addVideosToQueueAndOpen failure", ex);
+            showToast(fetchFailedCreate);
+        }
+    }
+
+    private static void buildBottomSheetDialog(QueueManager[] queueManagerEntries) {
+        Context mContext = getContext();
+        LinearLayout mainLayout = ExtendedUtils.prepareMainLayout(mContext);
+        Map<LinearLayout, Runnable> actionsMap = new LinkedHashMap<>(queueManagerEntries.length);
+
+        for (QueueManager queueManager : queueManagerEntries) {
+            String title = queueManager.label;
+            int iconId = queueManager.drawableId;
+            Runnable action = queueManager.onClickAction;
+            LinearLayout itemLayout = ExtendedUtils.createItemLayout(mContext, title, iconId);
+            actionsMap.putIfAbsent(itemLayout, action);
+            mainLayout.addView(itemLayout);
+        }
+
+        ExtendedUtils.showBottomSheetDialog(mContext, mainLayout, actionsMap);
+    }
+
+    private static void fetchQueue(boolean remove, boolean openPlaylist,
+                                   boolean openVideo, boolean reload) {
+        try {
+            String currentPlaylistId = playlistId;
+            String currentVideoId = videoId;
+            Logger.printDebug(() -> "fetchQueue called: remove=" + remove
+                    + ", openPlaylist=" + openPlaylist
+                    + ", openVideo=" + openVideo
+                    + ", reload=" + reload
+                    + ", currentPlaylistId=" + currentPlaylistId
+                    + ", currentVideoId=" + currentVideoId);
+            synchronized (lastVideoIds) {
+                if (currentPlaylistId.isEmpty()) { // Queue is empty, create new playlist.
+                    Logger.printDebug(() -> "fetchQueue: currentPlaylistId is empty, starting CreatePlaylistRequest");
+                    CreatePlaylistRequest.fetchRequestIfNeeded(currentVideoId, AuthUtils.getRequestHeader());
+                    runOnMainThreadDelayed(() -> {
+                        Logger.printDebug(() -> "fetchQueue delayed callback (create) running. currentVideoId=" + currentVideoId);
+                        CreatePlaylistRequest request = CreatePlaylistRequest.getRequestForVideoId(currentVideoId);
+                        Logger.printDebug(() -> "fetchQueue delayed callback (create): request=" + request);
+                        if (request != null) {
+                            Pair<String, String> playlistIds = request.getPlaylistId();
+                            Logger.printDebug(() -> "fetchQueue delayed callback (create): playlistIds=" + playlistIds);
+                            if (playlistIds != null) {
+                                String createdPlaylistId = playlistIds.getFirst();
+                                String setVideoId = playlistIds.getSecond();
+                                Logger.printDebug(() -> "fetchQueue delayed callback (create): createdPlaylistId="
+                                        + createdPlaylistId + ", setVideoId=" + setVideoId);
+                                if (createdPlaylistId != null && setVideoId != null) {
+                                    playlistId = createdPlaylistId;
+                                    lastVideoIds.putIfAbsent(currentVideoId, setVideoId);
+                                    showToast(fetchSucceededCreate);
+                                    Logger.printInfo(() -> "Queue successfully created, playlistId: "
+                                            + createdPlaylistId + ", setVideoId: " + setVideoId);
+                                    if (openPlaylist) {
+                                        openQueue(currentVideoId, openVideo, reload);
+                                    }
+                                    return;
+                                }
+                            }
+                        }
+                        Logger.printInfo(() -> "fetchQueue delayed callback (create): failed to create queue. request=" + request);
+                        showToast(fetchFailedCreate);
+                    }, DELAY_MILLISECONDS);
+                } else { // Queue is not empty, add or remove video.
+                    String setVideoId = lastVideoIds.get(currentVideoId);
+                    Logger.printDebug(() -> "fetchQueue: currentPlaylistId is not empty, setVideoId="
+                            + setVideoId + ", starting EditPlaylistRequest");
+                    EditPlaylistRequest.fetchRequestIfNeeded(currentVideoId, currentPlaylistId, setVideoId, AuthUtils.getRequestHeader());
+
+                    runOnMainThreadDelayed(() -> {
+                        Logger.printDebug(() -> "fetchQueue delayed callback (edit) running. currentVideoId=" + currentVideoId);
+                        EditPlaylistRequest request = EditPlaylistRequest.getRequestForVideoId(currentVideoId);
+                        Logger.printDebug(() -> "fetchQueue delayed callback (edit): request=" + request);
+                        if (request != null) {
+                            String fetchedSetVideoId = request.getResult();
+                            Logger.printDebug(() -> "fetchQueue delayed callback (edit): fetchedSetVideoId=" + fetchedSetVideoId);
+                            if (remove) { // Remove from queue.
+                                if ("".equals(fetchedSetVideoId)) {
+                                    lastVideoIds.remove(currentVideoId, setVideoId);
+                                    EditPlaylistRequest.clearVideoId(currentVideoId);
+                                    showToast(fetchSucceededRemove);
+                                    if (openPlaylist) {
+                                        openQueue(currentVideoId, openVideo, reload);
+                                    }
+                                    return;
+                                }
+                                showToast(fetchFailedRemove);
+                            } else { // Add to queue.
+                                if (fetchedSetVideoId != null && !fetchedSetVideoId.isEmpty()) {
+                                    lastVideoIds.putIfAbsent(currentVideoId, fetchedSetVideoId);
+                                    EditPlaylistRequest.clearVideoId(currentVideoId);
+                                    showToast(fetchSucceededAdd);
+                                    Logger.printInfo(() -> "Video successfully added, setVideoId: " + fetchedSetVideoId);
+                                    if (openPlaylist) {
+                                        openQueue(currentVideoId, openVideo, reload);
+                                    }
+                                    return;
+                                }
+                                Logger.printInfo(() -> "fetchQueue delayed callback (edit): failed to add. fetchedSetVideoId=" + fetchedSetVideoId);
+                                showToast(fetchFailedAdd);
+                            }
+                        }
+                    }, DELAY_MILLISECONDS);
+                }
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "fetchQueue failure", ex);
+        }
+    }
+
+    private static void summarizeVideo() {
+        Context mContext = getContext();
+        if (mContext == null) {
+            handleCheckError(checkFailedQueue);
+            return;
+        }
+        String currentVideoId = videoId;
+        if (TextUtils.isEmpty(currentVideoId)) {
+            handleCheckError(checkFailedVideoId);
+            return;
+        }
+
+        String videoUrl = "https://www.youtube.com/watch?v=" + currentVideoId;
+        GeminiManager.getInstance().startSummarization(mContext, videoUrl);
+    }
+
+    private static void fetchVideoDetails() {
+        try {
+            String currentVideoId = videoId;
+            VideoDetailsRequest.fetchRequestIfNeeded(currentVideoId, AuthUtils.getRequestHeader());
+            runOnMainThreadDelayed(() -> {
+                VideoDetailsRequest request = VideoDetailsRequest.getRequestForVideoId(currentVideoId);
+                if (request != null) {
+                    String message = request.getMessage();
+                    if (message != null) {
+                        Context mContext = getContext();
+                        CustomDialog.create(
+                                // context
+                                mContext,
+                                // title
+                                str("revanced_queue_manager_video_information"),
+                                // message
+                                message,
+                                // editText
+                                null,
+                                // okButtonText
+                                null,
+                                // onOkClick
+                                () -> {
+                                },
+                                // onCancelClick
+                                null,
+                                // neutralButtonText
+                                str("revanced_settings_import_copy"),
+                                // onNeutralClick
+                                () -> Utils.setClipboard(
+                                        message,
+                                        str("revanced_share_copy_video_information_success")
+                                ),
+                                // dismissDialogOnNeutralClick
+                                true
+                        ).first.show();
+                        return;
+                    }
+                }
+                showToast(fetchFailedVideoInformation);
+            }, DELAY_MILLISECONDS);
+        } catch (Exception ex) {
+            Logger.printException(() -> "fetchVideoDetails failure", ex);
+        }
+    }
+
+    private static void saveToPlaylist() {
+        String currentPlaylistId = playlistId;
+        if (currentPlaylistId.isEmpty()) {
+            handleCheckError(checkFailedQueue);
+            return;
+        }
+        try {
+            GetPlaylistsRequest.fetchRequestIfNeeded(currentPlaylistId, AuthUtils.getRequestHeader());
+            runOnMainThreadDelayed(() -> {
+                GetPlaylistsRequest request = GetPlaylistsRequest.getRequestForPlaylistId(currentPlaylistId);
+                if (request != null) {
+                    Context mContext = getContext();
+                    Pair<String, String>[] playlists = request.getPlaylists();
+                    if (playlists != null) {
+                        LinearLayout mainLayout = ExtendedUtils.prepareMainLayout(mContext);
+                        Map<LinearLayout, Runnable> actionsMap = new LinkedHashMap<>(playlists.length);
+                        int libraryIconId = QueueManager.SAVE_QUEUE.drawableId;
+
+                        for (Pair<String, String> playlist : playlists) {
+                            String playlistId = playlist.getFirst();
+                            String title = playlist.getSecond();
+                            Runnable action = () -> saveToPlaylist(playlistId, title);
+                            LinearLayout itemLayout = ExtendedUtils.createItemLayout(mContext, title, libraryIconId);
+                            actionsMap.putIfAbsent(itemLayout, action);
+                            mainLayout.addView(itemLayout);
+                        }
+
+                        ExtendedUtils.showBottomSheetDialog(mContext, mainLayout, actionsMap);
+                        GetPlaylistsRequest.clear();
+                    }
+                }
+            }, DELAY_MILLISECONDS);
+        } catch (Exception ex) {
+            Logger.printException(() -> "saveToPlaylist failure", ex);
+        }
+    }
+
+    private static void saveToPlaylist(@Nullable String libraryId, @Nullable String libraryTitle) {
+        try {
+            if (TextUtils.isEmpty(libraryId)) {
+                handleCheckError(checkFailedPlaylistId);
+                return;
+            }
+            SavePlaylistRequest.fetchRequestIfNeeded(playlistId, libraryId, AuthUtils.getRequestHeader());
+
+            runOnMainThreadDelayed(() -> {
+                SavePlaylistRequest request = SavePlaylistRequest.getRequestForLibraryId(libraryId);
+                if (request != null) {
+                    Boolean result = request.getResult();
+                    if (BooleanUtils.isTrue(result)) {
+                        showToast(String.format(fetchSucceededSave, libraryTitle));
+                        SavePlaylistRequest.clear();
+                        return;
+                    }
+                    showToast(fetchFailedSave);
+                }
+            }, DELAY_MILLISECONDS);
+        } catch (Exception ex) {
+            Logger.printException(() -> "saveToPlaylist failure", ex);
+        }
+    }
+
+    private static void removeQueue() {
+        String currentPlaylistId = playlistId;
+        if (currentPlaylistId.isEmpty()) {
+            handleCheckError(checkFailedQueue);
+            return;
+        }
+        try {
+            DeletePlaylistRequest.fetchRequestIfNeeded(currentPlaylistId, AuthUtils.getRequestHeader());
+            runOnMainThreadDelayed(() -> {
+                DeletePlaylistRequest request = DeletePlaylistRequest.getRequestForPlaylistId(currentPlaylistId);
+                if (request != null) {
+                    Boolean result = request.getResult();
+                    if (BooleanUtils.isTrue(result)) {
+                        playlistId = "";
+                        synchronized (lastVideoIds) {
+                            lastVideoIds.clear();
+                        }
+                        CreatePlaylistRequest.clear();
+                        DeletePlaylistRequest.clear();
+                        EditPlaylistRequest.clear();
+                        GetPlaylistsRequest.clear();
+                        SavePlaylistRequest.clear();
+                        showToast(fetchSucceededDelete);
+                        return;
+                    }
+                }
+                showToast(fetchFailedDelete);
+            }, DELAY_MILLISECONDS);
+        } catch (Exception ex) {
+            Logger.printException(() -> "removeQueue failure", ex);
+        }
+    }
+
+    private static void downloadVideo() {
+        String currentVideoId = videoId;
+        launchVideoExternalDownloader(currentVideoId);
+    }
+
+    private static void openQueue() {
+        openQueue("", false, false);
+    }
+
+    private static void openQueue(String currentVideoId, boolean openVideo, boolean reload) {
+        String currentPlaylistId = playlistId;
+        if (currentPlaylistId.isEmpty()) {
+            handleCheckError(checkFailedQueue);
+            return;
+        }
+        if (openVideo) {
+            if (TextUtils.isEmpty(currentVideoId)) {
+                handleCheckError(checkFailedVideoId);
+                return;
+            }
+            // Open a video from a playlist
+            if (reload) {
+                // Since the Queue is not automatically synced, a 'reload' action has been added as a workaround.
+                // The 'reload' action simply closes the video and reopens it.
+                // It is important to close the video, otherwise the Queue will not be updated.
+                reloadVideo(VideoInformation.getVideoId(), currentPlaylistId);
+            } else {
+                openPlaylist(currentPlaylistId, currentVideoId);
+            }
+        } else {
+            // Open a playlist
+            openPlaylist(currentPlaylistId);
+        }
+    }
+
+    private static void handleCheckError(String reason) {
+        showToast(String.format(checkFailedGeneric, reason));
+    }
+
+    private static void showToast(String reason) {
+        Utils.showToastShort(reason);
+    }
+
+    private enum QueueManager {
+        ADD_TO_QUEUE(
+                "revanced_queue_manager_add_to_queue",
+                "yt_outline_list_add_black_24",
+                "yt_outline_experimental_playlist_add_vd_theme_24",
+                () -> fetchQueue(false, false, false, false)
+        ),
+        ADD_TO_QUEUE_AND_OPEN_QUEUE(
+                "revanced_queue_manager_add_to_queue_and_open_queue",
+                "yt_outline_list_add_black_24",
+                "yt_outline_experimental_playlist_add_vd_theme_24",
+                () -> fetchQueue(false, true, false, false)
+        ),
+        ADD_TO_QUEUE_AND_PLAY_VIDEO(
+                "revanced_queue_manager_add_to_queue_and_play_video",
+                "yt_outline_list_play_arrow_black_24",
+                "yt_outline_experimental_playlist_vd_theme_24",
+                () -> fetchQueue(false, true, true, false)
+        ),
+        // The circle reload icon is missing on 19.28, while this 24dp repeat icon exists on 19.28 and 20.51.
+        ADD_TO_QUEUE_AND_RELOAD_VIDEO(
+                "revanced_queue_manager_add_to_queue_and_reload_video",
+                "yt_outline_arrow_repeat_black_24",
+                "yt_outline_experimental_replay_vd_theme_24",
+                () -> fetchQueue(false, true, true, true)
+        ),
+        REMOVE_FROM_QUEUE(
+                "revanced_queue_manager_remove_from_queue",
+                "yt_outline_trash_can_black_24",
+                "yt_outline_experimental_circle_slash_vd_theme_24",
+                () -> fetchQueue(true, false, false, false)
+        ),
+        REMOVE_FROM_QUEUE_AND_OPEN_QUEUE(
+                "revanced_queue_manager_remove_from_queue_and_open_queue",
+                "yt_outline_trash_can_black_24",
+                "yt_outline_experimental_circle_slash_vd_theme_24",
+                () -> fetchQueue(true, true, false, false)
+        ),
+        REMOVE_FROM_QUEUE_AND_RELOAD_VIDEO(
+                "revanced_queue_manager_remove_from_queue_and_reload_video",
+                "yt_outline_arrow_repeat_black_24",
+                "yt_outline_experimental_replay_vd_theme_24",
+                () -> fetchQueue(true, true, true, true)
+        ),
+        OPEN_QUEUE(
+                "revanced_queue_manager_open_queue",
+                "yt_outline_list_view_black_24",
+                "yt_outline_experimental_queue_vd_theme_24",
+                PlaylistPatch::openQueue
+        ),
+        // For some reason, the 'playlist/delete' endpoint is unavailable.
+        REMOVE_QUEUE(
+                "revanced_queue_manager_remove_queue",
+                "yt_outline_slash_circle_left_black_24",
+                PlaylistPatch::removeQueue
+        ),
+        SAVE_QUEUE(
+                "revanced_queue_manager_save_queue",
+                "yt_outline_bookmark_black_24",
+                "yt_outline_experimental_bookmark_vd_theme_24",
+                PlaylistPatch::saveToPlaylist
+        ),
+        SUMMARIZE_VIDEO(
+                "revanced_overlay_button_gemini_summarize",
+                "revanced_gemini_button",
+                PlaylistPatch::summarizeVideo
+        ),
+        SHOW_ORIGINAL_VIDEO_INFORMATION(
+                "revanced_queue_manager_show_original_video_information",
+                "yt_outline_info_circle_black_24",
+                "yt_outline_experimental_info_circle_black_24",
+                PlaylistPatch::fetchVideoDetails
+        ),
+        EXTERNAL_DOWNLOADER(
+                "revanced_shorts_custom_actions_external_downloader_label",
+                "yt_outline_download_black_24",
+                "yt_outline_experimental_download_black_24",
+                PlaylistPatch::downloadVideo
+        );
+
+        public final int drawableId;
+
+        @NonNull
+        public final String label;
+
+        @NonNull
+        public final Runnable onClickAction;
+
+        QueueManager(@NonNull String label, @NonNull String icon, @NonNull Runnable onClickAction) {
+            this(label, icon, icon, onClickAction);
+        }
+
+        /**
+         * Uses the icon style selected by YouTube's bold-icons feature flag and user override.
+         */
+        QueueManager(@NonNull String label, @NonNull String icon, @NonNull String boldIcon,
+                     @NonNull Runnable onClickAction) {
+            this.drawableId = ResourceUtils.getDrawableIdentifier(
+                    USE_BOLD_ICONS ? boldIcon : icon);
+            this.label = ResourceUtils.getString(label);
+            this.onClickAction = onClickAction;
+        }
+
+        public static final QueueManager[] addToQueueEntries = {
+                ADD_TO_QUEUE,
+                ADD_TO_QUEUE_AND_OPEN_QUEUE,
+                ADD_TO_QUEUE_AND_PLAY_VIDEO,
+                OPEN_QUEUE,
+                //REMOVE_QUEUE,
+                EXTERNAL_DOWNLOADER,
+                SAVE_QUEUE,
+                SUMMARIZE_VIDEO,
+                SHOW_ORIGINAL_VIDEO_INFORMATION,
+        };
+
+        public static final QueueManager[] addToQueueWithReloadEntries = {
+                ADD_TO_QUEUE,
+                ADD_TO_QUEUE_AND_OPEN_QUEUE,
+                ADD_TO_QUEUE_AND_PLAY_VIDEO,
+                ADD_TO_QUEUE_AND_RELOAD_VIDEO,
+                OPEN_QUEUE,
+                //REMOVE_QUEUE,
+                EXTERNAL_DOWNLOADER,
+                SAVE_QUEUE,
+                SUMMARIZE_VIDEO,
+                SHOW_ORIGINAL_VIDEO_INFORMATION,
+        };
+
+        public static final QueueManager[] removeFromQueueEntries = {
+                REMOVE_FROM_QUEUE,
+                REMOVE_FROM_QUEUE_AND_OPEN_QUEUE,
+                OPEN_QUEUE,
+                //REMOVE_QUEUE,
+                EXTERNAL_DOWNLOADER,
+                SAVE_QUEUE,
+                SUMMARIZE_VIDEO,
+                SHOW_ORIGINAL_VIDEO_INFORMATION,
+        };
+
+        public static final QueueManager[] removeFromQueueWithReloadEntries = {
+                REMOVE_FROM_QUEUE,
+                REMOVE_FROM_QUEUE_AND_OPEN_QUEUE,
+                REMOVE_FROM_QUEUE_AND_RELOAD_VIDEO,
+                OPEN_QUEUE,
+                //REMOVE_QUEUE,
+                EXTERNAL_DOWNLOADER,
+                SAVE_QUEUE,
+                SUMMARIZE_VIDEO,
+                SHOW_ORIGINAL_VIDEO_INFORMATION,
+        };
+
+        public static final QueueManager[] noVideoIdQueueEntries = {
+                OPEN_QUEUE,
+                //REMOVE_QUEUE,
+                SAVE_QUEUE,
+        };
+    }
+}

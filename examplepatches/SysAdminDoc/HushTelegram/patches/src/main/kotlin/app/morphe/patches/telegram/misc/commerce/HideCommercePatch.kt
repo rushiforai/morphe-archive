@@ -17,6 +17,7 @@ import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
 import app.morphe.patches.telegram.misc.extension.handleTargets
 import app.morphe.patches.telegram.misc.extension.parameterRegisterNumber
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireParameterIntact
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
@@ -102,6 +103,9 @@ val hideCommercePatch = bytecodePatch(
         // Every operand, identity and cached path is proved before the first instruction changes.
         val plan = resolveCommerceHooks()
         val stickers = resolvePremiumStickerHooks()
+        val emoji = resolveEmojiStatus()
+        val icons = resolvePremiumIcons()
+        val local = resolveLocalEmojiStatus()
         shape(plan.hooks.isNotEmpty() || stickers.isNotEmpty(), "no sales presentation target")
         if (plan.giftTabId != null) writeStub(COMMERCE, "giftTabId", 1,
             "const/16 v0, ${plan.giftTabId}\nreturn v0")
@@ -140,6 +144,24 @@ val hideCommercePatch = bytecodePatch(
                 }
                 null
             }
+        }
+        if (emoji.missing == null) {
+            emoji.apply()
+            enableCapability("commerceEmojiStatus")
+        } else {
+            patchLog.warning("$PATCH: ${emoji.missing}. The patch goes on without the emoji status switch.")
+        }
+        if (icons.missing == null) {
+            icons.apply()
+            enableCapability("commercePremiumIcons")
+        } else {
+            patchLog.warning("$PATCH: ${icons.missing}. The patch goes on without the Premium app icon switch.")
+        }
+        if (local.missing == null) {
+            local.apply(this)
+            enableCapability("commerceLocalEmojiStatus")
+        } else {
+            patchLog.warning("$PATCH: ${local.missing}. The patch goes on without the local emoji status switch.")
         }
         enableStatus("hideCommerce")
     }
@@ -580,7 +602,7 @@ private fun profileEdits(method: MutableMethod, gifts: Int, hasTab: String, clea
         body[it + 1].namedRegisters() == listOf(first) }
     val cachedReceiver = body[appends.last() - 1].namedRegisters().first()
     shape(cachedBox != null && first != tabIndex && cachedReceiver !in listOf(first, tabIndex) &&
-        body.getOrNull(cachedBox!! - 1)?.opcode == Opcode.NEW_INSTANCE &&
+        body.getOrNull(cachedBox - 1)?.opcode == Opcode.NEW_INSTANCE &&
         body[cachedBox - 1].reference() == "Landroid/util/Pair;" &&
         body[cachedBox - 1].namedRegisters() == listOf(cachedReceiver) &&
         flow.preservesValue(identitySource, cachedLabelBranch, identityOperand) &&
@@ -603,7 +625,7 @@ private fun profileEdits(method: MutableMethod, gifts: Int, hasTab: String, clea
     val freshVisible = body[fresh].namedRegisters().single()
     val copy = (cached + 3 until fresh).lastOrNull { body[it].opcode in MOVES &&
         body[it].namedRegisters() == listOf(freshVisible, visible) }
-    shape(copy != null && (copy!! + 1 until fresh).none { body[it].writes(freshVisible) } && visible <= 255,
+    shape(copy != null && (copy + 1 until fresh).none { body[it].writes(freshVisible) } && visible <= 255,
         "cached and fresh Gifts presence do not share one decision")
     return appends.map { appendEdit(method, it, "addProfileTab") } + CommerceEdit(method, cached + 2,
         "invoke-static/range {v$visible .. v$visible}, $COMMERCE->showGiftsTab(Z)Z\nmove-result v$visible")

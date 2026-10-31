@@ -361,9 +361,13 @@ public class BadDexFixture {
 
     // The host's methods, clean.
 
-    /** Where the one feed guard goes. Instance method: v0 this, v1 and v2 the arguments. */
+    /**
+     * Where the one feed guard goes. Instance method: v0 this, v1 and v2 the arguments. The second
+     * is the edge, typed as Facebook's is, because the guard hands it to the helper, which takes
+     * a GraphQLFeedUnitEdge, and ART refuses an Object there.
+     */
     private static Method feedEdge(ImmutableMethodImplementation implementation) {
-        return define(HOST, "addNewEdgeToCollection", "V", false, implementation, OBJECT, OBJECT);
+        return define(HOST, "addNewEdgeToCollection", "V", false, implementation, OBJECT, FEED_UNIT_EDGE);
     }
 
     /**
@@ -712,17 +716,23 @@ public class BadDexFixture {
     }
 
     /**
-     * Facebook's Follow check for a reel's author row, static: v0 free, v1 the session. [prefix]
-     * comes first, then the two surface names it holds, then Facebook's own yes. Beside it, two of
-     * the other methods naming both surfaces, as nineteen do on 580: an instance method taking the
-     * session and answering a boolean, with [instancePrefix] first, and a static one taking a
-     * string. Only the check's shape tells it from them.
+     * Facebook's Follow check for a reel's author row, an instance method of a singleton on 585: v0
+     * free, v1 this, v2 the session, then a string and two flags. [prefix] comes first, then the two
+     * surface names it holds, then Facebook's own yes. Beside it, three of the other methods naming
+     * both surfaces, as nineteen do on 580: an instance method taking the session, a string and three
+     * flags, as 585's video check does, a static method taking the session and answering a boolean,
+     * the check's shape through 584, with [staticPrefix] first, and a static one taking a string.
+     * Only the check's shape tells it from them.
      */
-    private static ClassDef followCheck(List<Instruction> prefix, List<Instruction> instancePrefix) {
+    private static ClassDef followCheck(List<Instruction> prefix, List<Instruction> staticPrefix) {
         return new ImmutableClassDef(FOLLOW_CHECK, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
                 Arrays.asList(
-                        define(FOLLOW_CHECK, "offersFollow", "Z", true, surfaceCheck(2, prefix), FB_USER_SESSION),
-                        define(FOLLOW_CHECK, "offersFollowHere", "Z", false, surfaceCheck(3, instancePrefix), FB_USER_SESSION),
+                        define(FOLLOW_CHECK, "offersFollow", "Z", false, surfaceCheck(6, prefix), FB_USER_SESSION,
+                                "Ljava/lang/String;", "Z", "Z"),
+                        define(FOLLOW_CHECK, "offersFollowOnVideo", "Z", false,
+                                surfaceCheck(7, Collections.<Instruction>emptyList()), FB_USER_SESSION,
+                                "Ljava/lang/String;", "Z", "Z", "Z"),
+                        define(FOLLOW_CHECK, "offersFollowHere", "Z", true, surfaceCheck(2, staticPrefix), FB_USER_SESSION),
                         define(FOLLOW_CHECK, "surfaceAllows", "Z", true, surfaceCheck(2, Collections.<Instruction>emptyList()),
                                 "Ljava/lang/String;")));
     }
@@ -1007,16 +1017,20 @@ public class BadDexFixture {
     }
 
     /**
-     * The Reels menu's speed toast: its show, a static method taking a context and the speed (v0
-     * and v1 free, v2 the context, v3 the speed), holding the selector's name with [showPrefix]
-     * first, and an instance method of the same parameters holding it too (v3 the context, v4 the
-     * speed), with [instancePrefix] first, as Facebook has only the static one.
+     * The Reels menu's speed toast as 585 has it: a Runnable keeping the picked speed in a field,
+     * whose show (Facebook's run()) is an instance method taking nothing (v0 and v1 free, v2 this),
+     * holding the selector's name with [showPrefix] first. Beside it, a static method taking a
+     * context and the speed holding it too (v3 the context, v4 the speed), the toast's shape through
+     * 584, with [staticPrefix] first, as Facebook has only the Runnable now.
      */
-    private static ClassDef speedToast(List<Instruction> showPrefix, List<Instruction> instancePrefix) {
-        return new ImmutableClassDef(SPEED_TOAST, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+    private static ClassDef speedToast(List<Instruction> showPrefix, List<Instruction> staticPrefix) {
+        return new ImmutableClassDef(SPEED_TOAST, AccessFlags.PUBLIC.getValue(), OBJECT,
+                Collections.singletonList("Ljava/lang/Runnable;"), null, null,
+                Collections.singletonList(new ImmutableField(SPEED_TOAST, "speed", "F", AccessFlags.FINAL.getValue(),
+                        null, null, null)),
                 Arrays.asList(
-                        define(SPEED_TOAST, "show", "V", true, toastBody(showPrefix, 4), CONTEXT, "F"),
-                        define(SPEED_TOAST, "showOver", "V", false, toastBody(instancePrefix, 5), CONTEXT, "F")));
+                        define(SPEED_TOAST, "show", "V", false, toastBody(showPrefix, 3)),
+                        define(SPEED_TOAST, "showOver", "V", true, toastBody(staticPrefix, 5), CONTEXT, "F")));
     }
 
     /** [prefix], then the selector's name in v0 and a return, in [registers] registers. */
@@ -1028,18 +1042,26 @@ public class BadDexFixture {
         return new ImmutableMethodImplementation(registers, instructions, null, null);
     }
 
-    /** What Keep the reel speed puts first in the toast: the speed in [register] handed over as a range. */
+    /** The speed in [register] handed over as a range, as the hook does in the 584 toast. */
     private static List<Instruction> toastHook(int register) {
         return Collections.<Instruction>singletonList(
                 new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, register, 1, PICKED));
     }
 
-    /** The toast's hook after a branch on the context, not first. */
+    /** What Keep the reel speed puts first in the 585 toast: its speed field read into v1 and handed over. */
+    private static List<Instruction> runHook() {
+        List<Instruction> hook = new ArrayList<>();
+        hook.add(new ImmutableInstruction22c(Opcode.IGET, 1, 2, new ImmutableFieldReference(SPEED_TOAST, "speed", "F")));
+        hook.addAll(toastHook(1));
+        return hook;
+    }
+
+    /** The toast's hook after a branch on the Runnable, not first. */
     private static List<Instruction> lateToastHook() {
         List<Instruction> late = new ArrayList<>();
         late.add(ifEqz(2, 3));                                            // 0 -> 3
         late.add(op(Opcode.NOP));                                         // 2
-        late.addAll(toastHook(3));                                        // 3
+        late.addAll(runHook());                                           // 3
         return late;
     }
 
@@ -1766,7 +1788,7 @@ public class BadDexFixture {
                         Collections.<Instruction>emptyList()), messengerIcon(),
                 reelLikeHelper(likeHook(), Collections.<Instruction>emptyList()),
                 attachmentTap(tapHook(), Collections.<Instruction>emptyList()), doubleTapLike(),
-                speedToast(toastHook(3), Collections.<Instruction>emptyList()), reelSpeed(),
+                speedToast(runHook(), Collections.<Instruction>emptyList()), reelSpeed(),
                 jewelController(dotHook(4), Collections.<Instruction>emptyList()), reelsTabDot(),
                 tabLinks(true, true, true), tabBarFilter(), postText(FILLED_STUB, FILLED_STUB),
                 postSources(FILLED_STUB, FILLED_STUB), mailbox(typingHook(), 1), iconBadger(iconHook()), tabBadges()));
@@ -1915,6 +1937,44 @@ public class BadDexFixture {
         return withStaticHost(new ImmutableMethodImplementation(6, instructions, null, null));
     }
 
+    /** A host method taking the host, the way the comment faces copy took the component. */
+    private static final ImmutableMethodReference TAKES_FEED = method(HOST, "takesFeed", "V", HOST);
+    /** A flag the host keeps, the way the comment faces flag sat on the component. */
+    private static final ImmutableFieldReference FEED_FLAG = new ImmutableFieldReference(HOST, "flag", "Z");
+    /** A class declaring one flag, and a subclass of it declaring another. */
+    private static final String FEED_MID = "Lfixture/FeedMid;";
+    private static final String FEED_SUB = "Lfixture/FeedSub;";
+
+    private static ClassDef flagClass(String type, String superclass, String flag) {
+        return new ImmutableClassDef(type, AccessFlags.PUBLIC.getValue(), superclass, null, null, null,
+                Collections.singletonList(new ImmutableField(type, flag, "Z", AccessFlags.PUBLIC.getValue(), null, null, null)),
+                null);
+    }
+
+    /**
+     * staticHost casting its object argument, v0, to [type], then [then] from 2 with v1 and v2
+     * (the long) free to write, beside FeedMid and FeedSub.
+     */
+    private static List<ClassDef> castThen(String type, Instruction... then) {
+        List<Instruction> instructions = new ArrayList<>();
+        instructions.add(new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference(type)));
+        instructions.addAll(Arrays.asList(then));
+        return replaced(withStaticHost(new ImmutableMethodImplementation(3, instructions, null, null)),
+                flagClass(FEED_MID, OBJECT, "kept"), flagClass(FEED_SUB, FEED_MID, "own"));
+    }
+
+    /**
+     * staticHost asking whether its object argument, v0, is the host, into v1 (the long's lower
+     * half, which nothing reads after), then [branch] on that over the host taking v0.
+     */
+    private static List<ClassDef> instanceThen(Opcode branch) {
+        return withStaticHost(body(3,
+                new ImmutableInstruction22c(Opcode.INSTANCE_OF, 1, 0, new ImmutableTypeReference(HOST)), // 0
+                new ImmutableInstruction21t(branch, 1, 5),                                                 // 2 -> 7
+                invoke(TAKES_FEED, 0),                                                                     // 4
+                op(Opcode.RETURN_VOID)));                                                                  // 7
+    }
+
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
             System.err.println("usage: BadDexFixture <outDir>");
@@ -1936,6 +1996,20 @@ public class BadDexFixture {
         List<ClassDef> goodWithSecondary = new ArrayList<>(good());
         goodWithSecondary.add(secondary());
         dexes.put("good-with-secondary", goodWithSecondary);
+        // The host taken where an instance-of right above said v0 is one, which ART allows.
+        dexes.put("good-narrowed", instanceThen(Opcode.IF_EQZ));
+        // The host taken where an instance-of right above asked about an interface, which ART
+        // doesn't narrow to, so v0 keeps the host it was cast to.
+        dexes.put("good-narrowed-interface", castThen(HOST,
+                new ImmutableInstruction22c(Opcode.INSTANCE_OF, 1, 0, new ImmutableTypeReference("Ljava/io/Closeable;")), // 2
+                new ImmutableInstruction21t(Opcode.IF_EQZ, 1, 5),                                                       // 4 -> 9
+                invoke(TAKES_FEED, 0),                                                                                  // 6
+                op(Opcode.RETURN_VOID)));                                                                               // 9
+        // FeedMid's flag read off a FeedMid through a reference naming FeedSub, which ART resolves
+        // to the FeedMid that declares it.
+        dexes.put("good-inherited-field", castThen(FEED_MID,
+                new ImmutableInstruction22c(Opcode.IGET_BOOLEAN, 1, 0, new ImmutableFieldReference(FEED_SUB, "kept", "Z")), // 2
+                op(Opcode.RETURN_VOID)));                                                                                    // 4
         dexes.put("removed-method", bundle(host(feedEdge(GUARDED_FEED_EDGE), staticHost(GOOD_STATIC_HOST),
                 switchHost(7), tryHost(CLEAN_TRY), false)));
 
@@ -2201,8 +2275,10 @@ public class BadDexFixture {
                 invoke(HIDES_EDGE, 3), op(Opcode.MOVE_RESULT, 0), ifEqz(0, 3), op(Opcode.RETURN_VOID),
                 invoke(HIDES_EDGE, 3), op(Opcode.MOVE_RESULT, 0), ifEqz(0, 3), op(Opcode.RETURN_VOID),
                 op(Opcode.RETURN_VOID))));
-        // contract: the guard on another method, and the feed method left alone.
+        // contract: the guard on another method, and the feed method left alone. The cast keeps the
+        // type check out of it, so the contract is all that fails.
         dexes.put("bad-guard-elsewhere", patched(feedEdge(CLEAN_FEED_EDGE), staticHost(body(3,
+                new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference(FEED_UNIT_EDGE)),
                 invoke(HIDES_EDGE, 0), op(Opcode.MOVE_RESULT, 0), invoke(WIDE, 1, 2), op(Opcode.RETURN_VOID))),
                 switchHost(7), tryHost(CLEAN_TRY)));
         // contract: no guard at all.
@@ -2350,6 +2426,22 @@ public class BadDexFixture {
         // type: the launch lookup returns the extension's Object answer without casting it back to
         // the TabTag it's declared to return, the shape that failed Comment sheet options in 0.16.0.
         dexes.put("bad-uncast-return", replaced(good(), tabLinks(true, true, true, false)));
+        // type: a register holding another class passed where the host is taken, the shape that
+        // failed the comment faces lambda's class on Facebook 585; one of the host's fields read
+        // off it; and the host taken on the branch where an instance-of said v0 isn't one.
+        dexes.put("bad-arg-type", withStaticHost(body(3,
+                new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference(TAB_LINKS)), // 0
+                invoke(TAKES_FEED, 0),                                                                      // 2
+                op(Opcode.RETURN_VOID))));                                                                  // 5
+        dexes.put("bad-field-type", withStaticHost(body(3,
+                new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference(TAB_LINKS)), // 0
+                new ImmutableInstruction22c(Opcode.IGET_BOOLEAN, 1, 0, FEED_FLAG),                         // 2
+                op(Opcode.RETURN_VOID))));                                                                  // 4
+        dexes.put("bad-arg-type-not-instance", instanceThen(Opcode.IF_NEZ));
+        // FeedSub's own flag read off a FeedMid, which ART refuses since FeedSub declares it.
+        dexes.put("bad-subclass-field", castThen(FEED_MID,
+                new ImmutableInstruction22c(Opcode.IGET_BOOLEAN, 1, 0, new ImmutableFieldReference(FEED_SUB, "own", "Z")), // 2
+                op(Opcode.RETURN_VOID)));                                                                                   // 4
 
         // contract: each of the sources filter's story stubs left as the extension ships it.
         dexes.put("bad-post-message-stub-not-filled", replaced(good(), postText(UNFILLED_STUB, FILLED_STUB)));

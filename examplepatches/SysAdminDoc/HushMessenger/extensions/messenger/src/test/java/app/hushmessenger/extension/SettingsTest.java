@@ -86,6 +86,23 @@ public class SettingsTest {
         assertTrue(Settings.hideStories());
     }
 
+    /** The recaller's answer: true keeps the unsent message in its notification, and only Keep unsent messages asks for that. */
+    @Test @Config(sdk = {28, 36}) public void theRecallerKeepsTheNotificationOnlyWithKeepUnsentOn() {
+        Settings.activeAt.clear();
+        Settings.preferences.edit().putBoolean("keep_unsent", false).commit();
+        assertFalse(Settings.unsentRecall("mid.1"));
+        assertEquals(0, Settings.lastActive("keep_unsent"));
+        Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
+        assertFalse(Settings.unsentRecall(null));
+        assertFalse(Settings.unsentRecall(""));
+        assertTrue(Settings.unsentRecall("mid.1"));
+        assertTrue(Settings.isKeptUnsent("mid.1"));
+        assertTrue(Settings.lastActive("keep_unsent") > 0);
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        assertFalse(Settings.unsentRecall("mid.2"));
+        Settings.preferences.edit().putBoolean("paused", false).commit();
+    }
+
     @Test @Config(sdk = {28, 36}) public void legacyUnsendHelpersRetainAndLabelOnlyRecordedMessages() {
         Settings.activeAt.clear();
         Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
@@ -159,8 +176,8 @@ public class SettingsTest {
             assertTrue(choice.isChecked());
             String spoken = choice.getContentDescription().toString();
             assertTrue(spoken.contains("after someone unsends them"));
-            assertTrue(spoken.contains("Encrypted chats aren't supported"));
-            assertTrue(spoken.contains("group chats aren't tested"));
+            assertTrue(spoken.contains("In encrypted chats the message stays in its notification instead"));
+            assertTrue(spoken.contains("Group chats aren't tested"));
             assertTrue(spoken.contains("Your own unsends may be limited"));
             assertEquals("On. No unsent message received yet",
                 ((android.widget.TextView) root.findViewWithTag("active_keep_unsent")).getText().toString());

@@ -1,0 +1,10 @@
+{"time": "2026-10-30T13:38:01.069108+00:00", "action": "tap", "anchor": "Fixture Music", "selectorGap": "unlabelled drawer ImageView", "bounds": "[38,58][108,128]"}
+{"time": "2026-10-30T13:38:05.473280+00:00", "action": "tap", "selector": "Offline Mode", "class": "android.widget.Button", "index": null, "actualText": "", "actualDesc": "Offline Mode", "bounds": "[0,338][844,466]"}
+{"time": "2026-10-30T13:38:09.921851+00:00", "action": "tap", "selector": "Fixture Music", "class": "android.widget.Button", "index": null, "actualText": "", "actualDesc": "Fixture Music", "bounds": "[16,986][828,1082]"}
+{"time": "2026-10-30T13:38:12.553617+00:00", "action": "tap", "selector": "Artists\nTab 3 of 6", "class": null, "index": null, "actualText": "", "actualDesc": "Artists\nTab 3 of 6", "bounds": "[397,152][531,220]"}
+{"time": "2026-10-30T13:38:17.068442+00:00", "action": "tap", "selector": "B Guest", "class": null, "index": null, "actualText": "", "actualDesc": "B Guest", "bounds": "[16,512][1020,620]"}
+{"time": "2026-10-30T13:38:23.642965+00:00", "action": "tap", "selector": "See All", "class": null, "index": null, "actualText": "", "actualDesc": "See All", "bounds": "[926,688][1064,728]"}
+{"time": "2026-10-30T13:38:28.102510+00:00", "action": "tap", "selector": "Remove This Filter", "class": null, "index": null, "actualText": "", "actualDesc": "Remove This Filter", "bounds": "[108,136][292,200]"}
+{"time": "2026-10-30T13:38:32.455254+00:00", "action": "tap", "selector": "Random", "class": null, "index": null, "actualText": "", "actualDesc": "Random", "bounds": "[907,136][1072,200]"}
+{"time": "2026-10-30T13:38:34.872012+00:00", "action": "tap", "selector": "Random", "class": null, "index": null, "actualText": "Random", "actualDesc": "", "bounds": "[72,812][1008,924]"}
+{"time": "2026-10-30T13:38:37.279359+00:00", "action": "tap", "selector": "Name", "class": null, "index": null, "actualText": "", "actualDesc": "Name", "bounds": "[72,848][1008,944]"}

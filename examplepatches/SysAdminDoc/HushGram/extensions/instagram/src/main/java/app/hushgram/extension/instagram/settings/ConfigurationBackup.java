@@ -32,6 +32,7 @@ import app.hushgram.extension.instagram.direct.MessageBox;
 import app.hushgram.extension.instagram.profile.ProfileTabs;
 import app.hushgram.extension.instagram.misc.GlassBlur;
 import app.hushgram.extension.instagram.misc.GlassOpacity;
+import app.hushgram.extension.instagram.misc.NotificationGroups;
 import app.hushgram.extension.instagram.misc.SettingsRows;
 import app.hushgram.extension.instagram.misc.SpoofLocation;
 import app.hushgram.extension.instagram.reels.TabOrder;
@@ -121,6 +122,7 @@ public final class ConfigurationBackup {
         if (PatchFamily.LIKE_ANIMATION.inBuild()) settings.put(Settings.LIKE_ANIMATION.key, Settings.LIKE_ANIMATION);
         if (PatchFamily.NOTIFICATION_GROUPS.inBuild()) {
             settings.put(Settings.GROUP_NOTIFICATIONS_BY_TYPE.key, Settings.GROUP_NOTIFICATIONS_BY_TYPE);
+            settings.put(Settings.MUTED_NOTIFICATION_CHANNELS.key, Settings.MUTED_NOTIFICATION_CHANNELS);
         }
         if (PatchFamily.PLAYBACK_QUALITY.inBuild()) {
             settings.put(Settings.PLAYBACK_QUALITY.key, Settings.PLAYBACK_QUALITY);
@@ -203,6 +205,8 @@ public final class ConfigurationBackup {
             settings.put(Settings.DOWNLOAD_CONVERT.key, Settings.DOWNLOAD_CONVERT);
             // The switch only. What it remembered stays in DownloadHistory's own file, never exported.
             settings.put(Settings.DOWNLOAD_SKIP_SAVED.key, Settings.DOWNLOAD_SKIP_SAVED);
+            // The switch only, like the one above. The list itself stays on the phone and is never exported.
+            settings.put(Settings.VIEWING_HISTORY.key, Settings.VIEWING_HISTORY);
             settings.put(Settings.SEND_DOWNLOADS_TO_APP.key, Settings.SEND_DOWNLOADS_TO_APP);
             settings.put(Settings.DOWNLOAD_QUALITY.key, Settings.DOWNLOAD_QUALITY);
             settings.put(Settings.SAVE_FOLDER.key, Settings.SAVE_FOLDER);
@@ -353,8 +357,8 @@ public final class ConfigurationBackup {
     /**
      * [value] as [setting] would save it, declared as [declared], or null when this build can't take
      * it: another type than the setting's, an enum constant it doesn't have, text over
-     * {@link #MAX_TEXT} characters ({@link #MAX_WORDS_TEXT} for blocked words and settings rows) or text
-     * {@link #textAllowed} refuses.
+     * {@link #MAX_TEXT} characters ({@link #MAX_WORDS_TEXT} for blocked words, settings rows and muted
+     * notification types) or text {@link #textAllowed} refuses.
      */
     @Nullable
     static Object accepted(Setting<?> setting, String declared, Object value) {
@@ -368,7 +372,7 @@ public final class ConfigurationBackup {
             return given < number.minimum() || given > number.maximum() ? null : value;
         }
         int longest = setting == Settings.REELS_BLOCKED_WORDS || setting == Settings.HIDDEN_SETTINGS_ROWS
-                ? MAX_WORDS_TEXT : MAX_TEXT;
+                || setting == Settings.MUTED_NOTIFICATION_CHANNELS ? MAX_WORDS_TEXT : MAX_TEXT;
         if (!(value instanceof String) || ((String) value).length() > longest) return null;
         if (fallback instanceof Enum) {
             if (!"enum".equals(declared)) return null;
@@ -430,6 +434,10 @@ public final class ConfigurationBackup {
         if (setting == Settings.HIDDEN_MESSAGE_BOX_BUTTONS) return text.equals(MessageBox.join(MessageBox.parse(text)));
         // The rows of Instagram's settings left off, as the names of Instagram's row ids with commas between, in name order.
         if (setting == Settings.HIDDEN_SETTINGS_ROWS) return text.equals(SettingsRows.join(SettingsRows.parse(text)));
+        // The notification channels muted, as Instagram's channel ids with commas between, in id order.
+        if (setting == Settings.MUTED_NOTIFICATION_CHANNELS) {
+            return text.equals(NotificationGroups.joinChannels(NotificationGroups.mutedChannels(text)));
+        }
         // The profile tabs left off, as Instagram's keys with commas between, in the order the dialog lists them.
         if (setting == Settings.HIDDEN_PROFILE_TABS) return text.equals(ProfileTabs.join(ProfileTabs.parse(text)));
         // The same for your own profile, or the mark that it still follows other profiles.

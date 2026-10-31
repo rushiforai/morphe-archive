@@ -40,7 +40,7 @@ public class StorySeekBarSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.STORY_SEEK_BAR.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();

@@ -81,6 +81,12 @@ def patches_table(patches):
     for p in sorted(patches, key=lambda x: x["name"]):
         a = anchor(p["name"])
         documentation = {
+            "Pillo - Hybrid Lock-Screen Notifications": "docs/Pillo627.md",
+            "Pillo - Import weight history from JSON": "docs/PilloWeightImport.md",
+            "Pillo - Local backup and restore": "docs/PilloLocalBackup.md",
+            "Pillo - Weight change summaries": "docs/PilloWeightSummary.md",
+            "Pillo - Weight in Progress": "docs/PilloProgressWeight.md",
+            "Pillo - Premium and ad-free": "docs/Pillo627.md",
             "Monet - Individual Nuvio catalog rows": "docs/MonetCatalogChannels.md",
             "Monet - Unlimited displayed cards": "docs/MonetDisplayedCards.md",
             "Monet - Unlock premium": "docs/Monet.md",

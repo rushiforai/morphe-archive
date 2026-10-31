@@ -135,11 +135,17 @@ final class StoriesCategory {
         if (build.contains(PatchFamily.LIVE_SEEN)) {
             stories.add(toggle(context, Settings.VIEW_LIVE_ANONYMOUSLY, L10n.t("View live anonymously"),
                     L10n.t("Lives you watch don't put you on the host's viewer list, so they aren't told you're there. Commenting or reacting still shows you. The viewer count you see stops updating, and a live that ends can keep looking live until you leave it.")));
+            stories.add(toggle(context, Settings.MARK_LIVE_SEEN, L10n.t("Mark as seen button on lives"),
+                    L10n.t("Adds an eye button to the top of a live while you watch anonymously. Tap it to show up on "
+                            + "that live's viewer list. Other lives stay hidden.")));
         }
         if (build.contains(PatchFamily.STORY_DOWNLOAD)) {
             stories.add(toggle(context, Settings.DOWNLOAD_STORIES, L10n.t("Download on stories"),
                     L10n.t("Adds Download to the menu of anyone's story, photo or video, saved at your download quality. "
                             + "Off or paused, Instagram's own menu returns.")));
+            stories.add(toggle(context, Settings.DOWNLOAD_BUTTON_ON_STORIES, L10n.t("Download button on stories"),
+                    L10n.t("Puts a Download button at the top of a story, beside the three dots. One tap saves the "
+                            + "photo or video in front, the same as Download in the menu.")));
         }
         if (build.contains(PatchFamily.STORY_UPLOAD_QUALITY)) {
             stories.add(toggle(context, Settings.UPLOAD_STORIES_AT_FULL_QUALITY, L10n.t("Upload stories at full quality"),

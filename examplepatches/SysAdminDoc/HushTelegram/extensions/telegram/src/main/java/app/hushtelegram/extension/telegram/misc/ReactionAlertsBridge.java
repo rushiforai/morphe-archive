@@ -76,7 +76,9 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
         if (reactions == null) return Collections.emptyList();
         Object recent = reactions.getClass().getField("recent_reactions").get(reactions);
         if (!(recent instanceof List) || ((List<?>) recent).isEmpty()) return Collections.emptyList();
-        Class<?> emoji = Class.forName("org.telegram.tgnet.TLRPC$TL_reactionEmoji", true, reactions.getClass().getClassLoader());
+        ClassLoader loader = reactions.getClass().getClassLoader();
+        Class<?> emoji = Class.forName("org.telegram.tgnet.TLRPC$TL_reactionEmoji", true, loader);
+        Class<?> custom = Class.forName("org.telegram.tgnet.TLRPC$TL_reactionCustomEmoji", true, loader);
         ArrayList<ReactionAlerts.Reaction> found = new ArrayList<>();
         for (Object item : new ArrayList<Object>((List<?>) recent)) {
             if (item == null) continue;
@@ -84,10 +86,11 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
             Object peer = kind.getField("peer_id").get(item);
             Object reaction = kind.getField("reaction").get(item);
             String text = emoji.isInstance(reaction) ? (String) emoji.getField("emoticon").get(reaction) : null;
+            long document = custom.isInstance(reaction) ? custom.getField("document_id").getLong(reaction) : 0;
             long from = peer == null ? 0 : ((Number) peerId.invoke(null, peer)).longValue();
             boolean mine = (kind.getField("flags").getInt(item) & MY) != 0;
             found.add(new ReactionAlerts.Reaction(dialog, id, topic, from, text, kind.getField("date").getInt(item),
-                    kind.getField("unread").getBoolean(item), mine));
+                    kind.getField("unread").getBoolean(item), mine, document));
         }
         return found;
     }
@@ -183,6 +186,15 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
         // It posts to Telegram's notification queue itself, where a push for the same message is skipped.
         method(notifications.getClass(), "processNewMessages", ArrayList.class, boolean.class, boolean.class,
                 Class.forName("java.util.concurrent.CountDownLatch")).invoke(notifications, list, true, true, null);
+    }
+
+    /** The custom emoji's alt text, the emoji Telegram itself shows for it where it can't draw one. */
+    @Override public String emojiOf(long document) throws Exception {
+        Object loaded = ReactionAlerts.emojiDocument(account, document);
+        if (loaded == null) return null;
+        ClassLoader loader = controller.getClass().getClassLoader();
+        return (String) method(Class.forName("org.telegram.messenger.MessageObject", true, loader), "findAnimatedEmojiEmoticon",
+                Class.forName("org.telegram.tgnet.TLRPC$Document", true, loader), String.class).invoke(null, loaded, null);
     }
 
     /** The reactor's name the way Telegram writes it in a notification, or null when it isn't known. */

@@ -43,7 +43,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * paused when a comment sheet opens, a reel start Facebook makes by itself waits while the sheet is
  * up, and the reel plays on, armed for Tap to play, once the sheet has been gone a moment. A start
  * you ask for plays and isn't given back twice, a sheet that comes straight back isn't closed, and
- * off, or with no reel playing, nothing is paused or held.
+ * off, or with no reel playing, nothing is paused or held. A tap on the reel above the comments
+ * (#315) pauses it or plays it, armed, switch or not, and closing the sheet leaves it that way.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -179,6 +180,42 @@ public class PauseUnderCommentsTest {
         assertFalse(PauseUnderComments.holdsStart(reel, Trigger.BY_AUTOPLAY));
         closeSheet(sheet);
         assertTrue("a paused reel was played or paused", players.commands.isEmpty());
+    }
+
+    @Test
+    public void aTapAboveTheCommentsPausesThePlayingReelAndPlaysItAgainArmed() {
+        // Tap a reel above its comments uses the bridge whether this switch is on or not (#315).
+        View reelView = new View(screen);
+        screen.setContentView(reelView);
+        players.views.put(reel, reelView);
+        assertTrue("no reel was found to pause", PauseUnderComments.tapReel());
+        assertTrue("no reel was found to play", PauseUnderComments.tapReel());
+        assertEquals(Arrays.asList("pause reel", "play reel"), players.commands);
+        assertTrue("Tap to play would hold the reel's start", TapToPlay.armed(reel));
+        assertNull("the taps were counted under this switch", statusLine());
+    }
+
+    @Test
+    public void aReelTheSheetPausedPlaysOnATapAndStaysAsYouLeftItWhenTheSheetCloses() {
+        Settings.PAUSE_REELS_UNDER_COMMENTS.save(true);
+        View sheet = openSheet();
+        assertTrue(PauseUnderComments.tapReel());
+        assertFalse("the reel you played would be played again", PauseUnderComments.pausedOne());
+        assertFalse("the reel you played was held", PauseUnderComments.holdsStart(reel, Trigger.BY_AUTOPLAY));
+        assertTrue(PauseUnderComments.tapReel());
+        closeSheet(sheet);
+        assertEquals("the reel you paused played on when the sheet closed",
+                Arrays.asList("pause reel", "play reel", "pause reel"), players.commands);
+    }
+
+    @Test
+    public void withNoReelATapIsLeftToFacebook() {
+        players.known.remove(reel);
+        assertFalse("a feed video was taken for the reel", PauseUnderComments.tapReel());
+        players.known.add(reel);
+        players.playing.remove(reel);
+        assertFalse("a reel that isn't shown was played", PauseUnderComments.tapReel());
+        assertTrue(players.commands.isEmpty());
     }
 
     @Test

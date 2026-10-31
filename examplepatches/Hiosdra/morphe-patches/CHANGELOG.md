@@ -1,3 +1,9 @@
+## [1.6.1](https://github.com/Hiosdra/morphe-patches/compare/v1.6.0...v1.6.1) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* make F1 TV APK monitoring resilient and notify on updates ([#23](https://github.com/Hiosdra/morphe-patches/issues/23)) ([2667211](https://github.com/Hiosdra/morphe-patches/commit/26672114f050d1db9da89668a2889905e6baab02))
+
 ## [1.6.0](https://github.com/Hiosdra/morphe-patches/compare/v1.5.0...v1.6.0) (2026-09-28)
 
 ### ✨ New Features

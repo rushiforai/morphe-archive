@@ -112,15 +112,62 @@ private const val NIGHT_MIC_OVERRIDE_NAME = "Grey200"
 private const val NIGHT_MIC_OVERRIDE_VALUE = "#ffffff"
 
 /**
+ * The visible "AMOLED Dark Mode For UI" row: repaints the two hardcoded Compose palette greys the
+ * resource table cannot reach, and pulls in the resource half above for the named colours.
+ */
+@Suppress("unused")
+val blackUiDexPatch = bytecodePatch(
+    name = null,
+    default = false,
+) {
+    compatibleWith(COMPATIBILITY_WAZE)
+
+    execute {
+        val method = PaletteGrayFingerprint.method
+        val implementation = method.implementation
+            ?: throw PatchException(
+                "blackUiDexPatch: the palette initialiser was found but has no implementation; " +
+                    "refusing to report a repaint that would change nothing",
+            )
+
+        var repainted = 0
+        for ((from, to) in DARK_GREY_CONSTS) {
+            val sites = implementation.instructions.withIndex()
+                .filter { (_, instruction) ->
+                    instruction is Instruction51l && instruction.wideLiteral == from
+                }
+                .map { (index, _) -> index }
+            if (sites.size != 1) {
+                throw PatchException(
+                    "blackUiDexPatch: expected exactly 1 const-wide site for " +
+                        "0x${from.toString(16)} in ${method.definingClass}, found ${sites.size} - " +
+                        "Waze's palette moved; refusing to report a repaint that did not happen",
+                )
+            }
+            val register = (implementation.instructions.elementAt(sites[0]) as Instruction51l).registerA
+            method.replaceInstruction(sites[0], BuilderInstruction51l(Opcode.CONST_WIDE, register, to))
+            repainted++
+        }
+        println("blackUiDexPatch: repainted $repainted compose palette literal(s) (dark greys -> black, bubble content -> white)")
+    }
+}
+
+/**
  * Hidden resource half of the "AMOLED Dark Mode For UI" row ([blackUiDexPatch] depends on it).
  * Not listed and not selectable on its own; its edits run whenever the row is ticked.
  */
 @Suppress("unused")
 val blackUiPatch = resourcePatch(
-    name = null,
+    name = "AMOLED Dark Mode For UI",
+    description = "Makes the dark UI pure black.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("UI Customization")
+
+
+
+    dependsOn(blackUiDexPatch)
 
     execute {
         var edited = 0
@@ -261,46 +308,3 @@ val blackUiPatch = resourcePatch(
     }
 }
 
-/**
- * The visible "AMOLED Dark Mode For UI" row: repaints the two hardcoded Compose palette greys the
- * resource table cannot reach, and pulls in the resource half above for the named colours.
- */
-@Suppress("unused")
-val blackUiDexPatch = bytecodePatch(
-    name = "AMOLED Dark Mode For UI",
-    description = "Makes the dark UI pure black.",
-    default = false,
-) {
-    compatibleWith(COMPATIBILITY_WAZE)
-
-    dependsOn(blackUiPatch)
-
-    execute {
-        val method = PaletteGrayFingerprint.method
-        val implementation = method.implementation
-            ?: throw PatchException(
-                "blackUiDexPatch: the palette initialiser was found but has no implementation; " +
-                    "refusing to report a repaint that would change nothing",
-            )
-
-        var repainted = 0
-        for ((from, to) in DARK_GREY_CONSTS) {
-            val sites = implementation.instructions.withIndex()
-                .filter { (_, instruction) ->
-                    instruction is Instruction51l && instruction.wideLiteral == from
-                }
-                .map { (index, _) -> index }
-            if (sites.size != 1) {
-                throw PatchException(
-                    "blackUiDexPatch: expected exactly 1 const-wide site for " +
-                        "0x${from.toString(16)} in ${method.definingClass}, found ${sites.size} - " +
-                        "Waze's palette moved; refusing to report a repaint that did not happen",
-                )
-            }
-            val register = (implementation.instructions.elementAt(sites[0]) as Instruction51l).registerA
-            method.replaceInstruction(sites[0], BuilderInstruction51l(Opcode.CONST_WIDE, register, to))
-            repainted++
-        }
-        println("blackUiDexPatch: repainted $repainted compose palette literal(s) (dark greys -> black, bubble content -> white)")
-    }
-}

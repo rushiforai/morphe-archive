@@ -1,4 +1,250 @@
 <!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/367c0b3f4c0de62b129b7abcef34261110692ac3/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.31.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [367c0b3f4c0d](https://github.com/johnneerdael/dutch-applications-patches/commit/367c0b3f4c0de62b129b7abcef34261110692ac3). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.31.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.30.0...v1.31.0) (2026-10-31)
+
+### ✨ New Features
+
+* **Omroep West:** add stable ads, tracking and startup controls ([7ce95fa](https://github.com/johnneerdael/dutch-applications-patches/commit/7ce95fa70486c50cf59c0ac6b1efb660d506d2b8))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/b47e8d7b51634ec5856e7c629e3a8e6aa233a065/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.30.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [b47e8d7b5163](https://github.com/johnneerdael/dutch-applications-patches/commit/b47e8d7b51634ec5856e7c629e3a8e6aa233a065). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.30.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.29.0...v1.30.0) (2026-10-31)
+
+### ✨ New Features
+
+* **Videoland Android:** add stable phone controls ([b47e8d7](https://github.com/johnneerdael/dutch-applications-patches/commit/b47e8d7b51634ec5856e7c629e3a8e6aa233a065))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/6920a99693558b1032c640150c5a12914ba52e3b/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.29.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [6920a9969355](https://github.com/johnneerdael/dutch-applications-patches/commit/6920a99693558b1032c640150c5a12914ba52e3b). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.29.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.28.0...v1.29.0) (2026-10-31)
+
+### ✨ New Features
+
+* **KIJK Android:** add Android ads, tracking and consent controls ([#65](https://github.com/johnneerdael/dutch-applications-patches/issues/65)) ([6920a99](https://github.com/johnneerdael/dutch-applications-patches/commit/6920a99693558b1032c640150c5a12914ba52e3b))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/e7f1c0655c8974e762ab27c8658a6cd0b883ca20/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.28.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [e7f1c0655c89](https://github.com/johnneerdael/dutch-applications-patches/commit/e7f1c0655c8974e762ab27c8658a6cd0b883ca20). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.28.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.27.0...v1.28.0) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **release:** accept an empty candidate commit range ([4b1df84](https://github.com/johnneerdael/dutch-applications-patches/commit/4b1df847a393e1e9fc182c0962d12248d6fe489a))
+* **release:** keep stable promotion notes out of dev history ([072ca33](https://github.com/johnneerdael/dutch-applications-patches/commit/072ca33b3a9e55698ef9805bd175c9d75e96d25c))
+* **release:** preserve adjacent custom merge rules during migration ([4c0f1cd](https://github.com/johnneerdael/dutch-applications-patches/commit/4c0f1cdc72ae7dc7a4045a6d400b9a5dc6a8467e))
+* **release:** scope app updates and compare notes within each channel ([bbfafd3](https://github.com/johnneerdael/dutch-applications-patches/commit/bbfafd3fd5521c10a99477f53b0ec78130492204))
+
+### ✨ New Features
+
+* **HBVL:** promote Tubantia and HBVL controls ([6ead29c](https://github.com/johnneerdael/dutch-applications-patches/commit/6ead29ce37fb1d058353838e5a718b2ac5662245))
+* **Tubantia:** promote Tubantia and HBVL controls ([6ead29c](https://github.com/johnneerdael/dutch-applications-patches/commit/6ead29ce37fb1d058353838e5a718b2ac5662245))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/0ab7a846cf8568eb6f75eba2ccbe8da599190f3f/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.27.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [0ab7a846cf85](https://github.com/johnneerdael/dutch-applications-patches/commit/0ab7a846cf8568eb6f75eba2ccbe8da599190f3f). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.27.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.26.0...v1.27.0) (2026-10-30)
+
+### ✨ New Features
+
+* **npostart:** support phone and tablet builds ([#59](https://github.com/johnneerdael/dutch-applications-patches/issues/59)) ([0ab7a84](https://github.com/johnneerdael/dutch-applications-patches/commit/0ab7a846cf8568eb6f75eba2ccbe8da599190f3f))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/2ea00bfd0606c7472a484e2b61adeeaf55b914ed/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.26.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [2ea00bfd0606](https://github.com/johnneerdael/dutch-applications-patches/commit/2ea00bfd0606c7472a484e2b61adeeaf55b914ed). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.26.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.25.0...v1.26.0) (2026-10-30)
+
+### ✨ New Features
+
+* **videoland:** release tested TV controls for Premium and free accounts ([#58](https://github.com/johnneerdael/dutch-applications-patches/issues/58)) ([2ea00bf](https://github.com/johnneerdael/dutch-applications-patches/commit/2ea00bfd0606c7472a484e2b61adeeaf55b914ed))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/e59fd49a0b8dd2b4f751c6e855948bffbe47114d/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.25.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [e59fd49a0b8d](https://github.com/johnneerdael/dutch-applications-patches/commit/e59fd49a0b8dd2b4f751c6e855948bffbe47114d). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.25.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.24.0...v1.25.0) (2026-10-30)
+
+### ✨ New Features
+
+* **flitsmeister:** support Android 10 publisher packages ([#57](https://github.com/johnneerdael/dutch-applications-patches/issues/57)) ([e59fd49](https://github.com/johnneerdael/dutch-applications-patches/commit/e59fd49a0b8dd2b4f751c6e855948bffbe47114d))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/1d97bcb672336af8cb00e835d54cd2a0ffe2dc25/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.24.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [1d97bcb67233](https://github.com/johnneerdael/dutch-applications-patches/commit/1d97bcb672336af8cb00e835d54cd2a0ffe2dc25). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.24.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.23.1...v1.24.0) (2026-10-30)
+
+### ✨ New Features
+
+* **npostarttv:** support Android 7+ TV packages ([#56](https://github.com/johnneerdael/dutch-applications-patches/issues/56)) ([1d97bcb](https://github.com/johnneerdael/dutch-applications-patches/commit/1d97bcb672336af8cb00e835d54cd2a0ffe2dc25))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/7cc0ea1b4f500997e3cdc39860dccc9a9eb4fc9f/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.23.1.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [7cc0ea1b4f50](https://github.com/johnneerdael/dutch-applications-patches/commit/7cc0ea1b4f500997e3cdc39860dccc9a9eb4fc9f). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.23.1](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.23.0...v1.23.1) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **flitsmeister:** prevent driving crash with tracking disabled ([26088cf](https://github.com/johnneerdael/dutch-applications-patches/commit/26088cf8a38ea60337dfd98dc5db6c56ba1d9808))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/828ab29e41986f2cf193129fe9f4a0ae5ea7c0f9/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.23.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [828ab29e4198](https://github.com/johnneerdael/dutch-applications-patches/commit/828ab29e41986f2cf193129fe9f4a0ae5ea7c0f9). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.23.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.22.0...v1.23.0) (2026-10-30)
+
+### ✨ New Features
+
+* **news:** release HLN, Nieuwsblad and DS controls ([#53](https://github.com/johnneerdael/dutch-applications-patches/issues/53)) ([828ab29](https://github.com/johnneerdael/dutch-applications-patches/commit/828ab29e41986f2cf193129fe9f4a0ae5ea7c0f9))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/e48c2d084a726b289dc296d2fe65f499c768543c/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.22.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [e48c2d084a72](https://github.com/johnneerdael/dutch-applications-patches/commit/e48c2d084a726b289dc296d2fe65f499c768543c). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.22.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.21.1...v1.22.0) (2026-10-30)
+
+### ✨ New Features
+
+* **detijd:** promote approved De Tijd controls to stable ([#51](https://github.com/johnneerdael/dutch-applications-patches/issues/51)) ([e48c2d0](https://github.com/johnneerdael/dutch-applications-patches/commit/e48c2d084a726b289dc296d2fe65f499c768543c))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/716331c7a10cfe5c8e09844c456dfb0207246da8/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.21.1.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [716331c7a10c](https://github.com/johnneerdael/dutch-applications-patches/commit/716331c7a10cfe5c8e09844c456dfb0207246da8). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.21.1](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.21.0...v1.21.1) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **ci:** build published documentation after release metadata ([#50](https://github.com/johnneerdael/dutch-applications-patches/issues/50)) ([716331c](https://github.com/johnneerdael/dutch-applications-patches/commit/716331c7a10cfe5c8e09844c456dfb0207246da8))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/2219e7121cc93c272a5ef700a6d30043e12538bb/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.21.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [2219e7121cc9](https://github.com/johnneerdael/dutch-applications-patches/commit/2219e7121cc93c272a5ef700a6d30043e12538bb). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.21.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.20.0...v1.21.0) (2026-10-30)
+
+### ✨ New Features
+
+* **humo:** promote validated controls to stable ([#49](https://github.com/johnneerdael/dutch-applications-patches/issues/49)) ([2219e71](https://github.com/johnneerdael/dutch-applications-patches/commit/2219e7121cc93c272a5ef700a6d30043e12538bb))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/0dbe2bff49b299b568e695906123023929d08778/docs/site/assets/brand/release-banner.png)
+
+**Stable release · patch bundle v1.20.0.**
+
+[Add to Morphe](https://morphe.software/add-source?github=johnneerdael/dutch-applications-patches) · [User guide](https://morphe-patches.neerdael.nl/en/)
+
+Source: [0dbe2bff49b2](https://github.com/johnneerdael/dutch-applications-patches/commit/0dbe2bff49b299b568e695906123023929d08778). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.20.0](https://github.com/johnneerdael/dutch-applications-patches/compare/v1.19.2...v1.20.0) (2026-10-30)
+
+### ✨ New Features
+
+* promote De Morgen privacy controls to stable ([#45](https://github.com/johnneerdael/dutch-applications-patches/issues/45)) ([0dbe2bf](https://github.com/johnneerdael/dutch-applications-patches/commit/0dbe2bff49b299b568e695906123023929d08778))
+
+<!-- dap-release-branding:v1 -->
 ![Dutch App Patches. Dutch apps. Your choices.](https://raw.githubusercontent.com/johnneerdael/dutch-applications-patches/76db96e737272b863d2f49b3fc995aa624daf835/docs/site/assets/brand/release-banner.png)
 
 **Stable release · patch bundle v1.19.2.**

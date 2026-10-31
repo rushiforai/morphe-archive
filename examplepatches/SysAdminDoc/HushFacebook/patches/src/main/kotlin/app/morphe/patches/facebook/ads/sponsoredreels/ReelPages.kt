@@ -62,7 +62,7 @@ internal class ReelPages(
     val addPage: MutableMethod,
     /** The collection's one-item insert: (item, int)V. */
     val insertItem: MutableMethod,
-    /** The collection's static append of a page at the end: (collection, Collection)Z. 577 has none. */
+    /** The collection's static append of a page at the end: (collection, Collection)Z. 577 and 585 have none. */
     val appendPage: MutableMethod?,
 ) {
     /** The methods that put a page or an item into the collection's backing list. */

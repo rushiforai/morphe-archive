@@ -6,30 +6,42 @@
  */
 package app.morphe.extension.facebook.settings;
 
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.breakAfterRow;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.breakLengthRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.category;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.commentOrderRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.feedsSubtabRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.homeFeedRow;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.info;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.pauseLengthRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.reactionCeilingRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.seenKeepRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.startTabRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.subheading;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.toggle;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import app.morphe.extension.facebook.comments.CommentSheetOptions;
+import app.morphe.extension.facebook.feed.FeedTypeNames;
+import app.morphe.extension.facebook.feed.HiddenTally;
 import app.morphe.extension.facebook.feed.SeenPosts;
+import app.morphe.extension.facebook.misc.BreakTimer;
 import app.morphe.extension.facebook.navigation.MarketplaceOnly;
 import app.morphe.extension.facebook.settings.SettingsRows.Row;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.BaseSettings;
 
 /**
  * The category pages for the feed: Opening Facebook, News feed, Stories, and Comments and writing. Each method adds its section to the page
@@ -41,63 +53,95 @@ final class FeedPages {
     private FeedPages() {
     }
 
-    /** Opening Facebook: Marketplace only, the tab Facebook opens on, and the feed Home loads. */
+    /**
+     * Opening Facebook: the opening pause, breaks, Marketplace only, the tab Facebook opens on, and
+     * the feed Home loads. Every build has the section, since the pause and breaks are the settings
+     * entry's own.
+     */
     static void opening(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
-        if (build.contains(PatchFamily.START_TAB) || build.contains(PatchFamily.MARKETPLACE_ONLY)
-                || build.contains(PatchFamily.FOLLOWING_HOME)) {
-            // First: it's what happens before anything the other rows change comes on screen.
-            PreferenceCategory opening = category(screen, L10n.t("Opening Facebook"));
-            if (build.contains(PatchFamily.MARKETPLACE_ONLY)) {
-                // Facebook builds the tab bar once, and the hook is asked then and not again.
-                opening.addPreference(toggle(context, Settings.MARKETPLACE_ONLY, ""));
-                opening.addPreference(toggle(context, Settings.MARKETPLACE_QUIET_NOTIFICATIONS,
-                        L10n.t("While Marketplace only is on, silences video suggestions, memories, birthdays and friend "
-                                + "suggestions. Messages and trading updates still arrive.")));
-                opening.addPreference(toggle(context, Settings.MARKETPLACE_SKIP_FEED_PREFETCH,
-                        L10n.t("While Marketplace only is on, loads less of the feed in the background. Some loading still happens "
-                                + "at startup.")));
-                // After Marketplace only's own two rows, so they sit under the switch they follow.
-                opening.addPreference(toggle(context, Settings.EVENTS_ONLY, ""));
-                Row regular = new Row(context);
-                regular.actsAtOnce = true;
-                regular.setKey("action_regular_facebook");
-                regular.setTitle(L10n.t("Return to regular Facebook"));
-                regular.setSummary(L10n.t("Restore the normal tabs at the next restart. Your other settings stay saved."));
-                regular.setOnPreferenceClickListener(ignored -> {
-                    if (Settings.MARKETPLACE_ONLY.save(false) && Settings.EVENTS_ONLY.save(false)) {
-                        page.refreshSwitches();
-                        Utils.showToastLong(MarketplaceOnly.state() == MarketplaceOnly.State.RESTART_NEEDED
-                                ? L10n.t("Marketplace only and Events only are off. Restart Facebook to restore its normal tabs.")
-                                : L10n.t("Marketplace only and Events only are off."));
-                    } else {
-                        Utils.showToastLong(L10n.t("Couldn't save the change. Try again."));
-                    }
-                    return true;
-                });
-                opening.addPreference(regular);
-            }
-            if (build.contains(PatchFamily.START_TAB)) {
-                opening.addPreference(toggle(context, Settings.OPEN_ON_CHOSEN_TAB,
-                        L10n.t("Choose where Facebook opens from its icon. Notifications and links still open their destination.")));
-                opening.addPreference(startTabRow(context));
-                opening.addPreference(feedsSubtabRow(context));
-            }
-            if (build.contains(PatchFamily.FOLLOWING_HOME)) {
-                // Home asks for its feed each time it loads one, so no restart is needed.
-                SwitchPreference following = toggle(context, Settings.FOLLOWING_FEED_HOME,
-                        L10n.t("Home shows the newest posts from friends, groups and Pages you follow, like All in the Feeds tab, "
-                                + "or the filter you pick below. The Feeds tab's filters don't change."));
-                // The feed choice follows the switch and is greyed out until it's on, as the seen posts time is.
-                Preference homeFeed = homeFeedRow(context);
-                homeFeed.setEnabled(Settings.FOLLOWING_FEED_HOME.savedValue());
-                following.setOnPreferenceChangeListener((preference, value) -> {
-                    homeFeed.setEnabled(Boolean.TRUE.equals(value));
-                    return true;
-                });
-                opening.addPreference(following);
-                opening.addPreference(homeFeed);
-            }
+        // First: it's what happens before anything the other rows change comes on screen.
+        PreferenceCategory opening = category(screen, L10n.t("Opening Facebook"));
+        // The length follows the switch and is greyed out until it's on, as the seen posts time is.
+        SwitchPreference pause = toggle(context, Settings.OPENING_PAUSE,
+                L10n.t("Opening Facebook from its icon shows a short countdown first, so you can change your mind. "
+                        + "Links, notifications and shares open it straight away, and so does coming back within a minute."));
+        Preference pauseLength = pauseLengthRow(context);
+        pauseLength.setEnabled(Settings.OPENING_PAUSE.savedValue());
+        pause.setOnPreferenceChangeListener((preference, value) -> {
+            pauseLength.setEnabled(Boolean.TRUE.equals(value));
+            return true;
+        });
+        opening.addPreference(pause);
+        opening.addPreference(pauseLength);
+        // Take breaks (#248), the settings entry's own too, with its two lists following its switch.
+        SwitchPreference breaks = toggle(context, Settings.TAKE_BREAKS,
+                L10n.t("After the time you pick on Home, Feeds, Video and Reels, they're covered for a break. "
+                        + "Chats, your profile and the Menu still work, and time away as long as a break counts as one."));
+        Preference breakAfter = breakAfterRow(context);
+        Preference breakLength = breakLengthRow(context);
+        boolean breaksOn = Settings.TAKE_BREAKS.savedValue();
+        breakAfter.setEnabled(breaksOn);
+        breakLength.setEnabled(breaksOn);
+        breaks.setOnPreferenceChangeListener((preference, value) -> {
+            breakAfter.setEnabled(Boolean.TRUE.equals(value));
+            breakLength.setEnabled(Boolean.TRUE.equals(value));
+            // The screen under the settings stays resumed, so nothing else would start or end the count.
+            BreakTimer.switched();
+            return true;
+        });
+        opening.addPreference(breaks);
+        opening.addPreference(breakAfter);
+        opening.addPreference(breakLength);
+        if (build.contains(PatchFamily.MARKETPLACE_ONLY)) {
+            // Facebook builds the tab bar once, and the hook is asked then and not again.
+            opening.addPreference(toggle(context, Settings.MARKETPLACE_ONLY, ""));
+            opening.addPreference(toggle(context, Settings.MARKETPLACE_QUIET_NOTIFICATIONS,
+                    L10n.t("While Marketplace only is on, silences video suggestions, memories, birthdays and friend "
+                            + "suggestions. Messages and trading updates still arrive.")));
+            opening.addPreference(toggle(context, Settings.MARKETPLACE_SKIP_FEED_PREFETCH,
+                    L10n.t("While Marketplace only is on, loads less of the feed in the background. Some loading still happens "
+                            + "at startup.")));
+            // After Marketplace only's own two rows, so they sit under the switch they follow.
+            opening.addPreference(toggle(context, Settings.EVENTS_ONLY, ""));
+            Row regular = new Row(context);
+            regular.actsAtOnce = true;
+            regular.setKey("action_regular_facebook");
+            regular.setTitle(L10n.t("Return to regular Facebook"));
+            regular.setSummary(L10n.t("Restore the normal tabs at the next restart. Your other settings stay saved."));
+            regular.setOnPreferenceClickListener(ignored -> {
+                if (Settings.MARKETPLACE_ONLY.save(false) && Settings.EVENTS_ONLY.save(false)) {
+                    page.refreshSwitches();
+                    Utils.showToastLong(MarketplaceOnly.state() == MarketplaceOnly.State.RESTART_NEEDED
+                            ? L10n.t("Marketplace only and Events only are off. Restart Facebook to restore its normal tabs.")
+                            : L10n.t("Marketplace only and Events only are off."));
+                } else {
+                    Utils.showToastLong(L10n.t("Couldn't save the change. Try again."));
+                }
+                return true;
+            });
+            opening.addPreference(regular);
+        }
+        if (build.contains(PatchFamily.START_TAB)) {
+            opening.addPreference(toggle(context, Settings.OPEN_ON_CHOSEN_TAB,
+                    L10n.t("Choose where Facebook opens from its icon. Notifications and links still open their destination.")));
+            opening.addPreference(startTabRow(context));
+            opening.addPreference(feedsSubtabRow(context));
+        }
+        if (build.contains(PatchFamily.FOLLOWING_HOME)) {
+            // Home asks for its feed each time it loads one, so no restart is needed.
+            SwitchPreference following = toggle(context, Settings.FOLLOWING_FEED_HOME,
+                    L10n.t("Home shows the newest posts from friends, groups and Pages you follow, like All in the Feeds tab, "
+                            + "or the filter you pick below. The Feeds tab's filters don't change."));
+            // The feed choice follows the switch and is greyed out until it's on, as the seen posts time is.
+            Preference homeFeed = homeFeedRow(context);
+            homeFeed.setEnabled(Settings.FOLLOWING_FEED_HOME.savedValue());
+            following.setOnPreferenceChangeListener((preference, value) -> {
+                homeFeed.setEnabled(Boolean.TRUE.equals(value));
+                return true;
+            });
+            opening.addPreference(following);
+            opening.addPreference(homeFeed);
         }
     }
 
@@ -120,6 +164,14 @@ final class FeedPages {
                 || build.contains(PatchFamily.AUTO_TRANSLATION)
                 || build.contains(PatchFamily.FEEDS_HEADER)) {
             PreferenceCategory feed = category(screen, L10n.t("News feed"));
+            // The families whose rules run in the feed guard, which keeps the tally.
+            if (build.contains(PatchFamily.SPONSORED_POSTS) || build.contains(PatchFamily.SUGGESTED_POSTS)
+                    || build.contains(PatchFamily.STORIES_TRAY) || build.contains(PatchFamily.FEED_REELS)
+                    || build.contains(PatchFamily.AI_DETECTED_POSTS) || build.contains(PatchFamily.POST_WORDS)
+                    || build.contains(PatchFamily.SEEN_POSTS)) {
+                // Read as the page is built, so leaving settings and coming back shows the count now.
+                feed.addPreference(info(context, L10n.t("Hidden since Facebook started"), HiddenTally.summary()));
+            }
             subheading(feed, L10n.t("Ads and suggestions"));
             if (build.contains(PatchFamily.SPONSORED_POSTS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_SPONSORED_POSTS,
@@ -320,8 +372,82 @@ final class FeedPages {
                         L10n.t("Hides posts written by Pages, the ones you follow too. Posts from friends and groups "
                                 + "stay, and so does a friend's share of a Page's post.")));
                 feed.addPreference(reactionCeilingRow(context));
+                // For people who read Debug reports, where the type names come from, so it shows
+                // with Debug logging on, and from then on while anything's picked.
+                if (BaseSettings.DEBUG.savedValue() || !FeedTypeNames.hidden().isEmpty()) {
+                    feed.addPreference(feedTypesRow(page, context));
+                }
             }
         }
+    }
+
+    /** The row's key, for the settings search. No setting is behind it. */
+    static final String FEED_TYPES_ROW = "action_feed_types";
+
+    /** Feed types to hide: units hidden by the type name Debug logging records, picked from a list. */
+    static Preference feedTypesRow(HushfacebookPreferenceFragment page, Context context) {
+        Row row = new Row(context);
+        row.setKey(FEED_TYPES_ROW);
+        row.setTitle(L10n.t("Feed types to hide"));
+        row.setPersistent(false);
+        row.setSummary(feedTypesSummary(FeedTypeNames.hidden()));
+        row.setOnPreferenceClickListener(p -> {
+            showFeedTypes(page, context, row);
+            return true;
+        });
+        return row;
+    }
+
+    /** The row's summary: the types picked, or none, and that a type Home needs is the picker's risk. */
+    static String feedTypesSummary(Set<String> hidden) {
+        String warning = L10n.t("Picking a type Home needs can leave it empty.");
+        if (hidden.isEmpty()) {
+            return L10n.t("None picked. Hides posts and cards by Facebook's own type name, as Debug logging records it.") + " " + warning;
+        }
+        return L10n.f("Hidden: %s", L10n.join(new ArrayList<>(hidden))) + " " + warning;
+    }
+
+    /**
+     * The list: every type seen since Facebook started and every one picked, ticked when it's
+     * hidden. Save keeps the ticks or, when they don't fit or the phone doesn't keep the write,
+     * keeps the list open with its ticks.
+     */
+    private static void showFeedTypes(HushfacebookPreferenceFragment page, Context context, Preference row) {
+        List<String> types = FeedTypeNames.choices();
+        if (types.isEmpty()) {
+            page.show(new AlertDialog.Builder(context)
+                    .setTitle(L10n.t("Feed types to hide"))
+                    .setMessage(L10n.t("No types seen yet. Scroll Home and come back."))
+                    .setPositiveButton(L10n.t("OK"), null));
+            return;
+        }
+        Set<String> hidden = FeedTypeNames.hidden();
+        String[] names = types.toArray(new String[0]);
+        boolean[] ticked = new boolean[names.length];
+        for (int i = 0; i < names.length; i++) ticked[i] = hidden.contains(names[i]);
+        AlertDialog list = page.show(new AlertDialog.Builder(context)
+                .setTitle(L10n.t("Feed types to hide"))
+                .setMultiChoiceItems(names, ticked, (shown, which, isTicked) -> ticked[which] = isTicked)
+                .setPositiveButton(L10n.t("Save"), null)
+                .setNegativeButton(L10n.t("Cancel"), null));
+        if (list == null) return;
+        list.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(button -> {
+            List<String> picked = new ArrayList<>();
+            for (int i = 0; i < ticked.length; i++) {
+                if (ticked[i]) picked.add(names[i]);
+            }
+            FeedTypeNames.Hidden saved = FeedTypeNames.hide(picked);
+            if (saved == FeedTypeNames.Hidden.NO_ROOM) {
+                Utils.showToastLong(L10n.t("This list needs more room than it has. Shorten it, then save again."));
+                return;
+            }
+            if (saved == FeedTypeNames.Hidden.NOT_STORED) {
+                Utils.showToastLong(L10n.t("Couldn't save the change. Try again."));
+                return;
+            }
+            row.setSummary(feedTypesSummary(FeedTypeNames.hidden()));
+            list.dismiss();
+        });
     }
 
     /**
@@ -383,6 +509,12 @@ final class FeedPages {
                 stories.addPreference(toggle(context, Settings.HIDE_STORY_PROMPTS,
                         L10n.t("Hides cards beside Create story that suggest a story to make, like Share music you love. Applies "
                                 + "when Facebook next loads the tray.")));
+                stories.addPreference(toggle(context, Settings.HIDE_PAGE_STORIES,
+                        L10n.t("Shows only people's stories in the Stories tray, without the Pages you follow. Applies when "
+                                + "Facebook next loads the tray.")));
+                stories.addPreference(toggle(context, Settings.HIDE_SEEN_STORIES,
+                        L10n.t("Stories you've already watched leave the Stories tray until there's a new one. Applies when "
+                                + "Facebook next loads the tray.")));
             }
             if (build.contains(PatchFamily.STORY_AUTO_ADVANCE)) {
                 stories.addPreference(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE,
@@ -513,6 +645,10 @@ final class FeedPages {
                         L10n.t("A reel stops while you read its comments and plays on from the same spot when you close "
                                 + "them.")));
             }
+            // Facebook's own tap on the reel does the playing and pausing, or on the Reels tab Tap to play's bridge (#315).
+            comments.addPreference(toggle(context, Settings.TAP_REELS_ABOVE_COMMENTS,
+                    L10n.t("Tapping the reel above its comments plays or pauses it, and the comments stay open. "
+                            + "Works while comments open part way up, not at full height.")));
         }
         // Writing had a section of its own for this one switch.
         if (tags) {

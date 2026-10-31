@@ -1,0 +1,6 @@
+{
+  "bundle_sha256": "eb48836340eb74d59d817859d238659fd216cbe4f3a16bcac99678023f1aa1a6",
+  "verified_native_masks": 127,
+  "all_desktop_expected_targets_match_independent_native_replay": true,
+  "replay_report_sha256": "c783e60c60b7c820300f1ecb0c8dfcbb73ade6921e0f422d39ffac1856a65e3f"
+}

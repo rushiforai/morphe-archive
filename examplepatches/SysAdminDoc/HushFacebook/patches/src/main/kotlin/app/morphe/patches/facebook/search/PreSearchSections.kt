@@ -50,6 +50,13 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  * accessor (LX/7L2;->A00 to LX/7L3), tests that, and only then turns it into a tree (LX/A86;->A0M).
  * Both null tests jump to the same empty row, so there the extension is handed the node alone, right
  * after it's read, and its answer is the node: null draws that empty row.
+ *
+ * 585 (2026-10-30) keeps 584's order but reads through interfaces. The list still names the entry's
+ * tree class (arm64 LX/08Hk, armv7 its own), and the section (arm64 LX/0DvG, armv7 LX/0DvD) casts each
+ * entry to that class's interface (LX/0lzT) and asks it for the node with invoke-interface (ALd to
+ * LX/0m9k), then the node for the module the same way (ENJ to LX/0lzS), both null tests jumping to
+ * one empty row. The "rendered_modules" key moved into the node's own accessor (LX/0m9k;->FH8, whose
+ * tree class LX/08Hl loads it), which the section logs; the extension reads it off the node as before.
  */
 
 /** The name the pre-search section gives itself. */
@@ -123,19 +130,25 @@ internal fun BytecodePatchContext.preSearchSections(): List<ClassDef> =
  * call, tests it for null, and then either hands it first to a static (tree, Class, int, int) reader
  * and keeps that reader's answer, the module tree the entry is drawn from, or (584) asks the node's
  * own no-argument accessor for the module and tests that for null too, jumping where the node's test
- * does.
+ * does. 585 asks both through interfaces: the node through one of [entryInterfaces], the interfaces
+ * the entry class declares.
  */
-internal fun preSearchSites(section: ClassDef, entry: String): List<PreSearchSite> =
+internal fun preSearchSites(section: ClassDef, entry: String, entryInterfaces: Set<String> = emptySet()): List<PreSearchSite> =
     section.methods.filterNot { AccessFlags.STATIC.isSet(it.accessFlags) }.flatMap { method ->
         val code = method.implementation?.instructions?.toList() ?: return@flatMap emptyList()
-        code.indices.mapNotNull { index -> siteAt(method, code, index, entry) }
+        code.indices.mapNotNull { index -> siteAt(method, code, index, entry, entryInterfaces) }
     }
 
-private fun siteAt(method: Method, code: List<Instruction>, index: Int, entry: String): PreSearchSite? {
+private fun siteAt(method: Method, code: List<Instruction>, index: Int, entry: String, entryInterfaces: Set<String>): PreSearchSite? {
     val call = code[index]
-    if (call.opcode != Opcode.INVOKE_VIRTUAL) return null
+    // Why: 585 casts each entry to an interface its tree class declares and asks that for the node.
+    val owners = when (call.opcode) {
+        Opcode.INVOKE_VIRTUAL -> setOf(entry)
+        Opcode.INVOKE_INTERFACE -> entryInterfaces
+        else -> return null
+    }
     val nodeRead = (call as ReferenceInstruction).reference as? MethodReference ?: return null
-    if (nodeRead.definingClass != entry || nodeRead.parameterTypes.isNotEmpty() || !nodeRead.returnType.startsWith("L")) {
+    if (nodeRead.definingClass !in owners || nodeRead.parameterTypes.isNotEmpty() || !nodeRead.returnType.startsWith("L")) {
         return null
     }
     if (code.getOrNull(index + 1)?.opcode != Opcode.MOVE_RESULT_OBJECT) return null
@@ -161,9 +174,13 @@ private fun siteAt(method: Method, code: List<Instruction>, index: Int, entry: S
     return PreSearchSite(method, reader + 1, node, module, moduleType)
 }
 
-/** 584's shape after the node's null test at [index] + 2: the node's accessor, its answer kept and tested. */
+/**
+ * 584's shape after the node's null test at [index] + 2: the node's accessor, its answer kept and
+ * tested. 585's node is an interface, so its accessor is asked with invoke-interface.
+ */
 private fun nodeSiteAt(method: Method, code: List<Instruction>, index: Int, nodeType: String, node: Int): PreSearchSite? {
-    val call = code.getOrNull(index + 3)?.takeIf { it.opcode == Opcode.INVOKE_VIRTUAL } as? FiveRegisterInstruction ?: return null
+    val call = code.getOrNull(index + 3)?.takeIf { it.opcode == Opcode.INVOKE_VIRTUAL || it.opcode == Opcode.INVOKE_INTERFACE }
+        as? FiveRegisterInstruction ?: return null
     val ref = (call as ReferenceInstruction).reference as? MethodReference ?: return null
     if (call.registerCount != 1 || call.registerC != node ||
         ref.definingClass != nodeType || ref.parameterTypes.isNotEmpty() || !ref.returnType.startsWith("L")
@@ -193,7 +210,9 @@ internal fun BytecodePatchContext.hookPreSearchSections() {
     val sections = preSearchSections()
     val section = sections.singleOrNull()
         ?: throw PatchException("expected one section naming itself \"$PRE_SEARCH_SECTION\", found ${sections.size}")
-    val sites = preSearchSites(section, entry)
+    // Why: 585 reads the node through an interface the entry's tree class declares.
+    val entryInterfaces = classDefByOrNull(entry)?.interfaces?.toSet() ?: emptySet()
+    val sites = preSearchSites(section, entry, entryInterfaces)
     val site = sites.singleOrNull()
         ?: throw PatchException("${section.type} reads an entry's module in ${sites.size} places, expected one")
     if (site.node > 15 || site.module > 15) {

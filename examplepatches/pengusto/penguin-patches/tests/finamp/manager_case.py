@@ -19,6 +19,47 @@ from build_native_payloads import APK_SHA
 from manager_selection import configure_selection
 
 
+def verify_save_directory(root, expected):
+    crumbs = tuple(node.get('text') for node in root.iter('node')
+                   if node.get('package') == 'com.android.documentsui'
+                   and node.get('resource-id') == 'com.android.documentsui:id/breadcrumb_text')
+    actual = {('Downloads',): '/sdcard/Download',
+              ('Downloads', 'finamp-manager-test'): '/sdcard/Download/finamp-manager-test'}.get(crumbs)
+    if actual != expected:
+        raise RuntimeError('Observed Android Save directory differs from --export-directory: ' + repr(crumbs))
+    return actual
+
+
+def wait_for_export(ui, remote, *, timeout=120, poll_seconds=0.5):
+    """DocumentsUI creates a zero-byte file before Manager finishes writing it."""
+    deadline = time.monotonic() + timeout
+    previous = None
+    stable = 0
+    while time.monotonic() < deadline:
+        value = ui.adb('shell', 'stat', '-c', '%s', remote, check=False).strip()
+        size = int(value) if value.isdecimal() else 0
+        stable = stable + 1 if size > 0 and size == previous else 0
+        if stable >= 3:
+            return size
+        previous = size
+        time.sleep(poll_seconds)
+    raise RuntimeError('Manager export did not reach a positive stable size: ' + remote)
+
+
+def pull_verified_export(ui, remote, destination, apksigner):
+    size = wait_for_export(ui, remote)
+    ui.adb('pull', remote, destination, timeout=60)
+    if destination.stat().st_size != size:
+        raise RuntimeError('Manager export changed while being pulled')
+    signature = subprocess.check_output(
+        [str(apksigner), 'verify', '--print-certs', str(destination)], text=True)
+    certificates = re.findall(r'Signer #\d+ certificate SHA-256 digest: ([0-9a-f]{64})', signature)
+    if len(certificates) != 1:
+        raise RuntimeError('Manager export must have one verified signer')
+    return {'stable_export_bytes': size, 'signature_verified': True,
+            'signer_sha256': certificates[0]}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--adb', type=Path, required=True)
@@ -34,6 +75,7 @@ def main():
     parser.add_argument('--recovery', action='store_true', help='Fresh export proving recovery after a rejected input')
     parser.add_argument('--original-apk', type=Path, required=True)
     parser.add_argument('--native-report', type=Path, required=True)
+    parser.add_argument('--apksigner', type=Path, help='Existing SDK apksigner; defaults beside resolved aapt2')
     args = parser.parse_args()
     if args.mask & ~args.available_mask:
         parser.error('Selected patch is absent from this source version')
@@ -43,6 +85,11 @@ def main():
     if not base.OUT_ROOT.is_relative_to((base.REPO_ROOT / '.scratch').resolve()):
         parser.error('--out-root must stay inside this repository scratch directory')
     ui = base.Android(out=base.OUT_ROOT / 'ui', adb=args.adb)
+    apksigner = args.apksigner or base.resolve_aapt2(ui.adb_path).with_name('apksigner')
+    try:
+        subprocess.check_output([str(apksigner), 'version'], stderr=subprocess.STDOUT, text=True)
+    except subprocess.CalledProcessError as error:
+        raise RuntimeError('apksigner cannot run; configure JAVA_HOME before starting a Manager case') from error
     suffix = '-recovery' if args.recovery else ''
     name = f'manager-mask-{args.mask}-{args.runtime}{suffix}.apk'
     destination = base.OUT_ROOT / 'apks' / name
@@ -92,21 +139,23 @@ def main():
         raise RuntimeError('Actual runtime differs: ' + runtime)
     ui.tap('Save', class_name='android.view.View')
     base.PACKAGE = 'com.android.documentsui'
+    save_directory = verify_save_directory(ui.dump()[0], args.export_directory)
     ui.type_text(remote_name, index=0, replace=True)
     ui.tap('SAVE')
     base.PACKAGE = 'app.morphe.manager'
     wait_for('Patched')
     ui.capture(f'mask-{args.mask}-{args.runtime}{suffix}-exported')
     destination.parent.mkdir(exist_ok=True)
-    ui.adb('pull', remote, destination, timeout=60)
+    export = pull_verified_export(ui, remote, destination, apksigner)
     native = json.loads(args.native_report.read_text())['masks'][str(args.mask)]['native_sha256']
     contents = check_contents(args.original_apk, destination, native)
     record = {'mask': args.mask, 'runtime': runtime, 'runtime_log': lines[-1], 'ui_success': True,
               'apk_sha256': hashlib.sha256(destination.read_bytes()).hexdigest(), 'native_sha256': native,
-              **contents}
+              **contents, **export}
     record['recovery'] = args.recovery
     record['available_patch_mask'] = args.available_mask
     record['actual_export_path'] = remote
+    record['verified_save_directory'] = save_directory
     record['verified_selection_states'] = selection_states
     (base.OUT_ROOT / f'case-{args.mask}-{args.runtime}{suffix}.json').write_text(json.dumps(record, indent=2) + '\n')
     print(json.dumps(record), flush=True)

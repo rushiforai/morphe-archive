@@ -66,8 +66,12 @@ param(
     [string]$Today,
     # GitHub allows ten code searches a minute.
     [double]$SearchDelaySeconds = 7,
-    # How long to wait out a rate limit before trying again.
+    # How long to wait out a rate limit before trying again, when the forge doesn't say.
     [int]$RateLimitWaitSeconds = 61,
+    # The longest Retry-After a limited request waits for. GitLab's per-address limit on reads
+    # without a token runs by the hour, so a longer one gives up on that request at once, and the
+    # failure says when the limit resets.
+    [int]$MaxRateLimitWaitSeconds = 300,
     # How long to wait after a request that got no answer at all (a timeout or a dropped
     # connection) before asking again. A request gets three tries.
     [int]$RetryWaitSeconds = 15
@@ -182,12 +186,45 @@ $searchGitLab = [bool]$GitLabToken -and -not $SkipGitLabCodeSearch
 
 # --- requests --------------------------------------------------------------------------------
 
+function Get-RetryAfterSeconds {
+    # How long a limited answer's Retry-After asks for, in whole seconds, or $null when it names nothing.
+    param($Response)
+    $headers = $Response.PSObject.Properties['Headers']
+    if ($null -eq $headers -or $null -eq $headers.Value) { return $null }
+    $hint = $headers.Value.PSObject.Properties['RetryAfter']
+    if ($null -eq $hint -or $null -eq $hint.Value) { return $null }
+    $seconds = $null
+    if ($null -ne $hint.Value.Delta) { $seconds = $hint.Value.Delta.TotalSeconds }
+    elseif ($null -ne $hint.Value.Date) { $seconds = ($hint.Value.Date - [DateTimeOffset]::UtcNow).TotalSeconds }
+    if ($null -eq $seconds) { return $null }
+    # A reset decades out still has to fit an [int], or reading it throws inside the request's catch.
+    return [int][Math]::Min([double][int]::MaxValue, [Math]::Max([double]0, [Math]::Ceiling([double]$seconds)))
+}
+
+function Get-RequestFault {
+    # Why a request that didn't answer 200 left its source unread: the status, or the limit still
+    # in force and when to audit again.
+    param($Answer, [string]$What)
+    if (-not $Answer.Limited) { return "$What answered HTTP $($Answer.Status)" }
+    $when = 'once it resets'
+    if ($null -ne $Answer.ResetsAt) {
+        # Rounded up to the minute, so the time named is never before the reset.
+        $minute = [DateTime]::new($Answer.ResetsAt.Ticks - ($Answer.ResetsAt.Ticks % [TimeSpan]::TicksPerMinute), [DateTimeKind]::Utc)
+        if ($minute -lt $Answer.ResetsAt) { $minute = $minute.AddMinutes(1) }
+        $when = "after $($minute.ToString('yyyy-MM-dd HH:mm', [Globalization.CultureInfo]::InvariantCulture)) UTC, when it resets"
+    }
+    # GitLab counts reads without a token per address and GitHub counts per token, so this names neither.
+    return "$($Answer.Host) was still rate limiting the audit (HTTP $($Answer.Status)) when it read $What; audit again $when"
+}
+
 function Invoke-SourceRequest {
     <#
         One GET, answering Status and Content. A 4xx or 5xx answer comes back as its status with no
         content, since a repository that's gone is a finding and not a crash; only a request that
         never got an answer throws, and only after its third try. A rate limit is waited out, three
-        times at most.
+        times at most, for as long as the forge's Retry-After asks when that's within
+        -MaxRateLimitWaitSeconds. One still in force after that, or asking for longer, comes back
+        with Limited set and, when the forge said, ResetsAt.
     #>
     param([Parameter(Mandatory = $true)][string]$Uri, [string]$Auth = 'plain')
 
@@ -224,12 +261,16 @@ function Invoke-SourceRequest {
             }
             $said = "$($_.ErrorDetails.Message) $($_.Exception.Message)"
             $limited = $status -eq 429 -or ($status -eq 403 -and $said -match '(?i)rate limit')
-            if ($limited -and $attempt -lt 4) {
-                Write-Step "rate limited on $([Uri]$Uri | ForEach-Object { $_.Host }), waiting $RateLimitWaitSeconds s"
-                Start-Sleep -Seconds $RateLimitWaitSeconds
+            $retryAfter = if ($limited) { Get-RetryAfterSeconds $answer.Value } else { $null }
+            $wait = if ($null -ne $retryAfter) { [Math]::Max($retryAfter, 1) } else { $RateLimitWaitSeconds }
+            # The cap is for what a forge asks; the audit's own wait is always taken.
+            if ($limited -and $attempt -lt 4 -and ($null -eq $retryAfter -or $wait -le $MaxRateLimitWaitSeconds)) {
+                Write-Step "rate limited on $(([Uri]$Uri).Host), waiting $wait s"
+                Start-Sleep -Seconds $wait
                 continue
             }
-            return [pscustomobject]@{ Status = $status; Content = $null }
+            $resetsAt = if ($null -ne $retryAfter) { [DateTime]::UtcNow.AddSeconds($retryAfter) } else { $null }
+            return [pscustomobject]@{ Status = $status; Content = $null; Limited = $limited; ResetsAt = $resetsAt; Host = ([Uri]$Uri).Host }
         }
     }
 }
@@ -258,7 +299,7 @@ function Get-JsonItems {
 function Get-SourceJson {
     param([string]$Uri, [string]$Auth = 'plain', [string]$What = $Uri, [switch]$AsHashtable)
     $answer = Invoke-SourceRequest -Uri $Uri -Auth $Auth
-    if ($answer.Status -ne 200) { throw "$What answered HTTP $($answer.Status)." }
+    if ($answer.Status -ne 200) { throw "$(Get-RequestFault $answer $What)." }
     return , (ConvertFrom-SourceJson -Text $answer.Content -What $What -AsHashtable:$AsHashtable)
 }
 
@@ -276,7 +317,7 @@ function Get-JsonEntries {
 function Get-PagedItems {
     <#
         Every page of a GitHub or GitLab list, a hundred at a time. Status is the first page's
-        answer; Items is $null unless that was 200.
+        answer, with its limit if it had one; Items is $null unless that was 200.
     #>
     param([string]$Uri, [string]$Auth)
     $all = New-Object System.Collections.Generic.List[object]
@@ -284,8 +325,10 @@ function Get-PagedItems {
         $separator = if ($Uri.Contains('?')) { '&' } else { '?' }
         $answer = Invoke-SourceRequest -Uri "$Uri${separator}per_page=100&page=$page" -Auth $Auth
         if ($answer.Status -ne 200) {
-            if ($page -eq 1) { return [pscustomobject]@{ Status = $answer.Status; Items = $null } }
-            throw "$Uri answered HTTP $($answer.Status) on page $page."
+            if ($page -eq 1) {
+                return [pscustomobject]@{ Status = $answer.Status; Items = $null; Limited = $answer.Limited; ResetsAt = $answer.ResetsAt; Host = $answer.Host }
+            }
+            throw "$(Get-RequestFault $answer "page $page of $Uri")."
         }
         $items = @(Get-JsonItems (ConvertFrom-SourceJson -Text $answer.Content -What $Uri))
         foreach ($item in $items) { $all.Add($item) }
@@ -531,7 +574,7 @@ Invoke-Source 'Morphe Archive' {
         (Get-EncodedPath ([string]$ledgerDocument.self.repository -replace '^https://github\.com/', '')) + '/patches-list.json') -Auth github
     if ($answer.Status -eq 200) { $listed['morphe-archive'] = $true }
     elseif ($answer.Status -eq 404) { $listed['morphe-archive'] = $false }
-    else { throw "the archive answered HTTP $($answer.Status) for $($self.Path)" }
+    else { throw (Get-RequestFault $answer "the archive's copy of $($self.Path)") }
     'HushGram ' + $(if ($listed['morphe-archive']) { 'listed' } else { 'not listed' }) + '; its bundles are read through code search'
 }
 
@@ -552,7 +595,7 @@ Invoke-Source 'GitHub code search' {
             $script:searchCount++
             $answer = Invoke-SourceRequest -Uri ("https://api.github.com/search/code?q=" + [Uri]::EscapeDataString($query.Query) +
                 "&per_page=100&page=$page") -Auth github
-            if ($answer.Status -ne 200) { throw "the search '$($query.Query)' answered HTTP $($answer.Status)" }
+            if ($answer.Status -ne 200) { throw (Get-RequestFault $answer "the search '$($query.Query)'") }
             $result = ConvertFrom-SourceJson -Text $answer.Content -What "the search '$($query.Query)'"
             $items = @(Get-JsonItems $result.items)
             foreach ($item in $items) {
@@ -582,11 +625,14 @@ if ($searchGitLab) {
         $hits = 0
         foreach ($package in $packages) {
             $result = Get-PagedItems -Uri ("https://gitlab.com/api/v4/search?scope=blobs&search=" + [Uri]::EscapeDataString("`"$package`"")) -Auth gitlab
-            if ($result.Status -ne 200) { throw "the search for $package answered HTTP $($result.Status)" }
+            if ($result.Status -ne 200) { throw (Get-RequestFault $result "the search for $package") }
             foreach ($item in $result.Items) {
                 $projectId = [string]$item.project_id
                 if (-not $projects.ContainsKey($projectId)) {
                     $project = Invoke-SourceRequest -Uri "https://gitlab.com/api/v4/projects/$projectId" -Auth gitlab
+                    # A project that's gone or private (GitLab answers 404 for both) drops its hit; one a
+                    # limit or a server error kept unread fails the search.
+                    if ($project.Status -ne 200 -and $project.Status -ne 404) { throw (Get-RequestFault $project "project $projectId") }
                     $projects[$projectId] = if ($project.Status -eq 200) {
                         ConvertTo-SourceKey ('https://gitlab.com/' + (ConvertFrom-SourceJson -Text $project.Content -What "GitLab project $projectId").path_with_namespace)
                     } else { $null }
@@ -694,6 +740,8 @@ foreach ($candidate in @($candidates.Values | Sort-Object Key)) {
                 archived = [bool]$repo.archived; pushedAt = "$($repo.pushed_at)"; description = [string]$repo.description }
         } else {
             $meta = [ordered]@{ status = $answer.Status }
+            # A limit says nothing about the repository, and the finding says so.
+            if ($answer.Limited) { $meta.unread = Get-RequestFault $answer 'its metadata' }
         }
     }
     Add-Finding -Kind 'addition' -Repository "https://$key" `
@@ -720,7 +768,7 @@ function Get-GitHubWatchedHead {
     foreach ($watch in $WatchPaths) {
         $answer = Invoke-SourceRequest -Uri ("https://api.github.com/repos/$Path/commits?sha=" + [Uri]::EscapeDataString($Branch) +
             '&path=' + [Uri]::EscapeDataString($watch) + '&per_page=1') -Auth github
-        if ($answer.Status -ne 200) { throw "the commits of $Branch under $watch answered HTTP $($answer.Status)" }
+        if ($answer.Status -ne 200) { throw (Get-RequestFault $answer "the commits of $Branch under $watch") }
         foreach ($commit in (Get-JsonItems (ConvertFrom-SourceJson -Text $answer.Content -What "$Path commits"))) {
             $date = [datetime]::Parse("$($commit.commit.committer.date)", [Globalization.CultureInfo]::InvariantCulture,
                 [Globalization.DateTimeStyles]::AdjustToUniversal)
@@ -738,7 +786,7 @@ function Get-GitLabWatchedHead {
     foreach ($watch in $WatchPaths) {
         $answer = Invoke-SourceRequest -Uri ("https://gitlab.com/api/v4/projects/$Project/repository/commits?ref_name=" +
             [Uri]::EscapeDataString($Branch) + '&path=' + [Uri]::EscapeDataString($watch) + '&per_page=1') -Auth gitlab
-        if ($answer.Status -ne 200) { throw "the commits of $Branch under $watch answered HTTP $($answer.Status)" }
+        if ($answer.Status -ne 200) { throw (Get-RequestFault $answer "the commits of $Branch under $watch") }
         foreach ($commit in (Get-JsonItems (ConvertFrom-SourceJson -Text $answer.Content -What "$Project commits"))) {
             $date = [datetime]::Parse("$($commit.committed_date)", [Globalization.CultureInfo]::InvariantCulture,
                 [Globalization.DateTimeStyles]::AdjustToUniversal)
@@ -751,17 +799,20 @@ function Get-GitLabWatchedHead {
 
 function Test-CommitContained {
     # Whether $Commit is $Within or one of its ancestors. A commit either forge can't compare (a
-    # pin rewritten away by a force push, say) counts as not contained, so it gets looked at.
+    # pin rewritten away by a force push, say) counts as not contained, so it gets looked at. A
+    # limit leaves the source unread instead, since it says nothing about the branch.
     param($Where, [string]$Commit, [string]$Within)
     if ($Commit -notmatch '^[0-9a-f]{40}$' -or $Within -notmatch '^[0-9a-f]{40}$') { return $false }
     if ($Where.Host -eq 'github.com') {
         $answer = Invoke-SourceRequest -Uri "https://api.github.com/repos/$($Where.Path)/compare/$Within...$Commit" -Auth github
+        if ($answer.Limited) { throw (Get-RequestFault $answer "the comparison of $Commit with $Within") }
         if ($answer.Status -ne 200) { return $false }
         $status = [string](ConvertFrom-SourceJson -Text $answer.Content -What "$($Where.Path) comparison").status
         return $status -eq 'identical' -or $status -eq 'behind'
     }
     $answer = Invoke-SourceRequest -Uri ("https://gitlab.com/api/v4/projects/$([Uri]::EscapeDataString($Where.Path))/repository/compare?from=" +
         "$Within&to=$Commit") -Auth gitlab
+    if ($answer.Limited) { throw (Get-RequestFault $answer "the comparison of $Commit with $Within") }
     if ($answer.Status -ne 200) { return $false }
     return @(Get-JsonItems (ConvertFrom-SourceJson -Text $answer.Content -What "$($Where.Path) comparison").commits).Count -eq 0
 }
@@ -769,7 +820,7 @@ function Test-CommitContained {
 function Read-GitHubSource {
     param($Entry, [string]$Path)
     $answer = Invoke-SourceRequest -Uri "https://api.github.com/repos/$Path" -Auth github
-    if ($answer.Status -ne 200) { return [pscustomobject]@{ Status = $answer.Status } }
+    if ($answer.Status -ne 200) { return $answer }
     $repo = ConvertFrom-SourceJson -Text $answer.Content -What $Path
     $license = $null
     $licenseAnswer = Invoke-SourceRequest -Uri "https://api.github.com/repos/$Path/license" -Auth github
@@ -778,12 +829,12 @@ function Read-GitHubSource {
         $license = [pscustomobject]@{ Spdx = [string](Get-SourceProperty $document.license 'spdx_id'); Path = [string]$document.path
             Sha256 = Get-Sha256Hex ([Convert]::FromBase64String((([string]$document.content) -replace '\s', ''))) }
     } elseif ($licenseAnswer.Status -ne 404) {
-        throw "the licence of $Path answered HTTP $($licenseAnswer.Status)"
+        throw (Get-RequestFault $licenseAnswer "the licence of $Path")
     }
     $branchList = Get-PagedItems -Uri "https://api.github.com/repos/$Path/branches" -Auth github
-    if ($branchList.Status -ne 200) { throw "the branches of $Path answered HTTP $($branchList.Status)" }
+    if ($branchList.Status -ne 200) { throw (Get-RequestFault $branchList "the branches of $Path") }
     $forkList = Get-PagedItems -Uri "https://api.github.com/repos/$Path/forks" -Auth github
-    if ($forkList.Status -ne 200) { throw "the forks of $Path answered HTTP $($forkList.Status)" }
+    if ($forkList.Status -ne 200) { throw (Get-RequestFault $forkList "the forks of $Path") }
     $watch = @(Get-SourceProperty $Entry 'watchPaths' | Where-Object { $_ })
     $branches = [ordered]@{}
     foreach ($branch in $branchList.Items) {
@@ -798,12 +849,12 @@ function Read-GitLabSource {
     param($Entry, [string]$Path)
     $project = [Uri]::EscapeDataString($Path)
     $answer = Invoke-SourceRequest -Uri "https://gitlab.com/api/v4/projects/$project" -Auth gitlab
-    if ($answer.Status -ne 200) { return [pscustomobject]@{ Status = $answer.Status } }
+    if ($answer.Status -ne 200) { return $answer }
     $repo = ConvertFrom-SourceJson -Text $answer.Content -What $Path
     $defaultBranch = [string]$repo.default_branch
     $license = $null
     $tree = Get-PagedItems -Uri ("https://gitlab.com/api/v4/projects/$project/repository/tree?ref=" + [Uri]::EscapeDataString($defaultBranch)) -Auth gitlab
-    if ($tree.Status -ne 200) { throw "the file list of $Path answered HTTP $($tree.Status)" }
+    if ($tree.Status -ne 200) { throw (Get-RequestFault $tree "the file list of $Path") }
     $licenseFile = @($tree.Items | Where-Object { $_.type -eq 'blob' -and "$($_.name)" -match '^(?i)(LICEN[CS]E|COPYING)(\.(md|txt))?$' } | Select-Object -First 1)
     if ($licenseFile.Count -gt 0) {
         $file = Get-SourceJson -Uri ("https://gitlab.com/api/v4/projects/$project/repository/files/" +
@@ -812,9 +863,9 @@ function Read-GitLabSource {
             Sha256 = Get-Sha256Hex ([Convert]::FromBase64String((([string]$file.content) -replace '\s', ''))) }
     }
     $branchList = Get-PagedItems -Uri "https://gitlab.com/api/v4/projects/$project/repository/branches" -Auth gitlab
-    if ($branchList.Status -ne 200) { throw "the branches of $Path answered HTTP $($branchList.Status)" }
+    if ($branchList.Status -ne 200) { throw (Get-RequestFault $branchList "the branches of $Path") }
     $forkList = Get-PagedItems -Uri "https://gitlab.com/api/v4/projects/$project/forks" -Auth gitlab
-    if ($forkList.Status -ne 200) { throw "the forks of $Path answered HTTP $($forkList.Status)" }
+    if ($forkList.Status -ne 200) { throw (Get-RequestFault $forkList "the forks of $Path") }
     $watch = @(Get-SourceProperty $Entry 'watchPaths' | Where-Object { $_ })
     $branches = [ordered]@{}
     foreach ($branch in $branchList.Items) {
@@ -832,6 +883,9 @@ foreach ($entry in $entries) {
     $where = Split-SourceKey $key
     Invoke-Source $repository {
         $live = if ($where.Host -eq 'github.com') { Read-GitHubSource -Entry $entry -Path $where.Path } else { Read-GitLabSource -Entry $entry -Path $where.Path }
+        # A limit still in force says nothing about the repository, so the source goes unread
+        # rather than gone.
+        if ($live.Limited) { throw (Get-RequestFault $live 'the repository') }
         if ($live.Status -ne 200) {
             Add-Finding -Kind 'repository-gone' -Repository $repository -Detail "the repository answers HTTP $($live.Status)" -Evidence $null
             return "gone (HTTP $($live.Status))"

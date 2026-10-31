@@ -1,0 +1,110 @@
+{
+ "agent": "Claude",
+ "status": "test_preview",
+ "version": "0.1.0-preview.11",
+ "mpp_sha256": "c4f058dc4fe4787c8efe4b7c0f5e64a2ed92de6150c5081b994e68c7d93dde45",
+ "bytes": 1013809,
+ "maps_functional_revision": "55K (preview 10 code; still 3D car model; payload identical to test build 55K apart from the model licence file)",
+ "google_functional_revision": "20 (unchanged from preview 8/9/10)",
+ "extension_sha256": {
+  "aaos": "c43960ae810278e20cc173081cf997eb59b6d9ee78320b4eed417c7dcc8a64df",
+  "gsa": "6fe5d76f19c13cce9d0c7b8270aeee79bbe48b2bd62f4dac5235f6cedb7a5e8a"
+ },
+ "host_tests": {
+  "recovery_protocol": 71,
+  "stalled_recovery": 25,
+  "google_provider_routes": 301,
+  "live_state": 17,
+  "voice_state": 21,
+  "focus_lifecycle": 86,
+  "short_links": 45,
+  "send_to_car": 27,
+  "total": 593,
+  "result": "PASS"
+ },
+ "navatars_3d_car": {
+  "model": "BYD Tang 2024, adapted from \"2024 BYD Tang\" by Ddiaz Design (Sketchfab), CC BY-NC-SA 4.0; adapted model under the same licence (assets/navatars/tang2024-LICENSE.txt)",
+  "rig_and_animations": "own (own_fbx.py): Navatar null -> Rig -> Body, takes idle/drive/left/right with all-zero curves (car stands still)",
+  "google_model_files_used_or_bundled": false,
+  "triangles": 3957,
+  "point_uv_pairs": 3608,
+  "default": "on; Instrument cluster settings -> 3D car on map: Show 3D car, colour, Apply now",
+  "asset_sha256": {
+   "manifest_1.json": "6ceccf388c476ebd6307ff08f3aa5943708e9e81fe6422a219d4a1b91d86f14b",
+   "models.json": "569cf9559a77f082009f8ade6197324e00faf3afcf76dc6e6d7d2ec79786bb51",
+   "tang2024-LICENSE.txt": "f7c9de550a60ac62312c1a7578db0ad9603ac0d7ab266f7e261ee9bdae8ca1d2",
+   "tang2024.fbx": "489892f5596b9f69d3533040727a3601a6038889c630cf5adef36215e787714a",
+   "tang2024.png": "7d102d42d2895da784174ffa3492f7114ca2ba3e919f77f376acd41cfac56ac3"
+  }
+ },
+ "car_icon": {
+  "replaced": "res/raw/my_location_chevron_arrow.glb image (geometry kept, original pinned by SHA-256) + 7 navigation chevron PNGs; 5 disc PNGs transparent",
+  "picture": "own top-down rendering of suv-luxury from Kenney Car Kit 3.1, CC0 1.0",
+  "google_bytes_bundled": false,
+  "asset_sha256": {
+   "car-topview.webp": "350f1cce46039fdfe0383799be781e9130a58fe3dadf73356c033b0148cf5871",
+   "car-256.png": "f0eb6e0e11918f1175b59b9ba2f2b94c8bac47c0730936dfc1944d8d1ab2fcce",
+   "car-207.png": "f8ffd38acd43f2f11d250cbc7ff5114a4005de9f8741bc3e551f7e6fa9ce45a1",
+   "car-light-256.png": "6ec6aead3da3761c87323852bd88078304b67bfcb9f6d766f04745649fab1920",
+   "car-light-207.png": "54ebc8d0ed00ae869ac950d7a98be20169517c14cf842837ebc81c2297377f82",
+   "empty-256.png": "70a213096a8a3aa52d8b05ee5ff5f8d14305a01d51f9305d2555880a4a2b458c",
+   "empty-207.png": "2d98fd62a01b8d52a35b68e07c3fd3fb7fccefca3a688aec2c1b09f766e00814"
+  }
+ },
+ "emulator": [
+  "Android 12 (API 32) AVD with the owner's account, MicroG-RE 7.2.1, read-only mode, build 55K: still 3D car on the map and during navigation with left and right turns, wheels down, front forward, own colours; animations drive/idle/turnleft/turnright played; no crashes",
+  "account-free Android 12 (API 32) AVD, build 55J: install, ART verification, start, 3D car files installed, no crashes (no map without an account)",
+  "Android 12 (API 32) AVD with the owner's account, build 55F5: flat car icon during navigation by day and at night"
+ ],
+ "car": {
+  "model": "BYD Tang",
+  "dilink": "5.0",
+  "own_rig_tested": false,
+  "note": "the same Tang 2024 model with a different (private) rig and the 3D car menu ran on this car in private builds 55G5/55H/55H2; all other Maps code is the preview 9 code tested on this car"
+ },
+ "not_included": "other private 3D models (licences forbid redistribution)",
+ "control_builds": {
+  "desktop": "1.18.1",
+  "exact_selection": true,
+  "apk_payload_identity": [
+   {
+    "app": "maps",
+    "selected_patch": "Maps Automotive for BYD (MicroG-RE TEST)",
+    "reference": "test build 55K (emulator)",
+    "entry_count": 3278,
+    "content_differences": 0,
+    "extra_entries": [
+     "assets/navatars/tang2024-LICENSE.txt"
+    ]
+   },
+   {
+    "app": "maps",
+    "selected_patch": "Maps Automotive for BYD (MicroG-RE TEST)",
+    "reference": "preview 10 bundle, same input",
+    "entry_count": 3278,
+    "content_differences": 2,
+    "differences": [
+     "assets/navatars/tang2024.fbx",
+     "assets/navatars/tang2024-LICENSE.txt"
+    ]
+   },
+   {
+    "app": "google",
+    "selected_patch": "Google app for BYD (MicroG-RE TEST)",
+    "reference": "preview 10 bundle, same APKM input",
+    "entry_count": 14031,
+    "content_differences": 0
+   }
+  ],
+  "no_force_or_continue_on_error": true
+ },
+ "reproducible_build": "OpenJDK 21.0.8: three builds, identical SHA-256",
+ "known_limitations": [
+  "3D car with the own rig not yet tested on a car",
+  "flat car icon checked on the emulator only",
+  "DiLink 3/5.1 not tested",
+  "Live-to-Maps directions unverified"
+ ],
+ "no_google_apks_keys_private_logs_or_account_material": true,
+ "extensions_identical_to_preview10": true
+}

@@ -1,16 +1,15 @@
 # De Morgen
 
-**Supported app:** 7.53.1 · **Build:** 23136515 · **Input:** APKS · **Channel:** Pre-release
+**Supported app:** 7.53.1 · **Build:** 23136515 · **Input:** APKS
 
 `be.persgroep.android.news.mobiledm`
 
-[Use your own APKS](../guides/downloads.md#local-original-inputs){ .md-button }
+[Download the original APKS](https://buzzheavier.com/ci8cm8ebuwf2){ .md-button .md-button--primary }
 
 Select this file in Morphe Manager to apply the patches.
 
 De Morgen uses the DPG edition app with separate Belgian audience measurement. The patches remove the identified ad requests, optional measurement and automatic setup prompts. Reading improvements apply to article data already supplied by the server; anonymous access to every premium article has not been established for this app.
 
-These controls are available in [pre-release v1.20.0-dev.4](https://github.com/johnneerdael/dutch-applications-patches/releases/tag/v1.20.0-dev.4).
 
 ## What did we find in the app? {#what-activity-is-recorded-in-the-inspected-paths}
 
@@ -35,7 +34,6 @@ Disable tracking, Hide Premium banner, Hide ads, Read full articles, Skip consen
 
 All five controls are enabled by default. Disable tracking includes Hide ads; Skip consent screens includes both. Selecting Skip consent screens also stops the Catsure uploads and outbound queue/playback synchronization described above.
 
-[Control definitions for this prerelease](https://github.com/johnneerdael/dutch-applications-patches/blob/v1.20.0-dev.4/docs/site/en/reference/catalogue.md).
 
 [Read what each patch changes](../reference/catalogue.md). See [installation](../guides/install.md) for original files and signing, and [choosing patches](../guides/choose-patches.md) for which patches depend on others.
 

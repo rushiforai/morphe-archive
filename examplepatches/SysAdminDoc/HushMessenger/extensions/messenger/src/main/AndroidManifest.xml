@@ -7,6 +7,7 @@
         <meta-data android:name="hush.feature.growth" android:value="true" />
         <meta-data android:name="hush.feature.inbox_promotions" android:value="true" />
         <meta-data android:name="hush.feature.stories" android:value="true" />
+        <meta-data android:name="hush.feature.instants_button" android:value="true" />
         <meta-data android:name="hush.feature.subtabs" android:value="true" />
         <meta-data android:name="hush.feature.mark_read_action" android:value="true" />
         <meta-data android:name="hush.feature.facebook" android:value="true" />
@@ -34,11 +35,14 @@
         <meta-data android:name="hush.feature.xhe_audio" android:value="true" />
         <meta-data android:name="hush.feature.disappearing_swipe" android:value="true" />
         <meta-data android:name="hush.feature.recent_media" android:value="true" />
+        <meta-data android:name="hush.feature.save_voice" android:value="true" />
         <meta-data android:name="hush.feature.share_story" android:value="true" />
         <meta-data android:name="hush.feature.system_camera" android:value="true" />
         <meta-data android:name="hush.feature.external_gallery" android:value="true" />
+        <meta-data android:name="hush.feature.gallery_to_chat" android:value="true" />
         <meta-data android:name="hush.feature.text_style" android:value="true" />
         <meta-data android:name="hush.feature.quiet_calls" android:value="true" />
+        <meta-data android:name="hush.feature.car_messages" android:value="true" />
         <meta-data android:name="hush.feature.external_browser" android:value="true" />
         <meta-data android:name="hush.feature.bubbles" android:value="true" />
         <meta-data android:name="hush.feature.allow_screenshot" android:value="true" />

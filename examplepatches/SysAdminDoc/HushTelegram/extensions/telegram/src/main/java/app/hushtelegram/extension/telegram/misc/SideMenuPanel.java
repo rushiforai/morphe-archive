@@ -52,6 +52,7 @@ import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
 import app.hushtelegram.extension.telegram.settings.PatchFamily;
 import app.hushtelegram.extension.telegram.settings.Settings;
+import app.hushtelegram.extension.telegram.settings.SettingsRoutes;
 
 /**
  * The side menu itself: a dimmed layer over the main screen with the menu sliding in from the left.
@@ -81,6 +82,9 @@ final class SideMenuPanel extends FrameLayout {
     TextView archive;
     private int archiveAt;
     private String archiveLabel;
+    /** The HushTelegram row and the line above it, which the way's switch shows or hides each time the menu opens. */
+    View hushRow;
+    View hushDivider;
     private final int touchSlop;
     private final int flingSpeed;
     private float progress;
@@ -142,15 +146,33 @@ final class SideMenuPanel extends FrameLayout {
         String[] labels = SideMenu.rowLabels();
         String[] icons = {"msg_openprofile", "msg_message", "msg_contacts", "msg_calls", "msg_saved", "msg_settings_old", "msg_archive", "msg_settings"};
         for (SideMenu.Row each : SideMenu.Row.values()) {
-            if (each == SideMenu.Row.HUSH) menu.addView(divider());
+            if (each == SideMenu.Row.HUSH) {
+                hushDivider = divider();
+                menu.addView(hushDivider);
+            }
             if (each == SideMenu.Row.ARCHIVE) {
                 // Added the first time the menu opens with All Chats hidden, which a later build can bring.
                 archiveAt = menu.getChildCount();
                 archiveLabel = labels[each.ordinal()];
                 continue;
             }
-            menu.addView(row(labels[each.ordinal()], icons[each.ordinal()], each));
+            TextView added = row(labels[each.ordinal()], icons[each.ordinal()], each);
+            if (each == SideMenu.Row.HUSH) hushRow = added;
+            menu.addView(added);
         }
+    }
+
+    /** Shows the HushTelegram row while its way is on. Read each time the menu opens, so a switch applies at once. */
+    void showHush() {
+        boolean shown;
+        try {
+            shown = SettingsRoutes.sideMenuRow();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_CONTACTS_TAB, "side menu hush row", failure);
+            shown = true;
+        }
+        if (hushRow != null) hushRow.setVisibility(shown ? VISIBLE : GONE);
+        if (hushDivider != null) hushDivider.setVisibility(shown ? VISIBLE : GONE);
     }
 
     /** Shows the Archived Chats row while a chat list is built without All Chats, adding it the first time. */
@@ -225,6 +247,7 @@ final class SideMenuPanel extends FrameLayout {
         name.setText(self == null ? "" : self);
         name.setVisibility(self == null || self.isEmpty() ? GONE : VISIBLE);
         showArchive();
+        showHush();
         paint(colorsFor(activity, (View) getParent()));
         View parent = (View) getParent();
         int width = parent == null ? 0 : parent.getWidth();

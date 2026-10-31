@@ -10,10 +10,12 @@ import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.GRAPHQL_STORY
 import app.morphe.patches.facebook.feed.treeFieldKey
 import app.morphe.patches.facebook.feed.treeTypeTag
+import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -27,13 +29,17 @@ import org.junit.Test
 /**
  * The anchors of Hide sponsored profile posts on every declared Facebook build, found the way the
  * patch finds them: one method holding the sponsored timeline tag, the timeline story component's
- * render method, which asks GraphQLStory's one sponsored_data accessor and reads the unit from one
- * field typed as GraphQLStory's first interface. The hook then goes first in it with v0.
+ * render method, which asks GraphQLStory's one sponsored_data accessor and gets the unit from one
+ * field, or on 585 one parameter, typed as GraphQLStory's first interface. The hook then goes first
+ * in it with v0.
  */
 class ProfilePostsFixtureTest {
-    /** Registers of the render method, per build: `this` sits in the one before its last. */
+    /**
+     * Registers of the render method, and the declared parameter it takes the unit as (null when it
+     * reads a field of its component, as up to 584 did), per build.
+     */
     private val expected = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to 35,
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to (34 to 2),
     )
 
     private fun locals(method: Method): Int = method.implementation!!.registerCount - 1 - method.parameterTypes.size
@@ -57,8 +63,14 @@ class ProfilePostsFixtureTest {
                 val context = PatchContexts.of(listOf(component, story))
                 val found = with(context) { timelineStory() }
                 assertEquals("${bundle.name}: the component", component.type, found.render.definingClass)
-                // The unit field is typed as the first interface GraphQLStory declares.
-                assertEquals("${bundle.name}: the unit field's type", story.interfaces.first(), found.unit.type)
+                val (registers, parameter) = expected.getValue(version)
+                // The unit is typed as the first interface GraphQLStory declares, in a field or (585) a parameter.
+                val unitType = when (val unit = found.unit) {
+                    is StoryUnit.InField -> unit.field.type.also { assertEquals("${bundle.name}: a field", null, parameter) }
+                    is StoryUnit.InParameter -> found.render.parameterTypes[unit.index].toString()
+                        .also { assertEquals("${bundle.name}: the unit's parameter", parameter, unit.index) }
+                }
+                assertEquals("${bundle.name}: the unit's type", story.interfaces.first(), unitType)
                 assertTrue(
                     "${bundle.name}: the accessor loads sponsored_data as SponsoredData",
                     literal(found.sponsoredData, treeFieldKey(SPONSORED_DATA_FIELD)) &&
@@ -70,25 +82,39 @@ class ProfilePostsFixtureTest {
                     it.name == found.render.name && it.parameterTypes.size == found.render.parameterTypes.size &&
                         !AccessFlags.STATIC.isSet(it.accessFlags) && isTimelineStoryRender(it)
                 }
-                val registers = expected.getValue(version)
                 assertEquals("${bundle.name}: render registers", registers, render.implementation!!.registerCount)
                 assertTrue("${bundle.name}: the render method has no local", locals(render) >= 1)
-                val first = render.implementation!!.instructions.first().opcode
+                val own = render.implementation!!.instructions.toList()
                 render.skipSponsoredStories(found.unit)
 
                 val body = render.implementation!!.instructions.toList()
-                val self = body[0] as TwoRegisterInstruction
-                assertEquals(listOf(Opcode.MOVE_OBJECT_FROM16, 0, registers - 2), listOf(body[0].opcode, self.registerA, self.registerB))
-                val read = (body[1] as ReferenceInstruction).reference as FieldReference
-                assertEquals(found.unit.name, read.name)
-                assertEquals(Opcode.IGET_OBJECT, body[1].opcode)
-                val hook = (body[2] as ReferenceInstruction).reference as MethodReference
+                val copy = body[0] as TwoRegisterInstruction
+                val unit = found.unit
+                val loaded = if (unit is StoryUnit.InField) {
+                    // this, the one before the last register of a one-parameter render, then the field off it.
+                    assertEquals(listOf(Opcode.MOVE_OBJECT_FROM16, 0, registers - 2), listOf(body[0].opcode, copy.registerA, copy.registerB))
+                    assertEquals(Opcode.IGET_OBJECT, body[1].opcode)
+                    assertEquals(unit.field.name, ((body[1] as ReferenceInstruction).reference as FieldReference).name)
+                    2
+                } else {
+                    // The unit parameter's own register, past v15 on 585, copied down whole.
+                    val source = render.parameterRegisterNumber((unit as StoryUnit.InParameter).index)
+                    assertEquals(listOf(Opcode.MOVE_OBJECT_FROM16, 0, source), listOf(body[0].opcode, copy.registerA, copy.registerB))
+                    // The render method's own first instruction reads the same register: it is the unit.
+                    assertTrue("${bundle.name}: the render method reads v$source first", own.first().let {
+                        it is TwoRegisterInstruction && it.registerB == source
+                    })
+                    1
+                }
+                val hook = (body[loaded] as ReferenceInstruction).reference as MethodReference
                 assertEquals(HIDE, "${hook.definingClass}->${hook.name}(${hook.parameterTypes.joinToString("")})${hook.returnType}")
-                assertEquals(Opcode.MOVE_RESULT, body[3].opcode)
-                assertEquals(Opcode.IF_EQZ, body[4].opcode)
-                assertEquals(Opcode.RETURN_OBJECT, body[6].opcode)
-                assertEquals(0, (body[6] as OneRegisterInstruction).registerA)
-                assertEquals("${bundle.name}: the render method's own code follows", first, body[7].opcode)
+                assertEquals(0, (body[loaded] as FiveRegisterInstruction).registerC)
+                assertEquals(Opcode.MOVE_RESULT, body[loaded + 1].opcode)
+                assertEquals(Opcode.IF_EQZ, body[loaded + 2].opcode)
+                assertEquals(Opcode.RETURN_OBJECT, body[loaded + 4].opcode)
+                assertEquals(0, (body[loaded + 4] as OneRegisterInstruction).registerA)
+                assertEquals("${bundle.name}: the hook, then the render method's own code", own.size + loaded + 5, body.size)
+                assertEquals("${bundle.name}: the render method's own code follows", own.first().opcode, body[loaded + 5].opcode)
                 checked += version
             }
         }

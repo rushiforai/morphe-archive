@@ -21,6 +21,8 @@ import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.freeLocalsAt
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
+import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
+import app.morphe.patches.facebook.misc.extension.requireParameterIntact
 import app.morphe.patches.facebook.misc.extension.requireStatusMethod
 import app.morphe.patches.facebook.misc.extension.requireThisIntact
 import app.morphe.patches.facebook.misc.settings.settingsPatch
@@ -85,6 +87,15 @@ internal const val SHEET_HEIGHT = "$FULL_HEIGHT_COMMENTS->sheetHeight(F)F"
 internal const val SKIP_SPLIT_SCREEN = "$FULL_HEIGHT_COMMENTS->skipSplitScreen()Z"
 internal const val FILLS_SCREEN = "$FULL_HEIGHT_COMMENTS->fillsScreen(F)Z"
 internal const val WATCH_HEADER = "$FULL_HEIGHT_COMMENTS->watchHeader(Landroid/view/View;IZ)V"
+internal const val TAP_THROUGH = "$FULL_HEIGHT_COMMENTS->tapThrough(Landroid/app/Dialog;I)Z"
+
+/** The window a popover fragment sets up, the one parameter of [SIMPLE_POPOVER]'s dialog setup. */
+private const val DIALOG = "Landroid/app/Dialog;"
+
+/** What Facebook's own tap-through calls on a part-height sheet over the reel viewer. */
+internal const val CANCEL_OUTSIDE = "Landroid/app/Dialog;->setCanceledOnTouchOutside(Z)V"
+
+private const val INT_VALUE = "Ljava/lang/Number;->intValue()I"
 
 /**
  * Open comments at full height (#179).
@@ -131,7 +142,17 @@ internal const val WATCH_HEADER = "$FULL_HEIGHT_COMMENTS->watchHeader(Landroid/v
  * comments are open (#266) that a sheet opened, whatever the full-height switch says; it pauses the
  * reel through Tap to play's player bridge and plays it on once the sheet's views leave the window.
  *
- * In the default selection with its switch off, so nothing changes until it's turned on.
+ * A sheet that stops part way up takes a tap on the reel above it as a tap outside and closes
+ * (#315). [SIMPLE_POPOVER]'s dialog setup, its one method taking a dialog and calling
+ * [CANCEL_OUTSIDE] (585 `A0D(Dialog)`), already lets those taps through behind a server gate for a
+ * part-height comment sheet opened from the reel viewer: it reads the surface the sheet was opened
+ * from off an Integer field of [UFI_POPOVER] (585 `A0N`), compares it with 20, and on the gate keeps
+ * the sheet on an outside tap and adds FLAG_NOT_TOUCH_MODAL to its window, the last thing it does.
+ * Right after that read the extension is handed the dialog and the surface, and a yes, meaning it
+ * did the same itself, ends the setup there. A Tap a reel above its comments switch of its own
+ * drives it, and with full height on the setup never gets that far.
+ *
+ * In the default selection with its switches off, so nothing changes until one is turned on.
  */
 @Suppress("unused")
 val fullHeightCommentsPatch = bytecodePatch(
@@ -139,8 +160,8 @@ val fullHeightCommentsPatch = bytecodePatch(
     name = "Open comments at full height",
     description = "Opens the comment sheet at the full height of the screen instead of part way up, on posts, " +
         "videos, reels and stories. On reels and videos, Comment opens that sheet instead of the split view. " +
-        "A second switch pauses a reel while its comments are open. Both start off. Turn them on in " +
-        "Hushfacebook settings > Comments and writing.",
+        "A second switch pauses a reel while its comments are open, and a third lets a tap on the reel above a " +
+        "half-open sheet play or pause it. All start off. Turn them on in Hushfacebook settings > Comments and writing.",
 ) {
     category("Comments")
     dependsOn(settingsPatch, facebookExtensionPatch)
@@ -164,6 +185,7 @@ val fullHeightCommentsPatch = bytecodePatch(
         val header = headerId(views)
         val feedbackParams = classDefByOrNull(FEEDBACK_PARAMS) ?: refuse("$FEEDBACK_PARAMS isn't in this build")
         val watchAndComment = watchAndCommentField(feedbackParams)
+        val tapThrough = tapThroughSite(popover)
 
         mutableClassDefBy(POPOVER_PARAMS).methods.single { it.descriptor() == sheet.descriptor() }
             .raiseSheet(height)
@@ -175,6 +197,8 @@ val fullHeightCommentsPatch = bytecodePatch(
             .fillScreen(fills, share)
         mutableClassDefBy(views.definingClass).methods.single { it.descriptor() == views.descriptor() }
             .watchHeader(header, feedbackParamsRegister(views), watchAndComment)
+        mutableClassDefBy(SIMPLE_POPOVER).methods.single { it.descriptor() == tapThrough.method.descriptor() }
+            .tapThrough(tapThrough)
         enableStatus("fullHeightComments")
     }
 }
@@ -466,5 +490,85 @@ internal fun MutableMethod.skipSplitScreen() {
             return v0
         """,
         ExternalLabel("launch", getInstruction(0)),
+    )
+}
+
+/**
+ * Where a part-height comment sheet's dialog setup has read which surface opened it: instruction
+ * [index] of [method], with the dialog in [dialog], the surface in [source] and [answer] a local
+ * the hook may write there.
+ */
+internal data class TapThroughSite(val method: Method, val index: Int, val dialog: Int, val source: Int, val answer: Int)
+
+/**
+ * The instruction after [popover]'s dialog setup, its one method taking only a dialog and calling
+ * [CANCEL_OUTSIDE], reads the surface the sheet was opened from: an `iget-object` of an Integer
+ * field of [UFI_POPOVER], an `if-eqz` on it, its `intValue()` and the `move-result`, which a
+ * constant and an `if-ne` comparing the two follow. Nothing else may jump there, the dialog has to
+ * be in its own register still, and it and the surface both have to fit the hook's call.
+ */
+internal fun tapThroughSite(popover: ClassDef): TapThroughSite {
+    val setups = popover.methods.filter { method ->
+        method.returnType == "V" && method.parameterTypes.map(CharSequence::toString) == listOf(DIALOG) &&
+            method.implementation?.instructions?.any { (it as? ReferenceInstruction)?.reference?.toString() == CANCEL_OUTSIDE } == true
+    }
+    val method = setups.singleOrNull()
+        ?: refuse("expected one method of $SIMPLE_POPOVER taking a dialog and calling $CANCEL_OUTSIDE, found ${setups.size}")
+    val code = method.implementation!!.instructions.toList()
+    val reads = (2 until code.size - 3).filter { readsSource(code, it) }
+    val at = reads.singleOrNull()
+        ?: refuse("expected ${method.descriptor()} to read and compare one Integer of $UFI_POPOVER, found ${reads.size}")
+    val index = at + 2
+    val flow = ControlFlow.of(method)
+    val jumps = flow.instructions.indices.filter { it != at + 1 && (index in flow.normal[it] || index in flow.exceptional[it]) }
+    if (jumps.isNotEmpty()) refuse("${method.descriptor()} jumps to the instruction after its surface read from ${jumps.joinToString()}")
+    method.requireParameterIntact(PATCH, 0, listOf(index))
+    val dialog = method.parameterRegisterNumber(0)
+    val source = (code[at + 1] as OneRegisterInstruction).registerA
+    if (dialog > 15 || source > 15) {
+        refuse("${method.descriptor()} keeps the dialog in v$dialog and the surface in v$source, past what the hook's call can name")
+    }
+    return TapThroughSite(method, index, dialog, source, method.freeLocalsAt(PATCH, index, 1).single())
+}
+
+/**
+ * Whether [code] around [at] unboxes an Integer field of [UFI_POPOVER] there, after loading it and
+ * skipping a null, and compares the int with a constant right after.
+ */
+private fun readsSource(code: List<Instruction>, at: Int): Boolean {
+    val load = code[at - 2]
+    val skip = code[at - 1]
+    val call = code[at]
+    val result = code[at + 1]
+    val constant = code[at + 2]
+    val compare = code[at + 3]
+    if (load.opcode != Opcode.IGET_OBJECT) return false
+    val field = (load as ReferenceInstruction).reference as FieldReference
+    if (field.definingClass != UFI_POPOVER || field.type != "Ljava/lang/Integer;") return false
+    val boxed = (load as TwoRegisterInstruction).registerA
+    if (skip.opcode != Opcode.IF_EQZ || (skip as OneRegisterInstruction).registerA != boxed) return false
+    if (call.opcode != Opcode.INVOKE_VIRTUAL || (call as ReferenceInstruction).reference.toString() != INT_VALUE) return false
+    if ((call as FiveRegisterInstruction).registerC != boxed || result.opcode != Opcode.MOVE_RESULT) return false
+    if (constant.opcode !in CONSTS || compare.opcode != Opcode.IF_NE) return false
+    val source = (result as OneRegisterInstruction).registerA
+    val loaded = (constant as OneRegisterInstruction).registerA
+    val pair = compare as TwoRegisterInstruction
+    return source != loaded && setOf(pair.registerA, pair.registerB) == setOf(source, loaded)
+}
+
+/**
+ * Where [site] says the sheet's surface has been read: hand the extension the dialog and the
+ * surface, and end the setup when it answers that it let the taps above the sheet through.
+ */
+internal fun MutableMethod.tapThrough(site: TapThroughSite) {
+    addInstructionsWithLabels(
+        site.index,
+        """
+            invoke-static { v${site.dialog}, v${site.source} }, $TAP_THROUGH
+            move-result v${site.answer}
+            if-eqz v${site.answer}, :facebook
+            return-void
+        """,
+        ExternalLabel("facebook", getInstruction(site.index)),
     )
 }

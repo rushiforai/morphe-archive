@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" tests="7" skipped="0" failures="1" errors="0" timestamp="2026-10-29T02:44:35.169Z" hostname="macminilang.fritz.box" time="1.258">
+  <properties/>
+  <testcase name="[1] [], [0], true, false, false, false" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="1.126">
+    <failure message="java.lang.AssertionError: Verification failed: call 1 of 1: DownloadProvider(#2).findChapterDirs(any&lt;List&gt;(), any&lt;Manga&gt;(), any&lt;Source&gt;(), any())) should not be called&#10;&#10;Calls:&#10;1) DownloadProvider(#2).findChapterDirs([Chapter(id=303, mangaId=101, read=true, bookmark=false, lastPageRead=0, dateFetch=1970-01-01T00:00:00Z, sourceOrder=0, url=, name=, dateUpload=null, chapterNumber=-1.0, scanlator=null, memo={})], Manga(id=101, source=202, lastUpdate=null, nextUpdate=null, fetchInterval=0, favoriteAt=null, viewerFlags=0, chapterFlags=0, coverLastModified=null, url=, title=Synthetic retention, artist=null, author=null, description=null, genre=null, status=0, thumbnailUrl=null, updateStrategy=ALWAYS_UPDATE, initialized=false, notes=, memo={}), Source(#6), continuation {})&#10;&#10;&#10;Stack traces:&#10;1)                                     io.mockk.impl.InternalPlatform.captureStackTrace (InternalPlatform.kt:145)   &#10;                                         io.mockk.impl.stub.MockKStub.handleInvocation  (MockKStub.kt:280)          &#10;       io.mockk.impl.instantiation.JvmMockFactoryHelper$mockHandler$1.invocation        (JvmMockFactoryHelper.kt:41)&#10;                                io.mockk.proxy.jvm.advice.Interceptor.call              (Interceptor.kt:27)         &#10;                   eu.kanade.tachiyomi.data.download.DownloadProvider.findChapterDirs   (DownloadProvider.kt:140)   &#10;   eu.kanade.tachiyomi.data.download.DownloadManager$deleteChapters$2.invokeSuspend     (DownloadManager.kt:278)    &#10;                  kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith        (ContinuationImpl.kt:34)    &#10;                                    kotlinx.coroutines.DispatchedTask.run               (DispatchedTask.kt:100)     &#10;                 kotlinx.coroutines.internal.LimitedDispatcher$Worker.run               (LimitedDispatcher.kt:124)  &#10;                               kotlinx.coroutines.scheduling.TaskImpl.run               (Tasks.kt:89)               &#10;                     kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely         (CoroutineScheduler.kt:586) &#10;              kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask       (CoroutineScheduler.kt:798) &#10;              kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker         (CoroutineScheduler.kt:717) &#10;              kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run               (CoroutineScheduler.kt:704) " type="java.lang.AssertionError">java.lang.AssertionError: Verification failed: call 1 of 1: DownloadProvider(#2).findChapterDirs(any&lt;List&gt;(), any&lt;Manga&gt;(), any&lt;Source&gt;(), any())) should not be called
+
+Calls:
+1) DownloadProvider(#2).findChapterDirs([Chapter(id=303, mangaId=101, read=true, bookmark=false, lastPageRead=0, dateFetch=1970-01-01T00:00:00Z, sourceOrder=0, url=, name=, dateUpload=null, chapterNumber=-1.0, scanlator=null, memo={})], Manga(id=101, source=202, lastUpdate=null, nextUpdate=null, fetchInterval=0, favoriteAt=null, viewerFlags=0, chapterFlags=0, coverLastModified=null, url=, title=Synthetic retention, artist=null, author=null, description=null, genre=null, status=0, thumbnailUrl=null, updateStrategy=ALWAYS_UPDATE, initialized=false, notes=, memo={}), Source(#6), continuation {})
+
+
+Stack traces:
+1)                                     io.mockk.impl.InternalPlatform.captureStackTrace (InternalPlatform.kt:145)   
+                                         io.mockk.impl.stub.MockKStub.handleInvocation  (MockKStub.kt:280)          
+       io.mockk.impl.instantiation.JvmMockFactoryHelper$mockHandler$1.invocation        (JvmMockFactoryHelper.kt:41)
+                                io.mockk.proxy.jvm.advice.Interceptor.call              (Interceptor.kt:27)         
+                   eu.kanade.tachiyomi.data.download.DownloadProvider.findChapterDirs   (DownloadProvider.kt:140)   
+   eu.kanade.tachiyomi.data.download.DownloadManager$deleteChapters$2.invokeSuspend     (DownloadManager.kt:278)    
+                  kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith        (ContinuationImpl.kt:34)    
+                                    kotlinx.coroutines.DispatchedTask.run               (DispatchedTask.kt:100)     
+                 kotlinx.coroutines.internal.LimitedDispatcher$Worker.run               (LimitedDispatcher.kt:124)  
+                               kotlinx.coroutines.scheduling.TaskImpl.run               (Tasks.kt:89)               
+                     kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely         (CoroutineScheduler.kt:586) 
+              kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask       (CoroutineScheduler.kt:798) 
+              kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker         (CoroutineScheduler.kt:717) 
+              kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run               (CoroutineScheduler.kt:704) 
+	at io.mockk.impl.recording.states.VerifyingState.failIfNotPassed(VerifyingState.kt:65)
+	at io.mockk.impl.recording.states.VerifyingState.recordingDone(VerifyingState.kt:39)
+	at io.mockk.impl.recording.CommonCallRecorder.done(CommonCallRecorder.kt:50)
+	at io.mockk.impl.eval.RecordedBlockEvaluator.record(RecordedBlockEvaluator.kt:63)
+	at io.mockk.impl.eval.VerifyBlockEvaluator.verify(VerifyBlockEvaluator.kt:32)
+	at io.mockk.MockKDsl.internalCoVerify(API.kt:152)
+	at io.mockk.MockKKt.coVerify(MockK.kt:267)
+	at io.mockk.MockKKt.coVerify$default(MockK.kt:257)
+	at eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest$category and bookmark exclusions apply before touching downloads$1.invokeSuspend(DefaultCategoryRetentionTest.kt:54)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.test.TestDispatcher.processEvent$kotlinx_coroutines_test(TestDispatcher.kt:24)
+	at kotlinx.coroutines.test.TestCoroutineScheduler.tryRunNextTaskUnless$kotlinx_coroutines_test(TestCoroutineScheduler.kt:98)
+	at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt$runTest$2$1$workRunner$1.invokeSuspend(TestBuilders.kt:326)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.EventLoopImplBase.processNextEvent(EventLoop.common.kt:256)
+	at kotlinx.coroutines.BlockingCoroutine.joinBlocking(Builders.kt:54)
+	at kotlinx.coroutines.BuildersKt__BuildersKt.runBlockingImpl(Builders.kt:30)
+	at kotlinx.coroutines.BuildersKt.runBlockingImpl(Unknown Source)
+	at kotlinx.coroutines.BuildersKt__Builders_concurrentKt.runBlockingK(Builders.concurrent.kt:172)
+	at kotlinx.coroutines.BuildersKt.runBlockingK(Unknown Source)
+	at kotlinx.coroutines.BuildersKt__Builders_concurrentKt.runBlockingK$default(Builders.concurrent.kt:157)
+	at kotlinx.coroutines.BuildersKt.runBlockingK$default(Unknown Source)
+	at kotlinx.coroutines.test.TestBuildersJvmKt.createTestResult(TestBuildersJvm.kt:10)
+	at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt.runTest-8Mi8wO0(TestBuilders.kt:309)
+	at kotlinx.coroutines.test.TestBuildersKt.runTest-8Mi8wO0(TestBuilders.kt:1)
+	at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt.runTest-8Mi8wO0(TestBuilders.kt:167)
+	at kotlinx.coroutines.test.TestBuildersKt.runTest-8Mi8wO0(TestBuilders.kt:1)
+	at kotlinx.coroutines.test.TestBuildersKt__TestBuildersKt.runTest-8Mi8wO0$default(TestBuilders.kt:159)
+	at kotlinx.coroutines.test.TestBuildersKt.runTest-8Mi8wO0$default(TestBuilders.kt:1)
+	at eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest.category and bookmark exclusions apply before touching downloads(DefaultCategoryRetentionTest.kt:32)
+</failure>
+  </testcase>
+  <testcase name="[2] [], [0], false, false, false, true" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="0.031"/>
+  <testcase name="[3] [], [], true, false, false, true" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="0.016"/>
+  <testcase name="[4] [Category(id=4, name=Keep, order=0, flags=0)], [4], true, false, false, false" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="0.012"/>
+  <testcase name="[5] [Category(id=4, name=Other, order=0, flags=0)], [0], true, false, false, true" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="0.014"/>
+  <testcase name="[6] [], [], true, true, false, false" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="0.012"/>
+  <testcase name="[7] [], [], true, true, true, true" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/Users/jarvis/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.18.2/62f38a6faf7f069d661b79a07d566f504b0b20c4/byte-buddy-agent-1.18.2.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+</testsuite>

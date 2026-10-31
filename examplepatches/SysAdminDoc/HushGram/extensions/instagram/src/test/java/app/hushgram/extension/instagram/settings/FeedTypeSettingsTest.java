@@ -42,7 +42,7 @@ public class FeedTypeSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         for (BooleanSetting setting : switches()) setting.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();

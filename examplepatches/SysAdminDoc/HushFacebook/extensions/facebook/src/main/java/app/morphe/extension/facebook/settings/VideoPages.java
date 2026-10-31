@@ -22,6 +22,7 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.subheading;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.surfaceQualityRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.toggle;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.watchedKeepRow;
 
 import android.content.Context;
 import android.preference.Preference;
@@ -110,6 +111,9 @@ final class VideoPages {
                             + "partner apps and outside links. The song label stays.")));
             reels.addPreference(toggle(context, Settings.HIDE_REEL_FOLLOW_BUTTON,
                     L10n.t("The Follow button next to the reel's author. You can still follow them from their profile.")));
+            reels.addPreference(toggle(context, Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON,
+                    L10n.t("The Subscribe button some authors get there instead, which subscribes with one tap. "
+                            + "Follow buttons stay.")));
             reels.addPreference(toggle(context, Settings.HIDE_REEL_SOCIAL_FOOTER,
                     L10n.t("The comment Facebook previews under a reel and the bubbles of friends who reacted. "
                             + "Open the comments to see them all.")));
@@ -270,7 +274,8 @@ final class VideoPages {
                         L10n.t("With the switch above on, after you play one reel, the reels you swipe to play on their own. The "
                                 + "feed, Watch and stories always wait.")));
                 playback.addPreference(toggle(context, Settings.INLINE_FEED_VIDEO_CONTROLS,
-                        L10n.t("Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls.")));
+                        L10n.t("Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls. "
+                                + "With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.")));
                 // The tap hands over the file the video patch's player record found.
                 if (build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
                     playback.addPreference(toggle(context, Settings.FEED_VIDEO_CAST_BUTTON,
@@ -286,6 +291,8 @@ final class VideoPages {
                         L10n.t("Keeps a list on this phone of the reels, videos and stories you watch, so you can find one "
                                 + "again after the feed refreshes. Nothing leaves your phone.")));
                 playback.addPreference(RecentlyWatchedScreen.row(page, context));
+                // Usable with recording off too, since what's listed goes on aging.
+                playback.addPreference(watchedKeepRow(context));
             }
             subheading(playback, L10n.t("Video quality"));
             if (build.contains(PatchFamily.PLAYBACK_QUALITY)) {
@@ -305,6 +312,11 @@ final class VideoPages {
                         L10n.t("When Facebook also sends an HDR video in SDR at the same size, play that version instead. "
                                 + "The screen doesn't brighten and the picture stays as sharp. Works with the switch above "
                                 + "on or off.")));
+                // Asked as each player picks its view, so a change shows from the next video.
+                playback.addPreference(toggle(context, Settings.DRAW_VIDEOS_WITH_THE_SCREEN,
+                        L10n.t("Videos and reels draw together with the rest of the screen, like Disable HW overlays "
+                                + "in developer options. Try it if reels look pale until something covers them. "
+                                + "Uses a little more battery.")));
             }
             subheading(playback, L10n.t("Sound"));
             if (build.contains(PatchFamily.SKIP_SILENCE)) {
@@ -364,7 +376,8 @@ final class VideoPages {
             PreferenceCategory downloads = category(screen, L10n.t("Downloads"));
             if (build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
                 downloads.addPreference(toggle(context, Settings.DOWNLOAD_VIDEOS,
-                        L10n.t("Add Download to phone to feed and Watch video menus. Uses the quality below. Off or paused, Facebook's menu returns.")));
+                        L10n.t("Add Download to phone to feed and Watch video menus. Uses the quality below. Off or paused, Facebook's menu returns.")
+                                + " " + L10n.t("A video comment gets Save video when you long-press it.")));
                 downloads.addPreference(toggle(context, Settings.CLIPBOARD_DOWNLOAD,
                         L10n.t("With Download feed and Watch videos on, coming back to Facebook with a reel or video link copied offers to download it, once per link. Off, Facebook doesn't look at what you copied.")));
             }

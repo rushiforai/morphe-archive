@@ -1,0 +1,20 @@
+{
+  "login_preserved_without_authentication": true,
+  "theme": "Dark",
+  "artist_order": "Metadata order",
+  "hide_bottom_actions": true,
+  "disable_gestures": true,
+  "downloads": {
+    "complete": 22,
+    "tracks": 8,
+    "images": 14,
+    "failed": 0
+  },
+  "stage": "remote-final127-art",
+  "mask": 127,
+  "installed": {
+    "package": "com.unicornsonlsd.finamp",
+    "sha256": "16c67b6439578bc219ab349dc8d48618fa5ba10678d6d3f398f822f2b70dca47"
+  },
+  "time": "2026-10-30T14:16:33.445464+00:00"
+}

@@ -4,6 +4,7 @@
 - Put app patches under `patches/src/main/kotlin/io/github/pengusto/patches/<app>/` and runtime extensions under `extensions/extension/src/main/java/io/github/pengusto/patches/extension/<app>/`.
 - Use official Morphe APIs and existing Gradle tooling. No embedded APKs, signing keys or tokens in Git.
 - Work on dev. Publish only patches tested against specified original APK versions, including signature/package identity, install, UI and save/data regression checks. Document original APK provenance and checksum.
+- Bundle each logical change with its tests and documentation; squash iteration commits when merging. Collect final acceptance evidence in one closing commit and preserve published history.
 - For visual fixes, include matched original/patched APK screenshots in the upstream PR/issue and Penguin acceptance. Keep device size, theme, sort/filter and synthetic data consistent; exclude keyboard/dialog obstruction. Preserve raw PNG/XML, hashes and APK/source provenance. Label widget renders separately from installed-APK evidence.
 - Keep a labelled before/after pair for every released patch in `docs/PATCH_EXAMPLES.md` and regenerate its direct README preview; a gallery link alone does not meet README screenshot coverage. Keep feature counts generated from release metadata.
 - For open-source app fixes, deliver a focused upstream source PR alongside the Penguin work; reuse an existing PR when it covers the fix. Follow the upstream contribution policy and record a concrete blocker when submission is unavailable.

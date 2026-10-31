@@ -12,6 +12,7 @@ package app.hushtelegram.extension.telegram.settings;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
@@ -189,7 +190,7 @@ public class HushTelegramPreferenceFragmentTest {
 
     /** The sections every build has, in the order they're drawn. */
     private static final List<String> EVERY_BUILD = Arrays.asList(
-            "Links", "Updates", "Pause", "Settings backup", "Diagnostics", "About");
+            "Links", "Updates", "Ways in", "Pause", "Settings backup", "Diagnostics", "About");
 
     /** The outside translate's own preference file, where the service and its key are kept. */
     private static final String TRANSLATE_FILE = "hushtelegram_outside_translate";
@@ -331,6 +332,29 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("Stops usage reports to Telegram, like how long you read each channel post and what you tap "
                     + "on Premium screens. Messages and calls work as before.",
                     String.valueOf(page.findPreference(Settings.DISABLE_ANALYTICS.key).getSummary()));
+            assertEquals("Ghost mode", String.valueOf(page.findPreference(Settings.GHOST_MODE.key).getTitle()));
+            assertEquals("Read chats and watch stories without anyone being told. Sending a message in a chat still "
+                    + "marks it read, and your other devices keep showing it unread.",
+                    String.valueOf(page.findPreference(Settings.GHOST_MODE.key).getSummary()));
+            assertEquals("No read receipts", String.valueOf(page.findPreference(Settings.GHOST_READS.key).getTitle()));
+            assertEquals("Messages you read stay unread for the people who sent them, in private chats, groups and "
+                    + "secret chats, and voice messages you play stay unplayed. Works with Ghost mode on.",
+                    String.valueOf(page.findPreference(Settings.GHOST_READS.key).getSummary()));
+            assertEquals("View stories anonymously", String.valueOf(page.findPreference(Settings.GHOST_STORIES.key).getTitle()));
+            assertEquals("Stories you watch don't add you to their viewer list. Works with Ghost mode on.",
+                    String.valueOf(page.findPreference(Settings.GHOST_STORIES.key).getSummary()));
+            assertEquals("Hide typing", String.valueOf(page.findPreference(Settings.GHOST_TYPING.key).getTitle()));
+            assertEquals("Other people don't see that you're typing, recording or sending a file. Works with Ghost mode on.",
+                    String.valueOf(page.findPreference(Settings.GHOST_TYPING.key).getSummary()));
+            assertEquals("Hide online status", String.valueOf(page.findPreference(Settings.GHOST_ONLINE.key).getTitle()));
+            assertEquals("Telegram isn't told that you're online while you use it. Going offline still goes out. "
+                    + "Works with Ghost mode on.", String.valueOf(page.findPreference(Settings.GHOST_ONLINE.key).getSummary()));
+            assertFalse(Settings.GHOST_TYPING.key, ((SwitchPreference) page.findPreference(Settings.GHOST_TYPING.key)).isChecked());
+            assertFalse(Settings.GHOST_ONLINE.key, ((SwitchPreference) page.findPreference(Settings.GHOST_ONLINE.key)).isChecked());
+            // Receipts go out as usual until Ghost mode itself is turned on; its two parts start on under it.
+            assertFalse(Settings.GHOST_MODE.key, ((SwitchPreference) page.findPreference(Settings.GHOST_MODE.key)).isChecked());
+            assertTrue(Settings.GHOST_READS.key, ((SwitchPreference) page.findPreference(Settings.GHOST_READS.key)).isChecked());
+            assertTrue(Settings.GHOST_STORIES.key, ((SwitchPreference) page.findPreference(Settings.GHOST_STORIES.key)).isChecked());
             assertEquals("Turn off Telegram's update checks", String.valueOf(page.findPreference(Settings.DISABLE_UPDATE_CHECKS.key).getTitle()));
             assertEquals("Telegram stops offering updates from telegram.org. Those can't install over this patched "
                     + "build, so patch each new version in Morphe Manager instead.",
@@ -360,8 +384,9 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("UnifiedPush notifications", String.valueOf(page.findPreference(Settings.UNIFIED_PUSH.key).getTitle()));
             assertEquals("For phones where Firebase notifications don't arrive. Telegram signs up an address from a "
                     + "UnifiedPush app like ntfy, and Telegram's servers call it to wake Telegram when something "
-                    + "arrives. The messages still come from Telegram itself. Turned off, Telegram goes back to "
-                    + "Firebase the next time it starts.",
+                    + "arrives. The messages still come from Telegram itself. It also turns on Telegram's own Keep-Alive "
+                    + "Service and Background Connection, unless you've set either one yourself. Turned off, Telegram "
+                    + "goes back to Firebase the next time it starts.",
                     String.valueOf(page.findPreference(Settings.UNIFIED_PUSH.key).getSummary()));
             // Telegram keeps signing up with Firebase until the switch is turned on.
             assertFalse(Settings.UNIFIED_PUSH.key,
@@ -453,6 +478,13 @@ public class HushTelegramPreferenceFragmentTest {
             // Search matches names as Telegram does until someone turns the switch on.
             assertFalse(Settings.SEARCH_STYLED_NAMES.key,
                     ((SwitchPreference) page.findPreference(Settings.SEARCH_STYLED_NAMES.key)).isChecked());
+            assertEquals("Block new channels and groups", String.valueOf(page.findPreference(Settings.BLOCK_NEW_CHATS.key).getTitle()));
+            assertEquals("Stops joining channels and groups, from search, a link or a shared folder, and opening ones "
+                    + "you aren't in. Chats you're already in stay. To keep this on, also turn on Lock HushTelegram settings.",
+                    String.valueOf(page.findPreference(Settings.BLOCK_NEW_CHATS.key).getSummary()));
+            // New channels and groups open and join as Telegram's do until a parent turns the block on.
+            assertFalse(Settings.BLOCK_NEW_CHATS.key,
+                    ((SwitchPreference) page.findPreference(Settings.BLOCK_NEW_CHATS.key)).isChecked());
             assertEquals("When your chat list is short, Telegram lists your contacts below it. This hides that list "
                     + "and its heading. Chats, folders and search stay.",
                     String.valueOf(page.findPreference(Settings.HIDE_CONTACTS_BLOCK.key).getSummary()));
@@ -534,14 +566,16 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("Full screen videos turn either way",
                     String.valueOf(page.findPreference(Settings.VIDEO_EITHER_LANDSCAPE.key).getTitle()));
             assertEquals("After you tap full screen, a video follows your phone to either landscape side, even with "
-                    + "auto-rotate off.", String.valueOf(page.findPreference(Settings.VIDEO_EITHER_LANDSCAPE.key).getSummary()));
+                    + "auto-rotate off. Turning your phone upright doesn't end full screen. Tap the button to leave it.",
+                    String.valueOf(page.findPreference(Settings.VIDEO_EITHER_LANDSCAPE.key).getSummary()));
             // Full screen keeps Telegram's one side until the switch is turned on.
             assertFalse(Settings.VIDEO_EITHER_LANDSCAPE.key,
                     ((SwitchPreference) page.findPreference(Settings.VIDEO_EITHER_LANDSCAPE.key)).isChecked());
             assertEquals("Turn videos only from the full screen button",
                     String.valueOf(page.findPreference(Settings.VIDEO_ONLY_FROM_BUTTON.key).getTitle()));
             assertEquals("An open video stays upright when you turn your phone. It goes landscape only when you tap "
-                    + "full screen.", String.valueOf(page.findPreference(Settings.VIDEO_ONLY_FROM_BUTTON.key).getSummary()));
+                    + "full screen, and back only when you tap the button again.",
+                    String.valueOf(page.findPreference(Settings.VIDEO_ONLY_FROM_BUTTON.key).getSummary()));
             // Videos follow the phone as Telegram has it until the switch is turned on.
             assertFalse(Settings.VIDEO_ONLY_FROM_BUTTON.key,
                     ((SwitchPreference) page.findPreference(Settings.VIDEO_ONLY_FROM_BUTTON.key)).isChecked());
@@ -694,6 +728,15 @@ public class HushTelegramPreferenceFragmentTest {
             // The owner's setting holds until this one is turned on as well.
             assertFalse(Settings.SAVE_RESTRICTED_DOWNLOADS.key,
                     ((SwitchPreference) page.findPreference(Settings.SAVE_RESTRICTED_DOWNLOADS.key)).isChecked());
+            assertEquals("Also save view-once and timed media",
+                    String.valueOf(page.findPreference(Settings.SAVE_TIMED_MEDIA.key).getTitle()));
+            assertEquals("With Save downloaded files on, view-once and self-destructing photos, videos, voice and video "
+                    + "messages get copied to Download/Telegram when they download. The sender meant them to disappear, "
+                    + "so only use it where they're fine with you keeping a copy. Secret chats still stay in Telegram.",
+                    String.valueOf(page.findPreference(Settings.SAVE_TIMED_MEDIA.key).getSummary()));
+            // The sender's timer holds until this one is turned on as well.
+            assertFalse(Settings.SAVE_TIMED_MEDIA.key,
+                    ((SwitchPreference) page.findPreference(Settings.SAVE_TIMED_MEDIA.key)).isChecked());
             assertEquals("Silence people outside your contacts", String.valueOf(page.findPreference(Settings.SILENCE_NON_CONTACTS.key).getTitle()));
             assertEquals("Private messages from people not in your contacts still show a notification, but without "
                     + "sound or vibration. Bots, reminders and login codes keep their sound.",
@@ -816,6 +859,36 @@ public class HushTelegramPreferenceFragmentTest {
                             + "channel, open its info. A channel picks this up the next time you open it.",
                     String.valueOf(page.findPreference(Settings.HIDE_CHANNEL_MUTE.key).getSummary()));
             assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_CHANNEL_MUTE.key)).isChecked());
+            assertEquals("Hide channel share button", String.valueOf(page.findPreference(Settings.HIDE_CHANNEL_SHARE.key).getTitle()));
+            assertEquals("The round share button beside channel posts goes away, in the channel and wherever a post is "
+                            + "forwarded. A post's own menu still forwards it. Bots and Saved Messages keep theirs. A chat "
+                            + "picks this up the next time you open it.",
+                    String.valueOf(page.findPreference(Settings.HIDE_CHANNEL_SHARE.key).getSummary()));
+            assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_CHANNEL_SHARE.key)).isChecked());
+            assertEquals("Hide emoji statuses", String.valueOf(page.findPreference(Settings.HIDE_EMOJI_STATUS.key).getTitle()));
+            assertEquals("The emoji a Premium account puts next to its name goes away in chats, the chat list and "
+                            + "profiles, and the Premium star shows instead. Your own status hides too but stays set for "
+                            + "everyone else. A chat picks this up the next time you open it.",
+                    String.valueOf(page.findPreference(Settings.HIDE_EMOJI_STATUS.key).getSummary()));
+            assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_EMOJI_STATUS.key)).isChecked());
+            assertEquals("Unlock Premium app icons", String.valueOf(page.findPreference(Settings.UNLOCK_PREMIUM_ICONS.key).getTitle()));
+            assertEquals("Premium, Turbo and Nox in Telegram's App Icon list work without Premium, with no lock and no "
+                            + "Premium sheet. Only the icon on your home screen changes.",
+                    String.valueOf(page.findPreference(Settings.UNLOCK_PREMIUM_ICONS.key).getSummary()));
+            assertFalse(((SwitchPreference) page.findPreference(Settings.UNLOCK_PREMIUM_ICONS.key)).isChecked());
+            assertEquals("Emoji status on this phone", String.valueOf(page.findPreference(Settings.LOCAL_EMOJI_STATUS.key).getTitle()));
+            assertEquals("Tap the star next to Telegram at the top of the chat list and pick any emoji status, animated ones "
+                            + "too, without Premium. It shows there on this phone only. Nobody else sees it, and nothing is sent "
+                            + "to Telegram.",
+                    String.valueOf(page.findPreference(Settings.LOCAL_EMOJI_STATUS.key).getSummary()));
+            assertFalse(((SwitchPreference) page.findPreference(Settings.LOCAL_EMOJI_STATUS.key)).isChecked());
+            assertEquals("Hide trending packs", String.valueOf(page.findPreference(Settings.HIDE_KEYBOARD_FEATURED.key).getTitle()));
+            assertEquals("The sticker keyboard's Trending tab and row and the emoji keyboard's trending packs go away, "
+                            + "so both list only packs you've added. Search and the Stickers and Emoji screen still show "
+                            + "them. A chat picks this up the next time you open it.",
+                    String.valueOf(page.findPreference(Settings.HIDE_KEYBOARD_FEATURED.key).getSummary()));
+            // The keyboards keep Telegram's trending packs until the switch is turned on.
+            assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_KEYBOARD_FEATURED.key)).isChecked());
             assertEquals("Your picture next to the message box goes away in groups and channels where you could post as "
                             + "a channel, while you're posting as yourself. Once you pick a channel it shows again, so you "
                             + "can always see who you're posting as. To pick one, turn this off first. A chat picks this up "
@@ -1064,6 +1137,9 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("", key.getText().toString());
             assertTrue("the key field is masked",
                     (key.getInputType() & android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD) != 0);
+            assertTrue(key.getTransformationMethod() instanceof android.text.method.PasswordTransformationMethod);
+            assertEquals("the key reads in the same face as the other fields", address.getTypeface(), key.getTypeface());
+            assertNotEquals(android.graphics.Typeface.MONOSPACE, key.getTypeface());
             assertEquals("no autofill service is offered the key", android.view.View.IMPORTANT_FOR_AUTOFILL_NO,
                     key.getImportantForAutofill());
 
@@ -1235,7 +1311,7 @@ public class HushTelegramPreferenceFragmentTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             List<Preference> rows = new ArrayList<>();
             collect(pageOf(controller).getPreferenceScreen(), rows);
-            Preference folder = rows.get(indexOfKey(rows, Settings.SAVE_RESTRICTED_DOWNLOADS.key) + 1);
+            Preference folder = rows.get(indexOfKey(rows, Settings.SAVE_TIMED_MEDIA.key) + 1);
             assertEquals(HushTelegramPreferenceFragment.GALLERY_FOLDER_ROW, folder.getKey());
             assertEquals("Playback", String.valueOf(folder.getParent().getTitle()));
             assertFalse("it stores nothing itself", folder.isPersistent());

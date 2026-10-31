@@ -1,5 +1,9 @@
 # Local backup and restore for Pillo
 
+**Pillo 0.6.27 (code 472) is supported.** See [the 0.6.27 port notes](Pillo627.md)
+for current contracts, verification, and version-specific backup restrictions.
+Existing 0.6.20 support is retained; contracts below describe that historical implementation.
+
 Supported app: **Pillo 0.6.20** (`xyz.rtrvr.pillo`). Patch name:
 **Pillo - Local backup and restore**. It is independent of the weight JSON import
 and hybrid notification patches; you can select any combination of these patches.

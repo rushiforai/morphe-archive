@@ -11,7 +11,10 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.facebook.downloads.photo.commentSheetVideoRow
 import app.morphe.patches.facebook.downloads.story.rememberPlayerSources
+import app.morphe.patches.facebook.feed.resolveStatic
+import app.morphe.patches.facebook.feed.tableStringAt
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.settings.settingsPatch
@@ -63,13 +66,16 @@ private const val REMEMBER_HELPER = "hushfacebookRememberVideoSource"
  *
  * The save reuses the story save's pipeline whole: the player of the same video records its
  * DASH manifest under the video's id, and the post's media carries that id.
+ *
+ * A video someone posted in a comment gets Save video on the comment's long-press sheet (#318), a
+ * row built the way Download any photo's Save GIF is, at the same point.
  */
 @Suppress("unused")
 val downloadVideoPatch = bytecodePatch(
     name = "Download any video",
     description = "Adds Download to phone to the menu of videos in the feed and in Watch, so you can save them " +
-        "to watch later. Videos save at the quality you set, best by default. Starts off. Turn it on in " +
-        "Hushfacebook settings > Downloads.",
+        "to watch later. A video comment gets Save video when you long-press it. Videos save at the quality you " +
+        "set, best by default. Starts off. Turn it on in Hushfacebook settings > Downloads.",
 ) {
     category("Downloads")
     dependsOn(settingsPatch)
@@ -78,6 +84,8 @@ val downloadVideoPatch = bytecodePatch(
 
     execute {
         val menu = postMenu()
+        // Found before any hook goes in, so a build without the sheet fails whole.
+        val addCommentVideoRow = commentSheetVideoRow()
         callAfterMenuFill(
             menu,
             postMenuHelper(menu, MENU_HELPER, ADD_ITEM, listOf(menu.attachments, menu.media, menu.attachedStory)),
@@ -86,6 +94,7 @@ val downloadVideoPatch = bytecodePatch(
         // ---- the players' sources, for the manifest a post's media doesn't carry -------------------
         rememberPlayerSources(helperName = REMEMBER_HELPER, recorder = REMEMBER_VIDEO_SOURCE)
 
+        addCommentVideoRow()
         enableStatus("videoDownload")
     }
 }
@@ -178,7 +187,9 @@ internal fun BytecodePatchContext.postMenu(): PostMenu {
         menuRegister = call.startRegister + 1,
         propsType = propsType,
         itemField = itemField.single().name,
-        icon = stockDownloadIcon(videoMenu.instructionsOrEmpty(), "$optionsType->${videoMenu.name}"),
+        icon = stockDownloadIcon(videoMenu.instructionsOrEmpty(), "$optionsType->${videoMenu.name}") { call ->
+            classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) }
+        },
         attachments = graphQlGetter(GRAPHQL_STORY, IMMUTABLE_LIST, ATTACHMENTS_FIELD, "attachments"),
         media = graphQlGetter(GRAPHQL_STORY_ATTACHMENT, GRAPHQL_MEDIA, MEDIA_FIELD, "media"),
         attachedStory = graphQlGetter(GRAPHQL_STORY, GRAPHQL_STORY, ATTACHED_STORY_FIELD, "attached_story"),
@@ -265,8 +276,12 @@ internal fun BytecodePatchContext.graphQlGetter(owner: String, returnType: Strin
  * `setIcon(I)` the row calls just before it reports itself as [STOCK_DOWNLOAD_ROW], and the
  * constant that call is given.
  */
-private fun stockDownloadIcon(instructions: List<Instruction>, where: String): Int {
-    val row = instructions.indexOfFirst { it.stringReference() == STOCK_DOWNLOAD_ROW }
+private fun stockDownloadIcon(instructions: List<Instruction>, where: String, resolve: (MethodReference) -> Method?): Int {
+    // 585 asks a string table for the row's name instead of holding the literal, so both forms count.
+    val row = instructions.indices.firstOrNull { index ->
+        instructions[index].stringReference() == STOCK_DOWNLOAD_ROW ||
+            tableStringAt(instructions, index, resolve) == STOCK_DOWNLOAD_ROW
+    } ?: -1
     check(row > 0) { "$where does not name its $STOCK_DOWNLOAD_ROW row" }
 
     val setIcon = (row - 1 downTo maxOf(0, row - 16)).firstOrNull { index ->

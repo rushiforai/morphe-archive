@@ -145,6 +145,30 @@ public final class PostPrompts {
 
     private static volatile boolean commentReactionsLogged;
 
+    /**
+     * Whether the reaction faces this thread is about to build belong to a comment. The lambda that
+     * asks FDSInlineReactions' factory for its Drawable reads the component first, and on 585 no
+     * register still holds the component once the Drawable comes back, so its flag waits here for
+     * the length of that one call.
+     */
+    private static final ThreadLocal<Boolean> pendingCommentFaces = new ThreadLocal<>();
+
+    /** The hook, right before the lambda reads the component, handed the component's flag. */
+    public static void stashCommentFaces(boolean comment) {
+        pendingCommentFaces.set(comment);
+    }
+
+    /**
+     * The hook, right after the factory hands the lambda its Drawable: the flag {@link
+     * #stashCommentFaces} left on this thread, which it clears, or false when there is none.
+     */
+    public static boolean takeCommentFaces() {
+        Boolean comment = pendingCommentFaces.get();
+        if (comment == null) return false;
+        pendingCommentFaces.set(null);
+        return comment;
+    }
+
     /** Counted under the patch's name each time the count beside a post's reaction faces is left out. */
     static final String COUNT_HIDDEN = "Reaction count kept out";
 

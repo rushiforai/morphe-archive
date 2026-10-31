@@ -1,5 +1,10 @@
 group = "ch.broillet.veloce.patches"
 
+dependencies {
+    testImplementation(kotlin("test-junit"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+}
+
 patches {
     about {
         name = "Veloce Patches"

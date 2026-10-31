@@ -20,6 +20,7 @@ import app.morphe.patches.facebook.feed.storyModelAccessors
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
+import app.morphe.patches.facebook.misc.extension.parameterRegister
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -32,8 +33,17 @@ internal const val PROFILE_AD_FILTER = "$EXTENSION_PACKAGE/ads/ProfileAdFilter;"
 internal const val HIDE = "$PROFILE_AD_FILTER->hide(Ljava/lang/Object;)Z"
 internal const val SPONSORED_DATA_STUB = "sponsoredData"
 
-/** What the patch found: the render method, the field holding the unit, and the story's accessor. */
-internal class TimelineStory(val render: Method, val unit: Field, val sponsoredData: Method)
+/** Where the render method gets the timeline unit it draws. */
+internal sealed interface StoryUnit {
+    /** A field of the component, read off `this` (up to 584). */
+    class InField(val field: Field) : StoryUnit
+
+    /** One of the render method's own declared parameters, by index (585's stateless component). */
+    class InParameter(val index: Int) : StoryUnit
+}
+
+/** What the patch found: the render method, where it gets the unit, and the story's accessor. */
+internal class TimelineStory(val render: Method, val unit: StoryUnit, val sponsoredData: Method)
 
 /**
  * Leaves an ad out of a profile's timeline: the timeline story component answers no component for
@@ -67,8 +77,9 @@ val hideSponsoredProfilePostsPatch = bytecodePatch(
 /**
  * The timeline story component's render method, held to the evidence the rule rests on: it's the
  * one method holding both test tags and the component's name, it asks the story for
- * `sponsored_data` through the one accessor GraphQLStory declares for it, and its class keeps the
- * unit in one field typed as an interface GraphQLStory implements, which the render method reads.
+ * `sponsored_data` through the one accessor GraphQLStory declares for it, and it gets the unit from
+ * exactly one place typed as an interface GraphQLStory implements: a field of its class that it
+ * reads, or (585) one of its own parameters.
  */
 internal fun BytecodePatchContext.timelineStory(): TimelineStory {
     val renders = classDefByStrings(SPONSORED_TEST_KEY, StringComparisonType.EQUALS)
@@ -100,15 +111,22 @@ internal fun BytecodePatchContext.timelineStory(): TimelineStory {
     }
 
     val component = classDefBy(render.definingClass)
-    val fields = unitFields(component, storyInterfaces())
-    val field = fields.singleOrNull() ?: throw PatchException(
-        "$PATCH: ${component.type} has ${fields.size} fields typed as an interface of GraphQLStory, expected one: " +
-            fields.joinToString { it.name },
-    )
+    val interfaces = storyInterfaces()
+    val fields = unitFields(component, interfaces)
+    // 585's component keeps no state, and its render method takes the unit as a parameter instead.
+    val parameters = unitParameters(render, interfaces)
+    if (fields.size + parameters.size != 1) {
+        throw PatchException(
+            "$PATCH: expected the unit in one field of ${component.type} or one parameter of " +
+                "${render.name}, typed as an interface of GraphQLStory, found fields [${fields.joinToString { it.name }}] " +
+                "and parameters [${parameters.joinToString()}]",
+        )
+    }
+    val field = fields.singleOrNull() ?: return TimelineStory(render, StoryUnit.InParameter(parameters.single()), accessor)
     if (!readsField(render, field)) {
         throw PatchException("$PATCH: ${render.definingClass}->${render.name} doesn't read ${component.type}->${field.name}")
     }
-    return TimelineStory(render, field, accessor)
+    return TimelineStory(render, StoryUnit.InField(field), accessor)
 }
 
 /** Every interface GraphQLStory implements, through its superclasses and the interfaces' own. */
@@ -131,19 +149,32 @@ private fun BytecodePatchContext.storyInterfaces(): Set<String> {
 /**
  * First thing in the render method: hand the extension the unit this row draws, and answer no
  * component when it says the row goes. Otherwise the render method runs from its first
- * instruction. v0 is free at index 0; `this` is copied down into it because `iget-object` names
- * its registers in four bits.
+ * instruction. v0 is free at index 0. For a field, `this` is copied down into it because
+ * `iget-object` names its registers in four bits; a parameter is copied with `move-object/from16`,
+ * since 585's sits past v15.
  */
-internal fun MutableMethod.skipSponsoredStories(unit: Field) {
-    if (unit.definingClass != definingClass || AccessFlags.STATIC.isSet(accessFlags)) {
-        throw PatchException("$PATCH: $definingClass->$name can't read ${unit.definingClass}->${unit.name} from this")
+internal fun MutableMethod.skipSponsoredStories(unit: StoryUnit) {
+    val load = when (unit) {
+        is StoryUnit.InField -> {
+            val field = unit.field
+            if (field.definingClass != definingClass || AccessFlags.STATIC.isSet(accessFlags)) {
+                throw PatchException("$PATCH: $definingClass->$name can't read ${field.definingClass}->${field.name} from this")
+            }
+            "move-object/from16 v0, p0\niget-object v0, v0, ${field.definingClass}->${field.name}:${field.type}"
+        }
+        is StoryUnit.InParameter -> {
+            val type = parameterTypes.getOrNull(unit.index)?.toString()
+            if (type == null || !type.startsWith("L")) {
+                throw PatchException("$PATCH: $definingClass->$name has no object parameter ${unit.index} to read the unit from")
+            }
+            "move-object/from16 v0, ${parameterRegister(unit.index)}"
+        }
     }
     requireLocals(PATCH, 1)
     addInstructionsWithLabels(
         0,
         """
-            move-object/from16 v0, p0
-            iget-object v0, v0, ${unit.definingClass}->${unit.name}:${unit.type}
+            $load
             invoke-static { v0 }, $HIDE
             move-result v0
             if-eqz v0, :render

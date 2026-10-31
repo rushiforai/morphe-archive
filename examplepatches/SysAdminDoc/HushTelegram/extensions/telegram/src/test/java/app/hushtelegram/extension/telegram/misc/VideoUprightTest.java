@@ -265,6 +265,73 @@ public class VideoUprightTest {
         });
     }
 
+    /** Telegram's listener as the hook meets it: it holds the viewer, and remembers being switched on. */
+    private static final class ViewerListener extends OrientationEventListener {
+        @SuppressWarnings("unused") private final PhotoViewer outer;
+        boolean enabled;
+
+        ViewerListener(Activity activity) {
+            super(activity);
+            outer = new PhotoViewer(activity);
+        }
+
+        @Override public void enable() { enabled = true; }
+        @Override public void onOrientationChanged(int degrees) {}
+    }
+
+    @Test public void offTelegramsListenerStillEndsFullScreenWhenThePhoneTurnsUpright() {
+        withActivity(activity -> {
+            ViewerListener listener = new ViewerListener(activity);
+            VideoUpright.listenerOn(listener);
+            assertTrue(listener.enabled);
+            assertFalse(report(), report().contains(VideoUpright.ONLY_BUTTON_ENDS));
+        });
+    }
+
+    @Test public void withEitherSwitchOnTurningThePhoneUprightNoLongerEndsFullScreen() {
+        // Telegram's listener is the one thing that ends a button's full screen on an upright turn (#27).
+        Settings.VIDEO_EITHER_LANDSCAPE.save(true);
+        withActivity(activity -> {
+            ViewerListener listener = new ViewerListener(activity);
+            VideoUpright.listenerOn(listener);
+            assertFalse("either way", listener.enabled);
+            assertEquals("the pin is the other switch's", FREE, activity.getRequestedOrientation());
+            assertTrue(report(), report().contains(VideoUpright.ONLY_BUTTON_ENDS + " 1"));
+        });
+        VideoUpright.reset();
+        Settings.VIDEO_EITHER_LANDSCAPE.resetToDefault();
+        Settings.VIDEO_ONLY_FROM_BUTTON.save(true);
+        withActivity(activity -> {
+            ViewerListener listener = new ViewerListener(activity);
+            VideoUpright.listenerOn(listener);
+            assertFalse("only from the button", listener.enabled);
+            assertEquals(PORTRAIT, activity.getRequestedOrientation());
+            assertTrue(report(), report().contains(VideoUpright.ONLY_BUTTON_ENDS + " 2"));
+        });
+    }
+
+    @Test public void pausedOrUnreadableTelegramsListenerRunsAsItAlwaysDid() {
+        Settings.VIDEO_EITHER_LANDSCAPE.save(true);
+        Settings.VIDEO_ONLY_FROM_BUTTON.save(true);
+        withActivity(activity -> {
+            for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+                if (reason == HushTelegramPause.Reason.NONE) continue;
+                PauseForTests.pause(reason);
+                ViewerListener listener = new ViewerListener(activity);
+                VideoUpright.listenerOn(listener);
+                assertTrue(reason.name(), listener.enabled);
+                PauseForTests.resume();
+                VideoUpright.reset();
+            }
+            Settings.VIDEO_EITHER_LANDSCAPE.resetToDefault();
+            SettingReadsForTests.breakReads(Settings.VIDEO_ONLY_FROM_BUTTON);
+            ViewerListener listener = new ViewerListener(activity);
+            VideoUpright.listenerOn(listener);
+            assertTrue("unreadable switch", listener.enabled);
+            assertEquals(FREE, activity.getRequestedOrientation());
+        });
+    }
+
     @Test public void theHooksPassTelegramsOwnCallsThroughWhenNothingIsHeld() {
         withActivity(activity -> {
             activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);

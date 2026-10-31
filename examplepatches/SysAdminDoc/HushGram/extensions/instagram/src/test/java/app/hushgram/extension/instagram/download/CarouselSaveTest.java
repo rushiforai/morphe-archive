@@ -101,7 +101,7 @@ public class CarouselSaveTest {
 
     @Before public void setUp() throws Exception {
         context = RuntimeEnvironment.getApplication();
-        context.getApplicationInfo().targetSdkVersion = 36;
+        context.getApplicationInfo().targetSdkVersion = 37;
         server = new LocalServer();
         LocalCandidates.origin = server.origin();
         MediaSave.policyForTests = new MediaUrlPolicy(host -> new InetAddress[]{InetAddress.getByName("10.9.8.7")}) {
@@ -746,13 +746,15 @@ public class CarouselSaveTest {
     /**
      * The video a cover is taken from is the largest picture the phone decodes, of the files and
      * the manifest's tracks: AV1 only on a phone with an AV1 decoder and Never save AV1 video off
-     * (#379), and only Meta's addresses.
+     * (#379), an HDR picture only with Never save HDR video off (#352), and only Meta's addresses.
      */
     @Test public void theCoverComesFromTheLargestVideoThePhoneDecodes() {
         Object av1Before = org.robolectric.util.ReflectionHelpers.getStaticField(DashSave.class, "canWriteAv1");
         try {
             String cdn = "https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m69/";
             String manifest = "<MPD><Period><AdaptationSet mimeType=\"video/mp4\">"
+                    + "<Representation codecs=\"vp09.02.10.10.01.09.16.09.01\" width=\"1440\" height=\"2560\" bandwidth=\"2500000\">"
+                    + "<BaseURL>" + cdn + "v1440hdr.mp4?oh=1&amp;oe=2</BaseURL></Representation>"
                     + "<Representation codecs=\"av01.0.08m.08.0.111.01.01.01.0\" width=\"1080\" height=\"1920\" bandwidth=\"1525000\">"
                     + "<BaseURL>" + cdn + "v1080.mp4?oh=1&amp;oe=2</BaseURL></Representation>"
                     + "<Representation codecs=\"avc1.64001f\" width=\"720\" height=\"1280\" bandwidth=\"900000\">"
@@ -764,7 +766,12 @@ public class CarouselSaveTest {
             MediaSave.Rendition still = new MediaSave.Rendition(cdn + "c.jpg", 360, 640, 0);
 
             org.robolectric.util.ReflectionHelpers.setStaticField(DashSave.class, "canWriteAv1", Boolean.TRUE);
-            assertEquals(cdn + "v1080.mp4?oh=1&oe=2", CoverFrame.source(files, manifest, still).url);
+            assertEquals("every phone decodes VP9, HDR included", cdn + "v1440hdr.mp4?oh=1&oe=2",
+                    CoverFrame.source(files, manifest, still).url);
+
+            Settings.DOWNLOAD_NO_HDR.save(true);
+            assertEquals("the HDR switch passes the HDR picture over", cdn + "v1080.mp4?oh=1&oe=2",
+                    CoverFrame.source(files, manifest, still).url);
 
             Settings.DOWNLOAD_NO_AV1.save(true);
             assertEquals("the switch passes the AV1 over on a phone that decodes it", cdn + "v720.mp4?oh=1&oe=2",
@@ -783,6 +790,7 @@ public class CarouselSaveTest {
         } finally {
             org.robolectric.util.ReflectionHelpers.setStaticField(DashSave.class, "canWriteAv1", av1Before);
             Settings.DOWNLOAD_NO_AV1.resetToDefault();
+            Settings.DOWNLOAD_NO_HDR.resetToDefault();
         }
     }
 
@@ -1047,6 +1055,44 @@ public class CarouselSaveTest {
     }
 
     /**
+     * Choose pages keeps Name saves by account and post time's page numbers: ticking pages 2 and 4
+     * of five saves just those two, as _2 and _4, the names Save all gives them.
+     */
+    @Test @Config(sdk = {28, 37})
+    public void choosePagesKeepsEachPagesNumberInItsName() throws Exception {
+        Shadows.shadowOf(RuntimeEnvironment.getApplication()).grantPermissions(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        for (String directory : new String[]{Environment.DIRECTORY_PICTURES, Environment.DIRECTORY_MOVIES}) {
+            File[] old = new File(Environment.getExternalStoragePublicDirectory(directory), "Instagram").listFiles();
+            if (old != null) for (File file : old) assertTrue(file.delete());
+        }
+        Settings.DOWNLOAD_CHOOSE_PAGES.save(true);
+        Settings.SAVE_NAME_BY_POST.save(true);
+        Calendar noon = new GregorianCalendar();
+        noon.clear();
+        noon.set(2026, Calendar.SEPTEMBER, 1, 12, 0, 0);
+        MediaBridge.poster = "stevi.ous";
+        MediaBridge.postedAt = noon.getTimeInMillis() / 1000L;
+        CarouselPages.previews = (application, url, size) -> null;
+        MediaBridge.post = Arrays.asList(page(false, "/p1.jpg", "1"), page(false, "/p2.jpg", "2"),
+                page(false, "/p3.jpg", "3"), page(true, "/p4.mp4", "4"), page(false, "/p5.jpg", "5"));
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+
+        VideoDownload.choosePages(MediaBridge.post, activity);
+        AlertDialog list = ShadowAlertDialog.getLatestAlertDialog();
+        List<CheckBox> boxes = boxes(list);
+        assertEquals(5, boxes.size());
+        boxes.get(1).setChecked(true);
+        boxes.get(3).setChecked(true);
+        list.getButton(DialogInterface.BUTTON_POSITIVE).performClick();
+        waitForSaves();
+        assertEquals("Saved 2. Failed 0. Skipped 0.", ShadowToast.getTextOfLatestToast());
+        String base = "stevi.ous_20260901_120000";
+        assertEquals(Arrays.asList(base + "_2.jpg", base + "_4.mp4"), savedNames());
+        for (String path : new String[]{"/p1.jpg", "/p3.jpg", "/p5.jpg"}) assertEquals(path, 0, server.hits(path));
+        assertClean();
+    }
+
+    /**
      * A page the photo switch leaves out is listed but can't be ticked, rows work with no picture,
      * and Save says why and saves nothing when the account changed, the screen closed or nothing is
      * chosen.
@@ -1096,6 +1142,30 @@ public class CarouselSaveTest {
         assertEquals("No pages chosen", ShadowToast.getTextOfLatestToast());
         waitForSaves();
         for (String path : Arrays.asList("/first.jpg", "/middle.mp4", "/last.mp4")) assertEquals(path, 0, server.hits(path));
+        assertClean();
+    }
+
+    /** Back closes Choose pages with a box ticked and saves nothing, and the next tap opens a new list. */
+    @Test public void choosePagesClosesOnBackWithoutSaving() throws Exception {
+        Settings.DOWNLOAD_CHOOSE_PAGES.save(true);
+        CarouselPages.previews = (application, url, size) -> null;
+        MediaBridge.post = Arrays.asList(page(false, "/first.jpg", "1"), page(false, "/second.jpg", "2"));
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+
+        VideoDownload.choosePages(MediaBridge.post, activity);
+        AlertDialog list = ShadowAlertDialog.getLatestAlertDialog();
+        boxes(list).get(1).setChecked(true);
+        int toasts = ShadowToast.shownToastCount();
+        list.onBackPressed();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(list.isShowing());
+        waitForSaves();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(0, server.hits("/first.jpg")); assertEquals(0, server.hits("/second.jpg"));
+        assertEquals("nothing saved, so nothing was reported", toasts, ShadowToast.shownToastCount());
+
+        VideoDownload.choosePages(MediaBridge.post, activity);
+        assertNotSame(list, ShadowAlertDialog.getLatestAlertDialog());
         assertClean();
     }
 

@@ -9,6 +9,8 @@ import static org.junit.Assert.*;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.preference.Preference;
 import android.view.View;
@@ -67,6 +69,67 @@ public class SettingsPolishTest {
             assertEquals("HushTelegram", ((TextView) dialog.getView().findViewWithTag(SettingsDialog.PAGE_TITLE)).getText().toString());
             assertTrue("Deleting the last character must keep editing focus", search.hasFocus());
         }
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void focusedSearchOutlineRunsPastTheClearButton() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+            SettingsDialog dialog = show(activity.get());
+            EditText search = search(dialog.getView());
+            search.requestFocus();
+            search.setText("ads");
+            ViewGroup box = (ViewGroup) search.getParent();
+            View clear = box.getChildAt(box.getChildCount() - 1);
+            assertEquals("Clear search", String.valueOf(clear.getContentDescription()));
+            assertEquals(View.VISIBLE, clear.getVisibility());
+            int width = Math.round(320 * box.getResources().getDisplayMetrics().density);
+            box.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            box.layout(0, 0, width, box.getMeasuredHeight());
+            Bitmap drawn = Bitmap.createBitmap(width, box.getHeight(), Bitmap.Config.ARGB_8888);
+            box.draw(new Canvas(drawn));
+            int middle = drawn.getHeight() / 2;
+            int accent = ScreenColors.DEFAULT.accent;
+            assertEquals("the outline shows at the field's start", accent, drawn.getPixel(0, middle));
+            assertEquals("the clear button must not paint over the outline at the field's end",
+                    accent, drawn.getPixel(width - 1, middle));
+            int under = (clear.getLeft() + clear.getRight()) / 2;
+            assertEquals("nor along the top and bottom under the button", accent, drawn.getPixel(under, 0));
+            assertEquals(accent, drawn.getPixel(under, drawn.getHeight() - 1));
+        }
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void searchHintFitsA320dpScreenAtTwiceTheTextSize() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        org.robolectric.RuntimeEnvironment.setFontScale(2f);
+        try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+            SettingsDialog dialog = show(activity.get());
+            EditText search = search(dialog.getView());
+            ViewGroup box = (ViewGroup) search.getParent();
+            // A 320 dp screen less the box's two 12 dp margins, as the emulator drew it.
+            int width = Math.round(296 * box.getResources().getDisplayMetrics().density);
+            box.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            box.layout(0, 0, width, box.getMeasuredHeight());
+            ShadowLooper.idleMainLooper();
+            int room = search.getWidth() - search.getTotalPaddingLeft() - search.getTotalPaddingRight();
+            assertTrue("the full hint must overflow here, or this proves nothing",
+                    search.getPaint().measureText("Search settings") > room);
+            assertEquals("Search", search.getHint().toString());
+            assertTrue(search.getPaint().measureText(search.getHint().toString()) <= room);
+            assertEquals("the field's description stays whole", "Search settings", search.getContentDescription().toString());
+        } finally { org.robolectric.RuntimeEnvironment.setFontScale(1f); }
+    }
+
+    @Test public void searchHintStaysWholeWhereItFits() {
+        android.graphics.Paint paint = new android.graphics.Paint();
+        paint.setTextSize(40);
+        int full = (int) Math.ceil(paint.measureText("Search settings"));
+        assertEquals("Search settings", SettingsDialog.hintThatFits(paint, full));
+        assertEquals("Search", SettingsDialog.hintThatFits(paint, full - 1));
+        assertEquals("a field not laid out yet keeps the full hint", "Search settings", SettingsDialog.hintThatFits(paint, 0));
     }
 
     @Test public void overviewDoesNotClaimAllChangesAreWorkingBeforeARestart() {
@@ -292,6 +355,50 @@ public class SettingsPolishTest {
                 assertNull("Key text must not enter a view state bundle", state.get(key.getId()));
             } finally { dialog.dismiss(); }
         }
+    }
+
+    @Test public void refusalStaysOnScreenWhenTheCursorAsksForTheSameFrame() {
+        try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity host = activity.get();
+            EditorForm form = new EditorForm(host, "Fill in the service.");
+            EditText field = new EditText(host);
+            field.setId(android.R.id.text2);
+            field.setSingleLine(true);
+            field.setText("model with spaces");
+            form.add(field, "Model");
+            android.widget.FrameLayout window = new android.widget.FrameLayout(host);
+            host.setContentView(window);
+            int width = Math.round(296 * host.getResources().getDisplayMetrics().density);
+            window.addView(form, new android.widget.FrameLayout.LayoutParams(width, 9000));
+            String reason = "A model name has no spaces. Copy it from your AI service's model list, "
+                    + "like gpt-4o-mini, and try Save again.";
+            form.refuse(field, reason);
+            lay(form, width, 9000);
+            TextView error = form.findViewWithTag(EditorForm.ERROR);
+            // Room for the reason but not for the reason and the field's line together, like 200%
+            // text with the keyboard up.
+            int room = error.getHeight() + field.getHeight() / 2;
+            form.setLayoutParams(new android.widget.FrameLayout.LayoutParams(width, room));
+            form.scrollTo(0, 0);
+            form.refuse(field, reason);
+            // The cursor moves in the same frame, so the field asks to be scrolled to as well.
+            field.setSelection(0);
+            field.setSelection(field.length());
+            lay(form, width, room);
+            ShadowLooper.idleMainLooper();
+            assertTrue("both fit, so nothing was tested", error.getHeight() + field.getHeight() > form.getHeight());
+            assertTrue("the reason starts on screen", error.getTop() >= form.getScrollY());
+            assertTrue("the reason ends on screen", error.getBottom() <= form.getScrollY() + form.getHeight());
+        }
+    }
+
+    /** One frame by hand, in the order a window draws one: layout, global layout, then pre-draw. */
+    private static void lay(View view, int width, int height) {
+        view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+        view.layout(0, 0, width, height);
+        view.getViewTreeObserver().dispatchOnGlobalLayout();
+        view.getViewTreeObserver().dispatchOnPreDraw();
     }
 
     @Test public void failedStickerSaveKeepsThePickerAndRestoresTheSavedSelection() throws Exception {

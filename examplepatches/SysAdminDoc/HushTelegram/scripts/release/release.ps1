@@ -32,8 +32,10 @@
       publish    First -Walk, the walk-receipt.json of a whole-app walk of the built bundle on a
                  release phone or an emulator for each Telegram build it patches, the Play build's
                  signed in (walk-receipt.ps1): nothing goes out without them.
-                 Then release notes from -Intro, -Install and -Validation around every bullet of
-                 the version's CHANGELOG section, a lightweight tag on the release commit, the
+                 Then release notes laid out like the other Hush repositories': -Intro, every
+                 bullet of the version's CHANGELOG section under New in this release, Fixes, Other
+                 changes and Behind the scenes, -Install under How to update and -Validation under
+                 What was checked. Then a lightweight tag on the release commit, the
                  GitHub release with the four assets, each downloaded back and compared, and the
                  published notes held to the section.
       index      patches-bundle.json from -Description, the version's CHANGELOG bullets less the
@@ -405,6 +407,9 @@ switch ($Stage) {
             Write-Step "$Version is already built from $(Get-ShortCommit $head) and its assets match SHA256SUMS.txt. Run -Stage publish."
             return
         }
+        # The full gate's wall time, queue waits included, kept next to the bundle hash so the next
+        # release can hold it against the 14m22s v0.0.11 baseline in CLAUDE.md.
+        $clock = [Diagnostics.Stopwatch]::StartNew()
         $fixtures = @(Get-DeclaredFixtures)
         $desktopJar = Resolve-DesktopCli -Root $Root -Required
         Invoke-ReleaseBuildAdvisories
@@ -463,7 +468,9 @@ switch ($Stage) {
             '{0}  {1}' -f (Get-Sha256Hex -Path (Join-Path $assets $name)).ToLowerInvariant(), $name
         })
         Write-ReleaseText -Path (Join-Path $assets 'SHA256SUMS.txt') -Text (($sums -join "`n") + "`n")
-        Save-StageRecord 'build' @{ bundleSha256 = $bundleHash; fixtures = @($fixtures | ForEach-Object { Split-Path -Leaf $_ }) }
+        $minutes = [math]::Round($clock.Elapsed.TotalMinutes, 1)
+        Save-StageRecord 'build' @{ bundleSha256 = $bundleHash; fixtures = @($fixtures | ForEach-Object { Split-Path -Leaf $_ }); minutes = $minutes }
+        Write-Step "the full gate took $minutes minutes"
         foreach ($line in $sums) { Write-Step $line }
         Write-Step "The assets are in $assets. Write the notes' intro, install steps and validation, then run -Stage publish."
     }
@@ -491,7 +498,7 @@ switch ($Stage) {
         }
         $changelog = Read-ReleaseText -Path (Join-Path $Root 'CHANGELOG.md')
         $notes = New-ReleaseNotes -Changelog $changelog -Version $Version -Intro (Read-ReleaseText -Path $Intro) `
-            -Install (Read-ReleaseText -Path $Install) -Validation (Read-ReleaseText -Path $Validation)
+            -Install (Read-ReleaseText -Path $Install) -Validation (Read-ReleaseText -Path $Validation) -Repository $Repository
         New-Item -ItemType Directory -Force -Path $stages | Out-Null
         $notesPath = Join-Path $stages 'notes.md'
         Write-ReleaseText -Path $notesPath -Text $notes

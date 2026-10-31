@@ -140,8 +140,7 @@ final class PlaylistSessions implements AutoCloseable {
             Variant best = null;
             for (Variant candidate : variants.values())
                 if (best == null || candidate.height > best.height) best = candidate;
-            warmup = new BackupWarmup(backups, fetch, channel, master, request);
-            if (best != null) warmup.watch(best);
+            warmup = new BackupWarmup(backups, fetch, channel, master, request, best);
         }
 
         synchronized String media(Request request, String original, HlsPlaylist primary, Variant variant, boolean enabled) {
@@ -188,6 +187,10 @@ final class PlaylistSessions implements AutoCloseable {
                             if (backup == null || stopped || request.isCancelled()) continue;
                             if (window.acceptCleanBackup(backup, source.playerType)) { backupUsed = true; break; }
                         }
+                    }
+                    if (!backupUsed && !stopped && !request.isCancelled() && warmup != null) {
+                        BackupWarmup.Snapshot completed = warmup.snapshot(variant);
+                        if (completed != null) backupUsed = window.acceptCleanBackup(completed.playlist, completed.source);
                     }
                     if (!backupUsed) nextBackup = (nextBackup + 1) % backups.length;
                 } catch (InterruptedException exception) { Thread.currentThread().interrupt(); return original; }

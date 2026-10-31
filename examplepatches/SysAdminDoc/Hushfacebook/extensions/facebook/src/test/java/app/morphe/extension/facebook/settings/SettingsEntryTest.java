@@ -592,6 +592,25 @@ public class SettingsEntryTest {
         assertNull("the request was kept for the next screen", SettingsEntry.takeRequestedSetting());
     }
 
+    /** The break cover's Break settings button: the screen opens at Take breaks, not at the top. */
+    @Test public void anOpenAtARowLandsOnIt() {
+        PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
+        ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).create().start().resume();
+        assertTrue(SettingsEntry.open(activity.get(), Settings.TAKE_BREAKS.key));
+        ShadowLooper.idleMainLooper();
+        List<String> titles = titles(pageOver(activity.get()));
+        assertTrue(titles.toString(), titles.contains("Take breaks"));
+        assertNull("the request was kept for the next screen", SettingsEntry.takeRequestedSetting());
+    }
+
+    /** An open at a row over a screen that's going away keeps no row for the next open. */
+    @Test public void anOpenAtARowThatCannotShowKeepsNoRow() {
+        ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).create();
+        activity.get().finish();
+        assertFalse(SettingsEntry.open(activity.get(), Settings.TAKE_BREAKS.key));
+        assertNull("a later open would land on the row", SettingsEntry.takeRequestedSetting());
+    }
+
     /** A screen that's already up goes to the row too, rather than staying where it was. */
     @Test public void aRequestForASettingMovesAScreenAlreadyOpen() {
         PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);

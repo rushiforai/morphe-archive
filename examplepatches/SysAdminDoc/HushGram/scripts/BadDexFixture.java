@@ -232,6 +232,8 @@ public class BadDexFixture {
     private static final String TRANSACTION = "Landroid/view/SurfaceControl$Transaction;";
     private static final String LOCATION = "Landroid/location/Location;";
     private static final String WINDOW = "Landroid/view/Window;";
+    private static final String PACKAGE_MANAGER = "Landroid/content/pm/PackageManager;";
+    private static final String COMPONENT_NAME = "Landroid/content/ComponentName;";
     private static final String SETTINGS_ENTRY = "Lapp/hushgram/extension/fixture/settings/SettingsEntry;";
     private static final String OVERRIDE_TABLE = "Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;";
     private static final String OVERRIDE_WRITER = "Lcom/facebook/mobileconfig/troubleshooting/MobileConfigOverridesWriterHolder;";
@@ -470,6 +472,8 @@ public class BadDexFixture {
             "no-call Landroid/view/SurfaceControl$Transaction;->setExtendedRangeBrightness(Landroid/view/SurfaceControl;FF)Landroid/view/SurfaceControl$Transaction; outside Lapp/hushgram/extension/",
             "no-call Landroid/app/NotificationManager;->cancel(I)V outside Lapp/hushgram/extension/",
             "no-call Landroid/app/NotificationManager;->cancel(Ljava/lang/String;I)V outside Lapp/hushgram/extension/",
+            "no-call Landroid/content/pm/PackageManager;->setComponentEnabledSetting(Landroid/content/ComponentName;II)V outside Lapp/hushgram/extension/",
+            "no-call Landroid/content/pm/PackageManager;->setComponentEnabledSettings(Ljava/util/List;)V outside Lapp/hushgram/extension/",
             "no-call Lcom/facebook/mobileconfig/troubleshooting/MobileConfigOverridesWriterHolder;->importOverridesFromUser(Ljava/lang/String;)Ljava/lang/String; outside Lcom/facebook/mobileconfig/",
             "no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->reload()V outside Lcom/facebook/mobileconfig/",
             "no-call Lcom/facebook/mobileconfig/MobileConfigOverridesTableHolder;->removeAllOverrides()V outside Lcom/facebook/mobileconfig/",
@@ -514,8 +518,9 @@ public class BadDexFixture {
     /**
      * One of the framework calls a patch sends to an extension stand-in (the settings patch's
      * ShortcutManager calls, Group notifications' NotificationManager.notify and cancel, Allow
-     * screenshots' Window.setFlags and Window.addFlags, Spoof location's Location reads and Turn off
-     * HDR brightness boosts' headroom and color mode calls): the manager it's made on, its name,
+     * screenshots' Window.setFlags and Window.addFlags, Spoof location's Location reads, Turn off
+     * HDR brightness boosts' headroom and color mode calls and Pick the app icon's PackageManager
+     * component calls): the manager it's made on, its name,
      * what it answers, the publisher method that makes it, whether that method makes it as a range
      * call and what it takes after the manager. Its bad build is "bad-shortcut-[caseName]-left".
      * The case name tells calls of one name apart.
@@ -558,7 +563,7 @@ public class BadDexFixture {
         }
     }
 
-    /** All nineteen, as the contract file names them. The update and the transaction's two calls go as range calls. */
+    /** All twenty-one, as the contract file names them. The update and the transaction's two calls go as range calls. */
     private static final List<ShortcutCall> SHORTCUT_CALLS = Arrays.asList(
             new ShortcutCall(SHORTCUT_MANAGER, "pushDynamicShortcut", "V", "push", "push", false, SHORTCUT_INFO),
             new ShortcutCall(SHORTCUT_MANAGER, "addDynamicShortcuts", "Z", "add", "add", false, SHORTCUT_LIST),
@@ -582,7 +587,11 @@ public class BadDexFixture {
                     true, SURFACE_CONTROL, "F", "F"),
             new ShortcutCall(NOTIFICATION_MANAGER, "cancel", "V", "cancel", "cancel", false, "I"),
             new ShortcutCall(NOTIFICATION_MANAGER, "cancel", "V", "cancelTagged", "cancel-tagged", false,
-                    "Ljava/lang/String;", "I"));
+                    "Ljava/lang/String;", "I"),
+            new ShortcutCall(PACKAGE_MANAGER, "setComponentEnabledSetting", "V", "componentSetting", "component-setting",
+                    false, COMPONENT_NAME, "I", "I"),
+            new ShortcutCall(PACKAGE_MANAGER, "setComponentEnabledSettings", "V", "componentSettings", "component-settings",
+                    false, "Ljava/util/List;"));
 
     /** A real native override boundary, with a receiver followed by its exact typed arguments. */
     private static final class OverrideCall {

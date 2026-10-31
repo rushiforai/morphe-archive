@@ -21,8 +21,9 @@ import org.junit.Test
  *
  * Every declared build has to carry exactly one `getTypeName()` answering DiscoverFeedUnit, the
  * shared model that also answers StoriesTrayFeedUnit; DiscoverUnitComponent's kept layout manager
- * has to take exactly one class that reads the unconnected flag; that class has to be the only
- * place in the APK the flag is read; and every method that builds it has to check the unit's type
+ * has to take exactly one class that reads the unconnected flag, itself or (585) through the unit
+ * model's accessor; that class and the accessors it asks have to be the only places in the APK the
+ * flag is read; and every method that builds it has to check the unit's type
  * tag is DiscoverFeedUnit first, which ties the flag to that unit. Reads the fixture bundles from
  * HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
@@ -30,8 +31,8 @@ class StoriesYouMightLikeFixtureTest {
     private fun isTypeName(method: Method) =
         method.name == "getTypeName" && method.parameterTypes.isEmpty() && method.returnType == "Ljava/lang/String;"
 
-    private fun builds(method: Method, type: String) = method.implementation?.instructions?.any {
-        it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == type
+    private fun builds(method: Method, types: Set<String>) = method.implementation?.instructions?.any {
+        it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type in types
     } == true
 
     private fun loads(method: Method, literal: Int) = method.implementation?.instructions?.any {
@@ -50,25 +51,41 @@ class StoriesYouMightLikeFixtureTest {
                 val parameters = layout.methods.filter { it.name == "<init>" }
                     .flatMap { constructor -> constructor.parameterTypes.map { it.toString() } }.toSet()
                 val parameterClasses = FixtureDex.classes(bundle, parameters)
-                val readers = unconnectedStoriesReaders(layout) { parameterClasses[it] }
-                assertEquals("${bundle.name}: layout parameters reading $UNCONNECTED_STORIES_FLAG: ${readers.map { it.type }}",
-                    1, readers.size)
-                val component = readers.single().type
 
                 val typeNames = mutableListOf<Method>()
                 val flagReads = mutableListOf<Method>()
-                val builders = mutableListOf<Method>()
+                val parameterBuilders = mutableListOf<Method>()
                 FixtureDex.methodsWhere(bundle, { true }) { method ->
                     if (isTypeName(method) && holdsString(method, DISCOVER_FEED_UNIT_TYPE)) typeNames += method
                     if (readsUnconnectedStoriesFlag(method)) flagReads += method
-                    if (builds(method, component)) builders += method
+                    if (builds(method, parameters)) parameterBuilders += method
                     false
                 }
+                // The patch's walk visits the classes naming an accessor's owner; only the ones reading
+                // the flag answer, so the readers' own classes stand in for it here.
+                val readerClasses = FixtureDex.classes(bundle, flagReads.map { it.definingClass }.toSet())
+                val flagAccessors = { owners: Set<String> ->
+                    readerClasses.values.flatMap { unconnectedStoriesAccessors(it, owners) }.toSet()
+                }
+                val readers = unconnectedStoriesReaders(layout, flagAccessors) { parameterClasses[it] }
+                assertEquals("${bundle.name}: layout parameters reading $UNCONNECTED_STORIES_FLAG: ${readers.map { it.type }}",
+                    1, readers.size)
+                val component = readers.single().type
+                val asked = readers.single().methods.flatMap(::booleanAccessorCalls).toSet()
+                val builders = parameterBuilders.filter { builds(it, setOf(component)) }
+
                 assertEquals("${bundle.name}: getTypeName() answering $DISCOVER_FEED_UNIT_TYPE", 1, typeNames.size)
                 assertTrue("${bundle.name}: the $DISCOVER_FEED_UNIT_TYPE model isn't the shared Stories one",
                     holdsString(typeNames.single(), "StoriesTrayFeedUnit"))
-                assertEquals("${bundle.name}: classes reading $UNCONNECTED_STORIES_FLAG",
-                    setOf(component), flagReads.map { it.definingClass }.toSet())
+                // Every read of the flag is the component's own, or an accessor the component asks.
+                assertTrue("${bundle.name}: nothing reads $UNCONNECTED_STORIES_FLAG", flagReads.isNotEmpty())
+                for (read in flagReads) {
+                    val owner = readerClasses.getValue(read.definingClass)
+                    assertTrue("${bundle.name}: ${read.definingClass}->${read.name} reads $UNCONNECTED_STORIES_FLAG " +
+                        "outside $component and the accessors it asks",
+                        read.definingClass == component ||
+                            (owner.interfaces + owner.type).any { "$it->${read.name}" in asked })
+                }
                 // The control that ties the flag to the unit: the component is built only after a
                 // check of the DiscoverFeedUnit type tag.
                 assertTrue("${bundle.name}: nothing outside $component builds it",

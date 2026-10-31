@@ -30,6 +30,7 @@ import app.morphe.patches.facebook.misc.extension.requireStatusMethod
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -87,6 +88,10 @@ internal const val FEED_REQUEST_SENT = "$EXTENSION_PACKAGE/feed/FeedRequestParam
  * ("following_feed"), but on the S22 test account (581, 2026-10-08) Facebook answered that request
  * with the ranked feed, suggestions and all.
  *
+ * 585 inlined the static helper into the preparer's own instance method (arm64 `LX/01bb;->A01`,
+ * still handed the feed type second), which reads the feed type first right after it opens the
+ * trace section, so the swap at its start still lands before every read.
+ *
  * With debug logging on, the parameters each feed request goes out with are logged too (the
  * extension's FeedRequestParams), so Home with a Home shows filter can be compared with the Feeds
  * tab's own filter. The feed query method hands its parameter set to it before each return past
@@ -140,19 +145,44 @@ private fun Method.sameAs(other: Method) =
         parameterTypes.map(CharSequence::toString) == other.parameterTypes.map(CharSequence::toString)
 
 /**
- * Whether [method] is the news feed parameter builder: static, handed a feed type second, and
- * opening the [PAGED_NEWSFEED_PARAMS] trace section.
+ * Whether [method] is the news feed parameter builder: handed a feed type second, opening the
+ * [PAGED_NEWSFEED_PARAMS] trace section, and reading the feed type nowhere before it. Up to 584 it
+ * was a static helper of its own; 585 inlined it into the preparer's instance method (arm64
+ * `LX/01bb;->A01`), whose first read of the feed type comes right after the trace section opens.
  */
 internal fun isNewsFeedParams(method: Method): Boolean =
-    AccessFlags.STATIC.isSet(method.accessFlags) &&
-        method.parameterTypes.getOrNull(1)?.toString() == HOME_FEED_TYPE_CLASS &&
-        holdsString(method, PAGED_NEWSFEED_PARAMS)
+    method.parameterTypes.getOrNull(1)?.toString() == HOME_FEED_TYPE_CLASS &&
+        holdsString(method, PAGED_NEWSFEED_PARAMS) && !readsFeedTypeBeforeTrace(method)
+
+/**
+ * The register the feed type arrives in, as a `p` number: past `this` on an instance method and
+ * past the parameter before it (two registers when that one is wide).
+ */
+internal fun feedTypeParameter(method: Method): Int =
+    (if (AccessFlags.STATIC.isSet(method.accessFlags)) 0 else 1) +
+        method.parameterTypes.first().toString().let { if (it == "J" || it == "D") 2 else 1 }
+
+/**
+ * Whether anything in [method] reads the feed type's register before the [PAGED_NEWSFEED_PARAMS]
+ * load. The swap goes in first thing, so a read up there would see the swapped type where Facebook
+ * didn't build for it.
+ */
+internal fun readsFeedTypeBeforeTrace(method: Method): Boolean {
+    val implementation = method.implementation ?: return true
+    val instructions = implementation.instructions.toList()
+    val trace = instructions.indexOfFirst { loads(it, PAGED_NEWSFEED_PARAMS) }
+    if (trace < 0) return true
+    val parameterRegisters = method.parameterTypes.sumOf { if (it.toString() == "J" || it.toString() == "D") 2 else 1 } +
+        (if (AccessFlags.STATIC.isSet(method.accessFlags)) 0 else 1)
+    val register = implementation.registerCount - parameterRegisters + feedTypeParameter(method)
+    return instructions.take(trace).any { register in it.namedRegisters() }
+}
 
 /** The one news feed parameter builder among [holders]. Refuses unless there's exactly one. */
 internal fun newsFeedParams(holders: List<ClassDef>): Method {
     val builders = holders.flatMap { methodsHolding(it, PAGED_NEWSFEED_PARAMS) }.filter(::isNewsFeedParams)
     return builders.singleOrNull()
-        ?: refuse("expected one static method opening \"$PAGED_NEWSFEED_PARAMS\" with a feed type second, found ${builders.size}")
+        ?: refuse("expected one method opening \"$PAGED_NEWSFEED_PARAMS\" with a feed type second it reads no earlier, found ${builders.size}")
 }
 
 /**
@@ -179,14 +209,15 @@ internal fun feedTypeRefusal(feedTypes: ClassDef): String? {
  */
 internal fun MutableMethod.askForHomeFeed() {
     requireLocals(PATCH, 1)
+    val feedType = "p${feedTypeParameter(this)}"
     addInstructions(
         0,
         """
-            move-object/from16 v0, p1
+            move-object/from16 v0, $feedType
             invoke-static { v0 }, $FEED_TYPE_ASKED
             move-result-object v0
             check-cast v0, $HOME_FEED_TYPE_CLASS
-            move-object/from16 p1, v0
+            move-object/from16 $feedType, v0
         """,
     )
 }

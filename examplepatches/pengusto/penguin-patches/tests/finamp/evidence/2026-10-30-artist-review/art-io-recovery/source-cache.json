@@ -1,0 +1,11 @@
+{
+  "source_uid": 1648682502,
+  "source_kind": "Local",
+  "bundle_sha256": "642b96ab193c53dc8f15e7ade75a5b9435d326f814b0e1153ab07d597ac84960",
+  "base_io_candidate_sha256": "72921cf82a2a0787e5597721fa9e9291751e3f316e85614047593142df3eda12",
+  "only_updated_native_mask": 4,
+  "manager_restarted_after_import": true,
+  "recommended_defaults_capture": "../gui/ui/002-io-recommended-defaults.json",
+  "recommended_finamp_selected": "0/7",
+  "unrelated_universal_selected": "0/5"
+}

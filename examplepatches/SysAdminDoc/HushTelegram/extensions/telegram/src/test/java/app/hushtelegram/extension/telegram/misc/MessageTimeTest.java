@@ -12,6 +12,8 @@ import app.hushtelegram.extension.shared.settings.HushTelegramPause;
 import app.hushtelegram.extension.shared.settings.PauseForTests;
 import app.hushtelegram.extension.shared.settings.SettingReadsForTests;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
+import app.hushtelegram.extension.telegram.settings.PatchFamily;
+import app.hushtelegram.extension.telegram.settings.PatchFamilyForTests;
 import app.hushtelegram.extension.telegram.settings.Settings;
 import org.junit.After;
 import org.junit.Before;
@@ -26,8 +28,12 @@ import org.robolectric.annotation.Config;
 public class MessageTimeTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
-    @Before public void reset() { restore(); }
+    @Before public void reset() {
+        restore();
+        PatchFamilyForTests.inBuild(PatchFamily.MESSAGE_SECONDS);
+    }
     @After public void restore() {
+        PatchFamilyForTests.reset();
         PauseForTests.resume();
         SettingReadsForTests.mend(Settings.MESSAGE_SECONDS);
         Settings.MESSAGE_SECONDS.resetToDefault();
@@ -38,6 +44,13 @@ public class MessageTimeTest {
         assertFalse(Settings.MESSAGE_SECONDS.get());
         assertFalse(MessageTime.on());
         assertTrue(String.join("\n", HookStatus.report()).contains(FamilyNames.MESSAGE_SECONDS));
+    }
+
+    @Test public void keepDeletedAloneBringsTheTimesHereWithoutSecondsOrACount() {
+        Settings.MESSAGE_SECONDS.save(true);
+        PatchFamilyForTests.inBuild(PatchFamily.KEEP_DELETED_MESSAGES);
+        assertFalse(MessageTime.on());
+        assertFalse(String.join("\n", HookStatus.report()).contains(FamilyNames.MESSAGE_SECONDS));
     }
 
     @Test public void theSecondsGoRightAfterTheMinutes() {

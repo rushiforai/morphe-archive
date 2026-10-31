@@ -6,6 +6,7 @@ No NPO application is started, no APK is installed, and no app storage is opened
 import argparse
 import hashlib
 import os
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -94,7 +95,7 @@ def run(command, **kwargs):
 def execute(args):
     sdk, java_home = args.sdk, args.java_home
     platforms = sorted((sdk / 'platforms').glob('android-*/android.jar'),
-                       key=lambda path: int(path.parent.name.split('-')[1]))
+                       key=lambda path: int(path.parent.name.split('-')[1].split('.')[0]))
     if not platforms:
         raise FileNotFoundError(f'No Android platform found in {sdk}')
     android_jar = platforms[-1]
@@ -115,7 +116,7 @@ def execute(args):
         source.write_text(PROBE)
         run([java_home / 'bin/javac', '-source', '8', '-target', '8', '-cp', android_jar,
              '-d', classes, source])
-        run([d8, '--min-api', '28', '--lib', android_jar, '--output', output,
+        run([d8, '--min-api', '24', '--lib', android_jar, '--output', output,
              *classes.rglob('*.class')], env=dict(os.environ, JAVA_HOME=str(java_home)))
         identifier = uuid.uuid4().hex
         remote_apk = f'/data/local/tmp/npo-privacy-{identifier}.apk'
@@ -142,8 +143,8 @@ def main():
     parser.add_argument('--sdk', type=Path, default=Path(os.environ.get('ANDROID_HOME', Path.home() / 'Library/Android/sdk')))
     parser.add_argument('--java-home', type=Path, default=Path(os.environ.get('JAVA_HOME', '/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home')))
     args = parser.parse_args()
-    if args.serial != '192.168.50.89:5555':
-        parser.error('Harness is restricted to the spare 192.168.50.89:5555 device')
+    if args.serial != '192.168.50.89:5555' and not re.fullmatch(r'emulator-\d+', args.serial):
+        parser.error('Harness requires the spare 192.168.50.89:5555 device or a local emulator')
     if not args.apk.is_file() or args.apk.suffix != '.apk':
         parser.error('--apk must identify an existing APK file')
     execute(args)

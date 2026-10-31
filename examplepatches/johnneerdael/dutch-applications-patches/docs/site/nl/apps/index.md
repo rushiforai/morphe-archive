@@ -5,9 +5,9 @@
 Kies je app hieronder. Op elke app-pagina vind je de exacte ondersteunde versie, welke activiteit in de code is gevonden en welke gegevens de app blijft uitwisselen. De links naar dienstprofielen geven meer uitleg over de betrokken diensten.
 
 - [Weer](weather/index.md): Buienalarm, Buienradar, Weeronline en Weerplaza.
-- [Nieuws en lezen](news/index.md): NU.nl, de Volkskrant, Trouw, FTM, AD, NRC, Parool, RTL Nieuws, Omroep Brabant, Voetbal International en NOS Teletekst.
+- [Nieuws en lezen](news/index.md): NU.nl, de Volkskrant, Trouw, FTM, AD, NRC, Parool, De Tijd, RTL Nieuws, Omroep Brabant, Voetbal International en NOS Teletekst.
 - [Verkeer en navigatie](mobility/index.md): Flitsmeister.
-- [Amusement](entertainment/index.md): Dumpert, KIJK Android TV en NPO Start Android TV.
+- [Amusement](entertainment/index.md): Dumpert, KIJK Android TV, NPO Start Android TV, Videoland Android en Videoland Android TV.
 - [Overige apps](other/index.md): Marktplaats.
 - [Alleen onderzocht](research.md): bevindingen zonder gepubliceerde privacyopties.
 

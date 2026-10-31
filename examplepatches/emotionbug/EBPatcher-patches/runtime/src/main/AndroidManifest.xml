@@ -1,0 +1,27 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.skt.prod.dialer">
+    <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <application>
+        <uses-native-library android:name="libOpenCL.so" android:required="false" />
+        <uses-native-library android:name="libvndksupport.so" android:required="false" />
+        <meta-data android:name="moe.shizuku.client.V3_SUPPORT" android:value="true" />
+        <activity android:name="io.github.emotionbug.patches.runtime.ExtensionSettingsActivity" android:exported="false" android:label="EBPatcher settings" android:theme="@android:style/Theme.DeviceDefault.DayNight" />
+        <activity android:name="io.github.emotionbug.patches.runtime.SummarySettingsActivity" android:exported="false" android:label="On-device summaries" android:theme="@android:style/Theme.DeviceDefault.DayNight" />
+        <service android:name="io.github.emotionbug.patches.runtime.SummaryDownloadService" android:process=":ebpatcher_models" android:exported="false" android:foregroundServiceType="dataSync" />
+        <service android:name="io.github.emotionbug.patches.runtime.SummaryJobService" android:process=":ebpatcher_summary" android:exported="true" android:permission="android.permission.BIND_JOB_SERVICE" />
+        <receiver android:name="io.github.emotionbug.patches.runtime.SummaryPhoneReceiver" android:process=":ebpatcher_summary" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.PHONE_STATE" /></intent-filter>
+        </receiver>
+        <provider android:name="io.github.emotionbug.patches.runtime.ExtensionSettingsProvider" android:authorities="com.skt.prod.dialer.ebpatcher.settings" android:exported="false" />
+        <provider android:name="io.github.emotionbug.patches.runtime.RecorderShizukuProvider" android:authorities="com.skt.prod.dialer.shizuku" android:multiprocess="false" android:enabled="true" android:exported="true" android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+        <service android:name="io.github.emotionbug.patches.runtime.RecorderService" android:process=":ebpatcher_recorder" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Call recording requested by the dialer's recording controls through an authorized Shizuku shell service" />
+            <intent-filter><action android:name="com.skt.prod.dialer.action.CONNECT" /></intent-filter>
+        </service>
+    </application>
+</manifest>

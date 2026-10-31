@@ -8,9 +8,11 @@
 package app.morphe.patches.reddit.customclients.baconreader.api
 
 import app.morphe.patcher.Match
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patches.reddit.customclients.AppCompatibility
+import app.morphe.patches.reddit.customclients.ExtensionPatches
 import app.morphe.patches.reddit.customclients.spoofClientPatch
 import app.morphe.patches.all.misc.string.replaceStringPatch
 import app.morphe.util.returnEarly
@@ -18,9 +20,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 val spoofClientPatch = spoofClientPatch { clientIdOption, redirectUriOption, userAgentOption ->
     dependsOn(
+        ExtensionPatches.BaconReader,
         // Redirects from SSL to WWW domain are bugged causing auth problems.
         // Manually rewrite the URLs to fix this.
-        replaceStringPatch("ssl.reddit.com", "www.reddit.com")
+        replaceStringPatch("ssl.reddit.com", "www.reddit.com", comparison = StringComparisonType.CONTAINS)
     )
 
     compatibleWith(*AppCompatibility.BaconReader)
@@ -48,7 +51,11 @@ val spoofClientPatch = spoofClientPatch { clientIdOption, redirectUriOption, use
         // Patch client id for access token request.
         RequestTokenFingerprint.match().patch(clientId!!)
 
-        GetAuthorizeUrlFingerprint.match().patch(redirectUri!!)
+        // Patch redirect uri in authorization url. Unlike other clients, the app bakes the
+        // query parameter name into the string, so it has to be kept.
+        GetAuthorizeUrlFingerprint.match().patch("redirect_uri=$redirectUri")
+
+        // Patch the bare redirect uri, used to recognize the callback and to request the token.
         AuthUrlFingerprint.matchAll().forEach { match -> match.patch(redirectUri!!) }
 
         GetRestClientUserAgentFingerprint.method.returnEarly(userAgent!!)

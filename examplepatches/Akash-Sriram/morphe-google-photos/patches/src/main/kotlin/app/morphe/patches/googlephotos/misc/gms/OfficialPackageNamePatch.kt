@@ -12,15 +12,15 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.googlephotos.misc.extension.sharedExtensionPatch
 import app.morphe.patches.googlephotos.misc.gms.Constants.MORPHE_PHOTOS_PACKAGE_NAME
+import app.morphe.patcher.util.getFreeRegisterProvider
+import app.morphe.patcher.util.matchAllMethodIndicesForEach
+import app.morphe.patcher.util.registersUsed
+import app.morphe.patcher.util.returnEarly
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.gms.PackageNameConfig
-import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getNode
-import app.morphe.util.matchAllMethodIndicesForEach
-import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import org.w3c.dom.Element
 import java.util.logging.Logger
 
@@ -90,14 +90,15 @@ val officialPackageNamePatch = bytecodePatch(
                 !classDef.type.startsWith("Lapp/morphe/extension")
             },
         ).matchAllMethodIndicesForEach(requireMatches = false) { index ->
-            val instruction = this.getInstruction<TwoRegisterInstruction>(index)
-            val moveResultRegister = instruction.registerA
-            val packageInfoRegister = instruction.registerB
+            val registers = this.getInstruction<Instruction>(index).registersUsed
+            val moveResultRegister = registers[0]
+            val packageInfoRegister = registers[1]
             val moveResultIndex = index + 1
 
             if (moveResultRegister >= 16) {
                 val provider = getFreeRegisterProvider(
                     moveResultIndex,
+                    1,
                     moveResultRegister,
                     packageInfoRegister,
                 )
@@ -146,7 +147,7 @@ val officialPackageNamePatch = bytecodePatch(
             if (getInstruction(index + 1).opcode != Opcode.MOVE_RESULT_WIDE) {
                 return@matchAllMethodIndicesForEach
             }
-            val register = getInstruction<FiveRegisterInstruction>(index).registerC
+            val register = getInstruction(index).registersUsed.first()
 
             replaceInstruction(
                 index,

@@ -1,0 +1,37 @@
+{
+  "requests": [
+    {
+      "id": 383,
+      "time": "2026-10-30T11:49:57.089758Z",
+      "method": "POST",
+      "path": "/sessions/capabilities/full",
+      "query": {},
+      "state": "completed",
+      "status": 204,
+      "elapsedMs": 0.132
+    },
+    {
+      "id": 384,
+      "time": "2026-10-30T11:49:57.093464Z",
+      "method": "GET",
+      "path": "/socket",
+      "query": {
+        "apikey": [
+          "[redacted]"
+        ],
+        "deviceid": [
+          "6734d6f8-4824-4817-a732-d221ca7e07f8-"
+        ]
+      },
+      "state": "completed",
+      "status": 404,
+      "elapsedMs": 0.096
+    }
+  ],
+  "lastId": 384,
+  "pending": 0,
+  "mode": "off",
+  "scope": "artist",
+  "retained": 384,
+  "capacity": 5000
+}

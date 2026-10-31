@@ -59,6 +59,7 @@ val hidePopularAppsPatch = bytecodePatch(
         requireStatusMethod("hidePopularApps")
         requireStatusMethod("myChatsSearch")
         requireNameFoldRuntime()
+        requireNewChatsBlockRuntime()
         // Every target, borrowed register and runtime call of both switches is checked before the first edit.
         val sites = resolvePopularAppsSites()
         val search = resolveMyChatsSearch()
@@ -70,6 +71,9 @@ val hidePopularAppsPatch = bytecodePatch(
         // The styled names switch rides along while the catalog is held. A build without its shape keeps
         // the rest of the patch and leaves the switch out.
         val fold = resolveNameFold()
+        // Blocking new chats rides along the same way, a parental control that's all there or not at all.
+        val chats = resolveNewChatsBlock()
+        shape(chats.sites.none { site -> (popular + searched).any { it === site.method } }, "blocking new chats shares a method with search")
         // The runtime's stubs first: on their own nothing calls them.
         writeMyChatsSearchStubs(search)
         sites.apply()
@@ -80,6 +84,12 @@ val hidePopularAppsPatch = bytecodePatch(
             enableCapability("nameFold")
         } else {
             patchLog.warning("$PATCH: ${fold.missing}. The patch goes on without finding names in styled letters.")
+        }
+        if (chats.missing == null) {
+            chats.apply()
+            enableCapability("blockNewChats")
+        } else {
+            patchLog.warning("$PATCH: ${chats.missing}. The patch goes on without blocking new channels and groups.")
         }
         enableStatus("hidePopularApps")
     }

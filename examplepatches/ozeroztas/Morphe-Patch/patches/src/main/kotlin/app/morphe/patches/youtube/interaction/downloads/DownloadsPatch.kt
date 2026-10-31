@@ -12,27 +12,36 @@ package app.morphe.patches.youtube.interaction.downloads
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.cloneParameters
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patcher.util.registersUsed
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayWithRegistryMethodRef
+import app.morphe.patches.shared.misc.fix.proto.protoDefaultInstanceFingerprint
+import app.morphe.patches.shared.misc.proto.hookElement
 import app.morphe.patches.shared.misc.settings.preference.ListPreference
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference.Sorting
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.settings.preference.TextPreference
+import app.morphe.patches.youtube.layout.flyout.flyoutPatch
 import app.morphe.patches.youtube.layout.player.icons.copyPlayerButtonIcons
+import app.morphe.patches.youtube.misc.auth.authHookPatch
 import app.morphe.patches.youtube.misc.playercontrols.addTopControl
 import app.morphe.patches.youtube.misc.playercontrols.initializeTopControl
 import app.morphe.patches.youtube.misc.playercontrols.legacyPlayerControlsPatch
+import app.morphe.patches.youtube.misc.proto.elementProtoParserHookPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
-import app.morphe.patches.youtube.misc.spoof.spoofVideoStreamsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.video.information.videoInformationPatch
-import app.morphe.util.getReference
-import app.morphe.util.registersUsed
+import app.morphe.util.ResourceGroup
+import app.morphe.util.copyResources
+import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -57,12 +66,26 @@ private val downloadsResourcePatch = resourcePatch {
                     TextPreference(
                         "morphe_external_downloader_name",
                         tag = "app.morphe.extension.shared.settings.preference.ExternalDownloaderPreference",
-                    )
+                    ),
+                    SwitchPreference("morphe_external_downloader_quick_menu", summary = true),
+                    SwitchPreference("morphe_external_downloader_mark_watched", summary = true),
+                    SwitchPreference("morphe_shorts_download_flyout_button", summary = true)
                 )
             )
         )
 
         copyPlayerButtonIcons("downloads", "morphe_yt_download_button")
+
+        copyResources(
+            "downloads",
+            ResourceGroup(
+                "drawable",
+                "morphe_external_downloader_quick_video.xml",
+                "morphe_external_downloader_quick_video_bold.xml",
+                "morphe_external_downloader_quick_audio.xml",
+                "morphe_external_downloader_quick_audio_bold.xml"
+            )
+        )
     }
 
     finalize {
@@ -78,10 +101,19 @@ private const val EXTENSION_IN_APP_DOWNLOADS_CLASS = "Lapp/morphe/extension/yout
 
 private const val EXTENSION_SPOOF_CLASS = "Lapp/morphe/extension/shared/spoof/SpoofVideoStreamsPatch;"
 
+private const val EXTENSION_SHORTS_DOWNLOAD_BUTTON =
+    "Lapp/morphe/extension/youtube/videoplayer/ShortsDownloadButton;"
+
 private const val EXTENSION_BUTTON = "Lapp/morphe/extension/youtube/videoplayer/ExternalDownloadButton;"
 
 private const val GET_GENERATED_REGISTRY =
     "Lcom/google/protobuf/ExtensionRegistryLite;->getGeneratedRegistry()Lcom/google/protobuf/ExtensionRegistryLite;"
+
+/**
+ * @return The default instance field of a proto message, which the message is parsed with.
+ */
+private fun BytecodePatchContext.protoDefaultInstance(messageType: String) =
+    protoDefaultInstanceFingerprint(messageType).instructionMatches.first().getFieldAccessed()
 
 @Suppress("unused")
 val downloadsPatch = bytecodePatch(
@@ -92,10 +124,12 @@ val downloadsPatch = bytecodePatch(
 ) {
     dependsOn(
         downloadsResourcePatch,
+        authHookPatch,
         videoInformationPatch,
         legacyPlayerControlsPatch,
         fixProtoLibraryPatch,
-        spoofVideoStreamsPatch
+        elementProtoParserHookPatch,
+        flyoutPatch
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)
@@ -103,19 +137,38 @@ val downloadsPatch = bytecodePatch(
     execute {
         initializeTopControl(EXTENSION_BUTTON)
 
-        OfflineVideoEndpointFingerprint.method.apply {
-            addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static/range { p3 .. p3 }, $EXTENSION_CLASS->inAppDownloadButtonOnClick(Ljava/lang/String;)Z
-                    move-result v0
-                    if-eqz v0, :show_native_downloader
-                    return-void
-                    :show_native_downloader
-                    nop
-                """
-            )
-        }
+        setExtensionIsPatchIncluded(EXTENSION_SHORTS_DOWNLOAD_BUTTON)
+
+        OfflineVideoEndpointFingerprint.method.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static/range { p3 .. p3 }, $EXTENSION_CLASS->inAppDownloadButtonOnClick(Ljava/lang/String;)Z
+                move-result v0
+                if-eqz v0, :show_native_downloader
+                return-void
+                :show_native_downloader
+                nop
+            """
+        )
+
+        // Open the external downloader with the playlist link, instead of saving the playlist.
+        OfflinePlaylistEndpointFingerprint.method.addInstructionsWithLabels(
+            0,
+            """
+                # The parameter registers can be higher than 15.
+                move-object/from16 v0, p3
+                move-object/from16 v1, p4
+                invoke-static { v0, v1 }, $EXTENSION_CLASS->offlinePlaylistEndpointOnClick(Ljava/lang/String;Ljava/lang/Enum;)Z
+                move-result v0
+                if-eqz v0, :show_native_downloader
+                return-void
+                :show_native_downloader
+                nop
+            """
+        )
+
+        // Add the Download button to the playlist page headers, which only Premium accounts get.
+        hookElement("$EXTENSION_IN_APP_DOWNLOADS_CLASS->addPlaylistDownloadButton")
 
         // region In-app downloads.
 
@@ -132,7 +185,7 @@ val downloadsPatch = bytecodePatch(
                     if-eqz v0, :keep_command
 
                     # The endpoint is an extension, which is lost if parsed without the registry.
-                    sget-object v1, $commandType->a:$commandType
+                    sget-object v1, ${protoDefaultInstance(commandType)}
                     invoke-static { }, $GET_GENERATED_REGISTRY
                     move-result-object v2
                     invoke-static { v1, v0, v2 }, ${parseByteArrayWithRegistryMethodRef.get()!!}
@@ -157,7 +210,7 @@ val downloadsPatch = bytecodePatch(
                     move-result-object v0
                     if-eqz v0, :keep_offlineability
 
-                    sget-object v1, $offlineabilityType->a:$offlineabilityType
+                    sget-object v1, ${protoDefaultInstance(offlineabilityType)}
                     invoke-static { }, $GET_GENERATED_REGISTRY
                     move-result-object v2
                     invoke-static { v1, v0, v2 }, ${parseByteArrayWithRegistryMethodRef.get()!!}
@@ -187,7 +240,7 @@ val downloadsPatch = bytecodePatch(
                     if-eqz v0, :keep_upsell_response
 
                     # The endpoint of the command is an extension, which is lost if parsed without the registry.
-                    sget-object v1, $responseType->a:$responseType
+                    sget-object v1, ${protoDefaultInstance(responseType)}
                     invoke-static { }, $GET_GENERATED_REGISTRY
                     move-result-object v2
                     invoke-static { v1, v0, v2 }, ${parseByteArrayWithRegistryMethodRef.get()!!}
@@ -264,6 +317,33 @@ val downloadsPatch = bytecodePatch(
                     move-result-object v$playerResponseModelRegister
                 """
             )
+        }
+
+        // Keep saved videos playable, if the server disables them when they are refreshed.
+        UpdateOfflineVideoPolicyFingerprint.matchAll().forEach { match ->
+            // The method has too few free registers.
+            match.method.cloneParameters().apply {
+                val offlineStateType = parameterTypes[2].toString()
+
+                addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static/range { p4 .. p4 }, $EXTENSION_IN_APP_DOWNLOADS_CLASS->replaceDisabledOfflineState(Lcom/google/protobuf/MessageLite;)[B
+                        move-result-object v0
+                        if-eqz v0, :keep_offline_state
+
+                        sget-object v1, ${protoDefaultInstance(offlineStateType)}
+                        invoke-static { }, $GET_GENERATED_REGISTRY
+                        move-result-object v2
+                        invoke-static { v1, v0, v2 }, ${parseByteArrayWithRegistryMethodRef.get()!!}
+                        move-result-object v0
+                        check-cast v0, $offlineStateType
+                        move-object/from16 p4, v0
+                        :keep_offline_state
+                        nop
+                    """
+                )
+            }
         }
 
         // endregion

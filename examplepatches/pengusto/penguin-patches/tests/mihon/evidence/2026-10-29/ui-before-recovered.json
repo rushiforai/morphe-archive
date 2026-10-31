@@ -1,0 +1,22 @@
+{
+  "derivedFrom": "ui-before.txt",
+  "report": {
+    "mode": "ui-before",
+    "cases": [
+      {
+        "name": "offline test",
+        "read": true,
+        "bookmark": false,
+        "exclude": [
+          "0"
+        ],
+        "expectedRetained": true,
+        "actualRetained": false,
+        "retainedBytesUnchanged": false,
+        "passed": false
+      }
+    ],
+    "failures": 1,
+    "apkSha256": "f36968d573662cc11c9faec0879f5da0384acf4ae3ac2493a297da30eaf918a6"
+  }
+}

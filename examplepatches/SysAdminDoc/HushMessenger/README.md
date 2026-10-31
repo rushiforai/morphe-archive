@@ -65,7 +65,8 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Hide friend request cards | Hides friend request cards in the chat list. Nobody gets accepted or declined. |
 | Hide growth prompts | Removes the add-people promotion, the notes tip sheets and the "Share your own story" card after someone's stories. |
 | Hide inbox promotions | Hides promotion banners in the chat list. |
-| Hide stories and notes | Hides the row of stories and notes above your chats. |
+| Hide stories and notes | Hides the row of stories and notes above your chats, and the story rings around profile pictures. |
+| Hide the Instants button | Hides the + button that slides in at the right edge of your chat list and the one under your chat heads. Both open Instants. |
 | Hide inbox tabs | Hides the All, Unread and Groups tabs above your chats. |
 | Hide Mark as read | Takes Mark as read out of the menu you get when you press and hold a chat, so you can't mark one read by accident. Mark as unread stays. |
 | Pin more chats | Raises Messenger's limit of three pinned chats to 20, so more of them can stay at the top of your chat list. Experimental, since Messenger's servers can still stop you sooner. |
@@ -92,14 +93,15 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Stop live connection logging | Drops the health reports and push logging Messenger sends over its live connection (MQTT). Messenger sends most of its traffic another way, so there's often little for it to drop. Messages and calls keep working. |
 | Stop nearby scans | Stops Messenger from reading the list of Wi-Fi networks around you, and hides the name and hardware address of the one you're connected to, the way Android does when Messenger can't see your location. Also stops the timer it can run while it's open to check your location and scan for Wi-Fi networks and Bluetooth devices. Experimental, since Messenger hasn't started those scans on the test phones yet. |
 | Stop app list and device ID sharing | Stops Messenger from going through your installed apps to find other Meta apps, and from asking them for the device ID Meta uses to link its apps on one phone. Messenger keeps the ID it already has. Experimental. |
-| Keep a message log | Saves a copy of each message that raised a notification, encrypted chats included, so an unsend can't take it back. It stays on your phone, encrypted. **View log** and **Clear log** sit under the switch. |
+| Keep a message log | Saves a copy of each message that raised a notification, encrypted chats included, so an unsend can't take it back. Messages that get unsent are marked Unsent, and **Show only unsent** lists just those. It stays on your phone, encrypted. **View log** and **Clear log** sit under the switch. |
 | Auto reply | Answers messages with a reply you write, for certain words or for any message. One reply per chat every five minutes, and group chats only when you allow it. |
-| Quiet incoming calls | Calls still come in, but Messenger doesn't ring, vibrate or pop the call up over your screen. It waits in the notification shade with Answer and Decline, and a call you miss still shows in the chat. If the Facebook app is on your phone, it can still ring for the same call. Experimental. |
+| Quiet incoming calls | Calls still come in, but Messenger doesn't ring, vibrate or pop the call up over your screen. It waits in the notification shade with Answer and Decline, and a call you miss still shows in the chat. **Only chosen chats** under the switch keeps this to the chats you pick, so every other call rings. If the Facebook app is on your phone, it can still ring for the same call. Experimental. |
+| Android Auto messages | Android Auto reads your Messenger messages out loud and sends the reply you speak, from its own messaging screen. Android Auto only lists apps from the Play Store until you turn on Unknown sources in its developer settings. |
 | Hide read receipts | Opening a chat no longer sends Seen. The chat stays unread on your phone until you reply or mark it read. Group chats haven't been checked. |
 | Mark as read button | Works with Hide read receipts. A chat's top bar gets Messenger's own Mark as read icon, and tapping it sends the Seen that opening the chat held back. When the bar is full it replaces the chat details button (tapping the chat's name opens the same page). Experimental. |
 | View stories anonymously | Opens other people's stories without adding you to their viewer list. |
 | Save any story | Adds **Save** to the **More options** menu on other people's stories. |
-| Keep unsent messages | Keeps messages on the older unsend routes and marks them "[unsent]". Encrypted chats aren't covered. |
+| Keep unsent messages | Keeps messages on the older unsend routes and marks them "[unsent]". An encrypted chat can't keep the message itself, so its notification stays up instead. |
 | Allow screenshots | Lets you screenshot protected photos and media, view-once included, with no screenshot notice to the sender. |
 | Use system emoji | Draws emoji with your phone's own set on Android 12 and newer. |
 | Send photos at original quality | With HD on, a JPEG photo up to 20 MB goes out at its full size instead of Messenger's smaller copy. Location and camera details are stripped, as Messenger does. |
@@ -107,15 +109,17 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Fix videos that won't send | A video whose only sound is xHE-AAC gets that sound converted to regular AAC, and a Samsung screen recording loses the tag Samsung's recorder adds when Messenger's media check rejects it, so neither ends in "Unable to send". Works for videos shared in from another app and ones picked in a chat. |
 | Use the phone's camera app | A chat's camera button opens your own camera app. Photos only. |
 | Open your gallery app | A chat's gallery button opens your own gallery app. One pick opens in Messenger's editor, and several open the Send to sheet with that chat at the top. |
+| Put gallery picks in the chat | Goes with Open your gallery app. What you pick lands above the chat's message box, the way Messenger's own gallery puts it there, one item or several. Nothing goes out until you tap Send. Experimental. |
 | Open web links externally | Opens http and https links in your default browser. |
 | Slide chats in and out | Slides a chat in from the side when you open it and back out when you leave. |
 | Hold stories at the end | A story stays on screen when it ends, photo or video, until you tap or swipe to the next one. The last one stays open until you close it. Experimental. |
 | Ignore the swipe up for disappearing messages | Swiping up at the bottom of a chat no longer turns on disappearing messages. |
 | Hide the recent photo card | The card above the message box that offers to send the screenshot, photo or video you just took doesn't show up. You can still send it from the gallery. |
+| Save voice messages you play | Each voice message you play is also saved to Recordings/Messenger (Music/Messenger on Android 10 and 11), where your file manager or another player can open it. Playing it again doesn't save another copy. Android 10 and newer. Experimental. |
 | Hide Your story when sharing | Sharing into Messenger from another app, the Send to list no longer offers Your story, so a tap on Add can't post it. Chats and groups stay. |
 | Allow chat bubbles | **Stock**, **Chat heads** or **Android bubbles** (Android 11 and newer). See [Chat heads and bubbles](#chat-heads-and-bubbles). |
 | Unlock app icons | Every icon in Messenger's App icon setting becomes selectable without a subscription. |
-| Square profile pictures | Profile pictures show as squares instead of circles. Turn on **Round the corners** for rounded squares. Restart Messenger after a change. |
+| Square profile pictures | Profile pictures show as squares instead of circles, and their story rings follow the square. Turn on **Round the corners** for rounded squares. Restart Messenger after a change. |
 | Material You theme | In dark mode on Android 12 and newer, Messenger takes the accent color from your wallpaper. A **Pure black dark mode** switch sits under Appearance. You can paste your own colors there too, as text like `{"name": "Sunset", "accent": "#E1306C", "neutral": "#1A1418"}`, and share them with **Copy theme**. |
 | Use your own font | Replaces Meta's font with your phone's, or with a .ttf or .otf file you pick, with size and position adjustments. Restart Messenger after a change. |
 | Bold and italic text | Adds Bold and Italic to the text selection menu. They change the letters A to Z, accented ones included, and Bold changes digits too. Other alphabets stay as they are. On a Samsung phone, turn them on once under **Manage apps** in that menu. |
@@ -150,6 +154,7 @@ These screenshots come from the code on this page, so they can be a step ahead o
 - **A cloned Messenger brings back the settings icon.** A clone made by your phone's dual apps or app cloner keeps its own copy of the settings. Open the clone's settings icon and turn on **App > Hide app drawer icon** there too.
 - **Every chat and call notifies twice.** The second one comes from the Facebook app, which doesn't treat the patched Messenger as the real one. In [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) turn on **Leave calls and chats to Messenger**. With regular Facebook, turn off its chat and call notifications in Android's app settings for Facebook.
 - **Restoring chats ends in an error.** The Google Drive restore only works in Meta's own signed Messenger. Use your PIN or a one-time code from another device you're signed in on. No PIN yet? Set one up in another Meta app first, such as Facebook Lite.
+- **Login gets past the password, then loops on a browser check.** That happens on accounts with a passkey. Sign in on the web, remove the passkey under Settings > Accounts Center > Password and security, then log in again. Facebook falls back to approving the login from another device you're signed in on, and you can add the passkey back afterwards.
 - **Install blocked on a Galaxy phone.** Samsung's Auto Blocker only lets apps in from Galaxy Store and Google Play, and it blocks USB installs too. Turn it off in **Settings > Security and privacy > Auto Blocker**, install, then turn it back on. Google's Advanced Protection (**Settings > Google > All services > Privacy & security > Advanced Protection**) blocks the install the same way.
 
 ### Alerts from only some chats

@@ -127,7 +127,9 @@ import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.VideoData
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.VideoThumbnail;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.VideoWithContextData;
 import app.morphe.extension.youtube.innertube.FeedCardLayoutOuterClass.VideoWithContextModel;
+import app.morphe.extension.youtube.patches.components.LayoutComponentsFilter;
 import app.morphe.extension.youtube.patches.theme.SeekbarColorPatch;
+import app.morphe.extension.youtube.patches.utils.FeedVideoCardsPatch;
 import app.morphe.extension.youtube.patches.utils.FlyoutUtils;
 import app.morphe.extension.youtube.patches.utils.ProtoNode;
 import app.morphe.extension.youtube.settings.Settings;
@@ -310,18 +312,25 @@ public class FeedCardLayoutPatch {
      */
     private static final Pattern METADATA_SEPARATOR_PATTERN = Pattern.compile(" {2,}| · ");
 
-    private static final ByteTrieSearch elementSearch = new ByteTrieSearch(
-            CARD_LAYOUT
-                    ? ByteTrieSearch.convertStringsToBytes(CLASSIC_TEMPLATE, SHELF_HEADER_TEMPLATE,
-                    HORIZONTAL_SHELF_TEMPLATE, SHORTS_VIDEO_CELL_TEMPLATE, SHORTS_SHELF_TEMPLATE,
-                    GRID_VIDEO_TEMPLATE)
-                    : ByteTrieSearch.convertStringsToBytes(CARD_TEMPLATE)
-    );
+    /**
+     * Templates of the elements that are converted. Every element is searched on the main thread,
+     * so the element is searched as a string in native code, see {@link FeedVideoCardsPatch#getElementText(byte[])}.
+     */
+    private static final String[] elementTemplates = CARD_LAYOUT
+            ? new String[]{CLASSIC_TEMPLATE, SHELF_HEADER_TEMPLATE, HORIZONTAL_SHELF_TEMPLATE,
+            SHORTS_VIDEO_CELL_TEMPLATE, SHORTS_SHELF_TEMPLATE, GRID_VIDEO_TEMPLATE}
+            : new String[]{CARD_TEMPLATE};
     /**
      * Label of the shelf headers, in the bytes of the converted elements.
      */
     private static final ByteTrieSearch shelfHeaderLabelSearch = new ByteTrieSearch(
             ByteTrieSearch.convertStringsToBytes(String.valueOf(SHELF_HEADER_LABEL_MARKER))
+    );
+    /**
+     * Link to the movies page, in the bytes of the movies.
+     */
+    private static final ByteTrieSearch moviesPageSearch = new ByteTrieSearch(
+            ByteTrieSearch.convertStringsToBytes("FEstorefront")
     );
     /**
      * Thumbnails of the Shorts, the same that the Shorts filter looks for.
@@ -550,14 +559,15 @@ public class FeedCardLayoutPatch {
      */
     public static byte[] setFeedCardLayout(byte[] bytes) {
         try {
-            if (!elementSearch.matches(bytes)) {
+            final String elementText = FeedVideoCardsPatch.getElementText(bytes);
+            if (!Utils.containsAny(elementText, elementTemplates)) {
                 // The elements of the layout of the setting give the current version of its template:
                 // the uri and the fields are taken from the element, if it's an element of the template.
                 // After the first element, the elements are checked once in a while, to follow a new version.
                 VideoTemplate template = CARD_LAYOUT ? CARD : CLASSIC;
                 final long now = System.currentTimeMillis();
                 if ((!template.fromElement || now - template.checkTime >= TEMPLATE_CHECK_INTERVAL_MILLIS)
-                        && template.search.matches(bytes)) {
+                        && elementText.contains(template.name)) {
                     ComponentType componentType = Element.parseFrom(bytes).getType().getComponentType();
                     String elementUri = componentType.getTemplateConfig().getUriTemplateConfig().getUri();
                     if (isTemplate(elementUri, template.name)) {
@@ -612,9 +622,17 @@ public class FeedCardLayoutPatch {
                             break toCard;
                         }
 
-                        // The filters find the hidden Shorts and live streams by the classic layout.
+                        // The filters find the hidden Shorts, live streams, mix playlists and movies by the classic layout.
                         if (thumbnail.getBadgeStyle() == THUMBNAIL_BADGE_STYLE_LIVE
                                 && Settings.HIDE_LIVE_STREAMS.get()) {
+                            break toCard;
+                        }
+                        // The mix playlists are found by the url of the mix, which the cards don't have.
+                        if (LayoutComponentsFilter.filterMixPlaylists(bytes)) {
+                            break toCard;
+                        }
+                        // The movies are found by the link to the movies page, as in the ads filter.
+                        if (Settings.HIDE_MOVIES_SECTION.get() && moviesPageSearch.matches(bytes)) {
                             break toCard;
                         }
                         if ((Settings.HIDE_SHORTS_HOME.get() || Settings.HIDE_SHORTS_SUBSCRIPTIONS.get()
@@ -1494,7 +1512,7 @@ public class FeedCardLayoutPatch {
                                 if (item.getHeight() > 0 && isShortsRow(item)) {
                                     View above = findItemAbove(current, item);
                                     if (above == null || !isShortsRow(above)) {
-                                        drawShortsShelfCard(current, getShortsShelfHeader(above), item, null);
+                                        drawShortsShelfCard(current, above, item, null);
                                     }
                                 }
                             }
@@ -1619,8 +1637,7 @@ public class FeedCardLayoutPatch {
                 if (isShortsRow(item)) {
                     View above = findItemAbove(list, item);
                     if (above == null || !isShortsRow(above)) {
-                        drawShortsShelfCard(list, getShortsShelfHeader(above),
-                                item, canvas);
+                        drawShortsShelfCard(list, above, item, canvas);
                     }
                     continue;
                 }
@@ -1690,9 +1707,12 @@ public class FeedCardLayoutPatch {
     /**
      * The Shorts shelf is one card, with the header and the rows of Shorts below it.
      * Only the outer corners of the card are rounded, and the Shorts fill the card.
+     *
+     * @param above The list item above the first row of Shorts, or null if the item above it is not in the list.
      */
-    private static void drawShortsShelfCard(RecyclerView list, @Nullable View header, View firstRow,
+    private static void drawShortsShelfCard(RecyclerView list, @Nullable View above, View firstRow,
                                             @Nullable Canvas canvas) {
+        View header = getShortsShelfHeader(above);
         // The rows of Shorts are the list items below the header, which can be scrolled out of the list.
         List<View> rows = new ArrayList<>();
         View item = firstRow;
@@ -1702,6 +1722,9 @@ public class FeedCardLayoutPatch {
         }
 
         // The card is as wide as the Shorts, and ends at the bottom of the last row of Shorts.
+        // The Shorts are laid out in columns centered in the row, and the last row can have fewer Shorts,
+        // such as one Short on the left. The card is centered in the row too, so it keeps its width
+        // while only the last row is in the list.
         int left = Integer.MAX_VALUE;
         int right = Integer.MIN_VALUE;
         final float top = header != null ? header.getY() : firstRow.getY();
@@ -1716,8 +1739,9 @@ public class FeedCardLayoutPatch {
             for (View cell : cells) {
                 cell.getLocationOnScreen(cellLocation);
                 final int cellLeft = cellLocation[0] - rowLocation[0];
-                left = Math.min(left, cellLeft);
-                right = Math.max(right, cellLeft + cell.getWidth());
+                final int cellRight = cellLeft + cell.getWidth();
+                left = Math.min(left, Math.min(cellLeft, row.getWidth() - cellRight));
+                right = Math.max(right, Math.max(cellRight, row.getWidth() - cellLeft));
                 bottom = Math.max(bottom, row.getY() + cellLocation[1] - rowLocation[1] + cell.getHeight());
             }
             rowCells.add(cells);
@@ -1730,8 +1754,11 @@ public class FeedCardLayoutPatch {
 
         // The outer Shorts have rounded outer corners: the top corners in the first row,
         // also below the header, and the bottom corners of the card in the last row.
+        // The first row in the list is the first row of the shelf only if an item is above it,
+        // or if the list is scrolled to the top. Otherwise the rows above it are scrolled out of the list.
+        final boolean firstRowOfShelf = above != null || !list.canScrollVertically(-1);
         for (int i = 0; i < rows.size(); i++) {
-            final boolean topRow = i == 0;
+            final boolean topRow = i == 0 && firstRowOfShelf;
             final boolean bottomRow = i == rows.size() - 1;
             rows.get(i).getLocationOnScreen(rowLocation);
             for (View cell : rowCells.get(i)) {
@@ -1741,7 +1768,13 @@ public class FeedCardLayoutPatch {
                 final boolean rightColumn = cellLeft + cell.getWidth() >= right;
                 final int corners = (topRow && leftColumn ? 8 : 0) | (topRow && rightColumn ? 4 : 0)
                         | (bottomRow && leftColumn ? 2 : 0) | (bottomRow && rightColumn ? 1 : 0);
-                setShortsCellOutline(cell, SHORTS_CELL_OUTLINES[corners]);
+                // The Shorts clip their thumbnail with the rounded outline of a view inside the Short,
+                // which is replaced. The views are recycled, so it's checked every time the list is drawn.
+                ViewOutlineProvider outline = SHORTS_CELL_OUTLINES[corners];
+                setShortsCellOutline(cell, cell.getWidth(), outline, 0);
+
+                // The screen bounds of the Short, for the inline player above it.
+                shortsCellOutlines.put(getScreenBounds(cell), outline);
             }
         }
 
@@ -1847,17 +1880,6 @@ public class FeedCardLayoutPatch {
                 findShortsCells(group.getChildAt(i), cells, depth + 1);
             }
         }
-    }
-
-    /**
-     * The Shorts clip their thumbnail with the rounded outline of a view inside the Short,
-     * which is replaced. The views are recycled, so it's checked every time the list is drawn.
-     */
-    private static void setShortsCellOutline(View cell, ViewOutlineProvider outline) {
-        setShortsCellOutline(cell, cell.getWidth(), outline, 0);
-
-        // The screen bounds of the Short, for the inline player above it.
-        shortsCellOutlines.put(getScreenBounds(cell), outline);
     }
 
     private static String getScreenBounds(View view) {

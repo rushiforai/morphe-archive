@@ -231,7 +231,7 @@ same harness discipline; "matches" is what the anchor as written measures:
 
 | target | anchor | matches |
 |---|---|---|
-| the settings click handler(s) | `(Preference)Z` method holding the literal `developer_settings`, enumerated via `getAllClassesWithString` (2 stacks: `fzb`, `fqa`) | 2, both intended |
+| the settings click handler(s) | `(Preference)Z` method holding the literal `developer_settings`, enumerated via `classDefByStrings` (the patcher 2.x name of `getAllClassesWithString`; the hidden method delegates to it) (2 stacks: `fzb`, `fqa`) | 2, both intended |
 | the fragment the branch opens | the `const-class` after that literal, validated by requiring its class to hold the `"Developer Settings"` title literal | 1 per stack (`fyp` / `fnj`) |
 | the sub-screen's title site | the class's methods holding `"Developer Settings"` | 1 per class (`fyp.W`, `fnj.W`) |
 | the sub-screen's wiring skip | the class's only `()V` method with exactly one `0x7f1800xx` literal (the `xml` id window), patched after the single-int call that follows it (`o(I)`) | 1 per class (`fyp.aD`, `fnj.aD`) |
@@ -265,7 +265,7 @@ XML inflation:
 
 | target | anchor | matches |
 |---|---|---|
-| `androidx.preference.Preference` | `getAllClassesWithString("Preference already has a SummaryProvider set.")` filtered by type, re-resolved via `mutableClassDefBy` (the literal is thrown by that class's own summary setter) | 1 |
+| `androidx.preference.Preference` | `classDefByStrings("Preference already has a SummaryProvider set.")` filtered by type, re-resolved via `mutableClassDefBy` (the literal is thrown by that class's own summary setter; `classDefByStrings` is the patcher 2.x name of `getAllClassesWithString`) | 1 |
 | the row binder | its one-parameter `V` method whose body calls `Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V` (measured: `a(cgb)`, the method that reads the title field and calls `textView2.setText(charSequence)` on the view it found via `android.R.id.title`) | 1 |
 
 Two anchors that were written, built, installed and measured as **firing for nothing** — recorded so

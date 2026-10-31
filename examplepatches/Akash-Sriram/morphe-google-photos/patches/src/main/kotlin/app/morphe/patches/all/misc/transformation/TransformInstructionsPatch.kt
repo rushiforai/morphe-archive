@@ -15,38 +15,43 @@ fun <T> transformInstructionsPatch(
     filterMap: (ClassDef, Method, Instruction, Int) -> T?,
     transform: (MutableMethod, T) -> Unit,
 ) = bytecodePatch {
-    // Returns the patch indices as a Sequence, which will execute lazily.
-    fun findPatchIndices(classDef: ClassDef, method: Method): Sequence<T>? =
-        method.implementation?.instructions?.asSequence()?.withIndex()?.mapNotNull { (index, instruction) ->
-        filterMap(classDef, method, instruction, index)
-    }
-
     execute {
-        // Find all methods to patch
-        buildMap {
-            classDefForEach { classDef ->
-                val methods = buildList {
-                    classDef.methods.forEach { method ->
-                        // Since the Sequence executes lazily,
-                        // using any() results in only calling
-                        // filterMap until the first index has been found.
-                        if (findPatchIndices(classDef, method)?.any() == true) add(method)
+        val matches = mutableListOf<Pair<ClassDef, List<Pair<Method, List<T>>>>>()
+
+        classDefForEach { classDef ->
+            var classMatches: MutableList<Pair<Method, List<T>>>? = null
+
+            for (method in classDef.methods) {
+                val impl = method.implementation ?: continue
+                var methodIndices: MutableList<T>? = null
+                var index = 0
+                for (instruction in impl.instructions) {
+                    val match = filterMap(classDef, method, instruction, index)
+                    if (match != null) {
+                        if (methodIndices == null) methodIndices = mutableListOf()
+                        methodIndices.add(match)
                     }
+                    index++
                 }
 
-                if (methods.isNotEmpty()) {
-                    put(classDef, methods)
+                if (methodIndices != null) {
+                    if (classMatches == null) classMatches = mutableListOf()
+                    classMatches.add(method to methodIndices)
                 }
             }
-        }.forEach { (classDef, methods) ->
-            // And finally transform the methods...
+
+            if (classMatches != null) {
+                matches.add(classDef to classMatches)
+            }
+        }
+
+        for ((classDef, classMatches) in matches) {
             val mutableClass = mutableClassDefBy(classDef)
-
-            methods.map(mutableClass::findMutableMethodOf).forEach methods@{ mutableMethod ->
-                val patchIndices = findPatchIndices(mutableClass, mutableMethod)?.toCollection(ArrayDeque())
-                    ?: return@methods
-
-                while (!patchIndices.isEmpty()) transform(mutableMethod, patchIndices.removeLast())
+            for ((method, indices) in classMatches) {
+                val mutableMethod = mutableClass.findMutableMethodOf(method)
+                for (i in indices.indices.reversed()) {
+                    transform(mutableMethod, indices[i])
+                }
             }
         }
     }

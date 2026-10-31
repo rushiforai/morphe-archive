@@ -44,7 +44,7 @@ public class LaunchScreenSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.LAUNCH_SCREEN.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
@@ -93,6 +93,7 @@ public class LaunchScreenSettingsTest {
         String[] keys = new String[layout.getPreferenceCount()];
         for (int i = 0; i < keys.length; i++) keys[i] = layout.getPreference(i).getKey();
         assertEquals(Arrays.asList(Settings.NOTO_EMOJI.key, Settings.ACCENT_COLOR.key, Settings.ACCENT_HUE.key, Settings.ACCENT_BADGES.key,
+                Settings.ACCENT_ICONS.key,
                 LayoutCategory.PURE_BLACK_HINT_ROW, Settings.LAUNCH_SCREEN.key), Arrays.asList(keys));
         assertFalse(row.isChecked());
         assertFalse(Settings.LAUNCH_SCREEN.get());

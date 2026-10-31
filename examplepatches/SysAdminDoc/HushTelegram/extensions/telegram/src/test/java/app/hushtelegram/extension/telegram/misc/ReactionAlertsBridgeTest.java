@@ -30,6 +30,18 @@ public class ReactionAlertsBridgeTest {
         assertEquals(DATE, reaction.date);
         assertTrue(reaction.unread);
         assertFalse(reaction.mine);
+        assertEquals(0, reaction.custom);
+    }
+
+    @Test public void aCustomEmojiComesWithItsDocumentAndNoEmojiYet() throws Exception {
+        TL_update.TL_updateEditMessage edit = edit(true, user(FRIEND));
+        TLRPC.TL_reactionCustomEmoji custom = new TLRPC.TL_reactionCustomEmoji();
+        custom.document_id = 5_368_324_170_671_202_286L;
+        edit.message.reactions.recent_reactions.get(0).reaction = custom;
+        ReactionAlerts.Reaction reaction = ReactionAlertsBridge.reactionsOf(edit).get(0);
+        assertNull(reaction.emoji);
+        assertEquals(custom.document_id, reaction.custom);
+        assertNull("unpatched, nothing is loaded", ReactionAlerts.emojiDocument(0, custom.document_id));
     }
 
     @Test public void anEditOfSomeoneElsesMessageOrInAGroupListsNothing() throws Exception {

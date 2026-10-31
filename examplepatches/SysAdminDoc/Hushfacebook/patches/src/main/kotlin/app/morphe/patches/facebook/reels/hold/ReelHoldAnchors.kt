@@ -326,12 +326,28 @@ internal fun attachedPlayerParameter(method: Method, player: String): Int? {
     return parameters.withIndex().filter { it.value == player }.singleOrNull()?.index
 }
 
-/** The ViewGroup fields of [player] that [method] writes: in the attach, the player's view container. */
-internal fun containersWritten(method: Method, player: String): List<FieldReference> =
-    method.code.filter { it.opcode == Opcode.IPUT_OBJECT }
+/**
+ * The ViewGroup fields of [player] that [method] writes: in the attach, the player's view container.
+ * 585 moved the write into the one static [player] method the attach hands its work to, so the
+ * [player] methods [method] calls directly are read too.
+ */
+internal fun containersWritten(method: Method, player: ClassDef): List<FieldReference> =
+    (method.code + playerCallees(player, method).flatMap { it.code })
+        .filter { it.opcode == Opcode.IPUT_OBJECT }
         .mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }
-        .filter { it.definingClass == player && it.type == VIEW_GROUP }
+        .filter { it.definingClass == player.type && it.type == VIEW_GROUP }
         .distinctBy { it.toString() }
+
+/** The methods of [player] with a body that [method] calls directly (one level), other than [method]. */
+internal fun playerCallees(player: ClassDef, method: Method): List<Method> {
+    val called = method.code.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+        .filter { it.definingClass == player.type }
+        .map { call -> Triple(call.name, call.parameterTypes.map(CharSequence::toString), call.returnType) }
+        .toSet()
+    return player.methods.filter {
+        it.implementation != null && it != method && Triple(it.name, it.parameters(), it.returnType) in called
+    }
+}
 
 /*
  * Hide the pull down to lock hint (issue #289), the third switch of Hold a reel for 2x. The pill a

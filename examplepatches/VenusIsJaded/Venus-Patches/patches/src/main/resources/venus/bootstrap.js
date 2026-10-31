@@ -12,8 +12,8 @@
     selectModules([17, 19, 120, 1162, 2129, 10664, 14839, 14971]);
     if (features.picker) targetModules[414] = 1;
     if (features.voice) selectModules([1295, 7752, 7755]);
+    if (features.anonFiles) selectModules([7755, 7784]);
     if (features.copyBios) targetModules[10615] = 1;
-    if (features.dashless) selectModules([2065, 5421, 5412, 7365]);
     if (features.cleanChannels) selectModules([2065, 5421, 5412, 7365]);
     if (features.favouriteAnything) selectModules([13066, 9732, 9735]);
     if (features.freeNitro) selectModules([1390, 2065, 5987, 6030, 4769, 14299, 7047, 7174]);
@@ -21,38 +21,43 @@
     if (features.quickDelete) selectModules([5300, 1126]);
     if (features.noDelete) selectModules([584, 5432, 5434, 1390, 2065, 7174, 7742]);
     if (features.jumpToTop) selectModules([11968, 11969, 11970, 9379, 7174, 5432]);
-    if (features.hiddenChannels) selectModules([1085, 1096, 1112, 2065, 2116, 4748, 7246, 4750, 5421, 7174, 584, 1390, 16671, 8218]);
+    if (features.hiddenChannels) selectModules([1085, 1096, 1112, 2065, 2116, 4748, 7246, 4750, 5421, 7174, 584, 1390, 16671, 8218, 6035, 6078, 14193, 7477, 14008, 16501, 8449]);
     if (features.pastelize) selectModules([7742, 1264, 2125]);
     if (features.platformIndicators) selectModules([5108, 5112, 1390, 2065, 10533, 10229, 12862, 16475, 8792, 14419, 13156]);
     if (features.reviewDB) selectModules([13181, 14213, 14281, 10725, 6265, 6896, 1390, 584]);
     if (features.readAll) targetModules[16754] = 1;
     if (features.quests) selectModules([584, 7386, 9699, 13933, 13968]);
     if (features.badges) selectModules([584, 1390, 5759, 8312, 9699, 13933, 13968]);
-    if (features.hideGift) selectModules([11935, 12146]);
-    if (features.hideQuestDock) selectModules([15371, 15465]);
-    if (features.hideButtons) selectModules([9115, 10028]);
     if (features.systemEmoji) targetModules[6820] = 1;
     if (features.gestures) selectModules([7982, 9434, 12837, 11990, 1390, 10694]);
-    if (features.hideCall) targetModules[13425] = 1;
     if (features.validUser) selectModules([584, 1390]);
     if (features.youBarSettings) targetModules[16858] = 1;
     if (features.splitMessages) selectModules([1085, 1390, 2065, 7174, 9255]);
     if (features.translate) selectModules([584, 1390, 5432, 7742, 9675, 10368]);
-    if (features.userNotif) selectModules([584, 1390, 2065, 2087, 4760, 5108, 9699, 13933, 13968]);
+    if (features.userNotif) selectModules([584, 1390, 2065, 2087, 2116, 2125, 4760, 5108, 7012, 9699, 13933, 13968]);
     if (features.accountSwitcher) selectModules([1390, 5938, 6623, 12129, 12130, 12131, 16387, 16840, 16858]);
     if (features.appIcons) selectModules([1390, 4769, 9464, 14299, 15831, 15832, 17697, 18051]);
     if (features.nitroThemes) selectModules([584, 1390, 2046, 4769, 4937, 14299, 15566]);
-    if (features.customThemes) selectModules([589, 590, 591, 1205, 4831, 11191, 10368]);
-    if (features.materialYou) selectModules([589, 590, 591, 1205, 4831, 11191]);
-    if (features.iconPacks) selectModules([81, 84, 328, 1205, 4817, 4831, 11191]);
+    if (features.customThemes) selectModules([589, 590, 591, 1205, 4831, 4839, 11191, 10368]);
+    if (features.materialYou) selectModules([589, 590, 591, 1205, 4831, 4839, 11191]);
+    if (features.iconPacks) selectModules([81, 84, 328, 1205, 4817, 4831, 4839, 11191]);
     if (features.messageHighlight) selectModules([584, 1390, 5432, 7742]);
     if (features.serverInfo) selectModules([1390, 16748]);
+    if (features.serverEdit) selectModules([1415, 2087, 16748, 8633, 8634, 18285]);
     if (features.fixEmbeds) selectModules([1390, 7174]);
     if (features.tenorGifs) selectModules([1295, 9733]);
-    if (features.hideBlocked) selectModules([4760, 5432, 7308, 11624]);
+    if (features.hideBlocked) selectModules([584, 2065, 2116, 4760, 5432, 7015, 7308, 11624]);
+    if (features.staffTag) targetModules[7742] = 1;
+    if (features.fullImages) selectModules([1415, 1496, 8388]);
+    if (features.alwaysTrust) selectModules([8260, 8488]);
+    if (features.noConfirmPin) selectModules([5300, 1126]);
+    if (features.clickableMentions) selectModules([1390, 2065, 2116, 11953]);
+    if (features.removedAlerts) selectModules([584, 1390, 6098, 7018, 8633, 9699, 13933, 13968]);
     if (features.bulkDelete) selectModules([584, 1085, 1390, 2065, 2116, 4750, 5432, 7174, 7742, 9675, 10368, 10694]);
     if (features.experiments) selectModules([584, 1390, 1401]);
-    const revision = "1.19.0";
+    if (features.hideAnything) selectModules([13092, 14973, 14974, 9115, 10028, 15371, 15465, 11935, 11942, 11946, 11956, 11957, 12854, 13425, 14827, 16467, 14279, 8525, 8775, 10533, 11997, 14206, 14212, 14143, 14216, 12364, 12365, 13418, 10614, 6882, 13402, 13181, 16466, 16575, 12208, 11864, 10515, 17567, 16074, 16577, 17499, 17487, 10748]);
+    if (features.voiceOptions) { targetModules[584] = 1; targetModules[10982] = 1; targetModules[5889] = 1; }
+    const revision = "1.20.0";
     // The Discord build these patches are pinned to (DiscordPatches.kt compatibleWith); shown on the About page.
     const DISCORD_VERSION = "350.8";
     // Module 120 owns setUpDefaltReactNativeEnvironment in this exact asset.
@@ -61,36 +66,36 @@
     const deferred = new Map();
     // Every feature starts off: nothing changes in Discord until you turn it on. Options inside a feature keep
     // their own defaults, so turning a feature on does what it says straight away.
-    const settings = { picker: false, voice: false, copyBios: false, dashless: false, favouriteAnything: false, freeNitro: false, emojis: true, stickers: true, hyperlinks: true,
+    const settings = { picker: false, voice: false, copyBios: false, favouriteAnything: false, freeNitro: false, emojis: true, stickers: true, hyperlinks: true,
         noTyping: false, quickDelete: false, noDelete: false, noDeleteSave: false, noDeleteLimit: 512, noDeleteEdits: true, noDeleteColor: "default", noDeleteBrightness: 50,
         jumpToTop: false, hiddenChannels: false, hiddenChannelsMenu: true, pastelize:false, pastelAll:false, pastelContent:false, platformIndicators:false, piDmHeader:true, piUserList:true, piProfile:true, piHideMobile:true, reviewDB:false, reviewWarning:true, readAll:false, readAllMode:"guilds",
         quests:false, questsVideo:true, questsPlay:true, questsActivity:true, questsEnroll:true,
         badges:false, badgesGameTime:true, badgesUniqueGames:true, badgesCycleMinutes:15, badgesGamesAtOnce:2, systemFont:false, systemFontSource:"phone",
-        hideGift:false, hideQuestDock:false, hideButtons:false, hideButtonsQuests:true, hideButtonsShop:true, hideButtonsNitro:true, hideButtonsApps:true, hideButtonsPolls:false, hideButtonsPhotos:false, systemEmoji:false, systemEmojiSource:"phone", gestures:false, gestureOwn:"edit", gestureTripleDelete:true, hideCall:false,
+        systemEmoji:false, systemEmojiSource:"phone", gestures:false, gestureOwn:"edit", gestureTripleDelete:true,
         validUser:false, youBarSettings:false, splitMessages:false,
         translate:false, translateTarget:"discord", translateLanguage:"en", translateMode:"auto", translateAsk:"both", translateNote:true, translateOriginal:false,
         userNotif:false, userNotifFriends:true, userNotifStatus:true, userNotifMessages:true, userNotifTyping:true, userNotifPush:false,
         accountSwitcher:false, accountSwitcherYouBar:true, appIcons:false, nitroThemes:false, customThemes:false, customThemesBackground:true, materialYou:false, materialYouColor:"wallpaper", materialYouTint:"balanced",
         iconPacks:false, iconPacksTheme:true,
-        messageHighlight:false, messageHighlightThickness:2, messageHighlightBrightness:50, messageHighlightPingColor:"default", serverInfo:false, serverInfoFriends:true,
-        fixEmbeds:false, fixEmbedsSites:"", fixEmbedsClean:true, fixEmbedsDark:true, tenorGifs:false, tenorGifsSource:"both", hideBlocked:false, hideBlockedBlocked:true, hideBlockedIgnored:true, hideBlockedReplies:false, bulkDelete:false, bulkDeleteConfirm:true, bulkDeleteIncludeCached:true, experiments:false, noHandsfree:false, cleanChannels:false, cleanChannelsEmoji:true, cleanChannelsSymbols:true, cleanChannelsFonts:true, language:"auto" };
+        messageHighlight:false, messageHighlightThickness:2, messageHighlightBrightness:50, messageHighlightPingColor:"default", serverInfo:false, serverInfoFriends:true, serverEdit:false,
+        fixEmbeds:false, fixEmbedsSites:"", fixEmbedsClean:true, fixEmbedsDark:true, fixEmbedsStyle:"full", fixEmbedsTranslate:"off", fixEmbedsLanguage:"en", tenorGifs:false, tenorGifsSource:"both", hideBlocked:false, hideBlockedBlocked:true, hideBlockedIgnored:true, hideBlockedReplies:false, hideBlockedCloseDms:false, bulkDelete:false, bulkDeleteConfirm:true, bulkDeleteIncludeCached:true, experiments:false, noHandsfree:false, voiceOptions:false, voiceOptionsVolume:false, voiceOptionsVolumeLevel:50, voiceOptionsOutput:"default", voiceOptionsJoinSound:true, voiceOptionsLeaveSound:true, voiceOptionsSoundVolume:100, voiceOptionsExit:false, voiceOptionsExitSound:"", cleanChannels:false, cleanChannelsEmoji:true, cleanChannelsSymbols:true, cleanChannelsFonts:true, cleanChannelsSpaces:false, anonFiles:false, staffTag:false, staffTagOwner:true, staffTagAdmin:true, staffTagManager:true, staffTagMod:true, staffTagCrown:true, removedAlerts:false, removedAlertsFriends:true, removedAlertsServers:true, removedAlertsClosed:true, removedAlertsPush:false, fullImages:false, fullImagesChat:true, fullImagesViewer:true, fullImagesGifs:false, fullImagesAvatars:true, alwaysTrust:false, alwaysTrustLinks:true, alwaysTrustFiles:true, noConfirmPin:false, clickableMentions:false, hideAnything:false, hideAnythingSpots:"", language:"auto", hiddenFeatures:"" };
     // The settings every feature starts from, for Reset to defaults on the Backup page.
     let DEFAULT_SETTINGS = null;
     function defaultSettings() {
         return DEFAULT_SETTINGS || (DEFAULT_SETTINGS = Object.freeze({
-            picker: false, voice: false, copyBios: false, dashless: false, favouriteAnything: false, freeNitro: false, emojis: true, stickers: true, hyperlinks: true,
+            picker: false, voice: false, copyBios: false, favouriteAnything: false, freeNitro: false, emojis: true, stickers: true, hyperlinks: true,
             noTyping: false, quickDelete: false, noDelete: false, noDeleteSave: false, noDeleteLimit: 512, noDeleteEdits: true, noDeleteColor: "default", noDeleteBrightness: 50,
             jumpToTop: false, hiddenChannels: false, hiddenChannelsMenu: true, pastelize: false, pastelAll: false, pastelContent: false, platformIndicators: false, piDmHeader: true, piUserList: true, piProfile: true, piHideMobile: true, reviewDB: false, reviewWarning: true, readAll: false, readAllMode: "guilds",
             quests: false, questsVideo: true, questsPlay: true, questsActivity: true, questsEnroll: true,
             badges: false, badgesGameTime: true, badgesUniqueGames: true, badgesCycleMinutes: 15, badgesGamesAtOnce: 2, systemFont: false, systemFontSource: "phone",
-            hideGift: false, hideQuestDock: false, hideButtons: false, hideButtonsQuests: true, hideButtonsShop: true, hideButtonsNitro: true, hideButtonsApps: true, hideButtonsPolls: false, hideButtonsPhotos: false, systemEmoji: false, systemEmojiSource: "phone", gestures: false, gestureOwn: "edit", gestureTripleDelete: true, hideCall: false,
+            systemEmoji: false, systemEmojiSource: "phone", gestures: false, gestureOwn: "edit", gestureTripleDelete: true,
             validUser: false, youBarSettings: false, splitMessages: false,
             translate: false, translateTarget: "discord", translateLanguage: "en", translateMode: "auto", translateAsk: "both", translateNote: true, translateOriginal: false,
             userNotif: false, userNotifFriends: true, userNotifStatus: true, userNotifMessages: true, userNotifTyping: true, userNotifPush: false,
             accountSwitcher: false, accountSwitcherYouBar: true, appIcons: false, nitroThemes: false, customThemes: false, customThemesBackground: true, materialYou: false, materialYouColor: "wallpaper", materialYouTint: "balanced",
             iconPacks: false, iconPacksTheme: true,
-            messageHighlight: false, messageHighlightThickness: 2, messageHighlightBrightness: 50, messageHighlightPingColor: "default", serverInfo: false, serverInfoFriends: true,
-            fixEmbeds: false, fixEmbedsSites: "", fixEmbedsClean: true, fixEmbedsDark: true, tenorGifs: false, tenorGifsSource: "both", hideBlocked: false, hideBlockedBlocked: true, hideBlockedIgnored: true, hideBlockedReplies: false, bulkDelete: false, bulkDeleteConfirm: true, bulkDeleteIncludeCached: true, experiments: false, noHandsfree: false, cleanChannels: false, cleanChannelsEmoji: true, cleanChannelsSymbols: true, cleanChannelsFonts: true, language: "auto"
+            messageHighlight: false, messageHighlightThickness: 2, messageHighlightBrightness: 50, messageHighlightPingColor: "default", serverInfo: false, serverInfoFriends: true, serverEdit: false,
+            fixEmbeds: false, fixEmbedsSites: "", fixEmbedsClean: true, fixEmbedsDark: true, fixEmbedsStyle: "full", fixEmbedsTranslate: "off", fixEmbedsLanguage: "en", tenorGifs: false, tenorGifsSource: "both", hideBlocked: false, hideBlockedBlocked: true, hideBlockedIgnored: true, hideBlockedReplies: false, hideBlockedCloseDms: false, bulkDelete: false, bulkDeleteConfirm: true, bulkDeleteIncludeCached: true, experiments: false, noHandsfree: false, voiceOptions: false, voiceOptionsVolume: false, voiceOptionsVolumeLevel: 50, voiceOptionsOutput: "default", voiceOptionsJoinSound: true, voiceOptionsLeaveSound: true, voiceOptionsSoundVolume: 100, voiceOptionsExit: false, voiceOptionsExitSound: "", cleanChannels: false, cleanChannelsEmoji: true, cleanChannelsSymbols: true, cleanChannelsFonts: true, cleanChannelsSpaces: false, anonFiles: false, staffTag: false, staffTagOwner: true, staffTagAdmin: true, staffTagManager: true, staffTagMod: true, staffTagCrown: true, removedAlerts: false, removedAlertsFriends: true, removedAlertsServers: true, removedAlertsClosed: true, removedAlertsPush: false, fullImages: false, fullImagesChat: true, fullImagesViewer: true, fullImagesGifs: false, fullImagesAvatars: true, alwaysTrust: false, alwaysTrustLinks: true, alwaysTrustFiles: true, noConfirmPin: false, clickableMentions: false, hideAnything: false, hideAnythingSpots: "", language: "auto", hiddenFeatures: ""
         }));
     }
     // Backup and restore (#68): when you last saved a backup, and whether a restore is being applied right now.
@@ -100,6 +105,10 @@
     const starter = {done:false, justOn:null};
     // What you typed in the Features list's search bar (#68).
     const featureSearch = {query:"", rows:[], listeners:new Set(), cache:null};
+    // Editing the Features list: edit shows every feature with an eye to hide or show it; open is whether the Hidden
+    // features row at the bottom is expanded. Both reset when you leave the page. Which features are hidden is the
+    // hiddenFeatures setting (comma-separated keys), so it's saved and backed up like any other choice.
+    const featureList = {edit:false, open:false};
     const status = { picker: false, attachment: false, request: false, menu: false, conversion: false, audioError: "", storage: "waiting" };
     const listeners = new Set();
     const dirty = new Set();
@@ -122,6 +131,9 @@
     const GESTURE_OWN_MODES = ["edit", "reply"];
     // Which language Translate messages translates into: Discord's own language, the phone's, or one you pick (#79).
     const TRANSLATE_TARGETS = ["discord", "phone", "custom"];
+    // Fix link previews: how posts look (the full post, only its media, only its text, or the file itself), and which
+    // language services that can translate a post write it in.
+    const FIX_STYLES = ["full", "gallery", "text", "media"], FIX_TRANSLATE = ["off", "discord", "phone", "custom"];
     // The languages you can pick for "Another language", as Google Translate codes (#79). Chinese comes in both scripts.
     const TRANSLATE_LANGUAGES = ["af", "ar", "bg", "bn", "ca", "cs", "cy", "da", "de", "el", "en", "eo", "es", "et", "fa", "fi", "fil", "fr",
         "ga", "gl", "gu", "he", "hi", "hr", "hu", "hy", "id", "is", "it", "ja", "jv", "ka", "kk", "km", "ko", "la", "lt", "lv", "mk", "ml", "mn",
@@ -310,13 +322,16 @@
         const extra = {};
         if (features.reviewDB && reviewToken && reviewAccount) extra.reviewAuth = {account:reviewAccount, token:reviewToken};
         if (features.userNotif && userNotif.ids.size) extra.userNotifIds = Array.from(userNotif.ids);
+        if (features.removedAlerts && settings.removedAlerts) { const seen = removedSeenData(); if (seen) extra.removedSeen = seen; }
         if (features.badges && badges.played.size) extra.badgesPlayedIds = Array.from(badges.played);
         if (features.badges && Object.keys(badges.grants).length) extra.badgesGrants = badges.grants;
         // Kept until someone signs in to take it over, so a save before that doesn't lose it.
         else if (features.badges && badges.legacyGrant) extra.badgesGrant = badges.legacyGrant;
         if (backup.last) extra.lastBackup = backup.last;
         if (starter.done) extra.setupDone = true;
+        if (features.hideAnything && settings.hideAnythingSpots) { const labels = hideRowLabels(); if (labels) extra.hideAnythingLabels = labels; }
         if (features.materialYou && materialYou.system) extra.materialYouSystem = materialYou.system;
+        if (features.serverEdit && serverEdits.size) extra.serverEdits = serverEditData(false);
         if (features.nitroThemes && nitroTheme.preset != null) extra.nitroTheme = {preset:nitroTheme.preset, theme:nitroTheme.theme};
         return JSON.stringify(Object.keys(extra).length ? Object.assign({}, settings, extra) : settings);
     }
@@ -344,9 +359,38 @@
     function deleteLimit(value) { const n = Math.floor(Number(value)); return Number.isFinite(n) ? Math.max(1, Math.min(MAX_DELETED, n)) : 512; }
     // 1.18.0 moved the deleted messages color from Message highlights to Keep deleted messages: a settings file or
     // backup from before keeps the color you picked.
+    // 1.20.0 folded Spaces in channel names into Clean channel names: someone who only had spaces on keeps exactly that
+    // (cleaning on, with only its Spaces option), and someone who had both keeps both.
     function migrateSettings(raw) {
+        // 1.20.0 folded Hide the gift button, Hide the call button, Hide extra buttons and Hide the Quests banner into Remove
+        // anything: whatever they hid stays removed, as Remove anything spots.
+        if (raw && typeof raw === "object" && (raw.hideGift === true || raw.hideCall === true || raw.hideButtons === true || raw.hideQuestDock === true)) {
+            const spots = typeof raw.hideAnythingSpots === "string" && raw.hideAnythingSpots ? raw.hideAnythingSpots.split(",") : [];
+            const add = key => { if (spots.indexOf(key) < 0) spots.push(key); };
+            const option = (key, fallback) => raw[key] === undefined ? fallback : raw[key] === true;
+            if (raw.hideGift === true) add("chat.gift");
+            if (raw.hideCall === true) add("profile.call");
+            if (raw.hideQuestDock === true) add("you.questBanner");
+            if (raw.hideButtons === true) {
+                if (option("hideButtonsQuests", true)) add("you.quests");
+                if (option("hideButtonsShop", true)) add("you.shop");
+                if (option("hideButtonsNitro", true)) add("you.nitro");
+                if (option("hideButtonsApps", true)) add("attach.apps");
+                if (option("hideButtonsPolls", false)) add("attach.polls");
+                if (option("hideButtonsPhotos", false)) add("attach.photos");
+            }
+            raw.hideAnythingSpots = spots.join(",");
+            raw.hideAnything = true;
+        }
         if (raw && typeof raw === "object" && raw.noDeleteColor === undefined && typeof raw.messageHighlightDeletedColor === "string")
             raw.noDeleteColor = raw.messageHighlightDeletedColor;
+        if (raw && typeof raw === "object" && raw.dashless === true && raw.cleanChannelsSpaces === undefined) {
+            raw.cleanChannelsSpaces = true;
+            if (raw.cleanChannels !== true) {
+                raw.cleanChannels = true;
+                raw.cleanChannelsEmoji = false; raw.cleanChannelsSymbols = false; raw.cleanChannelsFonts = false;
+            }
+        }
         return raw;
     }
     // A saved or imported value for one setting, cleaned up, or undefined when it can't be used. Shared by the settings
@@ -354,15 +398,19 @@
     function acceptedSetting(key, value) {
         if (!owns(settings, key) || typeof value !== typeof settings[key]) return undefined;
         if (key === "readAllMode" && !READ_ALL_MODES.includes(value) || key === "gestureOwn" && !GESTURE_OWN_MODES.includes(value) ||
-            key === "translateTarget" && !TRANSLATE_TARGETS.includes(value) || key === "translateLanguage" && !TRANSLATE_LANGUAGES.includes(value) || key === "translateMode" && !TRANSLATE_MODES.includes(value) || key === "translateAsk" && !TRANSLATE_ASKS.includes(value) || key === "tenorGifsSource" && !TENOR_SOURCES.includes(value) ||
+            key === "translateTarget" && !TRANSLATE_TARGETS.includes(value) || key === "translateLanguage" && !TRANSLATE_LANGUAGES.includes(value) || key === "translateMode" && !TRANSLATE_MODES.includes(value) || key === "translateAsk" && !TRANSLATE_ASKS.includes(value) || key === "tenorGifsSource" && !TENOR_SOURCES.includes(value) || key === "voiceOptionsOutput" && !VOICE_OUTPUTS.includes(value) || key === "voiceOptionsExitSound" && !(value === "" || typeof value === "string" && VOICE_SOUND_ID.test(value)) ||
+            key === "fixEmbedsStyle" && !FIX_STYLES.includes(value) || key === "fixEmbedsTranslate" && !FIX_TRANSLATE.includes(value) || key === "fixEmbedsLanguage" && !TRANSLATE_LANGUAGES.includes(value) ||
             (key === "systemFontSource" || key === "systemEmojiSource") && !FONT_SOURCES.includes(value) ||
             key === "messageHighlightThickness" && !HIGHLIGHT_THICKNESSES.includes(value) || key === "language" && !isLanguage(value)) return undefined;
         if (key === "messageHighlightPingColor" || key === "noDeleteColor") return isHighlightColor(value) ? normalizeHighlightColor(value) : undefined;
         if (key === "messageHighlightBrightness" || key === "noDeleteBrightness") return brightness(value);
         if (key === "noDeleteLimit") return deleteLimit(value);
+        if (key === "voiceOptionsVolumeLevel" || key === "voiceOptionsSoundVolume") return brightness(value);
         if (key === "badgesCycleMinutes") return badgeCycleMinutes(value);
         if (key === "badgesGamesAtOnce") return badgeAtOnce(value);
         if (key === "fixEmbedsSites") return fixSitesText(value);
+        if (key === "hiddenFeatures") return hiddenFeaturesText(value);
+        if (key === "hideAnythingSpots") return hideSpotsText(value);
         if (key === "materialYouColor") return myIsColor(value) ? value.toLowerCase() : undefined;
         if (key === "materialYouTint") return MY_TINTS.includes(value) ? value : undefined;
         return typeof value === "number" && !Number.isFinite(value) ? undefined : value;
@@ -374,7 +422,21 @@
             if (settings.language === value && status.storage !== "loading" && status.storage !== "waiting") return true;
             settings.language = value; dirty.add(key); save(); loadLanguage(uiLanguage()); languageChanged(); return true;
         }
+        // Which features the Features list hides. Like the language, it's about Venus's own list, not a feature.
+        if (key === "hiddenFeatures") {
+            const clean = hiddenFeaturesText(value);
+            if (clean === undefined) return false;
+            if (settings.hiddenFeatures === clean && status.storage !== "loading" && status.storage !== "waiting") return true;
+            settings.hiddenFeatures = clean; dirty.add(key); save(); notify(key); return true;
+        }
         if (!owns(settings, key) || !features[featureFor(key)]) return false;
+        // Remove anything: which buttons you removed, as a comma-separated list of spots.
+        if (key === "hideAnythingSpots") {
+            const clean = hideSpotsText(value);
+            if (clean === undefined) return false;
+            if (settings.hideAnythingSpots === clean && status.storage !== "loading" && status.storage !== "waiting") return true;
+            settings.hideAnythingSpots = clean; dirty.add(key); save(); notify(key); return true;
+        }
         if (key === "readAllMode") {
             if (!READ_ALL_MODES.includes(value)) return false;
             if (settings.readAllMode === value && status.storage !== "loading" && status.storage !== "waiting") return true;
@@ -400,10 +462,31 @@
                 status.storage !== "loading" && status.storage !== "waiting" && value !== (font ? fontSourceInUse : emojiSourceInUse)) later(() => askRestart(font ? "font" : "emoji"), 0);
             return true;
         }
+        if (key === "voiceOptionsOutput") {
+            if (!VOICE_OUTPUTS.includes(value)) return false;
+            if (settings.voiceOptionsOutput === value && status.storage !== "loading" && status.storage !== "waiting") return true;
+            settings.voiceOptionsOutput = value; dirty.add(key); save(); notify(key); return true;
+        }
+        if (key === "voiceOptionsExitSound") {
+            if (!(value === "" || typeof value === "string" && VOICE_SOUND_ID.test(value))) return false;
+            if (settings.voiceOptionsExitSound === value && status.storage !== "loading" && status.storage !== "waiting") return true;
+            settings.voiceOptionsExitSound = value; dirty.add(key); save(); notify(key); return true;
+        }
+        if (key === "voiceOptionsVolumeLevel" || key === "voiceOptionsSoundVolume") {
+            if (typeof value !== "number" || !Number.isFinite(value)) return false;
+            const level = brightness(value);
+            if (settings[key] === level && status.storage !== "loading" && status.storage !== "waiting") return true;
+            settings[key] = level; dirty.add(key); save(); notify(key); return true;
+        }
         if (key === "tenorGifsSource") {
             if (!TENOR_SOURCES.includes(value)) return false;
             if (settings.tenorGifsSource === value && status.storage !== "loading" && status.storage !== "waiting") return true;
             settings.tenorGifsSource = value; dirty.add(key); save(); notify(key); return true;
+        }
+        if (key === "fixEmbedsStyle" || key === "fixEmbedsTranslate" || key === "fixEmbedsLanguage") {
+            if (!(key === "fixEmbedsStyle" ? FIX_STYLES : key === "fixEmbedsTranslate" ? FIX_TRANSLATE : TRANSLATE_LANGUAGES).includes(value)) return false;
+            if (settings[key] === value && status.storage !== "loading" && status.storage !== "waiting") return true;
+            settings[key] = value; dirty.add(key); save(); notify(key); return true;
         }
         if (key === "fixEmbedsSites") {
             const clean = fixSitesText(value);
@@ -475,7 +558,7 @@
         // it used to write an empty file, so turning it back on lost every saved message.
         if (key === "noDelete" && !value) { clearDeleted(true, settings.noDeleteSave); archiveRestored = false; }
         if (key === "hiddenChannels") {hiddenViews.clear();}
-        if ((key === "dashless" || key === "hiddenChannels" || featureFor(key) === "cleanChannels") && channelStore && typeof channelStore.emitChange === "function")
+        if ((key === "hiddenChannels" || featureFor(key) === "cleanChannels") && channelStore && typeof channelStore.emitChange === "function")
             try { channelStore.emitChange(); } catch (_) {}
         if (key === "gestures" && !value && features.gestures) gestureCancel();
         if (key === "splitMessages" && !value && features.splitMessages) split.generation++;
@@ -498,19 +581,23 @@
         if (features.translate && featureFor(key) === "translate") later(translateChanged, 0);
         if (features.userNotif && key === "userNotifPush" && value && status.storage !== "loading" && status.storage !== "waiting") later(() => userNotifRequestPermissions(false), 0);
         if (features.userNotif && featureFor(key) === "userNotif") userNotifSync();
+        if (features.removedAlerts && key === "removedAlertsPush" && value && status.storage !== "loading" && status.storage !== "waiting") later(() => userNotifRequestPermissions(false), 0);
+        if (features.removedAlerts && key === "removedAlerts" && value && status.storage !== "loading" && status.storage !== "waiting") removedTurnedOn();
+        if (features.removedAlerts && featureFor(key) === "removedAlerts") removedSync();
         if (features.accountSwitcher && featureFor(key) === "accountSwitcher") accountSwitcherSync();
         if (features.customThemes && key === "customThemes") { if (value) customThemesRestore(); customThemesApply(); if (features.iconPacks) iconPacksApply(); }
         if (features.customThemes && key === "customThemesBackground") customThemesApply();
-        if (features.nitroThemes && key === "nitroThemes" && !value) nitroThemeTurnedOff();
+        if (features.nitroThemes && key === "nitroThemes") { if (!value) nitroThemeTurnedOff(); nitroThemeRecheck(); }
         if (features.materialYou && key === "materialYou") { if (value) myStart(); customThemesApply(); if (features.iconPacks) iconPacksApply(); }
         if (features.iconPacks && key === "iconPacks") { if (value) iconPacksRestore(); iconPacksApply(); }
         if (features.iconPacks && key === "iconPacksTheme") iconPacksApply();
         if (features.messageHighlight && key === "messageHighlight") later(messageHighlightRedraw, 0);
         if (features.hideBlocked && featureFor(key) === "hideBlocked") hideBlockedChanged();
+        if (features.staffTag && featureFor(key) === "staffTag") later(staffTagChanged, 0);
         if (features.bulkDelete && key === "bulkDelete" && !value) bulkDeleteCancel();
-        if (features.bulkDelete && key === "bulkDeleteIncludeCached" && bulkDelete.active) bulkDeleteRedrawChannel(bulkDelete.channelId);
+        if (features.bulkDelete && (key === "bulkDeleteIncludeCached" || key === "noDelete") && bulkDelete.active) { bulkDeletePruneKept(); bulkDeleteRedrawChannel(bulkDelete.channelId); }
         if (features.experiments && key === "experiments") { if (value) experimentsEnable(); else if (experiments.unlocked && !backup.restoring) later(experimentsAskReopen, 0); }
-        if (features.quests || features.badges || features.userNotif) backgroundSync();
+        if (features.quests || features.badges || features.userNotif || features.removedAlerts) backgroundSync();
         return true;
     }
     function initFiles(module) {
@@ -538,6 +625,10 @@
                 }
                 if (typeof loaded.lastBackup === "number" && Number.isFinite(loaded.lastBackup) && !backup.last) backup.last = loaded.lastBackup;
                 if (loaded.setupDone === true) starter.done = true;
+                if (loaded.hideAnythingLabels && typeof loaded.hideAnythingLabels === "object") Object.keys(loaded.hideAnythingLabels).forEach(key => {
+                    const label = loaded.hideAnythingLabels[key];
+                    if (/^[A-Za-z0-9]{2,60}$/.test(key) && typeof label === "string" && label.length < 200 && !rowLabels.has(key)) rowLabels.set(key, label);
+                });
                 const savedPalette = loaded.materialYouSystem;
                 if (features.materialYou && !materialYou.system && savedPalette && typeof savedPalette === "object" &&
                     ["accent1", "accent2", "accent3", "neutral1", "neutral2"].every(k => Array.isArray(savedPalette[k]) && savedPalette[k].length === 13 && savedPalette[k].every(v => /^#[0-9a-f]{6}$/i.test(v))))
@@ -556,6 +647,8 @@
                     userNotif.ids.clear();
                     loaded.userNotifIds.slice(0, USER_NOTIF_MAX_IDS).forEach(id => { if (typeof id === "string" && /^\d{17,20}$/.test(id)) userNotif.ids.add(id); });
                 }
+                if (features.removedAlerts) removedLoad(loaded.removedSeen);
+                if (features.serverEdit && !serverEdit.dirty) serverEditLoad(serverEditClean(loaded.serverEdits, false));
                 if (features.badges) {
                     if (Array.isArray(loaded.badgesPlayedIds))
                         loaded.badgesPlayedIds.slice(0, BADGES_MAX_PLAYED).forEach(id => { if (typeof id === "string" && /^\d{17,20}$/.test(id)) badges.played.add(id); });
@@ -567,6 +660,7 @@
                 }
             }
             status.storage = "ready";
+            if (features.nitroThemes && settings.nitroThemes) nitroThemeRecheck();
             if (features.nitroThemes && nitroTheme.preset != null) later(nitroThemeReapply, 0);
             if (!starter.done && Object.keys(FEATURE_ICONS).some(key => features[key] && settings[key])) starter.done = true;
             fontInUse = settings.systemFont;
@@ -582,13 +676,17 @@
                 userNotifSync();
                 if (enabled("userNotif") && settings.userNotifPush) userNotifCheckPermissions();
             }
+            if (features.removedAlerts) {
+                removedSync();
+                if (enabled("removedAlerts") && settings.removedAlertsPush) userNotifCheckPermissions();
+            }
             if (features.accountSwitcher) accountSwitcherSync();
             if (features.customThemes && enabled("customThemes")) customThemesRestore();
             if (features.materialYou && enabled("materialYou")) { myStart(); customThemesApply(); }
             if (features.iconPacks && enabled("iconPacks")) iconPacksRestore();
             if (features.hideBlocked && enabled("hideBlocked")) hideBlockedChanged();
             if (features.experiments && enabled("experiments")) experimentsEnable();
-            if (features.quests || features.badges || features.userNotif) backgroundSync();
+            if (features.quests || features.badges || features.userNotif || features.removedAlerts) backgroundSync();
             // Saved translations are read as soon as Discord starts, so the first chat you open already has them.
             if (enabled("translate")) translateRestore();
             i18n.shownIn = uiLanguage(); loadLanguage(i18n.shownIn);
@@ -843,6 +941,59 @@
         stopFirst("delete", true); stopFirst("handleComplete", false); stopFirst("handleError", false);
         status.conversion = true;
     }
+    // Anonymous file names (#100, based on Anonymous File Names by k1ng_op): every file you send gets a random name,
+    // so the name on your phone ("IMG_20261027_142233.jpg", "Bank statement March.pdf") never reaches Discord.
+    // The name is swapped in the two payloads that carry it: the upload request (CloudUploaderUtils.getUploadPayload,
+    // 7784, which names the CDN file) and the message's attachment list (UploadUtils.getAttachmentPayload, 7755), so the
+    // link and the name people see match. The upload object itself is never changed: Discord keeps reading the real file.
+    // Nothing to choose: spoilers on mobile are their own is_spoiler flag (Upload.spoiler), not the name, so they stay
+    // spoilers either way; a SPOILER_ name from elsewhere keeps its prefix all the same. The extension stays so previews
+    // and players work. Alt text and clip titles are the user's own words and are left alone.
+    const ANON_CHARS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", ANON_LENGTH = 10;
+    const anonNames = new WeakMap();
+    // Crypto-quality bytes when the runtime has them, Math.random otherwise (Hermes on Android has no crypto).
+    function anonBytes(n) {
+        const out = new Uint8Array(n), c = global.crypto;
+        try { if (c && typeof c.getRandomValues === "function") { c.getRandomValues(out); return out; } } catch (_) {}
+        for (let i = 0; i < n; i++) out[i] = Math.floor(Math.random() * 256);
+        return out;
+    }
+    // [SPOILER_] + 10 random letters and digits + the real extension (lowercased, letters and digits only, at most 10).
+    function anonFileName(name) {
+        const text = typeof name === "string" ? name : "";
+        const dot = text.lastIndexOf(".");
+        const ext = dot > 0 && dot < text.length - 1 ? text.slice(dot + 1).toLowerCase() : "";
+        let stem = "";
+        // 248 = 62 * 4: bytes from 248 up are drawn again, so every character is equally likely.
+        while (stem.length < ANON_LENGTH) {
+            const bytes = anonBytes(ANON_LENGTH);
+            for (let i = 0; i < bytes.length && stem.length < ANON_LENGTH; i++) if (bytes[i] < 248) stem += ANON_CHARS[bytes[i] % 62];
+        }
+        return (/^SPOILER_/i.test(text) ? "SPOILER_" : "") + stem + (/^[a-z0-9]{1,10}$/.test(ext) ? "." + ext : "");
+    }
+    function anonNameFor(upload) {
+        if (!upload || typeof upload !== "object") return null;
+        const real = typeof upload.filename === "string" ? upload.filename : null;
+        if (!real) return null;
+        const known = anonNames.get(upload);
+        // A converted file (HEIC to JPEG, audio to a voice message) changes its extension: give it a fresh name.
+        if (known && known.from === real) return known.name;
+        const name = anonFileName(real);
+        anonNames.set(upload, {from:real, name});
+        return name;
+    }
+    function anonPayload(orig, self, args) {
+        const result = orig.apply(self, args);
+        if (!enabled("anonFiles") || !result || typeof result !== "object" || typeof result.filename !== "string") return result;
+        const name = anonNameFor(args[0]);
+        return name && name !== result.filename ? Object.assign({}, result, {filename:name}) : result;
+    }
+    anonPayload.call1 = (orig, self, upload) => {
+        const result = orig.call(self, upload);
+        if (!enabled("anonFiles") || !result || typeof result !== "object" || typeof result.filename !== "string") return result;
+        const name = anonNameFor(upload);
+        return name && name !== result.filename ? Object.assign({}, result, {filename:name}) : result;
+    };
     function attachmentPayload(orig, self, args) {
         const result = orig.apply(self, args);
         const metadata = readyUploads.get(args[0]);
@@ -900,7 +1051,7 @@
     const featureFor = key => {
         const cached = featureTable[key];
         if (cached !== undefined) return cached;
-        return featureTable[key] = key === "reviewWarning" ? "reviewDB" : key === "emojis" || key === "stickers" || key === "hyperlinks" ? "freeNitro" : key === "noDeleteSave" || key === "noDeleteLimit" || key === "noDeleteEdits" || key === "noDeleteColor" || key === "noDeleteBrightness" ? "noDelete" : /^pi[A-Z]/.test(key) ? "platformIndicators" : key === "pastelAll" || key === "pastelContent" ? "pastelize" : key === "readAllMode" ? "readAll" : /^quests[A-Z]/.test(key) ? "quests" : /^badges[A-Z]/.test(key) ? "badges" : /^gesture[A-Z]/.test(key) ? "gestures" : /^translate[A-Z]/.test(key) ? "translate" : /^userNotif[A-Z]/.test(key) ? "userNotif" : /^accountSwitcher[A-Z]/.test(key) ? "accountSwitcher" : /^hiddenChannels[A-Z]/.test(key) ? "hiddenChannels" : /^customThemes[A-Z]/.test(key) ? "customThemes" : /^materialYou[A-Z]/.test(key) ? "materialYou" : /^iconPacks[A-Z]/.test(key) ? "iconPacks" : /^messageHighlight[A-Z]/.test(key) ? "messageHighlight" : /^serverInfo[A-Z]/.test(key) ? "serverInfo" : /^fixEmbeds[A-Z]/.test(key) ? "fixEmbeds" : /^tenorGifs[A-Z]/.test(key) ? "tenorGifs" : /^hideButtons[A-Z]/.test(key) ? "hideButtons" : /^hideBlocked[A-Z]/.test(key) ? "hideBlocked" : /^bulkDelete[A-Z]/.test(key) ? "bulkDelete" : key === "systemFontSource" ? "systemFont" : key === "systemEmojiSource" ? "systemEmoji" : /^cleanChannels[A-Z]/.test(key) ? "cleanChannels" : key;
+        return featureTable[key] = key === "reviewWarning" ? "reviewDB" : key === "emojis" || key === "stickers" || key === "hyperlinks" ? "freeNitro" : key === "noDeleteSave" || key === "noDeleteLimit" || key === "noDeleteEdits" || key === "noDeleteColor" || key === "noDeleteBrightness" ? "noDelete" : /^pi[A-Z]/.test(key) ? "platformIndicators" : key === "pastelAll" || key === "pastelContent" ? "pastelize" : key === "readAllMode" ? "readAll" : /^quests[A-Z]/.test(key) ? "quests" : /^badges[A-Z]/.test(key) ? "badges" : /^gesture[A-Z]/.test(key) ? "gestures" : /^translate[A-Z]/.test(key) ? "translate" : /^removedAlerts[A-Z]/.test(key) ? "removedAlerts" : /^userNotif[A-Z]/.test(key) ? "userNotif" : /^accountSwitcher[A-Z]/.test(key) ? "accountSwitcher" : /^hiddenChannels[A-Z]/.test(key) ? "hiddenChannels" : /^customThemes[A-Z]/.test(key) ? "customThemes" : /^materialYou[A-Z]/.test(key) ? "materialYou" : /^iconPacks[A-Z]/.test(key) ? "iconPacks" : /^messageHighlight[A-Z]/.test(key) ? "messageHighlight" : /^serverInfo[A-Z]/.test(key) ? "serverInfo" : /^fixEmbeds[A-Z]/.test(key) ? "fixEmbeds" : /^tenorGifs[A-Z]/.test(key) ? "tenorGifs" : /^hideBlocked[A-Z]/.test(key) ? "hideBlocked" : /^bulkDelete[A-Z]/.test(key) ? "bulkDelete" : key === "systemFontSource" ? "systemFont" : key === "systemEmojiSource" ? "systemEmoji" : /^cleanChannels[A-Z]/.test(key) ? "cleanChannels" : /^voiceOptions[A-Z]/.test(key) ? "voiceOptions" : /^anonFiles[A-Z]/.test(key) ? "anonFiles" : /^staffTag[A-Z]/.test(key) ? "staffTag" : /^fullImages[A-Z]/.test(key) ? "fullImages" : /^alwaysTrust[A-Z]/.test(key) ? "alwaysTrust" : /^hideAnything[A-Z]/.test(key) ? "hideAnything" : key;
     };
     // Section titles are read whenever Discord draws the list, so they follow the language too. "Venus" is a name.
     function section(label, keys) {
@@ -930,12 +1081,12 @@
     const FEATURE_ICONS = {noDelete:[5049, "TrashIcon"], translate:[15723, "LanguageIcon"], gestures:[8956, "ReactionIcon"],
         quickDelete:[6296, "CircleXIcon"], jumpToTop:[10473, "ArrowLargeUpIcon"], favouriteAnything:[9549, "StarIcon"],
         freeNitro:[9031, "NitroWheelIcon"], voice:[12595, "WaveformIcon"], splitMessages:[9337, "PaperIcon"], noTyping:[12822, "KeyboardIcon"],
-        picker:[10024, "AttachmentIcon"], pastelize:[15560, "PaintPaletteIcon"], platformIndicators:[15232, "LaptopPhoneIcon"],
+        picker:[10024, "AttachmentIcon"], anonFiles:[6650, "EyeSlashIcon"], pastelize:[15560, "PaintPaletteIcon"], platformIndicators:[15232, "LaptopPhoneIcon"],
         validUser:[8213, "AtIcon"], copyBios:[5042, "CopyIcon"], reviewDB:[9354, "ThumbsUpIcon"], readAll:[15928, "DoubleCheckmarkIcon"],
-        hiddenChannels:[8218, "LockIcon"], dashless:[15892, "HashmarkIcon"], systemFont:[15974, "LettersIcon"], systemEmoji:[12901, "ChatSmileIcon"],
-        hideGift:[11540, "GiftIcon"], hideCall:[9317, "PhoneCallIcon"], youBarSettings:[7092, "SettingsIcon"], quests:[13012, "QuestsIcon"],
-        badges:[8921, "TrophyIcon"], hideQuestDock:[6650, "EyeSlashIcon"], userNotif:[8768, "BellIcon"], accountSwitcher:[8212, "GroupIcon"], appIcons:[8229, "AppsIcon"],
-        customThemes:[15652, "EyeDropperIcon"], iconPacks:[11063, "ImageSparkleIcon"], messageHighlight:[16947, "PaintbrushThinIcon"], serverInfo:[5046, "CircleInformationIcon"], fixEmbeds:[12910, "EmbedIcon"], tenorGifs:[9748, "GifIcon"], hideButtons:[15612, "CircleMinusIcon"], nitroThemes:[17143, "SparklesIcon"], materialYou:[15560, "PaintPaletteIcon"], hideBlocked:[17072, "ChatShieldIcon"], bulkDelete:[6868, "CircleCheckIcon"], experiments:[15894, "BeakerIcon"], cleanChannels:[12605, "MagicWandIcon"], noHandsfree:[12271, "HeadphonesIcon"]};
+        hiddenChannels:[8218, "LockIcon"], systemFont:[15974, "LettersIcon"], systemEmoji:[12901, "ChatSmileIcon"],
+        youBarSettings:[7092, "SettingsIcon"], quests:[13012, "QuestsIcon"],
+        badges:[8921, "TrophyIcon"], userNotif:[8768, "BellIcon"], accountSwitcher:[8212, "GroupIcon"], appIcons:[8229, "AppsIcon"],
+        customThemes:[15652, "EyeDropperIcon"], iconPacks:[11063, "ImageSparkleIcon"], messageHighlight:[16947, "PaintbrushThinIcon"], serverInfo:[5046, "CircleInformationIcon"], serverEdit:[9720, "PencilIcon"], fixEmbeds:[12910, "EmbedIcon"], tenorGifs:[9748, "GifIcon"], nitroThemes:[17143, "SparklesIcon"], materialYou:[15560, "PaintPaletteIcon"], hideBlocked:[17072, "ChatShieldIcon"], bulkDelete:[6868, "CircleCheckIcon"], experiments:[15894, "BeakerIcon"], cleanChannels:[12605, "MagicWandIcon"], noHandsfree:[12271, "HeadphonesIcon"], voiceOptions:[8224, "VoiceNormalIcon"], staffTag:[10262, "CrownIcon"], removedAlerts:[5036, "UserMinusIcon"], hideAnything:[10260, "XLargeIcon"], fullImages:[11587, "ImagesIcon"], alwaysTrust:[10410, "ShieldIcon"], noConfirmPin:[10334, "PinIcon"], clickableMentions:[8213, "AtIcon"]};
     const venusIcons = new Map();
     function venusIcon(id, name, fallback) {
         const slot = id + ":" + name;
@@ -967,18 +1118,27 @@
     }
     // Features list search (#68): every row is found by its title, its description, its page's title, its group and the
     // names of the options on its page, in the language Venus is shown in and in English, ignoring case and accents.
-    const FEATURE_KEYWORDS = {systemFont:["Import a font", "Font file"], systemEmoji:["Import an emoji font", "Emoji font"], hideButtons:["Quests", "Shop", "Nitro", "Apps", "Polls", "Photos"], noDelete:["Show edit history", "Keep after restarting", "Color", "Brightness", "Keep up to"], translate:["Show the original language", "Show the original text", "Another language", "How you ask", "Top bar", "Message menu"],
+    const FEATURE_KEYWORDS = {hideAnything:["Removal mode", "Voice message button", "Video call button", "Message requests", "Add Friends button", "New message button", "Quests banner", "Attach menu", "Polls", "Photos"], systemFont:["Import a font", "Font file"], systemEmoji:["Import an emoji font", "Emoji font"], noDelete:["Show edit history", "Keep after restarting", "Color", "Brightness", "Keep up to"], translate:["Show the original language", "Show the original text", "Another language", "How you ask", "Top bar", "Message menu"],
         freeNitro:["Emojis", "Stickers", "Short links"], pastelize:["Replace role colors", "Color message text"],
         platformIndicators:["In DMs", "In lists", "On profiles", "Hide the phone badge"], reviewDB:["Show the be-respectful note"],
-        userNotif:["Change status", "Start typing", "Send a message", "Phone notifications"], accountSwitcher:["Button on the profile bar", "Create a new account"],
-        hiddenChannels:["Show its details"], serverInfo:["Look up friends in the server", "Boosts", "Owner", "Server ID"], customThemes:["Show theme background image", "Browse Revenge themes"],
+        userNotif:["Change status", "Start typing", "Send a message", "Phone notifications"], accountSwitcher:["Button on the profile bar", "Create a new account", "Export accounts", "Import accounts"],
+        hiddenChannels:["Show its details"], serverEdit:["Edit locally", "Name", "Icon", "Server icon", "Choose from your phone", "Use a link"], serverInfo:["Look up friends in the server", "Boosts", "Owner", "Server ID"], customThemes:["Show theme background image", "Browse Revenge themes"],
         messageHighlight:["Brightness", "Left bar width"], iconPacks:["Rosiecord", "Plumpy", "Iconsax", "Material", "MD3", "Solar", "Deco", "Themes+", "Follow theme's icon pack"],
         fixEmbeds:["Remove tracking from links", "X (Twitter)", "Twitter", "Instagram", "TikTok", "Reddit", "Bluesky", "Threads", "Tumblr", "Facebook", "Mastodon", "YouTube", "Twitch", "Spotify", "pixiv", "Bilibili", "DeviantArt", "Fur Affinity", "Pinterest", "PTT",
-            "FxTwitter", "vxTwitter", "fxtumblr", "Dark Tumblr posts", "embed"], tenorGifs:["Tenor", "GIF", "GIFs", "Klipy", "GIFs from", "Only Tenor"],
-        hideBlocked:["Blocked messages", "Ignored messages", "Replies to them", "blocked", "ignored", "replies"],
-        cleanChannels:["Emoji", "Symbols and dividers", "Fancy letters", "Categories", "Channel names", "Decorations"],
+            "FxTwitter", "vxTwitter", "fxtumblr", "Dark Tumblr posts", "embed", "Imgur", "Newgrounds",
+            "Post style", "Translate posts", "Full post", "Media", "Text", "File", "Translate", "Gallery"], tenorGifs:["Tenor", "GIF", "GIFs", "Klipy", "GIFs from", "Only Tenor"],
+        hideBlocked:["Blocked messages", "Ignored messages", "Replies to them", "Remove blocked users", "RemoveBlockedUsers", "Close their DM", "blocked", "ignored", "replies"],
+        anonFiles:["File names", "Random name", "Privacy", "Rename"],
+        staffTag:["Owner", "Admin", "Manager", "Mod", "Crown", "Staff", "Moderator", "Tags", "Staff tags", "StaffTag", "Label", "Badge"],
+        alwaysTrust:["AlwaysTrust", "Always Trust", "Leaving Discord", "Untrusted domain", "Suspicious file", "Dangerous download", "Links", "Downloads"],
+        noConfirmPin:["NoConfirmPin", "Pin", "Unpin", "Pinned messages"],
+        clickableMentions:["ClickableMentions", "Mentions", "Profile", "Message bar"],
+        fullImages:["High-res profile pictures", "HighResProfileImages", "Avatars", "Profile pictures", "Banners", "Uncompressed", "Uncompressed images", "Original", "Full quality", "Lossless", "Compression", "Blurry", "Thumbnail", "Resolution", "Pictures", "Photos"],
+        removedAlerts:["Removed", "Unfriend", "Friend", "Kicked", "Banned", "Server", "Left", "Alert", "Notifier", "Relationship", "Connection", "Removed connection alerts", "Relationship notifier", "Notify"],
+        cleanChannels:["Emoji", "Symbols and dividers", "Fancy letters", "Spaces instead of dashes", "Spaces in channel names", "general chat", "Categories", "Channel names", "Decorations"],
         experiments:["Dev Tools", "Experiments", "Experiment", "Developer", "Staff"],
         noHandsfree:["Bluetooth", "Headphones", "Hands-free", "Calls", "Voice channels", "Microphone"],
+        voiceOptions:["Soundboard", "Goodbye sound", "Call volume", "Chime volume", "Mute everyone", "Speaker", "Earpiece", "Bluetooth", "Wired headset", "Headphones", "Output", "Join chime", "Leave chime", "Voice channels", "Notification", "Mute"],
         bulkDelete:["Select Messages", "Select all", "Delete", "Clear kept deleted messages", "Include kept deleted messages", "Ask before deleting"],
         badges:["Game time", "Unique games", "Switch games every", "Games at once", "Add hours now", "Advanced", "Hours Played", "Unique Games Played", "Years Active", "Personalization"]};
     function searchFold(text) {
@@ -1044,6 +1204,7 @@
     const STARTER_FEATURES = ["noDelete", "freeNitro", "platformIndicators", "readAll", "jumpToTop", "validUser", "copyBios", "picker"];
     function starterKeys() { return STARTER_FEATURES.filter(key => features[key]); }
     function starterVisible() {
+        if (featureList.edit) return false;
         if (starter.justOn) return true;
         if (starter.done || status.storage === "waiting" || status.storage === "loading") return false;
         return starterKeys().length >= 3 && !Object.keys(FEATURE_ICONS).some(key => features[key] && settings[key]);
@@ -1100,24 +1261,128 @@
                 done ? [starterAction("undo", tr("Undo"), "secondary", starterUndo), starterAction("ok", tr("Done"), "primary", starterClose)] :
                     [starterAction("later", tr("Not now"), "secondary", starterClose), starterAction("on", tr("Turn them on"), "primary", starterTurnOn)]));
     }
+    // Hiding features (the Features list's Edit list): which patched features you've hidden. Only the list changes:
+    // a hidden feature that's on keeps working, and search still finds it.
+    const HIDDEN_MAX = 2000;
+    function hiddenFeaturesText(raw) {
+        if (typeof raw !== "string" || raw.length > HIDDEN_MAX) return undefined;
+        const keys = [];
+        raw.split(",").forEach(part => { const key = part.trim(); if (owns(FEATURE_ICONS, key) && keys.indexOf(key) < 0) keys.push(key); });
+        return keys.join(",");
+    }
+    let hiddenCache = null;
+    function hiddenFeatureKeys() {
+        const text = settings.hiddenFeatures || "";
+        if (!hiddenCache || hiddenCache.text !== text) hiddenCache = {text, keys:text ? text.split(",").filter(key => features[key]) : []};
+        return hiddenCache.keys;
+    }
+    function featureHidden(key) { return !!settings.hiddenFeatures && hiddenFeatureKeys().indexOf(key) >= 0; }
+    function setFeatureHidden(key, hide) {
+        const keys = (settings.hiddenFeatures ? settings.hiddenFeatures.split(",") : []).filter(entry => entry !== key);
+        if (hide) keys.push(key);
+        animateLayout(); haptic("SELECTION");
+        setSetting("hiddenFeatures", keys.join(","));
+    }
+    function showAllFeatures() {
+        animateLayout(); haptic("SELECTION");
+        featureList.open = false;
+        setSetting("hiddenFeatures", "");
+        featureListChanged();
+    }
+    // Edit list and the Hidden features row aren't settings: they wake the page, its header and the rows that show them.
+    function featureListChanged() { featureSearch.listeners.forEach(fn => fn()); notify("hiddenFeatures"); }
+    function setFeatureEdit(on) {
+        if (featureList.edit === !!on) return;
+        animateLayout(); haptic("IMPACT_LIGHT");
+        featureList.edit = !!on;
+        featureListChanged();
+    }
+    function toggleHiddenOpen() {
+        animateLayout(); haptic("SELECTION");
+        featureList.open = !featureList.open;
+        featureListChanged();
+    }
+    const FEATURE_BAR_DARK = {bar:{flexDirection:"row", alignItems:"center", gap:12, paddingTop:12, paddingHorizontal:4},
+        pill:{flexDirection:"row", alignItems:"center", gap:6, height:32, paddingLeft:10, paddingRight:12, borderRadius:16, backgroundColor:"#4e50584d"},
+        done:{flexDirection:"row", alignItems:"center", gap:6, height:32, paddingLeft:10, paddingRight:12, borderRadius:16, backgroundColor:"#5865f2"},
+        eye:{width:36, height:36, borderRadius:18, alignItems:"center", justifyContent:"center", backgroundColor:"#5865f229"},
+        eyeOff:{width:36, height:36, borderRadius:18, alignItems:"center", justifyContent:"center", borderWidth:1.5, borderColor:"#4e5058", backgroundColor:"transparent"},
+        eyeIcon:{color:"#949cf7"}, eyeOffIcon:{color:"#80848e"}};
+    function useFeatureBarStyles() {
+        return useThemed("featureBar", c => ({bar:FEATURE_BAR_DARK.bar,
+            pill:Object.assign({}, FEATURE_BAR_DARK.pill, {backgroundColor:c.BACKGROUND_MOD_SUBTLE}),
+            done:Object.assign({}, FEATURE_BAR_DARK.done, {backgroundColor:c.BACKGROUND_BRAND || "#5865f2"}),
+            eye:Object.assign({}, FEATURE_BAR_DARK.eye, {backgroundColor:c.TOGGLEBUTTON_BACKGROUND_SELECTED || c.MENTION_BACKGROUND}),
+            eyeOff:Object.assign({}, FEATURE_BAR_DARK.eyeOff, {borderColor:c.BORDER_STRONG || c.BACKGROUND_MOD_STRONG}),
+            eyeIcon:{color:c.ICON_BRAND || c.TEXT_BRAND}, eyeOffIcon:{color:c.ICON_MUTED || c.TEXT_MUTED}}), FEATURE_BAR_DARK);
+    }
+    // Under the search bar: how many are on, and Edit list (Done while editing). Its own component, so the header's
+    // hooks never change between renders.
+    function FeatureListBar() {
+        useFeatureSearch(); useSettings();
+        const s = useFeatureBarStyles();
+        if (!RN) return null;
+        const Text = inspectedExport(5088, "Text"), Press = RN.Pressable || RN.TouchableOpacity || RN.View, edit = featureList.edit;
+        const keys = Object.keys(FEATURE_ICONS).filter(key => features[key]), on = keys.filter(key => settings[key]).length, hidden = hiddenFeatureKeys().length;
+        const summary = edit ? tr("Tap the eye to hide or show a feature.") :
+            tr("{on} of {total} turned on", {on, total:keys.length}) + (hidden ? " \u00b7 " + pl(hidden, "{n} feature hidden", "{n} features hidden") : "");
+        const label = tr(edit ? "Done" : "Edit list"), Icon = edit ? venusIcon(6823, "CheckmarkSmallIcon") : venusIcon(9720, "PencilIcon");
+        return el(RN.View, {style:s.bar},
+            el(RN.View, {style:{flex:1}}, Text ? el(Text, {variant:"text-sm/medium", color:"text-muted", numberOfLines:2}, summary) :
+                el(RN.Text, {style:{color:"#949ba4", fontSize:14}, numberOfLines:2}, summary)),
+            el(Press, {onPress:() => setFeatureEdit(!edit), accessibilityRole:"button", accessibilityLabel:label, hitSlop:{top:6, bottom:6, left:6, right:6}, style:edit ? s.done : s.pill},
+                popIn(edit ? "bar:done" : "bar:edit", el(Icon, {size:"xs", color:edit ? "#ffffff" : undefined})),
+                Text ? el(Text, {variant:"text-sm/semibold", color:edit ? "always-white" : "text-strong", style:edit ? {color:"#ffffff"} : undefined}, label) :
+                    el(RN.Text, {style:{color:edit ? "#ffffff" : "#f2f3f5", fontSize:14, fontWeight:"600"}}, label)));
+    }
+    // A row's eye while editing: filled in the brand color while the feature is listed, an empty outline once it's hidden.
+    function FeatureEye(props) {
+        useSettings("hiddenFeatures");
+        const s = useFeatureBarStyles();
+        const Press = RN.Pressable || RN.TouchableOpacity || RN.View, hidden = featureHidden(props.feature);
+        const Icon = hidden ? venusIcon(6650, "EyeSlashIcon") : venusIcon(6652, "EyeIcon");
+        return el(Press, {onPress:() => setFeatureHidden(props.feature, !hidden), style:hidden ? s.eyeOff : s.eye, hitSlop:{top:4, bottom:4, left:4, right:4},
+            accessibilityRole:"switch", accessibilityState:{checked:!hidden}, accessibilityLabel:tr(hidden ? "Show" : "Hide") + ": " + props.label},
+            popIn(hidden ? "eye:off" : "eye:on", el(Icon, {size:"sm", color:hidden ? s.eyeOffIcon.color : s.eyeIcon.color})));
+    }
+    // The Hidden features row's arrow, pointing down while closed and up while open.
+    function HiddenChevron() {
+        useSettings("hiddenFeatures");
+        const Chevron = venusIcon(10534, "ChevronSmallDownIcon");
+        return el(RN.View, {style:{transform:[{rotate:featureList.open ? "180deg" : "0deg"}]}}, el(Chevron, {size:"sm"}));
+    }
     // The Features list: Discord's own settings list, with the search bar as its header. While you search it only keeps
     // the rows that match, still under their group titles, and the search clears when you leave the page.
-    function featuresPage(groups) {
-        const full = {type:"list", sections:groups.map(([label, ids]) => section(label, ids)).filter(entry => entry.settings.length)};
-        let header = null, filtered = null;
+    // Hidden features leave their groups for one Hidden features row at the bottom that opens to show them, still
+    // working; Edit list shows every feature with an eye instead of its switch. Search always looks through all of them.
+    function featuresPage(groups, keyOf) {
+        let header = null, built = null;
         return function VenusFeaturesPage() {
-            useFeatureSearch();
-            React.useEffect(() => () => { featureSearch.query = ""; featureSearch.cache = null; }, []);
+            useFeatureSearch(); useSettings("hiddenFeatures");
+            React.useEffect(() => () => { featureSearch.query = ""; featureSearch.cache = null; featureList.edit = false; featureList.open = false; }, []);
             const List = SettingsList || (SettingsList = inspectedExport(14971, "SettingsList"));
             if (!React || !List) return null;
-            if (!header) full.ListHeaderComponent = header = el(FeatureSearchBar, {key:"venus-search"});
-            const query = featureSearch.query.trim();
-            if (!query) return el(List, {node:full});
-            const ids = featureMatches(query);
-            if (!filtered || filtered.ids !== ids)
-                filtered = {ids, node:{type:"list", ListHeaderComponent:header,
-                    sections:groups.map(([label, list]) => section(label, list.filter(id => ids.has(id)))).filter(entry => entry.settings.length)}};
-            return el(List, {node:filtered.node});
+            if (!header) header = el(RN.View, {key:"venus-header"}, el(FeatureSearchBar, {key:"search"}), el(FeatureListBar, {key:"bar"}));
+            const query = featureSearch.query.trim(), ids = query ? featureMatches(query) : null, edit = featureList.edit;
+            const hidden = hiddenFeatureKeys(), open = featureList.open;
+            const signature = (edit ? "e" : "v") + "|" + (query ? "q" : "") + "|" + hidden.join(",") + "|" + (open ? 1 : 0);
+            if (built && built.signature === signature && built.ids === ids) return el(List, {node:built.node});
+            const sections = groups.map(([label, list]) => {
+                let shown = ids ? list.filter(id => ids.has(id)) : list;
+                if (edit) shown = shown.map(id => "VENUS_EDIT_" + keyOf[id]);
+                else if (!ids && hidden.length) shown = shown.filter(id => hidden.indexOf(keyOf[id]) < 0);
+                return section(label, shown);
+            }).filter(entry => entry.settings.length);
+            if (!edit && !ids && hidden.length) {
+                const rows = ["VENUS_HIDDEN_TOGGLE"];
+                if (open) {
+                    groups.forEach(([, list]) => list.forEach(id => { if (hidden.indexOf(keyOf[id]) >= 0) rows.push(id); }));
+                    rows.push("VENUS_HIDDEN_SHOWALL");
+                }
+                sections.push(section("Hidden features", rows));
+            }
+            built = {signature, ids, node:{type:"list", ListHeaderComponent:header, sections}};
+            return el(List, {node:built.node});
         };
     }
     function settingNode(key, title, description, parent) {
@@ -1177,31 +1442,34 @@
             {cancelable:true, onDismiss:cancel});
         else cancel();
     }
-    const RISK_CHIP_DARK = {row:{flexDirection:"row", flexWrap:"wrap", gap:6, marginTop:4, marginBottom:2},
-        chip:{flexDirection:"row", alignItems:"center", gap:4, height:20, paddingLeft:6, paddingRight:8, borderRadius:10, borderWidth:1,
-            borderColor:"#f23f43", backgroundColor:"#f23f431f"}, text:{color:"#f57376", fontSize:11, fontWeight:"700", letterSpacing:0.3}};
-    // The row's description with the chips above it: [⚠ Risky] [⚗ Experimental], outlined in Discord's danger red.
+    // Soft tinted pills in sentence case: they flag the risk without shouting over the rest of the list.
+    const RISK_CHIP_DARK = {row:{flexDirection:"row", flexWrap:"wrap", gap:6, marginTop:4, marginBottom:4},
+        chip:{flexDirection:"row", alignItems:"center", gap:4, height:20, paddingLeft:6, paddingRight:8, borderRadius:10,
+            backgroundColor:"#f23f431f"}, text:{color:"#f57376", fontSize:12, fontWeight:"600"}};
+    // The row's description with the chips above it: [⚠ Risky] [⚗ Experimental], tinted in Discord's danger red.
     function RiskyDescription(props) {
         useLanguage();
         const s = useRiskChips();
         const Text = inspectedExport(5088, "Text");
         return el(RN.View, {accessible:true, accessibilityLabel:tr("Risky") + ", " + tr("Experimental") + ". " + tr(props.hint)},
             riskChips(s),
-            Text ? el(Text, {variant:"text-xs/medium", color:"text-subtle"}, tr(props.hint)) : el(RN.Text, {style:{color:"#949ba4", fontSize:12}}, tr(props.hint)));
+            // The same size and color as every other row's description, so this row doesn't look out of place.
+            Text ? el(Text, {variant:"text-sm/medium", color:"text-muted"}, tr(props.hint)) : el(RN.Text, {style:{color:"#949ba4", fontSize:14}}, tr(props.hint)));
     }
     function riskChips(s, flush) {
         const chip = (key, Icon, label) => el(RN.View, {key, style:s.chip},
             el(Icon, {size:"xxs", color:s.text.color}),
-            el(RN.Text, {numberOfLines:1, style:s.text}, tr(label).toLocaleUpperCase()));
+            el(RN.Text, {numberOfLines:1, style:s.text}, tr(label)));
         return el(RN.View, {style:flush ? [s.row, {marginTop:0, marginBottom:0}] : s.row}, chip("risky", venusIcon(7567, "WarningIcon"), "Risky"), chip("experimental", venusIcon(15894, "BeakerIcon"), "Experimental"));
     }
     function useRiskChips() {
         return useThemed("riskChips", c => ({row:RISK_CHIP_DARK.row,
-            chip:Object.assign({}, RISK_CHIP_DARK.chip, {borderColor:c.BORDER_FEEDBACK_CRITICAL || c.TEXT_FEEDBACK_CRITICAL, backgroundColor:c.BACKGROUND_FEEDBACK_CRITICAL}),
+            chip:Object.assign({}, RISK_CHIP_DARK.chip, {backgroundColor:c.BACKGROUND_FEEDBACK_CRITICAL}),
             text:Object.assign({}, RISK_CHIP_DARK.text, {color:c.TEXT_FEEDBACK_CRITICAL})}), RISK_CHIP_DARK);
     }
-    // The top of a risky feature's page: a card outlined in red with the same chips and what the risk is.
-    const RISK_CARD_DARK = {card:{borderRadius:16, borderWidth:1.5, borderColor:"#f23f43", backgroundColor:"#f23f4314", paddingHorizontal:16, paddingVertical:14, gap:8,
+    // The top of a risky feature's page: a red-tinted card that names the risk in one short line, then says what it is.
+    // The card is the warning, so it doesn't repeat the list's chips inside it.
+    const RISK_CARD_DARK = {card:{borderRadius:16, borderWidth:1, borderColor:"#f23f4366", backgroundColor:"#f23f4314", paddingHorizontal:16, paddingVertical:14, gap:8,
         flexDirection:"row", alignItems:"flex-start"}, badge:{width:36, height:36, borderRadius:18, alignItems:"center", justifyContent:"center", backgroundColor:"#f23f4329"}};
     function riskCard(key, body) {
         const s = useRiskChips(), c = useThemed("riskCard", t => ({card:Object.assign({}, RISK_CARD_DARK.card, {borderColor:t.BORDER_FEEDBACK_CRITICAL || t.TEXT_FEEDBACK_CRITICAL,
@@ -1209,8 +1477,8 @@
         const Warn = venusIcon(7567, "WarningIcon");
         return el(RN.View, {key, style:[c.card, {gap:12}], accessible:true, accessibilityLabel:tr("Risky") + ", " + tr("Experimental") + ". " + tr(body)},
             el(RN.View, {style:c.badge}, el(Warn, {size:"sm", color:s.text.color})),
-            el(RN.View, {style:{flex:1, gap:6}},
-                riskChips(s, true),
+            el(RN.View, {style:{flex:1, gap:4}},
+                el(RN.Text, {style:[s.text, {fontSize:14, fontWeight:"700"}]}, tr("Risky") + " \u00b7 " + tr("Experimental")),
                 badgeText(tr(body), "text-sm/medium", "text-default", {color:"#dbdee1", fontSize:14})));
     }
     let stackNavigation, trailingSwitch, trailingChevron;
@@ -1311,11 +1579,16 @@
         // Messages
         withOptions("messages", "noDelete", "VENUS_NODELETE", "Keep deleted messages", "Deleted messages stay in chat, and edits keep their history.", "Deleted messages", NoDeleteSettings);
         withOptions("messages", "bulkDelete", "VENUS_BULKDELETE", "Bulk delete messages", "Select multiple messages in chat and delete them all at once.", "Bulk delete", BulkDeleteSettings);
+        withOptions("people", "staffTag", "VENUS_STAFFTAG", "Show owner and mod tags", "Shows an Owner, Admin, Manager or Mod tag next to people's names in chat.", "Show owner and mod tags", StaffTagSettings);
+        withOptions("messages", "fullImages", "VENUS_FULLIMAGES", "Load full-quality images", "Pictures in chat and full screen load as uploaded, not as Discord's smaller, compressed copy.", "Load full-quality images", FullImagesSettings);
+        withOptions("people", "removedAlerts", "VENUS_REMOVEDALERTS", "Alert when you're removed", "Get a heads-up when a friend unfriends you, or a server kicks or bans you.", "Alert when you're removed", RemovedAlertsSettings);
         withOptions("messages", "hideBlocked", "VENUS_HIDEBLOCKED", "Hide blocked or ignored messages", "Removes the \"blocked messages\" and \"ignored messages\" rows from chat.", "Blocked and ignored", HideBlockedSettings);
         withOptions("messages", "messageHighlight", "VENUS_MESSAGEHIGHLIGHT", "Message highlights", "Pick bar width and colors for replies, mentions and deleted messages.", "Message highlights", MessageHighlightSettings);
         withOptions("messages", "translate", "VENUS_TRANSLATE", "Translate messages", "Shows messages in your language, using Google Translate.", "Translate messages", TranslateSettings);
         withOptions("messages", "gestures", "VENUS_GESTURES", "Double-tap to reply", "Double-tap to reply, or to edit your own message.", "Tap gestures", GestureSettings);
         toggle("messages", "quickDelete", "Skip delete confirmation", "Deletes messages without asking first. Can't be undone.");
+        toggle("messages", "noConfirmPin", "Skip pin confirmation", "Pins and unpins messages without asking first.");
+        withOptions("messages", "alwaysTrust", "VENUS_ALWAYSTRUST", "Always trust links and files", "Opens links and files without Discord's \"Are you sure?\" warnings.", "Always trust", AlwaysTrustSettings);
         toggle("messages", "jumpToTop", "Jump to first message", "A button to jump to the start of any chat.");
         toggle("messages", "favouriteAnything", "Favourite any image or video", "Star any image or video to keep it in your GIF favourites.");
         // Sending
@@ -1329,6 +1602,8 @@
         toggle("sending", "splitMessages", "Send long messages", "Type past the limit. Long messages are sent in parts.");
         toggle("sending", "noTyping", "Hide typing indicator", "Others won't see when you're typing.");
         toggle("sending", "picker", "Show file sizes when attaching", "Photos and videos in the picker show their size.");
+        toggle("sending", "anonFiles", "Anonymous file names", "Files you send get a random name instead of the one on your phone.");
+        toggle("sending", "clickableMentions", "Tap mentions to open profiles", "Tap an @mention in the message bar to see who it is.");
         // People
         withOptions("people", "pastelize", "VENUS_PASTELIZE", "Pastel name colors", "Names without a role color get a soft pastel one.", "Pastel names",
             () => ({page:PastelSettings, sections:[section("Colors", [option("pastelAll", "Replace role colors", "Every name uses its pastel color, even with a role color.", "VENUS_PASTELIZE"),
@@ -1347,14 +1622,12 @@
         withOptions("servers", "readAll", "VENUS_READALL", "Read all button", "A button that marks servers and DMs as read.", "Read all", ReadAllSettings);
         withOptions("servers", "hiddenChannels", "VENUS_HIDDENCHANNELS", "Show hidden channels", "Channels you can't open show with a lock. Messages stay hidden.", "Hidden channels", HiddenChannelsSettings);
         withOptions("servers", "serverInfo", "VENUS_SERVERINFO", "Server info", "Hold a server's icon to see its details, boosts and friends there.", "Server info", ServerInfoSettings);
-        toggle("servers", "dashless", "Spaces in channel names", "Shows \"general chat\" instead of \"general-chat\".");
-        withOptions("servers", "cleanChannels", "VENUS_CLEANCHANNELS", "Clean channel names", "Removes emoji and symbols from channel and category names.", "Clean names", CleanChannelsSettings);
+        withOptions("servers", "serverEdit", "VENUS_SERVEREDIT", "Edit servers locally", "Give any server your own name and icon. Only you see them.", "Edit servers", ServerEditSettings);
+        withOptions("servers", "cleanChannels", "VENUS_CLEANCHANNELS", "Clean channel names", "Removes emoji and symbols from channel names, and can show spaces instead of dashes.", "Clean names", CleanChannelsSettings);
         // Appearance
         withOptions("appearance", "systemFont", "VENUS_SYSTEMFONT", "Use your phone's font", "Replaces Discord's font everywhere with your phone's or one you import. Android 9 or newer.", "Font", SystemFontSettings);
         withOptions("appearance", "systemEmoji", "VENUS_SYSTEMEMOJI", "Use your phone's emojis", "In chat, reactions and the emoji picker, or from an emoji font you import.", "Emojis", SystemEmojiSettings);
-        toggle("appearance", "hideGift", "Hide the gift button", "Removes the gift button from the message bar.");
-        toggle("appearance", "hideCall", "Hide the call button", "Removes Call from people's profiles.");
-        withOptions("appearance", "hideButtons", "VENUS_HIDEBUTTONS", "Hide extra buttons", "Removes the Quests, Shop, Nitro and Apps buttons you don't use.", "Extra buttons", HideButtonsSettings);
+        withOptions("appearance", "hideAnything", "VENUS_HIDEANYTHING", "Remove anything", "Tap a button you never use to remove it, right where it is.", "Remove anything", HideAnythingSettings);
         toggle("appearance", "youBarSettings", "Venus button on profile bar", "A shortcut to Venus next to the notifications bell.");
         toggle("appearance", "appIcons", "Unlock app icons", "Use any Discord app icon without Nitro.");
         toggle("appearance", "nitroThemes", "Unlock Nitro themes", "Use Discord's gradient themes without Nitro, on this phone.");
@@ -1363,17 +1636,36 @@
         withOptions("appearance", "iconPacks", "VENUS_ICONPACKS", "Icon packs", "Replace Discord's icons with community icon packs or a custom pack.", "Icon packs", IconPacksSettings);
         // Quests
         withOptions("quests", "quests", "VENUS_QUESTS", "Complete Quests automatically", "Finishes video, Play and Activity Quests in the background.", "Quests", QuestSettings);
-        toggle("quests", "hideQuestDock", "Hide the Quests banner", "Removes the Quest promotion above your profile bar.");
         // Advanced
         toggle("advanced", "experiments", "Unlock Discord experiments", "Adds Dev Tools to Settings, to try features Discord is still testing.");
+        withOptions("advanced", "voiceOptions", "VENUS_VOICEOPTIONS", "Voice channel options", "Choose the volume, audio output and sounds for voice channels.", "Voice channel options", VoiceOptionsSettings);
         toggle("advanced", "noHandsfree", "Keep Bluetooth audio clear in calls", "Headphones stay in music quality in calls. Your phone's mic picks up your voice.");
         withOptions("quests", "badges", "VENUS_BADGES", "Complete badges automatically", "Plays real PC games in the background for game time and unique games.", "Badges", BadgeSettings);
         const listed = [["Messages", groups.messages], ["Sending", groups.sending], ["People", groups.people],
             ["Servers", groups.servers], ["Appearance", groups.appearance], ["Quests", groups.quests], ["Advanced", groups.advanced]];
         const sections = listed.map(([label, ids]) => section(label, ids)).filter(entry => entry.settings.length);
         route(P, "Features", sections, undefined, venusIcon(15241, "PuzzlePieceIcon", icon));
+        // Edit list: each feature again, with an eye instead of its switch; tapping the row hides or shows it too.
+        const keyOf = {};
+        featureSearch.rows.forEach(row => {
+            keyOf[row.id] = row.key;
+            const key = row.key, title = row.title, hint = row.hint;
+            next["VENUS_EDIT_" + key] = { type: "pressable", parent: P, unsearchable: true, IconComponent: iconFor(key),
+                useTitle: () => { useLanguage(); return tr(title); },
+                onPress: () => setFeatureHidden(key, !featureHidden(key)),
+                useTrailing: () => el(FeatureEye, {feature:key, label:tr(title)}) };
+            if (hint) next["VENUS_EDIT_" + key].useDescription = () => tr(hint);
+        });
+        // The bottom of the list: one row that opens to show the hidden features, and Show all to bring them all back.
+        next.VENUS_HIDDEN_TOGGLE = { type: "pressable", parent: P, unsearchable: true, IconComponent: venusIcon(6650, "EyeSlashIcon", icon),
+            useTitle: function () { useSettings("hiddenFeatures"); const n = hiddenFeatureKeys().length; return pl(n, "{n} feature hidden", "{n} features hidden"); },
+            useDescription: function () { useSettings("hiddenFeatures"); return tr(featureList.open ? "Tap to fold them away again." : "They keep working. Tap to see them."); },
+            onPress: toggleHiddenOpen, useTrailing: () => el(HiddenChevron, null) };
+        next.VENUS_HIDDEN_SHOWALL = { type: "pressable", parent: P, unsearchable: true, IconComponent: venusIcon(6652, "EyeIcon", icon),
+            useTitle: () => { useLanguage(); return tr("Show all"); },
+            useDescription: () => tr("Puts every hidden feature back in its group."), onPress: showAllFeatures };
         // The nodes above stay for Discord's settings search; the page itself adds the Features search bar.
-        const FeaturesPage = featuresPage(listed);
+        const FeaturesPage = featuresPage(listed, keyOf);
         next[P].screen.getComponent = () => FeaturesPage;
         // "5 of 26 on", right on the entry, so you see at a glance what Venus is doing before opening it.
         next[P].useDescription = function () {
@@ -1425,19 +1717,21 @@
             const list = featureGroups && featureGroups[group] || [];
             if (!list.length) return null;
             const count = list.filter(key => settings[key]).length;
-            return el(RN.View, {key:group, style:[s.chip, {opacity:count ? 1 : 0.6}], accessible:true, accessibilityLabel:tr(label) + ": " + count + "/" + list.length},
+            return el(RN.View, {key:group, style:s.chip, accessible:true, accessibilityLabel:tr(label) + ": " + count + "/" + list.length},
                 el(venusIcon(id, name), {size:"xs"}), text(tr(label) + " " + count + "/" + list.length, "text-xs/semibold", count ? "text-strong" : "text-muted", {color:"#dbdee1", fontSize:12}));
         });
         const linkRow = (key, label, sub, url, id, name) => Row ? el(Row, {key, label:tr(label), subLabel:tr(sub), icon:rowIcon(id, name), arrow:true, onPress:() => openLink(url)}) : null;
+        // One card: who you're running on top, how much of it is on underneath. Two stacked cards read as two things.
         const groups = [
-            el(RN.View, {key:"hero", style:s.hero, accessible:true},
-                popIn("logo", el(RN.View, {style:s.logo}, el(Sparkles, {size:"lg", color:"#ffffff"}))),
-                text("Venus Patches " + revision, "heading-lg/bold", "text-strong", {color:"#f2f3f5", fontSize:20, fontWeight:"700"}),
-                text(tr("For Discord {version}", {version:DISCORD_VERSION}), "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:14})),
-            el(RN.View, {key:"features", style:s.card},
-                text(keys.length ? tr("{on} of {total} turned on", {on, total:keys.length}) : tr("No features were patched in."), "text-md/semibold", "text-strong", {color:"#f2f3f5", fontSize:16, fontWeight:"600"}),
-                keys.length ? el(VenusProgress, {key:"bar", value:on / keys.length}) : null,
-                el(RN.View, {style:{flexDirection:"row", flexWrap:"wrap", gap:8, marginTop:4}}, chips)),
+            el(RN.View, {key:"hero", style:s.hero},
+                el(RN.View, {style:{alignItems:"center", gap:6}, accessible:true},
+                    popIn("logo", el(RN.View, {style:s.logo}, el(Sparkles, {size:"lg", color:"#ffffff"}))),
+                    text("Venus Patches " + revision, "heading-lg/bold", "text-strong", {color:"#f2f3f5", fontSize:20, fontWeight:"700"}),
+                    text(tr("For Discord {version}", {version:DISCORD_VERSION}), "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:14})),
+                el(RN.View, {style:{alignSelf:"stretch", gap:10, marginTop:14}},
+                    text(keys.length ? tr("{on} of {total} turned on", {on, total:keys.length}) : tr("No features were patched in."), "text-md/semibold", "text-strong", {color:"#f2f3f5", fontSize:16, fontWeight:"600"}),
+                    keys.length ? el(VenusProgress, {key:"bar", value:on / keys.length}) : null,
+                    el(RN.View, {style:{flexDirection:"row", flexWrap:"wrap", gap:8, marginTop:2}}, chips))),
             // Only when there's something to know: a green "Everything's working" card on every visit is just filler.
             health === "online" ? null : el(RN.View, {key:"status", style:[s.card, {flexDirection:"row", alignItems:"center", gap:14}]},
                 el(RN.View, {style:{width:12, height:12, borderRadius:6, backgroundColor:STATUS_HEX[health]}}),
@@ -1489,9 +1783,9 @@
         const changed = Object.keys(defaults).filter(key => key !== "language" && !owns(FEATURE_ICONS, key) && features[featureFor(key)] &&
             settings[key] !== defaults[key]).length;
         return {on:keys.filter(key => settings[key]).length, total:keys.length, changed, people:features.userNotif ? userNotif.ids.size : 0,
-            themes:features.customThemes ? customThemes.list.length : 0,
+            themes:features.customThemes ? customThemes.list.length : 0, servers:features.serverEdit ? serverEdits.size : 0,
             iconPacks:features.iconPacks ? (iconPacks.active ? 1 : 0) + iconPacks.custom.length : 0,
-            language:settings.language !== "auto"};
+            language:settings.language !== "auto", hidden:hiddenFeatureKeys().length};
     }
     function backupIsDefault() {
         const defaults = defaultSettings();
@@ -1503,6 +1797,8 @@
         if (features.customThemes && customThemes.list.length) out.themes = {active:customThemes.active || "", list:customThemes.list.slice(0, THEMES_MAX)};
         if (features.iconPacks && (iconPacks.active || iconPacks.custom.length))
             out.iconPacks = {active:iconPacks.active || "", custom:iconPacks.custom.slice(0, ICONPACKS_MAX_CUSTOM)};
+        // Pictures from this phone stay on it: a backup keeps the names and the icons that are links.
+        if (features.serverEdit && serverEdits.size) { const servers = serverEditData(true); if (Object.keys(servers).length) out.servers = servers; }
         return JSON.stringify(out, null, 1);
     }
     // A backup, or a plain venus-patches.json settings file, read back. Throws a message you can show when it isn't one.
@@ -1544,7 +1840,8 @@
             packs = {custom, active:act};
         }
         const created = wrapped && typeof data.created === "string" ? Date.parse(data.created) : NaN;
-        return {values, people, themes, iconPacks:packs, version:wrapped && typeof data.version === "string" ? data.version.slice(0, 24) : "", created:Number.isFinite(created) ? created : 0};
+        const servers = wrapped && data.servers ? serverEditClean(data.servers, true) : null;
+        return {values, people, themes, iconPacks:packs, servers, version:wrapped && typeof data.version === "string" ? data.version.slice(0, 24) : "", created:Number.isFinite(created) ? created : 0};
     }
     // Puts a backup in place: every setting it has, the rest back to how Venus starts. Switches go through setSetting,
     // so everything they start or stop (Quests, themes, kept messages) happens as if you'd flipped them yourself.
@@ -1554,7 +1851,7 @@
         try {
             animateLayout();
             Object.keys(defaults).forEach(key => {
-                if (key !== "language" && !features[featureFor(key)]) return;
+                if (key !== "language" && key !== "hiddenFeatures" && !features[featureFor(key)]) return;
                 setSetting(key, owns(parsed.values, key) ? parsed.values[key] : defaults[key]);
             });
             if (features.userNotif && parsed.people) {
@@ -1564,6 +1861,13 @@
             if (features.customThemes && parsed.themes) {
                 customThemes.loaded = true; customThemes.list = parsed.themes.list; customThemes.active = parsed.themes.active; customThemes.error = "";
                 customThemesPersist(); customThemesApply(); notify("customThemes");
+            }
+            if (features.serverEdit && parsed.servers) {
+                // Pictures picked on this phone aren't in a backup, so a server keeps its own picture unless the backup gives it a link.
+                const next = new Map();
+                serverEdits.forEach((edit, id) => { if (serverEditFile(edit.icon) && !parsed.servers.has(id)) next.set(id, edit); });
+                parsed.servers.forEach((edit, id) => { const old = serverEdits.get(id); next.set(id, old && serverEditFile(old.icon) && !edit.icon ? {name:edit.name, icon:old.icon} : edit); });
+                serverEditLoad(next); serverEdit.dirty = true; serverEditChanged();
             }
             if (features.iconPacks && parsed.iconPacks) {
                 iconPacks.loaded = true; iconPacks.custom = parsed.iconPacks.custom; iconPacks.active = parsed.iconPacks.active; iconPacks.error = "";
@@ -1660,8 +1964,8 @@
         }).catch(() => showProblem("Couldn't restore", tr("Your clipboard is empty. Copy a Venus backup first.")));
     }
     function backupReset() {
-        confirmAction("Reset to defaults?", "Every feature turns off and every option goes back to how Venus starts. Your themes and people stay.", "Reset",
-            () => backupApply({values:Object.assign({}, defaultSettings(), {language:settings.language}), people:null, themes:null}, true));
+        confirmAction("Reset to defaults?", "Every feature turns off and every option goes back to how Venus starts. Your themes, people and server edits stay.", "Reset",
+            () => backupApply({values:Object.assign({}, defaultSettings(), {language:settings.language, hiddenFeatures:settings.hiddenFeatures}), people:null, themes:null}, true));
     }
     const BACKUP_DARK = {chip:{flexDirection:"row", alignItems:"center", gap:6, paddingHorizontal:10, paddingVertical:6, borderRadius:14, backgroundColor:"#4e50584d"}};
     // Backup and restore: what a backup holds right now, two ways to save it, two ways to bring one back.
@@ -1678,7 +1982,9 @@
             what.changed ? chip("options", 7092, "SettingsIcon", pl(what.changed, "{n} option changed", "{n} options changed")) : null,
             what.people ? chip("people", 4815, "FriendsIcon", pl(what.people, "{n} person watched", "{n} people watched")) : null,
             what.themes ? chip("themes", 15652, "EyeDropperIcon", pl(what.themes, "{n} theme", "{n} themes")) : null,
+            what.servers ? chip("servers", 9720, "PencilIcon", pl(what.servers, "{n} server edited", "{n} servers edited")) : null,
             what.iconPacks ? chip("iconPacks", 11063, "ImageSparkleIcon", pl(what.iconPacks, "{n} icon pack", "{n} icon packs")) : null,
+            what.hidden ? chip("hidden", 6650, "EyeSlashIcon", pl(what.hidden, "{n} feature hidden", "{n} features hidden")) : null,
             what.language ? chip("language", 15723, "LanguageIcon", languageLabel(settings.language)) : null];
         const backupRow = (key, label, sub, id, name, onPress, disabled) => Row ? el(Row, {key, label:tr(label), subLabel:tr(sub), icon:rowIcon(id, name), arrow:true,
             onPress, disabled:!!busy || !!disabled}) : null;
@@ -1746,21 +2052,12 @@
     // GUILD_TEXT (0), GUILD_ANNOUNCEMENT (5), GUILD_STORE (6), GUILD_DIRECTORY (14), GUILD_FORUM (15), GUILD_MEDIA (16), GUILD_APP (21).
     const DASHLESS_TYPES = new Set([0, 5, 6, 14, 15, 16, 21]);
     const FALSE_FN = () => false;
-    const dashlessNames = new Map();
-    function dashlessFormat(channel, name) {
-        if (!enabled("dashless") || !channel || !DASHLESS_TYPES.has(channel.type) || typeof name !== "string" || name.indexOf("-") < 0) return name;
-        const cached = dashlessNames.get(name);
-        if (cached !== undefined) return cached;
-        const formatted = name.replace(/-/g, " ");
-        if (dashlessNames.size >= 512) dashlessNames.delete(dashlessNames.keys().next().value);
-        dashlessNames.set(name, formatted);
-        return formatted;
-    }
     // Clean channel names (#95): channel and category names lose the emoji, dividers and fancy fonts servers decorate
     // them with ("🎫┃quick-help" -> "quick-help", "🛠️ | SUPPORT & RESOURCE | 🛠️" -> "SUPPORT & RESOURCE",
     // "𝓰𝓮𝓷𝓮𝓻𝓪𝓵" -> "general"). Only what Discord draws changes: the channel record, links, mentions you send and search
     // all keep the real name. A name made only of emoji or symbols is left as it is, so no channel ever goes blank.
     // Guild channels and categories only (threads and forum posts have free-text titles, DMs have people's names).
+    // Spaces instead of dashes (once its own feature, Spaces in channel names) is one more option here: "general chat".
     const CLEAN_TYPES = new Set([0, 2, 4, 5, 6, 13, 14, 15, 16, 21]);
     // Emoji_Presentation code points outside the 1F000 planes: drawn as emoji even without U+FE0F.
     const CLEAN_EMOJI_BMP = new Set([0x231a, 0x231b, 0x23e9, 0x23ea, 0x23eb, 0x23ec, 0x23f0, 0x23f3, 0x25fd, 0x25fe, 0x2614, 0x2615,
@@ -1847,34 +2144,51 @@
         // Nothing readable left (a name of only emoji or symbols): keep Discord's.
         return /[0-9A-Za-z\u00c0-\uffff]/.test(result) ? result : name;
     }
+    // The options as one short key, so the cache below is dropped whenever one changes.
+    function cleanOptionsKey() {
+        return (settings.cleanChannelsEmoji ? "e" : "") + (settings.cleanChannelsSymbols ? "s" : "") + (settings.cleanChannelsFonts ? "f" : "") + (settings.cleanChannelsSpaces ? "d" : "");
+    }
+    // The cleaned name with every option applied, in order: decorations first, then dashes, so "🎫┃quick-help" becomes
+    // "quick help". One cache for both steps: a channel label is read on every render of the channel list.
     function cleanFormat(channel, name) {
         if (!channel || typeof name !== "string" || !name || !enabled("cleanChannels") || !CLEAN_TYPES.has(channel.type)) return name;
-        const version = (settings.cleanChannelsEmoji ? "e" : "") + (settings.cleanChannelsSymbols ? "s" : "") + (settings.cleanChannelsFonts ? "f" : "");
+        const version = cleanOptionsKey();
         if (!version) return name;
         if (version !== cleanVersion) { cleanNames.clear(); cleanVersion = version; }
         const slug = DASHLESS_TYPES.has(channel.type), key = (slug ? "#" : "") + name;
         const cached = cleanNames.get(key);
         if (cached !== undefined) return cached;
-        const result = cleanName(name, slug, {emoji:settings.cleanChannelsEmoji, symbols:settings.cleanChannelsSymbols, fonts:settings.cleanChannelsFonts});
+        let result = settings.cleanChannelsEmoji || settings.cleanChannelsSymbols || settings.cleanChannelsFonts ?
+            cleanName(name, slug, {emoji:settings.cleanChannelsEmoji, symbols:settings.cleanChannelsSymbols, fonts:settings.cleanChannelsFonts}) : name;
+        if (slug && settings.cleanChannelsSpaces && result.indexOf("-") >= 0) result = result.replace(/-/g, " ");
         if (cleanNames.size >= 1024) cleanNames.delete(cleanNames.keys().next().value);
         cleanNames.set(key, result);
         return result;
     }
-    // Both name features, in order: clean first, so "🎫┃quick-help" becomes "quick help" with Spaces in channel names.
     function channelNameFormat(channel, name) {
-        return dashlessFormat(channel, features.cleanChannels ? cleanFormat(channel, name) : name);
+        return features.cleanChannels ? cleanFormat(channel, name) : name;
+    }
+    // Formatter-only facade avoids Discord's OBFUSCATED label branch while preserving its escaping, category casing
+    // and the real model/flags. Channel records are immutable and replaced on change, so one facade per record and
+    // name is reused: every locked row used to build a new object with two property descriptors on each render.
+    // Hermes HBC98: 109 -> 15 us median per 60 locked rows (7.23x).
+    const labelFacades = new WeakMap();
+    function labelFacade(channel, name) {
+        const known = labelFacades.get(channel);
+        if (known && known.name === name) return known;
+        const facade = Object.create(channel, {
+            name:{value:name, writable:true, configurable:true, enumerable:true},
+            isObfuscated:{value:FALSE_FN, writable:true, configurable:true, enumerable:false}
+        });
+        labelFacades.set(channel, facade);
+        return facade;
     }
     function channelLabel(orig, self, args) {
         const channel=args[0];
         let next=args;
         if (hiddenMetadata(channel)) {
-            // Formatter-only facade avoids Discord's OBFUSCATED label branch while
-            // preserving its escaping, category casing and the real model/flags.
             next=Array.from(args);
-            next[0]=Object.create(channel, {
-                name:{value:hiddenName(channel), writable:true, configurable:true, enumerable:true},
-                isObfuscated:{value:FALSE_FN, writable:true, configurable:true, enumerable:false}
-            });
+            next[0]=labelFacade(channel, hiddenName(channel));
         }
         return channelNameFormat(channel, orig.apply(self, next));
     }
@@ -1884,7 +2198,6 @@
         hiddenMetadata(channel) ? channelLabel(orig, self, [channel, b]) : channelNameFormat(channel, orig.call(self, channel, b));
     function useChannelLabel(orig, self, args) {
         if (React) {
-            if (features.dashless) useSettings("dashless");
             if (features.hiddenChannels) useSettings("hiddenChannels");
             if (features.cleanChannels) useSettings("cleanChannels");
         }
@@ -1892,7 +2205,6 @@
     }
     useChannelLabel.call1 = (orig, self, channel) => {
         if (React) {
-            if (features.dashless) useSettings("dashless");
             if (features.hiddenChannels) useSettings("hiddenChannels");
             if (features.cleanChannels) useSettings("cleanChannels");
         }
@@ -1900,7 +2212,6 @@
     };
     useChannelLabel.call2 = (orig, self, channel, b) => {
         if (React) {
-            if (features.dashless) useSettings("dashless");
             if (features.hiddenChannels) useSettings("hiddenChannels");
             if (features.cleanChannels) useSettings("cleanChannels");
         }
@@ -1924,14 +2235,14 @@
     function parserStateChannels(orig, self, args) {
         const state = orig.apply(self, args);
         const clean = features.cleanChannels && enabled("cleanChannels");
-        if (!(enabled("dashless") || clean) || !state || !Array.isArray(state.channels) || !channelStore || typeof channelStore.getChannel !== "function") return state;
+        if (!clean || !state || !Array.isArray(state.channels) || !channelStore || typeof channelStore.getChannel !== "function") return state;
         let extras = null;
         for (let i = 0; i < state.channels.length; i++) {
             const entry = state.channels[i];
-            if (!entry || typeof entry.text !== "string" || !clean && !entry.text.includes(" ")) continue;
+            if (!entry || typeof entry.text !== "string") continue;
             const ch = channelStore.getChannel(entry.id);
             // A typed #name matches the name you see, and the real one too (both point at the same channel).
-            if (ch && (DASHLESS_TYPES.has(ch.type) || clean && CLEAN_TYPES.has(ch.type)) && typeof ch.name === "string" && ch.name !== entry.text) {
+            if (ch && CLEAN_TYPES.has(ch.type) && typeof ch.name === "string" && ch.name !== entry.text) {
                 if (!extras) extras = state.channels.slice();
                 extras.push({id:entry.id, text:ch.name});
             }
@@ -2094,7 +2405,7 @@
         return code === stickerRules.StickerSendability.SENDABLE;
     }
     let msgStore, msgActions, permissions, viewPermission, locale, dispatcher, messageRecords, chatHeight, jumpPill, jumpIcon;
-    let permissionsCanOrig = null;
+    let permissionsCanOrig = null, permissionsBasicOrig = null, guildChannelsGetOrig = null, permissionsVersion = null;
     let deletedRevision = 0, archiveRestored = false, archiveLoading = false, archiveWriting = false, archivePending;
     const deletedViews = new Map();
     const ARCHIVE = "venus-deleted-messages.json";
@@ -2104,15 +2415,17 @@
     const MAX_EDITED = 2000, MAX_VERSIONS = 10, MAX_VERSION_TEXT = 4000;
     let archiveTimer;
     const hiddenViews = new Map(), hiddenNames = new Map(), hiddenScans = new Map();
-    let hiddenAccount;
+    let hiddenAccount, hiddenNamesVersion = 0;
     const HIDDEN_CHANNEL = "Hidden channel", HIDDEN_CATEGORY = "Hidden category";
+    // Server redactions: "hidden", "__hidden__", "_hidden" and underscore variants (HBC string 25605), any case.
+    // One regex test instead of replace() + toLowerCase(), which built two strings for every channel of every
+    // directory lookup: Hermes HBC98 2.94x faster per 500 names (797 -> 273 us median).
+    const REDACTED_NAME = /^_*hidden_*$/i;
     function receivedName(channel) {
         if (!channel || typeof channel.name !== "string") return null;
         const trimmed = channel.name.trim();
         if (!trimmed) return null;
-        // Server redactions: "hidden", "__hidden__", "_hidden" and underscore variants (HBC string 25605).
-        // Strip surrounding underscores and compare case-insensitively so redacted stubs never pollute the cache.
-        if (trimmed.replace(/^_+|_+$/g, "").toLowerCase() === "hidden") return null;
+        if (REDACTED_NAME.test(trimmed)) return null;
         // Never cache our own unavailable facades as if they were real names.
         if (trimmed === HIDDEN_CHANNEL || trimmed === HIDDEN_CATEGORY || trimmed === tr(HIDDEN_CHANNEL) || trimmed === tr(HIDDEN_CATEGORY)) return null;
         return channel.name;
@@ -2123,7 +2436,7 @@
         // Directory scans pass the account once; don't ask UserStore again for every channel.
         let owner = accountId;
         if (typeof owner !== "string") { const current = userStore && userStore.getCurrentUser(); owner = current && current.id; }
-        if (hiddenAccount !== owner) {hiddenNames.clear();hiddenAccount = owner;}
+        if (hiddenAccount !== owner) {hiddenNames.clear();hiddenNamesVersion++;hiddenAccount = owner;}
         if (!channel) return;
         const guild = guildId || channel.guild_id;
         const name = knownName || receivedName(channel);
@@ -2133,12 +2446,27 @@
         if (known && known.guild === guild && known.name === name) return;
         if (hiddenNames.size >= 4096 && !known) hiddenNames.delete(hiddenNames.keys().next().value);
         hiddenNames.set(channel.id,{guild,name});
+        hiddenNamesVersion++;
     }
+    // Every locked row asks for its name on every render (label, directory, details), and the answer was rebuilt
+    // each time: two store lookups, three name checks and a placeholder translation. It only changes with the
+    // remembered names (hiddenNamesVersion, which an account switch also bumps), Venus's language and the server's
+    // channel tables (getGuildChannelsVersion), so one answer per record is kept until one of those moves.
+    // Hermes HBC98: 336 -> 211 us median per render of 60 locked rows (1.58x).
+    let hiddenNameMemo = new WeakMap();
     function hiddenName(channel) {
+        const current = userStore && userStore.getCurrentUser();
+        if (hiddenAccount !== (current && current.id)) {hiddenNames.clear();hiddenNamesVersion++;hiddenAccount = current && current.id;}
+        const tables = channelStore && typeof channelStore.getGuildChannelsVersion === "function" ? channelStore.getGuildChannelsVersion(channel.guild_id) : undefined;
+        const memo = hiddenNameMemo.get(channel);
+        if (memo && memo.names === hiddenNamesVersion && memo.lang === i18n.version && memo.tables === tables) return memo.value;
+        const value = resolveHiddenName(channel);
+        hiddenNameMemo.set(channel, {names:hiddenNamesVersion, lang:i18n.version, tables, value});
+        return value;
+    }
+    function resolveHiddenName(channel) {
         // Basic records can retain names absent from full/obfuscated records. Never
         // fetch an inaccessible channel, guess a name, or change its permissions/flags.
-        const current = userStore && userStore.getCurrentUser();
-        if (hiddenAccount !== (current && current.id)) {hiddenNames.clear();hiddenAccount = current && current.id;}
         const basic = channelStore && typeof channelStore.getBasicChannel === "function" && channelStore.getBasicChannel(channel.id);
         const full = channelStore && typeof channelStore.getChannel === "function" && channelStore.getChannel(channel.id);
         const name = receivedName(channel) || (basic && basic.guild_id === channel.guild_id && receivedName(basic)) ||
@@ -2151,7 +2479,7 @@
     const READY_EVENTS = new Set(["CONNECTION_OPEN","CONNECTION_OPEN_SUPPLEMENTAL"]), BATCH_EVENTS = new Set(["CHANNEL_UPDATES","THREAD_LIST_SYNC"]);
     const MESSAGE_EVENTS = new Set(["MESSAGE_CREATE","MESSAGE_UPDATE"]), RESTORE_EVENTS = new Set(["CONNECTION_OPEN","CACHE_LOADED"]);
     // Every Flux event passes through here: leave typing, presence, voice and the rest alone.
-    const HIDDEN_EVENTS = new Set(["LOGOUT","CHANNEL_DELETE","GUILD_DELETE",...CHANNEL_EVENTS,...GUILD_EVENTS,...READY_EVENTS,...BATCH_EVENTS,...MESSAGE_EVENTS]);
+    const HIDDEN_EVENTS = new Set(["LOGOUT","CHANNEL_DELETE","GUILD_DELETE","BACKGROUND_SYNC",...CHANNEL_EVENTS,...GUILD_EVENTS,...READY_EVENTS,...BATCH_EVENTS,...MESSAGE_EVENTS]);
     // Every type dispatchEvent or channelMetadataEvent acts on. Anything else (presence, typing, voice, acks: most of the
     // traffic) goes straight to Discord. Add a type here when a new branch reads it.
     const DISPATCH_EVENTS = new Set([...HIDDEN_EVENTS, ...RESTORE_EVENTS, "MESSAGE_DELETE", "MESSAGE_DELETE_BULK"]);
@@ -2167,24 +2495,47 @@
         // the incoming user, otherwise the first post-READY lookup erases it.
         const owner = event.type === "CONNECTION_OPEN" && event.user && event.user.id || current && current.id;
         if (event.type === "LOGOUT" || hiddenAccount !== owner) {
-            hiddenNames.clear();hiddenViews.clear();hiddenScans.clear();hiddenAccount = owner;
+            hiddenNames.clear();hiddenViews.clear();hiddenScans.clear();hiddenNamesVersion++;hiddenAccount = owner;
             try { hiddenConfirmed.clear(); hiddenPrompts.clear(); } catch (_) {}
         }
-        if (event.type === "CHANNEL_DELETE") hiddenNames.delete(event.channel && event.channel.id || event.channelId || event.id);
-        if (event.type === "GUILD_DELETE") {
+        if (event.type === "CHANNEL_DELETE" && hiddenNames.delete(event.channel && event.channel.id || event.channelId || event.id)) hiddenNamesVersion++;
+        // A server outage also arrives as GUILD_DELETE (guild.unavailable). Its channels come back with the server, so
+        // only leaving it forgets their names; an outage used to wipe the names Discord had already redacted.
+        if (event.type === "GUILD_DELETE" && !(event.guild && event.guild.unavailable)) {
             const guild = event.guild && event.guild.id || event.guildId;
-            for (const [id,entry] of hiddenNames) if (entry.guild === guild) hiddenNames.delete(id);
+            for (const [id,entry] of hiddenNames) if (entry.guild === guild) { hiddenNames.delete(id); hiddenNamesVersion++; }
         }
         if (!features.hiddenChannels) return;
         // Cache even while the toggle is off so enabling later still has READY names.
         if (CHANNEL_EVENTS.has(event.type)) rememberChannelName(event.channel,owner);
+        // A gateway guild's channels are not an array in 350.8: ChannelStore's handleOneGuildCreate (2065) reads
+        // {op:"full_sync", items} or {op:"update", writes, deletes}; threads stay a plain array. Only taking arrays
+        // meant CONNECTION_OPEN and GUILD_CREATE never cached a single channel name.
+        function rememberList(list, guildId) {
+            if (!Array.isArray(list)) return;
+            for (let i = 0; i < list.length; i++) {
+                const channel = list[i];
+                rememberChannelName(channel, owner, undefined, channel && channel.guild_id || guildId);
+            }
+        }
         function rememberGuild(guild) {
             if (!guild || !guild.id) return;
-            for (const key of ["channels","threads"]) if (Array.isArray(guild[key]))
-                guild[key].forEach(channel => rememberChannelName(channel,owner,undefined,channel && channel.guild_id || guild.id));
+            const channels = guild.channels;
+            if (Array.isArray(channels)) rememberList(channels, guild.id);
+            else if (channels) rememberList(channels.op === "full_sync" ? channels.items : channels.writes, guild.id);
+            rememberList(guild.threads, guild.id);
         }
         if (GUILD_EVENTS.has(event.type)) rememberGuild(event.guild);
         if (READY_EVENTS.has(event.type) && Array.isArray(event.guilds)) event.guilds.forEach(rememberGuild);
+        // Discord resyncs servers in the background (ChannelStore 2065 handleBackgroundSync): data_mode "full" sends
+        // every channel, "partial" only the changed ones under partial_updates. Those names were never cached.
+        if (event.type === "BACKGROUND_SYNC" && Array.isArray(event.guilds)) {
+            for (let i = 0; i < event.guilds.length; i++) {
+                const guild = event.guilds[i];
+                if (!guild || !guild.id || guild.data_mode === "unavailable") continue;
+                rememberList(guild.data_mode === "partial" ? guild.partial_updates && guild.partial_updates.channels : guild.channels, guild.id);
+            }
+        }
         if (BATCH_EVENTS.has(event.type)) {
             for (const key of ["channels","threads"]) if (Array.isArray(event[key]))
                 event[key].forEach(channel => rememberChannelName(channel,owner,undefined,channel && channel.guild_id || event.guildId));
@@ -2215,7 +2566,23 @@
         }
         if (enabled("quickDelete") && (matches("AMvpS4") || matches("vXZ+Fo")))
             return popup.onConfirm();
+        // Skip pin confirmation (based on NoConfirmPin by Skamt): LongPressMessageActionSheetUtils (9685) asks "Are you sure you
+        // want to pin this message?" (WG5dyo) inside the alert's children, and "You sure you want to remove this pinned message?"
+        // (NjEPp7) as the unpin alert's body. Only those two exact texts in Discord's language skip the alert.
+        if (enabled("noConfirmPin")) {
+            alertTexts(popup.children, texts, 0);
+            if (matches("WG5dyo") || matches("NjEPp7")) return popup.onConfirm();
+        }
         return orig.apply(self, args);
+    }
+    // The plain strings inside an alert's children (a few levels of React elements), added to `out`.
+    function alertTexts(node, out, depth) {
+        if (node == null || depth > 5) return out;
+        if (typeof node === "string") { out.push(node); return out; }
+        if (Array.isArray(node)) { for (let i = 0; i < node.length && i < 20; i++) alertTexts(node[i], out, depth + 1); return out; }
+        const props = typeof node === "object" && node.props;
+        if (props) { alertTexts(props.children, out, depth + 1); if (typeof props.title === "string") out.push(props.title); }
+        return out;
     }
     function deletedKey(channelId, id) { return channelId + ":" + id; }
     function invalidateDeleted() { deletedRevision++; deletedViews.clear(); }
@@ -2224,6 +2591,7 @@
         let bucket = deletedByChannel.get(entry.channelId);
         if (!bucket) deletedByChannel.set(entry.channelId, bucket = new Map());
         bucket.set(key, entry);
+        if (features.bulkDelete && bulkDelete.active && bulkDelete.selected.has(String(entry.id))) bulkDeletePruneKept();
     }
     function dropDeleted(key) {
         const entry = deleted.get(key);
@@ -2470,6 +2838,9 @@
     function rememberDeleted(event, orig, self) {
         const key = deletedKey(event.channelId, event.id);
         if (deleted.has(key)) return true;
+        // A bulk delete is meant to clear messages for real: keeping each one first flashed it red, saved the archive and
+        // took a second removal right after.
+        if (features.bulkDelete && bulkDelete.removing.size && bulkDelete.removing.has(key)) return false;
         const message = msgStore && msgStore.getMessage(event.channelId,event.id);
         if (!retainable(message, event)) return false;
         while (deleted.size >= settings.noDeleteLimit) {
@@ -2645,7 +3016,8 @@
     };
     // The mobile list has a second VIEW_CHANNEL filter. Give ONLY that factory a
     // metadata-list facade; the real permission store and all other callers stay stock.
-    function listImport(importer) {
+    function listImport(importer, owner) {
+        if (owner !== undefined && owner !== 7246) return realImport(importer);
         if (typeof importer !== "function") return importer;
         return function () {
             const result = importer.apply(this,arguments);
@@ -2677,6 +3049,41 @@
             return result.default ? cloneWith(result,"default",facade) : facade;
         };
     }
+    // The global VIEW_CHANNEL answer also reached the read-state stores: ReadStateStore (6035 canTrackUnreads,
+    // getGuildChannelUnreadState) and GuildReadStateStore (6078 isCountableChannel) asked PermissionStore.can and
+    // counted locked channels as unread or mentioned, so a server kept its unread dot and badge for messages
+    // nobody can open or acknowledge. markGuildsAsRead (14193) read the locked channels the directory adds to
+    // SELECTABLE/VOCAL and acknowledged them too. The same answer also reached the server bar's voice badge
+    // (GuildMediaStateStore 14008 isBadgeableVoiceChannel: a server lit up for talk in a voice channel you can't
+    // join), Happening Now (16501 addUser listed people in locked voice channels) and the ICYMI feed's events in
+    // locked channels (ICYMIStore 8449 injectGuildEvents). These modules get Discord's real answers, like stock Discord.
+    let realPermissions = null, realGuildChannels = null;
+    function realImport(importer) {
+        if (typeof importer !== "function") return importer;
+        return function () {
+            const result = importer.apply(this, arguments), id = arguments[0];
+            if (result && id === 2087 && features.serverEdit) return serverEditRealResult(result);
+            if (!result || id !== 4750 && id !== 4748) return result;
+            const real = result.default || result;
+            let facade = null;
+            if (id === 4750 && permissionsCanOrig) {
+                if (!realPermissions || Object.getPrototypeOf(realPermissions) !== real) {
+                    realPermissions = Object.create(real);
+                    realPermissions.can = permissionsCanOrig;
+                    if (permissionsBasicOrig) realPermissions.canBasicChannel = permissionsBasicOrig;
+                }
+                facade = realPermissions;
+            } else if (id === 4748 && guildChannelsGetOrig) {
+                if (!realGuildChannels || Object.getPrototypeOf(realGuildChannels) !== real) {
+                    realGuildChannels = Object.create(real);
+                    realGuildChannels.getChannels = guildChannelsGetOrig;
+                }
+                facade = realGuildChannels;
+            }
+            if (!facade) return result;
+            return result.default ? cloneWith(result, "default", facade) : facade;
+        };
+    }
     function receivedChannel(id) {
         if (!channelStore || !id) return null;
         return channelStore.getChannel(id) || typeof channelStore.getBasicChannel === "function" && channelStore.getBasicChannel(id);
@@ -2688,11 +3095,26 @@
         // permissionsCanOrig is always set before permissions, so no second path is needed.
         try { return !!permissionsCanOrig && permissionsCanOrig(bit, channel); } catch (_) { return false; }
     }
+    // Every channel-list render, row label and directory lookup asks this for each channel. Discord's own can()
+    // reads a per-channel permission cache (PermissionStore 4750) that it resets exactly where it bumps
+    // getChannelsVersion(), so one answer per record and version is what Discord itself would say. Threads are
+    // computed fresh from thread membership without a version bump, so they always ask. Hermes HBC98, 300
+    // channels: 156 -> 51 us median per pass (2.92x); a pass right after a bump costs 1.37x once.
+    let hiddenKnown = new WeakMap(), hiddenKnownVersion;
     function hiddenMetadata(value) {
         if (!enabled("hiddenChannels")) return false;
         const channel = typeof value === "string" ? receivedChannel(value) : value;
-        return !!(channel && channel.guild_id && channel.type !== 1 && channel.type !== 3 &&
-            permissions && viewPermission != null && !realCan(viewPermission, channel));
+        if (!(channel && channel.guild_id && channel.type !== 1 && channel.type !== 3 && permissions && viewPermission != null)) return false;
+        const type = channel.type;
+        if (channel.realCheck || !permissionsVersion || type === 10 || type === 11 || type === 12) return !realCan(viewPermission, channel);
+        let version;
+        try { version = permissionsVersion(); } catch (_) { return !realCan(viewPermission, channel); }
+        if (version !== hiddenKnownVersion) { hiddenKnown = new WeakMap(); hiddenKnownVersion = version; }
+        const known = hiddenKnown.get(channel);
+        if (known !== undefined) return known;
+        const hidden = !realCan(viewPermission, channel);
+        hiddenKnown.set(channel, hidden);
+        return hidden;
     }
     function hiddenChannel(value) {
         const channel = typeof value === "string" ? receivedChannel(value) : value;
@@ -2719,21 +3141,26 @@
         // Always cache names from the current store even while the toggle is off,
         // so enabling later still resolves. This read-only scan never changes permissions.
         // One read of both caches per lookup; the remembered names are reused below.
-        let full, basic, source;
+        let full, basic, source, version;
         // Resolve the account once per lookup, not once per channel, and walk basic then full
         // records: the same final cache as walking the merged map, without visiting basic twice.
         function remember() {
             const current = userStore && userStore.getCurrentUser(), owner = current && current.id;
-            // Skip rescanning channel names while the server's channel tables are the exact same objects.
+            // ChannelStore (2065) edits a server's channel table in place (setGuildChannel, deleteChannel) and only
+            // bumps getGuildChannelsVersion, so the same table object can hold different channels. Once a server is
+            // loaded its basic table is that same object too. Keying on identity alone kept the first merged copy
+            // for good: a deleted locked channel stayed listed and a new one never showed.
+            version = typeof channelStore.getGuildChannelsVersion === "function" ? channelStore.getGuildChannelsVersion(guild) : undefined;
             const last = hiddenScans.get(guild);
-            if (last && last.full === full && last.basic === basic && last.owner === owner && last.source) {
+            if (last && last.full === full && last.basic === basic && last.version === version && last.owner === owner && last.source) {
                 source = last.source;
                 return;
             }
-            if (!source) source = basic ? Object.assign({},basic,full) : full;
+            // Only copy when there really are two tables to merge; the live table needs no copy.
+            source = basic && basic !== full ? Object.assign({},basic,full) : full;
             if (hiddenScans.size >= 64 && !last) hiddenScans.delete(hiddenScans.keys().next().value);
-            hiddenScans.set(guild, {full, basic, owner, source});
-            if (basic) for (const k in basic) if (Object.prototype.hasOwnProperty.call(basic, k)) rememberChannelName(basic[k], owner, undefined, guild);
+            hiddenScans.set(guild, {full, basic, version, owner, source});
+            if (basic && basic !== full) for (const k in basic) if (Object.prototype.hasOwnProperty.call(basic, k)) rememberChannelName(basic[k], owner, undefined, guild);
             for (const k in full) if (Object.prototype.hasOwnProperty.call(full, k)) rememberChannelName(full[k], owner, undefined, guild);
         }
         function read() {
@@ -2749,6 +3176,17 @@
         if (!enabled("hiddenChannels") || !result || !readable || !permissions) return result;
         // The read above threw part-way: retry once, letting a real error surface as before.
         if (!source) { read(); if (!source) return result; }
+        // Every channel-list render asks again with nothing changed. The answer only depends on Discord's result,
+        // the server's channel tables and their version, the permission version (hiddenMetadata's cache), the
+        // remembered names and the language of the placeholders, so when all of them match, the last view is
+        // still right: no permission pass, name lookups or signature string. Hermes HBC98, 300-channel server:
+        // see the commit message for the numbers.
+        let permVersion;
+        if (permissionsVersion) try { permVersion = permissionsVersion(); } catch (_) { permVersion = undefined; }
+        const cached = hiddenViews.get(guild);
+        if (cached && permVersion !== undefined && version !== undefined && cached.orig === result && cached.source === full &&
+            cached.basic === basic && cached.version === version && cached.permVersion === permVersion &&
+            cached.namesVersion === hiddenNamesVersion && cached.lang === i18n.version) return cached.value;
         const extra = [];
         for (const k in source) {
             if (Object.prototype.hasOwnProperty.call(source, k) && hiddenMetadata(source[k])) extra.push(source[k]);
@@ -2766,7 +3204,6 @@
             const parent = source[c.parent_id];
             if (parent) references.push(parent);
         }
-        const cached = hiddenViews.get(guild);
         if (cached && cached.orig === result && cached.source === full && cached.basic === basic && cached.signature === signature &&
             references.length === cached.references.length) {
             let sameRefs = true;
@@ -2827,7 +3264,7 @@
         append("VOCAL", vocal);
         append(4, parents);
         if (hiddenViews.size >= 16 && !hiddenViews.has(guild)) hiddenViews.delete(hiddenViews.keys().next().value);
-        hiddenViews.set(guild, {orig:result,source:full,basic,signature,references,value:next});
+        hiddenViews.set(guild, {orig:result,source:full,basic,signature,references,value:next,version,permVersion,namesVersion:hiddenNamesVersion,lang:i18n.version});
         return next;
     }
     const hiddenConfirmed = new Set();
@@ -2980,6 +3417,15 @@
         // With the details menu turned off, tapping a locked channel simply does nothing.
         if (enabled("hiddenChannelsMenu")) showHidden(receivedChannel(id), () => { hiddenConfirmed.add(id); return orig.apply(self, args); });
         return; // Wait for user choice; View Anyway then navigates.
+    }
+    // Voice and stage rows don't navigate: a tap opens the voice panel straight away (VoiceChannel 16677 and
+    // StageVoiceChannel 16680 call PrivateChannelCallUtils 7477 openGuildVoiceModal, also exported as
+    // navigateToVoiceChannel, with the channel record). That skipped the navigation guard, so a locked voice
+    // channel opened an empty voice panel instead of its details. Same choice as a text channel: ask, or nothing.
+    function hiddenVoicePanel(orig, self, args) {
+        const channel = args[0], id = channel && typeof channel === "object" ? channel.id : channel;
+        if (typeof id !== "string" || !hiddenChannel(id) || hiddenConfirmed.has(id)) return orig.apply(self, args);
+        if (enabled("hiddenChannelsMenu")) showHidden(receivedChannel(id), () => { hiddenConfirmed.add(id); return orig.apply(self, args); });
     }
     function hiddenGuildNavigation(orig, self, args) {
         // Opening a server by itself (with a locked channel Discord remembered) goes to the server's first real
@@ -3551,15 +3997,22 @@
     // QuestVariants.MOBILE_ACTIVITY_QUEST: an Activity Quest that Discord's phone app reports itself.
     const QUEST_MOBILE_ACTIVITY = 36;
     // Discord answers 401 when a phone reports play time, so Play and Activity heartbeats are sent as Discord
-    // Stable for Windows: host 1.0.9261, web build 634304, updater metadata 93252, Electron 42.11.10.
-    const QUEST_DESKTOP = {version:"1.0.9261", build:634304, native:93252, electron:"42.11.10", chrome:"148.0.7778.280",
-        osVersion:"10.0.26100", osSdk:"26100"};
+    // Stable for Windows: host 1.0.9265, web build 652418 (the client discord.com serves a desktop app on launch; the site
+    // ships several builds a day and a desktop session keeps the one it loaded, so a recent one is as real as the newest),
+    // updater metadata 96160 (what desktop sends as native_build_number), Electron 42.11.15, Chrome 148.0.7778.280.
+    // Read from the 1.0.9265 package (Discord.exe, build_info.json, core.asar) and the live updater manifest.
+    // Bump all of them together when Discord does.
+    // brands is the sec-ch-ua Electron 42.11.15 sends (captured from the real binary; Chromium picks the grease brand per major).
+    const QUEST_DESKTOP = {version:"1.0.9265", build:652418, native:96160, electron:"42.11.15", chrome:"148.0.7778.280",
+        osVersion:"10.0.26100", osSdk:"26100", brands:'"Not/A)Brand";v="99", "Chromium";v="148"'};
+    // Where desktop's page is served from: Chromium reports it as Origin (writes) and Referer on every API call.
+    const QUEST_DESKTOP_ORIGIN = "https://discord.com", QUEST_DESKTOP_PAGE = "https://discord.com/channels/@me";
     const QUEST_DESKTOP_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) discord/" +
         QUEST_DESKTOP.version + " Chrome/" + QUEST_DESKTOP.chrome + " Electron/" + QUEST_DESKTOP.electron + " Safari/537.36";
     // Bits desktop's launch signature keeps clear when it detects no client mod (docs.discord.food, Launch Signature).
     const QUEST_SIGNATURE_BITS = [119, 108, 100, 91, 84, 75, 61, 55, 48, 38, 24, 11];
     const QUEST_HEARTBEAT_SESSION_MS = 30 * 60 * 1000;
-    const QUEST_REFETCH_MS = 30 * 60 * 1000, QUEST_RETRY_MS = 30 * 60 * 1000, QUEST_REFUSED_MS = 6 * 60 * 60 * 1000, QUEST_OFFLINE_MS = 5 * 60 * 1000;
+    const QUEST_REFETCH_MS = 30 * 60 * 1000, QUEST_REFETCH_JITTER_MS = 10 * 60 * 1000, QUEST_RETRY_MS = 30 * 60 * 1000, QUEST_REFUSED_MS = 6 * 60 * 60 * 1000, QUEST_OFFLINE_MS = 5 * 60 * 1000;
     // Heartbeats in a row that Discord answers without counting any more time before Quest Completer gives up for now.
     const QUEST_STALLED_BEATS = 5;
     const quest = {store:null, dispatcher:null, generation:0, running:null, enrolling:false, skip:new Map(), enrollBlockedUntil:0,
@@ -3607,7 +4060,7 @@
         if (typeof send !== "function") return Promise.reject(new Error("Discord's network client isn't ready"));
         const request = {url, interceptResponse:questIntercept};
         if (body !== undefined) request.body = body;
-        if (desktop) request.onRequestCreated = questDesktopRequest;
+        if (desktop) request.onRequestCreated = r => questDesktopRequest(r, (method || "post") !== "get");
         // Check at the send boundary too: a queued microtask must not send for an account we just left.
         return Promise.resolve().then(() => active && !active() ? null : send.call(http, request));
     }
@@ -3662,23 +4115,38 @@
     // Discord's HTTP client hands over the request before its prepareRequest adds the phone's X-Super-Properties,
     // so those headers are swapped as they're set. The native User-Agent interceptor leaves this Windows agent
     // alone (see questCompleter in DiscordPatches.kt); every other request still says Discord-Android.
-    function questDesktopRequest(request) {
+    function questDesktopRequest(request, write) {
         if (!request || typeof request.set !== "function") return;
         const properties = questDesktopProperties(), set = request.set;
         const value = (name, original) => {
             const key = String(name).toLowerCase();
-            return key === "x-super-properties" ? properties : key === "user-agent" ? QUEST_DESKTOP_UA : original;
+            return key === "x-super-properties" ? properties : key === "user-agent" ? QUEST_DESKTOP_UA
+                : key === "accept-language" ? quest.desktop.locale : original;
         };
+        // Discord's prepareRequest runs after this hook and sets the phone's identity on the request. The phone's
+        // installation id and fingerprint would tie these Windows heartbeats to the Android client, so they are dropped
+        // (both are optional on the wire), and the phone's Accept-Language list would replace the single tag Chromium sends.
+        const phoneOnly = key => key === "x-installation-id" || key === "x-fingerprint";
         request.set = function (name, original) {
             if (name && typeof name === "object") {
                 const copy = {};
-                for (const key of Object.keys(name)) copy[key] = value(key, name[key]);
+                for (const key of Object.keys(name)) if (!phoneOnly(key.toLowerCase())) copy[key] = value(key, name[key]);
                 return set.call(this, copy);
             }
+            if (phoneOnly(String(name).toLowerCase())) return this;
             return set.call(this, name, value(name, original));
         };
         request.set("User-Agent", QUEST_DESKTOP_UA);
         request.set("X-Super-Properties", properties);
+        // What Chromium adds to every same-origin API call from Discord for Windows and a phone's HTTP stack doesn't
+        // (captured from Electron 42.11.15). Accept-Language is the one Discord's prepareRequest only sets on desktop.
+        // Accept-Encoding stays OkHttp's: it only unpacks gzip when it chose that header itself, so claiming br or
+        // zstd would hand back unreadable bodies.
+        const hints = {"sec-ch-ua-platform":'"Windows"', "sec-ch-ua":QUEST_DESKTOP.brands, "sec-ch-ua-mobile":"?0", "Accept":"*/*"};
+        if (write) hints.Origin = QUEST_DESKTOP_ORIGIN;
+        hints["Sec-Fetch-Site"] = "same-origin"; hints["Sec-Fetch-Mode"] = "cors"; hints["Sec-Fetch-Dest"] = "empty";
+        hints.Referer = QUEST_DESKTOP_PAGE; hints["Accept-Language"] = quest.desktop.locale;
+        for (const name of Object.keys(hints)) request.set(name, hints[name]);
     }
     // QuestStore exposes these as getters in 350.8; accept a method too.
     function questFlag(store, key) {
@@ -3979,16 +4447,24 @@
         const value = Number(reply && reply.progress && reply.progress[type] && reply.progress[type].value);
         return {value:Number.isFinite(value) ? value : 0, completed:!!(reply && reply.completed_at)};
     }
-    // Desktop's pace: a beat right away, then one a minute. With under a minute left it waits what's left plus a
-    // second, and stops once Discord says the Quest is done. A finished Quest gets no terminal beat on desktop.
+    // Desktop's pace (QuestProgressManager.initiateHeartbeat, Discord for Windows 1.0.9265): a beat right away, then one
+    // a minute, stopping once Discord says the Quest is done. A finished Quest gets no terminal beat on desktop.
+    // Desktop starts the next timer the moment it sends, without waiting for the answer, and works the delay out
+    // from the progress it already had, so the answer to this beat only counts for the next one. The delay runs
+    // from the send, which keeps beats 60 s apart instead of 60 s plus however long the answer took.
     async function questBeat(entry, desktop) {
-        const target = entry.task.target;
+        const target = entry.task.target, type = entry.task.type;
         let best = -1, stalled = 0;
         while (questActive(entry)) {
             // Eligibility can change while sleeping: Discord's own manager rechecks it before every beat.
             const item = questHeartbeatItem(entry);
             if (!item) return false;
             if (item.userStatus.completedAt) return true;
+            // Exactly QuestProgressManager.calculateHeartbeatDurationMs: max(0, left) plus a second when a minute or
+            // less is left, else a minute. `left` comes from the store as it is before this beat's answer.
+            const sentAt = Date.now(), left = Math.max(0, (target - questProgress(item, type)) * 1000);
+            const wait = left <= QUEST_HEARTBEAT_MS ? left + QUEST_HEARTBEAT_TAIL_MS : QUEST_HEARTBEAT_MS;
+            entry.beating = desktop;
             const beat = await questHeartbeat(entry, desktop);
             if (!questActive(entry)) return false;
             questProgressed(entry, beat.value);
@@ -3998,13 +4474,27 @@
             // A Quest Discord stops counting used to get a heartbeat every minute for as long as Discord stayed open.
             if (beat.value > best) { best = beat.value; stalled = 0; }
             else if (++stalled >= QUEST_STALLED_BEATS) throw new Error("Discord stopped counting time");
-            // Exactly QuestProgressManager.calculateHeartbeatDurationMs (18718): max(0, left) plus a second when a
-            // minute or less is left, so a beat at the target that Discord hasn't confirmed yet is followed one
-            // second later, like Discord's own app. A 60 s wait there was a pattern no Discord client sends.
-            const left = Math.max(0, (target - beat.value) * 1000);
-            await questSleep(left <= QUEST_HEARTBEAT_MS ? left + QUEST_HEARTBEAT_TAIL_MS : QUEST_HEARTBEAT_MS);
+            await questSleep(Math.max(0, wait - (Date.now() - sentAt)));
         }
         return false;
+    }
+    // QuestProgressManager.terminateHeartbeat: when desktop stops beating for a Quest that is still enrolled, not done and
+    // not expired (the game closed), it sends one last beat with only terminal:true. JSON drops the undefined fields, so
+    // the body is exactly {"terminal":true}. Quest Completer does the same when you switch it off on the same account;
+    // logging out or switching accounts sends nothing, as the token would be another account's.
+    function questTerminate(entry) {
+        if (!entry || entry.beating === undefined || entry.terminated || entry.generation !== quest.generation) return;
+        entry.terminated = true;
+        const user = quest.user, desktop = entry.beating;
+        try {
+            const store = questStore(), item = store && store.getQuest(entry.id);
+            if (!item || !item.userStatus || !item.userStatus.enrolledAt || item.userStatus.completedAt ||
+                !(questTime(item.config && item.config.expiresAt) > Date.now())) return;
+        } catch (_) { return; }
+        questRequest("/quests/" + entry.id + "/heartbeat", {terminal:true}, desktop, undefined, () => quest.user === user).then(response => {
+            const status = quest.user === user ? questUserStatus(response && response.body) : null;
+            if (status) questDispatch({type:"QUESTS_SEND_HEARTBEAT_SUCCESS", questId:entry.id, userStatus:status});
+        }, () => {});
     }
     // Activity Quests: Discord counts time in the Activity without it being started. A mobile Activity Quest is
     // one the phone app reports itself, so only the others are sent as desktop.
@@ -4031,7 +4521,9 @@
         quest.refetchTimer = undefined;
         if (!enabled("quests") || typeof global.setTimeout !== "function") return;
         questsFetch(false); questsSchedule(1000);
-        quest.refetchTimer = global.setTimeout(questsRefetchLoop, QUEST_REFETCH_MS);
+        // Discord's own client never asks on a fixed beat (its initial fetch waits a random jitter, and the 30-minute
+        // timer only fetches after a day), so the poll gets a random extra wait instead of an exact 30-minute rhythm.
+        quest.refetchTimer = global.setTimeout(questsRefetchLoop, QUEST_REFETCH_MS + Math.floor(Math.random() * QUEST_REFETCH_JITTER_MS));
     }
     function questsStart(delay) {
         if (!enabled("quests") || typeof global.setTimeout !== "function") return;
@@ -4039,7 +4531,8 @@
         quest.refetchTimer = global.setTimeout(questsRefetchLoop, delay);
     }
     // Stops everything in flight: switching it off, logging out, or another account signing in.
-    function questsStop() {
+    function questsStop(graceful) {
+        if (graceful) questTerminate(quest.running);
         quest.generation++;
         quest.running = null; quest.enrolling = false; quest.enrollBlockedUntil = 0; quest.skip.clear();
         if (global.clearTimeout) {
@@ -4073,13 +4566,14 @@
         if (quest.user && quest.refetchTimer === undefined && !quest.running) questsStart(8000);
     }
     function questsSettingChanged(key, value) {
-        if (key === "quests" && !value) { questsStop(); return; }
+        if (key === "quests" && !value) { questsStop(true); return; }
         if (!enabled("quests")) return;
         if (key === "quests") { questsStart(1000); return; }
         // Turning a quest type off stops that kind if it's the one running.
         const running = quest.running && quest.running.task;
         if (!value && running && (key === "questsVideo" && running.kind === "video" || key === "questsActivity" && running.kind === "activity" ||
             key === "questsPlay" && running.kind === "play")) {
+            questTerminate(quest.running);
             quest.generation++; quest.running = null; quest.enrolling = false;
             if (quest.scanTimer !== undefined && global.clearTimeout) global.clearTimeout(quest.scanTimer);
             quest.scanTimer = undefined;
@@ -5281,7 +5775,7 @@
         const Plus = venusIcon(10310, "PlusLargeIcon"), Gift = venusIcon(11540, "GiftIcon"),
             Expr = props.pickerOpen ? venusIcon(12822, "KeyboardIcon") : venusIcon(8956, "ReactionIcon"),
             Mic = venusIcon(11106, "MicrophoneIcon"), Send = venusIcon(5040, "SendMessageIcon"), Press = RN.Pressable || RN.View, text = props.text || "";
-        const showGift = !text && !(features.hideGift && enabled("hideGift"));
+        const showGift = !text && !(features.hideAnything && spotHidden("chat.gift"));
         const exprIcon = el(RN.View, {style:{justifyContent:"center", alignItems:"center"}},
             el(Expr, {size:"sm", color:props.pickerOpen ? s.name.color : k.icon.color}), props.smileRipple || null);
         return el(RN.View, {key:"input"}, props.bar || null, props.above || null,
@@ -5358,8 +5852,14 @@
         return text ? el(RN.View, {key:"hint", style:{paddingHorizontal:16, paddingTop:2}}, popIn("cap:" + text, el(RN.Text, {style:s.muted}, text))) : null;
     }
     // Shared by every option page: Discord's spacing and scrolling, with each group revealed in turn.
+    // A row group whose rows Remove anything took away goes too, so no title is left over an empty space.
+    function emptyGroup(group) {
+        if (!features.hideAnything || !group || typeof group!=="object" || !group.props || !("children" in group.props) || !group.props.title) return false;
+        const kids=[].concat(group.props.children);
+        return kids.length>0 && kids.every(kid => !kid);
+    }
     function settingsBody(ui,groups,scroll) {
-        const shown=groups.filter(Boolean).map((group,i) => typeof group==="object" ?
+        const shown=groups.filter(group => group && !emptyGroup(group)).map((group,i) => typeof group==="object" ?
             el(VenusReveal,{key:group.key != null ? group.key : group.props && group.props.key != null ? group.props.key : "group"+i,index:i},group) : group);
         const body=ui.Stack ? el(ui.Stack,{style:{paddingVertical:24,paddingHorizontal:12},spacing:24},shown) :
             el(RN.View,{style:{paddingVertical:24,paddingHorizontal:12,gap:24}},shown);
@@ -5368,8 +5868,12 @@
     // Greyed out while the main switch is off, like the options on the Settings list.
     function switchRow(Switch,key,label,subLabel,icon) {
         const owner=featureFor(key);
-        return Switch ? el(Switch,{key,label:tr(label),subLabel:subLabel && tr(subLabel),icon,value:settings[key],disabled:owner!==key && !settings[owner],
+        const row=Switch ? el(Switch,{key,label:tr(label),subLabel:subLabel && tr(subLabel),icon,value:settings[key],disabled:owner!==key && !settings[owner],
             onValueChange:value => { animateLayout(); setSetting(key,value); }}) : null;
+        if (!row || !features.hideAnything) return row;
+        // Remove anything can take this switch off its page too.
+        rowLabels.set(key,label);
+        return spotHidden("row."+key) ? null : el(HideRow,{key,spot:"row."+key,child:row});
     }
     // One choice from a few: Discord's radio list (TableRadioGroup 6263 / TableRadioRow 6262), or check-marked rows.
     // Each choice may carry a fourth item, its row icon (rowIcon), like Discord's own radio lists.
@@ -5759,6 +6263,44 @@
             footnote("note", "Everything else comes from what Discord has already loaded, and updates while the sheet is open.")];
         return settingsBody(ui, groups);
     }
+    // Edit servers locally's page: what everyone sees next to what you see, then every server you've edited.
+    function ServerEditPreview() {
+        const s = useChatPreviewStyles(), k = usePreviewChrome();
+        const side = (key, label, color, glyph, name, size) => el(RN.View, {key, style:{flex:1, alignItems:"center", gap:8, paddingVertical:18, paddingHorizontal:8}},
+            el(RN.Text, {style:[s.muted, {fontSize:12, fontWeight:"600"}], numberOfLines:1}, label),
+            el(RN.View, {style:{width:56, height:56, borderRadius:18, backgroundColor:color, alignItems:"center", justifyContent:"center"}},
+                el(RN.Text, {style:{color:"#ffffff", fontSize:size, fontWeight:"700"}}, glyph)),
+            el(RN.Text, {style:[s.name, {fontSize:15}], numberOfLines:1}, name));
+        return el(RN.View, {key:"preview", style:[s.chat, {flexDirection:"row", alignItems:"center", paddingVertical:0}], accessible:true,
+            accessibilityLabel:tr("Everyone sees") + ": " + tr("Game Night") + ". " + tr("Only you see") + ": " + tr("Friday crew")},
+            side("real", tr("Everyone sees"), "#4e5058", "GN", tr("Game Night"), 18),
+            el(venusIcon(10293, "ArrowSmallRightIcon"), {size:"md", color:k.icon.color}),
+            side("mine", tr("Only you see"), "#eb459e", "\ud83c\udfae", tr("Friday crew"), 26));
+    }
+    function ServerEditSettings() {
+        useSettings("serverEdit");
+        const ui = reviewUI();
+        if (!React || !RN) return null;
+        const on = enabled("serverEdit"), Group = ui.TableRowGroup || RN.View, Row = ui.TableRow, Icon = venusIcon(9720, "PencilIcon");
+        const label = item => item.edit.name || item.real && item.real.name || item.id;
+        const list = Array.from(serverEdits.keys()).map(id => ({id, edit:serverEdits.get(id), real:serverEditReal(id)}))
+            .sort((a, b) => String(label(a)).localeCompare(String(label(b))));
+        const row = item => Row ? el(Row, {key:item.id, label:label(item),
+            subLabel:!item.real ? tr("You're not in this server right now") : item.edit.name && item.edit.name !== item.real.name ? tr("Real name: {name}", {name:item.real.name}) : tr("New icon only"),
+            icon:el(ServerEditIcon, {uri:serverEditIconUri(item.real, item.edit, 64), name:label(item), size:32}), arrow:true, disabled:!on || !item.real,
+            onPress:() => openServerEdit(item.id)}) : null;
+        const groups = [
+            on ? null : offCard("status", Icon, "serverEdit"),
+            el(ServerEditPreview, {key:"preview"}),
+            on && !list.length ? statusCard("empty", "Hold a server's icon and tap Edit locally, or pick a server below.", {title:tr("No servers edited yet"), IconComponent:Icon}) : null,
+            el(Group, {key:"servers", title:list.length ? pl(list.length, "{n} server edited", "{n} servers edited") : tr("Servers")},
+                list.map(row),
+                Row ? el(Row, {key:"add", label:tr("Edit another server"), icon:rowIcon(9239, "ServerIcon"), arrow:true, disabled:!on, onPress:openServerPicker}) : null),
+            list.length ? el(Group, {key:"reset"},
+                actionRow(ui, "reset", "Reset every server", null, () => confirmAction("Reset every server?", "Every server goes back to its real name and icon.", "Reset", serverEditReset), !on, true)) : null,
+            footnote("note", "Only this phone sees these. Server settings always show the real name and icon, so nothing changes for the server or anyone in it.")];
+        return settingsBody(ui, groups);
+    }
     // Imported font and emoji files: Android's file picker, a private copy in Discord's cache (keepLocalCopy), then the native
     // side checks Android can draw it and keeps it in Discord's files. Each kind talks through its own native method, the one
     // that already reopens Discord for it (font: fileExists, emojis: getVideoDimensions), so no method carries two guards.
@@ -6004,7 +6546,8 @@
         tumblr:"/wumpus/752839474927902720", facebook:"/reel/1180000000000000", mastodon:"/@wumpus/113289104412093482",
         ptt:"/bbs/C_Chat/M.1729000000.A.1B2.html", youtube:"/watch?v=dQw4w9WgXcQ", twitch:"/wumpus/clip/GoodGoodWaffleTwitchRaid",
         bilibili:"/video/BV1xx411c7mD", spotify:"/track/4cOdK2wGLETKBW3PvgPWqT", pixiv:"/artworks/123456789",
-        deviantart:"/wumpus/art/Final-Boss-1093497633", furaffinity:"/view/42140481", pinterest:"/pin/424605071145119869/"};
+        deviantart:"/wumpus/art/Final-Boss-1093497633", furaffinity:"/view/42140481", pinterest:"/pin/424605071145119869/",
+        imgur:"/gallery/chCWdcH", newgrounds:"/portal/view/59593"};
     const FIX_VIDEO = {x:true, instagram:true, tiktok:true, facebook:true, bilibili:true, youtube:true, twitch:true, spotify:true};
     const FIX_PREVIEW_DARK = {link:{color:"#00a8fc"}, embed:{backgroundColor:"#2b2d31", borderColor:"#ffffff14"}, ring:{borderColor:"#5865f2"}};
     function useFixStyles() {
@@ -6052,12 +6595,16 @@
             el(RN.View, {style:{position:"absolute", right:-24, top:-24, width:96, height:96, borderRadius:48, backgroundColor:"#ffffff1f"}}),
             el(RN.View, {style:{width:44, height:44, borderRadius:22, alignItems:"center", justifyContent:"center", backgroundColor:"#00000080"}},
                 el(FIX_VIDEO[siteId] ? Play : Picture, {size:"sm", color:"#ffffff"})));
+        // What the embed shows follows Post style, where the service has it; a translated post says what it was translated from.
+        const look = live && live.styles && owns(live.styles, settings.fixEmbedsStyle) ? settings.fixEmbedsStyle : "full";
+        const textShown = look === "full" || look === "text", mediaShown = look !== "text", translated = !!(live && fixLanguageFor(live));
         const embed = el(RN.View, {style:[f.embed, {marginTop:6, borderRadius:8, borderWidth:1, borderLeftWidth:4, borderLeftColor:site.color, padding:12, maxWidth:320}]},
             el(RN.View, {style:{flexDirection:"row", alignItems:"center", gap:6, marginBottom:4}}, fixBadge(site, 16),
                 el(RN.Text, {style:[s.muted, {fontWeight:"600"}], numberOfLines:1}, site.name)),
             el(RN.Text, {style:[s.name, {fontSize:14}], numberOfLines:1}, "Wumpus (@wumpus)"),
-            el(RN.Text, {style:[s.text, {fontSize:14, marginTop:2}], numberOfLines:2}, tr("Just beat the final boss on my first try!")),
-            media);
+            textShown ? el(RN.Text, {style:[s.text, {fontSize:14, marginTop:2}], numberOfLines:2}, tr("Just beat the final boss on my first try!")) : null,
+            textShown && translated ? el(RN.Text, {style:[s.muted, {fontSize:12, marginTop:4}], numberOfLines:1}, tr("Translated from {language}", {language:languageName("ja")})) : null,
+            mediaShown ? media : null);
         const body = el(RN.View, null, el(RN.Text, {style:[f.link, {fontSize:15}], numberOfLines:2}, fixed), view.embed ? popIn("embed:" + siteId, embed) : null);
         const rows = fixRows();
         const marks = el(RN.ScrollView || RN.View, {key:"sites", horizontal:true, showsHorizontalScrollIndicator:false, accessibilityRole:"tablist",
@@ -6132,6 +6679,41 @@
                 picked ? popIn("check:" + site.id + ":" + item.id, el(Check, {size:"sm"})) : null);
         }));
     }
+    // Laid out by when each part acts: joining (call volume, where calls play), the chimes Discord plays as people come
+    // and go, and leaving (a goodbye sound for everyone). Each volume picker only shows once its part is on.
+    function VoiceOptionsSettings() {
+        useSettings("voiceOptions");
+        const ui = reviewUI();
+        if (!React || !RN) return null;
+        const on = enabled("voiceOptions"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow;
+        const percent = n => tr("{n}%", {n}), percentSteps = BRIGHTNESS_STEPS.map(n => ({value:n, label:percent(n)}));
+        const chimes = settings.voiceOptionsJoinSound || settings.voiceOptionsLeaveSound;
+        const groups = [
+            !on ? offCard("status", venusIcon(8224, "VoiceNormalIcon"), "voiceOptions") : null,
+            el(Group, {key:"join", title:tr("When you join")},
+                switchRow(Switch, "voiceOptionsVolume", "Start at a set volume", "How loud everyone sounds each time you join a voice channel.", rowIcon(8224, "VoiceNormalIcon"))),
+            settings.voiceOptionsVolume ? el(PresetOrCustom, {key:"volume", title:"Call volume", value:settings.voiceOptionsVolumeLevel, disabled:!on, placeholder:50, min:0, max:100,
+                inputLabel:tr("Volume, 0 to 100"), format:percent, presets:percentSteps, onChange:value => setSetting("voiceOptionsVolumeLevel", value),
+                hint:"0% joins with everyone muted. You can still change it in the call."}) : null,
+            radioGroup(ui, "output", "Play calls through", "voiceOptionsOutput", on, [
+                ["default", "Don't change", null],
+                ["speaker", "Speaker", null, rowIcon(8224, "VoiceNormalIcon")],
+                ["earpiece", "Earpiece", null, rowIcon(11538, "PhoneIcon")],
+                ["bluetooth", "Bluetooth", null, rowIcon(12271, "HeadphonesIcon")],
+                ["wired", "Wired headset", null, rowIcon(12271, "HeadphonesIcon")]]),
+            footnote("outputNote", "If it isn't connected, Discord picks as usual."),
+            el(Group, {key:"sounds", title:tr("Join and leave chimes")},
+                switchRow(Switch, "voiceOptionsJoinSound", "Join chime", "Plays as people join the voice channel.", rowIcon(8768, "BellIcon")),
+                switchRow(Switch, "voiceOptionsLeaveSound", "Leave chime", "Plays as people leave the voice channel.", rowIcon(10347, "BellSlashIcon"))),
+            chimes ? el(PresetOrCustom, {key:"soundVolume", title:"Chime volume", value:settings.voiceOptionsSoundVolume, disabled:!on, placeholder:100, min:0, max:100,
+                inputLabel:tr("Volume, 0 to 100"), format:percent, presets:percentSteps, onChange:value => setSetting("voiceOptionsSoundVolume", value),
+                hint:"Only these two chimes change. Voices and other sounds stay the same."}) : null,
+            el(Group, {key:"exit", title:tr("When you leave")},
+                switchRow(Switch, "voiceOptionsExit", "Goodbye sound", "When you tap Disconnect, a soundboard sound plays for everyone in the channel. Needs Nitro.", rowIcon(12269, "SoundboardIcon"))),
+            settings.voiceOptionsExit ? el(VoiceSoundPicker, {key:"exitSound", on}) : null,
+            settings.voiceOptionsExit && !voiceNitro() ? footnote("exitNitro", "Your account doesn't have Nitro, so no sound is sent.") : null];
+        return settingsBody(ui, groups);
+    }
     function TenorSettings() {
         useSettings("tenorGifs");
         const ui = reviewUI();
@@ -6152,21 +6734,40 @@
         if (!React || !RN) return null;
         const on = enabled("fixEmbeds"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow, Icon = venusIcon(12910, "EmbedIcon");
         const none = !fixRows().some(row => fixService(fixEmbeds.sites[row[0]])), tumblr = fixService(fixSite("tumblr"));
-        const changed = settings.fixEmbedsSites !== "" || !settings.fixEmbedsClean || !settings.fixEmbedsDark;
+        const changed = settings.fixEmbedsSites !== "" || !settings.fixEmbedsClean || !settings.fixEmbedsDark || settings.fixEmbedsStyle !== "full" || settings.fixEmbedsTranslate !== "off";
+        const name = kind => languageName(localeCode(kind)), style = settings.fixEmbedsStyle, translating = settings.fixEmbedsTranslate !== "off";
         const groups = [
             !on ? offCard("status", Icon, "fixEmbeds") : none ? statusCard("status", "Turn on a site below.", {title:tr("No sites turned on"), IconComponent:Icon}) :
                 fixEmbeds.count ? statusCard("status", pl(fixEmbeds.count, "Fixed {n} link since Discord opened.", "Fixed {n} links since Discord opened."),
                     {title:tr("Fixing links"), IconComponent:Icon}) : null,
             el(FixEmbedsPreview, {key:"preview", on}),
             el(FixSiteList, {key:"sites", on}),
+            // How posts look: FxTwitter, FxBluesky, fxTikTok and phixiv each have a subdomain for it (g.fixupx.com...).
+            el(RN.View, {key:"style", style:{gap:8}},
+                groupTitle("title", "Post style"),
+                venusSegmented({key:"fix:style", value:style, disabled:!on, onChange:value => setSetting("fixEmbedsStyle", value),
+                    items:[{value:"full", label:tr("Full post")}, {value:"gallery", label:tr("Media")}, {value:"text", label:tr("Text")}, {value:"media", label:tr("File")}]}),
+                footnote("hint", style === "gallery" ? "Just the picture or video and who posted it, without the text or counts. X, Bluesky, TikTok and pixiv." :
+                    style === "text" ? "Just the text, without pictures or videos. X and Bluesky." :
+                    style === "media" ? "Only the picture or video file, played right in chat. X, Bluesky and TikTok." :
+                    "The text, pictures or video, and likes. TikTok videos show their caption too.")),
+            // Translated posts: FxTwitter, vxTwitter and FxBluesky translate a post when its link ends in a language (/ja).
+            radioGroup(ui, "translate", "Translate posts", "fixEmbedsTranslate", on, [
+                ["off", tr("Off"), tr("Posts show in the language they were written in."), rowIcon(9099, "GlobeEarthIcon")],
+                ["discord", tr("Discord's language"), name("discord") + ".", rowIcon(12901, "ChatSmileIcon")],
+                ["phone", tr("Your phone's language"), name("phone") + ".", rowIcon(6642, "MobilePhoneIcon")],
+                ["custom", tr("Another language"), translateLanguageName(settings.fixEmbedsLanguage) + ".", rowIcon(15723, "LanguageIcon")]], true),
+            settings.fixEmbedsTranslate === "custom" ? el(TranslateLanguagePicker, {key:"language", on, feature:"fixEmbeds", setting:"fixEmbedsLanguage"}) : null,
+            translating ? footnote("translateNote", "Posts on X and Bluesky show the translation with the original under it, for everyone in the chat. pixiv shows titles and tags in English, Chinese or Korean.") : null,
             el(Group, {key:"privacy", title:tr("Privacy")},
                 switchRow(Switch, "fixEmbedsClean", "Remove tracking from links", "Drops share IDs like ?igsh= and ?si= from the links Venus fixes.", rowIcon(10410, "ShieldIcon"))),
             // Only fxtumblr can draw a dark post, so the switch shows while Tumblr links go through it (#87).
             tumblr && tumblr.dark ? el(Group, {key:"look", title:tr("Look")},
                 switchRow(Switch, "fixEmbedsDark", "Dark Tumblr posts", "Tumblr posts are drawn on a dark background, to match Discord.", rowIcon(12689, "ThemeDarkIcon"))) : null,
             changed ? el(Group, {key:"manage", title:tr("Manage")}, actionRow(ui, "reset", "Reset to defaults", "Every site back to how it started.", () =>
-                confirmAction("Reset to defaults?", "Every site goes back to how it started, and tracking is removed again.", "Reset", () => {
-                    animateLayout(); setSetting("fixEmbedsSites", ""); setSetting("fixEmbedsClean", true); setSetting("fixEmbedsDark", true); }), !on, true)) : null,
+                confirmAction("Reset to defaults?", "Every site goes back to how it started, posts show in full and untranslated, and tracking is removed again.", "Reset", () => {
+                    animateLayout(); setSetting("fixEmbedsSites", ""); setSetting("fixEmbedsClean", true); setSetting("fixEmbedsDark", true);
+                    setSetting("fixEmbedsStyle", "full"); setSetting("fixEmbedsTranslate", "off"); }), !on, true)) : null,
             footnote("note", "Only the link changes, and only when you send or edit a message. Links in code or in <angle brackets> are sent as written.")];
         return settingsBody(ui, groups);
     }
@@ -6434,6 +7035,7 @@
             const reply = pastelReply(message.referencedMessage.message);
             if (reply !== message.referencedMessage.message) message = Object.assign({},message,{referencedMessage:Object.assign({},message.referencedMessage,{message:reply})});
         }
+        if (features.staffTag && enabled("staffTag")) message = staffTagMessage(message, row.message);
         let next = message === result.message ? result : Object.assign({},result,{message});
         if (!translateOn && !features.translate && !(noDeleteOn && (edits.size || deleted.size)) && !highlightOn && !features.messageHighlight && !bulkOn) return next;
         const source = row.message || message;
@@ -7163,10 +7765,13 @@
             open ? el(ReviewSection,{key:props.guildId,userId:props.guildId,standalone:true}) : null);
     }
     function reviewGuild(orig,self,args) {
-        if (React) useSettings("reviewDB");
+        if (React) { useSettings("reviewDB"); useSettings("hideAnything"); }
         const props=args[0] || {}, guild=props.guild, ui=reviewUI();
         if (!enabled("reviewDB") || !React || !RN || !guild || !/^\d{17,20}$/.test(guild.id) || !ui.TableRow) return React ? el(orig,props) : orig.apply(self,args);
-        return el(ServerReviews,{key:guild.id,guildId:guild.id});
+        // Remove anything: the Reviews row can be removed from the server menu like Discord's own rows.
+        if (spotHidden("guild.reviews")) return el(orig,props);
+        const row = el(ServerReviews,{key:guild.id,guildId:guild.id});
+        return hideEditing() ? hideMarkedRow(row, "guild.reviews") : row;
     }
     // User long-press context menu gets a "Reviews" item.
     function reviewMenu(orig,self,args) {
@@ -7222,6 +7827,7 @@
         return tr("{time} ago", {time});
     }
     function serverIconUri(guild, size) {
+        if (guild && typeof guild.icon === "string" && guild.icon.indexOf(SERVER_EDIT_ICON) === 0) return serverEdit.icons.get(guild.icon) || null;
         return guild && typeof guild.icon === "string" && guild.icon ? "https://cdn.discordapp.com/icons/" + guild.id + "/" + guild.icon + ".png?size=" + (size || 128) : null;
     }
     function serverBannerUri(guild) {
@@ -7492,6 +8098,317 @@
         if (!enabled("serverInfo") || !Array.isArray(items) || !guildId || !/^\d{17,20}$/.test(guildId)) return items;
         return items.concat([{IconComponent:venusIcon(5046, "CircleInformationIcon"), label:tr("Server info"), action:() => openServerInfo(guildId)}]);
     }
+    // Edit servers locally (#114, based on EditServers by mwittrien): your own name and icon for any server, only on this
+    // phone. GuildStore (2087) hands out a copy of the server's record with the name and icon swapped, so everywhere Discord
+    // draws a server (the server list, headers, menus, Server info) shows them. The icon becomes a token that
+    // AvatarUtils.getGuildIconURL (1415) turns into your picture. Discord's own server settings (8633, 8634, 18285) are given
+    // the real store, so a local name or icon can never be saved to the server.
+    const SERVER_EDIT_ICON = "venus-icon:", SERVER_EDIT_MAX = 500, SERVER_EDIT_NAME = 100, SERVER_EDIT_BYTES = 8 * 1024 * 1024;
+    const serverEdits = new Map();
+    const serverEdit = {dirty:false, version:0, tokens:new Map(), icons:new Map(), copies:new WeakMap(), lists:null, store:null, orig:null, real:null};
+    function serverEditFile(uri) { return typeof uri === "string" && uri.length <= 2048 && /^file:\/\/\/\S*\/venus-server-\d{17,20}-\d+\.(png|jpe?g|webp|gif)$/i.test(uri); }
+    function serverEditLink(uri) { return typeof uri === "string" && uri.length <= 2048 && /^https:\/\/[^\s"<>]+\.[^\s"<>]+$/i.test(uri); }
+    function serverEditName(text) { return typeof text === "string" ? text.replace(/\s+/g, " ").trim().slice(0, SERVER_EDIT_NAME) : ""; }
+    // Saved edits, from the settings file or a backup. A backup never brings a picture file from another phone.
+    function serverEditClean(raw, fromBackup) {
+        const out = new Map();
+        if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
+        Object.keys(raw).slice(0, SERVER_EDIT_MAX).forEach(id => {
+            const v = raw[id];
+            if (!/^\d{17,20}$/.test(id) || !v || typeof v !== "object") return;
+            const name = serverEditName(v.n), icon = serverEditLink(v.i) || !fromBackup && serverEditFile(v.i) ? v.i : "";
+            if (name || icon) out.set(id, {name, icon});
+        });
+        return out;
+    }
+    function serverEditData(forBackup) {
+        const out = {};
+        serverEdits.forEach((edit, id) => {
+            const icon = forBackup && !serverEditLink(edit.icon) ? "" : edit.icon;
+            if (edit.name || icon) out[id] = icon ? {n:edit.name, i:icon} : {n:edit.name};
+        });
+        return out;
+    }
+    function serverEditLoad(map) {
+        serverEdits.clear();
+        map.forEach((edit, id) => serverEdits.set(id, edit));
+        serverEditTokens();
+    }
+    // A fresh token on every change, so Discord's image cache never shows the picture an icon had before.
+    function serverEditTokens() {
+        serverEdit.version++;
+        serverEdit.tokens.clear(); serverEdit.icons.clear(); serverEdit.lists = null;
+        serverEdits.forEach((edit, id) => {
+            if (!edit.icon) return;
+            const token = SERVER_EDIT_ICON + id + ":" + serverEdit.version;
+            serverEdit.tokens.set(id, token); serverEdit.icons.set(token, edit.icon);
+        });
+    }
+    function serverEditEmit() {
+        const store = serverEdit.store;
+        serverEdit.lists = null;
+        if (store && typeof store.emitChange === "function") try { store.emitChange(); } catch (_) {}
+    }
+    function serverEditChanged() { serverEditTokens(); save(); notify("serverEdit"); serverEditEmit(); }
+    function serverEditRemoveFile(uri) {
+        if (!serverEditFile(uri) || !files || typeof files.removeFile !== "function") return;
+        try { Promise.resolve(files.removeFile(decodeURIComponent(uri.replace(/^file:\/\//, "")))).catch(() => {}); } catch (_) {}
+    }
+    // Saves one server's edit; with nothing left in it, the server goes back to its real name and icon. A picture from the
+    // phone that's no longer used is deleted.
+    function serverEditSet(id, edit) {
+        const old = serverEdits.get(id), name = serverEditName(edit && edit.name);
+        const icon = edit && (serverEditLink(edit.icon) || serverEditFile(edit.icon)) ? edit.icon : "";
+        if (old && old.icon && old.icon !== icon) serverEditRemoveFile(old.icon);
+        if (name || icon) serverEdits.set(id, {name, icon}); else serverEdits.delete(id);
+        serverEdit.dirty = true; serverEditChanged();
+    }
+    function serverEditReset() {
+        serverEdits.forEach(edit => serverEditRemoveFile(edit.icon));
+        serverEdits.clear(); serverEdit.dirty = true; serverEditChanged();
+    }
+    // One copy per server record and edit: records are replaced when the server changes, so a copy is never stale, and
+    // Discord's memoized rows keep getting the same object.
+    function serverEditDisplay(record) {
+        if (!record || typeof record !== "object") return record;
+        const edit = serverEdits.get(record.id);
+        if (!edit) return record;
+        const known = serverEdit.copies.get(record);
+        if (known && known.v === serverEdit.version) return known.copy;
+        const d = Object.getOwnPropertyDescriptors(record), token = serverEdit.tokens.get(record.id);
+        if (edit.name) d.name = {value:edit.name, writable:true, enumerable:true, configurable:true};
+        if (token) d.icon = {value:token, writable:true, enumerable:true, configurable:true};
+        let copy = record;
+        try { copy = Object.create(Object.getPrototypeOf(record), d); } catch (_) {}
+        serverEdit.copies.set(record, {v:serverEdit.version, copy});
+        return copy;
+    }
+    function serverEditOn() { return serverEdits.size > 0 && enabled("serverEdit"); }
+    function serverEditGetGuild(orig, self, args) { const guild = orig.apply(self, args); return serverEditOn() ? serverEditDisplay(guild) : guild; }
+    serverEditGetGuild.call1 = (orig, self, id) => { const guild = orig.call(self, id); return serverEditOn() ? serverEditDisplay(guild) : guild; };
+    // getGuilds (servers by ID) and getGuildsArray: one swapped list per list Discord hands out, until it or an edit changes.
+    function serverEditList(orig, self, args, array) {
+        const list = orig.apply(self, args);
+        if (!list || typeof list !== "object" || !serverEditOn()) return list;
+        const cache = serverEdit.lists || (serverEdit.lists = {}), slot = array ? "array" : "map", hit = cache[slot];
+        if (hit && hit.source === list && hit.v === serverEdit.version) return hit.out;
+        let out = list;
+        if (array) { if (Array.isArray(list)) out = list.map(serverEditDisplay); }
+        else { out = {}; for (const id in list) out[id] = serverEditDisplay(list[id]); }
+        cache[slot] = {source:list, v:serverEdit.version, out};
+        return out;
+    }
+    function serverEditHookStore(exports) {
+        const store = exports.default;
+        if (!store || typeof store.getGuild !== "function" || serverEdit.store) return exports;
+        serverEdit.orig = {getGuild:store.getGuild, getGuilds:store.getGuilds, getGuildsArray:store.getGuildsArray};
+        let hooked = hookExport(store, "getGuild", serverEditGetGuild);
+        hooked = hookExport(hooked, "getGuilds", (orig, self, args) => serverEditList(orig, self, args, false));
+        hooked = hookExport(hooked, "getGuildsArray", (orig, self, args) => serverEditList(orig, self, args, true));
+        serverEdit.store = hooked;
+        return hooked === store ? exports : replaceValue(exports, "default", hooked);
+    }
+    // What Discord's server settings import instead of GuildStore: the same store, answering with the real servers. It may be
+    // imported before the hooks are in, so each call looks up the original method then.
+    function serverEditRealResult(result) {
+        const real = result.default || result;
+        if (!real || typeof real.getGuild !== "function") return result;
+        if (!serverEdit.real || Object.getPrototypeOf(serverEdit.real) !== real) {
+            const facade = Object.create(real);
+            ["getGuild", "getGuilds", "getGuildsArray"].forEach(key => {
+                facade[key] = function () { const o = serverEdit.orig, fn = o && o[key] || real[key]; return fn.apply(real, arguments); };
+            });
+            serverEdit.real = facade;
+        }
+        return result.default ? cloneWith(result, "default", serverEdit.real) : serverEdit.real;
+    }
+    function serverEditHookAvatars(exports) {
+        const utils = exports && exports.default;
+        if (!utils || typeof utils.getGuildIconURL !== "function") return exports;
+        // Discord 350.8 builds the icon link two ways: getGuildIconURL returns a string, while
+        // getGuildIconSource (used by GuildIcon, the server bar and the drawer) builds its own CDN
+        // link without calling getGuildIconURL. Both have to turn the token into the picture,
+        // otherwise the token becomes a broken CDN link and the tile shows up blank.
+        const token = args => { const icon = args[0] && args[0].icon; return typeof icon === "string" && icon.indexOf(SERVER_EDIT_ICON) === 0 ? icon : null; };
+        let hooked = hookExport(utils, "getGuildIconURL", (orig, self, args) => {
+            const icon = token(args);
+            return icon ? serverEdit.icons.get(icon) || null : orig.apply(self, args);
+        });
+        if (typeof hooked.getGuildIconSource === "function") hooked = hookExport(hooked, "getGuildIconSource", (orig, self, args) => {
+            const icon = token(args);
+            if (!icon) return orig.apply(self, args);
+            const uri = serverEdit.icons.get(icon);
+            return uri ? {uri} : null;
+        });
+        return hooked === utils ? exports : replaceValue(exports, "default", hooked);
+    }
+    function serverEditReal(id) {
+        const o = serverEdit.orig, store = serverEdit.store || serverStore(2087);
+        try { return o && store ? o.getGuild.call(store, id) : serverCall(store, "getGuild", id) || null; } catch (_) { return null; }
+    }
+    function serverEditRealList() {
+        const o = serverEdit.orig, store = serverEdit.store || serverStore(2087);
+        let all = null;
+        try { all = o && store && typeof o.getGuilds === "function" ? o.getGuilds.call(store) : serverCall(store, "getGuilds"); } catch (_) {}
+        return all && typeof all === "object" ? Object.keys(all).map(id => all[id]).filter(g => g && typeof g.id === "string") : [];
+    }
+    // The picture a server shows: the edit's, else its real icon (never a token).
+    function serverEditIconUri(guild, edit, size) {
+        if (edit && edit.icon) return edit.icon;
+        const icon = guild && guild.icon;
+        return typeof icon === "string" && icon && icon.indexOf(SERVER_EDIT_ICON) !== 0 ? "https://cdn.discordapp.com/icons/" + guild.id + "/" + icon + ".png?size=" + (size || 128) : null;
+    }
+    // Android's picker, then a copy in Discord's own files (keepLocalCopy), so the icon stays when the original is deleted.
+    function serverEditPick(guildId) {
+        const pick = inspectedExport(12803, "pick"), keep = inspectedExport(12803, "keepLocalCopy"), types = inspectedExport(12803, "types");
+        if (!files || typeof pick !== "function" || typeof keep !== "function") return Promise.reject(new Error("unreadable"));
+        return Promise.resolve().then(() => pick({type:[types && types.images || "image/*"], allowMultiSelection:false, mode:"import"})).then(picked => {
+            const file = Array.isArray(picked) ? picked[0] : picked;
+            if (!file || typeof file.uri !== "string") throw new Error("cancel");
+            if (typeof file.size === "number" && file.size > SERVER_EDIT_BYTES) throw new Error("too-large");
+            const m = /\.(png|jpe?g|webp|gif)$/i.exec(file.name || "") || /image\/(png|jpe?g|webp|gif)/i.exec(file.type || "");
+            const ext = m ? m[1].toLowerCase().replace("jpeg", "jpg") : "png";
+            return keep({files:[{uri:file.uri, fileName:"venus-server-" + guildId + "-" + Date.now() + "." + ext}], destination:"documentDirectory"});
+        }).then(copies => {
+            const copy = Array.isArray(copies) ? copies[0] : copies;
+            if (!copy || copy.status !== "success" || typeof copy.localUri !== "string") throw new Error("unreadable");
+            const uri = copy.localUri.indexOf("file://") === 0 ? copy.localUri : "file://" + copy.localUri;
+            if (!serverEditFile(uri)) throw new Error("unreadable");
+            return uri;
+        });
+    }
+    const SERVER_EDIT_DARK = {hero:{alignItems:"center", gap:10, paddingVertical:20, paddingHorizontal:16, borderRadius:20, backgroundColor:"#97979f1f"},
+        chip:{flexDirection:"row", alignItems:"center", gap:6, paddingHorizontal:10, paddingVertical:4, borderRadius:12, backgroundColor:"#4e50584d"},
+        ring:{padding:4, borderRadius:34, backgroundColor:"#2b2d31"}, acronym:{backgroundColor:"#5865f2"}, error:{color:"#f23f43"}};
+    function useServerEditStyles() {
+        return useThemed("serverEdit", c => ({hero:Object.assign({}, SERVER_EDIT_DARK.hero, {backgroundColor:c.BACKGROUND_MOD_SUBTLE}),
+            chip:Object.assign({}, SERVER_EDIT_DARK.chip, {backgroundColor:c.BACKGROUND_MOD_NORMAL || c.BACKGROUND_MOD_SUBTLE}),
+            ring:Object.assign({}, SERVER_EDIT_DARK.ring, {backgroundColor:c.MOBILE_ACTIONSHEET_BACKGROUND || c.BACKGROUND_BASE_LOW}),
+            acronym:{backgroundColor:c.BACKGROUND_BRAND || "#5865f2"}, error:{color:c.TEXT_FEEDBACK_CRITICAL || "#f23f43"}}), SERVER_EDIT_DARK);
+    }
+    // A server's icon, or its initials when it has none or the picture won't load.
+    function ServerEditIcon(props) {
+        const [broken, setBroken] = React.useState(""), s = useServerEditStyles(), size = props.size || 40;
+        const uri = props.uri && broken !== props.uri ? props.uri : null;
+        const box = {width:size, height:size, borderRadius:Math.round(size * 0.32), overflow:"hidden", alignItems:"center", justifyContent:"center"};
+        return uri && RN.Image ? el(RN.Image, {source:{uri}, style:box, accessibilityIgnoresInvertColors:true,
+                onError:() => { setBroken(uri); if (props.onError) props.onError(uri); }}) :
+            el(RN.View, {style:[box, s.acronym]}, el(RN.Text, {style:{color:"#ffffff", fontSize:Math.round(size * 0.34), fontWeight:"700"}, numberOfLines:1}, serverAcronym(props.name)));
+    }
+    function serverEditScroll(ui, header, content) {
+        const Scroll = inspectedExport(6307, "BottomSheetScrollView");
+        return Scroll ? el(ui.ActionSheet || RN.View, {header, scrollable:true}, el(Scroll, null, content)) :
+            el(ui.ActionSheet || RN.View, {header}, RN.ScrollView ? el(RN.ScrollView, {keyboardShouldPersistTaps:"handled"}, content) : content);
+    }
+    // The sheet: the server as it will look at the top, then its name and icon. Nothing changes until Save.
+    function ServerEditSheet(props) {
+        useSettings("serverEdit");
+        const ui = reviewUI(), s = useServerEditStyles(), guildId = props.guildId, real = serverEditReal(guildId);
+        const saved = serverEdits.get(guildId) || {name:"", icon:""};
+        const [name, setName] = React.useState(saved.name), [icon, setIcon] = React.useState(saved.icon);
+        const [link, setLink] = React.useState(null), [broken, setBroken] = React.useState(""), [busy, setBusy] = React.useState(false);
+        const picked = React.useRef(null);
+        if (!picked.current) picked.current = new Set();
+        // Pictures picked here but never saved are deleted once the sheet closes.
+        React.useEffect(() => () => picked.current.forEach(uri => { const now = serverEdits.get(guildId); if (!now || now.icon !== uri) serverEditRemoveFile(uri); }), [guildId]);
+        const close = () => hideReviewSheet(ui, props.sheetKey);
+        const header = ui.Header ? el(ui.Header, {title:tr("Edit locally"), trailing:ui.Close ? el(ui.Close, {onPress:close}) : undefined}) : undefined;
+        if (!real) return el(ui.ActionSheet || RN.View, {header}, el(RN.View, {style:{padding:24}},
+            serverText(tr("This server isn't available right now."), "text-md/medium", "text-muted", {color:"#949ba4", fontSize:16})));
+        const Group = ui.TableRowGroup || RN.View, Row = ui.TableRow, Button = inspectedExport(5379, "Button");
+        const draft = {name:serverEditName(name), icon}, realName = real.name || "", shown = draft.name || realName;
+        const uri = serverEditIconUri(real, draft, 160), failed = !!uri && broken === uri;
+        const changed = draft.name !== saved.name || draft.icon !== saved.icon, edited = !!(saved.name || saved.icon);
+        const pickPhone = () => {
+            if (busy) return;
+            setBusy(true);
+            serverEditPick(guildId).then(next => {
+                picked.current.add(next); animateLayout(); haptic("SELECTION");
+                setIcon(next); setBroken(""); setLink(null); setBusy(false);
+            }, error => {
+                setBusy(false);
+                if (pickerCancelled(error) || error && error.message === "cancel") return;
+                showProblem("Couldn't import", tr(error && error.message === "too-large" ? "That picture is too large. Pick one under 8 MB." : "That file couldn't be opened."));
+            });
+        };
+        const useLink = () => {
+            const value = String(link || "").trim();
+            if (!serverEditLink(value)) { showProblem("Couldn't use that link", tr("That isn't a picture link. Picture links start with https://.")); return; }
+            animateLayout(); haptic("SELECTION"); setIcon(value); setBroken(""); setLink(null);
+        };
+        const commit = next => { serverEditSet(guildId, next); haptic("SELECTION"); reviewToast(ui, next ? "Saved on this phone" : "Back to the real name and icon", venusIcon(6868, "CircleCheckIcon")); close(); };
+        const button = (key, text, onPress, variant, disabled) => Button ? el(Button, {key, text, size:"lg", variant, disabled:!!disabled, onPress}) :
+            el(RN.Pressable || RN.View, {key, onPress:disabled ? undefined : onPress, accessibilityRole:"button", accessibilityLabel:text,
+                style:{height:48, borderRadius:24, alignItems:"center", justifyContent:"center", backgroundColor:variant === "primary" ? "#5865f2" : "#4e5058", opacity:disabled ? 0.5 : 1}},
+                el(RN.Text, {style:{color:"#ffffff", fontWeight:"600"}}, text));
+        const linkShown = serverEditLink(icon) ? icon.replace(/^https:\/\//i, "").replace(/[?#].*$/, "") : "";
+        const body = [
+            el(RN.View, {key:"hero", style:s.hero},
+                el(RN.View, {style:s.ring}, el(ServerEditIcon, {key:uri || "none", uri, name:shown, size:84, onError:setBroken})),
+                serverText(shown, "heading-lg/bold", "text-strong", {color:"#f2f3f5", fontSize:20, fontWeight:"700", textAlign:"center"}, {numberOfLines:2, style:{textAlign:"center"}}),
+                draft.name && draft.name !== realName ? serverText(tr("Real name: {name}", {name:realName}), "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:14}, {numberOfLines:1}) : null,
+                failed ? serverText(tr("Couldn't load that picture."), "text-sm/semibold", "text-feedback-critical", Object.assign({fontSize:14, fontWeight:"600"}, s.error)) :
+                    el(RN.View, {style:s.chip}, el(venusIcon(8218, "LockIcon"), {size:"xxs"}),
+                        serverText(tr("Only you see this"), "text-xs/semibold", "text-default", {color:"#dbdee1", fontSize:12, fontWeight:"600"}))),
+            el(RN.View, {key:"name", style:{gap:8}},
+                groupTitle("nameTitle", "Name"),
+                ui.TextInput ? el(ui.TextInput, {value:name, onChange:text => setName(String(text || "")), placeholder:realName, maxLength:SERVER_EDIT_NAME,
+                    autoCorrect:false, returnKeyType:"done", accessibilityLabel:tr("Name")}) :
+                    el(RN.TextInput, {value:name, onChangeText:setName, placeholder:realName, maxLength:SERVER_EDIT_NAME, style:{fontSize:16, padding:12, color:"#f2f3f5"}})),
+            el(RN.View, {key:"icon", style:{gap:8}},
+                el(Group, {key:"iconRows", title:tr("Icon")},
+                    Row ? el(Row, {key:"phone", label:tr(busy ? "Opening\u2026" : "Choose from your phone"), subLabel:serverEditFile(icon) ? tr("Using a picture from your phone") : tr("PNG, JPG, WebP or GIF, up to 8 MB."),
+                        icon:rowIcon(17096, "ImagePlusIcon"), arrow:true, disabled:busy, onPress:pickPhone}) : null,
+                    Row ? el(Row, {key:"link", label:tr("Use a link"), subLabel:linkShown || undefined, icon:rowIcon(5038, "LinkIcon"), arrow:link == null,
+                        onPress:() => { animateLayout(); haptic("SELECTION"); setLink(link == null ? (serverEditLink(icon) ? icon : "") : null); }}) : null,
+                    icon && Row ? el(Row, {key:"real", label:tr("Use the server's icon"), icon:rowIcon(15257, "RefreshIcon"),
+                        onPress:() => { animateLayout(); haptic("SELECTION"); setIcon(""); setBroken(""); setLink(null); }}) : null),
+                link != null ? inputWithButton(ui, "linkInput", {value:link, placeholder:"https://", autoCapitalize:"none", autoCorrect:false, keyboardType:"url",
+                    autoFocus:true, returnKeyType:"done", onSubmitEditing:useLink, accessibilityLabel:tr("Use a link")}, text => setLink(String(text || "")), "Use", useLink, !String(link).trim()) : null),
+            el(RN.View, {key:"buttons", style:{gap:10, paddingTop:4}},
+                button("save", tr("Save"), () => commit(draft), "primary", !changed || failed),
+                edited ? button("reset", tr("Use the real name and icon"), () => commit(null), "secondary") : null)];
+        return serverEditScroll(ui, header, el(RN.View, {style:{paddingHorizontal:12, paddingBottom:24, gap:20}}, body.filter(Boolean)));
+    }
+    function openServerEdit(guildId) {
+        if (!enabled("serverEdit") || !React || !RN || typeof guildId !== "string") return;
+        const ui = reviewUI();
+        if (!ui.ActionSheet || typeof ui.showSheet !== "function") return;
+        const key = "VenusServerEdit:" + guildId;
+        try { ui.showSheet({key, content:el(ServerEditSheet, {guildId, sheetKey:key}), stackingBehavior:"stack"}); } catch (_) {}
+    }
+    // Every server you're in, to pick one to edit, with a search box.
+    function ServerPickSheet(props) {
+        useSettings("serverEdit");
+        const ui = reviewUI(), [query, setQuery] = React.useState("");
+        const close = () => hideReviewSheet(ui, props.sheetKey);
+        const header = ui.Header ? el(ui.Header, {title:tr("Pick a server"), trailing:ui.Close ? el(ui.Close, {onPress:close}) : undefined}) : undefined;
+        const words = searchFold(query).split(/\s+/).filter(Boolean), Group = ui.TableRowGroup || RN.View, Row = ui.TableRow;
+        const list = serverEditRealList().map(guild => ({guild, edit:serverEdits.get(guild.id)}))
+            .filter(x => { const hay = searchFold((x.guild.name || "") + " " + (x.edit && x.edit.name || "")); return words.every(w => hay.indexOf(w) >= 0); })
+            .sort((a, b) => String(a.edit && a.edit.name || a.guild.name || "").localeCompare(String(b.edit && b.edit.name || b.guild.name || ""))).slice(0, 200);
+        const rows = list.map(({guild, edit}) => Row ? el(Row, {key:guild.id, label:edit && edit.name || guild.name || guild.id,
+            subLabel:edit && edit.name && edit.name !== guild.name ? tr("Real name: {name}", {name:guild.name}) : undefined,
+            icon:el(ServerEditIcon, {uri:serverEditIconUri(guild, edit, 64), name:edit && edit.name || guild.name, size:32}), arrow:true,
+            onPress:() => { haptic("SELECTION"); close(); later(() => openServerEdit(guild.id), 250); }}) : null);
+        const content = el(RN.View, {style:{paddingHorizontal:12, paddingBottom:24, gap:16}},
+            ui.TextInput ? el(ui.TextInput, {key:"search", value:query, onChange:text => setQuery(String(text || "")), placeholder:tr("Search servers"), autoCorrect:false}) : null,
+            rows.length ? el(Group, {key:"list"}, rows) :
+                el(RN.View, {key:"none", style:{padding:24, alignItems:"center"}}, serverText(tr("No servers found"), "text-md/medium", "text-muted", {color:"#949ba4", fontSize:16})));
+        return serverEditScroll(ui, header, content);
+    }
+    function openServerPicker() {
+        if (!enabled("serverEdit") || !React || !RN) return;
+        const ui = reviewUI();
+        if (!ui.ActionSheet || typeof ui.showSheet !== "function") return;
+        try { ui.showSheet({key:"VenusServerPick", content:el(ServerPickSheet, {sheetKey:"VenusServerPick"}), stackingBehavior:"stack"}); } catch (_) {}
+    }
+    // The server icon's hold menu: Edit locally after Discord's own rows (and before Server info).
+    function serverEditMenu(orig, self, args) {
+        const items = orig.apply(self, args), guildId = args[0] == null ? null : String(args[0]);
+        if (!enabled("serverEdit") || !Array.isArray(items) || !guildId || !/^\d{17,20}$/.test(guildId)) return items;
+        return items.concat([{IconComponent:venusIcon(9720, "PencilIcon"), label:tr("Edit locally"), action:() => openServerEdit(guildId)}]);
+    }
     // Rewrites a component's props before Discord's own render, through memo and forwardRef wrappers.
     // The change runs inside the render, so it may use hooks, and it always runs, so the hook count never changes.
     function propsComponent(component, change) {
@@ -7513,106 +8430,6 @@
             if (patched !== inner) return cloneWith(component, key, patched);
         }
         return component;
-    }
-    function withoutGift(props) {
-        useSettings("hideGift");
-        return enabled("hideGift") && props && props.shouldShowGiftButton ? Object.assign({}, props, {shouldShowGiftButton:false}) : props;
-    }
-    // Hide extra buttons (#85). Your profile's floating pill (YouBannerDecorations 9115) renders its buttons as elements
-    // keyed "conjure", "quests", "shop", "nitro" and "settings" inside YouScreenNavIconMeasurer, which sizes the pill from the
-    // buttons it measures: a button taken out is unmeasured and the pill shrinks around the rest, with Discord's own gap.
-    const YOU_PILL_KEYS = {quests:"hideButtonsQuests", shop:"hideButtonsShop", nitro:"hideButtonsNitro"};
-    function withoutPillButtons(node, depth) {
-        if (!node || depth > 8) return node;
-        if (Array.isArray(node)) {
-            let changed = false;
-            const out = [];
-            for (const child of node) {
-                const next = withoutPillButtons(child, depth + 1);
-                if (next !== child) changed = true;
-                if (next != null && next !== false) out.push(next); else if (child != null && child !== false) changed = true;
-            }
-            return changed ? out : node;
-        }
-        if (typeof node !== "object" || !node.props) return node;
-        const setting = node.key != null && YOU_PILL_KEYS[node.key];
-        if (setting && settings[setting]) return null;
-        const children = node.props.children;
-        if (children == null) return node;
-        const next = withoutPillButtons(children, depth + 1);
-        return next === children ? node : React.cloneElement(node, null, next);
-    }
-    function youPillButtons(orig, self, args) {
-        useSettings("hideButtons");
-        const rendered = orig.apply(self, args);
-        return enabled("hideButtons") && (settings.hideButtonsQuests || settings.hideButtonsShop || settings.hideButtonsNitro) ? withoutPillButtons(rendered, 0) : rendered;
-    }
-    // The attach menu's buttons (MediaKeyboardBottomSheetActions 10028) are {text, IconComponent, onPress} in a row where each
-    // grows to fill it, so the ones left share the width evenly. Matched by Discord's own icon, never by translated text.
-    function attachMenuButtons(props) {
-        useSettings("hideButtons");
-        const list = props && props.overflowButtons;
-        if (!enabled("hideButtons") || !Array.isArray(list)) return props;
-        const gone = new Set();
-        for (const [, id, name, , key] of HIDE_ATTACH) if (settings[key]) { const Icon = inspectedExport(id, name); if (Icon) gone.add(Icon); }
-        if (!gone.size) return props;
-        const kept = list.filter(b => !(b && gone.has(b.IconComponent)));
-        // Never leave the row empty, whatever Discord adds to it later.
-        return kept.length === list.length || !kept.length ? props : Object.assign({}, props, {overflowButtons:kept});
-    }
-    // The page's preview: the two places as Discord draws them, following the switches below as you flip them.
-    const HIDE_PILL = [["quests", 13012, "QuestsIcon", "hideButtonsQuests"], ["shop", 11828, "ShopIcon", "hideButtonsShop"],
-        ["nitro", 9031, "NitroWheelIcon", "hideButtonsNitro"], ["settings", 7092, "SettingsIcon", null]];
-    const HIDE_ATTACH = [["photos", 8210, "ImageIcon", "Photos", "hideButtonsPhotos"], ["polls", 10022, "PollsIcon", "Polls", "hideButtonsPolls"],
-        ["apps", 8229, "AppsIcon", "Apps", "hideButtonsApps"], ["files", 10024, "AttachmentIcon", "Files", null]];
-    const HIDE_PREVIEW_DARK = {stage:{borderRadius:16, overflow:"hidden", backgroundColor:"#1a1a1e", borderWidth:1, borderColor:"#ffffff14", padding:16, gap:18},
-        pill:{flexDirection:"row", alignSelf:"center", alignItems:"center", gap:8, padding:8, borderRadius:28, backgroundColor:"#2b2d31",
-            shadowColor:"#000000", shadowOpacity:0.25, shadowRadius:8, shadowOffset:{width:0, height:3}, elevation:4},
-        round:{width:40, height:40, borderRadius:20, alignItems:"center", justifyContent:"center", backgroundColor:"#ffffff0f"},
-        bar:{flexDirection:"row", gap:8, padding:8, borderRadius:20, backgroundColor:"#2b2d31", borderWidth:1, borderColor:"#ffffff0f"},
-        button:{flexGrow:1, flexBasis:0, minHeight:64, alignItems:"center", justifyContent:"center", gap:6, borderRadius:14, backgroundColor:"#ffffff0f"},
-        label:{color:"#dbdee1", fontSize:12, fontWeight:"600"}, caption:{color:"#949ba4", fontSize:12, fontWeight:"600", textAlign:"center"}, icon:{color:"#dbdee1"}};
-    // Files always stays, so the row is never empty; the fallback only guards against a future Discord change.
-    function attachShown(isHidden) { const left = HIDE_ATTACH.filter(b => !isHidden(b)); return left.length ? left : HIDE_ATTACH; }
-    // Written out so every label is a plain tr() call the language check can see.
-    function hideAttachLabel(k) { return k === "photos" ? tr("Photos") : k === "polls" ? tr("Polls") : k === "apps" ? tr("Apps") : tr("Files"); }
-    function HideButtonsPreview(props) {
-        useSettings("hideButtons");
-        const s = useThemed("hidePreview", c => ({stage:Object.assign({}, HIDE_PREVIEW_DARK.stage, {backgroundColor:c.BACKGROUND_BASE_LOWER || c.CHANNEL_BACKGROUND_DEFAULT, borderColor:c.BORDER_SUBTLE}),
-            pill:Object.assign({}, HIDE_PREVIEW_DARK.pill, {backgroundColor:c.BACKGROUND_SURFACE_HIGH || c.CARD_BACKGROUND_DEFAULT}),
-            round:Object.assign({}, HIDE_PREVIEW_DARK.round, {backgroundColor:c.BACKGROUND_MOD_SUBTLE}),
-            bar:Object.assign({}, HIDE_PREVIEW_DARK.bar, {backgroundColor:c.MOBILE_FLOATINGBAR_BACKGROUND_HIGHER || c.BACKGROUND_SURFACE_HIGH, borderColor:c.BORDER_MUTED || c.BORDER_SUBTLE}),
-            button:Object.assign({}, HIDE_PREVIEW_DARK.button, {backgroundColor:c.BACKGROUND_MOD_SUBTLE}),
-            label:Object.assign({}, HIDE_PREVIEW_DARK.label, {color:c.TEXT_DEFAULT}), caption:Object.assign({}, HIDE_PREVIEW_DARK.caption, {color:c.TEXT_MUTED}),
-            icon:{color:c.INTERACTIVE_ICON_DEFAULT || c.TEXT_DEFAULT}}), HIDE_PREVIEW_DARK);
-        const hidden = key => props.on && key && settings[key];
-        return el(RN.View, {key:"preview", style:s.stage, accessible:true, accessibilityLabel:tr("Buttons preview")},
-            el(RN.Text, {style:s.caption}, tr("Your profile")),
-            el(RN.View, {style:s.pill}, HIDE_PILL.filter(b => !hidden(b[3])).map(([k, id, name]) =>
-                el(RN.View, {key:k, style:s.round}, el(venusIcon(id, name), {size:"sm", color:s.icon.color})))),
-            el(RN.Text, {style:s.caption}, tr("Attach menu")),
-            el(RN.View, {style:s.bar}, attachShown(b => hidden(b[4])).map(([k, id, name, label]) =>
-                el(RN.View, {key:k, style:s.button}, el(venusIcon(id, name), {size:"md", color:s.icon.color}),
-                    el(RN.Text, {numberOfLines:1, style:s.label}, hideAttachLabel(k))))));
-    }
-    function HideButtonsSettings() {
-        useSettings("hideButtons");
-        const ui = reviewUI();
-        if (!React || !RN) return null;
-        const on = enabled("hideButtons"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow;
-        const groups = [
-            on ? null : offCard("status", venusIcon(15612, "CircleMinusIcon"), "hideButtons"),
-            el(HideButtonsPreview, {key:"preview", on}),
-            el(Group, {key:"profile", title:tr("Hide on your profile")},
-                switchRow(Switch, "hideButtonsQuests", "Quests", "The Quests button at the bottom of your profile.", rowIcon(13012, "QuestsIcon")),
-                switchRow(Switch, "hideButtonsShop", "Shop", "The Shop button at the bottom of your profile.", rowIcon(11828, "ShopIcon")),
-                switchRow(Switch, "hideButtonsNitro", "Nitro", "The Nitro button at the bottom of your profile.", rowIcon(9031, "NitroWheelIcon"))),
-            el(Group, {key:"attach", title:tr("Hide in the attach menu")},
-                switchRow(Switch, "hideButtonsApps", "Apps", "Activities and app commands.", rowIcon(8229, "AppsIcon")),
-                switchRow(Switch, "hideButtonsPolls", "Polls", "Start a poll.", rowIcon(10022, "PollsIcon")),
-                switchRow(Switch, "hideButtonsPhotos", "Photos", "Opens your full gallery. Recent photos still show above the buttons.", rowIcon(8210, "ImageIcon"))),
-            footnote("note", "The buttons that are left move together and grow to fill the space, so there are no gaps.")];
-        return settingsBody(ui, groups);
     }
     // Unlock app icons: lets you pick any Discord app icon in Settings -> App Icon without Nitro, stops
     // AppIconPremiumManager (18051) from resetting the icon on app state changes, and removes the "Unlock all
@@ -7694,6 +8511,15 @@
             } catch (_) {}
         }
         return exports;
+    }
+    // ClientThemesBackgroundStore keeps its own "locked" flag next to isPreview, set from canUseClientThemes when it
+    // initializes and recomputed only when UserStore changes (handleUserStoreChange, a syncWith on UserStore 1390). On a
+    // cold start that runs before the settings file is read, so the flag stayed locked: with "Same as device" (per-mode
+    // theming) the gradientPreset getter then returned nothing, the light and dark mode gradients never showed outside
+    // the picker, every pick was treated as a throwaway preview, and reset() cleared it. A UserStore change makes the store
+    // read the capability again; it is sent once the settings are read and whenever the switch changes.
+    function nitroThemeRecheck() {
+        later(() => { try { if (userStore && typeof userStore.emitChange === "function") userStore.emitChange(); } catch (_) {} }, 0);
     }
     // Why the theme fell back to Dark: picking a gradient saves it to your account (saveClientTheme 5260 ->
     // PreloadedUserSettingsActionCreators.updateAsync("appearance") 2046), and Discord's servers drop a gradient an account
@@ -7825,43 +8651,1119 @@
         const rendered = orig.apply(self, args);
         return enabled("appIcons") && React ? withoutAppIconUpsell(rendered, 0, inspectedExport(9778, "default"), inspectedExport(6180, "TableRow") || null) : rendered;
     }
-    // Hide call button: UserProfileContactButtons (13425) draws Message and Call side by side, each in a
-    // flex:1 slot, or as icon buttons next to a friend button. Its disableCalls prop only greys Call out, so
-    // the Call button and the slot it sat in are left out of what it renders. Message's slot then takes the
-    // whole row, and the change animates when the setting flips while a profile is open.
-    // The icon is looked up once per render, not once for every element in the row.
-    function withoutCall(node, depth, Phone) {
-        if (!node || typeof node !== "object" || depth > 12) return node;
+    // Remove anything: buttons you never use, removed right where they are. Each removable button is a "spot". Removal mode
+    // (hideEdit.on, never saved) marks every spot on screen with a dashed outline and a red X; a tap on the X asks first, then the
+    // spot is added to hideAnythingSpots and disappears at once. Venus -> Remove anything lists them to bring back.
+    // Spots are matched by Discord's own components and icons, never by translated text.
+    const HIDE_SPOTS = [
+        ["chat.voice", "chat", 11106, "MicrophoneIcon"], ["chat.attach", "chat", 10024, "AttachmentIcon"], ["chat.apps", "chat", 8229, "AppsIcon"],
+        ["chat.gift", "chat", 11540, "GiftIcon"], ["dm.call", "dm", 9317, "PhoneCallIcon"], ["dm.video", "dm", 10771, "VideoIcon"],
+        ["dm.search", "dm", 6740, "MagnifyingGlassIcon"], ["messages.search", "messages", 6740, "MagnifyingGlassIcon"],
+        ["messages.requests", "messages", 6770, "EnvelopeIcon"], ["messages.addFriend", "messages", 5032, "UserPlusIcon"],
+        ["messages.newDM", "messages", 10310, "PlusLargeIcon"], ["profile.call", "profile", 9317, "PhoneCallIcon"],
+        ["attach.apps", "attach", 8229, "AppsIcon"], ["attach.polls", "attach", 10022, "PollsIcon"], ["attach.photos", "attach", 8210, "ImageIcon"],
+        ["you.quests", "you", 13012, "QuestsIcon"], ["you.shop", "you", 11828, "ShopIcon"], ["you.nitro", "you", 9031, "NitroWheelIcon"],
+        ["you.questBanner", "you", 6650, "EyeSlashIcon"],
+        ["menu.mainProfile", "menu", 9237, "MoreHorizontalIcon"], ["menu.serverProfile", "menu", 9237, "MoreHorizontalIcon"],
+        ["menu.nickname", "menu", 9237, "MoreHorizontalIcon"], ["menu.invite", "menu", 9237, "MoreHorizontalIcon"],
+        ["menu.ring", "menu", 9237, "MoreHorizontalIcon"], ["menu.copyUsername", "menu", 9237, "MoreHorizontalIcon"],
+        ["menu.copyLink", "menu", 9237, "MoreHorizontalIcon"], ["menu.copyId", "menu", 9237, "MoreHorizontalIcon"],
+        ["menu.copyInfo", "menu", 9237, "MoreHorizontalIcon"], ["menu.apps", "menu", 9237, "MoreHorizontalIcon"],
+        ["menu.shopLook", "menu", 9237, "MoreHorizontalIcon"], ["menu.removeFromGroup", "menu", 9237, "MoreHorizontalIcon"],
+        ["menu.ignore", "menu", 9237, "MoreHorizontalIcon"], ["menu.block", "menu", 9237, "MoreHorizontalIcon"],
+        ["menu.report", "menu", 9237, "MoreHorizontalIcon"],
+        ["profile.guildTag", "profile", 9071, "TagIcon"], ["profile.addFriend", "profile", 5032, "UserPlusIcon"], ["profile.message", "profile", 8194, "ChatIcon"],
+        ["profile.activity", "profile", 17294, "ActivitiesIcon"], ["profile.wishlist", "profile", 11540, "GiftIcon"],
+        ["profile.more", "profile", 9237, "MoreHorizontalIcon"], ["profile.badges", "profile", 9549, "StarIcon"], ["profile.mutuals", "profile", 9239, "ServerIcon"],
+        ["profile.discordJoined", "profile", 10173, "ClydeIcon"], ["profile.serverJoined", "profile", 8675, "CalendarIcon"], ["profile.roles", "profile", 8617, "ShieldUserIcon"],
+        ["profile.connections", "profile", 15241, "PuzzlePieceIcon"], ["profile.note", "profile", 9337, "PaperIcon"],
+        ["server.search", "server", 6740, "MagnifyingGlassIcon"], ["server.invite", "server", 5032, "UserPlusIcon"], ["server.events", "server", 8675, "CalendarIcon"],
+        ["guild.community", "guild", 9099, "GlobeEarthIcon"], ["guild.boost", "guild", 9405, "BoostGemIcon"], ["guild.invite", "guild", 5032, "UserPlusIcon"],
+        ["guild.notifications", "guild", 8768, "BellIcon"], ["guild.markRead", "guild", 15171, "ChatCheckIcon"], ["guild.channelsRoles", "guild", 18349, "ListBulletsIcon"],
+        ["guild.serverProfile", "guild", 9720, "PencilIcon"], ["guild.showAll", "guild", 6652, "EyeIcon"], ["guild.hideMuted", "guild", 6650, "EyeSlashIcon"],
+        ["guild.dms", "guild", 6770, "EnvelopeIcon"], ["guild.requests", "guild", 8194, "ChatIcon"], ["guild.report", "guild", 9571, "FlagIcon"],
+        ["guild.leave", "guild", 10994, "DoorExitIcon"], ["guild.emoji", "guild", 8956, "ReactionIcon"],
+        ["chat.emoji", "chat", 8956, "ReactionIcon"], ["dm.options", "dm", 7092, "SettingsIcon"], ["dm.mute", "dm", 8768, "BellIcon"],
+        ["dm.deauthorize", "dm", 10994, "DoorExitIcon"], ["dm.reportSpam", "dm", 9571, "FlagIcon"],
+        ["details.search", "details", 6740, "MagnifyingGlassIcon"], ["details.mute", "details", 8768, "BellIcon"], ["details.settings", "details", 7092, "SettingsIcon"],
+        ["details.more", "details", 9237, "MoreHorizontalIcon"], ["details.members", "details", 8212, "GroupIcon"], ["details.media", "details", 8210, "ImageIcon"],
+        ["details.pins", "details", 10334, "PinIcon"], ["details.links", "details", 5038, "LinkIcon"], ["details.files", "details", 8197, "FolderIcon"],
+        ["details.newGroup", "details", 10759, "ChatPlusIcon"], ["profile.pronouns", "profile", 8203, "TextIcon"],
+        ["server.memberCount", "server", 8212, "GroupIcon"], ["server.community", "server", 9099, "GlobeEarthIcon"],
+        ["guild.icon", "guild", 9239, "ServerIcon"], ["guild.online", "guild", 10287, "UserCircleIcon"], ["guild.members", "guild", 8212, "GroupIcon"],
+        ["guild.reviews", "guild", 9549, "StarIcon"], ["guild.serverTag", "guild", 9071, "TagIcon"],
+        ["you.status", "you", 8194, "ChatIcon"], ["you.friends", "you", 8212, "GroupIcon"], ["you.orbs", "you", 9035, "OrbsIcon"]];
+    // Spots that are Discord's own buttons and rows are named with Discord's own message (any language); English if it's missing.
+    const DISCORD_SPOTS = {"profile.guildTag":["2QmKZ2", "Server Tag"], "profile.addFriend":["7815ae", "Add Friend"], "profile.message":["zROXEV", "Message"],
+        "profile.activity":["chq59f", "Activity"], "profile.wishlist":["7lZ31J", "Wishlist"], "profile.badges":["l6w3Vj", "Badges"],
+        "profile.more":["PdRCRg", "More Options"], "profile.mutuals":["4lTDZq", "Mutual Servers"], "profile.roles":["LPJmL/", "Roles"],
+        "profile.connections":["3fe7U5", "Connections"], "profile.note":["mQKv+v", "Note (only visible to you)"], "server.search":["5h0QOP", "Search"], "server.invite":["VINpSK", "Invite"],
+        "server.events":["tlopTM", "Events"], "guild.community":["K7iRig", "Community Server"], "guild.boost":["Uj0md3", "Boost"], "guild.invite":["VINpSK", "Invite"],
+        "guild.notifications":["HcoRu0", "Notifications"], "guild.markRead":["e6RscS", "Mark as Read"], "guild.channelsRoles":["h9mGOP", "Channels & Roles"],
+        "guild.serverProfile":["PKQB/H", "Edit Per-server Profile"], "guild.showAll":["FB2ZZV", "Show All Channels"], "guild.hideMuted":["UwOLJO", "Hide Muted Channels"],
+        "guild.dms":["KXNTgb", "Allow Direct Messages"], "guild.requests":["7UgSGP", "Allow Message Requests"], "guild.report":["Aen9eh", "Report Server"],
+        "guild.leave":["J2TBi3", "Leave Server"], "guild.emoji":["Q60n1E", "Server Emoji"],
+        "dm.options":["+1H47t", "Options"], "dm.mute":["w4m945", "Mute"], "dm.deauthorize":["xUqheM", "Deauthorize"], "dm.reportSpam":["HHZmDn", "Report Spam"],
+        "details.search":["5h0QOP", "Search"], "details.mute":["w4m945", "Mute"], "details.settings":["3D5yo/", "Settings"], "details.more":["UKOtz+", "More"],
+        "details.members":["9Oq93m", "Members"], "details.media":["Aw9+/M", "Media"], "details.pins":["/MoGoB", "Pins"], "details.links":["DFSvTt", "Links"],
+        "details.files":["WgVYR/", "Files"], "details.newGroup":["3hF1W4", "New Group"], "profile.pronouns":["+T3RI/", "Pronouns"],
+        "server.community":["1g9A/f", "Community"], "guild.serverTag":["2QmKZ2", "Server Tag"], "you.friends":["TdEu5X", "Friends"], "you.orbs":["gGtZpz", "Orbs Balance"]};
+    // The profile's ⋯ menu (UserProfileOverflowMenu 13092) labels its items with Discord's own messages; these are their
+    // message keys (both states for items that flip, like Block / Unblock). The label Discord shows is matched, in any language.
+    const MENU_SPOTS = {"menu.mainProfile":["GISTta"], "menu.serverProfile":["DisZzB"], "menu.nickname":["BGYkaH", "8pOYUE"], "menu.invite":["Sd8Ixw"],
+        "menu.ring":["bHa9kN", "ygslb0"], "menu.copyUsername":["y5MwJy"], "menu.copyLink":["WqhZss"], "menu.copyId":["/AXYnE"], "menu.copyInfo":["QvQeLv"],
+        "menu.apps":["PHjkRE"], "menu.shopLook":["xNdRDO"], "menu.removeFromGroup":["n5zMI+"], "menu.ignore":["ytCpKs", "8wXU9B"],
+        "menu.block":["l4Emac", "XyHpKH"], "menu.report":["wqHXNt", "TbHyMG", "jhJzez"]};
+    const MENU_FALLBACK = {"menu.mainProfile":"View Main Profile", "menu.serverProfile":"View Per-server Profile", "menu.nickname":"Add Friend Nickname",
+        "menu.invite":"Invite to Server", "menu.ring":"Ring", "menu.copyUsername":"Copy Username", "menu.copyLink":"Copy Link", "menu.copyId":"Copy User ID",
+        "menu.copyInfo":"Copy User Info", "menu.apps":"Apps", "menu.shopLook":"Shop This Look", "menu.removeFromGroup":"Remove from Group",
+        "menu.ignore":"Ignore", "menu.block":"Block", "menu.report":"Report User Profile"};
+    // A message in Discord's language (intl 1126), or "" when it isn't there.
+    function discordText(hash) {
+        try { const m = global.__r(1126), msg = m && m.t && m.t[hash]; return msg != null && m.intl ? String(m.intl.string(msg) || "") : ""; } catch (_) { return ""; }
+    }
+    // Rows on Discord's Settings screen and Venus's lists (settings.KEY) and switches on Venus option pages (row.key) are spots too.
+    // Features and Remove anything themselves can't be removed, so there is always a way back.
+    // Most setting keys are CONSTANT_CASE, but some of Discord's are plain names ("Stack", "Tag Group", "Form Primitives" under
+    // Design Systems), so any key without a comma (the list's separator) counts.
+    const HIDE_DYNAMIC = /^(?:settings\.[A-Za-z0-9_][A-Za-z0-9_ .\-]{1,79}|row\.[A-Za-z0-9]{2,60})$/;
+    function settingRemovable(key) { return typeof key === "string" && /^[A-Za-z0-9_][A-Za-z0-9_ .\-]{1,79}$/.test(key) && key !== "VENUS_PLUGINS" && key.indexOf("HIDEANYTHING") < 0; }
+    const rowLabels = new Map();
+    // The English labels of removed switches, saved with the settings so the Remove anything page can name them before
+    // their own page has been opened this session.
+    function hideRowLabels() {
+        const out = {};
+        let any = false;
+        hiddenSpots().forEach(key => { if (/^row\./.test(key) && rowLabels.has(key.slice(4))) { out[key.slice(4)] = rowLabels.get(key.slice(4)); any = true; } });
+        return any ? out : null;
+    }
+    const HIDE_PLACES = ["chat", "attach", "dm", "details", "messages", "profile", "menu", "server", "guild", "you"];
+    const HIDE_SPOT_KEYS = Object.create(null);
+    HIDE_SPOTS.forEach(spot => { HIDE_SPOT_KEYS[spot[0]] = spot; });
+    // Modules hooked for it (also selected in targetModules).
+    const HIDE_HOOKED = {13092:1, 14973:1, 14974:1, 10028:1, 15371:1, 15465:1, 11935:1, 11942:1, 11946:1, 11956:1, 11957:1, 12854:1, 13425:1, 14827:1, 16467:1, 9115:1,
+        14279:1, 8525:1, 8775:1, 10533:1, 11997:1, 14206:1, 14212:1, 14143:1, 14216:1,
+        12364:1, 12365:1, 13418:1, 10614:1, 6882:1, 13402:1, 13181:1, 16466:1, 16575:1,
+        12208:1, 11864:1, 10515:1, 17567:1, 16074:1, 16577:1, 17499:1, 17487:1, 10748:1};
+    const hideEdit = {on:false, top:false, last:null};
+    // Labels of the profile menu's removable items while removal mode draws them (ContextMenuItem only gets the label).
+    const hideMenuLabels = new Map();
+    // Written out so every label is a plain tr() call the language check can see.
+    function hideSpotTitle(key) {
+        if (MENU_SPOTS[key]) { for (const hash of MENU_SPOTS[key]) { const text = discordText(hash); if (text) return text; } return MENU_FALLBACK[key]; }
+        if (DISCORD_SPOTS[key]) return discordText(DISCORD_SPOTS[key][0]) || DISCORD_SPOTS[key][1];
+        if (/^settings\./.test(key)) return settingTitle(key.slice(9));
+        if (/^row\./.test(key)) { const label = rowLabels.get(key.slice(4)); return label ? tr(label) : key.slice(4); }
+        switch (key) {
+            case "chat.voice": return tr("Voice message button");
+            case "chat.attach": return tr("Attach button");
+            case "chat.apps": return tr("Apps button");
+            case "chat.gift": return tr("Gift and thread button");
+            case "dm.call": return tr("Voice call button");
+            case "dm.video": return tr("Video call button");
+            case "dm.search": case "messages.search": return tr("Search button");
+            case "messages.requests": return tr("Message requests");
+            case "messages.addFriend": return tr("Add Friends button");
+            case "messages.newDM": return tr("New message button");
+            case "profile.call": return tr("Call button");
+            case "profile.discordJoined": return tr("Discord join date");
+            case "profile.serverJoined": return tr("Server join date");
+            case "you.quests": return tr("Quests button");
+            case "you.shop": return tr("Shop button");
+            case "you.nitro": return tr("Nitro button");
+            case "you.questBanner": return tr("Quests banner");
+            case "attach.apps": return tr("Apps");
+            case "attach.polls": return tr("Polls");
+            case "attach.photos": return tr("Photos");
+            case "chat.emoji": return tr("Emoji button");
+            case "you.status": return tr("Status bubble");
+            case "guild.icon": return tr("Server icon");
+            case "guild.online": return tr("Online count");
+            case "guild.members": case "server.memberCount": return tr("Member count");
+            case "guild.reviews": return tr("Reviews");
+        }
+        return key;
+    }
+    function hidePlaceTitle(place) {
+        return place === "menu" ? tr("Profile menu") : place === "settings" ? tr("Settings") : place === "options" ? tr("Venus options") : place === "chat" ? tr("Message bar") : place === "attach" ? tr("Attach menu") : place === "dm" ? tr("Direct messages") : place === "messages" ? tr("Messages tab") :
+            place === "profile" ? tr("Other people's profiles") : place === "server" ? tr("Channel list") : place === "guild" ? tr("Server menu") : place === "details" ? tr("Channel details") : tr("Your profile");
+    }
+    function hideSpotsText(raw) {
+        if (typeof raw !== "string" || raw.length > 8000) return undefined;
+        const keys = [];
+        raw.split(",").forEach(part => { const key = part.trim(); if ((HIDE_SPOT_KEYS[key] || HIDE_DYNAMIC.test(key)) && keys.indexOf(key) < 0) keys.push(key); });
+        return keys.join(",");
+    }
+    let hideSpotCache = null;
+    function hiddenSpots() {
+        const text = settings.hideAnythingSpots || "";
+        if (!hideSpotCache || hideSpotCache.text !== text) hideSpotCache = {text, set:new Set(text ? text.split(",") : [])};
+        return hideSpotCache.set;
+    }
+    function spotHidden(key) { return !!settings.hideAnythingSpots && enabled("hideAnything") && hiddenSpots().has(key); }
+    function hideEditing() { return hideEdit.on && enabled("hideAnything"); }
+    function setHideEdit(on) {
+        on = !!on && enabled("hideAnything");
+        if (hideEdit.on === on) return;
+        hideEdit.on = on; hideEdit.last = null;
+        if (!on) hideMenuLabels.clear();
+        animateLayout();
+        notify("hideAnythingEdit");
+        pokeSettingsList();
+    }
+    function setSpotHidden(key, hide) {
+        const keys = Array.from(hiddenSpots()).filter(entry => entry !== key);
+        if (hide) keys.push(key);
+        hideEdit.last = hide ? {key, at:Date.now()} : null;
+        animateLayout();
+        setSetting("hideAnythingSpots", keys.join(","));
+        pokeSettingsList();
+    }
+    function restoreAllSpots() { hideEdit.last = null; animateLayout(); haptic("SELECTION"); setSetting("hideAnythingSpots", ""); pokeSettingsList(); }
+    // Asks first, in Discord's own alert, then removes it right away.
+    function askRemoveSpot(key) {
+        haptic("IMPACT_LIGHT");
+        const name = hideSpotTitle(key), title = tr("Remove this button?");
+        const body = tr("{name} disappears right away. You can bring it back any time in Venus, under Remove anything.", {name});
+        const confirm = () => { setSpotHidden(key, true); haptic("IMPACT_MEDIUM"); };
+        const alerts = inspectedExport(5300, "default");
+        if (alerts && typeof alerts.show === "function") {
+            try { alerts.show({title, body, confirmText:tr("Remove"), cancelText:tr("Cancel"), onConfirm:confirm}); return; } catch (_) {}
+        }
+        try { if (RN && RN.Alert) RN.Alert.alert(title, body, [{text:tr("Cancel"), style:"cancel"}, {text:tr("Remove"), style:"destructive", onPress:confirm}], {cancelable:true}); } catch (_) {}
+    }
+    // The mark drawn over a removable button in removal mode: a dashed red outline around the whole button and a red X in its
+    // corner. The button itself keeps working (menus open, Block blocks); only the X asks to remove it. The wrapper takes the
+    // button's own flex and margins, so the row keeps its layout.
+    const HIDE_LAYOUT_KEYS = ["flex", "flexGrow", "flexShrink", "flexBasis", "alignSelf", "margin", "marginLeft", "marginRight", "marginTop", "marginBottom",
+        "marginHorizontal", "marginVertical", "marginStart", "marginEnd", "position", "top", "left", "right", "bottom"];
+    const HIDE_MARK = {cover:{position:"absolute", top:-3, left:-3, right:-3, bottom:-3, borderRadius:14, borderWidth:2, borderStyle:"dashed",
+            borderColor:"#f23f43", backgroundColor:"#f23f431f"},
+        badge:{position:"absolute", top:-8, right:-8, width:22, height:22, borderRadius:11, alignItems:"center", justifyContent:"center",
+            backgroundColor:"#f23f43", borderWidth:2, borderColor:"#ffffff", elevation:6, shadowColor:"#000000", shadowOpacity:0.3, shadowRadius:3,
+            shadowOffset:{width:0, height:1}},
+        x:{color:"#ffffff", fontSize:12, lineHeight:14, fontWeight:"700", includeFontPadding:false, textAlign:"center"}};
+    const HIDE_INSET = {cover:{position:"absolute", top:2, left:2, right:2, bottom:2, borderRadius:12, borderWidth:2, borderStyle:"dashed",
+            borderColor:"#f23f43", backgroundColor:"#f23f431a"},
+        badge:{position:"absolute", top:"50%", marginTop:-11, right:12, width:22, height:22, borderRadius:11, alignItems:"center", justifyContent:"center",
+            backgroundColor:"#f23f43", borderWidth:2, borderColor:"#ffffff", elevation:6}};
+    // The red X on its own: the one place a tap asks to remove the spot. before() runs first (the profile menu closes itself).
+    function HideBadge(props) {
+        const Press = RN.Pressable || RN.TouchableOpacity || RN.View, X = inspectedExport(10483, "XSmallBoldIcon");
+        const ask = () => { if (props.before) try { props.before(); } catch (_) {} askRemoveSpot(props.spot); };
+        return el(Press, {style:props.style, onPress:ask, hitSlop:{top:12, bottom:12, left:12, right:12}, accessibilityRole:"button",
+            accessibilityLabel:tr("Remove: {name}", {name:hideSpotTitle(props.spot)})},
+            X ? el(X, {size:"xxs", color:"#ffffff"}) : el(RN.Text, {style:HIDE_MARK.x}, "\u2715"));
+    }
+    // Rows with a switch or a picture at the end keep their X clear of it.
+    const HIDE_TRAIL = {right:76};
+    function HideMark(props) {
+        const base = props.base, key = props.spot;
+        // Only once it's laid out with a size: a button that draws nothing (a tag someone doesn't have) gets no floating X.
+        const [shown, setShown] = React.useState(false);
+        let layout = null;
+        try {
+            const flat = base && base.props && base.props.style && RN.StyleSheet ? RN.StyleSheet.flatten(base.props.style) : null;
+            if (flat) for (const name of HIDE_LAYOUT_KEYS) if (flat[name] !== undefined) (layout || (layout = {}))[name] = flat[name];
+        } catch (_) {}
+        // Discord's own grow / shrink props (Add Friends, the server menu's buttons) set the flex the button had in its row.
+        if (base && base.props && base.props.grow === true) (layout || (layout = {})).flexGrow = 1;
+        if (base && base.props && base.props.shrink === true) (layout || (layout = {})).flexShrink = 1;
+        // A button that measures itself (a tab, for the line under the selected one) keeps doing so from here, where it sits.
+        const own = base && base.props && typeof base.props.onLayout === "function" ? base.props.onLayout : null;
+        const onLayout = event => {
+            if (own) try { own(event); } catch (_) {}
+            const size = event && event.nativeEvent && event.nativeEvent.layout, next = !!size && size.width > 1 && size.height > 1;
+            if (next !== shown) setShown(next);
+        };
+        const badge = props.inset ? (props.trail ? [HIDE_INSET.badge, HIDE_TRAIL] : HIDE_INSET.badge) : HIDE_MARK.badge;
+        return el(RN.View, {style:layout ? [{position:"relative"}, layout] : {position:"relative"}, collapsable:false, onLayout},
+            own ? React.cloneElement(base, {onLayout:undefined}) : base,
+            shown ? el(RN.View, {pointerEvents:"none", style:props.inset ? HIDE_INSET.cover : HIDE_MARK.cover,
+                importantForAccessibility:"no-hide-descendants", accessibilityElementsHidden:true}) : null,
+            shown ? el(HideBadge, {spot:key, before:props.before, style:badge}) : null);
+    }
+    function hideMarked(node, key) { return el(HideMark, {key:node && node.key != null ? node.key : key, spot:key, base:node}); }
+    function hideMarkedRow(node, key) { return el(HideMark, {key:node && node.key != null ? node.key : key, spot:key, base:node, inset:true}); }
+    // Rows in the server menu get the row mark (their X at the end, clear of a switch); buttons get the corner mark.
+    const HIDE_ROW_SPOTS = {"guild.markRead":1, "guild.serverTag":1, "guild.channelsRoles":1, "guild.report":1, "guild.leave":1,
+        "guild.serverProfile":2, "guild.showAll":2, "guild.hideMuted":2, "guild.dms":2, "guild.requests":2};
+    function hideMarkFor(node, key) {
+        const row = HIDE_ROW_SPOTS[key];
+        return el(HideMark, {key:node && node.key != null ? node.key : key, spot:key, base:node, inset:!!row, trail:row === 2});
+    }
+    // Discord's Settings list (SettingsList 14971) reads its rows through toSettingListItems (14974) and redraws when its
+    // blocklist (SettingBlocklistStore 14838) changes, so removed rows are left out there and a fresh blocklist redraws it.
+    function settingTitle(key) {
+        try { const get = inspectedExport(14837, "getCachedSettingTitle"), title = typeof get === "function" ? get(key) : null; if (typeof title === "string" && title) return title; } catch (_) {}
+        const words = key.replace(/^VENUS_/, "").replace(/_ROW$/, "").toLowerCase().replace(/_/g, " ");
+        return words.charAt(0).toUpperCase() + words.slice(1);
+    }
+    function pokeSettingsList() {
+        try {
+            const store = inspectedExport(14838, "default"), state = store && typeof store.getState === "function" ? store.getState() : null;
+            if (state && typeof store.setState === "function") store.setState({blocklist:new Set(state.blocklist || [])});
+        } catch (_) {}
+    }
+    function settingListItems(orig, self, args) {
+        const node = args[0];
+        if (!node || !Array.isArray(node.sections) || !settings.hideAnythingSpots || !enabled("hideAnything")) return orig.apply(self, args);
+        const hidden = hiddenSpots();
+        let changed = false;
+        const sections = node.sections.map(section => {
+            if (!section || !Array.isArray(section.settings)) return section;
+            const kept = section.settings.filter(key => !(typeof key === "string" && settingRemovable(key) && hidden.has("settings." + key)));
+            if (kept.length === section.settings.length) return section;
+            changed = true;
+            return cloneWith(section, "settings", kept);
+        });
+        if (!changed) return orig.apply(self, args);
+        const next = Array.from(args); next[0] = cloneWith(node, "sections", sections);
+        return orig.apply(self, next);
+    }
+    // Each row Discord draws (renderSettingItem 14973) gets the mark in removal mode.
+    function settingItemMark(orig, self, args) {
+        const rendered = orig.apply(self, args), props = args[0], key = props && props.setting;
+        return rendered && hideEditing() && settingRemovable(key) ? hideMarkedRow(rendered, "settings." + key) : rendered;
+    }
+    // The profile's ⋯ menu: removed items are left out (an empty group goes too); in removal mode each removable item gets
+    // the same dashed outline and red X as every other button (drawn by menuItemMark); the item itself still does what it does.
+    function menuItems(items, labels, edit) {
+        if (!Array.isArray(items)) return items;
+        let changed = false;
+        const out = [];
+        for (const item of items) {
+            if (Array.isArray(item)) {
+                const next = menuItems(item, labels, edit);
+                if (next !== item) changed = true;
+                if (next.length) out.push(next); else changed = true;
+                continue;
+            }
+            const key = item && typeof item.label === "string" ? labels.get(item.label) : null;
+            if (!key) { out.push(item); continue; }
+            if (spotHidden(key)) { changed = true; continue; }
+            if (!edit) { out.push(item); continue; }
+            hideMenuLabels.set(item.label, key);
+            out.push(item);
+        }
+        return changed ? out : items;
+    }
+    function profileMenu(orig, self, args) {
+        useSettings("hideAnything");
+        const rendered = orig.apply(self, args);
+        if (!React || !enabled("hideAnything")) return rendered;
+        if (spotHidden("profile.more")) return null;
+        const edit = hideEditing();
+        if (!edit && !settings.hideAnythingSpots) return rendered;
+        const Menu = inspectedExport(9358, "ContextMenu");
+        if (!Menu) return rendered;
+        const labels = new Map();
+        Object.keys(MENU_SPOTS).forEach(key => MENU_SPOTS[key].forEach(hash => { const text = discordText(hash); if (text) labels.set(text, key); }));
+        if (edit) hideMenuLabels.clear();
+        let empty = false;
+        const tree = cloneTree(rendered, (node, props) => {
+            if (node.type !== Menu || !Array.isArray(props.items)) return props;
+            const items = menuItems(props.items, labels, edit);
+            if (!items.length) empty = true;
+            const next = items === props.items ? props : Object.assign({}, props, {items});
+            if (!edit || typeof props.children !== "function") return next;
+            const render = props.children;
+            return Object.assign({}, next, {children:function () { const out = render.apply(this, arguments); return out ? hideMarked(out, "profile.more") : out; }});
+        }, 0);
+        // Nothing left in this person's menu: the ⋯ button goes too. Someone whose menu still has items keeps theirs.
+        return empty ? null : tree;
+    }
+    // Switches on Venus's option pages (switchRow): gone once removed, marked in removal mode.
+    function HideRow(props) {
+        useSettings("hideAnything");
+        if (spotHidden(props.spot)) return null;
+        return hideEditing() ? hideMarkedRow(props.child, props.spot) : props.child;
+    }
+    // A component that is one spot: gone when removed, marked in removal mode. Discord's render always runs, so its hooks
+    // never change between renders.
+    function hideWhole(key) {
+        return function (orig, self, args) {
+            useSettings("hideAnything");
+            const rendered = orig.apply(self, args);
+            if (!rendered || !enabled("hideAnything")) return rendered;
+            if (spotHidden(key)) return null;
+            return hideEditing() ? hideMarked(rendered, key) : rendered;
+        };
+    }
+    // A component holding several spots: classify(node) names the spot an element is. Removed ones are left out, and a
+    // wrapper that only held removed buttons goes too, so nothing keeps empty space.
+    function hideWalk(node, depth, classify, edit, gone) {
+        if (!node || typeof node !== "object" || depth > 14) return node;
         if (Array.isArray(node)) {
             let changed = false;
-            const next = node.map(child => { const value = withoutCall(child, depth + 1, Phone); if (value !== child) changed = true; return value; });
-            return changed ? next.filter(child => child !== null) : node;
+            const next = node.map(child => { const value = hideWalk(child, depth + 1, classify, edit, gone); if (value !== child) changed = true; return value; });
+            if (!changed) return node;
+            const kept = next.filter(child => child !== null);
+            // A badge dot drawn beside a removed button (hidden from screen readers, no content of its own) goes with it.
+            return kept.length && kept.every(child => child && child.props && child.props.accessibilityElementsHidden === true && child.props.children == null) ? [] : kept;
         }
         if (!node.props) return node;
-        const icon = node.props.icon;
-        if (icon && icon.type === Phone) return null;
-        const children = node.props.children, next = withoutCall(children, depth + 1, Phone);
+        const key = classify(node);
+        if (key) return (gone ? gone(key) : spotHidden(key)) ? null : edit ? hideMarkFor(node, key) : node;
+        const children = node.props.children;
+        if (children == null || typeof children !== "object") return node;
+        const next = hideWalk(children, depth + 1, classify, edit, gone);
         if (next === children) return node;
-        // A slot that only held the Call button goes too, so nothing keeps half the row.
         if (next === null || Array.isArray(next) && !next.length) return null;
-        return React.cloneElement(node, Object.assign({}, node.props, {children:next}));
+        return React.cloneElement(node, {children:next});
     }
-    function profileButtons(orig, self, args) {
-        useSettings("hideCall");
-        const hidden = !!enabled("hideCall"), last = React.useRef(hidden);
-        if (last.current !== hidden) {
-            last.current = hidden;
-            const animate = RN && RN.LayoutAnimation;
-            try { if (animate && animate.Presets) animate.configureNext(animate.Presets.easeInEaseOut); } catch (_) {}
+    // prepare() runs on every render (it may use hooks) and can return its own "is this spot gone" check.
+    function hideTree(classify, prepare) {
+        return function (orig, self, args) {
+            useSettings("hideAnything");
+            const gone = prepare ? prepare() : null;
+            const rendered = orig.apply(self, args);
+            if (!React || !enabled("hideAnything")) return rendered;
+            const edit = hideEditing();
+            return edit || settings.hideAnythingSpots ? hideWalk(rendered, 0, classify, edit, gone) : rendered;
+        };
+    }
+    // The DM header (PrivateChannelButtons 12854): pressables holding the call (or hang up / join), video and search icons.
+    let hideDmIcons = null;
+    function dmIconSpots() {
+        if (hideDmIcons && hideDmIcons.size >= 7) return hideDmIcons;
+        const map = new Map();
+        [[9317, "PhoneCallIcon", "dm.call"], [9319, "PhoneHangUpIcon", "dm.call"], [8224, "VoiceNormalIcon", "dm.call"], [10771, "VideoIcon", "dm.video"],
+            [12878, "VideoDenyIcon", "dm.video"], [6740, "MagnifyingGlassIcon", "dm.search"], [7092, "SettingsIcon", "dm.options"]].forEach(([id, name, key]) => { const Icon = inspectedExport(id, name); if (Icon) map.set(Icon, key); });
+        return hideDmIcons = map;
+    }
+    function iconSpot(node, depth, icons) {
+        if (!node || typeof node !== "object" || depth > 2) return null;
+        if (Array.isArray(node)) { for (const child of node) { const key = iconSpot(child, depth, icons); if (key) return key; } return null; }
+        if (node.type && icons.has(node.type)) return icons.get(node.type);
+        return node.props ? iconSpot(node.props.icon, depth + 1, icons) || iconSpot(node.props.children, depth + 1, icons) : null;
+    }
+    function dmSpot(node) { return typeof node.props.onPress === "function" ? iconSpot(node.props.children, 0, dmIconSpots()) : null; }
+    // Someone's profile (UserProfileContactButtons 13425): Message and Call carry ChatIcon / PhoneCallIcon (as a Button or an
+    // IconButton), and Add Friend is the FriendRequestButton, the one element given a ButtonComponent.
+    function profileSpot(node) {
+        const props = node.props, icon = props.icon, type = icon && typeof icon === "object" ? icon.type : null;
+        if (type && type === inspectedExport(9317, "PhoneCallIcon")) return "profile.call";
+        if (type && type === inspectedExport(8194, "ChatIcon")) return "profile.message";
+        return props.ButtonComponent && props.user && "hasCustomProfileTheme" in props ? "profile.addFriend" : null;
+    }
+    // The Messages tab header (MessagesHeader 16467): search and new message are IconButtons (new message's icon is
+    // PlusLargeIcon), Add Friends is the only Button, and message requests is its own component (16468).
+    function messagesSpot(node) {
+        const type = node.type;
+        if (!type || typeof type === "string") return null;
+        if (type === inspectedExport(7569, "IconButton")) {
+            const icon = node.props.icon;
+            return icon && typeof icon === "object" && icon.type === inspectedExport(10310, "PlusLargeIcon") ? "messages.newDM" : "messages.search";
         }
+        if (type === inspectedExport(5379, "Button")) return "messages.addFriend";
+        if (type === inspectedExport(16468, "default")) return "messages.requests";
+        return null;
+    }
+    // The message bar's actions (ChatInputActions 11935) hold the attach button next to Apps and gift/thread, which are
+    // their own components and hooked as their own spots. The attach button is Discord's action button with the media
+    // keyboard icon, or the ContextMenu wrapped around it; the gallery button (ImageIcon) counts as attaching too.
+    function chatAttachSpot(node) {
+        const type = node.type;
+        if (!type || typeof type === "string") return null;
+        if (type === inspectedExport(9358, "ContextMenu")) return "chat.attach";
+        const Icon = node.props.IconComponent;
+        return Icon && (Icon === inspectedExport(11940, "MediaKeyboardButtonIcon") || Icon === inspectedExport(8210, "ImageIcon")) ? "chat.attach" : null;
+    }
+    // Your profile's floating pill (YouBannerDecorations 9115) keys its buttons by name, like Hide extra buttons reads them.
+    function youSpot(node) { const k = node.key; return k === "quests" || k === "shop" || k === "nitro" ? "you." + k : null; }
+    // The ⋯ menu's rows are drawn by ContextMenuItem (14279), which only gets each item's label: the ones profileMenu marked
+    // get the dashed outline and the X. Tapping the X closes the menu first, so the "Remove this button?" alert is on top.
+    function closeContextMenu() { try { const hide = inspectedExport(9359, "hideContextMenu"); if (typeof hide === "function") hide(); } catch (_) {} }
+    function menuItemMark(orig, self, args) {
+        const rendered = orig.apply(self, args), props = args[0];
+        if (!rendered || !hideMenuLabels.size || !props || typeof props.label !== "string" || !hideEditing()) return rendered;
+        const key = hideMenuLabels.get(props.label);
+        return key && !spotHidden(key) ? el(HideMark, {key:"hide:" + key, spot:key, base:rendered, inset:true, before:closeContextMenu}) : rendered;
+    }
+    // A tab measures where it sits for the line under the selected one, so its mark is drawn inside it instead of around it.
+    function markInside(rendered, key) {
+        if (!rendered || !rendered.props) return rendered;
+        const kids = rendered.props.children;
+        const cover = el(RN.View, {key:"hide-cover", pointerEvents:"none", style:HIDE_MARK.cover, importantForAccessibility:"no-hide-descendants", accessibilityElementsHidden:true});
+        const badge = el(HideBadge, {key:"hide-x", spot:key, style:HIDE_MARK.badge});
+        const children = typeof kids === "function" ? function () { return [kids.apply(this, arguments), cover, badge]; } : [kids, cover, badge];
+        return React.cloneElement(rendered, {style:[rendered.props.style, {position:"relative", overflow:"visible"}], children});
+    }
+    // A profile's tabs (UserProfileContent 13190) are {id, label, page} items for useSegmentedControlState (8525), Main always
+    // first: removed tabs are left out of the items, so the tab bar and its pages close up together.
+    const PROFILE_TABS = Object.assign(Object.create(null), {activity:"profile.activity", wishlist:"profile.wishlist"});
+    // A channel's details (the DM's Members, Media, Pins, Links and Files tabs) are SearchTabsLayout's {label, id, page, count} items.
+    const SEARCH_TAB_SPOTS = Object.assign(Object.create(null), {members:"details.members", media:"details.media", pins:"details.pins", links:"details.links", files:"details.files"});
+    function profileTabItems(items) { return Array.isArray(items) && items.length > 0 && !!items[0] && items[0].id === "main" && "page" in items[0]; }
+    const hideTabCache = new WeakMap();
+    function segmentedState(orig, self, args) {
+        const options = args[0];
+        if (!options || typeof options !== "object" || !profileTabItems(options.items)) return orig.apply(self, args);
+        // Main stays the first tab for the profile's whole life, so this hook is always called there and nowhere else.
+        useSettings("hideAnything");
+        if (!settings.hideAnythingSpots || !enabled("hideAnything")) return orig.apply(self, args);
+        const text = settings.hideAnythingSpots;
+        let entry = hideTabCache.get(options.items);
+        if (!entry || entry.text !== text) {
+            const kept = options.items.filter(item => !(item && PROFILE_TABS[item.id] && spotHidden(PROFILE_TABS[item.id])));
+            entry = {text, items:kept.length === options.items.length ? options.items : kept};
+            hideTabCache.set(options.items, entry);
+        }
+        if (entry.items === options.items) return orig.apply(self, args);
+        const next = Array.from(args);
+        next[0] = Object.assign({}, options, {items:entry.items});
+        if (typeof options.defaultIndex === "number" && options.defaultIndex >= entry.items.length) next[0].defaultIndex = 0;
+        return orig.apply(self, next);
+    }
+    // Each tab (TabItem 12365 on profiles, SegmentedControlItem 8775 elsewhere) knows its index into state.items, so Activity
+    // and Wishlist are found by id.
+    function segmentedItemMark(orig, self, args) {
+        const rendered = orig.apply(self, args), props = args[0];
+        if (!rendered || !props || !props.state || !Array.isArray(props.state.items) || !hideEditing()) return rendered;
+        const item = props.state.items[props.index];
+        const key = !item ? null : profileTabItems(props.state.items) ? PROFILE_TABS[item.id] : "page" in item && "count" in item ? SEARCH_TAB_SPOTS[item.id] : null;
+        return key ? markInside(rendered, key) : rendered;
+    }
+    // The server tag next to someone's name (UserProfilePrimaryInfo 10533) is its local GuildTag, the one element given a
+    // primaryGuildOverride without badges. Someone without a tag draws nothing there, so HideMark shows no outline.
+    // Message requests (MessageRequestsButton 16468) only draws while there are some, so the header counts them too.
+    function messageRequestCount() {
+        try {
+            const a = inspectedExport(6055, "default"), b = inspectedExport(6056, "default");
+            return (a && typeof a.getMessageRequestsCount === "function" ? a.getMessageRequestsCount() || 0 : 0) +
+                (b && typeof b.getSpamChannelsCount === "function" ? b.getSpamChannelsCount() || 0 : 0);
+        } catch (_) { return 0; }
+    }
+    function useMessageRequestCount() {
+        const [count, setCount] = React.useState(messageRequestCount);
+        React.useEffect(() => {
+            const stores = [inspectedExport(6055, "default"), inspectedExport(6056, "default")].filter(store => store && typeof store.addChangeListener === "function");
+            const update = () => setCount(messageRequestCount());
+            stores.forEach(store => store.addChangeListener(update));
+            update();
+            return () => stores.forEach(store => { try { store.removeChangeListener(update); } catch (_) {} });
+        }, []);
+        return count;
+    }
+    // Every button under "Messages" gone (message requests too, or none to show): the row goes, not just its buttons.
+    function messagesHeaderEmpty(requests) {
+        return spotHidden("messages.search") && spotHidden("messages.addFriend") && spotHidden("messages.newDM") && (spotHidden("messages.requests") || !requests);
+    }
+    function messagesGone() {
+        const count = useMessageRequestCount();
+        return messagesHeaderEmpty(count) ? key => key === "messages.requests" || spotHidden(key) : null;
+    }
+    // The Messages list sits under a header of a measured height (useMessagesSpecs 16466: headerSize, and listTop = safe area +
+    // headerSize). getMessagesHeaderHeight is 16 (top padding) + the title's line height + 8 (the title row's own paddingBottom)
+    // + SMALL_BUTTON_HEIGHT + the bottom padding. Only the button row goes: the title row and its 8 dp stay, so only
+    // SMALL_BUTTON_HEIGHT comes off. Taking the 8 off too left the list 8 dp over the bottom of "Messages".
+    const specsCache = new WeakMap();
+    function messagesSpecs(orig, self, args) {
+        useSettings("hideAnything");
+        const count = useMessageRequestCount();
+        const specs = orig.apply(self, args);
+        if (!specs || typeof specs !== "object" || typeof specs.headerSize !== "number" || !enabled("hideAnything") || !messagesHeaderEmpty(count)) return specs;
+        let entry = specsCache.get(specs);
+        if (!entry) {
+            const button = inspectedExport(5384, "SMALL_BUTTON_HEIGHT"), row = typeof button === "number" ? button : 32;
+            entry = Object.assign({}, specs, {headerSize:Math.max(0, specs.headerSize - row)});
+            if (typeof specs.listTop === "number") entry.listTop = Math.max(0, specs.listTop - row);
+            specsCache.set(specs, entry);
+        }
+        return entry;
+    }
+    // A server's channel list keeps room for its Search row (useRedesignGuildHeaderHeight 16575: SMALL_BUTTON_HEIGHT plus
+    // SEARCH_BAR_MARGIN_BOTTOM). With Search, Invite and Events all removed the row is gone, so its room goes too.
+    function serverHeaderEmpty() { return spotHidden("server.search") && spotHidden("server.invite") && spotHidden("server.events"); }
+    function guildHeaderHeight(orig, self, args) {
+        useSettings("hideAnything");
+        const height = orig.apply(self, args), guild = args[0];
+        if (typeof height !== "number" || !enabled("hideAnything") || !serverHeaderEmpty()) return height;
+        // Only real servers have the row (not Favorites).
+        if (!guild || typeof guild.id !== "string" || !/^\d{15,}$/.test(guild.id)) return height;
+        const button = inspectedExport(5384, "SMALL_BUTTON_HEIGHT"), margin = inspectedExport(11762, "SEARCH_BAR_MARGIN_BOTTOM");
+        return Math.max(0, height - (typeof button === "number" ? button : 32) - (typeof margin === "number" ? margin : 0));
+    }
+    // A profile's tab bar (Tabs 12364) with only Main left is just a label: it goes, and Main's page shows on its own.
+    function profileTabsBar(orig, self, args) {
+        const rendered = orig.apply(self, args), props = args[0], items = props && props.state && props.state.items;
+        if (!rendered || !profileTabItems(items) || items.length !== 1 || hideEditing()) return rendered;
+        return spotHidden("profile.activity") || spotHidden("profile.wishlist") ? null : rendered;
+    }
+    // Badges (ProfileBadgeRows) beside the server tag in UserProfilePrimaryInfo 10533: the one element with badges and catalogBadges.
+    function profilePrimarySpot(node) {
+        const props = node.props;
+        if ("badges" in props && "catalogBadges" in props && "userId" in props) return "profile.badges";
+        return profileTagSpot(node);
+    }
+    // Member Since (UserProfileAboutMeCard 10614) is its local MemberJoinDates: a heading, then the Discord date (ClydeIcon) and
+    // the server date (the server's icon) with a dot between. It's swapped for a wrapper that draws Discord's and leaves out what
+    // was removed: the dot goes with either date, and the heading goes when no date is left.
+    function joinDateSpot(node) {
+        const props = node.props, icon = props.icon;
+        if (!icon || typeof icon !== "object" || !("themeType" in props) || !("accessibilityLabel" in props)) return null;
+        if (icon.type && icon.type === inspectedExport(10173, "ClydeIcon")) return "profile.discordJoined";
+        return icon.props && "guild" in icon.props ? "profile.serverJoined" : null;
+    }
+    function isBullet(node) { return !!node && !!node.props && node.props.accessibilityElementsHidden === true && typeof node.props.children === "string" && node.props.children.trim().length <= 2; }
+    function dropLoneBullets(node, depth) {
+        if (!node || typeof node !== "object" || depth > 12) return node;
+        if (Array.isArray(node)) {
+            const mapped = node.map(child => dropLoneBullets(child, depth + 1));
+            const real = mapped.filter(child => child && typeof child === "object" && !isBullet(child)).length;
+            return real <= 1 ? mapped.filter(child => !isBullet(child)) : mapped;
+        }
+        if (!node.props || node.props.children == null || typeof node.props.children !== "object") return node;
+        const next = dropLoneBullets(node.props.children, depth + 1);
+        return next === node.props.children ? node : React.cloneElement(node, {children:next});
+    }
+    function countJoinDates(node, depth) {
+        if (!node || typeof node !== "object" || depth > 14) return 0;
+        if (Array.isArray(node)) return node.reduce((sum, child) => sum + countJoinDates(child, depth + 1), 0);
+        if (!node.props) return 0;
+        if (joinDateSpot(node) || node.props.spot === "profile.discordJoined" || node.props.spot === "profile.serverJoined") return 1;
+        return countJoinDates(node.props.children, depth + 1);
+    }
+    function joinDatesTree(out) {
+        if (!out || !enabled("hideAnything")) return out;
+        const discord = spotHidden("profile.discordJoined"), server = spotHidden("profile.serverJoined"), edit = hideEditing();
+        if (!edit && !discord && !server) return out;
+        let tree = hideWalk(out, 0, joinDateSpot, edit, null);
+        if (discord || server) tree = dropLoneBullets(tree, 0);
+        return countJoinDates(tree, 0) ? tree : null;
+    }
+    const joinWrappers = new WeakMap();
+    function joinDatesType(type) {
+        let Wrapped = joinWrappers.get(type);
+        if (!Wrapped) {
+            Wrapped = function MemberJoinDates(props) { useSettings("hideAnything"); return joinDatesTree(type(props)); };
+            joinWrappers.set(type, Wrapped);
+        }
+        return Wrapped;
+    }
+    function isJoinDates(node) {
+        const props = node.props;
+        return typeof node.type === "function" && "guildId" in props && "userId" in props && "themeType" in props && !("displayProfile" in props) && !("pendingBio" in props);
+    }
+    function swapJoinDates(node, depth) {
+        if (!node || typeof node !== "object" || depth > 8) return node;
+        if (Array.isArray(node)) {
+            let changed = false;
+            const next = node.map(child => { const value = swapJoinDates(child, depth + 1); if (value !== child) changed = true; return value; });
+            return changed ? next : node;
+        }
+        if (!node.props) return node;
+        if (isJoinDates(node)) return el(joinDatesType(node.type), Object.assign({key:node.key}, node.props));
+        const children = node.props.children;
+        if (children == null || typeof children !== "object") return node;
+        const next = swapJoinDates(children, depth + 1);
+        return next === children ? node : React.cloneElement(node, {children:next});
+    }
+    // Always swapped (the wrapper is the same every time), so turning things off and on never remounts the card.
+    function stripJoinDates(node, depth) {
+        if (!node || typeof node !== "object" || depth > 8) return node;
+        if (Array.isArray(node)) return node.map(child => stripJoinDates(child, depth + 1));
+        if (!node.props) return node;
+        if (isJoinDates(node)) return null;
+        const children = node.props.children;
+        if (children == null || typeof children !== "object") return node;
+        const next = stripJoinDates(children, depth + 1);
+        return next === children ? node : React.cloneElement(node, {children:next});
+    }
+    function hasChildren(root) {
+        const kids = root && root.props ? root.props.children : null, list = Array.isArray(kids) ? kids : [kids];
+        return list.some(kid => kid != null && kid !== false && kid !== "");
+    }
+    function aboutMeCard(orig, self, args) {
+        useSettings("hideAnything");
+        const rendered = orig.apply(self, args), props = args[0] || {};
+        if (!React || !rendered) return rendered;
+        // Both dates gone (or the only one there is): Member Since goes, and the card with it when nothing else is in it.
+        if (enabled("hideAnything") && !hideEditing() && spotHidden("profile.discordJoined") && (spotHidden("profile.serverJoined") || !props.guildId)) {
+            const stripped = stripJoinDates(rendered, 0);
+            return hasChildren(stripped) ? stripped : null;
+        }
+        return swapJoinDates(rendered, 0);
+    }
+    // Roles (UserProfileRolesCard 6882) on a profile; the card a new member sees after onboarding isn't a profile and stays.
+    function rolesCard(orig, self, args) {
+        const props = args[0];
+        return props && ("user" in props || "userId" in props || "guildMember" in props) ? hideWhole("profile.roles")(orig, self, args) : orig.apply(self, args);
+    }
+    // The note (UserProfileNote 13181). With User and server reviews on, Venus draws Reviews right after it: only the note goes.
+    function noteSpot(orig, self, args) {
+        useSettings("hideAnything");
         const rendered = orig.apply(self, args);
-        if (!hidden) return rendered;
-        const Phone = inspectedExport(9317, "PhoneCallIcon");
-        return Phone ? withoutCall(rendered, 0, Phone) : rendered;
+        if (!rendered || !React || !enabled("hideAnything")) return rendered;
+        const hidden = spotHidden("profile.note"), edit = hideEditing();
+        if (!hidden && !edit) return rendered;
+        const kids = rendered.type === React.Fragment && rendered.props && Array.isArray(rendered.props.children) ? rendered.props.children : null;
+        if (kids && kids.length > 1 && kids[1] && kids[1].key != null && String(kids[1].key).indexOf("venus-reviews:") === 0) {
+            const next = kids.slice();
+            next[0] = hidden ? null : hideMarked(kids[0], "profile.note");
+            return React.cloneElement(rendered, {children:next});
+        }
+        return hidden ? null : hideMarked(rendered, "profile.note");
+    }
+    function profileTagSpot(node) {
+        const props = node.props;
+        return "primaryGuildOverride" in props && "showToastOnPress" in props && !("badges" in props) && !("userId" in props) ? "profile.guildTag" : null;
+    }
+    // The top of a server's channel list (GuildSearchAndInvite 11997): Search is its only Button (or the pressable around
+    // SearchButtonContent), Invite is the IconButton with onPressDisabled, Events the other IconButton.
+    function serverHeaderSpot(node) {
+        const type = node.type, props = node.props;
+        if (!type || typeof type === "string") return null;
+        if (type === inspectedExport(7569, "IconButton")) return "onPressDisabled" in props ? "server.invite" : "server.events";
+        if (type === inspectedExport(5379, "Button")) return "server.search";
+        return typeof props.onPressIn === "function" && typeof props.onPressOut === "function" ? "server.search" : null;
+    }
+    // GuildSearchAndInvite's default is a memo of a connector that only draws the module's own (local) GuildSearchAndInvite,
+    // the component that holds the buttons. That element's type is swapped for a wrapper that draws Discord's and walks it.
+    const innerWraps = new WeakMap();
+    function wrapInner(type, classify) {
+        let Wrapped = innerWraps.get(type);
+        if (!Wrapped) {
+            Wrapped = function (props) {
+                useSettings("hideAnything");
+                const rendered = type(props);
+                if (!rendered || !React || !enabled("hideAnything")) return rendered;
+                const edit = hideEditing();
+                return edit || settings.hideAnythingSpots ? hideWalk(rendered, 0, classify, edit, null) : rendered;
+            };
+            Wrapped.displayName = type.displayName || type.name || "Wrapped";
+            innerWraps.set(type, Wrapped);
+        }
+        return Wrapped;
+    }
+    function serverHeaderOuter(orig, self, args) {
+        const rendered = orig.apply(self, args);
+        if (!rendered || !React || typeof rendered.type !== "function" || !rendered.props || !("guildId" in rendered.props)) return rendered;
+        return el(wrapInner(rendered.type, serverHeaderSpot), Object.assign({key:rendered.key}, rendered.props));
+    }
+    // The server menu (GuildActionSheet 14211). Its header's Community Server pill is the one element given guildVisibility.
+    // The server's icon is the one element given guild, size and animate; the online and member counts are MemberCount (12868),
+    // given a type ("online" or not) and a count.
+    function guildHeaderSpot(node) {
+        const props = node.props;
+        if ("guildVisibility" in props && !("guild" in props)) return "guild.community";
+        if ("guild" in props && "animate" in props && "size" in props) return "guild.icon";
+        if ("count" in props && typeof props.type === "string" && !("guild" in props) && !("children" in props)) return props.type === "online" ? "guild.online" : "guild.members";
+        return null;
+    }
+    // Boost, Invite and Notifications (GuildActionSheetTabItems 14212) are IconButtons: Boost by its gem icon (its label can be
+    // a count), the others by Discord's own label.
+    function guildTabSpot(node) {
+        if (node.type !== inspectedExport(7569, "IconButton")) return null;
+        const icon = node.props.icon, label = node.props.label;
+        if (icon && typeof icon === "object" && icon.type && icon.type === inspectedExport(9405, "BoostGemIcon")) return "guild.boost";
+        if (typeof label !== "string" || !label) return null;
+        return label === discordText("VINpSK") ? "guild.invite" : label === discordText("HcoRu0") ? "guild.notifications" : label === discordText("Uj0md3") ? "guild.boost" : null;
+    }
+    // Its rows (GuildUnreadAction and GuildActionSheetSecondaryActions, 14143): plain rows by Discord's own label, and the
+    // module's own option components by name, since they draw their rows themselves.
+    const GUILD_ROW_NAMES = Object.assign(Object.create(null), {BrowseChannelsOption:"guild.channelsRoles", ChangeIdentityOption:"guild.serverProfile",
+        HideMutedChannelsOption:"guild.hideMuted", RestrictedGuildPrivacyOption:"guild.dms", MessageRequestRestrictedGuildPrivacyOption:"guild.requests", ServerTagOption:"guild.serverTag"});
+    const GUILD_ROW_LABELS = {"guild.markRead":["e6RscS"], "guild.showAll":["FB2ZZV"], "guild.report":["Aen9eh"], "guild.leave":["J2TBi3", "Dv8gFT"]};
+    let guildLabelCache = null;
+    function guildRowLabels() {
+        const probe = discordText("e6RscS");
+        if (guildLabelCache && guildLabelCache.probe === probe) return guildLabelCache.map;
+        const map = new Map();
+        Object.keys(GUILD_ROW_LABELS).forEach(key => GUILD_ROW_LABELS[key].forEach(hash => { const text = discordText(hash); if (text) map.set(text, key); }));
+        guildLabelCache = {probe, map};
+        return map;
+    }
+    function componentName(type) {
+        const inner = typeof type === "function" ? type : type && typeof type === "object" ? type.type || type.render : null;
+        return typeof inner === "function" ? String(inner.displayName || inner.name || "") : "";
+    }
+    function guildRowSpot(node) {
+        const type = node.type;
+        if (!type || typeof type === "string" || typeof type === "symbol") return null;
+        const named = GUILD_ROW_NAMES[componentName(type)];
+        if (named) return named;
+        const label = node.props.label;
+        return typeof label === "string" && label ? guildRowLabels().get(label) || null : null;
+    }
+    // Swaps the elements test() picks for swap(node), anywhere in a drawn tree.
+    function swapWhere(node, depth, test, swap) {
+        if (!node || typeof node !== "object" || depth > 14) return node;
+        if (Array.isArray(node)) {
+            let changed = false;
+            const next = node.map(child => { const value = swapWhere(child, depth + 1, test, swap); if (value !== child) changed = true; return value; });
+            return changed ? next : node;
+        }
+        if (!node.props) return node;
+        if (test(node)) return swap(node);
+        const kids = node.props.children;
+        if (kids == null || typeof kids !== "object") return node;
+        const next = swapWhere(kids, depth + 1, test, swap);
+        return next === kids ? node : React.cloneElement(node, {children:next});
+    }
+    // Pronouns beside the username (UserTagAndPronouns, local to UserProfilePrimaryInfo 10533): removed by drawing it with no
+    // pronouns (it then leaves them out, as for someone without any); in removal mode the pronouns get the mark.
+    const primaryInfoTree = hideTree(profilePrimarySpot);
+    const pronounWraps = new WeakMap();
+    function pronounsNode(node) {
+        const props = node.props;
+        return typeof node.type === "function" && "userTag" in props && "pronouns" in props && typeof props.pronouns === "string" && props.pronouns.length > 0;
+    }
+    function pronounsText(children, pronouns) { return children === pronouns || Array.isArray(children) && children.indexOf(pronouns) >= 0; }
+    function pronounsType(type) {
+        let Wrapped = pronounWraps.get(type);
+        if (!Wrapped) {
+            Wrapped = function UserTagAndPronouns(props) {
+                const out = type(props);
+                return out ? hideWalk(out, 0, node => pronounsText(node.props.children, props.pronouns) ? "profile.pronouns" : null, true, () => false) : out;
+            };
+            pronounWraps.set(type, Wrapped);
+        }
+        return Wrapped;
+    }
+    function primaryInfo(orig, self, args) {
+        const out = primaryInfoTree(orig, self, args);
+        if (!out || !React || !enabled("hideAnything")) return out;
+        const hidden = spotHidden("profile.pronouns"), edit = hideEditing();
+        if (!hidden && !edit) return out;
+        return swapWhere(out, 0, pronounsNode, node => hidden ? React.cloneElement(node, {pronouns:""}) :
+            el(pronounsType(node.type), Object.assign({key:node.key}, node.props)));
+    }
+    // The start of a DM (ChatBeginningRow 12208): a bot's Mute, Deauthorize and Report Spam buttons are the module's own
+    // MuteAppButton, DeauthorizeAppButton and DMSpamButton, drawn by its local ChatBeginningRowDMGuard -> ChatBeginningRowDM.
+    // Those two are swapped for wrappers that draw Discord's and walk what it drew.
+    const BEGIN_PASS = Object.assign(Object.create(null), {ChatBeginningRowDMGuard:1, ChatBeginningRowDM:1});
+    const BEGIN_SPOTS = Object.assign(Object.create(null), {MuteAppButton:"dm.mute", DeauthorizeAppButton:"dm.deauthorize", DMSpamButton:"dm.reportSpam"});
+    function beginSpot(node) { const type = node.type; return type && typeof type !== "string" ? BEGIN_SPOTS[componentName(type)] || null : null; }
+    const beginWraps = new WeakMap();
+    function beginType(type) {
+        let Wrapped = beginWraps.get(type);
+        if (!Wrapped) {
+            Wrapped = function (props) { useSettings("hideAnything"); return beginTree(type(props)); };
+            Wrapped.displayName = componentName(type);
+            beginWraps.set(type, Wrapped);
+        }
+        return Wrapped;
+    }
+    function beginTree(out) {
+        if (!out || !React) return out;
+        // Always swapped (the wrapper is the same every time), so turning things off and on never remounts the row.
+        out = swapWhere(out, 0, node => typeof node.type === "function" && BEGIN_PASS[componentName(node.type)] === 1,
+            node => el(beginType(node.type), Object.assign({key:node.key}, node.props)));
+        if (!enabled("hideAnything")) return out;
+        const edit = hideEditing();
+        if (!edit && !settings.hideAnythingSpots) return out;
+        // Someone who isn't a bot gets Report Spam handed to RelationshipButtons as its reportButton.
+        out = swapWhere(out, 0, node => !!node.props.reportButton && typeof node.props.reportButton === "object", node => {
+            const button = hideWalk(node.props.reportButton, 0, beginSpot, edit, null);
+            return button === node.props.reportButton ? node : React.cloneElement(node, {reportButton:button});
+        });
+        return hideWalk(out, 0, beginSpot, edit, null);
+    }
+    function chatBeginning(orig, self, args) { useSettings("hideAnything"); return beginTree(orig.apply(self, args)); }
+    // The status bubble on your own profile (UserProfileCustomStatusBubble 10515 with editEnabled), "What have you been playing?"
+    // until you set one. Other people's statuses stay.
+    const statusWhole = hideWhole("you.status");
+    function statusBubble(orig, self, args) { const props = args[0]; return props && props.editEnabled ? statusWhole(orig, self, args) : orig.apply(self, args); }
+    // Under a server's name in the channel list (ChannelListStickyHeader 16577): the member count, a dot, then "Community".
+    // The dot goes with either of them.
+    function stickySubheader(node, depth, Text, community, edit) {
+        if (!node || typeof node !== "object" || depth > 14) return node;
+        if (Array.isArray(node)) {
+            let changed = false;
+            const next = node.map(child => { const value = stickySubheader(child, depth + 1, Text, community, edit); if (value !== child) changed = true; return value; });
+            return changed ? next : node;
+        }
+        if (!node.props) return node;
+        const kids = node.props.children;
+        if (Array.isArray(kids)) {
+            const at = kids.findIndex(kid => !!kid && !!kid.props && kid.type === Text && kid.props.children === community);
+            if (at >= 0) {
+                const next = kids.slice(), isText = kid => !!kid && !!kid.props && kid.type === Text;
+                const isDot = kid => !!kid && !!kid.props && kid.type !== Text && kid.props.children == null;
+                const countAt = at >= 2 && isText(kids[at - 2]) && isDot(kids[at - 1]) ? at - 2 : -1;
+                const goneCommunity = spotHidden("server.community"), goneCount = countAt >= 0 && spotHidden("server.memberCount");
+                next[at] = goneCommunity ? null : edit ? hideMarked(kids[at], "server.community") : kids[at];
+                if (countAt >= 0) {
+                    next[countAt] = goneCount ? null : edit ? hideMarked(kids[countAt], "server.memberCount") : kids[countAt];
+                    if (goneCount || goneCommunity) next[countAt + 1] = null;
+                }
+                return React.cloneElement(node, {children:next});
+            }
+        }
+        if (kids == null || typeof kids !== "object") return node;
+        const next = stickySubheader(kids, depth + 1, Text, community, edit);
+        return next === kids ? node : React.cloneElement(node, {children:next});
+    }
+    function channelStickyHeader(orig, self, args) {
+        useSettings("hideAnything");
+        const out = orig.apply(self, args);
+        if (!out || !React || !enabled("hideAnything")) return out;
+        const edit = hideEditing();
+        if (!edit && !spotHidden("server.memberCount") && !spotHidden("server.community")) return out;
+        const Text = inspectedExport(5088, "Text"), community = discordText("1g9A/f");
+        return Text && community ? stickySubheader(out, 0, Text, community, edit) : out;
+    }
+    // A channel's details (ChannelDetailsNavigationBar 17499): its TransitionGroup draws NavigationHeader through renderItem,
+    // and NavigationHeader holds the module's own SearchButton, MuteButton and SettingsButton, plus MoreButton (17500).
+    const DETAILS_BUTTONS = Object.assign(Object.create(null), {SearchButton:"details.search", MuteButton:"details.mute", SettingsButton:"details.settings", MoreButton:"details.more"});
+    function detailsButtonSpot(node) { const type = node.type; return type && typeof type !== "string" ? DETAILS_BUTTONS[componentName(type)] || null : null; }
+    const renderItemWraps = new WeakMap();
+    function detailsRenderItem(render) {
+        let Wrapped = renderItemWraps.get(render);
+        if (!Wrapped) {
+            Wrapped = function () {
+                const out = render.apply(this, arguments);
+                return out && out.props && typeof out.type === "function" && componentName(out.type) === "NavigationHeader" ?
+                    el(wrapInner(out.type, detailsButtonSpot), Object.assign({key:out.key}, out.props)) : out;
+            };
+            renderItemWraps.set(render, Wrapped);
+        }
+        return Wrapped;
+    }
+    function detailsBar(orig, self, args) {
+        const out = orig.apply(self, args);
+        if (!out || !React) return out;
+        return swapWhere(out, 0, node => typeof node.props.renderItem === "function" && Array.isArray(node.props.items),
+            node => React.cloneElement(node, {renderItem:detailsRenderItem(node.props.renderItem)}));
+    }
+    // The details' tabs (useSearchSegmentedControlState 17487): removed tabs are left out of both its items and visibleTabs,
+    // so the tab bar and its pages close up together.
+    const searchTabCache = new WeakMap(), searchVisibleCache = new WeakMap();
+    function searchTabGone(id) { return !!SEARCH_TAB_SPOTS[id] && spotHidden(SEARCH_TAB_SPOTS[id]); }
+    function keptCached(cache, list, text, gone) {
+        let entry = cache.get(list);
+        if (!entry || entry.text !== text) {
+            const kept = list.filter(item => !gone(item));
+            entry = {text, list:kept.length && kept.length !== list.length ? kept : list};
+            cache.set(list, entry);
+        }
+        return entry.list;
+    }
+    function searchTabsState(orig, self, args) {
+        useSettings("hideAnything");
+        const options = args[0];
+        if (!options || typeof options !== "object" || !Array.isArray(options.items) || !settings.hideAnythingSpots || !enabled("hideAnything")) return orig.apply(self, args);
+        const text = settings.hideAnythingSpots, items = keptCached(searchTabCache, options.items, text, item => !!item && searchTabGone(item.id));
+        if (items === options.items) return orig.apply(self, args);
+        const next = Array.from(args);
+        next[0] = Object.assign({}, options, {items});
+        if (Array.isArray(options.visibleTabs)) next[0].visibleTabs = keptCached(searchVisibleCache, options.visibleTabs, text, searchTabGone);
+        return orig.apply(self, next);
+    }
+    // New Group above a DM's members (useMemberListAction 10748, the row it hands the member list to draw).
+    function memberListAction(orig, self, args) {
+        useSettings("hideAnything");
+        const out = orig.apply(self, args), options = args[0], channel = options && options.channel;
+        let dm = false;
+        try { dm = !!channel && typeof channel.isDM === "function" && channel.isDM(); } catch (_) {}
+        const mode = !out || !dm || !enabled("hideAnything") ? null : spotHidden("details.newGroup") ? "gone" : hideEditing() ? "edit" : null;
+        return React.useMemo(() => {
+            if (!mode || typeof out.listActionRenderer !== "function") return out;
+            if (mode === "gone") return Object.assign({}, out, {listActionRenderer:() => null, listActionHeight:() => 0});
+            const render = out.listActionRenderer;
+            return Object.assign({}, out, {listActionRenderer:function () { const row = render.apply(this, arguments); return row ? hideMarkedRow(row, "details.newGroup") : row; }});
+        }, [out, mode]);
+    }
+    // With the voice message button removed, the send button acts as it does where voice messages aren't allowed.
+    function withoutVoiceButton(props) {
+        useSettings("hideAnything");
+        return props && props.canSendVoiceMessage && !hideEditing() && spotHidden("chat.voice") ? Object.assign({}, props, {canSendVoiceMessage:false}) : props;
+    }
+    // The attach menu's buttons (MediaKeyboardBottomSheetActions 10028) are {text, IconComponent, onPress} in a row where each
+    // grows to fill it, so the ones left share the width. In removal mode a marked button's icon carries the red X and a tap
+    // asks to remove it. Matched by Discord's own icon, never by translated text; Files always stays, so the row is never empty.
+    const ATTACH_SPOTS = [[8229, "AppsIcon", "attach.apps"], [10022, "PollsIcon", "attach.polls"], [8210, "ImageIcon", "attach.photos"]];
+    const attachMarks = new Map();
+    function attachMarked(Icon, key) {
+        let Marked = attachMarks.get(key);
+        if (!Marked || Marked.base !== Icon) {
+            Marked = function (props) {
+                return el(RN.View, {style:{position:"relative"}}, el(Icon, props),
+                    el(HideBadge, {spot:key, style:[HIDE_MARK.badge, {top:-8, right:-12}]}));
+            };
+            Marked.base = Icon; attachMarks.set(key, Marked);
+        }
+        return Marked;
+    }
+    function attachMenuSpots(props) {
+        useSettings("hideAnything");
+        const list = props && props.overflowButtons;
+        if (!Array.isArray(list) || !enabled("hideAnything")) return props;
+        const edit = hideEditing();
+        if (!edit && !settings.hideAnythingSpots) return props;
+        const icons = new Map();
+        ATTACH_SPOTS.forEach(([id, name, key]) => { const Icon = inspectedExport(id, name); if (Icon) icons.set(Icon, key); });
+        let changed = false;
+        const out = [];
+        for (const button of list) {
+            const key = button && icons.get(button.IconComponent);
+            if (!key) { out.push(button); continue; }
+            if (spotHidden(key)) { changed = true; continue; }
+            if (!edit) { out.push(button); continue; }
+            changed = true;
+            out.push(Object.assign({}, button, {IconComponent:attachMarked(button.IconComponent, key)}));
+        }
+        return changed && out.length ? Object.assign({}, props, {overflowButtons:out}) : props;
+    }
+    // The bar that floats over Discord while removal mode is on. It sits beside the whole app (AppContainer 14827),
+    // outside Discord's theme, so it only uses plain views and text; a boundary keeps any failure in it from reaching Discord.
+    let HideSafe = null;
+    function hideSafe() {
+        if (HideSafe || !React || !React.Component) return HideSafe;
+        HideSafe = class extends React.Component {
+            constructor(props) { super(props); this.state = {failed:false}; }
+            static getDerivedStateFromError() { return {failed:true}; }
+            componentDidCatch() {}
+            render() { return this.state.failed ? null : this.props.children; }
+        };
+        return HideSafe;
+    }
+    const HIDE_BAR = {wrap:{position:"absolute", left:12, right:12, alignItems:"center", zIndex:9999, elevation:30},
+        pill:{flexDirection:"row", alignItems:"center", gap:10, maxWidth:460, paddingLeft:14, paddingRight:6, paddingVertical:6, borderRadius:28,
+            backgroundColor:"#111214f2", borderWidth:1, borderColor:"#ffffff1f", shadowColor:"#000000", shadowOpacity:0.35, shadowRadius:12,
+            shadowOffset:{width:0, height:4}},
+        dot:{width:10, height:10, borderRadius:5, backgroundColor:"#f23f43"},
+        title:{color:"#ffffff", fontSize:14, lineHeight:18, fontFamily:"ggsans-Bold", fontWeight:"700", includeFontPadding:false},
+        sub:{color:"#b5bac1", fontSize:12, lineHeight:16, fontFamily:"ggsans-Medium", includeFontPadding:false},
+        round:{width:36, height:36, borderRadius:18, alignItems:"center", justifyContent:"center", backgroundColor:"#ffffff14"},
+        roundText:{color:"#ffffff", fontSize:15, includeFontPadding:false},
+        ghost:{height:36, paddingHorizontal:12, borderRadius:18, alignItems:"center", justifyContent:"center", backgroundColor:"#ffffff14"},
+        done:{height:36, paddingHorizontal:16, borderRadius:18, alignItems:"center", justifyContent:"center", backgroundColor:"#5865f2"},
+        doneText:{color:"#ffffff", fontSize:14, fontFamily:"ggsans-Semibold", fontWeight:"600", includeFontPadding:false}};
+    function HideEditBar() {
+        useSettings("hideAnything");
+        const [, tick] = React.useState(0), last = hideEdit.last, fresh = !!last && Date.now() - last.at < 8000;
+        React.useEffect(() => {
+            if (!fresh) return undefined;
+            const timer = setTimeout(() => tick(n => n + 1), 8000 - (Date.now() - last.at));
+            return () => clearTimeout(timer);
+        }, [last, fresh]);
+        if (!RN || !hideEditing()) return null;
+        const Press = RN.Pressable || RN.TouchableOpacity || RN.View, n = hiddenSpots().size;
+        const sub = fresh ? tr("Removed: {name}", {name:hideSpotTitle(last.key)}) : n ? pl(n, "{n} button removed", "{n} buttons removed") : tr("Tap \u2715 on any button to remove it");
+        const button = (key, style, text, textStyle, onPress, label) => el(Press, {key, style, onPress, accessibilityRole:"button", accessibilityLabel:label || text,
+            hitSlop:{top:6, bottom:6, left:4, right:4}}, el(RN.Text, {style:textStyle}, text));
+        return el(RN.View, {pointerEvents:"box-none", style:[HIDE_BAR.wrap, hideEdit.top ? {top:52} : {bottom:136}]},
+            el(RN.View, {style:HIDE_BAR.pill, accessibilityLiveRegion:"polite"},
+                el(RN.View, {style:HIDE_BAR.dot}),
+                el(RN.View, {style:{flexShrink:1, minWidth:0}},
+                    el(RN.Text, {style:HIDE_BAR.title, numberOfLines:1}, tr("Removal mode")),
+                    el(RN.Text, {style:HIDE_BAR.sub, numberOfLines:1}, sub)),
+                fresh ? button("undo", HIDE_BAR.ghost, tr("Undo"), HIDE_BAR.doneText, () => { haptic("SELECTION"); setSpotHidden(last.key, false); }) : null,
+                button("move", HIDE_BAR.round, hideEdit.top ? "\u25BC" : "\u25B2", HIDE_BAR.roundText,
+                    () => { haptic("SELECTION"); hideEdit.top = !hideEdit.top; animateLayout(); notify("hideAnythingEdit"); }, tr("Move this bar")),
+                button("done", HIDE_BAR.done, tr("Done"), HIDE_BAR.doneText, () => { haptic("SELECTION"); setHideEdit(false); })));
+    }
+    function appWithHideBar(orig, self, args) {
+        const rendered = orig.apply(self, args), Safe = hideSafe();
+        // Always the same shape, so turning removal mode on never remounts Discord.
+        return el(React.Fragment, null, rendered, Safe ? el(Safe, null, el(HideEditBar)) : el(HideEditBar));
+    }
+    function hideAnythingHooks(id, exports) {
+        if (!exports) return exports;
+        switch (id) {
+            case 11935: return hookComponent(exports, hideTree(chatAttachSpot));
+            case 11942: return hookComponent(exports, hideWhole("chat.apps"));
+            case 11946: return hookComponent(exports, hideWhole("chat.gift"));
+            case 11957: return hookComponent(exports, hideWhole("chat.voice"));
+            case 11956: return exports.default ? replaceValue(exports, "default", propsComponent(exports.default, withoutVoiceButton)) : exports;
+            case 12854: return hookComponent(exports, hideTree(dmSpot));
+            case 13425: return hookComponent(exports, hideTree(profileSpot));
+            case 16467: return hookComponent(exports, hideTree(messagesSpot, messagesGone));
+            case 16466: return hookExport(exports, "default", messagesSpecs);
+            case 16575: return hookExport(exports, "useRedesignGuildHeaderHeight", guildHeaderHeight);
+            case 12364: return hookComponent(exports, profileTabsBar, "Tabs");
+            case 12365: return hookComponent(exports, segmentedItemMark, "TabItem");
+            case 13418: return hookComponent(exports, hideWhole("profile.mutuals"));
+            case 10614: return hookComponent(exports, aboutMeCard);
+            case 6882: return hookComponent(exports, rolesCard);
+            case 13402: return hookComponent(exports, hideWhole("profile.connections"), "UserProfileAccountConnectionsCard");
+            case 13181: return hookComponent(exports, noteSpot);
+            case 9115: return hookComponent(exports, hideTree(youSpot));
+            case 14827: return hookComponent(exports, appWithHideBar);
+            case 13092: return hookComponent(exports, profileMenu);
+            case 14973: return hookExport(exports, "renderSettingItem", settingItemMark);
+            case 14974: return hookExport(exports, "toSettingListItems", settingListItems);
+            case 10028: return exports.default ? replaceValue(exports, "default", propsComponent(exports.default, attachMenuSpots)) : exports;
+            case 14279: return hookComponent(exports, menuItemMark, "ContextMenuItem");
+            case 8525: return hookExport(exports, "useSegmentedControlState", segmentedState);
+            case 8775: return hookComponent(exports, segmentedItemMark, "SegmentedControlItem");
+            case 10533: return hookComponent(exports, primaryInfo);
+            case 11997: return hookComponent(exports, serverHeaderOuter);
+            case 14206: return hookComponent(exports, hideTree(guildHeaderSpot));
+            case 14212: return hookComponent(exports, hideTree(guildTabSpot));
+            case 14143: return hookComponent(hookComponent(exports, hideTree(guildRowSpot), "GuildUnreadAction"), hideTree(guildRowSpot), "GuildActionSheetSecondaryActions");
+            case 14216: return hookComponent(exports, hideWhole("guild.emoji"));
+            case 12208: return hookComponent(exports, chatBeginning);
+            case 11864: return hookComponent(exports, hideWhole("chat.emoji"));
+            case 10515: return hookComponent(exports, statusBubble);
+            case 17567: return hookComponent(exports, hideWhole("you.friends"));
+            case 16074: return hookComponent(exports, hideWhole("you.orbs"));
+            case 16577: return hookComponent(exports, channelStickyHeader);
+            case 17499: return hookComponent(exports, detailsBar);
+            case 17487: return hookExport(exports, "useSearchSegmentedControlState", searchTabsState);
+            case 10748: return hookExport(exports, "default", memberListAction);
+            case 15371: return hideQuestHooks(exports);
+            case 15465: return hideQuestDock(exports);
+        }
+        return exports;
+    }
+    // Starting removal mode from Venus closes Settings, so you land back in Discord with every button marked.
+    function startRemoving() {
+        haptic("SELECTION");
+        setHideEdit(true);
+        try {
+            const ref = inspectedExport(4977, "getRootNavigationRef"), nav = ref && ref();
+            const state = nav && typeof nav.getRootState === "function" ? nav.getRootState() : null, route = state && state.routes && state.routes[state.index];
+            if (route && /settings/i.test(String(route.name))) nav.dispatch({type:"POP", payload:{count:1}, target:state.key});
+        } catch (_) {}
+    }
+    const HIDE_HERO_DARK = {card:{backgroundColor:"#2b2d31", borderRadius:16, padding:16, gap:14},
+        badge:{width:44, height:44, borderRadius:22, alignItems:"center", justifyContent:"center", backgroundColor:"#f23f4329"}, icon:{color:"#f23f43"}};
+    function HideAnythingHero(props) {
+        const s = useThemed("hideHero", c => ({card:Object.assign({}, HIDE_HERO_DARK.card, {backgroundColor:c.CARD_BACKGROUND_DEFAULT}),
+            badge:HIDE_HERO_DARK.badge, icon:HIDE_HERO_DARK.icon}), HIDE_HERO_DARK);
+        const Text = inspectedExport(5088, "Text"), Button = inspectedExport(5379, "Button"), X = venusIcon(10260, "XLargeIcon"), editing = hideEditing();
+        const line = (value, variant, color, fallback) => Text ? el(Text, {variant, color}, value) : el(RN.Text, {style:fallback}, value);
+        const press = editing ? () => { haptic("SELECTION"); setHideEdit(false); } : startRemoving;
+        const label = editing ? tr("Stop removing") : tr("Start removing");
+        return el(RN.View, {style:s.card},
+            el(RN.View, {style:{flexDirection:"row", alignItems:"center", gap:14}},
+                popIn("hero:" + editing, el(RN.View, {style:s.badge}, el(X, {size:"md", color:s.icon.color}))),
+                el(RN.View, {style:{flex:1, gap:2}},
+                    line(editing ? tr("Removal mode is on") : tr("Removal mode"), "text-md/semibold", "text-strong", {color:"#f2f3f5", fontSize:16, fontWeight:"600"}),
+                    line(tr("Go anywhere in Discord: every button you can remove gets a red \u2715. Tap it, say yes, and it's gone."),
+                        "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:14}))),
+            Button ? el(Button, {text:label, variant:editing ? "secondary" : "primary", size:"md", grow:true, disabled:!props.on, onPress:press}) :
+                el(RN.Text, {onPress:props.on ? press : undefined, style:{color:"#00a8fc", fontWeight:"600"}}, label));
+    }
+    function HideAnythingSettings() {
+        useSettings("hideAnything");
+        const ui = reviewUI();
+        if (!React || !RN) return null;
+        const on = enabled("hideAnything"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow, Row = ui.TableRow, Button = inspectedExport(5379, "Button");
+        const hidden = hiddenSpots(), removed = HIDE_SPOTS.filter(spot => hidden.has(spot[0])).concat(Array.from(hidden).filter(key => !HIDE_SPOT_KEYS[key])
+            .map(key => [key, /^settings\./.test(key) ? "settings" : "options", 7092, "SettingsIcon"]));
+        const icon = spot => rowIcon(spot[2], spot[3]);
+        const groups = [
+            on ? null : offCard("status", venusIcon(10260, "XLargeIcon"), "hideAnything"),
+            el(HideAnythingHero, {key:"hero", on}),
+            removed.length && Row ? el(Group, {key:"removed", title:pl(removed.length, "{n} button removed", "{n} buttons removed")},
+                removed.map(spot => el(Row, {key:spot[0], label:hideSpotTitle(spot[0]), subLabel:hidePlaceTitle(spot[1]), icon:icon(spot), disabled:!on,
+                    trailing:Button ? el(Button, {text:tr("Bring back"), size:"sm", variant:"secondary", disabled:!on, onPress:() => { haptic("SELECTION"); setSpotHidden(spot[0], false); }}) : undefined,
+                    onPress:() => { haptic("SELECTION"); setSpotHidden(spot[0], false); }})).concat(removed.length > 1 ? [el(Row, {key:"all", label:tr("Bring everything back"),
+                    icon:rowIcon(15389, "UndoIcon"), disabled:!on, onPress:restoreAllSpots})] : [])) : null]
+            .concat(HIDE_PLACES.map(place => el(Group, {key:"place:" + place, title:hidePlaceTitle(place)},
+                HIDE_SPOTS.filter(spot => spot[1] === place).map(spot => Switch ? el(Switch, {key:spot[0], label:hideSpotTitle(spot[0]), icon:icon(spot),
+                    value:hidden.has(spot[0]), disabled:!on, onValueChange:value => setSpotHidden(spot[0], value)}) : null))))
+            .concat([footnote("note", "Switched on means removed. Buttons are only removed on this phone, and the ones left close up with no gap.")]);
+        return settingsBody(ui, groups);
     }
     // Discord's own "no Quest to show" answer, so the dock, the space kept for it and its tracking all go away together.
     let noQuestDock = null;
-    function questDockHidden() { useSettings("hideQuestDock"); return enabled("hideQuestDock"); }
+    function questDockHidden() { useSettings("hideAnything"); return spotHidden("you.questBanner"); }
     function hideQuestHooks(exports) {
         const types = inspectedExport(5979, "AdCreativeType");
         if (!types || types.NO_FILL === undefined) return exports;
@@ -7876,7 +9778,7 @@
     function hideQuestDock(exports) {
         const Dock = exports && exports.default;
         if (!Dock) return exports;
-        const HiddenQuestDock = function (props) { return questDockHidden() ? null : el(Dock, props); };
+        const HiddenQuestDock = function (props) { if (questDockHidden()) return null; const dock = el(Dock, props); return hideEditing() ? hideMarked(dock, "you.questBanner") : dock; };
         HiddenQuestDock.displayName = "QuestDock";
         return replaceValue(exports, "default", HiddenQuestDock);
     }
@@ -8165,7 +10067,7 @@
     function backgroundNeeded() {
         const questBusy = !!(enabled("quests") && (quest.running || quest.enrolling));
         const badgeBusy = !!(enabled("badges") && (badges.current && badgeNeedsGame() || badges.granting));
-        const pushListening = !!(settings.userNotifPush && userNotifHasTargets());
+        const pushListening = !!(settings.userNotifPush && userNotifHasTargets()) || removedPushing();
         return questBusy || badgeBusy || pushListening;
     }
     function unpauseGateway() {
@@ -8183,7 +10085,7 @@
     function backgroundSync() {
         const questBusy = !!(enabled("quests") && (quest.running || quest.enrolling));
         const badgeBusy = !!(enabled("badges") && (badges.current && badgeNeedsGame() || badges.granting));
-        const pushListening = !!(settings.userNotifPush && userNotifHasTargets());
+        const pushListening = !!(settings.userNotifPush && userNotifHasTargets()) || removedPushing();
         const needed = questBusy || badgeBusy || pushListening;
         if (needed) unpauseGateway();
         const fg = bgKeepAlive.fg || inspectedExport(9699, "default");
@@ -8238,17 +10140,39 @@
         });
         return exports;
     }
-    const USER_NOTIF_MAX_IDS = 500, USER_NOTIF_COOLDOWN_MS = 8000;
+    // Typing repeats every ~9 s while someone keeps typing, so it gets a longer quiet time than status changes.
+    const USER_NOTIF_MAX_IDS = 500, USER_NOTIF_COOLDOWN_MS = 8000, USER_NOTIF_TYPING_MS = 60000;
     const USER_NOTIF_EVENTS = ["PRESENCE_UPDATES", "PRESENCE_UPDATE", "MESSAGE_CREATE", "TYPING_START", "CONNECTION_OPEN",
         "CONNECTION_OPEN_SUPPLEMENTAL", "PRESENCES_REPLACE", "OVERLAY_INITIALIZE", "RELATIONSHIP_ADD", "RELATIONSHIP_UPDATE",
         "CONNECTION_RESUMED", "GUILD_CREATE", "IDLE", "LOGOUT"];
+    // subscribedGuilds: servers asked for presences on this connection, so each is asked once, not on every event.
     const userNotif = {dispatcher:null, subscribed:false, relationships:null, guilds:null, ids:new Set(), dirty:false,
-        statuses:new Map(), cooldowns:new Map(), shown:0, last:null, permissionGranted:null};
+        statuses:new Map(), cooldowns:new Map(), shown:0, last:null, permissionGranted:null, subscribedGuilds:new Set(), seedQueued:false, subscribeQueued:false};
+    // Discord loads this as a TurboModule ("NativePermissionManagerModule", module 7501), so it is not in
+    // NativeModules. Looking it up there found nothing and every check reported "allowed", even with
+    // Android's notifications switched off for Discord, so the pushes were lost without any warning.
     function userNotifNativePerm() {
+        const turbo = inspectedExport(7501, "default");
+        if (turbo && typeof turbo.getNotificationAuthorizationStatus === "function") return turbo;
         const native = RN && RN.NativeModules;
-        return native && (native.NativePermissionManager || native.RTNNativePermissionManager) || null;
+        return native && (native.NativePermissionManagerModule || native.NativePermissionManager) || null;
+    }
+    // The warning row comes from the last check, so coming back from Android's settings (where it was just
+    // fixed) has to check again, or the row keeps saying notifications are off.
+    function userNotifWatchPermission() {
+        if (userNotif.permWatch || !RN || !RN.AppState || typeof RN.AppState.addEventListener !== "function") return;
+        try {
+            userNotif.permWatch = RN.AppState.addEventListener("change", state => {
+                if (state !== "active") return;
+                const users = enabled("userNotif") && settings.userNotifPush, removing = enabled("removedAlerts") && settings.removedAlertsPush;
+                if (!users && !removing) return;
+                const before = userNotif.permissionGranted;
+                userNotifCheckPermissions().then(() => { if (removing && before !== userNotif.permissionGranted) notify("removedAlerts"); });
+            });
+        } catch (_) {}
     }
     function userNotifCheckPermissions() {
+        userNotifWatchPermission();
         const perm = userNotifNativePerm();
         if (perm && typeof perm.getNotificationAuthorizationStatus === "function") {
             return Promise.resolve().then(() => perm.getNotificationAuthorizationStatus()).then(code => {
@@ -8292,15 +10216,23 @@
         }
         return checkStatus();
     }
-    function userNotifPushSend(content) {
-        if (!settings.userNotifPush || isAppActive()) return;
+    // Android's native renderer (NotificationRenderer.displayLocal) builds the notification tag from
+    // userInfo.channel_id + userInfo.message_id and posts every local push under notification id 0.
+    // Top-level channelId/messageId keys are never read, so pushes used to share one tag and each new
+    // one silently replaced the one before it. A unique message_id inside userInfo keeps them all.
+    let pushCounter = 0;
+    function venusPush(title, body) {
         const pushMod = inspectedExport(11033, "default");
-        const mid = String(userNotif.shown);
+        if (!pushMod || typeof pushMod.presentLocalNotification !== "function") return false;
+        const mid = "venus-" + Date.now().toString(36) + "-" + (++pushCounter);
         try {
-            if (pushMod && typeof pushMod.presentLocalNotification === "function")
-                pushMod.presentLocalNotification({alertTitle:tr("Activity notifications"), alertBody:content,
-                    channelId:"venus-user-notif", channel_id:"venus-user-notif", messageId:mid, message_id:mid});
-        } catch (_) {}
+            pushMod.presentLocalNotification({alertTitle:title, alertBody:body, userInfo:{message_id:mid}});
+            return true;
+        } catch (_) { return false; }
+    }
+    function userNotifPushSend(content, title) {
+        if (!settings.userNotifPush || isAppActive()) return;
+        venusPush(title || tr("Activity notifications"), content);
     }
     function userNotifFriendIds() {
         const store = userNotif.relationships || (userNotif.relationships = inspectedExport(4760, "default"));
@@ -8320,12 +10252,22 @@
         } catch (_) {}
         return false;
     }
+    // Called for every presence update Discord receives (hundreds a second in big servers): cheapest checks first. IDs
+    // were checked when they were added and friend IDs come from Discord, so no pattern test here.
     function userNotifWatched(id) {
-        if (typeof id !== "string") return false;
-        if (!userNotif.ids.has(id) && !(settings.userNotifFriends && userNotifIsFriend(id))) return false;
-        if (!/^\d{17,20}$/.test(id)) return false;
+        if (typeof id !== "string" || !(userNotif.ids.has(id) || settings.userNotifFriends && userNotifIsFriend(id))) return false;
         const me = currentUser();
         return !(me && me.id === id);
+    }
+    // The chat you're looking at right now, while Discord is open: its messages and typing are already on screen.
+    function userNotifInView(channelId) {
+        if (!channelId || !isAppActive()) return false;
+        const store = inspectedExport(2116, "default");
+        try {
+            const current = store && (typeof store.getCurrentlySelectedChannelId === "function" ? store.getCurrentlySelectedChannelId() :
+                typeof store.getChannelId === "function" ? store.getChannelId() : null);
+            return current != null && String(current) === String(channelId);
+        } catch (_) { return false; }
     }
     function userNotifPersonName(id, fallbackUser) {
         const store = userNotif.relationships || (userNotif.relationships = inspectedExport(4760, "default"));
@@ -8347,13 +10289,16 @@
         const gId = guildId || channel && (channel.guild_id || channel.guildId);
         const guilds = userNotif.guilds || (userNotif.guilds = inspectedExport(2087, "default"));
         const guild = guilds && gId && typeof guilds.getGuild === "function" ? guilds.getGuild(gId) : null;
-        const cName = channel && typeof channel.name === "string" && channel.name.trim() ? channel.name.trim() : "";
+        const raw = channel && typeof channel.name === "string" ? channel.name : "";
+        const shownName = raw && features.cleanChannels ? channelNameFormat(channel, raw) : raw;
+        const cName = shownName && shownName.trim() ? shownName.trim() : "";
         const gName = guild && typeof guild.name === "string" && guild.name.trim() ? guild.name.trim() : "";
         const isDm = !gId && (!channel || channel.type === 1 || channel.type === 3);
         return {isDm:!!isDm, cName, gName};
     }
     function userNotifSubscribeGuild(guildId, subFn) {
-        if (typeof guildId !== "string" || !/^\d{17,20}$/.test(guildId)) return;
+        if (typeof guildId !== "string" || !/^\d{17,20}$/.test(guildId) || userNotif.subscribedGuilds.has(guildId)) return;
+        userNotif.subscribedGuilds.add(guildId);
         const sub = subFn !== undefined ? subFn : inspectedExport(7012, "subscribeGuild");
         try {
             if (typeof sub === "function") { sub(guildId); return; }
@@ -8361,8 +10306,23 @@
         const d = userNotif.dispatcher;
         try { if (d && typeof d.dispatch === "function") d.dispatch({type:"GUILD_SUBSCRIPTIONS", guildId}); } catch (_) {}
     }
+    // Discord sends friends' presences by itself; only people who aren't friends need their servers subscribed. Many
+    // events ask for this at once (connect, resume, idle, a settings change), so it runs once after them.
     function userNotifSubscribeGuilds() {
+        if (userNotif.subscribeQueued) return;
+        userNotif.subscribeQueued = true;
+        later(() => { userNotif.subscribeQueued = false; userNotifSubscribeGuildsNow(); }, 0);
+    }
+    function userNotifStrangers() {
+        const out = [];
+        userNotif.ids.forEach(id => { if (!userNotifIsFriend(id)) out.push(id); });
+        return out;
+    }
+    function userNotifSubscribeGuildsNow() {
         if (!userNotifHasTargets()) return;
+        const strangers = userNotifStrangers();
+        if (!strangers.length) return;
+        const members = inspectedExport(2125, "default"), isMember = members && typeof members.isMember === "function" ? members : null;
         const guilds = userNotif.guilds || (userNotif.guilds = inspectedExport(2087, "default"));
         if (!guilds) return;
         let ids = null;
@@ -8375,11 +10335,25 @@
         } catch (_) {}
         if (!Array.isArray(ids)) return;
         const sub = inspectedExport(7012, "subscribeGuild");
-        for (let i = 0; i < ids.length && i < 200; i++) userNotifSubscribeGuild(ids[i], sub);
+        let asked = 0;
+        for (let i = 0; i < ids.length && asked < 200; i++) {
+            const guildId = ids[i];
+            if (userNotif.subscribedGuilds.has(guildId)) continue;
+            // Only servers one of them is known to be in; with no member list loaded yet, every server, as before.
+            if (isMember) {
+                let shared = false, known = false;
+                for (let j = 0; j < strangers.length && !shared; j++) {
+                    try { const r = isMember.isMember(guildId, strangers[j]); if (r) shared = true; else if (r === false) known = true; } catch (_) {}
+                }
+                if (!shared && known) continue;
+            }
+            userNotifSubscribeGuild(guildId, sub);
+            asked++;
+        }
     }
-    function userNotifAllowed(id, kind) {
+    function userNotifAllowed(id, kind, quietMs) {
         const now = Date.now(), key = id + ":" + kind, prev = userNotif.cooldowns.get(key) || 0;
-        if (now - prev < USER_NOTIF_COOLDOWN_MS) return false;
+        if (now - prev < (quietMs || USER_NOTIF_COOLDOWN_MS)) return false;
         if (userNotif.cooldowns.size >= 500) userNotif.cooldowns.delete(userNotif.cooldowns.keys().next().value);
         userNotif.cooldowns.set(key, now);
         return true;
@@ -8392,8 +10366,14 @@
         try {
             showToast(ui, "venus-user-notif:" + userNotif.shown, content, Icon);
         } catch (_) {}
-        userNotifPushSend(content);
+        userNotifPushSend(content, vars && typeof vars.name === "string" ? vars.name : "");
         notify("userNotif");
+    }
+    // Every server that loads at startup used to walk the whole friends list again; now it's done once after them.
+    function userNotifSeedSoon() {
+        if (userNotif.seedQueued) return;
+        userNotif.seedQueued = true;
+        later(() => { userNotif.seedQueued = false; userNotifSeedStatuses(true); }, 0);
     }
     function userNotifSeedStatuses(includeOffline) {
         if (!presenceStore || typeof presenceStore.getStatus !== "function") return;
@@ -8428,9 +10408,11 @@
                 if (typeof stored === "string" && stored && stored !== nextStatus) prev = stored;
             } catch (_) {}
         }
-        // Flux stores update before dispatcher.subscribe listeners run: if a watched person was offline (never seeded
+        // Flux stores update before dispatcher.subscribe listeners run: if a watched friend was offline (never seeded
         // or not yet in statuses) and just came online/idle/dnd, PresenceStore.getStatus(id) already equals nextStatus.
-        if (prev === undefined && nextStatus !== "offline" && nextStatus !== "invisible") prev = "offline";
+        // Discord sends every friend's presence when it connects, so an unknown friend really was offline. For someone
+        // added by ID it only means their presence hadn't arrived yet: learn it quietly instead of saying they came online.
+        if (prev === undefined && nextStatus !== "offline" && nextStatus !== "invisible" && userNotifIsFriend(id)) prev = "offline";
         if (userNotif.statuses.size >= 2000 && !userNotif.statuses.has(id))
             userNotif.statuses.delete(userNotif.statuses.keys().next().value);
         userNotif.statuses.set(id, nextStatus);
@@ -8442,9 +10424,13 @@
         const message = event.message;
         if (!message || message.state === "SENDING") return;
         const author = message.author, id = author && author.id;
-        if (!id || !userNotifWatched(id) || !userNotifAllowed(id, "message")) return;
+        const channelId = message.channel_id || message.channelId || event.channelId;
+        if (!id || !userNotifWatched(id)) return;
+        // They sent it, so the next time they start typing is news again.
+        userNotif.cooldowns.delete(id + ":typing:" + channelId);
+        if (userNotifInView(channelId) || !userNotifAllowed(id, "message")) return;
         const name = userNotifPersonName(id, author);
-        const place = userNotifPlace(message.channel_id || message.channelId || event.channelId, message.guild_id || message.guildId || event.guildId);
+        const place = userNotifPlace(channelId, message.guild_id || message.guildId || event.guildId);
         if (place.isDm) userNotifShow("{name} sent you a DM", {name});
         else if (place.cName && place.gName) userNotifShow("{name} sent a message in #{channel} ({server})", {name, channel:place.cName, server:place.gName});
         else if (place.cName) userNotifShow("{name} sent a message in #{channel}", {name, channel:place.cName});
@@ -8452,10 +10438,10 @@
     }
     function userNotifTyping(event) {
         if (!enabled("userNotif") || !settings.userNotifTyping || !event) return;
-        const id = event.userId || event.user && event.user.id;
-        if (!id || !userNotifWatched(id) || !userNotifAllowed(id, "typing")) return;
+        const id = event.userId || event.user && event.user.id, channelId = event.channelId || event.channel_id;
+        if (!id || !userNotifWatched(id) || userNotifInView(channelId) || !userNotifAllowed(id, "typing:" + channelId, USER_NOTIF_TYPING_MS)) return;
         const name = userNotifPersonName(id, event.user);
-        const place = userNotifPlace(event.channelId || event.channel_id, event.guildId || event.guild_id);
+        const place = userNotifPlace(channelId, event.guildId || event.guild_id);
         if (place.isDm) userNotifShow("{name} is typing in your DM", {name});
         else if (place.cName && place.gName) userNotifShow("{name} is typing in #{channel} ({server})", {name, channel:place.cName, server:place.gName});
         else if (place.cName) userNotifShow("{name} is typing in #{channel}", {name, channel:place.cName});
@@ -8465,32 +10451,34 @@
         if (!event || !enabled("userNotif")) return;
         switch (event.type) {
         case "PRESENCE_UPDATES":
-            if (Array.isArray(event.updates)) for (let i = 0; i < event.updates.length; i++) userNotifPresence(event.updates[i]);
+            if (settings.userNotifStatus && Array.isArray(event.updates)) for (let i = 0; i < event.updates.length; i++) userNotifPresence(event.updates[i]);
             return;
         case "PRESENCE_UPDATE": userNotifPresence(event); return;
         case "MESSAGE_CREATE": userNotifMessage(event); return;
         case "TYPING_START": userNotifTyping(event); return;
-        case "CONNECTION_OPEN": userNotif.statuses.clear(); userNotifSeedStatuses(false); userNotifSubscribeGuilds(); return;
+        case "CONNECTION_OPEN":
+            // A new connection starts with no subscriptions, so every server can be asked again.
+            userNotif.statuses.clear(); userNotif.subscribedGuilds.clear(); userNotifSeedStatuses(false); userNotifSubscribeGuilds(); return;
         case "CONNECTION_OPEN_SUPPLEMENTAL":
         case "PRESENCES_REPLACE":
         case "OVERLAY_INITIALIZE":
-            userNotifSeedStatuses(true);
+            userNotifSeedSoon();
             userNotifSubscribeGuilds();
             return;
         case "RELATIONSHIP_ADD":
         case "RELATIONSHIP_UPDATE":
-            userNotifSeedStatuses(true);
+            userNotifSeedSoon();
             return;
         case "CONNECTION_RESUMED":
         case "IDLE":
             userNotifSubscribeGuilds();
             return;
         case "GUILD_CREATE":
-            userNotifSeedStatuses(true);
-            if (event.guild && event.guild.id) userNotifSubscribeGuild(event.guild.id);
+            // A server joined or loaded later: its members may include someone added by ID.
+            if (event.guild && event.guild.id) { userNotif.subscribedGuilds.delete(String(event.guild.id)); userNotifSubscribeGuilds(); }
             return;
         case "LOGOUT":
-            userNotif.statuses.clear(); userNotif.cooldowns.clear(); userNotif.shown = 0; userNotif.last = null; notify("userNotif");
+            userNotif.statuses.clear(); userNotif.cooldowns.clear(); userNotif.subscribedGuilds.clear(); userNotif.shown = 0; userNotif.last = null; notify("userNotif");
             return;
         }
     }
@@ -8506,7 +10494,7 @@
         } else if (!active && userNotif.subscribed) {
             userNotif.subscribed = false;
             if (typeof d.unsubscribe === "function") USER_NOTIF_EVENTS.forEach(type => d.unsubscribe(type, userNotifEvent));
-            userNotif.statuses.clear(); userNotif.cooldowns.clear();
+            userNotif.statuses.clear(); userNotif.cooldowns.clear(); userNotif.subscribedGuilds.clear();
         } else if (active) {
             userNotifSeedStatuses();
             userNotifSubscribeGuilds();
@@ -9191,6 +11179,119 @@
             accessibilityLabel:tr("Switch accounts"), onPress:openAccountSwitcherSheet, onLongPress:() => openManageAccounts(),
             icon:el(accountSwitcher.youBarParts.Icon, {size:"custom", style:accountSwitcher.youBarParts.style, color:nameplate ? "white" : undefined})});
     }
+    // Export and import accounts (#111): the saved accounts and their sign-ins (TokenManager 1111) go to a file, so another
+    // phone or a fresh install gets them back without signing in again. Kept out of Backup and restore on purpose: the file
+    // signs in to every account in it, so it is only made after a warning. Importing follows the MultiAccountStore rules
+    // above: nothing is written until Discord has loaded its storage and initialized the store, accounts already saved are
+    // left alone, and Discord's own validateMultiAccountTokens then checks every new sign-in.
+    const ACCOUNTS_KIND = "venus-accounts", ACCOUNTS_FORMAT = 1, ACCOUNT_ID = /^\d{17,20}$/;
+    function accountTokens() {
+        const raw = global.__r && global.__r(1111);
+        return raw && typeof raw.setToken === "function" ? raw : raw && raw.default && typeof raw.default.setToken === "function" ? raw.default : null;
+    }
+    function accountsReady() {
+        const store = accountSwitcherStore();
+        return enabled("accountSwitcher") && !!store && store._isInitialized === true && accountSwitcherStorageReady() && typeof store.getState === "function" ? store : null;
+    }
+    function accountsExportList() {
+        const tokens = accountTokens();
+        if (!tokens || typeof tokens.getToken !== "function") return [];
+        accountSwitcherSync();
+        const me = currentUser(), out = [];
+        accountSwitcherUsers().forEach(acc => {
+            if (!acc || !ACCOUNT_ID.test(String(acc.id)) || out.some(a => a.id === acc.id)) return;
+            let token = null;
+            try { token = tokens.getToken(acc.id) || (me && me.id === acc.id ? tokens.getToken() : null); } catch (_) {}
+            if (typeof token === "string" && token) out.push({id:acc.id, username:acc.username || "", discriminator:acc.discriminator || "0", avatar:acc.avatar || null, token});
+        });
+        return out;
+    }
+    function accountsExport() {
+        const accounts = accountsExportList();
+        if (!accounts.length) { showProblem("Couldn't export accounts", tr("Try again in a moment.")); return; }
+        confirmAction("Export accounts?", "The file signs in to every saved account. Anyone who gets it can use them, so keep it private and never send it to anyone.", "Export", () => {
+            const text = JSON.stringify({app:BACKUP_APP, kind:ACCOUNTS_KIND, format:ACCOUNTS_FORMAT, created:Date.now(), accounts});
+            const toClipboard = () => {
+                const clip = reviewUI().clipboard || RN && RN.Clipboard;
+                try { clip.setString(text); } catch (_) { showProblem("Couldn't export accounts", tr("Try again in a moment.")); return; }
+                reviewToast(reviewUI(), "Accounts copied", venusIcon(5042, "CopyIcon"));
+            };
+            const saveDocuments = inspectedExport(12803, "saveDocuments"), dir = cacheDir();
+            if (!files || typeof saveDocuments !== "function" || !dir) { toClipboard(); return; }
+            const name = "venus-accounts-" + backupDate(Date.now()) + ".json", path = dir + "/" + name;
+            const cleanup = () => { try { if (typeof files.removeFile === "function") files.removeFile(path); else files.writeFile("cache", name, "", "utf8"); } catch (_) {} };
+            Promise.resolve().then(() => files.writeFile("cache", name, text, "utf8"))
+                .then(() => saveDocuments({sourceUris:["file://" + path], fileName:name, mimeType:"application/json"}))
+                .then(result => {
+                    const first = Array.isArray(result) ? result[0] : result;
+                    if (first && first.error) throw new Error(String(first.error));
+                    cleanup();
+                    reviewToast(reviewUI(), "Accounts exported", venusIcon(6868, "CircleCheckIcon"));
+                }).catch(error => { cleanup(); if (!pickerCancelled(error)) showProblem("Couldn't export accounts", tr("Try again in a moment.")); });
+        });
+    }
+    // Adds every valid account from an export that isn't saved yet; returns how many were added, or a reason it couldn't.
+    function accountsImportText(text) {
+        let data = null;
+        try { data = typeof text === "string" && text.length <= BACKUP_MAX_BYTES ? JSON.parse(text) : null; } catch (_) { data = null; }
+        if (!data || data.kind !== ACCOUNTS_KIND || typeof data.format !== "number" || data.format > ACCOUNTS_FORMAT || !Array.isArray(data.accounts))
+            return {error:tr("That isn't a Venus accounts export.")};
+        const store = accountsReady(), tokens = accountTokens();
+        if (!store || !tokens || typeof store.initialize !== "function") return {error:tr("Try again in a moment.")};
+        const state = store.getState() || {}, saved = Array.isArray(state.users) ? state.users.slice() : [];
+        const me = currentUser(), statuses = inspectedExport(12129, "MultiAccountTokenStatus");
+        const checking = statuses && typeof statuses.VALIDATING === "number" ? statuses.VALIDATING : 1;
+        let added = 0, full = false;
+        data.accounts.slice(0, 200).forEach(acc => {
+            if (!acc || typeof acc !== "object" || !ACCOUNT_ID.test(String(acc.id)) || typeof acc.token !== "string" || !acc.token || acc.token.length > 512 || /\s/.test(acc.token)) return;
+            if ((me && me.id === acc.id) || saved.some(u => u && u.id === acc.id)) return;
+            if (accountSwitcherWithCurrent(saved, false).length >= multiAccountLimit()) { full = true; return; }
+            try { tokens.setToken(acc.token, acc.id); } catch (_) { return; }
+            saved.push({id:acc.id, avatar:typeof acc.avatar === "string" ? acc.avatar : null, username:typeof acc.username === "string" ? acc.username.slice(0, 64) : "",
+                discriminator:typeof acc.discriminator === "string" ? acc.discriminator.slice(0, 4) : "0", tokenStatus:checking});
+            added++;
+        });
+        if (!added) return {error:full ? tr("There's no room for more accounts.") : tr("Every account in it is already saved.")};
+        try {
+            store.initialize(Object.assign({}, state, {users:accountSwitcherWithCurrent(saved, false), canUseMultiAccountMobile:true}));
+            if (typeof store.asyncPersist === "function") store.asyncPersist();
+            if (typeof store.emitChange === "function") store.emitChange();
+        } catch (_) { return {error:tr("Try again in a moment.")}; }
+        const validate = inspectedExport(12133, "validateMultiAccountTokens");
+        try { if (typeof validate === "function") validate(); } catch (_) {}
+        notify("accountSwitcher");
+        return {added};
+    }
+    function accountsImportDone(text) {
+        const result = accountsImportText(text);
+        if (result.error) showProblem("Couldn't import accounts", result.error);
+        else reviewToast(reviewUI(), pl(result.added, "{n} account added", "{n} accounts added"), venusIcon(6868, "CircleCheckIcon"));
+    }
+    function accountsImport() {
+        const pick = inspectedExport(12803, "pick"), keep = inspectedExport(12803, "keepLocalCopy"), types = inspectedExport(12803, "types");
+        if (!files || typeof pick !== "function" || typeof keep !== "function") {
+            const clip = reviewUI().clipboard || RN && RN.Clipboard;
+            if (!clip || typeof clip.getString !== "function") return;
+            Promise.resolve().then(() => clip.getString()).then(accountsImportDone, () => accountsImportDone(""));
+            return;
+        }
+        Promise.resolve().then(() => pick({type:[types && types.allFiles || "*/*"], allowMultiSelection:false, mode:"import"})).then(picked => {
+            const file = Array.isArray(picked) ? picked[0] : picked;
+            if (!file || typeof file.uri !== "string") throw new Error("cancel");
+            if (typeof file.size === "number" && file.size > BACKUP_MAX_BYTES) throw new Error(tr("That file couldn't be opened."));
+            return Promise.resolve(keep({files:[{uri:file.uri, fileName:"venus-accounts-import.json"}], destination:"cachesDirectory"})).then(copies => {
+                const copy = Array.isArray(copies) ? copies[0] : copies;
+                if (!copy || copy.status !== "success" || typeof copy.localUri !== "string") throw new Error(tr("That file couldn't be opened."));
+                const local = decodeURIComponent(copy.localUri.replace(/^file:\/\//, ""));
+                return Promise.resolve(files.readFile(local, "utf8")).then(text => {
+                    try { if (typeof files.removeFile === "function") files.removeFile(local); } catch (_) {}
+                    return text;
+                });
+            });
+        }).then(accountsImportDone).catch(error => {
+            if (!pickerCancelled(error)) showProblem("Couldn't import accounts", String(error && error.message && !/^[A-Z_]+$/.test(error.message) ? error.message : tr("That file couldn't be opened.")));
+        });
+    }
     function accountSwitcherSummary() {
         if (!enabled("accountSwitcher")) return tr("Turned off. Switch it on in Features to start.");
         const accounts = accountSwitcherUsers();
@@ -9253,6 +11354,10 @@
                     arrow:true, disabled:!on || accounts.length >= multiAccountLimit(), onPress:openAddAccountModal}) : null,
                 Row ? el(Row, {key:"register", label:tr("Create a new account"), subLabel:tr("Register a new Discord account right inside the app."), icon:rowIcon(13139, "NewUserIcon"),
                     arrow:true, disabled:!on || accounts.length >= multiAccountLimit(), onPress:openRegister}) : null,
+                Row ? el(Row, {key:"export", label:tr("Export accounts"), subLabel:tr("Save your accounts and their sign-ins to a file, for another phone or a fresh install."), icon:rowIcon(5044, "DownloadIcon"),
+                    arrow:true, disabled:!on || !accounts.length, onPress:accountsExport}) : null,
+                Row ? el(Row, {key:"import", label:tr("Import accounts"), subLabel:tr("Add accounts from an export, without signing in again."), icon:rowIcon(9401, "UploadIcon"),
+                    arrow:true, disabled:!on || accounts.length >= multiAccountLimit(), onPress:accountsImport}) : null,
                 Row ? el(Row, {key:"manage", label:tr("Manage accounts"), subLabel:tr("Open Discord's account manager to reorder or remove accounts."), icon:rowIcon(7092, "SettingsIcon"),
                     arrow:true, disabled:!on, onPress:() => openManageAccounts()}) : null,
                 null),
@@ -9473,27 +11578,44 @@
     // A service is [id, name, {from host: to host}, extra], or [id, name, "template"] for one that takes the whole link:
     // {url} is the link, encoded; {host} and {path} are its parts. A "*.tumblr.com" host matches any blog's own address and
     // keeps the blog's name ("staff.tumblr.com" becomes "staff.tpmblr.com"). extra.dark: the query that asks for a dark post.
+    // extra.styles: the subdomain that asks for each look ("g." gallery, "t." text, "d." the file itself; "full" when the full
+    // post needs one too). extra.lang: how the service translates a post ("fx" and "vx" add /ja after it, "pixiv" puts it in
+    // front), and extra.at: the post addresses it can be added to.
     // Options: group (where the site is listed), off (starts off: Discord already shows a fair preview), sub (blog addresses).
     // Every service here was checked with Discord's own link crawler against real posts.
     // Built only when a link is first sent or the page opens, never while Discord starts.
+    // The X addresses a language can be added to: a post, or one of its pictures or videos (/photo/2).
+    const FIX_X_POST = /^\/(?:[A-Za-z0-9_]{1,15}|i(?:\/web)?)\/status(?:es)?\/\d+(?:\/(?:photo|video)\/\d)?\/?$/;
+    const FIX_PIXIV_POST = /^\/(?:[a-z]{2}(?:_[a-z]{2})?\/)?artworks\/\d+/;
+    // Every X address goes to the service's x.com host, except twitter.com links, which keep their own.
+    function fixMirror(x, twitter) {
+        const out = {"twitter.com":twitter};
+        ["x.com", "nitter.net", "xcancel.com", "nitter.poast.org", "nitter.privacyredirect.com", "nitter.space", "nitter.tiekoetter.com", "lightbrd.com"].forEach(host => { out[host] = x; });
+        return out;
+    }
     function fixSiteRows() {
         const FIXEMBED = ["fixembed", "FixEmbed", "https://fixembed.app/embed?url={url}"];
         return [
-            ["x", "X (Twitter)", "#000000", [8128, "XNeutralIcon"], ["x.com", "twitter.com", "nitter.net", "xcancel.com"], /^\/(?:[A-Za-z0-9_]{1,15}|i(?:\/web)?)\/status(?:es)?\/\d+/,
-                [["fxtwitter", "FxTwitter", {"x.com":"fixupx.com", "twitter.com":"fxtwitter.com", "nitter.net":"fixupx.com", "xcancel.com":"fixupx.com"}],
-                 ["vxtwitter", "vxTwitter", {"x.com":"fixvx.com", "twitter.com":"vxtwitter.com", "nitter.net":"fixvx.com", "xcancel.com":"fixvx.com"}], FIXEMBED], {group:"social"}],
-            ["instagram", "Instagram", "#e1306c", [8132, "InstagramNeutralIcon"], ["instagram.com"], /^\/(?:[\w.]+\/)?(?:p|reels?|tv|share(?:\/(?:p|reels?))?)\/[\w-]+/,
+            // FxTwitter and vxTwitter translate a post when its link ends in a language (/status/20/ja), and FxTwitter can show
+            // just the media (g.), just the text (t.) or the file itself (d.).
+            ["x", "X (Twitter)", "#000000", [8128, "XNeutralIcon"], ["x.com", "twitter.com", "nitter.net", "xcancel.com", "nitter.poast.org", "nitter.privacyredirect.com",
+                "nitter.space", "nitter.tiekoetter.com", "lightbrd.com"], /^\/(?:[A-Za-z0-9_]{1,15}|i(?:\/web)?)\/status(?:es)?\/\d+/,
+                [["fxtwitter", "FxTwitter", fixMirror("fixupx.com", "fxtwitter.com"), {styles:{gallery:"g.", text:"t.", media:"d."}, lang:"fx", at:FIX_X_POST}],
+                 ["vxtwitter", "vxTwitter", fixMirror("fixvx.com", "vxtwitter.com"), {styles:{media:"d."}, lang:"vx", at:FIX_X_POST}], FIXEMBED], {group:"social"}],
+            ["instagram", "Instagram", "#e1306c", [8132, "InstagramNeutralIcon"], ["instagram.com"], /^\/(?:(?:[\w.]+\/)?(?:p|reels?|tv|share(?:\/(?:p|reels?))?)\/[\w-]+|stories\/[\w.]+\/\d+)/,
                 [["oginstagram", "OGInstagram", {"instagram.com":"oginstagram.com"}], ["instafix", "InstaFix", {"instagram.com":"eeinstagram.com"}],
                  ["kkinstagram", "KKInstagram", {"instagram.com":"kkinstagram.com"}], ["vxinstagram", "vxInstagram", {"instagram.com":"vxinstagram.com"}], FIXEMBED], {group:"social"}],
             ["tiktok", "TikTok", "#ee1d52", [12055, "TiktokNeutralIcon"], ["tiktok.com", "vm.tiktok.com", "vt.tiktok.com"],
                 {"tiktok.com":/^\/(?:@[\w.-]+\/(?:video|photo)\/\d+|t\/\w+)/, "vm.tiktok.com":/^\/\w+/, "vt.tiktok.com":/^\/\w+/},
-                [["fxtiktok", "fxTikTok", {"tiktok.com":"tnktok.com", "vm.tiktok.com":"vm.tnktok.com", "vt.tiktok.com":"vt.tnktok.com"}],
+                [["fxtiktok", "fxTikTok", {"tiktok.com":"tnktok.com", "vm.tiktok.com":"vm.tnktok.com", "vt.tiktok.com":"vt.tnktok.com"}, {styles:{full:"a.", gallery:"", media:"d."}}],
                  ["tiktxk", "tiktxk", {"tiktok.com":"tiktxk.com", "vm.tiktok.com":"vm.tiktxk.com", "vt.tiktok.com":"vt.tiktxk.com"}], FIXEMBED], {group:"video"}],
-            ["reddit", "Reddit", "#ff4500", [9105, "RedditNeutralIcon"], ["reddit.com"], /^\/(?:r|u|user)\/[\w-]+\/(?:comments|s)\/\w+/,
-                [["vxreddit", "vxReddit", {"reddit.com":"vxreddit.com"}], ["fixreddit", "FixReddit", {"reddit.com":"fxreddit.seria.moe"}], ["rxddit", "rxddit", {"reddit.com":"rxddit.com"}], FIXEMBED],
+            ["reddit", "Reddit", "#ff4500", [9105, "RedditNeutralIcon"], ["reddit.com", "redd.it"], {"reddit.com":/^\/(?:r|u|user)\/[\w-]+\/(?:comments|s)\/\w+/, "redd.it":/^\/\w{5,10}(?:$|[\/?#])/},
+                [["vxreddit", "vxReddit", {"reddit.com":"vxreddit.com", "redd.it":"vxreddit.com"}], ["fixreddit", "FixReddit", {"reddit.com":"fxreddit.seria.moe", "redd.it":"fxreddit.seria.moe"}],
+                 ["rxddit", "rxddit", {"reddit.com":"rxddit.com", "redd.it":"rxddit.com"}], FIXEMBED],
                 {group:"social"}],
             ["bluesky", "Bluesky", "#1185fe", [9103, "BlueskyNeutralIcon"], ["bsky.app"], /^\/profile\/[^\/\s]+\/post\/\w+/,
-                [["fxbsky", "FxBluesky", {"bsky.app":"fxbsky.app"}], ["vixbluesky", "VixBluesky", {"bsky.app":"bskx.app"}], ["fixbluesky", "FixBluesky", {"bsky.app":"bsyy.app"}],
+                [["fxbsky", "FxBluesky", {"bsky.app":"fxbsky.app"}, {styles:{gallery:"g.", text:"t.", media:"d."}, lang:"bsky", at:/^\/profile\/[^\/\s?#]+\/post\/\w+(?:\/photo\/\d+)?\/?$/}],
+                 ["vixbluesky", "VixBluesky", {"bsky.app":"bskx.app"}, {styles:{media:"r."}}], ["fixbluesky", "FixBluesky", {"bsky.app":"bsyy.app"}],
                  ["bskye", "bskye", {"bsky.app":"bskye.app"}]], {group:"social"}],
             ["threads", "Threads", "#101010", "@", ["threads.net", "threads.com"], /^\/@[\w.]+\/post\/[\w-]+/,
                 [FIXEMBED, ["fixthreads", "FixThreads", {"threads.net":"fixthreads.seria.moe", "threads.com":"fixthreads.seria.moe"}]], {group:"social"}],
@@ -9501,7 +11623,7 @@
             ["tumblr", "Tumblr", "#001935", "t", ["tumblr.com"], {"tumblr.com":/^\/[\w-]+\/\d+/, "*.tumblr.com":/^\/post\/\d+/},
                 [["fxtumblr", "fxtumblr", {"tumblr.com":"tpmblr.com", "*.tumblr.com":"*.tpmblr.com"}, {dark:"dark"}], FIXEMBED], {group:"social", sub:true}],
             ["facebook", "Facebook", "#0866ff", [8130, "FacebookNeutralIcon"], ["facebook.com"],
-                /^\/(?:reel\/\d+|watch\/?\?|share\/[rvp]\/\w+|[\w.]+\/(?:videos|posts)\/[\w.-]+|story\.php|permalink\.php)/,
+                /^\/(?:reel\/\d+|watch\/?\?|share\/[rvp]\/\w+|[\w.]+\/(?:videos|posts)\/[\w.-]+|story\.php|permalink\.php|groups\/[\w.]+\/(?:posts|permalink)\/\w+)/,
                 [["facebed", "facebed", {"facebook.com":"facebed.com"}]], {group:"social"}],
             ["mastodon", "Mastodon", "#6364ff", "M", ["mastodon.social", "mstdn.social", "mastodon.online", "mastodon.world", "mas.to", "mstdn.jp", "fosstodon.org",
                 "hachyderm.io", "infosec.exchange", "techhub.social", "mastodon.art", "mastodon.cloud"], /^\/@[\w.]+(?:@[\w.-]+)?\/\d+/,
@@ -9519,14 +11641,21 @@
                  FIXEMBED], {group:"video"}],
             ["spotify", "Spotify", "#1db954", [16521, "SpotifyNeutralIcon"], ["open.spotify.com"], /^\/(?:intl-[\w-]+\/)?track\/\w+/,
                 [["fxspotify", "FxSpotify", {"open.spotify.com":"fxspotify.com"}]], {group:"video", off:true}],
-            ["pixiv", "pixiv", "#0096fa", "P", ["pixiv.net"], /^\/(?:[a-z]{2}\/)?artworks\/\d+/,
-                [["phixiv", "phixiv", {"pixiv.net":"phixiv.net"}], ["ppxiv", "ppxiv", {"pixiv.net":"ppxiv.net"}], FIXEMBED], {group:"art"}],
+            // phixiv shows the title and tags in English, Chinese or Korean when the link starts with the language (/en/artworks/...).
+            ["pixiv", "pixiv", "#0096fa", "P", ["pixiv.net"], /^\/(?:(?:[a-z]{2}(?:_[a-z]{2})?\/)?artworks\/\d+|member_illust\.php\?(?:[^#]*&)?illust_id=\d+)/,
+                [["phixiv", "phixiv", {"pixiv.net":"phixiv.net"}, {styles:{gallery:"c."}, lang:"pixiv", at:FIX_PIXIV_POST}],
+                 ["ppxiv", "ppxiv", {"pixiv.net":"ppxiv.net"}, {styles:{gallery:"c."}, lang:"pixiv", at:FIX_PIXIV_POST}], FIXEMBED], {group:"art"}],
             ["deviantart", "DeviantArt", "#00c853", "D", ["deviantart.com"], /^\/[\w-]+\/art\/[\w-]+-\d+/,
                 [["fixdeviantart", "fixDeviantArt", {"deviantart.com":"fixdeviantart.com"}], FIXEMBED], {group:"art"}],
             ["furaffinity", "Fur Affinity", "#2e3b41", "FA", ["furaffinity.net"], /^\/(?:view|full)\/\d+/,
                 [["xfuraffinity", "xfuraffinity", {"furaffinity.net":"xfuraffinity.net"}]], {group:"art"}],
             ["pinterest", "Pinterest", "#e60023", "P", ["pinterest.com"], /^\/pin\/\d+/,
-                [FIXEMBED, ["embedez", "EmbedEZ", {"pinterest.com":"pinterestez.com"}]], {group:"art", off:true}]];
+                [FIXEMBED, ["embedez", "EmbedEZ", {"pinterest.com":"pinterestez.com"}]], {group:"art", off:true}],
+            // Discord shows Imgur's own pictures (i.imgur.com), but not posts and albums.
+            ["imgur", "Imgur", "#1bb76e", "i", ["imgur.com"], /^\/(?:(?:gallery|a)\/[\w-]+|[A-Za-z0-9]{7}(?=$|[?#]))/,
+                [["embedez", "EmbedEZ", {"imgur.com":"imgurez.com"}]], {group:"art"}],
+            ["newgrounds", "Newgrounds", "#f7931e", "NG", ["newgrounds.com"], /^\/(?:art\/view\/[\w-]+\/[\w-]+|portal\/view\/\d+)/,
+                [["embedez", "EmbedEZ", {"newgrounds.com":"newgroundsez.com"}]], {group:"art"}]];
     }
     // Share and tracking parameters each site adds when you copy a link: who shared it, from which app, and when. They're
     // removed from links Venus fixes, so neither the embed service nor anyone who taps the link sees them. utm_*, si and fbclid go everywhere.
@@ -9544,7 +11673,8 @@
     function fixTables() {
         const hosts = Object.create(null), sites = Object.create(null), rows = fixSiteRows();
         rows.forEach(row => {
-            const opts = row[7] || {}, services = row[6].map(s => ({id:s[0], name:s[1], to:s[2], dark:s[3] && s[3].dark || null}));
+            const opts = row[7] || {}, services = row[6].map(s => { const extra = s[3] || {};
+                return {id:s[0], name:s[1], to:s[2], dark:extra.dark || null, styles:extra.styles || null, lang:extra.lang || null, at:extra.at || null}; });
             const site = {id:row[0], name:row[1], color:row[2], icon:row[3], hosts:row[4], path:row[5], services, group:opts.group || "social", sub:!!opts.sub,
                 start:opts.off ? "off" : services[0].id};
             sites[site.id] = site;
@@ -9584,7 +11714,9 @@
     // Where a service sends links, for the list: "fixupx.com".
     function fixServiceHost(site, service) {
         const to = typeof service.to === "string" ? service.to.replace(/^https:\/\//, "") : service.to[site.hosts[0]] || "";
-        return to.split("/")[0].replace("*.", "");
+        // With the look picked under Post style, so the row shows where links really go: "g.fixupx.com".
+        const host = to.split("/")[0].replace("*.", "");
+        return (typeof service.to === "string" ? "" : fixStylePrefix(service, host)) + host;
     }
     function fixClean(site, query) {
         const own = fixEmbeds.tracking[site.id], kept = query.split("&").filter(pair => {
@@ -9593,6 +11725,33 @@
             return !FIX_TRACKING_ANY.test(name) && !(own && own.test(name));
         });
         return kept.length ? "?" + kept.join("&") : "";
+    }
+    // The subdomain that asks the service for the look you picked ("g.fixupx.com"). Only on the service's own two-part host:
+    // vm.tnktok.com or fxreddit.seria.moe can't take one. Looks a service doesn't have send the full post.
+    function fixStylePrefix(service, to) {
+        const styles = service.styles;
+        if (!styles || to.split("/")[0].split(".").length !== 2) return "";
+        return owns(styles, settings.fixEmbedsStyle) ? styles[settings.fixEmbedsStyle] : styles.full || "";
+    }
+    // The language posts are translated into, as a Google code like Translate messages uses, or null while it's off.
+    function fixTargetLanguage() {
+        const mode = settings.fixEmbedsTranslate;
+        if (mode === "custom") return TRANSLATE_LANGUAGES.includes(settings.fixEmbedsLanguage) ? settings.fixEmbedsLanguage : null;
+        if (mode !== "discord" && mode !== "phone") return null;
+        const parts = localeCode(mode).split("-"), base = parts[0].toLowerCase();
+        return base === "zh" ? (/^(TW|HK|MO|Hant)$/i.test(parts[1] || "") ? "zh-TW" : "zh-CN") : base === "nb" || base === "nn" ? "no" : base === "iw" ? "he" : base;
+    }
+    // Each service's name for that language, checked against their own translations; null where it has none.
+    // phixiv only has English, Chinese and Korean (Japanese is pixiv's own).
+    const FIX_LANGUAGE_CODES = {fx:{"zh-CN":"zh-cn", "zh-TW":"zh-tw", fil:"tl"}, vx:{"zh-CN":"zh-hans", "zh-TW":"zh-hant", no:"nb", fil:"tl", pt:null, km:null},
+        bsky:{no:"nb", fil:null, "zh-CN":"zh-cn", "zh-TW":"zh-tw"}, pixiv:{en:"en", "zh-CN":"zh", "zh-TW":"zh_tw", ko:"ko"}};
+    function fixLanguageFor(service) {
+        if (!service.lang) return null;
+        const code = fixTargetLanguage();
+        if (!code) return null;
+        const table = FIX_LANGUAGE_CODES[service.lang];
+        if (owns(table, code)) return table[code];
+        return service.lang === "pixiv" ? null : code;
     }
     // One link: {site, service, link}, or null when it isn't a post on a site you fix. A closing ")" or "." stays outside it.
     const FIX_TAIL = /[.,!?:;'")\]}*_~]+$/, FIX_SUBDOMAIN = /^(?:www|m|mobile|old|new|web)\./, FIX_BLOG = /^[a-z0-9-]{1,32}$/;
@@ -9620,6 +11779,13 @@
             const q = noHash.indexOf("?");
             if (q >= 0) noHash = noHash.slice(0, q) + fixClean(site, noHash.slice(q + 1));
         }
+        // Translated posts: FxTwitter, vxTwitter and FxBluesky add the language after the post (/status/20/ja), phixiv in front.
+        const language = fixLanguageFor(service);
+        if (language) {
+            const q = noHash.indexOf("?"), path = q < 0 ? noHash : noHash.slice(0, q), query = q < 0 ? "" : noHash.slice(q);
+            if (service.at && service.at.test(path)) noHash = (service.lang === "pixiv" ? path.replace(/^\/(?:[a-z]{2}(?:_[a-z]{2})?\/)?/, "/" + language + "/") :
+                path.replace(/\/$/, "") + "/" + language) + query;
+        }
         // Dark posts (#87): fxtumblr draws the post on a dark background.
         if (service.dark && settings.fixEmbedsDark && !new RegExp("[?&]" + service.dark + "(?:[=&]|$)").test(noHash))
             noHash += (noHash.indexOf("?") < 0 ? "?" : "&") + service.dark;
@@ -9627,7 +11793,10 @@
         let fixed;
         if (typeof service.to === "string") fixed = service.to.replace(/\{(url|host|path)\}/g, (_, part) =>
             part === "url" ? encodeURIComponent("https://" + bare + address) : part === "host" ? bare : address);
-        else fixed = "https://" + service.to[key].replace("*", blog) + address;
+        else {
+            const to = service.to[key].replace("*", blog);
+            fixed = "https://" + fixStylePrefix(service, to) + to + address;
+        }
         return {site, service, link:fixed + (tail ? tail[0] : "")};
     }
     // Code, escaped text and <links in angle brackets> (Discord's way to send a link without a preview) are left as written.
@@ -9680,6 +11849,227 @@
         return orig.apply(self, next);
     }
 
+    // Voice channel options (#103). One Flux listener (the dispatcher, module 584) serves the first two parts, and each part
+    // acts on the next tick because Flux can't start a dispatch from inside a listener.
+    // Volume when joining: VOICE_CHANNEL_SELECT carries the new channelId, null on leaving. Only a join from no channel
+    // counts, so switching channels doesn't undo a volume changed in the call. It sets Discord's output volume
+    // (AudioActionCreators 5243, the same action as the slider in Voice settings, 100 being Discord's default).
+    // Audio output when joining: once the voice connection is up (RTC_CONNECTION_STATE, RTC_CONNECTED), the chosen device is
+    // picked from AudioManagerStore (8782) with Discord's own action, the one the output sheet in the voice panel uses
+    // (AudioManagerActionCreator 8791). Devices are told apart by simpleDeviceType (AudioDeviceType, 8783). A device that
+    // isn't connected leaves Discord's choice alone, and so does one that's already in use.
+    const VOICE_OUTPUTS = ["default", "speaker", "earpiece", "bluetooth", "wired"];
+    const VOICE_OUTPUT_TYPES = {speaker:"SPEAKERPHONE", earpiece:"EARPIECE", bluetooth:"BLUETOOTH_HEADSET", wired:"WIRED_HEADSET"};
+    const voiceOptions = {dispatcher:null, joined:false, channelId:null, leaving:false, asked:false};
+    function voiceOptionsInit(dispatcher) {
+        if (voiceOptions.dispatcher || !dispatcher || typeof dispatcher.subscribe !== "function") return;
+        voiceOptions.dispatcher = dispatcher;
+        dispatcher.subscribe("VOICE_CHANNEL_SELECT", voiceOptionsSelect);
+        dispatcher.subscribe("RTC_CONNECTION_STATE", voiceOptionsState);
+        dispatcher.subscribe("LOGOUT", () => { voiceOptions.joined = false; });
+    }
+    function voiceOptionsSelect(event) {
+        const joined = !!(event && event.channelId), joining = joined && !voiceOptions.joined;
+        voiceOptions.joined = joined; voiceOptions.channelId = joined ? event.channelId : null;
+        if (joining && enabled("voiceOptions") && settings.voiceOptionsVolume) later(voiceVolumeApply, 0);
+    }
+    function voiceVolumeApply() {
+        if (!enabled("voiceOptions") || !settings.voiceOptionsVolume) return;
+        const audio = inspectedExport(5243, "default");
+        if (audio && typeof audio.setOutputVolume === "function") try { audio.setOutputVolume(settings.voiceOptionsVolumeLevel); } catch (_) {}
+    }
+    function voiceOptionsState(event) {
+        if (!event || !enabled("voiceOptions") || settings.voiceOptionsOutput === "default") return;
+        const states = inspectedExport(1085, "RTCConnectionStates"), contexts = inspectedExport(5117, "MediaEngineContextTypes");
+        if (!states || event.state !== states.CONNECTED || contexts && event.context !== contexts.DEFAULT) return;
+        later(voiceOutputApply, 0);
+    }
+    function voiceOutputApply() {
+        if (!enabled("voiceOptions") || settings.voiceOptionsOutput === "default") return;
+        const store = inspectedExport(8782, "default"), choose = inspectedExport(8791, "setAudioOutputDevice"), types = inspectedExport(8783, "AudioDeviceType");
+        if (!store || typeof choose !== "function" || !types || typeof store.getAudioDevices !== "function") return;
+        try {
+            const devices = store.getAudioDevices(), wanted = types[VOICE_OUTPUT_TYPES[settings.voiceOptionsOutput]];
+            const device = Array.isArray(devices) && wanted !== undefined ? devices.find(entry => entry && entry.simpleDeviceType === wanted) : null;
+            if (!device) return;
+            const active = typeof store.getActiveAudioDevice === "function" ? store.getActiveAudioDevice() : null;
+            if (!active || active.deviceId !== device.deviceId) choose(device);
+        } catch (_) {}
+    }
+    // Join and leave sounds: Discord's voice panel plays them through playSound (SoundUtils 10982) by name, the way every
+    // in-app sound plays. Turned off, the call is skipped. Quieter, the sound's volume (0 to 1, MobileAudioSound 10986) is
+    // set from the moment it's made until it plays: both happen inside this one synchronous call, so the level only ever
+    // reaches these two sounds.
+    const VOICE_SOUNDS = {user_join:"voiceOptionsJoinSound", user_leave:"voiceOptionsLeaveSound"};
+    let voiceSoundLevel = null, voiceSoundPatched = false;
+    function voiceSoundPlay(orig, self, args) {
+        const key = VOICE_SOUNDS[args[0]];
+        if (!key || !enabled("voiceOptions")) return orig.apply(self, args);
+        if (!settings[key]) return Promise.resolve();
+        if (settings.voiceOptionsSoundVolume >= 100 || !voiceSoundPatch()) return orig.apply(self, args);
+        voiceSoundLevel = settings.voiceOptionsSoundVolume / 100;
+        try { return orig.apply(self, args); } finally { voiceSoundLevel = null; }
+    }
+    function voiceSoundPatch() {
+        if (voiceSoundPatched) return true;
+        const Sound = inspectedExport(10986, "MobileAudioSound"), proto = Sound && Sound.prototype;
+        if (!proto || typeof proto.play !== "function" || typeof proto.playWithListener !== "function") return false;
+        ["play", "playWithListener"].forEach(name => {
+            const orig = proto[name];
+            proto[name] = function () { if (voiceSoundLevel !== null) try { this.volume = voiceSoundLevel; } catch (_) {} return orig.apply(this, arguments); };
+        });
+        return voiceSoundPatched = true;
+    }
+    // Soundboard sound when you leave: Discord sends a soundboard sound with a plain request to the channel (HTTP.post of
+    // Endpoints.SEND_SOUNDBOARD_SOUND, VoiceChannelEffectsActionCreators 7058), and the server plays it for everyone in the
+    // channel, so it still plays after you've gone. The Disconnect button (SelectedChannelActionCreators 5889, disconnect)
+    // waits for that request to finish, at most a moment, before it really leaves, so the leave can't beat the sound to the
+    // server. Needs Nitro, like Discord's own sounds from other servers: with it off, nothing is sent and leaving is
+    // untouched. The saved sound is "guildId:soundId"; sounds come from SoundboardStore (5428).
+    const VOICE_SOUND_ID = /^[\w-]{1,24}:[\w-]{1,24}$/;
+    function voiceNitro() {
+        const user = currentUser();
+        return !!user && (user.premiumType === 1 || user.premiumType === 2);
+    }
+    function voiceLeave(orig, self, args) {
+        const channelId = voiceOptions.channelId, saved = settings.voiceOptionsExitSound;
+        if (!channelId || voiceOptions.leaving || !enabled("voiceOptions") || !settings.voiceOptionsExit || !VOICE_SOUND_ID.test(saved) || !voiceNitro()) return orig.apply(self, args);
+        const http = inspectedExport(1295, "HTTP"), endpoints = inspectedExport(1085, "Endpoints");
+        if (!http || typeof http.post !== "function" || !endpoints || typeof endpoints.SEND_SOUNDBOARD_SOUND !== "function") return orig.apply(self, args);
+        const cut = saved.indexOf(":"), guildId = saved.slice(0, cut), body = {sound_id:saved.slice(cut + 1)};
+        if (guildId !== String(inspectedExport(5430, "DEFAULT_SOUND_GUILD_ID"))) body.source_guild_id = guildId;
+        let sent = null;
+        try { sent = http.post({url:endpoints.SEND_SOUNDBOARD_SOUND(channelId), body}); } catch (_) {}
+        if (!sent || typeof sent.then !== "function") return orig.apply(self, args);
+        voiceOptions.leaving = true;
+        let done = false;
+        const leave = () => { if (done) return; done = true; voiceOptions.leaving = false; try { orig.apply(self, args); } catch (_) {} };
+        sent.then(leave, leave);
+        later(leave, 1500);
+    }
+    // The sound picker on the options page, laid out like Discord's own soundboard and emoji pickers: a row that shows the sound
+    // you picked opens a sheet over the page with a search box, a strip of servers and a grid of sounds with their emoji.
+    // Tapping a sound picks it and closes the sheet; tapping the picked one again clears it.
+    const VOICE_SHEET = "VenusVoiceSounds", VOICE_TILE_MIN = 150, VOICE_GAP = 8, VOICE_PEEK = 3;
+    const VOICE_SOUND_DARK = {top:{backgroundColor:"#2b2d31", paddingHorizontal:16, paddingBottom:12},
+        chip:{height:44, borderRadius:14, alignItems:"center", justifyContent:"center", overflow:"hidden", borderWidth:2, borderColor:"transparent", backgroundColor:"#35373c"},
+        chipOn:{borderColor:"#5865f2"}, initials:{color:"#dbdee1", fontSize:14, fontWeight:"700"},
+        tile:{flexDirection:"row", alignItems:"center", gap:8, height:46, paddingHorizontal:10, borderRadius:10, borderWidth:2, borderColor:"transparent", backgroundColor:"#35373c"},
+        tileOn:{borderColor:"#5865f2", backgroundColor:"#5865f229"}, name:{color:"#f2f3f5", fontSize:14, fontWeight:"600", flexShrink:1},
+        head:{flexDirection:"row", alignItems:"center", gap:4, paddingVertical:2}};
+    // Every sound the store has loaded, one list per server with Discord's own first. Each is {id, name, emojiId, emojiName}.
+    function voiceSoundLists() {
+        const store = inspectedExport(5428, "default"), defaultId = String(inspectedExport(5430, "DEFAULT_SOUND_GUILD_ID")), guilds = inspectedExport(2087, "default");
+        let raw = null;
+        try { raw = store && typeof store.getSounds === "function" ? store.getSounds() : null; } catch (_) {}
+        const lists = new Map();
+        const add = (key, sounds) => {
+            const items = Array.isArray(sounds) ? sounds : sounds && typeof sounds === "object" ? Object.keys(sounds).map(id => sounds[id]) : [];
+            for (let i = 0; i < items.length && i < 100; i++) {
+                const sound = items[i];
+                if (!sound || sound.soundId == null || typeof sound.name !== "string" || sound.available === false) continue;
+                const guild = String(sound.guildId != null ? sound.guildId : key), id = guild + ":" + sound.soundId;
+                if (!VOICE_SOUND_ID.test(id)) continue;
+                const emojiId = sound.emojiId != null ? String(sound.emojiId) : "";
+                let list = lists.get(guild); if (!list) lists.set(guild, list = []);
+                list.push({id, name:sound.name, emojiId:/^\d{1,24}$/.test(emojiId) ? emojiId : "", emojiName:typeof sound.emojiName === "string" ? sound.emojiName : ""});
+            }
+        };
+        if (raw instanceof Map) raw.forEach((sounds, key) => add(String(key), sounds));
+        else if (raw && typeof raw === "object") Object.keys(raw).forEach(key => add(key, raw[key]));
+        const guildOf = guild => { try { return guilds && typeof guilds.getGuild === "function" ? guilds.getGuild(guild) : null; } catch (_) { return null; } };
+        const name = guild => guild === defaultId ? tr("Default sounds") : (guildOf(guild) || {}).name || guild;
+        const order = Array.from(lists.keys()).sort((a, b) => a === defaultId ? -1 : b === defaultId ? 1 : name(a).localeCompare(name(b))).slice(0, 40);
+        return {lists, order, defaultId, guildOf, name};
+    }
+    // Asks Discord for the sounds once, and redraws whenever its store has more.
+    function useVoiceSounds() {
+        const [, refresh] = React.useState(0);
+        React.useEffect(() => {
+            const store = inspectedExport(5428, "default"), fetchSounds = inspectedExport(7048, "maybeFetchSoundboardSounds");
+            if (!voiceOptions.asked && typeof fetchSounds === "function") { voiceOptions.asked = true; try { fetchSounds(); } catch (_) {} }
+            if (!store || typeof store.addChangeListener !== "function") return undefined;
+            const fn = () => refresh(n => n + 1);
+            store.addChangeListener(fn);
+            return () => { try { store.removeChangeListener(fn); } catch (_) {} };
+        }, []);
+        return voiceSoundLists();
+    }
+    // The sound's own emoji (a custom one is an image, a standard one is text), or Discord's soundboard icon.
+    function VoiceSoundEmoji(props) {
+        const Icon = venusIcon(12269, "SoundboardIcon"), sound = props.sound;
+        if (sound.emojiId) return el(RN.Image, {style:{width:24, height:24}, source:{uri:"https://cdn.discordapp.com/emojis/" + sound.emojiId + ".webp?size=64&quality=lossless"}, accessible:false});
+        if (sound.emojiName) return el(RN.Text, {style:{fontSize:20, width:24, textAlign:"center"}, accessible:false}, sound.emojiName);
+        return el(RN.View, {style:{width:24, alignItems:"center"}}, el(Icon, {size:"sm", color:props.color}));
+    }
+    function openVoiceSounds() {
+        const ui = reviewUI();
+        if (!ui.ActionSheet || typeof ui.showSheet !== "function") return;
+        try { ui.showSheet({key:VOICE_SHEET, content:el(VoiceSoundSheet, null), stackingBehavior:"stack"}); } catch (_) {}
+    }
+    // On the page: one row with the picked sound (its emoji, name and server). It opens the sheet.
+    function VoiceSoundPicker(props) {
+        const ui = reviewUI(), Group = ui.TableRowGroup || RN.View, Chevron = venusIcon(6906, "ChevronSmallRightIcon"), data = useVoiceSounds(), saved = settings.voiceOptionsExitSound;
+        let current = null, currentGuild = "";
+        data.lists.forEach((list, guild) => { const found = list.find(sound => sound.id === saved); if (found) { current = found; currentGuild = guild; } });
+        return el(Group, {key:"sound"}, ui.TableRow ? el(ui.TableRow, {key:"current", label:current ? current.name : tr("Choose a sound"), subLabel:current ? data.name(currentGuild) : undefined,
+            icon:current && (current.emojiId || current.emojiName) ? el(VoiceSoundEmoji, {sound:current}) : rowIcon(12269, "SoundboardIcon"),
+            trailing:el(Chevron, {size:"sm"}), onPress:() => { if (!props.on) return; haptic("SELECTION"); openVoiceSounds(); }, disabled:!props.on}) : null);
+    }
+    function VoiceSoundSheet() {
+        const [query, setQuery] = React.useState(""), [server, setServer] = React.useState(""), [width, setWidth] = React.useState(0);
+        const ui = reviewUI(), Text = inspectedExport(5088, "Text"), SearchField = inspectedExport(6739, "SearchField"), Scroll = inspectedExport(6307, "BottomSheetScrollView");
+        const Press = RN.Pressable || RN.TouchableOpacity, Icon = venusIcon(12269, "SoundboardIcon");
+        const s = useThemed("voiceSounds", c => ({top:Object.assign({}, VOICE_SOUND_DARK.top, {backgroundColor:c.MOBILE_ACTIONSHEET_BACKGROUND || c.BACKGROUND_SURFACE_HIGH}),
+            chip:Object.assign({}, VOICE_SOUND_DARK.chip, {backgroundColor:c.BACKGROUND_MOD_SUBTLE}), chipOn:{borderColor:c.BACKGROUND_BRAND},
+            initials:Object.assign({}, VOICE_SOUND_DARK.initials, {color:c.TEXT_DEFAULT}),
+            tile:Object.assign({}, VOICE_SOUND_DARK.tile, {backgroundColor:c.BACKGROUND_MOD_SUBTLE}),
+            tileOn:{borderColor:c.BACKGROUND_BRAND, backgroundColor:c.MENTION_BACKGROUND}, name:Object.assign({}, VOICE_SOUND_DARK.name, {color:c.TEXT_STRONG}),
+            head:VOICE_SOUND_DARK.head}), VOICE_SOUND_DARK);
+        const data = useVoiceSounds(), saved = settings.voiceOptionsExitSound;
+        const pick = sound => { haptic("SELECTION"); setSetting("voiceOptionsExitSound", sound.id === saved ? "" : sound.id); hideReviewSheet(ui, VOICE_SHEET); };
+        const needle = searchFold(query.trim()), inner = width - 32, columns = Math.max(2, Math.floor((inner + VOICE_GAP) / (VOICE_TILE_MIN + VOICE_GAP)));
+        const tileWidth = Math.floor((inner - VOICE_GAP * (columns - 1)) / columns);
+        const tile = sound => el(Press, {key:sound.id, onPress:() => pick(sound), accessibilityRole:"button", accessibilityLabel:sound.name, accessibilityState:{selected:sound.id === saved},
+            style:[s.tile, sound.id === saved ? s.tileOn : null, {width:tileWidth}]}, el(VoiceSoundEmoji, {sound}),
+            Text ? el(Text, {variant:"text-sm/semibold", color:"text-strong", lineClamp:1, style:{flexShrink:1}}, sound.name) : el(RN.Text, {numberOfLines:1, style:s.name}, sound.name));
+        const chip = (guild, label, content, wide) => el(Press, {key:"chip:" + guild, onPress:() => { haptic("SELECTION"); animateLayout(); setServer(guild); }, accessibilityRole:"button",
+            accessibilityLabel:label, accessibilityState:{selected:server === guild}, style:[s.chip, wide ? {minWidth:44, paddingHorizontal:12} : {width:44}, server === guild ? s.chipOn : null]}, content);
+        const initials = label => String(label).split(/\s+/).filter(Boolean).slice(0, 2).map(word => Array.from(word)[0]).join("").toUpperCase();
+        const search = SearchField ? el(SearchField, {key:"search", placeholder:tr("Search sounds"), value:query, onChange:text => setQuery(String(text || ""))}) :
+            ui.TextInput ? el(ui.TextInput, {key:"search", placeholder:tr("Search sounds"), value:query, onChange:text => setQuery(String(text || ""))}) : null;
+        const strip = data.order.length > 1 && !needle ? el(RN.ScrollView, {key:"servers", horizontal:true, showsHorizontalScrollIndicator:false,
+            style:{marginTop:12, flexGrow:0}, contentContainerStyle:{gap:VOICE_GAP}},
+            [chip("", tr("All"), el(RN.Text, {numberOfLines:1, style:s.initials}, tr("All")), true)].concat(data.order.map(guild => {
+                const uri = guild === data.defaultId ? null : serverIconUri(data.guildOf(guild), 96), label = data.name(guild);
+                return chip(guild, label, guild === data.defaultId ? el(Icon, {size:"md"}) : uri ? el(RN.Image, {style:{width:40, height:40}, source:{uri}}) :
+                    el(RN.Text, {style:s.initials}, initials(label)));
+            }))) : null;
+        const sections = [];
+        data.order.forEach(guild => {
+            if (server && !needle && guild !== server) return;
+            const all = data.lists.get(guild).filter(sound => !needle || searchFold(sound.name).includes(needle));
+            if (!all.length) return;
+            const capped = !server && !needle && all.length > columns * VOICE_PEEK;
+            sections.push(el(RN.View, {key:"section:" + guild, style:{gap:8}},
+                el(Press, {onPress:capped ? () => { haptic("SELECTION"); animateLayout(); setServer(guild); } : undefined, disabled:!capped, accessibilityRole:capped ? "button" : undefined,
+                    accessibilityLabel:data.name(guild), style:s.head},
+                    Text ? el(Text, {variant:"text-sm/semibold", color:"text-muted", lineClamp:1, style:{flexShrink:1}}, data.name(guild)) :
+                        el(RN.Text, {numberOfLines:1, style:{color:"#949ba4", fontSize:13, fontWeight:"600", flexShrink:1}}, data.name(guild)),
+                    capped ? el(venusIcon(6906, "ChevronSmallRightIcon"), {size:"xs"}) : null),
+                el(RN.View, {style:{flexDirection:"row", flexWrap:"wrap", gap:VOICE_GAP}}, (capped ? all.slice(0, columns * VOICE_PEEK) : all.slice(0, 60)).map(tile))));
+        });
+        const empty = !data.order.length ? footnote("empty", "Your sounds show up here once Discord has loaded them. Open the soundboard in a voice channel if the list is empty.") :
+            !sections.length ? footnote("none", "No matching sounds") : null;
+        const header = ui.Header ? el(ui.Header, {title:tr("Choose a sound"), trailing:ui.Close ? el(ui.Close, {onPress:() => hideReviewSheet(ui, VOICE_SHEET)}) : undefined}) : undefined;
+        // The search box and the servers stay at the top while the sounds scroll under them.
+        const body = [el(RN.View, {key:"top", style:s.top}, search, strip),
+            el(RN.View, {key:"sounds", style:{paddingHorizontal:16, paddingBottom:24, gap:16}, onLayout:event => { const w = event && event.nativeEvent && event.nativeEvent.layout && event.nativeEvent.layout.width;
+                if (w && Math.abs(w - width) > 0.5) setWidth(w); }}, width ? (empty ? null : sections) : null, empty)];
+        const scrollProps = {stickyHeaderIndices:[0], keyboardShouldPersistTaps:"handled"};
+        return Scroll ? el(ui.ActionSheet || RN.View, {header, scrollable:true}, el(Scroll, scrollProps, body)) :
+            el(ui.ActionSheet || RN.View, {header}, RN.ScrollView ? el(RN.ScrollView, scrollProps, body) : body);
+    }
     // Bring back Tenor GIFs (#83): Discord's GIF picker asks Discord's API for /gifs/search, /gifs/trending and the rest
     // (GIFPickerActionCreators 9732 through HTTP.get, 1295), and since Tenor's API closed to Discord those answers come from
     // Klipy. Venus answers the same requests from Tenor's public v1 API, in the exact shape the picker's store (9731) reads,
@@ -10724,7 +13114,8 @@
     // Each language is listed in its own words with Venus's name for it under it (#82), with Discord's search field.
     // Picking one closes the list again, so the rest of the page is never pushed far down.
     function TranslateLanguagePicker(props) {
-        useSettings("translate");
+        useSettings(props.feature || "translate");
+        const key = props.setting || "translateLanguage";
         const [query, setQuery] = React.useState(""), [open, setOpen] = React.useState(false), ui = reviewUI(), on = !!props.on;
         const RadioGroup = inspectedExport(6263, "TableRadioGroup"), RadioRow = inspectedExport(6262, "TableRadioRow");
         const SearchField = inspectedExport(6739, "SearchField"), Group = ui.TableRowGroup || RN.View;
@@ -10738,22 +13129,23 @@
         const shown = needle ? all.filter(entry => entry.search.includes(needle)) : all;
         const toggle = () => { if (!on) return; haptic("SELECTION"); animateLayout(); setOpen(!open); setQuery(""); };
         const pick = value => {
-            if (value !== settings.translateLanguage) { haptic("SELECTION"); setSetting("translateLanguage", value); }
+            if (value !== settings[key]) { haptic("SELECTION"); setSetting(key, value); }
             animateLayout(); setOpen(false); setQuery("");
         };
-        const current = all.find(entry => entry.code === settings.translateLanguage);
+        const current = all.find(entry => entry.code === settings[key]);
         const Chevron = venusIcon(open ? 10534 : 6906, open ? "ChevronSmallDownIcon" : "ChevronSmallRightIcon");
-        const head = ui.TableRow ? el(ui.TableRow, {key:"current", label:current ? current.label : settings.translateLanguage, subLabel:current && current.sub,
+        const subLabel = props.note ? (current && current.sub ? current.sub + " \u00b7 " : "") + props.note : current && current.sub;
+        const head = ui.TableRow ? el(ui.TableRow, {key:"current", label:current ? current.label : settings[key], subLabel,
             icon:rowIcon(15723, "LanguageIcon"), trailing:el(Chevron, {size:"sm"}), onPress:toggle, disabled:!on,
             accessibilityHint:tr(open ? "Close the list" : "Choose a language")}) : null;
         if (!open) return el(Group, {key:"language", title:tr("Language")}, head);
         const search = SearchField ? el(SearchField, {key:"search", placeholder:tr("Search languages"), value:query, onChange:text => setQuery(String(text || "")), isDisabled:!on}) :
             ui.TextInput ? el(ui.TextInput, {key:"search", placeholder:tr("Search languages"), value:query, onChange:text => setQuery(String(text || "")), editable:on}) : null;
         const rows = !shown.length ? (ui.TableRow ? el(ui.TableRow, {key:"none", label:tr("No matching languages"), disabled:true}) : null) :
-            RadioGroup && RadioRow ? el(RadioGroup, {key:"list", value:settings.translateLanguage, onChange:pick},
+            RadioGroup && RadioRow ? el(RadioGroup, {key:"list", value:settings[key], onChange:pick},
                 shown.map(entry => el(RadioRow, {key:entry.code, value:entry.code, label:entry.label, subLabel:entry.sub, disabled:!on}))) :
             el(Group, {key:"list"}, shown.map(entry => ui.TableRow && el(ui.TableRow, {key:entry.code, label:entry.label, subLabel:entry.sub,
-                trailing:entry.code === settings.translateLanguage ? el(venusIcon(6823, "CheckmarkSmallIcon"), {size:"sm"}) : undefined, disabled:!on, onPress:() => pick(entry.code)})));
+                trailing:entry.code === settings[key] ? el(venusIcon(6823, "CheckmarkSmallIcon"), {size:"sm"}) : undefined, disabled:!on, onPress:() => pick(entry.code)})));
         return el(RN.View, {key:"language", style:{gap:12}}, el(Group, {key:"head", title:tr("Language")}, head),
             el(RN.View, {style:{paddingHorizontal:16}}, search), rows);
     }
@@ -11819,10 +14211,25 @@
         if (features.iconPacks) useSettings("iconPacks");
         // Switching Light, Ash, Dark or Onyx re-renders this provider: the native table follows the new appearance.
         if (features.customThemes && materialYou.nativeSlot && customThemesActiveEntry() && nativeThemeSlot() !== materialYou.nativeSlot) myNativeSync(customThemesActiveEntry());
-        const tree = orig.apply(self, args);
-        if (customThemes.revision <= 0 || !tree || !tree.props || !tree.props.value || typeof tree.props.value.key !== "string") return tree;
+        return themeContextRekey(orig.apply(self, args));
+    }
+    // The server list (Guilds) and DMs (MainTabs) sit under a second ThemeContextProvider (4839) that memoizes its own
+    // value on its props and the parent's theme, flags and so on, never on the parent's key. On a cold start they mount
+    // before the saved theme is read, so that memo kept the key from before it and createStyles kept serving Discord's
+    // colors there (#110). Re-keyed the same way, they recolor with the rest of Discord.
+    function nestedThemeContextProvider(orig, self, args) {
+        return themeContextRekey(orig.apply(self, args));
+    }
+    // One re-keyed copy per memoized value and revision, so a provider that re-renders with the same value hands down
+    // the same object and doesn't re-render every consumer under it.
+    const themeContextRekeyed = new WeakMap();
+    function themeContextRekey(tree) {
+        if (customThemes.revision <= 0 || !tree || !tree.props || !tree.props.value || typeof tree.props.value !== "object" || typeof tree.props.value.key !== "string") return tree;
         const value = tree.props.value, key = value.key.split("#v")[0] + "#v" + customThemes.revision;
-        return value.key === key ? tree : React.cloneElement(tree, {value:Object.assign({}, value, {key})});
+        if (value.key === key) return tree;
+        let copy = themeContextRekeyed.get(value);
+        if (!copy || copy.key !== key) { copy = Object.assign({}, value, {key}); themeContextRekeyed.set(value, copy); }
+        return React.cloneElement(tree, {value:copy});
     }
     function hookCreateThemedContext(exports) {
         if (!exports) return exports;
@@ -13656,7 +16063,7 @@
     // Hide blocked or ignored messages (#91, from Rain): filters hidden messages out of the stream createChannelStream
     // (11624) walks, before Discord groups messages or builds BLOCKED_GROUP / IGNORED_GROUP rows. MessageStore itself is
     // untouched, adjacent messages around a hidden one join into one group, and toggling an option redraws the open chat.
-    const hideBlocked = {relationships:null, references:null, version:0};
+    const hideBlocked = {relationships:null, references:null, version:0, dispatcher:null};
     function hideBlockedAuthorBlocked(msg) {
         if (!msg || typeof msg !== "object") return false;
         if (msg.blocked === true) return true;
@@ -13744,6 +16151,33 @@
         next[0] = Object.assign({}, params, {messages:wrapped, forceRender:force || params.forceRender});
         return orig.apply(self, next);
     }
+    // Close their DM (based on RemoveBlockedUsers): when you block someone, RelationshipStore gets RELATIONSHIP_ADD (or _UPDATE
+    // for a friend) with type 2. Venus then closes your DM with them through Discord's own closePrivateChannel (7015), the
+    // same as Close DM in its menu: the chat leaves the Messages list and nothing is deleted. Open on that chat, you're
+    // taken back to Friends first.
+    function hideBlockedInit(d) {
+        if (hideBlocked.dispatcher || !d || typeof d.subscribe !== "function") return;
+        hideBlocked.dispatcher = d;
+        const onBlock = event => {
+            const rel = event && event.relationship;
+            if (!rel || rel.type !== 2 || typeof rel.id !== "string" || !enabled("hideBlocked") || !settings.hideBlockedCloseDms) return;
+            later(() => hideBlockedCloseDm(rel.id), 0);
+        };
+        d.subscribe("RELATIONSHIP_ADD", onBlock);
+        d.subscribe("RELATIONSHIP_UPDATE", onBlock);
+    }
+    function hideBlockedCloseDm(userId) {
+        try {
+            const store = channelStore || inspectedExport(2065, "default");
+            const channelId = store && typeof store.getDMFromUserId === "function" ? store.getDMFromUserId(userId) : null;
+            const actions = channelId && inspectedExport(7015, "default");
+            if (!actions || typeof actions.closePrivateChannel !== "function") return;
+            const selected = inspectedExport(2116, "default");
+            const open = !!(selected && typeof selected.getChannelId === "function" && selected.getChannelId() === channelId);
+            const done = actions.closePrivateChannel(channelId, open, false);
+            if (done && typeof done.catch === "function") done.catch(() => {});
+        } catch (_) {}
+    }
     function hideBlockedChanged() {
         hideBlocked.version++;
         if (!msgStore) msgStore = inspectedExport(5432, "default");
@@ -13801,7 +16235,7 @@
         if (!React || !RN) return null;
         const on = enabled("hideBlocked"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow;
         const Icon = venusIcon(17072, "ChatShieldIcon");
-        const hasAny = !!(settings.hideBlockedBlocked || settings.hideBlockedIgnored || settings.hideBlockedReplies);
+        const hasAny = !!(settings.hideBlockedBlocked || settings.hideBlockedIgnored || settings.hideBlockedReplies || settings.hideBlockedCloseDms);
         const groups = [
             !on ? offCard("status", Icon, "hideBlocked") : !hasAny ? statusCard("status", "Turn on at least one option below.",
                 {title:tr("Nothing hidden"), IconComponent:Icon}) : null,
@@ -13810,12 +16244,629 @@
                 switchRow(Switch, "hideBlockedBlocked", "Blocked messages", "Hides the \"blocked messages\" row and the messages inside it.", rowIcon(5036, "UserMinusIcon")),
                 switchRow(Switch, "hideBlockedIgnored", "Ignored messages", "Hides the \"ignored messages\" row from people you've ignored.", rowIcon(6650, "EyeSlashIcon")),
                 switchRow(Switch, "hideBlockedReplies", "Replies to them", "Also hides messages that reply to someone you've blocked or ignored.", rowIcon(12838, "ArrowAngleLeftUpIcon"))),
+            el(Group, {key:"block", title:tr("When you block someone")},
+                switchRow(Switch, "hideBlockedCloseDms", "Close their DM", "Your DM with them leaves the Messages list. No messages are deleted.", rowIcon(8194, "ChatIcon"))),
             footnote("note", "Changes show in chat right away, with no restart.")
         ];
         return settingsBody(ui, groups);
     }
+    // Staff tags: Discord's own chat tag (the BOT chip) on server owners, admins, managers and moderators.
+    // Row by row, on the way to the native message: nothing is stored on the message and nothing is sent.
+    // Who counts is worked out from the roles you can see: the server's owner, then the Administrator permission,
+    // then the manage permissions, then the moderation ones. The highest one a person has is the one that shows.
+    const STAFF_TAG_KINDS = ["owner", "admin", "manager", "mod"];
+    const STAFF_TAG_COLORS = {owner:"#d9951a", admin:"#e5393d", manager:"#5865f2", mod:"#1e9a52"};
+    const staffTag = {guilds:null, members:null, roles:null, cache:new Map(), masks:null};
+    function staffTagLabel(kind) {
+        return kind === "owner" ? tr("Owner") : kind === "admin" ? tr("Admin") : kind === "manager" ? tr("Manager") : tr("Mod");
+    }
+    function staffTagText(kind) {
+        return kind === "owner" && settings.staffTagCrown ? "\ud83d\udc51 " + staffTagLabel(kind) : staffTagLabel(kind);
+    }
+    function staffTagBits(value) {
+        if (value == null) return null;
+        try { return typeof value === "bigint" ? value : BigInt(value); } catch (_) { return null; }
+    }
+    function staffTagKind(guildId, authorId) {
+        const key = guildId + ":" + authorId, now = Date.now(), hit = staffTag.cache.get(key);
+        // A role or permission can change at any time, so what was found is only kept for half a minute.
+        if (hit && now - hit.at < 30000) return hit.kind;
+        let kind = null;
+        try {
+            const guilds = staffTag.guilds || (staffTag.guilds = inspectedExport(2087, "default"));
+            const members = staffTag.members || (staffTag.members = inspectedExport(2125, "default"));
+            const roles = staffTag.roles || (staffTag.roles = inspectedExport(2119, "default"));
+            const guild = guilds && typeof guilds.getGuild === "function" ? guilds.getGuild(guildId) : null;
+            if (guild && String(guild.ownerId) === String(authorId)) kind = "owner";
+            else if (guild && members && roles && typeof members.getMember === "function" && typeof roles.getRole === "function") {
+                const member = members.getMember(guildId, authorId);
+                const masks = staffTag.masks || (staffTag.masks = {admin:BigInt(8), manager:BigInt(16) | BigInt(32) | BigInt(268435456),
+                    mod:BigInt(2) | BigInt(4) | BigInt(8192) | BigInt(1099511627776), none:BigInt(0)});
+                let bits = masks.none;
+                const list = member && member.roles;
+                if (list && list.length) for (let i = 0; i < list.length; i++) {
+                    const role = roles.getRole(guildId, list[i]), value = role && staffTagBits(role.permissions);
+                    if (value != null) bits |= value;
+                }
+                if ((bits & masks.admin) !== masks.none) kind = "admin";
+                else if ((bits & masks.manager) !== masks.none) kind = "manager";
+                else if ((bits & masks.mod) !== masks.none) kind = "mod";
+            }
+        } catch (_) { kind = null; }
+        if (staffTag.cache.size > 2000) staffTag.cache.clear();
+        staffTag.cache.set(key, {kind, at:now});
+        return kind;
+    }
+    // Called for every chat row, so a message with nothing to tag comes back untouched, not copied.
+    function staffTagMessage(message, source) {
+        if (!message || !message.guildId || !message.authorId || message.tagText != null || source && source.webhookId) return message;
+        const kind = staffTagKind(message.guildId, message.authorId);
+        if (!kind || !settings["staffTag" + kind.charAt(0).toUpperCase() + kind.slice(1)]) return message;
+        const color = STAFF_TAG_COLORS[kind], text = highlightProcess(color), tint = highlightProcess(color + "33");
+        if (text == null || tint == null) return message;
+        const copy = Object.assign({}, message), label = staffTagText(kind);
+        copy.tagText = label;
+        copy.tagAccessibilityLabel = label;
+        copy.tagType = "staff";
+        copy.tagVerified = false;
+        copy.tagTextColor = text;
+        copy.tagBackgroundColor = tint;
+        return copy;
+    }
+    // Switched on or off, or an option changed: redraw the chat that's open, the way Message highlights does.
+    function staffTagChanged() {
+        staffTag.cache.clear();
+        const selected = inspectedExport(2116, "default"), store = msgStore || (msgStore = inspectedExport(5432, "default"));
+        const channelId = selected && typeof selected.getChannelId === "function" ? selected.getChannelId() : null;
+        if (!channelId || !store || typeof store.getMessages !== "function") return;
+        let messages = null;
+        try { messages = store.getMessages(channelId); } catch (_) {}
+        const ids = [];
+        try {
+            const arr = messages && Array.isArray(messages._array) ? messages._array : null;
+            if (arr) for (let i = 0; i < arr.length; i++) { if (arr[i] && arr[i].id) ids.push(String(arr[i].id)); }
+        } catch (_) {}
+        bulkDeleteRedrawIds(channelId, ids);
+    }
+    function StaffTagPreview(props) {
+        useSettings("staffTag");
+        const s = useChatPreviewStyles(), k = usePreviewChrome(), on = !!props.on;
+        const sample = [["owner", "Alex", "#3ba55c", tr("Today at 4:01 PM"), tr("Are we still playing tonight?")], ["admin", "Sam", "#eb459e", tr("Today at 4:02 PM"), tr("Yes, see you there!")],
+            ["manager", "Jordan", "#5865f2", tr("Today at 4:03 PM"), tr("Count me in!")], ["mod", "Riley", "#faa61a", tr("Today at 4:04 PM"), tr("I'm in!")],
+            [null, "Max", "#80848e", tr("Today at 4:05 PM"), tr("Great, it starts at 6 AM!")]];
+        const rows = sample.map(([kind, who, color, time, text]) => {
+            const shown = on && kind && settings["staffTag" + kind.charAt(0).toUpperCase() + kind.slice(1)];
+            const chip = shown ? popIn("tag:" + kind + ":" + staffTagText(kind), el(RN.View, {style:{paddingHorizontal:5, paddingVertical:1, borderRadius:4, marginTop:1,
+                backgroundColor:STAFF_TAG_COLORS[kind] + "33"}}, el(RN.Text, {style:{color:STAFF_TAG_COLORS[kind], fontSize:10, fontWeight:"700"}, numberOfLines:1}, staffTagText(kind)))) : null;
+            return previewMessage(s, kind || "none", who, color, time, el(RN.Text, {style:s.text}, text), {badges:chip});
+        });
+        return el(RN.View, {key:"preview"},
+            previewScreen(s, "preview", "Owner and mod labels preview", [el(RN.View, {key:"chat"}, rows)],
+                {header:previewHeader(k, {title:"general"}),
+                 footer:previewInput(k, s, {placeholder:tr("Message {channel}", {channel:"#general"})})}));
+    }
+    function StaffTagSettings() {
+        useSettings("staffTag");
+        const ui = reviewUI();
+        if (!React || !RN) return null;
+        const on = enabled("staffTag"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow;
+        const Icon = venusIcon(10262, "CrownIcon");
+        const hasAny = !!(settings.staffTagOwner || settings.staffTagAdmin || settings.staffTagManager || settings.staffTagMod);
+        const groups = [
+            !on ? offCard("status", Icon, "staffTag") : !hasAny ? statusCard("status", "Turn on at least one option below.",
+                {title:tr("Nobody is tagged"), IconComponent:Icon}) : null,
+            el(StaffTagPreview, {key:"preview", on}),
+            el(Group, {key:"who", title:tr("Who gets a tag")},
+                switchRow(Switch, "staffTagOwner", "Owners", "Whoever owns the server.", rowIcon(10262, "CrownIcon")),
+                // The crown belongs to the Owner tag, so it sits right under it, only while owners are tagged, and its
+                // subtitle shows the tag as chat draws it (already translated, so switchRow's tr() leaves it as is).
+                settings.staffTagOwner ? switchRow(Switch, "staffTagCrown", "Crown for owners",
+                    tr("Shows the tag as {tag}.", {tag:"\ud83d\udc51 " + staffTagLabel("owner")}), rowIcon(10262, "CrownIcon")) : null,
+                switchRow(Switch, "staffTagAdmin", "Admins", "Anyone with the Administrator permission.", rowIcon(10410, "ShieldIcon")),
+                switchRow(Switch, "staffTagManager", "Managers", "Anyone who can manage the server, its roles or its channels.", rowIcon(15869, "WrenchIcon")),
+                switchRow(Switch, "staffTagMod", "Moderators", "Anyone who can kick, ban, time out or delete messages.", rowIcon(8617, "ShieldUserIcon"))),
+            footnote("note", "Tags come from the roles you can see, and each person only gets their highest one. Bots keep their own tags.")
+        ];
+        return settingsBody(ui, groups);
+    }
+    // Removed connection alerts (#108, based on RemovedConnectionAlerts by iyu46): a banner when a friend removes you or a
+    // server drops you. Discord says nothing when it happens, so Venus keeps the list of friends and servers it saw, tells a
+    // real removal (RELATIONSHIP_REMOVE, GUILD_DELETE) from one you did yourself (the action creators mark the id for 30 s),
+    // and on every new connection looks for anything that went missing while Discord was closed or offline.
+    const REMOVED_EVENTS = ["CONNECTION_OPEN", "RELATIONSHIP_ADD", "RELATIONSHIP_UPDATE", "RELATIONSHIP_REMOVE", "GUILD_CREATE", "GUILD_UPDATE", "GUILD_DELETE", "LOGOUT"];
+    const REMOVED_KEEP = 20, REMOVED_MAX_FRIENDS = 2000, REMOVED_MAX_GUILDS = 600, REMOVED_BATCH = 3, REMOVED_MINE_MS = 30000, REMOVED_COOLDOWN_MS = 10000;
+    const removed = {dispatcher:null, subscribed:false, friends:new Map(), guilds:new Map(), saved:null, history:[], mine:new Map(), cooldowns:new Map(),
+        user:null, shown:0, refreshQueued:false, checkQueued:false, rels:null, guildStore:null};
+    function removedRels() { return removed.rels || (removed.rels = inspectedExport(4760, "default")); }
+    function removedGuildStore() { return removed.guildStore || (removed.guildStore = inspectedExport(2087, "default")); }
+    function removedMyId() { const me = currentUser(); return me && typeof me.id === "string" ? me.id : null; }
+    function removedUserName(id) {
+        const rels = removedRels();
+        try { const nick = rels && typeof rels.getNickname === "function" && rels.getNickname(id); if (typeof nick === "string" && nick.trim()) return nick.trim().slice(0, 40); } catch (_) {}
+        let user = null;
+        try { user = userStore && userStore.getUser(id); } catch (_) {}
+        const name = user && (user.globalName || user.global_name || user.username);
+        return typeof name === "string" ? name.trim().slice(0, 40) : "";
+    }
+    // Every friend Discord has loaded, as id -> name. null when the store isn't there to ask.
+    function removedLiveFriends() {
+        const rels = removedRels(), out = new Map();
+        try {
+            const ids = rels && typeof rels.getFriendIDs === "function" ? rels.getFriendIDs() : null;
+            if (!Array.isArray(ids)) return null;
+            for (let i = 0; i < ids.length && out.size < REMOVED_MAX_FRIENDS; i++) {
+                const id = ids[i];
+                if (typeof id !== "string" || !/^\d{17,20}$/.test(id)) continue;
+                out.set(id, removed.friends.get(id) || removedUserName(id));
+            }
+        } catch (_) { return null; }
+        return out;
+    }
+    function removedLurking(id) {
+        const store = inspectedExport(4751, "default");
+        try { return !!(store && typeof store.isLurking === "function" && store.isLurking(id)); } catch (_) { return false; }
+    }
+    function removedUnavailable(id) {
+        const store = inspectedExport(5965, "default");
+        try { return !!(store && typeof store.isUnavailable === "function" && store.isUnavailable(id)); } catch (_) { return false; }
+    }
+    // Every server you belong to, as id -> name. Servers you're only previewing (lurking) don't count.
+    function removedLiveGuilds() {
+        const store = removedGuildStore(), out = new Map();
+        try {
+            let ids = store && typeof store.getGuildIds === "function" ? store.getGuildIds() : null;
+            if (!Array.isArray(ids) && store && typeof store.getGuilds === "function") ids = Object.keys(store.getGuilds() || {});
+            if (!Array.isArray(ids)) return null;
+            for (let i = 0; i < ids.length && out.size < REMOVED_MAX_GUILDS; i++) {
+                const id = ids[i];
+                if (typeof id !== "string" || removedLurking(id)) continue;
+                const guild = store.getGuild(id);
+                if (guild && typeof guild.name === "string") out.set(id, guild.name.slice(0, 60));
+            }
+        } catch (_) { return null; }
+        return out;
+    }
+    function removedMarkMine(id) {
+        if (id == null) return;
+        if (removed.mine.size >= 50) removed.mine.delete(removed.mine.keys().next().value);
+        removed.mine.set(String(id), Date.now());
+    }
+    function removedMine(id) {
+        const at = removed.mine.get(id);
+        if (at === undefined) return false;
+        removed.mine.delete(id);
+        return Date.now() - at < REMOVED_MINE_MS;
+    }
+    function removedAllowed(id) {
+        const now = Date.now(), prev = removed.cooldowns.get(id) || 0;
+        if (now - prev < REMOVED_COOLDOWN_MS) return false;
+        if (removed.cooldowns.size >= 200) removed.cooldowns.delete(removed.cooldowns.keys().next().value);
+        removed.cooldowns.set(id, now);
+        return true;
+    }
+    // One line for the banner, the notification and the Recent list. entry: {k:"friend"|"guild"|"batch", n:name, c:count, t:time}
+    function removedLabel(entry) {
+        if (entry.k === "batch") return pl(entry.c || 0, "{n} connection was removed while Discord was closed.", "{n} connections were removed while Discord was closed.");
+        if (entry.k === "guild") return tr("You're no longer in {server}", {server:entry.n || tr("Someone")});
+        return tr("{name} is no longer your friend", {name:entry.n || tr("Someone")});
+    }
+    function removedAgo(ms) {
+        const diff = Math.max(0, Date.now() - ms), minute = 60000, hour = 60 * minute, day = 24 * hour;
+        if (diff < minute) return tr("just now");
+        return tr("{time} ago", {time:diff < hour ? pl(Math.floor(diff / minute), "{n} minute", "{n} minutes") :
+            diff < day ? pl(Math.floor(diff / hour), "{n} hour", "{n} hours") : pl(Math.floor(diff / day), "{n} day", "{n} days")});
+    }
+    function removedPushing() {
+        return !!(enabled("removedAlerts") && settings.removedAlertsPush && (settings.removedAlertsFriends || settings.removedAlertsServers));
+    }
+    function removedPushSend(text) {
+        if (!settings.removedAlertsPush || isAppActive()) return;
+        venusPush(tr("Connection removed"), text);
+    }
+    function removedShow(entry) {
+        removed.shown++;
+        entry.t = Date.now();
+        removed.history.unshift(entry);
+        if (removed.history.length > REMOVED_KEEP) removed.history.length = REMOVED_KEEP;
+        const text = removedLabel(entry);
+        try { showToast(reviewUI(), "venus-removed:" + removed.shown, text, venusIcon(5036, "UserMinusIcon")); } catch (_) {}
+        removedPushSend(text);
+        save();
+        notify("removedAlerts");
+    }
+    // Keeps what Discord has loaded for the next comparison. Only ever adds: removals come from events and removedCheck.
+    function removedRefresh() {
+        removed.refreshQueued = false;
+        if (!enabled("removedAlerts")) return;
+        const friends = removedLiveFriends(), guilds = removedLiveGuilds();
+        let changed = false;
+        if (friends) friends.forEach((name, id) => { if (removed.friends.get(id) !== name) { removed.friends.set(id, name); changed = true; } });
+        if (guilds) guilds.forEach((name, id) => { if (removed.guilds.get(id) !== name) { removed.guilds.set(id, name); changed = true; } });
+        const me = removedMyId();
+        if (me && removed.user !== me) { removed.user = me; changed = true; }
+        if (changed) { save(); notify("removedAlerts"); }
+    }
+    function removedRefreshSoon() {
+        if (removed.refreshQueued) return;
+        removed.refreshQueued = true;
+        later(removedRefresh, 1500);
+    }
+    // Friends and servers that are in the remembered lists but not in what Discord has now. Runs a few seconds after
+    // each new connection, once Discord has filled its stores. A list that looks empty or mostly gone is a loading
+    // hiccup or an outage, not a removal, so it's left alone.
+    function removedCheck() {
+        removed.checkQueued = false;
+        if (!enabled("removedAlerts") || status.storage === "loading" || status.storage === "waiting") return;
+        const me = removedMyId();
+        if (!me) return;
+        if (removed.user && removed.user !== me) { removedReset(); removed.user = me; }
+        if (removed.saved && removed.saved.user === me) {
+            removed.saved.friends.forEach((name, id) => { if (!removed.friends.has(id)) removed.friends.set(id, name); });
+            removed.saved.guilds.forEach((name, id) => { if (!removed.guilds.has(id)) removed.guilds.set(id, name); });
+        }
+        removed.saved = null;
+        removed.user = me;
+        const friends = removedLiveFriends(), guilds = removedLiveGuilds(), gone = [];
+        if (friends && !(friends.size === 0 && removed.friends.size >= 3)) {
+            removed.friends.forEach((name, id) => { if (!friends.has(id)) gone.push({k:"friend", n:name, id}); });
+            gone.forEach(entry => removed.friends.delete(entry.id));
+        }
+        if (guilds && guilds.size > 0) {
+            const missing = [];
+            removed.guilds.forEach((name, id) => { if (!guilds.has(id) && !removedUnavailable(id)) missing.push({k:"guild", n:name, id}); });
+            if (!(removed.guilds.size >= 6 && missing.length > removed.guilds.size / 2)) {
+                missing.forEach(entry => { removed.guilds.delete(entry.id); gone.push(entry); });
+            }
+        }
+        removedRefresh();
+        if (!settings.removedAlertsClosed) return;
+        const wanted = gone.filter(entry => entry.k === "friend" ? settings.removedAlertsFriends : settings.removedAlertsServers);
+        if (!wanted.length) return;
+        if (wanted.length > REMOVED_BATCH) removedShow({k:"batch", c:wanted.length});
+        else wanted.forEach(entry => removedShow({k:entry.k, n:entry.n}));
+    }
+    function removedCheckSoon() {
+        if (removed.checkQueued) return;
+        removed.checkQueued = true;
+        later(removedCheck, 4000);
+    }
+    function removedFriendGone(id, name) {
+        const known = removed.friends.get(id);
+        removed.friends.delete(id);
+        save();
+        if (removedMine(id) || !settings.removedAlertsFriends || !removedAllowed("f:" + id)) return;
+        removedShow({k:"friend", n:known || name || removedUserName(id)});
+    }
+    function removedGuildGone(id) {
+        const name = removed.guilds.get(id);
+        if (name === undefined) return;
+        removed.guilds.delete(id);
+        save();
+        if (removedMine(id) || !settings.removedAlertsServers || !removedAllowed("g:" + id)) return;
+        removedShow({k:"guild", n:name});
+    }
+    function removedReset() {
+        removed.friends.clear(); removed.guilds.clear(); removed.mine.clear(); removed.cooldowns.clear(); removed.history.length = 0; removed.saved = null; removed.user = null;
+    }
+    function removedEvent(event) {
+        if (!event || typeof event.type !== "string") return;
+        switch (event.type) {
+        case "CONNECTION_OPEN": removedRefreshSoon(); removedCheckSoon(); return;
+        case "RELATIONSHIP_REMOVE": {
+            const rel = event.relationship;
+            if (rel && rel.type === 1 && typeof rel.id === "string") removedFriendGone(rel.id);
+            return;
+        }
+        case "RELATIONSHIP_ADD":
+        case "RELATIONSHIP_UPDATE": {
+            const rel = event.relationship;
+            // A friend who blocks you, or turns into something else, is gone from the list too.
+            if (rel && typeof rel.id === "string" && rel.type !== 1 && removed.friends.has(rel.id)) removedFriendGone(rel.id);
+            else removedRefreshSoon();
+            return;
+        }
+        case "GUILD_CREATE":
+        case "GUILD_UPDATE": {
+            const guild = event.guild;
+            if (guild && typeof guild.id === "string" && typeof guild.name === "string" && !guild.unavailable && removed.guilds.size < REMOVED_MAX_GUILDS &&
+                (removed.guilds.has(guild.id) || !removedLurking(guild.id))) removed.guilds.set(guild.id, guild.name.slice(0, 60));
+            removedRefreshSoon();
+            return;
+        }
+        case "GUILD_DELETE": {
+            const guild = event.guild;
+            // A server outage arrives the same way, marked unavailable. It's not a removal.
+            if (guild && typeof guild.id === "string" && !guild.unavailable) removedGuildGone(guild.id);
+            return;
+        }
+        case "LOGOUT": removedReset(); notify("removedAlerts"); return;
+        }
+    }
+    function removedSync() {
+        const d = removed.dispatcher;
+        if (!d || typeof d.subscribe !== "function") return;
+        const active = enabled("removedAlerts");
+        if (active && !removed.subscribed) {
+            removed.subscribed = true;
+            REMOVED_EVENTS.forEach(type => d.subscribe(type, removedEvent));
+            removedRefreshSoon(); removedCheckSoon();
+        } else if (!active && removed.subscribed) {
+            removed.subscribed = false;
+            if (typeof d.unsubscribe === "function") REMOVED_EVENTS.forEach(type => d.unsubscribe(type, removedEvent));
+            removed.friends.clear(); removed.guilds.clear(); removed.mine.clear(); removed.cooldowns.clear();
+        }
+    }
+    function removedInit(d) {
+        if (removed.dispatcher || !d || typeof d.subscribe !== "function") return;
+        removed.dispatcher = d;
+        removedSync();
+    }
+    function removedTurnedOn() {
+        removed.saved = null;
+        later(() => { removedRefresh(); removedCheckSoon(); }, 0);
+    }
+    function removedSeenData() {
+        if (!removed.user || !removed.friends.size && !removed.guilds.size && !removed.history.length) return null;
+        const friends = {}, guilds = {};
+        removed.friends.forEach((name, id) => { friends[id] = name; });
+        removed.guilds.forEach((name, id) => { guilds[id] = name; });
+        return {user:removed.user, friends, guilds, history:removed.history.map(entry => ({k:entry.k, n:entry.n || "", c:entry.c || 0, t:entry.t}))};
+    }
+    // Validates what was saved: ids, short names and the recent list, nothing else.
+    function removedLoad(seen) {
+        if (!seen || typeof seen !== "object" || typeof seen.user !== "string" || !/^\d{17,20}$/.test(seen.user)) return;
+        const read = (source, max) => {
+            const out = new Map();
+            if (source && typeof source === "object" && !Array.isArray(source)) {
+                const ids = Object.keys(source);
+                for (let i = 0; i < ids.length && out.size < max; i++) if (/^\d{17,20}$/.test(ids[i]) && typeof source[ids[i]] === "string") out.set(ids[i], source[ids[i]].slice(0, 60));
+            }
+            return out;
+        };
+        removed.saved = {user:seen.user, friends:read(seen.friends, REMOVED_MAX_FRIENDS), guilds:read(seen.guilds, REMOVED_MAX_GUILDS)};
+        removed.user = seen.user;
+        removed.history = (Array.isArray(seen.history) ? seen.history : []).filter(entry => entry && (entry.k === "friend" || entry.k === "guild" || entry.k === "batch") &&
+            typeof entry.t === "number" && isFinite(entry.t)).slice(0, REMOVED_KEEP).map(entry => ({k:entry.k, n:typeof entry.n === "string" ? entry.n.slice(0, 60) : "",
+            c:typeof entry.c === "number" && isFinite(entry.c) ? Math.max(0, Math.min(9999, Math.floor(entry.c))) : 0, t:entry.t}));
+    }
+    // Anything you do yourself (unfriend, block, leave, delete) is marked first, so its event isn't taken for a removal.
+    function hookRemovedMine(exports, keys) {
+        const target = exports && exports.default;
+        if (!target) return exports;
+        let patched = target;
+        keys.forEach(key => { patched = hookExport(patched, key, (orig, self, args) => { removedMarkMine(args[0]); return orig.apply(self, args); }); });
+        return patched === target ? exports : replaceValue(exports, "default", patched);
+    }
+    const REMOVED_RED = "#f23f43";
+    function removedBanner(s, key, text, on) {
+        const Icon = venusIcon(5036, "UserMinusIcon");
+        const body = el(RN.View, {style:{flexDirection:"row", gap:12, alignItems:"center", marginHorizontal:12, marginVertical:6, padding:12, borderRadius:12,
+            backgroundColor:REMOVED_RED + "1f", borderWidth:1, borderColor:REMOVED_RED + "47", opacity:on ? 1 : 0.45}},
+            el(RN.View, {style:{width:36, height:36, borderRadius:18, alignItems:"center", justifyContent:"center", backgroundColor:REMOVED_RED + "33"}},
+                el(Icon, {size:"md", color:REMOVED_RED})),
+            el(RN.View, {style:{flex:1, gap:2}},
+                el(RN.Text, {style:[s.name, {fontSize:14}], numberOfLines:2}, text),
+                el(RN.Text, {style:s.muted}, tr("just now"))));
+        return on ? popIn(key + ":" + text, body) : body;
+    }
+    function RemovedAlertsPreview(props) {
+        useSettings("removedAlerts");
+        const s = useChatPreviewStyles(), on = !!props.on;
+        return el(RN.View, {key:"preview"},
+            previewScreen(s, "preview", "Removal alerts preview", [
+                removedBanner(s, "friend", removedLabel({k:"friend", n:"Alex"}), on && settings.removedAlertsFriends),
+                removedBanner(s, "guild", removedLabel({k:"guild", n:"Pixel Garden"}), on && settings.removedAlertsServers)]));
+    }
+    function RemovedAlertsSettings() {
+        useSettings("removedAlerts");
+        const ui = reviewUI();
+        if (!React || !RN) return null;
+        const on = enabled("removedAlerts"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow, Row = ui.TableRow;
+        const Icon = venusIcon(5036, "UserMinusIcon");
+        const watching = !!(settings.removedAlertsFriends || settings.removedAlertsServers || settings.removedAlertsClosed);
+        const groups = [
+            !on ? offCard("status", Icon, "removedAlerts") : VenusStatusCard({key:"status", IconComponent:Icon, accent:true,
+                title:watching ? tr("Watching for removals") : tr("Nothing is watched"),
+                body:!watching ? tr("Turn on at least one option below.") : !removed.friends.size && !removed.guilds.size ? tr("Starts once Discord has loaded your friends and servers.") :
+                    tr("Remembers {friends} and {servers} on this phone, so it can tell when one is gone.",
+                    {friends:pl(removed.friends.size, "{n} friend", "{n} friends"), servers:pl(removed.guilds.size, "{n} server", "{n} servers")})}),
+            el(RemovedAlertsPreview, {key:"preview", on}),
+            el(Group, {key:"when", title:tr("Alert me when")},
+                switchRow(Switch, "removedAlertsFriends", "A friend removes you", "They unfriend you.", rowIcon(5036, "UserMinusIcon")),
+                switchRow(Switch, "removedAlertsServers", "A server removes you", "You're kicked or banned, or the server is deleted. Never when you leave yourself.", rowIcon(9239, "ServerIcon")),
+                switchRow(Switch, "removedAlertsClosed", "Catch up when Discord opens", "Also tells you about removals that happened while Discord was closed or offline.", rowIcon(5051, "ClockIcon"))),
+            el(Group, {key:"push", title:tr("Outside Discord")},
+                switchRow(Switch, "removedAlertsPush", "Phone notifications", "Get these even while Discord is closed. Keeps Discord connected in the background, which uses more battery.", rowIcon(6642, "MobilePhoneIcon")),
+                settings.removedAlertsPush && userNotif.permissionGranted === false && Row ?
+                    el(Row, {key:"perm", label:tr("Allow notification permission"), subLabel:tr("Android notifications are turned off for Discord. Tap to check or open system settings."),
+                        icon:rowIcon(10347, "BellSlashIcon"), variant:"danger", arrow:true, disabled:!on,
+                        onPress:() => Promise.resolve(userNotifRequestPermissions(true)).then(() => notify("removedAlerts"))}) : null),
+            el(Group, {key:"recent", title:tr("Recent")},
+                removed.history.length && Row ? removed.history.map((entry, i) => el(Row, {key:"h" + i + ":" + entry.t, label:removedLabel(entry), subLabel:removedAgo(entry.t),
+                    icon:rowIcon(entry.k === "guild" ? 9239 : 5036, entry.k === "guild" ? "ServerIcon" : "UserMinusIcon")})) :
+                    Row ? el(Row, {key:"none", label:tr("No removals yet"), disabled:true}) : null),
+            removed.history.length ? el(Group, {key:"manage", title:tr("Manage")},
+                actionRow(ui, "clear", "Clear recent alerts", "Empties the list above.", () => { removed.history.length = 0; save(); notify("removedAlerts"); }, false, true)) : null,
+            footnote("note", "Venus compares your friends and servers with what it saw last time. Anything you remove or leave on this phone never alerts you, and servers you're only previewing don't count.")];
+        return settingsBody(ui, groups);
+    }
+    // Load full-quality images (#108, based on Uncompressed Discord Images by Knewest). The BetterDiscord plugin swaps each
+    // thumbnail for the uploaded file by editing the page; Android has no page to edit. Here the app builds every picture's address
+    // in ImageUtils.getMobileOptimizedSrc (1496): for an upload it takes the proxy address and adds Discord's resize parameters
+    // (width, height, format=webp). For pictures people uploaded, Venus answers with the address of the original file instead.
+    // The chat row and the full-screen viewer share that function; calls made while MediaSourceUtil (8388) builds the viewer's
+    // pictures are counted, so each place has its own switch. Pictures too big for a phone to hold keep Discord's copy.
+    const FULL_IMAGE_URL = /^(https:\/\/(?:cdn\.discordapp\.com|media\.discordapp\.net))(\/attachments\/[^?#\s]+)(?:\?([^#\s]*))?$/;
+    const FULL_IMAGE_RESIZE = /^(?:width|height|format|quality|animated)=/;
+    const FULL_IMAGE_SIDE = 4096, FULL_IMAGE_PIXELS = 16000000;
+    const FULL_IMAGE_VIEWER_CALLS = ["extractMediaSourcesFromMessage", "extractMediaSourcesFromEmbed", "extractMediaSourcesFromComponent",
+        "extractMediaFromAttachment", "extractMediaFromEmbed", "extractMediaFromMessageComponents"];
+    const fullImages = {viewer:0};
+    // The address of the uploaded file for a resized one, or null to leave the picture to Discord.
+    function fullImageUrl(src, width, height, gifs) {
+        if (typeof src !== "string" || src.length > 2048 || src.indexOf("/attachments/") < 0) return null;
+        const match = FULL_IMAGE_URL.exec(src), ext = match && /\.(png|jpe?g|webp|gif)$/i.exec(match[2]);
+        if (!ext || (ext[1].toLowerCase() === "gif" && !gifs)) return null;
+        const w = Number(width), h = Number(height);
+        if (!(w > 0 && h > 0) || w > FULL_IMAGE_SIDE || h > FULL_IMAGE_SIDE || w * h > FULL_IMAGE_PIXELS) return null;
+        const kept = match[3] ? match[3].split("&").filter(part => part && !FULL_IMAGE_RESIZE.test(part)) : [];
+        return match[1] + match[2] + (kept.length ? "?" + kept.join("&") : "");
+    }
+    function fullImagesSrc(orig, self, args) {
+        if (enabled("fullImages") && (fullImages.viewer > 0 ? settings.fullImagesViewer : settings.fullImagesChat)) {
+            try { const url = fullImageUrl(args[0], args[1], args[2], settings.fullImagesGifs); if (url) return url; } catch (_) {}
+        }
+        return orig.apply(self, args);
+    }
+    function hookFullImagesViewer(exports) {
+        FULL_IMAGE_VIEWER_CALLS.forEach(key => {
+            exports = hookExport(exports, key, (orig, self, args) => {
+                fullImages.viewer++;
+                try { return orig.apply(self, args); } finally { fullImages.viewer--; }
+            });
+        });
+        return exports;
+    }
+    // High-res profile pictures (based on HighResProfileImages by Kawtious): AvatarUtils (1415) asks the CDN for an avatar or
+    // banner only as big as it's drawn (size=64, 128...), which blurs in profiles and full screen. Venus asks for at least 512
+    // (avatars) or 1024 (banners) instead: still powers of two the CDN accepts, and small enough for long member lists.
+    const FULL_AVATAR_CALLS = ["getUserAvatarURL", "getGuildMemberAvatarURL", "getGuildMemberAvatarURLSimple", "getUserAvatarSource",
+        "getGuildMemberAvatarSource", "getUserBannerURL", "getGuildMemberBannerURL"];
+    const FULL_AVATAR_URL = /^https:\/\/(?:cdn\.discordapp\.com|media\.discordapp\.net)\/(?:avatars|banners|guilds)\//;
+    const FULL_AVATAR_SIZE = /([?&])size=(\d+)/;
+    function fullAvatarUrl(url, banner) {
+        if (typeof url !== "string" || url.length > 2048 || !FULL_AVATAR_URL.test(url)) return url;
+        const want = banner ? 1024 : 512;
+        return url.replace(FULL_AVATAR_SIZE, (all, sep, n) => Number(n) >= want ? all : sep + "size=" + want);
+    }
+    function fullAvatarHook(banner) {
+        return (orig, self, args) => {
+            const out = orig.apply(self, args);
+            if (!settings.fullImagesAvatars || !enabled("fullImages")) return out;
+            try {
+                if (typeof out === "string") return fullAvatarUrl(out, banner);
+                if (out && typeof out === "object" && !Array.isArray(out) && typeof out.uri === "string") {
+                    const uri = fullAvatarUrl(out.uri, banner);
+                    return uri === out.uri ? out : Object.assign({}, out, {uri});
+                }
+            } catch (_) {}
+            return out;
+        };
+    }
+    function hookFullAvatars(exports) {
+        const hookAll = target => { FULL_AVATAR_CALLS.forEach(name => { target = hookExport(target, name, fullAvatarHook(name.indexOf("Banner") >= 0)); }); return target; };
+        exports = hookAll(exports);
+        if (exports && exports.default && typeof exports.default === "object") {
+            const inner = hookAll(exports.default);
+            if (inner !== exports.default) exports = replaceValue(exports, "default", inner);
+        }
+        return exports;
+    }
+    // Always trust links and files (based on AlwaysTrust by zt and Trwy): MaskedLinkStore.isTrustedDomain (8488) decides
+    // whether a link asks "Leaving Discord", and SuspiciousDownloadUtils.isSuspiciousDownload (8260) whether a file link
+    // warns it may be dangerous. Domains Discord blocks outright are a separate check and stay blocked.
+    function alwaysTrustDomain(orig, self, args) {
+        return enabled("alwaysTrust") && settings.alwaysTrustLinks ? true : orig.apply(self, args);
+    }
+    function alwaysTrustFile(orig, self, args) {
+        return enabled("alwaysTrust") && settings.alwaysTrustFiles ? null : orig.apply(self, args);
+    }
+    function AlwaysTrustSettings() {
+        useSettings("alwaysTrust");
+        const ui = reviewUI();
+        if (!React || !RN) return null;
+        const on = enabled("alwaysTrust"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow;
+        const Icon = venusIcon(10410, "ShieldIcon");
+        const any = !!(settings.alwaysTrustLinks || settings.alwaysTrustFiles);
+        const groups = [
+            !on ? offCard("status", Icon, "alwaysTrust") : !any ? statusCard("status", "Turn on at least one option below.", {IconComponent:Icon}) : null,
+            el(Group, {key:"what", title:tr("Skip the warning for")},
+                switchRow(Switch, "alwaysTrustLinks", "Links", "No \"Leaving Discord\" before opening links to other sites.", rowIcon(7701, "LinkExternalSmallIcon")),
+                switchRow(Switch, "alwaysTrustFiles", "Downloads", "No \"potentially dangerous download\" before opening files.", rowIcon(5044, "DownloadIcon"))),
+            footnote("note", "Links Discord knows are harmful stay blocked.")];
+        return settingsBody(ui, groups);
+    }
+    // Tap mentions to open profiles (based on ClickableMentions by mwittrien). The message bar is a native view
+    // (ChatInputNativeComponent, 11953) that only reports taps on attachments, but every tap moves the cursor and arrives
+    // as onSelectionOrTextChange. When the text hasn't changed and the cursor lands inside an @mention, Venus opens that
+    // person's profile sheet (showUserProfileActionSheet, 8299). Typing, and mentions picked from the list, never open one.
+    const mentionTaps = new WeakMap();
+    const MENTION_TOKEN = /<@!?(\d{17,20})>|@([^\s@#:<>`]{2,32})/g;
+    function clickableMentionsProps(props) {
+        const orig = props && props.onSelectionOrTextChange;
+        if (typeof orig !== "function" || !enabled("clickableMentions")) return props;
+        let wrapped = mentionTaps.get(orig);
+        if (!wrapped) {
+            const state = {text:undefined};
+            wrapped = function (event) {
+                try { mentionTapCheck(state, event && event.nativeEvent); } catch (_) {}
+                return orig.apply(this, arguments);
+            };
+            mentionTaps.set(orig, wrapped);
+        }
+        return Object.assign({}, props, {onSelectionOrTextChange:wrapped});
+    }
+    function mentionTapCheck(state, e) {
+        if (!e || typeof e.text !== "string") return;
+        const text = e.text, same = state.text === text, at = e.start;
+        state.text = text;
+        if (!same || typeof at !== "number" || at !== e.end || text.length > 4000) return;
+        MENTION_TOKEN.lastIndex = 0;
+        let m;
+        while ((m = MENTION_TOKEN.exec(text))) {
+            const start = m.index, end = start + m[0].length;
+            if (start >= at) return;
+            if (m[2] && start > 0 && !/\s/.test(text[start - 1])) continue;
+            if (at < end) { mentionOpen(m[1], m[2]); return; }
+        }
+    }
+    function mentionUser(id, name) {
+        const users = userStore || inspectedExport(1390, "default");
+        if (!users) return null;
+        if (id) return typeof users.getUser === "function" ? users.getUser(id) : null;
+        const wanted = name.toLowerCase();
+        let user = typeof users.findByTag === "function" ? users.findByTag(wanted) : null;
+        if (user || typeof users.getUsers !== "function") return user;
+        const all = users.getUsers();
+        for (const key in all) {
+            const u = all[key];
+            if (u && (typeof u.globalName === "string" && u.globalName.toLowerCase() === wanted || typeof u.username === "string" && u.username.toLowerCase() === wanted)) return u;
+        }
+        return null;
+    }
+    function mentionOpen(id, name) {
+        const user = mentionUser(id, name), show = user && user.id ? inspectedExport(8299, "default") : null;
+        if (typeof show !== "function") return;
+        const selected = inspectedExport(2116, "default");
+        const channelId = selected && typeof selected.getChannelId === "function" ? selected.getChannelId() : undefined;
+        const store = channelStore || inspectedExport(2065, "default");
+        const channel = channelId && store && typeof store.getChannel === "function" ? store.getChannel(channelId) : null;
+        haptic("SELECTION");
+        try { if (RN && RN.Keyboard && typeof RN.Keyboard.dismiss === "function") RN.Keyboard.dismiss(); } catch (_) {}
+        later(() => { try { show({userId:user.id, channelId, guildId:channel && channel.guild_id || undefined}); } catch (_) {} }, 60);
+    }
+    function FullImagesSettings() {
+        useSettings("fullImages");
+        const ui = reviewUI();
+        if (!React || !RN) return null;
+        const on = enabled("fullImages"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow;
+        const Icon = venusIcon(11587, "ImagesIcon");
+        const where = !!(settings.fullImagesChat || settings.fullImagesViewer || settings.fullImagesAvatars);
+        const groups = [
+            // On, the switches below already say what loads in full; the card only speaks up when none of them is on.
+            !on ? offCard("status", Icon, "fullImages") : where ? null : VenusStatusCard({key:"status", IconComponent:Icon, accent:true,
+                title:tr("Nothing loads in full"), body:tr("Turn on at least one option below.")}),
+            el(Group, {key:"where", title:tr("Load in full")},
+                switchRow(Switch, "fullImagesChat", "In chat", "Pictures in messages, as soon as they appear.", rowIcon(8194, "ChatIcon")),
+                switchRow(Switch, "fullImagesViewer", "When opened", "Pictures you tap to view full screen.", rowIcon(15327, "FullscreenEnterIcon")),
+                switchRow(Switch, "fullImagesAvatars", "Profile pictures and banners", "Sharp at any size, instead of Discord's small copy.", rowIcon(10287, "UserCircleIcon"))),
+            el(Group, {key:"data", title:tr("Mobile data")},
+                switchRow(Switch, "fullImagesGifs", "GIFs and animated pictures", "Loads the whole GIF instead of Discord's lighter copy. Can use a lot of data.", rowIcon(9748, "GifIcon"))),
+            footnote("note", "Only pictures people upload to Discord change, not links to other sites. Pictures over 16 megapixels stay as Discord sends them, so the app doesn't run out of memory. Pictures already on screen update when you reopen the chat.")];
+        return settingsBody(ui, groups);
+    }
     // Clean channel names: the preview is a server's channel list with names decorated the way real servers do it.
-    // While on, each name is cleaned with the options below (and Spaces in channel names, if that's on too) and glides in.
+    // While on, each name is cleaned with the options below and glides in.
     const CLEAN_SAMPLE = [["cat", "\ud83d\udee0\ufe0f | SUPPORT & RESOURCE | \ud83d\udee0\ufe0f"], ["text", "\ud83c\udfab\uff5cquick-help"], ["text", "\ud83d\udd0d\u2503mchose-support-center"],
         ["cat", "\u2726 \ud835\udc02\ud835\udc0e\ud835\udc0c\ud835\udc0c\ud835\udc14\ud835\udc0d\ud835\udc08\ud835\udc13\ud835\udc18 \u2726"], ["text", "\u300c\ud83d\udce6\u300dunbox-reviews"], ["text", "\ud835\udcf0\ud835\udcee\ud835\udcf7\ud835\udcee\ud835\udcfb\ud835\udcea\ud835\udcf5-\ud835\udcec\ud835\udcf1\ud835\udcea\ud835\udcfd"], ["voice", "\ud83d\udd0a \u30fb Lounge"]];
     function CleanChannelsPreview(props) {
@@ -13825,9 +16876,9 @@
         const opts = {emoji:settings.cleanChannelsEmoji, symbols:settings.cleanChannelsSymbols, fonts:settings.cleanChannelsFonts};
         const anything = opts.emoji || opts.symbols || opts.fonts;
         const show = ([type, name]) => {
-            if (!on || !anything) return name;
-            const cleaned = cleanName(name, type === "text", opts);
-            return features.dashless && enabled("dashless") && type === "text" ? cleaned.replace(/-/g, " ") : cleaned;
+            if (!on) return name;
+            const cleaned = anything ? cleanName(name, type === "text", opts) : name;
+            return settings.cleanChannelsSpaces && type === "text" ? cleaned.replace(/-/g, " ") : cleaned;
         };
         const rows = CLEAN_SAMPLE.map((entry, i) => {
             const name = show(entry);
@@ -13856,7 +16907,7 @@
         if (!React || !RN) return null;
         const on = enabled("cleanChannels"), Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow;
         const Icon = venusIcon(12605, "MagicWandIcon");
-        const hasAny = !!(settings.cleanChannelsEmoji || settings.cleanChannelsSymbols || settings.cleanChannelsFonts);
+        const hasAny = !!(settings.cleanChannelsEmoji || settings.cleanChannelsSymbols || settings.cleanChannelsFonts || settings.cleanChannelsSpaces);
         const groups = [
             !on ? offCard("status", Icon, "cleanChannels") : !hasAny ? statusCard("status", "Turn on at least one option below.",
                 {title:tr("Names stay as they are"), IconComponent:Icon}) : null,
@@ -13865,6 +16916,8 @@
                 switchRow(Switch, "cleanChannelsEmoji", "Emoji", "\ud83c\udfab, \ud83d\udee0\ufe0f, \ud83c\udf89 and flags, wherever they are in the name.", rowIcon(8956, "ReactionIcon")),
                 switchRow(Switch, "cleanChannelsSymbols", "Symbols and dividers", "\u2503, \u30fb, \u2726, \u300c\u300d and the bars around category names.", rowIcon(10621, "SlashBoxIcon")),
                 switchRow(Switch, "cleanChannelsFonts", "Fancy letters", "Turns \ud835\udc02\ud835\udc0e\ud835\udc0c\ud835\udc0c\ud835\udc14\ud835\udc0d\ud835\udc08\ud835\udc13\ud835\udc18 and \ud835\udcf0\ud835\udcee\ud835\udcf7\ud835\udcee\ud835\udcfb\ud835\udcea\ud835\udcf5 into plain letters.", rowIcon(15974, "LettersIcon"))),
+            el(Group, {key:"spaces", title:tr("Text channels")},
+                switchRow(Switch, "cleanChannelsSpaces", "Spaces instead of dashes", "Shows \"general chat\" instead of \"general-chat\".", rowIcon(15892, "HashmarkIcon"))),
             footnote("note", "Only how names look changes: links, mentions and search still use the real name. A name with nothing else in it is left as it is.")
         ];
         return settingsBody(ui, groups);
@@ -13887,6 +16940,12 @@
         // The last list of selectable messages, reused while the chat, kept messages and options are unchanged.
         selectable:null,
         subscribed:false,
+        // "channelId:id" -> the redraw whose restore hasn't run yet ({content, temp}), so overlapping redraws keep the real text.
+        redrawing:new Map(),
+        // "channelId:id" of live messages this run is deleting right now: Keep deleted messages lets them go instead of keeping them.
+        removing:new Set(),
+        // Messages this run has tried so far (deleted or failed), for the progress text.
+        attempted:0,
         // Each delete run gets a number; a run that was stopped (chat left, account switched, feature off) sees a newer one.
         run:0
     };
@@ -13969,18 +17028,52 @@
         if (typeof d !== "function") return;
         const store = msgStore || (msgStore = inspectedExport(5432, "default"));
         if (!store || typeof store.getMessage !== "function") return;
-        const restores = [];
+        const restores = [], pending = bulkDelete.redrawing;
         for (let i = 0; i < ids.length; i++) {
             const id = String(ids[i]);
             let msg = null;
             try { msg = store.getMessage(channelId, id); } catch (_) {}
             // Not in the store means it isn't drawn either: nothing to redraw.
             if (!msg) continue;
-            const content = typeof msg.content === "string" ? msg.content : "";
-            try { d({type:"MESSAGE_UPDATE", message:{id, channel_id:channelId, content:content + "\u200b"}}); } catch (_) { continue; }
-            restores.push({id, channel_id:channelId, content});
+            const key = channelId + ":" + id, live = typeof msg.content === "string" ? msg.content : "";
+            // A second redraw before the first one's restore (a quick second tap, Select all right after Select Messages)
+            // used to read the marked text as the real one and put that back, leaving a zero-width space in the message.
+            const was = pending.get(key);
+            const content = was && live === was.temp ? was.content : live, temp = content + "\u200b";
+            try { d({type:"MESSAGE_UPDATE", message:{id, channel_id:channelId, content:temp}}); } catch (_) { continue; }
+            const entry = {id, channel_id:channelId, content, temp};
+            pending.set(key, entry);
+            restores.push(entry);
         }
-        if (restores.length) later(() => { for (let i = 0; i < restores.length; i++) try { d({type:"MESSAGE_UPDATE", message:restores[i]}); } catch (_) {} }, 35);
+        if (restores.length) later(() => {
+            for (let i = 0; i < restores.length; i++) {
+                const entry = restores[i], key = entry.channel_id + ":" + entry.id;
+                // A newer redraw of this message puts the text back itself.
+                if (pending.get(key) !== entry) continue;
+                pending.delete(key);
+                // Only while the message still shows the marked copy: an edit (or another feature's restore) that landed in
+                // between is newer than what was read, and used to be overwritten with the old text.
+                let now = null;
+                try { now = store.getMessage(entry.channel_id, entry.id); } catch (_) {}
+                if (!now || typeof now.content === "string" && now.content !== entry.temp) continue;
+                try { d({type:"MESSAGE_UPDATE", message:{id:entry.id, channel_id:entry.channel_id, content:entry.content}}); } catch (_) {}
+            }
+        }, 35);
+    }
+    // Kept deleted messages can only stay selected while they can be selected: Include kept deleted messages (or Keep
+    // deleted messages) turned off, or a selected message someone deleted being kept, used to leave them counted without
+    // a circle, and Delete removed them from the kept list anyway.
+    function bulkDeletePruneKept() {
+        if (!bulkDelete.active || bulkDelete.deleting || !bulkDelete.selected.size) return false;
+        if (features.noDelete && enabled("noDelete") && settings.bulkDeleteIncludeCached) return false;
+        const chId = bulkDelete.channelId, bucket = chId && deletedByChannel.get(chId);
+        if (!bucket) return false;
+        const dropped = [];
+        bulkDelete.selected.forEach(id => { if (bucket.has(deletedKey(chId, id))) dropped.push(id); });
+        if (!dropped.length) return false;
+        dropped.forEach(id => bulkDelete.selected.delete(id));
+        notify("bulkDelete");
+        return true;
     }
     function bulkDeleteChannelSelectableIds(channelId) {
         if (!channelId) return [];
@@ -14059,6 +17152,8 @@
         // A run stopped halfway still says what it removed, instead of looking like nothing happened.
         const stoppedAfter = bulkDelete.deleting ? bulkDelete.progress : 0;
         bulkDelete.run++;
+        bulkDelete.removing.clear();
+        bulkDelete.attempted = 0;
         animateLayout();
         bulkDelete.active = false;
         bulkDelete.deleting = false;
@@ -14123,6 +17218,8 @@
     }
     function bulkDeleteConfirmAndRun() {
         if (!bulkDelete.active || bulkDelete.deleting || !bulkDelete.selected.size || !bulkDelete.channelId) return;
+        bulkDeletePruneKept();
+        if (!bulkDelete.selected.size) return;
         const count = bulkDelete.selected.size;
         if (!settings.bulkDeleteConfirm) {
             bulkDeleteExecute();
@@ -14139,6 +17236,9 @@
     // Discord's DELETE /messages/:id. Its route bucket allows about 5 deletes per 5 seconds: one every 1.1 s rarely meets a
     // 429, and when one comes the wait it asks for (retryAfter, in seconds) is honoured before trying that message again.
     const BULK_DELETE_GAP_MS = 1100, BULK_DELETE_RETRIES = 3;
+    // A server hiccup (5xx) or a dropped connection (no status) is worth another try after a growing wait; 4xx answers
+    // other than 429 (no permission, too old, unknown channel) won't change.
+    function bulkDeleteRetryable(info) { return info.status === 429 || info.status === 0 || info.status >= 500; }
     function bulkDeleteError(error) {
         const status = error && (error.status || error.statusCode || error.body && error.body.status);
         const body = error && error.body;
@@ -14158,10 +17258,20 @@
             if (entry) cachedEntries.push(entry);
             else liveIds.push(id);
         });
+        if (!settings.bulkDeleteIncludeCached || !(features.noDelete && enabled("noDelete"))) {
+            // Can't be selected now (see bulkDeletePruneKept): leave them kept.
+            for (let i = cachedEntries.length - 1; i >= 0; i--) bulkDelete.selected.delete(String(cachedEntries[i].id));
+            cachedEntries.length = 0;
+            ids.length = 0;
+            Array.prototype.push.apply(ids, liveIds);
+            if (!ids.length) { notify("bulkDelete"); return; }
+        }
         const run = ++bulkDelete.run;
         bulkDelete.deleting = true;
         bulkDelete.total = ids.length;
         bulkDelete.progress = 0;
+        bulkDelete.attempted = 0;
+        bulkDelete.removing.clear();
         haptic("IMPACT_MEDIUM");
 
         // Kept deleted messages are already gone from Discord: remove them here, in one batch.
@@ -14172,6 +17282,7 @@
             dispatchRemovals(cachedEntries);
             cachedEntries.forEach(entry => bulkDelete.selected.delete(String(entry.id)));
             bulkDelete.progress += cachedEntries.length;
+            bulkDelete.attempted += cachedEntries.length;
             bulkDelete.deletedSession += cachedEntries.length;
         }
         notify("bulkDelete");
@@ -14187,19 +17298,22 @@
             const me = currentUser();
             if (bulkDelete.userId && !(me && String(me.id) === bulkDelete.userId)) { bulkDeleteCancel(); return; }
             if (idx >= liveIds.length) { bulkDeleteFinish(bulkDelete.progress, failed); return; }
-            const id = liveIds[idx];
+            const id = liveIds[idx], key = deletedKey(chId, id);
             let p;
+            bulkDelete.removing.add(key);
             try { p = actions.deleteMessage(chId, id, false); } catch (error) { p = Promise.reject(error); }
             Promise.resolve(p).then(() => null, error => error || {}).then(error => {
+                bulkDelete.removing.delete(key);
                 if (run !== bulkDelete.run) return;
                 const info = error && bulkDeleteError(error);
-                if (info && info.status === 429 && tries < BULK_DELETE_RETRIES) {
-                    // Rate limited: same message again after the wait Discord asked for.
+                if (info && bulkDeleteRetryable(info) && tries < BULK_DELETE_RETRIES) {
+                    // Rate limited: same message again after the wait Discord asked for. Otherwise 2.2 s, 4.4 s, 8.8 s.
                     tries++;
-                    later(step, Math.max(info.retryMs, BULK_DELETE_GAP_MS), false);
+                    later(step, Math.max(info.retryMs, info.status === 429 ? BULK_DELETE_GAP_MS : BULK_DELETE_GAP_MS << tries), false);
                     return;
                 }
                 idx++; tries = 0;
+                bulkDelete.attempted++;
                 // 404: someone else already deleted it, which is what you wanted.
                 if (!error || info.status === 404) {
                     // Keep deleted messages keeps your own deletions too; a bulk delete is meant to clear them for real.
@@ -14221,6 +17335,8 @@
         const prevChannel = bulkDelete.channelId;
         const left = failed && failed.length ? failed.slice() : [];
         bulkDelete.run++;
+        bulkDelete.removing.clear();
+        bulkDelete.attempted = 0;
         bulkDelete.deleting = false;
         bulkDelete.progress = 0;
         bulkDelete.total = 0;
@@ -14391,7 +17507,7 @@
         const allSelected = selectable.length > 0 && bulkDelete.selected.size >= selectable.length && selectable.every(id => bulkDelete.selected.has(id));
         const Trash = venusIcon(5049, "TrashIcon"), Close = venusIcon(6296, "CircleXIcon");
         const statusText = deleting ?
-            tr("Deleting {done} of {total}…", {done:Math.min(bulkDelete.progress + 1, bulkDelete.total), total:bulkDelete.total}) :
+            tr("Deleting {done} of {total}…", {done:Math.min(bulkDelete.attempted + 1, bulkDelete.total), total:bulkDelete.total}) :
             tr("{n} selected", {n:count});
         const height = Math.max(56, Number.isFinite(inputHeight) && inputHeight > 0 ? inputHeight : 0);
         // A plain view placed with layout, never a native-driven transform or popIn wrapper: on Android those draw the bar
@@ -14600,6 +17716,7 @@
             case 11191: return (features.customThemes || features.materialYou || features.iconPacks) ? hookComponent(exports, rootThemeContextProvider, "RootThemeContextProvider") : exports;
             case 1205: if ((features.customThemes || features.materialYou || features.iconPacks) && exports && exports.default) customThemes.themeStore = exports.default; return exports;
             case 4831: return (features.customThemes || features.materialYou || features.iconPacks) ? hookCreateThemedContext(exports) : exports;
+            case 4839: return (features.customThemes || features.materialYou || features.iconPacks) ? hookComponent(exports, nestedThemeContextProvider, "ThemeContextProvider") : exports;
             case 10368:
                 // ChatViewWrapper {channelId, stickyHeader, children}: the theme background behind chat, and the translate bar (#82)
                 // in the sticky header slot above the messages, where Discord shows its own New messages bar.
@@ -14619,10 +17736,14 @@
             case 1401: return features.experiments ? hookStaffEnv(exports) : exports;
             case 7308: if (features.hideBlocked && exports && exports.default) hideBlocked.references = exports.default; return exports;
             case 11624: return features.hideBlocked ? hookExport(exports, "default", hideBlockedChannelStream) : exports;
-            case 2087: if (features.userNotif && exports && exports.default) { userNotif.guilds = exports.default; userNotifSubscribeGuilds(); } return exports;
-            case 9699: if ((features.quests || features.badges || features.userNotif) && exports && exports.default) { bgKeepAlive.fg = exports.default; backgroundSync(); } return exports;
-            case 13933: return (features.quests || features.badges || features.userNotif) ? hookGatewaySocket(exports) : exports;
-            case 13968: return (features.quests || features.badges || features.userNotif) ? hookPauseGateway(exports) : exports;
+            case 2087:
+                if (features.serverEdit && exports && exports.default) exports = serverEditHookStore(exports);
+                if (features.userNotif && exports && exports.default) { userNotif.guilds = exports.default; userNotifSubscribeGuilds(); }
+                return exports;
+            case 1415: return features.serverEdit ? serverEditHookAvatars(exports) : exports;
+            case 9699: if ((features.quests || features.badges || features.userNotif || features.removedAlerts) && exports && exports.default) { bgKeepAlive.fg = exports.default; backgroundSync(); } return exports;
+            case 13933: return (features.quests || features.badges || features.userNotif || features.removedAlerts) ? hookGatewaySocket(exports) : exports;
+            case 13968: return (features.quests || features.badges || features.userNotif || features.removedAlerts) ? hookPauseGateway(exports) : exports;
             case 5759: return features.badges ? hookSelfPresenceStore(exports) : exports;
             case 8312: if (features.badges && exports && exports.default) badgesAttachStore(exports.default); return exports;
             case 9675:
@@ -14634,7 +17755,7 @@
             case 1264: if (features.pastelize) pastelHash = typeof exports === "function" ? exports : exports.default; return exports;
             case 2125: if (features.pastelize) guildMembers = exports.default; return exports;
             case 7742:
-                if ((features.pastelize || features.noDelete || features.translate || features.messageHighlight || features.bulkDelete) && exports.default && exports.default.prototype)
+                if ((features.pastelize || features.noDelete || features.translate || features.messageHighlight || features.bulkDelete || features.staffTag) && exports.default && exports.default.prototype)
                     hookExport(exports.default.prototype, "generate", messageRow);
                 return exports;
             case 5108: if (features.platformIndicators || features.userNotif) { presenceStore = exports.default; if (features.userNotif) userNotifSeedStatuses(); } return exports;
@@ -14677,7 +17798,10 @@
                 return hookExport(hookExport(exports, "default", plain), "StatusWithTyping", plain);
             }
             case 16754: return features.readAll ? hookExport(exports, "default", readAllBarProps) : exports;
-            case 16748: return features.serverInfo ? hookExport(exports, "default", serverInfoMenu) : exports;
+            case 16748:
+                // Edit locally, then Server info, after Discord's own rows.
+                if (features.serverEdit) exports = hookExport(exports, "default", serverEditMenu);
+                return features.serverInfo ? hookExport(exports, "default", serverInfoMenu) : exports;
             case 10725: if (features.reviewDB) oauthModal = exports.default; return exports;
             case 6265: if (features.reviewDB) nativeRowGroup = exports.TableRowGroup; return exports;
             case 6896: if (features.reviewDB) nativeSwitchRow = exports.TableSwitchRow; return exports;
@@ -14690,39 +17814,35 @@
             case 13181: return features.reviewDB ? hookComponent(exports, reviewNote) : exports;
             case 14281: return features.reviewDB ? hookExport(exports, "ContextMenuPopout", reviewMenu) : exports;
             case 14213: return features.reviewDB ? hookComponent(exports, reviewGuild) : exports;
-            case 11935: case 12146: return features.hideGift && exports && exports.default ? replaceValue(exports, "default", propsComponent(exports.default, withoutGift)) : exports;
-            case 13425: return features.hideCall ? hookComponent(exports, profileButtons) : exports;
-            case 9115: return features.hideButtons ? hookComponent(exports, youPillButtons) : exports;
-            case 10028: return features.hideButtons && exports && exports.default ? replaceValue(exports, "default", propsComponent(exports.default, attachMenuButtons)) : exports;
-            case 15371: return features.hideQuestDock ? hideQuestHooks(exports) : exports;
-            case 15465: return features.hideQuestDock ? hideQuestDock(exports) : exports;
             case 6820: return features.systemEmoji && exports && exports.default ? replaceValue(exports, "default", propsComponent(exports.default, systemEmojiProps)) : exports;
             case 14839: exports.SETTING_RENDERER_CONFIG = nativeRegistry(exports.SETTING_RENDERER_CONFIG); return exports;
             case 10664: return hookExport(exports, "createList", settingsSections);
             case 14971: SettingsList = exports.SettingsList; return exports;
             case 10615: return features.copyBios ? hookComponent(exports, copyBio) : exports;
             case 5421:
-                if (!features.dashless && !features.hiddenChannels && !features.cleanChannels) return exports;
+                if (!features.hiddenChannels && !features.cleanChannels) return exports;
                 exports = hookExport(exports, "computeChannelName", channelLabel);
                 return hookExport(exports, "default", useChannelLabel);
-            case 5412: return features.dashless || features.cleanChannels ? hookExport(exports, "getChannel", mentionChannelInfo) : exports;
+            case 5412: return features.cleanChannels ? hookExport(exports, "getChannel", mentionChannelInfo) : exports;
             case 7365:
-                if (!features.dashless && !features.cleanChannels) return exports;
+                if (!features.cleanChannels) return exports;
                 exports = hookExport(exports, "createParserState", parserStateChannels);
                 if (exports && exports.default) exports = replaceValue(exports, "default", hookExport(exports.default, "createParserState", parserStateChannels));
                 return exports;
             case 13066: return features.favouriteAnything ? hookComponent(exports, favouriteButton) : exports;
             case 1295: return features.tenorGifs && exports && exports.HTTP ? (hookExport(hookExport(exports.HTTP, "get", tenorGet), "post", tenorPost), exports) : exports;
+            case 5889: if (features.voiceOptions && exports && exports.default) hookExport(exports.default, "disconnect", voiceLeave); return exports;
+            case 10982: return features.voiceOptions ? hookExport(exports, "playSound", voiceSoundPlay) : exports;
             case 9733: return features.tenorGifs ? hookExport(exports, "getSearchPlaceholder", tenorPlaceholder) : exports;
             case 9732: return features.favouriteAnything ? hookExport(exports, "addFavoriteGIF", favouriteAdd) : exports;
             case 9735: return features.favouriteAnything ? hookExport(exports, "useFavoriteGIFsMobile", favouriteList) : exports;
             case 2065: channelStore = exports.default; return exports;
             case 11668: return features.noTyping ? replaceValue(exports, "default", hookExport(hookExport(exports.default, "startTyping", typing), "stopTyping", typing)) : exports;
-            case 1126: if (features.quickDelete) locale = exports; return exports;
-            case 5300: return features.quickDelete ? replaceValue(exports, "default", hookExport(exports.default, "show", quickConfirm)) : exports;
+            case 1126: if (features.quickDelete || features.noConfirmPin) locale = exports; return exports;
+            case 5300: return features.quickDelete || features.noConfirmPin ? replaceValue(exports, "default", hookExport(exports.default, "show", quickConfirm)) : exports;
             case 5434: if (features.noDelete) { messageRecords = exports; restoreDeleted(); } return exports;
             case 1390:
-                if (exports && exports.default && (features.validUser || features.splitMessages || features.fixEmbeds || features.translate || features.userNotif || features.accountSwitcher || features.appIcons || features.nitroThemes || features.messageHighlight || features.serverInfo || features.noDelete || features.reviewDB || features.platformIndicators || features.hiddenChannels || features.gestures || features.freeNitro || features.badges || features.bulkDelete || features.experiments))
+                if (exports && exports.default && (features.validUser || features.splitMessages || features.fixEmbeds || features.translate || features.userNotif || features.removedAlerts || features.accountSwitcher || features.appIcons || features.nitroThemes || features.messageHighlight || features.serverInfo || features.noDelete || features.reviewDB || features.platformIndicators || features.hiddenChannels || features.gestures || features.freeNitro || features.badges || features.bulkDelete || features.experiments))
                     userStore = exports.default;
                 if (features.noDelete || features.reviewDB || features.platformIndicators || features.hiddenChannels) restoreDeleted();
                 return exports;
@@ -14734,8 +17854,19 @@
                 }
                 return exports;
             case 7386: if (features.quests) questAttach(exports.default); return exports;
+            case 1496: return features.fullImages ? hookExport(exports, "getMobileOptimizedSrc", fullImagesSrc) : exports;
+            case 8388: return features.fullImages ? hookFullImagesViewer(exports) : exports;
+            case 1415: return features.fullImages ? hookFullAvatars(exports) : exports;
+            case 8488: return features.alwaysTrust && exports && exports.default ? replaceValue(exports, "default", hookExport(exports.default, "isTrustedDomain", alwaysTrustDomain)) : exports;
+            case 8260: return features.alwaysTrust ? hookExport(exports, "isSuspiciousDownload", alwaysTrustFile) : exports;
+            case 11953: return features.clickableMentions && exports && exports.default ? replaceValue(exports, "default", propsComponent(exports.default, clickableMentionsProps)) : exports;
+            case 7018: return features.removedAlerts ? hookRemovedMine(exports, ["removeFriend", "removeRelationship"]) : exports;
+            case 6098: return features.removedAlerts ? hookRemovedMine(exports, ["deleteGuild"]) : exports;
+            case 8633: return features.removedAlerts ? hookRemovedMine(exports, ["leaveGuild", "deleteGuild"]) : exports;
             case 584:
                 if (features.userNotif && exports && exports.default) userNotifInit(exports.default);
+                if (features.removedAlerts && exports && exports.default) removedInit(exports.default);
+                if (features.hideBlocked && exports && exports.default) hideBlockedInit(exports.default);
                 if (features.translate && exports && exports.default) translateInit(exports.default);
                 if (features.validUser && exports && exports.default) validInit(exports.default);
                 if (features.quests) questsInit(exports.default);
@@ -14743,6 +17874,7 @@
                 if (features.nitroThemes && exports && exports.default) nitroThemeAttach(exports.default);
                 if (features.bulkDelete && exports && exports.default) bulkDeleteInit(exports.default);
                 if (features.experiments && exports && exports.default) experimentsInit(exports.default);
+                if (features.voiceOptions && exports && exports.default) voiceOptionsInit(exports.default);
                 if ((features.messageHighlight || features.bulkDelete) && exports && exports.default && !dispatcher)
                     dispatcher = exports.default.dispatch.bind(exports.default);
                 if ((features.noDelete || features.reviewDB || features.hiddenChannels) && id === 584) {
@@ -14755,6 +17887,10 @@
                 if (features.bulkDelete && exports.Permissions && bulkDelete.managePermission === undefined)
                     bulkDelete.managePermission = exports.Permissions.MANAGE_MESSAGES;
                 return exports;
+            case 7477:
+                if (!features.hiddenChannels) return exports;
+                exports = hookExport(exports, "openGuildVoiceModal", hiddenVoicePanel);
+                return hookExport(exports, "navigateToVoiceChannel", hiddenVoicePanel);
             case 1112:
                 if (!features.hiddenChannels) return exports;
                 exports = hookExport(exports, "transitionTo", hiddenNavigation);
@@ -14775,6 +17911,8 @@
                 try {
                     if (candidate && !permissionsCanOrig) {
                         permissionsCanOrig = candidate.can.bind(candidate);
+                        if (typeof candidate.canBasicChannel === "function") permissionsBasicOrig = candidate.canBasicChannel.bind(candidate);
+                        if (typeof candidate.getChannelsVersion === "function") permissionsVersion = candidate.getChannelsVersion.bind(candidate);
                         permissions = hookExport(hookExport(candidate, "can", hiddenCan), "canBasicChannel", hiddenCan);
                         return candidate === exports ? permissions : replaceValue(exports, "default", permissions);
                     }
@@ -14783,6 +17921,8 @@
             }
             case 4748: {
                 if (!features.hiddenChannels) return exports;
+                if (exports.default && typeof exports.default.getChannels === "function" && !guildChannelsGetOrig)
+                    guildChannelsGetOrig = exports.default.getChannels.bind(exports.default);
                 const store = hookExport(hookExport(exports.default, "getChannels", hiddenDirectory), "getFirstChannel", hiddenFirstChannel);
                 guildChannels = store;
                 return replaceValue(exports, "default", store);
@@ -14856,6 +17996,8 @@
                 }
                 return exports.default ? replaceValue(exports, "default", capabilities) : capabilities;
             }
+            case 7784: return features.anonFiles ? hookExport(exports, "getUploadPayload", anonPayload) : exports;
+            case 7755: return features.anonFiles ? hookExport(exports, "getAttachmentPayload", anonPayload) : exports;
             case 7047:
                 if (!features.freeNitro) return exports;
                 stickerRules = exports;
@@ -14948,6 +18090,7 @@
                     initFiles(nativeFiles);
             }
             module.exports = activatePlugins(id, module.exports);
+            if (features.hideAnything && HIDE_HOOKED[id]) module.exports = hideAnythingHooks(id, module.exports);
             if (INSTRUMENTED_MODULES.has(id)) module.exports = instrument(module.exports, 0);
         } catch (error) {
             status.audioError = "Hook unavailable: " + String(error);
@@ -14964,11 +18107,15 @@
                 return define(factory, id, dependencies);
             const wrappedFactory = function () {
                 let result;
-                if (features.hiddenChannels && id === 7246) {
+                // 7246 (the channel list) and the modules that must keep Discord's real answers get their own imports.
+                // Discord's own server settings (8633 GuildSettingsActionCreators, 8634 GuildSettingsStore, 18285 its landing page)
+                // read GuildStore without Edit servers locally, so a local name or icon can never be saved to the real server.
+                if (features.hiddenChannels && (id === 7246 || id === 6035 || id === 6078 || id === 14193 || id === 14008 || id === 16501 || id === 8449) ||
+                    features.serverEdit && (id === 8633 || id === 8634 || id === 18285)) {
                     const factoryArgs = Array.from(arguments);
-                    factoryArgs[1] = listImport(factoryArgs[1]);
-                    factoryArgs[2] = listImport(factoryArgs[2]);
-                    factoryArgs[3] = listImport(factoryArgs[3]);
+                    factoryArgs[1] = listImport(factoryArgs[1], id);
+                    factoryArgs[2] = listImport(factoryArgs[2], id);
+                    factoryArgs[3] = listImport(factoryArgs[3], id);
                     result = factory.apply(this, factoryArgs);
                 } else {
                     result = factory.apply(this, arguments);

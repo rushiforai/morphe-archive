@@ -41,17 +41,20 @@ class MenuShortcutFixtureTest {
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
                 val name = bundle.name
-                val builders = FixtureDex.classesHolding(bundle, FOLDER_SECTION)
+                val holders = FixtureDex.classesHolding(bundle, FOLDER_SECTION)
                     .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
-                    .flatMap { holder -> holder.methods.filter(::isFolderSectionChildren).map { holder to it } }
+                val builders = folderSectionBuilders(holders)
                 assertEquals("$name: folder section builders loading \"$FOLDER_SECTION\"", 1, builders.size)
-                val (section, builder) = builders.single()
+                val builder = builders.single()
+                val section = holders.single { it.type == builder.definingClass }
                 val read = bookmarkListRead(builder)
                 assertNotNull("$name: no bookmark list read in ${builder.definingClass}->${builder.name}", read)
                 val original = builder.code()
 
                 val context = PatchContexts.of(listOf(section))
-                val mutable = context.mutableClassDefBy(section.type).methods.single { isFolderSectionChildren(it) }
+                val mutable = context.mutableClassDefBy(section.type).methods.single {
+                    it.name == builder.name && it.parameterTypes.map(Any::toString) == builder.parameterTypes.map(Any::toString)
+                }
                 mutable.passBookmarksThroughShortcuts(read!!)
                 val patched = mutable.code()
 

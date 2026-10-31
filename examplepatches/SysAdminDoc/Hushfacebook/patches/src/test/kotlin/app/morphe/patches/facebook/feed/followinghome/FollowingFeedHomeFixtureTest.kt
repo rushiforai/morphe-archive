@@ -55,8 +55,8 @@ class FollowingFeedHomeFixtureTest {
         val holders = FixtureDex.classesHolding(bundle, PAGED_NEWSFEED_PARAMS).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
         val builder = newsFeedParams(holders)
         val where = "$name: ${builder.definingClass}->${builder.name}"
-        assertTrue("$where isn't static", AccessFlags.STATIC.isSet(builder.accessFlags))
         assertEquals("$where: the feed type isn't second", HOME_FEED_TYPE_CLASS, builder.parameterTypes[1].toString())
+        assertTrue("$where reads the feed type before \"$PAGED_NEWSFEED_PARAMS\"", !readsFeedTypeBeforeTrace(builder))
         // The feed style it sets for the most recent feed is what makes the swap a most recent request.
         assertTrue("$where sets no $MOST_RECENT_STYLE style", holdsString(builder, MOST_RECENT_STYLE))
         assertTrue("$where has no local register for the hook", builder.localRegisterCount() >= 1)
@@ -78,7 +78,11 @@ class FollowingFeedHomeFixtureTest {
         val original = method.implementation!!.instructions.toList()
         method.askForHomeFeed()
         val patched = method.implementation!!.instructions.toList()
-        val feedType = method.implementation!!.registerCount - builder.parameterTypes.size + 1
+        // Every parameter before the feed type is an object, and an instance method's `this` comes first.
+        assertTrue("$where: a wide parameter", builder.parameterTypes.none { it.toString() == "J" || it.toString() == "D" })
+        val self = if (AccessFlags.STATIC.isSet(builder.accessFlags)) 0 else 1
+        val firstParameter = method.implementation!!.registerCount - (builder.parameterTypes.size + self)
+        val feedType = firstParameter + self + 1
         assertEquals("$where gains five instructions", original.size + 5, patched.size)
         assertEquals("$where: the feed type is read", listOf(Opcode.MOVE_OBJECT_FROM16, 0, feedType),
             (patched[0] as TwoRegisterInstruction).let { listOf(it.opcode, it.registerA, it.registerB) })

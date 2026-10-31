@@ -19,6 +19,10 @@ import java.security.MessageDigest
 import java.util.zip.ZipFile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import com.android.apksig.apk.ApkUtils
+import com.android.apksig.util.DataSources
+import com.android.apksig.internal.apk.AndroidBinXmlParser
+import java.io.RandomAccessFile
 
 fun main(args: Array<String>) {
     require(args.isNotEmpty()) { "Usage: VerifyApkKt patched.apk [signed] [--some]   (--some: not every patch was selected)" }
@@ -211,10 +215,125 @@ fun main(args: Array<String>) {
         check(videoCalls.count { it.startsWith("Lapp/venus/") } == 1) { "getVideoDimensions has more than one Venus guard" }
         check(fontCalls.none { it == "Lapp/venus/emoji/SystemEmoji;" } && bridgeRefs.filterIsInstance<MethodReference>().none { it.definingClass == "Lapp/venus/emoji/SystemEmoji;" }) { "Emoji bridge must not share another FileModule method" }
     }
+    val some = "--some" in args.drop(1)
+    ZipFile(apk).use { zip -> checkPackaging(zip, some) }
+    checkManifest(apk)
+    // Every Venus extension the .mpp carries made it into the APK's DEX.
+    for (pkg in listOf("audio", "chat", "emoji", "extension", "font", "i18n", "monet"))
+        check(allClasses.keys.any { it.startsWith("Lapp/venus/$pkg/") }) { "No app.venus.$pkg classes in the APK" }
     if ("signed" in args.drop(1)) {
         val verification = ApkVerifier.Builder(apk).setMinCheckedPlatformVersion(26).build().verify()
         check(verification.isVerified) { "APK signature invalid: ${verification.errors}" }
         println("APK signing certificate and signature verified")
     }
-    println("PASS: no private startup invocation, one main bundle load, guarded HBC98 prelude and footer, preserved original global instructions, host extension method/field/type linkage, ordinary-size bypass, instruction-aligned branches in every method, unique classes, valid registers, stubs excluded")
+    println("PASS: privacy stubs in place, language files, manifest and providers renamed together, 16 KB aligned native libraries, every extension, no private startup invocation, one main bundle load, guarded HBC98 prelude and footer, preserved original global instructions, host extension method/field/type linkage, ordinary-size bypass, instruction-aligned branches in every method, unique classes, valid registers, stubs excluded")
+}
+
+/**
+ * What the APK carries besides code: the privacy stubs really overwrote their targets, the language files are the ones in
+ * the repository, and native libraries can be mapped straight from the APK (extractNativeLibs=false).
+ */
+fun checkPackaging(zip: ZipFile, some: Boolean) {
+    // Privacy: the prelude only appends to the bundle, so every target is still at its pinned offset. Each group is all
+    // stubbed (selected) or all original (not selected); a mix means a stub went to the wrong place.
+    val hbc = zip.getInputStream(zip.getEntry("assets/index.android.bundle")).readBytes()
+    val groups = mapOf("analytics" to app.venus.patches.HbcPrivacy.analytics, "telemetry" to app.venus.patches.HbcPrivacy.telemetry,
+        "crash" to app.venus.patches.HbcPrivacy.crash)
+    for ((group, targets) in groups) {
+        val stubbed = targets.count { target ->
+            val body = hbc.copyOfRange(target.offset, target.offset + target.size)
+            val stub = app.venus.patches.HbcPrivacy.stub(target)
+            body.copyOfRange(0, stub.size).contentEquals(stub) && body.drop(stub.size).all { it.toInt() == 0 }
+        }
+        val original = targets.count { app.venus.patches.HbcPrivacy.digest(hbc.copyOfRange(it.offset, it.offset + it.size)) == it.sha256 }
+        check(stubbed == targets.size || (some && original == targets.size)) {
+            "Privacy $group: $stubbed of ${targets.size} stubbed, $original original"
+        }
+        // Their compact headers are untouched: a stub never changes a function's size or frame.
+        for (target in targets) check(hbc.copyOfRange(128 + target.id * 12, 140 + target.id * 12)
+            .contentEquals(app.venus.patches.HbcPrivacy.hex(target.header))) { "Privacy $group: header of ${target.name} #${target.id} changed" }
+    }
+    // Languages: exactly the files the repository lists, byte for byte.
+    val folder = File("patches/src/main/resources/venus/i18n")
+    val codes = File(folder, "index.txt").readLines().map { it.trim() }.filter { it.isNotEmpty() }
+    check(codes.size >= 10) { "Language index looks empty" }
+    for (code in codes) {
+        val entry = zip.getEntry("assets/venus/i18n/$code.json") ?: error("assets/venus/i18n/$code.json missing")
+        check(zip.getInputStream(entry).readBytes().contentEquals(File(folder, "$code.json").readBytes())) { "assets/venus/i18n/$code.json differs from the repository" }
+    }
+    val shipped = zip.entries().asSequence().map { it.name }.filter { it.startsWith("assets/venus/i18n/") && it.endsWith(".json") }.count()
+    check(shipped == codes.size) { "$shipped language files in the APK, ${codes.size} in index.txt" }
+    // Native libraries: stored and 16 KB aligned, so Android maps them from the APK on 4 KB and 16 KB page devices alike.
+    RandomAccessFile(zip.name, "r").use { raf ->
+        var libraries = 0
+        for (entry in zip.entries()) {
+            if (!entry.name.startsWith("lib/") || !entry.name.endsWith(".so")) continue
+            libraries++
+            check(entry.method == java.util.zip.ZipEntry.STORED) { "${entry.name} is compressed" }
+            val local = localHeaderOffset(raf, entry.name)
+            raf.seek(local + 26)
+            val nameLength = raf.readUnsignedByte() or (raf.readUnsignedByte() shl 8)
+            val extraLength = raf.readUnsignedByte() or (raf.readUnsignedByte() shl 8)
+            val data = local + 30 + nameLength + extraLength
+            check(data % 16384 == 0L) { "${entry.name} starts at $data, not 16 KB aligned" }
+        }
+        check(libraries > 0) { "No native libraries" }
+    }
+}
+
+/** Local header offsets from the ZIP's central directory (java.util.zip doesn't expose them). */
+private var centralDirectory: Map<String, Long>? = null
+fun localHeaderOffset(raf: RandomAccessFile, name: String): Long {
+    centralDirectory?.let { return it[name] ?: error("$name not in the central directory") }
+    val length = raf.length()
+    val tail = ByteArray(minOf(length, 65557L).toInt())
+    raf.seek(length - tail.size); raf.readFully(tail)
+    val end = (tail.size - 22 downTo 0).first { ByteBuffer.wrap(tail, it, 4).order(ByteOrder.LITTLE_ENDIAN).int == 0x06054b50 }
+    val eocd = ByteBuffer.wrap(tail).order(ByteOrder.LITTLE_ENDIAN)
+    val size = eocd.getInt(end + 12).toLong() and 0xffffffffL
+    val start = eocd.getInt(end + 16).toLong() and 0xffffffffL
+    val directory = ByteArray(size.toInt()).also { raf.seek(start); raf.readFully(it) }
+    val buffer = ByteBuffer.wrap(directory).order(ByteOrder.LITTLE_ENDIAN)
+    val map = HashMap<String, Long>()
+    var at = 0
+    while (at + 46 <= directory.size && buffer.getInt(at) == 0x02014b50) {
+        val nameLength = buffer.getShort(at + 28).toInt() and 0xffff
+        val extra = buffer.getShort(at + 30).toInt() and 0xffff
+        val comment = buffer.getShort(at + 32).toInt() and 0xffff
+        map[String(directory, at + 46, nameLength, Charsets.UTF_8)] = buffer.getInt(at + 42).toLong() and 0xffffffffL
+        at += 46 + nameLength + extra + comment
+    }
+    centralDirectory = map
+    return map[name] ?: error("$name not in the central directory")
+}
+
+/**
+ * The manifest still describes the Discord build Venus targets, and every provider authority and app permission uses the
+ * APK's own package name. Custom branding renames them together; one left behind stops the copy installing next to Discord.
+ */
+fun checkManifest(apk: File) {
+    RandomAccessFile(apk, "r").use { raf ->
+        val parser = AndroidBinXmlParser(ApkUtils.getAndroidManifest(DataSources.asDataSource(raf)))
+        fun attr(name: String) = (0 until parser.attributeCount).firstOrNull { parser.getAttributeName(it) == name }
+            ?.let { runCatching { parser.getAttributeStringValue(it) }.getOrNull() }
+        var pkg: String? = null
+        val stray = mutableListOf<String>()
+        var event = parser.eventType
+        while (event != AndroidBinXmlParser.EVENT_END_DOCUMENT) {
+            if (event == AndroidBinXmlParser.EVENT_START_ELEMENT) when (parser.name) {
+                "manifest" -> {
+                    pkg = attr("package")
+                    check(attr("versionCode") == "350008" && attr("versionName") == "350.8 - Stable") {
+                        "Manifest is ${attr("versionName")} (${attr("versionCode")}), not Discord 350.8 - Stable"
+                    }
+                }
+                "provider" -> attr("authorities")?.split(";")?.filter { !it.startsWith("$pkg.") }?.let { stray += it }
+                "permission" -> attr("name")?.let { if (!it.startsWith("$pkg.")) stray += it }
+            }
+            event = parser.next()
+        }
+        check(pkg != null && Regex("^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$").matches(pkg)) { "Bad package name $pkg" }
+        check(stray.isEmpty()) { "Not renamed to $pkg: $stray" }
+        println("Manifest: $pkg, Discord 350.8 - Stable, providers and permissions under $pkg")
+    }
 }

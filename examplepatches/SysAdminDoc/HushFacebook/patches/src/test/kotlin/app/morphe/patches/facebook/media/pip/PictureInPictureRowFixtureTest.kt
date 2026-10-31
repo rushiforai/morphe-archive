@@ -10,6 +10,7 @@ import app.morphe.PatchContexts
 import app.morphe.patches.facebook.downloads.reel.CLEAR_MODE_ROW
 import app.morphe.patches.facebook.downloads.reel.OWN_DOWNLOAD_ROW
 import app.morphe.patches.facebook.downloads.reel.moreSheet
+import app.morphe.patches.facebook.downloads.reel.sheetFixture
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -59,9 +60,11 @@ class PictureInPictureRowFixtureTest {
             for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
                 val name = bundle.name
                 val classes = mutableMapOf<String, ClassDef>()
-                val holder = FixtureDex.classesHolding(bundle, CLEAR_MODE_ROW).single()
-                val builder = holder.methods.single { holdsString(it, CLEAR_MODE_ROW) }
-                val reached = reachedBy(builder)
+                val sheetFixture = sheetFixture(bundle)
+                val holder = sheetFixture.builderClass
+                val builder = sheetFixture.builder
+                // 585 builds the Clear mode row in a method of its own, which the builder calls.
+                val reached = reachedBy(builder) + reachedBy(sheetFixture.row) + sheetFixture.row.definingClass
                 FixtureDex.classes(bundle, reached).forEach { (type, classDef) -> classes.putIfAbsent(type, classDef) }
                 val rowTypes = reached.mapNotNull(classes::get).flatMap { classDef ->
                     classDef.methods.filter { it.name == "<init>" }.flatMap { it.parameterTypes.map(CharSequence::toString) }
@@ -82,7 +85,7 @@ class PictureInPictureRowFixtureTest {
                 context.addPictureInPictureRow(sheet)
 
                 val patchedClass = context.mutableClassDefBy(holder.type)
-                val body = patchedClass.methods.single { it.name == builder.name && holdsString(it, CLEAR_MODE_ROW) }
+                val body = patchedClass.methods.single { it.name == builder.name && it.parameterTypes.size == builder.parameterTypes.size }
                     .implementation!!.instructions.toList()
                 assertEquals("$name: three instructions added", builder.implementation!!.instructions.count() + 3, body.size)
                 assertEquals("$name: the two moves come first", listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16),

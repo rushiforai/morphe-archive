@@ -1,0 +1,53 @@
+{
+  "upstream_pr": "https://github.com/finamp-app/finamp/pull/1832",
+  "upstream_final_commit": "3f463b0e697f11aeebc37e1a6b614cde391b7f7f",
+  "native_sdk": {
+    "flutter": "3.47.2",
+    "dart": "3.13.2",
+    "framework": "d3b14c876900e553bc736ca19295fc09e3853e8e",
+    "engine": "a804b261645ef8c13eb3d5c44a5c2fb0340c5539"
+  },
+  "source_runs": {
+    "4": {
+      "source": "5eb9d7baaf197a369cf740e11e620b4a8159d8e3",
+      "tree": "2509ccdb5aa076c7a5963f7c817ba7c4745c4b0a",
+      "passed_tests": 22,
+      "log": "source-mask4-tests.log",
+      "log_sha256": "ec37ac87e26581450b76ca80a875e196cf37a5e739969cf9a84f953f105a4e47"
+    },
+    "12": {
+      "source": "a4a0bdd9e25ce72aed386dd625c5602d408624fe",
+      "tree": "319a9e0d8afcc357b42b29558e2afa1d5a51cd5a",
+      "passed_tests": 26,
+      "log": "source-pair12-tests.log",
+      "log_sha256": "c9389180b97acff5af05edcd431df7ce4deda7072dad21b6fa7ac855db72d86c"
+    },
+    "36": {
+      "source": "6a3917a30df670c9d81d3818c6780e58b41a8b3a",
+      "tree": "c72e4a5253c5c20ea40c2a9e37de4586fe629005",
+      "passed_tests": 49,
+      "log": "source-pair36-tests.log",
+      "log_sha256": "47bc837a0131a246639a762b124880cf2ce9239625bb0aefc31fe0e40e667870"
+    },
+    "127": {
+      "source": "9da1d0158adf7393c8447eda0a26490e2320833a",
+      "tree": "a1e2ea17b1b54d9e3112d5ba0d0220cd04408890",
+      "passed_tests": 107,
+      "log": "source-all-tests.log",
+      "log_sha256": "eee314cdfbdc8c102e1f6f7ed093309c09c6d0fa1cd9ff424bed041d10c92949"
+    }
+  },
+  "counts_are_overlapping_runs": true,
+  "targeted_analysis": "No issues found",
+  "codegen_outputs_written": 0,
+  "native_updated_masks": 64,
+  "source_patch_exact_tree_replays": 64,
+  "public_source_branches_verified": 64,
+  "scope": "Source and build verification; Android/Manager evidence is recorded separately.",
+  "android_filetime_diagnostic": {
+    "actual_android_samples": 10,
+    "same_size_writes_with_unchanged_nio_filetime": 10,
+    "explicitly_distinct_nio_filetime_detected": 10,
+    "scope": "Controlled filesystem probe on the owned API35 emulator; full Manager recovery is recorded separately."
+  }
+}

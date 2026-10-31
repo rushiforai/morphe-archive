@@ -24,6 +24,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
@@ -49,6 +50,12 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  *   static, takes the session, the attribution and the model, answers a boolean, and reads the
  *   flag with TreeJNI.getBooleanValue, the kept reader the extension calls too. The patch holds the
  *   build to that decision, so it stops if the flag's home moves.
+ *   585 (read 2026-10-29) has no such static decision any more: the static (session, attribution,
+ *   model) methods left (arm64 LX/0B83;->A08, LX/0dVj;->A04) only switch on getTypeName(). The
+ *   flag is read in the instance method building the AI info sheet's tree (arm64
+ *   LX/08nc;->A07(LX/0eTv;), armeabi-v7a LX/08nh;->A07(LX/0eTc;)): it takes the model, walks its
+ *   attribution list, picks the one whose getTypeName() equals the table's type name, casts it to
+ *   the attribution interface and then to TreeJNI, and reads 0x723ea5fe with getBooleanValue.
  * - The label's text comes from gen_ai_transparency_label_info { zero_click_transparency_label }
  *   on the attribution. The rule doesn't read it: a self-labelled reel has a label too.
  * - Some items hold the model in a field of that type (580 LX/5qk and LX/TKN); a Watch video built
@@ -225,20 +232,93 @@ internal fun isAttributionFinder(method: Method): Boolean {
 }
 
 /**
+ * Whether [method] reads [DETECTED_FLAG] on the reel's attribution, in either of the shapes
+ * Facebook has used: the label decision ([isLabelDecision], up to 584) or the model's attribution
+ * walk ([picksAttributionForFlag], 585).
+ */
+internal fun readsReelDetectedFlag(method: Method, attributionType: String, modelType: String): Boolean =
+    isLabelDecision(method, attributionType, modelType) || picksAttributionForFlag(method, attributionType, modelType)
+
+/**
  * Whether [method] is Facebook's reel label decision: static, a boolean answer, the session, the
  * attribution and the model in that order, and a read of [DETECTED_FLAG] through
  * `TreeJNI.getBooleanValue`.
  */
-internal fun readsReelDetectedFlag(method: Method, attributionType: String, modelType: String): Boolean {
+private fun isLabelDecision(method: Method, attributionType: String, modelType: String): Boolean {
     if (!AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != "Z") return false
     if (method.parameterTypes.map { it.toString() } != listOf(FB_USER_SESSION, attributionType, modelType)) return false
     val body = method.body()
     return body.any { (it as? NarrowLiteralInstruction)?.narrowLiteral == treeFieldKey(DETECTED_FLAG) } &&
-        body.any {
-            val call = it.methodReference
-            call?.definingClass == TREE_JNI && call.name == TREE_BOOLEAN_READER && call.returnType == "Z" &&
-                call.parameterTypes.map { type -> type.toString() } == listOf("I")
+        body.any(::isFlagReader)
+}
+
+/**
+ * Whether [method] takes the reel model alone, picks an attribution off it by `getTypeName()` and
+ * reads [DETECTED_FLAG] with `TreeJNI.getBooleanValue` on a register it cast to [attributionType].
+ * 585 moved the flag read out of the static decision into such a method (see the notes above), so
+ * the read still has to sit on the attribution, traced back through the casts, not anywhere in it.
+ */
+private fun picksAttributionForFlag(method: Method, attributionType: String, modelType: String): Boolean {
+    // The model alone: 585's big reel footer render (arm64 LX/09dh;->A01, 38 parameters) reads the
+    // flag too, and the one decision has to stay one.
+    if (method.parameterTypes.map { it.toString() } != listOf(modelType)) return false
+    val body = method.body()
+    // The pick: getTypeName() asked of the attribution type itself.
+    if (body.none { call -> call.methodReference?.let { it.definingClass == attributionType && it.name == "getTypeName" } == true }) {
+        return false
+    }
+    return body.indices.any { index ->
+        val read = body[index]
+        if (!isFlagReader(read)) return@any false
+        val (receiver, key) = invokeRegisters(read).takeIf { it.size == 2 } ?: return@any false
+        loadsLiteralBefore(body, index, key, treeFieldKey(DETECTED_FLAG)) && castFrom(body, index, receiver, attributionType)
+    }
+}
+
+/** Whether [instruction] calls `TreeJNI.getBooleanValue(int)`. */
+private fun isFlagReader(instruction: Instruction): Boolean {
+    val call = instruction.methodReference ?: return false
+    return call.definingClass == TREE_JNI && call.name == TREE_BOOLEAN_READER && call.returnType == "Z" &&
+        call.parameterTypes.map { type -> type.toString() } == listOf("I")
+}
+
+/** The registers an invoke hands its method, in order, for both the plain and the range form. */
+private fun invokeRegisters(instruction: Instruction): List<Int> = when (instruction) {
+    is FiveRegisterInstruction -> listOf(
+        instruction.registerC, instruction.registerD, instruction.registerE, instruction.registerF, instruction.registerG,
+    ).take(instruction.registerCount)
+    is RegisterRangeInstruction -> (instruction.startRegister until instruction.startRegister + instruction.registerCount).toList()
+    else -> emptyList()
+}
+
+/** Whether the last write of [register] before [index] in [body] loads [literal]. */
+private fun loadsLiteralBefore(body: List<Instruction>, index: Int, register: Int, literal: Int): Boolean {
+    for (at in index - 1 downTo 0) {
+        val instruction = body[at]
+        if (!instruction.opcode.setsRegister() || (instruction as? OneRegisterInstruction)?.registerA != register) continue
+        return (instruction as? NarrowLiteralInstruction)?.narrowLiteral == literal
+    }
+    return false
+}
+
+/**
+ * Whether [register], read at [index] in [body], was cast to [type] on its way there: walking back,
+ * through other casts and `move-object` copies, to a `check-cast` to [type]. Any other write first
+ * means the value came from somewhere else.
+ */
+private fun castFrom(body: List<Instruction>, index: Int, register: Int, type: String): Boolean {
+    var wanted = register
+    for (at in index - 1 downTo 0) {
+        val instruction = body[at]
+        if (!instruction.opcode.setsRegister() || (instruction as? OneRegisterInstruction)?.registerA != wanted) continue
+        when (instruction.opcode) {
+            Opcode.CHECK_CAST -> if ((instruction as ReferenceInstruction).reference.toString() == type) return true
+            Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16 ->
+                wanted = (instruction as TwoRegisterInstruction).registerB
+            else -> return false
         }
+    }
+    return false
 }
 
 /** Whether [tree] has the public instance `boolean [name](int)` the extension reads a flag with. */

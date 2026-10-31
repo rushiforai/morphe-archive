@@ -216,6 +216,12 @@ public final class UnifiedPush {
     private static final ThreadLocal<Boolean> SWAPPED = new ThreadLocal<>();
 
     /**
+     * Held while the Web Push keys are read or made. Telegram's sign-up thread and the main thread
+     * can both ask first, and two pairs would leave Telegram signed up with keys no longer kept.
+     */
+    private static final Object KEYS = new Object();
+
+    /**
      * Injected at the top of {@code sendRegistrationToServer}, before {@link #type}. While the
      * switch is on and an address is saved, any sign-up Telegram starts, Firebase's included,
      * signs up that address instead, as a Web Push token.
@@ -248,19 +254,25 @@ public final class UnifiedPush {
     static String webPushToken(@Nullable Context context, String endpoint, boolean make) {
         if (context == null) return null;
         try {
-            SharedPreferences prefs = prefs(context);
-            String key = prefs.getString(WEB_PUSH_KEY, null);
-            String auth = prefs.getString(WEB_PUSH_AUTH, null);
-            if (key == null || auth == null) {
-                if (!make) return null;
-                Base64.Encoder base64url = Base64.getUrlEncoder().withoutPadding();
-                key = base64url.encodeToString(newPublicKey());
-                byte[] secret = new byte[16];
-                new SecureRandom().nextBytes(secret);
-                auth = base64url.encodeToString(secret);
-                if (!prefs.edit().putString(WEB_PUSH_KEY, key).putString(WEB_PUSH_AUTH, auth).commit()) {
-                    HookStatus.counted(FamilyNames.UNIFIED_PUSH, "Web Push keys not saved, made again at the next start");
-                    return null;
+            String key;
+            String auth;
+            synchronized (KEYS) {
+                SharedPreferences prefs = prefs(context);
+                key = prefs.getString(WEB_PUSH_KEY, null);
+                auth = prefs.getString(WEB_PUSH_AUTH, null);
+                if (key == null || auth == null) {
+                    if (!make) return null;
+                    Base64.Encoder base64url = Base64.getUrlEncoder().withoutPadding();
+                    key = base64url.encodeToString(newPublicKey());
+                    byte[] secret = new byte[16];
+                    new SecureRandom().nextBytes(secret);
+                    auth = base64url.encodeToString(secret);
+                    if (!prefs.edit().putString(WEB_PUSH_KEY, key).putString(WEB_PUSH_AUTH, auth).commit()) {
+                        // Android keeps a failed write in memory, where the next ask this run would find them.
+                        prefs.edit().remove(WEB_PUSH_KEY).remove(WEB_PUSH_AUTH).commit();
+                        HookStatus.counted(FamilyNames.UNIFIED_PUSH, "Web Push keys not saved, made again at the next start");
+                        return null;
+                    }
                 }
             }
             return new JSONObject().put("endpoint", endpoint)
@@ -557,7 +569,10 @@ public final class UnifiedPush {
         }
         Logger.printInfo(() -> "UnifiedPush: got an address at " + Uri.parse(endpoint).getHost());
         // Paused, Telegram keeps the address it has; the next start hands this one over.
-        if (Utils.settingsReady() && Settings.UNIFIED_PUSH.get()) telegram.register(endpoint);
+        if (Utils.settingsReady() && Settings.UNIFIED_PUSH.get()) {
+            telegram.register(endpoint);
+            OwnConnection.besideUnifiedPush(context);
+        }
     }
 
     /**

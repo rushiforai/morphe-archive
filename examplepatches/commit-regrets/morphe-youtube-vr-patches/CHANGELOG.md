@@ -1,3 +1,28 @@
+## [1.29.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/compare/v1.28.0...v1.29.0) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **ci:** make the dexaudit bootstrap cross-platform
+    The audit's Initialize-DexAudit assumed Windows: $env:USERPROFILE (null on  
+    Linux, so Join-Path failed with "Cannot bind argument to parameter 'Path'  
+    because it is null"), .exe tool names, backslash-separated literals inside  
+    Join-Path children (filename characters on Linux), and a ';' classpath  
+    separator. It was Windows-only while it lived in APK mode, which CI never  
+    ran; the new bundle-mode scan is the first thing CI executes there, and the  
+    first "Build the bundle" run on ubuntu died in it. HOME, plain tool names,  
+    forward-slash path segments, and the platform's classpath separator now;  
+    $Work's default gets the same forward-slash treatment, which on Linux had  
+    built a directory literally … ([6ded431](https://github.com/commit-regrets/morphe-youtube-vr-patches/commit/6ded431e83bf6d9314d6ca4b7da1792b5614305b))
+
+### ✨ New Features
+
+* align the bundle with Morphe patcher 2.x hosts
+    Three measured failures fixed:  
+    
+    - Patcher 2.x hosts render a `values` map's keys and store its values  
+      (Manager 2.2's DropdownOptionField, Desktop's PatchOptionEditor), so the  
+      1.x-shaped {token: label} maps stored display names and the SponsorBlock ([f325509](https://github.com/commit-regrets/morphe-youtube-vr-patches/commit/f3255093e4d56fe23710b15fad8857f32a759ab3)), references [#45](https://github.com/commit-regrets/morphe-youtube-vr-patches/issues/45)
+
 ## [1.28.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/compare/v1.27.0...v1.28.0) (2026-10-25)
 
 ### 🐛 Bug Fixes

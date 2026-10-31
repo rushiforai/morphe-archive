@@ -1,3 +1,46 @@
+## [1.20.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.19.0...v1.20.0) (2026-10-30)
+
+### ✨ New Features
+
+* **Discord:** Add `Voice channel options` patch: start every call at a set volume and on the speaker, earpiece or headset you pick, thanks to @RedStar071 ([#103](https://github.com/VenusIsJaded/Venus-Patches/issues/103))
+* **Discord - Voice channel options:** Turn off or quiet the join and leave chimes, and play a goodbye sound from your soundboard when you leave (needs Nitro), thanks to @RedStar071
+* **Discord:** Add `Edit servers locally` patch: give any server your own name and icon, from your phone or a link, and only you see them ([#114](https://github.com/VenusIsJaded/Venus-Patches/issues/114))
+* **Discord:** Add `Remove anything` patch: tap the red ✕ on buttons, menu items and Settings rows you never use, and bring them back any time ([#105](https://github.com/VenusIsJaded/Venus-Patches/issues/105))
+* **Discord:** Add `Load full-quality images` patch: pictures, profile pictures and banners load as uploaded instead of Discord's compressed copy ([#108](https://github.com/VenusIsJaded/Venus-Patches/issues/108))
+* **Discord:** Add `Show owner and mod tags` patch: an Owner, Admin, Manager or Mod tag next to names in chat ([#108](https://github.com/VenusIsJaded/Venus-Patches/issues/108))
+* **Discord:** Add `Alert when you're removed` patch: a heads-up when a friend unfriends you or a server kicks or bans you ([#108](https://github.com/VenusIsJaded/Venus-Patches/issues/108))
+* **Discord:** Add `Always trust links and files` patch: opens links and files without Discord's "Are you sure?" warnings ([#108](https://github.com/VenusIsJaded/Venus-Patches/issues/108))
+* **Discord:** Add `Skip pin confirmation` patch: pin and unpin messages without being asked first ([#108](https://github.com/VenusIsJaded/Venus-Patches/issues/108))
+* **Discord:** Add `Tap mentions to open profiles` patch: tap an @mention in the message bar to see who it is ([#108](https://github.com/VenusIsJaded/Venus-Patches/issues/108))
+* **Discord:** Add `Anonymous file names` patch: files you send get a random name instead of the one on your phone ([#100](https://github.com/VenusIsJaded/Venus-Patches/issues/100))
+* **Discord - Account switcher:** Export your saved accounts to a file and import them on another phone ([#111](https://github.com/VenusIsJaded/Venus-Patches/issues/111))
+* **Discord - Fix link previews:** Translate X and Bluesky posts into your language, and pick a post style: full post, media, text or file
+* **Discord - Fix link previews:** Fix Imgur, Newgrounds, redd.it, Instagram stories, Facebook group posts and nitter links too
+* **Discord - Hide blocked or ignored messages:** Optionally close your DM with someone when you block them
+* **Discord - Venus settings:** Hide features you don't use from the Features list; they keep working and search still finds them
+
+### 🐛 Bug Fixes
+
+* **Discord - Custom themes:** Fixed the server list, server bar and DMs going back to Discord's colors after restarting Discord ([#110](https://github.com/VenusIsJaded/Venus-Patches/issues/110))
+* **Discord - User activity notifications:** Fixed each new phone notification replacing the one before, so only the latest showed ([#106](https://github.com/VenusIsJaded/Venus-Patches/issues/106))
+* **Discord - User activity notifications:** Fixed notifications being dropped without a warning when Android blocked them for Discord ([#106](https://github.com/VenusIsJaded/Venus-Patches/issues/106))
+* **Discord - User activity notifications:** Fixed people added by ID showing as "now Online" on every reconnect, and typing notices repeating every few seconds
+* **Discord - Unlock Nitro themes:** Fixed a picked Nitro theme being reset after restarting Discord with Same as device on
+* **Discord - Show hidden channels:** Fixed locked channels counting as unread, lighting up the server bar, and deleted ones staying listed
+* **Discord - Show hidden channels:** Fixed tapping a locked voice or stage channel opening an empty voice panel instead of its details
+* **Discord - Bulk delete messages:** Fixed an invisible character left in messages, kept deleted messages staying selected, and server errors not being retried
+* **Discord - Complete Quests automatically:** Fixed Quest requests carrying your phone's IDs and other details that real Discord for Windows doesn't send
+
+### 🔧 Improvements
+
+* **Discord - Remove anything:** Replaces Hide the gift button, Hide the call button, Hide extra buttons and Hide the Quests banner; what you hid carries over
+* **Discord - Clean channel names:** Spaces in channel names is now its Spaces instead of dashes option; your setting carries over
+* **Discord - Venus settings:** UI changes across settings, including calmer Risky and Experimental warnings, a single About card and a clearer Voice channel options page
+
+### ⚡ Performance Improvements
+
+* **Discord - Show hidden channels:** Locked channels are worked out several times faster, and the channel list skips work when nothing changed
+
 ## [1.19.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.18.0...v1.19.0) (2026-10-26)
 
 ### ✨ New Features

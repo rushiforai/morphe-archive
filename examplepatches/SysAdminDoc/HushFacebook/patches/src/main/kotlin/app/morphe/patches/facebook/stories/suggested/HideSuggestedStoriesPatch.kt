@@ -36,6 +36,8 @@ internal const val SUGGESTED_STUB = "suggested"
 internal const val LABEL_STUB = "label"
 internal const val TYPE_STUB = "bucketType"
 internal const val COPY_STUB = "immutableCopy"
+internal const val SEEN_STUB = "seen"
+internal const val OWNER_TYPE_STUB = "ownerType"
 
 /** The extension method each tray fetch asks before it sets [SKIP_PROMPT_CARDS]. */
 internal const val SKIP_PROMPT_CARDS_HOOK = "$SUGGESTED_STORIES->skipPromptCards(Z)Z"
@@ -54,6 +56,11 @@ internal class TrayBuckets(
     /** Facebook's static helper answering a bucket's first label, and the label enum. */
     val labelHelper: Method,
     val label: String,
+    /** The interface's method answering is_bucket_seen_by_viewer, or null when this build has none. */
+    val seen: String? = null,
+    /** The interface's method answering the bucket's owner and the owner interface it answers, or null. */
+    val owner: String? = null,
+    val ownerType: String? = null,
 )
 
 /**
@@ -65,6 +72,12 @@ internal class TrayBuckets(
  * by their bucket type, each behind its own switch: the People you may know cards and the Find
  * friends from contacts card. Everything else in the list stays.
  *
+ * Home's tray comes inside the feed and never goes through that constructor, so the same filter
+ * also goes first in the parser that turns its buckets, and a story shown in the feed, into what the
+ * tray draws (issues #313 and #317). Home's tray loads its next page when one of its last buckets
+ * comes into view, so when the filter leaves its row a bucket or two and then gray placeholders, the
+ * extension lets a placeholder coming into view load it (TrayPaging.kt).
+ *
  * The cards beside Create story, such as "Share music you love", come in a list of their own that
  * the tray's fetch can ask the server to leave out. Each fetch's answer to that goes through the
  * extension first, which asks for it when Hide story prompts is on (issue #21).
@@ -74,7 +87,8 @@ val hideSuggestedStoriesPatch = bytecodePatch(
     name = "Hide suggested stories",
     description = "Removes stories Facebook suggests from people and Pages you don't follow, and the \"Find " +
         "friends from contacts\" card, so the Stories tray sticks to people you know. On by default. Turn it off " +
-        "in Hushfacebook settings > Stories.",
+        "in Hushfacebook settings > Stories, where two more switches, both off at first, also hide the Pages you " +
+        "follow and the stories you've already watched.",
     default = true,
 ) {
     category("Stories")
@@ -88,6 +102,12 @@ val hideSuggestedStoriesPatch = bytecodePatch(
         mutableClassDefBy(tray.constructor.definingClass).methods
             .single { it.name == "<init>" }
             .keepOnlyUnsuggestedBuckets(tray.list)
+        val (parser, list) = trayParser()
+        val parameters = parser.parameterTypes.map { it.toString() }
+        mutableClassDefBy(parser.definingClass).methods
+            .single { it.name == parser.name && it.returnType == parser.returnType && it.parameterTypes.map { p -> p.toString() } == parameters }
+            .keepOnlyUnsuggestedBuckets(list)
+        pageShortTrays(trayPagingAnchors())
         hookPromptCardSkips()
         enableStatus("suggestedStories")
     }
@@ -140,6 +160,8 @@ internal fun BytecodePatchContext.trayBuckets(): TrayBuckets {
 
     val flagged = mutableSetOf<String>()
     val typed = mutableSetOf<String>()
+    val watched = mutableSetOf<String>()
+    val owned = mutableSetOf<String>()
     val helpers = mutableListOf<Method>()
     // A tree class implements a bucket interface, and a label helper answers the label enum.
     classDefForEachReferencing(types = interfaces + label.type) { classDef ->
@@ -152,6 +174,8 @@ internal fun BytecodePatchContext.trayBuckets(): TrayBuckets {
         }
         for (bucket in interfaces.filter { it in classDef.interfaces }) {
             classDef.methods.filter { isTreeEnumReader(it, BUCKET_TYPE_FIELD) }.mapTo(typed) { "$bucket->${it.name}()${it.returnType}" }
+            classDef.methods.filter { isTreeFlagReader(it, SEEN_FIELD) }.mapTo(watched) { "$bucket->${it.name}()Z" }
+            treeNodeAnswers(classDef, OWNER_FIELD).mapTo(owned) { "$bucket->${it.name}()${it.returnType}" }
         }
         classDef.methods.filterTo(helpers) { isLabelHelper(it, interfaces, label.type) }
     }
@@ -169,6 +193,13 @@ internal fun BytecodePatchContext.trayBuckets(): TrayBuckets {
     if ("${flag.definingClass}->${type.name}()${type.returnType}" !in typed) {
         throw PatchException("$PATCH: no tree class answers ${flag.definingClass}->${type.name} with $BUCKET_TYPE_FIELD")
     }
+    // Hide stories from Pages and Hide seen stories need these, hiding suggested stories doesn't. A
+    // build without exactly one of each leaves its stub alone, and that switch says it can't work.
+    val declared = classDefBy(flag.definingClass).methods.filter { it.parameterTypes.isEmpty() }
+    val seen = declared.filter { "${flag.definingClass}->${it.name}()${it.returnType}" in watched }.singleOrNull()
+    val owner = declared.filter {
+        "${flag.definingClass}->${it.name}()${it.returnType}" in owned && classDefByOrNull(it.returnType)?.let(::namesItsType) == true
+    }.singleOrNull()
 
     requirePublic(classDefBy(flag.definingClass), "the bucket interface")
     requirePublic(classDefBy(helper.definingClass), "the class of the label helper")
@@ -181,7 +212,27 @@ internal fun BytecodePatchContext.trayBuckets(): TrayBuckets {
     }
     if (!copy) throw PatchException("$PATCH: ImmutableList has no public static copyOf(Collection) to rebuild a tray with")
 
-    return TrayBuckets(constructor, list, flag.definingClass, flag.name, type.name, type.returnType, helper, label.type)
+    return TrayBuckets(
+        constructor, list, flag.definingClass, flag.name, type.name, type.returnType, helper, label.type,
+        seen?.name, owner?.name, owner?.returnType,
+    )
+}
+
+/**
+ * The tray parser Home's tray and a story shown in the feed build their buckets with, and which of
+ * its parameters is the tree bucket list: the one method holding [TRAY_PARSE], with one ImmutableList
+ * in and one back, that hands the list on.
+ */
+internal fun BytecodePatchContext.trayParser(): Pair<Method, Int> {
+    val parsers = classDefByStrings(TRAY_PARSE, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        .flatMap { classDef -> classDef.methods.filter(::isTrayParse) }
+    val parser = parsers.singleOrPatchException("$PATCH: the tray parser holding \"$TRAY_PARSE\" with an ImmutableList in and out")
+    val list = listParameters(parser).single()
+    if (!passesOn(parser, list)) {
+        throw PatchException("$PATCH: ${parser.definingClass}->${parser.name} doesn't hand its bucket list on")
+    }
+    return parser to list
 }
 
 private fun requirePublic(classDef: ClassDef, what: String) {
@@ -191,9 +242,9 @@ private fun requirePublic(classDef: ClassDef, what: String) {
 }
 
 /**
- * Fills the extension's five stubs: whether an item is a bucket, its type, its suggested flag, its
- * first label, and an ImmutableList of what's kept. Each uses only its parameter register, so the stub's
- * own register count doesn't matter.
+ * Fills the extension's stubs: whether an item is a bucket, its type, its suggested flag, its first
+ * label, an ImmutableList of what's kept, and, when the build has them, its seen flag and its owner's
+ * type name. Each uses only its parameter register, so the stub's own register count doesn't matter.
  */
 internal fun BytecodePatchContext.fillBucketStubs(tray: TrayBuckets) {
     val filter = mutableClassDefBy(SUGGESTED_STORIES)
@@ -247,6 +298,34 @@ internal fun BytecodePatchContext.fillBucketStubs(tray: TrayBuckets) {
             return-object p0
         """,
     )
+    if (tray.seen != null) {
+        stub(SEEN_STUB, "Ljava/lang/Object;", "Ljava/lang/Object;").addInstructions(
+            0,
+            """
+                check-cast p0, ${tray.bucket}
+                invoke-interface { p0 }, ${tray.bucket}->${tray.seen}()Z
+                move-result p0
+                invoke-static { p0 }, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+                move-result-object p0
+                return-object p0
+            """,
+        )
+    }
+    if (tray.owner != null && tray.ownerType != null) {
+        stub(OWNER_TYPE_STUB, "Ljava/lang/Object;", "Ljava/lang/Object;").addInstructions(
+            0,
+            """
+                check-cast p0, ${tray.bucket}
+                invoke-interface { p0 }, ${tray.bucket}->${tray.owner}()${tray.ownerType}
+                move-result-object p0
+                if-eqz p0, :none
+                invoke-interface { p0 }, ${tray.ownerType}->$TYPE_NAME()Ljava/lang/String;
+                move-result-object p0
+                :none
+                return-object p0
+            """,
+        )
+    }
 }
 
 /**

@@ -121,6 +121,8 @@ final class HushfacebookPages {
             tabs.addPreference(toggle(context, Settings.HIDE_CREATE_BUTTON,
                     L10n.t("Takes the + button for making a post, reel or story out of the top bar. "
                             + "Restart Facebook to see the change.")));
+            tabs.addPreference(toggle(context, Settings.HIDE_SEARCH_BUTTON,
+                    L10n.t("Takes the search button out of the top bar. Restart Facebook to see the change.")));
         }
         if (build.contains(PatchFamily.HIDDEN_TABS)) {
             subheading(tabs, L10n.t("Tabs to hide"));

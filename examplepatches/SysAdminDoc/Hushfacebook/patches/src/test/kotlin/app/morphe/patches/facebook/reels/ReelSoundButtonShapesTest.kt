@@ -18,6 +18,7 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -119,5 +120,43 @@ class ReelSoundButtonShapesTest {
         // The check reads another register, or something comes between the move and the check.
         assertTrue(speakerBuilds(piece(checked = 1), anyBuilder).isEmpty())
         assertTrue(speakerBuilds(piece(between = true), anyBuilder).isEmpty())
+    }
+
+    @Test
+    fun `the video controls' builder may be an instance method called virtually`() {
+        val virtual = piece(call = Opcode.INVOKE_VIRTUAL)
+        assertEquals(listOf(SpeakerBuild(call = 0, register = 0, type = "Lfixture/Row;")), controlSpeakerBuilds(virtual, anyBuilder))
+        assertEquals(controlSpeakerBuilds(piece(), anyBuilder), speakerBuilds(piece(), anyBuilder))
+        // The other shapes stay refused: no object answer, another register, something between.
+        assertTrue(controlSpeakerBuilds(piece(call = Opcode.INVOKE_VIRTUAL, returns = "Z"), anyBuilder).isEmpty())
+        assertTrue(controlSpeakerBuilds(piece(call = Opcode.INVOKE_VIRTUAL, checked = 1), anyBuilder).isEmpty())
+        assertTrue(controlSpeakerBuilds(piece(call = Opcode.INVOKE_VIRTUAL, between = true), anyBuilder).isEmpty())
+        assertTrue(controlSpeakerBuilds(virtual) { false }.isEmpty())
+    }
+
+    /** A builder A01 answering a Row: it may load [key] and news up [made], then returns the new object. */
+    private fun builder(key: String?, made: String): Method {
+        val code = listOfNotNull<Instruction>(
+            key?.let { ImmutableInstruction21c(Opcode.CONST_STRING, 1, ImmutableStringReference(it)) },
+            ImmutableInstruction21c(Opcode.NEW_INSTANCE, 0, ImmutableTypeReference(made)),
+            ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0),
+        )
+        return ImmutableMethod(
+            "Lfixture/Builder;", "A01", emptyList(), "Lfixture/Row;", AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null,
+            ImmutableMethodImplementation(2, code, null, null),
+        )
+    }
+
+    @Test
+    fun `a controls builder is the method that holds the key and news up the sound toggle`() {
+        val call = ImmutableMethodReference("Lfixture/Builder;", "A01", emptyList(), "Lfixture/Row;")
+        val toggles = setOf("Lfixture/Toggle;")
+        assertTrue(buildsControlsSpeaker(builder(SOUND_BUTTON_KEY, "Lfixture/Toggle;"), call, toggles))
+        // Without the key, without the toggle, or under another name it isn't the speaker's builder.
+        assertTrue(!buildsControlsSpeaker(builder(null, "Lfixture/Toggle;"), call, toggles))
+        assertTrue(!buildsControlsSpeaker(builder(SOUND_BUTTON_KEY, "Lfixture/Other;"), call, toggles))
+        assertTrue(!buildsControlsSpeaker(builder(SOUND_BUTTON_KEY, "Lfixture/Toggle;"), call, emptySet()))
+        val other = ImmutableMethodReference("Lfixture/Builder;", "A02", emptyList(), "Lfixture/Row;")
+        assertTrue(!buildsControlsSpeaker(builder(SOUND_BUTTON_KEY, "Lfixture/Toggle;"), other, toggles))
     }
 }

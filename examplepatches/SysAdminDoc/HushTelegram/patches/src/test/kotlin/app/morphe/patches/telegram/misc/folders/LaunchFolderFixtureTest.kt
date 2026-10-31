@@ -61,12 +61,12 @@ class LaunchFolderFixtureTest {
             assertEquals("Ljava/util/ArrayList;->isEmpty()Z", body[plan.at - 2].ref())
             assertEquals(Opcode.MOVE_RESULT, body[plan.at - 1].opcode)
             assertEquals(plan.refs!!.tabs, body[plan.at - 3].ref())
-            assertEquals(plan.refs!!.strip, body[plan.at - 4].ref())
+            assertEquals(plan.refs.strip, body[plan.at - 4].ref())
             // The register is the copy of this the method makes first.
             assertEquals(listOf(plan.self, method.localRegisterCount()), body[0].namedRegisters())
             assertEquals("$name: Telegram's own code is unchanged around it", stock,
                 (body.take(plan.at) + body.drop(plan.at + 1)).map(::operands))
-            val refs = plan.refs!!
+            val refs = plan.refs
             assertEquals(refs.list, refs.strip.substringBefore("->"))
             assertEquals(refs.tabs.substringBefore("->"), refs.selected.substringBefore("->"))
             assertTrue(refs.selected, refs.selected.endsWith(":I"))
@@ -196,10 +196,10 @@ class LaunchFolderFixtureTest {
             assertEquals("$name: a no runs the stock call", listOf(3, 4), ControlFlow.of(done).normal[2].sorted())
             assertEquals(stockDone, shown.drop(SKIPS_DONE_SIZE).map(::operands))
 
-            val refs = plan.refs!!
+            val refs = plan.refs
             val strip = launch.refs!!.tabs.substringBefore("->")
             assertEquals(strip, editing.definingClass)
-            assertEquals(launch.refs!!.list, done.definingClass)
+            assertEquals(launch.refs.list, done.definingClass)
             assertTrue(refs.stable, refs.stable == "$strip->getCurrentTabStableId()I")
             assertTrue(refs.selectStable, refs.selectStable.startsWith("$strip->") && refs.selectStable.endsWith("(I)Z"))
             assertTrue(refs.present, refs.present.contains("->presentFragment(") && refs.present.endsWith(")Z"))

@@ -49,7 +49,7 @@ public class ShortcutCoverTest {
         // The entry's state is static and outlives a test in the same sandbox.
         SettingsEntry.onClosedByUser();
         Application app = RuntimeEnvironment.getApplication();
-        app.getApplicationInfo().targetSdkVersion = 36;
+        app.getApplicationInfo().targetSdkVersion = 37;
         app.registerActivityLifecycleCallbacks(new SettingsEntry.OpenWhenResumed());
     }
 

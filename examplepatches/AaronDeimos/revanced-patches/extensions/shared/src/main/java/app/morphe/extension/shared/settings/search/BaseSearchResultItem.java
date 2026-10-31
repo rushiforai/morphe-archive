@@ -1,0 +1,457 @@
+/*
+ * Copyright (C) 2026 anddea
+ *
+ * This file is part of the revanced-patches project:
+ * https://github.com/anddea/revanced-patches
+ *
+ * Original author(s):
+ * - anddea (https://github.com/anddea)
+ *
+ * This file is the product of multiple backports between ReVanced and RVX.
+ *
+ * Licensed under the GNU General Public License v3.0.
+ *
+ * ------------------------------------------------------------------------
+ * GPLv3 Section 7 – Additional Terms & Attribution Requirements
+ * ------------------------------------------------------------------------
+ *
+ * This file contains substantial original work by the author(s) listed above.
+ *
+ * In accordance with Section 7 of the GNU General Public License v3.0,
+ * the following additional terms apply to this file:
+ *
+ * 1. Source Credit Preservation (Section 7(b)): This specific copyright notice
+ *    and the list of original authors above must be preserved in any copy
+ *    or derivative work. You may add your own copyright notice below it,
+ *    but you may not remove the original one.
+ *
+ * 2. Origin & Modification Marking (Section 7(c)): Modified versions must be
+ *    clearly marked as such (e.g., by adding a "Modified by" line or a new
+ *    copyright notice) and must not be misrepresented as the original work.
+ *
+ * 3. Version Control Attribution (Section 7(b)): Any ports or substantial
+ *    modifications must retain historical authorship credit in version control
+ *    systems (e.g., Git), listing original author(s) appropriately and
+ *    modifiers as committers or co-authors.
+ *
+ * 4. User Interface Attribution (Section 7(b)): Any works containing or
+ *    derived from this material must maintain a visible credit or
+ *    acknowledgment to the original author(s) within the application's
+ *    user interface (e.g., in an "About" or "Credits" section).
+ */
+
+package app.morphe.extension.shared.settings.search;
+
+import android.graphics.Color;
+import android.preference.ListPreference;
+import android.preference.Preference;
+import android.preference.SwitchPreference;
+import android.text.SpannableStringBuilder;
+import android.text.TextUtils;
+import android.text.style.BackgroundColorSpan;
+
+import androidx.annotation.ColorInt;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import app.morphe.extension.shared.settings.preference.ColorPickerPreference;
+import app.morphe.extension.shared.settings.preference.CustomDialogListPreference;
+import app.morphe.extension.shared.settings.preference.RangeSliderPreference;
+import app.morphe.extension.shared.settings.preference.SliderPreference;
+import app.morphe.extension.shared.settings.preference.UrlLinkPreference;
+import app.morphe.extension.shared.utils.BaseThemeUtils;
+import app.morphe.extension.shared.utils.ResourceUtils;
+import app.morphe.extension.shared.utils.Utils;
+
+/**
+ * Abstract base class for search result items, defining common fields and behavior.
+ */
+public abstract class BaseSearchResultItem {
+    // Enum to represent view types.
+    public enum ViewType {
+        REGULAR,
+        SLIDER,
+        RANGE_SLIDER,
+        SWITCH,
+        LIST,
+        COLOR_PICKER,
+        GROUP_HEADER,
+        NO_RESULTS,
+        URL_LINK;
+
+        // Get the corresponding layout resource ID.
+        public int getLayoutResourceId() {
+            return switch (this) {
+                case REGULAR, URL_LINK ->
+                        getResourceIdentifier("revanced_preference_search_result_regular");
+                case SLIDER -> getResourceIdentifier("revanced_preference_search_result_slider");
+                case RANGE_SLIDER ->
+                        getResourceIdentifier("revanced_preference_search_result_range_slider");
+                case SWITCH -> getResourceIdentifier("revanced_preference_search_result_switch");
+                case LIST -> getResourceIdentifier("revanced_preference_search_result_list");
+                case COLOR_PICKER ->
+                        getResourceIdentifier("revanced_preference_search_result_color");
+                case GROUP_HEADER ->
+                        getResourceIdentifier("revanced_preference_search_result_group_header");
+                case NO_RESULTS -> getResourceIdentifier("revanced_preference_search_no_result");
+            };
+        }
+
+        private static int getResourceIdentifier(String name) {
+            // Placeholder for actual resource identifier retrieval.
+            return ResourceUtils.getLayoutIdentifier(name);
+        }
+    }
+
+    final String navigationPath;
+    final List<String> navigationKeys;
+    final ViewType preferenceType;
+    CharSequence highlightedTitle;
+    CharSequence highlightedSummary;
+    boolean highlightingApplied;
+
+    BaseSearchResultItem(String navPath, List<String> navKeys, ViewType type) {
+        this.navigationPath = navPath;
+        this.navigationKeys = new ArrayList<>(navKeys != null ? navKeys : Collections.emptyList());
+        this.preferenceType = type;
+        this.highlightedTitle = "";
+        this.highlightedSummary = "";
+        this.highlightingApplied = false;
+    }
+
+    abstract boolean matchesQuery(String query);
+
+    abstract void applyHighlighting(Pattern queryPattern);
+
+    abstract void clearHighlighting();
+
+    // Shared method for highlighting text with search query.
+    protected static CharSequence highlightSearchQuery(CharSequence text, Pattern queryPattern) {
+        if (TextUtils.isEmpty(text) || queryPattern == null) return text;
+
+        final int adjustedColor = BaseThemeUtils.adjustColorBrightness(
+                BaseThemeUtils.getAppBackgroundColor(), 0.95f, 1.20f);
+        BackgroundColorSpan highlightSpan = new BackgroundColorSpan(adjustedColor);
+        SpannableStringBuilder spannable = new SpannableStringBuilder(text);
+
+        Matcher matcher = queryPattern.matcher(text);
+        while (matcher.find()) {
+            int start = matcher.start();
+            int end = matcher.end();
+            if (start == end) continue; // Skip zero matches.
+            spannable.setSpan(highlightSpan, start, end,
+                    SpannableStringBuilder.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+
+        return spannable;
+    }
+
+    /**
+     * Search result item for group headers (navigation path only).
+     */
+    public static class GroupHeaderItem extends BaseSearchResultItem {
+        GroupHeaderItem(String navPath, List<String> navKeys) {
+            super(navPath, navKeys, ViewType.GROUP_HEADER);
+            this.highlightedTitle = navPath;
+        }
+
+        @Override
+        boolean matchesQuery(String query) {
+            return false; // Headers are not directly searchable.
+        }
+
+        @Override
+        void applyHighlighting(Pattern queryPattern) {
+        }
+
+        @Override
+        void clearHighlighting() {
+        }
+    }
+
+    /**
+     * Search result item for preferences, handling type-specific data and search text.
+     */
+    @SuppressWarnings("deprecation")
+    public static class PreferenceSearchItem extends BaseSearchResultItem {
+        public final Preference preference;
+        final String searchableText;
+        final String semanticSearchText;
+        final CharSequence originalTitle;
+        final CharSequence originalSummary;
+        final CharSequence originalSummaryOn;
+        final CharSequence originalSummaryOff;
+        final CharSequence[] originalEntries;
+        private CharSequence[] highlightedEntries;
+        private boolean entriesHighlightingApplied;
+
+        @ColorInt
+        private int color;
+
+        // Store last applied highlighting pattern to reapply when needed.
+        Pattern lastQueryPattern;
+
+        PreferenceSearchItem(Preference pref, String navPath, List<String> navKeys) {
+            super(navPath, navKeys, determineType(pref));
+            this.preference = pref;
+            this.originalTitle = pref.getTitle() != null ? pref.getTitle() : "";
+            this.originalSummary = pref.getSummary();
+            this.highlightedTitle = this.originalTitle;
+            this.highlightedSummary = this.originalSummary != null ? this.originalSummary : "";
+            this.color = 0;
+            this.lastQueryPattern = null;
+
+            // Initialize type-specific fields.
+            FieldInitializationResult result = initTypeSpecificFields(pref);
+            this.originalSummaryOn = result.summaryOn;
+            this.originalSummaryOff = result.summaryOff;
+            this.originalEntries = result.entries;
+
+            // Build searchable text.
+            this.searchableText = buildSearchableText(pref);
+            this.semanticSearchText = buildSemanticSearchText();
+        }
+
+        private static class FieldInitializationResult {
+            CharSequence summaryOn = null;
+            CharSequence summaryOff = null;
+            CharSequence[] entries = null;
+        }
+
+        private static ViewType determineType(Preference pref) {
+            if (pref instanceof RangeSliderPreference) return ViewType.RANGE_SLIDER;
+            if (pref instanceof SliderPreference) return ViewType.SLIDER;
+            if (pref instanceof SwitchPreference) return ViewType.SWITCH;
+            if (pref instanceof ListPreference) return ViewType.LIST;
+            if (pref instanceof ColorPickerPreference) return ViewType.COLOR_PICKER;
+            if (pref instanceof UrlLinkPreference) return ViewType.URL_LINK;
+            if ("no_results_placeholder".equals(pref.getKey())) return ViewType.NO_RESULTS;
+            return ViewType.REGULAR;
+        }
+
+        private FieldInitializationResult initTypeSpecificFields(Preference pref) {
+            FieldInitializationResult result = new FieldInitializationResult();
+
+            if (pref instanceof SwitchPreference switchPref) {
+                result.summaryOn = switchPref.getSummaryOn();
+                result.summaryOff = switchPref.getSummaryOff();
+            } else if (pref instanceof ColorPickerPreference colorPref) {
+                String colorString = colorPref.getText();
+                this.color = TextUtils.isEmpty(colorString) ? 0 : Color.parseColor(colorString);
+            } else if (pref instanceof ListPreference listPref) {
+                result.entries = listPref.getEntries();
+                if (result.entries != null) {
+                    this.highlightedEntries = new CharSequence[result.entries.length];
+                    System.arraycopy(result.entries, 0, this.highlightedEntries, 0, result.entries.length);
+                }
+            }
+
+            this.entriesHighlightingApplied = false;
+            return result;
+        }
+
+        /**
+         * Builds the searchable text from preference content while excluding its internal key.
+         */
+        private String buildSearchableText(Preference pref) {
+            StringBuilder searchBuilder = new StringBuilder();
+            appendText(searchBuilder, originalTitle);
+            appendText(searchBuilder, originalSummary);
+
+            // Add type-specific searchable content.
+            if (pref instanceof ListPreference listPref) {
+                if (originalEntries != null) {
+                    for (CharSequence entry : originalEntries) {
+                        appendText(searchBuilder, entry);
+                    }
+                }
+                CharSequence[] entryValues = listPref.getEntryValues();
+                if (entryValues != null) {
+                    for (CharSequence entryValue : entryValues) {
+                        appendText(searchBuilder, entryValue);
+                    }
+                }
+            } else if (pref instanceof SwitchPreference) {
+                appendText(searchBuilder, originalSummaryOn);
+                appendText(searchBuilder, originalSummaryOff);
+            } else if (pref instanceof ColorPickerPreference) {
+                appendText(searchBuilder, ColorPickerPreference.getColorString(color, false));
+            }
+
+            // Include navigation path in searchable text.
+            appendText(searchBuilder, navigationPath);
+
+            return searchBuilder.toString();
+        }
+
+        /** Builds semantic-search input from visible labels without saved or internal values. */
+        private String buildSemanticSearchText() {
+            StringBuilder searchBuilder = new StringBuilder();
+            appendText(searchBuilder, originalTitle);
+            appendText(searchBuilder, originalSummary);
+            appendText(searchBuilder, originalSummaryOn);
+            appendText(searchBuilder, originalSummaryOff);
+            if (originalEntries != null) {
+                for (CharSequence entry : originalEntries) {
+                    appendText(searchBuilder, entry);
+                }
+            }
+            appendText(searchBuilder, navigationPath);
+            return searchBuilder.toString();
+        }
+
+        /**
+         * Appends normalized searchable text to the builder.
+         * Uses full Unicode normalization for accurate search across all languages.
+         */
+        private void appendText(StringBuilder builder, CharSequence text) {
+            if (!TextUtils.isEmpty(text)) {
+                if (builder.length() > 0) builder.append(" ");
+                builder.append(Utils.normalizeTextToLowercase(text));
+            }
+        }
+
+        /**
+         * Gets the current effective summary for this preference, considering state-dependent summaries.
+         */
+        public CharSequence getCurrentEffectiveSummary() {
+            if (preference instanceof CustomDialogListPreference customPref) {
+                String staticSum = customPref.getStaticSummary();
+                if (staticSum != null) {
+                    return staticSum;
+                }
+            }
+            if (preference instanceof SwitchPreference switchPref) {
+                boolean currentState = switchPref.isChecked();
+                return currentState
+                        ? (originalSummaryOn != null ? originalSummaryOn :
+                        originalSummary != null ? originalSummary : "")
+                        : (originalSummaryOff != null ? originalSummaryOff :
+                        originalSummary != null ? originalSummary : "");
+            } else if (preference instanceof ListPreference listPref) {
+                String value = listPref.getValue();
+                CharSequence[] entries = listPref.getEntries();
+                CharSequence[] entryValues = listPref.getEntryValues();
+                if (value != null && entries != null && entryValues != null) {
+                    for (int i = 0, length = entries.length; i < length; i++) {
+                        if (value.equals(entryValues[i].toString())) {
+                            return originalEntries != null && i < originalEntries.length && originalEntries[i] != null
+                                    ? originalEntries[i]
+                                    : originalSummary != null ? originalSummary : "";
+                        }
+                    }
+                }
+                return originalSummary != null ? originalSummary : "";
+            }
+            return originalSummary != null ? originalSummary : "";
+        }
+
+        /**
+         * Checks if this search result item matches the provided query.
+         * Uses case-insensitive matching against the searchable text.
+         */
+        @Override
+        boolean matchesQuery(String query) {
+            return searchableText.contains(Utils.normalizeTextToLowercase(query));
+        }
+
+        /**
+         * Returns normalized, user-visible preference content for semantic fallback matching.
+         * Internal preference keys and saved values are intentionally excluded.
+         */
+        public String getSemanticSearchText() {
+            return semanticSearchText;
+        }
+
+        /**
+         * Get highlighted entries to show in dialog.
+         */
+        public CharSequence[] getHighlightedEntries() {
+            return highlightedEntries;
+        }
+
+        /**
+         * Whether highlighting is applied to entries.
+         */
+        public boolean isEntriesHighlightingApplied() {
+            return entriesHighlightingApplied;
+        }
+
+        /**
+         * Highlights the search query in the title and summary.
+         */
+        @Override
+        void applyHighlighting(Pattern queryPattern) {
+            this.lastQueryPattern = queryPattern;
+            // Highlight the title.
+            highlightedTitle = highlightSearchQuery(originalTitle, queryPattern);
+
+            // Get the current effective summary and highlight it.
+            CharSequence currentSummary = getCurrentEffectiveSummary();
+            highlightedSummary = highlightSearchQuery(currentSummary, queryPattern);
+
+            // Highlight the entries.
+            if (preference instanceof ListPreference && originalEntries != null) {
+                highlightedEntries = new CharSequence[originalEntries.length];
+                for (int i = 0, length = originalEntries.length; i < length; i++) {
+                    if (originalEntries[i] != null) {
+                        highlightedEntries[i] = highlightSearchQuery(originalEntries[i], queryPattern);
+                    } else {
+                        highlightedEntries[i] = null;
+                    }
+                }
+                entriesHighlightingApplied = true;
+            }
+
+            highlightingApplied = true;
+        }
+
+        /**
+         * Clears all search query highlighting and restores original state completely.
+         */
+        @Override
+        void clearHighlighting() {
+            if (!highlightingApplied) return;
+
+            // Restore original title.
+            highlightedTitle = originalTitle;
+
+            // Restore current effective summary without highlighting.
+            highlightedSummary = getCurrentEffectiveSummary();
+
+            // Restore original entries.
+            if (originalEntries != null && highlightedEntries != null) {
+                System.arraycopy(originalEntries, 0, highlightedEntries, 0,
+                        Math.min(originalEntries.length, highlightedEntries.length));
+            }
+
+            entriesHighlightingApplied = false;
+            highlightingApplied = false;
+            lastQueryPattern = null;
+        }
+
+        /**
+         * Refreshes highlighting for dynamic summaries (like switch preferences).
+         * Should be called when the preference state changes.
+         */
+        public void refreshHighlighting() {
+            if (highlightingApplied && lastQueryPattern != null) {
+                CharSequence currentSummary = getCurrentEffectiveSummary();
+                highlightedSummary = highlightSearchQuery(currentSummary, lastQueryPattern);
+            }
+        }
+
+        public void setColor(int newColor) {
+            this.color = newColor;
+        }
+
+        @ColorInt
+        public int getColor() {
+            return color;
+        }
+    }
+}

@@ -124,6 +124,35 @@ def check_class_versions(archive):
         )
 
 
+# The first Morphe Manager and Desktop releases that bundle each patcher. Manager refuses a bundle
+# whose Patcher-Version is newer than its own patcher, so these are the README's minimum versions.
+PATCHER_CLIENTS = {
+    "2.0.1": ("2.2.0", "1.19.1"),
+    "2.1.0": ("2.3.0", "1.20.0"),
+}
+
+
+def check_client_minimums(readme, patcher):
+    """Refuse a README that sends people to a Manager or Desktop too old for the bundle's patcher."""
+    require(patcher, "Bundle manifest has no Patcher-Version")
+    require(
+        patcher in PATCHER_CLIENTS,
+        f"Bundle is built with patcher {patcher}; add the first Manager and Desktop that bundle it"
+        " to PATCHER_CLIENTS",
+    )
+    manager, desktop = PATCHER_CLIENTS[patcher]
+    require(
+        re.findall(r"Morphe Manager \((\d+\.\d+\.\d+) or newer\)", readme) == [manager],
+        f"README must ask once for Morphe Manager ({manager} or newer), the first to bundle patcher"
+        f" {patcher}, and name no other Manager that way",
+    )
+    require(
+        re.findall(r"Morphe Desktop (\d+\.\d+\.\d+) or newer", readme) == [desktop],
+        f"README must ask once for Morphe Desktop {desktop} or newer, the first to bundle patcher"
+        f" {patcher}, and name no other Desktop that way",
+    )
+
+
 def bundle_signer(root, data, required):
     """The key the bundle is signed with, which has to be the one morphe-signing.pub publishes.
 
@@ -277,6 +306,8 @@ def verify(root, bundle=None, evidence=None, release_tag=None, checksums=None):
     for link in release_links.finditer(readme):
         advertised = link.group(1) or link.group(2)
         require(advertised == version, "README download link differs from source")
+    # Between releases these name the clients the published bundle needs, so they move at release.
+    check_client_minimums(readme, attributes.get("Patcher-Version"))
     # Between releases the install step names the published release's Messenger version (#111),
     # so a release that moves the target has to move that step with it.
     targets = {

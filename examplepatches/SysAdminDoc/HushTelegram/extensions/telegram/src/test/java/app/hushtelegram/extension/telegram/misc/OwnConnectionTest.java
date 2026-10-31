@@ -29,9 +29,11 @@ import app.hushtelegram.extension.shared.SettingsContextRule;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.shared.settings.HushTelegramPause;
 import app.hushtelegram.extension.shared.settings.PauseForTests;
+import app.hushtelegram.extension.telegram.settings.PatchFamily;
+import app.hushtelegram.extension.telegram.settings.PatchFamilyForTests;
 import app.hushtelegram.extension.telegram.settings.Settings;
 
-/** Telegram's own two switches after a push sign-up answer. Nothing here starts a service or connects. */
+/** Telegram's own two switches after a push sign-up answer or a UnifiedPush address. Nothing here starts a service or connects. */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
 public class OwnConnectionTest {
@@ -224,11 +226,119 @@ public class OwnConnectionTest {
         assertEquals(0, applied);
     }
 
-    /** A store whose writes never land. */
+    /** Android keeps a failed commit's values in memory, so each failure takes them back out itself. */
+    @Test public void aFailedWriteAndroidStillHoldsInMemoryIsTakenBackOut() {
+        Settings.UNIFIED_PUSH.save(true);
+        OwnConnection.telegramStore = c -> new Unsaved(realTelegram.apply(c), true);
+        OwnConnection.besideUnifiedPush(context);
+        assertTrue("Telegram's switches kept in memory", telegram().getAll().isEmpty());
+        assertTrue(OwnConnection.store.apply(context).getAll().isEmpty());
+        assertEquals(0, applied);
+        assertTrue(report("own connection not saved 1"));
+
+        OwnConnection.telegramStore = realTelegram;
+        OwnConnection.store = c -> new Unsaved(realStore.apply(c), true);
+        refused();
+        assertTrue(realStore.apply(context).getAll().isEmpty());
+        assertTrue(telegram().getAll().isEmpty());
+        assertFalse(OwnConnection.turnedOnHere(context));
+        assertEquals(0, applied);
+    }
+
+    /**
+     * Issue #50: Telegram's servers accept the UnifiedPush sign-up but never called the address for
+     * a message on the S22, so its own connection stays on beside it, under the same rules.
+     */
+    @Test public void anAddressHandedToTelegramTurnsItsOwnConnectionOnBesideUnifiedPush() {
+        UnifiedPush.prefs(context).edit().putString(UnifiedPush.ENDPOINT, "https://ntfy.sh/upAbCdEf12?up=1").commit();
+        Settings.UNIFIED_PUSH.save(true);
+        OwnConnection.besideUnifiedPush(context);
+        assertEquals(Boolean.TRUE, OwnConnection.bothOn(context));
+        assertTrue(OwnConnection.turnedOnHere(context));
+        assertTrue(OwnConnection.turnedOnBesideUnifiedPush(context));
+        assertEquals(1, applied);
+        assertTrue(report("own connection kept on beside UnifiedPush 1"));
+
+        OwnConnection.besideUnifiedPush(context);
+        refused();
+        assertEquals("a new address and a refusal find them on already", 1, applied);
+        assertTrue(OwnConnection.turnedOnBesideUnifiedPush(context));
+
+        // An accepted Firebase sign-up says nothing while UnifiedPush carries the wake-ups.
+        accepted();
+        assertEquals(Boolean.TRUE, OwnConnection.bothOn(context));
+        assertTrue(OwnConnection.turnedOnBesideUnifiedPush(context));
+
+        Settings.UNIFIED_PUSH.save(false);
+        accepted();
+        assertFalse(telegram().contains(OwnConnection.KEEP_ALIVE));
+        assertFalse(telegram().contains(OwnConnection.BACKGROUND));
+        assertFalse(OwnConnection.turnedOnHere(context));
+        assertFalse(OwnConnection.turnedOnBesideUnifiedPush(context));
+        assertEquals(2, applied);
+    }
+
+    @Test public void besideUnifiedPushTheUsersChoiceTheSwitchAndPauseStillWin() {
+        OwnConnection.besideUnifiedPush(context);
+        assertTrue("UnifiedPush off", telegram().getAll().isEmpty());
+
+        Settings.UNIFIED_PUSH.save(true);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            OwnConnection.besideUnifiedPush(context);
+            assertTrue(reason.name(), telegram().getAll().isEmpty());
+            PauseForTests.resume();
+        }
+        OwnConnection.besideUnifiedPush(null);
+        assertEquals(0, applied);
+
+        telegram().edit().putBoolean(OwnConnection.BACKGROUND, false).commit();
+        OwnConnection.besideUnifiedPush(context);
+        assertFalse(telegram().getBoolean(OwnConnection.BACKGROUND, true));
+        assertFalse(telegram().contains(OwnConnection.KEEP_ALIVE));
+        assertFalse(OwnConnection.turnedOnHere(context));
+        assertTrue(report("own connection left as set in Telegram 1"));
+
+        // UnifiedPush is its own patch, so leaving the Firebase repair off changes nothing here.
+        telegram().edit().clear().commit();
+        Settings.REPAIR_FIREBASE_PUSH.save(false);
+        OwnConnection.besideUnifiedPush(context);
+        assertEquals(Boolean.TRUE, OwnConnection.bothOn(context));
+        assertEquals(1, applied);
+    }
+
+    @Test public void theNotificationReportSaysWhatTurnedThemOn() {
+        PatchFamilyForTests.inBuild(PatchFamily.REPAIR_FIREBASE_PUSH);
+        PatchFamilyForTests.installed(PatchFamily.Capability.FIREBASE_LOCAL_STATUS);
+        try {
+            Settings.UNIFIED_PUSH.save(true);
+            OwnConnection.besideUnifiedPush(context);
+            assertTrue(String.join("\n", FirebasePush.localReportLines())
+                    .contains("keep-alive and background connection: on (beside UnifiedPush)"));
+
+            telegram().edit().clear().commit();
+            realStore.apply(context).edit().clear().commit();
+            refused();
+            assertTrue(String.join("\n", FirebasePush.localReportLines())
+                    .contains("keep-alive and background connection: on (after a refused sign-up)"));
+        } finally {
+            PatchFamilyForTests.reset();
+            PatchFamilyForTests.resetCapabilities();
+        }
+    }
+
+    /** A store whose writes never land, or with keptInMemory, land only in memory as Android's do when a commit fails. */
     private static final class Unsaved implements SharedPreferences {
         private final SharedPreferences real;
+        private final boolean keptInMemory;
 
-        Unsaved(SharedPreferences real) { this.real = real; }
+        Unsaved(SharedPreferences real) { this(real, false); }
+
+        Unsaved(SharedPreferences real, boolean keptInMemory) {
+            this.real = real;
+            this.keptInMemory = keptInMemory;
+        }
 
         @Override public Map<String, ?> getAll() { return real.getAll(); }
         @Override public String getString(String key, String fallback) { return real.getString(key, fallback); }
@@ -242,17 +352,18 @@ public class OwnConnectionTest {
         @Override public void unregisterOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener listener) { }
 
         @Override public Editor edit() {
+            Editor memory = keptInMemory ? real.edit() : null;
             return new Editor() {
-                @Override public Editor putString(String key, String value) { return this; }
-                @Override public Editor putStringSet(String key, Set<String> values) { return this; }
-                @Override public Editor putInt(String key, int value) { return this; }
-                @Override public Editor putLong(String key, long value) { return this; }
-                @Override public Editor putFloat(String key, float value) { return this; }
-                @Override public Editor putBoolean(String key, boolean value) { return this; }
-                @Override public Editor remove(String key) { return this; }
-                @Override public Editor clear() { return this; }
-                @Override public boolean commit() { return false; }
-                @Override public void apply() { }
+                @Override public Editor putString(String key, String value) { if (memory != null) memory.putString(key, value); return this; }
+                @Override public Editor putStringSet(String key, Set<String> values) { if (memory != null) memory.putStringSet(key, values); return this; }
+                @Override public Editor putInt(String key, int value) { if (memory != null) memory.putInt(key, value); return this; }
+                @Override public Editor putLong(String key, long value) { if (memory != null) memory.putLong(key, value); return this; }
+                @Override public Editor putFloat(String key, float value) { if (memory != null) memory.putFloat(key, value); return this; }
+                @Override public Editor putBoolean(String key, boolean value) { if (memory != null) memory.putBoolean(key, value); return this; }
+                @Override public Editor remove(String key) { if (memory != null) memory.remove(key); return this; }
+                @Override public Editor clear() { if (memory != null) memory.clear(); return this; }
+                @Override public boolean commit() { if (memory != null) memory.commit(); return false; }
+                @Override public void apply() { if (memory != null) memory.commit(); }
             };
         }
     }

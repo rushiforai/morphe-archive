@@ -1,0 +1,74 @@
+{
+  "capturedAt": "2026-10-30T11:50:01.736139+00:00",
+  "serial": "emulator-5586",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Add Downloads",
+      "class": "android.view.View",
+      "bounds": "[232,740][848,804]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Transcode?",
+      "class": "android.widget.Button",
+      "bounds": "[232,836][848,932]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Warning: You are about to download 6 tracks.",
+      "class": "android.view.View",
+      "bounds": "[248,948][832,988]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Cancel",
+      "class": "android.widget.Button",
+      "bounds": "[569,1036][704,1132]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Add",
+      "class": "android.widget.Button",
+      "bounds": "[720,1036][848,1132]",
+      "clickable": "false",
+      "enabled": "false",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Dismiss",
+      "class": "android.view.View",
+      "bounds": "[0,0][1080,1920]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "846d072724bdcb70bdd0cbb6d3a096dfcb6720558238cac7240d42e51b80b151"
+}

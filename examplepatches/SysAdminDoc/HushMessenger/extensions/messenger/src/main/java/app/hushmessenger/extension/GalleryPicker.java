@@ -22,6 +22,14 @@ final class GalleryPicker {
     /** Set on that result once its items went to the Send to sheet. */
     static final String ITEMS_SENT = "app.hushmessenger.gallery_items_sent";
     static final String RESULT_PREPARED = "app.hushmessenger.gallery_prepared";
+    /** Put gallery picks in the chat: the chat's handler gets one result per item, each copied into the chat's tray (#101). */
+    static final String CHAT_KEY = "gallery_to_chat";
+    /** On each one-item result the pick is split into, so the chat's coroutine puts that item in the tray. */
+    static final String ONE_ITEM = "app.hushmessenger.gallery_one_item";
+    /** Set on the pick once its items went to the tray, for the second caller that hands the handler the same result. */
+    static final String IN_CHAT = "app.hushmessenger.gallery_in_chat";
+    /** Each picked item's type, in the ClipData's order, since ClipData keeps only the set of types. */
+    static final String ITEM_TYPES = "app.hushmessenger.gallery_item_types";
     /** Messenger's own share entry. It takes several items and opens the Send to sheet with any chats it's handed on top. */
     static final String SHARE_HANDLER = "com.facebook.messenger.intents.ShareIntentHandler";
     /** The share sheet reads the chats to put on top from this key as a list of threads or as user ids. */
@@ -129,18 +137,44 @@ final class GalleryPicker {
         Intent result = type == null ? new Intent().setData(first) : new Intent().setDataAndType(first, type);
         if (items.size() > 1) {
             java.util.Set<String> types = new java.util.LinkedHashSet<>();
+            String[] itemTypes = new String[items.size()];
+            itemTypes[0] = type;
             types.add(type == null ? "*/*" : type);
-            for (Uri item : items.subList(1, items.size())) {
-                String itemType = typeOf(context, item);
+            for (int i = 1; i < items.size(); i++) {
+                String itemType = typeOf(context, items.get(i));
                 if (itemType != null && !mediaType(itemType)) return null;
+                itemTypes[i] = itemType;
                 types.add(itemType == null ? "*/*" : itemType);
             }
             ClipData all = new ClipData("picked", types.toArray(new String[0]), new ClipData.Item(first));
             for (Uri item : items.subList(1, items.size())) all.addItem(new ClipData.Item(item));
             result.setClipData(all);
-            result.putExtra(ITEMS_MARK, true);
+            result.putExtra(ITEMS_MARK, true).putExtra(ITEM_TYPES, itemTypes);
         }
         return result.putExtra(RESULT_PREPARED, true).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+    }
+
+    /**
+     * The pick screen's result as one result per item, each with its own type, marked and granted the way [handBack]
+     * hands back one item. The chat's handler copies one item a run, so it runs once for each of these.
+     */
+    static Intent[] chatItems(Intent picked) {
+        ClipData clip = picked.getClipData();
+        if (clip == null || clip.getItemCount() < 2 || !picked.getBooleanExtra(ITEMS_MARK, false)) {
+            return new Intent[] {chatItem(picked.getData(), picked.getType())};
+        }
+        String[] types = picked.getStringArrayExtra(ITEM_TYPES);
+        java.util.List<Intent> items = new java.util.ArrayList<>();
+        for (int i = 0; i < clip.getItemCount(); i++) {
+            Uri item = clip.getItemAt(i).getUri();
+            if (item != null) items.add(chatItem(item, types != null && i < types.length ? types[i] : null));
+        }
+        return items.toArray(new Intent[0]);
+    }
+
+    private static Intent chatItem(Uri item, String type) {
+        Intent one = type == null ? new Intent().setData(item) : new Intent().setDataAndType(item, type);
+        return one.putExtra(RESULT_PREPARED, true).putExtra(ONE_ITEM, true).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
     }
 
     /**

@@ -1,0 +1,75 @@
+INSTRUMENTATION_RESULT: stream={
+  "mode": "baseline",
+  "cases": [
+    {
+      "name": "excluded-default-read",
+      "read": true,
+      "bookmark": false,
+      "exclude": [
+        "0"
+      ],
+      "expectedRetained": true,
+      "actualRetained": false,
+      "retainedBytesUnchanged": false,
+      "passed": false
+    },
+    {
+      "name": "excluded-default-unread",
+      "read": false,
+      "bookmark": false,
+      "exclude": [
+        "0"
+      ],
+      "expectedRetained": false,
+      "actualRetained": false,
+      "retainedBytesUnchanged": false,
+      "passed": true
+    },
+    {
+      "name": "no-exclusion-read",
+      "read": true,
+      "bookmark": false,
+      "exclude": [],
+      "expectedRetained": false,
+      "actualRetained": false,
+      "retainedBytesUnchanged": false,
+      "passed": true
+    },
+    {
+      "name": "other-exclusion-read",
+      "read": true,
+      "bookmark": false,
+      "exclude": [
+        "4"
+      ],
+      "expectedRetained": false,
+      "actualRetained": false,
+      "retainedBytesUnchanged": false,
+      "passed": true
+    },
+    {
+      "name": "protected-bookmark",
+      "read": true,
+      "bookmark": true,
+      "exclude": [],
+      "expectedRetained": true,
+      "actualRetained": true,
+      "retainedBytesUnchanged": true,
+      "passed": true
+    },
+    {
+      "name": "removable-bookmark",
+      "read": true,
+      "bookmark": true,
+      "exclude": [],
+      "expectedRetained": false,
+      "actualRetained": false,
+      "retainedBytesUnchanged": false,
+      "passed": true
+    }
+  ],
+  "failures": 1,
+  "apkSha256": "f36968d573662cc11c9faec0879f5da0384acf4ae3ac2493a297da30eaf918a6"
+}
+
+INSTRUMENTATION_CODE: 0

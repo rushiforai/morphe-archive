@@ -88,12 +88,13 @@ val cleanUpChatListPatch = bytecodePatch(
                 "reporting \"$META_AI_ICON_CLICKED\", found ${buttons.size}",
         )
         val pickers = methodsNaming(PEOPLE_PICKER_ENTRY, ::callsMetaAiLauncher).map { it.definingClass }.distinct()
-            .mapNotNull { type -> classDefByOrNull(type)?.let { opener -> pickerRowOf(opener, resolve)?.let { row -> type to row } } }
-        val (pickerOpener, pickerRow) = pickers.singleOrNull() ?: throw PatchException(
+            .mapNotNull { type -> classDefByOrNull(type)?.let { opener -> pickerTapOf(opener, resolve)?.let { tap -> type to tap } } }
+        val (pickerOpener, pickerTap) = pickers.singleOrNull() ?: throw PatchException(
             "$CHAT_LIST_PATCH: expected one Meta AI tap opening \"$PEOPLE_PICKER_ENTRY\" after reading its row's " +
                 "CallerContext, found ${pickers.size}",
         )
-        val gates = classDefByOrNull(pickerRow)?.methods?.mapNotNull { pickerButtonGate(it, pickerOpener) }.orEmpty()
+        val pickerRow = pickerTap.row
+        val gates = classDefByOrNull(pickerRow)?.methods?.mapNotNull { pickerButtonGate(it, pickerOpener, pickerTap.case) }.orEmpty()
         val gate = gates.singleOrNull() ?: throw PatchException(
             "$CHAT_LIST_PATCH: expected one method of $pickerRow that sets its Meta AI flag once and builds the " +
                 "button behind it, found ${gates.size}",

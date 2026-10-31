@@ -15,6 +15,19 @@
       "changes": "Written for Hushfacebook for issue #216. One pass over the app's classes records which types, member names and strings each one names, so a patch's search visits only the classes that could match, in the order classDefForEach visits them. Classes a patch has changed are always visited."
     },
     {
+      "paths": ["patches/src/main/kotlin/app/morphe/util/PatchListGenerator.kt"],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/hushfeed",
+      "commit": "1f1f81a29ffbe8468a41067b22c05a50283ef9c4",
+      "via": [
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/RookieEnough/De-Vanced",
+        "https://github.com/MorpheApp/morphe-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Moved to morphe-patcher 2.0: the default flag in place of use, the per-target compatibility list read as it is, and the old compatiblePackages map rebuilt from it (stable targets only, unless a package declares nothing else) for Manager 1.x."
+    },
+    {
       "paths": ["patches/src/main/kotlin/app/morphe/patches/facebook/shared/MobileConfigReads.kt"],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
@@ -55,7 +68,8 @@
       "upstream": "https://github.com/SysAdminDoc/hushfeed",
       "commit": "1f1f81a29ffbe8468a41067b22c05a50283ef9c4",
       "via": [
-        "https://gitlab.com/ReVanced/revanced-patches",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/RookieEnough/De-Vanced",
         "https://github.com/andrewliang25/morphe-patches"
       ],
       "license": "GPL-3.0-only",
@@ -213,6 +227,16 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: a switch that keeps Facebook's own browser from building its two link history writers, hooked first in the factory of each kept writer class in Facebook 582, where a yes takes the factory's own null."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/PageEventsLink.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/externalbrowser/PageEventsLinkHook.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 585 (#319): every address Facebook's link mapper is asked about goes to the extension first, which sends a Page's events address to the Page itself and adds the Events tab to the fb://profile/ link the server answers for it."
     },
     {
       "paths": [
@@ -537,6 +561,15 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/resignedtrust/FamilyLinkHandoffPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 585 (#287): the family intent scope's null refusal asks the extension first, which hands a plain Instagram or Threads web link to that app's own exported link activity with nothing else attached."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/emoji/**",
         "patches/src/main/kotlin/app/morphe/patches/facebook/emoji/**"
       ],
@@ -761,19 +794,22 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StoriesTrayPaging.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/SuggestedStories.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/stories/suggested/**"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the stories Facebook suggests in the Stories tray. In Facebook 577 and 580 every answer of the tray's fetch goes through the one method holding StoriesTrayLightFetchControllerQueryOps.postProcessResult, which hands the buckets as an ImmutableList to the one constructor of the tray data class it answers, and the classic tray's receiver, the one method holding optimistic_data_adapter_receives, reads that list. The patch goes first in that constructor and hands the list to the extension, which leaves out a bucket whose is_story_bucket_suggested flag is true or whose first label is SUGGESTED, the two things the tray's card reads before it writes Suggested. The flag is read through the bucket interface method the receiver calls and a tree class answers with that field's key, and the label through the one static helper answering the label enum, which also names NEWFRIEND and TRENDING, for that interface. Every other bucket and anything that isn't a bucket stays."
+      "changes": "Written for Hushfacebook: the stories Facebook suggests in the Stories tray. In Facebook 577 and 580 every answer of the tray's fetch goes through the one method holding StoriesTrayLightFetchControllerQueryOps.postProcessResult, which hands the buckets as an ImmutableList to the one constructor of the tray data class it answers, and the classic tray's receiver, the one method holding optimistic_data_adapter_receives, reads that list. The patch goes first in that constructor and hands the list to the extension, which leaves out a bucket whose is_story_bucket_suggested flag is true or whose first label is SUGGESTED, the two things the tray's card reads before it writes Suggested. The flag is read through the bucket interface method the receiver calls and a tree class answers with that field's key, and the label through the one static helper answering the label enum, which also names NEWFRIEND and TRENDING, for that interface. Every other bucket and anything that isn't a bucket stays. For issue #317 Home's tray, which never goes through that constructor, is filtered in the parser that turns its buckets into tiles, and when the filter leaves its row too short to drag the extension asks the tray's scroll listener, made a Pager by the patch, for the next page the way a drag would."
     },
     {
       "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplaceAdFilter.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplaceResponseDiagnostics.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplaceSearchAds.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplaceSearchSyntax.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/navigation/MarketplaceFilterButton.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplacePathRemapper.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/HideSponsoredMarketplaceListingsPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/MarketplaceRequestAnchors.kt",
@@ -1153,6 +1189,24 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/OpeningPause.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Opening pause, a cover over Facebook's first screen when it's opened from its launcher icon that counts down 5 or 10 seconds before Open now works, while Close or Back sends Facebook away. Like Lock Facebook it runs from the settings entry's activity callbacks rather than a patch, so links, notifications and shares open straight away."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/BreakTimer.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Take breaks, which counts foreground time on Home, Feeds, Video and screens a reel played on, and after the chosen use time covers those screens for the chosen break length while chats, profiles and the Menu keep working. It runs from the settings entry's activity callbacks plus Resume playback's player-start hook, and keeps a break under way across restarts and reboots."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/TextSize.java"
       ],
       "origin": "original",
@@ -1243,6 +1297,15 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/CommentVideo.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 584 and 585 (#318): Save video in a video comment's long-press sheet, added at Save GIF's point with the sheet's own Save photo row builder. It reads the video's id and files from the comment's attachments through the kept GraphQL models' getters found by their field hashes, and saves through Download to phone's quality picker, naming the file from the video id only."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/ReelMenuDownload.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/ReelSidebarDiagnostics.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/reel/ReelMoreSheet.kt"
@@ -1298,12 +1361,14 @@
       "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/HdrBrightness.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/SdrRenditions.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/TextureVideo.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/hdr/TextureVideo.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/media/hdr/TurnOffHdrBrightnessPatch.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581, for issue #66: every call of Window.setColorMode and Window.setDesiredHdrHeadroom outside the extension goes through the extension, which asks for the default colour mode and no headroom in place of Facebook's HDR window while the switch is on, and each SurfaceView Facebook builds asks Android 15 for no headroom. From 582, Play SDR versions of HDR videos: the DASH manifest string Facebook's parse logging DashManifestHelper2 reads goes through SdrRenditions first, which drops an HDR rendition (PQ or HLG transfer, or Dolby Vision) when an SDR one at least as tall is in the same manifest. No Facebook patch source in the ledger has an HDR switch."
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581, for issue #66: every call of Window.setColorMode and Window.setDesiredHdrHeadroom outside the extension goes through the extension, which asks for the default colour mode and no headroom in place of Facebook's HDR window while the switch is on, and each SurfaceView Facebook builds asks Android 15 for no headroom. From 582, Play SDR versions of HDR videos: the DASH manifest string Facebook's parse logging DashManifestHelper2 reads goes through SdrRenditions first, which drops an HDR rendition (PQ or HLG transfer, or Dolby Vision) when an SDR one at least as tall is in the same manifest. From 585, for issue #308, Fix washed-out video colors: the player's must-use-a-SurfaceView decision, found by the force_texture_view_for_blur key it loads, answers no through TextureVideo, and each read of the player's TextureView preference behind that no answers yes, so the player draws into a TextureView the GPU composes with the screen. No Facebook patch source in the ledger has an HDR switch or one for the player's view."
     },
     {
       "paths": [

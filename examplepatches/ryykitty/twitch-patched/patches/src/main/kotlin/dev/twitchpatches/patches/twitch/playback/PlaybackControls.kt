@@ -39,8 +39,9 @@ internal fun BytecodePatchContext.restoreNativePlaybackControls() {
     }
     mutableClassDefBy(builder.definingClass).methods.single { it.reference == builder.reference }
         .replaceInstruction(read + 1, "const/16 v${result.registerA}, 0x0")
+    restoreNativeBackgroundPlayback()
 }
 
-private fun isDjStatus(reference: MethodReference?): Boolean = reference?.definingClass ==
+internal fun isDjStatus(reference: MethodReference?): Boolean = reference?.definingClass ==
     "Ltv/twitch/android/models/channel/ChannelModel;" && reference.name == "isParticipatingDJ" &&
     reference.parameterTypes.isEmpty() && reference.returnType == "Z"

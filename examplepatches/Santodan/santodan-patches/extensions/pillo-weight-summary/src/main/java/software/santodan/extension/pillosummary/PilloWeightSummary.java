@@ -189,8 +189,8 @@ public final class PilloWeightSummary {
         invoke("xyz.rtrvr.pillo.ui.components.row.DividedRowKt", "DividedRow-Ou1YvPQ",
             modifier, 0f, 0L, padding, content, composer, 0, 6);
     }
-    private interface Action { Object run(Object[] args) throws Exception; }
-    private static Object function(int arity, Action action) throws Exception {
+    interface Action { Object run(Object[] args) throws Exception; }
+    static Object function(int arity, Action action) throws Exception {
         Class<?> type = Class.forName("kotlin.jvm.functions.Function" + arity);
         return Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, (proxy, method, args) -> {
             if (method.getName().equals("invoke")) return action.run(args);
@@ -200,11 +200,11 @@ public final class PilloWeightSummary {
             throw new UnsupportedOperationException(method.getName());
         });
     }
-    private static Object unit() throws Exception { return Class.forName("kotlin.Unit").getField("INSTANCE").get(null); }
-    private static Object invoke(String owner, String name, Object... args) throws Exception {
+    static Object unit() throws Exception { return Class.forName("kotlin.Unit").getField("INSTANCE").get(null); }
+    static Object invoke(String owner, String name, Object... args) throws Exception {
         return method(Class.forName(owner), name, args).invoke(null, args);
     }
-    private static Object call(Object receiver, String name, Object... args) throws Exception {
+    static Object call(Object receiver, String name, Object... args) throws Exception {
         return method(receiver.getClass(), name, args).invoke(receiver, args);
     }
     private static Method method(Class<?> owner, String name, Object[] args) throws Exception {

@@ -29,7 +29,8 @@ private const val ORIGINAL_SIGNERS = "Lapp/morphe/extension/facebook/misc/Facebo
 val restoreTrustPatch = bytecodePatch(
     name = "Restore screens on re-signed builds",
     description = "Fixes profiles, photos, posts and some Settings pages that won't open on a patched Facebook, " +
-        "and lets a Messenger or Facebook Lite patched in the same Manager sign in through it. Root Mount " +
+        "lets a Messenger or Facebook Lite patched in the same Manager sign in through it, and opens Instagram " +
+        "and Threads links in a patched Instagram or Threads. Root Mount " +
         "installs don't need it. Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
@@ -69,6 +70,15 @@ val restoreTrustPatch = bytecodePatch(
             // A missing anchor is a PatchException with its reason; anything else is a bug, named as one.
             val why = if (missing is PatchException) missing.message else "${missing::class.java.name}: ${missing.message}"
             patchLog.warning("Restore screens on re-signed builds: $why. The Messenger link test is left out.")
+        }
+
+        // Instagram and Threads links Facebook's family scope drops for a patched app's signer (#287).
+        // A build whose scope filter has another shape keeps the rest of the fix.
+        try {
+            FamilyScopeFilterFingerprint.method.handOffDroppedFamilyLinks()
+        } catch (missing: Exception) {
+            val why = if (missing is PatchException) missing.message else "${missing::class.java.name}: ${missing.message}"
+            patchLog.warning("Restore screens on re-signed builds: $why. Instagram and Threads links stay with Facebook's scope.")
         }
 
         enableStatus("restoreTrust")

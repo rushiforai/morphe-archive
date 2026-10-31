@@ -1,21 +1,36 @@
 # Compatibility and evidence
 
-Declarations come from `patches/src/main/kotlin/app/yydarlinker/patches/shared/Constants.kt` and published metadata. The inspected official input is Morphe Patches 1.48.0 with Patcher 2.0.0. This is a discrete target list, not a continuous supported 21.x range. Source and device status belong in [PROJECT-STATE](PROJECT-STATE.md).
+Release 1.6.0 includes the compat2 host repair for official Morphe Patches 2.0.0 and Patcher 2.0.0. Declarations come from `patches/src/main/kotlin/app/yydarlinker/patches/shared/Constants.kt`. Published 1.6.0 metadata contains these declarations. Official 2.0.0 declares exactly three YouTube targets at or above 21.30.216: **21.30.216**, **21.42.241** and **21.43.523**. The last two remain experimental. This is a discrete list, not a continuous range or a promise for unpublished versions. [PROJECT-STATE](PROJECT-STATE.md) records the exact published package, completed evidence and phone status.
 
 | YouTube | Declaration | APK minSdk | Evidence boundary |
 | --- | --- | --- | --- |
-| 21.42.241 | experimental | 29 | No current original APK/composition/device observation |
-| 21.41.525 | experimental | 29 | Exact SECONDARY/code1561303419 input; finite resource recompilation and DEX audits with official 1.48.0/104 default roots + AI |
-| 21.28.208 | experimental | 29 | code1561185128 supplementary input; separate finite resource/DEX proof |
-| 21.23.492 | experimental | 28 | Historical structural checks, not latest candidate device acceptance |
-| 21.20.405 | stable target metadata | 28 | User-reported earlier successful m7b/1.5.8 use; no independent desktop composition or installed-version readback for that phone |
-| 21.16.256 | stable target metadata | 28 | No latest original APK/composition/device observation |
+| 21.43.523 | 2.0.0 experimental | 29 | code1561307650 original input; published 1.6.0 resource/DEX combination passed; phone acceptance pending |
+| 21.42.241 | 2.0.0 experimental | 29 | code1561304923 original input; published 1.6.0 resource/DEX combination passed; phone acceptance pending |
+| 21.30.216 | 2.0.0 regular target | 29 | User-supplied code1561187872 original input; published 1.6.0 resource/DEX combination passed; phone acceptance pending |
+| 21.41.525 | retained 1.48.0 experimental | 29 | Exact SECONDARY/code1561303419 input; published 1.6.0 resource/DEX combination passed with official 1.48.0; phone acceptance pending |
+| 21.28.208 | 2.0.0 regular target | 29 | Historical code1561185128 resource/DEX proof with 1.48.0; no new 2.0.0 phone acceptance |
+| 21.23.492 | 2.0.0 regular target | 28 | Historical structural checks, not latest candidate device acceptance |
+| 21.20.405 | retained 1.48.0 regular target | 28 | User-reported earlier successful m7b/1.5.8 use; no current composition or installed-version readback for that phone |
+| 21.16.256 | retained 1.48.0 regular target | 28 | No latest original APK/composition/device observation |
 
-The two selected desktop inputs have package com.google.android.youtube and the expected signer rotation/certificates, four ABI entries (arm64-v8a, armeabi-v7a, x86, x86_64), and no pre-injected addon/official namespace. Exact input/output hashes and roots are part of each composition record. Use the actual APK's SDK/ABI/signature; filenames alone do not prove identity.
+Use each actual APK's package, SDK, ABI, signature rotation and complete hash. Check that it has no pre-injected addon/official namespace. A filename, a stable metadata label or an unchanged version string does not prove those facts. Private composition records retain the exact official defaults, original inputs and output hashes.
+
+## Host changes and update verification
+
+Published 1.5.9 fails the official 2.0.0 combination: its finalizer assumes `ShortsPlayerState$Companion`, but the new official setter is a Java static method. This leaves `aiInstalled=0` and the native bridge absent even though settings resources can still exist. Official 2.0.0 also replaces `addDivider(Object,int)` with the range-invoked `addFlyoutMenuItem` divider. Its panel argument is copied inside the guarded block; reading that scratch register before the guard passes the wrong object.
+
+YouTube 21.43.523 also invalidates the copied player-time instruction pair. Compat2 instead locates the actual native call to the official public `AddOnApi.videoTimeChanged(J)V` contract and mirrors its unchanged long argument, preserving incoming branch labels. Both inspected official 1.48.0 and 2.0.0 bundles provide this API; YouTube-specific time discovery stays with the official patch.
+
+Compat2 resolves the actual Shorts setter through the public static API and follows a Kotlin delegate only when present. It recognizes the two typed divider layouts and traces object copies back to the panel value live before the guard. The public AI root finalizes the bindings, so unsupported interfaces report an `AI caption translator` failure. Installation permission is published only after all required bindings succeed. No native language choice, CC ownership, translation protocol, cache identity or model budget changes are needed for this host repair.
+
+For a new official bundle, inspect its actual MPP target metadata and APIs before changing declarations. Run the normal source checks and one final full candidate verification, then use `:patches:verifyComposition` and `:patches:auditComposition` with that **exact frozen candidate MPP**, an original APK and the specified official defaults. All `composition.*` file paths must be absolute; relative paths resolve from the patches project. Use a fresh output directory for every invocation. Cover each current official target at or above 21.30.216 and an old API composition if retaining old support.
+
+The harness rejects an undeclared input APK and missing current official target declarations. The serialized DEX audit verifies the feature flag, complete native hooks, video-owner provenance, the real Shorts implementation, the same long passed to the public clock API, and the menu panel on every incoming control-flow path. A partial experimental implementation that passed the wrong range scratch register is retained privately as a negative control and is rejected by this audit. Controlled `composition.fault=menu_unknown` `shorts_unknown` and `clock_unknown` runs must report a named AI failure with `aiInstalled=0`. These checks establish finite desktop compatibility; they do not certify phone rendering or future host interfaces. Never install a failed/partial composition output.
 
 ## Separate evidence layers
 
-- Published 1.5.9: `release-1.5.9`, 592605 bytes; SHA-256 `2db598581814ae50110da1daaa763821d79e0226480101df99922e888b3907ae`. The exact corrected asset passed strict bundle checks, both finite resource/DEX combinations above and anonymous main/dev Manager-chain downloads. Phone acceptance is not newly established. The original release job failed after a later Gradle rebuild changed its identity; the user authorized restoring the same job's verified artifact without changing the tag. That failed job did not emit an attestation.
+- Published 1.6.0: `release-1.6.0`, 595985 bytes; SHA-256 `c85730fb15761ad4e1eb15315ad1a1fea45466334b0b1c18c7787dc58b2bb37a`. The downloaded asset matches the final CI package and its embedded MPE matches the same-run tested MPE. All 952 application tests executed without failures or skips; strict release checks, anonymous main/dev Manager downloads and GitHub build provenance verification passed. The exact public MPP passed resource recompilation and final DEX audits for the three official 2.0.0 targets above and the retained 1.48.0/21.41.525-SECONDARY combination. Its patch DEX matches compat2; sound1 behavior is excluded. Formal 1.6.0 phone acceptance remains pending.
+- Published 1.5.9: `release-1.5.9`, 592605 bytes; SHA-256 `2db598581814ae50110da1daaa763821d79e0226480101df99922e888b3907ae`. The exact corrected asset passed strict bundle checks, the historical 21.41.525/21.28.208 resource/DEX combinations with official 1.48.0 and anonymous main/dev Manager-chain downloads. Phone acceptance is not newly established. The original release job failed after a later Gradle rebuild changed its identity; the user authorized restoring the same job's verified artifact without changing the tag. That failed job did not emit an attestation.
 - Published 1.5.8: immutable release MPP and historical strict CI/finite desktop compositions. Its public SHA-256 is 5c9dfb19a3b0b88f55516bfca38bf47ee18ed3f282511b6b6401c37e8c5db686 (600263 bytes).
 - Local candidate: see state for source fingerprint, package identity, same-package composition results and the latest phone limitation. Previous candidate proof applies only to its actual inputs.
 - Desktop composition: verifies selected resources and final DEX under specified official roots. Unsigned APK outputs are local evidence, not installable release assets or a universal device matrix.

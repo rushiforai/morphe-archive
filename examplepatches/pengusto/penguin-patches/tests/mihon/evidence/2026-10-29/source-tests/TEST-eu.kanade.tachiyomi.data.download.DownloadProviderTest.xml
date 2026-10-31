@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="eu.kanade.tachiyomi.data.download.DownloadProviderTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-29T02:45:49.048Z" hostname="macminilang.fritz.box" time="0.165">
+  <properties/>
+  <testcase name="[1] &quot;Chapter 1&quot;, &quot;Group&quot;, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.029"/>
+  <testcase name="[2] &quot; Chapter 1&quot;, &quot;Group&quot;, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.004"/>
+  <testcase name="[3] &quot;.Chapter 1&quot;, &quot;Group&quot;, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.003"/>
+  <testcase name="[4] &quot;Chapter 1&quot;, &quot;Group &quot;, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.003"/>
+  <testcase name="[5] &quot;Chapter 1&quot;, &quot;A/B &quot;, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.003"/>
+  <testcase name="[6] &quot;Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter &quot;, &quot;Group&quot;, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.06"/>
+  <testcase name="[7] &quot;Chapter 1&quot;, &quot;翻訳グループ&quot;, true" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.005"/>
+  <testcase name="[8] &quot; Chapter 1&quot;, null, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.0"/>
+  <testcase name="[1] &quot;Chapter 1&quot;, &quot;Group&quot;, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.002"/>
+  <testcase name="[2] &quot; Chapter 1&quot;, &quot;Group&quot;, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.002"/>
+  <testcase name="[3] &quot;.Chapter 1&quot;, &quot;Group&quot;, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.003"/>
+  <testcase name="[4] &quot;Chapter 1&quot;, &quot;Group &quot;, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.002"/>
+  <testcase name="[5] &quot;Chapter 1&quot;, &quot;A/B &quot;, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.002"/>
+  <testcase name="[6] &quot;Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter Chapter &quot;, &quot;Group&quot;, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.037"/>
+  <testcase name="[7] &quot;Chapter 1&quot;, &quot;翻訳グループ&quot;, true" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.003"/>
+  <testcase name="[8] &quot; Chapter 1&quot;, null, false" classname="eu.kanade.tachiyomi.data.download.DownloadProviderTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

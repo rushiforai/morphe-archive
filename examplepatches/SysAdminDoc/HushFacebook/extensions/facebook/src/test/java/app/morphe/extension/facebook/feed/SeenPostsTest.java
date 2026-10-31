@@ -214,6 +214,16 @@ public class SeenPostsTest {
         SeenPosts.seen(story);
         now.addAndGet(29 * DAY);
         assertEquals(SeenPosts.REASON, SeenPosts.hideReason(story));
+
+        // The longer choice #317 asked for keeps a post hidden past a month, and lets it go at 90 days.
+        Settings.SEEN_POSTS_KEEP.save(SeenPosts.Keep.NINETY_DAYS);
+        Story longer = new Story("ninety");
+        SeenPosts.seen(longer);
+        now.addAndGet(89 * DAY);
+        assertEquals("90 days forgot a post early", SeenPosts.REASON, SeenPosts.hideReason(longer));
+        now.addAndGet(2 * DAY);
+        assertNull("90 days didn't expire a post", SeenPosts.hideReason(longer));
+        assertEquals(SeenPosts.Keep.NINETY_DAYS, SeenPosts.Keep.fromFile("90_days"));
     }
 
     @Test

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-29T02:45:47.679Z" hostname="macminilang.fritz.box" time="1.291">
+  <properties/>
+  <testcase name="[1] [], [0], true, false, false, false" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="1.182"/>
+  <testcase name="[2] [], [0], false, false, false, true" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="0.012"/>
+  <testcase name="[3] [], [], true, false, false, true" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="0.013"/>
+  <testcase name="[4] [Category(id=4, name=Keep, order=0, flags=0)], [4], true, false, false, false" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="0.011"/>
+  <testcase name="[5] [Category(id=4, name=Other, order=0, flags=0)], [0], true, false, false, true" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="0.01"/>
+  <testcase name="[6] [], [], true, true, false, false" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="0.011"/>
+  <testcase name="[7] [], [], true, true, true, true" classname="eu.kanade.tachiyomi.data.download.DefaultCategoryRetentionTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/Users/jarvis/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.18.2/62f38a6faf7f069d661b79a07d566f504b0b20c4/byte-buddy-agent-1.18.2.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+</testsuite>

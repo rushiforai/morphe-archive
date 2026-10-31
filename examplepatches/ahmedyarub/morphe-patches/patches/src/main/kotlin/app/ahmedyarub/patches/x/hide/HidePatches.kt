@@ -43,6 +43,29 @@ val hidePromoteButtonPatch = bytecodePatch(
 
 // endregion
 
+// region Hide Grok buttons
+
+@Suppress("unused")
+val hideGrokButtonsPatch = bytecodePatch(
+    name = "Hide Grok buttons",
+    description = "Hides the Grok button on posts in timelines and threads, and the \"Edit with Grok\" " +
+        "button under image posts.",
+) {
+    compatibleWith(COMPATIBILITY_X)
+    dependsOn(featureFlagsPatch)
+
+    execute {
+        // The button's visibility check returns false at once when this is off, for timeline
+        // posts and the focal post alike; promoted posts are checked against it first too.
+        forceFeatureFlag("grok_android_analyze_timelines_enabled", false)
+        forceFeatureFlag("grok_android_analyze_ads_enabled", false)
+        forceFeatureFlag("grok_edit_with_grok_button_under_post_focal_enabled", false)
+        forceFeatureFlag("grok_edit_with_grok_button_under_post_preview_enabled", false)
+    }
+}
+
+// endregion
+
 // region Remove premium upsell
 
 /** Upsell switches in the manifest that turn something off rather than hide an upsell. */

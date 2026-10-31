@@ -4,6 +4,8 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.yydarlinker.patches.shared.Constants.YOUTUBE
@@ -11,9 +13,9 @@ import app.yydarlinker.patches.shared.captionResourceMappingPatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.Method
 
 private const val HOOK = "${EXTENSION}DeepSeekCaptionHookV2;"
 
@@ -54,17 +56,6 @@ val aiCaptionTranslatorPatch = bytecodePatch(
             ?: throw PatchException("AI captions: could not find the player type callback")
         listener.method.addInstruction(0, "invoke-static { p1 }, $HOOK->onPlayerType(Ljava/lang/Enum;)V")
 
-        // The playback time, about once per second. The first call that PlayerTimeReferenceFingerprint finds
-        // points at the `(J)V` time callback; it is the same hook as Morphe's, repeated here so that the add-on does
-        // not depend on another patch of the user's selection.
-        val timeReference = (PlayerTimeReferenceFingerprint.instructionMatches.first().instruction as ReferenceInstruction)
-            .reference as MethodReference
-        val timeCallback = mutableClassDefBy(timeReference.definingClass).methods.firstOrNull {
-            it.name == timeReference.name && it.returnType == timeReference.returnType &&
-                it.parameterNames() == timeReference.parameterNames()
-        } ?: throw PatchException("AI captions: could not find the player time callback")
-        timeCallback.addInstruction(2, "invoke-static { p1, p2 }, $HOOK->onVideoTime(J)V")
-
         // The video that is shown, in the regular player or in Shorts. This fires before the next video asks for its
         // captions, so the old text disappears at once, without waiting for a Timed Text URL.
         CurrentVideoIdFingerprint.method.apply {
@@ -101,4 +92,43 @@ val aiCaptionTranslatorPatch = bytecodePatch(
             )
         }
     }
+
+    // Finalize under the public root so a changed host interface is reported as an AI
+    // caption translator failure, rather than an unnamed shared dependency failure.
+    finalize {
+        installPlaybackClock()
+        installNativeCaptionBridge(CaptionFeatures.translation)
+    }
+}
+
+/** Mirror the value sent to Morphe's public addon API, independent of YouTube's callback layout. */
+private fun BytecodePatchContext.installPlaybackClock() {
+    val api = classDefBy("Lapp/morphe/extension/youtube/addon/AddOnApi;")
+    val clock = api.methods.filter {
+        it.name == "videoTimeChanged" && it.parameterNames() == listOf("J") && it.returnType == "V" &&
+            it.isStatic() && AccessFlags.PUBLIC.isSet(it.accessFlags) && it.implementation != null
+    }.unique("official playback clock API")
+    val callers = mutableListOf<Pair<Method, Int>>()
+    classDefForEach { initial ->
+        if (initial.type.startsWith("Lapp/morphe/") || initial.type.startsWith(EXTENSION)) return@classDefForEach
+        for (method in classDefBy(initial.type).methods) {
+            method.code().forEachIndexed { index, instruction ->
+                if (instruction.call()?.id() == clock.id()) callers.add(method to index)
+            }
+        }
+    }
+    val (caller, index) = callers.unique("official playback clock dispatch")
+    val instruction = caller.code()[index]
+    val start = when {
+        instruction.opcode == com.android.tools.smali.dexlib2.Opcode.INVOKE_STATIC_RANGE && instruction is RegisterRangeInstruction && instruction.registerCount == 2 -> instruction.startRegister
+        instruction.opcode == com.android.tools.smali.dexlib2.Opcode.INVOKE_STATIC && instruction is FiveRegisterInstruction &&
+            instruction.registerCount == 2 && instruction.registerD == instruction.registerC + 1 -> instruction.registerC
+        else -> throw PatchException("AI captions: official playback clock does not pass a contiguous long")
+    }
+    val target = mutableClassDefBy(caller.definingClass).methods.filter { it.id() == caller.id() }
+        .unique("mutable playback clock dispatch")
+    // Replace the labeled invoke so incoming branches cannot bypass the observation. Both calls
+    // receive the same untouched long, before any official listener can change the player state.
+    target.replaceInstruction(index, "invoke-static/range {v$start .. v${start + 1}}, $HOOK->onVideoTime(J)V")
+    target.addInstruction(index + 1, "invoke-static/range {v$start .. v${start + 1}}, ${clock.id()}")
 }

@@ -40,6 +40,8 @@ final class MessageLogSheet {
     private MessageLogClearJob messageLogClearJob;
     /** While Undo can still put back the log a Clear took, the log's empty page shows an Undo too. */
     private boolean messageLogUndo;
+    /** The open log shows only the messages their senders unsent. */
+    private boolean messageLogUnsentOnly;
 
     MessageLogSheet(SettingsActivity page) {
         this.page = page;
@@ -123,6 +125,7 @@ final class MessageLogSheet {
                 messageLogScroll = null;
                 messageLogMore = null;
                 messageLogClear = null;
+                messageLogUnsentOnly = false;
                 messageLogGeneration++;
             }
         });
@@ -233,7 +236,21 @@ final class MessageLogSheet {
                     }
                 }
                 if (!result.entries.isEmpty()) ui.add(list, ui.text(text.get("message_log_retention"), 13, ui.muted, false), list.getChildCount() > 0 ? 12 : 0);
-                showMessageLogPage(list, generation, result.entries, 0);
+                List<MessageLog.Entry> shown = result.entries;
+                List<MessageLog.Entry> unsent = new java.util.ArrayList<>();
+                for (MessageLog.Entry entry : result.entries) if (entry.unsent) unsent.add(entry);
+                // Only a log with unsent messages in it gets the filter.
+                if (!unsent.isEmpty()) {
+                    Button filter = ui.button(text.get(messageLogUnsentOnly ? "message_log_show_all" : "message_log_unsent_only"));
+                    filter.setTag("message_log_unsent_only");
+                    filter.setOnClickListener(view -> {
+                        messageLogUnsentOnly = !messageLogUnsentOnly;
+                        loadMessageLog();
+                    });
+                    ui.add(list, filter, 12);
+                    if (messageLogUnsentOnly) shown = unsent;
+                }
+                showMessageLogPage(list, generation, shown, 0);
             });
         }, "HushMessageLogView").start();
     }
@@ -285,6 +302,11 @@ final class MessageLogSheet {
         metadata.setContentDescription(who + ". " + android.text.format.DateFormat.getDateFormat(page).format(new java.util.Date(entry.time)) + ", " +
             android.text.format.DateFormat.getTimeFormat(page).format(new java.util.Date(entry.time)));
         card.addView(metadata);
+        if (entry.unsent) {
+            TextView badge = ui.text(text.get("message_log_unsent"), 12, ui.accent, true);
+            badge.setTag("message_log_unsent_badge");
+            ui.add(card, badge, 4);
+        }
         TextView body = ui.text(entry.text == null || entry.text.isEmpty() ? text.get("message_log_no_text") : entry.text, 15, ui.text, false);
         body.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
         body.setTextIsSelectable(true);

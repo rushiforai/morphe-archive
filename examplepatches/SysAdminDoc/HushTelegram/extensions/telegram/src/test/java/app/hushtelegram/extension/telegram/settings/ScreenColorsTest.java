@@ -101,6 +101,12 @@ public class ScreenColorsTest {
         text.put("primary action text on its fill", new int[]{c.onAccent, c.accent});
         text.put("secondary action on the dialog", new int[]{c.secondaryActionText(), c.dialog});
         text.put("secondary recovery action on its card", new int[]{c.secondaryActionText(), c.card});
+        // The checked choice in a list dialog draws its name on the selection fill (DialogChoices).
+        text.put("checked choice's name on its fill", new int[]{c.title, c.selection});
+        text.put("a refused field's reason on the dialog", new int[]{c.error, c.dialog});
+        // WCAG lets disabled text off, but a row out of reach during a run says why, so it's read.
+        text.put("a row out of reach, on its card", new int[]{ScreenColors.DISABLED_TEXT, c.card});
+        text.put("a button out of reach, on the dialog", new int[]{ScreenColors.DISABLED_TEXT, c.dialog});
         return text;
     }
 
@@ -111,6 +117,10 @@ public class ScreenColorsTest {
         // The thumb shows where the switch is, so it needs 3:1 against the track it sits on.
         parts.put("switch off's thumb, against its track", new int[]{c.offThumb(), c.switchOff});
         parts.put("chevron of a row a tap opens something from, against its card", new int[]{c.summary, c.card});
+        parts.put("text field's border, against the dialog", new int[]{c.fieldBorder, c.dialog});
+        parts.put("a refused field's border, against the dialog", new int[]{c.error, c.dialog});
+        // Past the fill, the accent radio is what marks a choice as the checked one.
+        parts.put("checked choice's radio, against its fill", new int[]{c.accent, c.selection});
         return parts;
     }
 

@@ -12,6 +12,7 @@ import app.morphe.patches.facebook.feed.feedsheader.FEED_FILTERS_FRAGMENT
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.facebook.misc.settings.MAIN_TAB_ACTIVITY
+import app.morphe.patches.facebook.search.branchTarget
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -19,6 +20,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -26,6 +28,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -77,6 +80,15 @@ class StartTabFixtureTest {
     }
 
     private fun code(method: Method) = method.implementation!!.instructions.toList()
+
+    /** How many branches in [code] land on instruction [target]. */
+    private fun branchesOnto(code: List<Instruction>, target: Int): Int {
+        val addresses = code.runningFold(0) { address, it -> address + it.codeUnits }
+        return code.indices.count { index ->
+            val branch = code[index] as? OffsetInstruction
+            branch != null && addresses[index] + branch.codeOffset == addresses[target]
+        }
+    }
 
     /**
      * Whether [tab]'s constructor hands TabTag's constructor [id] as the tab's id: the one long
@@ -134,7 +146,9 @@ class StartTabFixtureTest {
                 val handOvers = mutableListOf<Pair<Method, Int>>()
                 val gates = mutableListOf<Pair<Method, Int>>()
                 val checks = mutableListOf<Method>()
+                val inlineChecks = mutableListOf<Pair<Method, Int>>()
                 val queues = mutableSetOf<String>()
+                val stepCalls = mutableListOf<Pair<String, MethodReference>>()
                 FixtureDex.forEach(fixture) { dex ->
                     val strings = dex.stringSection.toHashSet()
                     val sanitizes = SANITIZE_INTENT in strings
@@ -145,25 +159,54 @@ class StartTabFixtureTest {
                     for (classDef in dex.classes) {
                         if (queued && classDef.methods.any { holdsString(it, queuedDelegateWork) }) queues += classDef.type
                         for (method in classDef.methods) {
-                            if (sanitizes) sanitizedIntentHandOver(method)?.let { handOvers += ImmutableMethod.of(method) to it }
+                            if (sanitizes) {
+                                sanitizedIntentHandOver(method)?.let { handOvers += ImmutableMethod.of(method) to it }
+                                sanitizeStepCalls(method).forEach { stepCalls += classDef.type to ImmutableMethodReference.of(it) }
+                            }
                             if (traces) startPositionGate(method)?.let { gates += ImmutableMethod.of(method) to it }
                             if (targets && keepsAskedStartTab(method)) checks += ImmutableMethod.of(method)
+                            if (targets) inlineKeepReset(method)?.let { inlineChecks += ImmutableMethod.of(method) to it }
                         }
                     }
                 }
+                // From 585 the dispatcher's case only calls the step's body, a method of its own.
+                val dispatchers = mutableSetOf<String>()
+                if (handOvers.isEmpty()) {
+                    val owners = FixtureDex.classes(fixture, stepCalls.map { it.second.definingClass }.toSet())
+                    stepCalls.distinctBy { it.toString() }.forEach { (dispatcher, call) ->
+                        val body = owners[call.definingClass]?.let { stepBody(it, call) } ?: return@forEach
+                        assertEquals("$name: ${body.definingClass}->${body.name} names the step itself", null,
+                            sanitizedIntentHandOver(body))
+                        sanitizedCopyHandOver(body)?.let {
+                            handOvers += ImmutableMethod.of(body) to it
+                            dispatchers += dispatcher
+                        }
+                    }
+                    assertEquals("$name: dispatchers whose \"$SANITIZE_INTENT\" case calls the step's body", 1, dispatchers.size)
+                }
                 assertEquals("$name: start-up steps that sanitize the main screen's intent", 1, handOvers.size)
                 assertEquals("$name: tab bar start position gates", 1, gates.size)
-                assertEquals("$name: main screen checks that it keeps its start tab", 1, checks.size)
+                // Up to 584 a static check; 585 runs it inline in the start-up dispatcher, and the patch looks there only without one.
+                val inline = if (checks.isEmpty()) inlineChecks else emptyList()
+                assertEquals("$name: main screen checks that it keeps its start tab, static or inline", 1,
+                    checks.size + inline.size)
                 val (sanitizer, handOver) = handOvers.single()
                 val (position, gate) = gates.single()
-                val check = checks.single()
+                val check = checks.singleOrNull()
+                val inlineCheck = inline.singleOrNull()
+                val checkOwner = check?.definingClass ?: inlineCheck!!.first.definingClass
                 val handedOverRegisters = code(sanitizer)[handOver].registers()
                 val gateRegister = (code(position)[gate] as OneRegisterInstruction).registerA
-                val returns = code(check).count { it.opcode == Opcode.RETURN }
+                val returns = check?.let { c -> code(c).count { it.opcode == Opcode.RETURN } }
+                val resetBranches = inlineCheck?.let { (method, reset) -> branchesOnto(code(method), reset) }
+                inlineCheck?.let { (method, reset) ->
+                    assertTrue("$name: no branch lands on the inline check's reset", resetBranches!! > 0)
+                    assertEquals("$name: the inline check's reset", Opcode.IPUT_WIDE, code(method)[reset].opcode)
+                }
 
                 val kept = setOf(MAIN_TAB_ACTIVITY, fragmentActivity, delegate, navigationConfig, TAB_TAG,
                     STARTUP_DESTINATION_ROUTER, picker.definingClass, sanitizer.definingClass, position.definingClass,
-                    check.definingClass, FEED_FILTERS_FRAGMENT, FEED_TYPE) + offered.keys
+                    checkOwner, FEED_FILTERS_FRAGMENT, FEED_TYPE) + offered.keys + dispatchers
                 val classes = FixtureDex.classes(fixture, kept)
                 assertEquals("$name: classes missing", emptySet<String>(), kept - classes.keys)
 
@@ -228,7 +271,8 @@ class StartTabFixtureTest {
                 // The patch, on this build's main screen classes, picker and start-up steps.
                 val context = PatchContexts.of(
                     listOf(MAIN_TAB_ACTIVITY, fragmentActivity, picker.definingClass, sanitizer.definingClass,
-                        position.definingClass, check.definingClass, FEED_FILTERS_FRAGMENT).distinct().map(classes::getValue) +
+                        position.definingClass, checkOwner, FEED_FILTERS_FRAGMENT).plus(dispatchers).distinct()
+                        .map(classes::getValue) +
                         ExtensionDex.classDef(SETTINGS_STATUS),
                 )
                 openOnChosenTabPatch.execute(context)
@@ -255,15 +299,37 @@ class StartTabFixtureTest {
                 assertEquals(Opcode.IF_EQZ, gated[gate + 3].opcode)
 
                 // Every answer the check returns goes through the extension first.
-                val guarded = patched(check)
-                val answers = guarded.withIndex().filter { it.value.opcode == Opcode.RETURN }
-                assertEquals("$name: the check's returns", returns, answers.size)
-                answers.forEach { (index, answer) ->
-                    val register = (answer as OneRegisterInstruction).registerA
-                    assertEquals("$name: the check's call", KEEP_ASKED_START_TAB, guarded[index - 2].call.toString())
-                    assertEquals("$name: what the check's call reads", listOf(register), guarded[index - 2].registers())
-                    assertEquals(Opcode.MOVE_RESULT, guarded[index - 1].opcode)
-                    assertEquals(register, (guarded[index - 1] as OneRegisterInstruction).registerA)
+                if (check != null) {
+                    val guarded = patched(check)
+                    val answers = guarded.withIndex().filter { it.value.opcode == Opcode.RETURN }
+                    assertEquals("$name: the check's returns", returns, answers.size)
+                    answers.forEach { (index, answer) ->
+                        val register = (answer as OneRegisterInstruction).registerA
+                        assertEquals("$name: the check's call", KEEP_ASKED_START_TAB, guarded[index - 2].call.toString())
+                        assertEquals("$name: what the check's call reads", listOf(register), guarded[index - 2].registers())
+                        assertEquals(Opcode.MOVE_RESULT, guarded[index - 1].opcode)
+                        assertEquals(register, (guarded[index - 1] as OneRegisterInstruction).registerA)
+                    }
+                }
+                // Inline, every branch to the reset reaches the extension's call first, and its yes
+                // jumps to where Facebook's own yes goes, past the reset.
+                inlineCheck?.let { (method, reset) ->
+                    val original = code(method).filter { it.opcode != Opcode.NOP }
+                    val guarded = patched(method)
+                    assertEquals("$name: instructions the inline check gained", original.size + 4,
+                        guarded.count { it.opcode != Opcode.NOP })
+                    val flag = (guarded[reset] as OneRegisterInstruction).registerA
+                    assertEquals(Opcode.CONST_16, guarded[reset].opcode)
+                    assertEquals("$name: the inline check's call", KEEP_ASKED_START_TAB, guarded[reset + 1].call.toString())
+                    assertEquals("$name: what the inline check's call reads", listOf(flag), guarded[reset + 1].registers())
+                    assertEquals(Opcode.MOVE_RESULT, guarded[reset + 2].opcode)
+                    assertEquals(flag, (guarded[reset + 2] as OneRegisterInstruction).registerA)
+                    assertEquals(Opcode.IF_NEZ, guarded[reset + 3].opcode)
+                    assertEquals(flag, (guarded[reset + 3] as OneRegisterInstruction).registerA)
+                    assertEquals("$name: where the extension's yes goes", reset + 5, branchTarget(guarded, reset + 3))
+                    assertEquals("$name: the reset after the call", Opcode.IPUT_WIDE, guarded[reset + 4].opcode)
+                    assertEquals("$name: branches to the call", resetBranches, branchesOnto(guarded, reset))
+                    assertEquals("$name: branches still on the reset itself", 0, branchesOnto(guarded, reset + 4))
                 }
 
                 // The Feeds tab's handler asks the extension right after its read and right after

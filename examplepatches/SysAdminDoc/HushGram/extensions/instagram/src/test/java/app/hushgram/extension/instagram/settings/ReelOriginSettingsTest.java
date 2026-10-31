@@ -39,7 +39,7 @@ public class ReelOriginSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.FIND_REEL_ORIGIN.resetToDefault();
         Settings.FIND_REEL_ORIGIN_ON_TAP.resetToDefault();
         BaseSettings.PAUSED.save(false);

@@ -211,6 +211,16 @@ public final class GlassTabBar {
      * over Home, and the slot kept there was a blank band under the reel (#347).
      */
     static boolean reelsKeepTheSlot(View bar, int reelsTab) {
+        return reelsKeepTheSlot(bar, reelsTab, false);
+    }
+
+    /**
+     * {@link #reelsKeepTheSlot(View, int)}, except that a bar the Reels auto-hide ({@link GlassReelsHide}) has
+     * slid all the way off, [slidOff], gives its slot to the reel: the slot kept under it was a black band
+     * where the pill had been (#335). The slot comes back as the bar starts to return.
+     */
+    static boolean reelsKeepTheSlot(View bar, int reelsTab, boolean slidOff) {
+        if (slidOff) return false;
         if (bar.getVisibility() == View.VISIBLE) return true;
         if (reelsTab == 0 || !(bar instanceof ViewGroup)) return false;
         ViewGroup tabs = (ViewGroup) bar;
@@ -220,6 +230,22 @@ public final class GlassTabBar {
             if (tab.getId() == reelsTab && tab.isSelected()) return true;
         }
         return false;
+    }
+
+    /**
+     * The bottom margin a Reels viewer gets: the pill's [slot] while the slot is kept ([keep]), unless the
+     * reel is to run behind the pill ([behind], #372), when it gets none and the viewer fills the screen.
+     */
+    static int reelsViewerMargin(boolean keep, boolean behind, int slot) {
+        return keep && !behind ? slot : 0;
+    }
+
+    /**
+     * How far a reel's caption, buttons and seek bar are raised so nothing touchable sits under the pill
+     * when the reel runs behind it: the slot, while the slot is kept. Otherwise 0 (#372).
+     */
+    static int reelsBandLift(boolean keep, boolean behind, int slot) {
+        return keep && behind ? Math.max(0, slot) : 0;
     }
 
     private static int liftReels(View view, View bar, int id, int wanted, java.util.Map<View, Integer> given,
@@ -1300,6 +1326,8 @@ public final class GlassTabBar {
         private long reelsLookedAt = Long.MIN_VALUE / 2;
         /** The margin the last look gave the Reels viewers, or -1 before the first. */
         private int reelsWanted = -1;
+        /** How far the last look raised each reel's caption, buttons and seek bar for a reel run behind the pill (#372). */
+        private int reelsBandLift;
         /** Every Reels viewer the last look met. */
         private final java.util.Set<View> viewers = java.util.Collections.newSetFromMap(new WeakHashMap<>());
         /** The views raised over a reel to clear the pill (#221), each with the translation it was given. */
@@ -1335,6 +1363,8 @@ public final class GlassTabBar {
         private final Rect reelsRect = new Rect();
         /** The liquid look (#65): a round pill and highlight, Search in a circle of its own, and the compact row on a scroll. */
         private final boolean liquid;
+        /** Whether the liquid pill's rim bends what's behind it (#369). */
+        private final boolean refract;
         /** How far the liquid bar has shrunk to its compact row: 0 is the whole bar, 1 the tab you're on and Search. */
         private float compact;
         @Nullable private ValueAnimator compacting;
@@ -1363,6 +1393,7 @@ public final class GlassTabBar {
             this.lift = liftPx(Settings.GLASS_TAB_BAR_LIFT.get(), floating, density);
             this.room = lift;
             this.liquid = Settings.GLASS_TAB_BAR_LIQUID.get();
+            this.refract = liquid && Settings.GLASS_TAB_BAR_REFRACT.get();
             boolean hideOnScroll = Settings.GLASS_TAB_BAR_HIDE_ON_SCROLL.get();
             // The liquid look shrinks the bar as a list scrolls down, unless a scroll is to take it away altogether
             // or the pill is to keep its full size (#256).
@@ -1862,15 +1893,21 @@ public final class GlassTabBar {
          * {@link #REELS_LOOK_MS}, and at once when the margin they want changes, so a viewer is never left
          * a frame at a size Instagram's own layout just gave it. Where Instagram hides the bar outside the
          * Reels tab, as over a reel opened from a feed post, the viewers get Instagram's 0 back
-         * ({@link #reelsKeepTheSlot}, #347).
+         * ({@link #reelsKeepTheSlot}, #347), and where an auto-hide has the pill all the way off, so the
+         * reel runs to the bottom while the pill is away (#335).
          */
         private void keepReelsAboveTheSlot(View holder, long now) {
             if (originalBarHeight <= 0) return;
-            int wanted = reelsKeepTheSlot(bar, id(holder.getContext(), REELS_TAB))
-                    ? reelsMargin(barHeightPx(height, originalBarHeight, density) + lift) : 0;
-            if (wanted == reelsWanted && now - reelsLookedAt < REELS_LOOK_MS) return;
+            boolean keep = reelsKeepTheSlot(bar, id(holder.getContext(), REELS_TAB),
+                    scrollHide != null && scrollHide.isOffScreen());
+            int slot = reelsMargin(barHeightPx(height, originalBarHeight, density) + lift);
+            boolean behind = Settings.GLASS_TAB_BAR_REELS_BEHIND.get();
+            int wanted = reelsViewerMargin(keep, behind, slot);
+            int bandLift = reelsBandLift(keep, behind, slot);
+            if (wanted == reelsWanted && bandLift == reelsBandLift && now - reelsLookedAt < REELS_LOOK_MS) return;
             reelsLookedAt = now;
             reelsWanted = wanted;
+            reelsBandLift = bandLift;
             viewers.clear();
             if (reelsAboveTheBar(holder, bar, id(holder.getContext(), REELS_ROOT), wanted, lifted, viewers) > 0) {
                 reelsMoved = true;
@@ -1905,6 +1942,7 @@ public final class GlassTabBar {
                 reelAnchors(viewer, info, scrubber, footers, anchors, footerViews, 0);
                 int footer = 0;
                 for (View view : footerViews) footer += overlapFooter(view);
+                footer += reelsBandLift;
                 for (View anchor : anchors) {
                     View band = bands.get(anchor);
                     if (band == null || !holds(band, anchor)) {
@@ -2245,6 +2283,8 @@ public final class GlassTabBar {
             /** Whether the blurred backdrop was drawn into the pill this frame, which the bubble's lens needs. */
             private boolean blurShown;
             @Nullable private GlassLens lens;
+            /** The rims of the liquid pill and of Search's circle (#369), a render node each, as both draw in one frame. */
+            @Nullable private GlassLens rimLens, circleRim;
             private final Paint bubbleSheen = new Paint(Paint.ANTI_ALIAS_FLAG);
             private final Paint bubbleRim = new Paint(Paint.ANTI_ALIAS_FLAG);
             private final Matrix bubbleMatrix = new Matrix();
@@ -2336,6 +2376,7 @@ public final class GlassTabBar {
                     canvas.restoreToCount(saved);
                 }
                 blurShown = blurred;
+                if (blurred && refract) paintRims(canvas, apart);
                 fill.setColor(tint(base, blurred, opacityScale()));
                 canvas.drawPath(shapes, fill);
                 keepSheen(dark);
@@ -2473,6 +2514,30 @@ public final class GlassTabBar {
             }
 
             /**
+             * Bend light at the edges (#369): on Android 13 and newer, over the blurred backdrop already in the
+             * pill, the band at the rim of the pill, and of Search's circle when it stands [apart], mirrored the
+             * way the edge of glass bends what's behind it. The pill's tint goes over it with the rest.
+             */
+            private void paintRims(Canvas canvas, boolean apart) {
+                if (!GlassLens.supported()) return;
+                GlassLens pillRim = rimLens;
+                if (pillRim == null) {
+                    pillRim = new GlassLens(true);
+                    rimLens = pillRim;
+                }
+                pillRim.paint(canvas, node, nodeLeft, nodeTop, DOWNSAMPLE, bar.getWidth(), bar.getHeight(), shrunk,
+                        shrunk.height() / 2f);
+                if (!apart) return;
+                GlassLens searchRim = circleRim;
+                if (searchRim == null) {
+                    searchRim = new GlassLens(true);
+                    circleRim = searchRim;
+                }
+                searchRim.paint(canvas, node, nodeLeft, nodeTop, DOWNSAMPLE, bar.getWidth(), bar.getHeight(), circle,
+                        circle.height() / 2f);
+            }
+
+            /**
              * The raised look of the liquid look's bubble (#289): light at its top edge fading down inside it, and a
              * brighter rim, bright at the top and faint at the bottom, drawn at [share] of their strength. Light and
              * dark glass each get the shades that read on them.
@@ -2580,6 +2645,8 @@ public final class GlassTabBar {
                 recorded = false;
                 if (backdrop != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) backdrop.discardDisplayList();
                 if (lens != null) lens.discard();
+                if (rimLens != null) rimLens.discard();
+                if (circleRim != null) circleRim.discard();
                 leftOut.clear();
                 surfaces.clear();
                 skipped.clear();

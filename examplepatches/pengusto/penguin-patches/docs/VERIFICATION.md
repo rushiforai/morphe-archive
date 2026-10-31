@@ -59,3 +59,51 @@ run. No production patch change was needed.
 Physical devices, other Android/Manager versions and real-library timing/RAM
 remain unverified. Pairwise masks were tested on Desktop. This native release
 is separate from the upstream redesign PRs and rebuilt debug preview.
+
+## Reviewed Finamp player menus (2026-10-30)
+
+[Released v1.6.1 remote-source acceptance](../tests/finamp/evidence/2026-10-30-player/released-1.6.1/README.md)
+passes normal Manager download/hash verification, Player32 JVM and full127 ART
+apply/export/Install/Open,127 fresh Desktop selections and four rejection cases.
+The final cold start retains login, preferences and all22 downloaded files.
+The primary raw after screenshots come from that released Player32 export.
+
+Final PR #1836 is backported to the existing bit32 selection for the original
+Finamp1.0.1 APK. All64 affected complete source suites pass (4,096 overlapping
+executions;101 in the all-seven tree), while the same focused tests reproduce
+22 failures on the previous player source and27 passes on the reviewed source.
+The other63 payloads and all seven existing MPEs remain byte-identical. All127
+native replays and actual Desktop1.19.1 selections pass. Four unsupported inputs
+fail through a selected patch without output. Both applicable source diffs
+recreate the exact feature tree and all128 public source refs match the matrix.
+
+The actual Manager Player-only JVM export is installed through Manager Install;
+its installed/export/native/engine/signer hashes match, with uncompressed native
+entries and16KiB alignment. Raw paired APK PNG/XML are embedded directly in the
+README. Output, Queue and Lyrics routes, Lyrics Output/Queue without recursion,
+five disabled-gesture swipes and Player artwork secondary input are verified.
+All six Manager outputs (JVM32/64/96/127/31, ART127) pass independent native,
+retained-entry, signer and16KiB checks. The selected Player32 ART fault fails
+visibly; fresh recovery succeeds. Compact fallback routes and the same-key
+127→31→original0→127 chain preserve login, preferences and22 download files.
+NIO file-time tracking prevents same-size ART writes being omitted from export;
+the actual Patcher regression is a release gate.
+[Current evidence and scope](../tests/finamp/evidence/2026-10-30-player/README.md).
+
+## Mihon excluded Default downloads (2026-10-30)
+
+The optional Mihon 0.21.3 ARM64 patch reuses Marc Went / Dunky13's `0L` correction
+from existing PR #4182. The official APK, signer and exact owner bytecode are
+pinned. Seven source regressions reproduce one original failure; all 37 source
+app tests pass with the correction. The installed-APK six-case suite reproduces
+one lost protected page before and passes all six with the real Manager ART export.
+Same-key update/removal/reapply preserve database rows, preferences and downloads.
+Raw matched PNG/XML are used directly by the README generator. No new app schema,
+preference, Kotlin runtime or MPE is introduced; all seven prior MPEs are unchanged.
+
+The release gate applies the final MPP with pinned Morphe Desktop 1.19.1, verifies
+that only the deletion fallback/helper changes across 19,958 classes while keeping
+resources/native libraries, and rejects reapplication without export. It is
+separate from the real Android Manager acceptance. [Guide and limits](MIHON.md),
+[repeatable tests](../tests/mihon/README.md),
+[Manager and data evidence](../tests/mihon/evidence/2026-10-30/README.md).

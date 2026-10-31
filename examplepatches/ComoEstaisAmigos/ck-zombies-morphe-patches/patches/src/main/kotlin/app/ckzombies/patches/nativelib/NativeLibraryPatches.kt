@@ -112,6 +112,30 @@ val unlimitedCurrencyPatch = rawResourcePatch(
 }
 
 /**
+ * Shows the two weapons Glu shipped hidden: AA-2012 (id 24) and Dual MP-643 (id 32).
+ *
+ * The item table marks four weapons `hidden="1.0"`, but `shop_override.xml` unhides two of
+ * them, The Reaper and The Exterminator, so only AA-2012 and Dual MP-643 stay hidden. The shop
+ * consults `CItem::isHidden()`, which returns the item's hidden byte, and skips any item it
+ * reports. Replacing that byte load with `mov r0, #0` makes the function always return false.
+ * Every other item in the shipped config is already visible, so exactly the two hidden weapons
+ * appear and nothing else changes.
+ */
+@Suppress("unused")
+val hiddenWeaponsPatch = rawResourcePatch(
+    name = "Hidden weapons",
+    description = "Shows the two hidden weapons, AA-2012 and Dual MP-643, in the store.",
+) {
+    compatibleWith(COMPATIBILITY_CK_ZOMBIES)
+
+    dependsOn(nativeLibraryCheckPatch)
+
+    execute {
+        editLibraries(NativeEdits.HIDDEN_WEAPONS)
+    }
+}
+
+/**
  * Keeps the Daily Deal popup from opening on the map.
  *
  * `COffersManager::Tick()` runs on every map update. Once the delay since the popup was last

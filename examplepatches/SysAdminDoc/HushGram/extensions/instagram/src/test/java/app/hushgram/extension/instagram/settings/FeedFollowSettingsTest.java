@@ -37,7 +37,7 @@ public class FeedFollowSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.HIDE_FEED_FOLLOW.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();

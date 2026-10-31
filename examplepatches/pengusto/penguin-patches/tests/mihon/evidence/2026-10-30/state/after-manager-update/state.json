@@ -1,0 +1,57 @@
+{
+  "manga": [
+    {
+      "id": 9900000001,
+      "source_id": 9900000002,
+      "remote_url": "/penguin/offline-test",
+      "remote_title": "Penguin offline test",
+      "remote_author": "Penguin synthetic fixture",
+      "remote_artist": null,
+      "remote_description": null,
+      "remote_genre": null,
+      "remote_status": 2,
+      "remote_cover": null,
+      "remote_update_strategy": 0,
+      "remote_memo": {
+        "hex": "7b7d"
+      },
+      "user_favorite_at": 1793228400000,
+      "user_notes": "Synthetic data only",
+      "user_reader_flags": 0,
+      "user_chapter_flags": 0,
+      "state_chapter_last_update": null,
+      "state_chapter_next_update": null,
+      "state_chapter_fetch_interval": 0,
+      "state_cover_last_modified": 1793228400000,
+      "state_initialized": 1
+    }
+  ],
+  "chapter": [
+    {
+      "id": 9900000003,
+      "manga_id": 9900000001,
+      "remote_url": "/penguin/chapter-1",
+      "remote_name": "Chapter 1",
+      "remote_scanlator": null,
+      "remote_chapter_number": 1.0,
+      "remote_date_upload": null,
+      "remote_order": 0,
+      "remote_memo": {
+        "hex": "7b7d"
+      },
+      "user_read": 1,
+      "user_bookmark": 0,
+      "user_last_page_read": 0,
+      "state_date_fetch": 1793228400000
+    }
+  ],
+  "persistentFiles": {
+    "shared_prefs/com.google.android.gms.measurement.prefs.xml": "fb6c775d3bd1e96d7dcc943f5df4ff7ea8e8ee84e629c0ed2e67532d2d0742e2",
+    "shared_prefs/com.google.firebase.crashlytics.xml": "486d1a01eb6ba9e6224a738d7ebf9ce4b6b0aa49ea81877b1c10a7b925efe963",
+    "shared_prefs/app.mihon_preferences.xml": "123497bace61efea75d04c7e296121374ba4a82791690f8d4e52900e68dd1aa5",
+    "shared_prefs/active_downloads.xml": "3325d2a819fdd8062c2cdc48a09b995c9b012915bcdf88b1cf9742a7f057c793",
+    "shared_prefs/WebViewChromiumPrefs.xml": "424775c24a3a39e07d7c19a9af4067b73f370934048eaa4b145dcd73e0eeb0f1",
+    "files/penguin-retention-fixture/.owner": "e87bd35812b4d44f7ec1e57b1c1ba3987ac0591f65785f224b312aa6ce735ae2",
+    "files/penguin-retention-fixture/downloads/9900000002/Penguin protected-bookmark/Chapter 1/001.png": "4792a0fc830ba64f258d2850edaf82d60c1f7625cd7ee4b774231419dc448d86"
+  }
+}

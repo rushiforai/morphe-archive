@@ -19,6 +19,7 @@ import com.reandroid.arsc.chunk.xml.AndroidManifestBlock
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -47,9 +48,51 @@ class HushTelegramIconFixtureTest {
     @Test
     fun `the icon patch and its name are optional`() {
         assertFalse(hushTelegramIconPatch.default)
-        assertEquals(setOf("appName"), hushTelegramIconPatch.options.keys)
+        assertEquals(setOf("appName", "iconStyle"), hushTelegramIconPatch.options.keys)
         assertFalse(hushTelegramIconPatch.options["appName"].required)
         assertNull(hushTelegramIconPatch.options["appName"].default)
+        val style = hushTelegramIconPatch.options["iconStyle"]
+        assertEquals("the badge unless another style is picked", IconStyle.HUSHTELEGRAM.key, style.default)
+        assertEquals(IconStyle.entries.map { it.key }, style.values!!.values.toList())
+    }
+
+    @Test
+    fun `a plain style tints the themed picture over one color`() {
+        for (style in IconStyle.entries) {
+            val res = temporary.newFolder()
+            addIconFiles(res, bundledIconPictures(), style)
+            val icon = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(res.resolve("mipmap-anydpi-v26/$ICON.xml")).documentElement
+            val layers = (0 until icon.childNodes.length).map { icon.childNodes.item(it) }.filterIsInstance<Element>()
+            assertEquals(listOf("background", "foreground", "monochrome"), layers.map { it.tagName })
+            assertEquals(style.name, style.background, (layers[0].getElementsByTagName("color").item(0) as Element).getAttribute("android:color"))
+            assertEquals("${style.name}: Android 13's themed icon stays", "@mipmap/${ICON}_monochrome", layers[2].getAttribute("android:drawable"))
+            val bitmap = layers[1].getElementsByTagName("bitmap").item(0) as Element?
+            if (style.glyph == null) {
+                assertEquals("@mipmap/${ICON}_foreground", layers[1].getAttribute("android:drawable"))
+                assertNull(bitmap)
+            } else {
+                // A layer with an inline drawable can't also name one, or Android uses the attribute.
+                assertFalse(style.name, layers[1].hasAttribute("android:drawable"))
+                assertEquals("@mipmap/${ICON}_monochrome", bitmap!!.getAttribute("android:src"))
+                assertEquals(style.glyph, bitmap.getAttribute("android:tint"))
+                assertNotEquals("${style.name}: the glyph shows", style.background, style.glyph)
+            }
+        }
+        assertEquals("#FFFFFFFF", IconStyle.WHITE_ON_BLACK.glyph)
+        assertEquals("#FF000000", IconStyle.WHITE_ON_BLACK.background)
+        assertEquals("#FF000000", IconStyle.BLACK_ON_WHITE.glyph)
+        assertEquals("#FFFFFFFF", IconStyle.BLACK_ON_WHITE.background)
+    }
+
+    @Test
+    fun `a style is read by key or label, and an unknown one refuses before anything is read`() {
+        for (style in IconStyle.entries) {
+            assertEquals(style, checkedIconStyle(style.key))
+            assertEquals(style, checkedIconStyle(" ${style.label.uppercase()} "))
+        }
+        assertEquals(IconStyle.HUSHTELEGRAM, checkedIconStyle(null))
+        assertEquals(IconStyle.HUSHTELEGRAM, checkedIconStyle("  "))
+        refusal(manifest(), style = "purple") { message -> assertTrue(message, message.contains("iconStyle") && message.contains("white-on-black")) }
     }
 
     @Test
@@ -232,9 +275,10 @@ class HushTelegramIconFixtureTest {
     }
 
     /** Runs the patch itself, which has to refuse while it's still checking, before it reads the resources. */
-    private fun refusal(xml: String, name: String? = "Hush", check: (String) -> Unit = {}) = withManifest(xml) { context, manifest ->
+    private fun refusal(xml: String, name: String? = "Hush", style: String? = null, check: (String) -> Unit = {}) = withManifest(xml) { context, manifest ->
         val before = resourceTree(manifest.parentFile)
         hushTelegramIconPatch.options["appName"] = name
+        if (style != null) hushTelegramIconPatch.options["iconStyle"] = style
         try {
             hushTelegramIconPatch.execute(context)
             fail("accepted")

@@ -1,0 +1,675 @@
+/*
+ * Portions of this file are ported from Morphe:
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2524
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ */
+
+package app.morphe.patches.youtube.video.playback
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
+import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
+import app.morphe.util.getFreeRegisterProvider
+import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstInstructionReversedOrThrow
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import app.morphe.patches.youtube.video.playbackstart.playbackStartDescriptorPatch
+import app.morphe.patches.youtube.video.playbackstart.playbackStartVideoIdReference
+import app.morphe.patches.youtube.layout.livering.clientSettingEndpointFingerprint
+import app.morphe.patches.youtube.layout.livering.ShortsPlaybackIntentFingerprint
+import app.morphe.patches.youtube.layout.livering.ShortsPlaybackIntentFingerprintLegacy
+import app.morphe.patches.youtube.utils.playservice.is_21_20_or_greater
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.shared.customspeed.customPlaybackSpeedPatch
+import app.morphe.patches.shared.drc.drcAudioPatch
+import app.morphe.patches.shared.litho.addLithoFilter
+import app.morphe.patches.shared.litho.lithoFilterPatch
+import app.morphe.patches.shared.opus.baseOpusCodecsPatch
+import app.morphe.patches.youtube.utils.auth.authHookPatch
+import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
+import app.morphe.patches.youtube.utils.extension.Constants.COMPONENTS_PATH
+import app.morphe.patches.youtube.utils.extension.Constants.PATCH_STATUS_CLASS_DESCRIPTOR
+import app.morphe.patches.youtube.utils.extension.Constants.VIDEO_PATH
+import app.morphe.patches.youtube.utils.fix.litho.lithoLayoutPatch
+import app.morphe.patches.youtube.utils.fix.shortsplayback.shortsPlaybackPatch
+import app.morphe.patches.youtube.utils.flyoutmenu.flyoutMenuHookPatch
+import app.morphe.patches.youtube.utils.patch.PatchList.VIDEO_PLAYBACK
+import app.morphe.patches.youtube.utils.playertype.playerTypeHookPatch
+import app.morphe.patches.youtube.utils.playservice.is_19_30_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_20_40_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_20_14_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_20_21_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_04_or_greater
+import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
+import app.morphe.patches.youtube.utils.recyclerview.recyclerViewTreeObserverHook
+import app.morphe.patches.youtube.utils.recyclerview.recyclerViewTreeObserverPatch
+import app.morphe.patches.youtube.utils.resourceid.sharedResourceIdPatch
+import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
+import app.morphe.patches.youtube.utils.settings.settingsPatch
+import app.morphe.patches.youtube.video.information.EXTENSION_PLAYBACK_SPEED_MENU_INTERFACE
+import app.morphe.patches.youtube.video.information.InitializePlaybackSpeedValuesFingerprint
+import app.morphe.patches.youtube.video.information.hookBackgroundPlayVideoInformation
+import app.morphe.patches.youtube.video.information.hookVideoInformation
+import app.morphe.patches.youtube.utils.videoIdFingerprintShorts
+import app.morphe.util.fingerprint.methodOrThrow
+import app.morphe.patches.youtube.video.information.onCreateHook
+import app.morphe.patches.youtube.video.information.speedSelectionInsertMethod
+import app.morphe.patches.youtube.video.information.videoInformationPatch
+import app.morphe.patches.youtube.video.information.VideoQualityChangedFingerprint
+import app.morphe.patches.youtube.video.quality.prioritizeVideoQualityPatch
+import app.morphe.patches.youtube.video.videoid.hookPlayerResponseVideoId
+import app.morphe.patches.youtube.video.videoid.videoIdPatch
+import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.ResourceGroup
+import app.morphe.util.copyResources
+import app.morphe.util.findFreeRegister
+import app.morphe.util.findInstructionIndicesReversedOrThrow
+import app.morphe.util.findMethodOrThrow
+import app.morphe.util.indexOfFirstInstructionOrThrow
+import app.morphe.util.insertLiteralOverride
+import app.morphe.util.updatePatchStatus
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+
+private const val PLAYBACK_SPEED_MENU_FILTER_CLASS_DESCRIPTOR =
+    "$COMPONENTS_PATH/PlaybackSpeedMenuFilter;"
+private const val VIDEO_QUALITY_MENU_FILTER_CLASS_DESCRIPTOR =
+    "$COMPONENTS_PATH/VideoQualityMenuFilter;"
+private const val EXTENSION_ADVANCED_VIDEO_QUALITY_MENU_CLASS_DESCRIPTOR =
+    "$VIDEO_PATH/AdvancedVideoQualityMenuPatch;"
+private const val EXTENSION_SHORTS_QUALITY_MENU_INTERFACE =
+    $$"$$VIDEO_PATH/AdvancedVideoQualityMenuPatch$ShortsQualityMenuInterface;"
+private const val EXTENSION_VP9_CODEC_CLASS_DESCRIPTOR =
+    "$VIDEO_PATH/VP9CodecPatch;"
+private const val EXTENSION_CUSTOM_PLAYBACK_SPEED_CLASS_DESCRIPTOR =
+    "$VIDEO_PATH/CustomPlaybackSpeedPatch;"
+private const val EXTENSION_PLAYBACK_SPEED_CLASS_DESCRIPTOR =
+    "$VIDEO_PATH/PlaybackSpeedPatch;"
+private const val EXTENSION_SPOOF_DEVICE_DIMENSIONS_CLASS_DESCRIPTOR =
+    "$VIDEO_PATH/SpoofDeviceDimensionsPatch;"
+private const val EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR =
+    "$VIDEO_PATH/VideoQualityPatch;"
+
+private val customPlaybackSpeedResourcePatch = resourcePatch {
+    execute {
+        copyResources(
+            "youtube/speed",
+            ResourceGroup(
+                "drawable",
+                "morphe_ic_music_note.xml",
+                "morphe_ic_slow_motion_video.xml",
+                "morphe_ic_sync.xml",
+                "morphe_ic_sync_off.xml",
+            )
+        )
+    }
+}
+
+@Suppress("unused")
+val videoPlaybackPatch = bytecodePatch(
+    VIDEO_PLAYBACK.title,
+    VIDEO_PLAYBACK.summary,
+) {
+    compatibleWith(COMPATIBILITY_YOUTUBE)
+
+    dependsOn(
+        settingsPatch,
+        versionCheckPatch,
+        customPlaybackSpeedPatch(
+            "$VIDEO_PATH/CustomPlaybackSpeedPatch;",
+            8.0f
+        ),
+        authHookPatch,
+        baseOpusCodecsPatch(),
+        drcAudioPatch { is_19_30_or_greater },
+        flyoutMenuHookPatch,
+        lithoFilterPatch,
+        lithoLayoutPatch,
+        disableHdrPatch,
+        playerTypeHookPatch,
+        recyclerViewTreeObserverPatch,
+        shortsPlaybackPatch,
+        videoIdPatch,
+        videoInformationPatch,
+        sharedResourceIdPatch,
+        prioritizeVideoQualityPatch,
+        fixProtoLibraryPatch,
+        playbackStartDescriptorPatch,
+        customPlaybackSpeedResourcePatch,
+    )
+
+    execute {
+
+        var settingArray = arrayOf(
+            "PREFERENCE_SCREEN: VIDEO"
+        )
+
+        // region patch for custom playback speed
+
+        recyclerViewTreeObserverHook("$EXTENSION_CUSTOM_PLAYBACK_SPEED_CLASS_DESCRIPTOR->onFlyoutMenuCreate(Landroid/support/v7/widget/RecyclerView;)V")
+        addLithoFilter(PLAYBACK_SPEED_MENU_FILTER_CLASS_DESCRIPTOR)
+
+        // endregion
+
+        // region patch for default playback speed
+
+        onCreateHook(EXTENSION_PLAYBACK_SPEED_CLASS_DESCRIPTOR, "newPlayerStarted")
+
+        val newMethod = (if (is_21_04_or_greater) {
+            ModernPlaybackSpeedChangedFromRecyclerViewFingerprint
+        } else {
+            PlaybackSpeedChangedFromRecyclerViewFingerprint
+        }).method
+
+        arrayOf(
+            newMethod,
+            speedSelectionInsertMethod
+        ).forEach {
+            it.apply {
+                val speedSelectionValueInstructionIndex =
+                    indexOfFirstInstructionOrThrow(Opcode.IGET)
+                val speedSelectionValueRegister =
+                    getInstruction<TwoRegisterInstruction>(speedSelectionValueInstructionIndex).registerA
+
+                addInstruction(
+                    speedSelectionValueInstructionIndex + 1,
+                    "invoke-static {v$speedSelectionValueRegister}, " +
+                            "$EXTENSION_PLAYBACK_SPEED_CLASS_DESCRIPTOR->userSelectedPlaybackSpeed(F)V"
+                )
+            }
+        }
+
+        if (is_21_04_or_greater) {
+            // Supply the rate when the media player loads the Short, before a speed menu or
+            // metadata callback is needed. Hook both returns for the player-settings flag.
+            ModernLoadPlaybackSpeedFingerprint.method.apply {
+                implementation!!.instructions.withIndex()
+                    .filter { it.value.opcode == Opcode.RETURN }
+                    .map { it.index }
+                    .reversed()
+                    .forEach { index ->
+                        val register = getInstruction<OneRegisterInstruction>(index).registerA
+                        addInstructionsAtControlFlowLabel(
+                            index,
+                            """
+                            invoke-static { v$register }, $EXTENSION_PLAYBACK_SPEED_CLASS_DESCRIPTOR->getShortsPlaybackSpeed(F)F
+                            move-result v$register
+                            """
+                        )
+                    }
+            }
+
+            // The load parameters only seed the rate. The player then takes it from the playback
+            // rate settings store, so the default is also written through the Shorts speed setter
+            // once the Shorts player has the player response.
+            videoIdFingerprintShorts.methodOrThrow().addInstruction(
+                0,
+                "invoke-static { }, $EXTENSION_PLAYBACK_SPEED_CLASS_DESCRIPTOR->onShortsPlayerResponse()V"
+            )
+        } else if (is_20_14_or_greater) {
+            PcmGetterMethodFingerprint.classDef.let {
+                val targetMethod =
+                    it.methods.find { method -> method.returnType == "F" && method.parameters.isEmpty() }
+                        ?: throw PatchException("Method returning playback speed not found in class $it.") as Throwable
+
+                targetMethod.apply {
+                    val insertIndex = implementation!!.instructions.lastIndex
+                    val insertRegister = getInstruction<OneRegisterInstruction>(insertIndex).registerA
+
+                    addInstructions(
+                        insertIndex, """
+                        invoke-static {v$insertRegister}, $EXTENSION_PLAYBACK_SPEED_CLASS_DESCRIPTOR->getPlaybackSpeed(F)F
+                        move-result v$insertRegister
+                        """
+                    )
+                }
+            }
+        } else if (!is_21_04_or_greater) {
+            LoadVideoParamsFingerprint.let {
+                it.method.apply {
+                    val targetIndex = it.instructionMatches.last().index
+                    val targetReference =
+                        getInstruction<ReferenceInstruction>(targetIndex).reference as MethodReference
+
+                    findMethodOrThrow(definingClass) {
+                        name == targetReference.name
+                    }.apply {
+                        val insertIndex = implementation!!.instructions.lastIndex
+                        val insertRegister =
+                            getInstruction<OneRegisterInstruction>(insertIndex).registerA
+
+                        addInstructions(
+                            insertIndex, """
+                            invoke-static {v$insertRegister}, $EXTENSION_PLAYBACK_SPEED_CLASS_DESCRIPTOR->getPlaybackSpeed(F)F
+                            move-result v$insertRegister
+                            """
+                        )
+                    }
+                }
+            }
+        }
+
+        InitializePlaybackSpeedValuesFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p0 .. p0 }, $EXTENSION_PLAYBACK_SPEED_CLASS_DESCRIPTOR->setDefaultPlaybackSpeed($EXTENSION_PLAYBACK_SPEED_MENU_INTERFACE)V"
+        )
+
+        hookBackgroundPlayVideoInformation("$EXTENSION_PLAYBACK_SPEED_CLASS_DESCRIPTOR->newVideoStarted(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZ)V")
+        hookVideoInformation("$EXTENSION_PLAYBACK_SPEED_CLASS_DESCRIPTOR->newVideoStarted(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JZ)V")
+        hookPlayerResponseVideoId("$EXTENSION_PLAYBACK_SPEED_CLASS_DESCRIPTOR->fetchRequest(Ljava/lang/String;Z)V")
+
+        val videoQualitySettingMethod = VideoQualitySettingEnumFingerprint.let {
+            val videoQualitySettingType = it.classDef.type
+            val advancedMenuField = it.instructionMatches.last().instruction.getReference<FieldReference>()!!
+
+            getVideoQualitySettingFingerprint(videoQualitySettingType).method.apply {
+                addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static { }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->useAdvancedVideoQualitySetting()Z
+                        move-result v0
+                        if-eqz v0, :original
+                        sget-object v0, $advancedMenuField
+                        return-object v0
+                        :original
+                        nop
+                    """
+                )
+            }
+        }
+
+        // The server chooses the quality of SABR streams from the client ABR state sent with each request.
+        // The first request of a video sends the initial video quality as the sticky resolution,
+        // but the requests sent while the video plays have none, so the server can switch to another quality.
+        // The quality is sent as if the user just selected it, in every request.
+        if (is_20_21_or_greater) {
+            ClientAbrStateFingerprint.let {
+                val overrideClientAbrStateMethod = ImmutableMethod(
+                    it.classDef.type,
+                    "patch_overrideClientAbrState",
+                    listOf(ImmutableMethodParameter(CLIENT_ABR_STATE_CLASS, null, null)),
+                    CLIENT_ABR_STATE_CLASS,
+                    AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                    null,
+                    null,
+                    MutableMethodImplementation(3),
+                ).toMutable().apply {
+                    addInstructionsWithLabels(
+                        0,
+                        """
+                        invoke-static { p0 }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->overrideClientAbrState(Lcom/google/protobuf/MessageLite;)[B
+                        move-result-object v0
+                        if-eqz v0, :keep
+                        invoke-static { }, $CLIENT_ABR_STATE_CLASS->getDefaultInstance()$CLIENT_ABR_STATE_CLASS
+                        move-result-object v1
+                        invoke-static { v1, v0 }, ${parseByteArrayMethodRef.get()!!}
+                        move-result-object v0
+                        check-cast v0, $CLIENT_ABR_STATE_CLASS
+                        return-object v0
+                        :keep
+                        return-object p0
+                    """
+                    )
+                }
+                it.classDef.methods.add(overrideClientAbrStateMethod)
+
+                it.method.apply {
+                    findInstructionIndicesReversedOrThrow(Opcode.RETURN_OBJECT).forEach { index ->
+                        val register = getInstruction<OneRegisterInstruction>(index).registerA
+
+                        addInstructionsAtControlFlowLabel(
+                            index,
+                            """
+                            invoke-static/range { v$register .. v$register }, $overrideClientAbrStateMethod
+                            move-result-object v$register
+                        """
+                        )
+                    }
+                }
+            }
+        }
+
+        // The initial video quality is only used when the video starts. While the video plays,
+        // the player and the SABR requests use the quality last selected in the quality menu,
+        // and without one the quality is chosen automatically, such as 720p for the size of the player.
+        // The default quality is used as the quality last selected, as if the user just selected it.
+        val videoIdField = LastSelectedVideoQualityConstructorFingerprint.let {
+            val videoIdField = it.instructionMatches[1].instruction.getReference<FieldReference>()!!
+
+            it.method.apply {
+                val selectedTimeField = it.instructionMatches[0].instruction.getReference<FieldReference>()!!
+                val playbackStartTimeField = it.instructionMatches[3].instruction.getReference<FieldReference>()!!
+                val resolutionField = it.instructionMatches[4].instruction.getReference<FieldReference>()!!
+                val directionField = it.instructionMatches[5].instruction.getReference<FieldReference>()!!
+
+                // All fields are set, so the registers are free before the return.
+                addInstructionsAtControlFlowLabel(
+                    indexOfFirstInstructionReversedOrThrow(Opcode.RETURN_VOID),
+                    """
+                        invoke-static { }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->getLastSelectedVideoQuality()I
+                        move-result v0
+                        if-ltz v0, :original
+                        iput v0, p0, $resolutionField
+
+                        # The video starts with the default quality, so the direction is the one
+                        # saved when the user selects the quality that is playing (no change).
+                        const/4 v0, 0x0
+                        iput v0, p0, $directionField
+
+                        invoke-static { }, Ljava/lang/System;->currentTimeMillis()J
+                        move-result-wide v0
+                        iput-wide v0, p0, $selectedTimeField
+                        iput-wide v0, p0, $playbackStartTimeField
+
+                        # Without a video ID, YouTube saves the quality as the quality last selected.
+                        iget-object v0, p0, $videoIdField
+                        if-nez v0, :original
+                        const-string v0, ""
+                        iput-object v0, p0, $videoIdField
+                        :original
+                        nop
+                    """
+                )
+            }
+
+            videoIdField
+        }
+
+        // With some accounts, the quality selected in the quality menu is used only for the video
+        // it was selected for, and the player of other videos chooses the quality automatically.
+        // The default quality is used as if the user selected it for the current video.
+        getVideoQualityConstraintFingerprint(
+            LastSelectedVideoQualityConstructorFingerprint.classDef.type,
+            videoQualitySettingMethod.toString()
+        ).let {
+            it.method.apply {
+                val moveResultIndex = it.instructionMatches.first().index + 1
+                val lastSelectedRegister = getInstruction<OneRegisterInstruction>(moveResultIndex).registerA
+                val insertIndex = moveResultIndex + 1
+                // The field is set with an instruction that can only use registers v0-v15.
+                val registerProvider = getFreeRegisterProvider(insertIndex, 2, lastSelectedRegister)
+                val videoIdRegister = registerProvider.getFreeRegister4Bit()
+                val lastSelectedFreeRegister = registerProvider.getFreeRegister4Bit()
+
+                addInstructionsWithLabels(
+                    insertIndex,
+                    """
+                        invoke-static { }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->getLastSelectedVideoQuality()I
+                        move-result v$videoIdRegister
+                        if-ltz v$videoIdRegister, :original
+                        move-object/from16 v$videoIdRegister, p3
+                        move-object/from16 v$lastSelectedFreeRegister, v$lastSelectedRegister
+                        iput-object v$videoIdRegister, v$lastSelectedFreeRegister, $videoIdField
+                        :original
+                        nop
+                    """
+                )
+            }
+        }
+
+        // A quality selected by the user is used again if YouTube reloads the video,
+        // until another video is opened. Reuse the existing playback-start descriptor hooks.
+        val playbackStartVideoIdMethod = playbackStartVideoIdReference as MethodReference
+        fun patchLogic(mapRegister: String, playerDescriptorClassRegister: String, free1: String, free2: String): String {
+            val methodParameter = playerDescriptorClassRegister.startsWith("p")
+
+            return """
+                move-object/from16 $free1, $mapRegister
+                ${
+                    if (methodParameter) "move-object/from16 $free2, $playerDescriptorClassRegister"
+                    else ""
+                }
+                invoke-virtual { ${
+                    if (methodParameter) free2
+                    else playerDescriptorClassRegister
+                } }, ${playbackStartVideoIdMethod.definingClass}->${playbackStartVideoIdMethod.name}()Ljava/lang/String;
+                move-result-object $free2
+                invoke-static { $free1, $free2 }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->onVideoIntentLoaded(Ljava/util/Map;Ljava/lang/String;)Z
+                move-result $free1
+                if-eqz $free1, :ignore
+                return-void
+                :ignore
+                nop
+            """
+        }
+
+        clientSettingEndpointFingerprint.let {
+            it.method.apply {
+                val match = it.instructionMatches[1]
+                val moveResultRegister = match.getInstruction<OneRegisterInstruction>().registerA
+                val insertIndex = match.index + 1
+                val registerProvider = getFreeRegisterProvider(insertIndex, 2, moveResultRegister)
+                val free1 = registerProvider.getFreeRegister()
+                val free2 = registerProvider.getFreeRegister()
+
+                addInstructionsAtControlFlowLabel(
+                    insertIndex,
+                    patchLogic("p2", "v$moveResultRegister", "v$free1", "v$free2")
+                )
+            }
+        }
+
+        // Clear the previous video selection before the Shorts player starts.
+        (if (is_21_20_or_greater) ShortsPlaybackIntentFingerprint
+        else ShortsPlaybackIntentFingerprintLegacy).method.addInstructionsWithLabels(
+            0,
+            patchLogic("p2", "p1", "v0", "v1")
+        )
+
+        updatePatchStatus(PATCH_STATUS_CLASS_DESCRIPTOR, "VideoPlayback")
+
+        // endregion
+
+        // region patch for default video quality
+
+        if (is_21_04_or_greater) {
+            VideoQualityChangedFingerprint.let {
+                it.method.apply {
+                    val targetIndex = it.instructionMatches.last().index
+                    val register = getInstruction<TwoRegisterInstruction>(targetIndex).registerA
+
+                    addInstruction(
+                        targetIndex + 1,
+                        "invoke-static { v$register }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->userChangedQualityInNewFlyout(I)V"
+                    )
+                }
+            }
+        } else {
+            QualityChangedFromRecyclerViewFingerprint.let {
+                it.method.apply {
+                    val instructions = implementation?.instructions ?: throw IllegalStateException("Method implementation not found")
+                    val newInstanceIndex = instructions.indexOfFirst { instruction ->
+                        instruction.opcode == Opcode.NEW_INSTANCE &&
+                                (instruction as? ReferenceInstruction)?.reference?.toString() == "Lcom/google/android/libraries/youtube/innertube/model/media/VideoQuality;"
+                    }
+                    if (newInstanceIndex == -1) throw IllegalStateException("VideoQuality new-instance not found")
+
+                    val igetIndex = instructions.subList(newInstanceIndex, instructions.size).indexOfFirst { instruction ->
+                        instruction.opcode == Opcode.IGET &&
+                                (instruction as? ReferenceInstruction)?.reference is FieldReference &&
+                                (instruction.reference as FieldReference).type == "I"
+                    }.let { index -> if (index == -1) -1 else index + newInstanceIndex }
+                    if (igetIndex == -1) throw IllegalStateException("IGET instruction for integer field not found")
+
+                    val register = getInstruction<TwoRegisterInstruction>(igetIndex).registerA
+                    addInstruction(
+                        igetIndex + 1,
+                        "invoke-static { v$register }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->userChangedQualityInNewFlyout(I)V"
+                    )
+                }
+            }
+        }
+
+        VideoQualityItemOnClickFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p3 }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->userChangedQualityInOldFlyout(I)V"
+        )
+
+        // If either observer is enabled, Shorts restart whenever quality changes.
+        listOf(
+            ShortsQualityChangeObserverPrimaryFeatureFlagFingerprint,
+            ShortsQualityChangeObserverSecondaryFeatureFlagFingerprint,
+        ).forEach { fingerprint ->
+            fingerprint.matchAll().forEach {
+                it.method.insertLiteralOverride(
+                    it.instructionMatches.first().index,
+                    false,
+                )
+            }
+        }
+
+        // endregion
+
+        // region patch for show advanced video quality menu
+
+        if (is_20_40_or_greater) {
+            // Flag breaks opening advanced quality menu.
+            // Alternatively can be fixed by using a delay when simulating the UI click.
+            NewFlyoutMenuFeatureFlagFingerprint.matchAll().forEach {
+                it.method.insertLiteralOverride(
+                    it.instructionMatches.first().index, false
+                )
+            }
+        }
+
+        ShowVideoQualityQuickMenuFingerprint.matchAll().forEach {
+            it.method.apply {
+                val match = it.instructionMatches[2]
+                val index = match.index
+                val register = findFreeRegister(index)
+
+                addInstructionsWithLabels(
+                    index,
+                    """
+                        invoke-static { }, $EXTENSION_ADVANCED_VIDEO_QUALITY_MENU_CLASS_DESCRIPTOR->showShortsQualityMenu()Z
+                        move-result v$register
+                        if-eqz v$register, :ignore
+                        return-void
+                        :ignore
+                        nop
+                    """
+                )
+            }
+        }
+
+        ShortsQualityConstructorFingerprint.let {
+            it.classDef.apply {
+                interfaces.add(EXTENSION_SHORTS_QUALITY_MENU_INTERFACE)
+
+                methods.add(
+                    ImmutableMethod(
+                        type,
+                        "patch_showShortsQualityMenu",
+                        listOf(),
+                        "V",
+                        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+                        annotations,
+                        null,
+                        MutableMethodImplementation(3),
+                    ).toMutable().apply {
+                        addInstructions(
+                            0,
+                            """
+                                const/4 v0, 0x1
+                                invoke-virtual { p0, v0 }, ${ShortsQualityMenuFingerprint.method}
+                                return-void
+                            """
+                        )
+                    }
+                )
+            }
+
+            it.method.addInstruction(
+                it.instructionMatches.first().index,
+                "invoke-static/range { p0 .. p0 }, $EXTENSION_ADVANCED_VIDEO_QUALITY_MENU_CLASS_DESCRIPTOR->initialize($EXTENSION_SHORTS_QUALITY_MENU_INTERFACE)V"
+            )
+        }
+
+        recyclerViewTreeObserverHook("$EXTENSION_ADVANCED_VIDEO_QUALITY_MENU_CLASS_DESCRIPTOR->onFlyoutMenuCreate(Landroid/support/v7/widget/RecyclerView;)V")
+        addLithoFilter(VIDEO_QUALITY_MENU_FILTER_CLASS_DESCRIPTOR)
+
+        // endregion
+
+        // region patch for spoof device dimensions
+
+        findMethodOrThrow(
+            DeviceDimensionsModelToStringFingerprint.classDef.type
+        ).addInstructions(
+            1, // Add after super call.
+            mapOf(
+                1 to "MinHeightOrWidth", // p1 = min height
+                2 to "MaxHeightOrWidth", // p2 = max height
+                3 to "MinHeightOrWidth", // p3 = min width
+                4 to "MaxHeightOrWidth"  // p4 = max width
+            ).map { (parameter, method) ->
+                """
+                    invoke-static { p$parameter }, $EXTENSION_SPOOF_DEVICE_DIMENSIONS_CLASS_DESCRIPTOR->get$method(I)I
+                    move-result p$parameter
+                    """
+            }.joinToString("\n") { it }
+        )
+
+        // endregion
+
+        // region patch for disable VP9 codec
+
+        Vp9CapabilityFingerprint.method.apply {
+            addInstructionsWithLabels(
+                0, """
+                    invoke-static {}, $EXTENSION_VP9_CODEC_CLASS_DESCRIPTOR->disableVP9Codec()Z
+                    move-result v0
+                    if-nez v0, :default
+                    return v0
+                    """, ExternalLabel("default", getInstruction(0))
+            )
+        }
+
+        // endregion
+
+        // region Disable audio offload if audio pitch controls are enabled.
+
+        // With audio offload, the device hardware decodes the audio
+        // and usually does not support changing the pitch, so the selected pitch is ignored.
+        (AudioOffloadEnabledFingerprint.matchOrNull(AudioOffloadVariableRateSupportedFingerprint.originalClassDef)
+            ?: LegacyAudioOffloadEnabledFingerprint.match()).method.apply {
+            findInstructionIndicesReversedOrThrow(Opcode.RETURN).forEach { index ->
+                val register = getInstruction<OneRegisterInstruction>(index).registerA
+
+                addInstructionsAtControlFlowLabel(
+                    index,
+                    """
+                        invoke-static { v$register }, $EXTENSION_CUSTOM_PLAYBACK_SPEED_CLASS_DESCRIPTOR->disableAudioOffload(Z)Z
+                        move-result v$register
+                    """
+                )
+            }
+        }
+
+        // endregion
+
+        // region add settings
+
+        addPreference(settingArray, VIDEO_PLAYBACK)
+
+        // endregion
+    }
+}

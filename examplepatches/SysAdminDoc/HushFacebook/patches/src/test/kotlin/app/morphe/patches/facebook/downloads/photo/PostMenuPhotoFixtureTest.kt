@@ -12,7 +12,7 @@ import app.morphe.patches.facebook.downloads.video.GRAPHQL_STORY_ATTACHMENT
 import app.morphe.patches.facebook.downloads.video.IMMUTABLE_LIST
 import app.morphe.patches.facebook.downloads.video.MENU
 import app.morphe.patches.facebook.downloads.video.PLAYER_ORIGIN
-import app.morphe.patches.facebook.downloads.video.STOCK_DOWNLOAD_ROW
+import app.morphe.patches.facebook.feed.isStringTableCall
 import app.morphe.patches.facebook.downloads.video.VIEW
 import app.morphe.patches.facebook.downloads.video.VideoFeedStoryMenuFingerprint
 import app.morphe.patches.facebook.feed.FixtureDex
@@ -22,6 +22,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -56,7 +57,7 @@ class PostMenuPhotoFixtureTest {
     private fun isVideoMenu(method: Method): Boolean {
         val parameters = method.parameterTypes.map(CharSequence::toString)
         return method.returnType == "V" && parameters.size >= 3 && parameters[0] == MENU && parameters[1] == VIEW &&
-            parameters.last() == PLAYER_ORIGIN && holds(method, "VideoFeedStoryMenuHelper") && holds(method, STOCK_DOWNLOAD_ROW)
+            parameters.last() == PLAYER_ORIGIN && holds(method, "VideoFeedStoryMenuHelper")
     }
 
     /** The one public no-argument getter of [owner] named [name], returning [returnType]. */
@@ -96,7 +97,10 @@ class PostMenuPhotoFixtureTest {
                 val call = site.implementation!!.instructions.toList()[callIndex] as RegisterRangeInstruction
 
                 val props = signature[2]
-                val types = setOf(videoMenu.definingClass, base, site.definingClass, props, GRAPHQL_STORY, GRAPHQL_STORY_ATTACHMENT)
+                // 585 asks a string table for the stock row's name, so the table's class is read too.
+                val tables = videoMenu.implementation!!.instructions.filter(::isStringTableCall)
+                    .mapNotNull { it.methodRef()?.definingClass }.toSet()
+                val types = setOf(videoMenu.definingClass, base, site.definingClass, props, GRAPHQL_STORY, GRAPHQL_STORY_ATTACHMENT) + tables
                 val classes = FixtureDex.classes(bundle, types)
                 assertEquals("$name: classes read", types, classes.keys)
 
@@ -118,6 +122,8 @@ class PostMenuPhotoFixtureTest {
                     listOf(call.startRegister + 1, 3), listOf(hook.startRegister, hook.registerCount))
 
                 val body = helper.implementation!!.instructions.toList()
+                val icon = body.filterIsInstance<NarrowLiteralInstruction>().map { it.narrowLiteral }.filter { it ushr 24 == 0x7f }
+                assertEquals("$name: Facebook's own Download icon, an app resource, is handed over", 1, icon.size)
                 val item = body.mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }.single()
                 assertEquals("$name: what the menu is for comes from the props", props, item.definingClass)
                 assertEquals("$name: as an Object", "Ljava/lang/Object;", item.type)

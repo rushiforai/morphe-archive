@@ -169,7 +169,7 @@ internal fun BytecodePatchContext.resolveBlackTheme(): BlackThemeSite {
         written?.takeIf { body[it].opcode == Opcode.MOVE_RESULT && body[it - 1].isStaticCall(listOf(STRING), "I") }?.let { body[it - 1].call() }
     }
     val keyLookup = lookups.distinctBy { it.toString() }.controlSingle("theme key lookup")
-    val lookupOwner = mutableClassDefByOrNull(keyLookup.definingClass.toString())
+    val lookupOwner = mutableClassDefByOrNull(keyLookup.definingClass)
     val lookup = lookupOwner?.methods?.singleOrNull { it.name == keyLookup.name && it.parameterTypes.map { p -> p.toString() } == listOf(STRING) && it.returnType == "I" }
     controlShape(lookupOwner != null && lookup != null && AccessFlags.PUBLIC.isSet(lookupOwner.accessFlags) &&
         AccessFlags.PUBLIC.isSet(lookup.accessFlags) && AccessFlags.STATIC.isSet(lookup.accessFlags),

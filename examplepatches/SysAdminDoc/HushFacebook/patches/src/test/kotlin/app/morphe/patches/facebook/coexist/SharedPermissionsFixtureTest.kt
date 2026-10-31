@@ -705,10 +705,10 @@ class SharedPermissionsFixtureTest {
         /**
          * Loads of Facebook's package that only build RemoteViews, per build. 582 had 14 notification
          * template sites (2026-10-14). 583 builds all but one from the running package itself, and
-         * the check after the patch still finds none left spelled out (2026-10-16). 584 spells all
-         * 14 out again (2026-10-22).
+         * the check after the patch still finds none left spelled out (2026-10-16). 584 spelled all
+         * 14 out again (2026-10-22). 585 is back to 583's one (2026-10-29).
          */
-        val REMOTE_VIEWS_LOADS = mapOf(AppCompatibilities.FACEBOOK_TARGET_VERSION to 14)
+        val REMOTE_VIEWS_LOADS = mapOf(AppCompatibilities.FACEBOOK_TARGET_VERSION to 1)
 
         /**
          * Loads of Facebook's package that only name this app to Android or look up its resources,
@@ -755,20 +755,19 @@ class SharedPermissionsFixtureTest {
          * the installed Facebook unless that's the running app. Each also reads the load for
          * something else, an install check at least, so it can't go over whole.
          */
-        val STOCK_OWNER_SITES = mapOf(AppCompatibilities.FACEBOOK_TARGET_VERSION to 5)
+        val STOCK_OWNER_SITES = mapOf(AppCompatibilities.FACEBOOK_TARGET_VERSION to 4)
 
         /**
          * Those sites by name, per build and ABI, each found once: the link pick, Horizon's launch,
          * the Meta app picker and the forum share link, then Messenger's warm-start hint. Earlier
-         * builds named these classes differently per ABI; 584's two builds happen to agree.
+         * builds named these classes differently per ABI, as 585's do; 584's two happened to agree.
+         * 585 drops the warm-start hint, which no longer reads a load of Facebook's package.
          */
         val STOCK_OWNERS = mapOf(
             AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
-                "arm64-v8a" to listOf("LX/dWG;->A00@569:", "LX/RQF;->A00@40:", "LX/Gf1;->A00@22:", "LX/RTe;->openForumShareLink\$${FORUM_LINK}@60:"),
-                "armeabi-v7a" to listOf("LX/dWG;->A00@569:", "LX/RQF;->A00@40:", "LX/Gf1;->A00@22:", "LX/RTe;->openForumShareLink\$${FORUM_LINK}@60:"),
-            ).mapValues { (_, sites) ->
-                sites + "Lcom/facebook/messaging/threadsettings2/activity/ThreadSettingsActivity;->onActivityCreate@51:"
-            },
+                "arm64-v8a" to listOf("LX/0gpz;->A00@584:", "LX/0Tav;->A00@42:", "LX/0aLJ;->A00@26:", "LX/0ZoC;->openForumShareLink\$${FORUM_LINK}@60:"),
+                "armeabi-v7a" to listOf("LX/0gpb;->A00@584:", "LX/0TaH;->A00@42:", "LX/0aKz;->A00@26:", "LX/0Znr;->openForumShareLink\$${FORUM_LINK}@60:"),
+            ),
         )
 
         const val FORUM_LINK = "fbandroid_java_com_facebook_messaging_linkhandling_linkhandling"
@@ -777,8 +776,9 @@ class SharedPermissionsFixtureTest {
          * How many setPackage calls still take Facebook's package from a literal, per build, because
          * there it means Meta's Facebook app: Messenger's warm-start hint (ThreadSettingsActivity),
          * sent to Facebook's WarmStartBroadcastReceiver once it has checked Facebook is installed.
-         * 582 also had Messenger's deep link launcher, which 583 no longer spells out.
+         * 582 also had Messenger's deep link launcher, which 583 no longer spells out. 585 no longer
+         * spells out the warm-start hint either, so none is left.
          */
-        val SETS_REAL_FACEBOOK = mapOf(AppCompatibilities.FACEBOOK_TARGET_VERSION to 1)
+        val SETS_REAL_FACEBOOK = mapOf(AppCompatibilities.FACEBOOK_TARGET_VERSION to 0)
     }
 }

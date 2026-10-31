@@ -39,46 +39,22 @@ import javax.xml.transform.stream.StreamResult
  * by name silently did nothing, which is what the "I don't find Patch settings anywhere" report was.
  * XML attributes carry no such risk.
  *
- * The files are *found*, never guessed: a bytecode patch's `fileWorkspace` is a scratch directory,
- * not the decoded resource tree, which lives under `apk/resources/package_<n>/` of the patcher's
- * *session*. A wrong guess used to mean a silent no-op, so a miss now throws -- and names every
- * root it searched, see below.
- *
- * **Where** that session is relative to the workspace depends on the host, so the workspace's
- * parent is no longer assumed to *be* the session root. Both layouts run patcher 1.15.1; the
- * difference is the host's, not a version's:
- *
- * - **CLI**: one session directory holds everything. The patcher derives its workspace itself
- *   (`PatcherConfig`: `fileWorkspace = temporaryFilesPath.resolve("workspace")`, decoded tree in
- *   `temporaryFilesPath/apk/resources/package_<n>/`), so the workspace's parent *is* the session
- *   root -- the assumption this function used to make, and the only layout it could find.
- * - **Morphe Manager**: the session is deliberately *split* (`Session.kt`). The decoded tree goes
- *   under `cacheDir/patcher`, and `cacheDir` is `fs.tempDir.absolutePath`, i.e.
- *   `app.getDir("ephemeral")` (`Filesystem.kt`) -- so `.../app_ephemeral/patcher/apk/resources/…`.
- *   The workspace is `context.cacheDir/patch-workspace`, deliberately *not* under that temporary
- *   directory, because "the patcher wipes that directory when it starts". Searching the
- *   workspace's parent therefore looked in `.../cache`, found nothing and threw
- *   (Manager 1.35.0, patcher 1.15.1): `no settings preferences XML under
- *   …/cache`. The app-data root covers both `app_ephemeral/…` and `cache/…` and is two levels
- *   above the workspace.
- *
- * So the tree is looked for under a bounded list of the workspace's ancestors, nearest first, and
- * the first root that holds a file answers for it. The filesystem root is never searched and
- * [MAX_RESOURCE_ROOT_ANCESTORS] caps the walk, so a miss costs a handful of directory listings
- * rather than a walk up to the root of the disk.
+ * The files are handed in, never guessed: until 2026-10-30 this function derived the decoded
+ * resource tree from the bytecode patch's `fileWorkspace`, which worked only while every host
+ * kept the tree under the workspace's ancestors. Morphe patcher 2.x added hosts that decode
+ * resources *on request* (Desktop 2.x), where nothing exists under the decode tree until a
+ * resource patch asks for it -- the walk found nothing and threw on a real Desktop 2.x run
+ * (measured 2026-10-30). The discovery moved into [patchSettingsPatch], a resource patch whose
+ * `decode(**)` is the sanctioned trigger, and this function now takes the decoded `res`
+ * directories and does only what it is good at: editing the XML. A miss still throws and names
+ * every directory it searched.
  */
 internal fun restructureSettingsXmls(
-    patchWorkspace: File,
+    resDirs: List<File>,
     sbScreenXmlId: Int,
     categoryDefaults: Map<String, String>,
 ) {
-    val roots = resourceRootCandidates(patchWorkspace)
-    if (roots.isEmpty()) {
-        throw PatchException(
-            "Patch settings: ${patchWorkspace.absolutePath} has no parent directory to search " +
-                "for the decoded resource tree",
-        )
-    }
+    val roots = resDirs
     val mainFiles = MAIN_SETTINGS_XML_NAMES.flatMap { name -> findInRoots(roots, name) }
     if (mainFiles.isEmpty()) {
         throw PatchException(
@@ -113,47 +89,19 @@ internal fun restructureSettingsXmls(
 }
 
 /**
- * How many ancestor levels above [patchWorkspace] are searched for the decoded resource tree.
- *
- * Four covers both known layouts with room to spare (Manager's app-data root is two up), and is
- * the whole point of the budget: the walk must not climb from an app-private scratch directory to
- * a filesystem root and start listing whatever lives there.
+ * How deep below one `res` directory the tree may sit: `res/xml/settings_prefs.xml` is two levels,
+ * and the budget exists so a mis-shaped directory cannot turn a miss into a filesystem crawl.
  */
-private const val MAX_RESOURCE_ROOT_ANCESTORS = 4
+private const val MAX_RESOURCE_TREE_DEPTH = 4
 
 /**
- * How deep below one root the tree may sit. The root searched can now be [MAX_RESOURCE_ROOT_ANCESTORS]
- * levels above the workspace, so this is the old session-relative budget plus that offset:
- * Manager's `app_ephemeral/patcher/apk/resources/package_<n>/res/xml/settings_prefs.xml` is seven
- * levels below the app-data root that is searched, and the decode owns every level below it.
- */
-private const val MAX_RESOURCE_TREE_DEPTH = 12
-
-/**
- * The roots to search for the decoded tree, nearest first: [patchWorkspace]'s parent and up to
- * [MAX_RESOURCE_ROOT_ANCESTORS] ancestors above it. A filesystem root is never included -- it has
- * no parent, and is never a patcher session.
- */
-private fun resourceRootCandidates(patchWorkspace: File): List<File> {
-    val roots = mutableListOf<File>()
-    var current = patchWorkspace.absoluteFile.parentFile
-    while (current != null && current.parentFile != null && roots.size < MAX_RESOURCE_ROOT_ANCESTORS) {
-        roots += current
-        current = current.parentFile
-    }
-    return roots
-}
-
-/**
- * Names every root that was searched, so a future host whose layout surprises this function is
- * diagnosable from the exception alone -- which is what the Manager failure above was not.
+ * The directories searched for the decoded resource files: the decoded `res` directories the
+ * caller discovered. The first directory that holds a file answers for it.
  */
 private fun describeRoots(roots: List<File>): String = "any of " + roots.joinToString("; ") { it.absolutePath }
 
 /**
- * The files named [name] under the *first* root that has any. Nearest-first ordering is what keeps
- * the CLI's layout as cheap as it was (its own session root answers immediately) while Manager's
- * wider roots are only walked when the nearer ones hold nothing.
+ * The files named [name] under the *first* root that has any.
  */
 private fun findInRoots(roots: List<File>, name: String): List<File> {
     for (root in roots) {

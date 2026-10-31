@@ -3,7 +3,7 @@ group = "com.dmoniak.patches"
 patches {
     about {
         name = "D-moniak Patches"
-        description = "Morphe patches for educational purposes only. 100% AI generated - No liability."
+        description = "Morphe patches for educational purposes only. Vibe-coded - No liability."
         source = "https://github.com/SatanMerde/D-moniakPatches.git"
         author = "SatanMerde"
         contact = "https://github.com/SatanMerde/D-moniakPatches"

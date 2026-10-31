@@ -1,0 +1,206 @@
+{
+  "capturedAt": "2026-10-30T10:09:23.380615+00:00",
+  "serial": "emulator-5582",
+  "package": "app.mihon",
+  "labels": [
+    {
+      "text": "ಥ_ಥ",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[424,703][657,878]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Your library is empty",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[371,902][710,955]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Getting started guide",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[368,1113][713,1166]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Library",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[43,174][216,248]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Search",
+      "class": "android.view.View",
+      "bounds": "[723,180][786,243]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Filter",
+      "class": "android.view.View",
+      "bounds": "[849,180][912,243]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "More options",
+      "class": "android.view.View",
+      "bounds": "[975,180][1038,243]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Library",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[51,1725][165,1778]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Library",
+      "class": "android.view.View",
+      "bounds": "[76,1641][139,1704]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Updates",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[256,1725][392,1778]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Updates",
+      "class": "android.view.View",
+      "bounds": "[292,1641][355,1704]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "History",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[480,1725][600,1778]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "History",
+      "class": "android.view.View",
+      "bounds": "[508,1641][571,1704]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Browse",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[694,1725][817,1778]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Browse",
+      "class": "android.view.View",
+      "bounds": "[724,1641][787,1704]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "More",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[929,1725][1014,1778]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "More",
+      "class": "android.view.View",
+      "bounds": "[940,1641][1003,1704]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Downloaded only",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[11,74][1069,116]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "1e8889b788a3a28726dd4d6e760d1d53acfa71e9e4dbf43dcd72deba92fa3f83"
+}

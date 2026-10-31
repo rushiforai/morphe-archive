@@ -27,9 +27,9 @@ You need three things:
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.2](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/releases/tag/v1.3.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v1.4.0](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
-<summary>📦 CK Zombies&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
+<summary>📦 CK Zombies&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -39,6 +39,7 @@ You need three things:
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| Hidden weapons | Shows the two hidden weapons, AA-2012 and Dual MP-643, in the store. |  |
 | Hide Daily Deal popup | Hides the annoying Daily Deal popup that shows at every launch. The deal is still in the store. |  |
 | Modern Android compatibility | Fixes the crash at launch on current Android and targets API 25 so that Android 14 and later install the game normally. The game is 32-bit only, so the device must still run 32-bit apps. |  |
 | Play intro once | Plays the intro video on the first launch after installing, and skips it after that. |  |

@@ -108,6 +108,7 @@ val themePatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("UI Customization")
     // The hooks rewrite skins on the way to the renderer, and Waze still re-extracts its bundled
     // resources only when the app's versionCode rises - the refresh keeps a re-patch re-extracting.
     dependsOn(skinRefreshPatch)

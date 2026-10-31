@@ -156,7 +156,7 @@ class LocalSearchFixtureTest {
                         assertFalse("$what swaps a register nothing reads afterwards", text in live.liveInto(edit.index + 1))
                         continue
                     }
-                    val jump = edit.jump!!
+                    val jump = edit.jump
                     val request = requestOf(edit, before) { type -> context.classDefByOrNull(type) }
                     val answer = after[at + 1].namedRegisters().single()
                     if (edit.lookup in FILTERS) assertEquals("$what hands the runtime the text",

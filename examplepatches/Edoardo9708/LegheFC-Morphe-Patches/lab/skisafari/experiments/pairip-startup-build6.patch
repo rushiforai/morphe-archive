@@ -1,0 +1,76 @@
+diff --git a/patches/src/main/kotlin/lab/skisafari/patches/UnlockAllItemsPatch.kt b/patches/src/main/kotlin/lab/skisafari/patches/UnlockAllItemsPatch.kt
+index 7aa8b12..3d15352 100644
+--- a/patches/src/main/kotlin/lab/skisafari/patches/UnlockAllItemsPatch.kt
++++ b/patches/src/main/kotlin/lab/skisafari/patches/UnlockAllItemsPatch.kt
+@@ -30,0 +31,2 @@ private const val EXPECTED_METADATA_SHA256 =
++private const val EXPECTED_PAIRIP_SHA256 =
++    "b4b4cc04d323507ff577d86fffa809106ff22de033a783cf3d37752e1da19c0b"
+@@ -49,0 +52,4 @@ private val skiSafariUnlockNativeResources = rawResourcePatch {
++        val pairip = get("lib/arm64-v8a/libpairipcore.so")
++        require(pairip.isFile && pairip.sha256() == EXPECTED_PAIRIP_SHA256) {
++            "Ski Safari Unlock: runtime PairIP diverso dalla build analizzata."
++        }
+@@ -74 +80 @@ val skiSafariUnlockAllItemsPatch = bytecodePatch(
+-    description = "Experimental: invokes ShopItemHelper.UnlockAllItems once through UnityPlayer's verified game-thread queue after the profile is ready. The game saves changed unlock flags through GameState.Save. Runtime execution is blocked by PairIP on the locally signed build and is not verified.",
++    description = "Experimental: invokes ShopItemHelper.UnlockAllItems once through UnityPlayer's verified game-thread queue after the profile is ready. Includes local APK startup compatibility; native VM callbacks and save persistence require device verification.",
+@@ -87,0 +94,60 @@ val skiSafariUnlockAllItemsPatch = bytecodePatch(
++        // Tested as an app-specific adaptation of the startup strategy documented
++        // by Kirby1997/morphe-patches (BypassPairipPatch.kt, GPL-3.0).
++        // Keep VMRunner and libpairipcore: SDK callbacks still depend on them.
++        val startup = Fingerprint(
++            definingClass = "Lcom/pairip/StartupLauncher;", name = "launch",
++            returnType = "V", parameters = emptyList()
++        ).method
++        require(startup.implementation?.instructions?.any {
++            val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
++            ref?.definingClass == "Lcom/pairip/VMRunner;" && ref.name == "invoke"
++        } == true) { "Ski Safari Unlock: startup VM non corrispondente." }
++        startup.addInstructions(0, "return-void")
++
++        val attach = Fingerprint(
++            definingClass = "Lcom/pairip/application/Application;", name = "attachBaseContext",
++            returnType = "V", parameters = listOf("Landroid/content/Context;")
++        ).method
++        val attachBody = attach.implementation ?: error("Application priva di attachBaseContext.")
++        val attachRefs = attachBody.instructions.mapNotNull {
++            (it as? ReferenceInstruction)?.reference as? MethodReference
++        }
++        val superCalls = attachBody.instructions.filter { it.opcode == Opcode.INVOKE_SUPER }
++            .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
++        require(attachBody.registerCount == 2 && attachBody.instructions.size == 4 && superCalls.size == 1 &&
++            superCalls.single().definingClass == "Lcom/pairip/application/Application;" &&
++            superCalls.single().name == "attachBaseContext" && attachRefs.any {
++                it.definingClass == "Lcom/pairip/VMRunner;" && it.name == "setContext"
++            } && attachRefs.any {
++                it.definingClass == "Lcom/pairip/SignatureCheck;" && it.name == "verifyIntegrity"
++            }) { "Ski Safari Unlock: catena Application non corrispondente." }
++        attach.addInstructions(0, """
++            invoke-super {p0, p1}, ${superCalls.single()}
++            const-string v0, "SkiSafari-Unlock"
++            const-string v1, "Avvio locale: inizializzazione Application completata."
++            invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
++            return-void
++        """.trimIndent())
++
++        val integrity = Fingerprint(
++            definingClass = "Lcom/pairip/SignatureCheck;", name = "verifyIntegrity",
++            returnType = "V", parameters = listOf("Landroid/content/Context;")
++        ).method
++        require(integrity.implementation?.instructions?.any {
++            val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
++            ref?.definingClass == "Lcom/pairip/SignatureCheck;" && ref.name == "verifySignatureMatches"
++        } == true) { "Ski Safari Unlock: controllo firma non corrispondente." }
++        integrity.addInstructions(0, "return-void")
++
++        val provider = Fingerprint(
++            definingClass = "Lcom/pairip/licensecheck/LicenseContentProvider;", name = "onCreate",
++            returnType = "Z", parameters = emptyList()
++        ).method
++        require(provider.implementation?.instructions?.any {
++            val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
++            ref?.definingClass == "Lcom/pairip/licensecheck/LicenseClient;" &&
++                ref.name == "initializeLicenseCheck"
++        } == true) { "Ski Safari Unlock: provider licenza non corrispondente." }
++        // Omit the local startup gate; do not fabricate a license response or IAP receipt.
++        provider.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
++

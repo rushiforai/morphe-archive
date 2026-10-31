@@ -31,7 +31,56 @@ def prerelease_fixture(package='nl.rtl.videoland.v2', name='Videoland Android TV
     return data
 
 
+def npo_variants_fixture():
+    data = fixture()
+    for patch in data['patches']:
+        original = patch['compatiblePackages'][0]
+        patch['compatiblePackages'] = [
+            dict(original, packageName='nl.uitzendinggemist', name='NPO Start Android TV', formFactor='TV'),
+            dict(original, packageName='nl.uitzendinggemist', name='NPO Start', formFactor='MOBILE'),
+        ]
+    return data
+
+
+def videoland_variants_fixture():
+    data = fixture()
+    for patch in data['patches']:
+        original = patch['compatiblePackages'][0]
+        patch['compatiblePackages'] = [
+            dict(original, packageName='nl.rtl.videoland.v2', name='Videoland Android', formFactor='MOBILE', apkFileType='APKS'),
+            dict(original, packageName='nl.rtl.videoland.v2', name='Videoland Android TV', formFactor='TV', apkFileType='APKS'),
+        ]
+    return data
+
+
 class ReadmeSummaryTests(unittest.TestCase):
+    def test_west_development_row_links_its_own_guide(self):
+        data = prerelease_fixture('nl.omroepwest.android', 'Omroep West', 'MOBILE')
+        text = self.generate('<!-- PATCHES_START SUMMARY -->', data)
+        self.assertIn('https://morphe-patches.neerdael.nl/apps/omroep-west/', text)
+        self.assertIn('### News and reading', text)
+
+    def test_videoland_phone_and_tv_link_their_own_guides(self):
+        text = self.generate('<!-- PATCHES_START SUMMARY -->', videoland_variants_fixture())
+        self.assertIn('### Entertainment', text)
+        self.assertIn('https://morphe-patches.neerdael.nl/apps/videoland/', text)
+        self.assertIn('https://morphe-patches.neerdael.nl/apps/videoland-android-tv/', text)
+        self.assertIn('| APKS |', text)
+
+    def test_kijk_android_has_own_entertainment_guide(self):
+        data = fixture()
+        for patch in data['patches']:
+            patch['compatiblePackages'][0].update(packageName='nl.sbs.kijk', name='KIJK Android', formFactor='MOBILE')
+        text = self.generate('<!-- PATCHES_START SUMMARY -->', data)
+        self.assertIn('### Entertainment', text)
+        self.assertIn('https://morphe-patches.neerdael.nl/apps/kijk/', text)
+        self.assertNotIn('apps/kijk-android-tv/', text)
+
+    def test_npo_phone_and_tv_rows_link_their_own_guides(self):
+        text = self.generate('<!-- PATCHES_START SUMMARY -->', npo_variants_fixture())
+        self.assertIn('https://morphe-patches.neerdael.nl/apps/npo-start/', text)
+        self.assertIn('https://morphe-patches.neerdael.nl/apps/npo-start-android-tv/', text)
+
     def generate(self, marker, data=None, counterpart=None):
         data = fixture() if data is None else data
         with tempfile.TemporaryDirectory() as folder:
@@ -95,11 +144,14 @@ class ReadmeSummaryTests(unittest.TestCase):
 
     def test_belgian_news_prereleases_link_their_own_guides_in_news(self):
         apps = [
+            ('mobi.inthepocket.mediafin.detijd', 'De Tijd', 'detijd'),
             ('be.persgroep.android.news.mobiledm', 'De Morgen', 'demorgen'),
             ('be.humo.tvgids', 'Humo', 'humo'),
             ('be.persgroep.android.news.mobilehln', 'HLN', 'hln'),
             ('com.twipemobile.nbmobile', 'Nieuwsblad', 'nieuwsblad'),
             ('com.twipemobile.dsmobile', 'DS Nieuws', 'dsnieuws'),
+            ('be.concentra.hbvl.MediaApp', 'HBVL', 'hbvl'),
+            ('com.mecom.tctubantia.nl', 'Tubantia', 'tubantia'),
         ]
         for package, name, slug in apps:
             with self.subTest(package=package):
@@ -129,11 +181,67 @@ class ReadmeSummaryTests(unittest.TestCase):
 
 
 class SiteCatalogueTests(unittest.TestCase):
+    def test_west_prerelease_card_links_its_news_guide(self):
+        data = prerelease_fixture('nl.omroepwest.android', 'Omroep West', 'MOBILE')
+        for language in ('nl', 'en'):
+            text = self.module.render_home_apps(data, language)
+            self.assertIn('(apps/omroep-west.md)', text)
+            self.assertIn('data-category="news"', text)
+            self.assertIn('data-channel="prerelease"', text)
+
+    def test_videoland_same_package_phone_and_tv_are_separate_stable_cards(self):
+        for language in ('en', 'nl'):
+            text = self.module.render_home_apps(videoland_variants_fixture(), language)
+            self.assertEqual(text.count('<article '), 2)
+            self.assertIn('(apps/videoland.md)', text)
+            self.assertIn('(apps/videoland-android-tv.md)', text)
+            self.assertNotIn('dap-app-card__badge', text)
+
+    def test_kijk_mobile_and_tv_remain_distinct(self):
+        data = fixture()
+        data['patches'] = data['patches'][:1]
+        mobile = data['patches'][0]['compatiblePackages'][0]
+        mobile.update(packageName='nl.sbs.kijk', name='KIJK Android', formFactor='MOBILE')
+        tv = json.loads(json.dumps(mobile))
+        tv.update(packageName='com.talpa.kijk', name='KIJK Android TV', formFactor='TV')
+        data['patches'][0]['compatiblePackages'].append(tv)
+        for language in ('en', 'nl'):
+            text = self.module.render_home_apps(data, language)
+            self.assertEqual(text.count('<article '), 2)
+            self.assertIn('(apps/kijk.md)', text)
+            self.assertIn('(apps/kijk-android-tv.md)', text)
+
     @classmethod
     def setUpClass(cls):
         spec = importlib.util.spec_from_file_location('docs_catalogue', ROOT / 'scripts/generate_docs_catalog.py')
         cls.module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cls.module)
+
+    def test_npo_phone_and_tv_cards_link_their_own_guides(self):
+        for language in ('nl', 'en'):
+            text = self.module.render_home_apps(npo_variants_fixture(), language)
+            self.assertEqual(text.count('<article '), 2)
+            self.assertIn('(apps/npo-start.md)', text)
+            self.assertIn('(apps/npo-start-android-tv.md)', text)
+
+    @unittest.skipUnless(importlib.util.find_spec('markdown'),
+                         'Install docs/site-requirements.txt for rendered catalogue checks')
+    def test_every_patch_renders_as_a_heading_in_the_app_table_of_contents(self):
+        import markdown
+
+        for data in (fixture(), json.loads((ROOT / 'patches-list.json').read_text())):
+            expected = {}
+            for patch in data['patches']:
+                for package in patch.get('compatiblePackages') or []:
+                    expected.setdefault(package['name'], []).append(patch['name'])
+            for language in ('en', 'nl'):
+                with self.subTest(bundle=data['version'], language=language):
+                    renderer = markdown.Markdown(extensions=['tables', 'toc'])
+                    renderer.convert(self.module.render(data, language))
+                    apps = renderer.toc_tokens[0]['children']
+                    self.assertEqual(
+                        {app['name']: [patch['name'] for patch in app['children']]
+                         for app in apps}, expected)
 
     def test_each_patch_keeps_its_own_version_codes_and_default(self):
         text = self.module.render(fixture(), 'en')

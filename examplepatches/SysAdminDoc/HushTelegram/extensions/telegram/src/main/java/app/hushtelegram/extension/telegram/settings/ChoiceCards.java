@@ -28,6 +28,8 @@ import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import app.hushtelegram.extension.shared.L10n;
+
 /**
  * A dialog's choices as inset cards, each with its name on top and what it does under it.
  *
@@ -122,6 +124,7 @@ final class ChoiceCards extends BaseAdapter {
             name.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
             name.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             name.setTextColor(colors.title);
+            L10n.hyphenate(name);
             ScreenColors.Chevron chevron = new ScreenColors.Chevron(colors.summary, dp(context, 2));
             chevron.setBounds(0, 0, dp(context, 24), dp(context, 24));
             text.addView(name, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
@@ -129,6 +132,7 @@ final class ChoiceCards extends BaseAdapter {
             detail = new TextView(context);
             detail.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             detail.setTextColor(colors.summary);
+            L10n.hyphenate(detail);
             LayoutParams under = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
             under.topMargin = dp(context, 2);
             text.addView(detail, under);

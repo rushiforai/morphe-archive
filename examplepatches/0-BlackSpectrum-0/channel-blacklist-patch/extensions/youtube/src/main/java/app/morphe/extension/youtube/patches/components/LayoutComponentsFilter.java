@@ -48,6 +48,7 @@ import app.morphe.extension.youtube.patches.utils.ProtoNode;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.NavigationBar;
 import app.morphe.extension.youtube.shared.NavigationBar.NavigationButton;
+import app.morphe.extension.youtube.shared.PlayerType;
 
 @SuppressWarnings("unused")
 public final class LayoutComponentsFilter extends Filter {
@@ -73,6 +74,32 @@ public final class LayoutComponentsFilter extends Filter {
     @Nullable
     private static List<?> originalChannelTabs;
 
+    /**
+     * Browse id of the community page of a channel, which shows only community posts.
+     */
+    private static final String COMMUNITY_PAGE_BROWSE_ID = "FEcommunity_page";
+
+    /**
+     * Browse id of the page that is shown, or empty for the search feed.
+     */
+    private static volatile String browseId = "";
+
+    /**
+     * Injection point.
+     */
+    public static void setBrowseId(@Nullable String id) {
+        browseId = id == null ? "" : id;
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * The search feed is not a browse page.
+     */
+    public static void clearBrowseId() {
+        browseId = "";
+    }
+
     private final StringTrieSearch exceptions = new StringTrieSearch();
 
     private final StringFilterGroup channelProfileSubscribeButton;
@@ -90,8 +117,8 @@ public final class LayoutComponentsFilter extends Filter {
     private final StringFilterGroup expandableMetadata;
     private final ByteArrayFilterGroup summaryCardBuffer;
     private final StringFilterGroup exploreTopicsShelf;
-    private final StringFilterGroup inviteToMessageCard;
-    private final ByteArrayFilterGroup inviteToMessageCardBuffer;
+    private final StringFilterGroup linearLayout;
+    private final ByteArrayFilterGroupList linearLayoutGroupList = new ByteArrayFilterGroupList();
     private final StringFilterGroup liveStream;
     private final ByteArrayFilterGroup liveStreamBuffer;
     private final StringFilterGroup notificationsMenuHeader;
@@ -147,14 +174,20 @@ public final class LayoutComponentsFilter extends Filter {
         // 'This week', 'Older') uses the exact same identifier and an otherwise byte
         // identical buffer, and the title is localized by the server without an app string
         // resource, so there is no language independent way to match it.
-        inviteToMessageCard = new StringFilterGroup(
-                Settings.HIDE_INVITE_TO_MESSAGE_CARD,
+        linearLayout = new StringFilterGroup(
+                null,
                 "linear_layout.e"
         );
 
-        inviteToMessageCardBuffer = new ByteArrayFilterGroup(
-                null,
-                "connections_inbox_zero_state"
+        linearLayoutGroupList.addAll(
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_INVITE_TO_MESSAGE_CARD,
+                        "connections_inbox_zero_state"
+                ),
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_UNAVAILABLE_VIDEOS_HIDDEN_BANNER,
+                        "basic_content"
+                )
         );
 
         // Feed and search result items.
@@ -180,8 +213,8 @@ public final class LayoutComponentsFilter extends Filter {
         addIdentifierCallbacks(
                 cellDivider,
                 exploreTopicsShelf,
+                linearLayout,
                 liveChatReplay,
-                inviteToMessageCard,
                 liveStream,
                 seekEduOverlay
         );
@@ -285,6 +318,7 @@ public final class LayoutComponentsFilter extends Filter {
 
         communityPosts = new StringFilterGroup(
                 Settings.HIDE_COMMUNITY_POSTS,
+                "communities_entrypoint.e",
                 "images_post_responsive_root.e",
                 "images_post_root.e",
                 "images_post_root_slim.e",
@@ -585,6 +619,18 @@ public final class LayoutComponentsFilter extends Filter {
         }
 
         if (matchedGroup == communityPosts) {
+            // YouTube now also shows community posts on a dedicated community page for channels,
+            // and hiding its posts prevents any posts from loading (the page shows a loading
+            // spinner forever) (https://github.com/MorpheApp/morphe-patches/issues/4101).
+            // The page is found by its browse id, as the back button it is navigated with is also
+            // visible on other pages, such as the search results, and on the page below the watch page.
+            // The watch page, with its related videos, comments and other panels, covers the page
+            // below it, also when the video is opened from the community page
+            // (https://github.com/MorpheApp/morphe-patches/issues/4170).
+            if (COMMUNITY_PAGE_BROWSE_ID.equals(browseId) && !PlayerType.getCurrent().isMaximizedOrFullscreen()) {
+                return false;
+            }
+
             return contextInterface.isHomeFeedOrRelatedVideo() || contextInterface.isSubscriptionOrLibrary();
         }
 
@@ -614,18 +660,23 @@ public final class LayoutComponentsFilter extends Filter {
             }
         }
 
-        if (matchedGroup == inviteToMessageCard) {
+        if (matchedGroup == linearLayout) {
             // The identifier is generic and used all over the app.
             if (contentIndex != 0) {
                 return false;
             }
 
-            if (!inviteToMessageCardBuffer.check(buffer).isFiltered()) {
+            FilterGroupResult result = linearLayoutGroupList.check(buffer);
+            if (!result.isFiltered()) {
                 return false;
             }
 
             // Check the navigation button last and only after all buffer checks pass.
-            return NavigationButton.getSelectedNavigationButton() == NavigationButton.NOTIFICATIONS;
+            if (result.getSetting() == Settings.HIDE_INVITE_TO_MESSAGE_CARD) {
+                return NavigationButton.getSelectedNavigationButton() == NavigationButton.NOTIFICATIONS;
+            }
+
+            return true;
         }
 
         if (matchedGroup == liveStream) {
@@ -1405,8 +1456,8 @@ public final class LayoutComponentsFilter extends Filter {
     /**
      * Injection point.
      */
-    public static boolean hideSnackbar() {
-        return Settings.HIDE_SNACKBAR.get();
+    public static boolean hideSnackbar(boolean skipDisplay) {
+        return skipDisplay || Settings.HIDE_SNACKBAR.get();
     }
 
     /**

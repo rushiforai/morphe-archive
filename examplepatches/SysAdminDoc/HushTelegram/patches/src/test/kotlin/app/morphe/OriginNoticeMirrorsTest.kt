@@ -13,7 +13,7 @@ package app.morphe
 
 import java.io.File
 import java.net.HttpURLConnection
-import java.net.URL
+import java.net.URI
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -78,7 +78,7 @@ class OriginNoticeMirrorsTest {
 
     /** The status and the Retry-After header that came with it. */
     private fun status(url: String): Pair<String, String?> {
-        val connection = URL(url).openConnection() as HttpURLConnection
+        val connection = URI(url).toURL().openConnection() as HttpURLConnection
         connection.requestMethod = "HEAD"
         connection.instanceFollowRedirects = true
         connection.connectTimeout = 20_000

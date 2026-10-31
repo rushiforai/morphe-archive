@@ -43,6 +43,13 @@ private val lastWaveMusicCardServiceResourcePatch = resourcePatch {
                 .firstOrNull { it.getAttribute("android:name") == PLAYBACK_SERVICE }
                 ?: throw PatchException("Could not find $PLAYBACK_SERVICE")
 
+            // LastWave declares it itself since version 5.0.0.
+            val actions = playbackService.getElementsByTagName("action")
+            val declared = (0 until actions.length).any {
+                (actions.item(it) as Element).getAttribute("android:name") == MUSIC_CARD_SERVICE_ACTION
+            }
+            if (declared) return@use
+
             playbackService.appendChild(
                 document.createElement("intent-filter").apply {
                     appendChild(

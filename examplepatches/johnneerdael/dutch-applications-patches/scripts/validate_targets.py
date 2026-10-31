@@ -2,6 +2,7 @@
 import argparse
 from contextlib import contextmanager
 import json
+import hashlib
 from pathlib import Path
 import re
 import shutil
@@ -13,7 +14,34 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 DESKTOP = ROOT / ".tools/morphe-desktop-1.19.1-all.jar"
 # Patch -> patches it includes through dependencies.
+STREAMING_ORIGINALS = {
+    "kijk": "695ec882393b98385046423da5b8d8ca8126e4a5c175e7731cb209ef43452d63",
+    "videoland": "c990c0339ac1b8c79031aabccba0046f63ca005266031a18c35051c8b7a73810",
+}
 APPS = {
+    "kijk": {"Hide ads": [], "Disable tracking": [], "Skip consent screens": ["Disable tracking"]},
+    "videoland": {"Hide ads": [], "Disable tracking": [], "Skip consent screens": ["Disable tracking"]},
+    **{app: {
+        "Hide ads": [], "Disable tracking": ["Hide ads"],
+        "Skip consent screens": ["Disable tracking", "Hide ads"],
+        "Hide Premium banner": [],
+    } for app in ("nieuwsblad", "dsnieuws", "hbvl")},
+    "hln": {
+        "Hide ads": [], "Disable tracking": ["Hide ads"],
+        "Skip consent screens": ["Disable tracking", "Hide ads"],
+        "Hide Premium banner": [], "Read full articles": [],
+    },
+    "detijd": {
+        "Hide ads": [], "Disable tracking": ["Hide ads"],
+        "Skip consent screens": ["Disable tracking", "Hide ads"],
+        "Hide Premium banner": [], "Skip onboarding": [],
+        "Read full articles": ["Hide ads"], "Hide Mijn Tijd (expert)": [],
+    },
+    "humo": {
+        "Hide ads": [], "Disable tracking": ["Hide ads"],
+        "Skip consent screens": ["Disable tracking", "Hide ads"],
+        "Hide Premium banner": [], "Read full articles": [],
+    },
     "tvgids": {"Hide ads": [], "Disable tracking": ["Hide ads"],
                "Skip consent screens": ["Disable tracking", "Hide ads"]},
     "marktplaats": {"Hide ads": [], "Disable tracking": ["Hide ads"], "Disable ThreatMetrix": [], "Skip consent screens": ["Disable tracking", "Hide ads"], "Google sign-in via microG-Re": []},
@@ -58,19 +86,28 @@ APPS = {
         "Hide ads": [], "Disable tracking": ["Hide ads"],
         "Skip consent screens": ["Disable tracking", "Hide ads"],
     },
+    "west": {
+        "Hide ads": [], "Disable tracking": ["Hide ads"],
+        "Skip consent screens": ["Disable tracking", "Hide ads"],
+    },
     "parool": {
         "Hide ads": [], "Hide Premium banner": [], "Disable tracking": ["Hide ads"],
         "Skip consent screens": ["Disable tracking", "Hide ads"], "Read full articles": [],
+    },
+    "demorgen": {
+        "Hide ads": [], "Disable tracking": ["Hide ads"],
+        "Skip consent screens": ["Disable tracking", "Hide ads"],
+        "Hide Premium banner": [], "Read full articles": [],
     },
     "trouw": {
         "Hide ads": [], "Hide Premium banner": [], "Disable tracking": ["Hide ads"],
         "Skip consent screens": ["Disable tracking", "Hide ads"], "Read full articles": [],
     },
-    "ad": {
+    **{app: {
         "Hide ads": [], "Disable tracking": ["Hide ads"],
         "Skip consent screens": ["Disable tracking", "Hide ads"],
         "Hide Premium banner": [], "Read full articles": [],
-    },
+    } for app in ("ad", "tubantia")},
     "nrc": {
         "Hide ads": [], "Disable tracking": ["Hide ads"],
         "Skip consent screens": ["Disable tracking", "Hide ads"],
@@ -127,12 +164,35 @@ def prepare_input(original: Path, out: Path) -> tuple[Path, Path]:
 
 
 def verifier_command(app: str, destination: Path, effective: set[str], apk: Path | None = None,
-                     original_reference: Path | None = None) -> list[str]:
-    if app in {"tvgids", "marktplaats", "9292", "weerplaza", "nunl", "volkskrant", "trouw", "parool", "ftm", "flitsmeister", "ad", "nrc", "dumpert", "rtl", "brabant", "vi", "teletekst"}:
+                     original_reference: Path | None = None, original_input: Path | None = None) -> list[str]:
+    if app == "videoland":
+        if original_reference is None:
+            raise ValueError("Videoland mobile validation needs the decoded original")
+        command = [sys.executable, "tests/verify_videoland.py", str(original_reference), str(destination)]
+        for patch, flag in [("Hide ads", "--ads"), ("Disable tracking", "--tracking"), ("Skip consent screens", "--consent")]:
+            if patch in effective:
+                command.append(flag)
+        if apk is not None:
+            if original_input is None:
+                raise ValueError("Videoland mobile validation needs the whole original split input")
+            command += ["--original-apks", str(original_input), "--patched-apk", str(apk)]
+        return command
+    if app == "kijk":
+        if original_reference is None:
+            raise ValueError("KIJK validation needs the decoded publisher original")
+        command = [sys.executable, "tests/verify_kijk_consent.py", "--original", str(original_reference), "--patched", str(destination)]
+        for patch in sorted(effective):
+            command += ["-e", patch]
+        if apk is not None:
+            if original_input is None:
+                raise ValueError("KIJK validation needs the original APK for payload checks")
+            command += ["--original-apk", str(original_input), "--patched-apk", str(apk)]
+        return command
+    if app in {"hbvl", "tubantia", "nieuwsblad", "dsnieuws", "hln", "detijd", "humo", "demorgen", "tvgids", "marktplaats", "9292", "weerplaza", "nunl", "volkskrant", "trouw", "parool", "ftm", "flitsmeister", "ad", "nrc", "dumpert", "rtl", "brabant", "west", "vi", "teletekst"}:
         command = [sys.executable, f"tests/verify_{app}.py", str(destination)]
     else:
         command = [sys.executable, "tests/verify_targets.py", app, str(destination)]
-    if app in {"tvgids", "marktplaats", "9292", "dumpert", "rtl", "brabant", "vi", "teletekst"} and apk is not None:
+    if app in {"detijd", "tvgids", "marktplaats", "9292", "dumpert", "rtl", "brabant", "west", "vi", "teletekst"} and apk is not None:
         command += ["--apk", str(apk)]
     if app == "tvgids":
         if original_reference is None:
@@ -176,10 +236,10 @@ def run(command: list[str], log: Path) -> None:
 
 
 def decode_and_verify(out: Path, app: str, apk: Path, name: str, effective: set[str], compact: bool = False,
-                      original_reference: Path | None = None) -> None:
+                      original_reference: Path | None = None, original_input: Path | None = None) -> None:
     with decoded_destination(out, name, compact) as destination:
         run(["apktool", "d", "-f", "-o", str(destination), str(apk)], out / f"decode-{name}.log")
-        run(verifier_command(app, destination, effective, apk=apk, original_reference=original_reference), out / f"verify-{name}.log")
+        run(verifier_command(app, destination, effective, apk=apk, original_reference=original_reference, original_input=original_input), out / f"verify-{name}.log")
 
 
 def main() -> None:
@@ -210,8 +270,16 @@ def main() -> None:
         patch_input, reference = prepare_input(original, out)
     except (ValueError, KeyError, zipfile.BadZipFile) as error:
         parser.error(str(error))
-    decode_and_verify(out, args.app, reference, "original", set(), args.compact, reference)
-    print(f"PASS: {args.app} original has none of the patch effects", flush=True)
+    trusted_decoded = None
+    if args.app in STREAMING_ORIGINALS:
+        if hashlib.sha256(reference.read_bytes()).hexdigest() != STREAMING_ORIGINALS[args.app]:
+            raise SystemExit(f"Unsupported original {args.app} APK; inspect this publisher build first")
+        trusted_decoded = out / "decoded-original"
+        run(["apktool", "d", "-f", "-o", str(trusted_decoded), str(reference)], out / "decode-original.log")
+        print(f"PASS: {args.app} publisher input digest and decoded reference", flush=True)
+    else:
+        decode_and_verify(out, args.app, reference, "original", set(), args.compact, reference)
+        print(f"PASS: {args.app} original has none of the patch effects", flush=True)
 
     for selection in selections:
         name = "all" if len(selection) > 1 else re.sub(r"\W+", "-", selection[0].lower())
@@ -231,10 +299,14 @@ def main() -> None:
         assert set(result["appliedPatches"]) == set(selection)
         run(["apksigner", "verify", str(output)], out / f"signature-{name}.log")
         effective = set(selection) | {dependency for patch in selection for dependency in patches[patch]}
-        decode_and_verify(out, args.app, output, name, effective, args.compact, reference)
+        decode_and_verify(out, args.app, output, name, effective, args.compact,
+                          trusted_decoded or reference, patch_input if trusted_decoded else None)
         print(f"PASS: {args.app} {name}; patch report, signature and decoded effects", flush=True)
         if args.compact and name != "all":
             output.unlink()
+
+    if args.compact and trusted_decoded is not None:
+        shutil.rmtree(trusted_decoded)
 
 
 if __name__ == "__main__":

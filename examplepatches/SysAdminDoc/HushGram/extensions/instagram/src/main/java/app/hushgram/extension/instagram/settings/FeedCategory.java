@@ -18,6 +18,7 @@ import android.preference.PreferenceScreen;
 import java.util.Set;
 
 import app.hushgram.extension.instagram.feed.FeedFollowButton;
+import app.hushgram.extension.instagram.feed.HideCaptions;
 import app.hushgram.extension.instagram.feed.CarouselPeek;
 import app.hushgram.extension.instagram.feed.ReelCorners;
 import app.hushgram.extension.instagram.feed.StoryCorners;
@@ -36,6 +37,7 @@ final class FeedCategory {
         boolean tabSwipe = build.contains(PatchFamily.TAB_SWIPE);
         boolean askLike = build.contains(PatchFamily.ASK_BEFORE_LIKE);
         boolean askRefresh = build.contains(PatchFamily.ASK_BEFORE_REFRESH);
+        boolean saveTray = build.contains(PatchFamily.SAVE_TRAY);
         boolean postTime = build.contains(PatchFamily.POST_TIME);
         boolean hiddenLikes = build.contains(PatchFamily.HIDDEN_LIKE_COUNTS);
         boolean backHome = build.contains(PatchFamily.BACK_LEAVES_HOME);
@@ -47,10 +49,12 @@ final class FeedCategory {
         boolean roundedCorners = build.contains(PatchFamily.ROUNDED_POST_CORNERS);
         boolean fullScreen = build.contains(PatchFamily.FULL_SCREEN_BARS);
         boolean feedFollow = build.contains(PatchFamily.FEED_FOLLOW);
+        boolean hideCaptions = build.contains(PatchFamily.HIDE_CAPTIONS);
+        boolean homeTopBar = build.contains(PatchFamily.HOME_TOP_BAR);
         PreferenceCategory feed = suggestions || following || swipe || fullResolution || homeFeed || tabSwipe
-                || askLike || askRefresh || postTime || hiddenLikes || backHome || homePlace || feedSound || feedTapPause || feedSeekBar || longPressZoom
+                || askLike || askRefresh || saveTray || postTime || hiddenLikes || backHome || homePlace || feedSound || feedTapPause || feedSeekBar || longPressZoom
                 || roundedCorners
-                || fullScreen || feedFollow
+                || fullScreen || feedFollow || hideCaptions || homeTopBar
                 ? category(screen, L10n.t("Feed"), SettingsIcons.FEED,
                         L10n.t("Choose what Home shows and how it behaves.")) : null;
         if (following) {
@@ -138,6 +142,11 @@ final class FeedCategory {
                     L10n.t("Asks before pulling down refreshes Home, Reels or another list. Cancel keeps what's on "
                             + "screen.")));
         }
+        if (saveTray) {
+            feed.addPreference(toggle(context, Settings.SKIP_COLLECTIONS_TRAY, L10n.t("Skip the collections tray"),
+                    L10n.t("Saving a post or reel shows Instagram's Saved message instead of the tray that asks you "
+                            + "to start a collection.")));
+        }
         if (backHome) {
             feed.addPreference(toggle(context, Settings.BACK_LEAVES_HOME, L10n.t("Back leaves Home as it is"),
                     L10n.t("Back on Home leaves Instagram without first scrolling the feed to the top and reloading "
@@ -208,6 +217,17 @@ final class FeedCategory {
             feed.addPreference(onFlip(toggle(context, Settings.HIDE_FEED_FOLLOW, L10n.t("Hide Follow on posts"),
                     L10n.t("Takes the Follow and Subscribe buttons off the top of posts in your feed. The name, time and menu stay.")),
                     FeedFollowButton::switchChanged));
+        }
+        if (hideCaptions) {
+            feed.addPreference(onFlip(toggle(context, Settings.HIDE_CAPTIONS, L10n.t("Hide captions"),
+                    L10n.t("Takes the caption off posts in your feed and off reels. The post stays, and the comments sheet "
+                            + "still shows it.")),
+                    HideCaptions::switchChanged));
+        }
+        if (homeTopBar) {
+            feed.addPreference(toggle(context, Settings.KEEP_HOME_TOP_BAR, L10n.t("Keep Home's top bar"),
+                    L10n.t("Keeps the Instagram logo and the buttons beside it at the top of Home while you scroll, "
+                            + "instead of sliding them away.")));
         }
     }
 }

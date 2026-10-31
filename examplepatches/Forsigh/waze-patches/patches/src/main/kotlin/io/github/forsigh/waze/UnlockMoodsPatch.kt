@@ -100,6 +100,7 @@ val unlockMoodsPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("Driving & Voice")
     dependsOn(skinRefreshPatch)
     execute {
         val canSet = resolveAnchor(

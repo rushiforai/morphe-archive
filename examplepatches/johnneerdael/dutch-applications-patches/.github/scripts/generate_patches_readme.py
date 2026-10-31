@@ -280,19 +280,23 @@ if 'SUMMARY' in actual_start:
         for entry in by_pkg.values():
             entry['prerelease_only'] = True
     slugs = {
+        'mobi.inthepocket.mediafin.detijd': 'detijd',
         'be.persgroep.android.news.mobiledm': 'demorgen',
         'be.humo.tvgids': 'humo',
         'be.persgroep.android.news.mobilehln': 'hln',
         'com.twipemobile.nbmobile': 'nieuwsblad',
         'com.twipemobile.dsmobile': 'dsnieuws',
+        'be.concentra.hbvl.MediaApp': 'hbvl',
+        'com.mecom.tctubantia.nl': 'tubantia',
         'com.talpa.kijk': 'kijk-android-tv',
+        'nl.sbs.kijk': 'kijk',
         'nl.uitzendinggemist': 'npo-start-android-tv',
         'nl.tvgids': 'tvgids-nl',
         'nl.rtl.videoland.v2': 'videoland-android-tv',
         'nl.marktplaats.android': 'marktplaats',
         'nl.negentwee': '9292',
         'com.supportware.Buienradar': 'buienradar', 'nl.flitsmeister': 'flitsmeister', 'nl.dumpert': 'dumpert',
-        'nl.rtl.rtlnieuws': 'rtl-nieuws', 'nl.omroepbrabant.android': 'omroep-brabant',
+        'nl.rtl.rtlnieuws': 'rtl-nieuws', 'nl.omroepbrabant.android': 'omroep-brabant', 'nl.omroepwest.android': 'omroep-west',
         'nl.vi': 'voetbal-international',
         'com.eoffice.android': 'nos-teletekst',
         'be.persgroep.android.news.mobilead': 'ad', 'org.yoki.android.buienalarm': 'buienalarm',
@@ -310,9 +314,9 @@ if 'SUMMARY' in actual_start:
         lines = [f'**Patch bundle [v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})** · `{branch}` · {len(by_pkg)} apps · {total} patches']
     categories = [
         ('Weather', {'buienalarm', 'buienradar', 'weeronline', 'weerplaza'}),
-        ('News and reading', {'demorgen', 'humo', 'hln', 'nieuwsblad', 'dsnieuws', 'ad', 'ftm', 'nrc', 'nunl', 'parool', 'trouw', 'volkskrant', 'rtl-nieuws', 'omroep-brabant', 'voetbal-international', 'nos-teletekst'}),
+        ('News and reading', {'detijd', 'demorgen', 'humo', 'hln', 'nieuwsblad', 'dsnieuws', 'hbvl', 'tubantia', 'ad', 'ftm', 'nrc', 'nunl', 'parool', 'trouw', 'volkskrant', 'rtl-nieuws', 'omroep-brabant', 'omroep-west', 'voetbal-international', 'nos-teletekst'}),
         ('Traffic and navigation', {'9292', 'flitsmeister'}),
-        ('Entertainment', {'dumpert', 'tvgids-nl', 'kijk-android-tv', 'npo-start-android-tv', 'videoland-android-tv'}),
+        ('Entertainment', {'dumpert', 'tvgids-nl', 'kijk', 'kijk-android-tv', 'npo-start-android-tv', 'videoland', 'videoland-android-tv'}),
         ('Other apps', {'marktplaats'}),
     ]
     for category, members in categories:
@@ -325,6 +329,9 @@ if 'SUMMARY' in actual_start:
                   '| --- | --- | --- | --- | --- |']
         for entry in sorted(entries, key=lambda e: e['name'].casefold()):
             slug = slugs.get(entry['package'])
+            mobile = {'nl.uitzendinggemist': 'npo-start', 'nl.rtl.videoland.v2': 'videoland'}
+            if entry.get('form_factor') == 'MOBILE':
+                slug = mobile.get(entry['package'], slug)
             link = f'{site}/apps/{slug}/' if slug else f'{site}/apps/'
             if branch == 'dev' and slug:
                 link = f'https://github.com/{repo_full}/blob/dev/docs/site/en/apps/{slug}.md'

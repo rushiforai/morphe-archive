@@ -32,8 +32,8 @@ final class NotificationsCategory {
         if (!groups && !suggestions) return;
         PreferenceCategory notifications = category(screen, L10n.t("Notifications"), SettingsIcons.NOTIFICATIONS,
                 groups && suggestions
-                        ? L10n.t("Group Instagram's notifications, and take suggestions off the Notifications page.")
-                        : groups ? L10n.t("Group Instagram's notifications so they don't pile up.")
+                        ? L10n.t("Group or mute Instagram's notifications, and take suggestions off the Notifications page.")
+                        : groups ? L10n.t("Group or mute Instagram's notifications so they don't pile up.")
                         : L10n.t("Take suggestions and Featured off the Notifications page."));
         if (groups) {
             SwitchPreference grouping = toggle(context, Settings.GROUP_NOTIFICATIONS, L10n.t("Group notifications"),
@@ -47,6 +47,8 @@ final class NotificationsCategory {
             notifications.addPreference(grouping);
             notifications.addPreference(toggle(context, Settings.GROUP_NOTIFICATIONS_BY_TYPE, L10n.t("Group by type"),
                     L10n.t("A group for each kind of notification, such as comments or messages, in place of one group.")));
+            // Muting works with grouping off, so this row doesn't hang under the switch.
+            notifications.addPreference(page.mutedChannelsRow(context));
         }
         // Hide suggested people's switches for the Notifications page. They sat under Profiles,
         // with the family's other rows, and a search for Profiles still finds them.
@@ -64,6 +66,10 @@ final class NotificationsCategory {
                     L10n.t("Hide Featured in notifications"),
                     L10n.t("Takes the Featured section off the top of your notifications, the posts and threads "
                             + "Instagram picks to show you there. Everything under it stays.")));
+            notifications.addPreference(toggle(context, Settings.HIDE_FEATURED_DOT,
+                    L10n.t("Keep Featured off the heart's dot"),
+                    L10n.t("Stops the red dot on the heart from showing up for Featured alone. Likes, comments and "
+                            + "new followers still light it.")));
         }
     }
 
@@ -71,6 +77,7 @@ final class NotificationsCategory {
     static boolean movedFromProfiles(String key) {
         return Settings.HIDE_FOLLOW_BACK_SUGGESTIONS.key.equals(key)
                 || Settings.HIDE_NOTIFICATION_SUGGESTIONS.key.equals(key)
-                || Settings.HIDE_NOTIFICATION_FEATURED.key.equals(key);
+                || Settings.HIDE_NOTIFICATION_FEATURED.key.equals(key)
+                || Settings.HIDE_FEATURED_DOT.key.equals(key);
     }
 }

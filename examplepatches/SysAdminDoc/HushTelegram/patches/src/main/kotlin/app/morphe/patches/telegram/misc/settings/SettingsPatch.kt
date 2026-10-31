@@ -200,6 +200,7 @@ private fun BytecodePatchContext.requireSettingsEntry() {
         Triple("onNewIntent", listOf("Landroid/app/Activity;", "Landroid/content/Intent;"), "V"),
         Triple("openFromNative", listOf("Landroid/app/Activity;"), "V"),
         Triple("nativeSettingsTitle", emptyList(), "Ljava/lang/String;"),
+        Triple("nativeRowShown", emptyList(), "Z"),
     )) {
         val method = owner.methods.filter { it.name == name }.nativeSingle("extension $name")
         nativeShape(method.nativeShape(parameters, result) && method.nativeCallable(true), "extension $name changed")
@@ -534,7 +535,11 @@ internal fun BytecodePatchContext.resolveNativeSettings(): NativeSettingsPlan? {
     val bridge = ImmutableMethod(owner.type, NATIVE_ROW_BRIDGE,
         listOf(ImmutableMethodParameter(NATIVE_LIST, null, null)), "V", AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
         null, null, MutableMethodImplementation(8)).toMutable().apply {
+        // The row's way can be switched off: the page is then Telegram's own, with no row added.
         addInstructionsWithLabels(0, """
+            invoke-static {}, $ENTRY->nativeRowShown()Z
+            move-result v0
+            if-eqz v0, :no_row
             const v0, $NATIVE_ROW_ID
             const v1, $top
             const v2, $bottom
@@ -546,6 +551,7 @@ internal fun BytecodePatchContext.resolveNativeSettings(): NativeSettingsPlan? {
             invoke-static/range {v0 .. v6}, $rowFactory
             move-result-object v0
             invoke-virtual {p0, v0}, $NATIVE_APPEND
+            :no_row
             return-void
         """)
     }

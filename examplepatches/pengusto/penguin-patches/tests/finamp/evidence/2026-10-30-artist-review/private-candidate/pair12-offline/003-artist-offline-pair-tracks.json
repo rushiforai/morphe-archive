@@ -1,0 +1,173 @@
+{
+  "capturedAt": "2026-10-30T13:38:44.106018+00:00",
+  "serial": "emulator-5586",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Back",
+      "class": "android.view.View",
+      "bounds": "[28,48][128,136]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "B Guest",
+      "class": "android.view.View",
+      "bounds": "[146,63][892,121]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Search",
+      "class": "android.view.View",
+      "bounds": "[892,52][980,132]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Menu",
+      "class": "android.view.View",
+      "bounds": "[980,52][1068,132]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "No Filter Active",
+      "class": "android.widget.Button",
+      "bounds": "[8,136][261,200]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Name",
+      "class": "android.widget.Button",
+      "bounds": "[937,136][1072,200]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Album Artist",
+      "class": "android.widget.Button",
+      "bounds": "[273,200][501,296]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Performing Artist",
+      "class": "android.widget.Button",
+      "bounds": "[517,200][807,296]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "01 - Credit Order\nFixture Credits\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,296][1036,428]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "02 - Credit Order\nFixture Credits\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,428][1036,560]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "03 - Credit Order\nFixture Credits\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,560][1036,692]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "04 - Credit Order\nFixture Credits\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,692][1036,824]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "05 - Credit Order\nFixture Credits\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,824][1036,956]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "06 - Credit Order\nFixture Credits\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,956][1036,1088]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Shuffle all",
+      "class": "android.widget.Button",
+      "bounds": "[888,1680][1000,1792]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "bd931fc3a008488fb1d1016a7d32675fc0b49d998f5cf13217730d08d999c9ef"
+}

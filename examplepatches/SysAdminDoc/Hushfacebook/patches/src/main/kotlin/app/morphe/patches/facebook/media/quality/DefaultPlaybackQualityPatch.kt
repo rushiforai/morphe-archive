@@ -24,6 +24,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -61,11 +62,12 @@ private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $det
 internal class QualityAnchors(
     val evaluator: ClassDef,
     val constructor: Method,
-    val setter: Method,
+    val firstChoice: PreselectedRead,
     val preselected: FieldReference,
     val formats: FieldReference,
     val labelOf: MethodReference,
-    val label: FieldReference,
+    /** The String field of what [labelOf] answers, or null when it answers the String itself. */
+    val label: FieldReference?,
     val configuration: FieldReference,
     val preferences: FieldReference,
     val origin: FieldReference,
@@ -73,63 +75,64 @@ internal class QualityAnchors(
 )
 
 /**
- * The DASH format evaluator, its constructor, its custom-quality setter, the preselected label its
- * first choice hands that setter, its tracks and how the setter reads a track's label. Changes
- * nothing.
+ * The DASH format evaluator, found as the class whose track array the method holding
+ * "HeroServicePlayer.setCustomQualityInternal" reads, its constructor, the preselected label its
+ * first choice compares with the tracks' labels, the tracks and how a track's label is read.
+ * Changes nothing.
  */
 internal fun BytecodePatchContext.findQualityAnchors(): QualityAnchors {
-    val calls = classDefByStrings(SET_CUSTOM_QUALITY, StringComparisonType.EQUALS)
+    val holding = classDefByStrings(SET_CUSTOM_QUALITY, StringComparisonType.EQUALS)
         .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
         .flatMap { holder -> holder.methods.filter { holdsString(it, SET_CUSTOM_QUALITY) } }
-        .flatMap(::customQualityCalls)
-    val call = calls.singleOrNull()
-        ?: refuse("expected one (String)V call in the method holding \"$SET_CUSTOM_QUALITY\", found ${calls.size}")
-    val evaluator = classDefByOrNull(call.definingClass) ?: refuse("this build has no ${call.definingClass}")
-    if (!takesAbrConfiguration(evaluator)) refuse("${evaluator.type}'s constructor takes no $ABR_CONFIGURATION")
-
-    val setter = evaluator.methods.singleOrNull {
-        it.name == call.name && it.returnType == "V" && it.parameterTypes.map(CharSequence::toString) == call.parameterTypes.map(CharSequence::toString)
-    } ?: refuse("${evaluator.type} has no ${call.name}(String)V")
+    val method = holding.singleOrNull()
+        ?: refuse("expected one method holding \"$SET_CUSTOM_QUALITY\", found ${holding.size}")
+    val arrays = trackArrayReads(method)
+    val evaluators = arrays.mapNotNull { classDefByOrNull(it.definingClass) }.filter(::takesAbrConfiguration).distinctBy { it.type }
+    val evaluator = evaluators.singleOrNull()
+        ?: refuse("expected one array of tracks of a class built with $ABR_CONFIGURATION read in the method holding \"$SET_CUSTOM_QUALITY\", found ${evaluators.size}")
     val constructors = evaluator.methods.filter { it.name == "<init>" }
     val constructor = constructors.singleOrNull() ?: refuse("expected one constructor of ${evaluator.type}, found ${constructors.size}")
 
-    val formatsFields = formatsFields(setter)
+    val formatsFields = arrays.filter { it.definingClass == evaluator.type }
     val formats = formatsFields.singleOrNull()
-        ?: refuse("expected ${evaluator.type}->${setter.name} to read one array of tracks, found ${formatsFields.size}")
+        ?: refuse("expected ${method.definingClass}->${method.name} to read one array of tracks of ${evaluator.type}, found ${formatsFields.size}")
     val format = formats.type.removePrefix("[")
-    val reads = labelReads(setter, format).distinctBy { it.toString() }
+    val reads = labelReads(method, format).distinctBy { it.toString() }
     val (labelOf, label) = reads.singleOrNull()
-        ?: refuse("expected ${evaluator.type}->${setter.name} to read a track's label one way, found ${reads.size}")
+        ?: refuse("expected ${method.definingClass}->${method.name} to read a track's label one way, found ${reads.size}")
 
-    val preselects = preselectedReads(evaluator, setter)
-    val preselected = preselects.singleOrNull()
-        ?: refuse("expected one label ${evaluator.type} hands its own ${setter.name}, found ${preselects.size}")
-    val stores = constructor.implementation?.instructions?.count {
-        (it as? ReferenceInstruction)?.reference?.toString() == preselected.toString()
-    } ?: 0
-    if (stores == 0) refuse("${evaluator.type}'s constructor doesn't fill in ${preselected.name}")
+    val preselects = preselectedReads(evaluator, constructor, labelOf)
+    val firstChoice = preselects.singleOrNull()
+        ?: refuse("expected one label ${evaluator.type} fills in and compares with the tracks' labels, found ${preselects.size}")
+    val preselected = firstChoice.field
+    val labelRead = firstChoice.method.implementation!!.instructions.elementAt(firstChoice.index) as TwoRegisterInstruction
+    if (labelRead.registerA > 15 || labelRead.registerB > 15) {
+        refuse("the first choice reads the preselected label in v${labelRead.registerA}/v${labelRead.registerB}, too high for the hook's call")
+    }
 
     // The extension's stubs cast to these types and read these members from outside Facebook's package.
     val formatClass = classDefByOrNull(format) ?: refuse("this build has no $format")
     val labelClass = classDefByOrNull(labelOf.definingClass) ?: refuse("this build has no ${labelOf.definingClass}")
-    val infoClass = classDefByOrNull(label.definingClass) ?: refuse("this build has no ${label.definingClass}")
-    listOf(evaluator, formatClass, labelClass, infoClass).forEach {
+    val infoClass = label?.let { classDefByOrNull(it.definingClass) ?: refuse("this build has no ${it.definingClass}") }
+    listOfNotNull(evaluator, formatClass, labelClass, infoClass).forEach {
         if (!AccessFlags.PUBLIC.isSet(it.accessFlags)) refuse("${it.type} isn't public, so the extension can't reach it")
     }
-    val members = listOf(
-        evaluator.fields.singleOrNull { it.name == preselected.name && it.type == preselected.type }?.accessFlags,
-        evaluator.fields.singleOrNull { it.name == formats.name && it.type == formats.type }?.accessFlags,
-        infoClass.fields.singleOrNull { it.name == label.name && it.type == label.type }?.accessFlags,
-        labelClass.methods.singleOrNull {
+    val members = listOfNotNull(
+        preselected.toString() to evaluator.fields.singleOrNull { it.name == preselected.name && it.type == preselected.type }?.accessFlags,
+        formats.toString() to evaluator.fields.singleOrNull { it.name == formats.name && it.type == formats.type }?.accessFlags,
+        label?.let { field ->
+            field.toString() to infoClass!!.fields.singleOrNull { it.name == field.name && it.type == field.type }?.accessFlags
+        },
+        labelOf.toString() to labelClass.methods.singleOrNull {
             it.name == labelOf.name && it.returnType == labelOf.returnType &&
                 it.parameterTypes.map(CharSequence::toString) == listOf(format)
         }?.accessFlags,
     )
-    listOf(preselected.toString(), formats.toString(), label.toString(), labelOf.toString()).zip(members).forEach { (name, flags) ->
+    members.forEach { (name, flags) ->
         if (flags == null || !AccessFlags.PUBLIC.isSet(flags)) refuse("$name isn't public, so the extension can't reach it")
     }
     val (configuration, preferences, origin, subOrigin) = findOriginAnchors(evaluator, constructor)
-    return QualityAnchors(evaluator, constructor, setter, preselected, formats, labelOf, label,
+    return QualityAnchors(evaluator, constructor, firstChoice, preselected, formats, labelOf, label,
         configuration, preferences, origin, subOrigin)
 }
 
@@ -180,18 +183,21 @@ private fun BytecodePatchContext.findOriginAnchors(evaluator: ClassDef, construc
 }
 
 /**
- * The setter asks the extension first, through the range form, which names the evaluator and the
- * label where they are and borrows no register, and the answer takes the label's place. The
- * constructor tells the extension about its evaluator before each return, at the return's own
- * label, so a branch that went straight to the return runs the hook too.
+ * The first choice asks the extension right after it reads the preselected label, with the
+ * evaluator it read it from and the label, and the answer takes the label's place. The hook is at
+ * the read's own successor, so a branch that went there runs it too. The constructor tells the
+ * extension about its evaluator before each return, at the return's own label, so a branch that
+ * went straight to the return runs the hook too.
  */
 internal fun BytecodePatchContext.applyQualityAnchors(anchors: QualityAnchors) {
     val owner = mutableClassDefBy(anchors.evaluator.type)
-    owner.findMutableMethodOf(anchors.setter).addInstructions(
-        0,
+    val choice = owner.findMutableMethodOf(anchors.firstChoice.method)
+    val read = choice.implementation!!.instructions.elementAt(anchors.firstChoice.index) as TwoRegisterInstruction
+    choice.addInstructionsAtControlFlowLabel(
+        anchors.firstChoice.index + 1,
         """
-            invoke-static/range { p0 .. p1 }, $CUSTOM_QUALITY
-            move-result-object p1
+            invoke-static { v${read.registerB}, v${read.registerA} }, $CUSTOM_QUALITY
+            move-result-object v${read.registerA}
         """,
     )
     val constructor = owner.findMutableMethodOf(anchors.constructor)
@@ -247,7 +253,7 @@ private fun BytecodePatchContext.fillStubs(anchors: QualityAnchors) {
             check-cast p0, ${anchors.formats.type.removePrefix("[")}
             invoke-static { p0 }, ${anchors.labelOf}
             move-result-object p0
-            iget-object p0, p0, ${anchors.label}
+            ${anchors.label?.let { "iget-object p0, p0, $it" }.orEmpty()}
             return-object p0
         """,
     )

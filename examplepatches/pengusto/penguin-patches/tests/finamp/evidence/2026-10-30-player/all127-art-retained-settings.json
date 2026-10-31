@@ -1,0 +1,20 @@
+{
+  "login_preserved_without_authentication": true,
+  "theme": "Dark",
+  "artist_order": "Metadata order",
+  "hide_bottom_actions": true,
+  "disable_gestures": true,
+  "downloads": {
+    "complete": 22,
+    "tracks": 8,
+    "images": 14,
+    "failed": 0
+  },
+  "stage": "fixed-all127-art",
+  "mask": 127,
+  "installed": {
+    "package": "com.unicornsonlsd.finamp",
+    "sha256": "e4f15e0284e4a98d86d618f41185f7861c372e6958f442185be62741a5d036cb"
+  },
+  "time": "2026-10-30T12:32:15.978584+00:00"
+}

@@ -287,9 +287,16 @@ class Fixture:
             self.audio[player_id] = make_wav(9, 120)
             source = media_source(player_id, len(self.audio[player_id]))
             source["RunTimeTicks"] = 120 * 10_000_000
+            # Finamp checks PlaybackInfo.MediaStreams before fetching lyrics.
+            source["MediaStreams"].append({
+                "Type": "Lyric", "Index": 1, "Codec": "lrc", "IsInterlaced": False,
+                "IsDefault": False, "IsForced": False, "IsExternal": True,
+                "IsTextSubtitleStream": False, "SupportsExternalStream": False,
+            })
             track = copy.deepcopy(next(item for item in items if item["Id"] == TRACK_IDS[0]))
             track.update({"Id": player_id, "Name": "Output Controls", "SortName": "output controls",
                           "RunTimeTicks": 120 * 10_000_000, "IndexNumber": 9,
+                          "HasLyrics": True,
                           "MediaSources": [source], "MediaStreams": source["MediaStreams"],
                           "Path": source["Path"], "UserData": user_data(player_id)})
             items.append(track)
@@ -331,8 +338,8 @@ class Fixture:
     def configure(self, body):
         mode, scope = body.get("mode", self.mode), body.get("scope", self.scope)
         timeout = body.get("holdTimeoutSeconds", self.hold_timeout)
-        if mode not in ("off", "hold", "reject") or scope not in ("artist", "all"):
-            raise ValueError("mode must be off/hold/reject; scope must be artist/all")
+        if mode not in ("off", "hold", "reject") or scope not in ("artist", "all", "artist-count"):
+            raise ValueError("mode must be off/hold/reject; scope must be artist/all/artist-count")
         if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not 0.1 <= timeout <= 300:
             raise ValueError("holdTimeoutSeconds must be between 0.1 and 300")
         with self.lock:
@@ -345,10 +352,14 @@ class Fixture:
         track_query = "audio" in types or "isnotfolder" in {s.casefold() for s in query.csv("Filters")}
         artist_query = any(query.csv(key) for key in ("ArtistIds", "AlbumArtistIds", "ContributingArtistIds"))
         # Limit=0 is a bounded count request; an empty/invalid Limit is rejected by Query.
-        unbounded = query.integer("Limit") is None and track_query
-        self.update_record(record, unboundedTrackQuery=unbounded, artistTrackQuery=artist_query and track_query)
+        limit = query.integer("Limit")
+        unbounded = limit is None and track_query
+        count_query = limit == 1 and track_query and artist_query
+        self.update_record(record, unboundedTrackQuery=unbounded, artistTrackQuery=artist_query and track_query,
+                           artistCountQuery=count_query)
         with self.lock:
-            if not unbounded or self.mode == "off" or (self.scope == "artist" and not artist_query):
+            targeted = count_query if self.scope == "artist-count" else unbounded and (self.scope == "all" or artist_query)
+            if not targeted or self.mode == "off":
                 return True
             if self.mode == "reject" or self.pending >= 32:
                 self.update_record(record, gateOutcome="rejected")
@@ -403,6 +414,11 @@ class Fixture:
                     for song in all_items:
                         if song.get("AlbumId") == item["Id"]:
                             ids.update(c["Id"] for c in song.get("ArtistItems", []))
+            if performing_only:
+                # Jellyfin 10.10.7 SqliteItemRepository: ContributingArtistIds
+                # matches a track credit only when that artist is not also an
+                # album artist. ArtistIds, used by Finamp, is their union.
+                ids.difference_update(c["Id"] for c in item.get("AlbumArtists", []))
             return ids
 
         for key, album_only, performing_only in (("ArtistIds", False, False), ("AlbumArtistIds", True, False),
@@ -689,8 +705,11 @@ class Handler(BaseHTTPRequestHandler):
         if len(parts) == 3 and parts[0] == "audio" and read:
             if parts[2] in ("stream", "stream.wav", "universal"):
                 return self.stream(parts[1])
-            if parts[2] == "lyrics" and parts[1] in TRACK_IDS:
-                return self.reply(200, {"Metadata": {"IsSynced": False}, "Lyrics": []})
+            if parts[2] == "lyrics" and parts[1] in self.fixture.audio:
+                lines = ([{"Text": "Penguin synthetic lyrics"},
+                          {"Text": "Player actions remain reachable."}]
+                         if self.fixture.profile == "player" and parts[1] == stable_id("player-output-track") else [])
+                return self.reply(200, {"Metadata": {"IsSynced": False}, "Lyrics": lines})
             if parts[2] == "main.m3u8":
                 return self.reply(501, {"error": "HLS/transcoding unsupported; select original streaming in Finamp"})
         if len(parts) == 3 and parts[0] == "albums" and parts[1] == ALBUM_ID and parts[2] == "similar" and read:

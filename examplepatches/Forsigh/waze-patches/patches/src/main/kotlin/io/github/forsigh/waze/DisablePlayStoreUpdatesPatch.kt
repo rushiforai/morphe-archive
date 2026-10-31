@@ -143,6 +143,7 @@ val disablePlayStoreUpdatesPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("Privacy & Updates")
 
     dependsOn(disablePlayStoreUpdatesResourcePatch)
 

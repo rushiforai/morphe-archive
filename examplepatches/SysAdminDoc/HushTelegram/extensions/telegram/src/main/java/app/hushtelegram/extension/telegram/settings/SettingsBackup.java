@@ -96,12 +96,17 @@ public final class SettingsBackup {
             Settings.HIDE_ADS,
             Settings.HIDE_STORIES,
             Settings.HIDE_RECOMMENDATIONS,
+            Settings.HIDE_KEYBOARD_FEATURED,
             Settings.HIDE_COMMERCE,
+            Settings.HIDE_EMOJI_STATUS,
+            Settings.UNLOCK_PREMIUM_ICONS,
+            Settings.LOCAL_EMOJI_STATUS,
             Settings.HIDE_PROMOTIONAL_BANNERS,
             Settings.HIDE_SPONSORED_PROXY,
             Settings.HIDE_POPULAR_APPS,
             Settings.SEARCH_ONLY_MY_CHATS,
             Settings.SEARCH_STYLED_NAMES,
+            Settings.BLOCK_NEW_CHATS,
             Settings.HIDE_CONTACTS_BLOCK,
             Settings.HIDE_GREETING_STICKERS,
             Settings.DISABLE_CHAT_SWIPE,
@@ -111,6 +116,8 @@ public final class SettingsBackup {
             Settings.SHOW_LOCAL_IDS,
             Settings.PROFILE_DATA_CENTER,
             Settings.DISABLE_DOUBLE_TAP_REACTIONS,
+            Settings.HIDE_REACTION_ROWS,
+            Settings.HIDE_REACTION_PICKER,
             Settings.QUIET_CONTACTS_NAG,
             Settings.HOLIDAY_LOOK,
             Settings.USE_SYSTEM_FONT,
@@ -139,6 +146,7 @@ public final class SettingsBackup {
             Settings.VOICE_MUSIC_PLAYER,
             Settings.SILENCE_NON_CONTACTS,
             Settings.REACTION_ALERTS,
+            Settings.REACTION_SOUND,
             Settings.DISABLE_ARCHIVE_PULL,
             Settings.REAR_CAMERA_FIRST,
             Settings.HIDE_GALLERY_CAMERA_TILE,
@@ -156,15 +164,21 @@ public final class SettingsBackup {
             Settings.OUTSIDE_TRANSLATE,
             Settings.HIDE_CHANNEL_BUTTONS,
             Settings.HIDE_CHANNEL_MUTE,
+            Settings.HIDE_CHANNEL_SHARE,
             Settings.HIDE_SEND_AS,
             Settings.HIDE_CONTACTS_TAB,
             Settings.COMPACT_TAB_BAR,
             Settings.SIDE_MENU,
             Settings.HIDE_NEW_MESSAGE,
+            SettingsRoutes.SETTINGS_ROW,
+            SettingsRoutes.TITLE_PRESS,
+            SettingsRoutes.SIDE_MENU_ROW,
+            SettingsRoutes.SHORTCUT,
             Settings.FASTER_DOWNLOADS,
             Settings.DATA_SAVER_DOWNLOADS,
             Settings.SAVE_DOWNLOADS,
             Settings.SAVE_RESTRICTED_DOWNLOADS,
+            Settings.SAVE_TIMED_MEDIA,
             Settings.STORAGE_FOLDER,
             Settings.ASK_BEFORE_GIF,
             Settings.ASK_BEFORE_VOICE_VIDEO,
@@ -172,8 +186,18 @@ public final class SettingsBackup {
             Settings.MESSAGE_MENU_COPY_PHOTO,
             Settings.MESSAGE_MENU_DETAILS,
             Settings.MESSAGE_MENU_QUICK_FORWARD,
+            Settings.MESSAGE_MENU_COPY_PROTECTED,
+            Settings.MESSAGE_MENU_SAVE_PROTECTED,
+            Settings.MESSAGE_MENU_FORWARD_COPY,
             Settings.DISABLE_ANALYTICS,
+            Settings.GHOST_MODE,
+            Settings.GHOST_READS,
+            Settings.GHOST_STORIES,
+            Settings.GHOST_TYPING,
+            Settings.GHOST_ONLINE,
             Settings.DISABLE_CALL_DEBUG,
+            Settings.RECORD_CALLS,
+            Settings.RECORD_CALL_BUTTON,
             Settings.DISABLE_DRAFT_PREVIEWS,
             Settings.LOCAL_DRAFTS,
             Settings.LOCAL_SEARCH,
@@ -320,7 +344,22 @@ public final class SettingsBackup {
                     changes.put(entry.getKey(), entry.getValue());
                 }
             }
+            keepAWayIn(changes);
             return changes;
+        }
+
+        /**
+         * A file can't turn every way into these settings off, the same as the screen can't (#29).
+         * When it would, the row on Telegram's Settings page stays on, so its switch shows what the
+         * app does.
+         */
+        private static void keepAWayIn(Map<Setting<?>, Object> changes) {
+            for (BooleanSetting way : SettingsRoutes.all()) {
+                Object value = changes.containsKey(way) ? changes.get(way) : way.savedValue();
+                if (Boolean.TRUE.equals(value)) return;
+            }
+            if (SettingsRoutes.SETTINGS_ROW.savedValue()) changes.remove(SettingsRoutes.SETTINGS_ROW);
+            else changes.put(SettingsRoutes.SETTINGS_ROW, Boolean.TRUE);
         }
 
         /** How many switches this file changes, the number the preview and the toast give. */

@@ -8,12 +8,14 @@ Bits: 1 = title validation, 2 = song artist order, 4 = artist-page loading,
 8 = offline performing-artist filtering, 16 = Tracks alphabet navigation,
 32 = player output access, 64 = quick-settings banner contrast.
 Every nonempty combination has its own delta against the original snapshot.
-The [source matrix](native-sources.json) pins complete, public MPL-2.0 source
+The [source matrix](native-sources.json) pins complete MPL-2.0 source
 trees; it is not a set of patches against current Finamp redesign.
 
 The current matrix has 127 nonempty selections. Historical 1.1.0 reports below
 cover seven selections; use that tag's scripts to reproduce its exact bundle.
-Current UI-fix acceptance is documented in `README-ui-fixes.md`; the earlier
+Current reviewed Artist acceptance is documented in `README-artist-review.md`.
+Player/UI acceptance remains in `README-ui-fixes.md` and
+[the reviewed player evidence](evidence/2026-10-30-player/README.md); the earlier
 five-patch suite remains in `README-next-fixes.md`.
 
 ## Verify a release bundle
@@ -37,8 +39,25 @@ or included in the MPP.
 Use Flutter 3.47.2 framework `d3b14c876900e553bc736ca19295fc09e3853e8e`,
 engine `a804b261645ef8c13eb3d5c44a5c2fb0340c5539`, Dart 3.13.2, Android
 NDK `llvm-strip`, and a Python environment with `bsdiff4==1.2.6`.
-Clone `https://github.com/pengusto/finamp.git` and fetch the 128
-`penguin/finamp-native-1.0.1-mask-*` branches. Run:
+The 192 historical mask branches were removed from `pengusto/finamp` on
+2026-10-30. The maintainer subsequently chose to delete the local Git backup
+and discontinue preservation of these old combinations. No replacement source
+repository or downloadable source backup is provided.
+
+The commit/tree pins and historical `branch` fields in `native-sources.json`
+remain as provenance records. They do not guarantee that the source objects are
+still retrievable from GitHub. Exact source rebuilds of the old combinations
+are no longer supported from the maintained repository alone. Do not request
+the deleted backup from the maintainer.
+
+The following command is only usable if you independently retained a complete
+source repository containing every required pinned commit and tree. Set
+`FINAMP_SOURCE` to that repository and use the matrix/scripts from the release
+being reproduced. The builder checks the pinned tree before compiling.
+Already published patch bundles do not require the old source repository to
+apply; bundle verification and patch application are separate from rebuilding.
+
+Run from the Penguin repository root:
 
 ```sh
 python3 -B tests/finamp/build_native_payloads.py \
@@ -53,6 +72,12 @@ snapshot, then verifies a delta replay. It replaces the production manifest only
 after all 127 masks complete. `--masks 2` defaults to private partial output;
 partial runs cannot write into production resources. Use `--output` for a
 separate full exploratory rebuild too.
+
+Add `--test-source` to run each selected tree's complete Flutter suite before
+its native build. Each completed receipt records the passed count and test-log
+SHA-256. With `--resume --test-source`, an older untested receipt or a changed
+test log is rejected; successful payload replay alone cannot replace this source
+test evidence. Counts across combinations overlap and are not unique test cases.
 
 The published deltas replay byte for byte to their pinned hashes. A fresh source
 build in a different directory is **not claimed byte reproducible**: Flutter

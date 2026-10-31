@@ -11,6 +11,7 @@ import app.morphe.patches.facebook.downloads.video.GRAPHQL_STORY
 import app.morphe.patches.facebook.downloads.video.GRAPHQL_STORY_ATTACHMENT
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -31,7 +32,8 @@ import org.junit.Test
  *
  * Read from 584 (2026-10-27): the row is `LX/36P;`, its type list `A06`, the item builder `A01`
  * (type `LX/36Q;`, state `LX/36S;`), the row `A05`, sealing two lists (the Share group and the
- * whole row). None of those names is used here.
+ * whole row). 585 arm64 (2026-10-29) is `LX/03E8;` with the same method names; its type list loads no
+ * string, so the row is found from the item builder. None of those names is used here.
  */
 class PostActionButtonsFixtureTest {
     private val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
@@ -42,7 +44,13 @@ class PostActionButtonsFixtureTest {
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
                 val name = bundle.name
-                val owners = FixtureDex.classesHolding(bundle, ROW_TYPES_LITERAL)
+                // The holders of "Save" with a static (type, state, Map) method, the item builder's shape.
+                val owners = FixtureDex.classesHolding(bundle, SAVE_TAG).filter { owner ->
+                    owner.methods.any {
+                        AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.size == 3 &&
+                            it.parameterTypes[2].toString() == MAP
+                    }
+                }
                 val classes = FixtureDex.classes(bundle, owners.flatMap(::typesNamed).toSet() +
                     setOf(GRAPHQL_STORY, GRAPHQL_STORY_ATTACHMENT, GRAPHQL_MEDIA))
                 val context = PatchContexts.of((owners + classes.values).distinctBy { it.type })

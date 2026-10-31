@@ -36,7 +36,7 @@ From the downloaded project source, replace the paths with your own:
 ```sh
 python3 tools/prepare-google-splits.py \
   --input /path/to/original-google.apkm \
-  --bundle /path/to/maps-automotive-for-byd-morphe-preview.10.mpp \
+  --bundle /path/to/maps-automotive-for-byd-morphe-preview.11.mpp \
   --cli /path/to/morphe-desktop-1.18.1-all.jar \
   --sdk /path/to/android-sdk \
   --keystore /path/to/your-existing-maps.keystore \
@@ -70,7 +70,7 @@ The Desktop merge command, for those explicitly testing the merged path, is:
 
 ```sh
 java -Xmx6g -jar morphe-desktop.jar patch --unsigned --exclusive \
-  -p maps-automotive-for-byd-morphe-preview.10.mpp \
+  -p maps-automotive-for-byd-morphe-preview.11.mpp \
   -e "Google app for BYD (MicroG-RE TEST)" \
   -o google-merged-unsigned.apk -r google-result.json -t google-scratch original-google.apkm
 ```

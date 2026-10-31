@@ -62,17 +62,24 @@ class KeepFeedVideosMutedFixtureTest {
         val where = "${bundle.name}: $type->${change.name}"
         val body = mutable.methods.single { same(it, change) }.implementation!!.instructions.toList()
         assertEquals("$where: two instructions added", changeCode.size + 2, body.size)
-        assertEquals("$where: the read stays first", Opcode.IGET_BOOLEAN, body[0].opcode)
-        val ask = body[1]
+        val at = state.askAt
+        // 585 bumps a counter before the read, so the read is not always first; the ask sits right after it.
+        assertEquals("$where: the read stays right before the ask", Opcode.IGET_BOOLEAN, body[at - 1].opcode)
+        assertEquals("$where: the read is of the sound flag", state.field.toString(), (body[at - 1] as ReferenceInstruction).reference.toString())
+        assertEquals("$where: the read lands in the current flag's register", state.current, (body[at - 1] as OneRegisterInstruction).registerA)
+        val ask = body[at]
         assertEquals("$where: the ask's form", Opcode.INVOKE_STATIC, ask.opcode)
         assertEquals("$where: the ask", OWN_SOUND_CHANGE, (ask as ReferenceInstruction).reference.toString())
         val asked = ask as FiveRegisterInstruction
         assertEquals("$where: the ask's registers", listOf(state.reason, state.changeFlag, state.current),
             listOf(asked.registerC, asked.registerD, asked.registerE))
-        val answer = body[2]
+        val answer = body[at + 1]
         assertEquals("$where: the answer's form", Opcode.MOVE_RESULT, answer.opcode)
         assertEquals("$where: the answer's register", state.changeFlag, (answer as OneRegisterInstruction).registerA)
-        for (at in 1 until changeCode.size) assertEquals("$where: instruction $at", changeCode[at].opcode, body[at + 2].opcode)
+        for (index in changeCode.indices) {
+            val patchedIndex = if (index < at) index else index + 2
+            assertEquals("$where: instruction $index", changeCode[index].opcode, body[patchedIndex].opcode)
+        }
 
         val sessionWhere = "${bundle.name}: $type->${session.name}"
         val sessionBody = mutable.methods.single { same(it, session) }.implementation!!.instructions.toList()

@@ -79,12 +79,19 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  *   check for a similar-videos ad between the null check and the read of whether more are coming
  *   (LX/8Ms;->A0P:Z, before LX/8cW;->A0F), so the read is the first one every way on from the check
  *   comes to rather than where it jumps.
+ * - On 585 (emulator 2026-10-30) the data source (LX/05l9;, its check LX/07iz;->JhE()Z) first asks
+ *   its own seed check as the viewer opens, from a start method (LX/05l9;->HYl(LX/08Wt;)V) that on a
+ *   no hands its loaders the work that loads the video. A yes there left the viewer black for a
+ *   moment until the first page brought the video in (#237, a group's reel and a home feed reel).
+ *   That method asks again a second later, and a no then brings in the next reel, which Facebook
+ *   shows as an "Up next" pill under the video.
  *
  * The Warion step tells the extension a feed video is opening, the reels viewer's entry tells it
  * where the video opens from, and the fragment tells it when a Warion viewer opens and closes.
  * Both fetch mores ask it first, with the object asking, and answer false (nothing fetched) when
- * the extension says so, and the data source's seed check answers yes, except for a feed's ordinary
- * video ("<surface>::feed_story", or "group::multimedia_post" for one opened from its group), whose first page that answer would hold back (#237, 584 emulator
+ * the extension says so, and the data source's seed check answers yes from its second ask on,
+ * except for a feed's ordinary video ("<surface>::feed_story", or "group::multimedia_post" for one
+ * opened from its group), whose first page that answer would hold back (#237, 584 emulator
  * 2026-10-27: the viewer stood empty up to a second longer). The list builder hands it
  * whether more are coming, and separately whether to add its pagination page, each with the viewer's
  * params, whose origin the extension reads through a stub the patch fills, and takes its answers.
@@ -95,7 +102,7 @@ internal const val FEED_VIDEO_TAPPED = "$FEED_VIDEO_ALONE->feedVideoTapped()V"
 internal const val HOLDS_BACK = "$FEED_VIDEO_ALONE->holdsBack(Ljava/lang/Object;)Z"
 internal const val WARION_OPENING = "$FEED_VIDEO_ALONE->warionOpening(Ljava/lang/Object;Z)V"
 internal const val WARION_CLOSED = "$FEED_VIDEO_ALONE->warionClosed(Ljava/lang/Object;)V"
-internal const val SEED_ONLY = "$FEED_VIDEO_ALONE->seedOnly(Ljava/lang/Object;)Z"
+internal const val SEED_CHECK = "$FEED_VIDEO_ALONE->seedCheck(Ljava/lang/Object;)Z"
 internal const val VIEWER_OPENING = "$FEED_VIDEO_ALONE->reelsViewerOpening(Ljava/lang/Object;)V"
 internal const val MORE_REELS_COMING = "$FEED_VIDEO_ALONE->moreReelsComing(ZLjava/lang/Object;)Z"
 
@@ -471,5 +478,5 @@ internal fun BytecodePatchContext.keepFeedVideosAlone() {
     val (owner, source) = sources.singleOrNull()
         ?: throw PatchException("$PATCH: expected one class answering $check, found ${sources.size}")
     mutableClassDefBy(owner).methods.single { it.name == source.name && it.returnType == "Z" && it.parameterTypes.isEmpty() }
-        .askWithThis(SEED_ONLY, true)
+        .askWithThis(SEED_CHECK, true)
 }

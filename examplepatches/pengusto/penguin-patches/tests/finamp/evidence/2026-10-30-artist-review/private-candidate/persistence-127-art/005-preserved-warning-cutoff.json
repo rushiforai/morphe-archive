@@ -1,0 +1,140 @@
+{
+  "capturedAt": "2026-10-30T14:12:41.451976+00:00",
+  "serial": "emulator-5586",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Back",
+      "class": "android.view.View",
+      "bounds": "[0,48][112,160]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Downloads",
+      "class": "android.view.View",
+      "bounds": "[144,76][363,132]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Reset to defaults",
+      "class": "android.widget.Button",
+      "bounds": "[984,56][1080,152]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Prefer Quick Syncs\nWhen performing syncs, some typically static items (like tracks and albums) will not be updated. Download repair will always perform a full sync.",
+      "class": "android.widget.Switch",
+      "bounds": "[0,160][1080,256]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "true",
+      "checked": "true"
+    },
+    {
+      "text": "",
+      "content-desc": "Automatically Redownload Transcodes\nAutomatically redownload tracks which are expected to be at a different quality due to parent collection changes.",
+      "class": "android.widget.Switch",
+      "bounds": "[0,256][1080,416]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "true",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Show Media with Unknown Library.\nSome media may be downloaded with an unknown library. Turn off to hide these outside their original collection.",
+      "class": "android.widget.Switch",
+      "bounds": "[0,416][1080,576]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "true",
+      "checked": "true"
+    },
+    {
+      "text": "",
+      "content-desc": "Download Worker count\nAmount of workers for syncing metadata and deleting downloads. Increasing download workers may speed up download syncing and deleting, especially when server latency is high, but can introduce lag.\n1 Download Workers",
+      "class": "android.view.View",
+      "bounds": "[0,576][1080,968]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "0%, 1 Download Workers",
+      "class": "android.widget.SeekBar",
+      "bounds": "[0,824][96,920]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Max Concurrent Downloads\nIncreasing concurrent downloads may allow increased downloading in the background but may cause some downloads to fail if very large, or cause excessive lag in some cases.\n5 Concurrent Downloads",
+      "class": "android.view.View",
+      "bounds": "[0,968][1080,1360]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "17%, 5 Concurrent Downloads",
+      "class": "android.widget.SeekBar",
+      "bounds": "[164,1216][260,1312]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Download Size Warning Cutoff\nA warning message will be displayed when downloading more than this many tracks at once.",
+      "class": "android.view.View",
+      "bounds": "[0,1360][1080,1520]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "4",
+      "content-desc": "",
+      "class": "android.widget.EditText",
+      "bounds": "[932,1392][1032,1488]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "00fa23d54b8356d58151a8e6b86c9bf9b2a675ce6ede31a53247dd20b08fc435"
+}

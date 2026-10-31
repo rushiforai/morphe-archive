@@ -47,10 +47,17 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * it reads the unset default and keeps every post. The S22's account read unset for most group posts
  * (2026-10-20), so the patch hands that MobileConfig answer to the extension too, which says yes
  * while the switch is on.
+ *
+ * The fourth report (2026-10-30, read from 585) showed group posts whose `to` is empty and whose
+ * shape names the group nowhere Debug logging looked. The story also carries `target_group`
+ * (GraphQLStory.A0R on 585, key 0xf38a9a51 as Group 0x03937134), read as the same model class as
+ * `to`, so the join state stub takes it as it is. A build that doesn't declare it keeps the `to` rule.
  */
 
 internal const val STORY_TARGET_FIELD = "to"
 internal const val STORY_TARGET_TYPE = "Profile"
+internal const val STORY_TARGET_GROUP_FIELD = "target_group"
+internal const val STORY_TARGET_GROUP_TYPE = "Group"
 internal const val VIEWER_JOIN_STATE_FIELD = "viewer_join_state"
 
 /**
@@ -59,14 +66,19 @@ internal const val VIEWER_JOIN_STATE_FIELD = "viewer_join_state"
  */
 internal val JOIN_STATE_NAMES = listOf("CAN_JOIN", "CAN_REQUEST", "MEMBER")
 
-/** The extension class that reads the join state, and the two accessors this patch fills in. */
+/** The extension class that reads the join state, and the three accessors this patch fills in. */
 internal const val GROUP_POSTS = "$EXTENSION_PACKAGE/feed/GroupPosts;"
 internal const val STORY_TARGET_STUB = "storyTarget"
+internal const val STORY_TARGET_GROUP_STUB = "storyTargetGroup"
 internal const val JOIN_STATE_STUB = "joinState"
 
 /** Every accessor [story] declares of its `to` as a Profile. The patch wants exactly one. */
 internal fun storyTargetAccessors(story: ClassDef): List<Method> =
     storyModelAccessors(story, STORY_TARGET_FIELD, STORY_TARGET_TYPE)
+
+/** Every accessor [story] declares of its `target_group` as a Group. The patch takes one, or none. */
+internal fun storyTargetGroupAccessors(story: ClassDef): List<Method> =
+    storyModelAccessors(story, STORY_TARGET_GROUP_FIELD, STORY_TARGET_GROUP_TYPE)
 
 /** Every accessor [profile] declares of its join state. The patch wants exactly one. */
 internal fun joinStateAccessors(profile: ClassDef): List<Method> =
@@ -79,20 +91,40 @@ internal fun isJoinStateEnum(classDef: ClassDef): Boolean {
     return JOIN_STATE_NAMES.all { holdsString(init, it) }
 }
 
-/** The story's accessor of its `to`, and that profile's accessor of its join state. */
-internal class GroupJoinAccessors(val target: Method, val joinState: Method)
+/**
+ * The story's accessor of its `to`, its accessor of its `target_group` (null when the build declares
+ * none), and the profile's accessor of its join state.
+ */
+internal class GroupJoinAccessors(val target: Method, val targetGroup: Method?, val joinState: Method)
 
 /**
- * The two accessors, held to the evidence the rule rests on: one `to` accessor on GraphQLStory, its
+ * The accessors, held to the evidence the rule rests on: one `to` accessor on GraphQLStory, its
  * profile a tree model the extension can ask for a type name, one join state accessor on that
- * profile, and an enum answering it that names the states. Throws a [PatchException] otherwise.
+ * profile, and an enum answering it that names the states. A `target_group` accessor is taken when
+ * the story declares one, and it has to answer the class `to` does, since the join state stub casts
+ * to it. Throws a [PatchException] otherwise.
  */
 internal fun BytecodePatchContext.groupJoinAccessors(): GroupJoinAccessors {
-    val targets = storyTargetAccessors(classDefBy(GRAPHQL_STORY))
+    val story = classDefBy(GRAPHQL_STORY)
+    val targets = storyTargetAccessors(story)
     val target = targets.singleOrNull() ?: throw PatchException(
         "GraphQLStory has ${targets.size} accessors of $STORY_TARGET_FIELD as $STORY_TARGET_TYPE, expected one: " +
             targets.joinToString { it.name },
     )
+    val groups = storyTargetGroupAccessors(story)
+    if (groups.size > 1) {
+        throw PatchException(
+            "GraphQLStory has ${groups.size} accessors of $STORY_TARGET_GROUP_FIELD as $STORY_TARGET_GROUP_TYPE, " +
+                "expected at most one: ${groups.joinToString { it.name }}",
+        )
+    }
+    val targetGroup = groups.singleOrNull()
+    if (targetGroup != null && targetGroup.returnType != target.returnType) {
+        throw PatchException(
+            "GraphQLStory->${targetGroup.name} answers its $STORY_TARGET_GROUP_FIELD as ${targetGroup.returnType}, " +
+                "not ${target.returnType} like its $STORY_TARGET_FIELD",
+        )
+    }
     val profile = classDefByOrNull(target.returnType)
         ?: throw PatchException("${target.returnType}, GraphQLStory's $STORY_TARGET_FIELD, isn't in this Facebook build")
     if (profile.superclass != BASE_MODEL_WITH_TREE) {
@@ -107,14 +139,20 @@ internal fun BytecodePatchContext.groupJoinAccessors(): GroupJoinAccessors {
     if (enum == null || !isJoinStateEnum(enum)) {
         throw PatchException("${state.returnType} isn't an enum naming ${JOIN_STATE_NAMES.joinToString()}")
     }
-    return GroupJoinAccessors(target, state)
+    return GroupJoinAccessors(target, targetGroup, state)
 }
 
-/** Fills in the extension's two GroupPosts stubs with the accessors [groupJoinAccessors] finds. */
-internal fun BytecodePatchContext.fillGroupJoinStubs() {
+/**
+ * Fills in the extension's GroupPosts stubs with the accessors [groupJoinAccessors] finds, the
+ * `target_group` one only when the build declares it. Answers what it found, so a caller can say
+ * when a build has no `target_group`.
+ */
+internal fun BytecodePatchContext.fillGroupJoinStubs(): GroupJoinAccessors {
     val found = groupJoinAccessors()
     fillStoryModelStub(GROUP_POSTS, STORY_TARGET_STUB, found.target)
+    found.targetGroup?.let { fillStoryModelStub(GROUP_POSTS, STORY_TARGET_GROUP_STUB, it) }
     fillStoryModelStub(GROUP_POSTS, JOIN_STATE_STUB, found.joinState)
+    return found
 }
 
 /*

@@ -33,13 +33,20 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * comes back anyway isn't drawn (MarketplaceVideoAdAnchors.kt). See
  * MarketplaceRequestAnchors.kt and MarketplaceResponseAnchors.kt for where the requests and their
  * answers pass through Java, and the extension's MarketplaceAdFilter for what it changes.
+ *
+ * The same two hooks carry Marketplace's advanced search, with a switch of its own: the extension's
+ * MarketplaceSearchSyntax takes the rules out of a search's text on the way out and the listings
+ * that break them out of its answer, and MarketplaceFilterButton puts the Adv. Filters button on the
+ * results. It adds no hook of its own.
  */
 @Suppress("unused")
 val hideSponsoredMarketplaceListingsPatch = bytecodePatch(
     name = "Hide sponsored Marketplace listings",
     description = "Removes ads and boosted listings from Marketplace's feed and search results, so you see more " +
-        "of what people are selling. Listings people post stay. On by default. Turn it off in Hushfacebook " +
-        "settings > Marketplace.",
+        "of what people are selling. Listings people post stay. It also reads rules typed into Marketplace " +
+        "search: \"word\" keeps titles with the word, -word hides titles with it and in:place keeps " +
+        "listings in that place, and an Adv. Filters button writes them for you. The search rules and the " +
+        "button are off until you turn them on in Hushfacebook settings > Marketplace.",
     default = true,
 ) {
     category("Ads")

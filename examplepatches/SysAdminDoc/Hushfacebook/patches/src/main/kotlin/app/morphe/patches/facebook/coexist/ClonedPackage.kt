@@ -411,15 +411,47 @@ private fun callsOwnPackage(instruction: Instruction, register: Int, firebase: B
         (firebase && passesOnlyAs(instruction, register, FIREBASE_PACKAGE_ARGUMENTS))
 
 /**
- * Where [this] loads [packageName] only to name this app to Android ([callsOwnPackage]), or to
- * look up one of its resources, whatever else reads it then.
+ * Where [this] loads [packageName] only to name this app to Android ([callsOwnPackage]), apart from
+ * the failure log in that call's catch block, or to look up one of its resources, whatever else
+ * reads it then.
  */
 internal fun Method.ownPackageCallLoads(packageName: String): List<Int> {
     val firebase = definingClass == FIREBASE_MESSAGING
     return packageLoadsReadBy(packageName) { readers, code, register ->
-        readers.all { callsOwnPackage(code[it], register, firebase) } ||
+        val calls = readers.filter { callsOwnPackage(code[it], register, firebase) }
+        calls.isNotEmpty() && (readers - calls.toSet()).all { it in failureHandlerCode(calls, code) } ||
             readers.any { passesOnlyAs(code[it], register, RESOURCE_PACKAGE_ARGUMENTS) }
     }
+}
+
+/**
+ * The instructions of the catch blocks guarding any of [calls], from each handler's start to the
+ * first return, throw or goto. 585's AppInfoCore hands the package it asked about to its "Package
+ * not found" log there, which may as well name the running app.
+ */
+private fun Method.failureHandlerCode(calls: List<Int>, code: List<Instruction>): Set<Int> {
+    val tries = implementation?.tryBlocks.orEmpty()
+    if (tries.isEmpty()) return emptySet()
+    val addresses = code.runningFold(0) { address, it -> address + it.codeUnits }
+    val indexOfAddress = addresses.withIndex().associate { (index, address) -> address to index }
+    val ends = setOf(
+        Opcode.RETURN, Opcode.RETURN_OBJECT, Opcode.RETURN_VOID, Opcode.RETURN_WIDE,
+        Opcode.THROW, Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32,
+    )
+    val inside = mutableSetOf<Int>()
+    for (block in tries) {
+        val guarded = block.startCodeAddress until block.startCodeAddress + block.codeUnitCount
+        if (calls.none { addresses[it] in guarded }) continue
+        for (handler in block.exceptionHandlers) {
+            var at = indexOfAddress[handler.handlerCodeAddress] ?: continue
+            while (at < code.size) {
+                inside += at
+                if (code[at].opcode in ends) break
+                at++
+            }
+        }
+    }
+    return inside
 }
 
 /**

@@ -1,0 +1,17 @@
+{
+  "coverCaches": {
+    "__APP_STATE_pref_library_cover_colors_key": [
+      "9900000001|-15714224|1593835519",
+      "9900000002|-10471376|1744830463",
+      "9900000003|-13612992|1744830463"
+    ],
+    "__APP_STATE_pref_library_cover_ratios_key": [
+      "9900000001|0.7058824",
+      "9900000002|0.7058824",
+      "9900000003|0.7058824"
+    ]
+  },
+  "logs": {
+    "files/penguin-search-fixture/logs/2026-10-30-release.txt": "ab7d3d166e3012421c2e9182f67c76d52f844eaeff67145f02f95531b94d3e2f"
+  }
+}

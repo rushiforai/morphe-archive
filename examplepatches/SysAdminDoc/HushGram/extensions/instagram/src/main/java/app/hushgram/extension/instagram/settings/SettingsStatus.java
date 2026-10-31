@@ -328,6 +328,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Reply with a comment's GIF, Save comment photo's second switch, which a build can lack. */
+    public static boolean commentGifReply() {
+        return false;
+    }
+
     /** Rewritten by the Save profile picture patch. */
     public static boolean profilePicture() {
         return false;
@@ -351,6 +356,18 @@ public final class SettingsStatus {
     }
 
     public static boolean feedFollow() {
+        return false;
+    }
+
+    public static boolean hideCaptions() {
+        return false;
+    }
+
+    public static boolean homeTopBar() {
+        return false;
+    }
+
+    public static boolean keepReelsTopBar() {
         return false;
     }
 
@@ -395,6 +412,11 @@ public final class SettingsStatus {
     }
 
     public static boolean stopHeartbeat() {
+        return false;
+    }
+
+    /** Rewritten by the Use the highest refresh rate patch. */
+    public static boolean refreshRate() {
         return false;
     }
 
@@ -506,6 +528,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by the Skip the collections tray patch. */
+    public static boolean saveTray() {
+        return false;
+    }
+
     /** Rewritten by the Show a post's exact time patch. */
     public static boolean postTime() {
         return false;
@@ -558,6 +585,11 @@ public final class SettingsStatus {
 
     /** Rewritten by the Swipe through a chat's reels patch. */
     public static boolean chatReels() {
+        return false;
+    }
+
+    /** Rewritten by the Chat history tools patch. */
+    public static boolean chatHistory() {
         return false;
     }
 

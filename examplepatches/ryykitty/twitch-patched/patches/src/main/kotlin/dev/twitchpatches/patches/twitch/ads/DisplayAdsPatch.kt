@@ -47,6 +47,7 @@ val hideDisplayAdsPatch = bytecodePatch(
             return-object v0
         """, ExternalLabel("original", code.first()))
         blockBrowseDisplayAds(classes.flatMap { it.methods })
+        blockChannelSkins(classes)
         initializeAdFeature(1)
     }
 }

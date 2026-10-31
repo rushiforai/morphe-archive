@@ -35,7 +35,8 @@ import app.morphe.extension.shared.settings.PauseForTests;
  * Open feed videos on their own (#161): the first new reels feed to ask for more soon after a feed
  * video tap or the reels viewer opening from a feed surface, or from the full-screen player that
  * opening created, is that video's player and gets no, every time; so is a feed or data source first
- * asking while a Warion viewer that opening created is open, until that viewer closes; a feed that
+ * asking while a Warion viewer that opening created is open, until that viewer closes, though a held
+ * data source's first seed check keeps Facebook's answer so the video starts loading; a feed that
  * asked before, one asking long after the tap, one asking from the main screen, and one asking in a
  * viewer or player screen no feed video opened (a link, the Watch page) keeps Facebook's answer; off
  * or paused, nothing is held back.
@@ -262,6 +263,33 @@ public class FeedVideoAloneTest {
     }
 
     @Test
+    public void aHeldDataSourcesFirstSeedCheckKeepsFacebooksAnswer() {
+        assertFalse("asked with no viewer open", FeedVideoAlone.seedCheck(new Object()));
+
+        Object viewer = new Object();
+        warionFromFeed(viewer);
+        Object source = new Object();
+        assertFalse("its first ask starts loading the video", FeedVideoAlone.seedCheck(source));
+        assertTrue("the next ask holds the reels after it", FeedVideoAlone.seedCheck(source));
+        assertTrue("and every one after that", FeedVideoAlone.seedCheck(source));
+        assertTrue("its other checks hold from the start", FeedVideoAlone.seedOnly(source));
+
+        FeedVideoAlone.warionClosed(viewer);
+        Object next = new Object();
+        warionFromFeed(next);
+        assertFalse("reused for a second viewer, its first ask there starts the video", FeedVideoAlone.seedCheck(source));
+        assertTrue(FeedVideoAlone.seedCheck(source));
+        Object another = new Object();
+        assertFalse("another source in that viewer asks first too", FeedVideoAlone.seedCheck(another));
+        assertTrue(FeedVideoAlone.seedCheck(another));
+
+        FeedVideoAlone.warionClosed(next);
+        assertFalse("reused with no viewer open", FeedVideoAlone.seedCheck(source));
+        assertFalse("that answer sticks", FeedVideoAlone.seedCheck(source));
+        assertFalse("nobody asking", FeedVideoAlone.seedCheck(null));
+    }
+
+    @Test
     public void closingTheViewerLetsItsObjectsBeDecidedAgain() {
         Object viewer = new Object();
         warionFromFeed(viewer);
@@ -366,6 +394,7 @@ public class FeedVideoAloneTest {
         assertFalse("and its list no loading page", FeedVideoAlone.moreReelsComing(true, reels));
         clock.addAndGet(60_000);
         assertFalse("the data source asking later, the viewer still open", FeedVideoAlone.seedOnly(source));
+        assertFalse("and through its seed check", FeedVideoAlone.seedCheck(source));
         assertTrue(FeedVideoAlone.holdsBack(feed));
         assertTrue("another object in that viewer still holds", FeedVideoAlone.seedOnly(new Object()));
         assertTrue(statusLine(), statusLine().contains(FeedVideoAlone.OPENED + " 1"));

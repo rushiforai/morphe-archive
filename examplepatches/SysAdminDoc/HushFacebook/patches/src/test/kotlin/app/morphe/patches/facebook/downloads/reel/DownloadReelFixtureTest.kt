@@ -18,10 +18,12 @@ import app.morphe.patches.facebook.media.taptoplay.GROOT_PLAY
 import app.morphe.patches.facebook.media.taptoplay.grootPlays
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.ControlFlow
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -34,11 +36,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Download any reel run whole on each declared build's own sidebar and the classes it reaches: the
- * block goes in before the assembly call where v0 to v2 are free and the parked player is still in
- * its register, borrowing v0 to v2, and a fourth local for the story when its register is outside
- * v3 to v15, each proved free there by the liveness of the whole builder, and each register it
- * reads followed back from the call's own arguments. The build's
+ * Download any reel run whole on each declared build's own sidebar and the classes it reaches.
+ * The sidebar's render doesn't call the button factory on 585: it hands the button's kind to a
+ * static of its class that news up one small class per kind, and those call the factory, so the
+ * fixture loads the whole chain. The block goes in at the first instruction of the assembly call's
+ * straight run where six consecutive locals are dead and every value it reads is what the call
+ * gets (the player from its parked register), and it calls the helper over those six registers. The
+ * helper builds the button and adds it and its marker to the two lists itself. The build's
  * one FbShortsSideBarComponent render, which the button can't go in, gets a counter as its first
  * instruction and nothing else (#18). And the More sheet's builder asks for a Download row first
  * thing, through a helper on its class, with the handler made to take the row's click interface
@@ -50,54 +54,33 @@ class DownloadReelFixtureTest {
     private val function1 = "Lkotlin/jvm/functions/Function1;"
     private val session = "Lcom/facebook/auth/usersession/FbUserSession;"
     private val otherSidebarName = "FbShortsSideBarComponent"
+    private val showsButton = "Lapp/morphe/extension/facebook/download/ReelDownload;->showsButton()Z"
+    private val helperName = "hushfacebookDownloadButton"
+
+    private val verticalUfi = "Lapp/morphe/extension/facebook/download/ReelDownload;->verticalUfi(Z)Z"
+
+    /** What the block did on each ABI: how far in front of the assembly call it went, its first scratch register, and where it read the helper's six values (session, scoped context, player, story, buttons, markers); then where the render's layout flag is handed to the extension, and its register (#316). Both 585 ABIs lay the render out alike. */
+    private val expected = mapOf(
+        "arm64-v8a" to "before=42 scratch=3 sources=[62, 2, 28, 15, 23, 21] layout=217 v8",
+        "armeabi-v7a" to "before=42 scratch=3 sources=[62, 2, 28, 15, 23, 21] layout=217 v8",
+    )
 
     /** A render of the same Litho method as [render]: its name, its one scoped parameter and its return type. */
     private fun rendersLike(method: Method, render: Method) = method.name == render.name &&
         method.parameterTypes.map(CharSequence::toString) == render.parameterTypes.map(CharSequence::toString) &&
         method.returnType == render.returnType && holdsString(method, otherSidebarName)
 
-    /** Where the block goes on one bundle: [before] instructions before the assembly call, and the story in [story]. */
-    private data class Pin(val before: Int, val story: Int)
+    private fun isFactory(call: MethodReference) =
+        call.parameterTypes.count { it.toString() == function1 } == 4 && call.parameterTypes.firstOrNull()?.toString() == session
 
-    /**
-     * Each declared bundle's pick, by the end of its file name. 584's render (LX/AF0;->A0l) parks
-     * the scoped context over the player in v29 at instruction 549, so the block goes in at 532,
-     * where the button loop ends and the call's straight run starts, 38 instructions before the
-     * call. The story, the call's second argument, is still in v14 there, which the helper call
-     * names as it is.
-     *
-     * The armeabi-v7a build is a separate rebuild of the same render, and lays the call out the
-     * same way: its button loop ends and the call's straight run starts at 532, so the block goes
-     * in there, 38 instructions before the call at 570. v0 to v2 are free at 532, so the block
-     * keeps its own three locals, and the story resolves to v14 as on arm64.
-     */
-    private val pins = mapOf(
-        "${AppCompatibilities.FACEBOOK_TARGET_VERSION}-arm64-v8a.apkm" to Pin(before = 38, story = 14),
-        "${AppCompatibilities.FACEBOOK_TARGET_VERSION}-armeabi-v7a.apkm" to Pin(before = 38, story = 14),
-    )
+    private fun Method.body(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 
-    private fun callsButtonFactory(method: Method) = method.implementation?.instructions?.any { instruction ->
-        ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.parameterTypes?.let { types ->
-            types.count { it.toString() == function1 } == 4 && types.firstOrNull()?.toString() == session
-        } == true
-    } == true
+    private fun Instruction.called() = (this as? ReferenceInstruction)?.reference as? MethodReference
 
-    /**
-     * Where [method] gets its buttons made: itself when it calls the factory, as up to 583, or the
-     * one static of [owner], its class, that it calls and that calls the factory, as on 584.
-     */
-    private fun factoryCaller(method: Method, owner: ClassDef): Method? = if (callsButtonFactory(method)) method else {
-        val called = (method.implementation?.instructions ?: emptyList()).mapNotNull {
-            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf { call -> call.definingClass == owner.type }
-        }.map { "${it.name}${it.parameterTypes.joinToString("", "(", ")")}${it.returnType}" }.toSet()
-        owner.methods.singleOrNull { sibling ->
-            "${sibling.name}${sibling.parameterTypes.joinToString("", "(", ")")}${sibling.returnType}" in called &&
-                callsButtonFactory(sibling)
-        }
-    }
+    private fun Instruction.field() = (this as? ReferenceInstruction)?.reference as? FieldReference
 
-    /** Every class the builder names: the owners of what it calls and reads, and the types it makes or casts to. */
-    private fun namedBy(method: Method): Set<String> = method.implementation!!.instructions.mapNotNull { instruction ->
+    /** Every class the method names: the owners of what it calls and reads, and the types it makes or casts to. */
+    private fun namedBy(method: Method): Set<String> = method.body().mapNotNull { instruction ->
         when (val reference = (instruction as? ReferenceInstruction)?.reference) {
             is MethodReference -> reference.definingClass
             is FieldReference -> reference.definingClass
@@ -107,36 +90,52 @@ class DownloadReelFixtureTest {
     }.filter { it.startsWith("L") }.toSet()
 
     /** [namedBy], plus the parameter and return types of everything [method] calls. */
-    private fun reachedBy(method: Method): Set<String> = namedBy(method) + method.implementation!!.instructions.flatMap { instruction ->
-        ((instruction as? ReferenceInstruction)?.reference as? MethodReference)
-            ?.let { it.parameterTypes.map(CharSequence::toString) + it.returnType }.orEmpty()
+    private fun reachedBy(method: Method): Set<String> = namedBy(method) + method.body().flatMap { instruction ->
+        instruction.called()?.let { it.parameterTypes.map(CharSequence::toString) + it.returnType }.orEmpty()
     }.filter { it.startsWith("L") }
 
     @Test
     fun `the reel button and the More sheet row go in with proved registers on each declared build`() {
         val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
-        assertEquals("the declared builds", pins.keys.map { it.substringBefore('-') }.toSet(), versions)
         val checked = mutableSetOf<String>()
+        val actual = sortedMapOf<String, String>()
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
-                val pin = pins.entries.singleOrNull { bundle.name.endsWith(it.key) }?.value
-                    ?: throw AssertionError("${bundle.name} has no pin")
+                val abi = bundle.name.substringAfter("-$version-").substringBefore(".apkm")
                 val holders = FixtureDex.classesHolding(bundle, sidebarName)
                 val (builderClass, builder) = holders.flatMap { classDef ->
-                    classDef.methods.filter { holdsString(it, sidebarName) && factoryCaller(it, classDef) != null }.map { classDef to it }
+                    classDef.methods.filter { isSidebarBuilder(it, classDef.methods) }.map { classDef to it }
                 }.single()
-                val buttonMaker = factoryCaller(builder, builderClass)!!
+
+                // The classes the chain from the render to the factory names, loaded step by step as the patch's own lookups follow it.
+                val classes = mutableMapOf<String, ClassDef>()
+                FixtureDex.classes(bundle, namedBy(builder)).forEach { (type, classDef) -> classes[type] = classDef }
+                classes[builderClass.type] = builderClass
+                val statics = calledStatics(builder, builderClass.methods)
+                assertTrue("${bundle.name}: the render hands its buttons to a static of its class", statics.isNotEmpty())
+                FixtureDex.classes(bundle, statics.flatMap { namedBy(it) }.toSet()).forEach { (type, classDef) -> classes.putIfAbsent(type, classDef) }
+                val makers = reachedFactoryCallers(builder, builderClass.methods) { call ->
+                    classes[call.definingClass]?.let { resolveMethod(it, call) }
+                }
+                assertTrue("${bundle.name}: the buttons are made by ${makers.size} methods", makers.size >= 2)
+                assertTrue(
+                    "${bundle.name}: the render itself doesn't call the factory, it's two calls away",
+                    builder.body().none { instruction -> instruction.called()?.let(::isFactory) == true },
+                )
+                val factory = makers.flatMap { it.body() }.mapNotNull { it.called() }.filter(::isFactory)
+                    .distinctBy { "${it.definingClass}->${it.name}" }.single()
+
                 // The component's render: the builder itself up to 582, the one handing it the
                 // scoped context on 583. The component declares itself by name, so it's a holder too.
                 val (component, render) = if (builder.parameterTypes.size == 1) builderClass to builder else {
                     holders.flatMap { classDef -> classDef.methods.filter { rendersThrough(it, builder) }.map { classDef to it } }.single()
                 }
 
-                val types = namedBy(builder) + namedBy(buttonMaker) + component.fields.map { it.type } +
+                val types = namedBy(builder) + makers.flatMap { namedBy(it) } + component.fields.map { it.type } +
                     builder.parameterTypes.map { it.toString() } + setOf(function1, "Lcom/facebook/video/engine/api/VideoDataSource;")
-                val classes = mutableMapOf<String, ClassDef>()
                 FixtureDex.classes(bundle, types).forEach { (type, classDef) -> classes[type] = classDef }
-                FixtureDex.classesHolding(bundle, "fds_control_download_video").forEach { classes.putIfAbsent(it.type, it) }
+                val rowHolders = FixtureDex.classesHolding(bundle, "fds_control_download_video")
+                rowHolders.forEach { classes.putIfAbsent(it.type, it) }
                 // The other sidebar, whose render the patch counts in Hook status (#18).
                 val others = FixtureDex.classesHolding(bundle, otherSidebarName).filter { classDef ->
                     classDef.type != component.type && classDef.methods.any { rendersLike(it, render) }
@@ -147,9 +146,11 @@ class DownloadReelFixtureTest {
                 classes[component.type] = component
                 classes[builderClass.type] = builderClass
                 // The More sheet's builder, everything it calls with, and the row's own types (#18).
-                val sheetHolder = FixtureDex.classesHolding(bundle, CLEAR_MODE_ROW).single()
-                val sheetBuilder = sheetHolder.methods.single { holdsString(it, CLEAR_MODE_ROW) }
-                val sheetTypes = reachedBy(sheetBuilder)
+                // On 585 the method holding the row's id only builds the row, and a static method of another class adds it.
+                val sheetFixture = sheetFixture(bundle)
+                val sheetHolder = sheetFixture.builderClass
+                val sheetBuilder = sheetFixture.builder
+                val sheetTypes = reachedBy(sheetBuilder) + reachedBy(sheetFixture.row) + sheetFixture.row.definingClass
                 FixtureDex.classes(bundle, sheetTypes).forEach { (type, classDef) -> classes.putIfAbsent(type, classDef) }
                 val rowTypes = sheetTypes.mapNotNull(classes::get).flatMap { classDef ->
                     classDef.methods.filter { it.name == "<init>" }.flatMap { it.parameterTypes.map(CharSequence::toString) }
@@ -169,13 +170,17 @@ class DownloadReelFixtureTest {
                 val getter = paramsGetters(player).single()
                 val flag = params.methods.filter { holdsString(it, FB_SHORTS) }
                     .mapNotNull { reportedValues(it)[FB_SHORTS] }.distinctBy(FieldReference::toString).single()
+                // The config dump that names the layout flag, which the reader is found by (#316).
+                FixtureDex.classesHolding(bundle, VERTICAL_UFI_FLAG).forEach { classes.putIfAbsent(it.type, it) }
                 val context = PatchContexts.of(classes.values)
                 val sheet = context.moreSheet("the fixture")
 
                 downloadReelPatch.execute(context)
 
                 val sheetBody = context.mutableClassDefBy(sheetHolder.type).methods
-                    .single { it.name == sheetBuilder.name && holdsString(it, CLEAR_MODE_ROW) }
+                    .single { it.name == sheetBuilder.name &&
+                            it.parameterTypes.map(CharSequence::toString) == sheetBuilder.parameterTypes.map(CharSequence::toString)
+                    }
                     .implementation!!.instructions.toList()
                 val rowCall = sheetBody[6] as RegisterRangeInstruction
                 assertEquals(
@@ -199,31 +204,130 @@ class DownloadReelFixtureTest {
                     handler.methods.any { it.name == sheet.clickMethod && it.parameterTypes.isEmpty() && it.returnType == "V" },
                 )
 
-                val patched = context.mutableClassDefBy(builderClass.type).methods.single {
+                val patchedClass = context.mutableClassDefBy(builderClass.type)
+                val patched = patchedClass.methods.single {
                     it.name == builder.name && it.parameterTypes.map(CharSequence::toString) == builder.parameterTypes.map(CharSequence::toString)
                 }
                 val body = patched.implementation!!.instructions.toList()
-                val original = builder.implementation!!.instructions.toList()
+                val original = builder.body()
                 val assemblyAt = original.indexOfFirst { instruction ->
-                    ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.parameterTypes
-                        ?.count { it.toString() == "Ljava/util/ArrayList;" } == 2
+                    instruction.called()?.parameterTypes?.count { it.toString() == "Ljava/util/ArrayList;" } == 2
                 }
-                val injectAt = assemblyAt - pin.before
+                val injectAt = body.indexOfFirst { it.called()?.toString() == showsButton }
+                assertEquals("${bundle.name}: the switch is asked once", 1, body.count { it.called()?.toString() == showsButton })
+                // On 585 the builder is the render, so the layout hook (#316) is in this method too.
+                val renderIsBuilder = component.type == builderClass.type && render.name == builder.name &&
+                    render.parameterTypes.map(CharSequence::toString) == builder.parameterTypes.map(CharSequence::toString)
+                fun withoutLayoutHook(code: List<Instruction>): List<Instruction> {
+                    val at = code.indexOfFirst { it.called()?.toString() == verticalUfi }
+                    return if (at < 0) code else code.take(at) + code.drop(at + 2)
+                }
+                val hookShift = body.indexOfFirst { it.called()?.toString() == verticalUfi }.let { if (it in 0 until injectAt) 2 else 0 }
+                assertTrue("${bundle.name}: the block goes in front of the assembly call", injectAt in 0 until assemblyAt)
+                // The block: the switch, its answer, the branch past it, six moves into six consecutive
+                // locals, the helper over those six, and the nop its branch lands on.
+                val blockSize = 11
+                val scratch = (body[injectAt + 1] as OneRegisterInstruction).registerA
+                assertEquals("${bundle.name}: the block branches on the switch's answer", Opcode.IF_EQZ, body[injectAt + 2].opcode)
+                assertEquals("${bundle.name}: on the register the answer is in", scratch, (body[injectAt + 2] as OneRegisterInstruction).registerA)
+                val moves = (3..8).map { body[injectAt + it] }
+                moves.forEach { assertEquals("${bundle.name}: the block copies six values", Opcode.MOVE_OBJECT_FROM16, it.opcode) }
                 assertEquals(
-                    "${bundle.name}: the block's first call",
-                    "Lapp/morphe/extension/facebook/download/ReelDownload;->showsButton()Z",
-                    (body[injectAt] as ReferenceInstruction).reference.toString(),
+                    "${bundle.name}: into six consecutive locals",
+                    (scratch..scratch + 5).toList(),
+                    moves.map { (it as TwoRegisterInstruction).registerA },
                 )
-                assertEquals("${bundle.name}: the builder's own code up to the block", original.take(injectAt).map { it.opcode },
-                    body.take(injectAt).map { it.opcode })
-                val helper = body.single { instruction ->
-                    ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.name == "hushfacebookDownloadButton"
-                } as FiveRegisterInstruction
+                val helperCall = body[injectAt + 9] as RegisterRangeInstruction
+                assertEquals("${bundle.name}: the helper is called over the six", Opcode.INVOKE_STATIC_RANGE, helperCall.opcode)
+                assertEquals("${bundle.name}: from the first", scratch, helperCall.startRegister)
+                assertEquals("${bundle.name}: six registers", 6, helperCall.registerCount)
+                assertEquals("${bundle.name}: the helper", helperName, (helperCall as ReferenceInstruction).let { (it.reference as MethodReference).name })
+                assertEquals("${bundle.name}: the block ends on its nop", Opcode.NOP, body[injectAt + blockSize - 1].opcode)
+                // Hooked code is counted without the alignment nops a payload makes dexlib2 add or drop.
+                fun unpadded(list: List<Instruction>) = list.filter { it.opcode != Opcode.NOP }.map { it.opcode }
                 assertEquals(
-                    "${bundle.name}: the helper call's registers",
-                    listOf(0, 1, 2, pin.story),
-                    listOf(helper.registerC, helper.registerD, helper.registerE, helper.registerF),
+                    "${bundle.name}: the rest is Facebook's own code",
+                    unpadded(original),
+                    unpadded(withoutLayoutHook(body.take(injectAt) + body.drop(injectAt + blockSize))),
                 )
+                // The scratch registers are free at the block: nothing reads them again, and the
+                // sources aren't among them.
+                val sources = moves.map { (it as TwoRegisterInstruction).registerB }
+                assertTrue("${bundle.name}: the block reads none of the registers it writes", sources.none { it in scratch..scratch + 5 })
+                // The older button layout (#316, #298): the render reads the layout flag once, 1 for
+                // yes and 0 for no, and where the two writes meet the extension gets Facebook's
+                // answer back into the same register, so the branch to the older strip goes by it.
+                val renderOriginal = render.body()
+                val renderBody = context.mutableClassDefBy(component.type).methods.single {
+                    it.name == render.name && it.parameterTypes.map(CharSequence::toString) == render.parameterTypes.map(CharSequence::toString)
+                }
+                val renderCode = renderBody.implementation!!.instructions.toList()
+                val layoutAt = renderCode.indexOfFirst { it.called()?.toString() == verticalUfi }
+                assertEquals("${bundle.name}: the layout is asked once", 1, renderCode.count { it.called()?.toString() == verticalUfi })
+                // Where the hook sits in Facebook's own code, past the button block when that's ahead of it.
+                val layoutOriginal = layoutAt - if (renderIsBuilder && injectAt < layoutAt) blockSize else 0
+                val asked = renderCode[layoutAt] as RegisterRangeInstruction
+                val flagRegister = asked.startRegister
+                assertEquals("${bundle.name}: with the flag alone", 1, asked.registerCount)
+                assertEquals("${bundle.name}: its answer goes back in the flag", Opcode.MOVE_RESULT, renderCode[layoutAt + 1].opcode)
+                assertEquals("${bundle.name}: the same register", flagRegister, (renderCode[layoutAt + 1] as OneRegisterInstruction).registerA)
+                assertEquals(
+                    "${bundle.name}: right after Facebook's own read of the flag",
+                    listOf(Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT, Opcode.CONST_4, Opcode.IF_EQ, Opcode.CONST_4),
+                    renderOriginal.subList(layoutOriginal - 5, layoutOriginal).map { it.opcode },
+                )
+                assertEquals(
+                    "${bundle.name}: through the reader the config dump names the flag by",
+                    context.verticalUfiReader().toString(),
+                    renderOriginal[layoutOriginal - 5].called().toString(),
+                )
+                assertEquals(
+                    "${bundle.name}: yes and no both write the flag",
+                    listOf(flagRegister, flagRegister),
+                    listOf(renderOriginal[layoutOriginal - 3], renderOriginal[layoutOriginal - 1]).map { (it as OneRegisterInstruction).registerA },
+                )
+                val renderFlow = ControlFlow.of(renderBody)
+                assertEquals("${bundle.name}: a yes jumps to the hook", setOf(layoutAt - 1, layoutAt), renderFlow.normal[layoutAt - 2].toSet())
+                assertEquals("${bundle.name}: a no runs into it", listOf(layoutAt), renderFlow.normal[layoutAt - 1])
+                if (!renderIsBuilder) {
+                    assertEquals(
+                        "${bundle.name}: the rest of the render is Facebook's own",
+                        unpadded(renderOriginal),
+                        unpadded(withoutLayoutHook(renderCode)),
+                    )
+                }
+                actual[abi] = "before=${assemblyAt - (injectAt - hookShift)} scratch=$scratch sources=$sources layout=$layoutOriginal v$flagRegister"
+
+                // The helper builds the button and adds it and its marker itself.
+                val helperMethod = patchedClass.methods.single { it.name == helperName }
+                assertTrue("${bundle.name}: the helper is static", AccessFlags.STATIC.isSet(helperMethod.accessFlags))
+                assertEquals("${bundle.name}: the helper takes six values", 6, helperMethod.parameterTypes.size)
+                assertEquals("${bundle.name}: and answers nothing", "V", helperMethod.returnType)
+                val helperBody = helperMethod.implementation!!.instructions.toList()
+                assertEquals("${bundle.name}: the helper returns void", Opcode.RETURN_VOID, helperBody.last().opcode)
+                assertEquals("${bundle.name}: it makes one button", 1, helperBody.count { it.called()?.toString() == factory.toString() })
+                assertEquals(
+                    "${bundle.name}: it adds the button and its marker",
+                    2,
+                    helperBody.count { instruction ->
+                        instruction.opcode == Opcode.INVOKE_INTERFACE &&
+                            instruction.called()?.let { it.definingClass == "Ljava/util/List;" && it.name == "add" } == true
+                    },
+                )
+                val helperFields = helperBody.mapNotNull { it.field() }.map(FieldReference::toString)
+                val modeType = factory.parameterTypes[1].toString()
+                val factoryMode = makers.flatMap { it.body() }
+                    .filter { it.opcode == Opcode.SGET_OBJECT }.mapNotNull { it.field() }
+                    .filter { it.type == modeType }.map(FieldReference::toString).distinct().single()
+                assertTrue("${bundle.name}: the helper passes the mode every button of Facebook's gets", factoryMode in helperFields)
+                val marker = helperBody.filter { it.opcode == Opcode.INVOKE_STATIC }.mapNotNull { it.called() }
+                    .single { it.parameterTypes.size == 1 && it.returnType != "V" }
+                val iconEnum = marker.parameterTypes.single().toString()
+                val rowIcon = rowHolders.flatMap { holder -> holder.methods.filter { holdsString(it, "fds_control_download_video") } }
+                    .flatMap { it.body() }.filter { it.opcode == Opcode.SGET_OBJECT }.mapNotNull { it.field() }
+                    .first { it.type == iconEnum }
+                assertTrue("${bundle.name}: the helper draws the icon Facebook's download row draws", rowIcon.toString() in helperFields)
+
                 val otherRender = context.mutableClassDefBy(other.type).methods.single { rendersLike(it, render) }
                 val otherOriginal = other.methods.single { rendersLike(it, render) }
                 assertEquals(
@@ -263,5 +367,7 @@ class DownloadReelFixtureTest {
             }
         }
         assertEquals("a declared build has no fixture", versions, checked)
+        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), actual.keys)
+        assertEquals("where the block went and what it read", expected, actual)
     }
 }

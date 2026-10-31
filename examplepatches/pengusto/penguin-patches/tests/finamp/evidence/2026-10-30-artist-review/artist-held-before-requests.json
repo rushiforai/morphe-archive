@@ -1,0 +1,176 @@
+{
+  "requests": [
+    {
+      "id": 144,
+      "time": "2026-10-30T11:18:40.585574Z",
+      "method": "GET",
+      "path": "/users/d3116553644b50389ebaf6c52f6128a5/items",
+      "query": {
+        "includeitemtypes": [
+          "Audio"
+        ],
+        "parentid": [
+          "b16e0bc4a87c560f8bf0253856c6064b"
+        ],
+        "albumartistids": [
+          "413a725312dc5c0f82fc2e0a9c06ca31"
+        ],
+        "recursive": [
+          "true"
+        ],
+        "sortby": [
+          "PlayCount,SortName"
+        ],
+        "sortorder": [
+          "descending"
+        ],
+        "fields": [
+          "ChildCount,DateCreated,DateLastMediaAdded,Etag,Genres,ParentId,ProviderIds,Tags,SortName"
+        ],
+        "limit": [
+          "5"
+        ]
+      },
+      "state": "completed",
+      "unboundedTrackQuery": false,
+      "artistTrackQuery": true,
+      "artistCountQuery": false,
+      "status": 200,
+      "elapsedMs": 1.006
+    },
+    {
+      "id": 145,
+      "time": "2026-10-30T11:18:40.593259Z",
+      "method": "GET",
+      "path": "/users/d3116553644b50389ebaf6c52f6128a5/items",
+      "query": {
+        "includeitemtypes": [
+          "MusicAlbum"
+        ],
+        "parentid": [
+          "b16e0bc4a87c560f8bf0253856c6064b"
+        ],
+        "albumartistids": [
+          "413a725312dc5c0f82fc2e0a9c06ca31"
+        ],
+        "recursive": [
+          "true"
+        ],
+        "sortby": [
+          "PremiereDate,SortName"
+        ],
+        "sortorder": [
+          "ascending"
+        ],
+        "fields": [
+          "ChildCount,DateCreated,DateLastMediaAdded,Etag,Genres,ParentId,ProviderIds,Tags,SortName"
+        ]
+      },
+      "state": "completed",
+      "unboundedTrackQuery": false,
+      "artistTrackQuery": false,
+      "artistCountQuery": false,
+      "status": 200,
+      "elapsedMs": 0.963
+    },
+    {
+      "id": 146,
+      "time": "2026-10-30T11:18:40.597477Z",
+      "method": "GET",
+      "path": "/users/d3116553644b50389ebaf6c52f6128a5/items",
+      "query": {
+        "includeitemtypes": [
+          "MusicAlbum"
+        ],
+        "parentid": [
+          "b16e0bc4a87c560f8bf0253856c6064b"
+        ],
+        "artistids": [
+          "413a725312dc5c0f82fc2e0a9c06ca31"
+        ],
+        "recursive": [
+          "true"
+        ],
+        "sortby": [
+          "PremiereDate,SortName"
+        ],
+        "sortorder": [
+          "ascending"
+        ],
+        "fields": [
+          "ChildCount,DateCreated,DateLastMediaAdded,Etag,Genres,ParentId,ProviderIds,Tags,SortName"
+        ]
+      },
+      "state": "completed",
+      "unboundedTrackQuery": false,
+      "artistTrackQuery": false,
+      "artistCountQuery": false,
+      "status": 200,
+      "elapsedMs": 0.789
+    },
+    {
+      "id": 147,
+      "time": "2026-10-30T11:18:40.600206Z",
+      "method": "GET",
+      "path": "/users/d3116553644b50389ebaf6c52f6128a5/items",
+      "query": {
+        "includeitemtypes": [
+          "Audio"
+        ],
+        "parentid": [
+          "b16e0bc4a87c560f8bf0253856c6064b"
+        ],
+        "artistids": [
+          "413a725312dc5c0f82fc2e0a9c06ca31"
+        ],
+        "recursive": [
+          "true"
+        ],
+        "sortby": [
+          "PremiereDate,Album,ParentIndexNumber,IndexNumber,SortName"
+        ],
+        "fields": [
+          "ChildCount,DateCreated,DateLastMediaAdded,Etag,Genres,ParentId,ProviderIds,Tags,SortName"
+        ]
+      },
+      "state": "held",
+      "unboundedTrackQuery": true,
+      "artistTrackQuery": true,
+      "artistCountQuery": false,
+      "gateOutcome": "waiting"
+    },
+    {
+      "id": 148,
+      "time": "2026-10-30T11:18:41.481078Z",
+      "method": "POST",
+      "path": "/sessions/capabilities/full",
+      "query": {},
+      "state": "completed",
+      "status": 204,
+      "elapsedMs": 0.884
+    },
+    {
+      "id": 149,
+      "time": "2026-10-30T11:18:41.522141Z",
+      "method": "GET",
+      "path": "/socket",
+      "query": {
+        "apikey": [
+          "[redacted]"
+        ],
+        "deviceid": [
+          "6734d6f8-4824-4817-a732-d221ca7e07f8-"
+        ]
+      },
+      "state": "completed",
+      "status": 404,
+      "elapsedMs": 0.134
+    }
+  ],
+  "lastId": 149,
+  "pending": 1,
+  "mode": "hold",
+  "scope": "artist",
+  "retained": 149,
+  "capacity": 5000
+}

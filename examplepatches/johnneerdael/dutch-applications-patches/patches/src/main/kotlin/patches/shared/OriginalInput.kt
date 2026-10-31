@@ -9,7 +9,8 @@ import java.security.MessageDigest
 import javax.xml.parsers.DocumentBuilderFactory
 
 /** Compatibility declarations are catalog metadata; enforce original inputs at execution too. */
-internal fun validateOriginalInput(target: Compatibility, metadata: PackageMetadata, minSdk: Int?) {
+@JvmOverloads
+internal fun validateOriginalInput(target: Compatibility, metadata: PackageMetadata, minSdk: Int?, additionalMinSdks: Set<Int> = emptySet()) {
     val version = target.targets.single()
     check(metadata.packageName == target.packageName) { "Unsupported ${target.name} package" }
     check(metadata.versionName == version.version) { "Unsupported ${target.name} version" }
@@ -19,19 +20,25 @@ internal fun validateOriginalInput(target: Compatibility, metadata: PackageMetad
             .joinToString("") { "%02x".format(it.toInt() and 0xff) }
     }.toSet()
     check(signers.isNotEmpty() && target.signatures.orEmpty().containsAll(signers)) { "Untrusted or missing ${target.name} signer" }
-    check(minSdk != null && minSdk == version.minSdk) { "Unsupported ${target.name} manifest minSdk" }
+    check(minSdk != null && (minSdk == version.minSdk || minSdk in additionalMinSdks)) { "Unsupported ${target.name} manifest minSdk" }
 }
 
 /** Every mutating dependency also depends on this read-only preflight. */
-internal fun originalInput(target: Compatibility) = resourcePatch {
+internal fun originalInput(target: Compatibility, additionalMinSdks: Set<Int> = emptySet(), variants: List<Compatibility> = emptyList()) = resourcePatch {
     execute {
+        val selected = if (variants.isEmpty()) target else (listOf(target) + variants).singleOrNull { candidate ->
+            candidate.packageName == packageMetadata.packageName && candidate.targets.any { version ->
+                version.version == packageMetadata.versionName &&
+                    packageMetadata.versionCode.toIntOrNull() in version.versionCodes?.values.orEmpty()
+            }
+        } ?: error("Unsupported ${target.name} input variant")
         val manifest = DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }
             .newDocumentBuilder().parse(get("AndroidManifest.xml"))
         val entries = manifest.getElementsByTagName("uses-sdk")
         check(entries.length == 1) { "Expected one ${target.name} uses-sdk declaration" }
         val minSdk = (entries.item(0) as org.w3c.dom.Element)
             .getAttributeNS("http://schemas.android.com/apk/res/android", "minSdkVersion").toIntOrNull()
-        validateOriginalInput(target, packageMetadata, minSdk)
+        validateOriginalInput(selected, packageMetadata, minSdk, additionalMinSdks)
     }
 }
 

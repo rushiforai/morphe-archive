@@ -81,6 +81,7 @@ internal class FeedSoundState(
     val reason: Int,
     val changeFlag: Int,
     val current: Int,
+    val askAt: Int,
 )
 
 private fun same(a: Method, b: MethodReference) = a.name == b.name && a.returnType == b.returnType &&
@@ -119,17 +120,26 @@ internal fun feedSoundState(owner: ClassDef): FeedSoundState {
     val where = "$type->${change.name}"
 
     // The reasoned setter reads the flag it holds and compares it with the one it's asked for, first.
+    // Up to 584 the read is the first instruction. 585 puts a counter bump for the unmute reason in
+    // front of it (a branch lands on the read), so it's the first read of the state's own boolean
+    // field whose very next instruction compares it, not the first instruction.
     val code = change.implementation!!.instructions.toList()
     val self = change.localRegisterCount()
     val reason = self + 1
     val changeFlag = self + 3
-    val read = code.getOrNull(0) as? TwoRegisterInstruction
-    val field = (read as? ReferenceInstruction)?.reference as? FieldReference
-    if (read == null || read.opcode != Opcode.IGET_BOOLEAN || read.registerB != self || field?.definingClass != type) {
-        throw PatchException("$PATCH: $where doesn't start by reading its sound flag")
-    }
+    val readAt = code.indices.firstOrNull { at ->
+        val candidate = code[at] as? TwoRegisterInstruction
+        val candidateField = (candidate as? ReferenceInstruction)?.reference as? FieldReference
+        val next = code.getOrNull(at + 1) as? TwoRegisterInstruction
+        candidate != null && candidate.opcode == Opcode.IGET_BOOLEAN && candidate.registerB == self &&
+            candidateField?.definingClass == type && next != null &&
+            (next.opcode == Opcode.IF_EQ || next.opcode == Opcode.IF_NE) &&
+            setOf(next.registerA, next.registerB) == setOf(candidate.registerA, changeFlag)
+    } ?: throw PatchException("$PATCH: $where doesn't read its sound flag and compare it with the one it's asked for")
+    val read = code[readAt] as TwoRegisterInstruction
+    val field = (read as ReferenceInstruction).reference as FieldReference
     val current = read.registerA
-    val compare = code.getOrNull(1) as? TwoRegisterInstruction
+    val compare = code[readAt + 1] as TwoRegisterInstruction
     if (compare == null || (compare.opcode != Opcode.IF_EQ && compare.opcode != Opcode.IF_NE) ||
         setOf(compare.registerA, compare.registerB) != setOf(current, changeFlag)
     ) {
@@ -145,12 +155,12 @@ internal fun feedSoundState(owner: ClassDef): FeedSoundState {
     // The ask goes in between the read and the comparison, so nothing may jump to the comparison.
     val flow = ControlFlow.of(change)
     for (index in code.indices) {
-        if (index != 0 && 1 in flow.normal[index] + flow.exceptional[index]) {
+        if (index != readAt && (readAt + 1) in flow.normal[index] + flow.exceptional[index]) {
             throw PatchException("$PATCH: $where has a jump to its sound flag's comparison")
         }
     }
     if (maxOf(reason, changeFlag, current) >= 16) throw PatchException("$PATCH: $where has registers past v15")
-    return FeedSoundState(type, field, session, session.localRegisterCount() + 2, change, reason, changeFlag, current)
+    return FeedSoundState(type, field, session, session.localRegisterCount() + 2, change, reason, changeFlag, current, readAt + 1)
 }
 
 /** The one sound state outside the extension. Throws when there's none, or more than one. */
@@ -173,7 +183,7 @@ internal fun BytecodePatchContext.feedSoundState(): FeedSoundState {
 internal fun BytecodePatchContext.askFeedSound(state: FeedSoundState) {
     val owner = mutableClassDefBy(state.owner)
     owner.methods.single { same(it, state.change) }.addInstructions(
-        1,
+        state.askAt,
         """
             invoke-static { v${state.reason}, v${state.changeFlag}, v${state.current} }, $OWN_SOUND_CHANGE
             move-result v${state.changeFlag}

@@ -20,7 +20,7 @@ import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.patches.telegram.misc.time.EDITED_MESSAGE
 import app.morphe.patches.telegram.misc.time.FAST_DATE_FORMAT
 import app.morphe.patches.telegram.misc.time.MESSAGE_TIME_SHOWN
-import app.morphe.patches.telegram.misc.time.messageSecondsPatch
+import app.morphe.patches.telegram.misc.time.messageTimePatch
 import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -54,8 +54,8 @@ class KeepDeletedFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val context = context(build)
-            // The label rides the time hook of Message times with seconds, which patches first.
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageSecondsPatch.execute(context) })
+            // The label rides the shared time hook, which patches first, without Message times with seconds.
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageTimePatch.execute(context) })
             val plan = context.resolveKeepDeleted()
             assertEquals("$name: the cleanup's sparse array is the one the update loop fills", sparseType(build),
                 context.requireNotificationCleanup(plan.updates))
@@ -175,6 +175,9 @@ class KeepDeletedFixtureTest {
             assertEquals(1L, (painted.first() as WideLiteralInstruction).wideLiteral)
             val history = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "keepEditHistory" }.controlBody()
             assertEquals(1L, (history.first() as WideLiteralInstruction).wideLiteral)
+            // Message times with seconds wasn't picked, so its switch stays hidden (#49).
+            val seconds = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "messageSeconds" }.controlBody()
+            assertEquals("$name: no seconds switch without its patch", 0L, (seconds.first() as WideLiteralInstruction).wideLiteral)
         }
     }
 
@@ -182,7 +185,7 @@ class KeepDeletedFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val context = context(build)
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageSecondsPatch.execute(context) })
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageTimePatch.execute(context) })
             val known = context.resolveKeepDeleted()
             // The channel edit's cast goes, so its message read no longer follows it.
             val cast = known.edits.single { it.type == CHANNEL_EDIT }.insertAt - 2
@@ -205,7 +208,7 @@ class KeepDeletedFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val context = context(build)
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageSecondsPatch.execute(context) })
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageTimePatch.execute(context) })
             val known = context.resolveKeepDeleted()
             val field = known.red!!.field
             // Built in a local instead of the field, so the measuring writes no time text of its own.
@@ -255,7 +258,7 @@ class KeepDeletedFixtureTest {
         )
         for (build in Fixtures.declaredBuilds()) for ((change, mutate) in changes) {
             val context = context(build)
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageSecondsPatch.execute(context) })
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageTimePatch.execute(context) })
             mutate(context, sparseType(build))
             val before = context.mutableClassDefBy(MESSAGES_CONTROLLER).methods.associate { it.toString() to it.controlBody().map(::shape) }
             val failure = assertThrows("${build.name}: $change", PatchException::class.java) { keepDeletedPatch.execute(context) }
@@ -272,7 +275,7 @@ class KeepDeletedFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val context = context(build)
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageSecondsPatch.execute(context) })
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageTimePatch.execute(context) })
             val plan = context.resolveKeepDeleted()
             val layout = plan.layout
             assertEquals("$name: the bubble's own layout", plan.measure.definingClass, layout.definingClass)
@@ -316,10 +319,10 @@ class KeepDeletedFixtureTest {
             },
         )
         for (build in Fixtures.declaredBuilds()) {
-            val known = context(build).let { messageSecondsPatch.execute(it); it.resolveKeepDeleted().layout }
+            val known = context(build).let { messageTimePatch.execute(it); it.resolveKeepDeleted().layout }
             for ((change, mutate) in changes) {
                 val context = context(build)
-                assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageSecondsPatch.execute(context) })
+                assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageTimePatch.execute(context) })
                 mutate(context, known)
                 val before = context.mutableClassDefBy(MESSAGES_CONTROLLER).methods.associate { it.toString() to it.controlBody().map(::shape) }
                 val failure = assertThrows("${build.name}: $change", PatchException::class.java) { keepDeletedPatch.execute(context) }

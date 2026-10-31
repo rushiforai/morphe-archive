@@ -212,7 +212,7 @@ public class GhostTabLongPressTest {
     @Test public void theRowSitsUnderGhostModeAndStartsOff() throws Exception {
         Settings.GHOST_TAB_TARGET.resetToDefault();
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         HushgramPreferenceFragment page = new HushgramPreferenceFragment();
         controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
         Utils.awaitBackgroundTasksForTests();

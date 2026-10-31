@@ -1719,6 +1719,8 @@ Hide the Facebook logo	Ẩn logo Facebook
 Hides the Facebook logo in the top bar. The empty spot is the same size and still opens Hushfacebook settings when you press and hold it. Restart Facebook to see the change.	Ẩn logo Facebook trên thanh trên cùng. Chỗ trống có cùng kích thước và vẫn mở phần cài đặt Hushfacebook khi nhấn giữ. Hãy khởi động lại Facebook để thấy thay đổi.
 Hide the Create button	Ẩn nút Tạo
 Takes the + button for making a post, reel or story out of the top bar. Restart Facebook to see the change.	Gỡ nút + để tạo bài viết, thước phim và tin khỏi thanh trên cùng. Hãy khởi động lại Facebook để thấy thay đổi.
+Hide the search button	Ẩn nút tìm kiếm
+Takes the search button out of the top bar. Restart Facebook to see the change.	Gỡ nút tìm kiếm khỏi thanh trên cùng. Hãy khởi động lại Facebook để thấy thay đổi.
 # context: switch title under News feed; the counts are the numbers on the Like, Comment and Share buttons under a post
 Hide counts on posts	Ẩn số đếm trên bài viết
 # context: summary of that switch; Like, Comment and Share are Facebook's own button labels, so use Facebook's wording in your language
@@ -1974,7 +1976,7 @@ The app holding that picture is taking too long, so Hushfacebook stopped waiting
 # context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
 The app holding the last picture still hasn't answered. Try again later.	Ứng dụng chứa ảnh trước đó vẫn chưa phản hồi. Hãy thử lại sau.
 Inline feed video controls	Nút điều khiển video trong bảng tin
-Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls.	Thêm nút phát/tạm dừng vào video trong bảng tin. Chạm vào video để mở toàn màn hình. Video trực tiếp và quảng cáo giữ nguyên các nút điều khiển.
+Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls. With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.	Thêm nút phát/tạm dừng vào video trong bảng tin. Chạm vào video để mở toàn màn hình. Video trực tiếp và quảng cáo giữ nguyên các nút điều khiển. Khi Nhấn để phát cũng bật, cài đặt tự động phát của Facebook giữ nguyên như bạn đã chọn để nút này có thể hiện, và video vẫn chờ bạn nhấn.
 Play feed video	Phát video trong bảng tin
 Pause feed video	Tạm dừng video trong bảng tin
 Support	Hỗ trợ
@@ -2112,3 +2114,170 @@ Done	Xong
 Oldest	Cũ nhất
 Comments open oldest first, on every post. Facebook's sort menu then shows All comments.	Bình luận mở theo thứ tự cũ nhất trước, trên mọi bài viết. Menu sắp xếp của Facebook khi đó hiện Tất cả bình luận.
 Comments will open oldest first.	Bình luận sẽ mở theo thứ tự cũ nhất trước.
+# context: title of the News feed row counting what Hushfacebook hid in Home since Facebook was opened; it resets when Facebook restarts
+Hidden since Facebook started	Đã ẩn từ khi mở Facebook
+# context: that row's summary before anything was hidden
+Nothing hidden yet. Scroll Home and come back.	Chưa ẩn gì cả. Hãy cuộn Trang chủ rồi quay lại.
+# context: one kind in that row's list with how many of it were hidden, such as ads (12)
+%1$s (%2$d)	%1$s (%2$d)
+# context: the last item of that list, one hidden post of the kinds not named
+%1$d other	%1$d mục khác
+# context: the last item of that list, several hidden posts of the kinds not named
+%1$d others	%1$d mục khác
+# context: that row's summary when one thing was hidden; %2$s is the list of kinds with counts
+%1$d post or card: %2$s	%1$d bài viết hoặc thẻ: %2$s
+# context: that row's summary when several things were hidden; %2$s is the list of kinds with counts
+%1$d posts and cards: %2$s	%1$d bài viết và thẻ: %2$s
+# context: a kind in that list, sponsored posts
+ads	quảng cáo
+# context: a kind in that list, reels in the feed
+reels	Reels
+# context: a kind in that list, suggested posts and cards
+suggestions	gợi ý
+# context: a kind in that list, cards like Memories and friend requests
+Memories and other cards	Kỷ niệm và các thẻ khác
+# context: a kind in that list
+posts from groups you're not in	bài viết từ nhóm bạn chưa tham gia
+# context: a kind in that list, the Stories row at the top of Home
+rows of Stories	hàng Tin
+# context: a kind in that list, posts made with AI
+AI posts	bài viết AI
+# context: a kind in that list, posts hidden by the user's own word, people and Page filters
+posts your filters matched	bài viết khớp với bộ lọc của bạn
+# context: a kind in that list, posts hidden because the user already saw them
+posts you've seen	bài viết bạn đã xem
+# context: row title in News feed settings and the title of its list: Facebook's own names for kinds of post and card the user can pick to hide
+Feed types to hide	Loại bảng tin cần ẩn
+# context: warning under that row: hiding a type Home's ordinary posts use can leave Home with nothing to show
+Picking a type Home needs can leave it empty.	Chọn một loại mà Trang chủ cần có thể khiến Trang chủ trống.
+# context: that row's summary while nothing is picked; Debug logging is the name of a switch
+None picked. Hides posts and cards by Facebook's own type name, as Debug logging records it.	Chưa chọn mục nào. Ẩn bài viết và thẻ theo tên loại của chính Facebook, như Ghi nhật ký gỡ lỗi ghi lại.
+# context: message when the list has no types to offer because Home hasn't been scrolled since Facebook started
+No types seen yet. Scroll Home and come back.	Chưa thấy loại nào. Hãy cuộn Trang chủ rồi quay lại.
+# context: import preview and toast, no feed type will be in that list after the import
+Your list of feed types to hide will be empty.	Danh sách loại bảng tin cần ẩn sẽ trống.
+# context: import preview and toast, one feed type will be in that list after the import
+Your list of feed types to hide will hold %1$d type.	Danh sách loại bảng tin cần ẩn sẽ có %1$d loại.
+# context: import preview and toast, several feed types will be in that list after the import
+Your list of feed types to hide will hold %1$d types.	Danh sách loại bảng tin cần ẩn sẽ có %1$d loại.
+# context: title of the full screen cover the Opening pause puts over Facebook's first screen when it's opened from its icon
+Still want to open Facebook?	Bạn vẫn muốn mở Facebook?
+# context: line under that title while it counts down, one second left before the Open now button works
+You can open it in %1$d second.	Bạn có thể mở sau %1$d giây.
+# context: line under that title while it counts down, several seconds left before the Open now button works
+You can open it in %1$d seconds.	Bạn có thể mở sau %1$d giây.
+# context: line under that title once the countdown is over and both buttons work
+Open it, or close it and do something else.	Hãy mở, hoặc đóng lại và làm việc khác.
+# context: button on that cover that shows Facebook, working only once the countdown is over
+Open now	Mở ngay
+# context: button on that cover that sends Facebook to the background
+Close	Đóng
+# context: switch title in the Opening Facebook settings: a short countdown before Facebook shows when it's opened from its icon
+Opening pause	Tạm dừng khi mở
+# context: that switch's summary
+Opening Facebook from its icon shows a short countdown first, so you can change your mind. Links, notifications and shares open it straight away, and so does coming back within a minute.	Khi mở Facebook từ biểu tượng, một bộ đếm ngược ngắn hiện ra trước để bạn có thể đổi ý. Liên kết, thông báo và nội dung chia sẻ mở ngay, quay lại trong vòng một phút cũng vậy.
+# context: row title and list title under that switch: how long the countdown lasts
+Pause length	Thời lượng tạm dừng
+# context: a choice in that list
+5 seconds	5 giây
+# context: a choice in that list
+10 seconds	10 giây
+# context: that row's summary; Open now is the cover's button and %1$s is the chosen length, such as 5 seconds
+Open now works after %1$s.	Mở ngay dùng được sau %1$s.
+# context: import preview and toast; Opening pause is the switch's name and %1$s is the length the import sets, such as 10 seconds
+With Opening pause on, Facebook will wait %1$s before it opens.	Khi bật Tạm dừng khi mở, Facebook sẽ chờ %1$s trước khi mở.
+# context: a row on the Playback page that opens a list of 7 days, 30 days and Until you clear it; entries are the reels, videos and stories on the Recently watched list
+Keep watched entries for	Giữ mục đã xem trong
+# context: a choice in that list; it means the list itself is cleared with its Clear button
+Until you clear it	Đến khi bạn xóa
+# context: that row's summary when Until you clear it is picked
+Reels, videos and stories stay on the list until you clear it.	Reel, video và tin ở lại danh sách cho đến khi bạn xóa.
+# context: that row's summary; %1$s is the chosen time, 7 days or 30 days
+Reels, videos and stories leave the list %1$s after you watch them.	Reel, video và tin rời khỏi danh sách %1$s sau khi bạn xem.
+# context: screen reader label of the remove button on one Recently watched row; %1$s is the row's title, such as Reel, Video or the poster's name
+Remove %1$s	Xóa %1$s
+# context: line under the Recently watched list, next to its Undo button, after one entry was removed; %1$s is that row's title
+Removed %1$s	Đã xóa %1$s
+# context: toast when Undo can't put a removed entry back
+It wasn't put back. It was watched again since, or its time on the list is up.	Không khôi phục được. Mục này đã được xem lại từ lúc đó, hoặc thời gian trong danh sách đã hết.
+# context: import preview and toast; Recently watched is the list's name
+Recently watched will keep entries until you clear them.	Đã xem gần đây sẽ giữ các mục cho đến khi bạn xóa.
+# context: import preview and toast; Recently watched is the list's name and %1$s is 7 days or 30 days
+Recently watched will keep entries for %1$s.	Đã xem gần đây sẽ giữ các mục trong %1$s.
+# context: a switch on the Feeds page, under Opening pause; it covers Home, Feeds, Video and Reels after a chosen time of use
+Take breaks	Nghỉ giải lao
+# context: that switch's summary; Home, Feeds, Video and Reels are Facebook's tabs, Menu is Facebook's Menu tab; the last part means being away from Facebook as long as a break also counts as a break
+After the time you pick on Home, Feeds, Video and Reels, they're covered for a break. Chats, your profile and the Menu still work, and time away as long as a break counts as one.	Sau khoảng thời gian bạn chọn trên Trang chủ, Bảng feed, Video và Reels, các mục này sẽ bị che để bạn nghỉ. Đoạn chat, trang cá nhân và Menu vẫn hoạt động, và rời đi lâu bằng một lần nghỉ cũng được tính là một lần nghỉ.
+# context: a row under Take breaks that opens a list of times; it's how long you can browse before a break starts
+Break after	Nghỉ sau
+# context: a row under Take breaks that opens a list of times; it's how long a break lasts
+Break length	Thời lượng nghỉ
+# context: a choice in those lists
+10 minutes	10 phút
+# context: a choice in those lists
+30 minutes	30 phút
+# context: a choice in those lists
+45 minutes	45 phút
+# context: the Break after row's summary; %1$s is the chosen time, such as 30 minutes
+A break starts after %1$s of Home, Feeds, Video and Reels.	Lần nghỉ bắt đầu sau %1$s trên Trang chủ, Bảng feed, Video và Reels.
+# context: the Break length row's summary; %1$s is the chosen time, such as 5 minutes
+Home, Feeds, Video and Reels stay covered for %1$s.	Trang chủ, Bảng feed, Video và Reels bị che trong %1$s.
+# context: title of the cover shown over Home, Feeds, Video and Reels during a break
+Time for a break	Đến giờ nghỉ rồi
+# context: line on the break cover; %1$d is the whole minutes left, here 1
+Home, Feeds, Video and Reels open again in %1$d minute.	Trang chủ, Bảng feed, Video và Reels sẽ mở lại sau %1$d phút.
+# context: line on the break cover; %1$d is the whole minutes left, more than 1
+Home, Feeds, Video and Reels open again in %1$d minutes.	Trang chủ, Bảng feed, Video và Reels sẽ mở lại sau %1$d phút.
+# context: line on the break cover in its last minute
+Home, Feeds, Video and Reels open again in under a minute.	Trang chủ, Bảng feed, Video và Reels sẽ mở lại sau chưa đầy một phút.
+# context: line on the break cover; Menu is Facebook's Menu tab
+Chats, your profile and the Menu still work.	Đoạn chat, trang cá nhân và Menu vẫn hoạt động.
+# context: button on the break cover that switches to Facebook's Menu tab
+Go to the Menu	Đi tới Menu
+# context: button on the break cover that sends Facebook to the background
+Close Facebook	Đóng Facebook
+# context: button on the break cover that opens the Take breaks settings
+Break settings	Cài đặt nghỉ
+# context: toast when a break's time is up and the cover goes away
+Your break is over.	Giờ nghỉ của bạn đã hết.
+# context: import preview and toast; Take breaks is the switch's name and %1$s is a time such as 30 minutes
+With Take breaks on, a break will start after %1$s of browsing.	Khi bật Nghỉ giải lao, lần nghỉ sẽ bắt đầu sau %1$s lướt xem.
+# context: import preview and toast; Take breaks is the switch's name and %1$s is a time such as 5 minutes
+With Take breaks on, a break will last %1$s.	Khi bật Nghỉ giải lao, mỗi lần nghỉ sẽ kéo dài %1$s.
+# context: Marketplace search, the Advanced Marketplace search switch and its Adv. Filters button and dialog
+Advanced Marketplace search	Tìm kiếm Marketplace nâng cao
+Lets you type rules into Marketplace search. Put a word in quotes, like "word", to keep only titles with it, put a minus in front, like -word, to hide titles with it, and add in:place to keep listings in that place.	Cho phép bạn nhập quy tắc vào ô tìm kiếm Marketplace. Đặt một từ trong ngoặc kép, như "từ", để chỉ giữ tiêu đề có từ đó, thêm dấu trừ phía trước, như -từ, để ẩn tiêu đề có từ đó, và thêm in:nơi để chỉ giữ tin đăng ở nơi đó.
+Adv. Filters button	Nút Bộ lọc NC
+Adds an Adv. Filters button under Marketplace's Filters on search results. It opens lists of words to keep, words to hide and places, and writes the rules into the search for you.	Thêm nút Bộ lọc NC dưới Bộ lọc của Marketplace trong kết quả tìm kiếm. Nút này mở danh sách từ cần giữ, từ cần ẩn và nơi chốn, rồi viết quy tắc vào ô tìm kiếm cho bạn.
+How Adv. Filters works	Cách Bộ lọc NC hoạt động
+Type a word or a phrase and tap Add. A phrase of more than one word has to be in the title as written. A term matches anywhere in a title, so cat also matches cats. Put it in quotes with a space after it, like "cat ", to leave out cats. Go puts these into the search box and searches again.	Nhập một từ hoặc cụm từ rồi nhấn Thêm. Cụm từ có nhiều hơn một từ phải có trong tiêu đề đúng như đã viết. Một từ khớp ở bất kỳ đâu trong tiêu đề, nên cat cũng khớp với cats. Đặt nó trong ngoặc kép với một dấu cách phía sau, như "cat ", để loại cats ra. Đi sẽ đưa những mục này vào ô tìm kiếm và tìm lại.
+You can also type "word", -word or in:place straight into the search box.	Bạn cũng có thể nhập "từ", -từ hoặc in:nơi thẳng vào ô tìm kiếm.
+Adv. Filters	Bộ lọc NC
+Adv. Filters (%1$d)	Bộ lọc NC (%1$d)
+Advanced Marketplace filters	Bộ lọc Marketplace nâng cao
+Advanced Marketplace filters, %1$d on	Bộ lọc Marketplace nâng cao, %1$d đang bật
+Add	Thêm
+Title must include	Tiêu đề phải có
+Hide titles with	Ẩn tiêu đề có
+Only show listings in	Chỉ hiện tin đăng ở
+Go	Đi
+Clear all	Xóa hết
+Search box not found. Type the search again.	Không tìm thấy ô tìm kiếm. Hãy nhập lại tìm kiếm.
+The search box didn't open. Type the search again.	Ô tìm kiếm không mở ra. Hãy nhập lại tìm kiếm.
+Hide stories from Pages	Ẩn tin từ Trang
+Hide seen stories	Ẩn tin đã xem
+Shows only people's stories in the Stories tray, without the Pages you follow. Applies when Facebook next loads the tray.	Chỉ hiện tin của mọi người trong khay tin, không có các Trang bạn theo dõi. Áp dụng khi Facebook tải lại khay tin lần sau.
+Stories you've already watched leave the Stories tray until there's a new one. Applies when Facebook next loads the tray.	Tin bạn đã xem rời khỏi khay tin cho đến khi có tin mới. Áp dụng khi Facebook tải lại khay tin lần sau.
+90 days	90 ngày
+Tap a reel above its comments	Chạm vào reel phía trên bình luận
+Tapping the reel above its comments plays or pauses it, and the comments stay open. Works while comments open part way up, not at full height.	Chạm vào reel phía trên phần bình luận sẽ tạm dừng hoặc phát tiếp, và bình luận vẫn mở. Có tác dụng khi bình luận không mở ở chiều cao tối đa.
+# context: sentence added after the summary of the Download feed and Watch videos switch; Save video is the row's name, keep it as translated for that row
+A video comment gets Save video when you long-press it.	Nhấn giữ một bình luận video để hiện Lưu video.
+# context: switch title next to Hide the Follow button on reels; Subscribe is Facebook's own button name, keep it as Facebook translates it
+Hide the Subscribe button on videos	Ẩn nút Đăng ký trên video
+# context: summary under that switch; "there" is next to the author of a reel or video, Subscribe and Follow are Facebook's button names
+The Subscribe button some authors get there instead, which subscribes with one tap. Follow buttons stay.	Nút Đăng ký mà một số tác giả có ở đó thay cho nút kia, chỉ một lần chạm là đăng ký. Nút Theo dõi vẫn giữ nguyên.
+# context: switch title under Play SDR versions of HDR videos; washed-out means pale, faded colors
+Fix washed-out video colors	Sửa màu video bị nhạt
+# context: summary under that switch; Disable HW overlays and developer options are Android's own setting names, use the names Android shows in this language
+Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery.	Video và reel được vẽ cùng phần còn lại của màn hình, giống Tắt lớp phủ HW trong Tùy chọn cho nhà phát triển. Hãy thử nếu reel trông nhạt màu cho đến khi có gì đó che lên. Tốn pin hơn một chút.

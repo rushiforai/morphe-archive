@@ -36,33 +36,46 @@ public final class SaveDownloadsForTests {
         /** Whether it's a photo or a video, and a photo's size Telegram shows it at. */
         final boolean photoOrVideo;
         final Document photo;
+        /** Whether it's view-once or self-destructing media, which Telegram counts as neither of the above. */
+        final boolean timed;
 
         Message(Document document, boolean fileOrSong, boolean forbidden) {
             this(document, fileOrSong, forbidden, false);
         }
 
         Message(Document document, boolean fileOrSong, boolean forbidden, boolean secret) {
-            this(document, fileOrSong, forbidden, secret, false, null);
+            this(document, fileOrSong, forbidden, secret, false, null, false);
         }
 
         private Message(Document document, boolean fileOrSong, boolean forbidden, boolean secret, boolean photoOrVideo,
-                Document photo) {
+                Document photo, boolean timed) {
             this.document = document;
             this.fileOrSong = fileOrSong;
             this.forbidden = forbidden;
             this.secret = secret;
             this.photoOrVideo = photoOrVideo;
             this.photo = photo;
+            this.timed = timed;
         }
 
         /** A photo message, its biggest size named [size]. */
         static Message photo(Document size, boolean forbidden, boolean secret) {
-            return new Message(null, false, forbidden, secret, true, size);
+            return new Message(null, false, forbidden, secret, true, size, false);
         }
 
         /** A video message, whose file is its document. */
         static Message video(Document video, boolean forbidden) {
-            return new Message(video, false, forbidden, false, true, null);
+            return new Message(video, false, forbidden, false, true, null, false);
+        }
+
+        /** A view-once or self-destructing photo, its biggest size named [size]. A secret chat's is forbidden too. */
+        static Message timedPhoto(Document size, boolean forbidden, boolean secret) {
+            return new Message(null, false, forbidden || secret, secret, false, size, true);
+        }
+
+        /** A view-once or self-destructing video, voice or round video, whose file is its document. */
+        static Message timedDocument(Document document, boolean forbidden, boolean secret) {
+            return new Message(document, false, forbidden || secret, secret, false, null, true);
         }
     }
 
@@ -118,6 +131,11 @@ public final class SaveDownloadsForTests {
         public Object photo(Object message) {
             return ((Message) message).photo;
         }
+
+        @Override
+        public boolean timedMedia(Object message) {
+            return ((Message) message).timed;
+        }
     };
 
     /** Whether a PDF from an ordinary message, once downloaded, would be queued for a copy. */
@@ -147,6 +165,23 @@ public final class SaveDownloadsForTests {
         try {
             SaveDownloads.fileLoaded(0, "2_51.pdf", new File("2_51.pdf"),
                     new Message(new Document("2_51.pdf", "report.pdf"), true, true));
+        } finally {
+            SaveDownloads.telegram = telegram;
+            SaveDownloads.work = work;
+        }
+        return queued.get();
+    }
+
+    /** Whether a view-once photo from an ordinary chat, once downloaded, would be queued for a copy. */
+    public static boolean queuesATimedCopy() {
+        SaveDownloads.Telegram telegram = SaveDownloads.telegram;
+        Executor work = SaveDownloads.work;
+        AtomicBoolean queued = new AtomicBoolean();
+        SaveDownloads.telegram = TELEGRAM;
+        SaveDownloads.work = task -> queued.set(true);
+        try {
+            SaveDownloads.fileLoaded(0, "-5012_33.jpg", new File("-5012_33.jpg.enc"),
+                    Message.timedPhoto(new Document("-5012_33.jpg", null), false, false));
         } finally {
             SaveDownloads.telegram = telegram;
             SaveDownloads.work = work;

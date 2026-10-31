@@ -245,6 +245,21 @@ public class PostPromptsTest {
     }
 
     /**
+     * The flag the lambda leaves before the factory comes back once, to the take right after it, and
+     * a take with nothing left reads as a post's faces.
+     */
+    @Test
+    public void aStashedCommentFlagIsTakenOnce() {
+        assertFalse("a take with nothing stashed read as a comment", PostPrompts.takeCommentFaces());
+        PostPrompts.stashCommentFaces(true);
+        assertTrue("the comment flag didn't come back", PostPrompts.takeCommentFaces());
+        assertFalse("the comment flag came back twice", PostPrompts.takeCommentFaces());
+        PostPrompts.stashCommentFaces(true);
+        PostPrompts.stashCommentFaces(false);
+        assertFalse("a later post's stash didn't replace a comment's", PostPrompts.takeCommentFaces());
+    }
+
+    /**
      * The count beside a post's faces (#158) answers to the post switch: off it's Facebook's text,
      * on it's null and counted, and a text Facebook left empty, or none, comes back as it was.
      */

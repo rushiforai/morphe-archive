@@ -57,6 +57,15 @@ Pointer: [helper](extensions/railsgo/src/main/java/v5/RailsGoBusUpdate.java),
 
 ## Tools
 
+### Shared capability discovery and reuse
+Trigger: adding or modifying any patch, helper or app compatibility policy.
+Guard: inspect the shared capability index and linked implementations/tests before
+adding duplicate machinery. Reuse a suitable component; otherwise record the
+contract mismatch. Keep app pins and eligibility rules app-owned. Update the index
+when shared capabilities change, distinguish implemented from planned work, and
+do not introduce public common-patch options just to share internal code.
+Pointer: [shared component index](docs/shared-components.md).
+
 ### Build and verification
 Trigger: changing code, dependencies or build/release tooling.
 Guard: use Java 21 and Android SDK 36. Run

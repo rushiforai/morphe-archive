@@ -13,7 +13,7 @@ import org.w3c.dom.Element
 @Suppress("unused")
 val hideStatusBarPatch = resourcePatch(
     name = "Hide Android status bar",
-    description = "Hides the Android status bar in Cromite (clock, battery, signal and notification icons).",
+    description = "Uses the native Force Tablet Mode switch to hide status icons in browser and Settings; requires AMOLED runtime patch.",
     default = false
 ) {
     compatibleWith("org.cromite.cromite"("153.0.8010.37"))
@@ -77,7 +77,9 @@ val hideStatusBarPatch = resourcePatch(
                     fullscreenItem.setAttribute("name", "android:windowFullscreen")
                     style.appendChild(fullscreenItem)
                 }
-                fullscreenItem.textContent = "true"
+                // Never force fullscreen permanently: the AMOLED runtime controls this from
+                // the native force_tablet_ui_enabled preference at activity resume.
+                fullscreenItem.textContent = "false"
                 stylesPatched++
             }
         }

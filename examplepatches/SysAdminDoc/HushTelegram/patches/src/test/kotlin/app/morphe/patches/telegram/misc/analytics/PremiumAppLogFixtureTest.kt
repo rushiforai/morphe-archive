@@ -372,9 +372,9 @@ class PremiumAppLogFixtureTest {
         assertFlags(empty, emptySet(), oldTargets = false, family = false)
     }
 
-    private fun hosts(build: File) = FixtureDex.classesWhere(build, HOST_CENSUS, { true }) { method -> buildsAppLog(method) || method.instructions().any {
+    private fun hosts(build: File) = (FixtureDex.classesWhere(build, HOST_CENSUS, { true }) { method -> buildsAppLog(method) || method.instructions().any {
         it.opcode == Opcode.NEW_INSTANCE && it.reference() == REPORT_READ_METRICS
-    } }
+    } } + ghostModeHosts(build)).distinctBy { it.type }
     private fun buildsAppLog(method: Method) = method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == SAVE_APP_LOG }
     private fun snapshots(context: BytecodePatchContext, classes: List<ClassDef>) =
         (classes.map { it.type } + listOf(ANALYTICS, SETTINGS_STATUS)).distinct().flatMap { owner ->
@@ -397,7 +397,7 @@ class PremiumAppLogFixtureTest {
         owner.superclass, owner.interfaces, owner.sourceFile, owner.annotations, owner.fields, methods)
     private fun assertFlags(context: BytecodePatchContext, covered: Set<AppLogEvent>, oldTargets: Boolean = true, family: Boolean = true) {
         val expected = AppLogEvent.entries.associate { it.capability to (it in covered) } +
-            mapOf("readMetrics" to oldTargets, "disableAnalytics" to family)
+            mapOf("readMetrics" to oldTargets, "disableAnalytics" to family, "ghostMode" to family)
         for ((flag, enabled) in expected) {
             val body = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.instructions()
             assertEquals(flag, if (enabled) 1 else 0, (body[0] as NarrowLiteralInstruction).narrowLiteral)

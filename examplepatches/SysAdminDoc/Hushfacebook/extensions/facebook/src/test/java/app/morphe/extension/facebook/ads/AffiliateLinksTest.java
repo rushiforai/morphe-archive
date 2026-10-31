@@ -109,6 +109,21 @@ public class AffiliateLinksTest {
         assertFalse(AffiliateLinks.keepReelCard(0));
     }
 
+    /** 585's floating card plugin answers a boolean, handed over as an int like the reel's. */
+    @Test
+    public void theCommentSheetsCardCheckIsAnsweredNo() {
+        assertFalse("the comment sheet's card handed over as 1 stayed", AffiliateLinks.keepCommentCard(1));
+        assertFalse("a post without a card got one", AffiliateLinks.keepCommentCard(0));
+        assertEquals(FamilyNames.AFFILIATE_LINKS + ": invoked 2, 1 found, 0 missing. Counted: "
+                + AffiliateLinks.COMMENT_CARD + " 1", statusLine());
+        Settings.HIDE_AFFILIATE_LINKS.save(false);
+        assertTrue("with the switch off, 1 lost Facebook's yes", AffiliateLinks.keepCommentCard(1));
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        Settings.HIDE_AFFILIATE_LINKS.save(true);
+        assertTrue("a paused Hushfacebook hid the comment sheet's card", AffiliateLinks.keepCommentCard(true));
+        PauseForTests.resume();
+    }
+
     /**
      * #89: a reel's "Shop now" card for a creator's own product is a call-to-action kind of its own.
      * With no category left out, the filter answers null and the overlay would show the full list, so

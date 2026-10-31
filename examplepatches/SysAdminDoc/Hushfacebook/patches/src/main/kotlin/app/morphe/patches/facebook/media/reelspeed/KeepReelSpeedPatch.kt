@@ -23,6 +23,8 @@ import app.morphe.patches.facebook.media.resume.trackers
 import app.morphe.patches.facebook.media.taptoplay.GROOT_PLAY
 import app.morphe.patches.facebook.media.taptoplay.grootPlays
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.localRegisterCount
+import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.facebook.reels.hold.reelLiftGuardPatch
@@ -85,7 +87,7 @@ val keepReelSpeedPatch = bytecodePatch(
         applyReelSpeedAnchors(anchors)
         // The slower speeds are the extension's third switch; a build where the menus moved keeps the rest.
         try {
-            addSlowerSpeeds(anchors.toast)
+            addSlowerSpeeds()
         } catch (moved: PatchException) {
             patchLog.warning("${moved.message}. The patch goes on without the slower speeds in that picker.")
         }
@@ -118,6 +120,8 @@ internal class ReelSpeedAnchors(
     val origin: Method,
     val start: Method,
     val toast: Method,
+    /** The Runnable field holding the picked speed when [toast] is a run(); null when the speed is its second parameter. */
+    val toastSpeed: FieldReference?,
     val gearPick: Method,
     val params: Method,
     val flags: Map<String, FieldReference>,
@@ -143,11 +147,13 @@ internal fun BytecodePatchContext.findReelSpeedAnchors(): ReelSpeedAnchors {
     val start = single("$TRACK_START($trigger)", trackers(owner, TRACK_START, trigger))
     val params = single("getter of its $VIDEO_PLAYER_PARAMS", paramsGetters(owner))
 
+    // Up to 584 a static (Context, float) method; 585 made it a Runnable's run() with the speed in a field.
     val toasts = classDefByStrings(SPEED_TOAST, StringComparisonType.EQUALS)
         .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
-        .flatMap { holder -> holder.methods.filter(::isSpeedToast) }
-    val toast = toasts.singleOrNull()
-        ?: refuse("expected one static (Context, float) speed toast holding \"$SPEED_TOAST\", found ${toasts.size}")
+        .flatMap { holder -> holder.methods.filter { isSpeedToast(it) || isSpeedToastRun(holder, it) }.map { holder to it } }
+    val (toastHolder, toast) = toasts.singleOrNull()
+        ?: refuse("expected one speed toast (a static (Context, float) method or a Runnable's run) holding \"$SPEED_TOAST\", found ${toasts.size}")
+    val toastSpeed = if (isSpeedToast(toast)) null else speedToastField(toastHolder, toast)
 
     val gearPicks = classDefByStrings(GEAR_PICK, StringComparisonType.EQUALS)
         .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
@@ -181,7 +187,7 @@ internal fun BytecodePatchContext.findReelSpeedAnchors(): ReelSpeedAnchors {
             refuse("${owner.type}->${method.name} isn't public, so the extension can't call it")
         }
     }
-    return ReelSpeedAnchors(owner, setter, origin, start, toast, gearPick, params, flags)
+    return ReelSpeedAnchors(owner, setter, origin, start, toast, toastSpeed, gearPick, params, flags)
 }
 
 /**
@@ -198,8 +204,22 @@ internal fun BytecodePatchContext.applyReelSpeedAnchors(anchors: ReelSpeedAnchor
     val setter = owner.findMutableMethodOf(anchors.setter)
     setter.addInstruction(afterGuard(setter), "invoke-static/range { p0 .. p1 }, $SPEED_SET")
     owner.findMutableMethodOf(anchors.start).addInstruction(0, "invoke-static/range { p0 .. p0 }, $STARTED")
-    mutableClassDefBy(anchors.toast.definingClass).findMutableMethodOf(anchors.toast)
-        .addInstruction(0, "invoke-static/range { p1 .. p1 }, $PICKED")
+    val toast = mutableClassDefBy(anchors.toast.definingClass).findMutableMethodOf(anchors.toast)
+    val toastSpeed = anchors.toastSpeed
+    if (toastSpeed == null) {
+        toast.addInstruction(0, "invoke-static/range { p1 .. p1 }, $PICKED")
+    } else {
+        // The Runnable's run() reads its fields into low locals first thing, so v0 is free to borrow before that.
+        toast.requireLocals(PATCH, 1)
+        if (toast.localRegisterCount() >= 16) refuse("${toast.definingClass}->${toast.name} keeps `this` past v15, out of an iget's reach")
+        toast.addInstructions(
+            0,
+            """
+                iget v0, p0, $toastSpeed
+                invoke-static/range { v0 .. v0 }, $PICKED
+            """,
+        )
+    }
     val gear = mutableClassDefBy(anchors.gearPick.definingClass).findMutableMethodOf(anchors.gearPick)
     setterCalls(gear, anchors.owner.type, anchors.setter).asReversed().forEach { (call, speed) ->
         gear.addInstruction(call + 1, "invoke-static/range { v$speed .. v$speed }, $GEAR_PICKED")
@@ -214,13 +234,26 @@ internal fun BytecodePatchContext.applyReelSpeedAnchors(anchors: ReelSpeedAnchor
  * literal naming its control. More than one of either refuses before anything changes; either one
  * missing refuses after the other is hooked.
  */
-internal fun BytecodePatchContext.addSlowerSpeeds(toast: Method) {
-    val selectors = classDefBy(toast.definingClass).methods.filter {
-        AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == ATTRIBUTE_SELECTOR && speedLists(it).isNotEmpty()
+internal fun BytecodePatchContext.addSlowerSpeeds() {
+    // Up to 584 the selector sits in the toast's class; 585 moved the toast into a Runnable, so look build-wide.
+    val selectors = mutableListOf<Method>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+        selectors += classDef.methods.filter {
+            AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == ATTRIBUTE_SELECTOR && speedLists(it).isNotEmpty()
+        }
     }
-    val dropdowns = classDefByStrings(SPEED_DROPDOWN, StringComparisonType.EQUALS)
+    val menus = classDefByStrings(SPEED_DROPDOWN, StringComparisonType.EQUALS)
         .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
-        .flatMap { holder -> holder.methods.filter { holdsString(it, SPEED_DROPDOWN) && speedLists(it).isNotEmpty() } }
+        .flatMap { holder -> holder.methods.filter { holdsString(it, SPEED_DROPDOWN) } }
+    // 585's dropdown has no list of its own: it calls the selector, which fills both lists.
+    val dropdowns = menus.filter { speedLists(it).isNotEmpty() }
+    val delegating = menus.filter { menu ->
+        speedLists(menu).isEmpty() && menu.implementation?.instructions?.any { instruction ->
+            val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            call != null && selectors.any { it.definingClass == call.definingClass && it.name == call.name }
+        } == true
+    }
     if (selectors.size > 1 || dropdowns.size > 1) {
         refuse("expected one speed selector and one speed dropdown, found ${selectors.size} and ${dropdowns.size}")
     }
@@ -236,8 +269,10 @@ internal fun BytecodePatchContext.addSlowerSpeeds(toast: Method) {
             )
         }
     }
-    if (selectors.isEmpty()) refuse("no speed selector answering $ATTRIBUTE_SELECTOR in ${toast.definingClass} fills a Float[]")
-    if (dropdowns.isEmpty()) refuse("no speed dropdown holding \"$SPEED_DROPDOWN\" fills a Float[]")
+    if (selectors.isEmpty()) refuse("no speed selector answering $ATTRIBUTE_SELECTOR fills a Float[]")
+    if (dropdowns.isEmpty() && delegating.isEmpty()) {
+        refuse("no speed dropdown holding \"$SPEED_DROPDOWN\" fills a Float[] or calls the speed selector")
+    }
 }
 
 /**

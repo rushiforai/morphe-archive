@@ -7,3 +7,8 @@
 # These are Windows script files and should use crlf
 *.bat           text eol=crlf
 
+# Preserve generated test reports verbatim, including aligned MockK stack traces.
+tests/mihon/evidence/**/source-tests/*.xml -whitespace
+
+# Unified source diffs encode empty context lines with a single space.
+/docs/patches/*.patch whitespace=-blank-at-eol

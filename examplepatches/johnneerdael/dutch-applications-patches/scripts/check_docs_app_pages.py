@@ -57,11 +57,15 @@ def load_apps(paths):
         for patch in json.loads(path.read_text())['patches']:
             for package in patch.get('compatiblePackages') or []:
                 entry = apps.setdefault(package['packageName'], {}).setdefault(path, {
-                    'input': package.get('apkFileType'), 'targets': set(), 'controls': set()})
+                    'input': package.get('apkFileType'), 'targets': set(), 'controls': set(),
+                    'controls_by_target': {}, 'input_by_target': {}})
                 entry['controls'].add(patch['name'])
                 for target in package['targets']:
                     for code in (target.get('versionCodes') or {}).values():
-                        entry['targets'].add((target['version'], str(code)))
+                        key = (target['version'], str(code))
+                        entry['targets'].add(key)
+                        entry['controls_by_target'].setdefault(key, set()).add(patch['name'])
+                        entry['input_by_target'].setdefault(key, package.get('apkFileType'))
     return apps
 
 
@@ -135,7 +139,10 @@ def check_page(path, lang, apps, download_rows, stable, stable_path):
             errors.append(f'package {package[1]} is not in the patch metadata')
         else:
             target = (meta['version'], meta['build'])
-            matches = {source: entry for source, entry in known.items() if target in entry['targets']}
+            matches = {source: dict(entry,
+                       controls=entry.get('controls_by_target', {}).get(target, entry['controls']),
+                       input=entry.get('input_by_target', {}).get(target, entry['input']))
+                       for source, entry in known.items() if target in entry['targets']}
             # Stable pages describe the stable bundle and pre-release pages the
             # prerelease bundle, even when both bundles share the target.
             if prerelease is False and stable_path in matches:

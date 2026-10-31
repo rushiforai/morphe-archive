@@ -1,0 +1,6 @@
+{
+  "repository": "Hexclyde/bitchord-morphe-patches",
+  "name": "BitChord Morphe Patches",
+  "description": "Morphe patches for BitChord 1.8.1: play music from your own Telegram channels, with lossless quality, album covers and track name fixes. Uses your own Telegram account; doesn't unlock premium features.",
+  "license": "GPL-3.0-or-later"
+}

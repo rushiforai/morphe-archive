@@ -13,6 +13,8 @@ import hashlib, json, subprocess, sys
 from pathlib import Path
 
 APPS = {
+    'komikku': ('5dec6178557c89944bf2ef0b5059a5c36a5ab8ebf74dab92fa9281997879d2e2',
+                ['Keep local manga in exclusion searches']),
     'calendar': ('d43b2df05d5702bea760a7ab03402977ba72e446e5932038efbdab248a5de987',
                  ['Readable Calendar descriptions', 'Separate all-day reminder defaults']),
     'messages': ('af81e85e0e5442cf22d9669f43ecc42e39737389cff8fe91fd0ef58dab59703d',
@@ -29,7 +31,8 @@ APPS = {
     'music': ('ddac49843267914b39c6340c2b050c0d6a597232d8586a34166cac34d095b1fc', ["Prefer each track's embedded cover"]),
 }
 # Patches that must reject their own output (class-digest compatibility guards).
-GUARDED = {'calendar': 'Separate all-day reminder defaults', 'clock': 'Choose upcoming alarm notification time',
+GUARDED = {'komikku': 'Keep local manga in exclusion searches',
+           'calendar': 'Separate all-day reminder defaults', 'clock': 'Choose upcoming alarm notification time',
            'feeder': 'Zoom article images', 'tasks': 'Navigate to the parent task',
            'kvaesitso': 'Restore widget editing from the search menu'}
 

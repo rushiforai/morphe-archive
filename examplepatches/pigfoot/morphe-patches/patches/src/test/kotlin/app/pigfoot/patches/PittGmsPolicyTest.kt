@@ -94,7 +94,7 @@ class PittGmsPolicyTest {
 
     @Test fun manifestAddsOnlyVisibilityAndIdentityWithOriginalPackage() {
         val doc = manifest()
-        applyPittGmsManifest(doc)
+        applyPittGmsManifest(doc, PITT_STOCK_SHA1)
         assertEquals(PITT_PACKAGE, doc.documentElement.getAttribute("package"))
         assertEquals(2, doc.getElementsByTagName("package").length)
         val metadata = doc.getElementsByTagName("meta-data")
@@ -105,7 +105,7 @@ class PittGmsPolicyTest {
         assertEquals(mapOf("keep" to "true", "$PITT_GMS_PACKAGE.SPOOFED_PACKAGE_NAME" to PITT_PACKAGE,
             "$PITT_GMS_PACKAGE.SPOOFED_PACKAGE_SIGNATURE" to PITT_STOCK_SHA1), values)
         assertEquals(1, doc.getElementsByTagName("uses-permission").length)
-        assertThrows(IllegalArgumentException::class.java) { applyPittGmsManifest(doc) }
+        assertThrows(IllegalArgumentException::class.java) { applyPittGmsManifest(doc, PITT_STOCK_SHA1) }
     }
 
     @Test fun malformedOrPreviouslyRoutedManifestFailsWithoutAddingAnything() {
@@ -114,7 +114,7 @@ class PittGmsPolicyTest {
             manifest(query = "<queries><package android:name='$PITT_GMS_PACKAGE'/></queries>"))) {
             val metadata = doc.getElementsByTagName("meta-data").length
             val packages = doc.getElementsByTagName("package").length
-            assertThrows(IllegalArgumentException::class.java) { applyPittGmsManifest(doc) }
+            assertThrows(IllegalArgumentException::class.java) { applyPittGmsManifest(doc, PITT_STOCK_SHA1) }
             assertEquals(metadata, doc.getElementsByTagName("meta-data").length)
             assertEquals(packages, doc.getElementsByTagName("package").length)
         }
@@ -135,7 +135,7 @@ class PittGmsPolicyTest {
     @Test fun firebaseAuthChangesOnlyCertificateValueAndPreservesHeaderFlow() {
         val m = headers()
         val before = m.implementation!!.instructions.toList()
-        restorePittFirebaseClientIdentity(m)
+        restorePittFirebaseClientIdentity(m, PITT_STOCK_SHA1)
         val after = m.implementation!!.instructions.toList()
         assertEquals(5, m.implementation!!.registerCount)
         assertEquals(before.size + 1, after.size)
@@ -149,24 +149,38 @@ class PittGmsPolicyTest {
     @Test fun missingAmbiguousOrWrongFirebaseHeaderShapeRejectsAtomically() {
         for (m in listOf(headers(key = "other"), headers(valueRegister = 0), headers(getter = "zzb"))) {
             val before = refs(m)
-            assertThrows(IllegalArgumentException::class.java) { restorePittFirebaseClientIdentity(m) }
+            assertThrows(IllegalArgumentException::class.java) { restorePittFirebaseClientIdentity(m, PITT_STOCK_SHA1) }
             assertEquals(before, refs(m))
         }
         val m = headers()
         m.implementation!!.addInstruction(0, com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c(
             Opcode.CONST_STRING, 0, ImmutableStringReference("X-Android-Cert")))
         val before = refs(m)
-        assertThrows(IllegalArgumentException::class.java) { restorePittFirebaseClientIdentity(m) }
+        assertThrows(IllegalArgumentException::class.java) { restorePittFirebaseClientIdentity(m, PITT_STOCK_SHA1) }
         assertEquals(before, refs(m))
     }
 
     @Test fun unrelatedOwnerAndRepeatedFirebaseIdentityCorrectionReject() {
         val unrelated = headers(owner = "Lcom/google/firebase/remoteconfig/internal/ConfigFetchHttpClient;")
-        assertThrows(IllegalArgumentException::class.java) { restorePittFirebaseClientIdentity(unrelated) }
+        assertThrows(IllegalArgumentException::class.java) { restorePittFirebaseClientIdentity(unrelated, PITT_STOCK_SHA1) }
         val m = headers()
-        restorePittFirebaseClientIdentity(m)
+        restorePittFirebaseClientIdentity(m, PITT_STOCK_SHA1)
         val before = refs(m)
-        assertThrows(IllegalArgumentException::class.java) { restorePittFirebaseClientIdentity(m) }
+        assertThrows(IllegalArgumentException::class.java) { restorePittFirebaseClientIdentity(m, PITT_STOCK_SHA1) }
+        assertEquals(before, refs(m))
+    }
+
+    @Test fun unqualifiedCertificateCannotMutateManifestOrAuthHeader() {
+        val doc = manifest()
+        val metadataCount = doc.getElementsByTagName("meta-data").length
+        val packageCount = doc.getElementsByTagName("package").length
+        val m = headers()
+        val before = refs(m)
+        val otherCertificate = "0".repeat(40)
+        assertThrows(IllegalArgumentException::class.java) { applyPittGmsManifest(doc, otherCertificate) }
+        assertThrows(IllegalArgumentException::class.java) { restorePittFirebaseClientIdentity(m, otherCertificate) }
+        assertEquals(metadataCount, doc.getElementsByTagName("meta-data").length)
+        assertEquals(packageCount, doc.getElementsByTagName("package").length)
         assertEquals(before, refs(m))
     }
 

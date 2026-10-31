@@ -36,7 +36,7 @@ public class ReelsTopBarSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.HIDE_REELS_TOP_BAR.resetToDefault();
         Settings.HIDE_REELS_CREATE_BUTTON.resetToDefault();
         Settings.HIDE_REELS_YOUR_ALGORITHM.resetToDefault();

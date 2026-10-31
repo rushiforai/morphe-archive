@@ -115,6 +115,40 @@ public class ReelSidebarReportTest {
     }
 
     /**
+     * Issues #316 and #298: some accounts get Facebook's older reel button layout, which never
+     * builds the sidebar the button goes in. The patch hands Facebook's answer for that layout to
+     * verticalUfi as each reel is drawn. Yes stays yes, and no turns into the newer layout only
+     * while the button would show, so a switched off, hidden, paused or not yet ready button leaves
+     * Facebook's own layout and buttons.
+     */
+    @Test
+    public void theOlderLayoutSwitchesToTheNewerOneOnlyForTheButton() {
+        assertTrue("Facebook's newer layout was turned down", ReelDownload.verticalUfi(true));
+        assertTrue("the older layout kept the reel from its Download button", ReelDownload.verticalUfi(false));
+
+        Settings.SHOW_REEL_DOWNLOAD_BUTTON.save(false);
+        assertFalse("a hidden button still switched the layout", ReelDownload.verticalUfi(false));
+        assertTrue("hiding the button turned down the newer layout", ReelDownload.verticalUfi(true));
+        Settings.SHOW_REEL_DOWNLOAD_BUTTON.save(true);
+
+        Settings.DOWNLOAD_REELS.save(false);
+        assertFalse("downloads off still switched the layout", ReelDownload.verticalUfi(false));
+        Settings.DOWNLOAD_REELS.save(true);
+
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("a paused start switched the layout", ReelDownload.verticalUfi(false));
+        PauseForTests.resume();
+
+        SettingsContextRule.beforeThePauseIsDecided(() -> assertFalse(ReelDownload.verticalUfi(false)));
+        SettingsContextRule.withoutContext(() -> assertTrue(ReelDownload.verticalUfi(true)));
+
+        String line = line();
+        assertTrue(line, line.contains(ReelDownload.LAYOUT_NEWER + " 3"));
+        assertTrue(line, line.contains(ReelDownload.LAYOUT_SWITCHED + " 1"));
+        assertTrue(line, line.contains(ReelDownload.LAYOUT_OLDER + " 4"));
+    }
+
+    /**
      * The button Facebook draws gets a handler in every one of its factory's slots, and only the
      * tap slot saves: once per tap. The touch slot fires twice a press and a visibility slot on its
      * own, so a save from either would save the reel again or unasked.
@@ -153,7 +187,8 @@ public class ReelSidebarReportTest {
     public void everyCountedPhraseIsFixedText() {
         for (String phrase : new String[]{ReelDownload.SIDEBAR_WITH_BUTTON, ReelDownload.SIDEBAR_SWITCH_OFF,
                 ReelDownload.SIDEBAR_HIDDEN, ReelDownload.SIDEBAR_PAUSED, ReelDownload.SIDEBAR_NOT_READY,
-                ReelDownload.OTHER_SIDEBAR}) {
+                ReelDownload.OTHER_SIDEBAR, ReelDownload.LAYOUT_NEWER, ReelDownload.LAYOUT_SWITCHED,
+                ReelDownload.LAYOUT_OLDER}) {
             assertTrue(phrase, phrase.matches("[A-Za-z ,]+"));
         }
         assertEquals(Collections.emptyList(), HookStatus.report());

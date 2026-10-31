@@ -37,7 +37,7 @@ public class StorySwipeReplySettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.STOP_STORY_SWIPE_REPLY.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();

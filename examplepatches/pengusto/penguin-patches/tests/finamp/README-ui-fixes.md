@@ -9,14 +9,20 @@ Output is **ARM64 only**. The existing five patch bits and payloads are retained
 | 32 | Keep player output controls accessible | [#1836 / issue #1355](https://github.com/finamp-app/finamp/pull/1836) |
 | 64 | Fix quick settings banner contrast | [#1837 / issue #1756](https://github.com/finamp-app/finamp/pull/1837) |
 
-Both are off by default. Output is added to the existing player track menu;
-it opens the existing output sheet even with hidden bottom actions and disabled
-gestures. The banner uses `onPrimaryContainer`, matching its existing icons.
+Both are off by default. The reviewed player patch appends Output, Queue and
+Lyrics when bottom actions are hidden, avoids duplicate visible actions and
+respects disabled gestures on Player and Lyrics. The banner uses `onPrimaryContainer`, matching its existing icons.
 Neither fix introduces a setting, data format, audio-routing change or new asset.
 
 ## Source and native composition
 
-The output PR has four focused regressions (29 total); the banner PR has eight
+The final reviewed player source has 27 focused regressions (previous player
+source: five pass, 22 fail). All 64 affected native compositions run their full
+suites before AOT: 4,096 overlapping executions, 101 tests in mask127.
+The 63 other nonempty native payloads remain byte-identical.
+
+Historical 2026-10-29 counts: the initial output PR had four focused regressions
+(29 total); the banner PR has eight
 (33 total). The original production widgets fail three and six focused cases,
 respectively. The complete seven-fix native source passes **78 tests**. Regenerate
 localizations after checking out a source composition:
@@ -69,7 +75,8 @@ python3 -B tests/finamp/manager_case.py --adb "$ADB" \
 Use `--from-result` for subsequent cases and change the backend through Settings.
 Each apply must produce a fresh runtime log and exported APK. Set
 `--export-directory` to the directory actually selected by Android Save; source
-search can reset it from the historical subfolder to Downloads. The helper verifies
+search does not reliably reset a previously used subfolder. Select Downloads
+through the picker roots when that is the requested export directory. The helper verifies
 the original APK cache hash before starting. `--available-mask 63` explicitly
 marks the earlier six-patch candidate, rather than treating it as the final suite.
 `verify_manager_outputs.py` checks the full six-case suite, native output and all
@@ -78,8 +85,8 @@ Use Manager's Install and Android's UPDATE for update acceptance; compare the
 installed APK hash with the export. Keep login, existing downloads and appearance
 and artist-order preferences across same-key updates and patch removal/reapply.
 
-With ART selected, `manager_fault.py --mask 64` checks that a controlled cached
-engine fault is attributed to the selected banner patch and offers no successful
+With ART selected, `manager_fault.py --mask 32` checks that a controlled cached
+engine fault is attributed to the selected player patch and offers no successful
 output. Its `finally` restores only the verified cache bytes/owner/mode. Follow
 with a fresh successful recovery. No invalid APK is installed. No database or
 signing-key state is manually edited.
@@ -104,7 +111,7 @@ original native code, then the installed **Manager mask32** export:
 ```sh
 python3 -B tests/finamp/ui_fixes_acceptance.py player --adb "$ADB" \
   --out .scratch/finamp/android/ui-fixes/paired --label 1355-after \
-  --user 0 --mask 32 --native-report "$NATIVE_REPORT" --exercise
+  --user 0 --mask 32 --native-report "$NATIVE_REPORT" --reviewed-player-actions --exercise
 ```
 
 The helper verifies hidden actions, captures the player and its track menu, then
@@ -139,3 +146,38 @@ public artifact identities, raw captures and limits belong in the dated evidence
 record. Emulator results do not establish physical/OEM-device or live-server
 coverage. Native file size and bundle download size are distinct from runtime
 RAM usage, which has not been benchmarked.
+
+## Same-size native output tracking
+
+Morphe2.0.1 eager raw decoding compares file metadata when building the output.
+All current original/patched libapp.so variants have the same22283144-byte
+length. On the API35 fixture, NIO FileTime has second precision even while
+java.io.File.lastModified reports different milliseconds. A fast in-place write
+can therefore be omitted from a successful ART export. FinampNativeOutput now
+sets a distinct NIO FileTime after writing and checks it back; an undetectable
+write fails through the selected patch. No sleep or native-byte change is used.
+
+VerifyNativeOutput.java exercises the actual Patcher2.0.1 snapshot/detection
+methods with deterministic coarse timestamps. The pre-fix behavior misses the
+change; all three fixed cases detect it and retain the exact bytes/length. The
+Release workflow runs this regression before semantic release and on feature
+compilation runs. Real Manager native hashes remain required.
+
+For very compact menus, the existing pinned track header reduces visible list
+space. Locate and open each action separately; they need not all fit at once.
+Use short scrolls inside the list below that header when a large swipe skips a
+row, and reverse after reaching a later action. Restore display and preferences
+before moving on to data-retention acceptance.
+
+The standalone `compact_player_acceptance.py` verifies the installed native source
+and synthetic profile, temporarily changes only the owned display size and
+hide-bottom preference, opens all three compact-menu routes, and restores the
+prior display/preference in `finally`. It uses short, bidirectional scrolls below
+the pinned header and avoids controls behind the system navigation bar:
+
+```sh
+python3 tests/finamp/compact_player_acceptance.py --adb "$ADB" \
+  --native-report "$NATIVE_REPORT" --mask 32 \
+  --out-root .scratch/finamp/android \
+  --out .scratch/finamp/android/compact-player
+```

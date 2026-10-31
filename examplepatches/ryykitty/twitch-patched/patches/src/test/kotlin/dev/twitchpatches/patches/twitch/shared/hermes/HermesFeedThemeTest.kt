@@ -36,4 +36,16 @@ class HermesFeedThemeTest {
         changed[1] = HermesInstruction("Call1", listOf(47, 11, 5))
         assertThrows(IllegalArgumentException::class.java) { HermesFeedTheme.replacement(changed, strings) }
     }
+
+    @Test fun supportsTheParentRegisterRetainedByTheNewCompiler() {
+        val changed = code().toMutableList()
+        changed[2] = HermesInstruction("StoreToEnvironment", listOf(9, 3, 57))
+        changed[6] = HermesInstruction("GetById", listOf(47, 27, 111, 1))
+        val (index, bytes) = HermesFeedTheme.replacement(changed, strings)
+        assertEquals(6, index)
+        assertEquals(listOf(HermesInstruction("Mov", listOf(47, 47)),
+            HermesInstruction("Mov", listOf(47, 47))), HermesOpcodes.decode(bytes, 0, bytes.size))
+        changed.add(2, HermesInstruction("LoadConstNull", listOf(47)))
+        assertThrows(IllegalArgumentException::class.java) { HermesFeedTheme.replacement(changed, strings) }
+    }
 }

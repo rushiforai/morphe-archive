@@ -4,6 +4,22 @@ Every Hushfeed release, newest first.
 
 ## Unreleased
 
+### Features
+
+* **TikTok:** `Let other apps play until a video starts` sits under `Mute feed videos` in Playback. With it on, opening TikTok or going back and forth to your messages doesn't pause music from another app anymore. TikTok takes the sound once a video actually plays. It's off by default (#283).
+* **TikTok:** New `Keep unsent messages` switch in Inbox. When someone unsends a message to you, it stays in the chat, and `Mark kept messages` can add "(unsent)" after it. Messages you unsend yourself still go away, and `Clear kept messages` turns the kept ones back into TikTok's usual notice. It's off by default. Thanks to @maayan080 (#291).
+
+### Fixes
+
+* **TikTok:** Opening TikTok links from Telegram one after another no longer piles a whole For You feed under every profile. Memory stayed high and grew with each link, and Back went from feed to feed instead of out of TikTok. Now each link replaces the pages you'd opened from the last one, so Back from the profile goes to the main feed and TikTok's usual quick double Back leaves from there (#276).
+* **TikTok:** `Auto translate comments` works again on accounts TikTok moved to its newer comment list, where nothing got translated. Foreign comments switch to your language as they scroll in, and one you've flipped back with See original stays that way (#282).
+* **TikTok:** `Slide to change the hold speed` steps through your own `Speed menu choices` now, one choice per step, and the bubble doesn't flicker while you slide. A pull down to lock never shifts the speed you picked, and TikTok's lock banner gives way to the bubble. Your next hold starts at the speed you slid to, and unlocking plays your default speed when `Use a default playback speed` is on. The speed pill that sometimes stayed on screen after you let go is gone (#248).
+* **TikTok:** `Hide LIVE videos` catches the LIVEs TikTok slips into a For You page that's already on screen. Those used to get through because Hushfeed leaves TikTok's fresh inserts alone, and the other filters still do (#277).
+* **TikTok:** The translate icon at the top of the comments shows on while `Auto translate comments` is working, and turning it off now holds. It stays off on every video and every page you scroll to until you tap it back on or flip the switch. Before, it only reset the comments on screen, and TikTok put translation back each time the comments closed (#282).
+* **TikTok:** `Open the Story when a creator is LIVE` works on a creator's profile picture too. TikTok ranks the LIVE ahead of the Story there, so the tap went into the LIVE (#233).
+* **TikTok:** Saving a story on Automatic takes the sharpest copy the story has, the one the player shows. With `Show download progress` or a few other download switches on, it used to save a smaller 720p copy. Thanks to @jutochoppa (#287, #155).
+* **TikTok:** Recording a LIVE's screen doesn't film the Record button anymore. It hides as the recording starts and comes back once the file is saved. The recording's notification has a Stop button, and leaving the room still stops and saves it (#265).
+
 ## 0.80.0 (2026-10-27)
 
 ### Features

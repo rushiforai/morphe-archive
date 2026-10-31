@@ -441,6 +441,77 @@ public class MessageLogTest {
         assertEquals("", entry.chat);
     }
 
+    @Test public void readsALogWrittenBeforeUnsendsWereMarked() throws Exception {
+        long now = System.currentTimeMillis();
+        byte[] plain = (now + "\tONE_TO_ONE:1:2\tnamed\tAna\t\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        Files.write(logFile().toPath(), MessageLog.vault().seal(plain));
+        MessageLog.Entry entry = MessageLog.entries().get(0);
+        assertEquals("named", entry.text);
+        assertEquals("Ana", entry.sender);
+        assertEquals("", entry.id);
+        assertFalse(entry.unsent);
+    }
+
+    @Test public void anUnsendMarksTheLoggedMessageByItsId() throws Exception {
+        MessageLog.storeNow("see you at six", "ONE_TO_ONE:1:2", "mid.1");
+        MessageLog.storeNow("see you at six", "ONE_TO_ONE:1:2", "mid.2");
+        // The id is kept in the file, so the mark finds the message after it's written.
+        assertTrue(MessageLog.markNow("mid.1", null, null));
+        List<MessageLog.Entry> entries = MessageLog.entries();
+        assertFalse(entries.get(0).unsent);
+        assertTrue(entries.get(1).unsent);
+        assertEquals("mid.1", entries.get(1).id);
+        // A second recall of the same message, and one for a message the log never saw, change nothing.
+        assertFalse(MessageLog.markNow("mid.1", "ONE_TO_ONE:1:2", "see you at six"));
+        assertFalse(MessageLog.markNow("mid.9", null, null));
+        assertFalse(MessageLog.entries().get(0).unsent);
+    }
+
+    @Test public void anUnsendBeforeTheWriteMarksTheQueuedMessage() throws Exception {
+        assertTrue(MessageLog.queue("quick one", "ONE_TO_ONE:1:2", "mid.3"));
+        assertTrue(MessageLog.markNow("mid.3", null, null));
+        MessageLog.drain();
+        assertTrue(MessageLog.entries().get(0).unsent);
+    }
+
+    @Test public void anUnsendTheHookHadNoIdForIsFoundByItsNotificationLine() throws Exception {
+        Context context = Settings.appContext;
+        android.app.NotificationManager manager = context.getSystemService(android.app.NotificationManager.class);
+        android.app.Person ana = new android.app.Person.Builder().setName("Ana").build();
+        android.app.Notification.MessagingStyle.Message unsent = new android.app.Notification.MessagingStyle.Message("ok", 2, ana);
+        unsent.getExtras().putString("msgId", "mid.5");
+        android.app.Notification.MessagingStyle style = new android.app.Notification.MessagingStyle(new android.app.Person.Builder().setName("Me").build())
+            .addMessage(unsent).addMessage("later", 3, ana);
+        manager.notify("ADVANCED_CRYPTO_ONE_TO_ONE:9", 1, new android.app.Notification.Builder(context, "chats")
+            .setSmallIcon(android.R.drawable.sym_def_app_icon).setStyle(style).build());
+        // A chat whose notification names only its newest message.
+        android.os.Bundle newest = new android.os.Bundle();
+        newest.putString("msgId", "mid.6");
+        manager.notify("ONE_TO_ONE:3:4", 2, new android.app.Notification.Builder(context, "chats")
+            .setSmallIcon(android.R.drawable.sym_def_app_icon).setContentText("on my way").addExtras(newest).build());
+        try {
+            assertArrayEquals(new String[] {"ADVANCED_CRYPTO_ONE_TO_ONE:9", "ok"}, ChatNotifications.showing(context, "mid.5"));
+            assertArrayEquals(new String[] {"ONE_TO_ONE:3:4", "on my way"}, ChatNotifications.showing(context, "mid.6"));
+            assertNull(ChatNotifications.showing(context, "mid.7"));
+            MessageLog.storeNow("ok", "ADVANCED_CRYPTO_ONE_TO_ONE:9");
+            MessageLog.forgetCaptures();
+            MessageLog.storeNow("ok", "ADVANCED_CRYPTO_ONE_TO_ONE:9");
+            MessageLog.storeNow("ok", "ONE_TO_ONE:3:4");
+            String[] shown = ChatNotifications.showing(context, "mid.5");
+            assertTrue(MessageLog.markNow("mid.5", shown[0], shown[1]));
+            List<MessageLog.Entry> entries = MessageLog.entries();
+            // Only the newest "ok" in that chat is marked, never the same words in another chat.
+            assertFalse(entries.get(0).unsent);
+            assertTrue(entries.get(1).unsent);
+            assertFalse(entries.get(2).unsent);
+            // Marked once, a second recall doesn't move on to the older "ok".
+            assertFalse(MessageLog.markNow("mid.5", shown[0], shown[1]));
+            assertFalse(MessageLog.entries().get(2).unsent);
+        } finally {
+            manager.cancelAll();
+        }
+    }
+
     @Test public void listsNewestFirst() throws Exception {
         MessageLog.storeNow("first", "t");
         MessageLog.storeNow("second", "t");

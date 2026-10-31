@@ -222,7 +222,7 @@ class SearchOnlyMyChatsFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = contextFor(build)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { hidePopularAppsPatch.execute(context) })
-            for (flag in listOf("hidePopularApps", "myChatsSearch", "nameFold")) {
+            for (flag in listOf("hidePopularApps", "myChatsSearch", "nameFold", "blockNewChats")) {
                 assertEquals("${build.name}: $flag", 1, statusOf(context, flag))
             }
         }
@@ -390,8 +390,8 @@ class SearchOnlyMyChatsFixtureTest {
 
     private fun contextFor(build: File, runtime: Boolean = true): BytecodePatchContext {
         val extension = ExtensionDex.classes().filter { runtime || it.type != MY_CHATS_SEARCH }
-        return PatchContexts.of((extension + popularAppsOwners(build) + myChatsSearchHosts(build) + nameFoldHosts(build))
-            .distinctBy { it.type })
+        return PatchContexts.of((extension + popularAppsOwners(build) + myChatsSearchHosts(build) + nameFoldHosts(build) +
+            newChatsHosts(build)).distinctBy { it.type })
     }
 }
 

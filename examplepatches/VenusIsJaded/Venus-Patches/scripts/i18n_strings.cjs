@@ -175,7 +175,7 @@ for (let i = 0; i < tokens.length - 1; i++) {
     if (prev && prev.type === 'punct' && (prev.value === '.' || prev.value === '?.')) continue;
     if (prev && prev.type === 'ident' && prev.value === 'function') continue;
     const name = t.value;
-    if (!(name in ARGS)) continue;
+    if (!Object.prototype.hasOwnProperty.call(ARGS, name)) continue;
     const {args} = splitArgs(tokens, i + 1);
     // toggle(key, label, subLabel[, icon]) on option pages vs toggle(group, key, title, hint) on the Features list:
     // the page helper's last argument is a rowIcon(...) call, never a plain string.

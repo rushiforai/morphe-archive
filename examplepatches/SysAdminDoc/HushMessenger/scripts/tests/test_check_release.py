@@ -29,6 +29,8 @@ signature = sys.modules["bundle_signature"]
 SEED = bytes(range(32))
 PUBLIC_KEY = base64.b64encode(signature.public_key(SEED)).decode("ascii")
 KEY_LINE = f"Morphe shows `{signature.fingerprint(PUBLIC_KEY)}` for the signing key.\n"
+# The clients a patcher 2.1.0 bundle needs, as the release check expects them after the key line.
+CLIENT_LINE = "Use Morphe Manager (2.3.0 or newer), or Morphe Desktop 1.20.0 or newer.\n"
 SSH_KEYGEN = shutil.which("ssh-keygen")
 GIT = shutil.which("git")
 REPO = Path(__file__).parents[2]
@@ -104,9 +106,10 @@ def class_file(major):
     return b"\xca\xfe\xba\xbe\x00\x00" + major.to_bytes(2, "big") + b"\x00\x00"
 
 
-def write_bundle(path, seed=SEED, timestamp="1790552148000", dex=b"fixture", entries=()):
+def write_bundle(path, seed=SEED, timestamp="1790552148000", dex=b"fixture", entries=(), patcher="2.1.0"):
     """The fixture bundle signed with [seed] as the build signs it, or unsigned for None. Returns its SHA-256."""
     line = f"Timestamp: {timestamp}\r\n" if timestamp else ""
+    line += f"Patcher-Version: {patcher}\r\n" if patcher else ""
     with zipfile.ZipFile(path, "w") as archive:
         archive.writestr("META-INF/MANIFEST.MF", f"Manifest-Version: 1.0\r\nVersion: 1.2.3\r\n{line}\r\n")
         archive.writestr("classes.dex", dex)
@@ -178,7 +181,7 @@ class ReleaseChecks(unittest.TestCase):
         )
         self.write(
             "README.md",
-            f"https://img.shields.io/badge/version-1.2.3-blue\n{self.digest}  patches-1.2.3.mpp\n{KEY_LINE}",
+            f"https://img.shields.io/badge/version-1.2.3-blue\n{self.digest}  patches-1.2.3.mpp\n{KEY_LINE}{CLIENT_LINE}",
         )
         self.write(BUG_FORM, FORM)
         self.write("CHANGELOG.md", CHANGELOG)
@@ -430,7 +433,7 @@ class ReleaseChecks(unittest.TestCase):
 
         def released(stamp):
             digest = rebuild(stamp)
-            self.write("README.md", f"https://img.shields.io/badge/version-1.2.3-blue\n{digest}  patches-1.2.3.mpp\n{KEY_LINE}")
+            self.write("README.md", f"https://img.shields.io/badge/version-1.2.3-blue\n{digest}  patches-1.2.3.mpp\n{KEY_LINE}{CLIENT_LINE}")
             return release.verify(self.root)
 
         # Each check passes the rebuilt tree while the timestamps match, so dropping them is the only change below.
@@ -907,12 +910,12 @@ class ReleaseChecks(unittest.TestCase):
             ),
             (
                 "README.md",
-                f"https://img.shields.io/badge/version-1.2.3-blue\n[notes](../../releases/tag/v1.2.2)\n{self.digest}  {self.bundle.name}\n{KEY_LINE}",
+                f"https://img.shields.io/badge/version-1.2.3-blue\n[notes](../../releases/tag/v1.2.2)\n{self.digest}  {self.bundle.name}\n{KEY_LINE}{CLIENT_LINE}",
                 "download link",
             ),
             (
                 "README.md",
-                f"https://img.shields.io/badge/version-1.2.3-blue\ngithub.com/sysadmindoc/hushmessenger/releases/download/v1.2.2/x\n{self.digest}  {self.bundle.name}\n{KEY_LINE}",
+                f"https://img.shields.io/badge/version-1.2.3-blue\ngithub.com/sysadmindoc/hushmessenger/releases/download/v1.2.2/x\n{self.digest}  {self.bundle.name}\n{KEY_LINE}{CLIENT_LINE}",
                 "download link",
             ),
             (
@@ -1026,7 +1029,7 @@ class ReleaseChecks(unittest.TestCase):
             )
             self.write(
                 "README.md",
-                f"https://img.shields.io/badge/version-1.2.3-blue\n{digest}  patches-1.2.3.mpp\n{KEY_LINE}",
+                f"https://img.shields.io/badge/version-1.2.3-blue\n{digest}  patches-1.2.3.mpp\n{KEY_LINE}{CLIENT_LINE}",
             )
 
         # Java 17 classes pass, and a multi-release jar's newer copies are the patcher's to judge.
@@ -1060,7 +1063,7 @@ class ReleaseChecks(unittest.TestCase):
                 }
             ),
         )
-        badge = f"https://img.shields.io/badge/version-1.2.3-blue\n{self.digest}  patches-1.2.3.mpp\n{KEY_LINE}"
+        badge = f"https://img.shields.io/badge/version-1.2.3-blue\n{self.digest}  patches-1.2.3.mpp\n{KEY_LINE}{CLIENT_LINE}"
         with self.assertRaisesRegex(ValueError, "no Get the APK step"):
             release.verify(self.root)
         self.write("README.md", badge + "1. **Get the APK.** The current release patches Messenger 584.0.0.49.98.\n")
@@ -1093,9 +1096,47 @@ class ReleaseChecks(unittest.TestCase):
             "[Desktop](https://github.com/MorpheApp/morphe-desktop/releases/tag/v1.17.0)\n"
             "Pair it with hushfacebook-patches-0.1.7.mpp or morphe-patches-1.2.0.\n"
             '<a href="https://github.com/SysAdminDoc/HushMessenger/releases/tag/v1.2.3">ours</a>\n'
-            f"{self.digest}  {self.bundle.name}\n{KEY_LINE}",
+            f"{self.digest}  {self.bundle.name}\n{KEY_LINE}{CLIENT_LINE}",
         )
         self.assertIn("Release metadata passed", release.verify(self.root))
+
+    def test_readme_asks_for_the_clients_that_bundle_the_bundles_patcher(self):
+        evidence = self.root / "patches/build/reports/catalog-evidence.json"
+
+        def rebuild(patcher, clients):
+            digest = write_bundle(self.bundle, patcher=patcher)
+            evidence.write_text(
+                json.dumps({"bundle": self.bundle.name, "sha256": digest, "dexValidated": True, "catalog": self.catalog}),
+                encoding="utf-8",
+            )
+            self.write("README.md", f"https://img.shields.io/badge/version-1.2.3-blue\n{digest}  patches-1.2.3.mpp\n{KEY_LINE}{clients}")
+
+        old_clients = "Use Morphe Manager (2.2.0 or newer), or Morphe Desktop 1.19.1 or newer.\n"
+        rebuild("2.0.1", old_clients)
+        self.assertIn("Release metadata passed", release.verify(self.root))
+        # The published README's minimums, left in place for a release built with the newer patcher.
+        rebuild("2.1.0", old_clients)
+        with self.assertRaisesRegex(ValueError, r"Morphe Manager \(2\.3\.0 or newer\)"):
+            release.verify(self.root)
+        rebuild("2.1.0", CLIENT_LINE.replace("1.20.0", "1.19.1"))
+        with self.assertRaisesRegex(ValueError, "Morphe Desktop 1.20.0 or newer"):
+            release.verify(self.root)
+        rebuild("2.1.0", CLIENT_LINE + "Morphe Manager (2.2.0 or newer) works on older phones.\n")
+        with self.assertRaisesRegex(ValueError, "Morphe Manager"):
+            release.verify(self.root)
+        for patcher, message in (("2.2.0", "add the first Manager and Desktop"), (None, "no Patcher-Version")):
+            rebuild(patcher, CLIENT_LINE)
+            with self.subTest(patcher=patcher), self.assertRaisesRegex(ValueError, message):
+                release.verify(self.root)
+
+    def test_the_pinned_patcher_has_known_clients(self):
+        pin = re.search(
+            r'^morphe-patcher = "([^"]+)"$',
+            (REPO / "gradle/libs.versions.toml").read_text(encoding="utf-8"),
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(pin)
+        self.assertIn(pin[1], release.PATCHER_CLIENTS)
 
     def test_cli_rejects_malformed_or_missing_evidence_without_traceback(self):
         for invalid in ['{"version": "1", "version": "2"}', "[]", "{"]:

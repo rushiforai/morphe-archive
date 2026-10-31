@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.hardware.biometrics.BiometricManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Build;
@@ -91,6 +92,7 @@ import java.util.regex.Pattern;
 import app.hushgram.extension.instagram.direct.ChatAccounts;
 import app.hushgram.extension.instagram.direct.ChatLocks;
 import app.hushgram.extension.instagram.direct.HiddenChats;
+import app.hushgram.extension.instagram.direct.PinnedChats;
 import app.hushgram.extension.instagram.direct.LockDelay;
 import app.hushgram.extension.instagram.direct.MessageBox;
 import app.hushgram.extension.instagram.direct.MessagesLock;
@@ -104,6 +106,7 @@ import app.hushgram.extension.instagram.feed.HiddenAccounts;
 import app.hushgram.extension.instagram.feed.CornerSize;
 import app.hushgram.extension.instagram.feed.LikeAnimation;
 import app.hushgram.extension.instagram.misc.MediaCache;
+import app.hushgram.extension.instagram.misc.NotificationGroups;
 import app.hushgram.extension.instagram.misc.SettingsRows;
 import app.hushgram.extension.instagram.misc.SpoofLocation;
 import app.hushgram.extension.instagram.share.ShareSheetActions;
@@ -148,6 +151,7 @@ import app.hushgram.extension.instagram.download.SaveControl;
 import app.hushgram.extension.instagram.download.SaveLeftovers;
 import app.hushgram.extension.instagram.download.SaveFolder;
 import app.hushgram.extension.instagram.download.SaveTree;
+import app.hushgram.extension.instagram.download.ViewingHistory;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
 import app.hushgram.extension.shared.Utils;
@@ -194,11 +198,15 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     static final String CLEAR_DOWNLOAD_HISTORY = "hushgram_clear_download_history";
     /** The row listing who left your Followers list, and the row that forgets them. */
     static final String UNFOLLOWERS_ROW = "hushgram_unfollowers_row";
+    static final String VIEWING_HISTORY_ROW = "hushgram_viewing_history_row";
+    static final String CLEAR_VIEWING_HISTORY = "hushgram_clear_viewing_history";
     static final String CLEAR_UNFOLLOWERS = "hushgram_clear_unfollowers";
     /** The row that lists the chats locked one at a time. */
     static final String LOCKED_CHATS_ROW = "hushgram_locked_chats_row";
     /** The row that lists the chats hidden one at a time. */
     static final String HIDDEN_CHATS_ROW = "hushgram_hidden_chats_row";
+    /** The row that lists the chats pinned to the top of the inbox. */
+    static final String PINNED_CHATS_ROW = "hushgram_pinned_chats_row";
     /** The row that sets or changes the HushGram PIN. */
     static final String CHANGE_PIN_ROW = "hushgram_change_pin_row";
     static final String HIDDEN_ACCOUNTS_ROW = "hushgram_hidden_accounts_row";
@@ -668,6 +676,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.STORY_FONTS && STORY_FONTS_ROW.equals(key);
                     belongs |= family == PatchFamily.APP_ICON && Settings.APP_ICON.key.equals(key);
                     belongs |= family == PatchFamily.SETTINGS_ROWS && Settings.HIDDEN_SETTINGS_ROWS.key.equals(key);
+                    belongs |= family == PatchFamily.NOTIFICATION_GROUPS && Settings.MUTED_NOTIFICATION_CHANNELS.key.equals(key);
                     belongs |= family == PatchFamily.SHARE_SHEET && Settings.HIDDEN_SHARE_SHEET_BUTTONS.key.equals(key);
                     belongs |= family == PatchFamily.PROFILE_TABS && (Settings.HIDDEN_PROFILE_TABS.key.equals(key)
                             || Settings.HIDDEN_OWN_PROFILE_TABS.key.equals(key));
@@ -680,7 +689,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             || Settings.HIDE_CAPTION_WORD_HOME.key.equals(key));
                     belongs |= family == PatchFamily.MESSAGES_LOCK
                             && (Settings.LOCK_AGAIN.key.equals(key) || LOCKED_CHATS_ROW.equals(key)
-                            || HIDDEN_CHATS_ROW.equals(key) || Settings.UNLOCK_WITH.key.equals(key)
+                            || HIDDEN_CHATS_ROW.equals(key) || PINNED_CHATS_ROW.equals(key) || Settings.UNLOCK_WITH.key.equals(key)
                             || CHANGE_PIN_ROW.equals(key));
                     belongs |= family == PatchFamily.RESUME_LONG_VIDEOS && row == clearPositions;
                     belongs |= (family == PatchFamily.REEL_DOWNLOAD || family == PatchFamily.STORY_DOWNLOAD
@@ -692,6 +701,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= (family == PatchFamily.REEL_DOWNLOAD || family == PatchFamily.STORY_DOWNLOAD)
                             && (Settings.DOWNLOAD_SKIP_SAVED.key.equals(key) || CLEAR_DOWNLOAD_HISTORY.equals(key));
                     belongs |= family == PatchFamily.VIDEO_DOWNLOAD && CLEAR_DOWNLOAD_HISTORY.equals(key);
+                    belongs |= family == PatchFamily.VIDEO_DOWNLOAD && (Settings.VIEWING_HISTORY.key.equals(key)
+                            || VIEWING_HISTORY_ROW.equals(key) || CLEAR_VIEWING_HISTORY.equals(key));
                     belongs |= family == PatchFamily.RESTORE_TRUST && L10n.t("Instagram accepts this build").equals(row.getTitle());
                     belongs |= family == PatchFamily.REMOVE_AD_ID && L10n.t("Advertising ID removed").equals(row.getTitle());
                     belongs |= family == PatchFamily.PURE_BLACK && L10n.t("Pure black dark mode").equals(row.getTitle());
@@ -2798,9 +2809,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     /**
-     * What unlocks the messages: the phone's lock or a HushGram PIN. Choosing the PIN asks for one
-     * first when none is set, and a change while the messages are locked asks the current lock, so
-     * the choice can't be used to get around it.
+     * What unlocks the messages: the phone's lock, a HushGram PIN, or on Android 11 and up the
+     * fingerprint or face alone. Choosing the PIN asks for one first when none is set, choosing the
+     * fingerprint or face is refused while the phone has none, and a change while the messages are
+     * locked asks the current lock, so the choice can't be used to get around it.
      */
     static UnlockWithRow unlockWithRow(Context context) {
         UnlockWithRow row = new UnlockWithRow(context);
@@ -2808,13 +2820,23 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         row.setTitle(L10n.t("Unlock with"));
         row.setDialogTitle(L10n.t("Unlock with"));
         row.setNegativeButtonText(L10n.t("Cancel"));
-        row.setEntries(new CharSequence[]{L10n.t("Phone lock"), L10n.t("HushGram PIN")});
-        row.setEntryValues(new CharSequence[]{UnlockWith.PHONE_LOCK.name(), UnlockWith.PIN.name()});
+        if (Build.VERSION.SDK_INT >= 30) {
+            row.setEntries(new CharSequence[]{L10n.t("Phone lock"), L10n.t("HushGram PIN"), L10n.t("Fingerprint or face only")});
+            row.setEntryValues(new CharSequence[]{UnlockWith.PHONE_LOCK.name(), UnlockWith.PIN.name(), UnlockWith.BIOMETRICS.name()});
+        } else {
+            row.setEntries(new CharSequence[]{L10n.t("Phone lock"), L10n.t("HushGram PIN")});
+            row.setEntryValues(new CharSequence[]{UnlockWith.PHONE_LOCK.name(), UnlockWith.PIN.name()});
+        }
         row.setValue(Settings.UNLOCK_WITH.savedValue().name());
         row.setOnPreferenceChangeListener((preference, value) -> {
+            UnlockWith target = UnlockWith.PIN.name().equals(value) ? UnlockWith.PIN
+                    : UnlockWith.BIOMETRICS.name().equals(value) ? UnlockWith.BIOMETRICS : UnlockWith.PHONE_LOCK;
+            if (target == UnlockWith.BIOMETRICS && !MessagesLock.biometricsReady(preference.getContext())) {
+                Utils.showToastLong(noBiometrics(MessagesLock.biometricsState(preference.getContext())));
+                return false;
+            }
             Activity activity = activityOf(preference.getContext());
             if (activity == null) return !PinLock.protects();
-            UnlockWith target = UnlockWith.PIN.name().equals(value) ? UnlockWith.PIN : UnlockWith.PHONE_LOCK;
             UnlockWithRow unlockRow = (UnlockWithRow) preference;
             Runnable change = () -> {
                 if (!allowMutation(unlockRow, true)) return;
@@ -2830,6 +2852,17 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             return false;
         });
         return row;
+    }
+
+    /** Why Fingerprint or face only can't be chosen, from BiometricManager's [state]. */
+    static String noBiometrics(int state) {
+        if (state == BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED) {
+            return L10n.t("Add a fingerprint or face in your phone's settings first.");
+        }
+        if (state == BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE) {
+            return L10n.t("This phone has no fingerprint or face unlock to use.");
+        }
+        return L10n.t("Your phone won't let HushGram use your fingerprint or face right now. Check its fingerprint and face settings.");
     }
 
     /** The row that sets or changes the HushGram PIN; changing it while locked asks the current lock first. */
@@ -3028,6 +3061,69 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                         return;
                     }
                     Utils.showToastShort(L10n.f("%1$s is shown again", L10n.isolate(chat.name)));
+                }
+            });
+        }
+        return builder.setPositiveButton(L10n.t("OK"), null);
+    }
+
+    /** The row that opens the list of chats pinned to the top of your inbox (#345). */
+    Row pinnedChatsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(PINNED_CHATS_ROW);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Pinned chats"));
+        row.setSummary(L10n.t("Keeps the chats you pick at the top of your inbox. The pins stay on this phone, "
+                + "and Instagram's own order holds for every other chat."));
+        row.setOnPreferenceClickListener(tapped -> {
+            Context host = getActivity();
+            if (host == null) return true;
+            show(pinnedChatsList(host, this::allowMutation));
+            return true;
+        });
+        return row;
+    }
+
+    /**
+     * The chats pinned on the account you're signed in to, each with a check, and the chat you opened
+     * last above them when it isn't pinned. Checking one pins it at once, below the ones pinned
+     * before it; unchecking one puts it back where Instagram has it. Each account keeps its own pins.
+     */
+    private static AlertDialog.Builder pinnedChatsList(Context context, BooleanSupplier allowMutation) {
+        String account = ChatAccounts.active();
+        List<ChatLocks.Chat> chats = new ArrayList<>(PinnedChats.saved(account));
+        ChatLocks.Chat last = PinnedChats.lastOpened(account);
+        int offered = last == null ? 0 : 1;
+        if (last != null) chats.add(0, last);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(L10n.t("Pinned chats"));
+        if (chats.isEmpty()) {
+            builder.setMessage(L10n.t("Open a chat in Instagram, then come back here to pin it."));
+        } else {
+            CharSequence[] names = new CharSequence[chats.size()];
+            boolean[] pinned = new boolean[chats.size()];
+            for (int i = 0; i < names.length; i++) {
+                boolean offer = i < offered;
+                names[i] = offer ? L10n.f("%1$s (opened last)", chats.get(i).name) : chats.get(i).name;
+                pinned[i] = !offer;
+            }
+            builder.setMultiChoiceItems(names, pinned, (dialog, which, checked) -> {
+                if (!allowMutation.getAsBoolean()) {
+                    setChecked((AlertDialog) dialog, which, !checked);
+                    return;
+                }
+                ChatLocks.Chat chat = chats.get(which);
+                if (checked) {
+                    if (!PinnedChats.add(account, chat.id, chat.name)) {
+                        notSaved((AlertDialog) dialog, which, false);
+                        return;
+                    }
+                    Utils.showToastShort(L10n.f("%1$s is pinned", L10n.isolate(chat.name)));
+                } else {
+                    if (!PinnedChats.remove(account, chat.id)) {
+                        notSaved((AlertDialog) dialog, which, true);
+                        return;
+                    }
+                    Utils.showToastShort(L10n.f("%1$s is unpinned", L10n.isolate(chat.name)));
                 }
             });
         }
@@ -3621,6 +3717,82 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
+    /** How many of the newest viewing history rows the list row shows. */
+    static final int VIEWING_HISTORY_SHOWN = 50;
+
+    /**
+     * The row listing what the viewing history kept, newest first. Read off the main thread, so it
+     * says so until it's read. It isn't tappable: the summary is the list.
+     */
+    static Preference viewingHistoryRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(VIEWING_HISTORY_ROW);
+        row.setPersistent(false);
+        row.setSelectable(false);
+        row.setTitle(L10n.t("Viewing history"));
+        row.setSummary(L10n.t("Reading the list…"));
+        Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+        if (!Utils.runOnBackgroundThread(() -> {
+            String summary = viewingHistorySummary(ViewingHistory.entries(application), System.currentTimeMillis());
+            Utils.runOnMainThread(() -> row.setSummary(summary));
+        })) {
+            row.setSummary(viewingHistorySummary(ViewingHistory.entries(application), System.currentTimeMillis()));
+        }
+        return mark(row, SettingsIcons.PERSON);
+    }
+
+    /** What the viewing history row says for [rows], newest first, at [now]. */
+    static String viewingHistorySummary(List<ViewingHistory.Row> rows, long now) {
+        if (rows.isEmpty()) {
+            return L10n.t("Nothing here yet. With Keep a viewing history on, what you look at shows up here.");
+        }
+        StringBuilder text = new StringBuilder();
+        int shown = 0;
+        for (ViewingHistory.Row seen : rows) {
+            if (shown == VIEWING_HISTORY_SHOWN) break;
+            String who = seen.owner.isEmpty() ? "" : "@" + seen.owner + ", ";
+            String ago = android.text.format.DateUtils.getRelativeTimeSpanString(seen.time, now,
+                    android.text.format.DateUtils.MINUTE_IN_MILLIS).toString();
+            text.append(who).append(viewingKindLabel(seen.kind)).append(", ").append(ago).append('\n');
+            shown++;
+        }
+        if (rows.size() > VIEWING_HISTORY_SHOWN) text.append(L10n.t("Only the newest 50 are shown."));
+        return text.toString().trim();
+    }
+
+    /** What the list calls [kind]. */
+    static String viewingKindLabel(ViewingHistory.Kind kind) {
+        switch (kind) {
+            case POST: return L10n.t("Post");
+            case REEL: return L10n.t("Reel");
+            case STORY: return L10n.t("Story");
+            default: return L10n.t("Profile");
+        }
+    }
+
+    /** Forgets the viewing history off the main thread, says so, and empties [list]. */
+    static void clearViewingHistory(Preference row, Preference list) {
+        if (!allowMutation(row, true)) return;
+        Context context = row.getContext();
+        if (!Utils.runOnBackgroundThread(() -> {
+            if (!asyncChangesAllowed()) {
+                Utils.showToastLong(heldMessage());
+                return;
+            }
+            boolean cleared = ViewingHistory.clear(context);
+            Utils.runOnMainThread(() -> {
+                if (cleared) {
+                    Utils.showToastShort(L10n.t("Viewing history cleared."));
+                    list.setSummary(viewingHistorySummary(java.util.Collections.emptyList(), System.currentTimeMillis()));
+                } else {
+                    Utils.showToastLong(L10n.t("Couldn't clear the viewing history. Try again."));
+                }
+            });
+        })) {
+            Utils.showToastLong(L10n.t("Couldn't clear the viewing history. Try again."));
+        }
+    }
+
     static TapToPlayScopeRow tapToPlayScopeRow(Context context) {
         TapToPlayScopeRow row = new TapToPlayScopeRow(context);
         row.setKey(Settings.TAP_TO_PLAY_SCOPE.key);
@@ -3804,6 +3976,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             case DARK: return L10n.t("Instagram on black");
             case PLUM: return L10n.t("Instagram on plum");
             case LIGHT: return L10n.t("Instagram in black on white");
+            case SKETCH: return L10n.t("Hand-drawn Instagram");
             default: return L10n.t("Instagram's own");
         }
     }
@@ -3963,11 +4136,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         row.setDialogTitle(L10n.t("Accent color"));
         row.setNegativeButtonText(L10n.t("Cancel"));
         List<AccentHue> hues = new ArrayList<>(Arrays.asList(AccentHue.values()));
-        if (!MaterialYou.available()) hues.remove(AccentHue.WALLPAPER);
         CharSequence[] entries = new CharSequence[hues.size()];
         CharSequence[] values = new CharSequence[hues.size()];
         for (int i = 0; i < hues.size(); i++) {
-            entries[i] = accentHueLabel(hues.get(i));
+            // Material You stays in the list on Android 11 and older, greyed out with its reason.
+            entries[i] = hues.get(i) == AccentHue.WALLPAPER && !MaterialYou.available()
+                    ? L10n.t("Material You needs Android 12 or newer, so Instagram's blue stays.")
+                    : accentHueLabel(hues.get(i));
             values[i] = hues.get(i).name();
         }
         row.setEntries(entries);
@@ -4374,6 +4549,79 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             Settings.HIDDEN_SETTINGS_ROWS.save("");
             row.setSummary(settingsRowsSummary(""));
             for (int i = 0; i < rows.size(); i++) dialog.getListView().setItemChecked(i, true);
+        });
+    }
+
+    /** The row that opens the list of Instagram's notification types to mute. Its summary says how many are. */
+    Row mutedChannelsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(Settings.MUTED_NOTIFICATION_CHANNELS.key);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Mute notification types"));
+        row.setSummary(mutedChannelsSummary(Settings.MUTED_NOTIFICATION_CHANNELS.savedValue()));
+        row.setOnPreferenceClickListener(tapped -> {
+            showMutedChannels(row);
+            return true;
+        });
+        return row;
+    }
+
+    /** What the notification types muted in [saved] mean, for the row's summary. */
+    static String mutedChannelsSummary(String saved) {
+        int muted = NotificationGroups.mutedChannels(saved).size();
+        if (muted == 0) {
+            return L10n.t("Stops the notification types you tick, even ones Instagram's own notification settings can't turn off.");
+        }
+        return L10n.quantity(muted, "%1$d notification type is muted.", "%1$d notification types are muted.", muted);
+    }
+
+    /**
+     * Instagram's notification channels on this phone, each with a check, ticked while muted, in
+     * Instagram's own words. A change saves at once and holds back the next notification on that
+     * channel. Until Instagram has set its channels up there's nothing to list, and the list says so.
+     */
+    void showMutedChannels(Row row) {
+        Context context = getActivity();
+        if (context == null) return;
+        Set<String> muted = NotificationGroups.mutedChannels(Settings.MUTED_NOTIFICATION_CHANNELS.savedValue());
+        List<String[]> channels = NotificationGroups.offeredChannels(context, muted);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(L10n.t("Mute notification types"));
+        if (channels.isEmpty()) {
+            show(builder.setMessage(L10n.t("Instagram hasn't set up its notification types on this phone yet. Open "
+                    + "Instagram once, then come back here.")).setPositiveButton(L10n.t("OK"), null));
+            return;
+        }
+        CharSequence[] names = new CharSequence[channels.size()];
+        boolean[] ticked = new boolean[channels.size()];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = channels.get(i)[1];
+            ticked[i] = muted.contains(channels.get(i)[0]);
+        }
+        // The dialog keeps [ticked] and re-applies its checks at each layout, so every change to a check changes it too.
+        builder.setMultiChoiceItems(names, ticked, (dialog, which, on) -> {
+            if (!allowMutation(row, true)) {
+                ticked[which] = muted.contains(channels.get(which)[0]);
+                setChecked((AlertDialog) dialog, which, ticked[which]);
+                return;
+            }
+            if (on) muted.add(channels.get(which)[0]);
+            else muted.remove(channels.get(which)[0]);
+            Settings.MUTED_NOTIFICATION_CHANNELS.save(NotificationGroups.joinChannels(muted));
+            row.setSummary(mutedChannelsSummary(Settings.MUTED_NOTIFICATION_CHANNELS.savedValue()));
+        });
+        AlertDialog dialog = show(builder.setNeutralButton(L10n.t("Unmute all"), null)
+                .setPositiveButton(L10n.t("OK"), null));
+        if (dialog == null) return;
+        // A click listener of its own, so Unmute all clears every check without closing the list.
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(tapped -> {
+            if (!allowMutation(row, true)) return;
+            muted.clear();
+            Settings.MUTED_NOTIFICATION_CHANNELS.save("");
+            row.setSummary(mutedChannelsSummary(""));
+            for (int i = 0; i < channels.size(); i++) {
+                ticked[i] = false;
+                dialog.getListView().setItemChecked(i, false);
+            }
         });
     }
 
@@ -6213,7 +6461,15 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         @Override
         protected void showDialog(Bundle state) {
             super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+            if (getDialog() instanceof AlertDialog) {
+                AlertDialog dialog = (AlertDialog) getDialog();
+                ListView choices = dialog.getListView();
+                if (choices != null && choices.getAdapter() != null) {
+                    // Each choice shows its actual icon before its name (#321, #327).
+                    choices.setAdapter(new IconChoices(getContext(), choices.getAdapter(), AppIconChoice.values()));
+                }
+                ScreenColors.dialog(dialog);
+            }
         }
     }
 
@@ -6302,13 +6558,16 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
         @Override
         public void setValue(String value) {
-            super.setValue(value);
+            // Before Android 11 the phone's lock asks whatever was saved, so the row says so.
+            super.setValue(Build.VERSION.SDK_INT < 30 && UnlockWith.BIOMETRICS.name().equals(value) ? UnlockWith.PHONE_LOCK.name() : value);
             showSummary();
         }
 
         void showSummary() {
             setSummary(UnlockWith.PIN.name().equals(getValue())
                     ? L10n.t("A PIN you set here unlocks your messages, in place of your screen lock. It can't be recovered, only cleared by clearing Instagram's storage.")
+                    : UnlockWith.BIOMETRICS.name().equals(getValue())
+                    ? L10n.t("Only your fingerprint or face unlocks your messages. If the phone has none set up, your screen lock does.")
                     : L10n.t("Your fingerprint, face or screen lock unlocks your messages."));
         }
 
@@ -6367,7 +6626,17 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         @Override
         protected void showDialog(Bundle state) {
             super.showDialog(state);
-            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+            if (getDialog() instanceof AlertDialog) {
+                AlertDialog dialog = (AlertDialog) getDialog();
+                ListView choices = dialog.getListView();
+                CharSequence[] values = getEntryValues();
+                if (!MaterialYou.available() && choices != null && choices.getAdapter() != null && values != null) {
+                    boolean[] off = new boolean[values.length];
+                    for (int i = 0; i < values.length; i++) off[i] = AccentHue.WALLPAPER.name().contentEquals(values[i]);
+                    choices.setAdapter(new DisabledChoices(choices.getAdapter(), off));
+                }
+                ScreenColors.dialog(dialog);
+            }
         }
     }
 

@@ -39,6 +39,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -99,7 +100,10 @@ private const val STRING_EQUALS = "Ljava/lang/String;->equals(Ljava/lang/Object;
  * at the type, so a Meta AI row could come back that way once Meta AI's own plugin said no. Once
  * every icon path has joined, the default way reads the type again and compares it with `stars`
  * first. Right after that read, the type goes through the extension, and a pill typed `meta_ai`
- * gets no pill while the switch is on. Other types are drawn as before.
+ * gets no pill while the switch is on. Other types are drawn as before. On 585 (read 2026-10-29,
+ * arm64 `LX/03kH;->A0F`) the default way reads the type through the pill model's own interface
+ * getter (`LX/04R7;->GDu()`, invoke-interface/range) instead of getCachedNullableString with a key,
+ * so a compare's source is the key or that getter.
  *
  * The same questions come two more ways that never touch the pill socket. The post call-to-action
  * selector (FeedStoryCtaSelectorSocket) draws Meta AI's deep dive as a row of question chips under
@@ -286,8 +290,10 @@ internal fun BytecodePatchContext.findPillSocket(): PillSocket {
 
 /**
  * A read of a pill's type compared with a type name right away: [TYPE_GETTER] on the tree in
- * [tree] with the key in [key] (null when no literal loads it just before), the answer moved into
- * [typeRegister], the name loaded into [nameRegister] at [nameIndex], then String.equals of the two.
+ * [tree] with the key in [key] (null when no literal loads it just before), or a no-argument String
+ * getter of the pill model in [tree] (585), the answer moved into [typeRegister], the name loaded
+ * into [nameRegister] at [nameIndex], then String.equals of the two. [source] names what was read:
+ * the literal key, or the getter itself, and is null for a key no literal loads.
  */
 internal class TypeCompare(
     val name: String,
@@ -296,6 +302,7 @@ internal class TypeCompare(
     val nameRegister: Int,
     val tree: Int,
     val key: Long?,
+    val source: String?,
 )
 
 /** Every [TypeCompare] in [code]. */
@@ -307,14 +314,6 @@ internal fun typeCompares(code: List<Instruction>): List<TypeCompare> = (2 until
     val moved = code[index - 1]
     if (moved.opcode != Opcode.MOVE_RESULT_OBJECT) return@mapNotNull null
     val typeRegister = (moved as OneRegisterInstruction).registerA
-    val read = code[index - 2]
-    if (read.opcode != Opcode.INVOKE_VIRTUAL) return@mapNotNull null
-    val getter = (read as ReferenceInstruction).reference as MethodReference
-    if (getter.name != TYPE_GETTER || getter.parameterTypes.map { it.toString() } != listOf("I") ||
-        getter.returnType != "Ljava/lang/String;"
-    ) {
-        return@mapNotNull null
-    }
     val equals = code[index + 1]
     if (equals.opcode != Opcode.INVOKE_VIRTUAL || (equals as ReferenceInstruction).reference.toString() != STRING_EQUALS) {
         return@mapNotNull null
@@ -323,9 +322,33 @@ internal fun typeCompares(code: List<Instruction>): List<TypeCompare> = (2 until
     if (compared.registerCount != 2 || compared.registerC != nameRegister || compared.registerD != typeRegister) {
         return@mapNotNull null
     }
-    val call = read as FiveRegisterInstruction
-    TypeCompare(name, index, typeRegister, nameRegister, call.registerC, keyOf(code, index - 2, call.registerD))
+    val read = code[index - 2]
+    val getter = (read as? ReferenceInstruction)?.reference as? MethodReference ?: return@mapNotNull null
+    if (getter.returnType != "Ljava/lang/String;") return@mapNotNull null
+    val parameters = getter.parameterTypes.map { it.toString() }
+    when {
+        read.opcode == Opcode.INVOKE_VIRTUAL && getter.name == TYPE_GETTER && parameters == listOf("I") -> {
+            val call = read as FiveRegisterInstruction
+            val key = keyOf(code, index - 2, call.registerD)
+            TypeCompare(name, index, typeRegister, nameRegister, call.registerC, key, key?.let { "$TYPE_GETTER#$it" })
+        }
+        // 585 reads the type through the pill model's own getter (an interface's no-argument String
+        // method), so the getter stands in for the key.
+        read.opcode in MODEL_GETTER_CALLS && parameters.isEmpty() -> {
+            val tree = when (read) {
+                is RegisterRangeInstruction -> read.startRegister.takeIf { read.registerCount == 1 }
+                is FiveRegisterInstruction -> read.registerC.takeIf { read.registerCount == 1 }
+                else -> null
+            } ?: return@mapNotNull null
+            TypeCompare(name, index, typeRegister, nameRegister, tree, null, getter.toString())
+        }
+        else -> null
+    }
 }
+
+private val MODEL_GETTER_CALLS = setOf(
+    Opcode.INVOKE_INTERFACE, Opcode.INVOKE_INTERFACE_RANGE, Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE,
+)
 
 /** The literal a const loads into [register] within the few instructions before [index], if one does. */
 private fun keyOf(code: List<Instruction>, index: Int, register: Int): Long? {
@@ -369,8 +392,8 @@ internal fun defaultPill(method: Method): DefaultPill {
     val metaAi = compares.filter { it.name == META_AI_TYPE }
     val icon = metaAi.singleOrNull()
         ?: refuse("expected one compare of a pill's type with \"$META_AI_TYPE\" in $where, found ${metaAi.size}")
-    if (icon.key == null) refuse("the pill type compared with \"$META_AI_TYPE\" in $where isn't read with a literal key")
-    val stars = compares.filter { it.name == STARS_TYPE && it.key == icon.key && it.tree == icon.tree }
+    if (icon.source == null) refuse("the pill type compared with \"$META_AI_TYPE\" in $where isn't read with a literal key")
+    val stars = compares.filter { it.name == STARS_TYPE && it.source == icon.source && it.tree == icon.tree }
     val site = stars.singleOrNull()
         ?: refuse("expected one compare of the same pill type with \"$STARS_TYPE\" in $where, found ${stars.size}")
     val flow = ControlFlow.of(method)
@@ -407,6 +430,10 @@ internal fun defaultPill(method: Method): DefaultPill {
         refuse("in $where a pill typed \"$META_AI_TYPE\" can be returned at $onMetaAi before the \"$STARS_TYPE\" compare")
     }
     if (!reaches) refuse("in $where nothing after the \"$META_AI_TYPE\" compare reaches the \"$STARS_TYPE\" compare")
+    // The hook's call and its const/4 take four-bit registers only.
+    if (site.typeRegister > 15 || site.nameRegister > 15) {
+        refuse("in $where the \"$STARS_TYPE\" compare's registers v${site.typeRegister} and v${site.nameRegister} don't fit the hook's four bits")
+    }
     return DefaultPill(site.nameIndex, site.typeRegister, site.nameRegister)
 }
 

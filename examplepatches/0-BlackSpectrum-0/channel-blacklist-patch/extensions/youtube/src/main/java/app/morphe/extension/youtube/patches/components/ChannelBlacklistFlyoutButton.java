@@ -19,6 +19,10 @@ import app.morphe.extension.youtube.settings.Settings;
 /**
  * Adds the "Add channel to blacklist" entry to the 3-dot flyout menu.
  * Kept out of {@link FlyoutUtils} so upstream changes to that file merge without conflicts.
+ * <p>
+ * Since upstream v2.0.0 the flyout opens immediately and the channel of the menu's video
+ * loads in the background ({@link FlyoutUtils#getFlyoutChannelIdRequest()}), so this button
+ * follows the same pattern as the channel whitelist buttons.
  */
 @SuppressWarnings("unused")
 public final class ChannelBlacklistFlyoutButton {
@@ -33,6 +37,12 @@ public final class ChannelBlacklistFlyoutButton {
                 && !SpoofAppVersionPatch.isSpoofingToLessThan("20.31.00");
     }
 
+    private static String getTitle(boolean isBlacklisted) {
+        return isBlacklisted
+                ? str("morphe_channel_blacklist_flyout_remove")
+                : str("morphe_channel_blacklist_flyout_add");
+    }
+
     public static int addFlyoutButton(Object flyoutPanel, int nextButtonIndex, String videoId) {
         if (!isPatchIncluded() || !Settings.CHANNEL_BLACKLIST_FLYOUT_MENU.get()) {
             return nextButtonIndex;
@@ -44,34 +54,55 @@ public final class ChannelBlacklistFlyoutButton {
                         : "yt_outline_trash_can_black_24"
         );
 
-        final String currentChannelName = getCurrentChannelName();
-        final boolean isBlacklisted = !currentChannelName.isEmpty()
-                && ChannelBlacklistFilter.isChannelBlacklisted(currentChannelName);
+        final ChannelIdRequest request = FlyoutUtils.getFlyoutChannelIdRequest();
+        if (request == null) {
+            // Menus without a video of their own, such as the player settings, belong to the playing video.
+            final String playingChannelName = VideoInformation.getChannelName();
+            final boolean isBlacklisted = !playingChannelName.isEmpty()
+                    && ChannelBlacklistFilter.isChannelBlacklisted(playingChannelName);
 
-        final String buttonTitle = isBlacklisted
-                ? str("morphe_channel_blacklist_flyout_remove")
-                : str("morphe_channel_blacklist_flyout_add");
+            return FlyoutUtils.addFlyoutButton(
+                    flyoutPanel,
+                    icon,
+                    getTitle(isBlacklisted),
+                    v -> {
+                        FlyoutUtils.dismissFlyout();
+                        toggleChannel(playingChannelName, videoId);
+                    },
+                    nextButtonIndex
+            );
+        }
 
+        // The button is disabled until the channel is loaded, and is enabled right away if it already is.
         return FlyoutUtils.addFlyoutButton(
                 flyoutPanel,
                 icon,
-                buttonTitle,
+                getTitle(false),
                 v -> {
                     FlyoutUtils.dismissFlyout();
-                    toggleChannel(videoId);
+                    // The button is only enabled once the request is done, so this does not wait.
+                    Pair<String, String> channelInfo = request.getChannelInfo();
+                    toggleChannel(channelInfo == null ? "" : channelInfo.first, videoId);
                 },
-                nextButtonIndex
+                nextButtonIndex,
+                new FlyoutUtils.FlyoutButtonResource(request.getFuture(), text -> {
+                    Pair<String, String> channelInfo = request.getChannelInfo();
+                    String channelName = channelInfo == null ? "" : channelInfo.first;
+                    if (TextUtils.isEmpty(channelName)) {
+                        return false;
+                    }
+
+                    if (text != null) {
+                        text.setText(getTitle(ChannelBlacklistFilter.isChannelBlacklisted(channelName)));
+                    }
+                    return true;
+                })
         );
     }
 
-    private static String getCurrentChannelName() {
-        String name = FlyoutUtils.getFlyoutChannelName();
-        return !name.isEmpty() ? name : VideoInformation.getChannelName();
-    }
-
-    private static void toggleChannel(String videoId) {
+    private static void toggleChannel(String knownChannelName, String videoId) {
         Utils.runOnBackgroundThread(() -> {
-            String channelName = getCurrentChannelName();
+            String channelName = knownChannelName;
 
             if (channelName.isEmpty() && !videoId.isEmpty()) {
                 try {

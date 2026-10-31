@@ -14,6 +14,8 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.namesString
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.util.classDefForEachReferencing
@@ -42,6 +44,11 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  *   three instructions: a no-argument static call, its move-result-object and the return. That call
  *   builds the empty component every caller already copes with, so the switch answers with it.
  * - The builder's callers are the reel footer's render methods (arm64 LX/AQ0; and LX/AQ1;).
+ *
+ * 585 (arm64 and armeabi-v7a): the component (arm64 LX/0cbu;, v7a LX/0cbL;) still names itself in its
+ *   initializer and a decoy (arm64 LX/0dTN;) still has no render, but render no longer holds the view
+ *   tag: it asks a string table for it (arm64 LX/0Xst;->A00, index 0x3e9). The tag is read through the
+ *   table, and the builder (arm64 LX/0dLG;->A01) is found by the component as before.
  *
  * The same switch takes the search pill off the top of a reel's comments (#197). Read from 583,
  * 2026-10-20, arm64:
@@ -80,10 +87,13 @@ internal const val SEARCH_BAR_PART =
 
 private const val PATCH = "Clean up Reels"
 
-/** Whether [classDef] is the pill component: its initializer names it and its render holds the view tag. */
-internal fun isPillComponent(classDef: ClassDef): Boolean =
-    classDef.methods.any { it.name == "<clinit>" && holdsString(it, ELEVATED_CTA) } &&
-        classDef.methods.any { it.name == "render" && holdsString(it, PIVOT_VIEW_TAG) }
+/**
+ * Whether [classDef] is the pill component: its initializer names it and its render holds the view
+ * tag, loaded itself or asked of a string table that [resolve] finds (585 moved the tag into one).
+ */
+internal fun isPillComponent(classDef: ClassDef, resolve: (MethodReference) -> Method? = { null }): Boolean =
+    classDef.methods.any { it.name == "<clinit>" && namesString(it, ELEVATED_CTA, resolve) } &&
+        classDef.methods.any { it.name == "render" && namesString(it, PIVOT_VIEW_TAG, resolve) }
 
 /**
  * Facebook's empty answer in [builder]: the no-argument static call that ends it, as its last three
@@ -133,8 +143,10 @@ internal fun MutableMethod.hidePillWhen(hook: String, empty: MethodReference) {
  * answer Facebook's empty component while the switch is on. Refuses unless each step finds one.
  */
 internal fun BytecodePatchContext.hideSearchPill() {
+    // The tag may sit in a string table, so the classes naming the component read the tables they call.
+    val resolve = { call: MethodReference -> classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) } }
     val components = classDefByStrings(ELEVATED_CTA, StringComparisonType.EQUALS)
-        .filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.filter(::isPillComponent).distinctBy { it.type }
+        .filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.filter { isPillComponent(it, resolve) }.distinctBy { it.type }
     val component = components.singleOrNull() ?: throw PatchException(
         "$PATCH: expected one component naming $ELEVATED_CTA that renders $PIVOT_VIEW_TAG, found ${components.size}",
     )

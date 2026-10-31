@@ -38,6 +38,13 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  * list in place with one static List.sort(Comparator) call and then reorders parts of it; the four
  * callers then read the head as the next reel. So the list as EmL returns is what decides.
  *
+ * 585 (Redex): the rerank (05ev.JBd on arm64, 05f1.JBb on armeabi-v7a) grew to about 2,600
+ * instructions and 200 registers and makes two static List.sort calls. One sorts a copy it builds
+ * for the Odin scoring tier, the other sorts a register that is the List parameter itself (through
+ * a copy register, 133 on arm64) or a copy of a side list. A recording pass after the sort only
+ * reads the list. The callers (064A.A0X and three more) still take get(0) of the list they passed.
+ * So the hook anchors on the parameter, which is never written, instead of on a sort's register.
+ *
  * The list holds ranking signals, one per reel, which Facebook makes from each pool item with
  * createSignalForModel(model). The signal carries a key and scores but no posting time. The model
  * does: its edge (the interface's one no-argument Object getter) is the reel's GraphQL edge, whose
@@ -93,12 +100,29 @@ internal fun Instruction.isListSort(): Boolean {
     return call.returnType == "V" && call.parameterTypes.map(CharSequence::toString) == listOf(LIST, COMPARATOR)
 }
 
+private fun Instruction.isObjectMove(): Boolean =
+    opcode == Opcode.MOVE_OBJECT || opcode == Opcode.MOVE_OBJECT_FROM16 || opcode == Opcode.MOVE_OBJECT_16
+
 /**
- * The register the rerank keeps its list in, or null when [method] isn't the rerank: a void instance
- * method taking (object, List, int) that loads [RANKER_TAG] and makes one static `(List,
- * Comparator)V` call, whose list register holds the List parameter at every return. That last part
- * is what lets the hook read the list there: the one write that reaches each return is a
- * move-object from the parameter.
+ * Whether [register] holds the List parameter [listParameter] when the instruction at [at] runs on
+ * some path: the parameter itself, never written, or a chain of at most [hops] move-objects from it.
+ */
+private fun Method.holdsListParameter(code: List<Instruction>, at: Int, register: Int, listParameter: Int, hops: Int): Boolean {
+    if (register == listParameter) return writersReaching(at, register) == listOf(-1)
+    if (hops == 0) return false
+    return writersReaching(at, register).any { writer ->
+        writer >= 0 && code[writer].isObjectMove() &&
+            holdsListParameter(code, writer, (code[writer] as TwoRegisterInstruction).registerB, listParameter, hops - 1)
+    }
+}
+
+/**
+ * The register that holds the List parameter at every return, or null when [method] isn't the
+ * rerank: a void instance method taking (object, List, int) that loads [RANKER_TAG], never writes
+ * the List parameter, and sorts that list in place with a static `(List, Comparator)V` call on some
+ * path (straight from the parameter or through a copy register). The hook reads the parameter
+ * itself at each return, so it sees the list the callers take the head of whichever sort ran, and
+ * the 585 rerank's other sort, which orders a copy, doesn't matter.
  */
 internal fun rerankList(method: Method): Int? {
     if (method.returnType != "V" || AccessFlags.STATIC.isSet(method.accessFlags)) return null
@@ -106,22 +130,15 @@ internal fun rerankList(method: Method): Int? {
     if (parameters.size != 3 || !parameters[0].startsWith("L") || parameters[1] != LIST || parameters[2] != "I") return null
     if (!holdsString(method, RANKER_TAG)) return null
     val code = method.implementation?.instructions?.toList() ?: return null
-    val sort = code.singleOrNull { it.isListSort() } ?: return null
-    val list = sort.callRegisters().first()
     // this, the context, then the list.
     val listParameter = method.localRegisterCount() + 2
     val returns = code.indices.filter { code[it].opcode == Opcode.RETURN_VOID }
     if (returns.isEmpty()) return null
-    for (index in returns) {
-        val writer = method.writersReaching(index, list).singleOrNull() ?: return null
-        if (writer < 0) return null
-        val move = code[writer]
-        if (move.opcode != Opcode.MOVE_OBJECT && move.opcode != Opcode.MOVE_OBJECT_FROM16 && move.opcode != Opcode.MOVE_OBJECT_16) return null
-        if ((move as TwoRegisterInstruction).registerB != listParameter) return null
-        // And the parameter still holds the caller's list where it's copied.
-        if (method.writersReaching(writer, listParameter) != listOf(-1)) return null
+    if (returns.any { method.writersReaching(it, listParameter) != listOf(-1) }) return null
+    val sortsParameter = code.indices.filter { code[it].isListSort() }.any { index ->
+        method.holdsListParameter(code, index, code[index].callRegisters().first(), listParameter, 3)
     }
-    return list
+    return if (sortsParameter) listParameter else null
 }
 
 /** Hands the rerank's list to the extension at each of [method]'s returns, branches into them included. */

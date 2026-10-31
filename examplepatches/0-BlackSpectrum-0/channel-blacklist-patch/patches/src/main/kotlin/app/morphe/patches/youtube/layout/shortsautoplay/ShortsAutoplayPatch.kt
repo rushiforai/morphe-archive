@@ -73,7 +73,9 @@ val shortsAutoplayPatch = bytecodePatch(
             )
         }
         
-        ReelPlaybackRepeatFingerprint.method.apply {
+        val reelPlaybackRepeat = reelPlaybackRepeatFingerprint(reelEnumClass)
+
+        reelPlaybackRepeat.method.apply {
             // The behavior enums are looked up from an ordinal value to an enum type.
             findInstructionIndicesReversedOrThrow(
                 if (is_21_25_or_greater) {
@@ -116,7 +118,7 @@ val shortsAutoplayPatch = bytecodePatch(
         val reelSequenceControllerMethodReference = ReelPlaybackLegacyFingerprint.instructionMatches[2]
             .getInstruction<ReferenceInstruction>().reference as MethodReference
 
-        ReelPlaybackRepeatFingerprint.method.apply {
+        reelPlaybackRepeat.method.apply {
             // Find the first call modified by extension code above.
             val extensionReturnResultIndex = indexOfFirstInstructionOrThrow {
                 opcode == Opcode.INVOKE_STATIC &&
@@ -125,7 +127,7 @@ val shortsAutoplayPatch = bytecodePatch(
             val enumRegister = getInstruction<OneRegisterInstruction>(extensionReturnResultIndex).registerA
             val getReelSequenceControllerReference = getInstanceFieldGetFingerprint(
                 reelSequenceControllerMethodReference.definingClass
-            ).match(ReelPlaybackRepeatFingerprint.originalMethod)
+            ).match(reelPlaybackRepeat.originalMethod)
                 .instructionMatches.first().instruction.getReference<FieldReference>()!!
 
             // Add a helper method to avoid finding multiple free registers.
@@ -163,7 +165,7 @@ val shortsAutoplayPatch = bytecodePatch(
                     """
                 )
             }
-            ReelPlaybackRepeatFingerprint.classDef.methods.add(helperMethod)
+            reelPlaybackRepeat.classDef.methods.add(helperMethod)
 
             addInstructionsWithLabels(
                 extensionReturnResultIndex + 1,

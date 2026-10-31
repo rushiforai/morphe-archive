@@ -1,0 +1,68 @@
+EBPatcher isolated summary engine: third-party software
+
+This payload contains no model weights. The Settings downloader obtains the
+separately licensed, pinned Gemma model described in model.json (text-only summary)
+and Whisper large-v3-turbo multilingual Q5_0 described in whisper-model.json (ASR).
+Gemma's selected model card identifies Apache License 2.0; Whisper weights use
+the MIT license. Downloads do not send recordings, transcripts, or summaries.
+
+LiteRT-LM Android API 0.18.1
+  Copyright Google LLC and the LiteRT-LM Authors.
+  https://github.com/google-ai-edge/LiteRT-LM/tree/v0.18.1
+  https://dl.google.com/dl/android/maven2/com/google/ai/edge/litertlm/litertlm-android/0.18.1/litertlm-android-0.18.1.pom
+  Apache License 2.0. Original LICENSE and THIRD_PARTY_NOTICE.txt from the AAR
+  are copied intact into notices/ by the payload task, including the bundled
+  native runtime's third-party attributions and license texts.
+
+whisper.cpp v1.9.5 and its bundled ggml CPU/Vulkan implementations
+  Copyright Georgi Gerganov and contributors.
+  https://github.com/ggml-org/whisper.cpp/tree/d1be6fde11ac6e0407606b4e42fe72d34add8037
+  MIT. Upstream LICENSE and AUTHORS are copied into notices/whisper.cpp/.
+  Built from authenticated source with Android NDK 29.0.14206865 and
+  CMake 3.22.1; no downloaded third-party JNI binary is used. Source archive:
+  https://codeload.github.com/ggml-org/whisper.cpp/tar.gz/d1be6fde11ac6e0407606b4e42fe72d34add8037
+  SHA-256: 645445da884df6dbd52b30f82d7be7c01d1767c938714e477e786b88d529e9f4
+  Separate private CPU and Vulkan builds, no dynamic ggml backends/OpenMP/network,
+  static C++ runtime. Both JNI variants are packaged for arm64-v8a and x86_64
+  through engine-files.json.
+
+Khronos Vulkan-Headers and SPIRV-Headers, SDK 1.4.341.0
+  https://github.com/KhronosGroup/Vulkan-Headers/tree/b5c8f996196ba4aa6d8f97e52b5d3b6e70f7e4e2
+  https://github.com/KhronosGroup/SPIRV-Headers/tree/04f10f650d514df88b76d25e83db360142c7b174
+  Header sources are SHA-256 verified by Gradle. Original LICENSE/ LICENSES files
+  are retained under notices/Vulkan-Headers/ and notices/SPIRV-Headers/.
+  Android Vulkan loader and host glslc are supplied by the pinned Android NDK.
+
+OpenAI Whisper large-v3-turbo multilingual model
+  Copyright OpenAI.
+  https://github.com/openai/whisper/blob/main/LICENSE
+  MIT. Distributed separately by upstream maintainer ggerganov:
+  https://huggingface.co/ggerganov/whisper.cpp
+  Immutable model revision: 5359861c739e955e79d9a303bcbc70fb988958b1
+  File: ggml-large-v3-turbo-q5_0.bin (574041195 bytes)
+  SHA-256: 394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2
+
+Gson 2.14.0
+  Copyright Google Inc./Google LLC and contributors.
+  https://github.com/google/gson
+  Apache License 2.0.
+
+Kotlin standard library and reflection 2.4.0
+  Copyright JetBrains s.r.o. and Kotlin Programming Language contributors.
+  https://github.com/JetBrains/kotlin
+  Apache License 2.0. Original embedded notices are retained under notices/.
+
+Kotlin coroutines Android/JVM 1.11.0
+  Copyright JetBrains s.r.o. and contributors.
+  https://github.com/Kotlin/kotlinx.coroutines
+  Apache License 2.0. Original embedded notices are retained under notices/.
+
+Transitive annotations and any additional resolved JVM dependencies
+  Exact selected group/artifact/version/type inventory: notices/dependencies.txt.
+  Original embedded LICENSE/NOTICE entries from every resolved JAR/AAR are
+  preserved separately under notices/<artifact>/ to avoid attribution collisions.
+  A full Apache License 2.0 text is included as notices/Apache-2.0.txt.
+
+No LiteRT-LM SDK source was modified. The application integrates its published
+binary API in an isolated class loader and does not execute model-generated
+tool requests. Whisper and bundled ggml sources are built without modification.

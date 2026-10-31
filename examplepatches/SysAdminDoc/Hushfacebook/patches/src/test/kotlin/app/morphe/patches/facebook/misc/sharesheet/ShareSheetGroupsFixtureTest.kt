@@ -69,7 +69,7 @@ class ShareSheetGroupsFixtureTest {
     private companion object {
         /** Per build, the footer's Send to group label and the label that takes the number of picks. */
         val LABELS = mapOf(
-            "584.0.0.51.56" to (0x7f144857 to 0x7f144858),
+            "585.0.0.47.54" to (0x7f14490c to 0x7f14490d),
         )
     }
 
@@ -108,6 +108,8 @@ class ShareSheetGroupsFixtureTest {
                 // by the locale packs both ship; 583's English pack is SuperPack only, so the
                 // unpacked table is the check still owed. 584's footer loads the same five label ids
                 // as 583's, each 195 higher, which puts the pair at 0x7f144857 and 0x7f144858.
+                // 585's footer loads the pair at 0x7f14490c and 0x7f14490d, 181 higher, with the
+                // other labels 0x60 to 0x64 past them as before.
                 LABELS[version]?.let { (label, picks) ->
                     val built = footerCode.indexOfFirst { it.buildsButton() }
                     assertTrue("$name: the footer never loads the Send to group label",

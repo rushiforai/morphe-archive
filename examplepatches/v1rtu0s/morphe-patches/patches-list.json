@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "patches": [
     {
       "name": "BlitzerMorph",
@@ -9,16 +9,16 @@
       "category": null,
       "compatiblePackages": [
         {
-          "packageName": "org.ungoogled.ui",
-          "name": "microG Maps",
-          "description": null,
+          "packageName": "com.google.android.apps.maps",
+          "name": "microG Maps (BlitzerMorph)",
+          "description": "microG Maps with Blitzer.de speed camera integration",
           "apkFileType": "APKM",
           "appIconColor": "#1A73E8",
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "26.36.04.973607363",
+              "version": "26.43.00.1002020710",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

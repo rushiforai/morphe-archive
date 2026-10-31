@@ -102,6 +102,76 @@ class InputStagingTests(unittest.TestCase):
 
 
 class TargetRoutingTests(unittest.TestCase):
+    def test_west_privacy_controls_and_bound_apk_verifier(self):
+        self.assertEqual(validator.APPS.get('west'), {
+            'Hide ads': [], 'Disable tracking': ['Hide ads'],
+            'Skip consent screens': ['Disable tracking', 'Hide ads'],
+        })
+        self.assertEqual(
+            validator.verifier_command('west', Path('decoded'), {'Hide ads'}, apk=Path('input.apk')),
+            [sys.executable, 'tests/verify_west.py', 'decoded', '--apk', 'input.apk', '-e', 'Hide ads'])
+        self.assertEqual(len(validator.patch_selections(validator.APPS['west'], None)), 4)
+
+    def test_belgian_news_controls_use_their_own_verifiers(self):
+        for app in ('demorgen', 'humo', 'hln', 'nieuwsblad', 'dsnieuws', 'hbvl'):
+            with self.subTest(app=app):
+                expected = {
+                    'Hide ads': [], 'Disable tracking': ['Hide ads'],
+                    'Skip consent screens': ['Disable tracking', 'Hide ads'],
+                    'Hide Premium banner': [],
+                }
+                if app in ('demorgen', 'humo', 'hln'):
+                    expected['Read full articles'] = []
+                self.assertEqual(validator.APPS.get(app), expected)
+                self.assertEqual(
+                    validator.verifier_command(app, Path('decoded'), {'Hide ads'}),
+                    [sys.executable, f'tests/verify_{app}.py', 'decoded', '-e', 'Hide ads'])
+                self.assertEqual(len(validator.patch_selections(expected, None)), len(expected) + 1)
+
+    def test_hln_stable_controls_use_the_independent_verifier(self):
+        self.assertEqual(validator.APPS.get('hln'), {
+            'Hide ads': [], 'Disable tracking': ['Hide ads'],
+            'Skip consent screens': ['Disable tracking', 'Hide ads'],
+            'Hide Premium banner': [], 'Read full articles': [],
+        })
+        self.assertEqual(
+            validator.verifier_command('hln', Path('decoded'), {'Read full articles'}),
+            [sys.executable, 'tests/verify_hln.py', 'decoded', '-e', 'Read full articles'])
+
+    def test_detijd_verifies_packed_hermes_asset_and_article_ad_dependency(self):
+        self.assertEqual(validator.APPS['detijd']['Read full articles'], ['Hide ads'])
+        self.assertEqual(validator.APPS['detijd']['Skip onboarding'], [])
+        self.assertEqual(
+            validator.verifier_command('detijd', Path('decoded'), {'Read full articles'}, apk=Path('rebuilt.apk')),
+            [sys.executable, 'tests/verify_detijd.py', 'decoded', '--apk', 'rebuilt.apk', '-e', 'Read full articles'],
+        )
+
+    def test_humo_stable_controls_use_the_independent_verifier(self):
+        self.assertEqual(validator.APPS.get('humo'), {
+            'Hide ads': [], 'Disable tracking': ['Hide ads'],
+            'Skip consent screens': ['Disable tracking', 'Hide ads'],
+            'Hide Premium banner': [], 'Read full articles': [],
+        })
+        self.assertEqual(
+            validator.verifier_command('humo', Path('decoded'), {'Read full articles'}),
+            [sys.executable, 'tests/verify_humo.py', 'decoded', '-e', 'Read full articles'])
+
+    def test_demorgen_stable_controls_use_the_independent_verifier(self):
+        self.assertEqual(validator.APPS.get('demorgen'), {
+            'Hide ads': [], 'Disable tracking': ['Hide ads'],
+            'Skip consent screens': ['Disable tracking', 'Hide ads'],
+            'Hide Premium banner': [], 'Read full articles': [],
+        })
+        self.assertEqual(
+            validator.verifier_command('demorgen', Path('decoded'), {'Read full articles'}),
+            [sys.executable, 'tests/verify_demorgen.py', 'decoded', '-e', 'Read full articles'])
+
+    def test_tubantia_uses_its_own_ad_family_verifier(self):
+        self.assertEqual(validator.APPS.get('tubantia'), validator.APPS['ad'])
+        self.assertEqual(
+            validator.verifier_command('tubantia', Path('decoded'), {'Hide ads'}),
+            [sys.executable, 'tests/verify_tubantia.py', 'decoded', '-e', 'Hide ads'])
+
     def test_9292_uses_its_own_apk_bound_verifier(self):
         self.assertEqual(validator.APPS['9292'], {
             'Fix PairIP startup': [], 'Hide ads': ['Fix PairIP startup'],
@@ -311,5 +381,46 @@ class TargetRoutingTests(unittest.TestCase):
             self.assertEqual((destination / "smali.txt").read_text(), "diagnostic output")
 
 
+class KijkRoutingTests(unittest.TestCase):
+    def test_consent_includes_tracking_without_forcing_ads(self):
+        self.assertEqual(validator.APPS['kijk'], {'Hide ads': [], 'Disable tracking': [],
+                                                'Skip consent screens': ['Disable tracking']})
+        command = validator.verifier_command('kijk', Path('/decoded/output'),
+                    {'Skip consent screens', 'Disable tracking'}, apk=Path('/output.apk'),
+                    original_reference=Path('/decoded/original'), original_input=Path('/original.apk'))
+        self.assertEqual(command[1], 'tests/verify_kijk_consent.py')
+        self.assertIn('Skip consent screens', command)
+        self.assertIn('Disable tracking', command)
+        self.assertNotIn('Hide ads', command)
+        self.assertEqual(command[-4:], ['--original-apk', '/original.apk', '--patched-apk', '/output.apk'])
+
+    def test_kijk_validation_requires_both_decoded_reference_and_original_payload(self):
+        with self.assertRaisesRegex(ValueError, 'decoded publisher original'):
+            validator.verifier_command('kijk', Path('/output'), set())
+        with self.assertRaisesRegex(ValueError, 'original APK'):
+            validator.verifier_command('kijk', Path('/output'), set(), apk=Path('/output.apk'),
+                                       original_reference=Path('/original'))
+
+
 if __name__ == "__main__":
     unittest.main()
+
+
+class VideolandMobileRoutingTests(unittest.TestCase):
+    def test_mobile_controls_and_whole_archive_verifier(self):
+        self.assertEqual(validator.APPS.get('videoland'), {
+            'Hide ads': [], 'Disable tracking': [], 'Skip consent screens': ['Disable tracking']})
+        command = validator.verifier_command('videoland', Path('/output'),
+                    {'Disable tracking', 'Skip consent screens'}, apk=Path('/out.apk'),
+                    original_reference=Path('/stock'), original_input=Path('/original.apks'))
+        self.assertEqual(command, [sys.executable, 'tests/verify_videoland.py', '/stock', '/output',
+                    '--tracking', '--consent', '--original-apks', '/original.apks', '--patched-apk', '/out.apk'])
+        self.assertEqual(validator.STREAMING_ORIGINALS['videoland'],
+            'c990c0339ac1b8c79031aabccba0046f63ca005266031a18c35051c8b7a73810')
+
+    def test_mobile_requires_reference_and_complete_split_payload(self):
+        with self.assertRaisesRegex(ValueError, 'original'):
+            validator.verifier_command('videoland', Path('/output'), set())
+        with self.assertRaisesRegex(ValueError, 'whole original'):
+            validator.verifier_command('videoland', Path('/output'), set(), apk=Path('/out.apk'),
+                                       original_reference=Path('/stock'))

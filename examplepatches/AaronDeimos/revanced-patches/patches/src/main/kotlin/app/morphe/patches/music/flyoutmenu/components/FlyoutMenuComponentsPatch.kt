@@ -1,0 +1,593 @@
+/*
+ * Copyright (C) 2026 anddea
+ *
+ * This file is part of the revanced-patches project:
+ * https://github.com/anddea/revanced-patches
+ *
+ * Original author(s):
+ * - anddea (https://github.com/anddea)
+ * - Hoàng Gia Bảo (https://github.com/YT-Advanced)
+ * - ILoveOpenSourceApplications (https://github.com/ILoveOpenSourceApplications)
+ * - inotia00 (https://github.com/inotia00)
+ *
+ * Licensed under the GNU General Public License v3.0.
+ *
+ * ------------------------------------------------------------------------
+ * GPLv3 Section 7 – Additional Terms & Attribution Requirements
+ * ------------------------------------------------------------------------
+ *
+ * This file contains substantial original work by the author(s) listed above.
+ *
+ * In accordance with Section 7 of the GNU General Public License v3.0,
+ * the following additional terms apply to this file:
+ *
+ * 1. Source Credit Preservation (Section 7(b)): This specific copyright notice
+ *    and the list of original authors above must be preserved in any copy
+ *    or derivative work. You may add your own copyright notice below it,
+ *    but you may not remove the original one.
+ *
+ * 2. Origin & Modification Marking (Section 7(c)): Modified versions must be
+ *    clearly marked as such (e.g., by adding a "Modified by" line or a new
+ *    copyright notice) and must not be misrepresented as the original work.
+ *
+ * 3. Version Control Attribution (Section 7(b)): Any ports or substantial
+ *    modifications must retain historical authorship credit in version control
+ *    systems (e.g., Git), listing original author(s) appropriately and
+ *    modifiers as committers or co-authors.
+ *
+ * 4. User Interface Attribution (Section 7(b)): Any works containing or
+ *    derived from this material must maintain a visible credit or
+ *    acknowledgment to the original author(s) within the application's
+ *    user interface (e.g., in an "About" or "Credits" section).
+ */
+
+/*
+ * Portions of this file are ported from Morphe:
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/1881
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ */
+
+package app.morphe.patches.music.flyoutmenu.components
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.music.actionbar.components.actionBarComponentsPatch
+import app.morphe.patches.music.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE_MUSIC
+import app.morphe.patches.music.utils.extension.Constants.COMPONENTS_PATH
+import app.morphe.patches.music.utils.extension.Constants.FLYOUT_CLASS_DESCRIPTOR
+import app.morphe.patches.music.utils.flyoutmenu.flyoutMenuHookPatch
+import app.morphe.patches.music.utils.patch.PatchList.FLYOUT_MENU_COMPONENTS
+import app.morphe.patches.music.utils.playservice.is_6_36_or_greater
+import app.morphe.patches.music.utils.playservice.is_7_25_or_greater
+import app.morphe.patches.music.utils.playservice.is_8_51_or_greater
+import app.morphe.patches.music.utils.playservice.versionCheckPatch
+import app.morphe.patches.music.utils.resourceid.endButtonsContainer
+import app.morphe.patches.music.utils.resourceid.sharedResourceIdPatch
+import app.morphe.patches.music.utils.resourceid.trimSilenceSwitch
+import app.morphe.patches.music.utils.settings.CategoryType
+import app.morphe.patches.music.utils.settings.ResourceUtils.updatePatchStatus
+import app.morphe.patches.music.utils.settings.addSwitchPreference
+import app.morphe.patches.music.utils.settings.settingsPatch
+import app.morphe.util.Utils.printWarn
+import app.morphe.patches.music.utils.videotype.videoTypeHookPatch
+import app.morphe.patches.music.video.information.videoInformationPatch
+import app.morphe.patches.shared.litho.addLithoFilter
+import app.morphe.patches.shared.litho.lithoFilterPatch
+import app.morphe.util.ResourceGroup
+import app.morphe.util.cloneMutable
+import app.morphe.util.copyResources
+import app.morphe.util.findMethodOrThrow
+import app.morphe.util.fingerprint.injectLiteralInstructionBooleanCall
+import app.morphe.util.fingerprint.matchOrThrow
+import app.morphe.util.fingerprint.methodOrThrow
+import app.morphe.util.fingerprint.resolvable
+import app.morphe.util.getReference
+import app.morphe.util.getWalkerMethod
+import app.morphe.util.indexOfFirstInstructionOrThrow
+import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
+private val resourceFileArray = arrayOf(
+    "yt_bold_play_arrow_half_circle_black_24.png",
+    "yt_outline_play_arrow_half_circle_black_24.png",
+)
+
+private val flyoutMenuComponentsResourcePatch = resourcePatch(
+    description = "flyoutMenuComponentsResourcePatch"
+) {
+    execute {
+        arrayOf("xxxhdpi", "xxhdpi", "xhdpi", "hdpi", "mdpi")
+            .map { "drawable-$it" }
+            .map { directory ->
+                ResourceGroup(
+                    directory, *resourceFileArray
+                )
+            }
+            .plus(
+                ResourceGroup(
+                    "drawable",
+                    "yt_bold_youtube_logo_icon_vd_theme_24.xml"
+                )
+            )
+            .forEach { resourceGroup ->
+                copyResources("music/flyout", resourceGroup)
+            }
+    }
+}
+
+private const val FILTER_CLASS_DESCRIPTOR =
+    "$COMPONENTS_PATH/PlayerFlyoutMenuFilter;"
+private const val EXTENSION_PROTOCOL_BUFFER_INTERFACE =
+    $$"Lapp/morphe/extension/music/patches/flyout/FlyoutPatch$ProtocolBufferFieldInterface;"
+
+/**
+ * Matches the shared command resolver used by Music's flyout menu actions.
+ */
+private object FlyoutCommandResolverFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf("L", "L", "Ljava/util/Map;"),
+    strings = listOf("CommandResolver threw exception during resolution")
+)
+
+@Suppress("unused")
+val flyoutMenuComponentsPatch = bytecodePatch(
+    FLYOUT_MENU_COMPONENTS.title,
+    FLYOUT_MENU_COMPONENTS.summary,
+) {
+    compatibleWith(COMPATIBILITY_YOUTUBE_MUSIC)
+
+    dependsOn(
+        actionBarComponentsPatch,
+        settingsPatch,
+        flyoutMenuComponentsResourcePatch,
+        flyoutMenuHookPatch,
+        lithoFilterPatch,
+        sharedResourceIdPatch,
+        versionCheckPatch,
+        videoInformationPatch,
+        videoTypeHookPatch,
+    )
+
+    execute {
+        var trimSilenceIncluded = false
+
+        // region patch for override download button in flyout menu
+
+        if (is_7_25_or_greater) {
+            FlyoutCommandResolverFingerprint.let {
+                val originalMethod = it.method
+                // The newest clients have no local registers in this method. Add one so the Boolean
+                // callback result cannot overwrite p0 and fail Android's bytecode verification.
+                val method = originalMethod.cloneMutable(additionalRegisters = 1)
+                it.classDef.methods.remove(originalMethod)
+                it.classDef.methods.add(method)
+
+                // Expose the command's serialized protobuf so the flyout video ID can be resolved.
+                mutableClassDefBy(method.parameters[1].type)
+                    .interfaces.add(EXTENSION_PROTOCOL_BUFFER_INTERFACE)
+
+                method.addInstructionsWithLabels(
+                    0,
+                    """
+                    invoke-static { p1, p2 }, $FLYOUT_CLASS_DESCRIPTOR->commandResolverOnClick(${EXTENSION_PROTOCOL_BUFFER_INTERFACE}Ljava/util/Map;)Z
+                    move-result v0
+                    if-eqz v0, :continue_resolution
+                    return v0
+                    :continue_resolution
+                    nop
+                """
+                )
+            }
+        }
+
+        // endregion
+
+        // region patch for disable trim silence
+
+        if (trimSilenceConfigFingerprint.resolvable()) {
+            trimSilenceConfigFingerprint.injectLiteralInstructionBooleanCall(
+                TRIM_SILENCE_FEATURE_FLAG,
+                "$FLYOUT_CLASS_DESCRIPTOR->disableTrimSilence(Z)Z"
+            )
+
+            trimSilenceSwitchFingerprint.methodOrThrow().apply {
+                val constIndex =
+                    indexOfFirstLiteralInstructionOrThrow(trimSilenceSwitch)
+                val onCheckedChangedListenerIndex =
+                    indexOfFirstInstructionOrThrow(constIndex, Opcode.INVOKE_DIRECT)
+                val onCheckedChangedListenerReference =
+                    getInstruction<ReferenceInstruction>(onCheckedChangedListenerIndex).reference
+                val onCheckedChangedListenerDefiningClass =
+                    (onCheckedChangedListenerReference as MethodReference).definingClass
+
+                findMethodOrThrow(onCheckedChangedListenerDefiningClass) {
+                    name == "onCheckedChanged"
+                }.apply {
+                    val onCheckedChangedWalkerIndex =
+                        indexOfFirstInstructionOrThrow {
+                            val reference = getReference<MethodReference>()
+                            opcode == Opcode.INVOKE_VIRTUAL &&
+                                    reference?.returnType == "V" &&
+                                    reference.parameterTypes.size == 1 &&
+                                    reference.parameterTypes[0] == "Z"
+                        }
+
+                    getWalkerMethod(onCheckedChangedWalkerIndex).apply {
+                        val insertIndex = indexOfFirstInstructionOrThrow(Opcode.MOVE_RESULT)
+                        val insertRegister =
+                            getInstruction<OneRegisterInstruction>(insertIndex).registerA
+
+                        addInstructions(
+                            insertIndex + 1, """
+                                invoke-static {v$insertRegister}, $FLYOUT_CLASS_DESCRIPTOR->disableTrimSilenceSwitch(Z)Z
+                                move-result v$insertRegister
+                                """
+                        )
+                    }
+                }
+            }
+            trimSilenceIncluded = true
+        }
+
+        // endregion
+
+        // region patch for enable compact dialog
+
+        if (!is_8_51_or_greater) {
+            screenWidthFingerprint.matchOrThrow(screenWidthParentFingerprint).let {
+                it.method.apply {
+                    val index = it.instructionMatches.first().index
+                    val register = getInstruction<TwoRegisterInstruction>(index).registerA
+
+                    addInstructions(
+                        index, """
+                            invoke-static {v$register}, $FLYOUT_CLASS_DESCRIPTOR->enableCompactDialog(I)I
+                            move-result v$register
+                            """
+                    )
+                }
+            }
+        }
+
+        // endregion
+
+        // region patch for hide flyout menu components and replace menu
+
+        menuItemFingerprint.matchOrThrow().let {
+            it.method.apply {
+                val freeIndex = indexOfFirstInstructionOrThrow(Opcode.OR_INT_LIT16)
+                val textViewIndex = it.instructionMatches.first().index
+                val imageViewIndex = it.instructionMatches.last().index
+
+                val freeRegister =
+                    getInstruction<TwoRegisterInstruction>(freeIndex).registerA
+                val textViewRegister =
+                    getInstruction<OneRegisterInstruction>(textViewIndex).registerA
+                val imageViewRegister =
+                    getInstruction<OneRegisterInstruction>(imageViewIndex).registerA
+
+                val enumIndex = indexOfFirstInstructionOrThrow {
+                    opcode == Opcode.INVOKE_STATIC
+                            && (this as? ReferenceInstruction)?.reference.toString()
+                        .contains("(I)L")
+                } + 1
+                val enumRegister = getInstruction<OneRegisterInstruction>(enumIndex).registerA
+
+                addInstructionsWithLabels(
+                    enumIndex + 1,
+                    """
+                        invoke-static {v$enumRegister, v$textViewRegister, v$imageViewRegister}, $FLYOUT_CLASS_DESCRIPTOR->replaceComponents(Ljava/lang/Enum;Landroid/widget/TextView;Landroid/widget/ImageView;)V
+                        invoke-static {v$enumRegister}, $FLYOUT_CLASS_DESCRIPTOR->hideComponents(Ljava/lang/Enum;)Z
+                        move-result v$freeRegister
+                        if-nez v$freeRegister, :hide
+                        """,
+                    ExternalLabel("hide", getInstruction(implementation!!.instructions.lastIndex))
+                )
+            }
+        }
+
+        touchOutsideFingerprint.methodOrThrow().apply {
+            val setOnClickListenerIndex = indexOfFirstInstructionOrThrow {
+                opcode == Opcode.INVOKE_VIRTUAL &&
+                        getReference<MethodReference>()?.name == "setOnClickListener"
+            }
+            val setOnClickListenerRegister =
+                getInstruction<FiveRegisterInstruction>(setOnClickListenerIndex).registerC
+
+            addInstruction(
+                setOnClickListenerIndex + 1,
+                "invoke-static {v$setOnClickListenerRegister}, $FLYOUT_CLASS_DESCRIPTOR->setTouchOutSideView(Landroid/view/View;)V"
+            )
+        }
+
+        endButtonsContainerFingerprint.methodOrThrow().apply {
+            val startIndex =
+                indexOfFirstLiteralInstructionOrThrow(endButtonsContainer)
+            val targetIndex =
+                indexOfFirstInstructionOrThrow(startIndex, Opcode.MOVE_RESULT_OBJECT)
+            val targetRegister = getInstruction<OneRegisterInstruction>(targetIndex).registerA
+
+            addInstruction(
+                targetIndex + 1,
+                "invoke-static {v$targetRegister}, $FLYOUT_CLASS_DESCRIPTOR->hideLikeDislikeContainer(Landroid/view/View;)V"
+            )
+        }
+
+        // endregion
+
+        // region patch for enable sleep timer
+
+        /**
+         * Forces sleep timer menu to be enabled.
+         * This method may be desperate in the future.
+         */
+        if (sleepTimerFingerprint.resolvable()) {
+            sleepTimerFingerprint.methodOrThrow().apply {
+                val insertIndex = implementation!!.instructions.lastIndex
+                val targetRegister = getInstruction<OneRegisterInstruction>(insertIndex).registerA
+
+                addInstruction(
+                    insertIndex,
+                    "const/4 v$targetRegister, 0x1"
+                )
+            }
+        }
+
+        // endregion
+
+        addLithoFilter(FILTER_CLASS_DESCRIPTOR)
+
+        if (!is_8_51_or_greater) {
+            addSwitchPreference(
+                CategoryType.FLYOUT,
+                "revanced_enable_compact_dialog",
+                "false"
+            )
+        } else {
+            printWarn("\"Enable compact dialog\" is not supported in this version. Use YouTube Music 8.30.54 or earlier.")
+        }
+        if (trimSilenceIncluded) {
+            addSwitchPreference(
+                CategoryType.FLYOUT,
+                "revanced_disable_trim_silence",
+                "true"
+            )
+        }
+        if (is_6_36_or_greater) {
+            addSwitchPreference(
+                CategoryType.FLYOUT,
+                "revanced_hide_flyout_menu_3_column_component",
+                "false",
+                false
+            )
+        }
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_like_dislike",
+            "false",
+            "",
+            false,
+            titleKey = "revanced_hide_action_button_like_dislike_title",
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_add_to_queue",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_captions",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_delete_playlist",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_dismiss_queue",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_download",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.MISC,
+            "revanced_external_downloader_flyout_menu",
+            "false",
+            "revanced_external_downloader_action"
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_edit_playlist",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_go_to_album",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_go_to_artist",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_go_to_episode",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_go_to_podcast",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_help",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_not_interested",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_pin_to_speed_dial",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_unpin_from_speed_dial",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_taste_match",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_play_next",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_quality",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_remove_from_library",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_remove_from_playlist",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_report",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_save_episode_for_later_save_to_library",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_save_to_playlist",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_share",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_shuffle_play",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_sleep_timer",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_start_radio",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_stats_for_nerds",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_subscribe",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_hide_flyout_menu_view_song_credit",
+            "false",
+            false
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_replace_flyout_menu_dismiss_queue",
+            "false"
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_replace_flyout_menu_dismiss_queue_continue_watch",
+            "true",
+            "revanced_replace_flyout_menu_dismiss_queue"
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_replace_flyout_menu_report",
+            "true"
+        )
+        addSwitchPreference(
+            CategoryType.FLYOUT,
+            "revanced_replace_flyout_menu_report_only_player",
+            "true",
+            "revanced_replace_flyout_menu_report"
+        )
+
+        updatePatchStatus(FLYOUT_MENU_COMPONENTS)
+
+    }
+}

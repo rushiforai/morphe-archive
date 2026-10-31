@@ -55,6 +55,7 @@ import java.util.Set;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.facebook.settings.SettingsEntry;
 import app.morphe.extension.facebook.settings.ShimmerTitle;
+import app.morphe.extension.shared.BackCallbacksForTests;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.HushfacebookPause;
@@ -280,6 +281,23 @@ public class AppLockTest {
         assertTrue(AppLock.covered(activity));
 
         cover.onBackPressed();
+        assertTrue("Back closed the cover", cover.isShowing());
+        assertTrue(AppLock.covered(activity));
+        assertTrue("Back left Facebook in front", shadowOf(activity).isTaskMovedToBack());
+    }
+
+    /** The same Back as Android 16 delivers it, through the cover window's own callback. */
+    @Test
+    @Config(sdk = 36)
+    public void backThroughTheWindowsCallbackSendsFacebookAway() throws ReflectiveOperationException {
+        BackCallbacksForTests.on(true);
+        Settings.APP_LOCK.save(true);
+        Activity activity = screen();
+        front(activity);
+        asked.get(0).answer.refused(BiometricPrompt.BIOMETRIC_ERROR_USER_CANCELED, "Cancelled");
+        Dialog cover = ShadowDialog.getLatestDialog();
+
+        BackCallbacksForTests.top(cover.getWindow().getDecorView()).onBackInvoked();
         assertTrue("Back closed the cover", cover.isShowing());
         assertTrue(AppLock.covered(activity));
         assertTrue("Back left Facebook in front", shadowOf(activity).isTaskMovedToBack());

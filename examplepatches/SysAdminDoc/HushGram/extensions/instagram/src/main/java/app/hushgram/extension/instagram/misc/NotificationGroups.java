@@ -5,6 +5,7 @@
 package app.hushgram.extension.instagram.misc;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.drawable.Icon;
@@ -13,14 +14,20 @@ import android.service.notification.StatusBarNotification;
 
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
@@ -50,6 +57,13 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * posts or cancels take down their empty summaries, as turning the switch off also does. If pending
  * ownership fills its bounded ledger, summaries stay for the rest of this process. What the manager
  * itself throws reaches Instagram as before.
+ *
+ * <p>Muting works with or without grouping: a notification on a channel named in
+ * {@link Settings#MUTED_NOTIFICATION_CHANNELS} returns before the manager sees it, so it never shows
+ * or counts toward a group, and each muted channel is logged once per process. This reaches the
+ * promo and betting pushes Instagram sends on channels its own notification settings don't list.
+ * The list is read at each post, so unmuting delivers the next one without a restart. Paused,
+ * unreadable or throwing, nothing is muted.
  */
 public final class NotificationGroups {
     /** The group every notification joins with one group. */
@@ -72,6 +86,22 @@ public final class NotificationGroups {
 
     /** What's counted for each notification moved into a group. */
     static final String GROUPED = "grouped";
+
+    /** The step a failed mute check is reported under. */
+    static final String MUTE = "mute";
+
+    /** What's counted for each notification kept out of the shade. */
+    static final String MUTED = "muted";
+
+    /** What a notification channel id looks like in the muted list: no commas or spaces. */
+    static final String CHANNEL_ID = "[^,\\s]{1,128}";
+    private static final Pattern CHANNEL = Pattern.compile(CHANNEL_ID);
+
+    /** HushGram's own channels, which are never offered or muted. */
+    public static final String OWN_CHANNELS = "hushgram_";
+
+    /** The muted channels already logged in this process. */
+    private static final Set<String> mutedLogged = new HashSet<>();
 
     /** A group gets its summary once it has this many notifications. */
     static final int SUMMARY_FROM = 2;
@@ -153,14 +183,31 @@ public final class NotificationGroups {
         withdraw(manager, null, id, NotificationGroups::switchedOn);
     }
 
-    static synchronized void post(NotificationManager manager, String tag, int id, Notification notification,
+    static void post(NotificationManager manager, String tag, int id, Notification notification,
                      BooleanSupplier on, BooleanSupplier byType) {
+        post(manager, tag, id, notification, on, byType, NotificationGroups::muted);
+    }
+
+    static synchronized void post(NotificationManager manager, String tag, int id, Notification notification,
+                     BooleanSupplier on, BooleanSupplier byType, Supplier<Set<String>> muted) {
+        try {
+            HookStatus.invoked(FamilyNames.NOTIFICATION_GROUPS);
+            String channel = notification == null ? null : notification.getChannelId();
+            if (channel != null && muted.get().contains(channel)) {
+                HookStatus.counted(FamilyNames.NOTIFICATION_GROUPS, MUTED);
+                if (mutedLogged.add(channel)) {
+                    Logger.printInfo(() -> "Notification groups: muted " + channel + ", kept a notification out of the shade");
+                }
+                return;
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.NOTIFICATION_GROUPS, MUTE, failure);
+        }
         String group = null;
         Notification posted = notification;
         String generation = null;
         boolean grouping = false;
         try {
-            HookStatus.invoked(FamilyNames.NOTIFICATION_GROUPS);
             grouping = on.getAsBoolean();
             if (grouping && notification != null && !isOngoing(notification)) {
                 if (isSummary(notification)) {
@@ -423,10 +470,60 @@ public final class NotificationGroups {
         return false;
     }
 
+    /**
+     * The channel ids in a saved muted list, in order. Blank or malformed entries and HushGram's own
+     * channels are dropped, so a hand-edited backup can't mute what it shouldn't.
+     */
+    public static Set<String> mutedChannels(@Nullable String saved) {
+        Set<String> ids = new TreeSet<>();
+        if (saved == null) return ids;
+        for (String part : saved.split(",")) {
+            String id = part.trim();
+            if (CHANNEL.matcher(id).matches() && !id.startsWith(OWN_CHANNELS)) ids.add(id);
+        }
+        return ids;
+    }
+
+    /** [ids] as the setting saves them: in order, commas between. */
+    public static String joinChannels(Set<String> ids) {
+        return String.join(",", new TreeSet<>(ids));
+    }
+
+    /**
+     * Instagram's notification channels on this phone as {id, label}, by label, for the mute list.
+     * A label two channels share gets its id after it. Muted ids whose channel is gone come last,
+     * labelled by id, so they can still be unmuted.
+     */
+    public static List<String[]> offeredChannels(Context context, Set<String> muted) {
+        List<String[]> offered = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        NotificationManager manager = context.getSystemService(NotificationManager.class);
+        if (manager != null) {
+            for (NotificationChannel channel : manager.getNotificationChannels()) {
+                String id = channel.getId();
+                if (id == null || id.startsWith(OWN_CHANNELS) || !CHANNEL.matcher(id).matches() || !seen.add(id)) continue;
+                CharSequence name = channel.getName();
+                String label = name == null ? "" : name.toString().trim();
+                offered.add(new String[]{id, label.isEmpty() ? id : label});
+            }
+        }
+        Map<String, Integer> labels = new HashMap<>();
+        for (String[] each : offered) labels.merge(each[1], 1, Integer::sum);
+        for (String[] each : offered) {
+            if (labels.get(each[1]) > 1) each[1] = each[1] + " (" + each[0] + ")";
+        }
+        offered.sort((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a[1], b[1]));
+        for (String id : new TreeSet<>(muted)) {
+            if (seen.add(id)) offered.add(new String[]{id, id});
+        }
+        return offered;
+    }
+
     static synchronized void resetForTests() {
         pending.clear();
         uncertain = false;
         logged = false;
+        mutedLogged.clear();
     }
 
     static synchronized int pendingForTests() {
@@ -439,5 +536,9 @@ public final class NotificationGroups {
 
     private static boolean byType() {
         return Settings.GROUP_NOTIFICATIONS_BY_TYPE.get();
+    }
+
+    private static Set<String> muted() {
+        return Utils.settingsReady() ? mutedChannels(Settings.MUTED_NOTIFICATION_CHANNELS.get()) : Collections.emptySet();
     }
 }

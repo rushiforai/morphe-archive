@@ -1,15 +1,19 @@
 // Draws Venus pages with the real bootstrap.js and saves screenshots (see AGENTS.md, "Seeing the UI").
 //   node tests/ui/shot.cjs <name> '<query>' [<name> '<query>' ...]     -> work/ui/shots/<name>.png
 //   node tests/ui/shot.cjs --all [suffix] ['<extra query>']              -> every page, off and on
+//   node tests/ui/shot.cjs --scenes [suffix] ['<extra query>']           -> every Discord scene (scenes.jsx)
 // Prints the page's console warnings, errors, dialogs and toasts. Set DPR=2 for sharper shots, WIDTH for another width.
+// STRICT=1 exits with 1 when any shot had a page error, a React error or a stand-in warning (tests/test_all.sh uses it).
 const { chromium } = require("../../work/ui/node_modules/playwright-core");
 const { execFileSync } = require("child_process");
 const http = require("http"), fs = require("fs"), path = require("path");
 const ROOT = path.resolve(__dirname, "../.."), UI = path.join(ROOT, "work/ui");
-const PAGES = ["NODELETE:noDelete", "HIDEBLOCKED:hideBlocked", "MESSAGEHIGHLIGHT:messageHighlight", "TRANSLATE:translate", "GESTURES:gestures", "FREENITRO:freeNitro",
-  "TENORGIFS:tenorGifs", "FIXEMBEDS:fixEmbeds", "PASTELIZE:pastelize", "PLATFORMINDICATORS:platformIndicators", "REVIEWDB:reviewDB",
-  "USERNOTIF:userNotif", "ACCOUNTSWITCHER:accountSwitcher", "READALL:readAll", "HIDDENCHANNELS:hiddenChannels", "SERVERINFO:serverInfo",
-  "HIDEBUTTONS:hideButtons", "MATERIALYOU:materialYou", "CUSTOMTHEMES:customThemes", "ICONPACKS:iconPacks", "QUESTS:quests", "BADGES:badges"];
+// Every option page, read from bootstrap.js's withOptions(group, key, "VENUS_ID", ...) calls, so --all never misses a new one.
+const PAGES = [...fs.readFileSync(path.join(ROOT, "patches/src/main/resources/venus/bootstrap.js"), "utf8")
+  .matchAll(/withOptions\("[a-z]+",\s*"(\w+)",\s*"VENUS_(\w+)"/g)].map(m => m[2] + ":" + m[1]);
+// Every scene, read from SCENE_SETTINGS in scenes.jsx.
+const SCENES = [...(/SCENE_SETTINGS = \{([\s\S]*?)\n\};/.exec(fs.readFileSync(path.join(__dirname, "scenes.jsx"), "utf8")) || [, ""])[1]
+  .matchAll(/(?:^|[\s,])(\w+): \{/g)].map(m => m[1]);
 
 function build() {
   if (!fs.existsSync(path.join(UI, "tokens.json"))) throw new Error("Run sh tests/ui/setup.sh first");
@@ -42,20 +46,36 @@ function build() {
     for (const p of ["PLUGINS", "GENERAL", "LANGUAGE", "BACKUP"]) jobs.push([`${suffix}-${p}`, `page=VENUS_${p}${extra}`]);
     jobs.push([`${suffix}-PLUGINS-fresh`, `page=VENUS_PLUGINS&fresh=1${extra}`]);
     for (const pair of PAGES) { const [id, key] = pair.split(":"); jobs.push([`${suffix}-${id}-off`, `page=VENUS_${id}${extra}`], [`${suffix}-${id}-on`, `page=VENUS_${id}&on=${key}${extra}`]); }
+  } else if (args[0] === "--scenes") {
+    const suffix = args[1] || "scene", extra = args[2] ? "&" + args[2] : "";
+    for (const name of SCENES) jobs.push([`${suffix}-${name}`, `scene=${name}${extra}`]);
   } else for (let i = 0; i < args.length; i += 2) jobs.push([args[i], args[i + 1] || ""]);
+  if (!jobs.length) throw new Error("Nothing to draw: node tests/ui/shot.cjs <name> '<query>' | --all | --scenes");
   const types = { ".html": "text/html", ".js": "text/javascript", ".json": "application/json", ".png": "image/png", ".ttf": "font/ttf" };
   const server = http.createServer((req, res) => {
-    const file = path.join(UI, decodeURIComponent(req.url.split("?")[0]) === "/" ? "index.html" : decodeURIComponent(req.url.split("?")[0]));
+    const want = decodeURIComponent(req.url.split("?")[0]);
+    let file = path.join(UI, want === "/" ? "index.html" : want);
+    // On Android, an image uri that's a bare name (no scheme, no extension) is a drawable from the APK, e.g. Nitro links'
+    // sample "modules_guilds_bar_native_images_wumpus_wave". Serve those from the icons tests/ui/setup.sh extracted.
+    if (/^\/[a-z0-9_]+$/.test(want)) file = path.join(UI, "icons", want.slice(1) + ".png");
     fs.readFile(file, (e, data) => { if (e) { res.writeHead(404); res.end(); return; } res.writeHead(200, { "Content-Type": types[path.extname(file)] || "application/octet-stream" }); res.end(data); });
   }).listen(0);
   fs.mkdirSync(path.join(UI, "shots"), { recursive: true });
   const browser = await chromium.launch({ args: ["--no-sandbox"] });
   const width = +(process.env.WIDTH || 412);
+  const failed = new Set();
   for (const [name, query] of jobs) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, deviceScaleFactor: +(process.env.DPR || 1) });
     const logs = [];
     page.on("console", m => { const t = m.text(); if (!/React DevTools|is not a prop|deprecated|Each child in a list/.test(t) && (m.type() !== "log" || /^(ALERT|DIALOG|TOAST)/.test(t))) logs.push(t.split("\n")[0]); });
     page.on("pageerror", e => logs.push("PAGE ERROR: " + e.message));
+    // A broken page: an exception, React's own error, or a stand-in reporting something it couldn't do.
+    page.on("console", m => { if (m.type() === "error" && !/React DevTools|is not a prop|deprecated|Each child in a list|unique "key"|^Failed to load resource/.test(m.text()) || m.type() === "warning" && /^(No |tap: |Unknown )/.test(m.text())) failed.add(name); });
+    page.on("pageerror", () => failed.add(name));
+    // A file the preview should have (an icon, a font, a drawable) that it doesn't is a failure; an outside service that
+    // answers 429 or 5xx (icon pack repositories, ReviewDB) is only reported: it says nothing about the page.
+    page.on("response", r => { if (r.status() < 400) return; const local = r.url().startsWith(`http://127.0.0.1:${server.address().port}/`);
+      logs.push((local ? "MISSING " : "REMOTE ") + r.status() + " " + r.url().replace(/^http:\/\/127\.0\.0\.1:\d+/, "").slice(0, 110)); if (local) failed.add(name); });
     await page.goto(`http://127.0.0.1:${server.address().port}/?${query}`);
     await page.waitForTimeout(+(process.env.WAIT || 700));
     const height = await page.evaluate(() => document.getElementById("root").scrollHeight);
@@ -69,4 +89,5 @@ function build() {
     await page.close();
   }
   await browser.close(); server.close();
+  if (failed.size) { console.log(`${failed.size} of ${jobs.length} with errors: ${[...failed].join(", ")}`); if (process.env.STRICT) process.exit(1); }
 })().catch(e => { console.error(e.message); process.exit(1); });

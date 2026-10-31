@@ -64,9 +64,11 @@ class ReelCaptionRowFixtureTest {
                 val classes = mutableMapOf<String, ClassDef>()
 
                 // The More sheet, as the Picture-in-picture fixture loads it.
-                val holder = FixtureDex.classesHolding(bundle, CLEAR_MODE_ROW).single()
-                val builder = holder.methods.single { holdsString(it, CLEAR_MODE_ROW) }
-                val reached = reachedBy(builder)
+                val sheetFixture = sheetFixture(bundle)
+                val holder = sheetFixture.builderClass
+                val builder = sheetFixture.builder
+                // 585 builds the Clear mode row in a method of its own, which the builder calls.
+                val reached = reachedBy(builder) + reachedBy(sheetFixture.row) + sheetFixture.row.definingClass
                 FixtureDex.classes(bundle, reached).forEach { (type, classDef) -> classes.putIfAbsent(type, classDef) }
                 val rowTypes = reached.mapNotNull(classes::get).flatMap { classDef ->
                     classDef.methods.filter { it.name == "<init>" }.flatMap { it.parameterTypes.map(CharSequence::toString) }
@@ -123,7 +125,7 @@ class ReelCaptionRowFixtureTest {
                 val sheetAgain = withIcons.moreSheet("the fixture")
                 withIcons.addCaptionRow("the fixture", sheetAgain)
                 val patchedClass = withIcons.mutableClassDefBy(holder.type)
-                val body = patchedClass.methods.single { it.name == builder.name && holdsString(it, CLEAR_MODE_ROW) }
+                val body = patchedClass.methods.single { it.name == builder.name && it.parameterTypes.size == builder.parameterTypes.size }
                     .implementation!!.instructions.toList()
                 assertEquals("$name: four instructions added", builder.implementation!!.instructions.count() + 4, body.size)
                 val call = body[3] as RegisterRangeInstruction

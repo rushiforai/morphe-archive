@@ -689,6 +689,8 @@ public final class AppLock {
         if (shown != null && !shown.isFinishing()) {
             // A saved file Facebook was asked to open while it was locked is opened now.
             SavedFileActions.onUnlocked(shown);
+            // An opening pause owed comes up once the lock is off.
+            OpeningPause.unlocked(shown);
         }
         if (unlockedOn != null && !unlockedOn.isFinishing()) SettingsEntry.openIfRequested(unlockedOn);
     }

@@ -115,6 +115,14 @@ ORIGINALS = {'Lcom/google/android/gms/measurement/internal/zzic;->zzC()I': ('f53
                                                                                           ['public'],
                                                                                           2,
                                                                                           'void'),
+ 'Lcom/useinsider/insider/Insider;->disableInAppMessages()V': ('37c5830b84633a33cc39a08ec63309af3885f81b8c3a5473a427b91bf3a93f51',
+                                                          ['public'],
+                                                          5,
+                                                          'void'),
+ 'Lcom/useinsider/insider/Insider;->enableInAppMessages()V': ('73aa5b91b50f70e1bb3b0438d8d1f5fc69cc5d0326f8fa93208523041b7efe3a',
+                                                         ['public'],
+                                                         5,
+                                                         'void'),
  'Lcom/useinsider/insider/Insider;->f()Z': ('2863e6b3fe8b7aaf2f135b849ad2b7b093c986a226f715c51f1a9fea8d1fd870',
                                             ['public'],
                                             1,
@@ -185,6 +193,8 @@ ORIGINALS.update({'Ll6c;->a()Z': ('4b46d5499a25ba5818a145ffad00f7ebb74bb5bd2f7ea
                                                       'void')})
 
 RETAINED = {'Lcom/useinsider/insider/Insider;->getCurrentUser()Lcom/useinsider/insider/InsiderUser;': '9f5446b649b49b502309848eac738d61fa692a15ed7d7f54871dec1cd0f9004e',
+ 'Lj5a;->b(Z)V': '9f59e141ed904bd1b41b6119eb94cb9cd8827af58617c3e64fb173bfcb3f7475',
+ 'Lnl/flitsmeister/services/base/FlitsmeisterBaseService$a;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;': '4c81e9ba937d55127ee37eeeb532a829e13038ae2a71141106db51f71dfab027',
  'Lcom/useinsider/insider/InsiderUser;-><init>()V': '3c032cb92339a14ccfe861b62bfc9df7f458e2b1ef61e1dd31f49687b8144fb7',
  'Lcom/google/firebase/provider/FirebaseInitProvider;->onCreate()Z': 'a1b8b929583c36a292d289dd32e15d14817e023457bb877743bb0cbf9e0ab1ef',
  'Lcom/google/firebase/messaging/FirebaseMessaging;->getToken()Lcom/google/android/gms/tasks/Task;': '87143eddf6818ae154b286259b01c20f82db7238df409d95f50aa471dab5c86c',

@@ -62,7 +62,12 @@ public final class RecentlyWatchedForTests {
         RecentlyWatched.listForTests.add(new RecentlyWatched.Entry(kind, id, owner, caption, parent, watchedAt, durationMs));
     }
 
-    /** Puts the app's own looper, thread and list back. */
+    /** Stops the clock watches are stamped and aged by at [now]. Call after {@link #install}. */
+    public static void clockAt(long now) {
+        RecentlyWatched.clock = () -> now;
+    }
+
+    /** Puts the app's own looper, thread, clock and list back. */
     public static void forget() {
         CHECKS.clear();
         RecentlyWatched.forget();

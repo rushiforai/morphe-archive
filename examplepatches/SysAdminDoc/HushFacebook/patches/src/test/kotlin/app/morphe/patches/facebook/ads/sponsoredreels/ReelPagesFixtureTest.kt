@@ -37,10 +37,21 @@ class ReelPagesFixtureTest {
         VideoHomeInsertAdsFingerprint.clearMatch()
     }
 
-    /** Registers and the page's register of the page insert, the announcement and the controller's page method. */
+    /**
+     * Registers and the page's register of the page insert, the announcement and the controller's
+     * page method, by build and ABI. 585's arm64 controller page method has 11 registers (584's 13),
+     * which still keeps its page in range of the filter call.
+     */
     private val expected = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to listOf(6 to 5, 7 to 6, 13 to 12),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
+            "arm64-v8a" to listOf(6 to 5, 7 to 6, 11 to 10),
+            "armeabi-v7a" to listOf(6 to 5, 7 to 6, 11 to 10),
+        ),
     )
+
+    private fun pin(bundle: java.io.File, version: String) =
+        expected.getValue(version)[bundle.name.substringAfter("-$version-").substringBefore(".apkm")]
+            ?: throw AssertionError("${bundle.name} has no pin")
 
     private fun MutableMethod.assertFilteredAtTop(where: String, page: Int, at: Int) {
         val body = implementation!!.instructions.toList()
@@ -72,7 +83,7 @@ class ReelPagesFixtureTest {
                 val methods = listOf(pages.insertPage, pages.announcePage, pages.addPage)
                 assertEquals(
                     "${bundle.name}: registers and page register",
-                    expected.getValue(version),
+                    pin(bundle, version),
                     methods.map { it.implementation!!.registerCount to it.implementation!!.registerCount - 1 },
                 )
 
@@ -87,7 +98,7 @@ class ReelPagesFixtureTest {
                 pages.addPage.filterSectionsFirst("fixture.MidCard", THREADS_CARD_SECTION_FILTER, "Clean up Reels")
 
                 methods.forEachIndexed { index, method ->
-                    val page = expected.getValue(version)[index].second
+                    val page = pin(bundle, version)[index].second
                     val where = "${bundle.name}: ${method.definingClass}->${method.name}"
                     val first = if (method == pages.addPage) 5 else 0
                     if (method == pages.addPage) method.assertFilteredAtTop("$where, the Threads card filter", page, at = 0)
@@ -100,9 +111,16 @@ class ReelPagesFixtureTest {
         assertEquals("a declared build has no fixture", versions, checked)
     }
 
-    /** Registers and the item's register of the one-item insert, then the static append's, null where a build has none. */
+    /**
+     * Registers and the item's register of the one-item insert, then the static append's, null where
+     * a build has none, by build and ABI. 585's arm64 build has no static append: only the
+     * one-item insert (and the page insert) feed the Reels list.
+     */
     private val inserts = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to listOf(6 to 4, 4 to 3),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
+            "arm64-v8a" to listOf(6 to 4, null),
+            "armeabi-v7a" to listOf(6 to 4, null),
+        ),
     )
 
     /** The one-item drop at [at]: the item copied into a one-item list in v0, the filter's answer asked if empty. */
@@ -123,8 +141,10 @@ class ReelPagesFixtureTest {
     @Test
     fun `the one-item insert and the static append each build adds the Reels tab's reels by carry both filters`() {
         val checked = mutableSetOf<String>()
-        for ((version, shapes) in inserts) {
+        for ((version, byAbi) in inserts) {
             for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val shapes = byAbi[bundle.name.substringAfter("-$version-").substringBefore(".apkm")]
+                    ?: throw AssertionError("${bundle.name} has no pin")
                 forgetMatches()
                 val anchors = FixtureDex.classesHolding(bundle, "VideoHomeDataControllerSfdAdsUtil") +
                     FixtureDex.classesHolding(bundle, "VideoHomeDataControllerImpl.maybeInsertAds")

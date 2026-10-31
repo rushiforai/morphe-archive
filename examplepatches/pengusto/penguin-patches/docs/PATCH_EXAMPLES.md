@@ -6,6 +6,8 @@ All images reuse published, unedited evidence with synthetic data. Each pair nam
 
 | App | Patch / visible change |
 | --- | --- |
+| Mihon 0.21.3 · official GitHub ARM64 APK | [Preserve excluded Default-category downloads](#preserve-excluded-default-category-downloads) |
+| Komikku 1.14.1 · official GitHub ARM64 APK | [Keep local manga in exclusion searches](#keep-local-manga-in-exclusion-searches) |
 | Read You 0.16.2 | [Import nested OPML feeds](#import-nested-opml-feeds) |
 | Finamp 1.0.1 | [Song artist order](#song-artist-order) |
 | Finamp 1.0.1 | [Fix section title validation](#fix-section-title-validation) |
@@ -27,6 +29,27 @@ All images reuse published, unedited evidence with synthetic data. Each pair nam
 | Kvaesitso 1.41.0 | [Restore widget editing from the search menu](#restore-widget-editing-from-the-search-menu) |
 | Fossify Clock 1.6.0 | [Choose upcoming alarm notification time](#choose-upcoming-alarm-notification-time) |
 | Tasks.org 15.13 · project GitHub F-Droid APK | [Navigate to the parent task](#navigate-to-the-parent-task) |
+
+<a id="preserve-excluded-default-category-downloads"></a>
+
+## Preserve excluded Default-category downloads
+
+**Mihon 0.21.3** · [Setup & patch details](MIHON.md)
+
+Keep read chapter downloads when the built-in Default category is excluded from
+deletion. Reuses Marc Went / Dunky13's correction in [Mihon PR #4182](https://github.com/mihonapp/mihon/pull/4182).
+
+**Installed Android APK captures.** Same synthetic favorite, read chapter, Default
+exclusion, Light theme, display size and **Downloaded only** filter. Before: the
+download is deleted and the filtered library appears empty. After: the Manager
+export retains the downloaded chapter. The favorite itself remains in both databases.
+
+| Before | After |
+| :---: | :---: |
+| **Excluded read download lost** | **Excluded read download retained** |
+| <img src="../tests/mihon/evidence/2026-10-30/before.png" width="300" alt="Before: excluded Default-category download lost; Downloaded only library is empty"> | <img src="../tests/mihon/evidence/2026-10-30/after.png" width="300" alt="After: excluded Default-category download retained; synthetic favorite remains downloaded"> |
+
+[Raw PNG/XML and acceptance evidence](../tests/mihon/evidence/2026-10-30/README.md) · [Back to patch index](#before--after)
 
 <a id="song-artist-order"></a>
 
@@ -72,14 +95,14 @@ Typing a valid custom home-section title updates validation and enables Save imm
 
 Show the artist preview and track count without waiting for the full discography response.
 
-**Android APK captures.** The fixture deliberately holds unbounded requests. Light before and Dark after are fixture settings, not a theme feature. This demonstrates query behavior, not a measured real-server speedup.
+**Installed Android APK captures.** The fixture deliberately holds unbounded artist-track requests. Both captures use the same Dark theme, synthetic library, eight downloaded tracks, sort, viewport and demo clock. The patched APK was exported and installed through Morphe Manager. This verifies query behavior on the synthetic fixture.
 
 | Before | After |
 | :---: | :---: |
 | **Pending full-song queries: spinner and 0 Tracks** | **Bounded queries: preview and 8 Tracks appear** |
-| <img src="../tests/finamp/evidence/2026-10-28/artist-held-before.png" width="300" alt="Before: Pending full-song queries: spinner and 0 Tracks"> | <img src="../tests/finamp/evidence/2026-10-28/artist-held-after.png" width="300" alt="After: Bounded queries: preview and 8 Tracks appear"> |
+| <img src="../tests/finamp/evidence/2026-10-30-artist-review/artist-held-before.png" width="300" alt="Before: Pending full-song queries: spinner and 0 Tracks"> | <img src="../tests/finamp/evidence/2026-10-30-artist-review/artist-held-after.png" width="300" alt="After: Bounded queries: preview and 8 Tracks appear"> |
 
-[Capture provenance & checks](../tests/finamp/evidence/2026-10-28/README.md) · [Back to patch index](#before--after)
+[Capture provenance & checks](../tests/finamp/evidence/2026-10-30-artist-review/README.md) · [Back to patch index](#before--after)
 
 <a id="fix-offline-artist-tracks"></a>
 
@@ -127,19 +150,21 @@ exported by Morphe Manager. This is a correctness comparison, not a performance 
 
 **Finamp 1.0.1** · [Setup & patch details](FINAMP_NATIVE.md)
 
-Open the existing output controls from the player menu even when bottom actions
-are hidden and gestures disabled.
+When bottom actions are hidden, the track menu ends with **Output, Queue and
+Lyrics**. Both menu-button and artwork-context access respect disabled gestures.
+Visible bottom actions have no duplicates in the menu.
 
-**Android APK captures.** Same paused synthetic track, Dark theme, settings and
-viewport. The before APK retains the official native code; the after APK is an
-actual Morphe Manager export, installed with the same test key.
+**Android APK captures.** Same synthetic track paused at 00:17, Dark theme, hidden
+bottom actions, disabled gestures, 1080×1920 viewport and 09:41 clock. The before
+APK retains the official native code; the after APK is the actual Player-only
+Morphe Manager export, installed through Manager’s Install action with the same test key.
 
 | Before | After |
 | :---: | :---: |
-| **No Output entry in the player menu** | **Output opens the existing volume/device sheet** |
-| <img src="../tests/finamp/evidence/2026-10-29-ui/player-output-before.png" width="300" alt="Before: player menu has no Output entry with bottom actions hidden"> | <img src="../tests/finamp/evidence/2026-10-29-ui/player-output-after.png" width="300" alt="After: Output is available in the player menu"> |
+| **Hidden bottom actions leave no menu routes** | **Output, Queue and Lyrics remain reachable** |
+| <img src="../tests/finamp/evidence/2026-10-30-player/player-before.png" width="300" alt="Before: original player menu ends without Output, Queue or Lyrics"> | <img src="../tests/finamp/evidence/2026-10-30-player/player-after.png" width="300" alt="After: installed Manager export adds Output, Queue and Lyrics at the menu bottom"> |
 
-[Capture provenance & checks](../tests/finamp/evidence/2026-10-29-ui/README.md) · [Back to patch index](#before--after)
+[Capture provenance & checks](../tests/finamp/evidence/2026-10-30-player/README.md) · [Back to patch index](#before--after)
 
 <a id="fix-quick-settings-banner-contrast"></a>
 
@@ -401,6 +426,28 @@ with that same key. Each import starts without the synthetic Manga news group.
 | <img src="../tests/readyou/evidence/2026-10-29/before.png" width="300" alt="Before: only Reader releases appears in Manga news"> | <img src="../tests/readyou/evidence/2026-10-29/after.png" width="300" alt="After: Reader releases, Studio journal and Chapter notes appear in Manga news"> |
 
 [Capture provenance & checks](../tests/readyou/evidence/2026-10-29/README.md) · [Back to patch index](#before--after)
+
+<a id="keep-local-manga-in-exclusion-searches"></a>
+
+## Keep local manga in exclusion searches
+
+**Komikku 1.14.1 ARM64** · [Setup & patch details](KOMIKKU.md)
+
+The library search `-meteor` keeps unrelated local **Orion** after patching.
+Matching local **Meteor** remains excluded; remote **Lyra** is the control.
+
+**Installed Android APK captures.** Same synthetic library, light theme,
+1080 × 1920 display, density 420, sort/filter and query; keyboard dismissed.
+The original official payload is signed with the fixture key. The after capture
+uses the actual Morphe Manager 2.2.0 JVM export, installed through Android's
+update dialog with that same key. The app renders both screenshots directly.
+
+| Before | After |
+| :---: | :---: |
+| **Unrelated local Orion disappears** | **Orion remains; Meteor is still excluded** |
+| <img src="../tests/komikku/evidence/2026-10-30/before.png" width="300" alt="Before: exclusion search for meteor shows only remote Lyra and loses local Orion"> | <img src="../tests/komikku/evidence/2026-10-30/after.png" width="300" alt="After: the same search shows local Orion and remote Lyra while local Meteor remains excluded"> |
+
+[Capture provenance & checks](../tests/komikku/evidence/2026-10-30/README.md) · [Back to patch index](#before--after)
 
 ## About these comparisons
 

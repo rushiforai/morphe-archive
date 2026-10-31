@@ -49,9 +49,10 @@ class MenuSectionsFixtureTest {
      * the locale packs both ship, which stay plain FRSC), and the sections that draw the header load
      * it. The unpacked 583 table is the check still owed. 584's header component (`LX/Lmm;`) loads
      * the same five ids as 583's (`LX/S3S;`) in the same order, each 9 higher, so its label is 0x7f140460.
+     * 585's (`LX/0IqZ;->A17` arm64) loads 584's five in the same order, each 6 higher, so 0x7f140466.
      */
     private val headerLabel = mapOf(
-        "584.0.0.51.56" to 0x7f140460,
+        "585.0.0.47.54" to 0x7f140466,
     )
 
     private val testKeys = listOf(UPGRADES_TEST_KEY, ALSO_FROM_META_TEST_KEY)

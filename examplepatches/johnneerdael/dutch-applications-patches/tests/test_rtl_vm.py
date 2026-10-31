@@ -101,6 +101,20 @@ class RtlVmTests(unittest.TestCase):
             with self.assertRaisesRegex(AssertionError, 'array'):
                 execute(code, {'p0': array, 'p1': index}, lambda *_: None)
 
+    def test_object_array_writes_preserve_identity_and_reject_invalid_stores(self):
+        value = Reference({}, 'Lfixture/Value;')
+        array = Reference([None, None], '[Ljava/lang/Object;')
+        code = parse('aput-object p2, p0, p1\nreturn-object p0')
+        self.assertIs(execute(code, {'p0': array, 'p1': 0, 'p2': value}, lambda *_: None), array)
+        self.assertIs(array.value[0], value)
+        execute(code, {'p0': array, 'p1': 0, 'p2': None}, lambda *_: None)
+        self.assertIsNone(array.value[0])
+        for bad_array, index, item in [(array, -1, value), (array, 2, value),
+                                        (Reference([0], '[I'), 0, value),
+                                        (Reference([None], '[Ljava/lang/String;'), 0, value)]:
+            with self.assertRaisesRegex(AssertionError, 'array'):
+                execute(code, {'p0': bad_array, 'p1': index, 'p2': item}, lambda *_: None)
+
     def test_smali_escaped_apostrophes_and_literal_backslashes(self):
         for literal, expected in [(r'''"call to \'resume\'"''', "call to 'resume'"),
                                   (r'''"slash \\\' quote"''', "slash \\' quote"),

@@ -165,7 +165,14 @@ public final class KeepEdits {
      */
     static synchronized boolean remember(long owner, long dialog, int id, String before, int replaced) {
         String key = key(dialog, id);
-        List<Version> versions = new ArrayList<>(versions(owner, key));
+        List<Version> versions;
+        try {
+            versions = new ArrayList<>(versions(owner, key));
+        } catch (IllegalArgumentException unreadable) {
+            // Text that can't be read never will be: start this message's history again.
+            HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "reading earlier text", unreadable);
+            versions = new ArrayList<>();
+        }
         // Two edits in one batch both read the text from before the first.
         if (!versions.isEmpty() && before.equals(versions.get(versions.size() - 1).text)) return false;
         versions.add(new Version(before, replaced));
@@ -273,8 +280,8 @@ public final class KeepEdits {
             if (comma < 0 || colon < 0) throw new IllegalArgumentException("unreadable earlier text");
             int replaced = Integer.parseInt(saved.substring(at, comma));
             int length = Integer.parseInt(saved.substring(comma + 1, colon));
+            if (length < 0 || length > saved.length() - colon - 1) throw new IllegalArgumentException("unreadable earlier text");
             int end = colon + 1 + length;
-            if (length < 0 || end > saved.length()) throw new IllegalArgumentException("unreadable earlier text");
             versions.add(new Version(saved.substring(colon + 1, end), replaced));
             at = end;
         }

@@ -1,0 +1,741 @@
+{
+  "upstream_commit": "3f463b0e697f11aeebc37e1a6b614cde391b7f7f",
+  "masks": [
+    {
+      "mask": 4,
+      "base_commit": "2b38a855348e32457488f60c4ecfd2a424be6af4",
+      "result_commit": "5eb9d7baaf197a369cf740e11e620b4a8159d8e3",
+      "expected_tree": "2509ccdb5aa076c7a5963f7c817ba7c4745c4b0a",
+      "replayed_tree": "2509ccdb5aa076c7a5963f7c817ba7c4745c4b0a",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 5,
+      "base_commit": "6944bc56e156dd9733509eac20626ffa34253888",
+      "result_commit": "0fd666cb0ef2712f60b3c189595c128940743154",
+      "expected_tree": "ae588dfec2d618d908312d51386ca02daf433f72",
+      "replayed_tree": "ae588dfec2d618d908312d51386ca02daf433f72",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 6,
+      "base_commit": "0edcd44eea00f8d6f38ae2b893143c353d17b0a6",
+      "result_commit": "cb97ceedc205ed902d9f109b95381f0525f02230",
+      "expected_tree": "661ed504ed7fd6085b93ff4434174507660d38e6",
+      "replayed_tree": "661ed504ed7fd6085b93ff4434174507660d38e6",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 7,
+      "base_commit": "20740d272b9fed9b5bf067ff5ca3291ef9332722",
+      "result_commit": "826795c07ffe06a64de96e5873316c548e190027",
+      "expected_tree": "ade240ae94ba8bebd1cae2b79e1c1fa28469091d",
+      "replayed_tree": "ade240ae94ba8bebd1cae2b79e1c1fa28469091d",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 12,
+      "base_commit": "43b93eed0de6f8a3c410fe95dffafffa9f29265e",
+      "result_commit": "a4a0bdd9e25ce72aed386dd625c5602d408624fe",
+      "expected_tree": "319a9e0d8afcc357b42b29558e2afa1d5a51cd5a",
+      "replayed_tree": "319a9e0d8afcc357b42b29558e2afa1d5a51cd5a",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 13,
+      "base_commit": "d1fa77ba05cc6ecb4e9800b021abd4cd703f0383",
+      "result_commit": "7d6ba274a301f205328bcf270bb5db1a21a26b52",
+      "expected_tree": "5dc79d3f7e5f383b9cad4df681f885b91ef5e27b",
+      "replayed_tree": "5dc79d3f7e5f383b9cad4df681f885b91ef5e27b",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 14,
+      "base_commit": "93f096c4f921c547a41ab9606e02d739eebf53fa",
+      "result_commit": "243615ba0930edfeaa0584571d3067b1b5ff8a17",
+      "expected_tree": "0b2b4f0ec8836aa3360db97e4ebfe93674ef59ac",
+      "replayed_tree": "0b2b4f0ec8836aa3360db97e4ebfe93674ef59ac",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 15,
+      "base_commit": "fe7611b5c599336979ca7d65509542dfe1458744",
+      "result_commit": "9d0979a963d8239a3964fe7dc230ec81a9f38de7",
+      "expected_tree": "827470468a188f8447655f2298f1ea9eb8bc50fc",
+      "replayed_tree": "827470468a188f8447655f2298f1ea9eb8bc50fc",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 20,
+      "base_commit": "8820950b95d39520441bf0a9eb90f75adb1bc33a",
+      "result_commit": "f74a1c0ee3f4ed4958c78e5ace5c6641b096774b",
+      "expected_tree": "a0eb69db4e863a4dd8dd60b1ee74e1f6267ea3f7",
+      "replayed_tree": "a0eb69db4e863a4dd8dd60b1ee74e1f6267ea3f7",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 21,
+      "base_commit": "1eb6cbab2f016dffc66c9ee70ec9367da90849cc",
+      "result_commit": "b52ba1aa0929b400caef14759510ad5d8631eece",
+      "expected_tree": "7a13a47a1f74f06e28796c073822f6eb41548ef5",
+      "replayed_tree": "7a13a47a1f74f06e28796c073822f6eb41548ef5",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 22,
+      "base_commit": "2a9f609fc388b64b1c0d796689a2fed73a6dee27",
+      "result_commit": "579c0d9fda965849758ffb796d37528f2c32b1ca",
+      "expected_tree": "8adc251fec747a4a6ab7ae4ff724e30006c294f9",
+      "replayed_tree": "8adc251fec747a4a6ab7ae4ff724e30006c294f9",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 23,
+      "base_commit": "364f636e8f56de633f46164da9d43b187c043a3b",
+      "result_commit": "bfb9e909c06bcc99980952208f13bd294aed75a9",
+      "expected_tree": "bc62368828eca526d36d2e1d5c858080e74141ef",
+      "replayed_tree": "bc62368828eca526d36d2e1d5c858080e74141ef",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 28,
+      "base_commit": "9669e2548b336450e5e8e50e5b883382e4bc7e71",
+      "result_commit": "4515e49279d0f3f55230c8bd19696477fae105a3",
+      "expected_tree": "1dd2335d791a71abf225e36827643793de11a6ec",
+      "replayed_tree": "1dd2335d791a71abf225e36827643793de11a6ec",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 29,
+      "base_commit": "8d9d740492db1ec42dc7f8c2d66e6246c84a0991",
+      "result_commit": "66378bb16c84ea238049750ce2137959881d7f23",
+      "expected_tree": "2061c243c33506b186c37c3a474ddc5e7680068c",
+      "replayed_tree": "2061c243c33506b186c37c3a474ddc5e7680068c",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 30,
+      "base_commit": "551bd197c47ba9de728528d67459671e94d0d2e9",
+      "result_commit": "80987d283839c585f51a66adfe02477d08cd8553",
+      "expected_tree": "4c1f1b3a11f891e754991351466f7704ba0c2170",
+      "replayed_tree": "4c1f1b3a11f891e754991351466f7704ba0c2170",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 31,
+      "base_commit": "313694b7d4cfd5c738964b785cc78ebd721b9ea6",
+      "result_commit": "11b766b6f154a5ce692e43f6ca1eee8d02ca798c",
+      "expected_tree": "00089ca7c7b356a066ac40eadcde5e7ee01dd04a",
+      "replayed_tree": "00089ca7c7b356a066ac40eadcde5e7ee01dd04a",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 36,
+      "base_commit": "d001e8fc3dc839ca727df962d2dabeaf3f030ee2",
+      "result_commit": "6a3917a30df670c9d81d3818c6780e58b41a8b3a",
+      "expected_tree": "c72e4a5253c5c20ea40c2a9e37de4586fe629005",
+      "replayed_tree": "c72e4a5253c5c20ea40c2a9e37de4586fe629005",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 37,
+      "base_commit": "7d5abeb778d03e5f0317c1d44bde8c54aabd3848",
+      "result_commit": "1846032993497f07272daa8d40035cbb71f96d3d",
+      "expected_tree": "246ca19ec9194a239fb66df853e7645ff45367ee",
+      "replayed_tree": "246ca19ec9194a239fb66df853e7645ff45367ee",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 38,
+      "base_commit": "f468830c55766c57eb04dac7e1585138e5f454bb",
+      "result_commit": "ebce0c935607e3956cc6b4be92b6a2119e6b7c93",
+      "expected_tree": "4591ad04bd7eb5e1726871a15cf54e8aa64e2f25",
+      "replayed_tree": "4591ad04bd7eb5e1726871a15cf54e8aa64e2f25",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 39,
+      "base_commit": "6966494cd53e479d508869d2e8cc914a3cf3a982",
+      "result_commit": "0889469c18af345f68f9e7cab93316fddf14e2f1",
+      "expected_tree": "0f46d7d31ed619730a574c8deba610fc3d12b34d",
+      "replayed_tree": "0f46d7d31ed619730a574c8deba610fc3d12b34d",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 44,
+      "base_commit": "3e6037af4ead1ded2fcc2c3ec956211a3827c142",
+      "result_commit": "05bd6e96879b4b59b8fb2b1db846a5520baf2f3a",
+      "expected_tree": "e459557a375a5d04f54dbd09611abe6ea6adcfa6",
+      "replayed_tree": "e459557a375a5d04f54dbd09611abe6ea6adcfa6",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 45,
+      "base_commit": "5d59b94e4371f7b1c2e2ef680618e9c27b057fe4",
+      "result_commit": "0b55da9f2853e86c9ad93228f4834ce2ab357f8b",
+      "expected_tree": "01b4e89914180e684a19917604048be740907b71",
+      "replayed_tree": "01b4e89914180e684a19917604048be740907b71",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 46,
+      "base_commit": "13513c9cdde02247a4e3416205e18dd477f68c1c",
+      "result_commit": "f050d14ac8781ed3b2acd50f87f4efe501ed4a1c",
+      "expected_tree": "7f72282c198a6c865260997c0413bf4dcc85d74d",
+      "replayed_tree": "7f72282c198a6c865260997c0413bf4dcc85d74d",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 47,
+      "base_commit": "e8db32af3148ae2a37b969e13ee823e15be39155",
+      "result_commit": "ffe2755c9ae96cf3363b70d74b7c9b3c77b4e5da",
+      "expected_tree": "1be2b34107319252fde7df393f11ed725b8e2524",
+      "replayed_tree": "1be2b34107319252fde7df393f11ed725b8e2524",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 52,
+      "base_commit": "89a6650bc121cd8bffbd8abd5a27db5245f93127",
+      "result_commit": "e0b4289e73f7f06f8af729501e7eaa204a9dba6e",
+      "expected_tree": "8aa282c9a01af57e5cc233454c57de529743cf0a",
+      "replayed_tree": "8aa282c9a01af57e5cc233454c57de529743cf0a",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 53,
+      "base_commit": "4047535b4e81e735408e70348e0d1d28935d9dbd",
+      "result_commit": "b2c6c086120da35262f427b3cd8d9ea2ba67e5f4",
+      "expected_tree": "347852db209eeb3f29f09e892f24fecc4b8ffefa",
+      "replayed_tree": "347852db209eeb3f29f09e892f24fecc4b8ffefa",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 54,
+      "base_commit": "d0532fc8cbbe563943a93a15cfd920cc0668c7fb",
+      "result_commit": "07fb485aa5a60af8b79f054cad4ecf9e31336437",
+      "expected_tree": "de3505ab39f64fa67bfae19946f71b8111ee6be4",
+      "replayed_tree": "de3505ab39f64fa67bfae19946f71b8111ee6be4",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 55,
+      "base_commit": "28852b633a1fdaa92c48ab91466c16c86f585874",
+      "result_commit": "c2bbfc7daa65bd3030656e9803bb22501b962fb5",
+      "expected_tree": "0b6ae6d734e65d690bb883238f4e70bb72d4737c",
+      "replayed_tree": "0b6ae6d734e65d690bb883238f4e70bb72d4737c",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 60,
+      "base_commit": "1c07f11de1bc90ac5a0be35f6c4dcf4fc5c03210",
+      "result_commit": "b88a050cd33d825ab4efc7ac1ed9b4ee80300151",
+      "expected_tree": "f2461469bd4bea753f20092de8d399de6cca78a4",
+      "replayed_tree": "f2461469bd4bea753f20092de8d399de6cca78a4",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 61,
+      "base_commit": "e0af6fed64baf741276e4651ba018970d78795dc",
+      "result_commit": "ce00a6d58d87b371214cdd2debf5cc4d789b9904",
+      "expected_tree": "903e9632a41b04fcf8296d7f59ec7d9ad3de7ece",
+      "replayed_tree": "903e9632a41b04fcf8296d7f59ec7d9ad3de7ece",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 62,
+      "base_commit": "ce943e9484615fb58f33ec8a261e48f8af5511f8",
+      "result_commit": "283199c09ba8ea5cc0d93e05fd559fcfc0741bde",
+      "expected_tree": "653f0b76a074e4f48985412d1496b491b72930c2",
+      "replayed_tree": "653f0b76a074e4f48985412d1496b491b72930c2",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 63,
+      "base_commit": "7a11227577ae76d04735396e2852b63d1ff4d6e1",
+      "result_commit": "071a9b274991c8bfbfd87c8c785921e3b06187ad",
+      "expected_tree": "57d68bc79ecae5f2cba7b11a41bcbe6c6c3879db",
+      "replayed_tree": "57d68bc79ecae5f2cba7b11a41bcbe6c6c3879db",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 68,
+      "base_commit": "eae8b7f32526ba864ea6b914d9eb2c3688df47a2",
+      "result_commit": "b706601e60b675d51b13ffcb0865fcf8b5e36d3b",
+      "expected_tree": "14dcd2a1451232755a544ca75668fecc77b8399e",
+      "replayed_tree": "14dcd2a1451232755a544ca75668fecc77b8399e",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 69,
+      "base_commit": "71f62ef250f80d5a4a89dd969962d5daa3a01e76",
+      "result_commit": "ed4c834712070892058d0b650eb69a61780d433a",
+      "expected_tree": "c078173debdadfad8ebe890c50a166e2647f6c3c",
+      "replayed_tree": "c078173debdadfad8ebe890c50a166e2647f6c3c",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 70,
+      "base_commit": "19fc1a6624faff0d2541814f5f44051eb89e70b1",
+      "result_commit": "8727c6ec23935c8d335a44ffba3b2da7d6b14ce2",
+      "expected_tree": "b54f121fa81105d50d2439a12b2c05767c175690",
+      "replayed_tree": "b54f121fa81105d50d2439a12b2c05767c175690",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 71,
+      "base_commit": "8685192de5b818708e33922ef23ea5580e2535e1",
+      "result_commit": "903ff54876ddf032a853c3cb4ae371e61c4f6f0f",
+      "expected_tree": "88a06cbe55ae8a3326404c990cc2db3a8226ec1b",
+      "replayed_tree": "88a06cbe55ae8a3326404c990cc2db3a8226ec1b",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 76,
+      "base_commit": "131f0a41cc2ccae322aaf34b7961ba677cfeb914",
+      "result_commit": "dfa06bcd46f64f289b468be2940f8225431301e4",
+      "expected_tree": "e2a1137e25b878d7bff63424583bc769d177441a",
+      "replayed_tree": "e2a1137e25b878d7bff63424583bc769d177441a",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 77,
+      "base_commit": "664e43ae48f9e69828909905f52538198379a58e",
+      "result_commit": "bd71ec50befb216abc433938dedbd07b90866870",
+      "expected_tree": "cd9286ce1c3e59374db2bfbc98395e89231390f5",
+      "replayed_tree": "cd9286ce1c3e59374db2bfbc98395e89231390f5",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 78,
+      "base_commit": "2d869dd641a9060c501661211833c191a966a46d",
+      "result_commit": "22fdf68f05f2c3a58535f5f896e5972a2901196d",
+      "expected_tree": "b1e4c0651dc6c3bdf712e293f37190a1850456a4",
+      "replayed_tree": "b1e4c0651dc6c3bdf712e293f37190a1850456a4",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 79,
+      "base_commit": "7cb6bf0c7c2cc63abb9dae9086c45151b5a7fbdf",
+      "result_commit": "3692aa53600904ca3e6ca18be9fd90f1c9647b32",
+      "expected_tree": "3d69085e829956bb5fe261a208762f6a9628420c",
+      "replayed_tree": "3d69085e829956bb5fe261a208762f6a9628420c",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 84,
+      "base_commit": "1242f112c48d392396a96cce616870a304634c20",
+      "result_commit": "74c52ccc8c9ff784fbbaba9568ee25ebec0b962f",
+      "expected_tree": "2ee024026150bc6bbb8a2bd6be968b31c79271bc",
+      "replayed_tree": "2ee024026150bc6bbb8a2bd6be968b31c79271bc",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 85,
+      "base_commit": "03c8287b767fd7694252b674686667a585679687",
+      "result_commit": "51a7fdc6c2bca5426f8351126a41f0058559a9d2",
+      "expected_tree": "a7c6f97b614e597acd082af56e757985fa72bac4",
+      "replayed_tree": "a7c6f97b614e597acd082af56e757985fa72bac4",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 86,
+      "base_commit": "afc6bc8cbfff80cbbf1d695ad46e90a2b96539e3",
+      "result_commit": "44365122ca14114f4dcd5eeb8ea78acffd3af97e",
+      "expected_tree": "62eb808a4d7e875c9f47d3c30723fdc1f455a07c",
+      "replayed_tree": "62eb808a4d7e875c9f47d3c30723fdc1f455a07c",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 87,
+      "base_commit": "f97acf41415ebb0782f3c21ddef02aa33cf6f56b",
+      "result_commit": "1f994e44c2a96755f7d9819cb2cd102f158fd69d",
+      "expected_tree": "0d70ef3ebb1c3a2392f68eaf24256ce77d9e5510",
+      "replayed_tree": "0d70ef3ebb1c3a2392f68eaf24256ce77d9e5510",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 92,
+      "base_commit": "8f1ab06fe147593eb540944069625057ee07398a",
+      "result_commit": "dd03fc01666893180b1544ee2e272db24f025d6c",
+      "expected_tree": "005cfc361d310ded594126dcbcf6a151ab707106",
+      "replayed_tree": "005cfc361d310ded594126dcbcf6a151ab707106",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 93,
+      "base_commit": "84c7ed43398f978f4fe8c764724e18f386e7a1e5",
+      "result_commit": "bde01920b668bd5ff620dd82904077523ed913d0",
+      "expected_tree": "c68b969f6b33517e3000d8fe1b23b5c4f832e822",
+      "replayed_tree": "c68b969f6b33517e3000d8fe1b23b5c4f832e822",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 94,
+      "base_commit": "11b6b2c0f78b09d4a719f9e6aabc70cdb1dabd82",
+      "result_commit": "11f241ee5b78d2ea8e0a42a196be998cf80c870a",
+      "expected_tree": "f79a18dbe064ace783a9ea2f50cbb37ac24511ed",
+      "replayed_tree": "f79a18dbe064ace783a9ea2f50cbb37ac24511ed",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 95,
+      "base_commit": "bbf07601bb3a12b8eb06b111990b2cbd6b7986d9",
+      "result_commit": "2a8f9354ab7b42d92778660ccf4302f424e98c5d",
+      "expected_tree": "8248ab2dd3d90da049d5f81ea60f0b0c6c093dba",
+      "replayed_tree": "8248ab2dd3d90da049d5f81ea60f0b0c6c093dba",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 100,
+      "base_commit": "36f604984535996c3304a05e1128523c50e3c488",
+      "result_commit": "d6207fbd599749f511c0e7e24308a01271f75d38",
+      "expected_tree": "273b72c2fed089ababbdd0ce85365c2ffd82ee2b",
+      "replayed_tree": "273b72c2fed089ababbdd0ce85365c2ffd82ee2b",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 101,
+      "base_commit": "566151619ce51f3d6110f621ad0497cde16dd5bd",
+      "result_commit": "7a264c8539ea9ea4fedb394f6ea73bab04b9a79c",
+      "expected_tree": "445edf266417e043c39bf2208c22de4c5c125ae6",
+      "replayed_tree": "445edf266417e043c39bf2208c22de4c5c125ae6",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 102,
+      "base_commit": "f6227e9d39f6f33ccc06c631222146d7180132d0",
+      "result_commit": "324f364ae0563700017270dfebc9d15a5fa07bc8",
+      "expected_tree": "df869c1c05d81745ad1db2642d9540deca9c102a",
+      "replayed_tree": "df869c1c05d81745ad1db2642d9540deca9c102a",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 103,
+      "base_commit": "186cfea6f4e4300b65d767780e05cb2ceb0d59e7",
+      "result_commit": "186b085c4f767d4aa26882b3c23e65347a94b651",
+      "expected_tree": "de38657775e037521a8f2e87f7518e5583c63581",
+      "replayed_tree": "de38657775e037521a8f2e87f7518e5583c63581",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 108,
+      "base_commit": "ab08e41f661a756a732404ff897ed3212f7d4234",
+      "result_commit": "d3d1cff525b53e4b45667c89dec35889c859ba7b",
+      "expected_tree": "04b37824ec66ff77ae488547a1022e824d13619b",
+      "replayed_tree": "04b37824ec66ff77ae488547a1022e824d13619b",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 109,
+      "base_commit": "808bfe5219a89c6bb985f6d5f5beabb8bde7bf07",
+      "result_commit": "54a2564f5d7c9a570054b6e29dd3599a1e2e57dc",
+      "expected_tree": "e063bb507b7ddd63d9019b0f6df4ba27836a73e2",
+      "replayed_tree": "e063bb507b7ddd63d9019b0f6df4ba27836a73e2",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 110,
+      "base_commit": "7c8b30b3520939e81392d78603ee3e89d4891e3f",
+      "result_commit": "563474a0126e69ac86378f9902a54d288cd52d5d",
+      "expected_tree": "83eaa9ca903e8f55e1030399852f310550356258",
+      "replayed_tree": "83eaa9ca903e8f55e1030399852f310550356258",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 111,
+      "base_commit": "e77c7a362ad131678a764c2f1f296156faabbd53",
+      "result_commit": "01bd48c5039b03d60593c5bdd2a69e63ba57c1d2",
+      "expected_tree": "586224d148e927280296b0c3168a4f1646a7387e",
+      "replayed_tree": "586224d148e927280296b0c3168a4f1646a7387e",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 116,
+      "base_commit": "eea0d6c9496d3c6765972bb17557b1693351ddb3",
+      "result_commit": "66268f01c5c76b704fc39141009f729bbae09040",
+      "expected_tree": "b7a109a3a7dfbccaa359693ab6fea11a73fadac2",
+      "replayed_tree": "b7a109a3a7dfbccaa359693ab6fea11a73fadac2",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 117,
+      "base_commit": "be289a2d4ddbf6f96128c4261c675d8f50c52aca",
+      "result_commit": "5f943c3562deeca4360499e837c87f9e75018a5b",
+      "expected_tree": "017df37db51bdd27c63ccd38297de81079f5d66f",
+      "replayed_tree": "017df37db51bdd27c63ccd38297de81079f5d66f",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 118,
+      "base_commit": "3e337a6a3a402af78770ed09d588f7fe5448e13d",
+      "result_commit": "1c4b2129b3310d69f6c057af3a5b24ab0e9e15fc",
+      "expected_tree": "9af57d14243043aa1723a7847c22712eedff50db",
+      "replayed_tree": "9af57d14243043aa1723a7847c22712eedff50db",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 119,
+      "base_commit": "7c2fe9653a55a4dc080549783f6dea837b378e21",
+      "result_commit": "35f8a76c6e645ac9c1e664fc44f8e584bba9a64c",
+      "expected_tree": "20527fd673a5e9d7fd743f11aa8d634deaef017e",
+      "replayed_tree": "20527fd673a5e9d7fd743f11aa8d634deaef017e",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 124,
+      "base_commit": "ecd472a52a196cbd9c6b7b4044de2ae65bfbc091",
+      "result_commit": "bc3396eb3c8bfa243da151dd4996da09b0fb4460",
+      "expected_tree": "ddde0077f7428285213ad1452a9e1ef25462d8e8",
+      "replayed_tree": "ddde0077f7428285213ad1452a9e1ef25462d8e8",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 125,
+      "base_commit": "ef17f73faec3206271f3ce45e78099e3763486dd",
+      "result_commit": "11d91212da2126267024e6814816d2fe92825bff",
+      "expected_tree": "1da5cd6a820b7d05d64ac14397b2f53dc66e1771",
+      "replayed_tree": "1da5cd6a820b7d05d64ac14397b2f53dc66e1771",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 126,
+      "base_commit": "9ce4dae5743fd6ef9e9a708de30bbfc237b86fc0",
+      "result_commit": "6764cb51028ac692c3f4ef75c7c81f64171c9f85",
+      "expected_tree": "fe64b05b9d4f1946bcccf811488c762808ae9fb0",
+      "replayed_tree": "fe64b05b9d4f1946bcccf811488c762808ae9fb0",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    },
+    {
+      "mask": 127,
+      "base_commit": "01a2d5f91b6ee4dd424bebb8de42e41b51b6d85f",
+      "result_commit": "9da1d0158adf7393c8447eda0a26490e2320833a",
+      "expected_tree": "a1e2ea17b1b54d9e3112d5ba0d0220cd04408890",
+      "replayed_tree": "a1e2ea17b1b54d9e3112d5ba0d0220cd04408890",
+      "patches": [
+        "finamp-1.0.1-artist-review.patch",
+        "finamp-1.0.1-artist-offline-codegen.patch"
+      ],
+      "passed": true
+    }
+  ]
+}

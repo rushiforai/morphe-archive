@@ -18,6 +18,8 @@ package app.hushtelegram.extension.shared;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.LocaleList;
+import android.text.Layout;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -271,6 +273,19 @@ public final class L10n {
         int end = at + Character.charCount(text.codePointAt(at));
         // Turkish raises i to a dotted capital, which Character.toUpperCase can't know.
         return text.substring(0, at) + text.substring(at, end).toUpperCase(textLocale(context)) + text.substring(end);
+    }
+
+    /**
+     * Lets {@code view} break a long word where its language hyphenates it. Android 13 and later
+     * hyphenate no TextView unless asked, and with hyphenation off a line can't break after a hard
+     * hyphen either, so at 200% text a German compound broke at whichever letter filled the line
+     * ("Benachrichtigun" over "gsberechtigung") and "Firebase-Push-Registrierung" carried its
+     * hyphen to the next line (S22, 2026-10-30). The patterns follow the text's own language.
+     */
+    public static void hyphenate(TextView view) {
+        view.setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NORMAL);
+        Locale locale = textLocale(view.getContext());
+        if (!locale.equals(view.getTextLocale())) view.setTextLocale(locale);
     }
 
     /** {@link #locale(Context)} with the extension's context. */

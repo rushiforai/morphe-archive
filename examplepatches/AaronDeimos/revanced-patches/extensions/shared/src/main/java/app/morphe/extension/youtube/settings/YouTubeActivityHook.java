@@ -1,0 +1,202 @@
+package app.morphe.extension.youtube.settings;
+
+import static app.morphe.extension.youtube.utils.ExtendedUtils.IS_20_31_OR_GREATER;
+import static app.morphe.extension.youtube.utils.ExtendedUtils.isSpoofingToLessThan;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.graphics.drawable.Drawable;
+import android.preference.PreferenceFragment;
+import android.view.View;
+import android.widget.Toolbar;
+
+import app.morphe.extension.shared.settings.BaseActivityHook;
+import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.patches.general.offline.OfflineScreens;
+import app.morphe.extension.youtube.patches.theme.ThemePatch;
+import app.morphe.extension.youtube.settings.preference.YouTubePreferenceFragment;
+import app.morphe.extension.youtube.settings.search.YouTubeSearchViewController;
+import app.morphe.extension.youtube.utils.ThemeUtils;
+
+/**
+ * Hooks LicenseActivity to inject a custom {@link YouTubePreferenceFragment}
+ * with a toolbar and search functionality.
+ */
+@SuppressWarnings("deprecation")
+public class YouTubeActivityHook extends BaseActivityHook {
+
+    /**
+     * Whether YouTube and extension-created icons should use the bold resources.
+     *
+     * <p>This is intentionally exposed as a field. Referencing it from an extension icon's
+     * static initializer also guarantees that this hook class is initialized before the icon
+     * selection is made.
+     */
+    public static final boolean USE_BOLD_ICONS = IS_20_31_OR_GREATER
+            && !Settings.SETTINGS_DISABLE_BOLD_ICONS.get()
+            && !Settings.RESTORE_OLD_SETTINGS_MENUS.get()
+            && !isSpoofingToLessThan("20.31.00");
+
+    private static int currentThemeValueOrdinal = -1; // Must initially be a non-valid enum ordinal value.
+    private static Boolean settingsDarkMode;
+
+    static {
+        Utils.setAppIsUsingBoldIcons(USE_BOLD_ICONS);
+    }
+
+    /**
+     * Controller for managing search view components in the toolbar.
+     */
+    @SuppressLint("StaticFieldLeak")
+    public static YouTubeSearchViewController searchViewController;
+
+    /**
+     * Injection point.
+     */
+    @SuppressWarnings("unused")
+    public static void initialize(Activity parentActivity) {
+        // LicenseActivity also hosts the offline library and player.
+        if (OfflineScreens.initialize(parentActivity)) return;
+        ThemePatch.applyToSettingsActivity(parentActivity);
+        settingsDarkMode = ThemeUtils.isDarkModeEnabled();
+        BaseActivityHook.initialize(new YouTubeActivityHook(), parentActivity);
+    }
+
+    /**
+     * Recreates the already-inflated main RVX settings screen when YouTube changes appearance.
+     * Nested preference dialogs are created later and already read the current palette directly.
+     */
+    public static void refreshTheme(Activity activity) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
+
+        ThemePatch.applyToSettingsActivity(activity);
+        final boolean dark = ThemeUtils.isDarkModeEnabled();
+        if (settingsDarkMode != null && settingsDarkMode != dark) {
+            settingsDarkMode = dark;
+            activity.recreate();
+        }
+    }
+
+    /**
+     * Customizes the activity theme based on dark/light mode.
+     */
+    @Override
+    protected void customizeActivityTheme(Activity activity) {
+        final var theme = ThemeUtils.isDarkModeEnabled()
+                ? "Theme.YouTube.Settings.Dark"
+                : "Theme.YouTube.Settings";
+        activity.setTheme(Utils.getResourceIdentifierOrThrow(theme, "style"));
+    }
+
+    /**
+     * Returns the resource ID for the YouTube settings layout.
+     */
+    @Override
+    protected int getContentViewResourceId() {
+        return LAYOUT_REVANCED_SETTINGS_WITH_TOOLBAR;
+    }
+
+    /**
+     * Returns the toolbar background color based on dark/light mode.
+     */
+    @Override
+    protected int getToolbarBackgroundColor() {
+        final String colorName = ThemeUtils.isDarkModeEnabled()
+                ? "yt_black3"
+                : "yt_white1";
+        return Utils.getColorFromString(colorName);
+    }
+
+    /**
+     * Returns the navigation icon drawable for the toolbar.
+     */
+    @Override
+    protected Drawable getNavigationIcon() {
+        return ThemeUtils.getBackButtonDrawable();
+    }
+
+    /**
+     * Returns the click listener for the navigation icon.
+     */
+    @Override
+    protected View.OnClickListener getNavigationClickListener(Activity activity) {
+        return null;
+    }
+
+    /**
+     * Adds search view components to the toolbar for {@link YouTubePreferenceFragment}.
+     *
+     * @param activity The activity hosting the toolbar.
+     * @param toolbar  The configured toolbar.
+     * @param fragment The PreferenceFragment associated with the activity.
+     */
+    @Override
+    protected void onPostToolbarSetup(Activity activity, Toolbar toolbar, PreferenceFragment fragment) {
+        if (fragment instanceof YouTubePreferenceFragment) {
+            searchViewController = YouTubeSearchViewController.addSearchViewComponents(
+                    activity, toolbar, (YouTubePreferenceFragment) fragment);
+        }
+    }
+
+    /**
+     * Creates a new {@link YouTubePreferenceFragment} for the activity.
+     */
+    @Override
+    protected PreferenceFragment createPreferenceFragment() {
+        return new YouTubePreferenceFragment();
+    }
+
+    /**
+     * Injection point.
+     */
+    @SuppressWarnings("unused")
+    public static boolean disableCairoSettingsFragment(boolean original) {
+        return !Settings.RESTORE_OLD_SETTINGS_MENUS.get() && original;
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Returns the same icon-style decision used by extension-created icons. The static initializer
+     * publishes that decision to the legacy shared state for callers that still use it.
+     *
+     * @param original the value returned by YouTube's feature flag.
+     * @return whether YouTube and extension-created icons should use the bold resources.
+     */
+    @SuppressWarnings("unused")
+    public static boolean useBoldIcons(boolean original) {
+        return USE_BOLD_ICONS;
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Updates dark/light mode since YT settings can force light/dark mode
+     * which can differ from the global device settings.
+     */
+    @SuppressWarnings("unused")
+    public static void updateLightDarkModeStatus(Enum<?> value) {
+        final int themeOrdinal = value.ordinal();
+        if (currentThemeValueOrdinal != themeOrdinal) {
+            currentThemeValueOrdinal = themeOrdinal;
+            ThemeUtils.setIsDarkModeEnabled(themeOrdinal == 1);
+        }
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Overrides {@link Activity#finish()} of the injection Activity.
+     *
+     * @param activity The LicenseActivity instance.
+     * @return if the back press was handled and the original activity finish method must not run.
+     */
+    @SuppressWarnings("unused")
+    public static boolean handleBackPress(Activity activity) {
+        // Offline screens handle their own back presses.
+        if (OfflineScreens.hostsScreen(activity)) {
+            return OfflineScreens.handleBackPress(activity);
+        }
+        return YouTubeSearchViewController.handleFinish(searchViewController);
+    }
+}

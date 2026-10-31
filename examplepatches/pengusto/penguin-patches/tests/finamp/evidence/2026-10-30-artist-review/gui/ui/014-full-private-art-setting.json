@@ -1,0 +1,118 @@
+{
+  "capturedAt": "2026-10-30T14:00:04.119457+00:00",
+  "serial": "emulator-5586",
+  "package": "app.morphe.manager",
+  "labels": [
+    {
+      "text": "Patcher",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,228][237,268]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Patcher runtime",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[285,228][491,268]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Use embedded VM",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,338][421,376]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Patches in Morphe's own Java VM, which can use more memory. Turn off to use the runtime of Android",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[136,380][888,460]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "embedded",
+      "content-desc": "",
+      "class": "android.widget.EditText",
+      "bounds": "[32,72][960,168]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "true",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Clear",
+      "class": "android.view.View",
+      "bounds": "[888,96][936,144]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Search settings",
+      "class": "android.view.View",
+      "bounds": "[984,96][1032,144]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Sources",
+      "class": "android.view.View",
+      "bounds": "[252,1684][444,1788]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Apps",
+      "class": "android.view.View",
+      "bounds": "[444,1684][636,1788]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Settings",
+      "class": "android.view.View",
+      "bounds": "[636,1684][828,1788]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "8bb2330f033e9ecb999e4408089f7f1611d2c648527e9af67815234f892c1742"
+}

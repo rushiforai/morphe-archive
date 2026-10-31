@@ -75,9 +75,10 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * </ul>
  *
  * <p>Every other start is held, and the player stays where it was, showing its first frame or its
- * cover. Facebook's own Autoplay setting reads Off while the switch is on ({@link #autoplaySetting}),
- * so the surfaces that ask it draw their play button, and the Reels controls show theirs up front
- * ({@link #showReelPlayButton}). Off, paused, before the settings are ready, or
+ * cover. Facebook's own Autoplay setting reads Off while the switch is on and Inline feed video
+ * controls is off ({@link #autoplaySetting}), so the surfaces that ask it draw their play button,
+ * and the Reels controls show theirs up front ({@link #showReelPlayButton}). Off, paused, before
+ * the settings are ready, or
  * when anything here throws, every start goes ahead and the setting reads what you chose, as it
  * would unpatched.
  */
@@ -392,7 +393,9 @@ public final class TapToPlay {
      * The hook at each return of Facebook's Autoplay setting reader (VideoAutoPlaySettingsChecker).
      * While the switch is on it answers Off, the constant of the same enum named OFF, so the
      * surfaces that ask Facebook's setting draw their own play button. The stored setting is never
-     * written, so turning the switch off shows what you chose again.
+     * written, so turning the switch off shows what you chose again. With Inline feed video controls
+     * on it answers what you chose: the feed gives a video a player only while autoplay is allowed,
+     * and that button needs one to start. The gate still holds every start (#239).
      */
     public static Object autoplaySetting(Object answer) {
         try {
@@ -401,6 +404,7 @@ public final class TapToPlay {
             Enum<?> chosen = (Enum<?>) answer;
             Object off = offConstant(chosen.getDeclaringClass());
             HookStatus.bound(FamilyNames.TAP_TO_PLAY, "Autoplay setting");
+            if (Settings.INLINE_FEED_VIDEO_CONTROLS.get()) return answer;
             logSettingOnce(chosen.name());
             return off;
         } catch (Throwable failure) {

@@ -1,0 +1,2 @@
+Exception in thread "main" java.lang.AssertionError: Patcher missed the changed native output after markWritten
+	at io.github.pengusto.patches.finamp.VerifyNativeOutput.main(VerifyNativeOutput.java:42)

@@ -37,6 +37,8 @@ function New-FakeDevice {
     param(
         [string]$Serial = 'emulator-5554',
         [int]$MaxUsers = 4,
+        # How pm get-max-users words its answer; Android 17 says "Maximum supported switchable users".
+        [string]$MaxUsersWording = 'Maximum supported users',
         [string]$Airplane = 'disabled',
         [string]$InstalledSha = $target.Sha256,
         [string[]]$InstalledPaths = @('/data/app/~~x/com.instagram.android-y/base.apk'),
@@ -58,6 +60,10 @@ function New-FakeDevice {
         [switch]$CreateUserGarbled,
         # The device drops off right after pm makes the user, so the user list can't be read.
         [switch]$ListUsersFailsAfterCreate,
+        # The Android API level the device reports.
+        [string]$Sdk = '36',
+        # What settings answers for anr_show_background before the run ('null' when never set).
+        [string]$AnrShown = 'null',
         [string]$FailAt,
         # A parameter, so GetNewClosure captures it rather than the script's copy.
         $Fixture = $target
@@ -70,6 +76,8 @@ function New-FakeDevice {
         TargetInstalls = [System.Collections.Generic.List[string]]::new()
         Stopped = [System.Collections.Generic.List[string]]::new()
         Airplane = $Airplane
+        AnrShown = $AnrShown
+        AnrStart = $AnrShown
         NextUser = 10
         Created = $false
     }
@@ -92,6 +100,7 @@ function New-FakeDevice {
             'get-serialno' { $out = @($serial) }
             'shell getprop ro.product.model' { $out = @('FixtureDevice') }
             'shell getprop ro.product.cpu.abi' { $out = @('x86_64') }
+            'shell getprop ro.build.version.sdk' { $out = @($Sdk) }
             'emu avd name' { $out = @('FixtureAvd', 'OK') }
             'shell dumpsys package app.hushgram.nativerunner' {
                 $out = if ($state.RunnerUsers.Count) { @('Packages:', '  Package [app.hushgram.nativerunner] (1a2b):') } else { @('Unable to find package: app.hushgram.nativerunner') }
@@ -102,10 +111,13 @@ function New-FakeDevice {
             }
             'shell pm path com.instagram.android' { $out = @($InstalledPaths | ForEach-Object { "package:$_" }) }
             'shell sha256sum *' { $out = @("$InstalledSha  $($command[2])") }
-            'shell pm get-max-users' { $out = @("Maximum supported users: $MaxUsers") }
+            'shell pm get-max-users' { $out = @("${MaxUsersWording}: $MaxUsers") }
             'shell cmd connectivity airplane-mode' { $out = @($state.Airplane) }
             'shell cmd connectivity airplane-mode enable' { $state.Airplane = 'enabled' }
             'shell cmd connectivity airplane-mode disable' { $state.Airplane = 'disabled' }
+            'shell settings get secure anr_show_background' { $out = @($state.AnrShown) }
+            'shell settings put secure anr_show_background *' { $state.AnrShown = $command[5] }
+            'shell settings delete secure anr_show_background' { $state.AnrShown = 'null'; $out = @('Deleted 1 rows') }
             'shell dumpsys connectivity' {
                 $default = if ($state.Airplane -ceq 'enabled' -and -not $DefaultNetworkStaysUp) { 'none' } else { '103' }
                 $out = @('NetworkProviders for:', "Active default network: $default", 'Current Networks:')
@@ -121,6 +133,7 @@ function New-FakeDevice {
                 $state.TargetUsers.Add($command[4])
                 $out = @("Package com.instagram.android installed for user: $($command[4])")
             }
+            'shell pm grant --user * com.instagram.android android.permission.POST_NOTIFICATIONS' { }
             'install --user * *' { $state.RunnerUsers.Add($command[2]); $out = @('Performing Streamed Install', 'Success') }
             'install -r *' { $state.TargetInstalls.Add($command[2]); $out = @('Performing Streamed Install', 'Success') }
             'shell am force-stop --user * com.instagram.android' { $state.Stopped.Add($command[4]) }
@@ -166,6 +179,10 @@ function New-FakeDevice {
                     $out += @('INSTRUMENTATION_RESULT: hushgram.visual.off=native', 'INSTRUMENTATION_RESULT: hushgram.visual.on=held')
                 } elseif ($case -ceq 'visual-paused') {
                     $out += 'INSTRUMENTATION_RESULT: hushgram.visual.paused=native'
+                } elseif ($case -ceq 'notifications') {
+                    $out += @('INSTRUMENTATION_RESULT: hushgram.notifications.muted=held,held', 'INSTRUMENTATION_RESULT: hushgram.notifications.unmuted=shown')
+                } elseif ($case -ceq 'share') {
+                    $out += @('INSTRUMENTATION_RESULT: hushgram.share.off=kept', 'INSTRUMENTATION_RESULT: hushgram.share.on=cleaned')
                 }
                 if ($case -ceq $FailCase) {
                     $pass = $false
@@ -206,6 +223,7 @@ function Assert-NothingLeft {
     Assert-True ($state.RunnerUsers.Count -eq 0) "${Context}: the runner was left installed."
     Assert-True (@($state.Users | Where-Object { $_ -like '*:hushgram-native-runner' }).Count -eq 0) "${Context}: the test user was left behind."
     Assert-True ($state.Airplane -ceq 'disabled') "${Context}: the network was left off."
+    Assert-True ($state.AnrShown -ceq $state.AnrStart) "${Context}: background ANRs were left at '$($state.AnrShown)', not '$($state.AnrStart)'."
     Assert-True ($state.TargetUsers.Contains('0')) "${Context}: the target was taken from the owner."
     foreach ($call in $state.Calls) {
         Assert-True ($call -notmatch 'uninstall (?!--user [1-9]\d* app\.hushgram\.nativerunner$)|pm clear|remove-user 0\b|install -r|input |am start(?!-user)') "${Context}: a call reached beyond the run's own state: $call"
@@ -285,7 +303,7 @@ try {
     Assert-True ($null -eq $run.Error) "A clean run failed: $($run.Error)"
     $session = $run.Session
     Assert-True ($session.ControlsProven -and $session.FeaturesPassed -and $session.IsolatedUser -and $session.NetworkOff -and $session.User -ceq '10') 'A clean run did not prove the controls and pass the features in its own user.'
-    Assert-True ((@($session.Cases | ForEach-Object { "$($_.Case)=$($_.Verdict)" }) -join ',') -ceq 'bind=pass,control-positive=pass,control-negative=fail,presence=pass,presence-paused=pass,visual=pass,visual-paused=pass') 'The cases ran out of order or with the wrong verdicts.'
+    Assert-True ((@($session.Cases | ForEach-Object { "$($_.Case)=$($_.Verdict)" }) -join ',') -ceq 'bind=pass,control-positive=pass,control-negative=fail,presence=pass,presence-paused=pass,visual=pass,visual-paused=pass,notifications=pass,share=pass') 'The cases ran out of order or with the wrong verdicts.'
     Assert-True ($session.Cases[2].MissingHook -ceq $NativeRunnerAbsentHook) 'The negative control did not name its missing hook.'
     Assert-True ($session.Cases[3].Observed['presence.on'] -ceq 'ACTIVE>IDLE,IDLE>IDLE,OFFLINE>OFFLINE,DISABLED>DISABLED' -and
         $session.Cases[3].Observed.Count -eq 2 -and $session.Cases[0].Observed.Count -eq 0) 'What a case observed was lost, or a bound fact was taken for an observation.'
@@ -295,11 +313,42 @@ try {
     $networkOffAt = [Array]::IndexOf($calls, 'shell cmd connectivity airplane-mode enable')
     $networkSeenAt = [Array]::IndexOf($calls, 'shell dumpsys connectivity')
     Assert-True ($networkOffAt -ge 0 -and $networkSeenAt -gt $networkOffAt -and $networkSeenAt -lt $created) 'The test user existed before the network was seen off.'
-    Assert-True (@($calls | Where-Object { $_ -like 'shell timeout 120 am instrument *' }).Count -eq 7) 'A case ran without its time limit.'
+    $granted = [Array]::IndexOf($calls, 'shell pm grant --user 10 com.instagram.android android.permission.POST_NOTIFICATIONS')
+    $firstCase = [Array]::IndexOf($calls, @($calls | Where-Object { $_ -like '*am instrument*' })[0])
+    Assert-True ($granted -gt [Array]::IndexOf($calls, 'shell pm install-existing --user 10 com.instagram.android') -and $granted -lt $firstCase) 'The target could not post notifications when the first case ran.'
+    # A slow first start in the new user has to survive its ANR rather than be killed silently.
+    $shownAt = [Array]::IndexOf($calls, 'shell settings put secure anr_show_background 1')
+    Assert-True ($shownAt -gt $networkSeenAt -and $shownAt -lt $created) 'Background ANRs were not shown before the test user existed.'
+    # Before Android 13 there is no such permission to grant, so pm would refuse it and end the run.
+    $older = New-FakeDevice -Sdk '32'
+    $olderRun = Invoke-FakeSession $older
+    Assert-True ($null -eq $olderRun.Error -and $olderRun.Session.FeaturesPassed) "A run on Android 12L failed: $($olderRun.Error)"
+    Assert-True (@($older.State.Calls | Where-Object { $_ -like 'shell pm grant *' }).Count -eq 0) 'A run on Android 12L asked for a permission that release lacks.'
+    Assert-NothingLeft $older 'A run on Android 12L'
+    $android17 = New-FakeDevice -Sdk '37' -MaxUsersWording 'Maximum supported switchable users'
+    $android17Run = Invoke-FakeSession $android17
+    Assert-True ($null -eq $android17Run.Error -and $android17Run.Session.FeaturesPassed) "A run on Android 17 failed: $($android17Run.Error)"
+    Assert-NothingLeft $android17 'A run on Android 17'
+    Assert-True (@($calls | Where-Object { $_ -like 'shell timeout 120 am instrument *' }).Count -eq 9) 'A case ran without its time limit.'
     Assert-True ($device.State.Stopped.Count -eq 0) 'A run that finished in time stopped the target.'
-    Assert-True ($calls[-3] -ceq 'shell pm uninstall --user 10 app.hushgram.nativerunner' -and $calls[-2] -ceq 'shell pm remove-user 10' -and
-        $calls[-1] -ceq 'shell cmd connectivity airplane-mode disable') "The cleanup ran out of order: $($calls[-3..-1] -join '; ')"
+    Assert-True ($calls[-4] -ceq 'shell pm uninstall --user 10 app.hushgram.nativerunner' -and $calls[-3] -ceq 'shell pm remove-user 10' -and
+        $calls[-2] -ceq 'shell settings delete secure anr_show_background' -and
+        $calls[-1] -ceq 'shell cmd connectivity airplane-mode disable') "The cleanup ran out of order: $($calls[-4..-1] -join '; ')"
     Assert-NothingLeft $device 'A clean run'
+    # A value that was set goes back as it was, and one already on is left alone.
+    $quiet = New-FakeDevice -AnrShown '0'
+    $quietRun = Invoke-FakeSession $quiet
+    Assert-True ($null -eq $quietRun.Error -and $quiet.State.Calls -contains 'shell settings put secure anr_show_background 0') "Background ANRs set to 0 were not put back: $($quietRun.Error)"
+    Assert-NothingLeft $quiet 'A run with background ANRs set to 0'
+    $shown = New-FakeDevice -AnrShown '1'
+    $shownRun = Invoke-FakeSession $shown
+    Assert-True ($null -eq $shownRun.Error -and @($shown.State.Calls | Where-Object { $_ -match '^shell settings (put|delete) ' }).Count -eq 0) "A run changed background ANRs that were already shown: $($shownRun.Error)"
+    # An answer that isn't a number stops the run before any user exists, with the network put back.
+    $odd = New-FakeDevice -AnrShown 'maybe'
+    $oddRun = Invoke-FakeSession $odd
+    Assert-True ($oddRun.Error -like "*background ANRs answered 'maybe'*") "An unreadable ANR setting was not refused: $($oddRun.Error)"
+    Assert-True (@($odd.State.Calls | Where-Object { $_ -match 'create-user|^shell settings (put|delete) ' }).Count -eq 0) 'An unreadable ANR setting still changed it or made a user.'
+    Assert-NothingLeft $odd 'An unreadable ANR setting'
 
     # Everything that has to stop a run before it creates anything.
     $refusals = @(
@@ -308,12 +357,13 @@ try {
         @{ Name = 'a runner from another run'; Device = (New-FakeDevice -RunnerPresent); Want = '*already on emulator-5554*' },
         @{ Name = 'a test user from another run'; Device = (New-FakeDevice -LeftoverUser); Want = '*User 11*already on*' },
         @{ Name = 'a single-user device'; Device = (New-FakeDevice -MaxUsers 1); Want = '*supports one Android user*' },
+        @{ Name = 'a single-user Android 17 device'; Device = (New-FakeDevice -Sdk '37' -MaxUsers 1 -MaxUsersWording 'Maximum supported switchable users'); Want = '*supports one Android user*' },
         @{ Name = 'a phone'; Device = (New-FakeDevice -Serial 'PHONE0SERIAL'); Want = '*PHONE0SERIAL is not an emulator*' }
     )
     foreach ($refusal in $refusals) {
         $run = Invoke-FakeSession $refusal.Device
         Assert-True ($run.Error -like $refusal.Want) "$($refusal.Name) was not refused as expected: $($run.Error)"
-        $writes = @($refusal.Device.State.Calls | Where-Object { $_ -match 'create-user|airplane-mode (enable|disable)|^install|uninstall|remove-user' })
+        $writes = @($refusal.Device.State.Calls | Where-Object { $_ -match 'create-user|airplane-mode (enable|disable)|^install|uninstall|remove-user|^shell settings (put|delete) ' })
         Assert-True ($writes.Count -eq 0) "$($refusal.Name) changed the device before refusing: $($writes -join '; ')"
     }
     Assert-True ($refusals[-1].Device.State.Calls.Count -eq 0) 'A phone was asked anything past its identity.'
@@ -361,7 +411,7 @@ try {
     $failing = New-FakeDevice -FailCase 'presence'
     $run = Invoke-FakeSession $failing
     $seen = (@($run.Session.Cases | ForEach-Object { "$($_.Case)=$($_.Verdict)" }) -join ',')
-    Assert-True ($null -eq $run.Error -and $seen -ceq 'bind=pass,control-positive=pass,control-negative=fail,presence=fail,presence-paused=skipped,visual=pass,visual-paused=pass' -and
+    Assert-True ($null -eq $run.Error -and $seen -ceq 'bind=pass,control-positive=pass,control-negative=fail,presence=fail,presence-paused=skipped,visual=pass,visual-paused=pass,notifications=pass,share=pass' -and
         $run.Session.ControlsProven -and -not $run.Session.FeaturesPassed) "A failed feature case gave $seen."
     Assert-True ($run.Session.Cases[3].Detail -ceq 'on: ACTIVE was stored as ACTIVE, expected IDLE' -and
         $run.Session.Cases[4].Problems[0] -like '*builds on presence*') 'A failed feature case lost its reason, or the skip gave none.'
@@ -371,7 +421,7 @@ try {
     $failingLater = New-FakeDevice -FailCase 'visual'
     $run = Invoke-FakeSession $failingLater
     $seen = (@($run.Session.Cases | ForEach-Object { "$($_.Case)=$($_.Verdict)" }) -join ',')
-    Assert-True ($null -eq $run.Error -and $seen -ceq 'bind=pass,control-positive=pass,control-negative=fail,presence=pass,presence-paused=pass,visual=fail,visual-paused=skipped' -and
+    Assert-True ($null -eq $run.Error -and $seen -ceq 'bind=pass,control-positive=pass,control-negative=fail,presence=pass,presence-paused=pass,visual=fail,visual-paused=skipped,notifications=pass,share=pass' -and
         -not $run.Session.FeaturesPassed -and $run.Session.Cases[6].Problems[0] -like '*builds on visual*') "A failed later feature case gave $seen."
     Assert-True (@($failingLater.State.Calls | Where-Object { $_ -like '*-e case visual-paused *' }).Count -eq 0) 'visual-paused ran on settings visual never saved.'
     Assert-NothingLeft $failingLater 'A failed later feature case'
@@ -409,7 +459,7 @@ try {
     $stuckUser = New-FakeDevice -FailAt 'shell pm remove-user *'
     $run = Invoke-FakeSession $stuckUser
     Assert-True ($run.Error -like '*cleanup failed*remove user 10*') "A user that could not be removed went unreported: $($run.Error)"
-    Assert-True ($stuckUser.State.Airplane -ceq 'disabled' -and $stuckUser.State.RunnerUsers.Count -eq 0) 'One failed cleanup step skipped the others.'
+    Assert-True ($stuckUser.State.Airplane -ceq 'disabled' -and $stuckUser.State.RunnerUsers.Count -eq 0 -and $stuckUser.State.AnrShown -ceq 'null') 'One failed cleanup step skipped the others.'
 
     # No lease, no call.
     $unleased = New-FakeDevice
@@ -417,7 +467,7 @@ try {
     try { [void](Invoke-NativeRunnerSession -Adb 'fake-adb' -DeviceLease $null -RunnerApk 'runner.apk' -Target $target -AdbInvoker $unleased.Invoker) }
     catch { $denied = $true }
     Assert-True ($denied -and $unleased.State.Calls.Count -eq 0) 'A run reached a device without a lease.'
-    Write-Host "[native] device session: $($refusals.Count + $controlCases.Count + 12) cases passed"
+    Write-Host "[native] device session: $($refusals.Count + $controlCases.Count + 15) cases passed"
 
     # The build identity read off the target APK's dex: exactly one, or a refusal.
     New-Item -ItemType Directory -Force -Path $work | Out-Null
@@ -446,6 +496,9 @@ try {
     # The runner keeps the target's startup out, and asks for nothing.
     $runnerSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'native-runner/src/app/hushgram/nativerunner/Runner.java') -Raw
     Assert-True ($runnerSource -match 'public void callApplicationOnCreate\(Application app\)\s*\{\s*\}') 'The runner calls the target Application.onCreate.'
+    foreach ($featureCase in $NativeRunnerFeatureCases.Keys) {
+        Assert-True ($runnerSource.Contains("case `"$featureCase`":")) "The runner has no $featureCase case to run."
+    }
     $manifest = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'native-runner/AndroidManifest.xml') -Raw
     Assert-True ($manifest -notmatch '<(uses-permission|activity|service|receiver|provider)\b') 'The runner manifest declares a permission or a component.'
 
@@ -577,9 +630,10 @@ try {
     $written = Get-Content -LiteralPath $wholeVerdict -Raw | ConvertFrom-Json
     Assert-True ($written.controlsProven -eq $true -and $written.networkOff -eq $true -and $written.isolatedUser -eq $true -and
         [string]$written.user -ceq '10' -and $written.serial -ceq 'emulator-5554' -and $written.target.Sha256 -ceq $boundTarget.Sha256 -and
-        $written.target.SelectionSha256 -ceq $boundTarget.SelectionSha256 -and @($written.cases).Count -eq 7 -and $written.featuresPassed -eq $true -and
+        $written.target.SelectionSha256 -ceq $boundTarget.SelectionSha256 -and @($written.cases).Count -eq 9 -and $written.featuresPassed -eq $true -and
         $written.cases[3].Observed.'presence.paused' -ceq $null -and $written.cases[4].Observed.'presence.paused' -ceq 'ACTIVE>ACTIVE' -and
-        $written.cases[5].Observed.'visual.on' -ceq 'held' -and $written.cases[6].Observed.'visual.paused' -ceq 'native') 'The verdict file does not record the run.'
+        $written.cases[5].Observed.'visual.on' -ceq 'held' -and $written.cases[6].Observed.'visual.paused' -ceq 'native' -and
+        $written.cases[7].Observed.'notifications.muted' -ceq 'held,held' -and $written.cases[8].Observed.'share.on' -ceq 'cleaned') 'The verdict file does not record the run.'
     Assert-True ($device.State.RunnerUsers.Count -eq 0 -and $device.State.Airplane -ceq 'disabled' -and -not (Test-Path -LiteralPath $leaseFile)) 'A whole run left the runner, the network switch or its lease.'
     $device = New-FakeDevice -ReportedSigner $runnerSignerDigest -Fixture $boundTarget
     $whole = Invoke-WholeRun $device $boundTarget -Install -Gate { param($Tools, $Apk) $false }

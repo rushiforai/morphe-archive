@@ -71,6 +71,24 @@ object Constants {
         )
     )
 
+    // Universal Copy 7.1.0 (version code 104), distributed as an XAPK.
+    val UNIVERSAL_COPY_COMPATIBILITY = Compatibility(
+        name = "Universal Copy",
+        packageName = "com.camel.corp.universalcopy",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x4B5CBA,
+        signatures = setOf(
+            "b9e533d4e4bab571fb513666d485fbe32a208c02995208812ab5fcbeb9a085d8"
+        ),
+        targets = listOf(
+            AppTarget(
+                version = "7.1.0",
+                versionCode = 104,
+                minSdk = 29
+            )
+        )
+    )
+
     // 1.1.1.1 6.38.11 (version code 5703), distributed as an APKM.
     val WARP_COMPATIBILITY = Compatibility(
         name = "1.1.1.1",

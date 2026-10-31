@@ -67,6 +67,23 @@ class CleanUpChatListFixtureTest {
 
     private val PAYLOAD_JUMPS = setOf(Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH, Opcode.FILL_ARRAY_DATA)
 
+    /**
+     * The empty ways out a render can have at [at]: a new object built with its `<init>()`, or (585)
+     * one a static factory of no arguments answers, then its field read and returned.
+     */
+    private fun emptyExit(code: List<Instruction>, at: Int): Boolean {
+        val run = code.drop(at).take(4).map { it.opcode }
+        val made = when (run) {
+            listOf(Opcode.NEW_INSTANCE, Opcode.INVOKE_DIRECT, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT) ->
+                (code[at] as OneRegisterInstruction).registerA
+            listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT) ->
+                if ((code[at] as FiveRegisterInstruction).registerCount == 0) (code[at + 1] as OneRegisterInstruction).registerA
+                else return false
+            else -> return false
+        }
+        return (code[at + 2] as TwoRegisterInstruction).registerB == made
+    }
+
     private fun Instruction.target() = (this as? ReferenceInstruction)?.reference?.toString()
 
     private fun locals(method: Method): Int {
@@ -120,8 +137,8 @@ class CleanUpChatListFixtureTest {
                 val section = sections.single()
                 assertTrue("$name: the render has a local for the answer", locals(section.method) >= 1)
                 val sectionStock = section.method.body()
-                assertEquals("$name: the way out is the render's first new object", section.exit,
-                    sectionStock.indexOfFirst { it.opcode == Opcode.NEW_INSTANCE })
+                assertEquals("$name: the way out is the render's first empty object returned", section.exit,
+                    sectionStock.indices.first { emptyExit(sectionStock, it) })
                 assertTrue("$name: Facebook's own branch already lands on the way out",
                     branches(sectionStock).any { it.second == section.exit })
                 assertTrue("$name: no try block in the render", section.method.implementation!!.tryBlocks.isEmpty())
@@ -168,12 +185,13 @@ class CleanUpChatListFixtureTest {
                 }
                 val pickerOpeners = (entryHolders + FixtureDex.classes(bundle, asking.map { it.definingClass }.toSet()).values)
                     .distinctBy { it.type }
-                val pickers = pickerOpeners.mapNotNull { opener -> pickerRowOf(opener, resolve)?.let { opener to it } }
+                val pickers = pickerOpeners.mapNotNull { opener -> pickerTapOf(opener, resolve)?.let { opener to it } }
                 assertEquals("$name: Meta AI taps opening from the people picker", 1, pickers.size)
-                val (pickerOpener, pickerRowType) = pickers.single()
+                val (pickerOpener, pickerTap) = pickers.single()
+                val pickerRowType = pickerTap.row
                 val pickerRow = FixtureDex.classes(bundle, setOf(pickerRowType))[pickerRowType]
                 assertTrue("$name: the picker row $pickerRowType is in the dex", pickerRow != null)
-                val gates = pickerRow!!.methods.mapNotNull { pickerButtonGate(it, pickerOpener.type) }
+                val gates = pickerRow!!.methods.mapNotNull { pickerButtonGate(it, pickerOpener.type, pickerTap.case) }
                 assertEquals("$name: picker row methods setting the Meta AI flag", 1, gates.size)
                 val gate = gates.single()
                 val pickerStock = gate.method.body()
@@ -242,9 +260,8 @@ class CleanUpChatListFixtureTest {
                 assertEquals("$drawn: tests v0", 0, (renderHooked[2] as OneRegisterInstruction).registerA)
                 assertEquals("$drawn: to the render's own empty way out", section.exit + 3,
                     (renderHooked[2] as BuilderOffsetInstruction).target.location.index)
-                assertEquals("$drawn: which builds an object, reads its result and returns it",
-                    listOf(Opcode.NEW_INSTANCE, Opcode.INVOKE_DIRECT, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT),
-                    renderHooked.subList(section.exit + 3, section.exit + 7).map { it.opcode })
+                assertTrue("$drawn: which builds an object, reads its result and returns it",
+                    emptyExit(renderHooked, section.exit + 3))
                 assertEquals("$drawn: a no runs the stock render from its first instruction", shape(renderStock), shape(renderHooked.drop(3)))
                 assertEquals(
                     "$drawn: Facebook's branches land where they did",

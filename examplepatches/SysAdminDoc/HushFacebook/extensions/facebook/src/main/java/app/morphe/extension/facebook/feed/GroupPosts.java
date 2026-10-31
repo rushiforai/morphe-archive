@@ -31,9 +31,16 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * can't read the wrapped post and keeps it. The second report on #195 (2026-10-29) showed one of
  * those getting through while every post posted straight to a joinable group was hidden.
  *
- * <p>The story's accessor of {@code to} and the profile's accessor of its join state are Redex
- * names, so the patch fills in {@link #storyTarget} and {@link #joinState}. The enum's constant
- * names survive the obfuscator. What the report counts is a shape, never the group.
+ * <p>A story can also name its group as {@code target_group}, read as the same model class as
+ * {@code to}. The fourth report on #195 (2026-10-30) showed group posts whose {@code to} was empty
+ * and whose title, share and attachments named no group either, so when {@code to} is empty or
+ * isn't a group, that group decides, and so does the wrapped post's. A build whose story declares
+ * no {@code target_group} reads {@code to} alone.
+ *
+ * <p>The story's accessors of {@code to} and {@code target_group} and the profile's accessor of
+ * its join state are Redex names, so the patch fills in {@link #storyTarget},
+ * {@link #storyTargetGroup} and {@link #joinState}. The enum's constant names survive the
+ * obfuscator. What the report counts is a shape, never the group.
  *
  * <p>Home asks the server for the join state only while a MobileConfig answer says so, and an
  * account without it reads the unset default on every group post. The patch hands that answer to
@@ -47,6 +54,7 @@ public final class GroupPosts {
     static final String GROUP_TYPE = "Group";
     /** The GraphQL fields read, for the report. */
     static final String TARGET_FIELD = "to";
+    static final String TARGET_GROUP_FIELD = "target_group";
     static final String JOIN_STATE_FIELD = "viewer_join_state";
 
     /** The join states Facebook shows its Join button for, the only two that hide a post. */
@@ -63,6 +71,8 @@ public final class GroupPosts {
     static final String READ_FAILED = "read failed";
     /** The read went through the post the story wraps: what it found, under this, for the report. */
     static final String WRAPPED = "wrapped ";
+    /** The read went through the story's {@code target_group}: what it found, under this (after {@link #WRAPPED}). */
+    static final String TARGET_GROUP = TARGET_GROUP_FIELD + " ";
     /** A story posted to no profile whose wrapped post can't be read: Hide posts with words isn't in the build. */
     static final String NO_WRAPPED_READER = "wrapped post not readable";
 
@@ -74,11 +84,12 @@ public final class GroupPosts {
     private static final String QUERY_HOOK = "group join state query";
 
     /**
-     * The accessors a read goes through: the two stubs the patch filled, and the story's
+     * The accessors a read goes through: the three stubs the patch filled, and the story's
      * {@code attached_story} that Hide posts with words fills, or stand-ins in a test.
      */
     static final class Readers {
         final StoryFlag.Accessor target;
+        final StoryFlag.Accessor targetGroup;
         final StoryFlag.Accessor joinState;
         final StoryFlag.Accessor attached;
         /** What Debug logging reads a story posted to no profile through ({@link #describe}). */
@@ -94,7 +105,13 @@ public final class GroupPosts {
 
         Readers(StoryFlag.Accessor target, StoryFlag.Accessor joinState, StoryFlag.Accessor attached,
                 ShapeReaders shape) {
+            this(target, GroupPosts::storyTargetGroup, joinState, attached, shape);
+        }
+
+        Readers(StoryFlag.Accessor target, StoryFlag.Accessor targetGroup, StoryFlag.Accessor joinState,
+                StoryFlag.Accessor attached, ShapeReaders shape) {
             this.target = target;
+            this.targetGroup = targetGroup;
             this.joinState = joinState;
             this.attached = attached;
             this.shape = shape;
@@ -104,7 +121,7 @@ public final class GroupPosts {
     // Before PATCHED, which takes it as its default: static fields are set in the order they're written.
     static final ShapeReaders SHAPE_PATCHED = new ShapeReaders(GroupPosts::storyTitle, GroupPosts::storyShareable,
             GroupPosts::titleRanges, GroupPosts::rangeEntity, PostSources.ATTACHMENTS, GroupPosts::attachmentTarget,
-            GroupPosts::joinState);
+            GroupPosts::joinState, GroupPosts::storyTargetGroup);
 
     static final Readers PATCHED = new Readers(GroupPosts::storyTarget, GroupPosts::joinState);
 
@@ -120,8 +137,18 @@ public final class GroupPosts {
     }
 
     /**
+     * Injection point, filled in by the patch on a build whose story declares it: the story's
+     * {@code target_group}, of the same class as its {@code to}, or null when it has none. Only a
+     * GraphQLStory may be passed.
+     */
+    public static Object storyTargetGroup(Object story) {
+        return StoryFlag.NOT_PATCHED;
+    }
+
+    /**
      * Injection point, filled in by the patch: the profile's {@code viewer_join_state} enum, or
-     * Facebook's unset constant when it has none. Only a story's {@code to} may be passed.
+     * Facebook's unset constant when it has none. Only a story's {@code to} or {@code target_group}
+     * may be passed.
      */
     public static Object joinState(Object profile) {
         return StoryFlag.NOT_PATCHED;
@@ -167,10 +194,11 @@ public final class GroupPosts {
         final StoryFlag.Accessor attachments;
         final StoryFlag.Accessor target;
         final StoryFlag.Accessor joinState;
+        final StoryFlag.Accessor targetGroup;
 
         ShapeReaders(StoryFlag.Accessor title, StoryFlag.Accessor shareable, StoryFlag.Accessor ranges,
                 StoryFlag.Accessor entity, StoryFlag.Accessor attachments, StoryFlag.Accessor target,
-                StoryFlag.Accessor joinState) {
+                StoryFlag.Accessor joinState, StoryFlag.Accessor targetGroup) {
             this.title = title;
             this.shareable = shareable;
             this.ranges = ranges;
@@ -178,6 +206,7 @@ public final class GroupPosts {
             this.attachments = attachments;
             this.target = target;
             this.joinState = joinState;
+            this.targetGroup = targetGroup;
         }
     }
 
@@ -189,15 +218,18 @@ public final class GroupPosts {
 
     /**
      * For Debug logging only: what a story posted to no profile carries that could name a group, as
-     * GraphQL type names and nothing else, never its text or an id. The entities its title's ranges
-     * point at, its {@code shareable}, and each attachment's target, a target that's a group with its
-     * join state: {@code title:User+Group;shareable:-;attachments:Group/CAN_JOIN}. The third report
-     * on #195 (2026-10-29) kept three group posts whose {@code to} and wrapped post were both empty.
-     * Never throws.
+     * GraphQL type names and nothing else, never its text or an id. Its {@code target_group} with
+     * its join state, the entities its title's ranges point at, its {@code shareable}, and each
+     * attachment's target, a target that's a group with its join state:
+     * {@code target_group:-;title:User+Group;shareable:-;attachments:Group/CAN_JOIN}. The third
+     * report on #195 (2026-10-29) kept three group posts whose {@code to} and wrapped post were both
+     * empty. Never throws.
      */
     static String shape(@Nullable Object story, ShapeReaders readers) {
         try {
             if (story == null || FeedFilter.released(story)) return RELEASED;
+            Object group = readers.targetGroup.model(story);
+            String named = group == StoryFlag.NOT_PATCHED ? SHAPE_NOT_PATCHED : typeAndState(group, readers.joinState);
             Object title = readers.title.model(story);
             String titles;
             if (title == StoryFlag.NOT_PATCHED) {
@@ -210,7 +242,7 @@ public final class GroupPosts {
             Object shareable = readers.shareable.model(story);
             String shared = shareable == StoryFlag.NOT_PATCHED ? SHAPE_NOT_PATCHED : typeOf(shareable);
             String attached = typesOf(readers.attachments.model(story), readers.target, readers.joinState);
-            return "title:" + titles + ";shareable:" + shared + ";attachments:" + attached;
+            return "target_group:" + named + ";title:" + titles + ";shareable:" + shared + ";attachments:" + attached;
         } catch (Throwable failure) {
             return READ_FAILED;
         }
@@ -237,18 +269,19 @@ public final class GroupPosts {
                 continue;
             }
             Object model = via.model(item);
-            if (model == StoryFlag.NOT_PATCHED) {
-                names.append(SHAPE_NOT_PATCHED);
-                continue;
-            }
-            String type = typeOf(model);
-            names.append(type);
-            if (joinState != null && GROUP_TYPE.equals(type)) {
-                Object state = joinState.model(model);
-                if (state instanceof Enum) names.append('/').append(((Enum<?>) state).name());
-            }
+            names.append(model == StoryFlag.NOT_PATCHED ? SHAPE_NOT_PATCHED : typeAndState(model, joinState));
         }
         return names.toString();
+    }
+
+    /** {@link #typeOf} the model, and after a "/" the join state of one that's a group, when [joinState] is given. */
+    private static String typeAndState(@Nullable Object model, @Nullable StoryFlag.Accessor joinState) {
+        String type = typeOf(model);
+        if (joinState != null && GROUP_TYPE.equals(type)) {
+            Object state = joinState.model(model);
+            if (state instanceof Enum) return type + "/" + ((Enum<?>) state).name();
+        }
+        return type;
     }
 
     /** A model's GraphQL type name, or {@link #SHAPE_NONE} for none or one whose tree is gone. */
@@ -293,10 +326,12 @@ public final class GroupPosts {
     }
 
     /**
-     * The join state's constant name for a post in a group, or why there is none. A story posted to
-     * no profile is read again through the post it wraps, and what that found comes back under
-     * {@link #WRAPPED}. Never throws: an accessor that throws is recorded in Hook status and the
-     * post reads as {@link #READ_FAILED}, which keeps it.
+     * The join state's constant name for a post in a group, or why there is none. A story whose
+     * {@code to} is empty or isn't a group is read through its {@code target_group}, under
+     * {@link #TARGET_GROUP}, and a story posted to no profile that names no group that way is read
+     * again through the post it wraps, the same way, under {@link #WRAPPED}. Never throws: an
+     * accessor that throws is recorded in Hook status and the post reads as {@link #READ_FAILED},
+     * which keeps it.
      */
     static String read(@Nullable Object feedUnit, Readers readers) {
         Class<?> story = StoryFlag.members().story;
@@ -308,19 +343,37 @@ public final class GroupPosts {
                 HookStatus.missingMember(FAMILY, "method", StoryFlag.STORY_CLASS, "the " + TARGET_FIELD + " accessor");
                 return NOT_PATCHED;
             }
-            if (target != null) return stateOf(target, readers, "");
-            // Posted to no profile: a post a friend commented on or shared wraps the group's post.
+            String found = stateOf(feedUnit, target, readers, "");
+            if (found != null) return found;
+            // Posted to no profile and naming no group: a post a friend commented on or shared wraps the group's post.
             Object wrapped = readers.attached.model(feedUnit);
             if (wrapped == StoryFlag.NOT_PATCHED) return NO_WRAPPED_READER;
             if (wrapped == null || !story.isInstance(wrapped)) return NO_TARGET;
             if (FeedFilter.released(wrapped)) return RELEASED;
             Object wrappedTarget = readers.target.model(wrapped);
-            if (wrappedTarget == null || wrappedTarget == StoryFlag.NOT_PATCHED) return NO_TARGET;
-            return stateOf(wrappedTarget, readers, WRAPPED);
+            String wrappedFound = stateOf(wrapped, wrappedTarget == StoryFlag.NOT_PATCHED ? null : wrappedTarget, readers, WRAPPED);
+            return wrappedFound == null ? NO_TARGET : wrappedFound;
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "group join state reader", failure);
             return READ_FAILED;
         }
+    }
+
+    /**
+     * What [story]'s group's join state reads as, under [prefix]: through its [target] when that's
+     * a group, else through its {@code target_group} when it names one, else through [target] when
+     * there is one. Null when the story has neither. Throws what an accessor throws.
+     */
+    @Nullable
+    private static String stateOf(Object story, @Nullable Object target, Readers readers, String prefix) {
+        String byTarget = target == null ? null : stateOf(target, readers, prefix);
+        if (byTarget != null && !byTarget.equals(prefix + NOT_A_GROUP)) return byTarget;
+        Object group = readers.targetGroup.model(story);
+        if (group == StoryFlag.NOT_PATCHED) {
+            HookStatus.missingMember(FAMILY, "method", StoryFlag.STORY_CLASS, "the " + TARGET_GROUP_FIELD + " accessor");
+            return byTarget;
+        }
+        return group == null ? byTarget : stateOf(group, readers, prefix + TARGET_GROUP);
     }
 
     /**
@@ -343,11 +396,12 @@ public final class GroupPosts {
 
     /**
      * Whether what a read found is a group the person could join, so isn't in, the post posted to
-     * it straight or wrapped in a friend's activity.
+     * it straight, naming it as its {@code target_group}, or wrapped in a friend's activity.
      */
     static boolean notJoined(@Nullable String kind) {
         if (kind == null) return false;
         String state = kind.startsWith(WRAPPED) ? kind.substring(WRAPPED.length()) : kind;
+        if (state.startsWith(TARGET_GROUP)) state = state.substring(TARGET_GROUP.length());
         for (String joinable : NOT_JOINED) {
             if (joinable.equals(state)) return true;
         }

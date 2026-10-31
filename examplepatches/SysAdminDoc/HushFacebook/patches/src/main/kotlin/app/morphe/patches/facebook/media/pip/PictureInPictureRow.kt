@@ -42,12 +42,15 @@ internal class SheetContext(val parameter: Int, val type: String, val field: Fie
 
 internal fun BytecodePatchContext.sheetContext(sheet: MoreSheet): SheetContext {
     val parameters = sheet.builder.parameterTypes.map(CharSequence::toString)
-    return parameters.withIndex().mapNotNull { (index, type) ->
+    val found = parameters.withIndex().mapNotNull { (index, type) ->
         val fields = classDefByOrNull(type)?.fields?.filter {
             it.type == CONTEXT && !AccessFlags.STATIC.isSet(it.accessFlags)
         }.orEmpty()
         fields.singleOrNull()?.let { SheetContext(index, type, ImmutableFieldReference(type, it.name, CONTEXT)) }
-    }.singleOrPatchException("$PATCH: the one parameter of the More sheet builder that keeps one Context")
+    }
+    // 585's builder takes the scoped context twice (same class, two parameters): either one answers, so the first is used.
+    val type = found.map { it.type }.distinct().singleOrPatchException("$PATCH: the one kind of parameter of the More sheet builder that keeps one Context")
+    return found.first { it.type == type }
 }
 
 /**

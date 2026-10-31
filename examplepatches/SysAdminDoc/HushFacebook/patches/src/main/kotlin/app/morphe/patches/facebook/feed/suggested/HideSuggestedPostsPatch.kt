@@ -46,6 +46,7 @@ import app.morphe.patches.facebook.feed.requireFeedTypeName
 import app.morphe.patches.facebook.feed.requireTaggedFeedTypeName
 import app.morphe.patches.facebook.feed.requireStoryFlagReaders
 import app.morphe.patches.facebook.feed.resolveStatic
+import app.morphe.patches.facebook.feed.unconnectedStoriesAccessors
 import app.morphe.patches.facebook.feed.unconnectedStoriesReaders
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.enableStatus
@@ -56,6 +57,7 @@ import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.facebook.search.hookPreSearchSections
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -193,7 +195,12 @@ val hideSuggestedPostsPatch = bytecodePatch(
         }
         // A friend's post in a group you're not in is an ordinary story; its group's join state tells it apart (#195).
         try {
-            fillGroupJoinStubs()
+            if (fillGroupJoinStubs().targetGroup == null) {
+                patchLog.warning(
+                    "GraphQLStory declares no $STORY_TARGET_GROUP_FIELD, so Hide posts from groups you're not in " +
+                        "reads a post's group from its $STORY_TARGET_FIELD alone.",
+                )
+            }
         } catch (exception: PatchException) {
             patchLog.warning("${exception.message}, so Hide posts from groups you're not in keeps every post.")
         }
@@ -316,14 +323,21 @@ internal fun MutableMethod.buildNoChildrenWhenHidden(children: String) {
  * Checks the build for what the "Stories you might like" rule reads: a model answering
  * `DiscoverFeedUnit`, and Facebook's own DiscoverUnitComponent reading [UNCONNECTED_STORIES_FLAG]
  * from such a unit. The component's class is renamed, so it's found as the one parameter of its
- * kept layout manager's constructor that reads the flag. If Facebook stops reading it there, the
- * flag may have changed meaning, and the patch stops.
+ * kept layout manager's constructor that reads the flag, itself or (585) through the unit model's
+ * `()Z` accessor whose implementation reads it. If Facebook stops reading it there, the flag may
+ * have changed meaning, and the patch stops.
  */
 internal fun BytecodePatchContext.requireUnconnectedStoriesFlag() {
     requireFeedTypeName(DISCOVER_FEED_UNIT_TYPE)
     val layout = classDefByOrNull(DISCOVER_UNIT_LAYOUT)
         ?: throw PatchException("$DISCOVER_UNIT_LAYOUT isn't in this Facebook build")
-    val readers = unconnectedStoriesReaders(layout) { classDefByOrNull(it) }
+    // Why: an accessor's implementations name its interface, so the indexed walk visits only them.
+    val flagAccessors = { owners: Set<String> ->
+        val found = mutableSetOf<String>()
+        classDefForEachReferencing(types = owners) { classDef -> found += unconnectedStoriesAccessors(classDef, owners) }
+        found
+    }
+    val readers = unconnectedStoriesReaders(layout, flagAccessors) { classDefByOrNull(it) }
     if (readers.size != 1) {
         throw PatchException(
             "Facebook's Discover unit component should read $UNCONNECTED_STORIES_FLAG once, found " +

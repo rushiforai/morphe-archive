@@ -1,0 +1,25 @@
+[versions]
+# Consumed by the app.morphe.patches Gradle plugin, which adds the patcher and smali as
+# "patcherProvided" dependencies. The patcher is declared under [libraries] as well, since
+# nothing else references it and Dependabot only proposes bumps for what it finds there.
+morphe-patcher = "2.1.0"
+#noinspection GradleDependency
+smali = "4220ae75f7"
+
+morphe-patches-library = "2.1.0"
+annotation = "1.11.0"
+gson = "2.15.0"
+okhttp = "5.5.0"
+
+[libraries]
+morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
+morphe-extensions-library = { module = "app.morphe:morphe-extensions-library", version.ref = "morphe-patches-library" }
+# Added by the Gradle plugin during the build; declared here only so Dependabot proposes updates.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+
+[plugins]
+android-library = { id = "com.android.library" }

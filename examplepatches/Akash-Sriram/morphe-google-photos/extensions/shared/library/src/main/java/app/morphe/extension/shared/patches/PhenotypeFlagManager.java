@@ -83,6 +83,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -204,6 +208,26 @@ public final class PhenotypeFlagManager {
         });
     }
 
+    public static Drawable getStockDrawable(Context context, String name, int tintColor) {
+        if (context == null || name == null) return null;
+        try {
+            int resId = context.getResources().getIdentifier(name, "drawable", context.getPackageName());
+            if (resId != 0) {
+                Drawable d = context.getDrawable(resId);
+                if (d != null) {
+                    d = d.mutate();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        d.setTint(tintColor);
+                    }
+                    return d;
+                }
+            }
+        } catch (Throwable t) {
+            Logger.printException(() -> "Error loading stock drawable: " + name, t);
+        }
+        return null;
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Programmatic Material 3 Vector Icons (Resolution-Independent)
     // ─────────────────────────────────────────────────────────────────────────
@@ -245,6 +269,8 @@ public final class PhenotypeFlagManager {
         public static final int TYPE_TAG = 33;
         public static final int TYPE_SHIELD = 34;
         public static final int TYPE_SHARE = 35;
+        public static final int TYPE_CHEVRON_RIGHT = 36;
+        public static final int TYPE_ARROW_BACK = 37;
 
         private final int type;
         private final Paint strokePaint;
@@ -649,6 +675,23 @@ public final class PhenotypeFlagManager {
                     canvas.drawLine(w * 0.34f, h * 0.54f, w * 0.66f, h * 0.68f, strokePaint);
                     break;
                 }
+                case TYPE_CHEVRON_RIGHT: {
+                    Path p = new Path();
+                    p.moveTo(w * 0.38f, h * 0.26f);
+                    p.lineTo(w * 0.62f, h * 0.50f);
+                    p.lineTo(w * 0.38f, h * 0.74f);
+                    canvas.drawPath(p, strokePaint);
+                    break;
+                }
+                case TYPE_ARROW_BACK: {
+                    canvas.drawLine(w * 0.22f, h * 0.50f, w * 0.78f, h * 0.50f, strokePaint);
+                    Path arr = new Path();
+                    arr.moveTo(w * 0.46f, h * 0.26f);
+                    arr.lineTo(w * 0.22f, h * 0.50f);
+                    arr.lineTo(w * 0.46f, h * 0.74f);
+                    canvas.drawPath(arr, strokePaint);
+                    break;
+                }
             }
             canvas.restore();
         }
@@ -872,21 +915,7 @@ public final class PhenotypeFlagManager {
 
     public static void refreshFloatingPill(Activity activity) {
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
-        activity.runOnUiThread(() -> {
-            try {
-                FrameLayout content = activity.findViewById(android.R.id.content);
-                if (content != null) {
-                    View existing = content.findViewWithTag(SETTINGS_PILL_TAG);
-                    if (existing != null) {
-                        content.removeView(existing);
-                        LinearLayout newPill = createFloatingPill(activity);
-                        content.addView(newPill);
-                    }
-                }
-            } catch (Throwable t) {
-                Logger.printException(() -> "Error refreshing floating pill", t);
-            }
-        });
+        injectSettingsCard(activity);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -994,344 +1023,181 @@ public final class PhenotypeFlagManager {
         return 0;
     }
 
-    private static void updateFloatingPillInsets(Activity activity, View pill) {
-        if (activity == null || pill == null) return;
+    private static int getStatusBarTopInset(Activity activity, View view) {
+        if (activity == null) return 0;
         try {
-            float density = activity.getResources().getDisplayMetrics().density;
-            int navBottom = getNavigationBarBottomInset(activity, pill);
-            int baseBottomMargin = (int) (22 * density);
-            int targetBottom = baseBottomMargin + navBottom;
-            ViewGroup.LayoutParams vlp = pill.getLayoutParams();
-            if (vlp instanceof FrameLayout.LayoutParams) {
-                FrameLayout.LayoutParams flp = (FrameLayout.LayoutParams) vlp;
-                if (flp.bottomMargin != targetBottom) {
-                    flp.bottomMargin = targetBottom;
-                    pill.setLayoutParams(flp);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                WindowInsets rootInsets = (view != null) ? view.getRootWindowInsets() : null;
+                if (rootInsets == null && activity.getWindow() != null) {
+                    View decor = activity.getWindow().getDecorView();
+                    if (decor != null) rootInsets = decor.getRootWindowInsets();
+                }
+                if (rootInsets != null) {
+                    return rootInsets.getInsets(WindowInsets.Type.statusBars()).top;
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                WindowInsets rootInsets = (view != null) ? view.getRootWindowInsets() : null;
+                if (rootInsets == null && activity.getWindow() != null) {
+                    View decor = activity.getWindow().getDecorView();
+                    if (decor != null) rootInsets = decor.getRootWindowInsets();
+                }
+                if (rootInsets != null) {
+                    return rootInsets.getSystemWindowInsetTop();
                 }
             }
         } catch (Throwable ignored) {}
+        return 0;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Settings Activity Floating Pill Injection
+    // Settings Activity Integration (Native Settings Card below Privacy)
     // ─────────────────────────────────────────────────────────────────────────
+
+    public static final String SETTINGS_CARD_TAG = "morphe_settings_card";
+    public static final String SETTINGS_TOP_CHIP_TAG = "morphe_settings_top_chip";
+
+    private static volatile int sInternalStringResId = 0x7f14210f;
+
+    public static String resolveSettingsString(int resId) {
+        if (resId != 0 && (resId == sInternalStringResId || resId == 0x7f14210f)) {
+            return "Morphe";
+        }
+        return null;
+    }
+
+    public static void hookInternalActivity(Activity activity) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
+        activity.runOnUiThread(() -> {
+            try {
+                if (activity.getActionBar() != null) {
+                    activity.getActionBar().hide();
+                }
+            } catch (Throwable ignored) {}
+            try {
+                Method getSupportActionBar = activity.getClass().getMethod("getSupportActionBar");
+                Object ab = getSupportActionBar.invoke(activity);
+                if (ab != null) {
+                    ab.getClass().getMethod("hide").invoke(ab);
+                }
+            } catch (Throwable ignored) {}
+            try {
+                int abId = activity.getResources().getIdentifier("action_bar_container", "id", activity.getPackageName());
+                if (abId != 0) {
+                    View abView = activity.findViewById(abId);
+                    if (abView != null) abView.setVisibility(View.GONE);
+                }
+            } catch (Throwable ignored) {}
+
+            try {
+                FrameLayout content = activity.findViewById(android.R.id.content);
+                if (content != null) {
+                    content.removeAllViews();
+                    View rootView = app.morphe.extension.shared.settings.MorpheSettingsScreen.createRootView(
+                            activity, activity::finish, false);
+                    content.addView(rootView, new FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                    Logger.printInfo(() -> "MorpheSettingsScreen attached to android.R.id.content in InternalActivity");
+                    return;
+                }
+            } catch (Throwable t) {
+                Logger.printException(() -> "Error attaching MorpheSettingsScreen to content", t);
+            }
+
+            View rootView = app.morphe.extension.shared.settings.MorpheSettingsScreen.createRootView(
+                    activity, activity::finish, false);
+            activity.setContentView(rootView);
+        });
+    }
 
     public static void injectSettingsCardFlags(Activity activity) {
         setComponentsMode("flags");
-        injectSettingsCard(activity);
+        hookSettingsActivity(activity);
     }
 
     public static void injectSettingsCardToolkit(Activity activity) {
         setComponentsMode("toolkit");
-        injectSettingsCard(activity);
+        hookSettingsActivity(activity);
     }
 
     public static void injectSettingsCardBoth(Activity activity) {
         setComponentsMode("both");
-        injectSettingsCard(activity);
+        hookSettingsActivity(activity);
     }
 
     public static void injectSettingsCard(Activity activity) {
+        hookSettingsActivity(activity);
+    }
+
+    public static void hookSettingsActivity(Activity activity) {
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
 
+        // Resolve string ID dynamically if available
+        try {
+            int strId = activity.getResources().getIdentifier(
+                    "photos_settings_internal", "string", activity.getPackageName());
+            if (strId != 0) {
+                sInternalStringResId = strId;
+            }
+        } catch (Throwable ignored) {}
+
+        // Resolve tune icon drawable ID and set on settings item
+        try {
+            int tuneResId = activity.getResources().getIdentifier(
+                    "quantum_gm_ic_tune_vd_theme_24", "drawable", activity.getPackageName());
+            if (tuneResId == 0) tuneResId = 0x7f080b2b;
+            updateSettingsItemIcon(activity, tuneResId);
+        } catch (Throwable t) {
+            Logger.printException(() -> "Error configuring settings item icon", t);
+        }
+
+        // Clean up any legacy floating views and attach easter egg
         activity.runOnUiThread(() -> {
             try {
-                View decor = activity.getWindow().getDecorView();
-                decor.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                    @Override
-                    public void onGlobalLayout() {
-                        try {
-                            FrameLayout content = activity.findViewById(android.R.id.content);
-                            if (content != null) {
-                                View existing = content.findViewWithTag(SETTINGS_PILL_TAG);
-                                if (existing == null) {
-                                    LinearLayout pill = createFloatingPill(activity);
-                                    content.addView(pill);
-                                    Logger.printInfo(() -> "Photos Flags floating pill dock attached to SettingsActivity");
-                                } else {
-                                    updateFloatingPillInsets(activity, existing);
-                                }
-                            }
-                            attachAboutEasterEgg(activity, decor);
-                        } catch (Throwable t) {
-                            Logger.printException(() -> "Error attaching Photos Flags pill", t);
-                        }
-                    }
-                });
+                FrameLayout content = activity.findViewById(android.R.id.content);
+                if (content != null) {
+                    View legacyPill = content.findViewWithTag(SETTINGS_PILL_TAG);
+                    if (legacyPill != null) content.removeView(legacyPill);
+                    View legacyCard = content.findViewWithTag(SETTINGS_CARD_TAG);
+                    if (legacyCard != null) content.removeView(legacyCard);
+                    View legacyChip = content.findViewWithTag(SETTINGS_TOP_CHIP_TAG);
+                    if (legacyChip != null) content.removeView(legacyChip);
+                }
+                attachAboutEasterEgg(activity, activity.getWindow().getDecorView());
             } catch (Throwable t) {
-                Logger.printException(() -> "Error in injectSettingsCard", t);
+                Logger.printException(() -> "Error in settings activity post-layout cleanup", t);
             }
         });
     }
 
-    private static LinearLayout createFloatingPill(Activity activity) {
-        Theme theme = Theme.get(activity);
-        float density = activity.getResources().getDisplayMetrics().density;
-
-        LinearLayout dock = new LinearLayout(activity);
-        dock.setTag(SETTINGS_PILL_TAG);
-        dock.setOrientation(LinearLayout.HORIZONTAL);
-        dock.setGravity(Gravity.CENTER_VERTICAL);
-
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                (int) (52 * density)
-        );
-        lp.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-        int navBottom = getNavigationBarBottomInset(activity, null);
-        int baseBottomMargin = (int) (22 * density);
-        lp.setMargins(0, 0, 0, baseBottomMargin + navBottom);
-        dock.setLayoutParams(lp);
-
-        dock.setOnApplyWindowInsetsListener((v, insets) -> {
+    private static void updateSettingsItemIcon(Activity activity, int tuneResId) {
+        try {
+            ClassLoader cl = activity.getClassLoader();
+            Class<?> bgaqClass = null;
             try {
-                int insetBottom = 0;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    insetBottom = insets.getInsets(WindowInsets.Type.navigationBars()).bottom;
-                } else {
-                    insetBottom = insets.getSystemWindowInsetBottom();
-                }
-                FrameLayout.LayoutParams p = (FrameLayout.LayoutParams) v.getLayoutParams();
-                if (p != null) {
-                    int target = baseBottomMargin + insetBottom;
-                    if (p.bottomMargin != target) {
-                        p.bottomMargin = target;
-                        v.setLayoutParams(p);
-                    }
-                }
-            } catch (Throwable ignored) {}
-            return insets;
-        });
+                bgaqClass = cl.loadClass("bgaq");
+            } catch (ClassNotFoundException ignored) {}
 
-        dock.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow(View v) {
-                updateFloatingPillInsets(activity, v);
-                v.requestApplyInsets();
-            }
-
-            @Override
-            public void onViewDetachedFromWindow(View v) {}
-        });
-
-        int padOuter = (int) (4 * density);
-        dock.setPadding(padOuter, padOuter, padOuter, padOuter);
-        dock.setElevation(8 * density);
-
-        GradientDrawable bgDock = new GradientDrawable();
-        bgDock.setCornerRadius(26 * density);
-        bgDock.setColor(theme.surfaceContainer);
-        bgDock.setStroke((int) (1 * density), theme.outline);
-        dock.setBackground(bgDock);
-
-        int itemPadH = (int) (14 * density);
-        int iconSize = (int) (20 * density);
-
-        // Segment 1: Flags
-        LinearLayout itemFlags = new LinearLayout(activity);
-        itemFlags.setTag("dock_item_flags");
-        itemFlags.setOrientation(LinearLayout.HORIZONTAL);
-        itemFlags.setGravity(Gravity.CENTER);
-        itemFlags.setClickable(true);
-        itemFlags.setFocusable(true);
-        itemFlags.setPadding(itemPadH, 0, itemPadH, 0);
-        LinearLayout.LayoutParams lpFlags = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        );
-        itemFlags.setLayoutParams(lpFlags);
-
-        GradientDrawable bgFlags = new GradientDrawable();
-        bgFlags.setCornerRadius(22 * density);
-        bgFlags.setColor(theme.primaryContainer);
-        itemFlags.setBackground(bgFlags);
-
-        ImageView iconFlags = new ImageView(activity);
-        iconFlags.setImageDrawable(new MaterialVectorDrawable(MaterialVectorDrawable.TYPE_TUNE, theme.onPrimaryContainer));
-        LinearLayout.LayoutParams icLp1 = new LinearLayout.LayoutParams(iconSize, iconSize);
-        icLp1.setMargins(0, 0, (int) (6 * density), 0);
-        iconFlags.setLayoutParams(icLp1);
-        itemFlags.addView(iconFlags);
-
-        TextView labelFlags = new TextView(activity);
-        labelFlags.setText("Flags");
-        labelFlags.setTextSize(13.5f);
-        labelFlags.setTextColor(theme.onPrimaryContainer);
-        labelFlags.setTypeface(null, Typeface.BOLD);
-        itemFlags.addView(labelFlags);
-        itemFlags.setOnClickListener(v -> {
-            if (sActiveDockTab == DOCK_TAB_FLAGS && sCurrentOpenDialog != null && sCurrentOpenDialog.isShowing()) {
-                return;
-            }
-            dismissCurrentOpenDialog();
-            updateDockTabState(activity, DOCK_TAB_FLAGS);
-            showFlagManagerDialog(activity);
-        });
-
-        // Divider 1
-        View divider1 = new View(activity);
-        divider1.setBackgroundColor(theme.outline);
-        LinearLayout.LayoutParams divLp1 = new LinearLayout.LayoutParams((int) (1 * density), (int) (20 * density));
-        divLp1.setMargins((int) (2 * density), 0, (int) (2 * density), 0);
-        divider1.setLayoutParams(divLp1);
-
-        // Segment 2: Toolkit (in between Flags and Logs)
-        LinearLayout itemToolkit = new LinearLayout(activity);
-        itemToolkit.setTag("dock_item_toolkit");
-        itemToolkit.setOrientation(LinearLayout.HORIZONTAL);
-        itemToolkit.setGravity(Gravity.CENTER);
-        itemToolkit.setClickable(true);
-        itemToolkit.setFocusable(true);
-        itemToolkit.setPadding(itemPadH, 0, itemPadH, 0);
-        LinearLayout.LayoutParams lpToolkit = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        );
-        itemToolkit.setLayoutParams(lpToolkit);
-
-        GradientDrawable bgToolkit = new GradientDrawable();
-        bgToolkit.setCornerRadius(22 * density);
-        bgToolkit.setColor(Color.TRANSPARENT);
-        itemToolkit.setBackground(bgToolkit);
-
-        ImageView iconToolkit = new ImageView(activity);
-        iconToolkit.setImageDrawable(new MaterialVectorDrawable(MaterialVectorDrawable.TYPE_TOOLKIT, theme.textPrimary));
-        LinearLayout.LayoutParams icLpToolkit = new LinearLayout.LayoutParams(iconSize, iconSize);
-        icLpToolkit.setMargins(0, 0, (int) (6 * density), 0);
-        iconToolkit.setLayoutParams(icLpToolkit);
-        itemToolkit.addView(iconToolkit);
-
-        TextView labelToolkit = new TextView(activity);
-        labelToolkit.setText("Toolkit");
-        labelToolkit.setTextSize(13.5f);
-        labelToolkit.setTextColor(theme.textPrimary);
-        labelToolkit.setTypeface(null, Typeface.BOLD);
-        itemToolkit.addView(labelToolkit);
-        itemToolkit.setOnClickListener(v -> {
-            if (sActiveDockTab == DOCK_TAB_TOOLKIT && sCurrentOpenDialog != null && sCurrentOpenDialog.isShowing()) {
-                return;
-            }
-            dismissCurrentOpenDialog();
-            updateDockTabState(activity, DOCK_TAB_TOOLKIT);
-            app.morphe.extension.shared.patches.toolkit.NativeToolkitDialog.show(activity);
-        });
-
-        // Divider 2
-        View divider2 = new View(activity);
-        divider2.setBackgroundColor(theme.outline);
-        LinearLayout.LayoutParams divLp2 = new LinearLayout.LayoutParams((int) (1 * density), (int) (20 * density));
-        divLp2.setMargins((int) (2 * density), 0, (int) (2 * density), 0);
-        divider2.setLayoutParams(divLp2);
-
-        String mode = getEffectiveComponentsMode(activity);
-        boolean showFlags = !"toolkit".equalsIgnoreCase(mode);
-        boolean showToolkit = !"flags".equalsIgnoreCase(mode);
-
-        if (showFlags) {
-            dock.addView(itemFlags);
-        }
-
-        if (showFlags && showToolkit) {
-            dock.addView(divider1);
-        }
-
-        if (showToolkit) {
-            dock.addView(itemToolkit);
-        }
-
-        if (showFlags || showToolkit) {
-            dock.addView(divider2);
-        }
-
-        // Segment 3: Logs
-        LinearLayout itemLogs = new LinearLayout(activity);
-        itemLogs.setTag("dock_item_logs");
-        itemLogs.setOrientation(LinearLayout.HORIZONTAL);
-        itemLogs.setGravity(Gravity.CENTER);
-        itemLogs.setClickable(true);
-        itemLogs.setFocusable(true);
-        itemLogs.setPadding(itemPadH, 0, itemPadH, 0);
-        LinearLayout.LayoutParams lpLogs = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        );
-        itemLogs.setLayoutParams(lpLogs);
-
-        GradientDrawable bgLogs = new GradientDrawable();
-        bgLogs.setCornerRadius(22 * density);
-        bgLogs.setColor(Color.TRANSPARENT);
-        itemLogs.setBackground(bgLogs);
-
-        ImageView iconLogs = new ImageView(activity);
-        iconLogs.setImageDrawable(new MaterialVectorDrawable(MaterialVectorDrawable.TYPE_LOGS, theme.textPrimary));
-        LinearLayout.LayoutParams icLp2 = new LinearLayout.LayoutParams(iconSize, iconSize);
-        icLp2.setMargins(0, 0, (int) (6 * density), 0);
-        iconLogs.setLayoutParams(icLp2);
-        itemLogs.addView(iconLogs);
-
-        TextView labelLogs = new TextView(activity);
-        labelLogs.setText("Logs");
-        labelLogs.setTextSize(13.5f);
-        labelLogs.setTextColor(theme.textPrimary);
-        labelLogs.setTypeface(null, Typeface.BOLD);
-        itemLogs.addView(labelLogs);
-
-        Handler longPressHandler = new Handler(Looper.getMainLooper());
-        boolean[] longPressTriggered = new boolean[]{false};
-        float[] downPos = new float[2];
-        Runnable resetMemories5s = () -> {
-            longPressTriggered[0] = true;
-            try {
-                itemLogs.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-            } catch (Throwable ignored) {}
-            LocalCreationDownloader.clearSavedRegistry(activity);
-            Toast.makeText(activity, "Morphe: Saved memories registry reset", Toast.LENGTH_SHORT).show();
-        };
-
-        itemLogs.setOnTouchListener((v, event) -> {
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    longPressTriggered[0] = false;
-                    downPos[0] = event.getX();
-                    downPos[1] = event.getY();
-                    longPressHandler.postDelayed(resetMemories5s, 5000);
-                    itemLogs.setPressed(true);
-                    return true;
-                case MotionEvent.ACTION_MOVE:
-                    float dx = Math.abs(event.getX() - downPos[0]);
-                    float dy = Math.abs(event.getY() - downPos[1]);
-                    if (dx > 24 * density || dy > 24 * density) {
-                        longPressHandler.removeCallbacks(resetMemories5s);
-                        itemLogs.setPressed(false);
-                    }
-                    return true;
-                case MotionEvent.ACTION_UP:
-                    longPressHandler.removeCallbacks(resetMemories5s);
-                    itemLogs.setPressed(false);
-                    if (!longPressTriggered[0]) {
-                        if (sActiveDockTab == DOCK_TAB_LOGS && sCurrentOpenDialog != null && sCurrentOpenDialog.isShowing()) {
-                            return true;
+            if (bgaqClass != null) {
+                for (Field f : bgaqClass.getDeclaredFields()) {
+                    if (Modifier.isStatic(f.getModifiers()) && f.getName().equals("r")) {
+                        f.setAccessible(true);
+                        Object rItem = f.get(null);
+                        if (rItem != null) {
+                            for (Field itemField : rItem.getClass().getDeclaredFields()) {
+                                if (itemField.getType().equals(Integer.class)) {
+                                    itemField.setAccessible(true);
+                                    itemField.set(rItem, Integer.valueOf(tuneResId));
+                                    Logger.printInfo(() -> "Settings Morphe item icon updated to " + Integer.toHexString(tuneResId));
+                                    return;
+                                }
+                            }
                         }
-                        dismissCurrentOpenDialog();
-                        updateDockTabState(activity, DOCK_TAB_LOGS);
-                        app.morphe.extension.shared.diagnostics.DiagnosticsDialog.show(activity);
                     }
-                    return true;
-                case MotionEvent.ACTION_CANCEL:
-                    longPressHandler.removeCallbacks(resetMemories5s);
-                    itemLogs.setPressed(false);
-                    return true;
+                }
             }
-            return false;
-        });
-        dock.addView(itemLogs);
-
-        if (!showFlags && showToolkit) {
-            sActiveDockTab = DOCK_TAB_TOOLKIT;
+        } catch (Throwable t) {
+            Logger.printException(() -> "Could not update settings item icon via reflection", t);
         }
-        updateDockTabState(activity, sActiveDockTab);
-
-        return dock;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -1793,14 +1659,11 @@ public final class PhenotypeFlagManager {
             layout.addView(tvMsg);
 
             createM3ActionDialog(activity, "Clear All Custom Flags?", layout, "Clear all", () -> {
-                SharedPreferences.Editor ed = prefs.edit();
-                for (String k : customKeysSet) {
-                    ed.remove(k);
-                }
-                ed.remove(CUSTOM_FLAGS_KEY).apply();
+                PhenotypeSeedData.restoreOfficialFlags(activity, prefs, customKeysSet);
+                prefs.edit().remove(CUSTOM_FLAGS_KEY).apply();
                 selectedTab = TAB_CURATED;
                 reloadData();
-                Toast.makeText(activity, "Cleared all custom flags", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, "Reverted custom flags to official baseline", Toast.LENGTH_SHORT).show();
             }, true).show();
         }
 
@@ -1813,19 +1676,19 @@ public final class PhenotypeFlagManager {
             layout.setPadding(mPad, (int) (4 * density), mPad, (int) (12 * density));
 
             TextView tvMsg = new TextView(activity);
-            tvMsg.setText("Are you sure you want to delete custom override \"" + key + "\"?");
+            tvMsg.setText("Are you sure you want to delete custom override \"" + key + "\"?\n\nIt will revert to the official baseline value.");
             tvMsg.setTextSize(13);
             tvMsg.setTextColor(theme.textPrimary);
             tvMsg.setLineSpacing(0, 1.25f);
             layout.addView(tvMsg);
 
             createM3ActionDialog(activity, "Delete Custom Flag?", layout, "Delete", () -> {
-                prefs.edit().remove(key).apply();
+                PhenotypeSeedData.restoreOfficialFlags(activity, prefs, Collections.singleton(key));
                 Set<String> set = new HashSet<>(prefs.getStringSet(CUSTOM_FLAGS_KEY, Collections.emptySet()));
                 set.remove(key);
                 prefs.edit().putStringSet(CUSTOM_FLAGS_KEY, set).apply();
                 reloadData();
-                Toast.makeText(activity, "Removed custom override: " + key, Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, "Reverted to official baseline: " + key, Toast.LENGTH_SHORT).show();
             }, true).show();
         }
 
@@ -2934,73 +2797,61 @@ public final class PhenotypeFlagManager {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Options Menu
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private static void showDockComponentsDialog(Activity activity) {
+    public static void showCuratedPresetsDialog(Activity activity, Runnable onComplete) {
         float density = activity.getResources().getDisplayMetrics().density;
         Theme theme = Theme.get(activity);
+        SharedPreferences prefs = getPrefs(activity);
 
-        LinearLayout list = new LinearLayout(activity);
-        list.setOrientation(LinearLayout.VERTICAL);
-        list.setPadding((int) (16 * density), (int) (4 * density), (int) (16 * density), (int) (16 * density));
+        LinearLayout msgLayout = new LinearLayout(activity);
+        msgLayout.setOrientation(LinearLayout.VERTICAL);
+        int mPad = (int) (18 * density);
+        msgLayout.setPadding(mPad, (int) (4 * density), mPad, (int) (12 * density));
 
-        Dialog d = createM3Dialog(activity, "Dock Components", list);
+        TextView tvMsg = new TextView(activity);
+        tvMsg.setText("This will activate all " + PhotoFlagsRegistry.CURATED_FLAGS.size() + " curated Morphe feature flags across AI tools, Create Tab, Stories, and Navigation.\n\nExisting values will be kept, and missing overrides will be enabled.");
+        tvMsg.setTextSize(13);
+        tvMsg.setTextColor(theme.textPrimary);
+        tvMsg.setLineSpacing(0, 1.25f);
+        msgLayout.addView(tvMsg);
 
-        String currentMode = getEffectiveComponentsMode(activity);
-
-        String[][] options = new String[][] {
-            {"flags", "Flag manager only", "Show only Phenotype Flag Manager in the dock"},
-            {"both", "Both (Flag manager & Toolkit)", "Show both Flag manager and Morphe Toolkit in the dock"},
-            {"toolkit", "Toolkit only", "Show only Morphe Toolkit in the dock"}
-        };
-
-        for (String[] opt : options) {
-            String modeKey = opt[0];
-            String title = opt[1];
-            String subtitle = opt[2];
-            boolean isSelected = modeKey.equalsIgnoreCase(currentMode);
-
-            LinearLayout row = new LinearLayout(activity);
-            row.setOrientation(LinearLayout.VERTICAL);
-            row.setClickable(true);
-            row.setFocusable(true);
-            int padH = (int) (16 * density);
-            int padV = (int) (12 * density);
-            row.setPadding(padH, padV, padH, padV);
-            row.setBackground(createCardDrawable(isSelected, density, theme));
-            LinearLayout.LayoutParams rLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            rLp.bottomMargin = (int) (8 * density);
-            row.setLayoutParams(rLp);
-
-            TextView tvTitle = new TextView(activity);
-            tvTitle.setText(title);
-            tvTitle.setTextSize(14.5f);
-            tvTitle.setTextColor(isSelected ? theme.primary : theme.textPrimary);
-            tvTitle.setTypeface(null, Typeface.BOLD);
-            row.addView(tvTitle);
-
-            TextView tvSub = new TextView(activity);
-            tvSub.setText(subtitle);
-            tvSub.setTextSize(12f);
-            tvSub.setTextColor(theme.textSecondary);
-            LinearLayout.LayoutParams sLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            sLp.topMargin = (int) (2 * density);
-            tvSub.setLayoutParams(sLp);
-            row.addView(tvSub);
-
-            row.setOnClickListener(v -> {
-                getPrefs(activity).edit().putString("_components_mode", modeKey).putBoolean("_components_mode_user_explicit", true).apply();
-                refreshFloatingPill(activity);
-                d.dismiss();
-                Toast.makeText(activity, "Dock mode set to: " + title, Toast.LENGTH_SHORT).show();
-            });
-
-            list.addView(row);
-        }
-
-        d.show();
+        createM3ActionDialog(activity, "Load Recommended Presets", msgLayout, "Apply presets", () -> {
+            PhotoFlagsRegistry.applyCuratedDefaults(prefs);
+            prefs.edit().putBoolean("_presets_loaded", true).apply();
+            GooglePhotosAccountAvatar.syncOneGoogleFlags(activity);
+            if (onComplete != null) onComplete.run();
+            Toast.makeText(activity, "Loaded " + PhotoFlagsRegistry.CURATED_FLAGS.size() + " Morphe presets! Restart to take effect.", Toast.LENGTH_LONG).show();
+        }).show();
     }
+
+    public static void resetAllFlags(Activity activity, Runnable onComplete) {
+        SharedPreferences prefs = getPrefs(activity);
+        prefs.edit().clear().putBoolean("_presets_loaded", false).commit();
+        PhenotypeSeedData.restoreOfficialFlags(activity, prefs);
+        GooglePhotosAccountAvatar.syncOneGoogleFlags(activity);
+        try {
+            File sharedDir = new File(activity.getFilesDir(), "phenotype/shared");
+            if (sharedDir.exists()) {
+                File[] fList = sharedDir.listFiles();
+                if (fList != null) {
+                    for (File f : fList) f.delete();
+                }
+            }
+            File phenoDir = new File(activity.getFilesDir(), "phenotype");
+            if (phenoDir.exists()) {
+                File[] pList = phenoDir.listFiles();
+                if (pList != null) {
+                    for (File f : pList) {
+                        if (f.isFile()) f.delete();
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+        if (onComplete != null) onComplete.run();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Options Menu
+    // ─────────────────────────────────────────────────────────────────────────
 
     private static void showProperOptionsMenu(Activity activity, SharedPreferences prefs, FlagAdapter adapter, Runnable onRefresh) {
         float density = activity.getResources().getDisplayMetrics().density;
@@ -3010,11 +2861,13 @@ public final class PhenotypeFlagManager {
         list.setPadding((int) (16 * density), (int) (4 * density), (int) (16 * density), (int) (16 * density));
 
         class MenuItem {
+            final String stockIcon;
             final int iconType;
             final String title;
             final String subtitle;
             final Runnable action;
-            MenuItem(int iconType, String title, String subtitle, Runnable action) {
+            MenuItem(String stockIcon, int iconType, String title, String subtitle, Runnable action) {
+                this.stockIcon = stockIcon;
                 this.iconType = iconType;
                 this.title = title;
                 this.subtitle = subtitle;
@@ -3024,56 +2877,23 @@ public final class PhenotypeFlagManager {
 
         List<MenuItem> items = new ArrayList<>();
 
-        // 0. AI & On-Device ML Models
-        items.add(new MenuItem(MaterialVectorDrawable.TYPE_PRESETS, "AI & On-Device ML Models", "Inspect and verify on-device Gemini, Magic Eraser, and MDD assets", () -> {
-            PhotosModelSeeder.showModelManagerDialog(activity);
-        }));
-
-        // Dock Components
-        items.add(new MenuItem(MaterialVectorDrawable.TYPE_TOOLKIT, "Dock Components", "Choose between Flags, Toolkit, or Both in the settings dock", () -> {
-            showDockComponentsDialog(activity);
-        }));
-
         // 1. Import from File (SAF)
-        items.add(new MenuItem(MaterialVectorDrawable.TYPE_IMPORT, "Import from File", "Load flags from a .json or .txt backup via system file picker", () -> {
+        items.add(new MenuItem("quantum_gm_ic_file_download_vd_theme_24", MaterialVectorDrawable.TYPE_IMPORT, "Import from File", "Load flags from a .json or .txt backup via system file picker", () -> {
             launchSafImport(activity, prefs, onRefresh);
         }));
 
         // 2. Export to File (SAF)
-        items.add(new MenuItem(MaterialVectorDrawable.TYPE_EXPORT, "Export to File", "Save configured flags to storage via system document creator", () -> {
+        items.add(new MenuItem("quantum_gm_ic_save_alt_vd_theme_24", MaterialVectorDrawable.TYPE_EXPORT, "Export to File", "Save configured flags to storage via system document creator", () -> {
             launchSafExport(activity, prefs);
         }));
 
-        // 3. Load Recommended Presets
-        items.add(new MenuItem(MaterialVectorDrawable.TYPE_PRESETS, "Load Recommended Presets", "Apply all " + PhotoFlagsRegistry.CURATED_FLAGS.size() + " Morphe feature flags (story colors, AI tools, Create Tab, Navigation)", () -> {
-            LinearLayout msgLayout = new LinearLayout(activity);
-            msgLayout.setOrientation(LinearLayout.VERTICAL);
-            int mPad = (int) (18 * density);
-            msgLayout.setPadding(mPad, (int) (4 * density), mPad, (int) (12 * density));
-
-            TextView tvMsg = new TextView(activity);
-            tvMsg.setText("This will activate all " + PhotoFlagsRegistry.CURATED_FLAGS.size() + " curated Morphe feature flags across AI tools, Create Tab, Stories, and Navigation.\n\nExisting values will be kept, and missing overrides will be enabled.");
-            tvMsg.setTextSize(13);
-            tvMsg.setTextColor(theme.textPrimary);
-            tvMsg.setLineSpacing(0, 1.25f);
-            msgLayout.addView(tvMsg);
-
-            createM3ActionDialog(activity, "Load Recommended Presets", msgLayout, "Apply presets", () -> {
-                PhotoFlagsRegistry.applyCuratedDefaults(prefs);
-                prefs.edit().putBoolean("_presets_loaded", true).apply();
-                GooglePhotosAccountAvatar.syncOneGoogleFlags(activity);
-                onRefresh.run();
-                Toast.makeText(activity, "Loaded " + PhotoFlagsRegistry.CURATED_FLAGS.size() + " Morphe presets! Restart to take effect.", Toast.LENGTH_LONG).show();
-            }).show();
-        }));
-
-        // 4. Bulk Paste Text
-        items.add(new MenuItem(MaterialVectorDrawable.TYPE_PASTE, "Bulk Paste Text", "Paste key=value lines, JSON, or XML directly", () -> {
+        // 3. Bulk Paste Text
+        items.add(new MenuItem("photos_quantum_gm_ic_edit_vd_theme_18", MaterialVectorDrawable.TYPE_PASTE, "Bulk Paste Text", "Paste key=value lines, JSON, or XML directly", () -> {
             showBulkPasteDialog(activity, prefs, onRefresh);
         }));
 
-        // 5. Copy All to Clipboard
-        items.add(new MenuItem(MaterialVectorDrawable.TYPE_CLIPBOARD, "Copy All to Clipboard", "Copy all configured flags to clipboard as JSON", () -> {
+        // 4. Copy All to Clipboard
+        items.add(new MenuItem("quantum_gm_ic_content_copy_vd_theme_24", MaterialVectorDrawable.TYPE_CLIPBOARD, "Copy All to Clipboard", "Copy all configured flags to clipboard as JSON", () -> {
             Map<String, ?> all = prefs.getAll();
             JSONObject json = new JSONObject();
             try {
@@ -3092,8 +2912,8 @@ public final class PhenotypeFlagManager {
             }
         }));
 
-        // 6. Share Flags Backup
-        items.add(new MenuItem(MaterialVectorDrawable.TYPE_EXPORT, "Share Flags Backup", "Share active flags JSON via messaging, cloud, or notes", () -> {
+        // 5. Share Flags Backup
+        items.add(new MenuItem("quantum_gm_ic_share_vd_theme_24", MaterialVectorDrawable.TYPE_EXPORT, "Share Flags Backup", "Share active flags JSON via messaging, cloud, or notes", () -> {
             Map<String, ?> all = prefs.getAll();
             JSONObject json = new JSONObject();
             try {
@@ -3111,48 +2931,6 @@ public final class PhenotypeFlagManager {
             } catch (Exception e) {
                 Toast.makeText(activity, "Share failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
-        }));
-
-        // 7. Reset All Flags
-        items.add(new MenuItem(MaterialVectorDrawable.TYPE_DELETE, "Reset All Flags", "Remove all flags from list and restore stock photos mode", () -> {
-            LinearLayout msgLayout = new LinearLayout(activity);
-            msgLayout.setOrientation(LinearLayout.VERTICAL);
-            int mPad = (int) (18 * density);
-            msgLayout.setPadding(mPad, (int) (4 * density), mPad, (int) (12 * density));
-
-            TextView tvMsg = new TextView(activity);
-            tvMsg.setText("Are you sure you want to remove all flags from the list?\n\n• All stored overrides will be deleted.\n• Curated flags will be unloaded from the list.\n• Restores clean stock Google Photos behavior.\n• You can reload recommended presets anytime.");
-            tvMsg.setTextSize(13);
-            tvMsg.setTextColor(theme.textPrimary);
-            tvMsg.setLineSpacing(0, 1.25f);
-            msgLayout.addView(tvMsg);
-
-            createM3ActionDialog(activity, "Reset All Flags?", msgLayout, "Reset all", () -> {
-                prefs.edit().clear().putBoolean("_presets_loaded", false).commit();
-                PhenotypeSeedData.restoreOfficialFlags(activity, prefs);
-                GooglePhotosAccountAvatar.syncOneGoogleFlags(activity);
-                try {
-                    File sharedDir = new File(activity.getFilesDir(), "phenotype/shared");
-                    if (sharedDir.exists()) {
-                        File[] fList = sharedDir.listFiles();
-                        if (fList != null) {
-                            for (File f : fList) f.delete();
-                        }
-                    }
-                    File phenoDir = new File(activity.getFilesDir(), "phenotype");
-                    if (phenoDir.exists()) {
-                        File[] pList = phenoDir.listFiles();
-                        if (pList != null) {
-                            for (File f : pList) {
-                                if (f.isFile()) f.delete();
-                            }
-                        }
-                    }
-                } catch (Throwable ignored) {}
-                adapter.collapseAll();
-                onRefresh.run();
-                Toast.makeText(activity, "All flags removed from list! Restored stock mode.", Toast.LENGTH_LONG).show();
-            }, true).show();
         }));
 
         Dialog dialog = createM3Dialog(activity, "Flag Options", null);
@@ -3183,7 +2961,11 @@ public final class PhenotypeFlagManager {
 
             ImageView ivIcon = new ImageView(activity);
             int iconColor = mi.iconType == MaterialVectorDrawable.TYPE_DELETE ? (theme.isDark ? 0xFFFFB4AB : 0xFFBA1A1A) : theme.primary;
-            ivIcon.setImageDrawable(new MaterialVectorDrawable(mi.iconType, iconColor));
+            Drawable iconDrawable = getStockDrawable(activity, mi.stockIcon, iconColor);
+            if (iconDrawable == null) {
+                iconDrawable = new MaterialVectorDrawable(mi.iconType, iconColor);
+            }
+            ivIcon.setImageDrawable(iconDrawable);
             int ivSize = (int) (22 * density);
             FrameLayout.LayoutParams ivLp = new FrameLayout.LayoutParams(ivSize, ivSize, Gravity.CENTER);
             ivIcon.setLayoutParams(ivLp);
@@ -3223,7 +3005,7 @@ public final class PhenotypeFlagManager {
         scroll.addView(list);
 
         LinearLayout contentRoot = (LinearLayout) ((ViewGroup) dialog.findViewById(android.R.id.content)).getChildAt(0);
-        contentRoot.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (activity.getResources().getDisplayMetrics().heightPixels * 0.65f)));
+        contentRoot.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         dialog.show();
     }
 
@@ -3243,7 +3025,16 @@ public final class PhenotypeFlagManager {
         root.setGravity(Gravity.CENTER_VERTICAL);
         int p = (int) (20 * density);
         root.setPadding(p, p, p, p);
-        root.setBackground(createRoundedDrawable(theme.surface, 20 * density));
+        root.setBackground(createRoundedDrawable(theme.surface, 28 * density));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            root.setOutlineProvider(new ViewOutlineProvider() {
+                @Override
+                public void getOutline(View view, Outline outline) {
+                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), 28 * density);
+                }
+            });
+            root.setClipToOutline(true);
+        }
 
         ProgressBar pb = new ProgressBar(activity);
         LinearLayout.LayoutParams pbLp = new LinearLayout.LayoutParams((int) (40 * density), (int) (40 * density));
@@ -4116,7 +3907,7 @@ public final class PhenotypeFlagManager {
         return d;
     }
 
-    private static Dialog createM3Dialog(Activity activity, String title, View customView) {
+    public static Dialog createM3Dialog(Activity activity, String title, View customView) {
         float density = activity.getResources().getDisplayMetrics().density;
         Theme theme = Theme.get(activity);
         Dialog d = new Dialog(activity);
@@ -4125,6 +3916,15 @@ public final class PhenotypeFlagManager {
         LinearLayout root = new LinearLayout(activity);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackground(createRoundedDrawable(theme.surface, 28 * density));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            root.setOutlineProvider(new ViewOutlineProvider() {
+                @Override
+                public void getOutline(View view, Outline outline) {
+                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), 28 * density);
+                }
+            });
+            root.setClipToOutline(true);
+        }
 
         LinearLayout header = new LinearLayout(activity);
         header.setOrientation(LinearLayout.HORIZONTAL);
@@ -4169,12 +3969,12 @@ public final class PhenotypeFlagManager {
         return d;
     }
 
-    private static Dialog createM3ActionDialog(Activity activity, String title, View customView,
+    public static Dialog createM3ActionDialog(Activity activity, String title, View customView,
                                                String actionText, Runnable onAction) {
         return createM3ActionDialog(activity, title, customView, actionText, onAction, false);
     }
 
-    private static Dialog createM3ActionDialog(Activity activity, String title, View customView,
+    public static Dialog createM3ActionDialog(Activity activity, String title, View customView,
                                                String actionText, Runnable onAction, boolean isDestructive) {
         float density = activity.getResources().getDisplayMetrics().density;
         Theme theme = Theme.get(activity);
@@ -4227,6 +4027,25 @@ public final class PhenotypeFlagManager {
         ((LinearLayout) ((ViewGroup) d.findViewById(android.R.id.content)).getChildAt(0)).addView(actions);
 
         return d;
+    }
+
+    public static Dialog createM3MessageDialog(Activity activity, String title, CharSequence message,
+                                               String actionText, Runnable onAction, boolean isDestructive) {
+        float density = activity.getResources().getDisplayMetrics().density;
+        Theme theme = Theme.get(activity);
+        LinearLayout layout = new LinearLayout(activity);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int padH = (int) (22 * density);
+        layout.setPadding(padH, (int) (4 * density), padH, (int) (12 * density));
+
+        TextView tv = new TextView(activity);
+        tv.setText(message);
+        tv.setTextSize(13.5f);
+        tv.setTextColor(theme.textPrimary);
+        tv.setLineSpacing(0, 1.25f);
+        layout.addView(tv);
+
+        return createM3ActionDialog(activity, title, layout, actionText, onAction, isDestructive);
     }
 
     private static void restartApp(Activity activity) {

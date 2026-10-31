@@ -1,3 +1,22 @@
+## [0.16.0](https://github.com/Santodan/santodan-patches/compare/v0.15.0...v0.16.0) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **carscanner:** preserve settings across restarts [skip ci] ([5d0799c](https://github.com/Santodan/santodan-patches/commit/5d0799cac2f308ebbffa7dcaf135eaabdc8583de))
+* **monet:** support 1.1.0 and harden premium matching [skip ci] ([adb1989](https://github.com/Santodan/santodan-patches/commit/adb198947e2b9ea0a57f35df86412677a8108a47))
+* **monet:** support catalog rows on 1.1.0 and fix picker crash [skip ci] ([c773198](https://github.com/Santodan/santodan-patches/commit/c7731984d23df45cf2f3b949efd91f22f414a13c))
+* **monet:** support unlimited displayed cards on 1.1.0 [skip ci] ([9320398](https://github.com/Santodan/santodan-patches/commit/9320398e5002f06b7e9f5be4104bcfc4f5007b35))
+* **pillo:** restore older backups safely on 0.6.27 [skip ci] ([6c516fe](https://github.com/Santodan/santodan-patches/commit/6c516fe0e4a4c66324ee21bde369c25aebd8d656))
+
+### ✨ New Features
+
+* **pillo:** add premium replacement for 0.6.27 [skip ci] ([73fe35d](https://github.com/Santodan/santodan-patches/commit/73fe35db81aea212b9ff329cb30dbf184ac4924f))
+* **pillo:** add weight summary / list to the Watch Progress tab [skip ci] ([f670e20](https://github.com/Santodan/santodan-patches/commit/f670e205dddcd39998e72918265b5c19fa9f60c6))
+
+### 🚀 Updated App Support
+
+* **pillo:** support version 0.6.27 [skip ci] ([1d51fb3](https://github.com/Santodan/santodan-patches/commit/1d51fb3b9cc02542663556ecfd1844742a04550f))
+
 ## [0.15.0](https://github.com/Santodan/santodan-patches/compare/v0.14.0...v0.15.0) (2026-10-26)
 
 ### 🐛 Bug Fixes

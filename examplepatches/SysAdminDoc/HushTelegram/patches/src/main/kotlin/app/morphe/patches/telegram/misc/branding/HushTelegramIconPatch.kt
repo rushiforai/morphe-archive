@@ -32,19 +32,37 @@ internal const val DEFAULT_ICON = "org.telegram.messenger.DefaultIcon"
 private const val BUNDLED = "/hushtelegram/icon"
 
 /**
- * The adaptive icon, for Android 8 and up: the badge over a color that matches its edge, and the
- * H and plane alone for Android 13's themed icons, which older versions skip.
+ * How the adaptive icon looks. The plain styles draw the H and plane alone in [glyph] over
+ * [background]; launchers older than Android 8 show the badge whichever is picked.
  */
-internal val ADAPTIVE_ICON = """
-    <?xml version="1.0" encoding="utf-8"?>
-    <adaptive-icon xmlns:android="$ANDROID_NAMESPACE">
-        <background>
-            <color android:color="$ICON_BACKGROUND" />
-        </background>
-        <foreground android:drawable="@mipmap/${ICON}_foreground" />
-        <monochrome android:drawable="@mipmap/${ICON}_monochrome" />
-    </adaptive-icon>
-""".trimIndent() + "\n"
+internal enum class IconStyle(val key: String, val label: String, val background: String, val glyph: String?) {
+    HUSHTELEGRAM("hushtelegram", "HushTelegram colors", ICON_BACKGROUND, null),
+    WHITE_ON_BLACK("white-on-black", "White on black", "#FF000000", "#FFFFFFFF"),
+    BLACK_ON_WHITE("black-on-white", "Black on white", "#FFFFFFFF", "#FF000000"),
+}
+
+/**
+ * The adaptive icon, for Android 8 and up: the badge over a color that matches its edge, or the
+ * H and plane tinted for a plain style, and the H and plane alone for Android 13's themed icons,
+ * which older versions skip.
+ */
+internal fun adaptiveIcon(style: IconStyle): String {
+    // A bitmap's tint keeps only the picture's shape (SRC_IN), so the themed picture becomes the glyph.
+    val foreground = when (val glyph = style.glyph) {
+        null -> """<foreground android:drawable="@mipmap/${ICON}_foreground" />"""
+        else -> """<foreground><bitmap android:src="@mipmap/${ICON}_monochrome" android:tint="$glyph" /></foreground>"""
+    }
+    return """
+        <?xml version="1.0" encoding="utf-8"?>
+        <adaptive-icon xmlns:android="$ANDROID_NAMESPACE">
+            <background>
+                <color android:color="${style.background}" />
+            </background>
+            $foreground
+            <monochrome android:drawable="@mipmap/${ICON}_monochrome" />
+        </adaptive-icon>
+    """.trimIndent() + "\n"
+}
 
 @Suppress("unused")
 val hushTelegramIconPatch = resourcePatch(
@@ -62,7 +80,23 @@ val hushTelegramIconPatch = resourcePatch(
         description = "The name under the icon, up to $MAX_APP_NAME characters. Leave it empty to keep Telegram.",
         required = false,
     )
-    execute { applyHushTelegramIcon(appName) }
+    val iconStyle by stringOption(
+        key = "iconStyle", default = IconStyle.HUSHTELEGRAM.key, title = "Icon style",
+        values = IconStyle.entries.associate { it.label to it.key },
+        description = "HushTelegram colors is the blue badge. The plain styles draw just the H and plane, white on " +
+            "black or black on white, on Android 8 and up. Every style keeps the themed icon on Android 13.",
+        required = true,
+    )
+    execute { applyHushTelegramIcon(appName, iconStyle) }
+}
+
+/** The style the option names by key or label, the badge when it's empty. */
+internal fun checkedIconStyle(raw: String?): IconStyle {
+    val key = raw?.trim().orEmpty()
+    if (key.isEmpty()) return IconStyle.HUSHTELEGRAM
+    return IconStyle.entries.firstOrNull { it.key.equals(key, ignoreCase = true) || it.label.equals(key, ignoreCase = true) }
+        ?: throw PatchException("$PATCH: iconStyle \"$key\" isn't a style. Pick one of " +
+            IconStyle.entries.joinToString { it.key } + ". Nothing was changed.")
 }
 
 /** The name as it goes in the manifest, or null to keep Telegram's. */
@@ -105,14 +139,15 @@ internal fun bundledIconPictures(): Map<String, ByteArray> = ICON_DENSITIES.flat
 
 private object HushTelegramIconFiles
 
-internal fun ResourcePatchContext.applyHushTelegramIcon(rawName: String?) {
+internal fun ResourcePatchContext.applyHushTelegramIcon(rawName: String?, rawStyle: String? = null) {
+    val style = checkedIconStyle(rawStyle)
     val name = checkedAppName(rawName)
     val pictures = bundledIconPictures()
     // Checked on a read-only copy first, so a refusal leaves the manifest's bytes alone.
     resolveLaunchers(readResourceXml(this["AndroidManifest.xml"], PATCH))
     // Patcher 2.0 decodes only the files a patch asks for, and an undecoded file doesn't exist yet,
     // so each path is asked for before the check that Telegram has nothing there.
-    addIconFiles(get("res", false), pictures) { decode("res/$it") }
+    addIconFiles(get("res", false), pictures, style) { decode("res/$it") }
     document("AndroidManifest.xml").use { showIcon(it, name) }
 }
 
@@ -120,7 +155,12 @@ internal fun ResourcePatchContext.applyHushTelegramIcon(rawName: String?) {
  * Writes the pictures and the adaptive icon under [res], refusing before the first write when it
  * can't. [decode] gets each path first, so a file Telegram already ships there is found.
  */
-internal fun addIconFiles(res: File, pictures: Map<String, ByteArray>, decode: (String) -> Unit = {}) {
+internal fun addIconFiles(
+    res: File,
+    pictures: Map<String, ByteArray>,
+    style: IconStyle = IconStyle.HUSHTELEGRAM,
+    decode: (String) -> Unit = {},
+) {
     if (!res.isDirectory) throw PatchException("$PATCH: Telegram's resources weren't decoded. Nothing was changed.")
     val adaptivePath = "mipmap-anydpi-v26/$ICON.xml"
     val paths = pictures.keys + adaptivePath
@@ -130,7 +170,7 @@ internal fun addIconFiles(res: File, pictures: Map<String, ByteArray>, decode: (
         throw PatchException("$PATCH: this Telegram already has ${it.relativeTo(res).invariantSeparatorsPath}. Nothing was changed.")
     }
     for ((path, bytes) in pictures) res.resolve(path).apply { parentFile.mkdirs() }.writeBytes(bytes)
-    adaptive.apply { parentFile.mkdirs() }.writeText(ADAPTIVE_ICON)
+    adaptive.apply { parentFile.mkdirs() }.writeText(adaptiveIcon(style))
 }
 
 /**

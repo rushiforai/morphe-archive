@@ -1,0 +1,808 @@
+diff --git a/lib/components/AlbumScreen/download_button.dart b/lib/components/AlbumScreen/download_button.dart
+index a08e9776f348c1a764d26cb5e2fe792af29b8e48..8d1beec618e8dd3abca7380bbc6868cd958dce5e 100644
+--- a/lib/components/AlbumScreen/download_button.dart
++++ b/lib/components/AlbumScreen/download_button.dart
+@@ -22,6 +22,7 @@ class DownloadButton extends ConsumerWidget {
+     required this.item,
+     this.children,
+     this.childrenCount,
++    this.getDownloadSizeTrackCount,
+     this.isLibrary = false,
+     this.downloadDisabled = false,
+     this.customTooltip,
+@@ -33,6 +34,9 @@ class DownloadButton extends ConsumerWidget {
+   final DownloadStub item;
+   final List<BaseItemDto>? children;
+   final int? childrenCount;
++
++  /// Resolve the size-warning track count separately from direct download links.
++  final Future<int> Function()? getDownloadSizeTrackCount;
+   final bool isLibrary;
+   final bool downloadDisabled;
+   final String? customTooltip;
+@@ -92,12 +96,21 @@ class DownloadButton extends ConsumerWidget {
+               ),
+             );
+           } else {
+-            int? trackCount = switch (item.baseItemType) {
+-              BaseItemDtoType.album || BaseItemDtoType.playlist => children?.length,
+-              BaseItemDtoType.artist ||
+-              BaseItemDtoType.genre => children?.fold<int>(0, (count, item) => count + (item.childCount ?? 0)),
+-              _ => null,
+-            };
++            int? trackCount;
++            try {
++              trackCount =
++                  await getDownloadSizeTrackCount?.call() ??
++                  switch (item.baseItemType) {
++                    BaseItemDtoType.album || BaseItemDtoType.playlist => children?.length,
++                    BaseItemDtoType.artist ||
++                    BaseItemDtoType.genre => children?.fold<int>(0, (count, item) => count + (item.childCount ?? 0)),
++                    _ => null,
++                  };
++            } catch (e) {
++              GlobalSnackbar.error(e);
++              return;
++            }
++            if (!context.mounted) return;
+             await DownloadDialog.show(context, item, viewId, trackCount: trackCount);
+           }
+         },
+diff --git a/lib/components/ArtistScreen/artist_item_info.dart b/lib/components/ArtistScreen/artist_item_info.dart
+index b612032ef52885fc8eb02735ab2a1d00b7b16b08..465f950150968c2518aa986c97679dfc35a013bc 100644
+--- a/lib/components/ArtistScreen/artist_item_info.dart
++++ b/lib/components/ArtistScreen/artist_item_info.dart
+@@ -15,6 +15,7 @@ class ArtistItemInfo extends ConsumerWidget {
+     super.key,
+     required this.item,
+     required this.itemTracks,
++    this.trackCountHasError = false,
+     required this.itemAlbums,
+     required this.sortConfig,
+     this.sortConfigController,
+@@ -22,6 +23,7 @@ class ArtistItemInfo extends ConsumerWidget {
+ 
+   final BaseItemDto item;
+   final int? itemTracks;
++  final bool trackCountHasError;
+   final int itemAlbums;
+   final SortAndFilterConfiguration sortConfig;
+   final SortAndFilterController? sortConfigController;
+@@ -33,15 +35,18 @@ class ArtistItemInfo extends ConsumerWidget {
+       crossAxisAlignment: CrossAxisAlignment.start,
+       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+       children: [
+-        if (itemTracks != null)
+-          IconAndText(
+-            iconData: Icons.music_note,
+-            textSpan: TextSpan(
+-              text: ref.watch(finampSettingsProvider.isOffline)
+-                  ? AppLocalizations.of(context)!.offlineTrackCountArtist(itemTracks!)
+-                  : AppLocalizations.of(context)!.trackCount(itemTracks!),
+-            ),
++        IconAndText(
++          iconData: Icons.music_note,
++          textSpan: TextSpan(
++            text: itemTracks == null
++                ? (trackCountHasError
++                      ? AppLocalizations.of(context)!.errorLoadingItems
++                      : AppLocalizations.of(context)!.loading)
++                : ref.watch(finampSettingsProvider.isOffline)
++                ? AppLocalizations.of(context)!.offlineTrackCountArtist(itemTracks!)
++                : AppLocalizations.of(context)!.trackCount(itemTracks!),
+           ),
++        ),
+         IconAndText(
+           iconData: TablerIcons.disc,
+           textSpan: TextSpan(text: AppLocalizations.of(context)!.albumCount(itemAlbums)),
+diff --git a/lib/components/ArtistScreen/artist_screen_content.dart b/lib/components/ArtistScreen/artist_screen_content.dart
+index ea06cd1712cb76f7624a73fc5fdb3e270cdb5103..30d2aab6ada62f0d5844a3e47409968c7b300858 100644
+--- a/lib/components/ArtistScreen/artist_screen_content.dart
++++ b/lib/components/ArtistScreen/artist_screen_content.dart
+@@ -71,7 +71,7 @@ class _ArtistScreenContentState extends ConsumerState<ArtistScreenContent> {
+ 
+   Future<void> _refresh() async {
+     ref.invalidate(getArtistTracksSectionProvider);
+-    ref.invalidate(getArtistTrackCountsProvider);
++    ref.invalidate(getArtistTrackCountProvider);
+     ref.invalidate(getArtistAlbumsProvider);
+     ref.invalidate(getPerformingArtistAlbumsProvider);
+     ref.invalidate(getPerformingArtistTracksProvider);
+@@ -194,15 +194,13 @@ class _ArtistScreenContentState extends ConsumerState<ArtistScreenContent> {
+           ),
+         )
+         .valueOrNull;
+-    final trackCounts = ref
+-        .watch(
+-          getArtistTrackCountsProvider(
+-            artist: widget.parent,
+-            libraryFilter: widget.library?.id,
+-            genreFilter: sortConfig.genreFilter?.id,
+-          ),
+-        )
+-        .valueOrNull;
++    final trackCountProvider = getArtistTrackCountProvider(
++      artist: widget.parent,
++      libraryFilter: widget.library?.id,
++      genreFilter: sortConfig.genreFilter?.id,
++    );
++    final trackCountAsync = ref.watch(trackCountProvider);
++    final trackCount = trackCountAsync.valueOrNull;
+ 
+     final isLoading = topTracksAsync == null || albumArtistAlbumsAsync == null || performingArtistAlbumsAsync == null;
+ 
+@@ -245,9 +243,11 @@ class _ArtistScreenContentState extends ConsumerState<ArtistScreenContent> {
+         ? _applySortAndFilterLocally(appearsOnAlbumsList, appearsOnSortConfig)
+         : <BaseItemDto>[];
+ 
+-    // Artist downloads have albums plus performing tracks as direct children.
+-    final downloadChildCount = albumArtistAlbumsAsync != null && trackCounts != null
+-        ? albumArtistAlbumsAsync.length + trackCounts.performing
++    // Match _getFinampCollectionChildren: album-artist albums plus ALL tracks
++    // returned by ArtistIds (both credit types). An album and its tracks are
++    // separate direct links; getStatus compares those links, not unique files.
++    final downloadChildCount = albumArtistAlbumsAsync != null && trackCount != null
++        ? albumArtistAlbumsAsync.length + trackCount
+         : null;
+ 
+     return RefreshIndicator(
+@@ -272,7 +272,8 @@ class _ArtistScreenContentState extends ConsumerState<ArtistScreenContent> {
+             pinned: true,
+             flexibleSpace: ArtistScreenContentFlexibleSpaceBar(
+               parentItem: widget.parent,
+-              trackCount: trackCounts?.total,
++              trackCount: trackCount,
++              trackCountHasError: trackCountAsync.hasError,
+               albumCount: albumArtistAlbums.length,
+               controller: controller,
+             ),
+@@ -287,8 +288,10 @@ class _ArtistScreenContentState extends ConsumerState<ArtistScreenContent> {
+                       item: widget.parent,
+                     ),
+                   ),
+-                  children: trackCounts == null ? null : albumArtistAlbumsAsync,
+                   childrenCount: downloadChildCount,
++                  // Includes guest appearances without enumerating track DTOs or
++                  // counting tracks twice through their album and direct link.
++                  getDownloadSizeTrackCount: () => ref.read(trackCountProvider.future),
+                   downloadDisabled: disableDownloads,
+                   customTooltip: disableDownloads
+                       ? AppLocalizations.of(context)!.downloadButtonDisabledGenreFilterTooltip
+diff --git a/lib/components/ArtistScreen/artist_screen_content_flexible_space_bar.dart b/lib/components/ArtistScreen/artist_screen_content_flexible_space_bar.dart
+index 3e104dae6c4ceefabc6ddbc97f62fc14a6abfe9b..4ffb737b1aed32926f0656e5ce015b31d220c5b7 100644
+--- a/lib/components/ArtistScreen/artist_screen_content_flexible_space_bar.dart
++++ b/lib/components/ArtistScreen/artist_screen_content_flexible_space_bar.dart
+@@ -27,12 +27,14 @@ class ArtistScreenContentFlexibleSpaceBar extends ConsumerWidget {
+     super.key,
+     required this.parentItem,
+     required this.trackCount,
++    this.trackCountHasError = false,
+     required this.albumCount,
+     required this.controller,
+   });
+ 
+   final BaseItemDto parentItem;
+   final int? trackCount;
++  final bool trackCountHasError;
+   final int albumCount;
+   final SortAndFilterController controller;
+ 
+@@ -59,6 +61,7 @@ class ArtistScreenContentFlexibleSpaceBar extends ConsumerWidget {
+                       child: ArtistItemInfo(
+                         item: parentItem,
+                         itemTracks: trackCount,
++                        trackCountHasError: trackCountHasError,
+                         itemAlbums: albumCount,
+                         sortConfigController: controller,
+                         sortConfig: sortConfig,
+diff --git a/lib/services/artist_content_provider.dart b/lib/services/artist_content_provider.dart
+index 49826c46f0c64c35cb36f1df4f32e45177ebafec..7d09b2410606af0a8741b07671659e18c7004537 100644
+--- a/lib/services/artist_content_provider.dart
++++ b/lib/services/artist_content_provider.dart
+@@ -135,10 +135,10 @@ Future<(List<BaseItemDto>, CuratedItemSelectionType, Set<CuratedItemSelectionTyp
+   return (filteredResult, currentSelectionType, disabledFilters);
+ }
+ 
+-/// Counts for the header and the artist download's direct track children.
++/// Distinct tracks with an album-artist OR track-artist credit.
+ /// Rendering an online artist page must not fetch every track just to count it.
+ @riverpod
+-Future<({int total, int performing})> getArtistTrackCounts(
++Future<int> getArtistTrackCount(
+   Ref ref, {
+   required BaseItemDto artist,
+   LibraryId? libraryFilter,
+@@ -148,10 +148,7 @@ Future<({int total, int performing})> getArtistTrackCounts(
+     final tracks = await ref.watch(
+       getArtistTracksProvider(artist: artist, libraryFilter: libraryFilter, genreFilter: genreFilter).future,
+     );
+-    final performing = await ref.watch(
+-      getPerformingArtistTracksProvider(artist: artist, libraryFilter: libraryFilter, genreFilter: genreFilter).future,
+-    );
+-    return (total: tracks.length, performing: performing.length);
++    return tracks.length;
+   }
+ 
+   final result = await GetIt.instance<JellyfinApiHelper>().getItemsWithTotalRecordCount(
+@@ -169,7 +166,7 @@ Future<({int total, int performing})> getArtistTrackCounts(
+   }
+   // Jellyfin's ArtistIds filter includes both track and album artist credits.
+   // It already returns their union, so overlapping credits are counted once.
+-  return (total: count, performing: count);
++  return count;
+ }
+ 
+ // Get Albums where the artist is an album artist
+@@ -262,9 +259,9 @@ Future<List<BaseItemDto>> getPerformingArtistAlbums(
+   }
+ }
+ 
+-// Fetch every performing artist track
+-// (note that this intentionally also includes tracks
+-// where the artist is also an album artist)
++// Online ArtistIds returns both track-artist and album-artist credits, even
++// album-only credits. Keep that existing playback/download behavior here;
++// this provider's historical name does not mean a pure performing-artist set.
+ @riverpod
+ Future<List<BaseItemDto>> getPerformingArtistTracks(
+   Ref ref, {
+diff --git a/lib/services/artist_content_provider.g.dart b/lib/services/artist_content_provider.g.dart
+index e10bbd86e459ae94174fca8848f9d192626af2e0..383a5c888f0291f9a93d18d704af71d184bf14c3 100644
+--- a/lib/services/artist_content_provider.g.dart
++++ b/lib/services/artist_content_provider.g.dart
+@@ -246,38 +246,37 @@ class _GetArtistTracksSectionProviderElement
+       (origin as GetArtistTracksSectionProvider).genreFilter;
+ }
+ 
+-String _$getArtistTrackCountsHash() =>
+-    r'14f3fb7266ae4097f3f2152bfac1297c3f2bbb9b';
++String _$getArtistTrackCountHash() =>
++    r'f9760ad4a29654a567fcc011a3e58c756a7ac552';
+ 
+-/// Counts for the header and the artist download's direct track children.
++/// Distinct tracks with an album-artist OR track-artist credit.
+ /// Rendering an online artist page must not fetch every track just to count it.
+ ///
+-/// Copied from [getArtistTrackCounts].
+-@ProviderFor(getArtistTrackCounts)
+-const getArtistTrackCountsProvider = GetArtistTrackCountsFamily();
++/// Copied from [getArtistTrackCount].
++@ProviderFor(getArtistTrackCount)
++const getArtistTrackCountProvider = GetArtistTrackCountFamily();
+ 
+-/// Counts for the header and the artist download's direct track children.
++/// Distinct tracks with an album-artist OR track-artist credit.
+ /// Rendering an online artist page must not fetch every track just to count it.
+ ///
+-/// Copied from [getArtistTrackCounts].
+-class GetArtistTrackCountsFamily
+-    extends Family<AsyncValue<({int total, int performing})>> {
+-  /// Counts for the header and the artist download's direct track children.
++/// Copied from [getArtistTrackCount].
++class GetArtistTrackCountFamily extends Family<AsyncValue<int>> {
++  /// Distinct tracks with an album-artist OR track-artist credit.
+   /// Rendering an online artist page must not fetch every track just to count it.
+   ///
+-  /// Copied from [getArtistTrackCounts].
+-  const GetArtistTrackCountsFamily();
++  /// Copied from [getArtistTrackCount].
++  const GetArtistTrackCountFamily();
+ 
+-  /// Counts for the header and the artist download's direct track children.
++  /// Distinct tracks with an album-artist OR track-artist credit.
+   /// Rendering an online artist page must not fetch every track just to count it.
+   ///
+-  /// Copied from [getArtistTrackCounts].
+-  GetArtistTrackCountsProvider call({
++  /// Copied from [getArtistTrackCount].
++  GetArtistTrackCountProvider call({
+     required BaseItemDto artist,
+     LibraryId? libraryFilter,
+     BaseItemId? genreFilter,
+   }) {
+-    return GetArtistTrackCountsProvider(
++    return GetArtistTrackCountProvider(
+       artist: artist,
+       libraryFilter: libraryFilter,
+       genreFilter: genreFilter,
+@@ -285,8 +284,8 @@ class GetArtistTrackCountsFamily
+   }
+ 
+   @override
+-  GetArtistTrackCountsProvider getProviderOverride(
+-    covariant GetArtistTrackCountsProvider provider,
++  GetArtistTrackCountProvider getProviderOverride(
++    covariant GetArtistTrackCountProvider provider,
+   ) {
+     return call(
+       artist: provider.artist,
+@@ -307,44 +306,43 @@ class GetArtistTrackCountsFamily
+       _allTransitiveDependencies;
+ 
+   @override
+-  String? get name => r'getArtistTrackCountsProvider';
++  String? get name => r'getArtistTrackCountProvider';
+ }
+ 
+-/// Counts for the header and the artist download's direct track children.
++/// Distinct tracks with an album-artist OR track-artist credit.
+ /// Rendering an online artist page must not fetch every track just to count it.
+ ///
+-/// Copied from [getArtistTrackCounts].
+-class GetArtistTrackCountsProvider
+-    extends AutoDisposeFutureProvider<({int total, int performing})> {
+-  /// Counts for the header and the artist download's direct track children.
++/// Copied from [getArtistTrackCount].
++class GetArtistTrackCountProvider extends AutoDisposeFutureProvider<int> {
++  /// Distinct tracks with an album-artist OR track-artist credit.
+   /// Rendering an online artist page must not fetch every track just to count it.
+   ///
+-  /// Copied from [getArtistTrackCounts].
+-  GetArtistTrackCountsProvider({
++  /// Copied from [getArtistTrackCount].
++  GetArtistTrackCountProvider({
+     required BaseItemDto artist,
+     LibraryId? libraryFilter,
+     BaseItemId? genreFilter,
+   }) : this._internal(
+-         (ref) => getArtistTrackCounts(
+-           ref as GetArtistTrackCountsRef,
++         (ref) => getArtistTrackCount(
++           ref as GetArtistTrackCountRef,
+            artist: artist,
+            libraryFilter: libraryFilter,
+            genreFilter: genreFilter,
+          ),
+-         from: getArtistTrackCountsProvider,
+-         name: r'getArtistTrackCountsProvider',
++         from: getArtistTrackCountProvider,
++         name: r'getArtistTrackCountProvider',
+          debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+              ? null
+-             : _$getArtistTrackCountsHash,
+-         dependencies: GetArtistTrackCountsFamily._dependencies,
++             : _$getArtistTrackCountHash,
++         dependencies: GetArtistTrackCountFamily._dependencies,
+          allTransitiveDependencies:
+-             GetArtistTrackCountsFamily._allTransitiveDependencies,
++             GetArtistTrackCountFamily._allTransitiveDependencies,
+          artist: artist,
+          libraryFilter: libraryFilter,
+          genreFilter: genreFilter,
+        );
+ 
+-  GetArtistTrackCountsProvider._internal(
++  GetArtistTrackCountProvider._internal(
+     super._createNotifier, {
+     required super.name,
+     required super.dependencies,
+@@ -362,15 +360,12 @@ class GetArtistTrackCountsProvider
+ 
+   @override
+   Override overrideWith(
+-    FutureOr<({int total, int performing})> Function(
+-      GetArtistTrackCountsRef provider,
+-    )
+-    create,
++    FutureOr<int> Function(GetArtistTrackCountRef provider) create,
+   ) {
+     return ProviderOverride(
+       origin: this,
+-      override: GetArtistTrackCountsProvider._internal(
+-        (ref) => create(ref as GetArtistTrackCountsRef),
++      override: GetArtistTrackCountProvider._internal(
++        (ref) => create(ref as GetArtistTrackCountRef),
+         from: from,
+         name: null,
+         dependencies: null,
+@@ -384,14 +379,13 @@ class GetArtistTrackCountsProvider
+   }
+ 
+   @override
+-  AutoDisposeFutureProviderElement<({int total, int performing})>
+-  createElement() {
+-    return _GetArtistTrackCountsProviderElement(this);
++  AutoDisposeFutureProviderElement<int> createElement() {
++    return _GetArtistTrackCountProviderElement(this);
+   }
+ 
+   @override
+   bool operator ==(Object other) {
+-    return other is GetArtistTrackCountsProvider &&
++    return other is GetArtistTrackCountProvider &&
+         other.artist == artist &&
+         other.libraryFilter == libraryFilter &&
+         other.genreFilter == genreFilter;
+@@ -410,8 +404,7 @@ class GetArtistTrackCountsProvider
+ 
+ @Deprecated('Will be removed in 3.0. Use Ref instead')
+ // ignore: unused_element
+-mixin GetArtistTrackCountsRef
+-    on AutoDisposeFutureProviderRef<({int total, int performing})> {
++mixin GetArtistTrackCountRef on AutoDisposeFutureProviderRef<int> {
+   /// The parameter `artist` of this provider.
+   BaseItemDto get artist;
+ 
+@@ -422,19 +415,19 @@ mixin GetArtistTrackCountsRef
+   BaseItemId? get genreFilter;
+ }
+ 
+-class _GetArtistTrackCountsProviderElement
+-    extends AutoDisposeFutureProviderElement<({int total, int performing})>
+-    with GetArtistTrackCountsRef {
+-  _GetArtistTrackCountsProviderElement(super.provider);
++class _GetArtistTrackCountProviderElement
++    extends AutoDisposeFutureProviderElement<int>
++    with GetArtistTrackCountRef {
++  _GetArtistTrackCountProviderElement(super.provider);
+ 
+   @override
+-  BaseItemDto get artist => (origin as GetArtistTrackCountsProvider).artist;
++  BaseItemDto get artist => (origin as GetArtistTrackCountProvider).artist;
+   @override
+   LibraryId? get libraryFilter =>
+-      (origin as GetArtistTrackCountsProvider).libraryFilter;
++      (origin as GetArtistTrackCountProvider).libraryFilter;
+   @override
+   BaseItemId? get genreFilter =>
+-      (origin as GetArtistTrackCountsProvider).genreFilter;
++      (origin as GetArtistTrackCountProvider).genreFilter;
+ }
+ 
+ String _$getArtistAlbumsHash() => r'9604fbf0b816367ec52ebadceaf2d1ed242dd1b7';
+diff --git a/test/artist_download_count_test.dart b/test/artist_download_count_test.dart
+new file mode 100644
+index 0000000000000000000000000000000000000000..73f4226ff7c1aa320281aa86a7cbf2b300cf7bfd
+--- /dev/null
++++ b/test/artist_download_count_test.dart
+@@ -0,0 +1,271 @@
++import 'dart:async';
++import 'dart:io';
++import 'dart:typed_data';
++
++import 'package:finamp/components/AlbumScreen/download_button.dart';
++import 'package:finamp/components/AlbumScreen/download_dialog.dart';
++import 'package:finamp/components/ArtistScreen/artist_screen_content.dart';
++import 'package:finamp/components/global_snackbar.dart';
++import 'package:finamp/hive_registrar.g.dart';
++import 'package:finamp/l10n/app_localizations.dart';
++import 'package:finamp/models/finamp_models.dart';
++import 'package:finamp/models/jellyfin_models.dart';
++import 'package:finamp/models/locale_adapter.dart';
++import 'package:finamp/models/theme_mode_adapter.dart';
++import 'package:finamp/services/downloads_service.dart';
++import 'package:finamp/services/finamp_settings_helper.dart';
++import 'package:finamp/services/finamp_user_helper.dart';
++import 'package:finamp/services/jellyfin_api_helper.dart';
++import 'package:finamp/services/queue_service.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_riverpod/flutter_riverpod.dart';
++import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
++import 'package:flutter_test/flutter_test.dart';
++import 'package:get_it/get_it.dart';
++import 'package:hive_ce_flutter/adapters.dart';
++
++import 'artist_screen_loading_test.dart' show settings;
++
++final artist = BaseItemDto(
++  id: const BaseItemId('artist'),
++  name: 'Test artist',
++  type: 'MusicArtist',
++  userData: UserItemDataDto(playbackPositionTicks: 0, playCount: 0, isFavorite: false, played: false),
++);
++
++final library = BaseItemDto(id: const BaseItemId('library'), type: 'CollectionFolder', name: 'Music');
++final ownAlbum = BaseItemDto(id: const BaseItemId('own-album'), name: 'Own album', type: 'MusicAlbum', childCount: 3);
++
++class CountApi extends Fake implements JellyfinApiHelper {
++  late Completer<QueryResult_BaseItemDto> count;
++  final calls = <Invocation>[];
++  List<BaseItemDto> albums = [ownAlbum];
++
++  @override
++  dynamic noSuchMethod(Invocation invocation) {
++    calls.add(invocation);
++    if (invocation.memberName == #getItemsWithTotalRecordCount) return count.future;
++    if (invocation.memberName == #getItems && invocation.namedArguments[#includeItemTypes] == 'MusicAlbum') {
++      return Future<List<BaseItemDto>?>.value(albums);
++    }
++    return super.noSuchMethod(invocation);
++  }
++}
++
++class DownloadStatusFixture extends Fake implements DownloadsService {
++  final childCounts = <int?>[];
++  DownloadItemStatus status = DownloadItemStatus.notNeeded;
++
++  @override
++  Stream<void> get offlineDeletesStream => const Stream.empty();
++
++  @override
++  late final statusProvider = Provider.family.autoDispose<DownloadItemStatus, (DownloadStub, int?)>((ref, args) {
++    childCounts.add(args.$2);
++    return status;
++  });
++
++  @override
++  final stateProvider = StreamProvider.family.autoDispose<DownloadItemState?, DownloadStub>(
++    (ref, stub) => Stream.value(null),
++  );
++}
++
++class UserFixture extends Fake implements FinampUserHelper {
++  @override
++  final currentUser = FinampUser(
++    id: 'fixture',
++    publicAddress: 'http://fixture.invalid',
++    localAddress: 'http://fixture.invalid',
++    preferLocalNetwork: false,
++    isLocal: false,
++    accessToken: 'fixture',
++    serverId: 'fixture',
++    currentViewId: library.id,
++    views: {library.id: library},
++  );
++}
++
++class QueueFixture extends Fake implements QueueService {}
++
++void main() {
++  late Directory directory;
++  late CountApi api;
++  late DownloadStatusFixture downloads;
++  late ProviderContainer scope;
++
++  setUp(() async {
++    directory = await Directory.systemTemp.createTemp('finamp-artist-count-');
++    Hive.init(directory.path);
++    if (!Hive.isAdapterRegistered(28)) {
++      Hive.registerAdapters();
++      Hive.registerAdapter(ThemeModeAdapter());
++      Hive.registerAdapter(ColorAdapter());
++      Hive.registerAdapter(LocaleAdapter());
++    }
++    final box = await Hive.openBox<FinampSettings>('FinampSettings', bytes: Uint8List(0));
++    final config = settings(showTracks: false)
++      ..artistItemSectionsOrder = []
++      ..downloadSizeWarningCutoff = 4;
++    config.downloadLocationsMap['fixture'] = DownloadLocation(
++      name: 'Fixture storage',
++      relativePath: null,
++      id: 'fixture',
++      baseDirectory: DownloadLocationType.internalSupport,
++    );
++    config.defaultDownloadLocation = 'fixture';
++    await box.put('FinampSettings', config);
++    api = CountApi();
++    downloads = DownloadStatusFixture();
++    GetIt.instance.registerSingleton<JellyfinApiHelper>(api);
++    GetIt.instance.registerSingleton<DownloadsService>(downloads);
++    GetIt.instance.registerSingleton<FinampUserHelper>(UserFixture());
++    GetIt.instance.registerSingleton<QueueService>(QueueFixture());
++  });
++
++  tearDown(() async {
++    scope.dispose();
++    await GetIt.instance.reset();
++    await Hive.close();
++    await directory.delete(recursive: true);
++  });
++
++  Future<void> mount(WidgetTester tester) async {
++    api.count = Completer<QueryResult_BaseItemDto>();
++    scope = ProviderContainer(overrides: [QueueService.queueProvider.overrideWithValue(null)]);
++    await scope.read(finampSettingsProvider.future);
++    GetIt.instance.registerSingleton<ProviderContainer>(scope);
++    await tester.pumpWidget(
++      UncontrolledProviderScope(
++        container: scope,
++        child: MaterialApp(
++          // ignore: deprecated_member_use
++          scaffoldMessengerKey: GlobalSnackbar.rawMaterialAppScaffoldKey,
++          // ignore: deprecated_member_use
++          navigatorKey: GlobalSnackbar.rawMaterialAppNavigatorKey,
++          locale: const Locale('en'),
++          localizationsDelegates: AppLocalizations.localizationsDelegates,
++          supportedLocales: AppLocalizations.supportedLocales,
++          home: Scaffold(
++            body: ArtistScreenContent(parent: artist, library: library),
++          ),
++        ),
++      ),
++    );
++    await tester.pumpAndSettle();
++  }
++
++  testWidgets('pending count keeps the metadata row and page, then updates without moving the album row', (
++    tester,
++  ) async {
++    await mount(tester);
++    final loading = AppLocalizations.of(tester.element(find.byType(ArtistScreenContent)))!.loading;
++    expect(find.text(loading, findRichText: true), findsOneWidget);
++    expect(find.byType(DownloadButton), findsOneWidget);
++    expect(downloads.childCounts.last, isNull);
++    expect(tester.widget<DownloadButton>(find.byType(DownloadButton)).downloadDisabled, isFalse);
++    final albumRow = find.text('1 Album', findRichText: true);
++    final position = tester.getTopLeft(albumRow);
++    api.count.complete(QueryResult_BaseItemDto(items: [], totalRecordCount: 4, startIndex: 0));
++    await tester.pump();
++    await tester.pumpAndSettle();
++    expect(find.text('4 Tracks', findRichText: true), findsOneWidget);
++    expect(tester.getTopLeft(albumRow), position);
++    // Three own-album tracks and one guest track: the direct links include
++    // the album AND all four tracks. The warning counts four unique tracks.
++    expect(downloads.childCounts.last, 5);
++    final button = tester.widget<DownloadButton>(find.byType(DownloadButton));
++    expect(await button.getDownloadSizeTrackCount!(), 4);
++    expect(button.downloadDisabled, isFalse);
++    await tester.tap(find.byIcon(TablerIcons.download));
++    await tester.pumpAndSettle();
++    expect(tester.widget<DownloadDialog>(find.byType(DownloadDialog)).trackCount, 4);
++    expect(api.calls.where((call) => call.memberName == #getItems), hasLength(2));
++    expect(tester.takeException(), isNull);
++  });
++
++  testWidgets('failed count keeps the metadata row and does not invent a child count', (tester) async {
++    await mount(tester);
++    final position = tester.getTopLeft(find.text('1 Album', findRichText: true));
++    api.count.completeError(const FormatException('Missing count'));
++    await tester.pump();
++    await tester.pumpAndSettle();
++    expect(find.text('Error loading items.', findRichText: true), findsOneWidget);
++    expect(find.byIcon(Icons.music_note), findsOneWidget);
++    expect(tester.getTopLeft(find.text('1 Album', findRichText: true)), position);
++    expect(downloads.childCounts.last, isNull);
++    expect(tester.widget<DownloadButton>(find.byType(DownloadButton)).downloadDisabled, isFalse);
++    expect(find.text('0 Tracks', findRichText: true), findsNothing);
++    await tester.tap(find.byIcon(TablerIcons.download));
++    await tester.pumpAndSettle();
++    expect(find.byType(DownloadDialog), findsNothing);
++    expect(api.calls.where((call) => call.memberName == #getItems), hasLength(2));
++    api.count = Completer<QueryResult_BaseItemDto>();
++    await tester.widget<RefreshIndicator>(find.byType(RefreshIndicator)).onRefresh();
++    await tester.pump();
++    api.count.complete(QueryResult_BaseItemDto(items: [], totalRecordCount: 4, startIndex: 0));
++    await tester.pumpAndSettle();
++    expect(find.text('4 Tracks', findRichText: true), findsOneWidget);
++    expect(downloads.childCounts.last, 5);
++    expect(api.calls.where((call) => call.memberName == #getItemsWithTotalRecordCount), hasLength(2));
++  });
++
++  testWidgets('a download clicked while counting waits for the same bounded result', (tester) async {
++    await mount(tester);
++    await tester.tap(find.byIcon(TablerIcons.download));
++    await tester.pumpAndSettle();
++    expect(find.byType(DownloadDialog), findsNothing);
++    api.count.complete(QueryResult_BaseItemDto(items: [], totalRecordCount: 4, startIndex: 0));
++    await tester.pump();
++    await tester.pumpAndSettle();
++    expect(tester.widget<DownloadDialog>(find.byType(DownloadDialog)).trackCount, 4);
++    expect(api.calls.where((call) => call.memberName == #getItemsWithTotalRecordCount), hasLength(1));
++    expect(api.calls.where((call) => call.memberName == #getItems), hasLength(2));
++  });
++
++  testWidgets('an unknown count leaves removal controls available for existing downloads', (tester) async {
++    downloads.status = DownloadItemStatus.required;
++    await mount(tester);
++    expect(find.byIcon(TablerIcons.trash), findsOneWidget);
++    expect(tester.widget<DownloadButton>(find.byType(DownloadButton)).downloadDisabled, isFalse);
++    expect(downloads.childCounts.last, isNull);
++  });
++
++  testWidgets('an artist with only guest appearances still supplies track links and the warning count', (tester) async {
++    api.albums = [];
++    await mount(tester);
++    api.count.complete(QueryResult_BaseItemDto(items: [], totalRecordCount: 4, startIndex: 0));
++    await tester.pump();
++    await tester.pumpAndSettle();
++    expect(downloads.childCounts.last, 4);
++    await tester.tap(find.byIcon(TablerIcons.download));
++    await tester.pumpAndSettle();
++    expect(tester.widget<DownloadDialog>(find.byType(DownloadDialog)).trackCount, 4);
++    expect(api.calls.where((call) => call.memberName == #getItems), hasLength(2));
++  });
++
++  testWidgets('album downloads retain the existing child-list warning fallback', (tester) async {
++    await mount(tester);
++    FinampSettingsHelper.finampSettings.shouldTranscodeDownloads = TranscodeDownloadsSetting.never;
++    final tracks = List.generate(4, (i) => BaseItemDto(id: BaseItemId('track-$i'), type: 'Audio'));
++    await tester.pumpWidget(
++      UncontrolledProviderScope(
++        container: scope,
++        child: MaterialApp(
++          localizationsDelegates: AppLocalizations.localizationsDelegates,
++          supportedLocales: AppLocalizations.supportedLocales,
++          home: Scaffold(
++            body: DownloadButton(
++              item: DownloadStub.fromItem(type: DownloadItemType.collection, item: ownAlbum),
++              children: tracks,
++            ),
++          ),
++        ),
++      ),
++    );
++    await tester.pumpAndSettle();
++    await tester.tap(find.byIcon(TablerIcons.download));
++    await tester.pumpAndSettle();
++    expect(tester.widget<DownloadDialog>(find.byType(DownloadDialog)).trackCount, 4);
++  });
++}
+diff --git a/test/artist_screen_loading_test.dart b/test/artist_screen_loading_test.dart
+index 9a906cbc3ca00a033cc20c8b1bdd596d398e5cf5..62dfd4d9d52a5b81311a51c785b54217b6496cf6 100644
+--- a/test/artist_screen_loading_test.dart
++++ b/test/artist_screen_loading_test.dart
+@@ -194,13 +194,13 @@ void main() {
+     final (tracks, _, _) = await container.read(getArtistTracksSectionProvider(artist: artist).future);
+     expect(tracks, isEmpty);
+     final counts = await container.read(
+-      getArtistTrackCountsProvider(
++      getArtistTrackCountProvider(
+         artist: artist,
+         libraryFilter: const LibraryId('library'),
+         genreFilter: const BaseItemId('genre'),
+       ).future,
+     );
+-    expect(counts, (total: 10, performing: 10));
++    expect(counts, 10);
+     expect(api.calls, hasLength(1));
+     final call = api.calls.single;
+     expect(call.memberName, #getItemsWithTotalRecordCount);
+@@ -216,9 +216,9 @@ void main() {
+     test('count metadata handles $total without inventing a loaded zero', () async {
+       final api = FixtureArtistApi()..total = total;
+       final container = await fixtureContainer(api);
+-      final result = container.read(getArtistTrackCountsProvider(artist: artist).future);
++      final result = container.read(getArtistTrackCountProvider(artist: artist).future);
+       if (total == 0) {
+-        expect(await result, (total: 0, performing: 0));
++        expect(await result, 0);
+       } else {
+         await expectLater(result, throwsFormatException);
+       }
+@@ -228,14 +228,14 @@ void main() {
+   test('metadata errors do not trigger a full-discography fallback', () async {
+     final api = FixtureArtistApi()..countFails = true;
+     final container = await fixtureContainer(api);
+-    await expectLater(container.read(getArtistTrackCountsProvider(artist: artist).future), throwsFormatException);
++    await expectLater(container.read(getArtistTrackCountProvider(artist: artist).future), throwsFormatException);
+     expect(api.calls.map((call) => call.memberName), [#getItemsWithTotalRecordCount]);
+   });
+ 
+   test('playback still enumerates and deduplicates the complete discography on demand', () async {
+     final api = FixtureArtistApi();
+     final container = await fixtureContainer(api);
+-    await container.read(getArtistTrackCountsProvider(artist: artist).future);
++    await container.read(getArtistTrackCountProvider(artist: artist).future);
+     expect(api.calls.where((call) => call.memberName == #getItems), isEmpty);
+     final tracks = await container.read(getArtistTracksProvider(artist: artist, onlyFavorites: true).future);
+     expect(tracks.map((item) => item.id).toSet(), hasLength(10));
+@@ -253,12 +253,14 @@ void main() {
+       overrides: [
+         finampSettingsProvider.overrideWith((ref) => Stream.value(settings(offline: true))),
+         getArtistTracksProvider(artist: artist).overrideWith((ref) async => [track(0), track(1), track(2)]),
+-        getPerformingArtistTracksProvider(artist: artist).overrideWith((ref) async => [track(1), track(2)]),
++        getPerformingArtistTracksProvider(artist: artist).overrideWith((ref) async {
++          throw StateError('The union is already available from the local artist tracks');
++        }),
+       ],
+     );
+     addTearDown(container.dispose);
+     await container.read(finampSettingsProvider.future);
+-    expect(await container.read(getArtistTrackCountsProvider(artist: artist).future), (total: 3, performing: 2));
++    expect(await container.read(getArtistTrackCountProvider(artist: artist).future), 3);
+     expect(api.calls, isEmpty);
+   });
+ 
+@@ -288,7 +290,11 @@ void main() {
+         ),
+       );
+       await tester.pumpAndSettle();
+-      expect(find.byIcon(Icons.music_note), count == null ? findsNothing : findsOneWidget);
++      expect(find.byIcon(Icons.music_note), findsOneWidget);
++      if (count == null) {
++        final loading = AppLocalizations.of(tester.element(find.byType(ArtistItemInfo)))!.loading;
++        expect(find.text(loading, findRichText: true), findsOneWidget);
++      }
+       expect(find.text('498 Albums', findRichText: true), findsOneWidget);
+       if (count != null) expect(find.text('$count Tracks', findRichText: true), findsOneWidget);
+     });

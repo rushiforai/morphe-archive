@@ -37,8 +37,12 @@ Lees het patchrapport voordat je installeert. Als een patch mislukt of niet bij 
 
 ## 4. Installeer en controleer het resultaat
 
+Volg voor [Android Auto-apps](android-auto.md) de instructies voor KingInstaller en Shizuku voordat je installeert. Met de gewone installer kan Flitsmeister op je telefoon werken, maar ontbreken in de appkiezer van je auto.
+
 De gepatchte app is met een andere sleutel ondertekend dan de app van de uitgever. Android kan de ene normaal niet over de andere installeren. Ook updates tussen gepatchte builds vereisen dezelfde ondertekeningssleutel.
 
 Bewaar belangrijke gegevens voordat je een installatie vervangt.
 
 Controleer na het installeren het opstarten en je gebruikelijke functies: weer, kaarten, artikelen, audio of waarschuwingen. Als audio werkt of een banner weg is, heb je die functie gecontroleerd. Daarmee weet je nog niet welke netwerkverzoeken de app heeft verstuurd. [Lees de uitleg over bewijs](../reference/methodology.md).
+
+Vraagt je installatiemethode om Shizuku, gebruik dan de [installatie- en implementatiehandleiding](shizuku.md). Volg op een TV de [TV-specifieke instructies](shizuku-tv.md).

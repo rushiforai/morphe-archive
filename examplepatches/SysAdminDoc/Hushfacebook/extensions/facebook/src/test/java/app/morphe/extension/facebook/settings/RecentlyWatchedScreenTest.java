@@ -19,6 +19,7 @@ import android.preference.PreferenceGroup;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -72,6 +73,7 @@ public class RecentlyWatchedScreenTest {
         ScreenColors.shown = null;
         RecentlyWatchedForTests.forget();
         Settings.RECENTLY_WATCHED.resetToDefault();
+        Settings.RECENTLY_WATCHED_KEEP.resetToDefault();
     }
 
     private static HushfacebookPreferenceFragment page(ActivityController<Activity> controller) {
@@ -137,9 +139,46 @@ public class RecentlyWatchedScreenTest {
         List<String> titles = new ArrayList<>();
         for (int i = 0; i < adapter.getCount(); i++) {
             LinearLayout row = (LinearLayout) adapter.getView(i, null, list);
-            titles.add(((TextView) row.getChildAt(0)).getText().toString().replaceAll("[^\\p{Print}]", ""));
+            titles.add(printable(line(row, 0).getText()));
         }
         return titles;
+    }
+
+    /** A row's title (0), detail (1) or caption (2). */
+    private static TextView line(LinearLayout row, int index) {
+        return (TextView) ((LinearLayout) row.getChildAt(0)).getChildAt(index);
+    }
+
+    /** A row's remove button. */
+    private static ImageButton removeButton(ListView list, int position) {
+        LinearLayout row = (LinearLayout) list.getAdapter().getView(position, null, list);
+        return (ImageButton) row.getChildAt(1);
+    }
+
+    private static String printable(CharSequence text) {
+        return String.valueOf(text).replaceAll("[^\\p{Print}]", "");
+    }
+
+    private static Button undoButton(AlertDialog dialog) {
+        List<Button> buttons = new ArrayList<>();
+        collectButtons(dialog.getWindow().getDecorView(), buttons);
+        for (Button button : buttons) {
+            if ("Undo".contentEquals(button.getText())) return button;
+        }
+        throw new AssertionError("no Undo button");
+    }
+
+    private static void collectButtons(View root, List<Button> buttons) {
+        if (root instanceof Button) buttons.add((Button) root);
+        if (root instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) collectButtons(group.getChildAt(i), buttons);
+        }
+    }
+
+    /** What the bar over Undo says. */
+    private static TextView removedLine(Button undo) {
+        return (TextView) ((ViewGroup) undo.getParent()).getChildAt(0);
     }
 
     private static void pickChip(AlertDialog dialog, int index) {
@@ -162,12 +201,18 @@ public class RecentlyWatchedScreenTest {
             int resume = indexOfKey(rows, Settings.RESUME_LONG_VIDEOS.key);
             int remember = indexOfKey(rows, Settings.RECENTLY_WATCHED.key);
             int list = indexOfKey(rows, RecentlyWatchedScreen.ROW);
+            int keep = indexOfKey(rows, Settings.RECENTLY_WATCHED_KEEP.key);
             assertTrue("Resume long videos is missing", resume >= 0);
             assertEquals(resume + 1, remember);
             assertEquals(remember + 1, list);
+            assertEquals(list + 1, keep);
             assertEquals("Remember what you watch", String.valueOf(rows.get(remember).getTitle()));
             assertEquals("Recently watched", String.valueOf(rows.get(list).getTitle()));
             assertFalse("the row writes a setting", rows.get(list).isPersistent());
+            assertEquals("Keep watched entries for", String.valueOf(rows.get(keep).getTitle()));
+            assertEquals("Reels, videos and stories leave the list 30 days after you watch them.",
+                    String.valueOf(rows.get(keep).getSummary()));
+            assertTrue("the time can't be picked with recording off", rows.get(keep).isEnabled());
         }
     }
 
@@ -178,6 +223,7 @@ public class RecentlyWatchedScreenTest {
             List<Preference> rows = rowsOf(page(controller));
             assertEquals(-1, indexOfKey(rows, Settings.RECENTLY_WATCHED.key));
             assertEquals(-1, indexOfKey(rows, RecentlyWatchedScreen.ROW));
+            assertEquals(-1, indexOfKey(rows, Settings.RECENTLY_WATCHED_KEEP.key));
         }
     }
 
@@ -191,21 +237,22 @@ public class RecentlyWatchedScreenTest {
             assertEquals("[Reel, Video, Ana Lee]", titles(list).toString());
 
             LinearLayout video = (LinearLayout) list.getAdapter().getView(1, null, list);
-            assertTrue(((TextView) video.getChildAt(1)).getText().toString().contains("1:01"));
-            TextView caption = (TextView) video.getChildAt(2);
+            assertTrue(line(video, 1).getText().toString().contains("1:01"));
+            TextView caption = line(video, 2);
             assertEquals("Sunset over the lake", caption.getText().toString());
             assertEquals(View.VISIBLE, caption.getVisibility());
 
             LinearLayout story = (LinearLayout) list.getAdapter().getView(2, null, list);
             assertTrue("a row named by its poster doesn't say its kind",
-                    ((TextView) story.getChildAt(1)).getText().toString().startsWith("Story"));
-            assertEquals(View.GONE, story.getChildAt(2).getVisibility());
+                    line(story, 1).getText().toString().startsWith("Story"));
+            assertEquals(View.GONE, line(story, 2).getVisibility());
         }
     }
 
     @Test
     public void underAMinuteAgoReadsJustNow() {
         long now = 50_000_000L;
+        RecentlyWatchedForTests.clockAt(now);
         RecentlyWatchedForTests.watched(RecentlyWatched.REEL, "r1", null, null, null, now - 59_999, 0);
         assertEquals("Just now", RecentlyWatchedScreen.detail(RecentlyWatchedForTests.entries().get(0), now));
         RecentlyWatchedForTests.watched(RecentlyWatched.REEL, "r2", null, null, null, now + 5_000, 0);
@@ -301,6 +348,67 @@ public class RecentlyWatchedScreenTest {
             assertFalse("Clear stayed on with nothing to clear", clear.isEnabled());
             assertTrue("Clear closed the list", dialog.isShowing());
             assertTrue(((TextView) list.getEmptyView()).getText().toString().startsWith("Nothing here yet."));
+        }
+    }
+
+    @Test
+    public void aRowsRemoveButtonTakesItOffAndUndoPutsItBack() {
+        watchedThree();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            AlertDialog dialog = openList(page(controller));
+            ListView list = listOf(dialog);
+            Button undo = undoButton(dialog);
+            View bar = (View) undo.getParent();
+            assertEquals("Undo showed with nothing removed", View.GONE, bar.getVisibility());
+
+            ImageButton remove = removeButton(list, 1);
+            assertEquals("Remove Video", printable(remove.getContentDescription()));
+            assertFalse("the button keeps the row's taps from the list", remove.isFocusable());
+            remove.performClick();
+
+            assertEquals("[Reel, Ana Lee]", titles(list).toString());
+            assertEquals(2, RecentlyWatched.entries().size());
+            assertEquals(View.VISIBLE, bar.getVisibility());
+            assertEquals("Removed Video", printable(removedLine(undo).getText()));
+            assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE, removedLine(undo).getAccessibilityLiveRegion());
+            assertTrue("removing one closed the list", dialog.isShowing());
+
+            undo.performClick();
+            assertEquals("[Reel, Video, Ana Lee]", titles(list).toString());
+            assertEquals(View.GONE, bar.getVisibility());
+            assertEquals("Sunset over the lake", RecentlyWatched.entries().get(1).caption);
+        }
+    }
+
+    @Test
+    public void undoLeavesANewerWatchAsItIs() {
+        watchedThree();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            AlertDialog dialog = openList(page(controller));
+            ListView list = listOf(dialog);
+            removeButton(list, 0).performClick();
+            long again = System.currentTimeMillis();
+            RecentlyWatchedForTests.watched(RecentlyWatched.REEL, "r1", null, null, null, again, 15_000);
+
+            undoButton(dialog).performClick();
+            assertEquals("It wasn't put back. It was watched again since, or its time on the list is up.",
+                    ShadowToast.getTextOfLatestToast());
+            assertEquals(3, list.getAdapter().getCount());
+            assertEquals(again, RecentlyWatched.entries().get(0).watchedAt);
+        }
+    }
+
+    @Test
+    public void clearPutsUndoAway() {
+        watchedThree();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            AlertDialog dialog = openList(page(controller));
+            removeButton(listOf(dialog), 0).performClick();
+            View bar = (View) undoButton(dialog).getParent();
+            assertEquals(View.VISIBLE, bar.getVisibility());
+            dialog.getButton(DialogInterface.BUTTON_NEUTRAL).performClick();
+            assertEquals(View.GONE, bar.getVisibility());
+            assertTrue(RecentlyWatched.entries().isEmpty());
         }
     }
 

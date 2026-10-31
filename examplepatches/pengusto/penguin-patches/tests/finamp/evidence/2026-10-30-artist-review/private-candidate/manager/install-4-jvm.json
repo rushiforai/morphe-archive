@@ -1,0 +1,7 @@
+{
+  "method": "Actual Manager Install, then actual Open; Manager showed Installed without another installer confirmation",
+  "installed_apk_sha256": "e09de0330375a1814e2e1ce5d8689a7c4a1fef1b72152e7c05a55b786bf22c1a",
+  "matches_actual_export": true,
+  "data_reset": false,
+  "bundle_sha256": "eb48836340eb74d59d817859d238659fd216cbe4f3a16bcac99678023f1aa1a6"
+}

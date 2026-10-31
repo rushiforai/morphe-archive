@@ -1,3 +1,9 @@
+## [1.10.1](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.10.0...v1.10.1) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **LastWave:** support version 5.0.0 ([e499d19](https://github.com/JacksonJones2003/origin-island-patches/commit/e499d19b75b0fb42c0de636417aa32b3c9e2dd87))
+
 ## [1.10.0](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.9.1...v1.10.0) (2026-10-28)
 
 ### ✨ New Features

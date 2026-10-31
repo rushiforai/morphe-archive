@@ -1,50 +1,53 @@
 # Agent Instructions
 
 ## Toolchain
-- Use the checked-in Gradle wrapper (`./gradlew`) with Java 21.
-- Use `python3` for scripts, `morphe` for patching, and `adb` for device operations.
-- Use `fd` for file discovery.
+
+- Use JDK 21, the checked-in Gradle wrapper, an Android SDK, and Vite+; see `docs/development.md`.
+- Use `python3`, `fd`, `morphe`, `aapt`, `baksmali`, and `adb` for inspection and validation; see `docs/recon.md` and `docs/testing.md`.
 
 ## Commands
+
 | Task | Command |
-| ---- | ------- |
-| Install APK for main user only (not Samsung Dual Apps) | `adb install --user 0 <apk>` |
-| Enable an existing package for main user only | `adb shell pm install-existing --user 0 <package>` |
-| Test Python script file | `python3 -m unittest discover -s scripts/tests -p 'test_<script>.py' -v` |
-| Test patch class | `./gradlew :patches:test --tests '<fully.qualified.Class>' --no-daemon` |
-| Test extension class | `./gradlew :extensions:<app>:testDebugUnitTest --tests '<fully.qualified.Class>' --no-daemon` |
-| Build bundle and verify embedded extensions | `./gradlew :patches:verifyBundleExtension --no-daemon` |
-| Check Morphe patch flags | `morphe patch --help` |
-| Patch with Morphe's default signing key | `morphe patch -p "$MPP" -o /tmp/out.apk <app.apkm>` (default: `$(brew --prefix)/var/morphe/morphe.keystore`; details: `docs/cli.md#signing`) |
-| Full verification | Follow `docs/development.md#verify` |
-| Locate downloaded APKM | `fd -t f -e apkm . /mnt/c/Users/zeldrisho/Downloads` |
-| Re-patch and sign | `python3 scripts/repatch.py <app.apkm> [out.apk]` (options: `docs/cli.md`) |
-| Extract APK/APKM smali | `python3 scripts/extract_smali.py <apk-or-bundle> [output]` |
+| --- | --- |
+| Install release dependencies | `vp install --frozen-lockfile` |
+| Build patch bundle | `./gradlew :patches:buildAndroid --no-daemon` |
+| Find local APK and bundle inputs | `fd --hidden --no-ignore -t f -e apk -e apkm -e apks -e xapk . analysis/` |
+| Inspect an APK or APKM | `python3 scripts/apk_recon.py <input> <report>` |
+| Disassemble an APK or APKM | `python3 scripts/extract_smali.py <input> <output>` |
+| List bundle patches and targets | `morphe list-patches --patches patches/build/libs/patches-<version>.mpp --with-packages --with-versions` |
 
-## Key Conventions
-- Before patching, ask the user to choose the output package ID: the original package for an in-place update or a clone package ID; do not assume either choice.
-- Before installing, inspect the APK manifest with `aapt dump badging <apk>` and require its package to exactly match the user-selected target.
-- Never install a patched or diagnostic APK over an original user-owned package without explicit approval for that exact in-place update, even when the user selected the original package ID for patching.
-- Require explicit approval before uninstalling a package or clearing its data; uninstalling wipes app data.
-- Never print account names, tokens, or raw logs; use counts or redacted greps.
-- Patch sources and adjacent fingerprints live under `patches/src/main/kotlin/com/zeldrisho/patches/`; app-agnostic helpers belong in `patches/src/main/kotlin/com/zeldrisho/patches/shared/`.
-- Keep runtime extensions app-specific: `extensions/<app>/` are independent modules.
-- Extension artifact or class-descriptor renames must update both Gradle wiring in `patches/build.gradle.kts` and injected bytecode call sites.
-- Follow `docs/patch-development.md#file-layout` for exact compatibility targets, patch descriptions, and risky-patch defaults.
-- Follow `docs/release.md#rules` for generated-file ownership; do not hand-edit release metadata or the generated README patch list.
-- Follow `docs/release.md#changelog-policy` for `CHANGELOG.md`; add only user-visible app changes under `## Unreleased`. For audits or cleanup, follow `docs/release.md#changelog-audits-and-edits`.
-- Follow `docs/development.md#testing-guidance` for synthetic DEX tests, Robolectric tests, and opt-in private APK qualification.
-- Before extracting, check the gitignored `analysis/<app>/<version>/` workspace and notes and reuse verified evidence. Follow `docs/reverse-engineering.md#analysis-workspace`.
-- Build and unit-test success does not establish real-APK compatibility or device behavior; use `docs/validation.md`.
-- Keep credentials, signing keys, APK analysis, logs, and screenshots out of Git.
+## Rules
 
-## External References
+- Before implementing patches, check the [Morphe Patcher documentation index](https://github.com/MorpheApp/morphe-patcher/blob/main/docs/README.md) and [Morphe development guide](https://github.com/MorpheApp/morphe-documentation/blob/main/docs/morphe-development/README.md); read the relevant linked sections for the task.
+- Verify patch targets against the exact input's smali before implementation; follow `docs/template.md`.
+- Validate patch changes with Morphe Desktop against the intended app version; record fingerprint, application, installation and behavior separately, marking unavailable checks BLOCKED. See `docs/testing.md`.
+- Keep APK inputs, smali, notes, and diagnostic outputs under ignored `analysis/<package>/<version>/`; preserve existing evidence and never commit private artifacts.
+- If the target APK or bundle is missing from `analysis/<package>/<version>/apk/`, ask the user for its path and move it there without overwriting existing files; follow `docs/recon.md`.
+- Before patching, ask which output package ID to use. Never install over a user-owned app, uninstall it, or clear its data without explicit approval.
+- Before installation, verify the output package ID; check signing identity before updates. See `docs/testing.md`.
+- Never log or commit credentials, tokens, account data, signing keys or private artifacts.
+- Put Kotlin patch definitions and fingerprints under `patches/src/main/kotlin/app/template/patches/`.
+- Put app-specific runtime Java extension code under `extensions/extension/src/main/java/`; preserve injected class descriptors.
+- Keep injected Dalvik class descriptors and method signatures consistent with the actual extension classes.
+- Keep `extendWith(...)` paths aligned with the extension artifact name in `extensions/extension/build.gradle.kts`.
+- Declare shared app compatibility and tested target versions in `patches/src/main/kotlin/app/template/patches/shared/Constants.kt`.
+- Keep Gson off the bundled runtime classpath; `patches/build.gradle.kts` provides a separate configuration for the patch-list generator.
+- Do not manually edit or commit generated `patches-list.json`, `patches-bundle.json`, or `CHANGELOG.md`.
+- Do not hand-edit the generated patch-list section between `PATCHES_START` and `PATCHES_END` in `README.md`.
+- Make development changes on `dev` with semantic commits; merge `dev` into `main` without squashing for stable releases. See `docs/releasing.md`.
+- Use `.github/workflows/release.yml` and `.releaserc` for releases; do not create replacement release scripts or manually upload releases.
+- Keep CI to `release.yml` and `codeql.yml`; do not add other CI gates.
+- Do not force-push semantic-release commits.
+
+## References
+
 | Need | File |
-| ---- | ---- |
-| Host setup, Morphe, and DEX tools | `docs/toolchain.md` |
-| Morphe CLI workflow and flags | `docs/cli.md` |
-| APK analysis, workspace layout, and cleanup | `docs/reverse-engineering.md` |
-| Staging and publishing | `docs/release.md` |
-| Bytecode and smali reference | `docs/bytecode-reference.md` |
-| Fingerprints, bypass patterns, and target selection | `docs/patch-development.md#fingerprints`, `docs/patch-development.md#target-selection` |
-| Patch scope and code provenance | `docs/patch-development.md#provenance-and-scope` |
+| --- | --- |
+| Local build, development, and release conventions | `docs/development.md` |
+| Patch and extension layout | `docs/architecture.md` |
+| Release process and automation | `docs/releasing.md`, `.github/workflows/release.yml`, `.releaserc` |
+| Dependency versions and plugin setup | `gradle/libs.versions.toml`, `settings.gradle.kts` |
+| Zalo microG Drive support | `docs/microg.md` |
+| Validation and version updates | `docs/testing.md`, `docs/template.md` |
+| Injection and bytecode rules | `docs/bytecode.md` |
+| APK inspection and evidence | `docs/recon.md` |

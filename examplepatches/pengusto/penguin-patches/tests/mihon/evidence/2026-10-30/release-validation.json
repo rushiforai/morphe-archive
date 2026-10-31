@@ -1,0 +1,8 @@
+{
+  "bundleSha256": "711ce38e53274fe0186b19735e813be62262330a1a913a136f1ea47b0046ce20",
+  "originalSha256": "0026bd25ce5b1c6bdc5bd2c9589a08a811ddc4fa7c994cf937729d5b7010619d",
+  "desktopSha256": "a51472252cd63b2eac635dbb5a154ff918bfc15268da89679feb3d760230c573",
+  "applied": true,
+  "reapplyRejected": true,
+  "boundedExportVerification": "PASS: 19958 classes; only deletion fallback/helper changed; resources and native libraries retained"
+}

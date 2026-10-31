@@ -307,6 +307,27 @@ public class L10nTest {
         assertEquals("Cancel", L10n.t(germanActivity, "Cancel"));
     }
 
+    /**
+     * Android 13 and later hyphenate nothing unless asked, and a German compound at 200% text
+     * broke at whichever letter filled the line. A view gets hyphenation in the text's own
+     * language: German where the German table answers, English where no table does.
+     */
+    @Test
+    @Config(sdk = 36, qualifiers = "de")
+    public void hyphenationFollowsTheLanguageTheTextIsIn() {
+        android.widget.TextView german = new android.widget.TextView(RuntimeEnvironment.getApplication());
+        assertEquals(android.text.Layout.HYPHENATION_FREQUENCY_NONE, german.getHyphenationFrequency());
+        L10n.hyphenate(german);
+        assertEquals(android.text.Layout.HYPHENATION_FREQUENCY_NORMAL, german.getHyphenationFrequency());
+        assertEquals("de", german.getTextLocale().getLanguage());
+
+        RuntimeEnvironment.setQualifiers("fr");
+        android.widget.TextView french = new android.widget.TextView(RuntimeEnvironment.getApplication());
+        L10n.hyphenate(french);
+        assertEquals(android.text.Layout.HYPHENATION_FREQUENCY_NORMAL, french.getHyphenationFrequency());
+        assertEquals(Locale.ENGLISH, french.getTextLocale());
+    }
+
     /** The same English is looked up again after the phone's languages change. */
     @Test
     public void aChangedLanguageListIsNeverAnsweredFromTheLastOne() {

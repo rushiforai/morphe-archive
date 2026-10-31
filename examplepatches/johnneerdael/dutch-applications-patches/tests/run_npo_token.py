@@ -170,7 +170,7 @@ public class NpoTokenProbe {
 def execute(args, code):
     sdk, java_home = args.sdk, args.java_home
     android_jar = sorted((sdk / 'platforms').glob('android-*/android.jar'),
-                         key=lambda p: int(p.parent.name.split('-')[1]))[-1]
+                         key=lambda p: int(p.parent.name.split('-')[1].split('.')[0]))[-1]
     d8 = sorted((sdk / 'build-tools').glob('*/d8'))[-1]
     adb = sdk / 'platform-tools/adb'
     assert run([adb, '-s', args.serial, 'get-state']).strip() == 'device'
@@ -198,7 +198,7 @@ def execute(args, code):
         run([java_home / 'bin/java', '-cp', args.morphe_jar, 'com.android.tools.smali.smali.Main',
              'assemble', '--output', actual, smali])
         assert actual.is_file(), 'Token smali assembly failed'
-        run([d8, '--min-api', '28', '--lib', android_jar, '--output', dex,
+        run([d8, '--min-api', '24', '--lib', android_jar, '--output', dex,
              actual, *classes.rglob('*.class')], env=dict(os.environ, JAVA_HOME=str(java_home)))
         files = list(dex.glob('*.dex'))
         assert len(files) == 1
@@ -216,7 +216,7 @@ def execute(args, code):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--serial', required=True, choices=['192.168.50.89:5555'])
+    parser.add_argument('--serial', required=True)
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--source', action='store_true')
     mode.add_argument('--decoded', type=Path)
@@ -225,6 +225,8 @@ def main():
     parser.add_argument('--java-home', type=Path, default=Path(os.environ.get('JAVA_HOME', '/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home')))
     parser.add_argument('--morphe-jar', type=Path, default=ROOT / '.tools/morphe-desktop-1.19.1-all.jar')
     args = parser.parse_args()
+    if args.serial != '192.168.50.89:5555' and not re.fullmatch(r'emulator-\d+', args.serial):
+        parser.error('Harness requires the spare 192.168.50.89:5555 device or a local emulator')
     code = method(args.decoded, 'nl/npo/player/library/zt/i',
                   'doInBackground([Ljava/lang/Object;)Ljava/lang/Object;', True) if args.decoded else prefix()
     print(f'ART token input: {args.decoded or SOURCE}', flush=True)

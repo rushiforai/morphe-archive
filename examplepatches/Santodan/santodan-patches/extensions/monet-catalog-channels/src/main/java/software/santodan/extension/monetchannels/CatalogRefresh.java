@@ -57,7 +57,7 @@ public final class CatalogRefresh {
             };
             context.getContentResolver().registerContentObserver(Uri.parse("content://android.media.tv/channel"), true, observer);
             context.getContentResolver().registerContentObserver(Uri.parse("content://android.media.tv/preview_program"), true, observer);
-            Log.i("SantodanMonet", "Catalog content v2: foreground subscription started");
+            Log.i("SantodanMonet", (NativeLayout.modern ? "Catalog content 1.1.0" : "Catalog content v2") + ": foreground subscription started");
             schedule(0);
         }
         void schedule(long delay) {

@@ -27,8 +27,8 @@ import org.junit.Test
 /**
  * The swap guard on every Facebook build the bundle declares: exactly one class holding the swap
  * runnable's log line answers the guard's rule, it's the runnable Redex names
- * FeedUnitCollectionManager$onEdgeSwapped$1 (on 584 the Function0 capturing the new edge and the old
- * key), and the feed guard's patch, run on it with the edge and the funnel's class, asks the
+ * FeedUnitCollectionManager$onEdgeSwapped$1 (from 584 on the Function0 capturing the new edge and the
+ * old key), and the feed guard's patch, run on it with the edge and the funnel's class, asks the
  * extension right after the cast, on registers nothing reads, before the swap, leaving the rest of
  * run() or invoke() as it was. Reads the fixture bundles from HUSHFACEBOOK_FIXTURE_DIR and skips
  * without it.
@@ -41,6 +41,12 @@ class EdgeSwapFixtureTest {
     private fun Method.body(): List<Instruction> = implementation!!.instructions.toList()
 
     private fun Instruction.call(): String? = ((this as? ReferenceInstruction)?.reference)?.toString()
+
+    /** Every call on an instance, the calls EdgeSwap.kt takes a swap from. */
+    private val instanceCalls = setOf(
+        Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE, Opcode.INVOKE_INTERFACE, Opcode.INVOKE_INTERFACE_RANGE,
+        Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE, Opcode.INVOKE_SUPER, Opcode.INVOKE_SUPER_RANGE,
+    )
 
     @Test
     fun `each declared build has one swap runnable, and the guard goes in before its swap`() {
@@ -95,8 +101,7 @@ class EdgeSwapFixtureTest {
                 assertEquals("$name: the rest of the runnable", before.map { it.opcode },
                     after.filterIndexed { index, _ -> index !in guard.index until guard.index + size }.map { it.opcode })
                 val swap = after.indexOfFirst {
-                    it.opcode in setOf(Opcode.INVOKE_INTERFACE, Opcode.INVOKE_INTERFACE_RANGE) &&
-                        it.call()?.endsWith("(${FEED_UNIT_EDGE}Ljava/lang/String;)V") == true
+                    it.opcode in instanceCalls && it.call()?.endsWith("(${FEED_UNIT_EDGE}Ljava/lang/String;)V") == true
                 }
                 assertTrue("$name: the guard comes before the swap at $swap", swap > guard.index + size - 1)
                 checked += version

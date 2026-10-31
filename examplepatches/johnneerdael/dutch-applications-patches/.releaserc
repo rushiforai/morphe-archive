@@ -42,6 +42,7 @@
         }
       }
     ],
+    "./.github/scripts/verify_release_notes.cjs",
     "gradle-semantic-release-plugin",
     [
       "@semantic-release/exec",

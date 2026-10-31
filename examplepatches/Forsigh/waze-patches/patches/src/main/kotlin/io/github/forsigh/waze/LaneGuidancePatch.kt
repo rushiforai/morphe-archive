@@ -11,6 +11,7 @@ val laneGuidancePatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("Map & Alerts")
 
     // The emitter patch is what actually writes the keys recorded below. Depending on it means this
     // patch can be ticked alone and still produce a build where the override exists — without the

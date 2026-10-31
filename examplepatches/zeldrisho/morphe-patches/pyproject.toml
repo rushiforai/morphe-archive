@@ -1,5 +1,0 @@
-[tool.ruff.lint]
-# Preserve Ruff's pre-0.16 default rules instead of inheriting future default-set changes.
-select = ["E4", "E7", "E9", "F"]
-# Keep these suppressed if their rule families are explicitly enabled later.
-ignore = ["PLW1510", "DTZ011"]

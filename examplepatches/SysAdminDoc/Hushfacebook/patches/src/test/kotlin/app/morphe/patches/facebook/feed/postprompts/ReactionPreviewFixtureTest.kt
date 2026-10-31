@@ -19,6 +19,8 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -146,7 +148,9 @@ class ReactionPreviewFixtureTest {
                     facePatched.drop(5).map { it.opcode })
 
                 // The flags and their helpers.
-                for ((type, helper) in listOf(component.type to COMMENT_MARK, facepile.type to COMMENT_COPY)) {
+                for ((type, helper) in listOf(
+                    component.type to COMMENT_MARK, component.type to COMMENT_STASH, facepile.type to COMMENT_COPY,
+                )) {
                     val patchedClass = context.mutableClassDefBy(type)
                     assertTrue("$name: $type has no $COMMENT_FLAG (instance: ${patchedClass.instanceFields.map { "${it.name}:${it.type}" }}, " +
                         "all: ${patchedClass.fields.map { "${it.name}:${it.type}" }})",
@@ -176,16 +180,35 @@ class ReactionPreviewFixtureTest {
                     assertEquals("$name: $marked's constructions followed by the mark", constructions, marks)
                 }
 
-                // The lambda copies it onto the Drawable right after getting it.
+                // The lambda leaves the flag right before it reads the component, from the register the
+                // read takes the component from, and takes it back onto the Drawable right after getting
+                // it. 585 reuses both registers in between, so a copy from the component's register there
+                // hands the Drawable where the component belongs and the class fails the verifier.
+                val paired = faceCaller(pairedCallers.single(), factoryRef, component.type)!!
+                val stock = pairedCallers.single().implementation!!.instructions.toList()
                 val lambda = context.mutableClassDefBy(callerClass.type).methods.single {
                     it.name == pairedCallers.single().name && it.parameterTypes == pairedCallers.single().parameterTypes
                 }.implementation!!.instructions.toList()
+                assertEquals("$name: two calls added to the lambda", stock.size + 2, lambda.size)
+                val stash = lambda[paired.read]
+                assertEquals("$name: the stash sits where the component read was",
+                    "${component.type}->$COMMENT_STASH(${component.type})V",
+                    ((stash as ReferenceInstruction).reference as MethodReference).toString())
+                assertEquals("$name: the stash is handed the read's object register",
+                    (stock[paired.read] as TwoRegisterInstruction).registerB, (stash as RegisterRangeInstruction).startRegister)
+                assertEquals("$name: the component read follows the stash", stock[paired.read].opcode, lambda[paired.read + 1].opcode)
                 val copyAt = lambda.indexOfFirst {
                     ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == COMMENT_COPY
                 }
-                assertTrue("$name: the lambda never copies the flag", copyAt > 0)
+                assertTrue("$name: the lambda never copies the flag", copyAt > paired.read)
                 assertEquals("$name: the copy follows the Drawable's move-result-object", Opcode.MOVE_RESULT_OBJECT,
                     lambda[copyAt - 1].opcode)
+                assertEquals("$name: the copy is handed the Drawable's register",
+                    (lambda[copyAt - 1] as OneRegisterInstruction).registerA,
+                    (lambda[copyAt] as RegisterRangeInstruction).startRegister)
+                assertEquals("$name: the copy takes the Drawable alone",
+                    "${facepile.type}->$COMMENT_COPY(${facepile.type})V",
+                    ((lambda[copyAt] as ReferenceInstruction).reference as MethodReference).toString())
                 checked += version
                 abis += name.substringAfter("-$version-").substringBefore(".apkm")
             }

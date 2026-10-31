@@ -11,15 +11,19 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
@@ -30,13 +34,20 @@ import org.junit.Test
 class DownloadReelShapesTest {
     private val session = "Lcom/facebook/auth/usersession/FbUserSession;"
 
+    private val HELPER = "Lfixture/Sidebar;->hushfacebookDownloadButton(${session}Lfixture/Scope;Lfixture/Player;" +
+        "Ljava/lang/Object;Ljava/util/List;Ljava/util/List;)V"
+
+    private val Instruction.call get() = ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
+
+    /** Where the block stood in the tests below: ahead of the nop at 4, writing v8 to v13. */
+    private val place = SidebarBlockPlace(index = 4, session = 30, scoped = 31, player = 32, story = 33, buttons = 20, markers = 21, scratch = 8)
+
     /**
      * A sidebar builder whose button list comes from a helper declared to return a plain List, as
      * a build could hand it, and whose markers are a new ArrayList. The block goes in front of the
-     * nop standing in for the assembly's argument moves. The story sits in [story], and the helper
-     * call names it in [storyScratch].
+     * nop standing in for the assembly's argument moves.
      */
-    private fun sidebar(story: Int = 33, storyScratch: Int = 4): MutableMethod = MutableMethod(
+    private fun sidebar(): MutableMethod = MutableMethod(
         ImmutableMethod(
             "Lfixture/Sidebar;",
             "build",
@@ -60,87 +71,40 @@ class DownloadReelShapesTest {
                 return-object v0
             """,
         )
-        addInstructionsAtControlFlowLabel(
-            4,
-            sidebarButtonBlock(
-                session = 30,
-                scoped = 31,
-                player = 32,
-                story = story,
-                storyScratch = storyScratch,
-                helper = HELPER,
-                buttons = 20,
-                icon = "Lfixture/Icon;->DOWNLOAD:Lfixture/Icon;",
-                marker = "Lfixture/Marker;->of(Lfixture/Icon;)Lfixture/Marker;",
-                markers = 21,
-            ),
-        )
+        addInstructionsAtControlFlowLabel(4, sidebarButtonBlock(place, HELPER))
     }
 
-    private val HELPER =
-        "Lfixture/Sidebar;->hushfacebookDownloadButton(${session}Lfixture/Scope;Lfixture/Player;Ljava/lang/Object;)Lfixture/Button;"
-
-    private val Instruction.call get() = ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
-
     /**
-     * The helper gets the session, the scoped context, the player and the reel's story, the last
-     * in the 4-bit register the patch found dead, copied from the assembly argument that holds it.
+     * The block asks the switch, copies the session, scoped context, player, story and both lists
+     * into six consecutive locals and calls the helper over the range. It writes nothing else, takes
+     * nothing back and every one of its eleven instructions survives the inline compiler, which
+     * leaves out a 4-bit form whose register doesn't fit without a word.
      */
     @Test
-    fun `the helper is handed the reel's story in the dead register`() {
+    fun `the helper gets six values in six consecutive locals`() {
         val body = sidebar().implementation!!.instructions.toList()
-        val at = body.indexOfFirst { it.call == HELPER }
-        assertTrue("no call to the helper", at > 0)
-        val call = body[at] as FiveRegisterInstruction
-        assertEquals(Opcode.INVOKE_STATIC, call.opcode)
-        assertEquals(listOf(0, 1, 2, 4), listOf(call.registerC, call.registerD, call.registerE, call.registerF))
-        val copy = body[at - 1] as TwoRegisterInstruction
-        assertEquals(Opcode.MOVE_OBJECT_FROM16, copy.opcode)
-        assertEquals(4, copy.registerA)
-        assertEquals(33, copy.registerB)
-        // The switch is still asked first, and the story's copy sits after the three the helper always took.
+        assertEquals("the builder's seven instructions and the block's eleven", 18, body.size)
         assertTrue(body[4].call!!.endsWith("->showsButton()Z"))
-        assertEquals(listOf(30, 31, 32), (at - 4 until at - 1).map { (body[it] as TwoRegisterInstruction).registerB })
-    }
-
-    /**
-     * 582 hands the assembly its arguments from v3 up, so the story already sits in a 4-bit
-     * register. The helper call names it there, and nothing is copied over it.
-     */
-    @Test
-    fun `a story already in a low register goes to the helper as it is`() {
-        val body = sidebar(story = 4, storyScratch = 4).implementation!!.instructions.toList()
-        val at = body.indexOfFirst { it.call == HELPER }
-        assertTrue("no call to the helper", at > 0)
-        val call = body[at] as FiveRegisterInstruction
-        assertEquals(listOf(0, 1, 2, 4), listOf(call.registerC, call.registerD, call.registerE, call.registerF))
-        assertEquals("only the three copies the helper always takes", listOf(30, 31, 32),
-            (at - 3 until at).map { (body[it] as TwoRegisterInstruction).registerB })
-        assertEquals("the switch's branch comes straight before them", Opcode.IF_EQZ, body[at - 4].opcode)
-        assertTrue("nothing writes v4", body.none { (it as? TwoRegisterInstruction)?.registerA == 4 && it.opcode == Opcode.MOVE_OBJECT_FROM16 })
-    }
-
-    /**
-     * `AbstractCollection.add` through invoke-virtual only verifies on a register the verifier
-     * knows holds an AbstractCollection. A list declared as a plain List doesn't, and ART rejects
-     * the whole class for it.
-     */
-    @Test
-    fun `both adds go through the List interface`() {
-        val body = sidebar().implementation!!.instructions.toList()
-        val adds = body.withIndex().filter { it.value.call?.contains("->add(") == true }
-        assertEquals("two adds: the button and its marker", 2, adds.size)
-        for ((index, add) in adds) {
-            assertEquals(Opcode.INVOKE_INTERFACE, add.opcode)
-            assertEquals("Ljava/util/List;->add(Ljava/lang/Object;)Z", add.call)
-            // The list is copied into the call's first register just before it.
-            val copy = body[index - 1] as TwoRegisterInstruction
-            assertEquals(Opcode.MOVE_OBJECT_FROM16, body[index - 1].opcode)
-            assertEquals(copy.registerA, (add as FiveRegisterInstruction).registerC)
-        }
-        assertEquals("the button goes in the button list", 20, (body[adds[0].index - 1] as TwoRegisterInstruction).registerB)
-        assertEquals("the marker goes in the marker list", 21, (body[adds[1].index - 1] as TwoRegisterInstruction).registerB)
-        assertTrue(body.none { it.call?.startsWith("Ljava/util/AbstractCollection;") == true })
+        assertEquals(Opcode.MOVE_RESULT, body[5].opcode)
+        assertEquals(8, (body[5] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_EQZ, body[6].opcode)
+        assertEquals(8, (body[6] as OneRegisterInstruction).registerA)
+        val moves = (7..12).map { body[it] as TwoRegisterInstruction }
+        moves.forEach { assertEquals(Opcode.MOVE_OBJECT_FROM16, it.opcode) }
+        assertEquals((8..13).toList(), moves.map { it.registerA })
+        assertEquals("session, scoped context, player, story, buttons, markers", listOf(30, 31, 32, 33, 20, 21), moves.map { it.registerB })
+        val call = body[13] as RegisterRangeInstruction
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, call.opcode)
+        assertEquals(HELPER, body[13].call)
+        assertEquals(8, call.startRegister)
+        assertEquals(6, call.registerCount)
+        // The switch's no lands on the block's last nop, which falls through to Facebook's own nop.
+        val branch = body[6] as BuilderOffsetInstruction
+        assertSame(body[14], branch.target.location.instruction)
+        assertEquals(Opcode.NOP, body[14].opcode)
+        assertEquals(Opcode.NOP, body[15].opcode)
+        assertEquals(Opcode.CONST_4, body[16].opcode)
+        assertTrue("the block adds nothing to the lists itself, the helper does", body.none { it.call?.contains("->add(") == true })
     }
 
     /**
@@ -176,28 +140,6 @@ class DownloadReelShapesTest {
     private val injectAt = 5
     private val assemblyAt = 8
 
-    @Test
-    fun `the block's locals are proved free where it goes, not taken on trust`() {
-        // The positive control: nothing reads v0 to v3 after the injection point.
-        builderEnd().requireSidebarBlockFits(injectAt, SIDEBAR_BLOCK_SCRATCH + 3, reads = listOf(20, 21))
-
-        // v0 is read after the call. The window before the call never names it, which is all the
-        // old check looked at, so the block would have replaced it with the switch's answer.
-        val readsV0 = builderEnd(after = "invoke-static { v0 }, Lfixture/Log;->note(I)V")
-        val refused = assertThrows(PatchException::class.java) {
-            readsV0.requireSidebarBlockFits(injectAt, SIDEBAR_BLOCK_SCRATCH + 3, reads = listOf(20, 21))
-        }
-        assertTrue(refused.message, refused.message.orEmpty().contains("still reads v0 after instruction 5"))
-    }
-
-    @Test
-    fun `the block may not read a register it borrows`() {
-        val borrowed = assertThrows(PatchException::class.java) {
-            builderEnd().requireSidebarBlockFits(injectAt, SIDEBAR_BLOCK_SCRATCH + 3, reads = listOf(20, 2))
-        }
-        assertTrue(borrowed.message, borrowed.message.orEmpty().contains("keeps v2 for the assembly call"))
-    }
-
     /**
      * What the block reads is what the call gets: a register nothing writes before the call is the
      * call's own, and one an object move fills in between is followed back to the register it copies.
@@ -218,55 +160,25 @@ class DownloadReelShapesTest {
         assertTrue(refused.message, refused.message.orEmpty().contains("makes v20 at instruction 7"))
     }
 
-    @Test
-    fun `the story's local is the lowest above v2 that nothing reads and the block doesn't`() {
-        assertEquals(3, builderEnd().storyScratchRegister(injectAt, reads = listOf(20, 21, 22), story = 22))
-        // v3 is read after the call, and v4 holds something the block reads.
-        val method = builderEnd(after = "invoke-static { v3 }, Lfixture/Log;->note(I)V")
-        assertEquals(5, method.storyScratchRegister(injectAt, reads = listOf(4, 20, 21, 22), story = 22))
-    }
-
-    @Test
-    fun `a story from v3 to v15 is named in its own register, and one in v0 to v2 is copied`() {
-        // v3 is read after the call: it's the story the call gets, and the helper only reads it.
-        val method = builderEnd(after = "invoke-static { v3 }, Lfixture/Log;->note(I)V")
-        assertEquals(3, method.storyScratchRegister(injectAt, reads = listOf(3, 20, 21), story = 3))
-        assertEquals(15, builderEnd().storyScratchRegister(injectAt, reads = listOf(15, 20, 21), story = 15))
-        // The block writes v0 to v2 before the helper call, so a story there needs a copy.
-        assertEquals(3, builderEnd().storyScratchRegister(injectAt, reads = listOf(2, 20, 21), story = 2))
-    }
-
     /**
-     * 577 to 582 leave v0 to v2 free three instructions before the call. 583 moves three lambdas
-     * out of them into the call's range there, so the block goes in after the last such read.
-     */
-    @Test
-    fun `the block goes in where v0 to v2 are free, three instructions before the call at most`() {
-        assertEquals(injectAt, builderEnd().sidebarBlockIndex(assemblyAt))
-        val lambdasLast = builderEnd(window = "move-object/from16 v22, v1\nmove-object/from16 v23, v0\nnop")
-        assertEquals(assemblyAt - 1, lambdasLast.sidebarBlockIndex(assemblyAt))
-        // The block fits there, and the old place is refused for the very reason it moved.
-        lambdasLast.requireSidebarBlockFits(assemblyAt - 1, SIDEBAR_BLOCK_SCRATCH + 3, reads = listOf(20, 21))
-        val refused = assertThrows(PatchException::class.java) {
-            lambdasLast.requireSidebarBlockFits(injectAt, SIDEBAR_BLOCK_SCRATCH + 3, reads = listOf(20, 21))
-        }
-        assertTrue(refused.message, refused.message.orEmpty().contains("still reads v0, v1 after instruction 5"))
-        // Read right up to the call, nothing qualifies, and the old place is handed back to be refused.
-        val readToTheEnd = builderEnd(window = "nop\nnop\nmove-object/from16 v23, v0", after = "invoke-static { v1 }, Lfixture/Log;->note(I)V")
-        assertEquals(injectAt, readToTheEnd.sidebarBlockIndex(assemblyAt))
-    }
-
-    /**
-     * A render shaped like 584's end (LX/AF0;->A0l): the player parked in v29 at instruction 2, the
+     * A render shaped like 585's end (LX/0B7e;->A17): the player parked in v29 at instruction 2, the
      * lists fetched, a button loop whose exit jumps to instruction 11, then the call's straight run,
      * which parks something else in v29 first and makes three lambdas in v0 to v2 before the call at
-     * 18. [start] goes in front of the player's read, and [loop] at the end of the loop's body.
+     * 18. The call reads v20 to v29, so v26 to v28 are live all through the run. [start] goes in
+     * front of the player's read, [loop] at the end of the loop's body, [run] at the start of the
+     * run, and [after] after the call. [registers] is the method's register count.
      */
-    private fun loopEnd(start: String = "", loop: String = ""): MutableMethod = MutableMethod(
+    private fun loopEnd(
+        start: String = "",
+        loop: String = "",
+        run: String = "",
+        after: String = "",
+        registers: Int = 40,
+    ): MutableMethod = MutableMethod(
         ImmutableMethod(
             "Lfixture/Sidebar;", "render", emptyList(), "V",
             AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
-            ImmutableMethodImplementation(40, emptyList(), null, null),
+            ImmutableMethodImplementation(registers, emptyList(), null, null),
         ),
     ).apply {
         addInstructionsWithLabels(
@@ -288,6 +200,7 @@ class DownloadReelShapesTest {
                 $loop
                 goto :loop
                 :done
+                $run
                 move-object/from16 v29, v22
                 const/4 v0, 0x0
                 const/4 v1, 0x0
@@ -296,6 +209,7 @@ class DownloadReelShapesTest {
                 move-object/from16 v24, v1
                 move-object/from16 v25, v2
                 invoke-static/range { v20 .. v29 }, Lfixture/Assembly;->build(Ljava/util/List;Ljava/util/ArrayList;$OBJECTS)V
+                $after
                 return-void
             """,
         )
@@ -305,20 +219,105 @@ class DownloadReelShapesTest {
     private val loopCallAt = 18
     private val runStart = 11
 
+    /** The index of the assembly call in [method], the one range call. */
+    private fun callOf(method: MutableMethod) =
+        method.implementation!!.instructions.indexOfFirst { it.opcode == Opcode.INVOKE_STATIC_RANGE }
+
+    /** The place for the block in [method]: the session is v22, the scoped context v26, the story v27, the lists v20 and v21, the player parked in v29 at 2. */
+    private fun placeIn(method: MutableMethod, parkedAt: Int? = 2) = method.sidebarBlockPlace(
+        assemblyIndex = callOf(method),
+        session = 22,
+        scoped = 26,
+        story = 27,
+        buttons = 20,
+        markers = 21,
+        player = 29,
+        parkedAt = parkedAt,
+        playerParameter = null,
+    )
+
     /**
-     * 584 parks the scoped context over the player in the call's straight run, so the block goes in
-     * at the run's start, where the loop's exit lands and v0 to v2 are still free, and not three
-     * instructions before the call. Nothing parked, or the parked register left alone in the run,
-     * the block stays where it was.
+     * 585 keeps the scoped context in v2 and a constant in v0 to the end of its render, so the
+     * block can't borrow v0 to v2 as it did up to 584. It goes at the run's start, where the loop
+     * ends, on six consecutive locals nothing reads again, and reads each value where the call gets it.
      */
     @Test
-    fun `a block reading a parked player goes in before the run overwrites it`() {
+    fun `the block goes at the start of the call's run, on six dead locals`() {
         val method = loopEnd()
         assertEquals(runStart, method.straightRunStart(loopCallAt))
-        assertEquals(loopCallAt, method.sidebarBlockIndex(loopCallAt))
-        assertEquals(runStart, method.sidebarBlockIndex(loopCallAt, parked = 29))
-        assertEquals(loopCallAt, method.sidebarBlockIndex(loopCallAt, parked = 26))
-        method.requireSidebarBlockFits(runStart, SIDEBAR_BLOCK_SCRATCH + 3, reads = listOf(20, 21, 22, 29))
+        val found = placeIn(method)
+        assertEquals(runStart, found.index)
+        assertEquals("v0 to v5 are dead there and none is read by the block", 0, found.scratch)
+        assertEquals(
+            listOf(22, 26, 27, 20, 21, 29),
+            listOf(found.session, found.scoped, found.story, found.buttons, found.markers, found.player),
+        )
+    }
+
+    /**
+     * The first instruction of the run that works is taken. Here the run's first instruction makes
+     * the scoped context (v26) fresh, so the block can't read it in front of that instruction, and
+     * goes in front of the next one.
+     */
+    @Test
+    fun `an instruction the block can't read the arguments in front of is passed over`() {
+        val method = loopEnd(run = "const/16 v26, 0x0")
+        assertEquals(runStart, method.straightRunStart(callOf(method)))
+        val found = placeIn(method)
+        assertEquals(runStart + 1, found.index)
+        assertTrue("never between a call and the instruction taking its answer", method.implementation!!.instructions.toList()[found.index].opcode !in
+            setOf(Opcode.MOVE_RESULT, Opcode.MOVE_RESULT_OBJECT, Opcode.MOVE_RESULT_WIDE, Opcode.MOVE_EXCEPTION))
+    }
+
+    /** A locals the rest of the method reads can't be the block's. Here only v0 to v2 and v23 to v25 are free at the run: three apiece. */
+    @Test
+    fun `a run with no six consecutive dead locals is refused`() {
+        val method = loopEnd(after = "invoke-static/range { v3 .. v19 }, Lfixture/Log;->all()V", registers = 31)
+        val refused = assertThrows(PatchException::class.java) { placeIn(method) }
+        assertTrue(refused.message, refused.message.orEmpty().contains("has no place for the button before the assembly call"))
+        assertTrue(refused.message, refused.message.orEmpty().contains("no 6 consecutive locals"))
+    }
+
+    /**
+     * The block's writes are 8-bit destinations, so six dead locals above v255 don't count. Here
+     * v3 to v257 are read after the call, so only v0 to v2, v23 to v25 and v258 up are free.
+     */
+    @Test
+    fun `dead locals above v255 are refused`() {
+        val method = loopEnd(after = "invoke-static/range { v3 .. v257 }, Lfixture/Log;->all()V", registers = 300)
+        val refused = assertThrows(PatchException::class.java) { placeIn(method) }
+        assertTrue(refused.message, refused.message.orEmpty().contains("no 6 consecutive locals"))
+    }
+
+    /**
+     * The player is read from the register the builder parked it in, so every path to the block
+     * has to come through the parking. One that skips it, or one coming round the loop after the
+     * loop parks something else, would hand the helper a wrong player that still verifies, so the
+     * block is refused everywhere in the run.
+     */
+    @Test
+    fun `the parked player has to reach the block on every path`() {
+        loopEnd().requireParkedAt("the player", 29, parkedAt = 2, index = runStart)
+
+        // The loop's body parks something else in v29, and its back edge reaches the run.
+        val loopWrites = loopEnd(loop = "move-object/from16 v29, v22")
+        val looped = assertThrows(PatchException::class.java) {
+            loopWrites.requireParkedAt("the player", 29, parkedAt = 2, index = runStart + 1)
+        }
+        assertTrue(looped.message, looped.message.orEmpty().contains("reaches instruction 12"))
+        assertTrue(looped.message, looped.message.orEmpty().contains("writes v29 at 10, 12"))
+        val noPlace = assertThrows(PatchException::class.java) { placeIn(loopWrites) }
+        assertTrue(noPlace.message, noPlace.message.orEmpty().contains("has no place for the button"))
+        assertTrue(noPlace.message, noPlace.message.orEmpty().contains("first refusal, instruction 12: "))
+        assertTrue(noPlace.message, noPlace.message.orEmpty().contains("the player: Lfixture/Sidebar;->render reaches instruction 12"))
+
+        // A branch at the start jumps past the parking.
+        val skips = loopEnd(start = "if-eqz v5, :parked")
+        val skipped = assertThrows(PatchException::class.java) {
+            skips.requireParkedAt("the player", 29, parkedAt = 3, index = runStart + 1)
+        }
+        assertTrue(skipped.message, skipped.message.orEmpty().contains("reaches instruction 12"))
+        assertThrows(PatchException::class.java) { placeIn(skips, parkedAt = 3) }
     }
 
     /**
@@ -337,32 +336,7 @@ class DownloadReelShapesTest {
     }
 
     /**
-     * Every path to the block has to come through the parking. One that skips it, or one coming
-     * round the loop after the loop parks something else, would hand the helper a wrong player that
-     * still verifies.
-     */
-    @Test
-    fun `the parked player has to reach the block on every path`() {
-        loopEnd().requireParkedAt("the player", 29, parkedAt = 2, index = runStart)
-
-        // The loop's body parks something else in v29, and its back edge reaches the block.
-        val loopWrites = loopEnd(loop = "move-object/from16 v29, v22")
-        val looped = assertThrows(PatchException::class.java) {
-            loopWrites.requireParkedAt("the player", 29, parkedAt = 2, index = runStart + 1)
-        }
-        assertTrue(looped.message, looped.message.orEmpty().contains("reaches instruction 12"))
-        assertTrue(looped.message, looped.message.orEmpty().contains("writes v29 at 10, 12"))
-
-        // A branch at the start jumps past the parking.
-        val skips = loopEnd(start = "if-eqz v5, :parked")
-        val skipped = assertThrows(PatchException::class.java) {
-            skips.requireParkedAt("the player", 29, parkedAt = 3, index = runStart + 1)
-        }
-        assertTrue(skipped.message, skipped.message.orEmpty().contains("reaches instruction 12"))
-    }
-
-    /**
-     * The block takes over the label of the instruction it goes in front of, so 584's loop exit runs
+     * The block takes over the label of the instruction it goes in front of, so 585's loop exit runs
      * it, and its switch's no lands on its own last nop, which falls through to that instruction.
      */
     @Test
@@ -370,11 +344,7 @@ class DownloadReelShapesTest {
         val method = loopEnd()
         method.addInstructionsAtControlFlowLabel(
             runStart,
-            sidebarButtonBlock(
-                session = 30, scoped = 31, player = 29, story = 32, storyScratch = 4, helper = HELPER,
-                buttons = 20, icon = "Lfixture/Icon;->DOWNLOAD:Lfixture/Icon;",
-                marker = "Lfixture/Marker;->of(Lfixture/Icon;)Lfixture/Marker;", markers = 21,
-            ),
+            sidebarButtonBlock(SidebarBlockPlace(runStart, session = 22, scoped = 26, player = 29, story = 27, buttons = 20, markers = 21, scratch = 0), HELPER),
         )
         val body = method.implementation!!.instructions.toList()
         val exit = body[9] as BuilderOffsetInstruction
@@ -478,6 +448,83 @@ class DownloadReelShapesTest {
     }
 
     /**
+     * 585's render calls no factory and no static that does. It names the sidebar and hands its
+     * buttons, markers and names to the assembly call, which takes exactly two ArrayLists.
+     */
+    @Test
+    fun `a render naming the sidebar and assembling it is the builder without any factory in reach`() {
+        val assembling = "const/4 v1, 0x0\nconst/4 v2, 0x0\n" +
+            "invoke-static/range { v1 .. v3 }, Lfixture/Assembly;->build(Ljava/util/List;Ljava/util/ArrayList;Ljava/util/ArrayList;)V\n" +
+            "return-object v0"
+        val render = method("Lfixture/Sidebar;", "render", listOf("Lfixture/Scope;"), "Lfixture/Component;",
+            "const-string v0, \"UDDSideBarComponent\"\n$assembling")
+        assertTrue(isSidebarBuilder(render, listOf(render)))
+        assertEquals(3, sidebarAssemblyIndex(render.implementation!!.instructions.toList()))
+
+        // The name alone is in a dozen places.
+        val unnamed = method("Lfixture/Sidebar;", "render", listOf("Lfixture/Scope;"), "Lfixture/Component;",
+            "const/4 v0, 0x0\n$assembling")
+        assertTrue("no sidebar name", !isSidebarBuilder(unnamed, listOf(unnamed)))
+        assertEquals("the assembly is found by its two lists, whatever names the sidebar", 3,
+            sidebarAssemblyIndex(unnamed.implementation!!.instructions.toList()))
+        // One list, or the lists on a virtual call, isn't the assembly.
+        val oneList = method("Lfixture/Sidebar;", "render", listOf("Lfixture/Scope;"), "Lfixture/Component;",
+            "const-string v0, \"UDDSideBarComponent\"\nconst/4 v1, 0x0\n" +
+                "invoke-static { v1, v1 }, Lfixture/Assembly;->build(Ljava/util/List;Ljava/util/ArrayList;)V\nreturn-object v0")
+        assertTrue(!isSidebarBuilder(oneList, listOf(oneList)))
+        assertEquals(-1, sidebarAssemblyIndex(oneList.implementation!!.instructions.toList()))
+        val virtual = method("Lfixture/Sidebar;", "render", listOf("Lfixture/Scope;"), "Lfixture/Component;",
+            "const-string v0, \"UDDSideBarComponent\"\nconst/4 v1, 0x0\n" +
+                "invoke-virtual { v1, v1, v1 }, Lfixture/Assembly;->build(Ljava/util/ArrayList;Ljava/util/ArrayList;)V\nreturn-object v0")
+        assertTrue(!isSidebarBuilder(virtual, listOf(virtual)))
+    }
+
+    /**
+     * 585's render hands the button's kind to a static of its class (LX/0B7e;->A0D, LX/0B7h;->A0D),
+     * which news up one small class per kind, and each of those calls the factory from a method of
+     * its own. The factory is found from the render, through that static, to those methods.
+     */
+    @Test
+    fun `the factory is found through the static that makes the small button classes`() {
+        val makesButton = "invoke-static { v0, v1, v2, v3, v4 }, $factory\nmove-result-object v0\nreturn-object v0"
+        val pizza = method("Lfixture/Pizza;", "A01", emptyList(), "Lfixture/Button;", makesButton)
+        val other = method("Lfixture/Other;", "A00", emptyList(), "Lfixture/Button;", "const/4 v0, 0x0\nreturn-object v0")
+        val kinds = method(
+            "Lfixture/Sidebar;", "button", listOf("I"), "Lfixture/Button;",
+            "new-instance v0, Lfixture/Pizza;\ninvoke-direct { v0 }, Lfixture/Pizza;-><init>()V\n" +
+                "invoke-virtual { v0 }, Lfixture/Pizza;->A01()Lfixture/Button;\nmove-result-object v0\n" +
+                "new-instance v1, Lfixture/Other;\ninvoke-direct { v1 }, Lfixture/Other;-><init>()V\n" +
+                "invoke-virtual { v1 }, Lfixture/Other;->A00()Lfixture/Button;\nmove-result-object v1\nreturn-object v0",
+            static = true,
+        )
+        val render = sidebarRender("Lfixture/Sidebar;->button(I)Lfixture/Button;")
+        val resolve: (MethodReference) -> Method? = { call ->
+            listOf(pizza, other).firstOrNull { it.definingClass == call.definingClass && it.name == call.name }
+        }
+
+        assertEquals("the static doesn't call the factory itself", emptyList<Method>(), buttonFactoryCallers(render, listOf(render, kinds)))
+        assertEquals(listOf(pizza), reachedFactoryCallers(render, listOf(render, kinds), resolve))
+        assertEquals("a class that can't be read names nothing", emptyList<Method>(), reachedFactoryCallers(render, listOf(render, kinds)) { null })
+
+        // A render that calls the factory through a static of its own is answered as before.
+        val maker = buttonMaker(makesButton)
+        assertEquals(listOf(maker), reachedFactoryCallers(render, listOf(render, maker), resolve))
+    }
+
+    @Test
+    fun `a call is resolved to the method of the class that matches its name, return type and parameters`() {
+        val pizza = method("Lfixture/Pizza;", "A01", listOf("I"), "Lfixture/Button;", "const/4 v0, 0x0\nreturn-object v0")
+        val owner = ImmutableClassDef("Lfixture/Pizza;", AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, emptyList(), listOf(pizza))
+        assertEquals(
+            "Lfixture/Pizza;->A01(I)Lfixture/Button;",
+            resolveMethod(owner, ImmutableMethodReference("Lfixture/Pizza;", "A01", listOf("I"), "Lfixture/Button;")).toString(),
+        )
+        assertEquals(null, resolveMethod(owner, ImmutableMethodReference("Lfixture/Pizza;", "A01", listOf("J"), "Lfixture/Button;")))
+        assertEquals(null, resolveMethod(owner, ImmutableMethodReference("Lfixture/Pizza;", "A01", listOf("I"), "V")))
+        assertEquals(null, resolveMethod(owner, ImmutableMethodReference("Lfixture/Pizza;", "A02", listOf("I"), "Lfixture/Button;")))
+    }
+
+    /**
      * 583's arm64 builder asks for each button's marker itself. Its armeabi-v7a one hands the icon,
      * the button and the three lists to a static Redex outlined from the loop body, which asks for
      * the marker there, so that helper is read when the builder names no marker.
@@ -505,6 +552,23 @@ class DownloadReelShapesTest {
 
         // A helper that can't be read names nothing.
         assertEquals(emptyList<String>(), iconMarkers(outlined, icon) { null }.map { it.toString() })
+    }
+
+    /**
+     * 585's More sheet builder takes the scoped context twice. The one it tests against null isn't
+     * the one the row helper reads the Context off; the one it never tests is.
+     */
+    @Test
+    fun `a parameter tested against null is told from one used as is`() {
+        val builder = method(
+            "Lfixture/Sheet;", "add", listOf("Lfixture/Scope;", "Lfixture/Scope;", "Ljava/util/List;"), "V",
+            "if-eqz p1, :done\nnop\n:done\nreturn-void", static = true,
+        )
+        assertTrue("the second is tested", builder.testsForNull(1))
+        assertTrue("the first is not", !builder.testsForNull(0))
+        assertTrue("nor the list", !builder.testsForNull(2))
+        val tested = method("Lfixture/Sheet;", "add", listOf("Lfixture/Scope;"), "V", "if-nez p0, :done\nnop\n:done\nreturn-void", static = true)
+        assertTrue("if-nez counts too", tested.testsForNull(0))
     }
 
     private fun field(name: String, type: String) = ImmutableField("Lfixture/Sidebar;", name, type, AccessFlags.PUBLIC.value, null, null, null)

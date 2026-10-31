@@ -7,6 +7,11 @@ on:
 
 permissions:
   contents: read
+  issues: write
+
+concurrency:
+  group: f1tv-apk-watch
+  cancel-in-progress: false
 
 jobs:
   check-apkmirror:
@@ -16,5 +21,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Test monitor and notifications
+        run: python3 -m unittest discover -s scripts/f1tv -p 'test_apk_watch.py'
+
+      - name: Install APKMirror browser transport
+        run: python3 -m pip install -r scripts/f1tv/requirements-watch.txt
+
       - name: Check latest F1 TV version
-        run: python3 scripts/f1tv/f1tv_apk_watch.py check --fail-on-update
+        run: python3 scripts/f1tv/f1tv_apk_watch.py check --result-file "$RUNNER_TEMP/f1tv-check.json"
+
+      - name: Notify about new APK or check failure
+        if: ${{ always() && !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WATCH_ASSIGNEE: Hiosdra
+          WATCH_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 scripts/f1tv/notify_apk_watch.py "$RUNNER_TEMP/f1tv-check.json"
+

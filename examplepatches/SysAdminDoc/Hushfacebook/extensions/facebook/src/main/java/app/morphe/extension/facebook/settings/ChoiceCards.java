@@ -89,7 +89,7 @@ final class ChoiceCards extends BaseAdapter {
             // The shared row surface, with its outline separating it from the dialog.
             surface.setColor(colors.card);
             surface.setStroke(dp(context, 2), ScreenColors.focusStroke(colors.heading, colors.outline));
-            surface.setCornerRadius(dp(context, 10));
+            surface.setCornerRadius(dp(context, ScreenColors.CONTAINER_RADIUS));
             setBackground(new RippleDrawable(ColorStateList.valueOf(ScreenColors.half(colors.accent)),
                     new InsetDrawable(surface, side, gap, side, gap), null));
             // Set after the background, which puts its insets in as the padding.

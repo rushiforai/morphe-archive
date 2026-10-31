@@ -131,7 +131,7 @@ internal fun BytecodePatchContext.findFeedVideoAnchors(anchors: ReelHoldAnchors)
     val (attach, playerParameter) = attaches.singleOrNull()
         ?: refuse("expected one static attach holding \"$ATTACH_VIEW_LOG\" taking a ViewGroup and $player, found ${attaches.size}")
     if (attach.localRegisterCount() < 2) refuse("the attach ${attach.name} has fewer than two locals to hand its arguments over in")
-    val written = containersWritten(attach, player)
+    val written = containersWritten(attach, classDefBy(player))
     val container = written.singleOrNull()
         ?: refuse("expected the attach to write one ViewGroup field of $player, found ${written.map { it.name }}")
     val field = classDefBy(player).fields.singleOrNull { it.name == container.name && it.type == container.type }

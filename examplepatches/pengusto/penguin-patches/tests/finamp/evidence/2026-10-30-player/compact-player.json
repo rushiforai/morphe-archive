@@ -1,0 +1,195 @@
+{
+  "capturedAt": "2026-10-30T13:00:46.247064+00:00",
+  "serial": "emulator-5580",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "00:17\n02:00",
+      "class": "android.widget.ImageView",
+      "bounds": "[0,0][1100,584]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Back",
+      "class": "android.view.View",
+      "bounds": "[0,48][96,120]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Playing From All Tracks\nAll Tracks (from \"Output Controls\")",
+      "class": "android.view.View",
+      "bounds": "[336,49][764,119]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Artwork for Output Controls. Tap to toggle playback. Swipe left or right to switch tracks.",
+      "class": "android.view.View",
+      "bounds": "[14,134][550,570]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Output Controls (Title)",
+      "class": "android.view.View",
+      "bounds": "[558,142][1093,234]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Track Menu",
+      "class": "android.view.View",
+      "bounds": "[558,234][638,314]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "A Guest (Artist)\nA Guest",
+      "class": "android.widget.Button",
+      "bounds": "[638,250][811,298]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "B Guest (Artist)\nB Guest",
+      "class": "android.widget.Button",
+      "bounds": "[819,250][992,298]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Z Lead (Artist)\nZ Lead",
+      "class": "android.widget.Button",
+      "bounds": "[1000,250][1013,298]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Fixture Credits (Album)",
+      "class": "android.widget.Button",
+      "bounds": "[723,322][927,370]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "17 Seconds of 2 Minutes 0 Seconds",
+      "class": "android.widget.SeekBar",
+      "bounds": "[610,382][706,478]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Playing in order. Tap to shuffle.",
+      "class": "android.widget.Button",
+      "bounds": "[562,466][658,562]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Skip to beginning or to previous track",
+      "class": "android.widget.Button",
+      "bounds": "[669,466][765,562]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Add to playlist, Tap to add to playlist. Long press to toggle favorite.",
+      "class": "android.widget.Button",
+      "bounds": "[1013,234][1093,314]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Toggle playback",
+      "class": "android.widget.Button",
+      "bounds": "[777,466][873,562]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Skip to next track",
+      "class": "android.widget.Button",
+      "bounds": "[885,466][981,562]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Tap to toggle.\nNot looping",
+      "class": "android.widget.Button",
+      "bounds": "[992,466][1088,562]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "e91a68347072ad6ab4c684e76a21db167fa0cab9c3eb196579f7bb1813df15e7"
+}

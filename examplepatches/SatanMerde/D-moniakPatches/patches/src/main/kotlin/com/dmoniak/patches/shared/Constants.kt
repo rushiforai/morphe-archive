@@ -702,6 +702,22 @@ object Constants {
         appIconColor = 0x2E7D32
     )
 
+    val COMPATIBILITY_CRYPTOMATOR = Compatibility(
+        packageName = "org.cryptomator",
+        name = "Cryptomator",
+        description = "Cryptomator: Client-side encryption for your cloud vaults",
+        appIconColor = 0x247477,
+        targets = listOf(AppTarget("2.1.0", isExperimental = true))
+    )
+
+    val COMPATIBILITY_CRYPTOMATOR_FREEMIUM = Compatibility(
+        packageName = "org.cryptomator.freemium",
+        name = "Cryptomator (Freemium)",
+        description = "Cryptomator: Client-side encryption for your cloud vaults (Google Play Freemium)",
+        appIconColor = 0x247477,
+        targets = listOf(AppTarget("2.1.0", isExperimental = true))
+    )
+
     // Aliases
     val COMPATIBILITY_ANGRY_BIRDS_CLASSIC = COMPATIBILITY_ANGRY_BIRDS
     val COMPATIBILITY_HIDE_ME = COMPATIBILITY_HIDEME

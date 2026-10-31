@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.4.1...v1.5.0) (2026-10-30)
+
+### ✨ New Features
+
+* add Universal Copy Unlock Plus patch ([60f5057](https://github.com/toidicakhia/morphe-app-patches/commit/60f50574c1e7f5368065824aa6393c6c343b1143))
+
 ## [1.4.1](https://github.com/toidicakhia/morphe-app-patches/compare/v1.4.0...v1.4.1) (2026-10-28)
 
 ### 🐛 Bug Fixes

@@ -33,6 +33,12 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
  * render method `A1N` and `A1F`, the unit field `A03` of `LX/2LO;` and `LX/3Te;` (the first
  * interface GraphQLStory declares on each), and the story's accessor `A0S` and `A0T`. None of
  * those names is used here.
+ *
+ * 585 makes the component stateless: arm64's `LX/0Bx3;` has no fields, and its render method
+ * `A00(LX/01PR;, LX/03ZC;, LX/02Sp;, FbUserSession, …)` takes the unit as its third parameter
+ * (`LX/02Sp;`, the GraphQLStory interface, p3 = v26 of 34 registers) and copies it down first thing.
+ * It asks the story through `A0f` and answers null for a row it won't draw, as before. So the unit
+ * comes from the one field or the one render parameter typed as a GraphQLStory interface.
  */
 internal const val PATCH = "Hide sponsored profile posts"
 
@@ -62,6 +68,13 @@ internal fun isTimelineStoryRender(method: Method): Boolean =
  */
 internal fun unitFields(component: ClassDef, storyTypes: Set<String>): List<Field> =
     component.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type in storyTypes }
+
+/**
+ * The indexes of [render]'s declared parameters typed as one of [storyTypes]: where 585's stateless
+ * component gets the unit it draws. The patch wants exactly one place, a field or a parameter.
+ */
+internal fun unitParameters(render: Method, storyTypes: Set<String>): List<Int> =
+    render.parameterTypes.withIndex().filter { it.value.toString() in storyTypes }.map { it.index }
 
 /** Whether [method] reads [field] of its own class with `iget-object`. */
 internal fun readsField(method: Method, field: Field): Boolean =

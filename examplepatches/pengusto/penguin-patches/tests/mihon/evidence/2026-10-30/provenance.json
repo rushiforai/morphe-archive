@@ -1,0 +1,20 @@
+{
+  "screenshots": {
+    "before.png": "1e8889b788a3a28726dd4d6e760d1d53acfa71e9e4dbf43dcd72deba92fa3f83",
+    "application.png": "786d662e325afa044ead6e2d2eb673349c4c42fe39282678ddc1cd5279fd1593",
+    "selection.png": "a00c7228df05cf06b66b8ca73cc6a53e937036ad34ee0a24c961d7ecb803eca4",
+    "after.png": "ac23961c1a46ccf295964838c8ccae855cf200de3695e1441c20f02570d76397",
+    "default-off.png": "30248173156d4758dc479fe1ecf2378a54e7dea1703c915eab2194d33de67cc5",
+    "signing-key.png": "ae0ccbfd3e5b8707e5117c88f52aa69cc2124476dfbde43c799bbc4d0bcbb53a",
+    "runtime-setting.png": "1f45e675604ae7458f0a5b165aac1df9550c460cae29199f45582f494082e601",
+    "installed.png": "fd9fa1873f04299eab92adef3854231e9a61c4abde9924375f194ab1554f6e13",
+    "installer-confirmation.png": "3108b2fdafeb6fe278223ad01af604f891a0cd2a56f3897ae967647698d43cd7"
+  },
+  "serial": "emulator-5582",
+  "avd": "mihon-isolated",
+  "sdk": 35,
+  "theme": "Light",
+  "filter": "Downloaded only",
+  "app": "Mihon 0.21.3 ARM64",
+  "bundleSha256": "711ce38e53274fe0186b19735e813be62262330a1a913a136f1ea47b0046ce20"
+}

@@ -96,7 +96,7 @@ public class SignInNoticeTest {
     @Test
     @Config(sdk = {28, 29, 30, 37})
     public void aFailedDismissalKeepsTheNoticeAndExplainsTheFailure() {
-        org.robolectric.RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        org.robolectric.RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         BaseSettings.DEBUG.save(false);
         ShadowToast.reset();
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
@@ -118,7 +118,7 @@ public class SignInNoticeTest {
     @Test
     @Config(sdk = {28, 29, 30, 37})
     public void aFailedDismissalDoesNotClaimAnUnprovenRollback() {
-        org.robolectric.RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        org.robolectric.RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         BaseSettings.DEBUG.save(false);
         ShadowToast.reset();
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {

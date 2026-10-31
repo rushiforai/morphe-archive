@@ -1,0 +1,37 @@
+# GitHub Pages: https://hexclyde.github.io/bitchord-morphe-patches/ is built from README.md and docs/.
+title: BitChord Morphe Patches
+description: >-
+  Morphe patches for the BitChord Android music player: play FLAC and other music from your own
+  Telegram channels, with lossless quality, format legends, album covers and smooth source
+  switching. Free and on-device.
+url: https://hexclyde.github.io
+baseurl: /bitchord-morphe-patches
+author: Hexclyde
+lang: en
+theme: jekyll-theme-cayman
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+  collections: false
+# Search Console: paste the code from the "HTML tag" method here, then publish.
+webmaster_verifications:
+  google: ""
+exclude:
+  - extensions
+  - patches
+  - tests
+  - ui-tests
+  - checks
+  - compile-only
+  - tools
+  - vendor
+  - licenses
+  - distribution
+  - build
+  - "*.py"
+  - "*.json"
+  - "*.kt"
+  - "*.java"

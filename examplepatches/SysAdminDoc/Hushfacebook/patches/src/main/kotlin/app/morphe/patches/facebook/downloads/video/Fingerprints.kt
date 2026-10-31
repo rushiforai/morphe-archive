@@ -44,10 +44,15 @@ internal const val STOCK_DOWNLOAD_ROW = "DOWNLOAD_VIDEO"
  * same method, and every post menu, feed ones included, goes through that one: the patch finds
  * the call site from there. Facebook's own row sets `fb_ic_download_24` (0x7f1a02de on 580,
  * 0x7f1a02df on 577, per aapt2) just before it names itself, which is the icon the item borrows.
+ *
+ * 585 (read 2026-10-29, both ABIs) asks a string table for the row's name, so only the helper's
+ * name is a literal of the method (arm64 `LX/0prn;->A0j`, whose base `LX/02yj;` builds the stock row
+ * itself). The shape plus that one literal is still the only method in either build; the patch
+ * reads the row's icon through the table ([STOCK_DOWNLOAD_ROW] in `stockDownloadIcon`).
  */
 internal object VideoFeedStoryMenuFingerprint : Fingerprint(
     returnType = "V",
-    strings = listOf("VideoFeedStoryMenuHelper", STOCK_DOWNLOAD_ROW),
+    strings = listOf("VideoFeedStoryMenuHelper"),
     custom = { method, _ ->
         val parameters = method.parameterTypes.map(CharSequence::toString)
         parameters.size >= 3 && parameters[0] == MENU && parameters[1] == VIEW && parameters.last() == PLAYER_ORIGIN

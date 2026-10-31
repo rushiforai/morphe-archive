@@ -5,12 +5,15 @@
 package app.hushgram.extension.instagram.misc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.Resources;
 import android.util.TypedValue;
+import android.view.ContextThemeWrapper;
 
 import org.junit.After;
 import org.junit.Before;
@@ -21,6 +24,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
@@ -28,6 +32,7 @@ import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
 import app.hushgram.extension.shared.settings.BaseSettings;
+import app.hushgram.extension.shared.settings.HushgramPause;
 import app.hushgram.extension.shared.settings.PauseForTests;
 
 @RunWith(RobolectricTestRunner.class)
@@ -43,6 +48,7 @@ public class AccentThemeTest {
         Settings.ACCENT_COLOR.resetToDefault();
         Settings.ACCENT_HUE.resetToDefault();
         Settings.ACCENT_BADGES.resetToDefault();
+        Settings.ACCENT_ICONS.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         HookStatus.clear();
@@ -188,6 +194,95 @@ public class AccentThemeTest {
         AccentTheme.apply(bare, "igds_color_link");
         assertEquals(List.of(FamilyNames.ACCENT_COLOR + ": invoked 1, 0 found, 0 missing. Counted: " + AccentTheme.NO_BLUE + " 1, "
                 + AccentTheme.BADGES_MISSING + " 1"), HookStatus.report());
+    }
+
+    @Test
+    public void theIconStyleGoesOnWithItsSwitchInTheThemesShade() {
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        assertEquals("HushGramAccentIcons_TEAL_light", AccentTheme.iconStyle(AccentHue.TEAL, false));
+        assertEquals("HushGramAccentIcons_TEAL_dark", AccentTheme.iconStyle(AccentHue.TEAL, true));
+        List<String> asked = new ArrayList<>();
+        Ids ids = (name, type) -> {
+            if (type.equals("style") && name.equals(AccentTheme.paletteStyle(AccentHue.TEAL))) return android.R.style.TextAppearance;
+            if (type.equals("style") && name.startsWith("HushGramAccentIcons_")) {
+                asked.add(name);
+                return android.R.style.TextAppearance_Small;
+            }
+            if (type.equals("attr") && name.equals(AccentTheme.ICON_ATTRIBUTE)) return android.R.attr.colorForeground;
+            return type.equals("attr") ? 0x7f990005 : 0;
+        };
+        Context light = new ContextThemeWrapper(themed(THEMED + ".icons.light", ids), android.R.style.Theme_Material_Light);
+        AccentTheme.apply(light, "igds_color_link");
+        assertEquals("off", List.of(), asked);
+
+        Settings.ACCENT_ICONS.save(true);
+        HookStatus.clear();
+        AccentTheme.apply(light, "igds_color_link");
+        assertEquals(List.of(AccentTheme.iconStyle(AccentHue.TEAL, false)), asked);
+        assertEquals(List.of(FamilyNames.ACCENT_COLOR + ": invoked 1, 0 found, 0 missing. Counted: " + AccentTheme.NO_BLUE + " 1, "
+                + AccentTheme.ICONS + " 1"), HookStatus.report());
+
+        Context dark = new ContextThemeWrapper(themed(THEMED + ".icons.dark", ids), android.R.style.Theme_Material);
+        AccentTheme.apply(dark, "igds_color_link");
+        assertEquals(List.of(AccentTheme.iconStyle(AccentHue.TEAL, false), AccentTheme.iconStyle(AccentHue.TEAL, true)), asked);
+
+        HookStatus.clear();
+        Context bare = themed(THEMED + ".noicons", (name, type) -> type.equals("style")
+                && name.equals(AccentTheme.paletteStyle(AccentHue.TEAL)) ? android.R.style.TextAppearance : 0);
+        AccentTheme.apply(bare, "igds_color_link");
+        assertEquals(List.of(FamilyNames.ACCENT_COLOR + ": invoked 1, 0 found, 0 missing. Counted: " + AccentTheme.NO_BLUE + " 1, "
+                + AccentTheme.ICONS_MISSING + " 1"), HookStatus.report());
+    }
+
+    /**
+     * Paused, the icon style never goes on with both switches on, so the glyph colors it also sets
+     * (#8) stay Instagram's, and nothing is looked up or counted.
+     */
+    @Test
+    public void pausedTheIconStyleNeverGoesOn() {
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        Settings.ACCENT_ICONS.save(true);
+        List<String> asked = new ArrayList<>();
+        Context light = new ContextThemeWrapper(themed(THEMED + ".icons.paused", (name, type) -> {
+            asked.add(type + "/" + name);
+            if (type.equals("style")) return android.R.style.TextAppearance_Small;
+            return type.equals("attr") && name.equals(AccentTheme.ICON_ATTRIBUTE) ? android.R.attr.colorForeground : 0;
+        }), android.R.style.Theme_Material_Light);
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        AccentTheme.apply(light, "igds_color_link");
+        assertEquals(List.of(), asked);
+        assertEquals(List.of(), HookStatus.report());
+
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        AccentTheme.apply(light, "igds_color_link");
+        assertTrue("resumed, " + asked, asked.contains("style/" + AccentTheme.iconStyle(AccentHue.TEAL, false)));
+    }
+
+    @Test
+    public void aThemeIsDarkWhenItsIconColorReadsLight() {
+        Context app = RuntimeEnvironment.getApplication();
+        Resources.Theme light = app.getResources().newTheme();
+        light.applyStyle(android.R.style.Theme_Material_Light, true);
+        Resources.Theme dark = app.getResources().newTheme();
+        dark.applyStyle(android.R.style.Theme_Material, true);
+        assertFalse(AccentTheme.dark(app, light, android.R.attr.colorForeground));
+        assertTrue(AccentTheme.dark(app, dark, android.R.attr.colorForeground));
+        assertFalse("day, nothing held", AccentTheme.dark(app, light, 0x7f990005));
+        RuntimeEnvironment.setQualifiers("+night");
+        assertTrue("night, nothing held", AccentTheme.dark(app, light, 0x7f990005));
+
+        assertTrue(AccentTheme.readsLight(0xffffffff));
+        assertFalse(AccentTheme.readsLight(0xff0c1014));
+        // A theme styled twice keeps its shade: the dark one still reads as a dark theme's.
+        for (AccentHue hue : AccentHue.values()) {
+            if (hue == AccentHue.BLUE || hue == AccentHue.WALLPAPER) continue;
+            assertTrue(hue.name(), AccentTheme.readsLight(hue.linkOnDark));
+            assertFalse(hue.name(), AccentTheme.readsLight(hue.linkOnLight));
+        }
     }
 
     /** Answers a resource's number by name and type for {@link #themed}. */

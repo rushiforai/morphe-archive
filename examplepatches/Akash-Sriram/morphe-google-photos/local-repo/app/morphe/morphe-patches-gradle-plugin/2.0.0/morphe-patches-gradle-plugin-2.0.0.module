@@ -1,0 +1,143 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "app.morphe",
+    "module": "morphe-patches-gradle-plugin",
+    "version": "2.0.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.8.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.21"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "morphe-patches-gradle-plugin-2.0.0.jar",
+          "url": "morphe-patches-gradle-plugin-2.0.0.jar",
+          "size": 59120,
+          "sha512": "ca2bc25c9bc7da403ac24b9e3b673429d4606e791ae11a2ed0a181cd9051980043798e5cd84a5f134b4c6044e6f9222421ab0021f2ccff65444a04f6be3c3165",
+          "sha256": "65020448ff5deef1195416738bb50f833ed59bdc2f6752900ef2b2eb8f31d22d",
+          "sha1": "93b3e19301fe812e791ff8c23ea5e44ed627b02d",
+          "md5": "932a8fdb22e7fd669a632efb7b1915fe"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "com.android.application",
+          "module": "com.android.application.gradle.plugin",
+          "version": {
+            "requires": "9.1.0"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "33.5.0-jre"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-gradle-plugin",
+          "version": {
+            "requires": "2.4.21"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.21"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "morphe-patches-gradle-plugin-2.0.0.jar",
+          "url": "morphe-patches-gradle-plugin-2.0.0.jar",
+          "size": 59120,
+          "sha512": "ca2bc25c9bc7da403ac24b9e3b673429d4606e791ae11a2ed0a181cd9051980043798e5cd84a5f134b4c6044e6f9222421ab0021f2ccff65444a04f6be3c3165",
+          "sha256": "65020448ff5deef1195416738bb50f833ed59bdc2f6752900ef2b2eb8f31d22d",
+          "sha1": "93b3e19301fe812e791ff8c23ea5e44ed627b02d",
+          "md5": "932a8fdb22e7fd669a632efb7b1915fe"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "morphe-patches-gradle-plugin-2.0.0-sources.jar",
+          "url": "morphe-patches-gradle-plugin-2.0.0-sources.jar",
+          "size": 9097,
+          "sha512": "d2ad171e4cef32e64a82965fa7494b717fa76d452dba87385751c7d471e37e2061f189a3dd25c93c482f05f1bb390e3182a31c5da1bb4c23731557f855a604c6",
+          "sha256": "a0bed40bf973c8c7f3e7e1bbb1440412ebdf6fd71e381eccf48f6e52321ebf43",
+          "sha1": "9064ef9e0d6373be70db73210a3fe8081680c6e3",
+          "md5": "45436d193f38861c623813bd4de432bd"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "morphe-patches-gradle-plugin-2.0.0-javadoc.jar",
+          "url": "morphe-patches-gradle-plugin-2.0.0-javadoc.jar",
+          "size": 261,
+          "sha512": "1487e5a20c9e4d74f298e07c42e96a61be11b7a768c3fbc199ee138cd68e1fc2267d1cfe3f11f288acc05df755315344d052cc5f6f751f126ab4fe1caa5125ea",
+          "sha256": "c6deada2fac53b8ea6523dbda77597b128006674616f140f04df23264c6d1aa3",
+          "sha1": "2ad14aed781c4a73ed4dbb421966d408a0a06686",
+          "md5": "f43436d6bec321290f6af228ad602604"
+        }
+      ]
+    }
+  ]
+}

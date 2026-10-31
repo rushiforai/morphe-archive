@@ -26,6 +26,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -36,10 +37,11 @@ import java.io.File
 /**
  * The top bar's three hides (#181) on every Facebook build the bundle declares (every ABI with a
  * fixture, whose Redex names differ): the bar's builder holding setupMessengerGlyphView, the Messenger button
- * class it makes and adds, that class's two count setters, and the logo site. The newer bar some
- * accounts get instead: NavigationBar's spec-to-button method, its glyph and that glyph's count
- * setters. Then the hooks go in on the real classes, which also assembles their smali. Reads the
- * fixture bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
+ * class it makes and adds, that class's two count setters, and the logo site. The Create (#257)
+ * and search (#321) buttons. The newer bar some accounts get instead: NavigationBar's spec-to-button
+ * method, its glyph, that glyph's count setters and its search glyph. Then the hooks go in on the
+ * real classes, which also assembles their smali. Reads the fixture bundles from
+ * HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class TopBarButtonsFixtureTest {
     private fun Method.code() = implementation!!.instructions.toList()
@@ -102,9 +104,27 @@ class TopBarButtonsFixtureTest {
                 }
                 assertEquals("$name: only the Create builder touches its field", listOf(createBuilder.name), readers.map { it.name })
 
+                // Search button (#321): one builder holds the kept addSearchGlyphView string, and the bar
+                // adds a field of its own right after it. Positive control: that field holds the glyph
+                // class the newer bar makes its buttons and its search glyph from, which the newer
+                // bar keeps in its one field of that class.
+                val searchBuilders = buildersHolding(bar, ADD_SEARCH_GLYPH_VIEW)
+                assertEquals("$name: builders holding $ADD_SEARCH_GLYPH_VIEW", 1, searchBuilders.size)
+                val searchBuilder = searchBuilders.single()
+                val search = searchButtonSite(searchBuilder)
+                assertEquals("$name: the search button's field is the bar's", WORDMARK_NAVIGATION_BAR, search.field.definingClass)
+                val newer = newerBar(bundle)
+                assertEquals("$name: the search button is the newer bar's glyph class", newer.glyph.type, search.field.type)
+                assertNotEquals("$name: the search button isn't the Create button", create.field.toString(), search.field.toString())
+                val newerSearch = searchGlyphSite(newer.bar, newer.glyph.type)
+                val newerSearchCode = newerSearch.method.code()
+                assertEquals("$name: the newer bar keeps a glyph", newer.glyph.type,
+                    ((newerSearchCode[newerSearch.kept] as ReferenceInstruction).reference as FieldReference).type)
+                assertNotEquals("$name: the search glyph isn't made in the spec method", specButtonSite(newer.bar).method.name, newerSearch.method.name)
+
                 // Apply the whole hook set the way the patch does: settings has already sent the logo's
                 // touch listener through its stand-in when this patch runs.
-                val context = PatchContexts.of(listOf(bar, button) + newerBar(bundle).classes)
+                val context = PatchContexts.of(listOf(bar, button) + newer.classes)
                 val mutableBar = context.mutableClassDefBy(WORDMARK_NAVIGATION_BAR)
                 val mutableLogo = mutableBar.findMutableMethodOf(logoBuilder)
                 mutableLogo.sendToStandIn(logoTouchListenerIndex(logoBuilder), LOGO_TOUCH_STAND_IN)
@@ -115,7 +135,12 @@ class TopBarButtonsFixtureTest {
                     this.name == other.name && parameterTypes.map(CharSequence::toString) == other.parameterTypes.map(CharSequence::toString)
                 val sameMethod = glyphBuilder.isLike(logoBuilder)
                 val createInLogo = createBuilder.isLike(logoBuilder)
+                val searchInLogo = searchBuilder.isLike(logoBuilder)
                 val createBefore = mutableBar.findMutableMethodOf(createBuilder).code().size
+                val searchInGlyph = searchBuilder.isLike(glyphBuilder)
+                val searchBefore = mutableBar.findMutableMethodOf(searchBuilder).code().size
+                val newerSearchBefore = context.mutableClassDefBy(NAVIGATION_BAR).findMutableMethodOf(newerSearch.method).code()
+                    .count { it.opcode != Opcode.NOP }
                 val countBefore = counts.map { c ->
                     context.mutableClassDefBy(button.type).methods.single {
                         it.name == c.name && it.parameterTypes.map(CharSequence::toString) == c.parameters
@@ -137,7 +162,8 @@ class TopBarButtonsFixtureTest {
                 val logoHooks = logoAfter.withIndex().filter { it.value.call() == HIDE_FACEBOOK_LOGO_HOOK }
                 assertEquals("$name: logo hooks", 1, logoHooks.size)
                 assertEquals("$name: the logo hook is range invoke-static", Opcode.INVOKE_STATIC_RANGE, logoAfter[logoHooks.single().index].opcode)
-                val expected = (if (sameMethod) glyphBefore else logoBefore) + (if (sameMethod) 2 else 1) + (if (createInLogo) 1 else 0)
+                val expected = (if (sameMethod) glyphBefore else logoBefore) + (if (sameMethod) 2 else 1) + (if (createInLogo) 1 else 0) +
+                    (if (searchInLogo) 1 else 0)
                 assertEquals("$name: the builder grew by its hooks only", expected, logoAfter.size)
 
                 val createAfter = patchedBar.findMutableMethodOf(createBuilder).code()
@@ -150,9 +176,36 @@ class TopBarButtonsFixtureTest {
                 assertEquals("$name: the Create hook sits right after the addView", ADD_VIEW_CALL, createAfter[createAt - 1].call())
                 assertEquals("$name: the Create hook comes after the button's own field load",
                     create.field.toString(), (createAfter[createAt - 2] as ReferenceInstruction).reference.toString())
-                if (!createBuilder.isLike(glyphBuilder) && !createInLogo) {
+                if (!createBuilder.isLike(glyphBuilder) && !createInLogo && !createBuilder.isLike(searchBuilder)) {
                     assertEquals("$name: the Create builder grew by its hook only", createBefore + 1, createAfter.size)
                 }
+
+                val searchAfter = patchedBar.findMutableMethodOf(searchBuilder).code()
+                val searchHooks = searchAfter.withIndex().filter { it.value.call() == HIDE_SEARCH_BUTTON_HOOK }
+                assertEquals("$name: search button hooks", 1, searchHooks.size)
+                val searchAt = searchHooks.single().index
+                assertEquals("$name: the search hook is range invoke-static", Opcode.INVOKE_STATIC_RANGE, searchAfter[searchAt].opcode)
+                assertEquals("$name: the search hook hands over the register addView took",
+                    search.register, (searchAfter[searchAt] as RegisterRangeInstruction).startRegister)
+                assertEquals("$name: the search hook sits right after the addView", ADD_VIEW_CALL, searchAfter[searchAt - 1].call())
+                assertEquals("$name: the search hook comes after the button's own field load",
+                    search.field.toString(), (searchAfter[searchAt - 2] as ReferenceInstruction).reference.toString())
+                if (!searchInGlyph && !searchInLogo && !createBuilder.isLike(searchBuilder)) {
+                    assertEquals("$name: the search builder grew by its hook only", searchBefore + 1, searchAfter.size)
+                }
+
+                // The newer bar's search glyph: the hook right after the bar keeps it, on its register.
+                val newerSearchAfter = context.mutableClassDefBy(NAVIGATION_BAR).findMutableMethodOf(newerSearch.method).code()
+                // Not counting nops: the method ends in a switch payload, which the hook can shift off its alignment.
+                assertEquals("$name: the newer search method grew by its hook only", newerSearchBefore + 1,
+                    newerSearchAfter.count { it.opcode != Opcode.NOP })
+                val newerHook = newerSearchAfter[newerSearch.kept + 1]
+                assertEquals("$name: the newer search hook follows the iput-object", HIDE_SEARCH_BUTTON_HOOK, newerHook.call())
+                assertEquals("$name: the newer search hook is range invoke-static", Opcode.INVOKE_STATIC_RANGE, newerHook.opcode)
+                assertEquals("$name: the newer search hook hands over the glyph",
+                    newerSearch.register, (newerHook as RegisterRangeInstruction).startRegister)
+                assertEquals("$name: the newer search hook comes after the glyph's iput-object", Opcode.IPUT_OBJECT,
+                    newerSearchAfter[newerSearch.kept].opcode)
 
                 counts.forEachIndexed { i, c ->
                     val after = context.mutableClassDefBy(button.type).methods.single {
@@ -273,7 +326,7 @@ class TopBarButtonsFixtureTest {
             .map { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
         for (hook in listOf(
             HIDE_MESSENGER_BUTTON_HOOK, HIDE_MESSENGER_COUNT_HOOK, HIDE_FACEBOOK_LOGO_HOOK, BAR_BUTTON_HOOK, BAR_BUTTON_COUNT_HOOK,
-            HIDE_CREATE_BUTTON_HOOK,
+            HIDE_CREATE_BUTTON_HOOK, HIDE_SEARCH_BUTTON_HOOK,
         )) {
             assertTrue("the extension declares no public static $hook: $calls", hook in calls)
         }

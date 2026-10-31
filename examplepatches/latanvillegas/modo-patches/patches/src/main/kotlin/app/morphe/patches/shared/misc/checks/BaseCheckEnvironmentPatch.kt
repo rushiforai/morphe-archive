@@ -25,7 +25,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.encodedValue.MutableEncodedValue
 import app.morphe.patcher.util.proxy.mutableTypes.encodedValue.MutableLongEncodedValue
 import app.morphe.patcher.util.proxy.mutableTypes.encodedValue.MutableStringEncodedValue
-import app.morphe.patches.youtube.shared.YouTubeActivityOnCreateFingerprint
 import com.android.tools.smali.dexlib2.immutable.value.ImmutableLongEncodedValue
 import com.android.tools.smali.dexlib2.immutable.value.ImmutableStringEncodedValue
 import java.nio.charset.StandardCharsets
@@ -37,7 +36,6 @@ private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/shared/checks/CheckEnvironmentPatch;"
 
 fun checkEnvironmentPatch(
-    @Suppress("unused")
     mainActivityOnCreateFingerprint: Fingerprint,
     extensionPatch: Patch<*>,
 ) = bytecodePatch(
@@ -94,7 +92,7 @@ fun checkEnvironmentPatch(
             }
         }
 
-        fun invokeCheck() = YouTubeActivityOnCreateFingerprint.method.addInstruction(
+        fun invokeCheck() = mainActivityOnCreateFingerprint.method.addInstruction(
             0,
             "invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->check(Landroid/app/Activity;)V",
         )

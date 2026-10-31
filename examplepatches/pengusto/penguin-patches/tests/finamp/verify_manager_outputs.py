@@ -13,7 +13,10 @@ from build_native_payloads import APK_SHA
 from patch_matrix import check_contents
 
 FULL_SUITE = {'32-jvm', '64-jvm', '96-jvm', '127-jvm', '31-jvm', '127-art'}
-SUPPORTED_CASES = {f'{mask}-{runtime}' for mask in range(1, 128) for runtime in ('jvm', 'art')}
+SUITES = {'ui-fixes': FULL_SUITE,
+          'artist-review': {'4-jvm', '12-jvm', '36-jvm', '127-jvm', '123-jvm', '4-art', '127-art'}}
+SUPPORTED_CASES = {f'{mask}-{runtime}{suffix}' for mask in range(1, 128)
+                   for runtime in ('jvm', 'art') for suffix in ('', '-recovery')}
 
 
 def main():
@@ -21,13 +24,15 @@ def main():
     for argument in ('apk-dir', 'original-apk', 'native-report', 'build-tools', 'java-home', 'report'):
         parser.add_argument('--' + argument, type=Path, required=True)
     parser.add_argument('--signer-sha256', required=True)
-    parser.add_argument('--expect', default=','.join(sorted(FULL_SUITE)),
+    parser.add_argument('--suite', choices=sorted(SUITES), default='ui-fixes')
+    parser.add_argument('--expect', default=None,
                         help='Case IDs; a subset is explicitly recorded as an incomplete suite')
     args = parser.parse_args()
     signer = args.signer_sha256.lower()
     if not re.fullmatch(r'[0-9a-f]{64}', signer):
         raise ValueError('Invalid expected signer SHA-256')
-    cases = args.expect.split(',')
+    expected_suite = SUITES[args.suite]
+    cases = args.expect.split(',') if args.expect is not None else sorted(expected_suite)
     if len(cases) != len(set(cases)) or not set(cases) <= SUPPORTED_CASES:
         raise ValueError('Select unique recorded Manager case IDs')
     if hashlib.sha256(args.original_apk.read_bytes()).hexdigest() != APK_SHA:
@@ -37,9 +42,10 @@ def main():
         raise ValueError('Native verification report targets another original')
     environment = dict(os.environ, JAVA_HOME=str(args.java_home.resolve()))
     report = {'original_apk_sha256': APK_SHA, 'bundle_sha256': native['bundle_sha256'],
-              'full_manager_suite': set(cases) == FULL_SUITE, 'cases': {}}
+              'manager_suite': args.suite, 'expected_suite_cases': sorted(expected_suite),
+              'full_manager_suite': set(cases) == expected_suite, 'cases': {}}
     for case in cases:
-        mask, runtime = case.split('-')
+        mask, runtime, *stage = case.split('-')
         apk = args.apk_dir / f'manager-mask-{case}.apk'
         expected = native['masks'][mask]['native_sha256']
         contents = check_contents(args.original_apk, apk, expected)
@@ -56,7 +62,8 @@ def main():
             raise ValueError('Unexpected Manager signer for ' + case)
         subprocess.run([str(args.build_tools / 'zipalign'), '-c', '-P', '16', '4', str(apk)],
                        check=True, capture_output=True)
-        report['cases'][case] = {'mask': int(mask), 'runtime': runtime, 'apk_bytes': apk.stat().st_size,
+        report['cases'][case] = {'mask': int(mask), 'runtime': runtime, 'recovery': stage == ['recovery'],
+                                 'apk_bytes': apk.stat().st_size,
                                  'apk_sha256': hashlib.sha256(apk.read_bytes()).hexdigest(),
                                  'native_sha256': expected, 'signer_sha256': signer,
                                  'signature_verified': True, 'alignment_16k_verified': True,

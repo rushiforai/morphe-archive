@@ -22,7 +22,7 @@ import org.json.JSONObject;
  * is immediately reported as successful without requiring real-money payment and without opening Google Play.
  * 
  * DISCLAIMER:
- * 100% AI Generated code for educational and research purposes only.
+ * Vibe-coded for educational and research purposes only.
  * No liability accepted.
  */
 public final class HungrySharkBillingHelper {

@@ -33,7 +33,7 @@ public class VersionWarningsSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.REMOVE_BUILD_EXPIRED_POPUP.resetToDefault();
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
         BaseSettings.PAUSED.save(false);

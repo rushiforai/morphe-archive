@@ -4,11 +4,11 @@
 
 `nl.uitzendinggemist`
 
-[Download the original APKS](https://buzzheavier.com/c7sdu1cfelij){ .md-button .md-button--primary }
+[Download the original APKS](https://buzzheavier.com/1s5dezsqvxbq){ .md-button .md-button--primary }
 
 Select this file in Morphe Manager to apply the patches.
 
-Watching a programme can load preroll ads and send player, audience and diagnostic events to NPO and several other providers. The TV build is protected by PairIP, so the patches also restore parts of its startup and sign-in code. In Morphe Manager, refresh the patch source, choose NPO Start Android TV and select `npo-start-atv.apks` as the original input. Match the build number as well as the version: a phone APK with the same version name is not this TV target.
+Watching a programme can load preroll ads and send player, audience and diagnostic events to NPO and several other providers. The TV build is protected by PairIP, so the patches also restore parts of its startup and sign-in code. In Morphe Manager, refresh the patch source, choose NPO Start Android TV and select `npo-start-atv-android7.apks` as the original input. Match the build number as well as the version: a phone APK with the same version name is not this TV target.
 
 ## What did we find in the app?
 
@@ -26,7 +26,7 @@ Authentication, DRM and functional media services remain, and content and sign-i
 
 Network changes, audio-route events, fresh sign-in and longer background and foreground use still need testing on a device. When reporting a problem, say whether it happens at startup, sign-in or playback, and include the programme or channel. A working Plus account does not establish that the free-account ad path works.
 
-Updates between patched builds need the same signing key to keep app data. Follow the installation guide when replacing the publisher-signed app, and keep a working patched installer available when testing an update. Use the complete original TV APKS on Android 12L (API 32) or newer.
+Updates between patched builds need the same signing key to keep app data. Follow the installation guide when replacing the publisher-signed app, and keep a working patched installer available when testing an update. Use the complete Android 7.0+ (API 24) TV APKS linked above. The earlier API 32 TV input remains supported. Match the publisher's minimum SDK as well as the build number; the patches accept only the inspected API 24 and API 32 variants.
 
 ## Available controls
 
@@ -39,3 +39,5 @@ All three are on by default, also in Simple mode. Hide ads and Disable tracking 
 ## Evidence
 
 Reviewed 29 October 2026 against `2190e42`: [TV research and test evidence](https://github.com/johnneerdael/dutch-applications-patches/blob/2190e42b1877badaca7a8e1e520e83aa7e95d90a/docs/research/2026-10-29-atv.md), [collection paths and destination limits](https://github.com/johnneerdael/dutch-applications-patches/blob/e2c30be/docs/privacy/npo-start-android-tv/README.md), [PairIP handover](https://github.com/johnneerdael/dutch-applications-patches/blob/2190e42b1877badaca7a8e1e520e83aa7e95d90a/docs/NPO_START_TV_PAIRIP_HANDOVER.md) and [patch source](https://github.com/johnneerdael/dutch-applications-patches/tree/2190e42b1877badaca7a8e1e520e83aa7e95d90a/patches/src/main/kotlin/patches/npostarttv). Free-account playback with Hide ads and Disable tracking is confirmed on a 32-bit ARM Android 14 TV. After the token-request crash was fixed, the combined build passed three cold starts and playback advanced without an error. Bytecode, manifest and Android runtime tests also pass. These checks cover startup, playback entry and the patched methods, not complete network silence. [How to read the evidence](../reference/methodology.md).
+
+The Android 7+ input was validated on 30 October 2026: [port and validation evidence](https://github.com/johnneerdael/dutch-applications-patches/blob/main/docs/research/2026-10-30-npo-tv-android7.md). Installation, startup and the emitted callbacks, token requests, ad gates and privacy gates pass on an API 24 ARM64 emulator. The same patched APK was installed on the user's ARMv7 Android 14 TV, where the user confirmed it works. Physical Android 7 TV behavior, long-duration playback and complete traffic silence remain unverified.

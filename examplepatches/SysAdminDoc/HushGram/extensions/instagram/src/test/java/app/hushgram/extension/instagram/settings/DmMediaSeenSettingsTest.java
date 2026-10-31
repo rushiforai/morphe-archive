@@ -33,7 +33,7 @@ public class DmMediaSeenSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.VIEW_DM_MEDIA_ANONYMOUSLY.resetToDefault();
         Settings.VIEW_STORIES_ANONYMOUSLY.resetToDefault();
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);

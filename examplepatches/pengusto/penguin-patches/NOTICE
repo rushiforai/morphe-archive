@@ -116,3 +116,21 @@ in nested folders. Penguin supplies a separate Java depth-first iterator and
 retains the installed application's existing feed/group construction and save
 path. Compile-only be.ceau.opml signatures are never distributed in the APK.
 See docs/READYOU.md for exact APK provenance and acceptance evidence.
+
+Mihon Default-category download retention
+-----------------------------------------
+The boxed-Long correction is a bounded backport of Marc Went / Dunky13's
+Mihon PR #4182, commit 07e5882033ae664b0abcca3f5a64dc6e3e59e212
+(https://github.com/mihonapp/mihon/pull/4182), Apache-2.0. Mihon and contributors
+retain authorship of their source. Penguin adds independent exact-APK guards,
+bytecode integration and behavioral acceptance tests; no separate Hide/Unhide
+feature or bundled Mihon/Kotlin library is included. See docs/MIHON.md.
+
+Komikku local exclusion search
+------------------------------
+Targets Komikku by cuong-tran / komikku-app and contributors, forked from Mihon
+and TachiyomiSY, GPL-3.0 (https://github.com/komikku-app/komikku). Original
+release source: e30ff83265d7affcc14e172ea9eadf469db1f4aa. Penguin changes only
+the numeric-source null edge in the existing library exclusion predicate.
+The adjacent source-name/language work in kana-shii's PR #1128 remains separate.
+See docs/KOMIKKU.md for corresponding source, original APK and acceptance.

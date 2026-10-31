@@ -43,7 +43,7 @@ public class HomeHeaderSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         BaseSettings.SAFE_MODE.save(false);
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
     }
@@ -143,6 +143,21 @@ public class HomeHeaderSettingsTest {
         assertTrue(Settings.MESSAGES_BUTTON_ON_HOME.rebootApp);
         assertTrue(PatchFamily.REELS_TAB.switches.contains(Settings.MESSAGES_BUTTON_ON_HOME));
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.MESSAGES_BUTTON_ON_HOME.key));
+    }
+
+    /** Settings button on Home's header (#404) sits under Tab bar, starts off and asks for a restart. */
+    @Test public void theSettingsButtonSwitchStartsOff() throws Exception {
+        open(PatchFamily.REELS_TAB);
+        SwitchPreference toggle = (SwitchPreference) row(Settings.SETTINGS_BUTTON_ON_HOME.key);
+        assertNotNull(toggle);
+        assertEquals("Tab bar", String.valueOf(sectionOf(page.getPreferenceScreen(), toggle).getTitle()));
+        assertEquals("Settings button on Home's header", String.valueOf(toggle.getTitle()));
+        assertTrue(String.valueOf(toggle.getSummary()).endsWith("Restart Instagram to see the change."));
+        assertFalse(toggle.isChecked());
+        assertEquals(Boolean.FALSE, Settings.SETTINGS_BUTTON_ON_HOME.defaultValue);
+        assertTrue(Settings.SETTINGS_BUTTON_ON_HOME.rebootApp);
+        assertTrue(PatchFamily.REELS_TAB.switches.contains(Settings.SETTINGS_BUTTON_ON_HOME));
+        assertTrue(ConfigurationBackup.eligible().containsKey(Settings.SETTINGS_BUTTON_ON_HOME.key));
     }
 
     /** Hide Messages on Home's header (#210) follows Messages button on Home's header, starts off and asks for a restart. */

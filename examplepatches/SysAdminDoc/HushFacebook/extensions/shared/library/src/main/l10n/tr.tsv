@@ -1719,6 +1719,8 @@ Hide the Facebook logo	Facebook logosunu gizle
 Hides the Facebook logo in the top bar. The empty spot is the same size and still opens Hushfacebook settings when you press and hold it. Restart Facebook to see the change.	Üst çubuktaki Facebook logosunu gizler. Boş alan aynı boyuttadır ve uzun basıldığında yine Hushfacebook ayarlarını açar. Değişikliği görmek için Facebook'u yeniden başlatın.
 Hide the Create button	Oluştur düğmesini gizle
 Takes the + button for making a post, reel or story out of the top bar. Restart Facebook to see the change.	Gönderi, reels ve hikâye oluşturmak için kullanılan + düğmesini üst çubuktan kaldırır. Değişikliği görmek için Facebook'u yeniden başlatın.
+Hide the search button	Arama düğmesini gizle
+Takes the search button out of the top bar. Restart Facebook to see the change.	Arama düğmesini üst çubuktan kaldırır. Değişikliği görmek için Facebook'u yeniden başlatın.
 # context: switch title under News feed; the counts are the numbers on the Like, Comment and Share buttons under a post
 Hide counts on posts	Gönderilerdeki sayıları gizle
 # context: summary of that switch; Like, Comment and Share are Facebook's own button labels, so use Facebook's wording in your language
@@ -1974,7 +1976,7 @@ The app holding that picture is taking too long, so Hushfacebook stopped waiting
 # context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
 The app holding the last picture still hasn't answered. Try again later.	Son resmi tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.
 Inline feed video controls	Akış videosu denetimleri
-Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls.	Akış videolarına oynat/duraklat düğmesi ekler. Tam ekran açmak için videonun kendisine dokunun. Canlı videolar ve reklamlar kendi denetimlerini korur.
+Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls. With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.	Akış videolarına oynat/duraklat düğmesi ekler. Tam ekran açmak için videonun kendisine dokunun. Canlı videolar ve reklamlar kendi denetimlerini korur. “Oynatmak için dokun” da açıksa Facebook'un kendi otomatik oynatma ayarı seçtiğiniz gibi kalır, böylece düğme görünebilir. Videolar yine de dokunmanızı bekler.
 Play feed video	Akış videosunu oynat
 Pause feed video	Akış videosunu duraklat
 Support	Destek
@@ -2112,3 +2114,170 @@ Done	Bitti
 Oldest	En eski
 Comments open oldest first, on every post. Facebook's sort menu then shows All comments.	Yorumlar her gönderide en eskiden başlayarak açılır. Facebook'un sıralama menüsü o zaman Tüm yorumlar gösterir.
 Comments will open oldest first.	Yorumlar en eskiden başlayarak açılacak.
+# context: title of the News feed row counting what Hushfacebook hid in Home since Facebook was opened; it resets when Facebook restarts
+Hidden since Facebook started	Facebook açıldığından beri gizlenenler
+# context: that row's summary before anything was hidden
+Nothing hidden yet. Scroll Home and come back.	Henüz bir şey gizlenmedi. Ana Sayfa'da biraz gezinip geri gel.
+# context: one kind in that row's list with how many of it were hidden, such as ads (12)
+%1$s (%2$d)	%1$s (%2$d)
+# context: the last item of that list, one hidden post of the kinds not named
+%1$d other	%1$d diğer
+# context: the last item of that list, several hidden posts of the kinds not named
+%1$d others	%1$d diğer
+# context: that row's summary when one thing was hidden; %2$s is the list of kinds with counts
+%1$d post or card: %2$s	%1$d gönderi veya kart: %2$s
+# context: that row's summary when several things were hidden; %2$s is the list of kinds with counts
+%1$d posts and cards: %2$s	%1$d gönderi ve kart: %2$s
+# context: a kind in that list, sponsored posts
+ads	reklamlar
+# context: a kind in that list, reels in the feed
+reels	Reels
+# context: a kind in that list, suggested posts and cards
+suggestions	öneriler
+# context: a kind in that list, cards like Memories and friend requests
+Memories and other cards	anılar ve diğer kartlar
+# context: a kind in that list
+posts from groups you're not in	üyesi olmadığın grupların gönderileri
+# context: a kind in that list, the Stories row at the top of Home
+rows of Stories	Hikayeler satırları
+# context: a kind in that list, posts made with AI
+AI posts	yapay zekâ gönderileri
+# context: a kind in that list, posts hidden by the user's own word, people and Page filters
+posts your filters matched	filtrelerine takılan gönderiler
+# context: a kind in that list, posts hidden because the user already saw them
+posts you've seen	gördüğün gönderiler
+# context: row title in News feed settings and the title of its list: Facebook's own names for kinds of post and card the user can pick to hide
+Feed types to hide	Gizlenecek akış türleri
+# context: warning under that row: hiding a type Home's ordinary posts use can leave Home with nothing to show
+Picking a type Home needs can leave it empty.	Ana Sayfa'nın ihtiyaç duyduğu bir türü seçmek onu boş bırakabilir.
+# context: that row's summary while nothing is picked; Debug logging is the name of a switch
+None picked. Hides posts and cards by Facebook's own type name, as Debug logging records it.	Hiçbiri seçilmedi. Gönderileri ve kartları, Hata ayıklama günlüğünün kaydettiği şekilde Facebook'un kendi tür adına göre gizler.
+# context: message when the list has no types to offer because Home hasn't been scrolled since Facebook started
+No types seen yet. Scroll Home and come back.	Henüz tür görülmedi. Ana Sayfa'da biraz gezinip geri gel.
+# context: import preview and toast, no feed type will be in that list after the import
+Your list of feed types to hide will be empty.	Gizlenecek akış türleri listen boş olacak.
+# context: import preview and toast, one feed type will be in that list after the import
+Your list of feed types to hide will hold %1$d type.	Gizlenecek akış türleri listen %1$d tür içerecek.
+# context: import preview and toast, several feed types will be in that list after the import
+Your list of feed types to hide will hold %1$d types.	Gizlenecek akış türleri listen %1$d tür içerecek.
+# context: title of the full screen cover the Opening pause puts over Facebook's first screen when it's opened from its icon
+Still want to open Facebook?	Facebook'u yine de açmak istiyor musun?
+# context: line under that title while it counts down, one second left before the Open now button works
+You can open it in %1$d second.	%1$d saniye sonra açabilirsin.
+# context: line under that title while it counts down, several seconds left before the Open now button works
+You can open it in %1$d seconds.	%1$d saniye sonra açabilirsin.
+# context: line under that title once the countdown is over and both buttons work
+Open it, or close it and do something else.	Aç ya da kapatıp başka bir şey yap.
+# context: button on that cover that shows Facebook, working only once the countdown is over
+Open now	Şimdi aç
+# context: button on that cover that sends Facebook to the background
+Close	Kapat
+# context: switch title in the Opening Facebook settings: a short countdown before Facebook shows when it's opened from its icon
+Opening pause	Açılış molası
+# context: that switch's summary
+Opening Facebook from its icon shows a short countdown first, so you can change your mind. Links, notifications and shares open it straight away, and so does coming back within a minute.	Facebook'u simgesinden açınca önce kısa bir geri sayım çıkar, böylece fikrini değiştirebilirsin. Bağlantılar, bildirimler ve paylaşımlar onu hemen açar, bir dakika içinde geri dönmek de öyle.
+# context: row title and list title under that switch: how long the countdown lasts
+Pause length	Mola süresi
+# context: a choice in that list
+5 seconds	5 saniye
+# context: a choice in that list
+10 seconds	10 saniye
+# context: that row's summary; Open now is the cover's button and %1$s is the chosen length, such as 5 seconds
+Open now works after %1$s.	Şimdi aç düğmesi %1$s sonra çalışır.
+# context: import preview and toast; Opening pause is the switch's name and %1$s is the length the import sets, such as 10 seconds
+With Opening pause on, Facebook will wait %1$s before it opens.	Açılış molası açıkken Facebook açılmadan önce %1$s bekler.
+# context: a row on the Playback page that opens a list of 7 days, 30 days and Until you clear it; entries are the reels, videos and stories on the Recently watched list
+Keep watched entries for	İzlenenleri tutma süresi
+# context: a choice in that list; it means the list itself is cleared with its Clear button
+Until you clear it	Sen temizleyene kadar
+# context: that row's summary when Until you clear it is picked
+Reels, videos and stories stay on the list until you clear it.	Reeller, videolar ve hikayeler sen temizleyene kadar listede kalır.
+# context: that row's summary; %1$s is the chosen time, 7 days or 30 days
+Reels, videos and stories leave the list %1$s after you watch them.	Reeller, videolar ve hikayeler izlendikten %1$s sonra listeden çıkar.
+# context: screen reader label of the remove button on one Recently watched row; %1$s is the row's title, such as Reel, Video or the poster's name
+Remove %1$s	Kaldır: %1$s
+# context: line under the Recently watched list, next to its Undo button, after one entry was removed; %1$s is that row's title
+Removed %1$s	Kaldırıldı: %1$s
+# context: toast when Undo can't put a removed entry back
+It wasn't put back. It was watched again since, or its time on the list is up.	Geri konmadı. O zamandan beri yeniden izlendi ya da listedeki süresi doldu.
+# context: import preview and toast; Recently watched is the list's name
+Recently watched will keep entries until you clear them.	Son izlenenler girişleri sen temizleyene kadar tutacak.
+# context: import preview and toast; Recently watched is the list's name and %1$s is 7 days or 30 days
+Recently watched will keep entries for %1$s.	Son izlenenler girişleri %1$s boyunca tutacak.
+# context: a switch on the Feeds page, under Opening pause; it covers Home, Feeds, Video and Reels after a chosen time of use
+Take breaks	Mola ver
+# context: that switch's summary; Home, Feeds, Video and Reels are Facebook's tabs, Menu is Facebook's Menu tab; the last part means being away from Facebook as long as a break also counts as a break
+After the time you pick on Home, Feeds, Video and Reels, they're covered for a break. Chats, your profile and the Menu still work, and time away as long as a break counts as one.	Ana Sayfa, Akışlar, Video ve Reels'te seçtiğin süreden sonra bunlar bir mola için kapatılır. Sohbetler, profilin ve Menü çalışmaya devam eder, bir mola kadar uzak kalmak da mola sayılır.
+# context: a row under Take breaks that opens a list of times; it's how long you can browse before a break starts
+Break after	Moladan önceki süre
+# context: a row under Take breaks that opens a list of times; it's how long a break lasts
+Break length	Mola süresi
+# context: a choice in those lists
+10 minutes	10 dakika
+# context: a choice in those lists
+30 minutes	30 dakika
+# context: a choice in those lists
+45 minutes	45 dakika
+# context: the Break after row's summary; %1$s is the chosen time, such as 30 minutes
+A break starts after %1$s of Home, Feeds, Video and Reels.	Ana Sayfa, Akışlar, Video ve Reels'te %1$s geçince mola başlar.
+# context: the Break length row's summary; %1$s is the chosen time, such as 5 minutes
+Home, Feeds, Video and Reels stay covered for %1$s.	Ana Sayfa, Akışlar, Video ve Reels %1$s boyunca kapalı kalır.
+# context: title of the cover shown over Home, Feeds, Video and Reels during a break
+Time for a break	Mola zamanı
+# context: line on the break cover; %1$d is the whole minutes left, here 1
+Home, Feeds, Video and Reels open again in %1$d minute.	Ana Sayfa, Akışlar, Video ve Reels %1$d dakika sonra yeniden açılır.
+# context: line on the break cover; %1$d is the whole minutes left, more than 1
+Home, Feeds, Video and Reels open again in %1$d minutes.	Ana Sayfa, Akışlar, Video ve Reels %1$d dakika sonra yeniden açılır.
+# context: line on the break cover in its last minute
+Home, Feeds, Video and Reels open again in under a minute.	Ana Sayfa, Akışlar, Video ve Reels bir dakikadan kısa sürede yeniden açılır.
+# context: line on the break cover; Menu is Facebook's Menu tab
+Chats, your profile and the Menu still work.	Sohbetler, profilin ve Menü çalışmaya devam eder.
+# context: button on the break cover that switches to Facebook's Menu tab
+Go to the Menu	Menü'ye git
+# context: button on the break cover that sends Facebook to the background
+Close Facebook	Facebook'u kapat
+# context: button on the break cover that opens the Take breaks settings
+Break settings	Mola ayarları
+# context: toast when a break's time is up and the cover goes away
+Your break is over.	Molan bitti.
+# context: import preview and toast; Take breaks is the switch's name and %1$s is a time such as 30 minutes
+With Take breaks on, a break will start after %1$s of browsing.	Mola ver açıkken %1$s gezindikten sonra mola başlar.
+# context: import preview and toast; Take breaks is the switch's name and %1$s is a time such as 5 minutes
+With Take breaks on, a break will last %1$s.	Mola ver açıkken bir mola %1$s sürer.
+# context: Marketplace search, the Advanced Marketplace search switch and its Adv. Filters button and dialog
+Advanced Marketplace search	Gelişmiş Marketplace araması
+Lets you type rules into Marketplace search. Put a word in quotes, like "word", to keep only titles with it, put a minus in front, like -word, to hide titles with it, and add in:place to keep listings in that place.	Marketplace aramasına kural yazmanızı sağlar. Yalnızca o kelimeyi içeren başlıkları tutmak için kelimeyi "kelime" gibi tırnak içine alın, o kelimeyi içeren başlıkları gizlemek için önüne -kelime gibi eksi koyun ve yalnızca o yerdeki ilanları tutmak için in:yer ekleyin.
+Adv. Filters button	Gel. Filtreler düğmesi
+Adds an Adv. Filters button under Marketplace's Filters on search results. It opens lists of words to keep, words to hide and places, and writes the rules into the search for you.	Arama sonuçlarında Marketplace'in Filtreler'inin altına bir Gel. Filtreler düğmesi ekler. Tutulacak kelimeler, gizlenecek kelimeler ve yerler listelerini açar ve kuralları sizin için aramaya yazar.
+How Adv. Filters works	Gel. Filtreler nasıl çalışır
+Type a word or a phrase and tap Add. A phrase of more than one word has to be in the title as written. A term matches anywhere in a title, so cat also matches cats. Put it in quotes with a space after it, like "cat ", to leave out cats. Go puts these into the search box and searches again.	Bir kelime veya ifade yazıp Ekle'ye dokunun. Birden fazla kelimeden oluşan bir ifade başlıkta yazıldığı gibi geçmelidir. Bir terim başlığın herhangi bir yerinde eşleşir, yani cat, cats ile de eşleşir. cats'i dışarıda bırakmak için "cat " gibi arkasında boşlukla tırnak içine alın. Git bunları arama kutusuna koyar ve yeniden arar.
+You can also type "word", -word or in:place straight into the search box.	Arama kutusuna doğrudan "kelime", -kelime veya in:yer da yazabilirsiniz.
+Adv. Filters	Gel. Filtreler
+Adv. Filters (%1$d)	Gel. Filtreler (%1$d)
+Advanced Marketplace filters	Gelişmiş Marketplace filtreleri
+Advanced Marketplace filters, %1$d on	Gelişmiş Marketplace filtreleri, %1$d açık
+Add	Ekle
+Title must include	Başlıkta olması gereken
+Hide titles with	Şunları içeren başlıkları gizle
+Only show listings in	Yalnızca şuradaki ilanları göster
+Go	Git
+Clear all	Tümünü temizle
+Search box not found. Type the search again.	Arama kutusu bulunamadı. Aramayı yeniden yazın.
+The search box didn't open. Type the search again.	Arama kutusu açılmadı. Aramayı yeniden yazın.
+Hide stories from Pages	Sayfaların hikayelerini gizle
+Hide seen stories	İzlenen hikayeleri gizle
+Shows only people's stories in the Stories tray, without the Pages you follow. Applies when Facebook next loads the tray.	Hikayeler çubuğunda takip ettiğiniz Sayfalar olmadan yalnızca kişilerin hikayelerini gösterir. Facebook çubuğu bir sonraki yüklediğinde geçerli olur.
+Stories you've already watched leave the Stories tray until there's a new one. Applies when Facebook next loads the tray.	İzlediğiniz hikayeler yenisi gelene kadar Hikayeler çubuğundan kalkar. Facebook çubuğu bir sonraki yüklediğinde geçerli olur.
+90 days	90 gün
+Tap a reel above its comments	Yorumların üstündeki reele dokun
+Tapping the reel above its comments plays or pauses it, and the comments stay open. Works while comments open part way up, not at full height.	Yorumlarının üstündeki reele dokunmak onu duraklatır ya da oynatır ve yorumlar açık kalır. Yorumlar tam yükseklikte açılmadığı sürece çalışır.
+# context: sentence added after the summary of the Download feed and Watch videos switch; Save video is the row's name, keep it as translated for that row
+A video comment gets Save video when you long-press it.	Bir video yorumuna basılı tuttuğunda Videoyu kaydet çıkar.
+# context: switch title next to Hide the Follow button on reels; Subscribe is Facebook's own button name, keep it as Facebook translates it
+Hide the Subscribe button on videos	Videolardaki Abone Ol düğmesini gizle
+# context: summary under that switch; "there" is next to the author of a reel or video, Subscribe and Follow are Facebook's button names
+The Subscribe button some authors get there instead, which subscribes with one tap. Follow buttons stay.	Bazı içerik sahiplerinde onun yerine çıkan ve tek dokunuşla abone yapan Abone Ol düğmesi. Takip Et düğmeleri kalır.
+# context: switch title under Play SDR versions of HDR videos; washed-out means pale, faded colors
+Fix washed-out video colors	Soluk video renklerini düzelt
+# context: summary under that switch; Disable HW overlays and developer options are Android's own setting names, use the names Android shows in this language
+Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery.	Videolar ve Reels, Geliştirici seçeneklerindeki HW katmanlarını devre dışı bırak gibi ekranın geri kalanıyla birlikte çizilir. Reels bir şey üstünü kapatana kadar soluk görünüyorsa dene. Biraz daha fazla pil kullanır.

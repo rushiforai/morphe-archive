@@ -263,7 +263,8 @@ internal const val INVALIDATE = "Landroid/view/View;->invalidate()V"
  * `LX/87v;->Don`). A controller built with that updater's interface (581 `LX/87w;`) shows the
  * controls on a tap and posts its hide runnable (581 `LX/87x;`), whose `run()` asks the controller
  * to hide them about 3 seconds later. On 583 the updater is folded into the controller, a static
- * method of it (`LX/8Mz;->A00`), and the runnable is `LX/8N0;`. On the S25 (581, 2026-10-08) a stack trace of that hide went
+ * method of it (`LX/8Mz;->A00`), and the runnable is `LX/8N0;`. On 585 the updater is a class of its
+ * own again, no interface (arm64 `LX/09hT;->A00`), that the controller (`LX/09hU;`) takes in its constructor. On the S25 (581, 2026-10-08) a stack trace of that hide went
  * from this `run()` through the controller to the updater, and none of the hooks above ran in that
  * player. So the same hook goes first in this `run()`. A tap still hides the controls, as the tap
  * handler calls the controller's hide itself.
@@ -956,11 +957,16 @@ internal fun mountOverridesSkippingBase(
  */
 private fun isLengthCheckShape(parameters: List<String>) = parameters.sorted() == listOf("I", "Z")
 
+// 585 flips the minimum check's compare (arm64 `LX/0AE0;->A1O` jumps to its yes on `if-ge`, where 583 jumped to its no
+// on `if-lt`); the short-reel check keeps its `if-gt` (`A1N`). Which side jumps is Redex's pick, so both are accepted.
+private val MINIMUM_COMPARES = arrayOf(Opcode.IF_LT, Opcode.IF_GE)
+private val SHORT_COMPARES = arrayOf(Opcode.IF_GT, Opcode.IF_LE)
+
 /**
  * The scrubber's instance length checks loading [LENGTH_CHECK_SURFACE] that compare the reel's
  * length, their int parameter, first in an [opcode] against Facebook's minimum.
  */
-private fun lengthChecks(scrubber: ClassDef, opcode: Opcode): List<Method> =
+private fun lengthChecks(scrubber: ClassDef, vararg opcodes: Opcode): List<Method> =
     methodsHolding(scrubber, LENGTH_CHECK_SURFACE).filter {
         !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Z" &&
             isLengthCheckShape(it.parameterTypes.map(CharSequence::toString))
@@ -969,7 +975,7 @@ private fun lengthChecks(scrubber: ClassDef, opcode: Opcode): List<Method> =
         // The parameters take the last three registers: this, then the length and the boolean in their order.
         val parameters = check.parameterTypes.map(CharSequence::toString)
         val length = implementation.registerCount - parameters.size + parameters.indexOf("I")
-        implementation.instructions.any { it.opcode == opcode && (it as TwoRegisterInstruction).registerA == length }
+        implementation.instructions.any { it.opcode in opcodes && (it as TwoRegisterInstruction).registerA == length }
     }
 
 /** The scrubber's two length checks, [minimumLengthCheck] and [shortReelCheck]. */
@@ -981,7 +987,7 @@ internal class LengthChecks(val minimum: Method, val short: Method)
  * LX/7lL;` branch there), and [barInfo] finds their answers in it instead.
  */
 internal fun scrubberLengthChecks(scrubber: ClassDef): LengthChecks? {
-    if (lengthChecks(scrubber, Opcode.IF_LT).isEmpty() && lengthChecks(scrubber, Opcode.IF_GT).isEmpty()) return null
+    if (lengthChecks(scrubber, *MINIMUM_COMPARES).isEmpty() && lengthChecks(scrubber, *SHORT_COMPARES).isEmpty()) return null
     return LengthChecks(minimumLengthCheck(scrubber), shortReelCheck(scrubber))
 }
 
@@ -992,7 +998,7 @@ internal fun scrubberLengthChecks(scrubber: ClassDef): LengthChecks? {
  * the passive look and no bar at all. Refuses unless there's exactly one such check.
  */
 internal fun minimumLengthCheck(scrubber: ClassDef): Method {
-    val minimum = lengthChecks(scrubber, Opcode.IF_LT)
+    val minimum = lengthChecks(scrubber, *MINIMUM_COMPARES)
     return minimum.singleOrNull()
         ?: refuse("${scrubber.type} has ${minimum.size} length check(s) failing a reel shorter than a minimum, expected one")
 }
@@ -1004,7 +1010,7 @@ internal fun minimumLengthCheck(scrubber: ClassDef): Method {
  * so a short reel's bar showed for a moment and went. Refuses unless there's exactly one.
  */
 internal fun shortReelCheck(scrubber: ClassDef): Method {
-    val short = lengthChecks(scrubber, Opcode.IF_GT)
+    val short = lengthChecks(scrubber, *SHORT_COMPARES)
     return short.singleOrNull()
         ?: refuse("${scrubber.type} has ${short.size} length check(s) passing only a reel at most a minimum long, expected one")
 }
@@ -1462,7 +1468,7 @@ internal fun extensionFadeTimer(holders: List<ClassDef>): Pair<ClassDef, Method>
  * controller taking it last (`LX/8Mz;->A00`), and [type] is that controller. [update] is the call the
  * controller makes to hand the updater a new control state.
  */
-internal class ControlsUpdater(val type: String, val folded: Boolean, val update: String)
+internal class ControlsUpdater(val type: String, val folded: Boolean, val update: String, val virtual: Boolean = false)
 
 /**
  * The landscape player's controls updater, among [holders], whose interfaces are found with
@@ -1478,8 +1484,17 @@ internal fun controlsUpdater(holders: List<ClassDef>, classOf: (String) -> Class
                 listOf(ControlsUpdater(holder.type, true, "${holder.type}->$shape"))
                     .filter { holder.type in update.parameterTypes.map(CharSequence::toString) }
             } else {
-                holder.interfaces.mapNotNull(classOf).filter { face -> face.methods.any { it.sameAs(update) } }
+                val faces = holder.interfaces.mapNotNull(classOf).filter { face -> face.methods.any { it.sameAs(update) } }
                     .map { ControlsUpdater(it.type, false, "${it.type}->$shape") }
+                // 585 (arm64 LX/09hT;->A00, which the controller LX/09hU; is built with) drops the interface: the
+                // updater is a class of its own that the controller's constructor takes. A bridge or synthetic
+                // method is a lambda switch that merely traces the same string, never the updater.
+                val flags = update.accessFlags
+                if (faces.isEmpty() && !AccessFlags.BRIDGE.isSet(flags) && !AccessFlags.SYNTHETIC.isSet(flags)) {
+                    listOf(ControlsUpdater(holder.type, false, "${holder.type}->$shape", virtual = true))
+                } else {
+                    faces
+                }
             }
         }
     }.distinctBy { it.type }

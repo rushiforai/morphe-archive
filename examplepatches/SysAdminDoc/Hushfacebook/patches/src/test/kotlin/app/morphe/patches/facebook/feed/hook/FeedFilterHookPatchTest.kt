@@ -224,6 +224,45 @@ class FeedFilterHookPatchTest {
         assertEquals("A06", outlinedFunnelBody(wrapper)?.name)
     }
 
+    /**
+     * 585's funnel hands its edge to a private instance method of its class, called on `this` with
+     * invoke-direct, and the feed's batch add calls that method too. The guard goes there as well, and
+     * the wrapper stays a branch-free hand-off, which Hide Reels in the feed reads after the guard.
+     */
+    @Test
+    fun `a funnel that wraps a private instance body hands the guard to the body`() {
+        val bodyShape = listOf("Lfixture/Options;", FEED_UNIT_EDGE, builder)
+        val body = ImmutableMethod(
+            collection, "A0D", bodyShape.map { ImmutableMethodParameter(it, null, null) }, "Z",
+            AccessFlags.PRIVATE.value or AccessFlags.FINAL.value, null, null,
+            ImmutableMethodImplementation(5, listOf(
+                ImmutableInstruction11n(Opcode.CONST_4, 0, 1), ImmutableInstruction11x(Opcode.RETURN, 0)), null, null),
+        )
+        val bodyCall = ImmutableMethodReference(collection, "A0D", bodyShape, "Z")
+        // this v1, the builder v2, the edge v3, the options v4: the body takes this, options, edge, builder.
+        fun wrapperCalling(receiver: Int, edge: Int) = method(
+            collection, "addNewEdgeToCollection", "Z", listOf(builder, FEED_UNIT_EDGE, "Lfixture/Options;"), 5,
+            ImmutableInstruction35c(Opcode.INVOKE_DIRECT, 4, receiver, 4, edge, 2, 0, bodyCall),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+            ImmutableInstruction11x(Opcode.RETURN, 0),
+        )
+        val wrapper = wrapperCalling(1, 3)
+        val context = PatchContexts.of(listOf(edge(), classDef(collection, listOf(wrapper, body)), swapRunnable()))
+
+        feedFilterHookPatch.execute(context)
+
+        val methods = context.mutableClassDefBy(collection).methods
+        assertEquals(listOf("A0D"), methods.filter { it.guarded() }.map { it.name })
+        assertEquals("the wrapper keeps no guard", 0, methods.single { it.name == "addNewEdgeToCollection" }.calls(HIDES_EDGE))
+        val first = methods.single { it.name == "A0D" }.implementation!!.instructions.first() as RegisterRangeInstruction
+        assertEquals("the guard reads the body's edge, p2 (p0 is this)", 5 - 4 + 2, first.startRegister)
+
+        // The edge handed on from another register, or the call not made on this, isn't only a wrapper.
+        assertNull(outlinedFunnelBody(wrapperCalling(1, 2)))
+        assertNull(outlinedFunnelBody(wrapperCalling(2, 3)))
+        assertEquals("A0D", outlinedFunnelBody(wrapper)?.name)
+    }
+
     /** A funnel with no local at all can't hold the helper's answer, so the patch stops naming it. */
     @Test
     fun `a funnel without a local stops the patch`() {

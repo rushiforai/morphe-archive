@@ -131,7 +131,12 @@ val hideMenuPromotionsPatch = bytecodePatch(
         )
         component.findMutableMethodOf(render).askAboutDismissal(dismissal)
 
-        val folder = single(FOLDER_SECTION, "Menu bookmarks folder section", ::isFolderSectionChildren)
+        // 585's folder section hands its build to a singleton, so the builder is found through the body it calls.
+        val folders = folderSectionBuilders(
+            classDefByStrings(FOLDER_SECTION, StringComparisonType.EQUALS).filterNot { it.type.startsWith(EXTENSION_CLASSES) },
+        )
+        val folder = folders.singleOrNull()
+            ?: throw PatchException("$PATCH: expected one Menu bookmarks folder section loading \"$FOLDER_SECTION\", found ${folders.size}")
         val listRead = bookmarkListRead(folder) ?: throw PatchException(
             "$PATCH: ${folder.definingClass}->${folder.name} doesn't read one bookmark list of its own class",
         )

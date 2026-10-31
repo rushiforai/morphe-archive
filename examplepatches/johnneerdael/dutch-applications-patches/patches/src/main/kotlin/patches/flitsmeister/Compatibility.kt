@@ -22,9 +22,11 @@ import patches.shared.uniqueMatch
 internal val flitsmeister = Compatibility(
     name = "Flitsmeister", packageName = "nl.flitsmeister", apkFileType = ApkFileType.APKS,
     signatures = setOf("ba4fdde5ed7d1082f6ba1af87df2ca39c81b094af20d36ff55b583aa3e3353e6"),
-    targets = listOf(AppTarget(version = "14.17", versionCode = 1287, minSdk = 32)),
+    targets = listOf(AppTarget(version = "14.17", versionCode = 1287, minSdk = 29)),
 )
-internal val originalInput = patches.shared.originalInput(flitsmeister)
+// The publisher's API 29 and API 32 split sets contain identical DEX/assets/native
+// libraries. Advertise the lowest device SDK while accepting only these variants.
+internal val originalInput = patches.shared.originalInput(flitsmeister, additionalMinSdks = setOf(32))
 internal const val ELIGIBILITY = "Lmorphe/flitsmeister/FeatureEligibility;"
 
 context(context: BytecodePatchContext)

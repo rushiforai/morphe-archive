@@ -1,0 +1,15 @@
+{
+  "case": "artist",
+  "installed_apk_sha256": "2605492628aba0e2eb908e23344074f69bb668fc5e4d11966dea7a4713f47124",
+  "captured_at": "2026-10-30T13:38:10.251233+00:00",
+  "offline": true,
+  "expected_count": 6,
+  "visible_tracks": [
+    "01 - Credit Order",
+    "02 - Credit Order",
+    "03 - Credit Order",
+    "04 - Credit Order",
+    "05 - Credit Order",
+    "06 - Credit Order"
+  ]
+}

@@ -35,18 +35,16 @@ internal const val TIME_FORMAT = "$FAST_DATE_FORMAT->format(J)Ljava/lang/String;
 internal const val FORMATTER_DAY = "Lorg/telegram/messenger/LocaleController;->getFormatterDay()$FAST_DATE_FORMAT"
 internal const val EDITED_MESSAGE = "Lorg/telegram/messenger/R\$string;->EditedMessage:I"
 
-@Suppress("unused")
-val messageSecondsPatch = bytecodePatch(
-    name = "Message times with seconds",
-    description = "Shows seconds in each message's time, like 9:41:27 PM, so messages sent close together are easy to " +
-        "tell apart. Starts off. Turn it on in HushTelegram settings > Look and feel.",
-    default = true,
-) {
-    category("Interface")
-    dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+/**
+ * Sends the bubble's times through the extension. Keep deleted messages marks its label on the same
+ * calls, so it carries this along when Message times with seconds is left out, and the seconds switch
+ * stays hidden then (#49).
+ */
+internal val messageTimePatch = bytecodePatch {
+    dependsOn(telegramExtensionPatch)
+
     execute {
-        val (method, indices) = resolveMessageSeconds()
+        val (method, indices) = resolveMessageTime()
         // Assembled on a copy first, so a refusal leaves the app untouched.
         replaceTimeCalls(MutableMethod(ImmutableMethod.of(method)), indices)
         writeStub(MESSAGE_TIME, "stockFormat", 3, """
@@ -56,6 +54,21 @@ val messageSecondsPatch = bytecodePatch(
             return-object p0
         """)
         replaceTimeCalls(method, indices)
+    }
+}
+
+@Suppress("unused")
+val messageSecondsPatch = bytecodePatch(
+    name = "Message times with seconds",
+    description = "Shows seconds in each message's time, like 9:41:27 PM, so messages sent close together are easy to " +
+        "tell apart. Starts off. Turn it on in HushTelegram settings > Look and feel.",
+    default = true,
+) {
+    category("Interface")
+    dependsOn(settingsPatch, telegramExtensionPatch, messageTimePatch)
+    compatibleWith(*AppCompatibilities.telegram())
+    execute {
+        requireStatusMethod("messageSeconds")
         enableStatus("messageSeconds")
     }
 }
@@ -77,8 +90,7 @@ internal fun replaceTimeCalls(target: MutableMethod, indices: List<Int>) {
  * A message bubble measures its time in one method that takes the message, writes "edited" before an
  * edited message's time, and formats each time with Telegram's time of day formatter.
  */
-internal fun BytecodePatchContext.resolveMessageSeconds(): Pair<MutableMethod, List<Int>> {
-    requireStatusMethod("messageSeconds")
+internal fun BytecodePatchContext.resolveMessageTime(): Pair<MutableMethod, List<Int>> {
     controlHook(MESSAGE_TIME, "shown", listOf("Ljava/lang/Object;", "J"), "Ljava/lang/String;")
     controlHook(MESSAGE_TIME, "stockFormat", listOf("Ljava/lang/Object;", "J"), "Ljava/lang/String;")
     controlShape(classDefByOrNull(FAST_DATE_FORMAT)?.methods?.any { "$FAST_DATE_FORMAT->${it.name}(J)${it.returnType}" == TIME_FORMAT &&

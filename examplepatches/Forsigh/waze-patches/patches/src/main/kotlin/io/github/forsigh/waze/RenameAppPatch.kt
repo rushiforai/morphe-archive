@@ -21,6 +21,7 @@ val renameAppPatch = resourcePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("UI Customization")
 
     val label by stringOption(
         key = "name",

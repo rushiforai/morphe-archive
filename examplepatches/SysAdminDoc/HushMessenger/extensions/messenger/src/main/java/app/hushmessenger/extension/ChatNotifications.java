@@ -33,6 +33,41 @@ final class ChatNotifications {
     }
 
     /**
+     * The chat and text of the notification line showing message [id], found the way Messenger's own recaller looks for
+     * it: by the "msgId" a line carries in its extras, or by the notification's own "msgId", which names its newest
+     * line. Null when no notification shows that message.
+     */
+    @SuppressWarnings("deprecation")
+    static String[] showing(Context context, String id) {
+        if (context == null || id == null || id.isEmpty()) return null;
+        NotificationManager manager = context.getSystemService(NotificationManager.class);
+        if (manager == null) return null;
+        for (StatusBarNotification shown : manager.getActiveNotifications()) {
+            Bundle extras = shown.getNotification().extras;
+            if (extras == null || shown.getTag() == null) continue;
+            Parcelable[] messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES);
+            CharSequence text = null;
+            CharSequence newest = null;
+            if (messages != null) {
+                for (Parcelable item : messages) {
+                    if (!(item instanceof Bundle)) continue;
+                    Bundle message = (Bundle) item;
+                    newest = message.getCharSequence("text");
+                    Bundle lineExtras = message.getBundle("extras");
+                    Object lineId = lineExtras == null ? null : lineExtras.get("msgId");
+                    if (lineId != null && id.equals(String.valueOf(lineId))) text = newest;
+                }
+            }
+            Object notificationId = extras.get("msgId");
+            if (text == null && notificationId != null && id.equals(String.valueOf(notificationId))) {
+                text = newest != null ? newest : extras.getCharSequence(Notification.EXTRA_TEXT);
+            }
+            if (text != null) return new String[] {shown.getTag(), text.toString()};
+        }
+        return null;
+    }
+
+    /**
      * Who sent [text] in [thread]: the sender of the notification's lines with that text, when they all name the same
      * person. Two people sending the same words leaves it unknown. So does a group chat whose notification doesn't show
      * the text, since its newest sender could be someone else. A one-to-one chat has only one other person, so there the

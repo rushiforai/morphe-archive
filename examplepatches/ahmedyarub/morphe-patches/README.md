@@ -15,9 +15,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.21.3](https://github.com/ahmedyarub/morphe-patches/releases/tag/v1.21.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;60 patches total
+> **[v1.22.0](https://github.com/ahmedyarub/morphe-patches/releases/tag/v1.22.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;66 patches total
 <details open>
-<summary>📦 X&nbsp;&nbsp;•&nbsp;&nbsp;41 patches</summary>
+<summary>📦 X&nbsp;&nbsp;•&nbsp;&nbsp;44 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -47,15 +47,18 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Enable force HD videos](#enable-force-hd-videos) | Always plays videos at the highest quality the device supports, whatever the connection. |  |
 | [Feed filters](#feed-filters) | Adds feed filters to timelines: media only (images, videos, GIFs), hide followed profiles, and include/exclude keyword filtering. Toggle each filter from the Morphe settings. | • Initial include keywords |
 | [Filter posts by keyword](#filter-posts-by-keyword) | Hides posts whose text contains any of your keywords, ignoring case. Edit the keywords from "Filtered keywords" in any post's menu, or in the Morphe settings. | • Initial keywords |
+| [Follow button on posts](#follow-button-on-posts) | Shows a Follow / Following button at the top right of every post that is not yours, in timelines and threads. Tapping it follows or unfollows the author. |  |
 | [Force enable translate](#force-enable-translate) | Offers to translate every post, not only those the server marks translatable. |  |
 | [Handle custom twitter links](#handle-custom-twitter-links) | Opens links to other X frontends, such as fxtwitter and vxtwitter, in the app. They have to be enabled under "Open by default" in the app's system settings. | • Hosts |
 | [Hide Banner](#hide-banner) | Hides the "See new posts" pill at the top of the timeline. |  |
 | [Hide Community Notes](#hide-community-notes) | Hides Community Notes under posts. |  |
 | [Hide FAB](#hide-fab) | Hides the floating Post button. |  |
+| [Hide Grok buttons](#hide-grok-buttons) | Hides the Grok button on posts in timelines and threads, and the "Edit with Grok" button under image posts. |  |
 | [Hide badges from navigation bar icons](#hide-badges-from-navigation-bar-icons) | Hides the unread counts and dots on the bottom navigation bar. |  |
 | [Hide promote button](#hide-promote-button) | Hides the Boost button on your posts and the Boost item in their menu. |  |
 | [Hook feature flag](#hook-feature-flag) | Overrides the app's feature switches with values chosen when patching. | • Feature switches |
 | [Import/Export login token](#import-export-login-token) | Adds Export login and Import login to the Morphe settings, opened from the app icon's shortcuts. An export holds everything needed to use your account. |  |
+| [Keep signed in across reinstalls](#keep-signed-in-across-reinstalls) | Backs up the signed-in accounts to Download/morphe-tokens and restores them the first time a reinstalled app starts. Needs "All files access" for the app, which a reinstall resets. |  |
 | [Legacy share links](#legacy-share-links) | Shares posts as x.com/<username>/status/<id> rather than x.com/i/status/<id>. |  |
 | [Native downloader](#native-downloader) | Lets every photo, video and GIF be saved from its long-press menu and the media viewer, without a watermark. |  |
 | [Native reader mode](#native-reader-mode) | Adds "Reader mode" to the post menu: the post's text, selectable, with links to its media. |  |
@@ -72,7 +75,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details open>
-<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;17 patches</summary>
+<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;20 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -90,12 +93,15 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Download voice message](#download-voice-message) | Enables ability to download voice messages |  |
 | [Filter stories](#filter-stories) | Hides categories of stories from the story tray. | • Only organic stories<br>• Hide ad stories<br>• Hide suggested stories<br>• Hide highlights<br>• Hide "Your Turn" stories |
 | [Hide Instants](#hide-instants) | Hides Instants from DMs page. |  |
+| [Hide Reels cards](#hide-reels-cards) | Hides suggested accounts, live videos and the other cards Instagram puts between reels. |  |
 | [Hide Threads profile button](#hide-threads-profile-button) | Hides the Threads button from the profile page action bar (top right of the profile page). |  |
 | [Hide ads](#hide-ads) | Hides ads in the feed and in the Following feed. |  |
 | [Hide suggested content](#hide-suggested-content) | Hides suggested reels and suggested accounts. Suggested stories are hidden by Filter stories. | • Hide suggested reels<br>• Hide suggested accounts |
 | [Improve image viewing](#improve-image-viewing) | Requests the maximum resolution images from the server. |  |
+| [Keep signed in across reinstalls](#keep-signed-in-across-reinstalls) | Backs up the signed-in session to Download/morphe-tokens and restores it the first time a reinstalled app starts. Needs "All files access" for the app, which a reinstall resets. |  |
 | [Make ephemeral media permanent](#make-ephemeral-media-permanent) | Changes unexpired view once, view twice media to permanent view. Opening such media no longer sends Instagram a seen receipt, so it is still there after the chat refreshes. |  |
 | [Open links externally](#open-links-externally) | Opens links in the system browser instead of the in-app browser. |  |
+| [Reels interested buttons](#reels-interested-buttons) | Adds Interested and Not interested buttons above the like button in Reels. |  |
 | [Reorder menu options](#reorder-menu-options) | Moves Interested and Not Interested to the top of the post menu. |  |
 | [Sanitize share links](#sanitize-share-links) | Removes tracking parameters from links shared out of the app. |  |
 | [Save deleted messages](#save-deleted-messages) | Keeps a local copy of incoming DMs so ones the sender deletes stay readable. Messages are stored unencrypted in the app's private storage. | • Days to keep messages |

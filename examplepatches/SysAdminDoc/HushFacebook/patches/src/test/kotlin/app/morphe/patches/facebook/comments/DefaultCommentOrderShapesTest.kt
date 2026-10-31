@@ -195,9 +195,53 @@ class DefaultCommentOrderShapesTest {
         """)),
     )
 
+    private val answer = "Lfixture/Answer;"
+    private val comments = "Lfixture/Comments;"
+    private val strings = "Lfixture/Strings;"
+    private val intentGetter = "$answer->intent()Lfixture/Intent;"
+    private val pagesGetter = "$comments->pages()Lcom/facebook/graphservice/interfaces/PaginableList;"
+
+    /** A string table answering [INTENT_FLAG] for 0x971, as 585's arm64 `LX/07kI;->A00` does. */
+    private fun table(): ClassDef = classOf(strings, method(strings, "A00", listOf("I"), string, 2, static = true, smali = """
+        packed-switch p0, :cases
+        const-string v0, "unused"
+        return-object v0
+        :intent
+        const-string v0, "$INTENT_FLAG"
+        return-object v0
+        :cases
+        .packed-switch 0x971
+            :intent
+        .end packed-switch
+    """))
+
+    /**
+     * 585's answer models: one implementing [implementsAnswer] asks the table for the intent flag,
+     * one implementing [implementsComments] holds the pagination string.
+     */
+    private fun models(implementsAnswer: String = answer, implementsComments: String = comments): List<ClassDef> = listOf(
+        ImmutableClassDef("Lfixture/AnswerModel;", AccessFlags.PUBLIC.value, "Ljava/lang/Object;", listOf(implementsAnswer),
+            null, null, emptyList(), listOf(method("Lfixture/AnswerModel;", "intent", emptyList(), "Lfixture/Intent;", 2, smali = """
+                const/16 v0, 0x971
+                invoke-static { v0 }, $strings->A00(I)$string
+                move-result-object v0
+                const/4 v0, 0x0
+                return-object v0
+            """))),
+        ImmutableClassDef("Lfixture/CommentsModel;", AccessFlags.PUBLIC.value, "Ljava/lang/Object;", listOf(implementsComments),
+            null, null, emptyList(), listOf(method("Lfixture/CommentsModel;", "pages", emptyList(),
+                "Lcom/facebook/graphservice/interfaces/PaginableList;", 2, smali = """
+                const-string v0, "$INTERRANKED"
+                const/4 v0, 0x0
+                return-object v0
+            """))),
+        table(),
+    )
+
     /**
      * The comment sheet's section renderer: both strings, the header built from its parameters,
-     * then the key's map read right after, as 582 does. Parts can change.
+     * then the key's map read right after, as 582 does. With [getters], 585's: no string, a call to
+     * the answer's intent getter and the comments' pages getter instead. Parts can change.
      */
     private fun render(
         name: String = "render",
@@ -206,11 +250,16 @@ class DefaultCommentOrderShapesTest {
         keyGap: Int = 0,
         built: String = header,
         builtWith: List<String> = headerParameters,
+        getters: Boolean = false,
     ): MutableMethod = method(
         renderer, name, listOf("Ljava/lang/Object;", feedback, USER_SESSION, function1), "Ljava/lang/Object;", 8,
         smali = """
-            const-string v0, "$INTENT_FLAG"
-            ${if (interranked) "const-string v0, \"$INTERRANKED\"" else ""}
+            ${if (getters) "invoke-interface { p1 }, $intentGetter" else "const-string v0, \"$INTENT_FLAG\""}
+            ${when {
+                !interranked -> ""
+                getters -> "invoke-interface { p1 }, $pagesGetter"
+                else -> "const-string v0, \"$INTERRANKED\""
+            }}
             new-instance v1, $built
             const-string v0, "title"
             invoke-direct { v1, p3, p2, v0, p4 }, $built-><init>(${builtWith.joinToString("")})V
@@ -263,7 +312,8 @@ class DefaultCommentOrderShapesTest {
         handlers: List<Method> = listOf(handler(), refresh()),
         renders: List<Method> = listOf(render()),
         pages: List<Method> = listOf(pageBuilder()),
-    ): List<ClassDef> = listOf(
+        models: List<ClassDef> = emptyList(),
+    ): List<ClassDef> = models + listOf(
         classOf(builderOwner, builder),
         classOf(FETCH_FEEDBACK_PARAMS, constructor),
         classOf(sheet, *handlers.toTypedArray()),
@@ -406,5 +456,47 @@ class DefaultCommentOrderShapesTest {
         assertFalse("three parameters", isSortHeaderConstructor(reference(headerParameters.dropLast(1))))
         assertFalse("not a constructor", isSortHeaderConstructor(
             ImmutableMethodReference(header, "make", headerParameters, "V")))
+    }
+
+    @Test
+    fun `585's renderer stands for the strings with calls to the models' getters on their interfaces`() {
+        val models = models()
+        val methods = models.flatMap { it.methods }
+        val intent = interfaceGetters(models, methods.filter { it.name == "intent" })
+        val pages = interfaceGetters(models, methods.filter { it.name == "pages" })
+        assertEquals(setOf(intentGetter), intent)
+        assertEquals(setOf(pagesGetter), pages)
+        assertTrue("a getter of a class with no interface stands for nothing",
+            interfaceGetters(listOf(classOf("Lfixture/Plain;")), methods).isEmpty())
+        assertEquals(listOf("intent", "pages"), methods.filter(::isSheetGetter).map { it.name })
+
+        val maps = selectorKeyMaps(listOf(keys()))
+        assertEquals("$header-><init>(${headerParameters.joinToString("")})V",
+            sortHeaderIn(render(getters = true), maps, intent, pages).toString())
+        assertNull("no getter known", sortHeaderIn(render(getters = true), maps))
+        assertNull("only the intent's getter", sortHeaderIn(render(getters = true, interranked = false), maps, intent, pages))
+        assertNull("no getter known for the pagination string", sortHeaderIn(render(getters = true), maps, intent, emptySet()))
+        assertNull("only the intent's getter called, the pages getter wanted for both",
+            sortHeaderIn(render(getters = true, interranked = false), maps, pages, pages))
+        assertNull("no key read", sortHeaderIn(render(getters = true, keyRead = null), maps, intent, pages))
+    }
+
+    @Test
+    fun `the patch finds 585's renderer by the key's class and the models' getters and tells the header`() {
+        val context = PatchContexts.of(build(renders = listOf(render(getters = true)), models = models()))
+
+        defaultCommentOrderPatch.execute(context)
+
+        val menu = context.mutableClassDefBy(header).methods.single().body()
+        assertEquals(SORT_MENU, menu[0].reference)
+        assertEquals("the feedback and the pick", listOf(2, 4), menu[0].callRegisters())
+        assertEquals(sortHeader().body().map { it.opcode }, menu.drop(1).map { it.opcode })
+
+        fun refusal(classes: List<ClassDef>): String =
+            assertThrows(PatchException::class.java) { defaultCommentOrderPatch.execute(PatchContexts.of(classes)) }.message!!
+        val noModels = refusal(build(renders = listOf(render(getters = true))))
+        assertTrue(noModels, noModels.contains("comment sort menu header") && noModels.contains("found 0"))
+        val otherInterface = refusal(build(renders = listOf(render(getters = true)), models = models(implementsComments = "Lfixture/Other;")))
+        assertTrue(otherInterface, otherInterface.contains("comment sort menu header") && otherInterface.contains("found 0"))
     }
 }

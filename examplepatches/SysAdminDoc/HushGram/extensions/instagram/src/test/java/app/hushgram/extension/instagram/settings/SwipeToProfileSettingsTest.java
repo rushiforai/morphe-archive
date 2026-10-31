@@ -34,7 +34,7 @@ public class SwipeToProfileSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.REEL_SWIPE_TO_PROFILE.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();

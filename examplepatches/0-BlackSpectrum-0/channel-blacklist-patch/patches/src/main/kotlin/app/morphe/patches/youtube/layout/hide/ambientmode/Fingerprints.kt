@@ -12,6 +12,7 @@ import app.morphe.patcher.opcode
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val GET_ACTION_METHOD_CALL = "Landroid/content/Intent;->getAction()Ljava/lang/String;"
 internal const val IS_POWER_SAVE_MODE_METHOD_CALL = "Landroid/os/PowerManager;->isPowerSaveMode()Z"
@@ -23,6 +24,15 @@ internal object AmbientModeFeatureFlagFingerprint : Fingerprint(
             literal(45376186L),
             literal(45372814L)
         )
+    )
+)
+
+/**
+ * 21.12+ Server experiment of the new watch page that replaces ambient mode with a black background.
+ */
+internal object AmbientModeBlackBackgroundFeatureFlagFingerprint : Fingerprint(
+    filters = listOf(
+        literal(45767512L)
     )
 )
 
@@ -220,6 +230,47 @@ internal object IntentActionSyntheticAlternativeLegacyFingerprint : Fingerprint(
         ),
         methodCall(smali = IS_POWER_SAVE_MODE_METHOD_CALL),
         string(POWER_SAVE_MODE_CHANGED),
+    )
+)
+
+/**
+ * 21.43+ Registers the receiver of [IntentActionBroadcastReceiverFingerprint].
+ */
+internal object PowerSaveModeReceiverRegisterFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;", "L"),
+    filters = listOf(
+        string(POWER_SAVE_MODE_CHANGED),
+        methodCall(definingClass = "Landroid/content/Context;", name = "registerReceiver"),
+    )
+)
+
+/**
+ * 21.43+ Reads the first power save mode value, then calls [PowerSaveModeReceiverRegisterFingerprint].
+ */
+internal fun powerSaveModeInitialValueFingerprint(registerMethod: MethodReference) = Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Ljava/lang/Object;"),
+    filters = listOf(
+        checkCast("Landroid/os/PowerManager;"),
+        methodCall(smali = IS_POWER_SAVE_MODE_METHOD_CALL),
+        methodCall(reference = registerMethod),
+    )
+)
+
+/**
+ * 21.43+ Reads the first power save mode value, if the receiver is registered asynchronously.
+ */
+internal object PowerSaveModeInitialValueAsyncFingerprint : Fingerprint(
+    classFingerprint = PowerSaveModeReceiverRegisterFingerprint,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V",
+    parameters = listOf("L", "Landroid/content/Context;"),
+    filters = listOf(
+        checkCast("Landroid/os/PowerManager;"),
+        methodCall(smali = IS_POWER_SAVE_MODE_METHOD_CALL),
     )
 )
 

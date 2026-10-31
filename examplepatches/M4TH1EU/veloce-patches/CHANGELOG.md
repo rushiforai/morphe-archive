@@ -4,3 +4,4 @@
 
 * first publish ([ac5eec5](https://github.com/M4TH1EU/veloce-patches/commit/ac5eec56ee3fc1f097a4739642645e55903fabbd))
 * initial waze patch ([0794bd5](https://github.com/M4TH1EU/veloce-patches/commit/0794bd51ed7a1ee23d1dce4f7c639a21ff2eef83))
+* spotify, ha, audiobookshelf, waze patches ([4ed2522](https://github.com/M4TH1EU/veloce-patches/commit/4ed2522cb84ad94e83b3ca6b57971241eba46fed))

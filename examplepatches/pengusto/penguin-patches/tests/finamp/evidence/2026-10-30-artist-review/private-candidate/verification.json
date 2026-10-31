@@ -1,0 +1,9 @@
+{
+  "bundle_sha256": "eb48836340eb74d59d817859d238659fd216cbe4f3a16bcac99678023f1aa1a6",
+  "dependency_published": false,
+  "native_replays": 127,
+  "real_desktop_selections": 127,
+  "invalid_inputs_rejected": 4,
+  "all_retained_apk_entries_except_arm64_libapp_unchanged": true,
+  "arm64_only": true
+}

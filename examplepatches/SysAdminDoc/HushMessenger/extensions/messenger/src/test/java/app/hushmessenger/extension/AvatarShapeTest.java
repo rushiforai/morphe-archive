@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.graphics.Region;
 import android.view.View;
@@ -132,6 +133,98 @@ public class AvatarShapeTest {
         @Override public void drawOval(RectF oval, Paint paint) { drawn.add("oval"); }
         @Override public void drawRect(RectF rect, Paint paint) { drawn.add("rect"); }
         @Override public void drawRoundRect(RectF rect, float rx, float ry, Paint paint) { drawn.add("round " + rx + " " + ry); }
+        @Override public void drawArc(RectF oval, float start, float sweep, boolean center, Paint paint) { drawn.add("arc " + start + " " + sweep); }
+        @Override public void drawPath(Path path, Paint paint) { drawn.add("path " + Math.round(new PathMeasure(path, false).getLength())); }
+    }
+
+    /** Where a path starts and ends, and how long it runs, to the nearest pixel. */
+    private static String run(Path path) {
+        PathMeasure measure = new PathMeasure(path, false);
+        float length = 0;
+        float[] start = new float[2], end = new float[2];
+        measure.getPosTan(0, start, null);
+        do {
+            length += measure.getLength();
+            measure.getPosTan(measure.getLength(), end, null);
+        } while (measure.nextContour());
+        return Math.round(start[0]) + "," + Math.round(start[1]) + " to " + Math.round(end[0]) + "," + Math.round(end[1]) + " over " + Math.round(length);
+    }
+
+    /** How far a path runs over all its pieces. Skia measures quarter circles a little short of 2 pi r over 4. */
+    private static float length(Path path) {
+        PathMeasure measure = new PathMeasure(path, false);
+        float length = 0;
+        do length += measure.getLength(); while (measure.nextContour());
+        return length;
+    }
+
+    // #116: the story ring is an arc around the circle, so square pictures still had round rings.
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aStoryRingFollowsTheSquareAndTheOverscrollArcStaysRound() {
+        RectF box = new RectF(0, 0, 100, 100);
+        Object ring = new Object(), overscroll = new Object();
+        Settings.storyRingMade(ring);
+        Settings.storyRingMade(null);
+        Recorder canvas = new Recorder();
+
+        Settings.storyRingArc(canvas, box, 270, 360, false, new Paint(), ring);
+        assertEquals("Off keeps Messenger's arc", List.of("arc 270.0 360.0"), canvas.drawn);
+        assertEquals(0, Settings.lastActive(Settings.AVATAR_SHAPE));
+
+        Settings.avatarShape = -1;
+        Settings.preferences.edit().putBoolean(Settings.AVATAR_SHAPE, true).commit();
+        canvas.drawn.clear();
+        Settings.storyRingArc(canvas, box, 270, 360, false, new Paint(), ring);
+        Settings.storyRingArc(canvas, box, 270, 90, false, new Paint(), ring);
+        Settings.storyRingArc(canvas, box, 270, 360, false, new Paint(), overscroll);
+        Settings.storyRingArc(canvas, box, 270, 360, false, new Paint(), null);
+        Settings.storyRingArc(canvas, box, 270, 90, true, new Paint(), ring);
+        assertEquals(List.of("path 400", "path 100", "arc 270.0 360.0", "arc 270.0 360.0", "arc 270.0 90.0"), canvas.drawn);
+        assertTrue(Settings.lastActive(Settings.AVATAR_SHAPE) > 0);
+
+        // Clockwise from the top middle, like the arc it replaces, and on round past it.
+        assertEquals("50,0 to 100,50 over 100", run(Settings.ringPath(box, 270, 90, 0)));
+        assertEquals("0,50 to 100,50 over 200", run(Settings.ringPath(box, 180, 180, 0)));
+        assertEquals("Backwards is the same stretch", "0,50 to 50,0 over 100", run(Settings.ringPath(box, 270, -90, 0)));
+        assertEquals("50,0 to 50,0 over 400", run(Settings.ringPath(box, -90, 360, 0)));
+        // Four 80 pixel sides and four quarter circles of 10.
+        Path rounded = Settings.ringPath(box, 270, 400, 10);
+        assertTrue(run(rounded), run(rounded).startsWith("50,0 to 50,0 over "));
+        assertEquals(320 + 20 * Math.PI, length(rounded), 1);
+
+        Settings.avatarShape = -1;
+        Settings.preferences.edit().putBoolean(Settings.AVATAR_ROUNDED, true).commit();
+        Settings.storyRingArc(canvas, box, 270, 360, false, new Paint(), ring);
+        float corner = Settings.avatarCornerPx();
+        String last = canvas.drawn.get(canvas.drawn.size() - 1);
+        assertTrue(last, last.startsWith("path "));
+        assertEquals(4 * (100 - 2 * corner) + 2 * Math.PI * corner, Integer.parseInt(last.substring(5)), 1);
+    }
+
+    // #118: Hide stories and notes drops the ring around each picture too, with or without square pictures.
+    @Test public void hideStoriesLeavesOutTheRingButNotTheOverscrollArc() {
+        assertTrue(Settings.installed.contains("stories"));
+        RectF box = new RectF(0, 0, 100, 100);
+        Object ring = new Object(), overscroll = new Object();
+        Settings.storyRingMade(ring);
+        Settings.preferences.edit().putBoolean("stories", true).commit();
+        Recorder canvas = new Recorder();
+        Settings.storyRingArc(canvas, box, 270, 360, false, new Paint(), ring);
+        Settings.storyRingArc(canvas, box, 270, 360, false, new Paint(), overscroll);
+        Settings.storyRingArc(canvas, box, 270, 360, false, new Paint(), null);
+        Settings.storyRingArc(canvas, box, 270, 90, true, new Paint(), ring);
+        assertEquals(List.of("arc 270.0 360.0", "arc 270.0 360.0", "arc 270.0 90.0"), canvas.drawn);
+        assertTrue(Settings.lastActive("stories") > 0);
+
+        Settings.preferences.edit().putBoolean(Settings.AVATAR_SHAPE, true).commit();
+        canvas.drawn.clear();
+        Settings.storyRingArc(canvas, box, 270, 360, false, new Paint(), ring);
+        assertEquals("Square pictures still lose it", List.of(), canvas.drawn);
+
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        Settings.avatarShape = -1;
+        Settings.storyRingArc(canvas, box, 270, 360, false, new Paint(), ring);
+        assertEquals("Pause brings Messenger's ring back", List.of("arc 270.0 360.0"), canvas.drawn);
     }
 
     private static boolean covers(Path path, int x, int y) {

@@ -72,17 +72,20 @@ class MaterialYouTokenFixtureTest {
         /**
          * The FDS tokens 577 and 580 resolve and read as `TypedValue.data`: straight from a literal, off a
          * token constant, or through a helper handed the attribute or a token constant as a parameter.
+         * 585 no longer reads ACCENT, PLACEHOLDER_IMAGE or WASH that way (2026-10-30, both ABIs).
          */
-        val DATA_READ_TOKENS = setOf("ACCENT", "DISABLED_TEXT", "DIVIDER", "NAV_BAR_BACKGROUND", "PLACEHOLDER_IMAGE",
-            "PRIMARY_TEXT", "PRIMARY_TEXT_ON_MEDIA", "SURFACE_BACKGROUND", "WASH")
+        val DATA_READ_TOKENS = setOf("DISABLED_TEXT", "DIVIDER", "NAV_BAR_BACKGROUND",
+            "PRIMARY_TEXT", "PRIMARY_TEXT_ON_MEDIA", "SURFACE_BACKGROUND")
 
         /**
          * The tokens 577 and 580 resolve in a method that reads `TypedValue.type` for only some of its
          * calls, or reads neither field and hands the value on. Each was looked at: PRIMARY_TEXT and
          * SURFACE_BACKGROUND are in [DATA_READ_TOKENS] anyway, and SHADOW_TEXT_AND_ICON_ON_MEDIA goes
-         * through a helper that returns the TypedValue to a caller reading its `resourceId`.
+         * through a helper that returns the TypedValue to a caller reading its `resourceId`. 585
+         * resolves none of them in such a method (2026-10-30, both ABIs), and the calls the scan can't
+         * follow ([UNRESOLVED]) kept their 18 shapes, so no read moved out of its sight.
          */
-        val UNCHECKED_TOKENS = setOf("PRIMARY_TEXT", "SHADOW_TEXT_AND_ICON_ON_MEDIA", "SURFACE_BACKGROUND")
+        val UNCHECKED_TOKENS = emptySet<String>()
 
         /**
          * The tokens a styleable array's integer read reaches on 582, through the styles' `?attr/`
@@ -110,7 +113,7 @@ class MaterialYouTokenFixtureTest {
          * pill bar below reads the same array in its constructor, under a name Redex leaves alone
          * on both ABIs, where the Litho component and the array's holder are renamed per build.
          */
-        val LIKES_LINE_ATTRIBUTE = mapOf("584.0.0.51.56" to 0x7f040fcf)
+        val LIKES_LINE_ATTRIBUTE = mapOf("585.0.0.47.54" to 0x7f040fcf)
         /**
          * The seven tokens 584 dropped from 583's 324 (all of them named in MaterialYouTheme's
          * tables or the AMOLED roles at some point), so a listed name missing from a build's enum is
@@ -160,53 +163,56 @@ class MaterialYouTokenFixtureTest {
          * `U3I`'s constructor and `U3I.A0f`, and Mapbox's three. The 32-bit build has them under
          * other names again, a few at an instruction or two apart, so each build has its own list.
          * 583 keeps the same 18 on both ABIs (2026-10-16), arm64's `9Sj.A0Q` to `nJl.A00` and
-         * armeabi-v7a's `9Tq.A0Q` to `nZb.A00`.
+         * armeabi-v7a's `9Tq.A0Q` to `nZb.A00`. From 585 on, the scan's list is compared by its
+         * [keptShape]s, which both ABIs share ([SHAPES_585]).
          */
         private val MAPBOX = setOf(
             "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getAccentColor(Landroid/content/Context;)I@13",
             "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getPrimaryColor(Landroid/content/Context;)I@13",
             "Lcom/mapbox/mapboxsdk/utils/ColorUtils;->getPrimaryDarkColor(Landroid/content/Context;)I@13",
         )
-        val UNRESOLVED = mapOf(
-            "584.0.0.51.56" to mapOf(
-                // The same 15 reads as 583's arm64, renamed: 584 keeps every shape and moves one offset.
-                "arm64-v8a" to MAPBOX + setOf(
-                    "LX/AcB;->A0R(Ljava/lang/Integer;)V@16",
-                    "LX/DIN;->A02(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/Integer;@88",
-                    "LX/G9d;->A00(Landroid/content/Context;Lcom/facebook/react/bridge/ReadableMap;)Landroid/graphics/drawable/Drawable;@20",
-                    "LX/Pb9;->F6s(LX/RQz;)V@155",
-                    "LX/Pb9;->F6s(LX/RQz;)V@169",
-                    "LX/Pb9;->F6s(LX/RQz;)V@54",
-                    "LX/Pb9;->F6s(LX/RQz;)V@67",
-                    "LX/Pb9;->F6s(LX/RQz;)V@79",
-                    "LX/Pb9;->F6s(LX/RQz;)V@82",
-                    "LX/Pce;->DHd(LX/enp;I)V@169",
-                    "LX/Pce;->DHd(LX/enp;I)V@226",
-                    "LX/Pce;->DHd(LX/enp;I)V@32",
-                    "LX/QTH;->A04(LX/QTH;LX/QgX;)V@9",
-                    "LX/Qab;-><init>(Landroid/content/Context;)V@116",
-                    "LX/Qab;->A0e()V@35",
-                ),
-                // 584's 32-bit build reads the same 18, at the same offsets.
-                "armeabi-v7a" to MAPBOX + setOf(
-                    "LX/AcB;->A0R(Ljava/lang/Integer;)V@16",
-                    "LX/DIN;->A02(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/Integer;@88",
-                    "LX/G9d;->A00(Landroid/content/Context;Lcom/facebook/react/bridge/ReadableMap;)Landroid/graphics/drawable/Drawable;@20",
-                    "LX/Pb9;->F6s(LX/RQz;)V@155",
-                    "LX/Pb9;->F6s(LX/RQz;)V@169",
-                    "LX/Pb9;->F6s(LX/RQz;)V@54",
-                    "LX/Pb9;->F6s(LX/RQz;)V@67",
-                    "LX/Pb9;->F6s(LX/RQz;)V@79",
-                    "LX/Pb9;->F6s(LX/RQz;)V@82",
-                    "LX/Pce;->DHd(LX/enp;I)V@169",
-                    "LX/Pce;->DHd(LX/enp;I)V@226",
-                    "LX/Pce;->DHd(LX/enp;I)V@32",
-                    "LX/QTH;->A04(LX/QTH;LX/QgX;)V@9",
-                    "LX/Qab;-><init>(Landroid/content/Context;)V@116",
-                    "LX/Qab;->A0e()V@35",
-                ),
-            ),
+        /**
+         * 585's 18 are the same calls at the same offsets on both ABIs (2026-10-30), arm64's
+         * `0BlF.A0P`, `0EFm.A02`, `0UiT.Jc8`, `0UkR.Hfn`, `0WPB.A04`, `0WQk`'s constructor and
+         * `0WQk.A0e`, `0uoc.A00` and Mapbox's three, so they're pinned as [keptShape]s, one list
+         * for both, with no name a single build made up.
+         */
+        private val SHAPES_585 = MAPBOX.toList() + listOf(
+            "L?;->?(Ljava/lang/Integer;)V@16",
+            "L?;->?(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/Integer;@88",
+            "L?;->?(Landroid/content/Context;Lcom/facebook/react/bridge/ReadableMap;)Landroid/graphics/drawable/Drawable;@20",
+            "L?;->?(L?;)V@155",
+            "L?;->?(L?;)V@169",
+            "L?;->?(L?;)V@54",
+            "L?;->?(L?;)V@67",
+            "L?;->?(L?;)V@79",
+            "L?;->?(L?;)V@82",
+            "L?;->?(L?;I)V@169",
+            "L?;->?(L?;I)V@226",
+            "L?;->?(L?;I)V@32",
+            "L?;->?(L?;L?;)V@9",
+            "L?;-><init>(Landroid/content/Context;)V@116",
+            "L?;->?()V@35",
         )
+        val UNRESOLVED = mapOf(
+            "585.0.0.47.54" to mapOf("arm64-v8a" to SHAPES_585, "armeabi-v7a" to SHAPES_585),
+        )
+
+        /** A class name Redex made up for one build, or a merged lambda group's. */
+        private val REDEX_TYPE = Regex("""L[XY]/[0-9A-Za-z_$]+;""")
+
+        /**
+         * [entry], a scan's `method@instruction`, with every name Redex made up for one build blanked:
+         * such a class reads `L?;` and its method `?` (a constructor keeps `<init>`), and kept names stay.
+         */
+        fun keptShape(entry: String): String {
+            val owner = entry.substringBefore("->")
+            val method = entry.substringAfter("->")
+            val name = method.substringBefore('(')
+            val redex = REDEX_TYPE.matches(owner)
+            return (if (redex) "L?;" else owner) + "->" + (if (redex && !name.startsWith("<")) "?" else name) +
+                method.substring(name.length).replace(REDEX_TYPE, "L?;")
+        }
     }
 
     private val theme = File(RepoFiles.root,
@@ -861,7 +867,8 @@ class MaterialYouTokenFixtureTest {
         assertEquals("$build: the tokens read as TypedValue data", DATA_READ_TOKENS, scan.tokens)
         assertEquals("$build: the tokens resolved where the read isn't checked", UNCHECKED_TOKENS, scan.unchecked.keys)
         assertEquals("$build: the data reads the scan can't follow",
-            UNRESOLVED[version]?.get(build.substringAfter("-$version-").substringBefore(".apkm")), scan.unresolved)
+            UNRESOLVED[version]?.get(build.substringAfter("-$version-").substringBefore(".apkm"))?.sorted(),
+            scan.unresolved.map { keptShape(it) }.sorted())
 
         val styles = fdsStyles(apk, attributes.values.toSet())
         val light = styles.values.single { it.parent == 0 && it.sets > 300 }

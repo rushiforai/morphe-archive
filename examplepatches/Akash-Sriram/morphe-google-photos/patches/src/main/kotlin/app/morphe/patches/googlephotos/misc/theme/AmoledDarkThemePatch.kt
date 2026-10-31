@@ -270,6 +270,16 @@ val amoledDarkThemePatch = resourcePatch(
     compatibleWith(AppCompatibilities.GOOGLE_PHOTOS)
 
     execute {
+        decode(
+            "res/values-night*",
+            "res/values/colors*.xml",
+            "res/values/styles*.xml",
+            "res/values/themes*.xml",
+            "res/values-v*/colors*.xml",
+            "res/values-v*/styles*.xml",
+            "res/values-v*/themes*.xml",
+        )
+
         val resDirectory = get("res")
         if (!resDirectory.isDirectory) {
             throw PatchException("Decoded res directory was not found.")

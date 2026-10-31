@@ -24,6 +24,18 @@ public final class TLRPC {
     /** Any other request, for the cases that aren't sign-in. */
     public static class TL_auth_resendCode { }
 
+    /** Joins a public channel or supergroup. */
+    public static class TL_channels_joinChannel { }
+
+    /** Joins a chat by its invite link. */
+    public static class TL_messages_importChatInvite { }
+
+    /** Looks an invite link up before joining. */
+    public static class TL_messages_checkChatInvite { }
+
+    /** Leaving a channel, which a block on new chats lets through. */
+    public static class TL_channels_leaveChannel { }
+
     public static class Peer {
         public long user_id;
         public long chat_id;
@@ -40,6 +52,10 @@ public final class TLRPC {
         public String emoticon;
     }
 
+    public static class TL_reactionCustomEmoji extends Reaction {
+        public long document_id;
+    }
+
     public static class MessagePeerReaction {
         public int flags;
         public Peer peer_id;
@@ -50,6 +66,7 @@ public final class TLRPC {
 
     public static class MessageReactions {
         public java.util.ArrayList<MessagePeerReaction> recent_reactions = new java.util.ArrayList<>();
+        public boolean reactions_as_tags;
     }
 
     public static class TL_messageReactions extends MessageReactions { }
@@ -61,9 +78,17 @@ public final class TLRPC {
         public TL_messageReactions reactions;
     }
 
+    /** The typing, recording or uploading status shown in a chat. */
+    public static class TL_messages_setTyping { }
+
+    /** The same status in a secret chat. */
+    public static class TL_messages_setEncryptedTyping { }
+
     public static class TL_error {
         public int code;
         public String text;
+
+        public TL_error() {}
 
         public TL_error(int code, String text) {
             this.code = code;

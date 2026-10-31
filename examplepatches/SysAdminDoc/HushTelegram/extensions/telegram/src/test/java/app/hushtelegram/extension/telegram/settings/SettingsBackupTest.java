@@ -190,6 +190,7 @@ public class SettingsBackupTest {
         for (BooleanSetting setting : PausedHooksTest.settingsSwitches()) switches.add(setting.key);
         Set<String> expected = new TreeSet<>(switches);
         expected.removeAll(STAYS_OUT.keySet());
+        for (BooleanSetting way : SettingsRoutes.all()) expected.add(way.key);
         assertEquals("a switch in Settings has no decision: add it to SettingsBackup.ALLOWLIST, or to STAYS_OUT "
                 + "here with the reason it stays out of a settings file", expected, keys(SettingsBackup.ALLOWLIST));
         assertTrue("STAYS_OUT names a switch Settings no longer has", switches.containsAll(STAYS_OUT.keySet()));
@@ -209,12 +210,13 @@ public class SettingsBackupTest {
         assertEquals(Collections.singletonList(Settings.STICKER_SIZE), SettingsBackup.NUMBERS);
         assertEquals(Arrays.asList(Settings.TITLE_EMOJI, Settings.GALLERY_FOLDER, Settings.TRANSLATE_TARGET), SettingsBackup.TEXTS);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_STORIES,
-                        Settings.HIDE_RECOMMENDATIONS, Settings.HIDE_COMMERCE,
-                        Settings.HIDE_PROMOTIONAL_BANNERS,
-                        Settings.HIDE_SPONSORED_PROXY, Settings.HIDE_POPULAR_APPS, Settings.SEARCH_ONLY_MY_CHATS, Settings.SEARCH_STYLED_NAMES, Settings.HIDE_CONTACTS_BLOCK, Settings.HIDE_GREETING_STICKERS, Settings.DISABLE_CHAT_SWIPE, Settings.DISABLE_CHANNEL_PULL, Settings.DISABLE_TOPIC_PULL,
-                        Settings.NORMAL_PASTE, Settings.SHOW_LOCAL_IDS, Settings.PROFILE_DATA_CENTER, Settings.DISABLE_DOUBLE_TAP_REACTIONS,
-                        Settings.QUIET_CONTACTS_NAG, Settings.HOLIDAY_LOOK, Settings.USE_SYSTEM_FONT, Settings.AMOLED_BLACK, Settings.HIDE_TRANSLATE_BAR, Settings.EXACT_NUMBERS, Settings.REVEAL_SPOILERS, Settings.HIDE_KEYBOARD_ON_SCROLL, Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.SWIPE_BACK_ON_PROFILES, Settings.HIDE_PHONE_NUMBER, Settings.SHARE_NUMBER_UNTICKED, Settings.MESSAGE_SECONDS, Settings.ALLOW_CHAT_BLUR, Settings.VOICE_ONE_AT_A_TIME, Settings.LOCKED_VOICE_GUARD, Settings.NO_HAPTICS, Settings.REACTION_EFFECTS_OFF, Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.HIDE_ALL_CHATS, Settings.HIDDEN_CHATS, Settings.FORWARD_HIDE_SENDER, Settings.VOICE_MUSIC_PLAYER, Settings.SILENCE_NON_CONTACTS, Settings.REACTION_ALERTS, Settings.DISABLE_ARCHIVE_PULL, Settings.REAR_CAMERA_FIRST, Settings.HIDE_GALLERY_CAMERA_TILE, Settings.HIDE_STICKER_TIME, Settings.CHANGE_STICKER_SIZE, Settings.IGNORE_MUTED_MENTIONS, Settings.HIDE_BLOCKED_IN_GROUPS, Settings.HIDE_BY_KEYWORD, Settings.HIDE_FEATURES_AND_INVITE, Settings.MESSAGE_MENU_REPEAT, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_EDIT_HISTORY, Settings.ASK_BEFORE_STICKER, Settings.OUTSIDE_TRANSLATE, Settings.HIDE_CHANNEL_BUTTONS, Settings.HIDE_CHANNEL_MUTE, Settings.HIDE_SEND_AS, Settings.HIDE_CONTACTS_TAB, Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU, Settings.HIDE_NEW_MESSAGE, Settings.FASTER_DOWNLOADS, Settings.DATA_SAVER_DOWNLOADS, Settings.SAVE_DOWNLOADS, Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.STORAGE_FOLDER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS, Settings.MESSAGE_MENU_QUICK_FORWARD,
-                        Settings.DISABLE_ANALYTICS, Settings.DISABLE_CALL_DEBUG, Settings.DISABLE_DRAFT_PREVIEWS,
+                        Settings.HIDE_RECOMMENDATIONS, Settings.HIDE_KEYBOARD_FEATURED, Settings.HIDE_COMMERCE, Settings.HIDE_EMOJI_STATUS,
+                        Settings.UNLOCK_PREMIUM_ICONS, Settings.LOCAL_EMOJI_STATUS, Settings.HIDE_PROMOTIONAL_BANNERS,
+                        Settings.HIDE_SPONSORED_PROXY, Settings.HIDE_POPULAR_APPS, Settings.SEARCH_ONLY_MY_CHATS, Settings.SEARCH_STYLED_NAMES, Settings.BLOCK_NEW_CHATS, Settings.HIDE_CONTACTS_BLOCK, Settings.HIDE_GREETING_STICKERS, Settings.DISABLE_CHAT_SWIPE, Settings.DISABLE_CHANNEL_PULL, Settings.DISABLE_TOPIC_PULL,
+                        Settings.NORMAL_PASTE, Settings.SHOW_LOCAL_IDS, Settings.PROFILE_DATA_CENTER, Settings.DISABLE_DOUBLE_TAP_REACTIONS, Settings.HIDE_REACTION_ROWS, Settings.HIDE_REACTION_PICKER,
+                        Settings.QUIET_CONTACTS_NAG, Settings.HOLIDAY_LOOK, Settings.USE_SYSTEM_FONT, Settings.AMOLED_BLACK, Settings.HIDE_TRANSLATE_BAR, Settings.EXACT_NUMBERS, Settings.REVEAL_SPOILERS, Settings.HIDE_KEYBOARD_ON_SCROLL, Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.SWIPE_BACK_ON_PROFILES, Settings.HIDE_PHONE_NUMBER, Settings.SHARE_NUMBER_UNTICKED, Settings.MESSAGE_SECONDS, Settings.ALLOW_CHAT_BLUR, Settings.VOICE_ONE_AT_A_TIME, Settings.LOCKED_VOICE_GUARD, Settings.NO_HAPTICS, Settings.REACTION_EFFECTS_OFF, Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.HIDE_ALL_CHATS, Settings.HIDDEN_CHATS, Settings.FORWARD_HIDE_SENDER, Settings.VOICE_MUSIC_PLAYER, Settings.SILENCE_NON_CONTACTS, Settings.REACTION_ALERTS, Settings.REACTION_SOUND, Settings.DISABLE_ARCHIVE_PULL, Settings.REAR_CAMERA_FIRST, Settings.HIDE_GALLERY_CAMERA_TILE, Settings.HIDE_STICKER_TIME, Settings.CHANGE_STICKER_SIZE, Settings.IGNORE_MUTED_MENTIONS, Settings.HIDE_BLOCKED_IN_GROUPS, Settings.HIDE_BY_KEYWORD, Settings.HIDE_FEATURES_AND_INVITE, Settings.MESSAGE_MENU_REPEAT, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_EDIT_HISTORY, Settings.ASK_BEFORE_STICKER, Settings.OUTSIDE_TRANSLATE, Settings.HIDE_CHANNEL_BUTTONS, Settings.HIDE_CHANNEL_MUTE, Settings.HIDE_CHANNEL_SHARE, Settings.HIDE_SEND_AS, Settings.HIDE_CONTACTS_TAB, Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU, Settings.HIDE_NEW_MESSAGE, SettingsRoutes.SETTINGS_ROW, SettingsRoutes.TITLE_PRESS, SettingsRoutes.SIDE_MENU_ROW, SettingsRoutes.SHORTCUT, Settings.FASTER_DOWNLOADS, Settings.DATA_SAVER_DOWNLOADS, Settings.SAVE_DOWNLOADS, Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.SAVE_TIMED_MEDIA, Settings.STORAGE_FOLDER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS, Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY,
+                        Settings.DISABLE_ANALYTICS, Settings.GHOST_MODE, Settings.GHOST_READS, Settings.GHOST_STORIES, Settings.GHOST_TYPING, Settings.GHOST_ONLINE,
+                        Settings.DISABLE_CALL_DEBUG, Settings.RECORD_CALLS, Settings.RECORD_CALL_BUTTON, Settings.DISABLE_DRAFT_PREVIEWS,
                         Settings.LOCAL_DRAFTS, Settings.LOCAL_SEARCH, Settings.GALLERY_CAMERA_ON_TAP,
                         Settings.OPEN_EXTERNAL_LINKS, Settings.MINI_APP_LOCATION_OFF, Settings.STRIP_LINK_TRACKING,
                         Settings.SKIP_AUTOLOGIN, Settings.DISABLE_UPDATE_CHECKS,
@@ -271,7 +273,7 @@ public class SettingsBackupTest {
         assertEquals(75, switches.get(Settings.STICKER_SIZE.key));
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) {
             // Saved, not what a paused Telegram is answered: paused, every switch answers false.
-            assertFalse(setting.get());
+            if (!Arrays.asList(SettingsRoutes.all()).contains(setting)) assertFalse(setting.get());
             assertEquals(setting.key, setting.savedValue(), switches.get(setting.key));
         }
         assertEquals(false, switches.get(Settings.HIDE_ADS.key));
@@ -1078,6 +1080,8 @@ public class SettingsBackupTest {
             preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             settle();
             assertEquals("Settings imported. 2 switches changed.", ShadowToast.getTextOfLatestToast());
+            String row = String.valueOf(page.findPreference(IMPORT_ROW).getSummary());
+            assertTrue("the import row doesn't say how it went: " + row, row.startsWith("Settings imported. 2 switches changed.\n"));
             assertFalse(Settings.HIDE_ADS.savedValue());
             assertFalse(Settings.DISABLE_UPDATE_CHECKS.savedValue());
             assertTrue(Settings.DISABLE_ANALYTICS.savedValue());
@@ -1625,8 +1629,11 @@ public class SettingsBackupTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
             HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            String resting = String.valueOf(page.findPreference(EXPORT_ROW).getSummary());
             export(activity, page, uri);
             assertEquals(MISMATCH, ShadowToast.getTextOfLatestToast());
+            assertEquals("the row keeps the answer a two-line toast cuts off at large text",
+                    MISMATCH + "\n" + resting, String.valueOf(page.findPreference(EXPORT_ROW).getSummary()));
             String kept = new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8);
             assertTrue("the app truncated after all", kept.startsWith(now) && kept.endsWith("{\"old\":true}"));
             assertEquals(SettingsBackup.Reason.DAMAGED, reasonFor(kept));
@@ -1635,6 +1642,8 @@ public class SettingsBackupTest {
             SettingsFileProvider.refusesTruncate = false;
             export(activity, page, uri);
             assertEquals("Settings exported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("the newer answer replaces the older one", "Settings exported.\n" + resting,
+                    String.valueOf(page.findPreference(EXPORT_ROW).getSummary()));
             assertEquals(now, new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8));
         }
     }
@@ -1672,8 +1681,13 @@ public class SettingsBackupTest {
             Activity activity = controller.get();
             HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
             ShadowAlertDialog.reset();
+            String resting = String.valueOf(page.findPreference(IMPORT_ROW).getSummary());
+            String exportResting = String.valueOf(page.findPreference(EXPORT_ROW).getSummary());
             deliver(activity, tap(activity, page, IMPORT_ROW), SettingsBackup.create());
-            assertEquals(SettingsBackupPreference.refusal(SettingsBackup.Reason.UNREADABLE), ShadowToast.getTextOfLatestToast());
+            String refused = SettingsBackupPreference.refusal(SettingsBackup.Reason.UNREADABLE);
+            assertEquals(refused, ShadowToast.getTextOfLatestToast());
+            assertEquals(refused + "\n" + resting, String.valueOf(page.findPreference(IMPORT_ROW).getSummary()));
+            assertEquals("only the acting row says it", exportResting, String.valueOf(page.findPreference(EXPORT_ROW).getSummary()));
             assertNull(ShadowAlertDialog.getLatestAlertDialog());
             assertTrue(page.findPreference(IMPORT_ROW).isEnabled());
             assertTrue(page.findPreference(EXPORT_ROW).isEnabled());

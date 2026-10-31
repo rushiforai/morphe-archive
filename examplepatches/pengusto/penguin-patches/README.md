@@ -13,7 +13,7 @@ Focused Android fixes, ready for Morphe.
 <a href="https://morphe.software/add-source?github=pengusto/penguin-patches"><img src="docs/assets/add-to-morphe.svg" alt="Add to Morphe →" width="242" height="52"></a>
 
 <!-- PATCHES_SUMMARY_START -->
-**21 patches · 12 apps · [v1.4.0](https://github.com/pengusto/penguin-patches/releases/tag/v1.4.0)**
+**23 patches · 14 apps · [v1.6.2](https://github.com/pengusto/penguin-patches/releases/tag/v1.6.2)**
 <!-- PATCHES_SUMMARY_END -->
 
 [Before & after](#patch-previews) · [Supported apps](#generated-patch-catalogue) · [Setup & signing](#patch-an-app) · [Latest release](https://github.com/pengusto/penguin-patches/releases/latest)
@@ -158,19 +158,21 @@ exported by Morphe Manager. This is a correctness comparison, not a performance 
 
 **Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
 
-Open the existing output controls from the player menu even when bottom actions
-are hidden and gestures disabled.
+When bottom actions are hidden, the track menu ends with **Output, Queue and
+Lyrics**. Both menu-button and artwork-context access respect disabled gestures.
+Visible bottom actions have no duplicates in the menu.
 
-**Android APK captures.** Same paused synthetic track, Dark theme, settings and
-viewport. The before APK retains the official native code; the after APK is an
-actual Morphe Manager export, installed with the same test key.
+**Android APK captures.** Same synthetic track paused at 00:17, Dark theme, hidden
+bottom actions, disabled gestures, 1080×1920 viewport and 09:41 clock. The before
+APK retains the official native code; the after APK is the actual Player-only
+Morphe Manager export, installed through Manager’s Install action with the same test key.
 
 | Before | After |
 | :---: | :---: |
-| **No Output entry in the player menu** | **Output opens the existing volume/device sheet** |
-| <img src="tests/finamp/evidence/2026-10-29-ui/player-output-before.png" width="300" alt="Before: player menu has no Output entry with bottom actions hidden"> | <img src="tests/finamp/evidence/2026-10-29-ui/player-output-after.png" width="300" alt="After: Output is available in the player menu"> |
+| **Hidden bottom actions leave no menu routes** | **Output, Queue and Lyrics remain reachable** |
+| <img src="tests/finamp/evidence/2026-10-30-player/player-before.png" width="300" alt="Before: original player menu ends without Output, Queue or Lyrics"> | <img src="tests/finamp/evidence/2026-10-30-player/player-after.png" width="300" alt="After: installed Manager export adds Output, Queue and Lyrics at the menu bottom"> |
 
-[Capture provenance & checks](tests/finamp/evidence/2026-10-29-ui/README.md) · [Back to patch index](#patch-previews)
+[Capture provenance & checks](tests/finamp/evidence/2026-10-30-player/README.md) · [Back to patch index](#patch-previews)
 
 </details>
 
@@ -184,14 +186,14 @@ actual Morphe Manager export, installed with the same test key.
 
 Show the artist preview and track count without waiting for the full discography response.
 
-**Android APK captures.** The fixture deliberately holds unbounded requests. Light before and Dark after are fixture settings, not a theme feature. This demonstrates query behavior, not a measured real-server speedup.
+**Installed Android APK captures.** The fixture deliberately holds unbounded artist-track requests. Both captures use the same Dark theme, synthetic library, eight downloaded tracks, sort, viewport and demo clock. The patched APK was exported and installed through Morphe Manager. This verifies query behavior on the synthetic fixture.
 
 | Before | After |
 | :---: | :---: |
 | **Pending full-song queries: spinner and 0 Tracks** | **Bounded queries: preview and 8 Tracks appear** |
-| <img src="tests/finamp/evidence/2026-10-28/artist-held-before.png" width="300" alt="Before: Pending full-song queries: spinner and 0 Tracks"> | <img src="tests/finamp/evidence/2026-10-28/artist-held-after.png" width="300" alt="After: Bounded queries: preview and 8 Tracks appear"> |
+| <img src="tests/finamp/evidence/2026-10-30-artist-review/artist-held-before.png" width="300" alt="Before: Pending full-song queries: spinner and 0 Tracks"> | <img src="tests/finamp/evidence/2026-10-30-artist-review/artist-held-after.png" width="300" alt="After: Bounded queries: preview and 8 Tracks appear"> |
 
-[Capture provenance & checks](tests/finamp/evidence/2026-10-28/README.md) · [Back to patch index](#patch-previews)
+[Capture provenance & checks](tests/finamp/evidence/2026-10-30-artist-review/README.md) · [Back to patch index](#patch-previews)
 
 </details>
 
@@ -479,6 +481,36 @@ Show the artwork embedded in the current track rather than reusing another track
 
 </details>
 
+<a id="previews-app-komikku"></a>
+
+### Komikku · 1 patch
+
+<a id="preview-keep-local-manga-in-exclusion-searches"></a>
+
+<details>
+<summary><strong>Keep local manga in exclusion searches</strong> · Before / after</summary>
+<br>
+
+**Komikku 1.14.1 ARM64** · [Setup & patch details](docs/KOMIKKU.md)
+
+The library search `-meteor` keeps unrelated local **Orion** after patching.
+Matching local **Meteor** remains excluded; remote **Lyra** is the control.
+
+**Installed Android APK captures.** Same synthetic library, light theme,
+1080 × 1920 display, density 420, sort/filter and query; keyboard dismissed.
+The original official payload is signed with the fixture key. The after capture
+uses the actual Morphe Manager 2.2.0 JVM export, installed through Android's
+update dialog with that same key. The app renders both screenshots directly.
+
+| Before | After |
+| :---: | :---: |
+| **Unrelated local Orion disappears** | **Orion remains; Meteor is still excluded** |
+| <img src="tests/komikku/evidence/2026-10-30/before.png" width="300" alt="Before: exclusion search for meteor shows only remote Lyra and loses local Orion"> | <img src="tests/komikku/evidence/2026-10-30/after.png" width="300" alt="After: the same search shows local Orion and remote Lyra while local Meteor remains excluded"> |
+
+[Capture provenance & checks](tests/komikku/evidence/2026-10-30/README.md) · [Back to patch index](#patch-previews)
+
+</details>
+
 <a id="previews-de-mm20-launcher2-release"></a>
 
 ### Kvaesitso · 1 patch
@@ -501,6 +533,35 @@ Reach the existing widget editor from the search-bar menu even when the on-scree
 | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/kvaesitso-1504/2026-10-24/before.png" width="300" alt="Before: Search menu has no Edit widgets action"> | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/kvaesitso-1504/2026-10-24/after.png" width="300" alt="After: Edit widgets appears at the top of the same menu"> |
 
 [Capture provenance & checks](https://github.com/pengusto/penguin-patches/tree/8177428db162ed2e1a1b8de245cce479969046d3/kvaesitso-1504/2026-10-24) · [Back to patch index](#patch-previews)
+
+</details>
+
+<a id="previews-app-mihon"></a>
+
+### Mihon · 1 patch
+
+<a id="preview-preserve-excluded-default-category-downloads"></a>
+
+<details>
+<summary><strong>Preserve excluded Default-category downloads</strong> · Before / after</summary>
+<br>
+
+**Mihon 0.21.3** · [Setup & patch details](docs/MIHON.md)
+
+Keep read chapter downloads when the built-in Default category is excluded from
+deletion. Reuses Marc Went / Dunky13's correction in [Mihon PR #4182](https://github.com/mihonapp/mihon/pull/4182).
+
+**Installed Android APK captures.** Same synthetic favorite, read chapter, Default
+exclusion, Light theme, display size and **Downloaded only** filter. Before: the
+download is deleted and the filtered library appears empty. After: the Manager
+export retains the downloaded chapter. The favorite itself remains in both databases.
+
+| Before | After |
+| :---: | :---: |
+| **Excluded read download lost** | **Excluded read download retained** |
+| <img src="tests/mihon/evidence/2026-10-30/before.png" width="300" alt="Before: excluded Default-category download lost; Downloaded only library is empty"> | <img src="tests/mihon/evidence/2026-10-30/after.png" width="300" alt="After: excluded Default-category download retained; synthetic favorite remains downloaded"> |
+
+[Raw PNG/XML and acceptance evidence](tests/mihon/evidence/2026-10-30/README.md) · [Back to patch index](#patch-previews)
 
 </details>
 
@@ -564,9 +625,9 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 
 <!-- PATCHES_START -->
 <details>
-<summary><strong>All 12 apps and supported versions</strong></summary>
+<summary><strong>All 14 apps and supported versions</strong></summary>
 
-> **[v1.4.0](https://github.com/pengusto/penguin-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
+> **[v1.6.2](https://github.com/pengusto/penguin-patches/releases/tag/v1.6.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
 <details>
 <summary>📦 Fossify Messages&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -629,7 +690,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 | <a id="fix-quick-settings-banner-contrast"></a>[Fix quick settings banner contrast](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-fix-quick-settings-banner-contrast) | Use the banner's matching foreground color so its text stays readable with custom accents (#1756). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
 | <a id="fix-section-title-validation"></a>[Fix section title validation](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-fix-section-title-validation) | Update validation and enable Save when a custom home-section title is entered (#1830). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
 | <a id="fix-track-alphabet-navigation"></a>[Fix track alphabet navigation](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-fix-track-alphabet-navigation) | Compare song names and target letters consistently when jumping through the Tracks alphabet (#1790). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
-| <a id="keep-player-output-controls-accessible"></a>[Keep player output controls accessible](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-keep-player-output-controls-accessible) | Open the existing output controls from the player menu even when bottom actions are hidden (#1355). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
+| <a id="keep-player-output-controls-accessible"></a>[Keep player output controls accessible](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-keep-player-output-controls-accessible) | Keep Output, Queue and Lyrics at the bottom of the player menu when bottom actions are hidden, while respecting disabled gestures (#1355). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
 | <a id="load-artist-pages-faster"></a>[Load artist pages faster](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-load-artist-pages-faster) | Load artist previews and track counts without downloading the full discography (#1832). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
 | <a id="song-artist-order"></a>[Song artist order](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-song-artist-order) | Choose song-credit display order, including album artists first, metadata order and alphabetical (#1831). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
 
@@ -666,6 +727,21 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
+<summary>📦 Komikku&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.14.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| <a id="keep-local-manga-in-exclusion-searches"></a>[Keep local manga in exclusion searches](docs/KOMIKKU.md)<br>[Before / after](#preview-keep-local-manga-in-exclusion-searches) | Keep local manga when an excluded search term does not match. Matching titles, tags and remote source IDs are still excluded. Official GitHub Komikku 1.14.1 ARM64 APK tested. |  |
+
+</details>
+
+<details>
 <summary>📦 Tasks.org&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -692,6 +768,21 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | <a id="prefer-each-track-s-embedded-cover"></a><a id="prefer-each-tracks-embedded-cover"></a>[Prefer each track's embedded cover](docs/MUSIC.md)<br>[Before / after](#preview-prefer-each-track-s-embedded-cover) | Use file-specific cover artwork before shared album art, retaining the original fallback and worker callback. |  |
+
+</details>
+
+<details>
+<summary>📦 Mihon&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 0.21.3 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| <a id="preserve-excluded-default-category-downloads"></a>[Preserve excluded Default-category downloads](docs/MIHON.md)<br>[Before / after](#preview-preserve-excluded-default-category-downloads) | Keep read chapter downloads when Default is excluded from deletion. Corrects the Default category's numeric ID without changing other deletion preferences. Official GitHub Mihon 0.21.3 ARM64 APK tested. |  |
 
 </details>
 

@@ -1,0 +1,1355 @@
+package app.morphe.extension.youtube.patches.player;
+
+import static app.morphe.extension.shared.utils.Utils.hideViewBy0dpUnderCondition;
+import static app.morphe.extension.shared.utils.Utils.hideViewByRemovingFromParentUnderCondition;
+import static app.morphe.extension.shared.utils.Utils.hideViewUnderCondition;
+import static app.morphe.extension.shared.utils.Utils.validateValue;
+
+import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.DrawableWrapper;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewConfiguration;
+import android.view.ViewStub;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
+import java.util.function.Consumer;
+
+import com.google.android.libraries.youtube.innertube.model.media.VideoQuality;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.shared.settings.IntegerSetting;
+import app.morphe.extension.shared.settings.preference.SeekBarPreference;
+import app.morphe.extension.shared.utils.Logger;
+import app.morphe.extension.shared.utils.ResourceUtils;
+import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.innertube.NextResponseOuterClass.NewElement;
+import app.morphe.extension.youtube.patches.utils.InitializationPatch;
+import app.morphe.extension.youtube.patches.utils.PatchStatus;
+import app.morphe.extension.youtube.patches.video.VideoQualityPatch.VideoQualityInterface;
+import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.settings.YouTubeActivityHook;
+import app.morphe.extension.youtube.shared.EngagementPanel;
+import app.morphe.extension.youtube.shared.PlayerType;
+import app.morphe.extension.youtube.shared.RootView;
+import app.morphe.extension.youtube.shared.VideoInformation;
+import app.morphe.extension.youtube.utils.VideoUtils;
+
+@SuppressWarnings({"unused", "deprecation"})
+public class PlayerPatch {
+    private static final int FULLSCREEN_HIDDEN_Y_OFFSET = 100000;
+
+    private static final IntegerSetting quickActionsMarginTopSetting = Settings.QUICK_ACTIONS_TOP_MARGIN;
+
+    private static final int CONTROL_BUTTONS_BACKGROUND_OPACITY =
+            SeekBarPreference.clampToRange(Settings.PLAYER_CONTROL_BUTTONS_BACKGROUND_OPACITY);
+
+    /** At the app default the drawables are left untouched, so the stock look stays exact. */
+    private static final boolean CONTROL_BUTTONS_BACKGROUND_OPACITY_CHANGED =
+            CONTROL_BUTTONS_BACKGROUND_OPACITY
+                    != Settings.PLAYER_CONTROL_BUTTONS_BACKGROUND_OPACITY.defaultValue;
+
+    private static final int PLAYER_OVERLAY_OPACITY_LEVEL;
+    private static final int QUICK_ACTIONS_MARGIN_TOP;
+    private static final float SPEED_OVERLAY_VALUE;
+
+    static {
+        final int opacity = validateValue(
+                Settings.CUSTOM_PLAYER_OVERLAY_OPACITY,
+                0,
+                100,
+                "revanced_custom_player_overlay_opacity_invalid_toast"
+        );
+        PLAYER_OVERLAY_OPACITY_LEVEL = (opacity * 255) / 100;
+
+        SPEED_OVERLAY_VALUE = validateValue(
+                Settings.SPEED_OVERLAY_VALUE,
+                0.0f,
+                8.0f,
+                "revanced_speed_overlay_value_invalid_toast"
+        );
+
+        final int topMargin = validateValue(
+                Settings.QUICK_ACTIONS_TOP_MARGIN,
+                0,
+                32,
+                "revanced_quick_actions_top_margin_invalid_toast"
+        );
+
+        QUICK_ACTIONS_MARGIN_TOP = Utils.dipToPixels(topMargin);
+    }
+
+    // region [Ambient mode control] patch
+
+    /**
+     * Constant found in: androidx.window.embedding.DividerAttributes
+     */
+    private static final int DIVIDER_ATTRIBUTES_COLOR_SYSTEM_DEFAULT = -16777216;
+
+    public static boolean bypassAmbientModeRestrictions(boolean original) {
+        return !Settings.BYPASS_AMBIENT_MODE_RESTRICTIONS.get() && original;
+    }
+
+    /**
+     * Disable Ambient mode.
+     */
+    public static boolean disableAmbientMode(boolean original) {
+        return !Settings.DISABLE_AMBIENT_MODE.get() && original;
+    }
+
+    public static boolean disableAmbientModeInFullscreen() {
+        return !Settings.DISABLE_AMBIENT_MODE_IN_FULLSCREEN.get();
+    }
+
+    public static int getFullScreenBackgroundColor(int originalColor) {
+        if (Settings.DISABLE_AMBIENT_MODE_IN_FULLSCREEN.get()) {
+            return DIVIDER_ATTRIBUTES_COLOR_SYSTEM_DEFAULT;
+        }
+
+        return originalColor;
+    }
+
+    // endregion
+
+    // region [Change player flyout menu toggles] patch
+
+    public static boolean changeSwitchToggle(boolean original) {
+        return !Settings.CHANGE_PLAYER_FLYOUT_MENU_TOGGLE.get() && original;
+    }
+
+    public static String getToggleString(String str) {
+        return ResourceUtils.getString(str);
+    }
+
+    // endregion
+
+    // region [Description components] patch
+
+    public static boolean disableRollingNumberAnimations() {
+        return Settings.DISABLE_ROLLING_NUMBER_ANIMATIONS.get();
+    }
+
+    /**
+     * view id R.id.content
+     */
+    private static final int contentId = ResourceUtils.getIdIdentifier("content");
+    private static final boolean EXPAND_VIDEO_DESCRIPTION = Settings.EXPAND_VIDEO_DESCRIPTION.get();
+
+    /**
+     * The last time the clickDescriptionView method was called.
+     */
+    private static long lastTimeDescriptionViewInvoked;
+
+    public static void onVideoDescriptionCreate(RecyclerView recyclerView) {
+        if (!EXPAND_VIDEO_DESCRIPTION)
+            return;
+
+        recyclerView.getViewTreeObserver().addOnDrawListener(() -> {
+            try {
+                // Video description panel is only open when the player is active.
+                if (!RootView.isPlayerActive()) {
+                    return;
+                }
+                // Video description's recyclerView is a child view of [contentId].
+                if (!(recyclerView.getParent().getParent() instanceof View contentView)) {
+                    return;
+                }
+                if (contentView.getId() != contentId) {
+                    return;
+                }
+                // Check description panel opened.
+                if (!EngagementPanel.isDescription()) {
+                    return;
+                }
+                // The first view group contains information such as the video's title, like count, and number of views.
+                if (!(recyclerView.getChildAt(0) instanceof ViewGroup primaryViewGroup)) {
+                    return;
+                }
+                if (primaryViewGroup.getChildCount() < 2) {
+                    return;
+                }
+                // Typically, descriptionView is placed as the second child of recyclerView.
+                if (recyclerView.getChildAt(1) instanceof ViewGroup viewGroup) {
+                    clickDescriptionView(viewGroup);
+                }
+                // In some videos, descriptionView is placed as the third child of recyclerView.
+                if (recyclerView.getChildAt(2) instanceof ViewGroup viewGroup) {
+                    clickDescriptionView(viewGroup);
+                }
+                // Even if both methods are performed, there is no major issue with the operation of the patch.
+            } catch (Exception ex) {
+                Logger.printException(() -> "onVideoDescriptionCreate failed.", ex);
+            }
+        });
+    }
+
+    private static void clickDescriptionView(@NonNull ViewGroup descriptionViewGroup) {
+        final View descriptionView = descriptionViewGroup.getChildAt(0);
+        if (descriptionView == null) {
+            return;
+        }
+        // This method is sometimes used multiple times.
+        // To prevent this, ignore method reuse within 1 second.
+        final long now = System.currentTimeMillis();
+        if (now - lastTimeDescriptionViewInvoked < 1000) {
+            return;
+        }
+        lastTimeDescriptionViewInvoked = now;
+
+        // The type of descriptionView can be either ViewGroup or TextView. (A/B tests)
+        // If the type of descriptionView is TextView, longer delay is required.
+        final long delayMillis = descriptionView instanceof TextView
+                ? 750
+                : 200;
+
+        Utils.runOnMainThreadDelayed(() -> Utils.clickView(descriptionView), delayMillis);
+    }
+
+    /**
+     * This method is invoked only when the view type of descriptionView is {@link TextView}. (A/B tests)
+     *
+     * @param textView descriptionView.
+     * @param original Whether to apply {@link TextView#setTextIsSelectable}.
+     *                 Patch replaces the {@link TextView#setTextIsSelectable} method invoke.
+     */
+    public static void disableVideoDescriptionInteraction(TextView textView, boolean original) {
+        if (textView != null) {
+            textView.setTextIsSelectable(
+                    !Settings.DISABLE_VIDEO_DESCRIPTION_INTERACTION.get() && original
+            );
+        }
+    }
+
+    // endregion
+
+    // region [Disable haptic feedback] patch
+
+    public static boolean disableChapterVibrate() {
+        return Settings.DISABLE_HAPTIC_FEEDBACK_CHAPTERS.get();
+    }
+
+    public static boolean disablePreciseSeekingVibrate() {
+        return Settings.DISABLE_HAPTIC_FEEDBACK_PRECISE_SEEKING.get();
+    }
+
+    public static boolean disableSeekUndoVibrate() {
+        return Settings.DISABLE_HAPTIC_FEEDBACK_SEEK_UNDO.get();
+    }
+
+    public static Object disableTapAndHoldVibrate(Object vibrator) {
+        return Settings.DISABLE_HAPTIC_FEEDBACK_TAP_AND_HOLD.get()
+                ? null
+                : vibrator;
+    }
+
+    public static boolean disableZoomVibrate() {
+        return Settings.DISABLE_HAPTIC_FEEDBACK_ZOOM.get();
+    }
+
+    public static void vibrate(Vibrator vibrator, VibrationEffect vibrationEffect) {
+        if (disableVibrate()) return;
+        vibrator.vibrate(vibrationEffect);
+    }
+
+    public static void vibrate(Vibrator vibrator, long milliseconds) {
+        if (disableVibrate()) return;
+        vibrator.vibrate(milliseconds);
+    }
+
+    private static boolean disableVibrate() {
+        return Settings.DISABLE_HAPTIC_FEEDBACK_CHAPTERS.get()
+                && Settings.DISABLE_HAPTIC_FEEDBACK_PRECISE_SEEKING.get()
+                && Settings.DISABLE_HAPTIC_FEEDBACK_SEEK_UNDO.get()
+                && Settings.DISABLE_HAPTIC_FEEDBACK_TAP_AND_HOLD.get()
+                && Settings.DISABLE_HAPTIC_FEEDBACK_ZOOM.get();
+    }
+
+    // endregion
+
+    // region [Fullscreen components] patch
+
+    public static void disableEngagementPanels(CoordinatorLayout coordinatorLayout) {
+        if (!Settings.DISABLE_ENGAGEMENT_PANEL.get()) return;
+        coordinatorLayout.setVisibility(View.GONE);
+    }
+
+    public static void showVideoTitleSection(FrameLayout frameLayout, View view) {
+        final boolean isEnabled = Settings.SHOW_VIDEO_TITLE_SECTION.get() || !Settings.DISABLE_ENGAGEMENT_PANEL.get();
+
+        if (isEnabled) {
+            frameLayout.addView(view);
+        }
+    }
+
+    public static boolean hideAutoPlayPreview() {
+        return Settings.HIDE_AUTOPLAY_PREVIEW.get();
+    }
+
+    public static boolean hideRelatedVideoOverlay() {
+        return Settings.HIDE_RELATED_VIDEOS_OVERLAY.get();
+    }
+
+    public static void hideQuickActions(View view) {
+        final boolean isEnabled = Settings.DISABLE_ENGAGEMENT_PANEL.get() || Settings.HIDE_QUICK_ACTIONS.get();
+
+        Utils.hideViewBy0dpUnderCondition(
+                isEnabled,
+                view
+        );
+    }
+
+    public static void setQuickActionMargin(View view) {
+        int topMarginPx = getQuickActionsTopMargin();
+        if (topMarginPx == 0) {
+            return;
+        }
+
+        if (!(view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams mlp))
+            return;
+
+        mlp.setMargins(
+                mlp.leftMargin,
+                topMarginPx,
+                mlp.rightMargin,
+                mlp.bottomMargin
+        );
+    }
+
+    public static boolean enableCompactControlsOverlay(boolean original) {
+        return Settings.ENABLE_COMPACT_CONTROLS_OVERLAY.get() || original;
+    }
+
+    public static boolean disableLandScapeMode(boolean original) {
+        return Settings.DISABLE_LANDSCAPE_MODE.get() || original;
+    }
+
+    private static volatile boolean isScreenOn;
+
+    public static boolean keepFullscreen(boolean original) {
+        if (!Settings.KEEP_LANDSCAPE_MODE.get())
+            return original;
+
+        return isScreenOn;
+    }
+
+    public static void setScreenOn() {
+        if (!Settings.KEEP_LANDSCAPE_MODE.get())
+            return;
+
+        isScreenOn = true;
+        Utils.runOnMainThreadDelayed(() -> isScreenOn = false, Settings.KEEP_LANDSCAPE_MODE_TIMEOUT.get());
+    }
+
+    // endregion
+
+    // region [Hide comments component] patch
+
+    public static void changeEmojiPickerOpacity(ImageView imageView) {
+        if (!Settings.HIDE_COMMENTS_EMOJI_AND_TIMESTAMP_BUTTONS.get())
+            return;
+
+        imageView.setImageAlpha(0);
+    }
+
+    @Nullable
+    public static Object disableEmojiPickerOnClickListener(@Nullable Object object) {
+        return Settings.HIDE_COMMENTS_EMOJI_AND_TIMESTAMP_BUTTONS.get() ? null : object;
+    }
+
+    private static final String CHIP_BAR_PATH_PREFIX = "chip_bar.";
+
+    public static void sanitizeCommentsCategoryBar(@NonNull List<Object> list, @NonNull String identifier) {
+        try {
+            if (Settings.SANITIZE_COMMENTS_CATEGORY_BAR.get() &&
+                    identifier.startsWith(CHIP_BAR_PATH_PREFIX) &&
+                    PlayerType.getCurrent().isMaximizedOrFullscreen()
+            ) {
+                int listSize = list.size();
+                if (listSize > 2) {
+                    list.subList(1, listSize - 1).clear();
+                }
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "sanitizeCommentsCategoryBar failure", ex);
+        }
+    }
+
+    // endregion
+
+    // region [Hide player buttons] patch
+
+    public static boolean hideAutoPlayButton() {
+        return Settings.HIDE_PLAYER_AUTOPLAY_BUTTON.get();
+    }
+
+    public static boolean hideCaptionsButton(boolean original) {
+        return !Settings.HIDE_PLAYER_CAPTIONS_BUTTON.get() && original;
+    }
+
+    public static void hideCaptionsButton(View view) {
+        Utils.hideViewUnderCondition(Settings.HIDE_PLAYER_CAPTIONS_BUTTON, view);
+    }
+
+    public static void hideCollapseButton(ImageView imageView) {
+        if (!Settings.HIDE_PLAYER_COLLAPSE_BUTTON.get())
+            return;
+
+        imageView.setImageResource(android.R.color.transparent);
+        imageView.setImageAlpha(0);
+        imageView.setEnabled(false);
+
+        var layoutParams = imageView.getLayoutParams();
+        if (layoutParams instanceof RelativeLayout.LayoutParams) {
+            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(0, 0);
+            imageView.setLayoutParams(lp);
+        } else {
+            Logger.printDebug(() -> "Unknown collapse button layout params: " + layoutParams);
+        }
+    }
+
+    public static void setTitleAnchorStartMargin(View titleAnchorView) {
+        if (!Settings.HIDE_PLAYER_COLLAPSE_BUTTON.get())
+            return;
+
+        var layoutParams = titleAnchorView.getLayoutParams();
+        if (titleAnchorView.getLayoutParams() instanceof RelativeLayout.LayoutParams lp) {
+            lp.setMarginStart(0);
+        } else {
+            Logger.printDebug(() -> "Unknown title anchor layout params: " + layoutParams);
+        }
+    }
+
+    public static ImageView hideFullscreenButton(ImageView imageView) {
+        final boolean hideView = Settings.HIDE_PLAYER_FULLSCREEN_BUTTON.get();
+
+        if (!hideView) {
+            if (imageView != null) {
+                Drawable background = imageView.getBackground();
+                if (background != null) {
+                    imageView.setBackground(applyControlButtonsBackgroundOpacity(background));
+                }
+            }
+            return imageView;
+        }
+
+        if (imageView == null) {
+            return null;
+        }
+
+        if (!YouTubeActivityHook.useBoldIcons(true)) {
+            imageView.setVisibility(View.GONE);
+            return null;
+        }
+
+        // Cannot remove the button because the bold overlay player buttons rely on draw updates
+        // to control fade in/out. Move it offscreen instead.
+        imageView.setY(imageView.getY() - FULLSCREEN_HIDDEN_Y_OFFSET);
+        return imageView;
+    }
+
+    public static boolean hidePreviousNextButton(boolean previousOrNextButtonVisible) {
+        return !Settings.HIDE_PLAYER_PREVIOUS_NEXT_BUTTON.get() && previousOrNextButtonVisible;
+    }
+
+    public static void hidePreviousNextButtons(View parentView) {
+        if (!Settings.HIDE_PLAYER_PREVIOUS_NEXT_BUTTON.get()) {
+            return;
+        }
+
+        hideView(parentView, "player_control_previous_button_touch_area");
+        hideView(parentView, "player_control_next_button_touch_area");
+    }
+
+    private static void hideView(View parentView, String name) {
+        int resourceId = ResourceUtils.getIdIdentifier(name);
+
+        // Must use a deferred call to the main thread; hiding immediately crashes the layout.
+        Utils.runOnMainThread(() -> {
+            View targetView = parentView.findViewById(resourceId);
+            if (targetView == null) {
+                Logger.printException(() -> "Could not find player button: R.id." + name);
+                return;
+            }
+
+            Utils.hideViewByRemovingFromParentUnderCondition(true, targetView);
+        });
+    }
+
+    public static boolean hideMusicButton() {
+        return Settings.HIDE_PLAYER_YOUTUBE_MUSIC_BUTTON.get();
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hidePlayerControlButtonsBackground(View rootView) {
+        styleControlButtonsBackground(rootView);
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void styleControlButtonsBackground(View rootView) {
+        try {
+            // Each button is an ImageView with a background set to another drawable.
+            if (Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get()) {
+                forEachImageViewRecursive(rootView, imageView -> imageView.setBackground(null));
+                stylePillBackgrounds(rootView);
+            } else if (CONTROL_BUTTONS_BACKGROUND_OPACITY_CHANGED) {
+                forEachImageViewRecursive(rootView, imageView -> {
+                    Drawable background = imageView.getBackground();
+                    if (background != null) {
+                        imageView.setBackground(applyControlButtonsBackgroundOpacity(background));
+                    }
+                });
+
+                stylePillBackgrounds(rootView);
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "styleControlButtonsBackground failure", ex);
+        }
+
+    }
+
+    /**
+     * Bottom overlay views that carry the same background as the control buttons,
+     * but drawn as a pill instead of a circle.
+     */
+    private static final String[] PILL_BACKGROUND_RESOURCE_NAMES = {
+            "timestamps_container", // Current time and duration.
+            "time_bar_chapter_title",
+            "time_bar_timeline_title",
+    };
+
+    private static class PillBackground {
+        private final int id;
+        private WeakReference<View> viewRef = new WeakReference<>(null);
+        /** ConstantState of the background the opacity was last applied to. */
+        @Nullable
+        private Drawable.ConstantState backgroundSnapshot;
+
+        PillBackground(String resourceName) {
+            id = ResourceUtils.getIdIdentifier(resourceName);
+        }
+
+        /**
+         * The timestamps pill is a container nested inside the one carrying the id,
+         * and older app targets leave that inner container unnamed.
+         */
+        private static View pillOf(View view) {
+            if (view instanceof ViewGroup group && group.getChildCount() > 0) {
+                View first = group.getChildAt(0);
+                if (first instanceof ViewGroup inner) {
+                    return inner;
+                }
+            }
+            return view;
+        }
+
+        void update(View rootView) {
+            if (id == 0) return;
+
+            View pill = viewRef.get();
+            if (pill == null || !pill.isAttachedToWindow()) {
+                View container = rootView.findViewById(id);
+                if (container == null) return;
+
+                pill = pillOf(container);
+                viewRef = new WeakReference<>(pill);
+                backgroundSnapshot = null;
+            }
+
+            Drawable background = pill.getBackground();
+            if (background == null) return;
+
+            if (Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get()) {
+                pill.setBackground(null);
+                backgroundSnapshot = null;
+                return;
+            }
+
+            // A null state cannot be tracked, so fall through and rely on mutate() being idempotent.
+            Drawable.ConstantState state = background.getConstantState();
+            if (state != null && state == backgroundSnapshot) return;
+
+            Drawable styled = applyControlButtonsBackgroundOpacity(background);
+            if (styled != background) {
+                pill.setBackground(styled);
+            }
+            backgroundSnapshot = styled.getConstantState();
+        }
+    }
+
+    /**
+     * The pills live in the bottom overlay container, which is inflated from a stub of its own
+     * and can appear after the control buttons, so they are resolved on a draw pass instead.
+     */
+    private static void stylePillBackgrounds(View controlsView) {
+        // The buttons and the bottom overlay are inflated into the same controls layout,
+        // so the pills are searched for from the shared parent and not from the buttons.
+        if (!(controlsView.getParent() instanceof ViewGroup controlsLayout)) {
+            Logger.printDebug(() -> "Unknown control buttons parent: " + controlsView.getParent());
+            return;
+        }
+
+        PillBackground[] pills = new PillBackground[PILL_BACKGROUND_RESOURCE_NAMES.length];
+        for (int i = 0, length = pills.length; i < length; i++) {
+            pills[i] = new PillBackground(PILL_BACKGROUND_RESOURCE_NAMES[i]);
+        }
+
+        controlsView.getViewTreeObserver().addOnPreDrawListener(() -> {
+            try {
+                for (PillBackground pill : pills) {
+                    pill.update(controlsLayout);
+                }
+            } catch (Exception ex) {
+                Logger.printDebug(() -> "Could not style player overlay pill background", ex);
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Also used for the bottom overlay buttons, which copy their background from the
+     * fullscreen button instead of declaring one in a layout.
+     *
+     * @return the drawable to use, unchanged if the opacity is left at the app default.
+     */
+    public static Drawable applyControlButtonsBackgroundOpacity(Drawable background) {
+        if (background != null
+                && CONTROL_BUTTONS_BACKGROUND_OPACITY_CHANGED
+                && !Settings.HIDE_PLAYER_CONTROL_BUTTONS_BACKGROUND.get()) {
+            // Mutate so the color does not leak into the same drawable used elsewhere.
+            background = background.mutate();
+            setSolidColorOpacityRecursive(background);
+        }
+
+        return background;
+    }
+
+    /**
+     * The circle's transparency is baked into its solid color, so the color is replaced.
+     * setAlpha() only scales what is already there and can never exceed the app default.
+     */
+    private static void setSolidColorOpacityRecursive(Drawable drawable) {
+        if (drawable instanceof GradientDrawable gradient) {
+            ColorStateList color = gradient.getColor();
+            if (color != null) {
+                final int rgb = color.getDefaultColor();
+                // Replacing the alpha rather than scaling it keeps this safe to apply twice.
+                gradient.setColor(Color.argb(
+                        CONTROL_BUTTONS_BACKGROUND_OPACITY * 255 / 100,
+                        Color.red(rgb),
+                        Color.green(rgb),
+                        Color.blue(rgb)));
+            }
+        } else if (drawable instanceof LayerDrawable layers) {
+            for (int i = 0, count = layers.getNumberOfLayers(); i < count; i++) {
+                setSolidColorOpacityRecursive(layers.getDrawable(i));
+            }
+        } else if (drawable instanceof DrawableWrapper wrapper) {
+            // The bottom buttons get the circle wrapped in an InsetDrawable, which is not a
+            // LayerDrawable and would otherwise be skipped.
+            setSolidColorOpacityRecursive(wrapper.getDrawable());
+        }
+    }
+
+    private static void forEachImageViewRecursive(View currentView, Consumer<ImageView> action) {
+        if (currentView instanceof ImageView imageView) {
+            action.accept(imageView);
+        }
+
+        if (currentView instanceof ViewGroup viewGroup) {
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                forEachImageViewRecursive(viewGroup.getChildAt(i), action);
+            }
+        }
+    }
+
+    // endregion
+
+    // region [Player components] patch
+
+    public static void changeOpacity(ImageView scrimOverlay) {
+        scrimOverlay.setImageAlpha(PLAYER_OVERLAY_OPACITY_LEVEL);
+
+        // The top and bottom gradient scrims are siblings of the full screen scrim.
+        if (scrimOverlay.getParent() instanceof View parent) {
+            applyGradientScrimOpacity(parent, "top_gradient_scrim_overlay");
+            applyGradientScrimOpacity(parent, "bottom_gradient_scrim_overlay");
+        }
+    }
+
+    private static void applyGradientScrimOpacity(View parent, String resourceName) {
+        int resourceId = ResourceUtils.getIdIdentifier(resourceName);
+        if (resourceId == 0) return;
+
+        View gradient = parent.findViewById(resourceId);
+        if (gradient == null) {
+            Logger.printDebug(() -> "Could not find player scrim: R.id." + resourceName);
+            return;
+        }
+
+        // The gradients are set as a background rather than an image, so setImageAlpha
+        // does nothing for them.
+        Drawable background = gradient.getBackground();
+        if (background != null) {
+            // Mutate so the alpha does not leak into the same drawable used elsewhere.
+            background.mutate().setAlpha(PLAYER_OVERLAY_OPACITY_LEVEL);
+        }
+    }
+
+    /**
+     * Used in YouTube 18.29.38 ~ 20.04.46.
+     */
+    private static boolean isAutoPopupPanel;
+
+    /**
+     * Used in YouTube 18.29.38 ~ 20.04.46.
+     */
+    public static boolean disableAutoPlayerPopupPanels(boolean isLiveChatOrPlaylistPanel) {
+        if (!Settings.DISABLE_AUTO_PLAYER_POPUP_PANELS.get()) {
+            return false;
+        }
+        if (isLiveChatOrPlaylistPanel) {
+            return true;
+        }
+        return isAutoPopupPanel && !RootView.isShortsActive();
+    }
+
+    /**
+     * Used in YouTube 18.29.38 ~ 20.04.46.
+     */
+    public static void setInitVideoPanel(boolean initVideoPanel) {
+        isAutoPopupPanel = initVideoPanel;
+    }
+
+    /**
+     * Used in YouTube 20.05.46+.
+     */
+    @NonNull
+    private static final AtomicBoolean newVideoStarted = new AtomicBoolean(false);
+
+    /**
+     * Used in YouTube 20.05.46+.
+     */
+    public static boolean disableAutoPlayerPopupPanels(boolean isLiveChatOrPlaylistPanel, String panelId) {
+        if (Settings.DISABLE_AUTO_PLAYER_POPUP_PANELS.get()) {
+            return isLiveChatOrPlaylistPanel || (panelId.equals("PAproduct_list") && newVideoStarted.get());
+        }
+        return false;
+    }
+
+    /**
+     * Used in YouTube 20.05.46+.
+     */
+    public static void disableAutoPlayerPopupPanels(@NonNull String newlyLoadedChannelId, @NonNull String newlyLoadedChannelName,
+                                                    @NonNull String newlyLoadedVideoId, @NonNull String newlyLoadedVideoTitle,
+                                                    final long newlyLoadedVideoLength, boolean newlyLoadedLiveStreamValue) {
+        if (Settings.DISABLE_AUTO_PLAYER_POPUP_PANELS.get() && newVideoStarted.compareAndSet(false, true)) {
+            Utils.runOnMainThreadDelayed(() -> newVideoStarted.compareAndSet(true, false), 3000L);
+        }
+    }
+
+    @NonNull
+    public static String videoId = "";
+
+    public static void disableAutoSwitchMixPlaylists(@NonNull String newlyLoadedChannelId, @NonNull String newlyLoadedChannelName,
+                                                     @NonNull String newlyLoadedVideoId, @NonNull String newlyLoadedVideoTitle,
+                                                     final long newlyLoadedVideoLength, boolean newlyLoadedLiveStreamValue) {
+        if (!Settings.DISABLE_AUTO_SWITCH_MIX_PLAYLISTS.get()) {
+            return;
+        }
+        if (PlayerType.getCurrent() == PlayerType.INLINE_MINIMAL) {
+            return;
+        }
+        if (Objects.equals(newlyLoadedVideoId, videoId)) {
+            return;
+        }
+        videoId = newlyLoadedVideoId;
+
+        if (!VideoInformation.lastPlayerResponseIsAutoGeneratedMixPlaylist()) {
+            return;
+        }
+        VideoUtils.pauseMedia();
+        VideoUtils.openVideo(newlyLoadedVideoId);
+    }
+
+    public static boolean disableDoubleTapChapters(boolean original) {
+        return !Settings.DISABLE_CHAPTER_SKIP_DOUBLE_TAP.get() && original;
+    }
+
+    public static boolean disableSpeedOverlay() {
+        return disableSpeedOverlay(true);
+    }
+
+    public static boolean disableSpeedOverlay(boolean original) {
+        return !Settings.DISABLE_SPEED_OVERLAY.get() && original;
+    }
+
+    public static CharSequence onCharSequenceLoaded(@NonNull Object conversionContext,
+                                                    @NonNull CharSequence charSequence) {
+        try {
+            if (Settings.DISABLE_SPEED_OVERLAY.get() || SPEED_OVERLAY_VALUE == 2.0f) {
+                return charSequence;
+            }
+            final String conversionContextString = conversionContext.toString();
+            if (!conversionContextString.contains("identifierProperty=seek_edu_overlay_v2.")) {
+                return charSequence;
+            }
+            if (!conversionContextString.contains("elementId=0,0,0,0,")) {
+                return charSequence;
+            }
+            return VideoUtils.formatSpeedStringX(SPEED_OVERLAY_VALUE, 2) + ' ';
+        } catch (Exception ex) {
+            Logger.printException(() -> "onCharSequenceLoaded failed", ex);
+        }
+        return charSequence;
+    }
+
+    public static double speedOverlayValue() {
+        return speedOverlayValue(2.0f);
+    }
+
+    public static float speedOverlayValue(float original) {
+        return SPEED_OVERLAY_VALUE;
+    }
+
+    public static float speedOverlayRelativeValue(float original) {
+        return Settings.DISABLE_SPEED_OVERLAY.get() ? original : 0f;
+    }
+
+    public static boolean hideChannelWatermark(boolean original) {
+        return !Settings.HIDE_CHANNEL_WATERMARK.get() && original;
+    }
+
+    public static void hideCrowdfundingBox(View view) {
+        hideViewBy0dpUnderCondition(Settings.HIDE_CROWDFUNDING_BOX.get(), view);
+    }
+
+    public static void hideDoubleTapOverlayFilter(View view) {
+        hideViewByRemovingFromParentUnderCondition(Settings.HIDE_DOUBLE_TAP_OVERLAY_FILTER, view);
+    }
+
+    public static boolean hideEndScreenCards() {
+        return Settings.HIDE_END_SCREEN_CARDS.get();
+    }
+
+    public static void hideEndScreenCards(View view) {
+        if (Settings.HIDE_END_SCREEN_CARDS.get()) {
+            view.setVisibility(View.GONE);
+        }
+    }
+
+    public static boolean hideEndScreenSuggestedVideo() {
+        return Settings.HIDE_END_SCREEN_SUGGESTED_VIDEO.get();
+    }
+
+    public static void skipAutoPlayCountdown(View view) {
+        if (!hideEndScreenSuggestedVideo())
+            return;
+        if (!Settings.SKIP_AUTOPLAY_COUNTDOWN.get())
+            return;
+
+        Utils.clickView(view);
+    }
+
+    public static boolean hideFilmstripOverlay() {
+        return Settings.HIDE_FILMSTRIP_OVERLAY.get();
+    }
+
+    public static boolean hideFilmstripOverlay(boolean original) {
+        return !Settings.HIDE_FILMSTRIP_OVERLAY.get() && original;
+    }
+
+    public static boolean hideInfoCard(boolean original) {
+        return !Settings.HIDE_INFO_CARDS.get() && original;
+    }
+
+    public static boolean hideSeekMessage() {
+        return Settings.HIDE_SEEK_MESSAGE.get();
+    }
+
+    @Nullable
+    public static ViewStub hideSeekMessage(ViewStub viewStub) {
+        return Settings.HIDE_SEEK_MESSAGE.get()
+                ? null
+                : viewStub;
+    }
+
+    public static boolean hideSeekUndoMessage() {
+        return Settings.HIDE_SEEK_UNDO_MESSAGE.get();
+    }
+
+    public static void hideSuggestedActions(View view) {
+        hideViewUnderCondition(Settings.HIDE_SUGGESTED_ACTION.get(), view);
+    }
+
+    public static boolean hideZoomOverlay() {
+        return Settings.HIDE_ZOOM_OVERLAY.get();
+    }
+
+    // endregion
+
+    // region [Hide player flyout menu] patch
+
+    /**
+     * Advanced video quality bottom sheet body.
+     */
+    private static final String ADVANCED_VIDEO_QUALITY_BODY_PATH = "advanced_quality_sheet_content.e";
+    /**
+     * Advanced video quality bottom sheet header.
+     */
+    private static final String ADVANCED_VIDEO_QUALITY_HEADER_PATH = "quality_sheet_header.e";
+    /**
+     * Base video quality bottom sheet header.
+     */
+    private static final String BASE_VIDEO_QUALITY_HEADER_PATH = "quick_quality_sheet_content.e";
+    /**
+     * Captions bottom sheet body.
+     */
+    private static final String CAPTIONS_BODY_PATH = "captions_sheet_content.e";
+
+    private static final String ELEMENT_IDENTIFIER_COMPONENT = "ComponentType";
+    private static final String ELEMENT_IDENTIFIER_CONTAINER = "Container";
+
+    private static final String[] PLAYER_FLYOUT_QUALITY_HEADER_IDENTIFIERS = new String[]{
+            ADVANCED_VIDEO_QUALITY_HEADER_PATH,
+            BASE_VIDEO_QUALITY_HEADER_PATH,
+    };
+
+    private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+
+    public static VideoQuality[] hidePlayerFlyoutMenuEnhancedBitrate(VideoQuality[] videoQualities) {
+        if (Settings.HIDE_PLAYER_FLYOUT_MENU_ENHANCED_BITRATE.get() &&
+                ArrayUtils.isNotEmpty(videoQualities)) {
+            try {
+                return Arrays.stream(videoQualities)
+                        .filter(quality -> !StringUtils.contains(quality.patch_getQualityName(), "Premium"))
+                        .toArray(VideoQuality[]::new);
+            } catch (Exception ex) {
+                Logger.printException(() -> "hidePlayerFlyoutMenuEnhancedBitrate failure", ex);
+            }
+        }
+
+        return videoQualities;
+    }
+
+    /**
+     * Injection point for modern YouTube (21.04+).
+     */
+    public static Object[] hidePlayerFlyoutMenuEnhancedBitrate(VideoQualityInterface[] videoQualities) {
+        if (Settings.HIDE_PLAYER_FLYOUT_MENU_ENHANCED_BITRATE.get() &&
+                ArrayUtils.isNotEmpty(videoQualities)) {
+            try {
+                List<VideoQualityInterface> filtered = new ArrayList<>();
+                for (VideoQualityInterface quality : videoQualities) {
+                    if (quality != null && !StringUtils.contains(quality.patch_getQualityName(), "Premium")) {
+                        filtered.add(quality);
+                    }
+                }
+                Object[] result = (Object[]) Array.newInstance(Objects.requireNonNull(videoQualities.getClass().getComponentType()), filtered.size());
+                return filtered.toArray(result);
+            } catch (Exception ex) {
+                Logger.printException(() -> "hidePlayerFlyoutMenuEnhancedBitrate failure", ex);
+            }
+        }
+
+        return videoQualities;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideNativeBottomSheetFooter(String path, List<Object> treeNodeResultList) {
+        boolean hideCaptionsFooter = Settings.HIDE_PLAYER_FLYOUT_MENU_CAPTIONS_FOOTER.get();
+        boolean hideQualityFooter = Settings.HIDE_PLAYER_FLYOUT_MENU_QUALITY_FOOTER.get();
+        if (!hideCaptionsFooter && !hideQualityFooter) {
+            return;
+        }
+
+        try {
+            int size = treeNodeResultList.size();
+            if (size <= 2) {
+                return;
+            }
+
+            if (path.startsWith(CAPTIONS_BODY_PATH) && hideCaptionsFooter) {
+                int i = 0;
+                for (Object object : treeNodeResultList) {
+                    if (!ELEMENT_IDENTIFIER_COMPONENT.equals(object.toString())) {
+                        if (i == size - 1 && ELEMENT_IDENTIFIER_CONTAINER.equals(object.toString())) {
+                            continue;
+                        }
+                        return;
+                    }
+                    i++;
+                }
+
+                treeNodeResultList.remove(size - 1);
+            } else if (path.startsWith(ADVANCED_VIDEO_QUALITY_BODY_PATH) && hideQualityFooter) {
+                for (Object object : treeNodeResultList) {
+                    if (!ELEMENT_IDENTIFIER_COMPONENT.equals(object.toString())) {
+                        return;
+                    }
+                }
+
+                treeNodeResultList.remove(size - 1);
+                treeNodeResultList.remove(size - 2);
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "hideNativeBottomSheetFooter failure", ex);
+        }
+    }
+
+    /**
+     * Injection point.
+     */
+    public static byte[] hideNativeBottomSheetHeader(byte[] bytes) {
+        if (!Settings.HIDE_PLAYER_FLYOUT_MENU_QUALITY_HEADER.get()) {
+            return bytes;
+        }
+
+        try {
+            var newElement = NewElement.parseFrom(bytes).toBuilder();
+            var identifier = newElement.getProperties().getIdentifierProperties().getIdentifier();
+
+            if (Utils.containsAny(identifier, PLAYER_FLYOUT_QUALITY_HEADER_IDENTIFIERS)) {
+                var type = newElement.getType().toBuilder();
+                var componentType = type.getComponentType().toBuilder();
+                var model = componentType.getModel().toBuilder();
+                if (model.hasYoutubeModel()) {
+                    var youtubeModel = model.getYoutubeModel().toBuilder();
+                    var viewModel = youtubeModel.getViewModel().toBuilder();
+
+                    if (viewModel.hasQuickQualitySheetContentViewModel()) {
+                        var quickQualitySheetContentViewModel = viewModel
+                                .getQuickQualitySheetContentViewModel().toBuilder();
+
+                        quickQualitySheetContentViewModel.clearQualityHeader();
+
+                        var newQuickQualitySheetContentViewModel = quickQualitySheetContentViewModel.build();
+                        viewModel.clearQuickQualitySheetContentViewModel();
+                        viewModel.setQuickQualitySheetContentViewModel(newQuickQualitySheetContentViewModel);
+
+                        var newViewModel = viewModel.build();
+                        youtubeModel.clearViewModel();
+                        youtubeModel.setViewModel(newViewModel);
+
+                        var newYoutubeModel = youtubeModel.build();
+                        model.clearYoutubeModel();
+                        model.setYoutubeModel(newYoutubeModel);
+
+                        var newModel = model.build();
+                        componentType.clearModel();
+                        componentType.setModel(newModel);
+
+                        var newComponentType = componentType.build();
+                        type.clearComponentType();
+                        type.setComponentType(newComponentType);
+
+                        var newType = type.build();
+                        newElement.clearType();
+                        newElement.setType(newType);
+
+                        return newElement.build().toByteArray();
+                    } else if (viewModel.hasQualitySheetHeaderViewModel()) {
+                        return EMPTY_BYTE_ARRAY;
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "hideNativeBottomSheetHeader failure", ex);
+        }
+
+        return bytes;
+    }
+
+    public static void hidePlayerFlyoutMenuCaptionsFooter(View view) {
+        Utils.hideViewUnderCondition(
+                Settings.HIDE_PLAYER_FLYOUT_MENU_CAPTIONS_FOOTER.get(),
+                view
+        );
+    }
+
+    public static void hidePlayerFlyoutMenuCaptionsFooter(ListView listView, View view, Object object, boolean bool) {
+        if (Settings.HIDE_PLAYER_FLYOUT_MENU_CAPTIONS_FOOTER.get()) {
+            view = new View(listView.getContext());
+        }
+
+        listView.addFooterView(view, object, bool);
+    }
+
+    public static void hidePlayerFlyoutMenuQualityFooter(View view) {
+        Utils.hideViewUnderCondition(
+                Settings.HIDE_PLAYER_FLYOUT_MENU_QUALITY_FOOTER.get(),
+                view
+        );
+    }
+
+    public static void hidePlayerFlyoutMenuQualityFooter(ListView listView, View view, Object object, boolean bool) {
+        if (Settings.HIDE_PLAYER_FLYOUT_MENU_QUALITY_FOOTER.get()) {
+            view = new View(listView.getContext());
+        }
+
+        listView.addFooterView(view, object, bool);
+    }
+
+    public static View hidePlayerFlyoutMenuQualityHeader(View view) {
+        return Settings.HIDE_PLAYER_FLYOUT_MENU_QUALITY_HEADER.get()
+                ? new View(view.getContext()) // empty view
+                : view;
+    }
+
+    public static void hidePlayerFlyoutMenuQualityHeader(ListView listView, View view, Object object, boolean bool) {
+        if (Settings.HIDE_PLAYER_FLYOUT_MENU_QUALITY_HEADER.get()) {
+            view = new View(listView.getContext());
+        }
+
+        listView.addHeaderView(view, object, bool);
+    }
+
+    /**
+     * Overriding this values is possible only after the litho component has been loaded.
+     * Otherwise, crash will occur.
+     * See {@link InitializationPatch#onGlobalConfigUpdated()}.
+     *
+     * @param original original value.
+     * @return whether to enable PiP Mode in the player flyout menu.
+     */
+    public static boolean hidePiPModeMenu(boolean original) {
+        if (!BaseSettings.SETTINGS_INITIALIZED.get()) {
+            return original;
+        }
+
+        return !Settings.HIDE_PLAYER_FLYOUT_MENU_PIP.get();
+    }
+
+    /**
+     * Overriding this values is possible only after the litho component has been loaded.
+     * Otherwise, crash will occur.
+     * See {@link InitializationPatch#onGlobalConfigUpdated()}.
+     *
+     * @param original original value.
+     * @return whether to enable Sleep timer Mode in the player flyout menu.
+     */
+    public static boolean hideDeprecatedSleepTimerMenu(boolean original) {
+        if (!BaseSettings.SETTINGS_INITIALIZED.get()) {
+            return original;
+        }
+
+        return !Settings.HIDE_PLAYER_FLYOUT_MENU_SLEEP_TIMER.get();
+    }
+
+    // endregion
+
+    // region [Seekbar components] patch
+
+    public static String appendTimeStampInformation(String original) {
+        if (!Settings.APPEND_TIME_STAMP_INFORMATION.get()) return original;
+
+        String appendString = Settings.APPEND_TIME_STAMP_INFORMATION_TYPE.get()
+                ? VideoUtils.getFormattedQualityString(null)
+                : VideoUtils.getFormattedSpeedString(null);
+
+        // Encapsulate the entire appendString with bidi control characters
+        appendString = "\u2066" + appendString + "\u2069";
+
+        // Format the original string with the appended timestamp information
+        return String.format(
+                "%s\u2009•\u2009%s", // Add the separator and the appended information
+                original, appendString
+        );
+    }
+
+    private static final int timestampClickListenerTag =
+            ResourceUtils.getStringIdentifier("revanced_replace_time_stamp_action_title");
+
+    /**
+     * Retains YouTube's remaining-time action before the timestamp menu replaces it.
+     * Hooked at the native listener assignment, avoiding reflection into Android views.
+     */
+    public static void setTimestampClickListener(View view, View.OnClickListener original) {
+        if (original == null
+                || !Settings.APPEND_TIME_STAMP_INFORMATION.get()
+                || !Settings.REPLACE_TIME_STAMP_ACTION.get()) {
+            view.setTag(timestampClickListenerTag, null);
+            view.setOnClickListener(original);
+            return;
+        }
+
+        TimestampClickListener listener = new TimestampClickListener(view, original);
+        view.setTag(timestampClickListenerTag, listener);
+        view.setOnClickListener(listener);
+    }
+
+    public static void setContainerClickListener(View view) {
+        if (!Settings.APPEND_TIME_STAMP_INFORMATION.get())
+            return;
+
+        if (!(view.getParent() instanceof View containerView))
+            return;
+
+        final BooleanSetting appendTypeSetting = Settings.APPEND_TIME_STAMP_INFORMATION_TYPE;
+        containerView.setOnLongClickListener(timeStampContainerView -> {
+                    appendTypeSetting.save(!appendTypeSetting.get());
+                    return true;
+                }
+        );
+
+        if (Settings.REPLACE_TIME_STAMP_ACTION.get()) {
+            // Some player layouts nest timestamps_inner_container inside the native
+            // timestamps_container. Bind the tapped parent to the ancestor's action.
+            View nativeContainer = containerView;
+            while (!(nativeContainer.getTag(timestampClickListenerTag) instanceof TimestampClickListener listener)) {
+                if (!(nativeContainer.getParent() instanceof View parent)) return;
+                nativeContainer = parent;
+            }
+
+            listener.showMenu = true;
+            containerView.setOnClickListener(listener);
+        }
+    }
+
+    /**
+     * Delays the menu until a single tap is confirmed. A second tap cancels the menu
+     * and invokes YouTube's original action to toggle elapsed and remaining time.
+     * The listener survives timestamp refreshes so they cannot reset a pending tap.
+     */
+    private static final class TimestampClickListener implements View.OnClickListener {
+        private final View.OnClickListener original;
+        private final WeakReference<View> nativeView;
+        private Runnable pendingClick;
+        private boolean showMenu;
+
+        private TimestampClickListener(View view, View.OnClickListener original) {
+            this.original = original;
+            nativeView = new WeakReference<>(view);
+        }
+
+        private void invokeOriginal() {
+            View view = nativeView.get();
+            if (view != null) original.onClick(view);
+        }
+
+        @Override
+        public void onClick(View view) {
+            if (!showMenu) {
+                invokeOriginal();
+                return;
+            }
+
+            if (pendingClick != null) {
+                view.removeCallbacks(pendingClick);
+                pendingClick = null;
+                invokeOriginal();
+                return;
+            }
+
+            pendingClick = () -> {
+                pendingClick = null;
+                showTimestampMenu(view);
+            };
+
+            view.postDelayed(pendingClick, ViewConfiguration.getDoubleTapTimeout());
+        }
+    }
+
+    private static void showTimestampMenu(View v) {
+        Context context = v.getContext();
+        if (Settings.APPEND_TIME_STAMP_INFORMATION_TYPE.get()) {
+            if (Settings.APPEND_TIME_STAMP_INFORMATION_VIDEO_QUALITY_MENU_TYPE.get()) {
+                VideoUtils.showCustomVideoQualityFlyoutMenu(context);
+            } else {
+                VideoUtils.showYouTubeLegacyVideoQualityFlyoutMenu();
+            }
+        } else {
+            switch (Settings.APPEND_TIME_STAMP_INFORMATION_PLAYBACK_SPEED_MENU_TYPE.get()) {
+                case YOUTUBE_LEGACY ->
+                        VideoUtils.showYouTubeLegacyPlaybackSpeedFlyoutMenu();
+                case CUSTOM_NO_THEME ->
+                        VideoUtils.showCustomNoThemePlaybackSpeedDialog(context);
+                case CUSTOM_LEGACY ->
+                        VideoUtils.showCustomLegacyPlaybackSpeedDialog(context);
+                case CUSTOM_MODERN ->
+                        VideoUtils.showCustomModernPlaybackSpeedDialog(context);
+            }
+        }
+    }
+
+    public static boolean enableSeekbarTapping() {
+        return Settings.ENABLE_SEEKBAR_TAPPING.get();
+    }
+
+    private static final int timeBarChapterViewId =
+            ResourceUtils.getIdIdentifier("time_bar_chapter_title");
+
+    public static boolean hideSeekbar() {
+        return Settings.HIDE_SEEKBAR.get();
+    }
+
+    /**
+     * Injection point for the fullscreen large seekbar feature flag.
+     */
+    public static boolean useFullscreenLargeSeekbar(boolean original) {
+        return Settings.FULLSCREEN_LARGE_SEEKBAR.get();
+    }
+
+    /**
+     * Injection point for the large-seekbar state of YouTube 21.39+, where the feature flag is gone
+     * and {@code original} is true only in the fullscreen player.
+     */
+    public static boolean useFullscreenLargeSeekbarState(boolean original) {
+        return original && Settings.FULLSCREEN_LARGE_SEEKBAR.get();
+    }
+
+    public static boolean disableSeekbarChapters() {
+        return Settings.DISABLE_SEEKBAR_CHAPTERS.get();
+    }
+
+    public static boolean hideSeekbarChapterLabel(View view) {
+        return Settings.HIDE_SEEKBAR_CHAPTER_LABEL.get() && view.getId() == timeBarChapterViewId;
+    }
+
+    public static boolean hideTimeStamp() {
+        return Settings.HIDE_TIME_STAMP.get();
+    }
+
+    // endregion
+
+    public static int getQuickActionsTopMargin() {
+        if (!PatchStatus.QuickActions()) {
+            return 0;
+        }
+        return QUICK_ACTIONS_MARGIN_TOP;
+    }
+
+}

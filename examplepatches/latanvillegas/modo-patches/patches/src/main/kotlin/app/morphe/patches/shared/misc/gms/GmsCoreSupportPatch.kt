@@ -26,7 +26,6 @@ import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.string
-import app.morphe.patches.all.misc.clone.cloneAppPatch
 import app.morphe.patches.all.misc.clone.setOrGetFallbackPackageName
 import app.morphe.patches.shared.misc.gms.Constants.ACTIONS
 import app.morphe.patches.shared.misc.gms.Constants.AUTHORITIES
@@ -91,7 +90,6 @@ fun gmsCoreSupportPatch(
     }
 
     dependsOn(
-        cloneAppPatch,
         gmsCoreSupportResourcePatchFactory(),
         extensionPatch,
     )
@@ -513,7 +511,6 @@ fun gmsCoreSupportResourcePatch(
     block: ResourcePatchBuilder.() -> Unit = {},
 ) = resourcePatch {
     dependsOn(
-        cloneAppPatch,
         linkHandlingPatch(fromPackageName, screen)
     )
 

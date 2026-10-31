@@ -1,0 +1,162 @@
+{
+  "capturedAt": "2026-10-30T14:14:47.957297+00:00",
+  "serial": "emulator-5580",
+  "package": "app.morphe.manager",
+  "labels": [
+    {
+      "text": "Installed",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[508,634][609,666]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Finamp",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[446,698][634,770]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Your app is patched and installed!",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[32,778][1048,816]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Version",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[116,880][198,912]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "v1.0.1",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[116,914][196,954]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Patches",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[116,988][202,1020]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "7 patches",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[116,1022][243,1062]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Source",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[116,1096][190,1128]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Penguin Patches 1.6.1",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[116,1130][403,1170]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Open",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[421,1560][499,1608]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Save",
+      "class": "android.view.View",
+      "bounds": "[820,1528][932,1640]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Share",
+      "class": "android.view.View",
+      "bounds": "[936,1528][1048,1640]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Home",
+      "class": "android.view.View",
+      "bounds": "[32,1688][1048,1800]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Home",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[534,1724][611,1764]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "d475a57ad4aa50642a7e1cc5c3c1bc87ce50e6549d1a74c9a0a6dc549c5a55e9"
+}

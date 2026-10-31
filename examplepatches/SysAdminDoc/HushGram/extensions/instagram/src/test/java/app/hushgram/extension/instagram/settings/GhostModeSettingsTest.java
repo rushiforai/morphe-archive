@@ -54,7 +54,7 @@ public class GhostModeSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         for (BooleanSetting setting : ghostSwitches()) setting.resetToDefault();
         Settings.GHOST_MODE_PICKS.resetToDefault();
         BaseSettings.PAUSED.save(false);

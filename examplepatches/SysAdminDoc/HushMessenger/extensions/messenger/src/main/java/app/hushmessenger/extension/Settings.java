@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.graphics.Region;
 import android.net.Uri;
@@ -23,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /** Runtime switches default to the original Messenger behavior. */
@@ -164,6 +166,8 @@ public final class Settings {
     }
 
     public static boolean hideStories() { return enabled("stories"); }
+    /** Asked each time the chat list would attach the Instants + button; true leaves it out. */
+    public static boolean hideInstantsButton() { return enabled("instants_button"); }
     public static boolean hideFacebook() { return enabled("facebook"); }
 
     /** Under Hide Facebook shortcuts: leaves the Profile button on a chat's details page while the rest stays hidden. */
@@ -332,6 +336,7 @@ public final class Settings {
         owners.put(KEEP_FACEBOOK_PROFILE, "facebook");
         owners.put(Settings.AVATAR_ROUNDED, Settings.AVATAR_SHAPE);
         for (String keep : KEEP_BADGES.values()) owners.put(keep, TAB_BADGES);
+        owners.put(QuietCalls.CHOSEN_ONLY, QuietCalls.KEY);
         SUB_SWITCHES = Collections.unmodifiableMap(owners);
     }
 
@@ -524,9 +529,10 @@ public final class Settings {
 
     /**
      * Asked when a call starts ringing, before Messenger decides to ring and vibrate, and again for the call's
-     * notification. True takes Messenger's own ringtone-off path and posts the notification without the pop-up.
+     * notification. True takes Messenger's own ringtone-off path and posts the notification without the pop-up. With
+     * Only chosen chats on, only a call from a chosen chat gets true.
      */
-    public static boolean quietIncomingCalls() { return enabled("quiet_calls"); }
+    public static boolean quietIncomingCalls() { return QuietCalls.chosen() && enabled(QuietCalls.KEY); }
 
     /** What Android tells an app that can't see the phone's location about the Wi-Fi network it's on. */
     static final String HIDDEN_WIFI_NAME = "<unknown ssid>";
@@ -724,6 +730,70 @@ public final class Settings {
             canvas.drawRoundRect(oval, corner, corner, paint);
         }
     }
+
+    /** The story rings Messenger made. The same drawable class also draws the chat's overscroll indicator, which stays. */
+    private static final Set<Object> ringDrawables = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+
+    /** Told about each story ring drawable as Messenger makes it, so the arc below knows which arcs are rings. */
+    public static void storyRingMade(Object ring) {
+        if (ring != null) ringDrawables.add(ring);
+    }
+
+    /**
+     * The story ring around a profile picture, which Messenger draws as an arc of the circle around it (a part of one
+     * while it animates). Hide stories and notes leaves it out (#118). Around a square picture it follows the square
+     * instead, from the same angle and as far round (#116).
+     */
+    public static void storyRingArc(Canvas canvas, RectF oval, float start, float sweep, boolean center, Paint paint, Object owner) {
+        boolean ring = !center && ringDrawables.contains(owner);
+        if (ring && hideStories()) return;
+        int shape;
+        try {
+            shape = ring ? avatarShape() : AVATAR_CIRCLE;
+        } catch (RuntimeException error) {
+            hookFailed(AVATAR_SHAPE, "Can't change the profile picture shape", error);
+            shape = AVATAR_CIRCLE;
+        }
+        if (shape == AVATAR_CIRCLE) {
+            canvas.drawArc(oval, start, sweep, center, paint);
+            return;
+        }
+        float corner = shape == AVATAR_SQUARE ? 0f : Math.min(avatarCornerPx(), Math.min(oval.width(), oval.height()) / 2f);
+        canvas.drawPath(ringPath(oval, start, sweep, corner), paint);
+    }
+
+    /**
+     * The square (or rounded square) outline of an arc's box, clockwise from its top middle the way angles run from 270,
+     * cut to the part an arc from start through sweep degrees would cover. Angles map to the same share of the outline.
+     */
+    static Path ringPath(RectF box, float start, float sweep, float corner) {
+        float left = box.left, top = box.top, right = box.right, bottom = box.bottom, r = corner;
+        Path outline = new Path();
+        outline.moveTo(box.centerX(), top);
+        outline.lineTo(right - r, top);
+        if (r > 0) outline.arcTo(new RectF(right - 2 * r, top, right, top + 2 * r), 270, 90, false);
+        outline.lineTo(right, bottom - r);
+        if (r > 0) outline.arcTo(new RectF(right - 2 * r, bottom - 2 * r, right, bottom), 0, 90, false);
+        outline.lineTo(left + r, bottom);
+        if (r > 0) outline.arcTo(new RectF(left, bottom - 2 * r, left + 2 * r, bottom), 90, 90, false);
+        outline.lineTo(left, top + r);
+        if (r > 0) outline.arcTo(new RectF(left, top, left + 2 * r, top + 2 * r), 180, 90, false);
+        outline.close();
+        if (Math.abs(sweep) >= 360f) return outline;
+        if (sweep < 0) {
+            start += sweep;
+            sweep = -sweep;
+        }
+        PathMeasure measure = new PathMeasure(outline, true);
+        float length = measure.getLength();
+        float from = ((start - 270f) % 360f + 360f) % 360f / 360f * length;
+        float to = from + sweep / 360f * length;
+        Path part = new Path();
+        measure.getSegment(from, Math.min(to, length), part, true);
+        // Past the top middle it carries on from where the outline started.
+        if (to > length) measure.getSegment(0f, to - length, part, false);
+        return part;
+    }
     /** Messenger's own original-upload check allows 25 MB, so a bigger video keeps its re-encode. */
     static final long ORIGINAL_VIDEO_MAX_BYTES = 25L * 1024 * 1024;
     /**
@@ -870,7 +940,7 @@ public final class Settings {
             Context context = appContext;
             android.content.ClipData clip = data == null ? null : data.getClipData();
             if (context == null || clip == null || clip.getItemCount() < 2 || !data.getBooleanExtra(GalleryPicker.ITEMS_MARK, false) ||
-                !enabled(GalleryPicker.KEY)) return false;
+                picksGoToChat(data) || !enabled(GalleryPicker.KEY)) return false;
             // Two callers hand the handler the same result, so the second only takes it and opens no second sheet.
             if (data.getBooleanExtra(GalleryPicker.ITEMS_SENT, false)) return true;
             context.startActivity(GalleryPicker.sendIntent(context, thread, clip));
@@ -879,6 +949,61 @@ public final class Settings {
         } catch (RuntimeException error) {
             hookFailedPrivately(GalleryPicker.KEY, "Couldn't send everything you picked", error);
             return false;
+        }
+    }
+    /** A whole pick from the pick screen that Put gallery picks in the chat takes, rather than the Send to sheet. */
+    private static boolean picksGoToChat(android.content.Intent data) {
+        return data.getBooleanExtra(GalleryPicker.RESULT_PREPARED, false) && !data.getBooleanExtra(GalleryPicker.ONE_ITEM, false) &&
+            chatTray && wouldUse(GalleryPicker.CHAT_KEY) && wouldUse(GalleryPicker.KEY);
+    }
+    /** The chat composer's last answer from {@link #galleryTray}: whether the chat has Messenger's tray to put picks in. */
+    static volatile boolean chatTray;
+    /**
+     * A chat's composer asks this whether to build Messenger's tray above the message box, which the server turns on for
+     * some accounts and not others (#101). With no tray a pick put in the chat lands nowhere, so with Put gallery picks in
+     * the chat and Open your gallery app on, the answer is yes. A chat whose composer was built before the switch went on
+     * has no tray, so its picks keep the Send to sheet or the editor until it's opened again.
+     */
+    public static boolean galleryTray(boolean stock) {
+        boolean tray = stock;
+        try {
+            tray = stock || wouldUse(GalleryPicker.KEY) && enabled(GalleryPicker.CHAT_KEY);
+        } catch (RuntimeException error) {
+            hookFailedPrivately(GalleryPicker.CHAT_KEY, "Couldn't add the tray for what you pick", error);
+        }
+        chatTray = tray;
+        return tray;
+    }
+    /**
+     * The same handler asks this before anything else. With Put gallery picks in the chat on, a pick from the pick screen
+     * comes back as one result per item for the handler to run on in turn, and an empty list for the second caller handed
+     * the same pick. Null leaves the handler to the pick as it is: Off, Pause, a result from elsewhere, or one item it was
+     * already handed.
+     */
+    public static android.content.Intent[] galleryToChat(android.content.Intent data) {
+        try {
+            if (data == null || data.getData() == null || !picksGoToChat(data)) return null;
+            if (data.getBooleanExtra(GalleryPicker.IN_CHAT, false)) return new android.content.Intent[0];
+            if (!enabled(GalleryPicker.CHAT_KEY)) return null;
+            android.content.Intent[] items = GalleryPicker.chatItems(data);
+            data.putExtra(GalleryPicker.IN_CHAT, true);
+            return items;
+        } catch (RuntimeException error) {
+            hookFailedPrivately(GalleryPicker.CHAT_KEY, "Couldn't put what you picked in the chat", error);
+            return null;
+        }
+    }
+    /**
+     * The chat's copy of one of those items asks this where it would open Messenger's editor. The list goes in the chat's
+     * tray above the message box, as Messenger's own gallery puts a pick there, and null opens the editor as usual.
+     */
+    public static java.util.List<Object> galleryChatItem(android.content.Intent data, Object media) {
+        try {
+            if (data == null || media == null || !data.getBooleanExtra(GalleryPicker.ONE_ITEM, false)) return null;
+            return java.util.Collections.singletonList(media);
+        } catch (RuntimeException error) {
+            hookFailedPrivately(GalleryPicker.CHAT_KEY, "Couldn't put what you picked in the chat", error);
+            return null;
         }
     }
     /**
@@ -913,7 +1038,7 @@ public final class Settings {
             return context == null || CameraActivity.captureIntent(context) != null;
         }
         // A Root Mount install keeps the stock manifest, with no pick screen and maybe no gallery app Messenger can see.
-        if (GalleryPicker.KEY.equals(key)) {
+        if (GalleryPicker.KEY.equals(key) || GalleryPicker.CHAT_KEY.equals(key)) {
             Context context = appContext;
             return context == null || GalleryPicker.screenIntent(context) != null;
         }
@@ -923,6 +1048,8 @@ public final class Settings {
         }
         if ("hide_menu_row".equals(key)) return menuRowCanHide();
         if (HIDE_ICON_SHORTCUTS.equals(key) || HIDE_LOGO_PRESS.equals(key)) return anotherWayIn(key);
+        // Android 9 lets no app add to the shared Recordings or Music folders without the storage permission.
+        if (VoiceMessages.KEY.equals(key)) return Build.VERSION.SDK_INT >= 29;
         if (!"bubbles".equals(key)) return true;
         if (Build.VERSION.SDK_INT < 30) return false;
         if (!HostScreens.started) HostScreens.initializeLate();
@@ -1302,6 +1429,23 @@ public final class Settings {
     public static boolean suppressUnsent(boolean original, String messageId) {
         if (original && wouldUse("keep_unsent") && isKeptUnsent(messageId)) return false;
         return original;
+    }
+
+    /**
+     * Messenger is about to take [messageId] out of its notification because it was unsent. The message log marks it
+     * Unsent, and with Keep unsent messages on the answer is true, so Messenger leaves the notification showing it. That
+     * notification is the one place an end-to-end encrypted chat's unsent message can stay, since the chat drops it.
+     */
+    public static boolean unsentRecall(String messageId) {
+        try {
+            if (wouldUse(MessageLog.KEY)) MessageLog.markUnsent(messageId);
+            if (messageId == null || messageId.isEmpty() || !wouldUse("keep_unsent")) return false;
+            recordUnsent(messageId);
+            return true;
+        } catch (Throwable failure) {
+            hookFailedPrivately("keep_unsent", "Can't keep an unsent message's notification", failure);
+            return false;
+        }
     }
 
     /** Android's standard color emoji font, used when the phone can't say which font it draws emoji with. */

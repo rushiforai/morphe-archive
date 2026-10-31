@@ -52,7 +52,8 @@ val videoFormatPatch = bytecodePatch(
             mapOf(
                 "width" to "patch_getWidth",
                 "height" to "patch_getHeight",
-                "mimeType" to "patch_getMimeType"
+                "mimeType" to "patch_getMimeType",
+                "itag" to "patch_getItag"
             ).forEach { (protoFieldName, patchInterfaceMethodName) ->
                 val targetMethod =
                     FormatStreamModelToStringFingerprint.originalMethod.findMethodFromToString(protoFieldName)

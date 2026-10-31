@@ -82,23 +82,6 @@ object Constants {
         )
     )
 
-    const val POWERPOINT_PACKAGE_NAME = "com.microsoft.office.powerpoint"
-    const val POWERPOINT_TARGET_VERSION = "16.0.20527.20034"
-    const val POWERPOINT_INPUT_SHA256 = "e9379a409f0cc72ee0815c23a50852248384e0c65b2f83bcdc8748760456b937"
-
-    val COMPATIBILITY_POWERPOINT = Compatibility(
-        name = "PowerPoint",
-        packageName = POWERPOINT_PACKAGE_NAME,
-        apkFileType = ApkFileType.APKM,
-        appIconColor = 0xE44C50,
-        targets = listOf(
-            AppTarget(
-                version = POWERPOINT_TARGET_VERSION,
-                description = "Download com.microsoft.office.powerpoint v$POWERPOINT_TARGET_VERSION (APKM) arm64-v8a 120-480dpi versionCode 2005437911 (BUNDLE 5 S) from APKMirror",
-            )
-        )
-    )
-
     const val CAPCUT_PACKAGE_NAME = "com.lemon.lvoverseas"
     const val CAPCUT_TARGET_VERSION = "19.9.0"
     const val CAPCUT_INPUT_SHA256 = "3c74a9941237451953fe4ed1abe477b7413d11d11a4b5b45a17441afd30f2c38"
@@ -197,23 +180,6 @@ object Constants {
             AppTarget(
                 version = SDMSE_TARGET_VERSION,
                 description = "Download eu.darken.sdmse v$SDMSE_TARGET_VERSION (APK) FOSS-RELEASE versionCode 20202000",
-            )
-        )
-    )
-
-    const val WORD_PACKAGE_NAME = "com.microsoft.office.word"
-    const val WORD_TARGET_VERSION = "16.0.20527.20034"
-    const val WORD_INPUT_SHA256 = "a8a49a89eb2ec077049cfcb9ffbd68467597ab6a22dc032801496f37884d3213"
-
-    val COMPATIBILITY_WORD = Compatibility(
-        name = "Word",
-        packageName = WORD_PACKAGE_NAME,
-        apkFileType = ApkFileType.APKM,
-        appIconColor = 0x2B579A,
-        targets = listOf(
-            AppTarget(
-                version = WORD_TARGET_VERSION,
-                description = "Download com.microsoft.office.word v$WORD_TARGET_VERSION (APKM) arm64-v8a 120-480dpi versionCode 2005437911 from APKMirror",
             )
         )
     )

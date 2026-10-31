@@ -1,6 +1,6 @@
 # Screen inventory
 
-Stable baseline: Twitch 31.7.0, ARM64. Experimental target: 31.8.0_BETA. Names in the anchor column identify code or resources, not additional user-facing layouts.
+Stable baseline: Twitch 31.8.0, ARM64. Experimental target: 31.9.0_BETA. Names in the anchor column identify code or resources, not additional user-facing layouts.
 
 ## Playback
 
@@ -25,7 +25,8 @@ Stable baseline: Twitch 31.7.0, ARM64. Experimental target: 31.8.0_BETA. Names i
 | Feed cards | `requestInFeedAd`, `useFeedAdCoordinator`, `FeedAdItem` |
 | Home headliner | `requestHeadlinerAd`, `useHeadlinerAd` |
 | Player display ads | `StreamDisplayAdSurface` |
-| Vertical banner, 31.8 | `useSkylineBannerSlot`, `SkylineBannerAd` |
+| Vertical banner | `useSkylineBannerSlot`, `SkylineBannerAd`, where present |
+| Creator sponsorships | Native Channel Skins banner and branded avatar; `useChannelSkinsRibbon`, `useChannelSkinCampaignActive` |
 
 ## Chat
 
@@ -34,6 +35,8 @@ Stable baseline: Twitch 31.7.0, ARM64. Experimental target: 31.8.0_BETA. Names i
 | Live chat | Native list; V2 Classic Split; Vertical View overlay |
 | Replay chat | VOD replay, seek and message rebinding |
 | Chat composer | Native composer; `ChatComposerBar` |
+| Emote autocomplete | Native suggestion provider; `useChatComposer`, `createEmoteProvider`, `AutocompleteMatchList` |
+| Draft emotes | Native `ChatInput`; `NativeEmoteInput`, token image maps and caret reconciliation |
 | Emote picker | Twitch catalogues, history, BTTV, FFZ and 7TV provider tabs |
 | Emote preview | Native preview; V2 sheet |
 | Deleted messages | Native formatter and spans; React Native `ChatMessageRow`, retained deletion state and tap reveal |

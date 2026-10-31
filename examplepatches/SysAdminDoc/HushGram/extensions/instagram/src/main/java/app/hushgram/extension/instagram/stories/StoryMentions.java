@@ -17,6 +17,8 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.net.Uri;
+import android.os.SystemClock;
+import android.text.Layout;
 import android.text.TextUtils;
 import android.util.LruCache;
 import android.util.TypedValue;
@@ -60,7 +62,9 @@ import app.hushgram.extension.shared.ui.Dim;
  * <p>Instagram's story viewer gives each of its pages the story it shows in one place, its item
  * binder's bindMedia step. The patch calls {@link #bind} right after that, with the page and the
  * story. Once Instagram has bound the page's header, a pill goes after the name and time in it
- * (under the name when they share no row) saying how many accounts the story mentions, from the
+ * (right under the header when the name has no row of its own, as on Instagram 453, or when the
+ * row would cut the name short, and under the name when there's no column to put it in) saying
+ * how many accounts the story mentions, from the
  * story's own list of mentions, so a mention sticker
  * that's hidden, shrunk or dragged off screen still counts. A story with none gets no pill.
  * Tapping the pill lists the accounts with their pictures, names and usernames, and tapping one
@@ -77,6 +81,8 @@ public final class StoryMentions {
 
     /** How far up from the story's media view the header is looked for. */
     private static final int MAX_DEPTH = 8;
+    /** How far into 453's Compose name row the name's text starts, measured on the S22. */
+    static final int COMPOSE_NAME_INSET_DP = 12;
 
     /**
      * When a page's header is looked for, in milliseconds after the bind, while Instagram hasn't
@@ -131,6 +137,61 @@ public final class StoryMentions {
     static final String LIST_NO_ACTIVITY = "list not shown, no activity";
 
     private StoryMentions() {
+    }
+
+    /** How long a list left open for a profile still comes back with the story (#403). */
+    static final long BACK_TO_LIST_MS = 10 * 60 * 1000L;
+
+    /**
+     * The list a tap on an account left for that profile. When the story's pill shows again after
+     * the pill went away, the same list opens again, until Close, Back or a different story ends it.
+     */
+    private static final class BackToList {
+        final List<String> usernames = new ArrayList<>();
+        final long at = SystemClock.uptimeMillis();
+        boolean away;
+
+        BackToList(List<Mention> people) {
+            for (Mention person : people) usernames.add(person.username);
+        }
+
+        boolean matches(List<Mention> people) {
+            if (people.size() != usernames.size()) return false;
+            for (int i = 0; i < people.size(); i++) if (!usernames.get(i).equals(people.get(i).username)) return false;
+            return true;
+        }
+
+        boolean stale() {
+            return SystemClock.uptimeMillis() - at > BACK_TO_LIST_MS;
+        }
+    }
+
+    @Nullable private static BackToList backToList;
+
+    /** [pill] went off screen: if a profile is open over its story, the list waits for it to return. */
+    private static void pillLeft(Pill pill) {
+        BackToList waiting = backToList;
+        if (waiting != null && waiting.matches(pill.people)) waiting.away = true;
+    }
+
+    /** [pill] shows: the list opens again if it went away for a profile and the pill left and came back. */
+    private static void pillShown(Pill pill) {
+        BackToList waiting = backToList;
+        if (waiting == null || pill.people.isEmpty()) return;
+        if (waiting.stale()) {
+            backToList = null;
+        } else if (!waiting.matches(pill.people)) {
+            if (waiting.away) backToList = null;
+        } else if (waiting.away && pill.isShown()) {
+            backToList = null;
+            pill.post(() -> {
+                try {
+                    if (pill.isShown()) list(activityOf(pill) != null ? activityOf(pill) : pill.getContext(), pill.people);
+                } catch (Throwable failure) {
+                    HookStatus.threw(FamilyNames.STORY_MENTIONS, "story mentions list", failure);
+                }
+            });
+        }
     }
 
     /** One account a story mentions, as the list shows it. */
@@ -212,9 +273,67 @@ public final class StoryMentions {
     /** The pill under the name, a view of HushGram's own so a later bind finds it again. */
     static final class Pill extends TextView {
         List<Mention> people = Collections.emptyList();
+        /** The header's column while the pill sits in the name's row, so it can go under the header. */
+        @Nullable LinearLayout header;
+        private boolean moving;
 
         Pill(Context context) {
             super(context);
+        }
+
+        @Override
+        public void onVisibilityAggregated(boolean visible) {
+            super.onVisibilityAggregated(visible);
+            settle(visible);
+        }
+
+        @Override
+        protected void onVisibilityChanged(View changedView, int visibility) {
+            super.onVisibilityChanged(changedView, visibility);
+            settle(visibility == VISIBLE && isShown());
+        }
+
+        @Override
+        protected void onAttachedToWindow() {
+            super.onAttachedToWindow();
+            settle(isShown());
+        }
+
+        @Override
+        protected void onDetachedFromWindow() {
+            super.onDetachedFromWindow();
+            settle(false);
+        }
+
+        private void settle(boolean visible) {
+            try {
+                if (visible) pillShown(this);
+                else pillLeft(this);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.STORY_MENTIONS, "story mentions list", failure);
+            }
+        }
+
+        /**
+         * In the name's row, the pill takes its width from the name: Instagram's row shrinks the
+         * name to fit, so a long name or a date like "January 16" left only the verified badge
+         * showing. Once a layout shows the name cut short, the pill goes under the header instead.
+         */
+        @Override
+        protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+            super.onLayout(changed, left, top, right, bottom);
+            try {
+                LinearLayout column = header;
+                ViewParent row = getParent();
+                if (column == null || moving || !(row instanceof LinearLayout) || !crowdsName((LinearLayout) row)) return;
+                moving = true;
+                post(() -> {
+                    moving = false;
+                    moveUnder(this, column);
+                });
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.STORY_MENTIONS, "story header", failure);
+            }
         }
     }
 
@@ -291,9 +410,15 @@ public final class StoryMentions {
             Context context = header.getContext();
             if (pill == null) {
                 LinearLayout row = titleRow(header);
-                LinearLayout into = row != null ? row : header;
+                LinearLayout under = row == null ? below(header) : null;
+                LinearLayout into = row != null ? row : under != null ? under : header;
                 pill = newPill(context, into.getOrientation() == LinearLayout.HORIZONTAL);
-                into.addView(pill);
+                if (under != null) {
+                    putUnder(pill, header, under);
+                } else {
+                    into.addView(pill);
+                    if (row != null) pill.header = header;
+                }
                 anyPill = true;
             }
             String text = label(context, people.size());
@@ -301,6 +426,7 @@ public final class StoryMentions {
             pill.setText(text);
             pill.setContentDescription(L10n.f(context, "%1$s, see who this story mentions", text));
             pill.setVisibility(View.VISIBLE);
+            pillShown(pill);
             HookStatus.counted(FamilyNames.STORY_MENTIONS, PILL_SHOWN);
             return true;
         } catch (Throwable failure) {
@@ -332,7 +458,7 @@ public final class StoryMentions {
         return null;
     }
 
-    /** The pill already in [header], in the name's row or in the column itself, or null. */
+    /** The pill already in [header]: in the name's row, under the whole header, or in the column itself. Null for none. */
     @Nullable
     static Pill pillIn(ViewGroup header) {
         LinearLayout row = titleRow(header);
@@ -340,7 +466,84 @@ public final class StoryMentions {
             Pill inRow = pillAmong(row);
             if (inRow != null) return inRow;
         }
+        LinearLayout under = below(header);
+        if (under != null) {
+            Pill underIt = pillAmong(under);
+            if (underIt != null) return underIt;
+        }
         return pillAmong(header);
+    }
+
+    /**
+     * The column the whole header's row sits in, so the pill goes right under the header, or null
+     * when there's no such column. On Instagram 453 the name's row is a Compose view with no name
+     * view inside it, so there's no row to put the pill at the end of, and under the name it made
+     * the name's column taller. The header centers that column, so on every story with mentions
+     * the name moved up under the progress bars, and a story with a music line lost the top of its
+     * name (#405). Under the header, the pill changes nothing above it.
+     */
+    @Nullable
+    static LinearLayout below(ViewGroup header) {
+        ViewParent headerRow = header.getParent();
+        ViewParent column = headerRow instanceof View ? headerRow.getParent() : null;
+        if (!(column instanceof LinearLayout)) return null;
+        LinearLayout found = (LinearLayout) column;
+        return found.getOrientation() == LinearLayout.VERTICAL ? found : null;
+    }
+
+    /** Puts [pill] right under the header's row in [under], lined up with the name's text. */
+    private static void putUnder(Pill pill, LinearLayout header, LinearLayout under) {
+        View headerRow = (View) header.getParent();
+        LinearLayout.LayoutParams place = placement(false);
+        place.setMarginStart(headerRow.getLeft() + header.getLeft() + nameStart(header));
+        pill.setLayoutParams(place);
+        under.addView(pill, under.indexOfChild(headerRow) + 1);
+    }
+
+    /**
+     * Where the name's text starts inside [header]: the name view's left, summed up to the header,
+     * or with no name view (453's Compose row) the room that row keeps before its text. Lined up
+     * with the header's edge instead, the pill sat a name's inset left of the name on the S22 (#405).
+     */
+    static int nameStart(ViewGroup header) {
+        int id = titleId(header.getContext());
+        View title = id == 0 ? null : header.findViewById(id);
+        if (title == null) return Dim.dp(COMPOSE_NAME_INSET_DP);
+        int start = 0;
+        for (View at = title; at != null && at != header; at = at.getParent() instanceof View ? (View) at.getParent() : null) {
+            start += at.getLeft();
+        }
+        return start;
+    }
+
+    /**
+     * Moves [pill] from the name's row to under the header of [header]'s column, where it leaves the
+     * name its whole width. With no column to go under, it stays in the row and stops checking.
+     */
+    static void moveUnder(Pill pill, LinearLayout header) {
+        try {
+            pill.header = null;
+            LinearLayout under = below(header);
+            ViewParent row = pill.getParent();
+            if (under == null || !(row instanceof ViewGroup) || row == under) return;
+            ((ViewGroup) row).removeView(pill);
+            putUnder(pill, header, under);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_MENTIONS, "story header", failure);
+        }
+    }
+
+    /** Whether the name in [row] is narrower than its text and badge need, so it shows cut short. */
+    static boolean crowdsName(LinearLayout row) {
+        int id = titleId(row.getContext());
+        View found = id == 0 ? null : row.findViewById(id);
+        if (!(found instanceof TextView) || found.getVisibility() != View.VISIBLE) return false;
+        TextView title = (TextView) found;
+        CharSequence text = title.getText();
+        if (text == null || text.length() == 0) return false;
+        float wanted = Layout.getDesiredWidth(text, title.getPaint())
+                + title.getCompoundPaddingLeft() + title.getCompoundPaddingRight();
+        return title.getWidth() + 1 < wanted;
     }
 
     @Nullable
@@ -355,7 +558,8 @@ public final class StoryMentions {
      * The row the name sits in, when it's a row of its own inside the header's column, so the pill
      * goes at the end of it, after the name and the time. Under the name, the pill made the column
      * taller, and on each story with mentions the name moved up toward the progress bars (#151).
-     * Null when the name sits in the column itself or isn't there, and the pill goes under it.
+     * When the row can't hold the pill without cutting the name short, {@link Pill} moves it under
+     * the header. Null when the name sits in the column itself or isn't there, and the pill goes under it.
      */
     @Nullable
     static LinearLayout titleRow(ViewGroup header) {
@@ -382,6 +586,20 @@ public final class StoryMentions {
         return titleId;
     }
 
+    /** Where the pill sits: after the time in a row, or a little under what's above it in a column. */
+    private static LinearLayout.LayoutParams placement(boolean row) {
+        LinearLayout.LayoutParams place = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (row) {
+            place.setMarginStart(Dim.dp(6));
+            place.gravity = Gravity.CENTER_VERTICAL;
+        } else {
+            place.topMargin = Dim.dp(4);
+            place.gravity = Gravity.START;
+        }
+        return place;
+    }
+
     /**
      * A small rounded pill in white on a dim backing, like the rest of a story's header: under the
      * name in a column, or after it in a row.
@@ -398,16 +616,7 @@ public final class StoryMentions {
         backing.setColor(0x59000000);
         backing.setCornerRadius(Dim.dp(12));
         pill.setBackground(backing);
-        LinearLayout.LayoutParams place = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        if (row) {
-            place.setMarginStart(Dim.dp(6));
-            place.gravity = Gravity.CENTER_VERTICAL;
-        } else {
-            place.topMargin = Dim.dp(4);
-            place.gravity = Gravity.START;
-        }
-        pill.setLayoutParams(place);
+        pill.setLayoutParams(placement(row));
         PILLS.add(pill);
         pill.setOnClickListener(view -> {
             try {
@@ -434,15 +643,21 @@ public final class StoryMentions {
                 .setNegativeButton(L10n.t(activity, "Close"), null);
         Context themed = builder.getContext();
         AlertDialog dialog = builder.create();
+        boolean[] leaving = {false};
         LinearLayout rows = new LinearLayout(themed);
         rows.setOrientation(LinearLayout.VERTICAL);
         rows.setPadding(0, Dim.dp(8), 0, Dim.dp(8));
         for (Mention person : people) {
             rows.addView(row(themed, person, () -> {
+                leaving[0] = true;
+                backToList = new BackToList(people);
                 dialog.dismiss();
                 openProfile(activity, person.username);
             }));
         }
+        dialog.setOnDismissListener(shown -> {
+            if (!leaving[0]) backToList = null;
+        });
         ScrollView scroll = new ScrollView(themed);
         scroll.addView(rows);
         dialog.setView(scroll);
@@ -706,6 +921,7 @@ public final class StoryMentions {
         pressed = new WeakReference<>(null);
         touched = new WeakReference<>(null);
         anyPill = false;
+        backToList = null;
     }
 
     // ------------------------------------------------------------------ what the patch fills in

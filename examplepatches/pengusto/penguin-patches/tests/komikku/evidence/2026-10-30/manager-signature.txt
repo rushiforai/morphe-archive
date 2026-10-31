@@ -1,0 +1,4 @@
+Signer #1 certificate DN: CN=PenguinLifecycleTest
+Signer #1 certificate SHA-256 digest: 5bcbdaac2aebee68090aa00926622ccb5439ad0bec86d3d219ad0b74036d3628
+Signer #1 certificate SHA-1 digest: b3d666541e2fc112f2dac09ea55994681ed4b337
+Signer #1 certificate MD5 digest: a8c4a99ed1de3b144b5e9b150d5184f9

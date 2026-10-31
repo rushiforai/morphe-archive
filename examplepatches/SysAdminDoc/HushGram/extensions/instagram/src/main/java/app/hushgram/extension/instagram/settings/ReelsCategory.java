@@ -69,6 +69,12 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.HIDE_REEL_CHIPS, L10n.t("Hide promotion buttons on reels"),
                     L10n.t("Hides the buttons that push Edits, templates, Meta AI and Ray-Ban Meta glasses. Live "
                             + "badges and state-controlled media labels stay.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_SEARCH_PILL, L10n.t("Hide suggested searches on reels"),
+                    L10n.t("The search terms Instagram suggests near a reel's author.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_PRODUCT_PILLS, L10n.t("Hide shopping buttons on reels"),
+                    L10n.t("The product tag and shopping buttons near a reel's author.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_POLL_PILLS, L10n.t("Hide poll prompts on reels"),
+                    L10n.t("The poll and vote prompts near a reel's author.")));
             reels.add(toggle(context, Settings.HIDE_REEL_SOCIAL_FOOTER, L10n.t("Hide friends' activity and comment previews"),
                     L10n.t("The bubbles of friends who liked or commented, the Followed by and Liked by lines with "
                             + "their faces, the comment shown under a reel and the row of friends who saw it. Comments "
@@ -106,6 +112,11 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.KEEP_REEL_CLEAR_MODE, L10n.t("Keep clear mode on"),
                     L10n.t("Turn on Instagram's clear mode on a reel and the next reels open in it too. Leave clear "
                             + "mode yourself and the next reels show their buttons again.")));
+        }
+        if (build.contains(PatchFamily.KEEP_REELS_TOP_BAR)) {
+            reels.add(toggle(context, Settings.KEEP_REELS_TOP_BAR, L10n.t("Keep the Reels top bar"),
+                    L10n.t("Keeps the Reels title, the Friends tab and the buttons beside them at the top while you "
+                            + "swipe through reels, instead of sliding them away.")));
         }
         if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
             reels.add(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY, L10n.t("Don't send reel watch history"),
@@ -149,6 +160,9 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.FILL_REEL_SCREEN, L10n.t("Fill the screen"),
                     L10n.t("Reels that are nearly the screen's shape fill it, cut a little at the sides, instead of "
                             + "showing black bars above and below. Square and wide videos still fit.")));
+            reels.add(toggle(context, Settings.FIT_REEL_SCREEN, L10n.t("Show the whole reel"),
+                    L10n.t("Every reel fits inside the screen, with black bars where its shape differs, so nothing is "
+                            + "cut off at the sides. Works without Full screen Reels and wins over Fill the screen.")));
         }
         if (build.contains(PatchFamily.KEEP_REEL_SPEED)) {
             reels.add(toggle(context, Settings.KEEP_REEL_SPEED, L10n.t("Keep the reel speed"),

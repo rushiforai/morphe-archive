@@ -1,3 +1,10 @@
+## [1.46.2](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.46.1...v1.46.2) (2026-10-30)
+
+
+### Bug Fixes
+
+* **disney:** re-pin out-of-household fingerprint for 26.16.0 ([#278](https://github.com/ajstrick81/morphe-androidtv-patches/issues/278)) ([7027d0c](https://github.com/ajstrick81/morphe-androidtv-patches/commit/7027d0c974fad91c4c3c00d09e4de76696392554)), closes [#119](https://github.com/ajstrick81/morphe-androidtv-patches/issues/119)
+
 ## [1.46.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.46.0...v1.46.1) (2026-10-29)
 
 

@@ -11,6 +11,7 @@ In addition, patches for some apps contain additional features that were not pre
 ## Differences from official patch set
 
 ### All clients
+* Reddit API fixes are available for BaconReader, Boost, Joey, Relay, RIF (free and paid), and Sync.
 * Client ID, redirect URI and user agent are all patchable.
     * By default, `Spoof client` uses RedReader 1.27's client ID, redirect URI and user agent. Leave the OAuth client ID option empty to use its default.
     * Custom patch options override these defaults. In Boost 1.14.0 and up, saved values in the native API settings override the patch-provided defaults.
@@ -52,12 +53,16 @@ In addition, patches for some apps contain additional features that were not pre
 * Imgur album URLs are rewritten to use the newer format.
 * Enables pro features without ads.
 
+### Infinity for Reddit
+* Supports Infinity+, Infinity++, and the Patreon variant.
+* `Spoof client` applies the configured OAuth values to login callbacks and API requests, including obfuscated code, and updates the browser-login callback intent filter.
+
 ## 🚀 Get started
 
 1. Install [Morphe Manager](https://morphe.software/) and switch it to advanced/expert mode.
 2. Click [this link](https://morphe.software/add-source?github=wchill/patcheddit) to add this patch source to Morphe Manager.
 3. In Morphe Manager, find the app you want to patch.
-   * The supported apps are Boost, RIF, Sync, Relay, BaconReader, Joey, and Infinity+.
+   * The supported apps are Boost, RIF, Sync, Relay, BaconReader, Joey, Infinity+, Infinity++, and Infinity (Patreon).
 4. Get the APK for your preferred, supported 3rd party reddit app. If you don't have it, you can download it from in the app. APKM bundles (aka split APKs) will also work.
    * You should get the last available version for your reddit app, unless you are patching Relay. Relay v10.2.40 should be used instead of the latest.
 5. Select desired patches, then patch.

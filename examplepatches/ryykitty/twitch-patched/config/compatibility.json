@@ -22,10 +22,43 @@
   ],
   "targets": [
     {
+      "versionName": "31.8.0",
+      "versionCode": 3108006,
+      "status": "supported",
+      "primary": true,
+      "evaluatedAbis": [
+        "arm64-v8a"
+      ],
+      "deviceAndroidApis": [],
+      "original": {
+        "bundleSha256": "e0a37e42d5018b9d3cbb35420af22a980a46b0d4fe3c412fdd3fdb5a1d766393",
+        "baseSha256": "56d97dd7133f4d55e76caa103d4296e02b76ade1d851ab67258499caa730d604",
+        "mergedSha256": "137f066b1b80b4163b77a92839427775cf5486de5b6c2dc3a0251cf990122f75",
+        "signerCertificateSha256": "1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687ac53"
+      },
+      "verification": {
+        "fullDexRebuild": "passed",
+        "sdkPerDexAndApkChecks": "passed",
+        "originalHierarchyFindings": 118,
+        "introducedHierarchyFindings": 0,
+        "typeContracts": 89,
+        "evidence": "Fresh SDK APK check passed; identical DEX reused original-aware per-DEX/hierarchy/type-contract evidence; device pending.",
+        "deviceAcceptance": "Current build is not installed. Previous device checks are historical evidence; normal-use acceptance remains pending."
+      },
+      "evaluatedArtifact": {
+        "date": "2026-10-29",
+        "build": "Morphe Desktop",
+        "bundleSha256": "705ee82f9af56085a1c7820d888c37bfd33145aa1dec74fb11eddc87aff14305",
+        "apkSha256": "06c5bf05b6d138b204656de2c868bef7a85dffb1f3d0865758a37bff61c0f7a9",
+        "patchesApplied": 10,
+        "deviceInstall": "Not installed. This audit used offline APK rebuilding and SDK verification."
+      }
+    },
+    {
       "versionName": "31.7.0",
       "versionCode": 3107006,
       "status": "supported",
-      "primary": true,
+      "primary": false,
       "evaluatedAbis": [
         "arm64-v8a"
       ],
@@ -44,20 +77,21 @@
         "originalHierarchyFindings": 118,
         "introducedHierarchyFindings": 0,
         "typeContracts": 89,
-        "deviceArtVerification": "Current hooks passed full DEX rebuilding and original-aware SDK checks. Earlier device acceptance is retained; this exact Desktop artifact was not installed."
+        "evidence": "Fresh SDK APK check passed; identical DEX reused original-aware per-DEX/hierarchy/type-contract evidence; device pending.",
+        "deviceAcceptance": "Current build is not installed. Previous device checks are historical evidence; normal-use acceptance remains pending."
       },
       "evaluatedArtifact": {
-        "date": "2026-10-27",
+        "date": "2026-10-29",
         "build": "Morphe Desktop",
-        "bundleSha256": "ba4b6ac6d614ee6afc11f3990ec768d238743e99fb2962db4e5daf1a981885e6",
-        "apkSha256": "704f442269087507790042b79d00030bbc77b846be05fed4e2c8d21096578a2d",
+        "bundleSha256": "705ee82f9af56085a1c7820d888c37bfd33145aa1dec74fb11eddc87aff14305",
+        "apkSha256": "383d57855059b45692a577820e97f215a0c06083dfa2f8433aa336d30cee7240",
         "patchesApplied": 10,
-        "deviceInstall": "This Desktop artifact was not installed. Android Manager acceptance is recorded separately."
+        "deviceInstall": "Not installed. This audit used offline APK rebuilding and SDK verification."
       }
     },
     {
-      "versionName": "31.8.0_BETA",
-      "versionCode": 13108003,
+      "versionName": "31.9.0_BETA",
+      "versionCode": 13109000,
       "status": "experimental",
       "primary": false,
       "evaluatedAbis": [
@@ -67,9 +101,9 @@
         33
       ],
       "original": {
-        "bundleSha256": "66f23ac52b1973e79be77d85b394bfca02fbd14c09856ab09fab14c2eb7a4c51",
-        "baseSha256": "46ecc7bb9a2ee195c666156b50d14b58400987c62609c942cac2a99cf1b1fc4a",
-        "mergedSha256": "6e570122703268f7ac884edbf66b3a186807377c73313ebf24057bafa06c9bd6",
+        "bundleSha256": "824c9d7bb2e4a68e03cbaa752664fed4105609f6fc8a905bc61e3c2d203cc4b8",
+        "baseSha256": "a7f61ebf97465ae7ad9a516b89f4f47039c1a32cc9c946a83e2ad0da0cc2ae61",
+        "mergedSha256": "d0badacc2b5bc26525f9a6483ce2aa6083739972eacf30d3d0fa66dcc71f20cd",
         "signerCertificateSha256": "1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687ac53"
       },
       "verification": {
@@ -78,105 +112,48 @@
         "originalHierarchyFindings": 118,
         "introducedHierarchyFindings": 0,
         "typeContracts": 89,
-        "deviceArtVerification": "Current hooks passed full DEX rebuilding and original-aware SDK checks. Earlier device acceptance is retained; this exact Desktop artifact was not installed."
+        "evidence": "Fresh SDK APK check passed; identical DEX reused original-aware per-DEX/hierarchy/type-contract evidence; device pending.",
+        "deviceAcceptance": "Previous candidate failed DJ screen-off playback. Current build is not installed; device acceptance is pending."
       },
       "evaluatedArtifact": {
-        "date": "2026-10-27",
+        "date": "2026-10-29",
         "build": "Morphe Desktop",
-        "bundleSha256": "ba4b6ac6d614ee6afc11f3990ec768d238743e99fb2962db4e5daf1a981885e6",
-        "apkSha256": "1aa6b0ae728b90d4b9881a1c0a7b65197b0cea1979bbd73c4864335d9c87301a",
+        "bundleSha256": "705ee82f9af56085a1c7820d888c37bfd33145aa1dec74fb11eddc87aff14305",
+        "apkSha256": "d224889e95ff81b9b0975a9fccf50bc8ee2ba97f05713005423dc021d3e6d5c6",
         "patchesApplied": 10,
-        "deviceInstall": "This Desktop artifact was not installed. Android Manager acceptance is recorded separately."
-      }
-    },
-    {
-      "versionName": "31.6.0",
-      "versionCode": 3106006,
-      "status": "supported",
-      "primary": false,
-      "evaluatedAbis": [
-        "arm64-v8a"
-      ],
-      "deviceAndroidApis": [],
-      "original": {
-        "bundleSha256": "968f9ff22a5efa27d3008c0682a727376ebafd0babcadc2317912326711556e3",
-        "baseSha256": "d73049fdc2675fdfc46c1d9e3d8b13ec1497629f2afe0678e8bb484d542d0846",
-        "mergedSha256": "5b7a145ddaf16ecaecaa97924600bd886df422055480dfd15fdf4863c54b1dfe",
-        "signerCertificateSha256": "1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687ac53"
-      },
-      "verification": {
-        "fullDexRebuild": "passed",
-        "sdkPerDexAndApkChecks": "passed",
-        "originalHierarchyFindings": 116,
-        "introducedHierarchyFindings": 0,
-        "typeContracts": 86,
-        "deviceArtVerification": "Current hooks passed full DEX rebuilding and original-aware SDK checks. Earlier device acceptance is retained; this exact Desktop artifact was not installed."
-      },
-      "evaluatedArtifact": {
-        "date": "2026-10-27",
-        "build": "Morphe Desktop",
-        "bundleSha256": "ba4b6ac6d614ee6afc11f3990ec768d238743e99fb2962db4e5daf1a981885e6",
-        "apkSha256": "da7330323f1ec7d28fdc92be2c08a785f8a45117bbd2aa1b0fc0589b44ce7b24",
-        "patchesApplied": 10,
-        "deviceInstall": "This Desktop artifact was not installed. Android Manager acceptance is recorded separately."
-      }
-    },
-    {
-      "versionName": "31.5.2",
-      "versionCode": 3105026,
-      "status": "supported",
-      "primary": false,
-      "evaluatedAbis": [
-        "arm64-v8a"
-      ],
-      "deviceAndroidApis": [],
-      "original": {
-        "bundleSha256": "357f7b6dd63917603da416c36a5cf81611600bdf730ed9ff5ddf72c0445d65c3",
-        "baseSha256": "c531666060d398fff457aa4e8ef14881eaafee142b01de9b668a2a369184b8d6",
-        "mergedSha256": "a37ae3c60e8c3388cd274770b7b2871fd34b0acda3a7d741a200d07ed1c60a5f",
-        "signerCertificateSha256": "1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687ac53"
-      },
-      "verification": {
-        "fullDexRebuild": "passed",
-        "sdkPerDexAndApkChecks": "passed",
-        "originalHierarchyFindings": 93,
-        "introducedHierarchyFindings": 0,
-        "typeContracts": 69,
-        "deviceArtVerification": "Current hooks passed full DEX rebuilding and original-aware SDK checks. Earlier device acceptance is retained; this exact Desktop artifact was not installed."
-      },
-      "evaluatedArtifact": {
-        "date": "2026-10-27",
-        "build": "Morphe Desktop",
-        "bundleSha256": "ba4b6ac6d614ee6afc11f3990ec768d238743e99fb2962db4e5daf1a981885e6",
-        "apkSha256": "5dd5c873932d3c39e6891227dc4935de7847bfed12e8d0cde14cf381012b3cd1",
-        "patchesApplied": 10,
-        "deviceInstall": "This Desktop artifact was not installed. Android Manager acceptance is recorded separately."
+        "deviceInstall": "Not installed. This audit used offline APK rebuilding and SDK verification."
       }
     }
   ],
   "regressionChecks": {
-    "date": "2026-10-27",
-    "javaKotlinTests": 260,
-    "javaScriptTests": 52,
+    "date": "2026-10-29",
+    "javaKotlinTests": 279,
+    "javaScriptTests": 62,
     "standaloneVerifierTests": "passed",
     "sourceHygiene": "passed",
     "androidApi": 33,
     "reloadViews": "Passed initial binding, released-player cleanup, reused controls, repeated preference changes and native control availability. The previous bundle fails the reused-controls case.",
     "replayAndSettingsWindow": "Passed replay touch routing, repeated system-bar/cutout preference changes, rotation and lifecycle.",
     "patcherMigration": "Morphe Patcher 2.0.1 lazy resource decoding: 23 of 6482 files decoded on 31.8.0_BETA.",
-    "extensionControls": "Contracts resolved on all four targets. Two live hide/show cycles passed in React Native Classic Split; existing preferences restored.",
+    "extensionControls": "Required component contracts resolve on 31.7.0, 31.8.0 and 31.9.0_BETA. Earlier native and React Native hide/show acceptance retained.",
     "reducedSelection": "Show deleted messages alone passed full DEX rebuilding and SDK verification on 31.7.0; zero introduced findings.",
     "fullscreenRequests": "Android runtime probes passed 20 repeated modern and legacy host requests, live preference changes, restoration and keyboard preservation.",
-    "channelActions": "Native metadata models preserve Follow and notification callbacks while filtering Subscribe and gifting. Native chat-overlay Subscribe uses the existing visibility policy."
+    "channelActions": "Native metadata models preserve Follow and notification callbacks while filtering Subscribe and gifting. Native chat-overlay Subscribe uses the existing visibility policy.",
+    "backgroundPlayback": "Native lifecycle and React Native policy tests pass. DJ screen-off playback failed on the previous candidate; the bundle-source correction awaits device acceptance.",
+    "reactNativeBundleSource": "Host bundle-source contract resolves uniquely on all three declared targets. Full APK rebuilding and original-aware SDK checks pass; no new hierarchy findings. Device acceptance pending.",
+    "streamAdWarmup": "Four tests pass for immediate startup, late clean results, rendition isolation and cancellation. The existing 2.2-second foreground budget is unchanged.",
+    "creatorSponsorships": "Native banner/header contracts and React Native query/placement contracts resolve on all three declared targets. Generated capture instructions and inherited Android method references are tested; three adapter tests cover live toggles and cached creatives. Device acceptance pending.",
+    "releaseAuditDeviceTesting": "No phone interaction or installation during this audit.",
+    "historicalDeviceEvidenceDate": "2026-10-27"
   },
   "knownLimitations": {
-    "streamAds": "Extended preroll and midroll acceptance remains a normal-use check; unmatched-media coverage is under evaluation.",
-    "storyAds": "Not covered.",
+    "streamAds": "If no clean compatible alternative is available within the bounded search, original media is retained and an ad can appear. Live preroll/midroll acceptance remains pending for this build.",
+    "storyAds": "No verified ad-specific request or presentation contract. Stories ad coverage is not claimed.",
     "clientAdRequests": "Native request suppression; changing this setting requires a restart.",
     "deletedMessages": "Native and React Native chat are covered. Text must remain in the received message; earlier deleted history cannot be recovered. A live React Native moderation event remains an acceptance check.",
     "googlePlayBilling": "Unavailable in the evaluated re-signed app.",
     "notifications": "Registration is included; actual delivery timing requires a live notification event.",
-    "experimentalVersion": "31.8.0_BETA is the downloaded APK identity. Stable 31.8.0 requires a separate original and verification.",
+    "experimentalVersion": "31.9.0_BETA is experimental and requires normal-use acceptance.",
     "reload": "Current React Native Classic Split requests reached the player. A separate intermittent layout failure has not been reproduced; native reused-control rebinding is covered by regression tests.",
     "extendedAcceptance": [
       "Preroll and midroll events",
@@ -184,9 +161,27 @@
       "Theme transitions",
       "DJ audio and background playback"
     ],
-    "hypeTrains": "Native event-state and React Native selector tests passed. Live Hype Train transitions still require an event on an available channel."
+    "hypeTrains": "Native event-state and React Native selector tests passed. Live Hype Train transitions still require an event on an available channel.",
+    "emoteDrafts": "Input previews are confirmed in native chat. The user reports missing draft images in React Native Vertical View; chat rendering and autocomplete remain available.",
+    "djBackgroundPlayback": "Screen-off playback on 31.9.0_BETA remains unconfirmed after repeated failed device candidates. The packaged-bundle correction requires user acceptance.",
+    "creatorSponsorships": "Native and React Native suppression is covered by hook and adapter checks. Live sponsorship transitions still require device acceptance."
   },
   "externalStreamProxy": false,
+  "emoteInputDevelopment": {
+    "date": "2026-10-27",
+    "versionName": "31.8.0_BETA",
+    "evaluatedBundleSha256": "13479063cd62d70e302e0ac93232803372466fb16816a842102aa725fbf56f85",
+    "installedApkSha256": "5110fc10f8c168dcef9d86a65070b6e1c1dd1cf4e776184f003c7a622c7f7bcd",
+    "runtimePayloadSha256": "4cbb9ba36771e2dedd5bb4fb8baf2b41855b9249dd6a3624439d8d6ab3b31f8a",
+    "fullDexRebuild": "passed",
+    "sdkPerDexAndApkChecks": "passed",
+    "introducedHierarchyFindings": 0,
+    "deviceInstall": "ADB update with the existing Manager signing key and app data.",
+    "deviceAcceptance": "User confirmed autocomplete and inline emotes working on mobile. Native suggestions were also inspected with images and names.",
+    "automatedSelection": "Instrumentation could inspect the native catalogue; its completion-selection action was inconclusive.",
+    "composerContracts": "Matched React Native composer and input contracts on 31.5.2, 31.6.0, 31.7.0 and 31.8.0_BETA.",
+    "remainingChecks": "Full legacy-input rebuild checks for retained targets are recorded under targets. Versions 31.5.2 and 31.6.0 are no longer supported."
+  },
   "androidManagerBuild": {
     "date": "2026-10-27",
     "versionName": "31.8.0_BETA",

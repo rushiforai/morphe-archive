@@ -48,7 +48,7 @@ public class ProfileTabsSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.HIDDEN_PROFILE_TABS.resetToDefault();
         Settings.HIDDEN_OWN_PROFILE_TABS.resetToDefault();
         BaseSettings.PAUSED.save(false);

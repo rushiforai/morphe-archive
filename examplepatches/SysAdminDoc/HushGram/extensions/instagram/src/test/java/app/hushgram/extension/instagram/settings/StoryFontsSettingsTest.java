@@ -61,7 +61,7 @@ public class StoryFontsSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.STORY_FONTS.resetToDefault();
         Settings.STORY_EMOJI.resetToDefault();
         Settings.SETTINGS_LOCK_HOURS.resetToDefault();

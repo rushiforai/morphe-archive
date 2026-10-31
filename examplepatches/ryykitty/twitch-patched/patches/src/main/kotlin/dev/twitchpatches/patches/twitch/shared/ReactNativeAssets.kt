@@ -18,6 +18,16 @@ internal val reactNativeAssetsPatch = resourcePatch {
         get("assets/index.android.bundle").writeBytes(HermesFeedTheme.apply(original))
         val playback = exports.resolve("PlaybackSettingsSheet", setOf("isParticipatingDJ", "hasAudioRendition",
             "onAudioOnlyChange", "onBgaSettingChange", "onPipAutoPopoutChange"))
+        val background = exports.resolve("BackgroundAudioManager", setOf("isParticipatingDJ", "playInBackground",
+            "isPlaying", "onPlayingChange", "isPipActive", "audioOnlyMode"))
+        exports.requireNestedContract("BackgroundAudioManager",
+            setOf("beginBackgroundAudio", "endBackgroundAudio", "background", "active"))
+        val rendition = exports.resolve("useAudioOnlyRendition", setOf("isParticipatingDJ", "playerApiRef",
+            "qualities", "audioOnly", "playInBackground"))
+        val veto = if (original.functions.any { original.strings[it.name] == "backgroundAudioVeto" })
+            exports.resolve("backgroundAudioVeto", setOf("isParticipatingDJ", "chatOnly")) else null
+        if (veto == null) exports.requireFunctionContract("usePlayInBackgroundPreference", 2,
+            setOf("backgroundAudioSetting"))
         exports.requireFunctionContract("ViewingOptionsSection", 2,
             setOf("isParticipatingDJ", "onAudioOnlyChange", "ToggleableSettingsListItem"))
         exports.requireFunctionContract("BgaSettingRow", 2,
@@ -27,7 +37,10 @@ internal val reactNativeAssetsPatch = resourcePatch {
             .replace("__TWITCH_APP_CORE_MODULE__", core.module.toString()))
         appendFeedThemeAdapters(exports, themePaletteModule(original))
         get(RN_ASSET).appendText("\n" + assetSource("playback-settings.js")
-            .replace("__TWITCH_PLAYBACK_SETTINGS_MODULE__", playback.module.toString()))
+            .replace("__TWITCH_PLAYBACK_SETTINGS_MODULE__", playback.module.toString())
+            .replace("__TWITCH_BACKGROUND_AUDIO_MODULE__", background.module.toString())
+            .replace("__TWITCH_AUDIO_RENDITION_MODULE__", rendition.module.toString())
+            .replace("__TWITCH_BACKGROUND_VETO_MODULE__", veto?.module?.toString() ?: "null"))
     }
 }
 
@@ -38,7 +51,7 @@ private fun ResourcePatchContext.appendFeedThemeAdapters(exports: MetroExports, 
     val clips = exports.resolve("ClipsFeedPage", setOf("children", "topSlot", "warm"))
     val scrim = exports.resolve("FeedTopScrim", setOf("stops", "translateY", "LinearGradient"))
     val chrome = exports.resolveMemo("FeedTopChrome", "FeedTopChromeComponent",
-        setOf("tabsBarHeight", "FeedTopScrim", "scrimTranslateY", "topInset", "feedTheme"))
+        setOf("tabsBarHeight", "chromeTranslateY", "topInset", "feedTheme", "backgroundBody"))
     exports.requireNestedContract("FeedTopChromeComponent", setOf("feed-top-chrome"))
     exports.requireNestedContract("FeedTopScrim", setOf("Stop", "#000000"))
     get(RN_ASSET).appendText("\n" + assetSource("feed-theme.js")

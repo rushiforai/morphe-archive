@@ -195,6 +195,10 @@ internal fun selectedTabColourReads(method: Method, colour: MethodReference): Li
  * fails before anything is half done. Material You and Badge and logo colors both ask for it; once
  * one has found it, the other's step does nothing, since a second hook would hand the colour over
  * twice and push the setter's Paint out of the window it's found by.
+ *
+ * 585, read 2026-10-30: the place that first fills the Paint moved into the layout itself
+ * (arm64 `A0c(FbUserSession, LX/03LO, Z)`), colouring it from the static `LX/02It;->A00(LX/029b, LX/01PR)I`
+ * with a null check between the field read and setColor; the setter is `Jxm(FbUserSession, LX/03LO, J)`.
  */
 internal fun BytecodePatchContext.selectedTabColourHook(): () -> Unit {
     if (this in hookedContexts) return {}

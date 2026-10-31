@@ -140,6 +140,13 @@ STREAMING_DATA_REQUEST_DEV10_CONFLICT_BLOBS = (
     "6b52423befc0e3b83e2b641d6514c0c3f30e42f8",
 )
 
+# Cumulative stable 2.0.0 combines authenticated downloads and the offline guard.
+STREAMING_DATA_REQUEST_STABLE200_CONFLICT_BLOBS = (
+    "256eb94549f0142ebc1d3de6d7e52e661b86cce9",
+    "019242eca43f0530c027f10f96e7e309be2768f9",
+    "6891092a6c638c97e6958f5fdfde6ae15c6e1948",
+)
+
 # One-time, fail-closed merge of Morphe 1.48.0-dev.8 Series Tracker with
 # Dual VoT's Yandex settings. Any different source versions require review.
 DEV148_SETTINGS_PATH = (
@@ -850,6 +857,50 @@ def merge_streaming_data_request_dev10(source: str) -> str:
     return merged
 
 
+def merge_streaming_data_request_stable200(source: str) -> str:
+    """Keep the upstream offline guard, download auth, and Dual direct streams."""
+    pattern = re.escape(
+        '<<<<<<< HEAD\n'
+        '    private static StreamData fetch(\n'
+        '            String videoId,\n'
+        '            boolean isInline,\n'
+        '            Map<String, String> playerHeaders,\n'
+        '            boolean includeVideoDetails,\n'
+        '            ClientType[] clientOrder,\n'
+        '            boolean isDownload,\n'
+        '            boolean directStreamsOnly\n'
+        '    ) {\n'
+        '=======\n'
+        '    private static StreamData fetch(String videoId, boolean isInline, Map<String, String> playerHeaders,\n'
+        '                                    boolean includeVideoDetails, ClientType[] clientOrder, boolean isDownload) {\n'
+        '        if (!Utils.isNetworkConnected()) {\n'
+        '            Logger.printDebug(() -> "Network not connected, skipping stream fetch for: " + videoId);\n'
+        '            return null;\n'
+        '        }\n'
+        '\n'
+    ) + r">>>>>>> [^\n]+\n"
+    replacement = (
+        '    private static StreamData fetch(\n'
+        '            String videoId,\n'
+        '            boolean isInline,\n'
+        '            Map<String, String> playerHeaders,\n'
+        '            boolean includeVideoDetails,\n'
+        '            ClientType[] clientOrder,\n'
+        '            boolean isDownload,\n'
+        '            boolean directStreamsOnly\n'
+        '    ) {\n'
+        '        if (!Utils.isNetworkConnected()) {\n'
+        '            Logger.printDebug(() -> "Network not connected, skipping stream fetch for: " + videoId);\n'
+        '            return null;\n'
+        '        }\n'
+        '\n'
+    )
+    merged, count = re.subn(pattern, lambda _: replacement, source)
+    if count != 1:
+        raise SyncError("Unexpected stable 2.0.0 streaming conflict shape")
+    return merge_streaming_data_request_dev10(merged)
+
+
 def resolve_streaming_data_request_conflict() -> None:
     if STREAMING_DATA_REQUEST_PATH not in unresolved_paths():
         return
@@ -858,9 +909,13 @@ def resolve_streaming_data_request_conflict() -> None:
         output_of("git", "rev-parse", f":{stage}:{STREAMING_DATA_REQUEST_PATH}")
         for stage in (1, 2, 3)
     )
-    if stage_blobs == STREAMING_DATA_REQUEST_DEV10_CONFLICT_BLOBS:
+    if stage_blobs in (STREAMING_DATA_REQUEST_DEV10_CONFLICT_BLOBS,
+                       STREAMING_DATA_REQUEST_STABLE200_CONFLICT_BLOBS):
         destination = ROOT / STREAMING_DATA_REQUEST_PATH
-        merged = merge_streaming_data_request_dev10(destination.read_text(encoding="utf-8"))
+        merge_known = (merge_streaming_data_request_stable200
+                       if stage_blobs == STREAMING_DATA_REQUEST_STABLE200_CONFLICT_BLOBS
+                       else merge_streaming_data_request_dev10)
+        merged = merge_known(destination.read_text(encoding="utf-8"))
         destination.write_text(merged, encoding="utf-8", newline="")
         run("git", "add", "--", STREAMING_DATA_REQUEST_PATH)
         return
@@ -1071,6 +1126,47 @@ def resolve_dev1498_vot_sheet_conflict() -> None:
     run("git", "add", "--", path)
 
 
+STABLE200_TEST_DEPENDENCY_BLOBS = (
+    "7a2fff6a111f9da115c1687986b3f5fa64888287",
+    "d61a7a1901f678649db40ed60f44d8cc99fca653",
+    "1c48977a87c29654a927b6c39d305f56f15c94d8",
+)
+
+
+def merge_stable200_test_dependencies(source: str) -> str:
+    """Keep legacy event fixtures and the upstream test library, both test-only."""
+    pattern = (
+        r"(?m)^<<<<<<< [^\n]+\n"
+        r'    // Legacy event fixtures only; never package Kotlin into the Java-only extension.\n'
+        r'    testImplementation\("org.jetbrains.kotlin:kotlin-stdlib:2.4.0"\)\n'
+        r"=======\n"
+        r'    testImplementation\(libs.morphe.extensions.library\)\n'
+        r">>>>>>> [^\n]+\n"
+    )
+    replacement = (
+        '    // Legacy event fixtures only; never package Kotlin into the Java-only extension.\n'
+        '    testImplementation("org.jetbrains.kotlin:kotlin-stdlib:2.4.0")\n'
+        '    testImplementation(libs.morphe.extensions.library)\n'
+    )
+    merged, count = re.subn(pattern, lambda _: replacement, source)
+    if count != 1 or re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
+        raise SyncError("Unexpected stable 2.0.0 test dependency conflict")
+    return merged
+
+
+def resolve_stable200_test_dependencies() -> None:
+    path = "extensions/youtube/build.gradle.kts"
+    if path not in unresolved_paths():
+        return
+    blobs = tuple(output_of("git", "rev-parse", f":{stage}:{path}") for stage in (1, 2, 3))
+    if blobs != STABLE200_TEST_DEPENDENCY_BLOBS:
+        return
+    destination = ROOT / path
+    merged = merge_stable200_test_dependencies(destination.read_text(encoding="utf-8"))
+    destination.write_text(merged, encoding="utf-8", newline="")
+    run("git", "add", "--", path)
+
+
 def merge_ref(
     ref: str,
     project_preference: str,
@@ -1114,6 +1210,7 @@ def merge_ref(
     resolve_dev148_settings_conflict()
     resolve_stable148_settings_conflict()
     resolve_youtube_junit_conflict()
+    resolve_stable200_test_dependencies()
     resolve_dev1498_vot_sheet_conflict()
 
     remaining = unresolved_paths()

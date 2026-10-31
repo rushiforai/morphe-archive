@@ -38,6 +38,7 @@ import com.android.tools.smali.dexlib2.immutable.value.ImmutableStringEncodedVal
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
@@ -241,6 +242,18 @@ class UseRegisteredApiCredentialsFixtureTest {
     }
 
     @Test
+    fun `a hash with no ID says how to quote a numeric ID on the command line`() {
+        for (id in listOf(null, "", " ")) {
+            val message = assertThrows(PatchException::class.java) { checkedApiCredentials(id, HASH) }.message.orEmpty()
+            assertTrue(message.endsWith("supply both apiId and apiHash. $QUOTE_ID_HINT"))
+            assertFalse(message.contains(HASH))
+        }
+        val missingHash = assertThrows(PatchException::class.java) { checkedApiCredentials(ID, null) }.message.orEmpty()
+        assertTrue(missingHash.endsWith("supply both apiId and apiHash."))
+        assertFalse(missingHash.contains(ID))
+    }
+
+    @Test
     fun `values pasted with spaces or line breaks are trimmed, and two empty fields keep the originals`() {
         val pasted = checkNotNull(checkedApiCredentials(" $ID\n", "\t$HASH \r\n"))
         assertEquals(ID.toInt(), pasted.id)
@@ -376,7 +389,7 @@ class UseRegisteredApiCredentialsFixtureTest {
             constructor.addInstruction(index, "const v${constructor.instructions()[index].namedRegisters()[3]}, 0x1")
         }
         refusal { _, plan ->
-            val method = plan.connectionInitializer as MutableMethod
+            val method = plan.connectionInitializer
             val index = method.instructions().indices.single { method.instructions()[it].call()?.name == "native_init" }
             method.addInstruction(index, "const v${method.instructions()[index].namedRegisters()[3]}, 0x1")
         }

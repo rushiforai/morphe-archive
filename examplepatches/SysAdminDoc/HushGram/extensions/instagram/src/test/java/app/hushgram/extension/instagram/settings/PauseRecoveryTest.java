@@ -51,7 +51,7 @@ public class PauseRecoveryTest {
     @Rule public final SettingsContextRule settings = new SettingsContextRule();
 
     @Before public void pausedHost() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         BaseSettings.DEBUG.save(false);
         BaseSettings.PAUSED.save(true);
         PauseForTests.pause(HushgramPause.Reason.SWITCH);

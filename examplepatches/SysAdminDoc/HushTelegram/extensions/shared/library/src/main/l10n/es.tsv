@@ -121,6 +121,8 @@ No matching settings	No hay ajustes coincidentes
 %1$d settings found	%1$d ajustes encontrados
 Try a different word or clear the search.	Prueba otra palabra o borra la búsqueda.
 Search settings	Buscar ajustes
+# context: the settings search field's hint when "Search settings" doesn't fit its width (a narrow screen or large text).
+Search	Buscar
 Clear search	Borrar búsqueda
 Your switches are working.	Tus interruptores están funcionando.
 Pause	Pausar
@@ -174,10 +176,8 @@ Stops usage reports, strips tracking from links and covers your own phone number
 Back to defaults	Volver a los valores predeterminados
 # context: what Back to defaults does, under its name
 Puts every feature switch back the way it started.	Devuelve cada interruptor de función a como estaba al principio.
-# context: toast after a Quick setups choice changed exactly one switch
-Changed %1$d setting	Se cambió %1$d ajuste
-# context: the same toast for any other count, zero included; %1$d is how many
-Changed %1$d settings	Se cambiaron %1$d ajustes
+# context: toast after a Quick setups choice (Quiet, Privacy or Back to defaults) found every switch it sets already set that way, so nothing changed
+Already set that way.	Ya está configurado así.
 Ads in channels and search	Anuncios en canales y en la búsqueda
 Ads in channels	Anuncios en canales
 Ads in search	Anuncios en la búsqueda
@@ -204,6 +204,12 @@ Hide recommendations	Ocultar recomendaciones
 Hides suggested similar channels and bots, including ones already saved, and stops asking Telegram for new ones.	Oculta los canales y bots similares sugeridos, incluidos los ya guardados, y deja de pedirle otros nuevos a Telegram.
 similar channels and bots	canales y bots similares
 cached recommendations	recomendaciones guardadas
+# context: a switch under Hide recommendations. Trending packs are the sticker and emoji packs Telegram features in its keyboards; use the applied translation of Telegram's term (key FeaturedStickersShort, "Trending").
+Hide trending packs	Ocultar paquetes destacados
+# context: that switch's summary. Trending is the sticker keyboard's tab (key FeaturedStickersShort) and Stickers and Emoji is the Settings screen that lists packs (key StickersName); use the applied translations of both.
+The sticker keyboard's Trending tab and row and the emoji keyboard's trending packs go away, so both list only packs you've added. Search and the Stickers and Emoji screen still show them. A chat picks this up the next time you open it.	La pestaña Destacados y su fila en el teclado de stickers y los paquetes destacados del teclado de emojis desaparecen, así que ambos muestran solo los paquetes que agregaste. La búsqueda y la pantalla Stickers y emojis los siguen mostrando. Un chat lo aplica la próxima vez que lo abras.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide recommendations that hides the keyboards' trending packs.
+trending packs in the sticker and emoji keyboards	paquetes destacados de los teclados de stickers y emojis
 Stop call diagnostics	Detener diagnósticos de llamadas
 Stops your phone from automatically sending call problem reports and log files when Telegram's server asks for them.	Evita que tu teléfono envíe automáticamente informes de problemas de llamadas y archivos de registro cuando el servidor de Telegram los pide.
 call debug reports	informes de depuración de llamadas
@@ -222,6 +228,24 @@ Gram transfer Send Gram item	opción Enviar Gram de las transferencias de Gram
 Premium stickers in the keyboard and packs	stickers Premium del teclado y los paquetes
 Premium sticker effects	efectos de los stickers Premium
 Premium emoji packs in the emoji keyboard	paquetes de emojis Premium del teclado de emojis
+# context: a switch under Hide Premium, gifts and Stars. An emoji status is the emoji a Premium account sets next to its name; use the applied translation of Telegram's term (key PremiumPreviewEmojiStatus, "Emoji Statuses").
+Hide emoji statuses	Ocultar estados de emojis
+# context: that switch's summary. The Premium star is the star Telegram draws next to a Premium account's name when it has no emoji status.
+The emoji a Premium account puts next to its name goes away in chats, the chat list and profiles, and the Premium star shows instead. Your own status hides too but stays set for everyone else. A chat picks this up the next time you open it.	El emoji que una cuenta Premium pone junto a su nombre desaparece en los chats, la lista de chats y los perfiles, y en su lugar aparece la estrella Premium. Tu propio estado también se oculta, pero sigue puesto para los demás. Un chat lo aplica la próxima vez que lo abras.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide Premium, gifts and Stars that hides emoji statuses.
+emoji statuses next to names	estados de emojis junto a los nombres
+# context: a switch under Hide Premium, gifts and Stars. App Icon is Telegram's list of launcher icons in its appearance settings; use the applied translations of its title (key AppIcon, "App Icon") and of the icon names (keys AppIconPremium, AppIconTurbo, AppIconNox).
+Unlock Premium app icons	Desbloquear íconos Premium de la app
+# context: that switch's summary. Premium, Turbo and Nox are three icons in that list (keys AppIconPremium, AppIconTurbo, AppIconNox; Nox is applied as Noche). The Premium sheet is the page Telegram opens to sell Premium when a locked icon is tapped.
+Premium, Turbo and Nox in Telegram's App Icon list work without Premium, with no lock and no Premium sheet. Only the icon on your home screen changes.	Premium, Turbo y Noche en la lista de Ícono de la app de Telegram funcionan sin Premium, sin candado y sin la pantalla de Premium. Solo cambia el ícono de tu pantalla de inicio.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide Premium, gifts and Stars that unlocks the Premium app icons.
+Premium icons in the App Icon list	íconos Premium en la lista de Ícono de la app
+# context: a switch under Hide Premium, gifts and Stars. An emoji status is the emoji a Premium account sets next to its name; use the applied translation of Telegram's term (key PremiumPreviewEmojiStatus, "Emoji Status"), in the singular.
+Emoji status on this phone	Estado de emoji en este teléfono
+# context: that switch's summary. Telegram is the title at the top of the chat list; the star next to it is Telegram's Premium star, which opens the emoji status picker.
+Tap the star next to Telegram at the top of the chat list and pick any emoji status, animated ones too, without Premium. It shows there on this phone only. Nobody else sees it, and nothing is sent to Telegram.	Toca la estrella junto a Telegram arriba en la lista de chats y elige cualquier estado de emoji, también animados, sin Premium. Solo se ve ahí en este teléfono. Nadie más lo ve y no se envía nada a Telegram.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide Premium, gifts and Stars that keeps your emoji status on this phone.
+your emoji status on this phone	tu estado de emoji en este teléfono
 Hide promotional banners	Ocultar banners promocionales
 Hides the Premium, birthday and low Stars balance banners above your chat list. Account security notices and other suggestions still show.	Oculta los banners de Premium, cumpleaños y saldo bajo de Stars sobre tu lista de chats. Los avisos de seguridad de la cuenta y otras sugerencias se siguen mostrando.
 promotional suggestions	sugerencias promocionales
@@ -249,6 +273,27 @@ Premium promo taps	toques en promociones de Premium
 Premium promo accepts	aceptaciones de promociones de Premium
 Premium promo failures	fallos de promociones de Premium
 dual camera reports	informes de cámara dual
+# context: Privacy page switch title under Stop usage reports. When on, Telegram isn't told that you read a chat or watched a story.
+Ghost mode	Modo fantasma
+# context: Summary under that switch. Sending a message tells Telegram the chat was read anyway, and the account's other devices never learn it was read.
+Read chats and watch stories without anyone being told. Sending a message in a chat still marks it read, and your other devices keep showing it unread.	Lee chats y mira historias sin que nadie se entere. Si envías un mensaje en un chat, igualmente se marca como leído, y tus otros dispositivos lo siguen mostrando como no leído.
+# context: Switch title under Ghost mode. Read receipts are the ticks that tell a sender their message was read.
+No read receipts	Sin confirmaciones de lectura
+# context: Summary under that switch. A voice message stays marked unplayed for its sender until it's played.
+Messages you read stay unread for the people who sent them, in private chats, groups and secret chats, and voice messages you play stay unplayed. Works with Ghost mode on.	Los mensajes que lees siguen sin leer para quienes los enviaron, en chats privados, grupos y chats secretos, y los mensajes de voz que reproduces siguen sin escuchar. Funciona con el Modo fantasma activado.
+# context: Switch title under Ghost mode. When on, watching someone's story doesn't put you on its viewer list.
+View stories anonymously	Ver historias de forma anónima
+Stories you watch don't add you to their viewer list. Works with Ghost mode on.	Las historias que ves no te añaden a su lista de espectadores. Funciona con el Modo fantasma activado.
+# context: Switch title under Ghost mode. When on, the chat doesn't show the other person that you're typing, recording or uploading.
+Hide typing	Ocultar escritura
+# context: Summary under that switch. Covers the typing, voice recording, video and file uploading statuses shown at the top of a chat.
+Other people don't see that you're typing, recording or sending a file. Works with Ghost mode on.	Los demás no ven que estás escribiendo, grabando o enviando un archivo. Funciona con el Modo fantasma activado.
+# context: Switch title under Ghost mode. When on, Telegram isn't told the account is online, so Last seen doesn't update while you use the app.
+Hide online status	Ocultar estado en línea
+# context: Summary under that switch. Telegram is still told when the app goes offline, so the account shows as offline.
+Telegram isn't told that you're online while you use it. Going offline still goes out. Works with Ghost mode on.	Telegram no se entera de que estás en línea mientras lo usas. Pasar a desconectado sí se envía. Funciona con el Modo fantasma activado.
+# context: Lowercase noun phrase naming the part of Stop usage reports that Ghost mode covers, listed in coverage lines with "channel read metrics" and "dual camera reports".
+read receipts and story views	confirmaciones de lectura y vistas de historias
 Accounts	Cuentas
 Every switch here applies to all the accounts in this Telegram app, not only the one you have open.	Cada interruptor de aquí se aplica a todas las cuentas de esta app de Telegram, no solo a la que tienes abierta.
 No previews before sending	Sin vistas previas antes de enviar
@@ -328,13 +373,13 @@ Volume keys only change the volume. They no longer start the video or round vide
 # context: a second switch under Keep videos muted on volume keys (#27). Telegram turns a video put in full screen to one fixed landscape side; with this on it follows the phone to either side.
 Full screen videos turn either way	Los videos en pantalla completa giran hacia ambos lados
 # context: that switch's summary. "full screen" is Telegram's full screen button on a video; "auto-rotate" is Android's own screen rotation setting, use the phone's name for it.
-After you tap full screen, a video follows your phone to either landscape side, even with auto-rotate off.	Después de tocar pantalla completa, el video sigue a tu teléfono hacia cualquiera de los lados en horizontal, aunque la rotación automática esté desactivada.
+After you tap full screen, a video follows your phone to either landscape side, even with auto-rotate off. Turning your phone upright doesn't end full screen. Tap the button to leave it.	Después de tocar pantalla completa, el video sigue a tu teléfono hacia cualquiera de los lados en horizontal, aunque la rotación automática esté desactivada. Poner el teléfono en vertical no sale de pantalla completa. Toca el botón para salir.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that lets a full screen video turn to either landscape side.
 full screen video turning either way	giro del video en pantalla completa hacia ambos lados
 # context: a third switch under Keep videos muted on volume keys (#27). With it on, an open video in the viewer stays in portrait when the phone is turned, and goes landscape only from Telegram's full screen button.
 Turn videos only from the full screen button	Girar los videos solo con el botón de pantalla completa
 # context: that switch's summary. "full screen" is Telegram's full screen button on a video; use the phone's own words for turning the phone.
-An open video stays upright when you turn your phone. It goes landscape only when you tap full screen.	Un video abierto se mantiene vertical cuando giras el teléfono. Solo pasa a horizontal cuando tocas pantalla completa.
+An open video stays upright when you turn your phone. It goes landscape only when you tap full screen, and back only when you tap the button again.	Un video abierto se mantiene vertical cuando giras el teléfono. Solo pasa a horizontal cuando tocas pantalla completa, y solo vuelve cuando tocas el botón de nuevo.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that keeps an open video upright until full screen.
 keeping a video upright until full screen	mantener el video vertical hasta la pantalla completa
 Swipe back on profiles	Deslizar para volver en perfiles
@@ -554,6 +599,12 @@ Hide channel Mute button	Ocultar el botón Silenciar del canal
 The bar at the bottom of a channel you've joined goes away, along with its Mute button and the Search and Info buttons beside it. Channels you haven't joined still show Join. To mute a channel, open its info. A channel picks this up the next time you open it.	La barra inferior de un canal al que te has unido desaparece, junto con su botón Silenciar y los botones Buscar e Información que tiene al lado. Los canales a los que no te has unido siguen mostrando Unirse. Para silenciar un canal, abre su información. Un canal lo aplica la próxima vez que lo abras.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide channel bar buttons that hides the Mute button of a joined channel's bar.
 Mute button on the channel bar	botón Silenciar de la barra del canal
+# context: a third switch under Hide channel bar buttons. The share button is the round arrow button Telegram shows beside a channel's posts, in the channel and in any chat a post is forwarded to.
+Hide channel share button	Ocultar el botón de compartir de los canales
+# context: that switch's summary. Saved Messages is Telegram's own name for the chat with yourself (key SavedMessages); use its applied translation.
+The round share button beside channel posts goes away, in the channel and wherever a post is forwarded. A post's own menu still forwards it. Bots and Saved Messages keep theirs. A chat picks this up the next time you open it.	El botón redondo de compartir junto a las publicaciones de canales desaparece, en el canal y en cualquier chat al que se reenvíe una publicación. El menú de la publicación sigue permitiendo reenviarla. Los bots y Mensajes guardados conservan el suyo. Un chat lo aplica la próxima vez que lo abras.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide channel bar buttons that hides the round share button beside channel posts.
+share button beside channel posts	botón de compartir junto a las publicaciones de canales
 Hide Send as button	Ocultar el botón Enviar como
 Your picture next to the message box goes away in groups and channels where you could post as a channel, while you're posting as yourself. Once you pick a channel it shows again, so you can always see who you're posting as. To pick one, turn this off first. A chat picks this up the next time you open it.	Tu foto junto al cuadro de mensaje desaparece en grupos y canales donde podrías publicar como un canal, mientras publicas como tú. Cuando eliges un canal vuelve a aparecer, así siempre ves como quién publicas. Para elegir uno, desactiva esto primero. Un chat lo aplica la próxima vez que lo abras.
 # context: Hide Contacts tab. Contacts, Calls and Settings are Telegram's own names for the tabs in the bar at the bottom of the main screen; the new message button is the round pencil button on the chat list.
@@ -646,7 +697,7 @@ Your AI service didn't accept the key	Tu servicio de IA no aceptó la clave
 # context: a switch on the Notifications page. UnifiedPush is the name of an open notification standard and stays as it is.
 UnifiedPush notifications	Notificaciones por UnifiedPush
 # context: that switch's summary. Firebase is Google's notification service and ntfy is an app; both names stay as they are.
-For phones where Firebase notifications don't arrive. Telegram signs up an address from a UnifiedPush app like ntfy, and Telegram's servers call it to wake Telegram when something arrives. The messages still come from Telegram itself. Turned off, Telegram goes back to Firebase the next time it starts.	Para teléfonos donde no llegan las notificaciones de Firebase. Telegram registra una dirección de una app de UnifiedPush como ntfy, y los servidores de Telegram la llaman para despertar a Telegram cuando llega algo. Los mensajes siguen llegando del propio Telegram. Si lo desactivas, Telegram vuelve a Firebase la próxima vez que se inicie.
+For phones where Firebase notifications don't arrive. Telegram signs up an address from a UnifiedPush app like ntfy, and Telegram's servers call it to wake Telegram when something arrives. The messages still come from Telegram itself. It also turns on Telegram's own Keep-Alive Service and Background Connection, unless you've set either one yourself. Turned off, Telegram goes back to Firebase the next time it starts.	Para teléfonos donde no llegan las notificaciones de Firebase. Telegram registra una dirección de una app de UnifiedPush como ntfy, y los servidores de Telegram la llaman para despertar a Telegram cuando llega algo. Los mensajes siguen llegando del propio Telegram. También activa el Servicio keep-alive y la Conexión en segundo plano del propio Telegram, salvo que ya hayas ajustado alguno de los dos. Si lo desactivas, Telegram vuelve a Firebase la próxima vez que se inicie.
 # context: a row under that switch, and the title of the list it opens: which installed UnifiedPush app, like ntfy, delivers the notifications.
 Push app	App de push
 Install a UnifiedPush app like ntfy, then come back here.	Instala una app de UnifiedPush como ntfy y luego vuelve aquí.
@@ -673,6 +724,10 @@ Each file or song you download also goes to Download/Telegram on your phone, whe
 Also save from chats that don't allow saving	Guardar también de chats que no permiten guardar
 # context: that switch's summary, a warning that it goes past the chat owner's choice. "Save downloaded files" is the name of the switch above it.
 With Save downloaded files on, files from chats whose owner turned off saving get copied too. Only use it where the owner is fine with you keeping a copy, since it goes past their setting. Secret chats still stay in Telegram.	Con Guardar archivos descargados activado, también se copian los archivos de chats cuyo dueño desactivó el guardado. Úsalo solo donde al dueño le parezca bien que guardes una copia, porque se salta su ajuste. Los chats secretos siguen quedándose en Telegram.
+# context: a third switch under Save downloaded files (#9). Turned on, it also copies view-once and self-destructing (timed) photos, videos, voice and video messages. Secret chats stay excluded.
+Also save view-once and timed media	Guardar también medios de una sola vista y temporales
+# context: that switch's summary, a warning that it goes past the sender's choice to have the media disappear. "Save downloaded files" is the name of the first switch.
+With Save downloaded files on, view-once and self-destructing photos, videos, voice and video messages get copied to Download/Telegram when they download. The sender meant them to disappear, so only use it where they're fine with you keeping a copy. Secret chats still stay in Telegram.	Con Guardar archivos descargados activado, las fotos, videos, mensajes de voz y videomensajes de una sola vista o autodestructivos también se copian a Download/Telegram al descargarse. Quien los envió quería que desaparecieran, así que úsalo solo donde le parezca bien que guardes una copia. Los chats secretos siguen quedándose en Telegram.
 # context: Folders by chat type, a switch on the Chat list page. Turning it on makes Telegram chat folders for each kind of chat.
 Folders by chat type	Carpetas por tipo de chat
 # context: that switch's summary. Private, Groups, Channels and Bots are the folder names, use the same words as their own entries.
@@ -874,6 +929,14 @@ Find names in styled letters	Buscar nombres con letras decoradas
 Searching your chats and contacts also finds names written in letters like 𝐁𝐨𝐥𝐝, 𝘐𝘵𝘢𝘭𝘪𝘤 or Ｗｉｄｅ when you type plain ones. Names still show as they're written and numbers aren't changed. A name found this way isn't highlighted.	La búsqueda en tus chats y contactos también encuentra nombres escritos con letras como 𝐍𝐞𝐠𝐫𝐢𝐭𝐚, 𝘊𝘶𝘳𝘴𝘪𝘷𝘢 o Ａｎｃｈａ cuando escribes letras normales. Los nombres se siguen viendo tal como están escritos y los números no cambian. Un nombre encontrado así no se resalta.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide popular apps that lets search find names written in styled letters
 styled names in search	nombres con letras decoradas en la búsqueda
+# context: Switch on the Ads page under Hide popular apps, off by default. A parental control: with it on, joining channels and groups and opening ones you aren't a member of are blocked
+Block new channels and groups	Bloquear canales y grupos nuevos
+# context: Summary of Block new channels and groups. A shared folder is a chat folder someone shares by link (Telegram's chat folder invite link). Lock HushTelegram settings is the settings lock row on the Pause page: use that row's translation exactly
+Stops joining channels and groups, from search, a link or a shared folder, and opening ones you aren't in. Chats you're already in stay. To keep this on, also turn on Lock HushTelegram settings.	Impide unirse a canales y grupos desde la búsqueda, un enlace o una carpeta compartida, y abrir aquellos en los que no estás. Los chats en los que ya estás se mantienen. Para que siga activado, activa también Bloquear la configuración de HushTelegram.
+# context: Toast when the block stops a join or keeps a channel or group you aren't in from opening. HushTelegram settings is this app's settings page
+New chats are blocked in HushTelegram settings.	Los chats nuevos están bloqueados en la configuración de HushTelegram.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide popular apps that blocks joining channels and groups
+joining new channels and groups	el ingreso a canales y grupos nuevos
 # context: Toast after Save in the report preview when some parts were left out, so it isn't the full report. %1$s is where the file went, like Download/Morphe/name.txt. Match the wording of Full report saved to %1$s
 Report saved to %1$s	Informe guardado en %1$s
 # context: Note in the report preview when the text couldn't be redrawn after a box was ticked or unticked. Copy and Save are the dialog's buttons, so use the same words as those buttons
@@ -968,9 +1031,6 @@ Search languages	Buscar idiomas
 Couldn't save the language. Try again in a moment.	No se pudo guardar el idioma. Inténtalo de nuevo en un momento.
 # context: Line in the settings import preview when the file changes the Translate into language.
 The translation language will change.	Cambiará el idioma de traducción.
-# context: A screen reader's state for a settings section heading that opens and closes in place.
-Expanded	Desplegado
-Collapsed	Plegado
 # context: Switch title under Save downloaded files. It moves the folder Telegram keeps its own downloads in from Android/data to the phone's main storage.
 Keep Telegram's files in internal storage	Guardar los archivos de Telegram en el almacenamiento interno
 # context: Summary under that switch. Internal storage/Telegram and Android/data are folder paths: translate Internal storage as Android's Files app does, keep Telegram and Android/data as they are. All files access is Android's name for the special app access page.
@@ -989,3 +1049,70 @@ Reaction notifications without push	Notificaciones de reacciones sin push
 Shows a notification when someone reacts to your message while Telegram is connected, even when no push arrives. A reaction that also comes by push shows once.	Muestra una notificación cuando alguien reacciona a tu mensaje mientras Telegram está conectado, aunque no llegue ningún push. Una reacción que también llega por push se muestra una sola vez.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of UnifiedPush notifications that shows reactions without a push.
 reaction notifications without push	las notificaciones de reacciones sin push
+# context: Two switches under Disable double-tap reactions, for the reaction row under messages and the picker in the long-press menu.
+Hide reactions under messages	Ocultar reacciones bajo los mensajes
+The row of reactions under each message isn't drawn. Nothing is removed, so turn it off and they're back. Tags in Saved Messages stay.	La fila de reacciones bajo cada mensaje no se dibuja. No se borra nada: desactívalo y vuelven. Las etiquetas de Mensajes guardados se mantienen.
+Hide the reaction picker	Ocultar el selector de reacciones
+The row of reactions at the top of the long-press menu and the panel it opens are gone. The rest of the menu works as before.	La fila de reacciones de la parte superior del menú de pulsación larga y el panel que abre desaparecen. El resto del menú funciona igual que antes.
+# context: Coverage labels for the reaction row and reaction picker hooks.
+reaction rows under messages	filas de reacciones bajo los mensajes
+the reaction picker in the message menu	el selector de reacciones del menú del mensaje
+# context: Switch on the Conversations page for copying text in a chat or message that doesn't allow saving (#43), its toast, and the label for the text selection part.
+Copy text from chats that don't allow saving	Copiar texto de chats que no permiten guardar
+Puts Copy back in the menu of a message in a chat that doesn't allow saving, and lets you copy selected text there. Secret chats stay as they are.	Devuelve Copiar al menú de un mensaje en un chat que no permite guardar y te deja copiar el texto seleccionado allí. Los chats secretos no cambian.
+Puts Copy back in the menu of a message in a chat that doesn't allow saving. Secret chats stay as they are.	Devuelve Copiar al menú de un mensaje en un chat que no permite guardar. Los chats secretos no cambian.
+Text copied	Texto copiado
+text selection in chats that don't allow saving	la selección de texto en chats que no permiten guardar
+# context: Switch for Save to Downloads in the message menu (#29), its item (Telegram's own key SaveToDownloads) and its toasts.
+Add Save to Downloads to the message menu	Añadir Guardar en Descargas al menú del mensaje
+Adds Save to Downloads to a downloaded photo, video, file or song in a chat that doesn't allow saving. Nothing is copied until you tap it.	Añade Guardar en Descargas a una foto, un vídeo, un archivo o una canción descargados en un chat que no permite guardar. No se copia nada hasta que lo pulses.
+Save to Downloads	Guardar en Descargas
+Saved to Downloads	Guardado en Descargas
+Already in Downloads	Ya está en Descargas
+Couldn't save that. Try again.	No se pudo guardar. Inténtalo de nuevo.
+# context: Switch for Forward as copy in the message menu (#46), its item, picker title and toast.
+Add Forward as copy to the message menu	Añadir Reenviar como copia al menú del mensaje
+Adds Forward as copy to a message in a chat that doesn't allow forwarding. Pick a chat and the message's text, or its downloaded photo or file, is sent there as a new message.	Añade Reenviar como copia a un mensaje de un chat que no permite reenviar. Elige un chat y el texto del mensaje, o su foto o archivo descargado, se envía allí como un mensaje nuevo.
+Forward as copy	Reenviar como copia
+Open it first to download it	Ábrelo primero para descargarlo
+# context: Ways in section (#29): four switches for the ways that open the HushTelegram settings. 'Settings' in the Telegram row is Telegram's own applied Settings label (translations.telegram.org key Settings).
+Ways in	Formas de entrar
+Ways to open these settings	Formas de abrir esta configuración
+One way always stays on, so you can always get back here.	Siempre queda una forma activada, para que puedas volver aquí cuando quieras.
+Row in Telegram's Settings	Fila en Ajustes de Telegram
+Adds a HushTelegram row to Telegram's Settings page.	Añade una fila de HushTelegram a la página Ajustes de Telegram.
+Long press on the chat list title	Pulsación larga en el título de la lista de chats
+Hold the Telegram title at the top of your chats.	Mantén pulsado el título Telegram, arriba de tus chats.
+Row in the side menu	Fila en el menú lateral
+Adds a HushTelegram row to the side menu, which has its own switch.	Añade una fila de HushTelegram al menú lateral, que tiene su propio interruptor.
+Home screen shortcut	Acceso directo en la pantalla de inicio
+Adds HushTelegram to the menu you get from holding Telegram's icon.	Añade HushTelegram al menú que aparece al mantener pulsado el icono de Telegram.
+Keep one way into HushTelegram settings	Deja una forma de abrir la configuración de HushTelegram
+# context: a third switch under UnifiedPush notifications on the Notifications page, off by default. Telegram keeps every reaction notification silent; turned on, a reaction's notification plays the sound and vibration chosen for reactions in Telegram's own settings. "Reaction" is Telegram's word for an emoji reaction to a message.
+Sound for reaction notifications	Sonido de las notificaciones de reacciones
+# context: that switch's summary. "Notifications and Sounds > Reactions" is the path in Telegram's own Settings, written with Telegram's applied labels for this language (keys NotificationsAndSounds and NotificationReactions on translations.telegram.org; Bulgarian has no applied NotificationReactions, so Telegram shows the English "Reactions" there).
+Telegram's reaction notifications make no sound. Turned on, they play the sound and vibration set in Telegram's Notifications and Sounds > Reactions.	Telegram muestra las notificaciones de reacciones sin sonido. Al activarlo, usan el sonido y la vibración configurados en Notificaciones y sonidos > Reacciones de Telegram.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of UnifiedPush notifications that plays a sound for reactions.
+sound for reaction notifications	el sonido de las notificaciones de reacciones
+# context: a switch on the Privacy page under Stop call diagnostics, off by default. Turned on, every call's audio, both what you say and what you hear, is saved to an audio file on the phone once the call ends.
+Record calls	Grabar llamadas
+# context: that switch's summary. %1$s is the folder the file goes to, an English folder name on the phone's storage such as Recordings/Telegram calls, so it stays as it is. "The other person" is whoever is on the call with you.
+Saves both sides of each call to %1$s on this phone. The other person isn't told.	Guarda ambos lados de cada llamada en %1$s en este teléfono. La otra persona no recibe ningún aviso.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Stop call diagnostics that records calls to a file.
+call recording	la grabación de llamadas
+# context: a short toast shown when a call ends and its recording was saved. %1$s is the English folder name on the phone's storage, such as Recordings/Telegram calls.
+Call saved to %1$s	Llamada guardada en %1$s
+# context: a short toast shown when a call ends and its recording couldn't be written or saved.
+Couldn't save the call recording.	No se pudo guardar la grabación de la llamada.
+# context: a switch on the Privacy page under Record calls (#39), off by default. Turned on, it puts a round record button on Telegram's call screen, right under the minimize arrow in the top left corner.
+Record button on calls	Botón de grabar en llamadas
+# context: that switch's summary. "Record calls" is the name of the switch above it, which records every call. A tap on the button records only the call on screen, or, with Record calls on, skips recording that one call.
+A button on the call screen records just that call, or stops recording it when Record calls is on.	Un botón en la pantalla de llamada graba solo esa llamada, o deja de grabarla cuando Grabar llamadas está activado.
+# context: a short toast shown when the record button on the call screen is tapped and the call starts recording.
+Recording this call	Grabando esta llamada
+# context: a short toast shown when the record button on the call screen is tapped again and the call stops recording. What was already recorded is still saved.
+Recording stopped	Grabación detenida
+# context: what a screen reader says for the round record button on the call screen. It's a toggle, so the screen reader adds on or off by itself.
+Record call	Grabar llamada
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the record button on the call screen.
+call record button	el botón de grabar en llamadas

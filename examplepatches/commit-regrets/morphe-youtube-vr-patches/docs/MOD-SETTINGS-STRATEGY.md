@@ -110,8 +110,9 @@ navigation.** Reuse them.
   checks. Skip it — a `return-void` right after the inflation call, or the wholesale rewrite;
   plain `SwitchPreference` rows need no wiring (they persist to the screens' `youtube.xml` file
   — the fragment sets its storage name to `"youtube"` — and render without listeners).
-- **`getAllClassesWithString` returns raw dex class defs** — re-resolve each through the mutable
-  class repository before touching its methods.
+- **`classDefByStrings` (née `getAllClassesWithString`, hidden from Kotlin on patcher 2.x) returns
+  raw dex class defs** — re-resolve each through the mutable class repository before touching its
+  methods.
 - **Don't skip reference-less instructions while mining.** A `const` has no reference; a
   `continue` before the const check silently misses exactly the instruction you are mining. Use
   first-wins guards on every mined reference so a later shape-match cannot overwrite an earlier

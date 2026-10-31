@@ -97,6 +97,8 @@ internal val appAuthTokenRequestCode = """
 internal val tokenRequestCallbacks = bytecodePatch {
     dependsOn(originalInput)
     execute {
+        // This phone build ships the genuine AppAuth token method outside the VM.
+        if (packageMetadata.isNpoPhone) return@execute
         exact("Lnl/npo/player/library/zt/i;", "doInBackground([Ljava/lang/Object;)Ljava/lang/Object;", 7, 11)
             .addCallbackWithExceptions(appAuthTokenRequestCode, expectedCatchCount = 4)
     }

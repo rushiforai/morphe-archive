@@ -46,7 +46,7 @@ public class SharingDomainSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.SANITIZE_SHARING_LINKS.resetToDefault();
         Settings.SHARING_DOMAIN.resetToDefault();
         BaseSettings.PAUSED.save(false);

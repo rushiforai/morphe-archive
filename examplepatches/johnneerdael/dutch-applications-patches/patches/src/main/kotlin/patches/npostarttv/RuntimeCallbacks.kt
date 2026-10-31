@@ -150,6 +150,10 @@ internal fun MutableMethod.addCallbackWithExceptions(code: String, expectedCatch
 internal val runtimeCallbacks = bytecodePatch {
     dependsOn(originalInput, tokenRequestCallbacks)
     execute {
+        if (packageMetadata.isNpoPhone) {
+            restorePhoneCallbacks()
+            return@execute
+        }
         exact("Lnl/npo/player/library/l6/v;", "onReceive(Landroid/content/Context;Landroid/content/Intent;)V", 8, 12)
             .addInstructions(0, networkAudioReceiverCode)
         exact("Lnl/npo/player/library/zt/j;", "doInBackground([Ljava/lang/Object;)Ljava/lang/Object;", 7, 11)

@@ -34,8 +34,8 @@ class ShowFullPostTextFixtureTest {
     /** Where each declared build keeps the cut, by ABI: the class and the answer's register. */
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
-            "arm64-v8a" to ("LX/31a;" to 5),
-            "armeabi-v7a" to ("LX/31a;" to 5),
+            "arm64-v8a" to ("LX/03Bn;" to 5),
+            "armeabi-v7a" to ("LX/03Bn;" to 5),
         ),
     )
 

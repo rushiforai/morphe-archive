@@ -45,11 +45,12 @@ class ProfilePostsShapesTest {
         returnType: String = result,
         literals: List<String> = listOf(COMPONENT_NAME, ORGANIC_TEST_KEY, SPONSORED_TEST_KEY),
         readsUnit: Boolean = true,
+        parameters: List<String> = listOf(context),
     ): MutableMethod = MutableMethod(
         ImmutableMethod(
             component,
             "A1F",
-            listOf(ImmutableMethodParameter(context, null, null)),
+            parameters.map { ImmutableMethodParameter(it, null, null) },
             returnType,
             AccessFlags.PUBLIC.value or AccessFlags.FINAL.value or (if (static) AccessFlags.STATIC.value else 0),
             null,
@@ -100,7 +101,7 @@ class ProfilePostsShapesTest {
     fun `the render method asks the extension first and answers no component for an ad`() {
         val method = render()
         val own = method.body()
-        method.skipSponsoredStories(field("A03", unitType))
+        method.skipSponsoredStories(StoryUnit.InField(field("A03", unitType)))
         val body = method.body()
         // this is v6 of 8 registers: copied down into v0, which the unit is read into.
         val self = body[0] as TwoRegisterInstruction
@@ -123,13 +124,50 @@ class ProfilePostsShapesTest {
         assertEquals(7, offsetTarget(body, 4))
     }
 
+    /** 585's render: the context, a count, then the unit, with 20 registers so the unit sits in v19. */
+    private val stateless = listOf(context, "I", unitType)
+
     @Test
-    fun `a render method with no local, or a field of another class, stops the patch`() {
+    fun `a stateless render method's unit is its one parameter typed as an interface of GraphQLStory`() {
+        val story = setOf(unitType, "Lfixture/Sponsorable;")
+        assertEquals(listOf(2), unitParameters(render(parameters = stateless), story))
+        // Negative controls: no such parameter, and two of them.
+        assertEquals(emptyList<Int>(), unitParameters(render(), story))
+        assertEquals(listOf(1, 2), unitParameters(render(parameters = listOf(context, "Lfixture/Sponsorable;", unitType)), story))
+    }
+
+    @Test
+    fun `a stateless render method hands the extension its unit parameter, copied down from past v15`() {
+        val method = render(registers = 20, parameters = stateless, readsUnit = false)
+        val own = method.body()
+        method.skipSponsoredStories(StoryUnit.InParameter(2))
+        val body = method.body()
+        // this is v16, the context v17, the count v18 and the unit v19, which a four-bit move can't name.
+        val copy = body[0] as TwoRegisterInstruction
+        assertEquals(listOf(Opcode.MOVE_OBJECT_FROM16, 0, 19), listOf(body[0].opcode, copy.registerA, copy.registerB))
+        val hook = (body[1] as ReferenceInstruction).reference as MethodReference
+        assertEquals(HIDE, "${hook.definingClass}->${hook.name}(${hook.parameterTypes.joinToString("")})${hook.returnType}")
+        assertEquals(Opcode.MOVE_RESULT, body[2].opcode)
+        assertEquals(Opcode.IF_EQZ, body[3].opcode)
+        assertEquals(0, (body[4] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(Opcode.RETURN_OBJECT, body[5].opcode)
+        assertEquals(own.size + 6, body.size)
+        assertEquals(own.first().opcode, body[6].opcode)
+        assertEquals(6, offsetTarget(body, 3))
+    }
+
+    @Test
+    fun `a render method with no local, a field of another class, or a parameter that isn't an object stops the patch`() {
         val tight = render(registers = 2)
-        val refusal = assertThrows(PatchException::class.java) { tight.skipSponsoredStories(field("A03", unitType)) }
+        val refusal = assertThrows(PatchException::class.java) { tight.skipSponsoredStories(StoryUnit.InField(field("A03", unitType))) }
         assertTrue(refusal.message, refusal.message!!.contains(PATCH))
         val other = ImmutableField("Lfixture/Other;", "A03", unitType, AccessFlags.PUBLIC.value, null, null, null)
-        assertThrows(PatchException::class.java) { render().skipSponsoredStories(other) }
+        assertThrows(PatchException::class.java) { render().skipSponsoredStories(StoryUnit.InField(other)) }
+        val count = assertThrows(PatchException::class.java) {
+            render(registers = 20, parameters = stateless).skipSponsoredStories(StoryUnit.InParameter(1))
+        }
+        assertTrue(count.message, count.message!!.contains(PATCH))
+        assertThrows(PatchException::class.java) { render(parameters = stateless).skipSponsoredStories(StoryUnit.InParameter(3)) }
     }
 
     /** The instruction index a branch at [index] lands on. */

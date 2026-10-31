@@ -9,6 +9,7 @@ import app.morphe.patches.facebook.search.COPY_OF
 import app.morphe.patches.facebook.search.KEPT_MODULES
 import app.morphe.patches.facebook.search.filterPageModulesFirst
 import app.morphe.patches.facebook.search.hasPageModulesHook
+import app.morphe.patches.facebook.search.pageConstructorOf
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -260,6 +261,53 @@ class SearchResultsShapesTest {
         assertTrue(elsewhere.message, elsewhere.message!!.contains("parameter 2"))
         val shape = assertThrows(PatchException::class.java) { requireSharedPageShape(pageConstructor, 1) }
         assertTrue(shape.message, shape.message!!.contains(PATCH))
+    }
+
+    /**
+     * 585's short page constructor: an empty list and a null header filled in, then everything
+     * handed to the full one with invoke-direct/range, or, with [toSuper], built on its own.
+     */
+    private fun shortPageConstructor(toSuper: Boolean = false) = method(page, "<init>",
+        listOf(list, list, "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Z"), "V", 18,
+        if (toSuper) """
+            invoke-direct { p0 }, Ljava/lang/Object;-><init>()V
+            return-void
+        """ else """
+            const/4 v1, 0x0
+            const/4 v10, 0x0
+            invoke-static { }, $list->of()$list
+            move-result-object v4
+            move-object v0, v11
+            move-object v2, v12
+            move-object v3, v13
+            move-object v5, v14
+            move-object v6, v15
+            move-object/from16 v7, v16
+            move/from16 v9, v17
+            move-object v8, v1
+            invoke-direct/range { v0 .. v10 }, $page-><init>(${sharedPageParameters.joinToString("")})V
+            return-void
+        """)
+
+    @Test
+    fun `the page constructor is the page-shaped one, and any other has to hand its page to it`() {
+        val full = sharedPageConstructor()
+        assertTrue(full === pageConstructorOf(listOf(full), "Ljava/lang/Object;", PATCH))
+        assertTrue(full === pageConstructorOf(listOf(shortPageConstructor(), full), "Ljava/lang/Object;", PATCH))
+        // Negative controls: a second constructor building its page past the full one, two of the
+        // page's shape, and none.
+        val past = assertThrows(PatchException::class.java) {
+            pageConstructorOf(listOf(full, shortPageConstructor(toSuper = true)), "Ljava/lang/Object;", PATCH)
+        }
+        assertTrue(past.message, past.message!!.contains("doesn't hand its page"))
+        val two = assertThrows(PatchException::class.java) {
+            pageConstructorOf(listOf(full, sharedPageConstructor()), "Ljava/lang/Object;", PATCH)
+        }
+        assertTrue(two.message, two.message!!.contains("found 2"))
+        val none = assertThrows(PatchException::class.java) {
+            pageConstructorOf(listOf(pageConstructor), "Ljava/lang/Object;", PATCH)
+        }
+        assertTrue(none.message, none.message!!.contains("found 0") && none.message!!.contains(PATCH))
     }
 
     @Test

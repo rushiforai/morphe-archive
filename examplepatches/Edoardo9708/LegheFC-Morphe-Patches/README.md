@@ -13,11 +13,17 @@ Repository unico di patch indipendenti per piu applicazioni Android, compatibile
 | **Leghe FC** | `it.quadronica.leghe` | 13.2.1 (445) | Avvio e nome **3 campo**, percentuali, formazione suggerita e comparatore |
 | **Twilight** | `com.urbandroid.lux` | 14.32 (APKM) | Test sperimentale su `TrialFilter.isTrial()` e Logcat |
 | **Outdooractive** | `com.outdooractive.Outdooractive` | 3.23.20 | Diagnostica e test sperimentale dei getter di `Membership` |
+| **DNS Changer** | `com.appplanex.dnschanger` | 3.0.0 | Force Pro test D2 |
+| **Flowx** | `com.enzuredigital.weatherbomb` | 4.650 | Test stato Gold locale |
+| **Fonometro** | `com.ktwapps.soundmeter` | 11.5 | Rimozione annunci |
+| **Prezzi Benzina** | `org.vernazza.androidfuel` | 3.26.10.10 | Routing Maps tramite GmsCore F13, Remove Ads A1 |
 
 ### Stato dei test
 
 - **Leghe FC:** le tre patch esistenti rimangono invariate; la patch per la formazione suggerita usa ancora dati dimostrativi. I nomi delle patch non garantiscono lo sblocco completo delle funzionalita.
 - **Twilight:** patch importata dal ramo `dev` del [repository originario](https://github.com/Edoardo9708/Twilight-Morphe-Patches). Il codice imposta a `false` il valore di ritorno di `isTrial()` (`const/4 v0, 0x0`) e registra il test in Logcat. Non e stato verificato il comportamento complessivo dell'app.
+**Prezzi Benzina:** F13 instrada il servizio del token Maps verso un GmsCore compatibile già installato; A1 interviene sui controlli per banner/interstitial. Il funzionamento è stato verificato dall'utente sulla versione 3.26.10.10; F13 richiede un ambiente GmsCore compatibile.
+
 - **Outdooractive:** patch importata dal ramo `dev` del [repository originario](https://github.com/Edoardo9708/Outdooractive-Morphe-Patches). Il codice registra i valori originali ma **restituisce valori dimostrativi** (`1` per `isProUser`, `2` per `getLevel`). La pubblicazione sul canale stabile non certifica il corretto comportamento della patch nell'app.
 
 ## Installazione
@@ -38,7 +44,7 @@ Il codice delle diverse app e separato per package sotto `patches/src/main/kotli
 ## Elenco automatico delle patch pubblicate
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v1.7.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
 <summary>📦 DNS Changer&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -113,6 +119,37 @@ Il codice delle diverse app e separato per package sotto `patches/src/main/kotli
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Outdooractive - Test getter abbonamento](#outdooractive-test-getter-abbonamento) | Unlock Pro |  |
+
+</details>
+
+<details open>
+<summary>📦 Prezzi Benzina&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.26.10.10 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Prezzi Benzina - Remove ads A1](#prezzi-benzina-remove-ads-a1) | Test: disables banner and interstitial ads without changing Premium, licenses or in-app purchases. |  |
+| [Prezzi Benzina - microG token routing F13](#prezzi-benzina-microg-token-routing-f13) | Local test: route only Maps ApiTokenService to the existing app.revanced.android.gms and declare the original public certificate digest. No Frida; use alone, not with F5-F12. |  |
+
+</details>
+
+<details open>
+<summary>📦 Ski Safari&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Ski Safari – Unlock All Items](#ski-safari-unlock-all-items) | Experimental: invokes ShopItemHelper.UnlockAllItems once through UnityPlayer's verified game-thread queue after the profile is ready. Includes local APK startup compatibility; native VM callbacks and save persistence require device verification. |  |
 
 </details>
 

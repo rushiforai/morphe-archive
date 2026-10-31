@@ -149,6 +149,7 @@ python3 scripts/hbc/port_check.py                  # constants, moved modules, p
 python3 scripts/hbc/privacy_targets.py work/new/assets/index.android.bundle --locate   # new Target(...) lists
 VENUS_ORIGINAL_APK=work/new/base.apk python3 scripts/build.py   # PrivacyTest: every HBC and DEX target is safe
 sh scripts/verify_apk.sh Discord-NEW.apkm          # patch with every patch (newest Morphe CLI) + VerifyApk
+REUSE=1 sh scripts/verify_apk.sh                   # re-run VerifyApk on the last patched APK after fixing a check
 sh tests/bench/cold_boot.sh <old bootstrap.js>     # the real bundle boots with the runtime injected
 ```
 
@@ -178,6 +179,8 @@ sh tests/ui/setup.sh                                   # once per sandbox, about
 node tests/ui/shot.cjs features 'page=VENUS_PLUGINS'   # -> work/ui/shots/features.png
 node tests/ui/shot.cjs nd-off 'page=VENUS_NODELETE' nd-on 'page=VENUS_NODELETE&on=noDelete'
 node tests/ui/shot.cjs --all before                    # every page, on and off, plus a fresh install
+node tests/ui/shot.cjs --scenes before                 # every Discord scene (scenes.jsx), each with its feature on
+STRICT=1 node tests/ui/shot.cjs --all x theme=light    # exits 1 on a page error, React error or stand-in warning
 python3 tests/ui/sheet.py work/ui/shots/cmp.png a.png b.png --scale 0.6   # side by side, to compare
 sh tests/ui/check.sh                                   # before committing: runtime parses, every text translated
 python3 tests/ui/icon.py NewUserIcon                   # which module exports a Discord icon
@@ -188,12 +191,15 @@ python3 tests/ui/i18n.py drop "Old text"               # remove (or `add texts.j
   `on=` features or switches turned on, `set=` any other saved settings as JSON (`set={"readAllMode":"dms"}`), `fresh=1`
   for a first launch, `theme=light|midnight|darker`, `lang=de`, `search=` typed into the Features search bar, `tap=` the label or text of something to tap first.
 - **Inside Discord:** `scene=` draws a Discord screen with what Venus adds to it, instead of a settings page
-  (`tests/ui/scenes.jsx`): `serverMenu` (the server hold menu with Server info), `serverInfo` (the Server info sheet),
+  (`tests/ui/scenes.jsx`). Each scene turns on the features it draws (`SCENE_SETTINGS`, which is also the list
+  `--scenes` reads, so add a new scene there); `on=`/`set=` still win: `serverMenu` (the server hold menu with Server info), `serverInfo` (the Server info sheet), `serverEditMenu` and `serverEdit` (Edit servers locally's
+  menu row, the server list with local names and icons, and its sheet; `server=1|2` and `set={"serverEdits":…}` for saved edits),
   `readAll` and `readAllHold` (the Read all pill and its choices), `reviews` (a profile with the Reviews card), `hiddenChannel` (the locked-channel dialog), `settings` (Discord's Settings screen with the Venus section), `youBar` (the profile bar buttons), `translateBar` (the Translate pill in a chat), `bulkDelete` (the selection bar in a chat, after Select Messages), `messageMenu` (a message's hold menu with Translate), `serverSheet` (the server sheet with the Reviews row); parameters
   for edge cases are listed at the top of `scenes.jsx`. Check these too when a feature's settings change what
   it does in Discord, and add a scene for any other place Venus draws.
-- `DPR=2` gives sharper shots for reading small text; `WIDTH=360` checks a narrow phone. The script prints the page's
-  errors, warnings, dialogs and toasts.
+- `DPR=2` gives sharper shots for reading small text; `WIDTH=360` draws pages and scenes on a narrow phone. The script
+  prints the page's errors, warnings, dialogs and toasts; an unknown `page=` or `scene=` is a warning, not a blank shot.
+  `--all` reads the option pages from `bootstrap.js`'s `withOptions(...)` calls, so a new page needs nothing here.
 - Look at a page you change on and off, in another theme and in a long language (`lang=de`, `lang=ru`).
 - It's a close stand-in, not Discord: `tests/ui/discord.jsx` redraws Discord's components (rows, switches, buttons) from
   their sizes and tokens, and animations jump to their end. It shows layout, wording, spacing and states; things that depend on Discord's native code (exact ripples, the real chat list) still need a phone. When a
@@ -406,11 +412,14 @@ What belongs in the repository:
 
 - **Checks against the real APK that protect every patch, reused on every port:** `tests/native/PrivacyTest.kt` (every
   pinned HBC98 and DEX target is safe to stub; runs in `scripts/build.py`), `tests/native/HbcPreludeTest.kt` (the
-  prelude injects cleanly) and `tests/native/VerifyApk.kt` (the patched APK is consistent; run it with
-  `sh scripts/verify_apk.sh`, which patches with the newest Morphe CLI first).
+  prelude injects cleanly) and `tests/native/VerifyApk.kt` (the patched APK is consistent: startup hook, prelude and
+  footer, every privacy stub in place, the language files, the manifest and renamed providers, 16 KB aligned native
+  libraries, every extension's classes and their host linkage; run it with `sh scripts/verify_apk.sh`, which patches
+  with the newest Morphe CLI first and fails if any patch in `patches-list.json` wasn't applied).
 - **General performance tools:** the five files in `tests/bench/` and `tests/hermes-startup.js`.
 - **Developer tools with a future use:** `tests/theme_compat.cjs` and `tests/themes_fetch.py`, the UI preview in `tests/ui/`
-  (see "Seeing the UI"), and the porting tools in `scripts/hbc/`.
+  (see "Seeing the UI"), the porting tools in `scripts/hbc/`, and `tests/test_all.sh`, which runs every check above in
+  order (setup, build, port check, UI pages and scenes in STRICT mode, cold boot, patch + VerifyApk) and prints a table.
 - **Build gates** in `scripts/build.py`: changelog format, HBC98 compilation of the runtime, language files (valid,
   placeholders kept, everything translated) and the bench rule above.
 
@@ -419,6 +428,9 @@ you're unsure whether something has a future use, it doesn't: keep it local.
 
 ## Workflow
 
+- **Testing everything:** `sh tests/test_all.sh` (about 10 minutes on a 1 GB sandbox; `SKIP=`/`ONLY=` to choose steps,
+  `REUSE=1` to skip re-patching). Each step's log is in `work/test_all/`, and `work/test_all/summary` fills in as it goes,
+  so a run cut short by a sandbox reset still shows how far it got.
 - **For every bug:** find the root cause, fix it, and immediately commit and push the fix to the pull request before
   moving on. Check the issue against the previous release's code first, so the changelog only lists real fixes.
 - **For every optimization:** implement it, measure it as above, and immediately commit and push it.

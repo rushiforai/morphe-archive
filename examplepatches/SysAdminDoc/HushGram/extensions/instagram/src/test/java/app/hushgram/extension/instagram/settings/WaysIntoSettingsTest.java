@@ -55,7 +55,7 @@ public class WaysIntoSettingsTest {
 
     @Before public void prepare() throws Exception {
         Utils.awaitBackgroundTasksForTests();
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         reset();
         BaseSettings.SAFE_MODE.save(false);
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);

@@ -129,7 +129,7 @@ class NameFoldFixtureTest {
 
     @Test fun `without the shape the rest of Hide popular apps goes in with a warning`() {
         for (build in Fixtures.declaredBuilds()) {
-            val hosts = popularAppsOwners(build) + myChatsSearchHosts(build)
+            val hosts = popularAppsOwners(build) + myChatsSearchHosts(build) + newChatsHosts(build)
             val context = PatchContexts.of((ExtensionDex.classes() + hosts).distinctBy { it.type })
             val warnings = PatchLogCapture.warnings { hidePopularAppsPatch.execute(context) }
             assertEquals(build.name, 1, warnings.size)

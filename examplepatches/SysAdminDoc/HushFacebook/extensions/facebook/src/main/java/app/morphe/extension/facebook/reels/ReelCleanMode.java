@@ -21,18 +21,40 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * of those reads here. A yes is passed on as it came, and a no becomes a yes while the switch is
  * on, so every new reel starts the way the menu item leaves one.
  *
- * <p>Nothing else is touched. Facebook's own ways out of Clean mode still work for the reel on
- * screen, and the next one starts clean again. The overlay skips the read for an ad, so an ad keeps
- * its controls. Off, paused, before the settings are ready, or when anything here fails, the answer
- * is Facebook's own.
+ * <p>Facebook's own ways out of Clean mode still work for the reel on screen, and the next one
+ * starts clean again. The overlay skips the read for an ad, so an ad keeps its controls. Off,
+ * paused, before the settings are ready, or when anything here fails, the answer is Facebook's own.
+ *
+ * <p>The Clean mode button over a clean reel (#304) only ever leaves Clean mode in Facebook's
+ * design: it goes through the remembered choice for sticky accounts, and for everyone else tells
+ * parts of the viewer the overlay doesn't listen to, so with the switch on it kept its "off" label
+ * and did nothing more. While the switch is on, the button and the store take the sticky way, the
+ * overlay hears the change, and when a reel leaves Clean mode its no is marked as the person's own,
+ * so the button stays to turn Clean mode back on. An ad's no is Facebook's plain one, and an ad
+ * still gets no button.
  */
 public final class ReelCleanMode {
     /** Counted under the patch's name each time a part of the viewer is started clean. */
     static final String STARTED_CLEAN = "Viewer part started in Clean mode";
 
+    /** Counted each time the Clean mode button or the store is let through the sticky way. */
+    static final String SWITCHED_BY_BUTTON = "Clean mode switched through the remembered choice";
+
+    /**
+     * The overlay's no for a reel that left Clean mode while the switch is on. It equals
+     * {@link Boolean#FALSE}, which is how Facebook compares it, so only {@link #cleanButtonState}
+     * tells it from the no an ad starts with.
+     */
+    @SuppressWarnings({"deprecation", "removal", "BooleanConstructorCall", "UnnecessaryBoxing"})
+    static final Boolean LEFT_CLEAN = new Boolean(false);
+
     private static final String FAMILY = FamilyNames.REEL_DECLUTTER;
 
     private ReelCleanMode() {
+    }
+
+    private static boolean on() {
+        return Utils.settingsReady() && Settings.REEL_CLEAN_MODE.get();
     }
 
     /**
@@ -64,5 +86,62 @@ public final class ReelCleanMode {
     public static Boolean startClean(Boolean facebook) {
         boolean clean = Boolean.TRUE.equals(facebook);
         return startClean(clean) && !clean ? Boolean.TRUE : facebook;
+    }
+
+    /**
+     * Injection point, where the Clean mode button's tap and the store's setter ask whether this
+     * account keeps its Clean mode choice. A yes while the switch is on, so a tap sets the choice
+     * and tells the overlay, which flips the button. Never throws.
+     *
+     * @param facebook what Facebook's sticky Clean mode check answered.
+     */
+    public static boolean stickyClean(boolean facebook) {
+        try {
+            HookStatus.invoked(FAMILY);
+            if (facebook || !on()) return facebook;
+            HookStatus.bound(FAMILY, "Clean mode button");
+            HookStatus.counted(FAMILY, SWITCHED_BY_BUTTON);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "Clean mode button", failure);
+            Logger.printException(() -> "Reel Clean mode: could not read its switch for the button", failure);
+            return facebook;
+        }
+    }
+
+    /**
+     * Injection point, the overlay's state update as it hears Clean mode switch, holding the new
+     * value as its only element. While the switch is on, a no becomes {@link #LEFT_CLEAN}. The same
+     * array comes back. Never throws.
+     *
+     * @param state Facebook's state update.
+     */
+    public static Object[] markLeftClean(Object[] state) {
+        try {
+            if (state != null && state.length == 1 && Boolean.FALSE.equals(state[0]) && on()) {
+                state[0] = LEFT_CLEAN;
+            }
+        } catch (Throwable failure) {
+            Logger.printException(() -> "Reel Clean mode: could not mark a reel leaving it", failure);
+        }
+        return state;
+    }
+
+    /**
+     * Injection point, where the Clean mode button reads the overlay's value to leave itself out
+     * once a reel is out of Clean mode. While the switch is on, a reel the person took out reads as
+     * still clean here, so the button stays. Its label comes from Facebook's own read of the same
+     * value, so it offers to turn Clean mode back on. Never throws.
+     *
+     * @param facebook the overlay's value.
+     */
+    @SuppressWarnings("NumberEquality")
+    public static Object cleanButtonState(Object facebook) {
+        try {
+            return facebook == LEFT_CLEAN && on() ? Boolean.TRUE : facebook;
+        } catch (Throwable failure) {
+            Logger.printException(() -> "Reel Clean mode: could not read its switch for the button", failure);
+            return facebook;
+        }
     }
 }

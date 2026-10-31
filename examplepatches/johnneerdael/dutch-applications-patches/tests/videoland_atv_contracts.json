@@ -1,0 +1,131 @@
+[
+  {
+    "selection": "ads",
+    "owner": "Lcom/bedrockstreaming/feature/player/data/config/PlayerConfigImpl;",
+    "signature": "d()Z",
+    "registers": 3,
+    "count": 6,
+    "code": "const/4 v0, 0x0\nreturn v0"
+  },
+  {
+    "selection": "ads",
+    "owner": "Lcom/bedrockstreaming/feature/adengine/domain/requester/AdEngineAdRequester;",
+    "signature": "a(Lbv/c;)Ljava/lang/Object;",
+    "registers": 6,
+    "count": 8,
+    "code": "sget-object v0, LWu/K;->N:LWu/K;\nreturn-object v0"
+  },
+  {
+    "selection": "ads",
+    "owner": "Lcom/bedrockstreaming/feature/adengine/domain/requester/AdEngineAdRequester;",
+    "signature": "b(JLze/n;)Ljava/lang/Object;",
+    "registers": 11,
+    "count": 10,
+    "code": "sget-object v0, LWu/K;->N:LWu/K;\nreturn-object v0"
+  },
+  {
+    "selection": "ads",
+    "owner": "Lcom/bedrockstreaming/feature/adengine/domain/lbanner/LBannerAdRequester;",
+    "signature": "a(Lbv/c;)Ljava/lang/Object;",
+    "registers": 2,
+    "count": 8,
+    "code": "sget-object p1, LWu/K;->N:LWu/K;\nreturn-object p1"
+  },
+  {
+    "selection": "ads",
+    "owner": "Lcom/bedrockstreaming/feature/adengine/domain/lbanner/LBannerAdRequester;",
+    "signature": "b(JLze/n;)Ljava/lang/Object;",
+    "registers": 4,
+    "count": 6,
+    "code": "const/4 p1, 0x0\nreturn-object p1"
+  },
+  {
+    "selection": "ads",
+    "owner": "Lcom/bedrockstreaming/feature/adengine/data/config/AdEngineConfigImpl;",
+    "signature": "a()LE9/n;",
+    "registers": 5,
+    "count": 24,
+    "code": "const/4 v0, 0x0\nreturn-object v0"
+  },
+  {
+    "selection": "ads",
+    "owner": "Lcom/bedrockstreaming/feature/adengine/domain/pausead/usecase/GetFirstPlayablePauseAdItemUseCaseImpl;",
+    "signature": "a(Lcom/bedrockstreaming/feature/adengine/domain/pausead/requester/PauseAdAdRequestUrlData;Lbv/c;)Ljava/lang/Object;",
+    "registers": 7,
+    "count": 90,
+    "code": "sget-object v0, LJ9/d;->a:LJ9/d;\nreturn-object v0"
+  },
+  {
+    "selection": "ads",
+    "owner": "Lcom/bedrockstreaming/feature/player/presentation/tv/control/TvReplayControl;",
+    "signature": "U()V",
+    "registers": 12,
+    "count": 88,
+    "code": "return-void"
+  },
+  {
+    "selection": "ads",
+    "owner": "Lcom/bedrockstreaming/plugin/yospace/YospaceDaiResourceCreator;",
+    "signature": "a(Lof/a;)Luf/a;",
+    "registers": 22,
+    "count": 96,
+    "code": "const/4 v0, 0x0\nreturn-object v0"
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lcom/bedrockstreaming/plugin/tealium/TealiumTaggingPlan;",
+    "signature": "o0(Ljava/lang/String;Ljava/util/Map;)V",
+    "registers": 11,
+    "count": 18,
+    "code": "return-void"
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lcom/bedrockstreaming/plugin/tealium/TealiumTaggingPlan;",
+    "signature": "s0(Ljava/util/Map;)V",
+    "registers": 5,
+    "count": 15,
+    "code": "return-void"
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lcom/bedrockstreaming/plugin/advertisingid/google/data/GoogleAdvertisingIdSource;",
+    "signature": "a()Lx6/a;",
+    "registers": 4,
+    "count": 27,
+    "code": "sget-object v0, Lx6/b;->a:Lx6/b;\nreturn-object v0"
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lcom/newrelic/agent/android/NewRelic;",
+    "signature": "start(Landroid/content/Context;)V",
+    "registers": 7,
+    "count": 83,
+    "code": "return-void"
+  },
+  {
+    "selection": "tracking",
+    "owner": "LA3/T;",
+    "signature": "e(LBr/h;)LA3/X;",
+    "registers": 16,
+    "count": 184,
+    "code": "new-instance v0, LA3/X;\nconst/16 v1, 0x193\nconst/4 v2, 0x0\nconst-wide/16 v3, 0x0\ninvoke-direct {v0, v1, v2, v3, v4}, LA3/X;-><init>(ILjava/net/URL;J)V\nreturn-object v0"
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lcom/bedrockstreaming/plugin/snowplow/SnowplowTracker;",
+    "signature": "<init>(Landroid/content/Context;Lfp/c;LBj/a;Lcom/bedrockstreaming/feature/player/domain/mediaplayer/usecase/GetDeviceVolumeUseCase;Lcom/bedrockstreaming/plugin/snowplow/SnowplowEntityMapper;)V",
+    "registers": 15,
+    "count": 114,
+    "code": "return-void",
+    "after": "iput-object p5, p0, Lcom/bedrockstreaming/plugin/snowplow/SnowplowTracker;->c:Lcom/bedrockstreaming/plugin/snowplow/SnowplowEntityMapper;"
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lcom/bedrockstreaming/component/config/domain/ConfigImpl;",
+    "signature": "g(Ljava/lang/String;)Z",
+    "registers": 4,
+    "count": 11,
+    "code": "CONFIG"
+  }
+]

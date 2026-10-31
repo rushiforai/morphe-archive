@@ -48,6 +48,7 @@ val highRefreshRatePatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("UI Customization")
 
     val targetRefreshRate by intOption(
         "targetRefreshRate", 120,

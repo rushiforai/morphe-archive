@@ -14,7 +14,8 @@ import app.hushtelegram.extension.telegram.settings.Settings;
 /**
  * The video viewer's full screen button turns the screen to one landscape side, picked from the way
  * the screen faces when it's tapped, and holds it there. With the switch on the phone's sensor picks
- * the side instead, either one, even with auto-rotate off (#27). Leaving full screen stays Telegram's.
+ * the side instead, either one, even with auto-rotate off (#27). Leaving full screen stays Telegram's
+ * exit button's and the viewer's close; the sensor exit on an upright turn is {@link VideoUpright}'s.
  */
 public final class VideoTurn {
     private VideoTurn() {}

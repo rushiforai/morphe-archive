@@ -1,0 +1,86 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Build and Release Morphe Patch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Kotlin Compiler
+        run: |
+          mkdir -p "$HOME/.local/kotlinc"
+          curl -fSL -o /tmp/kotlinc.zip "https://github.com/JetBrains/kotlin/releases/download/v2.0.21/kotlin-compiler-2.0.21.zip"
+          unzip -q /tmp/kotlinc.zip -d /tmp/kotlinc_extracted
+          cp -r /tmp/kotlinc_extracted/kotlinc/* "$HOME/.local/kotlinc/"
+          echo "$HOME/.local/kotlinc/bin" >> $GITHUB_PATH
+
+      - name: Make scripts executable
+        run: chmod +x ./build.sh
+
+      - name: Build Patch Package (.mpp)
+        run: ./build.sh
+
+      - name: Extract Release Tag Info
+        id: tag_info
+        run: |
+          TAG="${GITHUB_REF_NAME:-v1.0.0}"
+          if [[ "${TAG}" =~ ^v[0-9] ]]; then
+            VERSION="${TAG#v}"
+          else
+            VERSION="$(grep -m1 '^version=' gradle.properties | cut -d'=' -f2 | tr -d ' ')"
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "TAG=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare Release Notes
+        run: |
+          cat << 'EOF' > release-notes.md
+          ### Gboard Enhancement Patches Suite
+
+          #### ✨ Features
+          - **Backspace Repeat Haptic Feedback**: Delivers continuous tactile pulses on each repeated character deletion when holding down the backspace key (with empty text suppression and settings toggle).
+          - **Enter Key Tasker Event**: Dispatches a high-priority Android Intent broadcast (`dev.custom.gboard.ENTER_PRESSED`) to Tasker whenever the Enter or IME action key is pressed, including active package, action type, and cursor text.
+          - **Glide Trail Customization**: Samsung Keyboard / Good Lock (Keys Cafe) style glide typing trail customization (fade speed, dynamic Rainbow RGB, color presets, stroke thickness, and tail length decay).
+          - **Morphe Independent Selection**: All patches can be individually enabled or combined together in Morphe Manager.
+
+          #### 📱 Add to Morphe App
+          1. Open the **Morphe** app on your Android device.
+          2. Navigate to **Settings** -> **Sources**.
+          3. Tap **Add Source** and paste:
+             ```
+             https://github.com/${{ github.repository }}
+             ```
+          4. Return to **Patcher**, select Gboard, select your patches, and patch!
+          EOF
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag_info.outputs.TAG }}
+          name: Release ${{ steps.tag_info.outputs.TAG }}
+          body_path: release-notes.md
+          prerelease: false
+          files: |
+            dist/patches-${{ steps.tag_info.outputs.VERSION }}.mpp
+            dist/gboard-backspace-haptics.jar
+            patches-bundle.json
+            patches-list.json

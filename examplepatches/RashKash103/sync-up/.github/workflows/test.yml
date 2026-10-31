@@ -1,0 +1,31 @@
+name: Test
+
+# The offline suites need a JDK and nothing else: no Android SDK, no GitHub Packages
+# credentials, no network. That is what makes them worth running on a pull request from a
+# fork, where none of those secrets are available.
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  test:
+    name: Offline tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Share link resolver
+        run: uv run test/test_slink_security.py
+
+      - name: Request parsing
+        run: uv run test/test_request_parsing.py

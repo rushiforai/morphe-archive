@@ -183,6 +183,9 @@ public class SettingsLockTest {
         assertFalse(SettingsLock.exempts(app.hushtelegram.extension.shared.settings.BaseSettings.PAUSED.key, true));
         assertFalse(SettingsLock.exempts(Settings.HIDE_ADS.key, false));
         assertFalse(SettingsLock.exempts(Settings.SEARCH_ONLY_MY_CHATS.key, false));
+        // The parental block is what a lock is for: it can't be turned off, or on, while locked.
+        assertFalse(SettingsLock.exempts(Settings.BLOCK_NEW_CHATS.key, false));
+        assertFalse(SettingsLock.exempts(Settings.BLOCK_NEW_CHATS.key, true));
         assertFalse(SettingsLock.exempts(null, false));
     }
 

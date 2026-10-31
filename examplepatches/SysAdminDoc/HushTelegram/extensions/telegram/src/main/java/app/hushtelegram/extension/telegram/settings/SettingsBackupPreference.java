@@ -170,7 +170,7 @@ public class SettingsBackupPreference extends Preference {
             if (action == IMPORT && SettingsLock.refuses()) return true;
             // Rows are out of reach while a run is going, so this is only the race between a tap
             // and that.
-            if (OWNER.get() == null && !stillStalled()) pickFile(page, action);
+            if (OWNER.get() == null && !stillStalled(action)) pickFile(page, action);
             return true;
         });
         latestPage = new WeakReference<>(page);
@@ -196,10 +196,10 @@ public class SettingsBackupPreference extends Preference {
             page.startActivityForResult(intent, action);
         } catch (ActivityNotFoundException missing) {
             Logger.printInfo(() -> "No file picker for the settings file");
-            Utils.showToastLong(L10n.t("This phone has no file picker, so you can't choose a file here."));
+            tell(action, L10n.t("This phone has no file picker, so you can't choose a file here."));
         } catch (RuntimeException error) {
             Logger.printInfo(() -> "Could not open the file picker: " + error.getClass().getSimpleName());
-            Utils.showToastLong(L10n.t("Couldn't open the file picker. Try again."));
+            tell(action, L10n.t("Couldn't open the file picker. Try again."));
         }
     }
 
@@ -230,11 +230,11 @@ public class SettingsBackupPreference extends Preference {
                 said = L10n.t("Couldn't save the settings file. Try again.");
             } finally {
                 String result = said;
-                ended(run, result == null ? null : () -> Utils.showToastLong(result));
+                ended(run, result == null ? null : () -> tell(EXPORT, result));
             }
         });
-        if (!accepted) notStarted(run);
-        else watch(run, L10n.t("That app is slow. It may still save the file, so check it."));
+        if (!accepted) notStarted(run, EXPORT);
+        else watch(run, EXPORT, L10n.t("That app is slow. It may still save the file, so check it."));
     }
 
     /**
@@ -279,13 +279,13 @@ public class SettingsBackupPreference extends Preference {
             } catch (SettingsBackup.Rejected refused) {
                 Logger.printInfo(() -> "Settings file refused: " + refused.reason);
                 String said = refusal(refused.reason);
-                result = () -> Utils.showToastLong(said);
+                result = () -> tell(IMPORT, said);
             } finally {
                 ended(run, result);
             }
         });
-        if (!accepted) notStarted(run);
-        else watch(run, L10n.t("That app is slow to answer. Nothing was changed. Try again."));
+        if (!accepted) notStarted(run, IMPORT);
+        else watch(run, IMPORT, L10n.t("That app is slow to answer. Nothing was changed. Try again."));
     }
 
     /** The file's text, opened through its app with [run]'s cancel signal and held where the screen can close it. */
@@ -501,22 +501,25 @@ public class SettingsBackupPreference extends Preference {
             // Counted before the write, which makes every change match the store.
             String done = importedMessage(snapshot.switchChanges());
             accepted = Utils.runOnBackgroundThread(() -> {
+                String said = null;
                 try {
                     SettingsBackup.apply(snapshot);
-                    Utils.showToastLong(done);
+                    said = done;
                 } catch (SettingsBackup.ApplyFailed failure) {
                     Logger.printInfo(() -> "Settings import failed: " + failure.getMessage()
                             + (failure.rolledBack ? ", rolled back" : ", not rolled back"));
-                    Utils.showToastLong(failure.rolledBack
+                    said = failure.rolledBack
                             ? L10n.t("Couldn't import the settings. Nothing was changed.")
-                            : L10n.t("Couldn't import or restore old settings. Check the switches."));
+                            : L10n.t("Couldn't import or restore old settings. Check the switches.");
                 } finally {
+                    String result = said;
                     Utils.runOnMainThread(() -> {
                         // A row's own change notes the restart it owes. The import's skipped that,
                         // and the card went on saying every switch was working.
                         AbstractPreferenceFragment.noteRestartPending(before);
                         importing(null);
                         finish(run);
+                        if (result != null) tell(IMPORT, result);
                     });
                 }
             });
@@ -526,7 +529,7 @@ public class SettingsBackupPreference extends Preference {
             // This path has no wait that runs out, so nothing else would give the rows back.
             if (!accepted) {
                 importing(null);
-                notStarted(run);
+                notStarted(run, IMPORT);
             }
         }
     }
@@ -567,10 +570,10 @@ public class SettingsBackupPreference extends Preference {
     /** Claims the rows for one run, or says why not. */
     @Nullable
     private static Run start(int action, String line) {
-        if (stillStalled()) return null;
+        if (stillStalled(action)) return null;
         Run run = new Run();
         if (!OWNER.compareAndSet(null, run)) {
-            Utils.showToastLong(L10n.t("Couldn't start that. Try again in a moment."));
+            tell(action, L10n.t("Couldn't start that. Try again in a moment."));
             return null;
         }
         runningAction = action;
@@ -589,10 +592,10 @@ public class SettingsBackupPreference extends Preference {
     }
 
     /** The worker queue was full, so nothing ran: the rows come back and the person hears why. */
-    private static void notStarted(Run run) {
+    private static void notStarted(Run run, int action) {
         run.ended = true;
         finish(run);
-        Utils.showToastLong(L10n.t("Couldn't start that. Try again in a moment."));
+        tell(action, L10n.t("Couldn't start that. Try again in a moment."));
     }
 
     /**
@@ -615,7 +618,7 @@ public class SettingsBackupPreference extends Preference {
      * through the file's app and the file is closed. An app can ignore both, so [message] says only
      * that the screen stopped waiting, never that the app stopped.
      */
-    private static void watch(Run run, String message) {
+    private static void watch(Run run, int action, String message) {
         Utils.runOnMainThreadDelayed(() -> {
             if (!finish(run)) return;
             if (!run.ended) stalled = run;
@@ -624,16 +627,30 @@ public class SettingsBackupPreference extends Preference {
             // Closing can wait on the app too, so not on the main thread.
             if (open != null) new Thread(() -> closeQuietly(open), "hushtelegram-settings-file").start();
             Logger.printInfo(() -> "Settings file: stopped waiting on the app holding it");
-            Utils.showToastLong(message);
+            tell(action, message);
         }, timeoutMs);
     }
 
     /** Says so, and answers true, while a run the screen stopped waiting for still holds a worker. */
-    private static boolean stillStalled() {
+    private static boolean stillStalled(int action) {
         Run held = stalled;
         if (held == null || held.ended) return false;
-        Utils.showToastLong(L10n.t("That file's app still hasn't answered. Try again later."));
+        tell(action, L10n.t("That file's app still hasn't answered. Try again later."));
         return true;
+    }
+
+    /**
+     * Says [line] and puts it above the summary of [action]'s row until the next run. A toast shows
+     * two lines, which at large text cut most of these off, and the row keeps them whole.
+     */
+    private static void tell(int action, String line) {
+        Utils.showToastLong(line);
+        for (WeakReference<SettingsBackupPreference> held : ROWS) {
+            SettingsBackupPreference row = held.get();
+            if (row != null && row.rowAction == action && row.busyLine == null) {
+                row.setSummary(line + "\n" + row.restingSummary);
+            }
+        }
     }
 
     private static void closeQuietly(@Nullable Closeable open) {

@@ -8,6 +8,10 @@ Compare the package name, app version and build number with the [supported app p
 
 Android can refuse an update if the installed app and the new APK were signed with different keys. This can happen with the original publisher app or a build signed elsewhere. Record the exact installer error. Save important data before replacing an installation. Do not start troubleshooting by clearing data.
 
+## The app is missing from Android Auto
+
+Use the [Android Auto installation guide](android-auto.md), with links to Shizuku and KingInstaller. The tested Flitsmeister repair is to select external KingInstaller in Morphe, enable Shizuku inside KingInstaller, tap **Install as king**, and confirm **Update**. Morphe's built-in installer choices and Android Auto's Unknown sources checkbox did not solve the tested case. Keep your signing key and update without uninstalling.
+
 ## Maps, alerts or audio fail
 
 Check the app page for services that keep running. Buienradar's optional Swrve patch deliberately disables alerts. In [RTL Nieuws](../apps/rtl-nieuws.md), Disable Swrve (expert) disables push notifications and Swrve channel synchronisation. The standard controls keep those functions available. On a fresh installation with Skip consent screens, you enable notifications yourself; existing choices remain.

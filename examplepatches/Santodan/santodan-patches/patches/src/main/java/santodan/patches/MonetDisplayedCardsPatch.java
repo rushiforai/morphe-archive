@@ -44,7 +44,8 @@ public final class MonetDisplayedCardsPatch {
         return PatchKt.bytecodePatch(NAME,
             "Remove the 20-card limit from Displayed Cards. Add -10, +10 and Max to the original themed picker, preserving its layout and single-card steps.", false, builder -> {
                 builder.compatibleWith(new Compatibility("com.klevico.monet", "Monet", null, ApkFileType.APK,
-                    null, null, Collections.singletonList(new AppTarget("1.0.97", null, false, 26, null)), FormFactor.TV, false));
+                    null, null, Arrays.asList(new AppTarget("1.0.97", null, false, 26, null),
+                        new AppTarget("1.1.0", null, false, 26, null)), FormFactor.TV, false));
                 builder.extendWith(() -> {
                     var input = MonetDisplayedCardsPatch.class.getClassLoader().getResourceAsStream("extensions/monet-displayed-cards.mpe");
                     if (input == null) throw new IllegalStateException("Missing Monet displayed cards extension");
@@ -52,15 +53,19 @@ public final class MonetDisplayedCardsPatch {
                 });
                 builder.execute(context -> {
                     if (!"com.klevico.monet".equals(context.getPackageMetadata().getPackageName())
-                        || !"1.0.97".equals(context.getPackageMetadata().getVersionName())) throw unsupported("Unexpected package/version");
+                        || !Set.of("1.0.97", "1.1.0").contains(context.getPackageMetadata().getVersionName())) throw unsupported("Unexpected package/version");
                     List<ClassDef> classes = new ArrayList<>();
                     context.classDefForEach(c -> { classes.add(c); return Unit.INSTANCE; });
-                    Map<String,Method> contracts = validate(classes);
-                    for (String signature : TARGETS) {
+                    boolean modern = "1.1.0".equals(context.getPackageMetadata().getVersionName());
+                    Map<String,Method> contracts = modern ? MonetDisplayedCards110.validate(classes) : validate(classes);
+                    if (modern) {
+                        MonetDisplayedCards110.selectLayout(context.mutableClassDefBy(MonetDisplayedCards110.LAYOUT));
+                    }
+                    for (String signature : modern ? MonetDisplayedCards110.TARGETS : TARGETS) {
                         Method original = contracts.get(signature);
                         MutableMethod target = context.mutableClassDefBy(original.getDefiningClass()).getMethods().stream()
                             .filter(m -> m.equals(original)).findFirst().orElseThrow();
-                        apply(target);
+                        if (modern) MonetDisplayedCards110.apply(target); else apply(target);
                     }
                     return Unit.INSTANCE;
                 });
@@ -68,7 +73,7 @@ public final class MonetDisplayedCardsPatch {
             });
     }
     static IllegalStateException unsupported(String reason) {
-        return new IllegalStateException("Unsupported Monet displayed cards bytecode: " + reason + ". Use original Monet 1.0.97.");
+        return new IllegalStateException("Unsupported Monet displayed cards bytecode: " + reason + ". Use a supported original Monet APK.");
     }
     static Map<String,Method> validate(List<? extends ClassDef> classes) {
         Map<String,Method> found = new HashMap<>();

@@ -16,11 +16,13 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -108,6 +110,62 @@ class ReelSoundButtonFixtureTest {
         assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), abis)
     }
 
+    private fun unpadded(code: List<Instruction>) = code.filter { it.opcode != Opcode.NOP }
+
+    /**
+     * 585's video controls (both ABIs): the control component's render calls an instance builder on a
+     * singleton that holds the key and news up the sound toggle, moves its answer and null-checks it, and
+     * the patch hands the answer to the extension before the check.
+     */
+    private fun checkControlsBuild(bundle: File) {
+        val name = bundle.name
+        val toggleClasses = FixtureDex.classesHolding(bundle, SOUND_TOGGLE_STRING).filterNot { it.type.startsWith(EXTENSION_PACKAGE) }
+        val toggles = toggleClasses.map { it.type }.toSet()
+        assertTrue("$name: no class loads the sound toggle's string", toggles.isNotEmpty())
+        val controls = FixtureDex.classesHolding(bundle, SPEAKER_CONTROLS).filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.distinctBy { it.type }
+        val callees = FixtureDex.classes(bundle, controls.flatMap { it.methods }.flatMap(::staticOrVirtualCalls).map { it.definingClass }.toSet())
+        val buildsSpeaker = { call: MethodReference ->
+            callees[call.definingClass]?.methods?.any { buildsControlsSpeaker(it, call, toggles) } == true
+        }
+        val found = controls.flatMap { control ->
+            methodsHolding(control, SPEAKER_CONTROLS).flatMap { m -> controlSpeakerBuilds(m, buildsSpeaker).map { Triple(control, m, it) } }
+        }
+        assertEquals("$name: methods of the controls that build the speaker", 1, found.size)
+        val (owner, method, build) = found.single()
+        val original = method.code()
+        // Negative control: with no sound toggle to build, the same call shape picks nothing.
+        val noToggle = { call: MethodReference ->
+            callees[call.definingClass]?.methods?.any { buildsControlsSpeaker(it, call, emptySet()) } == true
+        }
+        assertTrue("$name: the toggle doesn't pick the builder", controlSpeakerBuilds(method, noToggle).isEmpty())
+        // No branch or switch case lands on the null check, so every path to it passes the hook.
+        assertTrue("$name: a branch lands on the null check", build.call + 2 !in branchTargets(original))
+        val context = PatchContexts.of((controls + callees.values + toggleClasses).distinctBy { it.type })
+        context.hideReelSoundButton()
+        val patched = context.mutableClassDefBy(owner.type).methods.single {
+            it.name == method.name &&
+                it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)
+        }.code()
+        val at = build.call + 2
+        assertEquals("$name: three instructions added", unpadded(original).size + 3, unpadded(patched).size)
+        assertEquals("$name: shape of the hook",
+            listOf(Opcode.MOVE_RESULT_OBJECT, Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT_OBJECT, Opcode.CHECK_CAST, Opcode.IF_EQZ),
+            patched.subList(at - 1, at + 4).map { it.opcode })
+        val call = patched[at] as RegisterRangeInstruction
+        assertEquals("$name: the extension is asked", REEL_FOOTER_SOUND_BUTTON,
+            ((call as ReferenceInstruction).reference as MethodReference).toString())
+        assertEquals("$name: the hook passes one register", 1, call.registerCount)
+        assertEquals("$name: the hook reads what was built", build.register, call.startRegister)
+        assertEquals("$name: the extension's answer goes back in its register", build.register,
+            (patched[at + 1] as OneRegisterInstruction).registerA)
+        assertEquals("$name: the answer is cast back to the builder's type", build.type,
+            ((patched[at + 2] as ReferenceInstruction).reference as TypeReference).type)
+        assertEquals("$name: the null check reads the extension's answer", build.register,
+            (patched[at + 3] as OneRegisterInstruction).registerA)
+        assertEquals("$name: the rest is Facebook's", unpadded(original).map { it.opcode },
+            unpadded(patched.take(at)).map { it.opcode } + unpadded(patched.drop(at + 3)).map { it.opcode })
+    }
+
     @Test
     fun `each declared build's reel viewer asks the extension before it builds the speaker`() {
         val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
@@ -121,6 +179,13 @@ class ReelSoundButtonFixtureTest {
                     .filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.distinctBy { it.type }
                     .flatMap { owner -> methodsHolding(owner, SOUND_BUTTON_KEY).map { owner to it } }
                 val gated = holders.flatMap { (owner, method) -> soundButtonGates(method).map { Triple(owner, method, it) } }
+                if (gated.isEmpty()) {
+                    // 585: no check in front of the speaker, the controls hook the builder's answer.
+                    checkControlsBuild(bundle)
+                    checked += version
+                    abis += name.substringAfter("-$version-").substringBefore(".apkm")
+                    continue
+                }
                 assertEquals("$name: checks whose false skips the speaker", 1, gated.size)
                 val (owner, method, gate) = gated.single()
                 val original = method.code()

@@ -16,12 +16,18 @@ import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.extension.localRegisterCount
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
+import app.morphe.patches.telegram.misc.notifications.MESSAGE_OBJECT
+import app.morphe.patches.telegram.misc.notifications.NOTIFICATIONS
+import app.morphe.patches.telegram.misc.notifications.SILENCED
+import app.morphe.patches.telegram.misc.notifications.TL_USER
+import app.morphe.patches.telegram.misc.notifications.silenceNonContactsPatch
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -33,15 +39,57 @@ import org.junit.Test
 
 /** PushListenerController's sign-up and wake-up on both declared builds, where UnifiedPush plugs in. */
 class UnifiedPushFixtureTest {
+    private companion object {
+        val EMOJI_CENSUS = FixtureDex.ClassCensus()
+    }
+
     private val hosts = setOf(PUSH_CONTROLLER, MESSAGES_CONTROLLER, "Lorg/telegram/messenger/UserConfig;",
         "Lorg/telegram/tgnet/ConnectionsManager;", "Lorg/telegram/messenger/ApplicationLoader;",
         "Lorg/telegram/messenger/Utilities;", "Lorg/telegram/messenger/DispatchQueue;", "Lorg/telegram/messenger/SharedConfig;",
-        "Lorg/telegram/messenger/PushListenerController\$IPushListenerServiceProvider;") + REACTION_ALERT_TYPES
+        "Lorg/telegram/messenger/PushListenerController\$IPushListenerServiceProvider;", NOTIFICATIONS, MESSAGE_OBJECT, TL_USER) +
+        REACTION_ALERT_TYPES
 
-    private fun context(build: File): BytecodePatchContext {
+    private fun BytecodePatchContext.silentCheck() =
+        mutableClassDefBy(NOTIFICATIONS).methods.single { it.name == "isSilentMessage" }
+    private fun BytecodePatchContext.status(name: String) =
+        (mutableClassDefBy(SETTINGS_STATUS).method(name).controlBody().first() as WideLiteralInstruction).wideLiteral
+
+    /** The silent check's code with the sound hook taken out, for comparing with stock. */
+    private fun withoutSoundHook(code: List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>): List<List<Any?>> {
+        val hook = code.indexOfFirst { it.controlRef() == REACTION_QUIET }
+        val skipped = if (hook < 0) emptySet() else setOf(hook, hook + 1)
+        return code.filterIndexed { i, it -> i !in skipped && it.opcode != Opcode.NOP }
+            .map { listOf(it.opcode, it.namedRegisters(), it.controlRef()) }
+    }
+
+    /** Right after the reaction flag is read, the extension's answer replaces it before Telegram tests it. */
+    private fun assertSoundHook(name: String, code: List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>) {
+        val read = code.indexOfFirst { it.opcode == Opcode.IGET_BOOLEAN && it.controlRef() == "$MESSAGE_OBJECT->isReactionPush:Z" }
+        assertTrue("$name: the reaction flag read", read >= 0)
+        val flag = (code[read] as TwoRegisterInstruction).registerA
+        assertEquals("$name: the sound hook", listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT),
+            code.subList(read + 1, read + 3).map { it.opcode })
+        assertEquals(REACTION_QUIET, code[read + 1].controlRef())
+        assertEquals(listOf(flag), code[read + 1].namedRegisters())
+        assertEquals(listOf(flag), code[read + 2].namedRegisters())
+        assertTrue("$name: Telegram's test of the flag", code[read + 3].opcode == Opcode.IF_EQZ || code[read + 3].opcode == Opcode.IF_NEZ)
+        assertEquals(listOf(flag), code[read + 3].namedRegisters())
+        assertEquals(1, code.count { it.controlRef() == REACTION_QUIET })
+    }
+
+    /**
+     * Every class with a static-shaped Document lookup taking an int and a long, across the whole
+     * build: AnimatedEmojiDrawable among them, whose name R8 changes from build to build.
+     */
+    private fun emojiLookupClasses(build: File) = FixtureDex.classesWhere(build, EMOJI_CENSUS, { true }) {
+        it.returnType == "Lorg/telegram/tgnet/TLRPC\$Document;" && it.parameterTypes.joinToString("") == "IJ"
+    }
+
+    private fun context(build: File, withEmojiLookup: Boolean = true): BytecodePatchContext {
         val host = FixtureDex.classes(build, hosts).values.map(ImmutableClassDef::of)
         assertEquals("${build.name}: Telegram's push classes", hosts.size, host.size)
-        return PatchContexts.of(ExtensionDex.classes() + host)
+        val lookups = if (withEmojiLookup) emojiLookupClasses(build).map(ImmutableClassDef::of) else emptyList()
+        return PatchContexts.of(ExtensionDex.classes() + host + lookups.filter { it.type !in hosts })
     }
 
     private fun ClassDef.method(name: String) = methods.single { it.name == name }
@@ -56,6 +104,7 @@ class UnifiedPushFixtureTest {
             val plan = context.resolveUnifiedPush()
             assertEquals("$name: Telegram signs up four accounts", 4, plan.accounts)
             val old = ImmutableMethod.of(plan.signUp)
+            val stockSilent = ImmutableMethod.of(context.silentCheck()).controlBody()
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { unifiedPushPatch.execute(context) })
 
             val before = old.controlBody()
@@ -113,7 +162,74 @@ class UnifiedPushFixtureTest {
             assertEquals(2, code.count { it.controlRef() == "$REACTION_ALERTS->changed(Ljava/lang/Object;Ljava/lang/Object;)V" })
             val reactions = context.mutableClassDefBy(SETTINGS_STATUS).method("reactionAlerts").controlBody()
             assertEquals(1L, (reactions.first() as WideLiteralInstruction).wideLiteral)
+
+            // Telegram's silent notification check asks the extension whether a reaction stays silent (#41).
+            val silent = context.silentCheck().controlBody()
+            assertSoundHook(name, silent)
+            assertEquals("$name: the rest of the check is stock", withoutSoundHook(stockSilent), withoutSoundHook(silent))
+            assertEquals(1L, context.status("reactionSound"))
         }
+    }
+
+    @Test fun `a custom emoji reaction asks Telegram's one lookup of loaded custom emoji`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val lookups = emojiLookupClasses(build).flatMap { owner -> owner.methods.filter { isEmojiLookup(owner, it) } }
+            assertEquals("$name: one lookup in the whole app", 1, lookups.size)
+            val context = context(build)
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { unifiedPushPatch.execute(context) })
+            val stub = context.mutableClassDefBy(REACTION_ALERTS).method("emojiDocument")
+            assertTrue(name, AccessFlags.PUBLIC.isSet(stub.accessFlags) && AccessFlags.STATIC.isSet(stub.accessFlags))
+            val code = stub.controlBody()
+            assertEquals(listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT), code.map { it.opcode })
+            assertEquals(listOf(lookups.single().toString(), null, null), code.refs())
+            // The account and both halves of the document ID, as the stub got them.
+            assertEquals(listOf(1, 2, 3), code[0].namedRegisters())
+        }
+    }
+
+    @Test fun `a build without the custom emoji lookup keeps reaction notifications for plain emoji`() {
+        val context = context(Fixtures.declaredBuilds().first(), withEmojiLookup = false)
+        val warnings = PatchLogCapture.warnings { unifiedPushPatch.execute(context) }
+        assertEquals(1, warnings.size)
+        assertTrue(warnings.single(), warnings.single().contains("without custom emoji"))
+        assertEquals(1L, context.status("reactionAlerts"))
+        val code = context.mutableClassDefBy(REACTION_ALERTS).method("emojiDocument").controlBody()
+        assertTrue("the extension's own null stays", code.none { it.opcode == Opcode.INVOKE_STATIC })
+    }
+
+    @Test fun `the sound hook and Silence non-contacts share the silent check in either order`() {
+        for (build in Fixtures.declaredBuilds()) {
+            for (silenceFirst in listOf(true, false)) {
+                val name = "${build.name}, Silence non-contacts ${if (silenceFirst) "first" else "second"}"
+                val context = context(build)
+                val stock = ImmutableMethod.of(context.silentCheck()).controlBody()
+                val patches = if (silenceFirst) listOf(silenceNonContactsPatch, unifiedPushPatch) else listOf(unifiedPushPatch, silenceNonContactsPatch)
+                assertEquals(name, emptyList<String>(), PatchLogCapture.warnings { patches.forEach { it.execute(context) } })
+                val code = context.silentCheck().controlBody()
+                assertEquals(name, SILENCED, code[0].controlRef())
+                assertSoundHook(name, code)
+                assertEquals(name, withoutSoundHook(stock), withoutSoundHook(code.drop(5)))
+                assertEquals(name, 1L, context.status("reactionSound"))
+                assertEquals(name, 1L, context.status("silenceNonContacts"))
+            }
+        }
+    }
+
+    @Test fun `a build whose silent check no longer reads the reaction flag keeps UnifiedPush without the sound`() {
+        val context = context(Fixtures.declaredBuilds().first())
+        val check = context.silentCheck()
+        check.replaceInstruction(check.controlBody().indexOfFirst {
+            it.opcode == Opcode.IGET_BOOLEAN && it.controlRef() == "$MESSAGE_OBJECT->isReactionPush:Z"
+        }, "nop")
+        val untouched = check.controlBody().map { it.opcode to it.namedRegisters() }
+        val warnings = PatchLogCapture.warnings { unifiedPushPatch.execute(context) }
+        assertEquals(1, warnings.size)
+        assertTrue(warnings.single(), warnings.single().contains("no longer reads the reaction flag once"))
+        assertEquals(untouched, check.controlBody().map { it.opcode to it.namedRegisters() })
+        assertEquals(1L, context.status("unifiedPush"))
+        assertEquals(1L, context.status("reactionAlerts"))
+        assertEquals(0L, context.status("reactionSound"))
     }
 
     @Test fun `a build without either reactions cast keeps UnifiedPush and leaves the update loop alone`() {

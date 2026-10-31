@@ -18,19 +18,29 @@ public final class PilloWeightSummaryPatch {
     static final String CARD = "Lxyz/rtrvr/pillo/ui/tracker/common/components/weight/WeightLineChartKt$WeightLineChart$2$1;";
     static final String FILTER = "Lxyz/rtrvr/pillo/ui/report/tracker/components/filter/";
     private PilloWeightSummaryPatch() {}
+    private static final BytecodePatch PATCH = createPatch();
 
     public static BytecodePatch getPilloWeightSummaryPatch() {
+        return PATCH;
+    }
+
+    private static BytecodePatch createPatch() {
         return PatchKt.bytecodePatch(NAME,
             "Adds signed Total weight change, an All default filter, a selectable Last since date, and Last 30 days / Last 15 days / Change summaries using full profile history.",
             false, builder -> {
                 builder.compatibleWith(new Compatibility("xyz.rtrvr.pillo", "Pillo", null, ApkFileType.APK,
-                    null, null, List.of(new AppTarget("0.6.20", null, false, null, null)), app.morphe.patcher.patch.FormFactor.MOBILE, false));
+                    null, null, List.of(new AppTarget("0.6.27", null, false, null, null), new AppTarget("0.6.20", null, false, null, null)), app.morphe.patcher.patch.FormFactor.MOBILE, false));
                 builder.extendWith(() -> {
                     var stream = PilloWeightSummaryPatch.class.getClassLoader().getResourceAsStream("extensions/pillo-weight-summary.mpe");
                     if (stream == null) throw new IllegalStateException("Missing Pillo weight summary extension");
                     return stream;
                 });
                 builder.execute(context -> {
+                    if ("xyz.rtrvr.pillo".equals(context.getPackageMetadata().getPackageName())
+                        && "0.6.27".equals(context.getPackageMetadata().getVersionName())) {
+                        Pillo627.weightSummary(context);
+                        return Unit.INSTANCE;
+                    }
                     if (!"xyz.rtrvr.pillo".equals(context.getPackageMetadata().getPackageName())
                         || !"0.6.20".equals(context.getPackageMetadata().getVersionName()))
                         throw new IllegalStateException("Expected Pillo 0.6.20");

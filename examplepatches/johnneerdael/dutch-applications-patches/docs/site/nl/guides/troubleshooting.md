@@ -8,6 +8,10 @@ Vergelijk de pakketnaam, app-versie en het buildnummer met de [ondersteunde app-
 
 Android kan een update weigeren als de geïnstalleerde app en je nieuwe APK met verschillende sleutels zijn ondertekend. Dat kan gebeuren bij de originele app van de uitgever of bij een build die ergens anders is ondertekend. Bewaar de exacte installatiefout. Stel belangrijke gegevens veilig voordat je een installatie vervangt. Begin het onderzoek niet met gegevens wissen.
 
+## De app ontbreekt in Android Auto
+
+Volg de [installatiehandleiding voor Android Auto](android-auto.md), met links naar Shizuku en KingInstaller. De geteste oplossing voor Flitsmeister is: kies KingInstaller als externe installer in Morphe, schakel Shizuku in KingInstaller in, tik op **Install as king** en bevestig **Bijwerken**. Morphes ingebouwde installeropties en het vinkje Onbekende bronnen in Android Auto losten het geteste geval niet op. Behoud je ondertekeningssleutel en werk de app bij zonder hem te verwijderen.
+
 ## Kaarten, waarschuwingen of audio werken niet
 
 Lees op de app-pagina welke diensten blijven werken. De optionele Swrve-patch voor Buienradar schakelt waarschuwingen bewust uit. Bij [RTL Nieuws](../apps/rtl-nieuws.md) schakelt Disable Swrve (expert) pushmeldingen en Swrve-kanaalsynchronisatie uit. Met de standaardopties blijven die functies beschikbaar. Bij een nieuwe installatie met Skip consent screens zet je meldingen zelf aan; bestaande eigen keuzes blijven behouden.

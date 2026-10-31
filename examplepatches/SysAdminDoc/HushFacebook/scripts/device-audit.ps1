@@ -9,7 +9,8 @@
     1. Optionally installs -Apk over what is there (adb install -r -d, same signing key only).
     2. Creates Hushfacebook's audit folder (Android/data/com.facebook.katana/files/hushfacebook-audit),
        which only adb can make, and pushes a settings profile into it: every switch on except the
-       ones that stop a walk (AuditMode.ALL_ON_EXCLUDED), plus -On and less -Off. Facebook applies
+       ones that stop a walk (AuditMode.ALL_ON_EXCLUDED), plus -On and less -Off (by default the
+       two switches that would take the reel hold away from Hold a reel for 2x). Facebook applies
        it at its next start and keeps the switches it had in before.json.
     3. Restarts Facebook twice, so every hook starts with the profile's values.
     4. Walks the screens in -Visit with -Swipes swipes each. It opens links, swipes, taps a few
@@ -64,7 +65,8 @@ param(
     [string[]]$OptionalVisit = @('tap:Comment', 'tap:Feeds'),
     [int]$Swipes = 4,
     [int]$SettleSeconds = 4,
-    # Setting keys to turn on or off on top of the all-on profile.
+    # Setting keys to turn on or off on top of the all-on profile, besides the few the walk itself
+    # needs off (see Get-AuditOff).
     [string[]]$On = @(),
     [string[]]$Off = @(),
     [string]$Expectations = (Join-Path $PSScriptRoot 'device-audit-expectations.json'),
@@ -210,7 +212,10 @@ function Assert-AuditForeground {
     $focused = @($windows -split "`n" | Where-Object { $_ -match '^\s*mCurrentFocus=' } |
         ForEach-Object { if ($_ -match '\s([\w.]+/[\w.$]+)(?:\s|\})') { $Matches[1] } } | Sort-Object -Unique)
     if ($focused.Count -ne 1 -or -not $focused[0].StartsWith("$Package/", [StringComparison]::Ordinal)) {
-        throw 'Facebook does not own the focused input window. No input was sent.'
+        # Every focus line, as the first alone can be Facebook's when another display holds a second.
+        $focusLines = @([regex]::Matches($windows, '(?m)^\s*mCurrentFocus=.*$') | ForEach-Object { $_.Value.Trim() })
+        $focusText = if ($focusLines.Count -gt 0) { $focusLines -join '; ' } else { 'no mCurrentFocus line' }
+        throw "Facebook does not own the focused input window ($focusText). No input was sent."
     }
     $windowId = [regex]::Match($windows, '(?m)^\s*mCurrentFocus=Window\{([A-Za-z0-9]+)\s')
     if (-not $windowId.Success) { throw 'The focused window has no verifiable identity. No input was sent.' }
@@ -551,6 +556,25 @@ function Send-Profile([string]$Json) {
     }
     if (-not $import) { throw 'Facebook never read the settings file. Is this a build with the audit folder in it?' }
     return $import
+}
+
+# The keys to turn off: [WalkKeys] that -On didn't ask for, then every -Off key, each once. The
+# walk's hold in the middle of a reel reaches Hold a reel for 2x only with Long press opens
+# comments and Only on the right edge off: either one sends it to the comment sheet or Facebook's
+# menu instead. With the reel waiting for Tap to play, that hold is the only thing on the walk that
+# sets a reel's speed (585 sets none for a reel that hasn't started), so Hold a reel for 2x and
+# Keep the reel speed run on it alone. Hiding the Comment button under posts leaves tap:Comment
+# nothing to open, and the comment sheet is the only way the walk reaches Open comments at full
+# height (585 hides it; 584 never sent the row's type list on this account, so the baseline didn't
+# see it). A key in both -On and -Off ends off, as the extension applies off after on.
+function Get-AuditOff([string[]]$OnKeys, [string[]]$OffKeys,
+    [string[]]$WalkKeys = @('hushfacebook_hold_reel_right_edge', 'hushfacebook_long_press_opens_comments',
+        'hushfacebook_hide_post_comment_button')) {
+    $keys = [System.Collections.Generic.List[string]]::new()
+    foreach ($key in @(@($WalkKeys | Where-Object { $OnKeys -cnotcontains $_ }) + @($OffKeys))) {
+        if ($key -and -not $keys.Contains($key)) { $keys.Add($key) }
+    }
+    return @($keys)
 }
 
 function New-AuditBaseline([string]$Report, [string[]]$Ran, [string[]]$Idle) {
@@ -1000,6 +1024,7 @@ $walkRan = 0
 $walkFamilies = 0
 $walkCrashes = 0
 $startedEpoch = 0
+$Off = @(Get-AuditOff -OnKeys $On -OffKeys $Off)
 
 try {
     # --- Every switch on ----------------------------------------------------------------------

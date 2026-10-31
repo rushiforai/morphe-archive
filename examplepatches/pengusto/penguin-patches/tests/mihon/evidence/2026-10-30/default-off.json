@@ -1,0 +1,195 @@
+{
+  "capturedAt": "2026-10-30T10:23:44.133452+00:00",
+  "serial": "emulator-5582",
+  "package": "app.morphe.manager",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Preserve excluded Default-category downloads, Disabled",
+      "class": "android.view.View",
+      "bounds": "[42,560][1038,918]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Preserve excluded Default-category downloads",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[190,602][958,655]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Keep read chapter downloads when Default is excluded from deletion. Corrects the Default category's numeric ID without changing other deletion preferences. Official GitHub Mihon 0.21.3 ARM64 APK tested.",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[190,666][996,876]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Other apps",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[200,95][455,164]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Expert mode",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[200,169][410,222]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "0/​6",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[839,137][891,179]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Search patches",
+      "class": "android.view.View",
+      "bounds": "[955,128][1018,191]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Penguin Patches",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[158,264][434,317]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "0/1",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[158,317][205,359]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Morphe Patches",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[603,264][872,317]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "0/5",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[603,317][650,359]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Enable all",
+      "class": "android.view.View",
+      "bounds": "[110,426][157,473]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Enable recommended patches",
+      "class": "android.view.View",
+      "bounds": "[314,426][361,473]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Restore saved selection",
+      "class": "android.view.View",
+      "bounds": "[517,426][564,473]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Copy selection from another bundle",
+      "class": "android.view.View",
+      "bounds": "[720,426][767,473]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Disable all",
+      "class": "android.view.View",
+      "bounds": "[923,426][970,473]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Patch",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[530,1657][625,1710]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "30248173156d4758dc479fe1ecf2378a54e7dea1703c915eab2194d33de67cc5"
+}

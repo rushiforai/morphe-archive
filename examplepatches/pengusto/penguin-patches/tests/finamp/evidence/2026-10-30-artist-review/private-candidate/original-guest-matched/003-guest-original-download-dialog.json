@@ -1,0 +1,63 @@
+{
+  "capturedAt": "2026-10-30T13:57:58.636472+00:00",
+  "serial": "emulator-5586",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Add Downloads",
+      "class": "android.view.View",
+      "bounds": "[291,768][789,832]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Transcode?",
+      "class": "android.widget.Button",
+      "bounds": "[291,864][789,960]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Cancel",
+      "class": "android.widget.Button",
+      "bounds": "[510,1008][645,1104]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Add",
+      "class": "android.widget.Button",
+      "bounds": "[661,1008][789,1104]",
+      "clickable": "false",
+      "enabled": "false",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Dismiss",
+      "class": "android.view.View",
+      "bounds": "[0,0][1080,1920]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "d1946393ee0610aa90221ca81219b6160105b3ec523e147fee4964bd0106d82d"
+}

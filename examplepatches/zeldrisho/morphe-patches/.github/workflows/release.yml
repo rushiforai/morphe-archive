@@ -1,139 +1,62 @@
 name: Release
 
-# Stable-only releases. Pushing a version tag on main validates the tag,
-# tests, builds, publishes the GitHub release, and attests the bundle.
-# The Manager manifest (patches-bundle.json) is staged upfront by
-# scripts/prepare_release.py in the release PR — this workflow never
-# pushes to main. See docs/release.md#staging-a-release for the
-# staging flow (branch at origin/main, PR, merge, tag post-merge main).
-#
-# Ordinary branch pushes run CI only; nothing here fires on branches.
-# See docs/release.md for the full procedure.
-
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
-    inputs:
-      tag:
-        description: Stable version tag to publish or recover
-        required: true
-        type: string
+  push:
 
 concurrency:
-  group: release-${{ inputs.tag || github.ref_name }}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
-
-permissions:
-  contents: write
-  packages: read
-  id-token: write
-  attestations: write
 
 jobs:
   release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
-      - name: Checkout tag
+      - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-          ref: ${{ inputs.tag || github.ref }}
 
-      - name: Validate tag and tree
-        env:
-          TAG: ${{ inputs.tag || github.ref_name }}
-        run: |
-          set -euo pipefail
-          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-            || { echo "::error::Tag '$TAG' must be stable semver (vX.Y.Z, no prerelease suffix)."; exit 1; }
-          VERSION="${TAG#v}"
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-
-          git fetch origin main --quiet
-          TAG_SHA="$(git rev-list -n1 "$TAG")"
-          git merge-base --is-ancestor "$TAG_SHA" origin/main \
-            || { echo "::error::Tag '$TAG' is not on main. Tag the main-branch release commit instead."; exit 1; }
-
-          PROP_VERSION="$(grep -E '^version *= *' gradle.properties | sed 's/.*= *//')"
-          [[ "$PROP_VERSION" == "$VERSION" ]] \
-            || { echo "::error::gradle.properties version '$PROP_VERSION' != tag version '$VERSION'. Run scripts/prepare_release.py first."; exit 1; }
-
-          LIST_VERSION="$(python3 -c "import json;print(json.load(open('patches-list.json'))['version'])")"
-          [[ "$LIST_VERSION" == "$VERSION" ]] \
-            || { echo "::error::patches-list.json version '$LIST_VERSION' != tag version '$VERSION'. Run scripts/prepare_release.py first."; exit 1; }
-
-          BUNDLE_VERSION="$(python3 -c "import json;print(json.load(open('patches-bundle.json'))['version'])")"
-          [[ "$BUNDLE_VERSION" == "$VERSION" ]] \
-            || { echo "::error::patches-bundle.json version '$BUNDLE_VERSION' != tag version '$VERSION'. Run scripts/prepare_release.py first."; exit 1; }
-
-          # Fail fast on an invalid bare/inline-linked heading or empty notes,
-          # before toolchain setup and build/tests. The extractor owns the regex.
-          python3 scripts/extract_release_notes.py CHANGELOG.md "$VERSION" /tmp/release-notes.md "${{ github.repository }}"
-          test -s /tmp/release-notes.md \
-            || { echo "::error::No release notes found for $VERSION."; exit 1; }
-          echo "Tag $TAG validated."
-
-      - name: Set up Java 21
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+      - name: Setup Java
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
-          distribution: temurin
-          java-version: 21
+          distribution: 'temurin'
+          java-version: '21'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
         with:
-          cache-provider: basic
+          node-version: '24'
+          run-install: false
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
-        with:
-          # The legacy `tools` package was removed from the Android repository.
-          packages: platform-tools
+      - name: Install dependencies
+        run: vp install --frozen-lockfile
 
-      - name: Python script tests
-        run: python3 -m unittest discover -s scripts/tests -v
-
-      - name: Test and build bundle
+      # Semantic release runs its own Gradle build command.
+      # Only dev and main branch will generate a release as specified by .releaserc
+      - name: Release
+        id: release
+        run: vp exec semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew verify --no-daemon
 
-      - name: Locate bundle
-        run: |
-          set -euo pipefail
-          MPPS=()
-          for f in patches/build/libs/patches-*.mpp; do
-            case "$(basename "$f")" in *sources*|*javadoc*) continue ;; esac
-            MPPS+=("$f")
-          done
-          [[ "${#MPPS[@]}" -eq 1 ]] || { echo "::error::Expected one .mpp, found ${#MPPS[@]}: ${MPPS[*]:-}"; exit 1; }
-          [[ "$(basename "${MPPS[0]}")" == "patches-${{ env.VERSION }}.mpp" ]] \
-            || { echo "::error::Bundle '$(basename "${MPPS[0]}")' != 'patches-${{ env.VERSION }}.mpp'."; exit 1; }
-          echo "MPP=${MPPS[0]}" >> "$GITHUB_ENV"
-
-      - name: Create or reuse GitHub release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ inputs.tag || github.ref_name }}
-        run: |
-          set -euo pipefail
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG exists (retry); keeping its notes and adding a missing asset if needed."
-            if ! gh api "repos/${{ github.repository }}/releases/tags/$TAG" \
-                --jq '.assets[].name' | grep -qx "patches-${{ env.VERSION }}.mpp"; then
-              gh release upload "$TAG" "$MPP"
-            fi
-          else
-            gh release create "$TAG" --title "$TAG" --notes-file /tmp/release-notes.md --latest "$MPP"
-          fi
-
-      # Never move a published tag or replace a published asset — fix
-      # forward with a new version instead (see docs/release.md).
-      - name: Attest bundle
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-name: 'Morphe Patches ${{ inputs.tag || github.ref_name }}'
-          subject-path: ${{ env.MPP }}
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # Always verify compilation when semantic-release did not publish a release.
+      # This covers non-main/dev branches, chore commits, docs commits, etc.
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid clean --no-daemon

@@ -26,6 +26,13 @@ internal object AdViewLoaderV2410Fingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/String;"),
 )
 
+internal object AdViewLoaderV250Fingerprint : Fingerprint(
+    definingClass = "L_/wn;",
+    name = "b",
+    returnType = "L_/kh;",
+    parameters = listOf("Ljava/lang/String;"),
+)
+
 internal object StartupAdLoaderFingerprint : Fingerprint(
     definingClass = "L_/wo;",
     name = "e",
@@ -35,6 +42,13 @@ internal object StartupAdLoaderFingerprint : Fingerprint(
 
 internal object StartupAdLoaderV2410Fingerprint : Fingerprint(
     definingClass = "L_/en;",
+    name = "e",
+    returnType = "V",
+    parameters = listOf(),
+)
+
+internal object StartupAdLoaderV250Fingerprint : Fingerprint(
+    definingClass = "L_/wn;",
     name = "e",
     returnType = "V",
     parameters = listOf(),

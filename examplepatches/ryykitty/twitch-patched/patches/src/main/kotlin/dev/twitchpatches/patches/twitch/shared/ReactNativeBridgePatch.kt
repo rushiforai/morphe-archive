@@ -21,6 +21,7 @@ private const val ARRAY = "Lcom/facebook/react/bridge/WritableNativeArray;"
 internal val reactNativeBridgePatch = bytecodePatch {
     dependsOn(twitchExtensionPatch, reactNativeAssetsPatch)
     execute {
+        pinBundledReactNative()
         restoreNativePlaybackControls()
         restoreFeedNavigationTheme()
         val type = classDefBy(RN)

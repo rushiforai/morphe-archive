@@ -1,0 +1,209 @@
+{
+  "fixtureFiles": {
+    "files/penguin-search-fixture/.owner": "b49c938dee28f927d6799214de2135234914f716c52a62167761767161ce6a23",
+    "files/penguin-search-fixture/downloads/.nomedia": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "files/penguin-search-fixture/local/Meteor/Chapter 1.cbz": "355e256bb1a26e4527b717b96ac4bb332333cdf07ecff23b8a7abcce19630a0d",
+    "files/penguin-search-fixture/local/Orion/Chapter 1.cbz": "97c11e3124d6f1cbc40ef7c141297f753e239cbeb3e00542511dfe4e912165f8"
+  },
+  "preferences": {
+    "__APP_STATE_eh_last_version_code": "81",
+    "__APP_STATE_incognito_mode": "false",
+    "__APP_STATE_last_ext_check": "1793354884527",
+    "__APP_STATE_last_used_category": "0",
+    "__APP_STATE_onboarding_complete": "true",
+    "__APP_STATE_preview_last_version_code": "10635",
+    "__APP_STATE_storage_dir": "file:///data/user/0/app.komikku/files/penguin-search-fixture",
+    "pref_display_mode_library": "COMFORTABLE_GRID",
+    "pref_hardware_bitmap_threshold": "16384"
+  },
+  "tables": {
+    "android_metadata": [
+      {
+        "locale": "en_US"
+      }
+    ],
+    "categories": [
+      {
+        "_id": 0,
+        "flags": 0,
+        "hidden": 0,
+        "manga_order": "",
+        "name": "",
+        "sort": -1
+      }
+    ],
+    "chapters": [
+      {
+        "_id": 9900000001,
+        "bookmark": 1,
+        "chapter_number": 1.0,
+        "date_fetch": 1793318400000,
+        "date_upload": 1793318400000,
+        "is_syncing": 0,
+        "last_modified_at": 0,
+        "last_page_read": 3,
+        "manga_id": 9900000001,
+        "memo": {
+          "hex": "7b7d"
+        },
+        "name": "Chapter 1",
+        "read": 1,
+        "scanlator": null,
+        "source_order": 0,
+        "url": "Chapter 1.cbz",
+        "version": 0
+      },
+      {
+        "_id": 9900000002,
+        "bookmark": 0,
+        "chapter_number": 1.0,
+        "date_fetch": 1793318400000,
+        "date_upload": 1793318400000,
+        "is_syncing": 0,
+        "last_modified_at": 0,
+        "last_page_read": 0,
+        "manga_id": 9900000002,
+        "memo": {
+          "hex": "7b7d"
+        },
+        "name": "Chapter 1",
+        "read": 0,
+        "scanlator": null,
+        "source_order": 0,
+        "url": "Chapter 1.cbz",
+        "version": 0
+      },
+      {
+        "_id": 9900000003,
+        "bookmark": 0,
+        "chapter_number": 1.0,
+        "date_fetch": 1793318400000,
+        "date_upload": 1793318400000,
+        "is_syncing": 0,
+        "last_modified_at": 0,
+        "last_page_read": 0,
+        "manga_id": 9900000003,
+        "memo": {
+          "hex": "7b7d"
+        },
+        "name": "Chapter 1",
+        "read": 0,
+        "scanlator": null,
+        "source_order": 0,
+        "url": "Chapter 1.cbz",
+        "version": 0
+      }
+    ],
+    "eh_favorites": [],
+    "eh_favorites_alternatives": [],
+    "excluded_scanlators": [],
+    "extension_store": [],
+    "feed_saved_search": [],
+    "history": [],
+    "libraryUpdateError": [],
+    "libraryUpdateErrorMessage": [],
+    "manga_sync": [],
+    "mangas": [
+      {
+        "_id": 9900000001,
+        "artist": null,
+        "author": "Penguin fixture",
+        "calculate_interval": 0,
+        "chapter_flags": 0,
+        "cover_last_modified": 1793318400000,
+        "date_added": 1793318400000,
+        "description": null,
+        "favorite": 1,
+        "favorite_modified_at": null,
+        "filtered_scanlators": null,
+        "genre": "Space",
+        "initialized": 1,
+        "is_syncing": 0,
+        "last_modified_at": 0,
+        "last_update": null,
+        "memo": {
+          "hex": "7b7d"
+        },
+        "next_update": null,
+        "notes": "Penguin synthetic fixture",
+        "source": 0,
+        "status": 2,
+        "thumbnail_url": null,
+        "title": "Orion",
+        "update_strategy": 0,
+        "url": "Orion",
+        "version": 0,
+        "viewer": 0
+      },
+      {
+        "_id": 9900000002,
+        "artist": null,
+        "author": "Penguin fixture",
+        "calculate_interval": 0,
+        "chapter_flags": 0,
+        "cover_last_modified": 1793318400000,
+        "date_added": 1793318400000,
+        "description": null,
+        "favorite": 1,
+        "favorite_modified_at": null,
+        "filtered_scanlators": null,
+        "genre": "Space",
+        "initialized": 1,
+        "is_syncing": 0,
+        "last_modified_at": 0,
+        "last_update": null,
+        "memo": {
+          "hex": "7b7d"
+        },
+        "next_update": null,
+        "notes": "Penguin synthetic fixture",
+        "source": 0,
+        "status": 2,
+        "thumbnail_url": null,
+        "title": "Meteor",
+        "update_strategy": 0,
+        "url": "Meteor",
+        "version": 0,
+        "viewer": 0
+      },
+      {
+        "_id": 9900000003,
+        "artist": null,
+        "author": "Penguin fixture",
+        "calculate_interval": 0,
+        "chapter_flags": 0,
+        "cover_last_modified": 1793318400000,
+        "date_added": 1793318400000,
+        "description": null,
+        "favorite": 1,
+        "favorite_modified_at": null,
+        "filtered_scanlators": null,
+        "genre": "Space",
+        "initialized": 1,
+        "is_syncing": 0,
+        "last_modified_at": 0,
+        "last_update": null,
+        "memo": {
+          "hex": "7b7d"
+        },
+        "next_update": null,
+        "notes": "Penguin synthetic fixture",
+        "source": 42,
+        "status": 2,
+        "thumbnail_url": null,
+        "title": "Lyra",
+        "update_strategy": 0,
+        "url": "Lyra",
+        "version": 0,
+        "viewer": 0
+      }
+    ],
+    "mangas_categories": [],
+    "merged": [],
+    "saved_search": [],
+    "search_metadata": [],
+    "search_tags": [],
+    "search_titles": [],
+    "sources": []
+  }
+}

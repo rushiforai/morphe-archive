@@ -60,6 +60,7 @@ val hideChannelBarButtonsPatch = bytecodePatch(
     execute {
         val plan = resolveChannelBarButtons()
         val mute = resolveChannelMute(plan)
+        val share = resolveChannelShare()
         // Assembled on copies first, so a refusal leaves the app untouched.
         mute.rehearse()
         writeStub(CHANNEL_BUTTONS, "sideButtons", 1, "const/16 v0, ${plan.mask}\nreturn v0")
@@ -75,6 +76,12 @@ val hideChannelBarButtonsPatch = bytecodePatch(
             enableCapability("hideChannelMute")
         } else {
             patchLog.warning("$PATCH: ${mute.missing}. The patch goes on without the Mute switch.")
+        }
+        if (share.missing == null) {
+            share.apply()
+            enableCapability("hideChannelShare")
+        } else {
+            patchLog.warning("$PATCH: ${share.missing}. The patch goes on without the share button switch.")
         }
     }
 }

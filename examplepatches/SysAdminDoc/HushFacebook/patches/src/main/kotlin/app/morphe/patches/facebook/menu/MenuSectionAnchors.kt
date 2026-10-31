@@ -166,26 +166,39 @@ internal data class StartRead(val index: Int, val register: Int)
  * another class. The header takes that as whether it starts collapsed, seeds its chevron and its
  * "Section is collapsed" label from it and flips them itself on a tap, so a fold kept open (issue
  * #224) needs it too, or the header points down over open rows. On 584 that's `LX/Lmh;->A09`
- * (the section's state starts folded when it's false), stored as the header's `LX/Lmm;->A07`. Null
- * unless there's exactly one, nothing writes its register and no branch lands before [group].
+ * (the section's state starts folded when it's false), stored as the header's `LX/Lmm;->A07`. 585
+ * (`LX/0Lf0;->A0o` arm64) reads `A09` into v0 and copies it at once with `move/from16 v24, v0`
+ * before v0 is reused, then negates v24 into the header's `LX/0IqZ;->A07`; there the flag is the
+ * copy, so [StartRead] names the move and v24. Null unless there's exactly one, nothing writes the
+ * register it ends up in and no branch lands before [group].
  */
 internal fun startRead(method: Method, group: GroupRead): StartRead? {
     val instructions = method.instructionList()
     val targets = branchTargets(instructions)
-    val starts = (0 until group.index).filter { read ->
+    val starts = (0 until group.index).mapNotNull { read ->
         val field = (instructions[read] as? ReferenceInstruction)?.reference as? FieldReference
         if (instructions[read].opcode != Opcode.IGET_BOOLEAN || field?.definingClass != method.definingClass) {
-            return@filter false
+            return@mapNotNull null
         }
-        val register = (instructions[read] as OneRegisterInstruction).registerA
-        val between = (read + 1)..group.index
-        if (between.any { writesRegister(instructions[it], register) || it in targets }) return@filter false
-        val use = method.literalReads(read).singleOrNull() ?: return@filter false
-        use > group.index && seedsAnother(method, instructions, use, register)
+        var at = read
+        var use = method.literalReads(read).singleOrNull() ?: return@mapNotNull null
+        // 585 copies the flag into a high register first, so a single plain move is followed to the copy.
+        if (instructions[use].opcode in PLAIN_MOVES && use < group.index &&
+            (instructions[use] as TwoRegisterInstruction).registerB == (instructions[read] as OneRegisterInstruction).registerA
+        ) {
+            if ((read + 1 until use).any { it in targets }) return@mapNotNull null
+            at = use
+            use = method.literalReads(at).singleOrNull() ?: return@mapNotNull null
+        }
+        val register = (instructions[at] as OneRegisterInstruction).registerA
+        val between = (at + 1)..group.index
+        if (between.any { writesRegister(instructions[it], register) || it in targets }) return@mapNotNull null
+        if (use > group.index && seedsAnother(method, instructions, use, register)) StartRead(at, register) else null
     }
-    val read = starts.singleOrNull() ?: return null
-    return StartRead(read, (instructions[read] as OneRegisterInstruction).registerA)
+    return starts.singleOrNull()
 }
+
+private val PLAIN_MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
 
 /** Whether [index] negates [register] into a register the next instruction stores into a boolean of another class. */
 private fun seedsAnother(method: Method, instructions: List<Instruction>, index: Int, register: Int): Boolean {

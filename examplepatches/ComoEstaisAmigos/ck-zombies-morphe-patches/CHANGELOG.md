@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.3.2...v1.4.0) (2026-10-30)
+
+### ✨ New Features
+
+* Show the two hidden weapons in the store ([8a7296b](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/commit/8a7296b72b645a934f03fcc2adbeab2c91d4079f))
+
 ## [1.3.2](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.3.1...v1.3.2) (2026-10-04)
 
 ### 🐛 Bug Fixes

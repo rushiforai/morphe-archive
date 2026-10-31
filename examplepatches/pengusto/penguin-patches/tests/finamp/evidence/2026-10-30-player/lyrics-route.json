@@ -1,0 +1,228 @@
+{
+  "capturedAt": "2026-10-30T14:11:10.235771+00:00",
+  "serial": "emulator-5580",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Back",
+      "class": "android.view.View",
+      "bounds": "[0,48][112,154]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Playing From All Tracks\nAll Tracks (from \"Output Controls\")",
+      "class": "android.view.View",
+      "bounds": "[326,66][754,136]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Artwork for Output Controls. Tap to toggle playback. Swipe left or right to switch tracks.",
+      "class": "android.view.View",
+      "bounds": "[217,213][879,864]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Penguin synthetic lyrics",
+      "class": "android.view.View",
+      "bounds": "[40,924][1056,1008]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Player actions remain reachable.",
+      "class": "android.view.View",
+      "bounds": "[40,1008][1056,1092]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "00:17\n02:00",
+      "class": "android.view.View",
+      "bounds": "[0,1338][1080,1824]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Output Controls (Title)",
+      "class": "android.view.View",
+      "bounds": "[40,1338][1040,1430]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Track Menu",
+      "class": "android.view.View",
+      "bounds": "[40,1430][120,1510]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "A Guest (Artist)\nA Guest",
+      "class": "android.widget.Button",
+      "bounds": "[279,1446][453,1494]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "B Guest (Artist)\nB Guest",
+      "class": "android.widget.Button",
+      "bounds": "[461,1446][633,1494]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Z Lead (Artist)\nZ Lead",
+      "class": "android.widget.Button",
+      "bounds": "[641,1446][801,1494]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Fixture Credits (Album)",
+      "class": "android.widget.Button",
+      "bounds": "[438,1518][642,1566]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "1 play\nDirect Playing\nPCM_S16LE @ 705 kbps",
+      "class": "android.view.View",
+      "bounds": "[295,1582][785,1616]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "17 Seconds of 2 Minutes 0 Seconds",
+      "class": "android.widget.SeekBar",
+      "bounds": "[159,1592][255,1688]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Toggle playback",
+      "class": "android.widget.Button",
+      "bounds": "[478,1676][602,1800]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Playing in order. Tap to shuffle.",
+      "class": "android.widget.Button",
+      "bounds": "[95,1690][191,1786]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Skip to beginning or to previous track",
+      "class": "android.widget.Button",
+      "bounds": "[287,1690][383,1786]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Add to playlist, Tap to add to playlist. Long press to toggle favorite.",
+      "class": "android.widget.Button",
+      "bounds": "[960,1430][1040,1510]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Skip to next track",
+      "class": "android.widget.Button",
+      "bounds": "[697,1690][793,1786]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Tap to toggle.\nNot looping",
+      "class": "android.widget.Button",
+      "bounds": "[889,1690][985,1786]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "8f436eb733f5738d9a2d5c83c1cad515854ea34ce627e6b71577d90a98d957c7"
+}

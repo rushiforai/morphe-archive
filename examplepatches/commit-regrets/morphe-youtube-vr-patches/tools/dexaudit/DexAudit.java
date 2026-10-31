@@ -41,7 +41,8 @@ public class DexAudit {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
-            System.err.println("usage: DexAudit <inventory|callers|inherited> <needle> <dex...>");
+            System.err.println("usage: DexAudit <inventory|callers|inherited|extmembers> "
+                + "<needle|-> <dex...>");
             System.exit(2);
         }
         String mode = args[0];
@@ -60,6 +61,9 @@ public class DexAudit {
                 break;
             case "inherited":
                 inherited(needle, dexes);
+                break;
+            case "extmembers":
+                extmembers(dexes);
                 break;
             default:
                 System.err.println("unknown mode: " + mode);
@@ -83,6 +87,37 @@ public class DexAudit {
                             System.out.println(c.getType() + "#" + m.getName() + "|"
                                 + ins.getOpcode() + "|" + ref);
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Exact member inventory of this port's extension classes: one
+     * {@code Lapp/ytvr/extension/Class;->member} line per declared method (static or not, the
+     * audit's callers decide relevance) and per field. This is what the audit's source-vs-dex
+     * check compares against instead of a bare-name text scan -- {@code log}, {@code init},
+     * {@code fetch} and friends occur in the app's own dexes, so a name-only search could pass a
+     * missing extension member that happens to share its name with app code.
+     */
+    private static void extmembers(List<DexBackedDexFile> dexes) {
+        Set<String> seen = new HashSet<>();
+        for (DexBackedDexFile dex : dexes) {
+            for (ClassDef c : dex.getClasses()) {
+                if (!c.getType().startsWith(EXTENSION_PACKAGE)) {
+                    continue;
+                }
+                for (Method m : c.getMethods()) {
+                    String member = c.getType() + "->" + m.getName();
+                    if (seen.add(member)) {
+                        System.out.println(member);
+                    }
+                }
+                for (com.android.tools.smali.dexlib2.iface.Field f : c.getFields()) {
+                    String member = c.getType() + "->" + f.getName();
+                    if (seen.add(member)) {
+                        System.out.println(member);
                     }
                 }
             }

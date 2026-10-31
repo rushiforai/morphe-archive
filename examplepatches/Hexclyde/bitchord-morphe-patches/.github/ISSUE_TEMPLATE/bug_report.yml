@@ -1,0 +1,33 @@
+name: Bug report
+description: Report a reproducible patch, setup, search or playback problem.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not post API hashes, login codes, passwords, sessions, keystores, private channel links or unauthorized audio. Use SECURITY.md for vulnerabilities."
+  - type: input
+    id: versions
+    attributes:
+      label: Versions and architecture
+      description: Patch, original BitChord, Morphe Manager/Patcher, Android, device and APK ABI.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps and expected/actual behavior
+      description: Specify normal Search, Addons, setup, playback, seeking or download. Confirm both project patches were selected.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized error or log
+      description: Remove credentials, account identifiers, private URLs and private titles/paths. Do not attach a session database or a real commercial recording.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Before submitting
+      options:
+        - label: I removed secrets/private account data and have permission to share any reproduction material.
+          required: true

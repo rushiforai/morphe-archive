@@ -17,6 +17,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -66,6 +68,14 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  * button. Its tap action opens Meta AI with the entry `messaging_inbox_in_blue:people_picker`
  * right after reading the row's own CallerContext, which names the row's class. The patch hands
  * the flag to the extension right after it's set, so with the switch on neither test sees it.
+ *
+ * What 585 looks like: the notes row's empty way out gets its object from a no-argument static
+ * factory (arm64 `LX/0Duf;->A0a()` in `LX/0G5V;->A0o`, v7a `LX/0G5S;->A0o`) instead of
+ * `new-instance` plus `<init>()`. The search screen's Meta AI tap is case 0xe of a merged lambda
+ * (arm64 `LX/0b3G;->invoke`, v7a `LX/0b2w;->invoke`, switching on its `$t` int) that asks the
+ * string table for the entry and reads no CallerContext; the case's only static read before the
+ * entry is the row's AtomicBoolean (`LX/0YjZ;->A0G`), and the row's render (`LX/0YjZ;->render`)
+ * builds that lambda with the literal 0xe behind the same flag (v24, 0 then 1, tested twice).
  *
  * Not hooked, and why: Messenger's inbox ad filter and quick-promotion kill switches are literals
  * that don't exist in Facebook's dex, so there is no inbox ad or quick-promotion plugin to anchor,
@@ -243,22 +253,40 @@ internal fun callsMetaAiLauncher(method: Method): Boolean = method.implementatio
 } == true
 
 /**
- * The class of the Chats search screen's row, named by the Meta AI tap in [owner]: a method that
- * calls the launcher and loads [PEOPLE_PICKER_ENTRY], or on 583's 64-bit build asks a string table
- * [resolve] finds for it ([tableStringAt]), with the row's own static CallerContext read in the same
- * straight run of code just before the entry. Null when [owner] holds no such tap.
+ * The search screen's Meta AI tap: the [row] class it names and, when the tap is one case of a merged
+ * lambda that switches on its own int field (585), the [case] the row builds it with. Null on a tap
+ * of its own (584).
  */
-internal fun pickerRowOf(owner: ClassDef, resolve: (MethodReference) -> Method? = { null }): String? {
-    val rows = owner.methods.flatMap { method ->
+internal class PickerTap(val row: String, val case: Int?)
+
+/**
+ * The Chats search screen's Meta AI tap in [owner]: a method that calls the launcher and loads
+ * [PEOPLE_PICKER_ENTRY], or since 583's 64-bit build asks a string table [resolve] finds for it
+ * ([tableStringAt]), with the row's own static CallerContext read in the same straight run of code
+ * just before the entry. 585 merges the tap into a lambda that switches on its own int field, and the
+ * tap's case reads no CallerContext, only another static of the row (an AtomicBoolean on 585), so
+ * there the row is the class of the last static object read in the case before the entry. Null when
+ * [owner] holds no such tap, or more than one.
+ */
+internal fun pickerTapOf(owner: ClassDef, resolve: (MethodReference) -> Method? = { null }): PickerTap? {
+    val taps = owner.methods.flatMap { method ->
         if (!callsMetaAiLauncher(method)) return@flatMap emptyList()
         val code = method.implementation!!.instructions.toList()
         code.indices.filter {
             ((code[it] as? ReferenceInstruction)?.reference as? StringReference)?.string == PEOPLE_PICKER_ENTRY ||
                 tableStringAt(code, it, resolve) == PEOPLE_PICKER_ENTRY
-        }.map { load -> callerContextBefore(code, load) }
+        }.map { load ->
+            val case = mergedCaseAt(method, code, load)
+            val row = callerContextBefore(code, load) ?: case?.let { rowStaticBefore(code, load, it.second, owner.type) }
+            row?.let { PickerTap(it, case?.first) }
+        }
     }
-    return rows.singleOrNull()
+    return taps.singleOrNull()
 }
+
+/** The class of the Chats search screen's row, named by the Meta AI tap in [owner] ([pickerTapOf]). */
+internal fun pickerRowOf(owner: ClassDef, resolve: (MethodReference) -> Method? = { null }): String? =
+    pickerTapOf(owner, resolve)?.row
 
 /** The class whose static CallerContext is read before [at] with no jump, return or throw between, or null. */
 private fun callerContextBefore(code: List<Instruction>, at: Int): String? {
@@ -272,6 +300,46 @@ private fun callerContextBefore(code: List<Instruction>, at: Int): String? {
 }
 
 /**
+ * The class (other than [self]) whose static object field is read last before [at], from [start]
+ * on with no jump, return or throw between, or null.
+ */
+private fun rowStaticBefore(code: List<Instruction>, at: Int, start: Int, self: String): String? {
+    for (before in at - 1 downTo start) {
+        val instruction = code[before]
+        val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+        if (instruction.opcode == Opcode.SGET_OBJECT && field != null && field.definingClass != self) return field.definingClass
+        if (instruction is OffsetInstruction || !instruction.opcode.canContinue()) return null
+    }
+    return null
+}
+
+/**
+ * When [method] is a merged lambda's body, a switch on an int field of its own class, the case key
+ * whose code holds [at] and the index that case starts at. Null for any other method, or when [at]
+ * comes before the switch's first case.
+ */
+private fun mergedCaseAt(method: Method, code: List<Instruction>, at: Int): Pair<Int, Int>? {
+    val switch = code.indexOfFirst { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH }
+    if (switch !in 0 until at) return null
+    val selector = (code[switch] as OneRegisterInstruction).registerA
+    // Why: the merged lambda picks its case from the `$t`-style int it was built with, read off itself.
+    val read = (switch - 1 downTo 0).firstOrNull { code[it].writesRegister(selector) } ?: return null
+    val field = (code[read] as? ReferenceInstruction)?.reference as? FieldReference
+    if (code[read].opcode != Opcode.IGET || field?.definingClass != method.definingClass || field.type != "I") return null
+    val address = IntArray(code.size + 1)
+    for (index in code.indices) address[index + 1] = address[index] + code[index].codeUnits
+    val payloadAt = address[switch] + (code[switch] as OffsetInstruction).codeOffset
+    val payload = code.getOrNull(address.indexOf(payloadAt)) as? SwitchPayload ?: return null
+    return payload.switchElements.mapNotNull { element ->
+        val target = address.indexOf(address[switch] + element.offset)
+        if (target in 0..at) element.key to target else null
+    }.maxByOrNull { it.second }
+}
+
+private fun Instruction.writesRegister(register: Int): Boolean =
+    opcode.setsRegister() && (this as? OneRegisterInstruction)?.registerA == register
+
+/**
  * Where the search screen's row decides to show its Meta AI button: [set] in [method] is the one
  * instruction putting 1 in [register], the flag the row tests once to give the search box an end
  * margin and again at [test] before it builds the button.
@@ -281,12 +349,15 @@ internal class PickerButtonGate(val method: Method, val set: Int, val test: Int,
 /**
  * The Meta AI gate of [method] when it's the search screen row's render: it creates one tap action
  * of type [opener], the last `if-eqz` before that jumps past it tests the flag, no jump lands on that
- * test, and exactly one literal 1 is put in that register before it. Null for any other method.
+ * test, and exactly one literal 1 is put in that register before it. With a [case] (585's merged
+ * lambda, see [PickerTap]) only the tap actions built with that literal case count. Null for any
+ * other method.
  */
-internal fun pickerButtonGate(method: Method, opener: String): PickerButtonGate? {
+internal fun pickerButtonGate(method: Method, opener: String, case: Int? = null): PickerButtonGate? {
     val code = method.implementation?.instructions?.toList() ?: return null
     val created = code.indices.filter { at ->
-        code[at].opcode == Opcode.NEW_INSTANCE && ((code[at] as ReferenceInstruction).reference as? TypeReference)?.type == opener
+        code[at].opcode == Opcode.NEW_INSTANCE && ((code[at] as ReferenceInstruction).reference as? TypeReference)?.type == opener &&
+            (case == null || builtWithCase(code, at, opener, case))
     }
     if (created.size != 1) return null
     val tap = created.single()
@@ -310,6 +381,30 @@ internal fun pickerButtonGate(method: Method, opener: String): PickerButtonGate?
 
 private val LITERAL_CONSTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
 
+/**
+ * Whether the object made at [made] is handed to an [opener] constructor taking the case int first,
+ * and that int's last write before the call is the literal [case].
+ */
+private fun builtWithCase(code: List<Instruction>, made: Int, opener: String, case: Int): Boolean {
+    val self = (code[made] as OneRegisterInstruction).registerA
+    val init = (made + 1 until code.size).firstOrNull { at ->
+        val call = (code[at] as? ReferenceInstruction)?.reference as? MethodReference
+        code[at].opcode in CONSTRUCTOR_CALLS && call?.definingClass == opener && call.name == "<init>"
+    } ?: return false
+    val call = (code[init] as ReferenceInstruction).reference as MethodReference
+    if (call.parameterTypes.firstOrNull()?.toString() != "I") return false
+    val (receiver, selector) = when (val invoke = code[init]) {
+        is FiveRegisterInstruction -> invoke.registerC to invoke.registerD
+        is RegisterRangeInstruction -> invoke.startRegister to invoke.startRegister + 1
+        else -> return false
+    }
+    if (receiver != self) return false
+    val write = (init - 1 downTo 0).firstOrNull { code[it].writesRegister(selector) } ?: return false
+    return code[write].opcode in LITERAL_CONSTS && (code[write] as NarrowLiteralInstruction).narrowLiteral == case
+}
+
+private val CONSTRUCTOR_CALLS = setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE)
+
 /** The tile state constructor of [owner], or null when it isn't the state class. */
 internal fun notesTrayOf(owner: ClassDef): NotesTrayStore? =
     owner.methods.mapNotNull { notesTrayStore(owner, it) }.singleOrNull()
@@ -324,8 +419,9 @@ internal class NotesRowExit(val method: Method, val exit: Int)
 /**
  * Facebook's own empty way out of the notes row, when [method] is the section's render: an
  * instance method of one parameter that loads [NOTES_SECTION] and [NOTES_SECTION_KEY], where a jump
- * lands on the first run of `new-instance` B, `B.<init>()`, an `iget-object` of B's field of the
- * render's return type from that object and `return-object` of it. Null for any other method.
+ * lands on the first run of `new-instance` B, `B.<init>()` (or a static factory answering B, see
+ * [emptyReturnAt]), an `iget-object` of B's field of the render's return type from that object and
+ * `return-object` of it. Null for any other method.
  */
 internal fun notesRowExit(method: Method): NotesRowExit? {
     if (method.parameterTypes.size != 1 || !method.isInstanceWithBody()) return null
@@ -349,22 +445,44 @@ internal fun notesRowExit(method: Method): NotesRowExit? {
 
 private val PAYLOAD_JUMPS = setOf(Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH, Opcode.FILL_ARRAY_DATA)
 
-/** Whether [at] starts a new object of no arguments whose field of type [returns] is read and returned. */
+/**
+ * Whether [at] starts a new object of no arguments whose field of type [returns] is read and
+ * returned. The object is made with `new-instance` and its `<init>()`, or (585, read 2026-10-29,
+ * arm64 `LX/0Duf;->A0a()` in `LX/0G5V;->A0o`) by a static factory of no arguments Redex outlined
+ * them into, its answer moved into a register. Both take two instructions, so the way out stays four.
+ */
 private fun emptyReturnAt(code: List<Instruction>, at: Int, returns: String): Boolean {
-    val made = code[at]
-    if (made.opcode != Opcode.NEW_INSTANCE) return false
-    val type = ((made as ReferenceInstruction).reference as? TypeReference)?.type ?: return false
-    val self = (made as OneRegisterInstruction).registerA
-    val init = code[at + 1] as? FiveRegisterInstruction
-    val built = (init as? ReferenceInstruction)?.reference as? MethodReference
-    if (init?.opcode != Opcode.INVOKE_DIRECT || init.registerCount != 1 || init.registerC != self || built == null ||
-        built.definingClass != type || built.name != "<init>" || built.parameterTypes.isNotEmpty()) return false
+    val (type, self) = newObjectAt(code, at) ?: factoryObjectAt(code, at) ?: return false
     val read = code[at + 2] as? TwoRegisterInstruction
     val field = (read as? ReferenceInstruction)?.reference as? FieldReference
     if (read?.opcode != Opcode.IGET_OBJECT || read.registerB != self || field == null ||
         field.definingClass != type || field.type != returns) return false
     val back = code[at + 3]
     return back.opcode == Opcode.RETURN_OBJECT && (back as OneRegisterInstruction).registerA == read.registerA
+}
+
+/** The type and register of the object `new-instance` at [at] makes and `<init>()` at the next builds. */
+private fun newObjectAt(code: List<Instruction>, at: Int): Pair<String, Int>? {
+    val made = code[at]
+    if (made.opcode != Opcode.NEW_INSTANCE) return null
+    val type = ((made as ReferenceInstruction).reference as? TypeReference)?.type ?: return null
+    val self = (made as OneRegisterInstruction).registerA
+    val init = code[at + 1] as? FiveRegisterInstruction
+    val built = (init as? ReferenceInstruction)?.reference as? MethodReference
+    if (init?.opcode != Opcode.INVOKE_DIRECT || init.registerCount != 1 || init.registerC != self || built == null ||
+        built.definingClass != type || built.name != "<init>" || built.parameterTypes.isNotEmpty()) return null
+    return type to self
+}
+
+/** The type and register of the object a static factory of no arguments at [at] answers, moved at the next. */
+private fun factoryObjectAt(code: List<Instruction>, at: Int): Pair<String, Int>? {
+    val call = code[at]
+    if (call.opcode != Opcode.INVOKE_STATIC || (call as FiveRegisterInstruction).registerCount != 0) return null
+    val factory = (call as ReferenceInstruction).reference as? MethodReference ?: return null
+    if (factory.parameterTypes.isNotEmpty() || !factory.returnType.startsWith("L")) return null
+    val moved = code[at + 1]
+    if (moved.opcode != Opcode.MOVE_RESULT_OBJECT) return null
+    return factory.returnType to (moved as OneRegisterInstruction).registerA
 }
 
 private fun Method.isInstanceWithBody(): Boolean =

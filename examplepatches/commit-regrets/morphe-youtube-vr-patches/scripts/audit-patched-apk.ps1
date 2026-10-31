@@ -46,7 +46,9 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-if (-not $Work) { $Work = Join-Path $Root 'build\probe\audit' }
+# Forward slashes: on Linux a backslash is a filename character, and Join-Path would build a
+# directory literally named 'build\probe\audit' (bundle mode runs there in CI).
+if (-not $Work) { $Work = Join-Path $Root 'build/probe/audit' }
 New-Item -ItemType Directory -Force -Path $Work | Out-Null
 
 $script:failures = 0
@@ -68,15 +70,21 @@ $extensionRefPattern = 'Lapp/ytvr/extension/[A-Za-z0-9_$]+;->[A-Za-z0-9_$<>]+'
 # Extracts every matching zip entry into $Into and returns how many were written. Output is a single
 # integer on purpose: PowerShell returns everything a function prints, and a caller that receives an
 # array where it expects a value is a debugging session (that is why the JDK setup below is inline).
-function Extract-ApkEntries([string] $Archive, [string] $Pattern, [string] $Into) {
+function Extract-ApkEntries([string] $Archive, [string] $Pattern, [string] $Into, [switch] $KeepPath) {
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     New-Item -ItemType Directory -Force -Path $Into | Out-Null
     $zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $Archive).Path)
     try {
         $entries = @($zip.Entries | Where-Object { $_.FullName -match $Pattern })
         foreach ($entry in $entries) {
-            $name = Split-Path $entry.FullName -Leaf
-            [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, (Join-Path $Into $name), $true)
+            # -KeepPath: the bundle's template .class files live under nested app/ paths and can
+            # share a basename across packages; flattening (the dex default) would overwrite one
+            # with another and silently drop its references from the scan.
+            $name = if ($KeepPath) { $entry.FullName } else { Split-Path $entry.FullName -Leaf }
+            $target = Join-Path $Into $name
+            $targetDir = Split-Path $target -Parent
+            if ($targetDir) { New-Item -ItemType Directory -Force -Path $targetDir | Out-Null }
+            [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $target, $true)
         }
         return $entries.Count
     } finally { $zip.Dispose() }
@@ -177,6 +185,58 @@ private val fixture = """
     }
 }
 
+# Compiles tools/dexaudit/DexAudit.java against the patcher's own dexlib2 and remembers the
+# java command and classpath on the script. Prints nothing: a function's output is its return
+# value, and javac's chatter would be joined onto that. Defined before bundle mode: a script
+# does not see a function until execution reaches it. Cross-platform: bundle mode runs in CI
+# (ubuntu), where USERPROFILE is unset, javac has no .exe, the Gradle cache sits under HOME,
+# and the classpath separator is ':' -- measured as "Cannot bind argument to parameter 'Path'
+# because it is null" on the first CI run that reached here.
+function Initialize-DexAudit {
+    if ($script:AuditJava -and $script:AuditClasspath) { return }
+    $isWin = $PSVersionTable.Platform -ne 'Unix'
+    # Forward slashes inside Join-Path children work on both; literal backslashes are only a
+    # Windows path separator and would become filename characters on Linux.
+    $javac = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME "bin/$(if ($isWin) { 'javac.exe' } else { 'javac' })" } else { '' }
+    # Not $java: that name shadows the JDK path for every later call in this script.
+    $javaExe = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME "bin/$(if ($isWin) { 'java.exe' } else { 'java' })" } else { '' }
+    if (-not (Test-Path $javac)) { $javac = (Get-Command javac -ErrorAction SilentlyContinue).Source }
+    if (-not (Test-Path $javaExe)) { $javaExe = (Get-Command java -ErrorAction SilentlyContinue).Source }
+    if (-not $javac -or -not $javaExe) { throw 'no JDK found: set JAVA_HOME (javac builds tools/dexaudit)' }
+
+    $homeDir = if ($env:USERPROFILE) { $env:USERPROFILE } else { $env:HOME }
+    if (-not $homeDir) { throw 'no home directory: set USERPROFILE (Windows) or HOME (Linux)' }
+    $cache = Join-Path $homeDir '.gradle/caches/modules-2/files-2.1'
+    $jars = @()
+    # One jar per artifact: a patcher bump leaves the previous version in modules-2, and
+    # putting every cached copy on the classpath lets Get-ChildItem order pick the winner.
+    # The newest file is the one Gradle fetched last.
+    foreach ($group in @('com.github.MorpheApp.smali/smali-dexlib2', 'com.github.MorpheApp.smali/smali-util', 'com.google.guava/guava')) {
+        $dir = Join-Path $cache $group
+        if (Test-Path $dir) {
+            $jar = Get-ChildItem -Path $dir -Recurse -Filter '*.jar' |
+                Where-Object { $_.Name -notmatch 'sources|javadoc' } |
+                Sort-Object LastWriteTime, FullName -Descending |
+                Select-Object -First 1
+            if ($jar) { $jars += $jar.FullName }
+        }
+    }
+    if ($jars.Count -eq 0) { throw 'dexlib2/guava not in the Gradle cache: run a build once so Gradle fetches them' }
+    $classpathSep = if ($isWin) { ';' } else { ':' }
+    $classpath = ($jars -join $classpathSep)
+
+    $out = Join-Path $Work 'dexaudit'
+    New-Item -ItemType Directory -Force -Path $out | Out-Null
+    $toolSource = Join-Path $Root 'tools/dexaudit/DexAudit.java'
+    $toolClass = Join-Path $out 'DexAudit.class'
+    if (-not (Test-Path $toolClass) -or (Get-Item $toolSource).LastWriteTime -gt (Get-Item $toolClass).LastWriteTime) {
+        & $javac -cp $classpath -d $out $toolSource | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw 'tools/dexaudit/DexAudit.java did not compile' }
+    }
+    $script:AuditJava = $javaExe
+    $script:AuditClasspath = "$out$classpathSep$classpath"
+}
+
 # ---------------------------------------------------------------------------------------------
 # 5. Bundle mode: the half CI can run, since it needs no stock APK.
 # ---------------------------------------------------------------------------------------------
@@ -185,27 +245,56 @@ if ($Bundle) {
     $tmp = Join-Path $Work 'bundle'
     if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
     Extract-ApkEntries $Bundle '\.dex$' $tmp | Out-Null
+    # Patcher 2.x bundles ship the patch templates as .class files instead of a template dex.
+    # The templates embed their injected smali as plain string constants, so the same
+    # Lclass;->member reference pattern reads out of the class files' constant pools -- measured
+    # on patches-1.28.0 (38 refs across 5 template classes) where a dex-only scan found 0 and
+    # passed vacuously. Both shapes are scanned so an older-format bundle keeps working.
+    Extract-ApkEntries $Bundle '\.class$' $tmp -KeepPath | Out-Null
     $extensionDex = Get-ChildItem $tmp -Filter '*.dex' | Where-Object { $_.Name -match 'extension' } | Select-Object -First 1
     if (-not $extensionDex) {
         Fail 'the bundle has no *extension*.dex: what the patches inject cannot exist'
         exit 1
     }
     $references = New-Object System.Collections.Generic.HashSet[string]
-    foreach ($dex in (Get-ChildItem $tmp -Filter '*.dex' | Where-Object { $_.Name -ne $extensionDex.Name })) {
-        foreach ($m in [regex]::Matches($text.GetString([System.IO.File]::ReadAllBytes($dex.FullName)), $extensionRefPattern)) {
+    foreach ($template in (Get-ChildItem $tmp -Recurse -File |
+            Where-Object { $_.Extension -in '.dex', '.class' -and $_.Name -ne $extensionDex.Name })) {
+        foreach ($m in [regex]::Matches($text.GetString([System.IO.File]::ReadAllBytes($template.FullName)), $extensionRefPattern)) {
             [void]$references.Add($m.Value)
         }
     }
-    $extensionText = $text.GetString([System.IO.File]::ReadAllBytes($extensionDex.FullName))
+    # Exact inventory, not a byte substring. The extension dex stores `log` and `logGateToggle`
+    # as separate string-pool entries, and `Contains("log")` is true for both -- a template that
+    # named a missing `log` passed whenever a longer member existed. `extmembers` prints
+    # `Lclass;->name`, the same shape the template scan captured.
+    Initialize-DexAudit
+    $extMembers = New-Object System.Collections.Generic.HashSet[string]
+    foreach ($line in (& $script:AuditJava -cp $script:AuditClasspath DexAudit extmembers - $extensionDex.FullName)) {
+        if ($line) { [void]$extMembers.Add($line.Trim()) }
+    }
+    if ($extMembers.Count -eq 0) {
+        Fail 'the extension dex declared no Lapp/ytvr/extension members'
+    }
     $missing = @()
     foreach ($reference in $references) {
-        $member = ($reference -split ';->')[1]
-        if (-not $extensionText.Contains("$member")) { $missing += $reference }
+        if (-not $extMembers.Contains($reference)) { $missing += $reference }
     }
     if ($missing.Count -gt 0) {
         Fail ("patch templates call $($missing.Count) extension member(s) the extension dex does not have: " + (($missing | Select-Object -First 5) -join ', '))
     } else {
         Pass "all $($references.Count) extension reference(s) in the patch templates exist in the extension dex"
+    }
+    # A shorter name must not ride along on a longer one. Mutate one real reference in place
+    # (bindRow -> bindRoX is the same trick) and require the check to reject it.
+    if ($SelfTest -and $references.Count -gt 0) {
+        $sample = @($references)[0]
+        $tail = if ($sample.EndsWith('X')) { 'Q' } else { 'X' }
+        $mutated = $sample.Substring(0, $sample.Length - 1) + $tail
+        if ($extMembers.Contains($mutated)) {
+            Fail "bundle member check accepted mutated reference '$mutated'"
+        } else {
+            Pass "a same-length mutation of a template reference is rejected"
+        }
     }
     exit $(if ($failures -gt 0) { 1 } else { 0 })
 }
@@ -214,32 +303,9 @@ if ($Bundle) {
 # APK mode. JDK + dexlib2 first: the reader uses the patcher's own dexlib2 (from the Gradle cache),
 # so the audit and the patcher agree on what a dex contains.
 # ---------------------------------------------------------------------------------------------
-$javac = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME 'bin\javac.exe' } else { '' }
-$java = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME 'bin\java.exe' } else { '' }
-if (-not (Test-Path $javac)) { $javac = (Get-Command javac -ErrorAction SilentlyContinue).Source }
-if (-not (Test-Path $java)) { $java = (Get-Command java -ErrorAction SilentlyContinue).Source }
-if (-not $javac -or -not $java) { throw 'no JDK found: set JAVA_HOME (javac builds tools\dexaudit)' }
-
-$cache = Join-Path $env:USERPROFILE '.gradle\caches\modules-2\files-2.1'
-$jars = @()
-foreach ($group in @('com.github.MorpheApp.smali\smali-dexlib2', 'com.github.MorpheApp.smali\smali-util', 'com.google.guava\guava')) {
-    $dir = Join-Path $cache $group
-    if (Test-Path $dir) {
-        $jars += @(Get-ChildItem -Path $dir -Recurse -Filter '*.jar' | Where-Object { $_.Name -notmatch 'sources|javadoc' } | ForEach-Object { $_.FullName })
-    }
-}
-if ($jars.Count -eq 0) { throw 'dexlib2/guava not in the Gradle cache: run a build once so Gradle fetches them' }
-$classpath = ($jars -join ';')
-
-$out = Join-Path $Work 'dexaudit'
-New-Item -ItemType Directory -Force -Path $out | Out-Null
-$toolSource = Join-Path $Root 'tools\dexaudit\DexAudit.java'
-$toolClass = Join-Path $out 'DexAudit.class'
-if (-not (Test-Path $toolClass) -or (Get-Item $toolSource).LastWriteTime -gt (Get-Item $toolClass).LastWriteTime) {
-    & $javac -cp $classpath -d $out $toolSource | Out-Null
-    if ($LASTEXITCODE -ne 0) { throw 'tools\dexaudit\DexAudit.java did not compile' }
-}
-$toolClasspath = "$out;$classpath"
+Initialize-DexAudit
+$java = $script:AuditJava
+$toolClasspath = $script:AuditClasspath
 
 $dexes = Join-Path $Work 'dex'
 $libs = Join-Path $Work 'lib'
@@ -263,17 +329,19 @@ foreach ($line in (& $java -cp $toolClasspath DexAudit inventory @dexFiles)) {
 #    those sources were moved aside still reported a green patch run, and shipped a crash fix that was
 #    not in it. (Comparing *references* instead does not work -- the sources compose them from
 #    EXTENSION_CLASS constants, so the literal text never appears there.)
-$extDex = $null
-foreach ($dex in $dexFiles) {
-    if ($text.GetString([System.IO.File]::ReadAllBytes($dex)).Contains('Lapp/ytvr/extension/CategoryRows;')) {
-        $extDex = $dex
-        break
-    }
+# Patcher 2.x hosts merge the extension dex into the app's own dexes instead of appending one,
+# so no single file is "the extension dex" any more (measured on a Desktop 2.x run: injected
+# sites in classes6, extension classes in classes7). Membership is therefore checked against
+# DexAudit's exact inventory of the Lapp/ytvr/extension/* classes dexlib2 finds across ALL dexes
+# -- not a bare-name text scan, which app dexes satisfy for generic names (log, init, fetch,
+# enabled, summary occur in the app itself), and not a single-dex scan, which the merge voids.
+$extMembers = New-Object System.Collections.Generic.HashSet[string]
+foreach ($line in (& $java -cp $toolClasspath DexAudit extmembers - @dexFiles)) {
+    [void]$extMembers.Add($line)
 }
-if (-not $extDex) {
-    Fail 'no extension dex in the APK: the Extension patch did not run, or it was built without one'
+if ($extMembers.Count -eq 0) {
+    Fail 'no extension members in the APK: the Extension patch did not run, or it was built without one'
 } else {
-    $extText = $text.GetString([System.IO.File]::ReadAllBytes($extDex))
     $declaredClasses = New-Object System.Collections.Generic.HashSet[string]
     $declaredMembers = New-Object System.Collections.Generic.HashSet[string]
     foreach ($file in (Get-ChildItem (Join-Path $Root 'extensions\src') -Filter '*.java')) {
@@ -287,11 +355,29 @@ if (-not $extDex) {
             [void]$declaredMembers.Add($m.Groups[1].Value)
         }
     }
-    $missing = @(@($declaredClasses | Where-Object { -not $extText.Contains($_) }) + @($declaredMembers | Where-Object { -not $extText.Contains($_) }))
+    # Exact matching, in two directions: every declared class must exist as an extension class
+    # with that simple name -- top-level (Lapp/ytvr/extension/<Name>;) or nested
+    # (Lapp/ytvr/extension/<Outer>$<Name>;, which is how dex writes inner classes; the first
+    # inventory run caught SettingSwitch/Callback exactly this way) -- and every declared static
+    # method name must be a member OF SOME extension class (class-attributed, so app-side
+    # occurrences of the same name count for nothing).
+    $missing = @()
+    foreach ($cls in $declaredClasses) {
+        $asTopLevel = (@($extMembers | Where-Object { $_ -like "Lapp/ytvr/extension/$cls;->*" })).Count -gt 0
+        $asNested = (@($extMembers | Where-Object { $_ -like "Lapp/ytvr/extension/*`$$cls;->*" })).Count -gt 0
+        if (-not ($asTopLevel -or $asNested)) {
+            $missing += $cls
+        }
+    }
+    foreach ($mem in $declaredMembers) {
+        if (-not (@($extMembers | Where-Object { $_ -like "*->$mem" })).Count) {
+            $missing += $mem
+        }
+    }
     if ($missing.Count -gt 0) {
-        Fail ("the shipped extension dex lacks $($missing.Count) member(s) the sources define -- this APK is not from this tree: " + (($missing | Select-Object -First 8) -join ', '))
+        Fail ("the APK's extension inventory lacks $($missing.Count) member(s) the extension sources define -- this APK is not from this tree: " + (($missing | Select-Object -First 8) -join ', '))
     } else {
-        Pass "the shipped extension dex carries all $($declaredClasses.Count) class(es) and $($declaredMembers.Count) static method(s) the sources declare"
+        Pass "the APK's extension classes carry all $($declaredClasses.Count) class(es) and $($declaredMembers.Count) static method(s) the extension sources declare (exact inventory: $($extMembers.Count) members)"
     }
 }
 

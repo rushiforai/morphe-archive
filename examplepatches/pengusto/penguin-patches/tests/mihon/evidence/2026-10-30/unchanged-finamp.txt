@@ -1,0 +1,1 @@
+PASS: all 132 Finamp payload/resource files byte-identical to published v1.4.0

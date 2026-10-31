@@ -1,0 +1,1 @@
+10-29 04:48:20.817 12406 16963 I Morphe Patcher: Runtime: name=art memoryLimit=576

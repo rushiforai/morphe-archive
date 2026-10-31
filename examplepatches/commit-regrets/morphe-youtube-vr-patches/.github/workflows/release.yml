@@ -3,7 +3,7 @@ name: Release
 on:
   # Manual on purpose: no push triggers this, so nothing is built or released unless we ask.
   # Dispatch it from `main` when a release is actually wanted; semantic-release then decides
-  # whether the commits since the last tag justify one (see .releaserc, which also allows
+  # whether the commits since the last tag justify one (see .releaserc.js, which also allows
   # pre-releases from `develop`).
   workflow_dispatch:
 
@@ -88,6 +88,10 @@ jobs:
         id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Bundle signing (docs/INTERNALS.md, "The patcher 2.x alignment"): the plugin signs the
+          # .mpp it assembles when this Ed25519 private key is present, and cross-checks it
+          # against the committed morphe-signing.pub. Absent -> unsigned bundle, still valid.
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
         run: |
           set -euo pipefail
           echo "new_release_published=false" >> "$GITHUB_OUTPUT"

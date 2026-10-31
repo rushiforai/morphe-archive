@@ -39,10 +39,11 @@ import org.junit.Test
 
 /**
  * Hide posts from groups you're not in (#195) on every Facebook build the bundle declares: one
- * GraphQLStory accessor of `to` as a Profile, its model a BaseModelWithTree with one accessor of
- * viewer_join_state, and the enum answering it naming every state the extension reads. The patch
- * fills the extension's two stubs with calls to those accessors, and hands Home's MobileConfig answer
- * for "should_include_viewer_join_state" to the extension. Reads the fixture bundles from
+ * GraphQLStory accessor of `to` as a Profile and one of `target_group` as a Group answering the
+ * same class, its model a BaseModelWithTree with one accessor of viewer_join_state, and the enum
+ * answering it naming every state the extension reads. The patch fills the extension's three stubs
+ * with calls to those accessors, and hands Home's MobileConfig answer for
+ * "should_include_viewer_join_state" to the extension. Reads the fixture bundles from
  * HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class GroupJoinStateFixtureTest {
@@ -85,6 +86,18 @@ class GroupJoinStateFixtureTest {
                     assertFalse("$name: ${sibling.name}() matches too",
                         isStoryModelAccessor(sibling, STORY_TARGET_FIELD, STORY_TARGET_TYPE))
                 }
+                // The group a story names as its target_group, read as the same class as its `to`
+                // (the fourth report on #195); the same control against its siblings.
+                val groups = storyTargetGroupAccessors(story)
+                assertEquals("$name: target_group ${groups.map { it.name }}", 1, groups.size)
+                val group = groups.single()
+                assertEquals("$name: ${group.name}() doesn't answer the class `to` does", target.returnType, group.returnType)
+                for (sibling in story.methods.filter {
+                    it.name != group.name && it.parameterTypes.isEmpty() && it.returnType == group.returnType
+                }) {
+                    assertFalse("$name: ${sibling.name}() matches target_group too",
+                        isStoryModelAccessor(sibling, STORY_TARGET_GROUP_FIELD, STORY_TARGET_GROUP_TYPE))
+                }
 
                 val profile = FixtureDex.classes(bundle, setOf(target.returnType))[target.returnType]
                     ?: throw AssertionError("$name has no ${target.returnType}")
@@ -102,15 +115,19 @@ class GroupJoinStateFixtureTest {
                 }
 
                 val context = PatchContexts.of(listOf(story, profile, enum, ExtensionDex.classDef(GROUP_POSTS)))
-                context.fillGroupJoinStubs()
+                val found = context.fillGroupJoinStubs()
+                assertEquals("$name: the target_group accessor the patch took", group.name, found.targetGroup?.name)
                 val filled = context.mutableClassDefBy(GROUP_POSTS)
                 assertEquals("$name: storyTarget",
                     GRAPHQL_STORY to "$GRAPHQL_STORY->${target.name}()${target.returnType}",
                     filled.stub(STORY_TARGET_STUB).castAndCall())
+                assertEquals("$name: storyTargetGroup",
+                    GRAPHQL_STORY to "$GRAPHQL_STORY->${group.name}()${group.returnType}",
+                    filled.stub(STORY_TARGET_GROUP_STUB).castAndCall())
                 assertEquals("$name: joinState",
                     profile.type to "${profile.type}->${state.name}()${state.returnType}",
                     filled.stub(JOIN_STATE_STUB).castAndCall())
-                checked[version] = "${target.name}()${target.returnType} -> ${state.name}()${state.returnType}"
+                checked[version] = "${target.name}()${target.returnType} ${group.name}() -> ${state.name}()${state.returnType}"
             }
         }
         assertEquals("a declared build went unchecked: $checked", versions.toSet(), checked.keys)
@@ -253,11 +270,12 @@ class GroupJoinStateFixtureTest {
     @Test
     fun `the extension reads the names the patch anchors on`() {
         assertEquals(STORY_TARGET_FIELD, ExtensionDex.stringConstant(GROUP_POSTS, "TARGET_FIELD"))
+        assertEquals(STORY_TARGET_GROUP_FIELD, ExtensionDex.stringConstant(GROUP_POSTS, "TARGET_GROUP_FIELD"))
         assertEquals(VIEWER_JOIN_STATE_FIELD, ExtensionDex.stringConstant(GROUP_POSTS, "JOIN_STATE_FIELD"))
-        assertEquals("Group", ExtensionDex.stringConstant(GROUP_POSTS, "GROUP_TYPE"))
+        assertEquals(STORY_TARGET_GROUP_TYPE, ExtensionDex.stringConstant(GROUP_POSTS, "GROUP_TYPE"))
         val stubs = ExtensionDex.classDef(GROUP_POSTS).methods.map { it.name }
-        for (stub in listOf(STORY_TARGET_STUB, JOIN_STATE_STUB, STORY_TITLE_STUB, STORY_SHAREABLE_STUB,
-            TITLE_RANGES_STUB, RANGE_ENTITY_STUB, ATTACHMENT_TARGET_STUB)) {
+        for (stub in listOf(STORY_TARGET_STUB, STORY_TARGET_GROUP_STUB, JOIN_STATE_STUB, STORY_TITLE_STUB,
+            STORY_SHAREABLE_STUB, TITLE_RANGES_STUB, RANGE_ENTITY_STUB, ATTACHMENT_TARGET_STUB)) {
             assertTrue("the extension has no $stub", stub in stubs)
         }
         val hook = ExtensionDex.classDef(GROUP_POSTS).methods.singleOrNull { it.name == "askForJoinState" }

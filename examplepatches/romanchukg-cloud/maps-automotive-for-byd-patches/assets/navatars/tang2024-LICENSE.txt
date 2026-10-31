@@ -8,6 +8,6 @@ The author's page states that the model is based on a BYD 3D model from download
 
 Changes: the interior removed, the body simplified to about 4000 triangles, the materials turned into
 one 128x128 palette texture (red rear lamps brightened, body paint grey), and the result written as a
-Navatars FBX with our own rig and animations. This adapted model is shared under the same licence,
+Navatars FBX with our own rig and four still animation takes. This adapted model is shared under the same licence,
 CC BY-NC-SA 4.0, for non-commercial use only. It is separate from the GPL-3.0 patch code.
 BYD and Tang are names of BYD Company Limited; this project is not affiliated with BYD.

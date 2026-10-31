@@ -39,7 +39,7 @@ public class ThreadsButtonSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.HIDE_THREADS_BUTTON.resetToDefault();
         Settings.HIDE_CREATE_BUTTON.resetToDefault();
         Settings.HIDE_SHARE_PROFILE_BUTTON.resetToDefault();

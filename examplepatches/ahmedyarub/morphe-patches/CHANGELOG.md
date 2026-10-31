@@ -1,3 +1,63 @@
+## [1.22.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.21.3...v1.22.0) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* Address review of the Reels buttons, Instagram backup and X follow button ([07edb6e](https://github.com/ahmedyarub/morphe-patches/commit/07edb6e8c82b5ea45b15c773e4f0bef31d291cb1))
+* Count a restored session as signed in ([2de79ea](https://github.com/ahmedyarub/morphe-patches/commit/2de79ea1414396b0a667c517a1ff5f733c1ffb52))
+* Drop the token backup on sign-out and run the Reels menu's own options ([ab559bc](https://github.com/ahmedyarub/morphe-patches/commit/ab559bc3ff57aa36efd822a8207efe0dc74d0c57))
+* **Instagram:** Count a restored session as signed in once its headers are back ([223ce18](https://github.com/ahmedyarub/morphe-patches/commit/223ce18d587785346e316c43d07120f1376706e2))
+* **Instagram:** Draw the Reels buttons under bottom sheets ([45c0136](https://github.com/ahmedyarub/morphe-patches/commit/45c0136b6080c641a7c960161c0007bfc37085e7))
+* **Instagram:** Keep Interested in the Reels menu after a reinstall ([ff1bf96](https://github.com/ahmedyarub/morphe-patches/commit/ff1bf968f840724480f06aab5dfa134cc6eafbc2))
+* **Instagram:** List Interested in the Reels menu and tap it by its label ([4828eb5](https://github.com/ahmedyarub/morphe-patches/commit/4828eb52dc73d4617f84d99b8a4994f5a32c9474))
+* **Instagram:** Run Reels interested buttons through the menu's own handler ([f6d11c3](https://github.com/ahmedyarub/morphe-patches/commit/f6d11c35739a312ad261b93bf199e292e6b8816e))
+* **Instagram:** Set the restore context before the headers are handed over ([52e671e](https://github.com/ahmedyarub/morphe-patches/commit/52e671e99c9d4f86d676a491b1b0c4911af8c708))
+* Keep the token backup when a restore did not take ([e918d49](https://github.com/ahmedyarub/morphe-patches/commit/e918d4954795d20c2f77b16df043ad5e2b924056))
+
+### ✨ New Features
+
+* Follow button on X posts, Reels buttons and cards, keep signed in ([8b7d701](https://github.com/ahmedyarub/morphe-patches/commit/8b7d701cc61e3c18ebbbe72f92a999681f68feb3))
+* **Instagram:** Block every card shown between stories ([e4624d2](https://github.com/ahmedyarub/morphe-patches/commit/e4624d255494dca6da0118f02d1ccc812c0df1b6))
+
+## [1.22.0-dev.5](https://github.com/ahmedyarub/morphe-patches/compare/v1.22.0-dev.4...v1.22.0-dev.5) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Count a restored session as signed in once its headers are back ([223ce18](https://github.com/ahmedyarub/morphe-patches/commit/223ce18d587785346e316c43d07120f1376706e2))
+* **Instagram:** Set the restore context before the headers are handed over ([52e671e](https://github.com/ahmedyarub/morphe-patches/commit/52e671e99c9d4f86d676a491b1b0c4911af8c708))
+
+## [1.22.0-dev.4](https://github.com/ahmedyarub/morphe-patches/compare/v1.22.0-dev.3...v1.22.0-dev.4) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* Count a restored session as signed in ([2de79ea](https://github.com/ahmedyarub/morphe-patches/commit/2de79ea1414396b0a667c517a1ff5f733c1ffb52))
+* Drop the token backup on sign-out and run the Reels menu's own options ([ab559bc](https://github.com/ahmedyarub/morphe-patches/commit/ab559bc3ff57aa36efd822a8207efe0dc74d0c57))
+* Keep the token backup when a restore did not take ([e918d49](https://github.com/ahmedyarub/morphe-patches/commit/e918d4954795d20c2f77b16df043ad5e2b924056))
+
+## [1.22.0-dev.3](https://github.com/ahmedyarub/morphe-patches/compare/v1.22.0-dev.2...v1.22.0-dev.3) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* Address review of the Reels buttons, Instagram backup and X follow button ([07edb6e](https://github.com/ahmedyarub/morphe-patches/commit/07edb6e8c82b5ea45b15c773e4f0bef31d291cb1))
+
+## [1.22.0-dev.2](https://github.com/ahmedyarub/morphe-patches/compare/v1.22.0-dev.1...v1.22.0-dev.2) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Draw the Reels buttons under bottom sheets ([45c0136](https://github.com/ahmedyarub/morphe-patches/commit/45c0136b6080c641a7c960161c0007bfc37085e7))
+* **Instagram:** Keep Interested in the Reels menu after a reinstall ([ff1bf96](https://github.com/ahmedyarub/morphe-patches/commit/ff1bf968f840724480f06aab5dfa134cc6eafbc2))
+* **Instagram:** List Interested in the Reels menu and tap it by its label ([4828eb5](https://github.com/ahmedyarub/morphe-patches/commit/4828eb52dc73d4617f84d99b8a4994f5a32c9474))
+* **Instagram:** Run Reels interested buttons through the menu's own handler ([f6d11c3](https://github.com/ahmedyarub/morphe-patches/commit/f6d11c35739a312ad261b93bf199e292e6b8816e))
+
+### ✨ New Features
+
+* Follow button on X posts, Reels buttons and cards, keep signed in ([8b7d701](https://github.com/ahmedyarub/morphe-patches/commit/8b7d701cc61e3c18ebbbe72f92a999681f68feb3))
+
+## [1.22.0-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.21.3...v1.22.0-dev.1) (2026-10-30)
+
+### ✨ New Features
+
+* **Instagram:** Block every card shown between stories ([e4624d2](https://github.com/ahmedyarub/morphe-patches/commit/e4624d255494dca6da0118f02d1ccc812c0df1b6))
+
 ## [1.21.3](https://github.com/ahmedyarub/morphe-patches/compare/v1.21.2...v1.21.3) (2026-10-29)
 
 ### 🐛 Bug Fixes

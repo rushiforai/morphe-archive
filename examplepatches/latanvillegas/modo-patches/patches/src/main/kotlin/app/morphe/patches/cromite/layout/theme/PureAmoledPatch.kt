@@ -228,29 +228,19 @@ private val pureAmoledResourcesPatch = resourcePatch(
     }
 }
 
-private const val SYSTEM_SURFACE_SMALI = """
-    invoke-virtual {p0}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
-    move-result-object v0
-    invoke-virtual {v0}, Landroid/content/res/Resources;->getConfiguration()Landroid/content/res/Configuration;
-    move-result-object v0
-    iget v0, v0, Landroid/content/res/Configuration;->uiMode:I
-    and-int/lit8 v0, v0, 0x30
-    xor-int/lit8 v0, v0, 0x20
-    if-nez v0, :pure_light
-    const v0, -0x1000000
-    return v0
-    :pure_light
-    const v0, -0x1
+private const val RUNTIME_SURFACE_SMALI = """
+    invoke-static {p0}, Lapp/morphe/extension/cromite/amoled/AmoledBrightnessController;->resolvedPureThemeColor(Landroid/content/Context;)I
+    move-result v0
     return v0
 """
 
 @Suppress("unused")
 val pureAmoledPatch = bytecodePatch(
     name = "Pure AMOLED / Pure White system theme",
-    description = "Follows Android system theme: true black (#000000) in dark mode and true white (#FFFFFF) in light mode for Cromite 153 native UI surfaces.",
+    description = "Resolves pure black/white semantic surfaces at runtime using the AMOLED dialog selection and Android night mode.",
 ) {
     compatibleWith("org.cromite.cromite"(CROMITE_VERSION))
-    dependsOn(pureAmoledResourcesPatch)
+    dependsOn(pureAmoledResourcesPatch, cromiteAmoledBrightnessPatch)
 
     execute {
         val systemSurfaceTargets = listOf(
@@ -259,7 +249,7 @@ val pureAmoledPatch = bytecodePatch(
             defaultBgColorFingerprint, settingsBackgroundColorFingerprint, primaryBackgroundColorFingerprint,
         )
         systemSurfaceTargets.forEach { fingerprint ->
-            fingerprint.method.addInstructions(0, SYSTEM_SURFACE_SMALI)
+            fingerprint.method.addInstructions(0, RUNTIME_SURFACE_SMALI)
         }
 
         // Dynamic Material colors would re-introduce tinted gray/colored surfaces.

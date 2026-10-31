@@ -642,6 +642,28 @@ public class TapToPlayTest {
     }
 
     /**
+     * The feed binds a player to a video only while autoplay is allowed, and the inline button
+     * needs one (#239), so with that switch on the setting reads what was chosen while the gate
+     * still holds the feed's start.
+     */
+    @Test
+    public void inlineFeedControlsKeepTheChosenAutoplaySettingAndStartsStayHeld() {
+        Settings.INLINE_FEED_VIDEO_CONTROLS.save(true);
+        try {
+            for (Autoplay chosen : Autoplay.values()) {
+                assertSame(chosen.name(), chosen, TapToPlay.autoplaySetting(chosen));
+            }
+            String report = String.join("\n", HookStatus.report());
+            assertTrue(report, report.contains(FamilyNames.TAP_TO_PLAY + ": invoked 4, 1 found, 0 missing"));
+            assertFalse("the feed's own start still waits", TapToPlay.allowStart(new Object(), Trigger.BY_AUTOPLAY));
+            Settings.INLINE_FEED_VIDEO_CONTROLS.save(false);
+            assertSame(Autoplay.OFF, TapToPlay.autoplaySetting(Autoplay.ON));
+        } finally {
+            Settings.INLINE_FEED_VIDEO_CONTROLS.resetToDefault();
+        }
+    }
+
+    /**
      * The Reels controls show their play button up front while the switch is on, so a held reel
      * starts with one tap. Facebook's own exclusion stands, and off, paused, before the settings are
      * ready or on a failure, Facebook's own check decides.

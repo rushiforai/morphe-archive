@@ -53,6 +53,9 @@ param(
     # that is off by default, so a check of what Telegram does without one of them needs a build
     # that leaves it out.
     [string[]]$Exclude = @(),
+    # Option values for this build, each 'Patch name:key=value', for checking a patch option such
+    # as the icon style. Each goes right after its patch's -e, where the CLI binds it.
+    [string[]]$PatchOption = @(),
     # Patch with the release bundle even when a source file is newer than it, for replaying
     # an earlier build on purpose. Without it a stale bundle stops the run.
     [switch]$AllowStaleBundle,
@@ -209,8 +212,21 @@ try {
     $summaryPath = Resolve-WithinRoot -Root $runDir -Path (Join-Path $runDir 'public-summary.json')
 
     Write-Host "[device] $($names.Count) patches from $(Split-Path -Leaf $bundle) onto $(Split-Path -Leaf $Apk)"
+    foreach ($option in $PatchOption) {
+        $split = $option.IndexOf(':')
+        if ($split -le 0 -or $option.Substring(0, $split) -cnotin $names -or $option.Substring($split + 1) -notmatch '^\w+=') {
+            throw "No patch in this build takes '$option'. Write it as 'Patch name:key=value'."
+        }
+    }
     $enable = @()
-    foreach ($name in $names) { $enable += '-e'; $enable += $name }
+    foreach ($name in $names) {
+        $enable += '-e'; $enable += $name
+        foreach ($option in $PatchOption) {
+            $split = $option.IndexOf(':')
+            if ($option.Substring(0, $split) -ceq $name) { $enable += '-O'; $enable += $option.Substring($split + 1) }
+        }
+    }
+    if ($PatchOption.Count -gt 0) { Write-Host "[device] options: $($PatchOption -join ', ')" }
     $signing = @('--keystore', $Keystore)
     if (-not $CliDefaultKeystore) {
         $signing += @('--keystore-password', $keystorePassword, '--keystore-entry-alias', $KeyAlias,

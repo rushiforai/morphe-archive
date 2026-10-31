@@ -1,0 +1,118 @@
+{
+  "capturedAt": "2026-10-30T10:21:05.048291+00:00",
+  "serial": "emulator-5582",
+  "package": "app.morphe.manager",
+  "labels": [
+    {
+      "text": "Every app Morphe patches is signed with this key. Keep a copy: without it, patched apps can only be updated after uninstalling them",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[42,399][1038,574]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "test",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[242,663][318,726]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Created Oct 22, 2026",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[242,726][588,779]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Copy",
+      "class": "android.view.View",
+      "bounds": "[913,691][976,754]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "SHA-256 fingerprint",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[84,826][389,868]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "5B:CB:DA:AC:2A:EB:EE:68\n09:0A:A0:09:26:62:2C:CB\n54:39:AD:0B:EC:86:D3:D2\n19:AD:0B:74:03:6D:36:28",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[126,931][954,1143]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Signing key",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[42,294][1038,378]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Import",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[265,1311][375,1364]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Export",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[781,1311][888,1364]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "Close",
+      "content-desc": "",
+      "class": "android.widget.TextView",
+      "bounds": "[493,1469][587,1522]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "ae0ccbfd3e5b8707e5117c88f52aa69cc2124476dfbde43c799bbc4d0bcbb53a"
+}

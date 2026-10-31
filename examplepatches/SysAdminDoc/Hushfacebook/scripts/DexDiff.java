@@ -5,6 +5,7 @@ import com.android.tools.smali.dexlib2.Opcodes;
 import com.android.tools.smali.dexlib2.iface.ClassDef;
 import com.android.tools.smali.dexlib2.iface.DexFile;
 import com.android.tools.smali.dexlib2.iface.ExceptionHandler;
+import com.android.tools.smali.dexlib2.iface.Field;
 import com.android.tools.smali.dexlib2.iface.Method;
 import com.android.tools.smali.dexlib2.iface.MethodImplementation;
 import com.android.tools.smali.dexlib2.iface.MultiDexContainer;
@@ -21,6 +22,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.formats.ArrayPayload;
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference;
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 import com.android.tools.smali.dexlib2.iface.reference.Reference;
 import com.android.tools.smali.dexlib2.iface.reference.StringReference;
@@ -562,35 +564,48 @@ public class DexDiff {
             Opcode opcode = i.getOpcode();
             int at = layout.addresses.get(k);
             char[] after = transfer(i, before[k]);
-            List<Integer> next = new ArrayList<>();
-            if (opcode.canContinue()) next.add(at + i.getCodeUnits());
-            if (i instanceof OffsetInstruction && opcode != Opcode.FILL_ARRAY_DATA) {
-                int target = at + ((OffsetInstruction) i).getCodeOffset();
-                if (opcode == Opcode.PACKED_SWITCH || opcode == Opcode.SPARSE_SWITCH) {
-                    Instruction payload = layout.byAddress.get(target);
-                    if (payload instanceof SwitchPayload) {
-                        for (SwitchElement element : ((SwitchPayload) payload).getSwitchElements()) {
-                            next.add(at + element.getOffset());
-                        }
-                    }
-                } else {
-                    next.add(target);
-                }
-            }
-            List<Integer> handlers = new ArrayList<>();
-            if (opcode.canThrow()) {
-                for (TryBlock<? extends ExceptionHandler> block : impl.getTryBlocks()) {
-                    int start = block.getStartCodeAddress();
-                    if (at < start || at >= start + block.getCodeUnitCount()) continue;
-                    for (ExceptionHandler handler : block.getExceptionHandlers()) {
-                        handlers.add(handler.getHandlerCodeAddress());
-                    }
-                }
-            }
-            for (int address : next) flow(before, indexAt, work, address, after);
-            for (int address : handlers) flow(before, indexAt, work, address, before[k]);
+            for (int address : successors(layout, i, at)) flow(before, indexAt, work, address, after);
+            for (int address : handlers(impl, i, at)) flow(before, indexAt, work, address, before[k]);
         }
         return before;
+    }
+
+    /**
+     * Where flow goes from [i] at [at]: the next instruction first when it can continue, then
+     * each branch or case target.
+     */
+    private static List<Integer> successors(Layout layout, Instruction i, int at) {
+        Opcode opcode = i.getOpcode();
+        List<Integer> next = new ArrayList<>();
+        if (opcode.canContinue()) next.add(at + i.getCodeUnits());
+        if (i instanceof OffsetInstruction && opcode != Opcode.FILL_ARRAY_DATA) {
+            int target = at + ((OffsetInstruction) i).getCodeOffset();
+            if (opcode == Opcode.PACKED_SWITCH || opcode == Opcode.SPARSE_SWITCH) {
+                Instruction payload = layout.byAddress.get(target);
+                if (payload instanceof SwitchPayload) {
+                    for (SwitchElement element : ((SwitchPayload) payload).getSwitchElements()) {
+                        next.add(at + element.getOffset());
+                    }
+                }
+            } else {
+                next.add(target);
+            }
+        }
+        return next;
+    }
+
+    /** The handlers that catch what [i] at [at] may throw. */
+    private static List<Integer> handlers(MethodImplementation impl, Instruction i, int at) {
+        List<Integer> handlers = new ArrayList<>();
+        if (!i.getOpcode().canThrow()) return handlers;
+        for (TryBlock<? extends ExceptionHandler> block : impl.getTryBlocks()) {
+            int start = block.getStartCodeAddress();
+            if (at < start || at >= start + block.getCodeUnitCount()) continue;
+            for (ExceptionHandler handler : block.getExceptionHandlers()) {
+                handlers.add(handler.getHandlerCodeAddress());
+            }
+        }
+        return handlers;
     }
 
     private static void flow(char[][] before, Map<Integer, Integer> indexAt, Deque<Integer> work,
@@ -965,6 +980,348 @@ public class DexDiff {
         } catch (ClassNotFoundException e) {
             return false;
         }
+    }
+
+    /**
+     * Each object an instruction in [m] hands on to something that names its class: an invoke's
+     * receiver and arguments, the object an instance field is read from or written to, and the
+     * value an iput-object or sput-object stores. Each comes as the class wanted, the class the
+     * register holds, the finding, and for a receiver or a field's object the member (see
+     * memberKey), else null. ART refuses the whole class when the held class can't be
+     * the wanted one ("argument type mismatch"), which is how the comment faces hook crashed
+     * Facebook 585 at launch: the register it passed as the component had been reused for one of
+     * the factory's arguments. Whether the held class can be the wanted one is only known once
+     * every class has been read, so the caller decides which of these stand (see refuses). An
+     * invoke-interface's receiver is left alone, as ART lets any object through to one.
+     */
+    private static List<String[]> typeChecks(ClassDef cd, Method m) {
+        List<String[]> out = new ArrayList<>();
+        MethodImplementation impl = m.getImplementation();
+        if (impl == null) return out;
+        Layout layout = new Layout(impl);
+        boolean isStatic = AccessFlags.STATIC.isSet(m.getAccessFlags());
+        int ins = isStatic ? 0 : 1;
+        for (CharSequence p : m.getParameterTypes()) ins += slots(p);
+        int register = impl.getRegisterCount() - ins;
+        // Too few registers for the parameters is already a parameter finding.
+        if (register < 0) return out;
+        Map<Integer, String> parameterType = new HashMap<>();
+        if (!isStatic) parameterType.put(register++, cd.getType());
+        for (CharSequence p : m.getParameterTypes()) {
+            if (kindOf(p) == 'L') parameterType.put(register, p.toString());
+            register += slots(p);
+        }
+        String[][] types = registerTypes(impl, layout, parameterType);
+        for (int k = 0; k < layout.instructions.size(); k++) {
+            Instruction i = layout.instructions.get(k);
+            if (types[k] == null || !(i instanceof ReferenceInstruction)) continue;
+            Opcode opcode = i.getOpcode();
+            Reference r = ((ReferenceInstruction) i).getReference();
+            String where = opcode.name + " at " + layout.addresses.get(k);
+            if (isPlainInvoke(opcode) && r instanceof MethodReference) {
+                MethodReference callee = (MethodReference) r;
+                List<String> wanted = new ArrayList<>();
+                if (!isStaticInvoke(opcode)) {
+                    boolean anyObject = opcode == Opcode.INVOKE_INTERFACE || opcode == Opcode.INVOKE_INTERFACE_RANGE;
+                    wanted.add(anyObject ? null : callee.getDefiningClass());
+                }
+                for (CharSequence p : callee.getParameterTypes()) {
+                    wanted.add(kindOf(p) == 'L' ? p.toString() : null);
+                    if (slots(p) == 2) wanted.add(null);
+                }
+                int[] regs = invokeRegisters(i);
+                // A count that doesn't match is already an invoke finding.
+                if (regs.length != wanted.size()) continue;
+                for (int a = 0; a < regs.length; a++) {
+                    String have = typeOf(types[k], regs[a]);
+                    if (have == null || wanted.get(a) == null || have.equals(wanted.get(a))) continue;
+                    out.add(new String[]{wanted.get(a), have, "type: " + where + " passes v" + regs[a] + ", which holds "
+                            + have + ", where " + callee + " takes " + wanted.get(a),
+                            a == 0 && !isStaticInvoke(opcode) ? memberKey(callee) : null});
+                }
+            } else if (r instanceof FieldReference) {
+                FieldReference field = (FieldReference) r;
+                switch (opcode) {
+                    case IGET: case IGET_WIDE: case IGET_OBJECT: case IGET_BOOLEAN: case IGET_BYTE:
+                    case IGET_CHAR: case IGET_SHORT: case IPUT: case IPUT_WIDE: case IPUT_OBJECT:
+                    case IPUT_BOOLEAN: case IPUT_BYTE: case IPUT_CHAR: case IPUT_SHORT: {
+                        int object = ((TwoRegisterInstruction) i).getRegisterB();
+                        String have = typeOf(types[k], object);
+                        if (have != null && !have.equals(field.getDefiningClass())) {
+                            out.add(new String[]{field.getDefiningClass(), have, "type: " + where + " uses " + field
+                                    + " on v" + object + ", which holds " + have, memberKey(field)});
+                        }
+                        // An iput-object also stores a value, which falls through to the
+                        // sput-object check.
+                        if (opcode != Opcode.IPUT_OBJECT) break;
+                    }
+                    case SPUT_OBJECT: {
+                        int value = ((OneRegisterInstruction) i).getRegisterA();
+                        String have = typeOf(types[k], value);
+                        if (have != null && field.getType().charAt(0) == 'L' && !have.equals(field.getType())) {
+                            out.add(new String[]{field.getType(), have, "type: " + where + " stores v" + value
+                                    + ", which holds " + have + ", in " + field, null});
+                        }
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+        }
+        return out;
+    }
+
+    private static String typeOf(String[] types, int register) {
+        return register < types.length ? types[register] : null;
+    }
+
+    /**
+     * The class each register holds before each instruction, along every path from the entry,
+     * as a type descriptor; null where that isn't known (a narrow or wide value, a null, or paths
+     * that disagree), and a null row where no path reaches the instruction. The parameters and
+     * this start with their declared classes, what makes an object gives its class, a move copies
+     * it, and anything else leaves the register unknown. ART merges two classes into the class
+     * they share; this leaves them unknown, so wherever it's unsure, nothing is judged. An
+     * instance-of tested right below leaves the tested register unknown on the branch where it's
+     * an instance (see narrowed). An exception edge carries the classes from before the throwing
+     * instruction, as in registerKinds.
+     */
+    private static String[][] registerTypes(MethodImplementation impl, Layout layout,
+            Map<Integer, String> parameterType) {
+        int count = layout.instructions.size();
+        String[][] before = new String[count][];
+        if (count == 0) return before;
+        Map<Integer, Integer> indexAt = new HashMap<>();
+        for (int k = 0; k < count; k++) indexAt.put(layout.addresses.get(k), k);
+        Set<Integer> joins = joins(impl, layout);
+        String[] entry = new String[impl.getRegisterCount()];
+        for (Map.Entry<Integer, String> p : parameterType.entrySet()) {
+            if (p.getKey() < entry.length) entry[p.getKey()] = p.getValue();
+        }
+        Deque<Integer> work = new ArrayDeque<>();
+        before[0] = entry;
+        work.add(0);
+        while (!work.isEmpty()) {
+            int k = work.poll();
+            Instruction i = layout.instructions.get(k);
+            int at = layout.addresses.get(k);
+            String[] after = typeTransfer(i, k == 0 ? null : layout.instructions.get(k - 1), before[k]);
+            String[] instance = narrowed(layout, joins, k, after);
+            List<Integer> next = successors(layout, i, at);
+            for (int s = 0; s < next.size(); s++) {
+                // An if-eqz falls through where its instance-of said yes, and an if-nez branches there.
+                boolean instanceEdge = instance != null && (i.getOpcode() == Opcode.IF_EQZ ? s == 0 : s == 1);
+                flowTypes(before, indexAt, work, next.get(s), instanceEdge ? instance : after);
+            }
+            for (int address : handlers(impl, i, at)) flowTypes(before, indexAt, work, address, before[k]);
+        }
+        return before;
+    }
+
+    private static void flowTypes(String[][] before, Map<Integer, Integer> indexAt, Deque<Integer> work,
+            int address, String[] state) {
+        Integer successor = indexAt.get(address);
+        if (successor == null) return;
+        if (before[successor] == null) {
+            before[successor] = state.clone();
+            work.add(successor);
+            return;
+        }
+        boolean changed = false;
+        String[] into = before[successor];
+        for (int r = 0; r < into.length; r++) {
+            if (into[r] != null && !into[r].equals(state[r])) {
+                into[r] = null;
+                changed = true;
+            }
+        }
+        if (changed) work.add(successor);
+    }
+
+    /** The classes after one instruction. [previous] is the one above it, whose answer a move-result takes. */
+    private static String[] typeTransfer(Instruction i, Instruction previous, String[] in) {
+        Opcode opcode = i.getOpcode();
+        if (!(i instanceof OneRegisterInstruction) || (!opcode.setsRegister() && opcode != Opcode.CHECK_CAST)) return in;
+        String[] out = in.clone();
+        int a = ((OneRegisterInstruction) i).getRegisterA();
+        String type = null;
+        switch (opcode) {
+            case MOVE_OBJECT: case MOVE_OBJECT_FROM16: case MOVE_OBJECT_16:
+                type = typeOf(in, ((TwoRegisterInstruction) i).getRegisterB());
+                break;
+            case MOVE_RESULT_OBJECT:
+                if (previous instanceof ReferenceInstruction) {
+                    Reference r = ((ReferenceInstruction) previous).getReference();
+                    if (isPlainInvoke(previous.getOpcode()) && r instanceof MethodReference) {
+                        type = ((MethodReference) r).getReturnType();
+                    } else if ((previous.getOpcode() == Opcode.FILLED_NEW_ARRAY
+                            || previous.getOpcode() == Opcode.FILLED_NEW_ARRAY_RANGE) && r instanceof TypeReference) {
+                        type = ((TypeReference) r).getType();
+                    }
+                }
+                break;
+            case CONST_STRING: case CONST_STRING_JUMBO:
+                type = "Ljava/lang/String;";
+                break;
+            case CONST_CLASS:
+                type = "Ljava/lang/Class;";
+                break;
+            case NEW_INSTANCE: case NEW_ARRAY: case CHECK_CAST:
+                type = ((TypeReference) ((ReferenceInstruction) i).getReference()).getType();
+                break;
+            case IGET_OBJECT: case SGET_OBJECT:
+                type = ((FieldReference) ((ReferenceInstruction) i).getReference()).getType();
+                break;
+            case AGET_OBJECT: {
+                String array = typeOf(in, ((ThreeRegisterInstruction) i).getRegisterB());
+                type = array != null && array.startsWith("[") ? array.substring(1) : null;
+                break;
+            }
+            default:
+                break;
+        }
+        if (a < out.length) out[a] = type;
+        if (opcode.setsWideRegister() && a + 1 < out.length) out[a + 1] = null;
+        return out;
+    }
+
+    /**
+     * The classes on the instance branch of an if-eqz or if-nez at [k], or null. ART can narrow
+     * the register an instance-of right above the if tested, when nothing else branches to the if
+     * and the instance-of didn't write over what it tested, and the register a move-object right
+     * above the instance-of copied it from. R8 can drop the check-cast that would follow, so
+     * without this a stock method reads as a finding. ART narrows only to a class below the one
+     * the register held and keeps that one otherwise (an interface, a superclass), which the
+     * flow can't tell apart before every class is read, so both registers go unknown there.
+     */
+    private static String[] narrowed(Layout layout, Set<Integer> joins, int k, String[] after) {
+        Instruction i = layout.instructions.get(k);
+        Opcode opcode = i.getOpcode();
+        if ((opcode != Opcode.IF_EQZ && opcode != Opcode.IF_NEZ) || k == 0 || joins.contains(layout.addresses.get(k))) {
+            return null;
+        }
+        Instruction test = layout.instructions.get(k - 1);
+        if (test.getOpcode() != Opcode.INSTANCE_OF) return null;
+        int result = ((TwoRegisterInstruction) test).getRegisterA();
+        int tested = ((TwoRegisterInstruction) test).getRegisterB();
+        if (result != ((OneRegisterInstruction) i).getRegisterA() || result == tested || tested >= after.length) return null;
+        String[] out = after.clone();
+        out[tested] = null;
+        if (k > 1 && !joins.contains(layout.addresses.get(k - 1))) {
+            Instruction move = layout.instructions.get(k - 2);
+            Opcode moved = move.getOpcode();
+            if ((moved == Opcode.MOVE_OBJECT || moved == Opcode.MOVE_OBJECT_FROM16 || moved == Opcode.MOVE_OBJECT_16)
+                    && ((TwoRegisterInstruction) move).getRegisterA() == tested) {
+                int source = ((TwoRegisterInstruction) move).getRegisterB();
+                if (source < out.length) out[source] = null;
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Whether ART refuses an object of class [have] where [wanted] is asked for. Only a class the
+     * APK defines is judged as [wanted], and only when [have] can be followed through its
+     * superclasses to the platform's: an array or a platform class (java.lang.Object answered by
+     * a hook, a Drawable, a Context) can never be one of the APK's classes, and an APK class can't
+     * when none of its superclasses is. An interface on either side is left alone, and so is a
+     * class neither the APK nor the platform defines, which Facebook loads later from its own
+     * stores, since what it extends isn't known here.
+     */
+    private static boolean refuses(String have, String wanted, Map<String, String> superclasses, Set<String> interfaces) {
+        if (have.equals(wanted) || !superclasses.containsKey(wanted) || interfaces.contains(wanted)
+                || interfaces.contains(have)) return false;
+        if (have.startsWith("[")) return true;
+        String type = have;
+        while (superclasses.containsKey(type)) {
+            if (type.equals(wanted)) return false;
+            type = superclasses.get(type);
+            if (type == null) return false;
+        }
+        return isPlatform(type);
+    }
+
+    /** A method or field as its name and signature, the same for a reference and a definition. */
+    private static String memberKey(Reference r) {
+        if (r instanceof MethodReference) {
+            MethodReference method = (MethodReference) r;
+            return method.getName() + "(" + String.join("", method.getParameterTypes()) + ")" + method.getReturnType();
+        }
+        FieldReference field = (FieldReference) r;
+        return field.getName() + ":" + field.getType();
+    }
+
+    /**
+     * The classes from [wanted] up its superclasses to [have], [have] left out, or null when
+     * [have] isn't one of [wanted]'s superclasses.
+     */
+    private static List<String> classesBelow(String have, String wanted, Map<String, String> superclasses) {
+        List<String> below = new ArrayList<>();
+        String type = wanted;
+        while (type != null && !type.equals(have)) {
+            if (!superclasses.containsKey(type)) return null;
+            below.add(type);
+            type = superclasses.get(type);
+        }
+        return type == null ? null : below;
+    }
+
+    /**
+     * The members each class declares, read only for the classes that decide a refused receiver
+     * or field's object (see declaredAbove), from the same classesN.dex entry its superclass came
+     * from. Most runs have none, and then the APK isn't read again.
+     */
+    private static Map<String, Set<String>> declaredMembers(MultiDexContainer<? extends DexFile> container,
+            List<String[]> refused, Map<String, String> superclasses, Map<String, Integer> superclassDex) throws Exception {
+        Map<String, Set<String>> declared = new HashMap<>();
+        for (String[] found : refused) {
+            List<String> below = found[4] == null ? null : classesBelow(found[2], found[1], superclasses);
+            if (below != null) for (String type : below) declared.put(type, new HashSet<>());
+        }
+        if (declared.isEmpty()) return declared;
+        for (String entry : container.getDexEntryNames()) {
+            int dexNumber = appDexNumber(entry);
+            if (dexNumber == 0) continue;
+            for (ClassDef cd : container.getEntry(entry).getDexFile().getClasses()) {
+                Set<String> members = declared.get(cd.getType());
+                if (members == null || !Integer.valueOf(dexNumber).equals(superclassDex.get(cd.getType()))) continue;
+                for (Method m : cd.getMethods()) members.add(memberKey(m));
+                for (Field f : cd.getFields()) members.add(memberKey(f));
+            }
+        }
+        return declared;
+    }
+
+    /**
+     * Whether a refused receiver or field's object is one ART takes after all: the register holds
+     * one of the named class's superclasses, and no class between the two declares the member, so
+     * it resolves to one at or above the held class, which ART checks the object against. Javac
+     * and R8 name the declaring class, but hand-written smali can name a subclass.
+     */
+    private static boolean declaredAbove(String[] found, Map<String, String> superclasses,
+            Map<String, Set<String>> declared) {
+        if (found[4] == null) return false;
+        List<String> below = classesBelow(found[2], found[1], superclasses);
+        if (below == null) return false;
+        for (String type : below) {
+            Set<String> members = declared.get(type);
+            if (members == null || members.contains(found[4])) return false;
+        }
+        return true;
+    }
+
+    /** classes.dex as 1, classesN.dex as N, and any other dex in the APK as 0. */
+    private static int appDexNumber(String entry) {
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("classes(\\d*)\\.dex").matcher(entry);
+        if (!m.matches()) return 0;
+        return m.group(1).isEmpty() ? 1 : Integer.parseInt(m.group(1));
+    }
+
+    private static boolean isPlatform(String type) {
+        if (type.startsWith("Landroid/support/")) return false;
+        return type.startsWith("Ljava/") || type.startsWith("Ljavax/") || type.startsWith("Landroid/")
+                || type.startsWith("Ldalvik/");
     }
 
     /**
@@ -1392,11 +1749,28 @@ public class DexDiff {
         // and every interface the APK defines, which decides which of them stand.
         List<String[]> uncast = new ArrayList<>();
         Set<String> interfaces = new HashSet<>();
+        // Each object a checked method hands on whose class isn't the one asked for, as its method,
+        // the class wanted, the class held and the finding, and every class's superclass, which
+        // decide which of them stand.
+        List<String[]> mistyped = new ArrayList<>();
+        Map<String, String> superclasses = new HashMap<>();
+        Map<String, Integer> superclassDex = new HashMap<>();
         MultiDexContainer<? extends DexFile> container =
                 DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
         for (String entry : container.getDexEntryNames()) {
+            int dexNumber = appDexNumber(entry);
             for (ClassDef cd : container.getEntry(entry).getDexFile().getClasses()) {
                 if (AccessFlags.INTERFACE.isSet(cd.getAccessFlags())) interfaces.add(cd.getType());
+                // Only the app's own classesN.dex files say what a class extends, the lowest
+                // numbered first, as ART's path does. Helium's standalone dexes (one in assets,
+                // one in lib) carry their own LinearLayoutManager, extending another
+                // LayoutManager, for a loader of their own; read last, it made every
+                // setLayoutManager call on 585 look refused.
+                Integer seen = superclassDex.get(cd.getType());
+                if (dexNumber > 0 && (seen == null || dexNumber < seen)) {
+                    superclasses.put(cd.getType(), cd.getSuperclass());
+                    superclassDex.put(cd.getType(), dexNumber);
+                }
                 for (Method m : cd.getMethods()) {
                     String s = sig(cd, m);
                     List<String> left = wanted.contains(s) ? unchecked.get(s) : null;
@@ -1404,6 +1778,9 @@ public class DexDiff {
                         List<String> findings = structuralFindings(cd, m);
                         if (!findings.isEmpty()) out.computeIfAbsent(s, k -> new ArrayList<>()).addAll(findings);
                         for (String[] found : objectReturns(m)) uncast.add(new String[]{s, found[0], found[1]});
+                        for (String[] found : typeChecks(cd, m)) {
+                            mistyped.add(new String[]{s, found[0], found[1], found[2], found[3]});
+                        }
                     }
                     String firstCallOn = firstCallTargets.get(s);
                     if (firstCallOn != null) firstCalls.put(s, firstCallBeforeReturn(m, firstCallOn));
@@ -1432,6 +1809,16 @@ public class DexDiff {
         }
         for (String[] found : uncast) {
             if (!takesAnyObject(found[1], interfaces)) out.computeIfAbsent(found[0], k -> new ArrayList<>()).add(found[2]);
+        }
+        List<String[]> refused = new ArrayList<>();
+        for (String[] found : mistyped) {
+            if (refuses(found[2], found[1], superclasses, interfaces)) refused.add(found);
+        }
+        Map<String, Set<String>> declared = declaredMembers(container, refused, superclasses, superclassDex);
+        for (String[] found : refused) {
+            if (!declaredAbove(found, superclasses, declared)) {
+                out.computeIfAbsent(found[0], k -> new ArrayList<>()).add(found[3]);
+            }
         }
         resolvePartial(partial, builtWith, holders);
         List<String> contractFindings = new ArrayList<>();

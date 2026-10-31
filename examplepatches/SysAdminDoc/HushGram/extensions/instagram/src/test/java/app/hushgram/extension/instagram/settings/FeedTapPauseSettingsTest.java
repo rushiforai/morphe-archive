@@ -35,7 +35,7 @@ public class FeedTapPauseSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.TAP_FEED_VIDEO_TO_PAUSE.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();

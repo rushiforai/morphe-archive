@@ -15,6 +15,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.telegram.misc.downloadspeed.LOAD_OPERATION
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -27,6 +28,7 @@ import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.reandroid.apk.ApkModule
 import com.reandroid.arsc.chunk.xml.AndroidManifestBlock
 import java.io.File
@@ -229,17 +231,26 @@ class StorageFolderFixtureTest {
                 val name = method.getInstruction(at).namedRegisters().first()
                 method.replaceInstruction(at, "const-string v$name, \"hush\"")
             },
+            // Still the one place the download file is set, so the found-file hook goes in.
             "FileLoadOperation.start changed" to { context ->
-                context.mutableClassDefBy(LOAD_OPERATION).methods.removeAll { it.name == "start" && it.parameterTypes.size == 3 }
+                val start = context.loadStart()
+                val methods = context.mutableClassDefBy(LOAD_OPERATION).methods
+                methods.remove(start)
+                methods.add(MutableMethod(ImmutableMethod(start.definingClass, start.name, start.parameters, "V", start.accessFlags,
+                    null, null, start.implementation)))
             },
         )
+        fun BytecodePatchContext.loader() = mutableClassDefBy(LOAD_OPERATION).methods.filter { it.name != "onFinishLoadingFile" }
+            .map { m -> m.controlBody().map { it.shape() } }
         for ((why, change) in shapes) {
             val context = context(build)
             change(context)
-            val untouched = context.mutableClassDefBy(LOAD_OPERATION).methods.map { m -> m.controlBody().map { it.shape() } }
+            val untouched = context.loader()
             val warnings = PatchLogCapture.warnings { saveDownloadsPatch.execute(context) }
             assertEquals(why, listOf("Save downloaded files: $why. Photos and videos from before the storage folder moved download again."), warnings)
-            assertEquals(why, untouched, context.mutableClassDefBy(LOAD_OPERATION).methods.map { m -> m.controlBody().map { it.shape() } })
+            assertEquals(why, untouched, context.loader())
+            val finishing = context.mutableClassDefBy(LOAD_OPERATION).methods.single { it.name == "onFinishLoadingFile" }
+            assertEquals(why, 1, finishing.controlBody().count { it.controlRef() == "$SAVE_DOWNLOADS->finishing(Ljava/lang/Object;Ljava/io/File;Ljava/io/File;)V" })
             assertEquals(why, 1, context.mediaPaths().controlBody().count { it.controlRef() == STORAGE_TELEGRAM_FOLDER })
             assertEquals(why, 1, context.attachPath().controlBody().count { it.controlRef() == STORAGE_OLDER_FILE })
             assertEquals(why, 1L, context.flag("storageFolder"))

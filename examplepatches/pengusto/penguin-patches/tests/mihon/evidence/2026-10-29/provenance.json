@@ -1,0 +1,28 @@
+{
+  "originalApkSha256": "0026bd25ce5b1c6bdc5bd2c9589a08a811ddc4fa7c994cf937729d5b7010619d",
+  "originalResignedSha256": "f36968d573662cc11c9faec0879f5da0384acf4ae3ac2493a297da30eaf918a6",
+  "managerApkSha256": "ed24306bc2a7c887ad1d4a30bb65f908951cdb95dfbc21b9c4c8a2c6d40f532a",
+  "screenshots": {
+    "before.png": "d55eae94534a7201ca472a646b3208300810f020f1704215b20dd0dbc950fadb",
+    "after.png": "4cd82ca5462bb4afbb9d903aed92dbbde5639ed6d85a588bf58ddc8eacddeab1",
+    "manager-success.png": "1c6b25a10b902c350fa31533340bc497791d1cc052641a51a788bde502d40395",
+    "manager-selection.png": "c78361c76049ed190401c1df468393b1f529002f786ceef865cfe65f012f9234"
+  },
+  "stateChecks": {
+    "before-manager-update -> after-manager-update": {
+      "mangaIdentical": true,
+      "chaptersIdentical": true,
+      "persistentFilesIdentical": true
+    },
+    "before-removal -> patch-removed": {
+      "mangaIdentical": true,
+      "chaptersIdentical": true,
+      "persistentFilesIdentical": true
+    },
+    "patch-removed -> patch-reapplied": {
+      "mangaIdentical": true,
+      "chaptersIdentical": true,
+      "persistentFilesIdentical": true
+    }
+  }
+}

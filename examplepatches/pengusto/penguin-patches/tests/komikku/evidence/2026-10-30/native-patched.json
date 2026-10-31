@@ -1,0 +1,54 @@
+{
+  "cases": [
+    {
+      "query": "-meteor",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "query": "-orion",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "query": "-space",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "query": "-0",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "query": "-42",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    },
+    {
+      "query": "-43",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "query": "orion",
+      "expected": true,
+      "actual": true,
+      "passed": true
+    },
+    {
+      "query": "meteor",
+      "expected": false,
+      "actual": false,
+      "passed": true
+    }
+  ],
+  "failures": 0,
+  "apkSha256": "76675e076faa4737d7cad1d7eb653c535e9b29e9f4f7dfe248b6fa4f7bf93265"
+}

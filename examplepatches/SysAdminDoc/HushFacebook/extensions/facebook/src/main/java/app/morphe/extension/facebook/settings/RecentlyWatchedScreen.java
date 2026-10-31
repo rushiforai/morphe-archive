@@ -19,11 +19,13 @@ import android.preference.Preference;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
@@ -35,6 +37,7 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 import app.morphe.extension.facebook.media.RecentlyWatched;
 import app.morphe.extension.facebook.media.RecentlyWatched.Entry;
@@ -46,8 +49,9 @@ import app.morphe.extension.shared.Utils;
 /**
  * The Recently watched row on the Playback page and the list it opens (#183): the reels, videos and
  * stories {@link RecentlyWatched} kept, the one watched last first, with a chip for each kind. A tap
- * opens one in Facebook through its own link handler and closes the settings, so it shows. Clear
- * empties the list at once.
+ * opens one in Facebook through its own link handler and closes the settings, so it shows. Each row's
+ * remove button takes that one off, with Undo under the list to put it back. Clear empties the list
+ * at once.
  */
 @SuppressWarnings("deprecation") // Framework preferences and fragments, as the rest of the screen.
 final class RecentlyWatchedScreen {
@@ -122,6 +126,46 @@ final class RecentlyWatchedScreen {
         listing.emptyText = empty;
         listing.showEmptyText();
 
+        // Under the list: what was just removed, and the button that puts it back.
+        LinearLayout undoBar = new LinearLayout(context);
+        undoBar.setOrientation(LinearLayout.HORIZONTAL);
+        undoBar.setGravity(Gravity.CENTER_VERTICAL);
+        undoBar.setPaddingRelative(dp(context, 24), dp(context, 4), dp(context, 12), dp(context, 4));
+        undoBar.setVisibility(View.GONE);
+        TextView removed = new TextView(context);
+        removed.setTextColor(palette.title);
+        removed.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        removed.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        undoBar.addView(removed, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        Button undo = new Button(context);
+        undo.setText(L10n.t("Undo"));
+        undo.setAllCaps(false);
+        undo.setTextColor(palette.accent);
+        undo.setMinHeight(dp(context, 48));
+        undo.setMinWidth(dp(context, 64));
+        ScreenColors.pressFeedback(undo, palette.accent, false);
+        undoBar.addView(undo, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        content.addView(undoBar, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        listing.remover = entry -> {
+            Entry gone = RecentlyWatched.remove(entry);
+            listing.replace(RecentlyWatched.entries());
+            if (gone == null) {
+                undoBar.setVisibility(View.GONE);
+                return;
+            }
+            removed.setText(L10n.f("Removed %1$s", title(gone)));
+            undo.setOnClickListener(button -> {
+                undoBar.setVisibility(View.GONE);
+                if (!RecentlyWatched.restore(gone)) {
+                    Utils.showToastLong(L10n.t("It wasn't put back. It was watched again since, or its time on the list is up."));
+                }
+                listing.replace(RecentlyWatched.entries());
+            });
+            undoBar.setVisibility(View.VISIBLE);
+        };
+
         AlertDialog dialog = page.show(new AlertDialog.Builder(context)
                 .setTitle(L10n.t("Recently watched"))
                 .setView(content)
@@ -135,6 +179,7 @@ final class RecentlyWatchedScreen {
             clear.setEnabled(!listing.all.isEmpty());
             clear.setOnClickListener(button -> {
                 RecentlyWatched.clear();
+                undoBar.setVisibility(View.GONE);
                 listing.replace(Collections.emptyList());
                 Utils.showToastShort(L10n.t("List cleared"));
             });
@@ -259,6 +304,8 @@ final class RecentlyWatchedScreen {
         @Nullable String kind;
         @Nullable TextView emptyText;
         @Nullable Button clearButton;
+        /** What a row's remove button does with its entry. */
+        @Nullable Consumer<Entry> remover;
 
         Listing(Context context, ScreenColors palette, List<Entry> entries) {
             this.context = context;
@@ -312,38 +359,56 @@ final class RecentlyWatchedScreen {
         public View getView(int position, @Nullable View reused, ViewGroup parent) {
             LinearLayout row = reused instanceof LinearLayout ? (LinearLayout) reused : newRow();
             Entry entry = getItem(position);
-            TextView title = (TextView) row.getChildAt(0);
-            TextView detail = (TextView) row.getChildAt(1);
-            TextView caption = (TextView) row.getChildAt(2);
+            LinearLayout text = (LinearLayout) row.getChildAt(0);
+            TextView title = (TextView) text.getChildAt(0);
+            TextView detail = (TextView) text.getChildAt(1);
+            TextView caption = (TextView) text.getChildAt(2);
             title.setText(title(entry));
             detail.setText(detail(entry, System.currentTimeMillis()));
             caption.setText(entry.caption == null ? "" : entry.caption);
             caption.setVisibility(entry.caption == null ? View.GONE : View.VISIBLE);
+            ImageButton remove = (ImageButton) row.getChildAt(1);
+            remove.setContentDescription(L10n.f("Remove %1$s", title(entry)));
+            remove.setOnClickListener(button -> {
+                if (remover != null) remover.accept(entry);
+            });
             return row;
         }
 
+        /** A row: its title, detail and caption, then the button that takes it off the list. */
         private LinearLayout newRow() {
             LinearLayout row = new LinearLayout(context);
-            row.setOrientation(LinearLayout.VERTICAL);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
             row.setMinimumHeight(dp(context, 56));
-            row.setPaddingRelative(dp(context, 24), dp(context, 10), dp(context, 24), dp(context, 10));
+            row.setPaddingRelative(dp(context, 24), dp(context, 10), dp(context, 8), dp(context, 10));
+            LinearLayout text = new LinearLayout(context);
+            text.setOrientation(LinearLayout.VERTICAL);
+            row.addView(text, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            ImageButton remove = new ImageButton(context);
+            remove.setImageDrawable(SettingsIcons.icon(context, SettingsIcons.CLOSE, palette.summary));
+            ScreenColors.pressFeedback(remove, palette.summary, true);
+            remove.setPadding(dp(context, 12), dp(context, 12), dp(context, 12), dp(context, 12));
+            // Not focusable, or the list stops handing taps on the row to its click listener.
+            remove.setFocusable(false);
+            row.addView(remove, new LinearLayout.LayoutParams(dp(context, 48), dp(context, 48)));
             TextView title = new TextView(context);
             title.setTextColor(palette.title);
             title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
             title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             title.setMaxLines(1);
             title.setEllipsize(TextUtils.TruncateAt.END);
-            row.addView(title);
+            text.addView(title);
             TextView detail = new TextView(context);
             detail.setTextColor(palette.summary);
             detail.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-            row.addView(detail);
+            text.addView(detail);
             TextView caption = new TextView(context);
             caption.setTextColor(palette.summary);
             caption.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
             caption.setMaxLines(2);
             caption.setEllipsize(TextUtils.TruncateAt.END);
-            row.addView(caption);
+            text.addView(caption);
             return row;
         }
     }

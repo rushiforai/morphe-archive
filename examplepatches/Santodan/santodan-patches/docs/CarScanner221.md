@@ -134,6 +134,55 @@ successful device operation and ECU connection as user-reported results, not
 agent-observed tests. Individual premium features and purchase/restore behavior
 have not all been verified.
 
+## Settings reset after restart (2026-10-30)
+
+Reproduced on `emulator-5554` with the installed renamed package
+`com.ovz.carscanner.morphe`: complete setup, select Acura OBD-II / EOBD,
+press Home, force-stop and relaunch. The old patched app returns to Welcome.
+No app data was cleared or app uninstalled during the investigation.
+
+Settings storage `.y::g` (MethodDef `0x06001593`, read) and `.y::m`
+(`0x06001599`, write) both use `IPlatformCommonService.GetShiftStream`.
+Android implementation `0x0600021d` delegates to `NativeShiftStream.a`
+(`0x060004e4`), which creates **variant 1**, not the profile variant 2.
+`libvndctx.so!n7q3v1` dispatches variant 1 at `0x22f58` to initializer
+`0x230fc`. Its separate `csel w8,w9,w8,ne` at file/VA `0x23fcc`
+selects `0x3c6ef372` on validation success or `0xa54ff53a` on failure.
+The native mixing sequence yields seed **0** or **0x4566**, respectively.
+Variant 1's writer adds position + `0x38`; its reader subtracts position
+with a seed-dependent adjustment. The failure seed breaks the round trip
+even within the same process; this is not an asynchronous-save timing issue.
+
+The patch additionally changes only `0x23fcc` from `0x1a881128` to
+`0x2a0903e8` (`mov w8,w9`). Together with the existing profile correction,
+exactly eight decoder bytes may change. The exact original library hash
+still rejects modified inputs. Serialization, backup recovery, stream bounds,
+flushes and the native byte transform remain unchanged. The verifier checks
+both seeds and all 256 byte values across five stream positions, including
+buffer boundaries, and rejects damage to either selector.
+
+Built and applied from the original APK with Desktop 1.19.1 plus the official
+`Clone app` patch, signed with the matching installed certificate and updated
+in place using `adb install -r`. Output:
+`../Apps/Car-Scanner-ELM-OBD2/Car-Scanner-2.2.21-settings-fix.apk`.
+Packaged decoder matches the bundle verifier's output; both original DEX
+files are unchanged. Owned provider authorities and permissions use the cloned
+package. `verifyCarScanner221`, `verifyCarScanner221Bundle` and
+`verifyAndroidBundle` passed for `patches/build/libs/patches-0.15.0.mpp`.
+
+Agent-observed emulator validation: after the fix, setup completion and the
+Acura profile survive Home + force-stop + relaunch. Interface font size changed
+from 0 to 1 also survives that process restart (confirmed in the native picker
+summary). Restored font size to 0, exited normally with Back and reopened;
+the app returns to its main screen, not Welcome. This verifies settings
+persistence on the emulator, not ECU connectivity or recovery of settings
+already discarded by previous failed loads. LLVM objdump independently
+confirmed `mov w8,w9` at `0x23fcc` in the verified decoder.
+
+User confirmation on 2026-10-30: everything appears to be working correctly
+after the settings fix. This is additional user-reported validation; no new
+real-vehicle ECU test was specified.
+
 Validation on 2026-10-18: `:patches:buildAndroid`, `:patches:generatePatchesList`,
 `:patches:verifyCarScanner221`, `:patches:verifyCarScanner221Bundle` and the two
 unchanged `verifyCarScannerManaged*` tasks completed successfully under Java 21.

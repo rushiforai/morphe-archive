@@ -64,6 +64,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -3663,7 +3664,7 @@ public class NativeToolkitDialog {
             Object requestManager = getGlideRequestManager(context);
             if (requestManager == null) return null;
 
-            // Find as(Class) method
+            // 1. Find as(Class) method or asFile()
             Object fileReqBuilder = null;
             for (Method m : requestManager.getClass().getMethods()) {
                 Class<?>[] pt = m.getParameterTypes();
@@ -3674,16 +3675,75 @@ public class NativeToolkitDialog {
                     } catch (Throwable ignored) {}
                 }
             }
+            if (fileReqBuilder == null) {
+                try {
+                    Method asFileMethod = requestManager.getClass().getMethod("asFile");
+                    fileReqBuilder = asFileMethod.invoke(requestManager);
+                } catch (Throwable ignored) {}
+            }
 
             if (fileReqBuilder == null) return null;
-            Object req = loadGlideRequestBuilder(fileReqBuilder, urlStr, accountId);
+
+            // 2. Build RemoteMediaModel if http/https
+            Object model = null;
+            if (urlStr.startsWith("http://") || urlStr.startsWith("https://")) {
+                String[][] modelPairs = ToolkitMappings.REMOTE_MEDIA_MODEL_PAIRS;
+                for (String[] pair : modelPairs) {
+                    try {
+                        Class<?> mClass = Class.forName(pair[0]);
+                        Class<?> oClass = Class.forName(pair[1]);
+                        Object defaultOptions = oClass.getField("a").get(null);
+                        Constructor<?> ctor = mClass.getConstructor(String.class, int.class, oClass);
+                        model = ctor.newInstance(urlStr, accountId, defaultOptions);
+                        if (model != null) break;
+                    } catch (Throwable ignored) {}
+                }
+            }
+
+            Object targetModel = (model != null) ? model : (urlStr.startsWith("content://") || urlStr.startsWith("file://") ? Uri.parse(urlStr) : urlStr);
+
+            // 3. Directly invoke load(targetModel) on fileReqBuilder
+            Object req = null;
+            Class<?> frbClass = fileReqBuilder.getClass();
+            String[] candidateNames = (model != null) ? new String[]{"l", "load"} : new String[]{"l", "m", "j", "load"};
+            for (String mName : candidateNames) {
+                for (Method m : frbClass.getMethods()) {
+                    if (m.getName().equals(mName) && m.getParameterTypes().length == 1) {
+                        Class<?> pt = m.getParameterTypes()[0];
+                        if (pt.isInstance(targetModel) || pt == Object.class || (pt == String.class && targetModel instanceof String) || (pt == Uri.class && targetModel instanceof Uri)) {
+                            try {
+                                m.setAccessible(true);
+                                req = m.invoke(fileReqBuilder, targetModel);
+                                if (req != null) break;
+                            } catch (Throwable ignored) {}
+                        }
+                    }
+                }
+                if (req != null) break;
+            }
+
+            if (req == null) {
+                for (Method m : frbClass.getMethods()) {
+                    if (m.getParameterTypes().length == 1 && m.getReturnType() != void.class) {
+                        Class<?> pt = m.getParameterTypes()[0];
+                        if (pt.isInstance(targetModel) || pt == Object.class) {
+                            try {
+                                m.setAccessible(true);
+                                req = m.invoke(fileReqBuilder, targetModel);
+                                if (req != null) break;
+                            } catch (Throwable ignored) {}
+                        }
+                    }
+                }
+            }
+
             if (req != null) {
                 for (Method m : req.getClass().getMethods()) {
                     Class<?>[] pt = m.getParameterTypes();
                     if (pt.length == 2 && pt[0] == int.class && pt[1] == int.class && java.util.concurrent.Future.class.isAssignableFrom(m.getReturnType())) {
                         java.util.concurrent.Future<?> future = (java.util.concurrent.Future<?>) m.invoke(req, Integer.MIN_VALUE, Integer.MIN_VALUE);
                         if (future != null) {
-                            Object res = future.get(35, java.util.concurrent.TimeUnit.SECONDS);
+                            Object res = future.get(45, java.util.concurrent.TimeUnit.SECONDS);
                             if (res instanceof File) {
                                 File f = (File) res;
                                 if (f.exists() && f.length() > 0) {
@@ -3702,12 +3762,30 @@ public class NativeToolkitDialog {
         return null;
     }
 
-    private static void downloadRemoteFile(String urlStr, File dst) throws Exception {
+    private static void downloadRemoteFile(String urlStr, File dst, String authToken) throws Exception {
         URL u = new URL(urlStr);
         HttpURLConnection conn = (HttpURLConnection) u.openConnection();
-        conn.setConnectTimeout(10000);
-        conn.setReadTimeout(15000);
+        conn.setConnectTimeout(15000);
+        conn.setReadTimeout(60000);
         conn.setInstanceFollowRedirects(true);
+        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android)");
+        if (authToken != null && !authToken.isEmpty()) {
+            conn.setRequestProperty("Authorization", "Bearer " + authToken);
+        }
+        int code = conn.getResponseCode();
+        // If authorized request failed with 401/403/404, retry once anonymously in case URL is public CDN
+        if ((code == 401 || code == 403 || code == 404) && authToken != null) {
+            conn.disconnect();
+            conn = (HttpURLConnection) u.openConnection();
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(60000);
+            conn.setInstanceFollowRedirects(true);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android)");
+            code = conn.getResponseCode();
+        }
+        if (code >= 400) {
+            throw new IOException("HTTP " + code + " (" + conn.getResponseMessage() + ")");
+        }
         try (InputStream in = conn.getInputStream();
              FileOutputStream out = new FileOutputStream(dst)) {
             byte[] buf = new byte[65536];
@@ -3716,6 +3794,176 @@ public class NativeToolkitDialog {
                 out.write(buf, 0, len);
             }
             out.flush();
+        } finally {
+            conn.disconnect();
+        }
+    }
+
+    public static class ExportFailure {
+        public final StorageScanner.MediaItem item;
+        public final String filename;
+        public final String reason;
+
+        public ExportFailure(StorageScanner.MediaItem item, String filename, String reason) {
+            this.item = item;
+            this.filename = filename != null ? filename : (item != null && item.filename != null ? item.filename : "Unknown");
+            this.reason = reason != null ? reason : "Unknown error";
+        }
+    }
+
+    private static void showExportResultsDialog(Activity activity, int successCount, List<ExportFailure> failures, float density, Theme theme) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed() || failures == null || failures.isEmpty()) return;
+
+        Dialog dialog = new Dialog(activity);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        LinearLayout root = new LinearLayout(activity);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackground(createRoundedDrawable(theme.surface, 20 * density));
+        int p = (int) (18 * density);
+        root.setPadding(p, p, p, (int) (16 * density));
+
+        // 1. Header (Title + Subtitle)
+        TextView tvTitle = new TextView(activity);
+        tvTitle.setText("Export Results");
+        tvTitle.setTextSize(17f);
+        tvTitle.setTypeface(null, Typeface.BOLD);
+        tvTitle.setTextColor(theme.textPrimary);
+        root.addView(tvTitle);
+
+        TextView tvSummary = new TextView(activity);
+        tvSummary.setText("✅ " + successCount + " exported  •  ❌ " + failures.size() + " failed");
+        tvSummary.setTextSize(12.5f);
+        tvSummary.setTextColor(theme.textSecondary);
+        tvSummary.setPadding(0, (int) (4 * density), 0, (int) (12 * density));
+        root.addView(tvSummary);
+
+        // 2. Scrollable list of failed items
+        ScrollView sv = new ScrollView(activity);
+        sv.setVerticalScrollBarEnabled(true);
+        LinearLayout list = new LinearLayout(activity);
+        list.setOrientation(LinearLayout.VERTICAL);
+
+        for (int i = 0; i < failures.size(); i++) {
+            ExportFailure f = failures.get(i);
+            LinearLayout itemRow = new LinearLayout(activity);
+            itemRow.setOrientation(LinearLayout.VERTICAL);
+            itemRow.setBackground(createRoundedDrawable(theme.surfaceContainer, 10 * density));
+            itemRow.setPadding((int) (12 * density), (int) (9 * density), (int) (12 * density), (int) (9 * density));
+            LinearLayout.LayoutParams rowLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            rowLp.bottomMargin = (int) (8 * density);
+            itemRow.setLayoutParams(rowLp);
+
+            TextView tvName = new TextView(activity);
+            tvName.setText((i + 1) + ". " + f.filename);
+            tvName.setTextSize(13f);
+            tvName.setTypeface(null, Typeface.BOLD);
+            tvName.setTextColor(theme.textPrimary);
+            tvName.setSingleLine(true);
+            tvName.setEllipsize(TextUtils.TruncateAt.MIDDLE);
+            itemRow.addView(tvName);
+
+            TextView tvReason = new TextView(activity);
+            tvReason.setText("Error: " + f.reason);
+            tvReason.setTextSize(11.5f);
+            tvReason.setTextColor(0xFFE57373); // Light red for error description
+            tvReason.setPadding(0, (int) (3 * density), 0, 0);
+            itemRow.addView(tvReason);
+
+            list.addView(itemRow);
+        }
+
+        sv.addView(list);
+        LinearLayout.LayoutParams svLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
+        svLp.bottomMargin = (int) (14 * density);
+        root.addView(sv, svLp);
+
+        // 3. Actions Footer (Retry, Copy Log, Close)
+        LinearLayout footer = new LinearLayout(activity);
+        footer.setOrientation(LinearLayout.HORIZONTAL);
+        footer.setGravity(Gravity.CENTER_VERTICAL);
+
+        // Copy log button
+        TextView btnCopy = new TextView(activity);
+        btnCopy.setText("Copy Log");
+        btnCopy.setTextSize(12f);
+        btnCopy.setTypeface(null, Typeface.BOLD);
+        btnCopy.setTextColor(theme.primary);
+        btnCopy.setBackground(createRoundedDrawable(theme.surfaceContainer, 16 * density));
+        btnCopy.setPadding((int) (12 * density), (int) (8 * density), (int) (12 * density), (int) (8 * density));
+        btnCopy.setClickable(true);
+        btnCopy.setFocusable(true);
+        btnCopy.setOnClickListener(v -> {
+            StringBuilder sb = new StringBuilder();
+            sb.append("=== Morphe Toolkit DCIM Export Failure Report ===\n");
+            sb.append("Total Exported: ").append(successCount).append("\n");
+            sb.append("Total Failed: ").append(failures.size()).append("\n\n");
+            for (ExportFailure ef : failures) {
+                sb.append("• ").append(ef.filename).append("\n");
+                sb.append("  Reason: ").append(ef.reason).append("\n");
+                if (ef.item != null && ef.item.remoteUrl != null) {
+                    sb.append("  URL: ").append(ef.item.remoteUrl).append("\n");
+                }
+            }
+            ClipboardManager cm = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+            if (cm != null) {
+                cm.setPrimaryClip(ClipData.newPlainText("Toolkit Export Errors", sb.toString()));
+                Toast.makeText(activity, "Error report copied to clipboard", Toast.LENGTH_SHORT).show();
+            }
+        });
+        footer.addView(btnCopy);
+
+        // Spacer
+        View spacer = new View(activity);
+        footer.addView(spacer, new LinearLayout.LayoutParams(0, 0, 1f));
+
+        // Close button
+        TextView btnClose = new TextView(activity);
+        btnClose.setText("Close");
+        btnClose.setTextSize(12f);
+        btnClose.setTextColor(theme.textSecondary);
+        btnClose.setPadding((int) (10 * density), (int) (8 * density), (int) (10 * density), (int) (8 * density));
+        btnClose.setClickable(true);
+        btnClose.setFocusable(true);
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        footer.addView(btnClose);
+
+        // Retry button
+        TextView btnRetry = new TextView(activity);
+        btnRetry.setText("Retry Failed (" + failures.size() + ")");
+        btnRetry.setTextSize(12f);
+        btnRetry.setTypeface(null, Typeface.BOLD);
+        btnRetry.setTextColor(theme.onPrimary);
+        btnRetry.setBackground(createRoundedDrawable(theme.primary, 16 * density));
+        btnRetry.setPadding((int) (14 * density), (int) (8 * density), (int) (14 * density), (int) (8 * density));
+        LinearLayout.LayoutParams retryLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        retryLp.leftMargin = (int) (8 * density);
+        btnRetry.setLayoutParams(retryLp);
+        btnRetry.setClickable(true);
+        btnRetry.setFocusable(true);
+        btnRetry.setOnClickListener(v -> {
+            dialog.dismiss();
+            List<StorageScanner.MediaItem> retryItems = new ArrayList<>();
+            for (ExportFailure ef : failures) {
+                if (ef.item != null) retryItems.add(ef.item);
+            }
+            if (!retryItems.isEmpty()) {
+                exportItemsToDcim(activity, retryItems, density, theme);
+            }
+        });
+        footer.addView(btnRetry);
+
+        root.addView(footer);
+
+        dialog.setContentView(root);
+        dialog.show();
+
+        Window w = dialog.getWindow();
+        if (w != null) {
+            w.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            int sw = activity.getResources().getDisplayMetrics().widthPixels;
+            int sh = activity.getResources().getDisplayMetrics().heightPixels;
+            w.setLayout(Math.min((int) (sw * 0.92f), (int) (480 * density)), Math.min((int) (sh * 0.75f), (int) (520 * density)));
         }
     }
 
@@ -3779,13 +4027,28 @@ public class NativeToolkitDialog {
 
         THREAD_POOL.execute(() -> {
             int successCount = 0;
-            int skippedCount = 0;
+            List<ExportFailure> failures = new ArrayList<>();
             List<String> exportedPaths = new ArrayList<>();
             File dcimDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "GooglePhotos_Export");
             if (!dcimDir.exists()) dcimDir.mkdirs();
 
+            // Pre-fetch auth token for active Google Photos account
+            String authToken = null;
+            try {
+                String preferredAcc = currentAccount != null ? currentAccount.accountName : null;
+                authToken = app.morphe.extension.shared.patches.LocalCreationDownloader.getAuthToken(activity, preferredAcc);
+            } catch (Throwable t) {
+                Logger.printInfo(() -> "Could not obtain auth token for export: " + t.getMessage());
+            }
+
             for (int i = 0; i < items.size(); i++) {
-                if (isCancelled[0]) break;
+                if (isCancelled[0]) {
+                    for (int j = i; j < items.size(); j++) {
+                        StorageScanner.MediaItem skippedItem = items.get(j);
+                        failures.add(new ExportFailure(skippedItem, skippedItem.filename, "Export cancelled by user"));
+                    }
+                    break;
+                }
                 StorageScanner.MediaItem item = items.get(i);
                 final int currentIdx = i + 1;
                 MAIN_HANDLER.post(() -> {
@@ -3793,6 +4056,7 @@ public class NativeToolkitDialog {
                     pBar.setProgress(currentIdx);
                 });
 
+                String lastError = null;
                 try {
                     String baseName = (item.filename != null && !item.filename.trim().isEmpty())
                             ? item.filename.trim()
@@ -3819,56 +4083,102 @@ public class NativeToolkitDialog {
                         String localP = item.remoteUrl.startsWith("file://") ? item.remoteUrl.substring(7) : item.remoteUrl;
                         File localFile = new File(localP);
                         if (localFile.exists() && localFile.canRead()) {
-                            copyFile(localFile, destFile);
-                            copied = destFile.exists() && destFile.length() > 0;
+                            try {
+                                copyFile(localFile, destFile);
+                                copied = destFile.exists() && destFile.length() > 0;
+                            } catch (Throwable t) {
+                                lastError = "Local copy error: " + t.getMessage();
+                            }
                         }
                     }
 
                     // 2. Query local_media SQLite path via dedupKey
                     if (!copied && currentAccount != null) {
-                        String localDbPath = StorageScanner.resolveLocalFilePath(currentAccount, item.dedupKey);
-                        if (localDbPath != null) {
-                            File lf = new File(localDbPath);
-                            if (lf.exists() && lf.canRead()) {
-                                copyFile(lf, destFile);
-                                copied = destFile.exists() && destFile.length() > 0;
+                        try {
+                            String localDbPath = StorageScanner.resolveLocalFilePath(currentAccount, item.dedupKey);
+                            if (localDbPath != null) {
+                                if (localDbPath.startsWith("content://")) {
+                                    try (InputStream is = activity.getContentResolver().openInputStream(Uri.parse(localDbPath));
+                                         FileOutputStream fos = new FileOutputStream(destFile)) {
+                                        if (is != null) {
+                                            byte[] buf = new byte[65536];
+                                            int r;
+                                            while ((r = is.read(buf)) != -1) {
+                                                fos.write(buf, 0, r);
+                                            }
+                                            fos.flush();
+                                            copied = destFile.exists() && destFile.length() > 0;
+                                        }
+                                    } catch (Throwable t) {
+                                        lastError = "Content resolver stream error: " + t.getMessage();
+                                    }
+                                } else {
+                                    File lf = new File(localDbPath);
+                                    if (lf.exists() && lf.canRead()) {
+                                        copyFile(lf, destFile);
+                                        copied = destFile.exists() && destFile.length() > 0;
+                                    }
+                                }
                             }
+                        } catch (Throwable t) {
+                            lastError = "Local DB path resolution error: " + t.getMessage();
                         }
                     }
 
                     // 3. Authenticated Google Photos Glide download
                     if (!copied && item.remoteUrl != null && (item.remoteUrl.startsWith("http://") || item.remoteUrl.startsWith("https://"))) {
                         int accountId = currentAccount != null ? currentAccount.accountId : -1;
-                        File remoteCachedFile = downloadRemoteFileGlide(activity, item.remoteUrl, accountId);
-                        if (remoteCachedFile != null && remoteCachedFile.exists() && remoteCachedFile.length() > 0) {
-                            copyFile(remoteCachedFile, destFile);
-                            copied = destFile.exists() && destFile.length() > 0;
+                        try {
+                            File remoteCachedFile = downloadRemoteFileGlide(activity, item.remoteUrl, accountId);
+                            if (remoteCachedFile != null && remoteCachedFile.exists() && remoteCachedFile.length() > 0) {
+                                copyFile(remoteCachedFile, destFile);
+                                copied = destFile.exists() && destFile.length() > 0;
+                            }
+                        } catch (Throwable t) {
+                            lastError = "Glide download error: " + t.getMessage();
                         }
 
-                        // 3b. Fallback to cached bitmap from fetchThumbSync if full-res network download failed
+                        // 3b. Authenticated direct HTTP stream with bearer token
                         if (!copied) {
-                            Bitmap bm = fetchThumbSync(activity, item.remoteUrl, accountId);
-                            if (bm != null) {
-                                try (FileOutputStream fos = new FileOutputStream(destFile)) {
-                                    bm.compress(Bitmap.CompressFormat.JPEG, 95, fos);
-                                    fos.flush();
-                                    copied = destFile.exists() && destFile.length() > 0;
-                                } catch (Throwable ignored) {}
+                            boolean isVideo = (item.mimeType != null && item.mimeType.contains("video")) || item.duration > 0;
+                            String dlUrl = item.remoteUrl;
+                            if (dlUrl.contains("=")) {
+                                dlUrl = dlUrl.replaceAll("=.*$", isVideo ? "=dv" : "=d");
+                            } else {
+                                dlUrl = dlUrl + (isVideo ? "=dv" : "=d");
+                            }
+
+                            try {
+                                downloadRemoteFile(dlUrl, destFile, authToken);
+                                copied = destFile.exists() && destFile.length() > 0;
+                            } catch (Throwable t) {
+                                lastError = t.getMessage();
+                                // Try fallback to item.remoteUrl directly without suffix
+                                if (!copied && !dlUrl.equals(item.remoteUrl)) {
+                                    try {
+                                        downloadRemoteFile(item.remoteUrl, destFile, authToken);
+                                        copied = destFile.exists() && destFile.length() > 0;
+                                    } catch (Throwable t2) {
+                                        lastError = t2.getMessage();
+                                    }
+                                }
                             }
                         }
 
-                        // 3c. Fallback to direct HTTP stream
-                        if (!copied) {
+                        // 3c. Fallback to cached bitmap from fetchThumbSync as last resort (images only)
+                        if (!copied && (item.mimeType == null || !item.mimeType.contains("video")) && item.duration <= 0) {
                             try {
-                                String dlUrl = item.remoteUrl;
-                                if (dlUrl.contains("=")) {
-                                    dlUrl = dlUrl.replaceAll("=.*$", "=d");
-                                } else {
-                                    dlUrl = dlUrl + "=d";
+                                Bitmap bm = fetchThumbSync(activity, item.remoteUrl, accountId);
+                                if (bm != null) {
+                                    try (FileOutputStream fos = new FileOutputStream(destFile)) {
+                                        bm.compress(Bitmap.CompressFormat.JPEG, 95, fos);
+                                        fos.flush();
+                                        copied = destFile.exists() && destFile.length() > 0;
+                                    }
                                 }
-                                downloadRemoteFile(dlUrl, destFile);
-                                copied = destFile.exists() && destFile.length() > 0;
-                            } catch (Throwable ignored) {}
+                            } catch (Throwable t) {
+                                lastError = "Thumbnail fallback error: " + t.getMessage();
+                            }
                         }
                     }
 
@@ -3876,16 +4186,17 @@ public class NativeToolkitDialog {
                         successCount++;
                         exportedPaths.add(destFile.getAbsolutePath());
                     } else {
-                        skippedCount++;
+                        String err = lastError != null ? lastError : "Source media not found or inaccessible";
+                        failures.add(new ExportFailure(item, item.filename, err));
+                        Logger.printInfo(() -> "Export failed for " + item.filename + ": " + err);
                     }
                 } catch (Throwable t) {
                     Logger.printException(() -> "Error exporting item " + item.filename, t);
-                    skippedCount++;
+                    failures.add(new ExportFailure(item, item.filename, t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
                 }
             }
 
             final int finalSuccess = successCount;
-            final int finalSkipped = skippedCount;
             if (!exportedPaths.isEmpty()) {
                 String[] pathsArray = exportedPaths.toArray(new String[0]);
                 try {
@@ -3899,9 +4210,12 @@ public class NativeToolkitDialog {
 
             MAIN_HANDLER.post(() -> {
                 if (progressDialog.isShowing()) progressDialog.dismiss();
-                String msg = "Exported " + finalSuccess + " item(s) to DCIM/GooglePhotos_Export";
-                if (finalSkipped > 0) msg += " (" + finalSkipped + " skipped/failed)";
-                Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
+                if (failures.isEmpty()) {
+                    String msg = "Exported " + finalSuccess + " item(s) to DCIM/GooglePhotos_Export";
+                    Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
+                } else {
+                    showExportResultsDialog(activity, finalSuccess, failures, density, theme);
+                }
             });
         });
     }
@@ -3957,7 +4271,7 @@ public class NativeToolkitDialog {
         previewFrame.addView(previewIv);
 
         int accId = currentAccount != null ? currentAccount.accountId : 0;
-        loadThumbAsync(activity, previewIv, currentItem.remoteUrl, accId);
+        loadThumbAsync(activity, previewIv, currentItem.remoteUrl, currentItem.dedupKey, accId);
 
         if (currentItem.duration > 0 || (currentItem.mimeType != null && currentItem.mimeType.contains("video"))) {
             TextView tvVid = new TextView(activity);
@@ -4093,7 +4407,7 @@ public class NativeToolkitDialog {
                     cThumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
                     cThumb.setBackground(createRoundedDrawable(theme.surfaceContainer, 6 * density));
                     cThumb.setClipToOutline(true);
-                    loadThumbAsync(activity, cThumb, cand.remoteUrl, accId);
+                    loadThumbAsync(activity, cThumb, cand.remoteUrl, cand.dedupKey, accId);
                     cCol.addView(cThumb);
 
                     TextView tvCandSize = new TextView(activity);
@@ -4669,7 +4983,7 @@ public class NativeToolkitDialog {
                     return true;
                 });
 
-                loadThumbAsync(activity, thumb, item.remoteUrl, accId);
+                loadThumbAsync(activity, thumb, item.remoteUrl, item.dedupKey, accId);
                 currentRow.addView(tile);
             }
 
@@ -4798,7 +5112,7 @@ public class NativeToolkitDialog {
                     return true;
                 });
 
-                loadThumbAsync(activity, thumb, item.remoteUrl, accId);
+                loadThumbAsync(activity, thumb, item.remoteUrl, item.dedupKey, accId);
                 container.addView(card);
             }
         }
@@ -5141,13 +5455,48 @@ public class NativeToolkitDialog {
     private static Bitmap loadLocalThumbnail(Context context, String urlStr) {
         if (urlStr == null || context == null) return null;
         try {
-            if (urlStr.startsWith("content://") || urlStr.startsWith("file://") || urlStr.startsWith("/")) {
+            if (urlStr.startsWith("content://")) {
+                Uri uri = Uri.parse(urlStr);
                 if (Build.VERSION.SDK_INT >= 29) {
-                    Uri uri = urlStr.startsWith("content://") ? Uri.parse(urlStr) : Uri.fromFile(new File(urlStr));
-                    return context.getContentResolver().loadThumbnail(uri, new Size(128, 128), null);
-                } else {
-                    String path = urlStr.startsWith("file://") ? Uri.parse(urlStr).getPath() : urlStr;
-                    return ThumbnailUtils.createImageThumbnail(path, MediaStore.Images.Thumbnails.MINI_KIND);
+                    try {
+                        Bitmap bm = context.getContentResolver().loadThumbnail(uri, new Size(384, 384), null);
+                        if (bm != null) return bm;
+                    } catch (Throwable ignored) {}
+                }
+                try (InputStream is = context.getContentResolver().openInputStream(uri)) {
+                    if (is != null) {
+                        BitmapFactory.Options opts = new BitmapFactory.Options();
+                        opts.inPreferredConfig = Bitmap.Config.RGB_565;
+                        return BitmapFactory.decodeStream(is, null, opts);
+                    }
+                } catch (Throwable ignored) {}
+            } else if (urlStr.startsWith("file://") || urlStr.startsWith("/")) {
+                String path = urlStr.startsWith("file://") ? Uri.parse(urlStr).getPath() : urlStr;
+                if (path == null) return null;
+                File f = new File(path);
+                if (f.exists() && f.canRead()) {
+                    if (Build.VERSION.SDK_INT >= 29) {
+                        try {
+                            Bitmap b = ThumbnailUtils.createImageThumbnail(f, new Size(384, 384), null);
+                            if (b != null) return b;
+                        } catch (Throwable ignored) {}
+                    }
+
+                    BitmapFactory.Options opts = new BitmapFactory.Options();
+                    opts.inJustDecodeBounds = true;
+                    BitmapFactory.decodeFile(path, opts);
+                    if (opts.outWidth > 0 && opts.outHeight > 0) {
+                        int sampleSize = 1;
+                        int halfH = opts.outHeight / 2;
+                        int halfW = opts.outWidth / 2;
+                        while ((halfH / sampleSize) >= 192 && (halfW / sampleSize) >= 192) {
+                            sampleSize *= 2;
+                        }
+                        opts.inSampleSize = sampleSize;
+                        opts.inJustDecodeBounds = false;
+                        opts.inPreferredConfig = Bitmap.Config.RGB_565;
+                        return BitmapFactory.decodeFile(path, opts);
+                    }
                 }
             }
         } catch (Throwable ignored) {}
@@ -5197,26 +5546,30 @@ public class NativeToolkitDialog {
     }
 
     private static void loadThumbAsync(Activity activity, ImageView iv, String urlStr, int accountId) {
+        loadThumbAsync(activity, iv, urlStr, null, accountId);
+    }
+
+    private static void loadThumbAsync(Activity activity, ImageView iv, String urlStr, String dedupKey, int accountId) {
         iv.setImageDrawable(null);
-        iv.setTag(urlStr);
+        String tag = (urlStr != null && !urlStr.trim().isEmpty()) ? urlStr : (dedupKey != null ? dedupKey : "");
+        iv.setTag(tag);
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
-        if (urlStr == null || urlStr.trim().isEmpty()) return;
 
         // 1. Memory cache check
-        Bitmap cached = THUMB_CACHE.get(urlStr);
+        Bitmap cached = THUMB_CACHE.get(tag);
         if (cached != null) {
             iv.setImageBitmap(cached);
             return;
         }
 
-        // 2. Instant local media loading for on-device photos
-        if (urlStr.startsWith("content://") || urlStr.startsWith("file://") || urlStr.startsWith("/")) {
+        // 2. Direct local media check (if urlStr is already content:// or file:// or /...)
+        if (urlStr != null && (urlStr.startsWith("content://") || urlStr.startsWith("file://") || urlStr.startsWith("/"))) {
             THREAD_POOL.execute(() -> {
                 Bitmap bm = loadLocalThumbnail(activity, urlStr);
                 if (bm != null) {
-                    THUMB_CACHE.put(urlStr, bm);
+                    THUMB_CACHE.put(tag, bm);
                     MAIN_HANDLER.post(() -> {
-                        if (urlStr.equals(iv.getTag())) {
+                        if (tag.equals(iv.getTag())) {
                             iv.setImageBitmap(bm);
                         }
                     });
@@ -5225,7 +5578,42 @@ public class NativeToolkitDialog {
             return;
         }
 
-        // 3. Native Google Photos Glide loading
+        // 3. Fast-path: Check on-device local photo via dedupKey (instant zero-network display)
+        if (dedupKey != null && !dedupKey.trim().isEmpty() && currentAccount != null) {
+            THREAD_POOL.execute(() -> {
+                String localUriOrPath = StorageScanner.resolveLocalFilePath(currentAccount, dedupKey);
+                if (localUriOrPath != null && !localUriOrPath.isEmpty()) {
+                    Bitmap bm = loadLocalThumbnail(activity, localUriOrPath);
+                    if (bm != null) {
+                        THUMB_CACHE.put(tag, bm);
+                        MAIN_HANDLER.post(() -> {
+                            if (tag.equals(iv.getTag())) {
+                                iv.setImageBitmap(bm);
+                            }
+                        });
+                        return;
+                    }
+                }
+
+                // If on-device decode is unavailable, proceed with authenticated Glide loading on Main thread
+                if (urlStr != null && !urlStr.trim().isEmpty()) {
+                    MAIN_HANDLER.post(() -> {
+                        if (!tag.equals(iv.getTag())) return;
+                        bindGlideOrBackgroundFetch(activity, iv, urlStr, dedupKey, accountId, tag);
+                    });
+                }
+            });
+            return;
+        }
+
+        // 4. Remote media (no dedupKey or cloud-only)
+        if (urlStr != null && !urlStr.trim().isEmpty()) {
+            bindGlideOrBackgroundFetch(activity, iv, urlStr, dedupKey, accountId, tag);
+        }
+    }
+
+    private static void bindGlideOrBackgroundFetch(Activity activity, ImageView iv, String urlStr, String dedupKey, int accountId, String tag) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
         try {
             Object rm = getGlideRequestManager(activity);
             if (rm != null) {
@@ -5238,14 +5626,21 @@ public class NativeToolkitDialog {
             Logger.printInfo(() -> "Glide loadThumbAsync error: " + tGlide.getMessage());
         }
 
-        // 4. Background fetch fallback
+        // Background fetch fallback
         THREAD_POOL.execute(() -> {
             Bitmap bm = fetchThumbSync(activity, urlStr, accountId);
+            if (bm == null && dedupKey != null && currentAccount != null) {
+                String localPath = StorageScanner.resolveLocalFilePath(currentAccount, dedupKey);
+                if (localPath != null) {
+                    bm = loadLocalThumbnail(activity, localPath);
+                }
+            }
             if (bm != null) {
-                THUMB_CACHE.put(urlStr, bm);
+                THUMB_CACHE.put(tag, bm);
+                Bitmap finalBm = bm;
                 MAIN_HANDLER.post(() -> {
-                    if (urlStr.equals(iv.getTag())) {
-                        iv.setImageBitmap(bm);
+                    if (tag.equals(iv.getTag())) {
+                        iv.setImageBitmap(finalBm);
                     }
                 });
             }

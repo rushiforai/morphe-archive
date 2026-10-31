@@ -1,0 +1,14 @@
+{
+  "source": "https://github.com/pengusto/penguin-patches",
+  "version": "1.6.1",
+  "remote_uid": -678157533,
+  "cached_mpp_sha256": "dc0b8fbc780befbbc6c25d5a448b6f21b4b285fe6dfea47529d87a5d4a0cc81b",
+  "downloaded_release_sha256": "dc0b8fbc780befbbc6c25d5a448b6f21b4b285fe6dfea47529d87a5d4a0cc81b",
+  "official_original_cache_sha256": "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581",
+  "remote_enabled": true,
+  "local_source_disabled_during_acceptance": true,
+  "method": "normal Manager Sources \u2192 Update via configured remote URL",
+  "app_data_cleared": false,
+  "http_cache_cleared": false,
+  "time": "2026-10-30T14:06:19.525880+00:00"
+}

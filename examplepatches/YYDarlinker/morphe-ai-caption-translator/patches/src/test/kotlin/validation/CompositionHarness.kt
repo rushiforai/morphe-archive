@@ -24,6 +24,25 @@ fun main(args:Array<String>){
         // APKMirror's SECONDARY builds append a suffix to the version name; the compatibility
         // targets name the plain version.
         val versionName=patcher.context.packageMetadata.versionName.substringBefore('-')
+        fun supports(patch: Patch<*>) = patch.compatibility?.any { pkg ->
+            (pkg.packageName==null || pkg.packageName==patcher.context.packageMetadata.packageName) &&
+                pkg.targets.any { it.version==null || it.version==versionName }
+        } ?: true
+        check(roots.all { supports(it) }) { "Addon metadata does not declare the actual APK version: $versionName" }
+        if(ai) {
+            val captionTargets=official.single { it.name=="Captions" }.compatibility.orEmpty()
+                .filter { it.packageName==patcher.context.packageMetadata.packageName }.flatMap { it.targets }.mapNotNull { it.version }
+            val required=captionTargets.filter { version ->
+                val parts=version.split('.').mapNotNull { it.toIntOrNull() }
+                parts.size==3 && (parts[0]>21 || parts[0]==21 && parts[1]>=30)
+            }.toSet()
+            for(root in roots) {
+                val declared=root.compatibility.orEmpty().filter { it.packageName==patcher.context.packageMetadata.packageName }
+                    .flatMap { it.targets }.mapNotNull { it.version }.toSet()
+                output.resolve("compatibility.txt").writeText("official_caption_targets=$captionTargets\nrequired_21_30_and_newer=$required\naddon_declared=$declared\ninput=$versionName\n")
+                check(declared.containsAll(required)) { "Addon metadata is missing official caption targets: ${required-declared}" }
+            }
+        }
         // Native-only addons are intentionally exercised without selecting any official patch.
         // Experimental targets are included: the newer APKs are published as experimental by Morphe.
         val selected=if(ai) official.filter { p->p.default && (p.compatibility?.any { pkg ->
@@ -36,10 +55,21 @@ fun main(args:Array<String>){
         check(selected.none {it.name=="Spoof signature"}) {"A default=false Spoof signature must not be enabled"}
         selected.addAll(roots)
         val fault=values["fault"]
-        if(fault in listOf("menu_unknown","menu_duplicate")) {
+        if(fault in listOf("menu_unknown","menu_duplicate","shorts_unknown","clock_unknown")) {
             val faultPatch=bytecodePatch(name="N29 controlled $fault",default=false) {
                 dependsOn(*selected.toTypedArray())
                 execute {
+                    if(fault=="clock_unknown") {
+                        val cls=mutableClassDefBy("Lapp/morphe/extension/youtube/addon/AddOnApi;")
+                        cls.methods.remove(cls.methods.single { it.name=="videoTimeChanged" && it.parameterTypes.map { type -> type.toString() }==listOf("J") })
+                        return@execute
+                    }
+                    if(fault=="shorts_unknown") {
+                        val cls=mutableClassDefBy("Lapp/morphe/extension/youtube/shared/ShortsPlayerState;")
+                        val setter=cls.methods.single { it.name=="setOpen" && it.parameterTypes.map { type -> type.toString() }==listOf("Z") }
+                        cls.methods.remove(setter)
+                        return@execute
+                    }
                     val cls=mutableClassDefBy("Lapp/morphe/extension/youtube/patches/components/PlayerFlyoutMenuComponentsFilter;")
                     val method=cls.methods.single { it.name=="isFiltered" }
                     val params=method.parameters.map { p -> com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
@@ -88,6 +118,7 @@ fun main(args:Array<String>){
         if(failure!=null) {
             val actual=flags.methods.filter { it.name.endsWith("Installed") }.associate { m -> m.name to m.implementation!!.instructions.filterIsInstance<com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction>().single().wideLiteral }
             output.resolve("failure-structure.txt").writeText("features=$actual\nhooks=$hooks\nexception=$failure\n")
+            check(actual["aiInstalled"]==0L) { "Failed integration must not publish AI installation permission" }
             if(values["dex-only"]=="true")serializeDexSnapshot()
             if(values["compile-failed"]=="true") {
                 val result=patcher.get();val apk=output.resolve("failed-partial-unsigned.apk");Files.copy(file("input").toPath(),apk.toPath());result.applyTo(apk)
@@ -95,6 +126,7 @@ fun main(args:Array<String>){
             }
             throw IllegalStateException("Patch failed; real partial state preserved",failure)
         }
+        check(fault==null) { "Controlled incompatible host unexpectedly passed: $fault" }
         check(((hooks["suppressNativeDraw"]?:0)>0)==ai)
         check((hooks["initialize"]?:0)==1){"Duplicate shared initialization"}
         check((hooks["onNativeTrackApplied"]?:0)==1){"Shared automatic/manual caption dispatcher must be hooked"}

@@ -179,10 +179,10 @@ def build_content(expanded=True):
     lines.extend([
         "---",
         "",
-        "### 🧪 Experimental Patches (AI-Generated)",
+        "### 🧪 Experimental Patches (Vibe-Coded)",
         "",
         "> [!WARNING]",
-        "> **High Failure Rate Notice:** These patches are AI-generated and haven't been tested on real hardware yet. The chances of failure are high.  ",
+        "> **Experimental Notice:** These patches are vibe-coded prototypes and haven't been tested across all physical devices yet. If a patch needs fine-tuning, [submit a request on GitHub](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml) to prioritize full testing and refinement in the next release!",
         "> 💡 **Want a patch to work?** [Submit a request on GitHub](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml) to prioritize reverse-engineering and make it fully functional in the next update!",
         ""
     ])

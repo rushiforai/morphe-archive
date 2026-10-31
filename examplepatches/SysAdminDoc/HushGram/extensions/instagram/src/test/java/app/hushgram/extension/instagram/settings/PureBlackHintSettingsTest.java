@@ -36,7 +36,7 @@ public class PureBlackHintSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
     }
     @After public void close() throws Exception {

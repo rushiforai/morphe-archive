@@ -32,6 +32,37 @@ private val appMenuVisibleSurfaceFingerprint = Fingerprint(
     ),
 )
 
+// Verified from Cromite 153.0.8010.37 original Smali, phase-4 extraction.
+// Lx50.l builds the PopupWindow and assigns its actual content root (v7).
+private val appMenuPopupContentFingerprint = Fingerprint(
+    definingClass = "Lx50;",
+    name = "l",
+    returnType = "V",
+    parameters = listOf(
+        "Landroid/view/ContextThemeWrapper;",
+        "Landroid/view/View;",
+        "Z",
+        "Ljava/lang/Integer;",
+        "Landroid/graphics/Rect;",
+        "Z",
+        "Z",
+    ),
+)
+
+// Verified Cromite submenu route: Lx50.b creates its own view root via Lf50.b.
+private val appMenuSubmenuFingerprint = Fingerprint(
+    definingClass = "Lx50;",
+    name = "b",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/util/List;", "Landroid/view/View;", "Lh75;", "Ll75;"),
+)
+
+private val appMenuSubmenuRootCall =
+    methodCall("Lf50;->b(Landroid/view/ContextThemeWrapper;Z)Landroid/view/ViewGroup;", Opcode.INVOKE_STATIC)
+
+private val appMenuSetPopupContentCall =
+    methodCall("Landroid/widget/PopupWindow;->setContentView(Landroid/view/View;)V", Opcode.INVOKE_VIRTUAL)
+
 private val appMenuColorFiles = setOf(
     "menu_item_bg_color.xml",
     "menu_item_bg_color_baseline.xml",
@@ -134,10 +165,8 @@ val pureAmoledAppMenuPatch = bytecodePatch(
     description = "Restores native AppMenu resources and three verified bytecode injections.",
 ) {
     compatibleWith("org.cromite.cromite"("153.0.8010.37"))
-    dependsOn(pureAmoledAppMenuResourcesPatch)
-    val browserTheme = recoveredBrowserThemeOption
+    dependsOn(pureAmoledAppMenuResourcesPatch, cromiteAmoledBrightnessPatch)
     execute {
-        val theme = browserTheme.value ?: "device"
         val matches = appMenuVisibleSurfaceFingerprint.instructionMatches
         check(matches.size == 8) {
             "AMOLED AppMenu: original eight bytecode anchors were not found."
@@ -146,6 +175,55 @@ val pureAmoledAppMenuPatch = bytecodePatch(
         check(indices.zipWithNext().all { (a, b) -> a < b }) {
             "AMOLED AppMenu: structural anchors are out of order."
         }
+
+        // The popup content root is independent of the PopupWindow's
+        // transparent background. Color the content, not the outer window.
+        val popupMethod = appMenuPopupContentFingerprint.method
+        val popupIndices = popupMethod.implementation!!.instructions.withIndex()
+            .filter { (_, instruction) ->
+                instruction is com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction &&
+                    instruction.opcode == Opcode.INVOKE_VIRTUAL &&
+                    (instruction.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference)
+                        ?.toString() == "Landroid/widget/PopupWindow;->setContentView(Landroid/view/View;)V"
+            }.map { it.index }
+        check(popupIndices.size == 1) {
+            "AMOLED AppMenu popup: expected one verified setContentView, found ${popupIndices.size}"
+        }
+        val popupCall = popupMethod.getInstruction(popupIndices.single()) as? FiveRegisterInstruction
+            ?: error("AMOLED AppMenu popup: unexpected invoke encoding")
+        check(popupCall.registerCount == 2) {
+            "AMOLED AppMenu popup: expected PopupWindow and content view"
+        }
+        popupMethod.addInstructions(
+            popupIndices.single() + 1,
+            "invoke-static {v${popupCall.registerD}}, " +
+                "Lapp/morphe/extension/cromite/amoled/AmoledBrightnessController;->applyNativeMenuSurface(Landroid/view/View;)V",
+        )
+
+        // The 'More tools' submenu is constructed in Lx50.b, not Lx50.l.
+        // Its separate Lf50.b ViewGroup must be recolored before Lym receives it.
+        val submenu = appMenuSubmenuFingerprint.method
+        val submenuCalls = submenu.implementation!!.instructions.withIndex()
+            .filter { (_, instruction) ->
+                instruction is com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction &&
+                    instruction.opcode == Opcode.INVOKE_STATIC &&
+                    (instruction.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference)
+                        ?.toString() == "Lf50;->b(Landroid/view/ContextThemeWrapper;Z)Landroid/view/ViewGroup;"
+            }.map { it.index }
+        check(submenuCalls.size == 1) {
+            "AMOLED AppMenu submenu: expected one Lf50.b root; found ${submenuCalls.size}"
+        }
+        val submenuResultIndex = submenuCalls.single() + 1
+        val submenuResult = submenu.getInstruction(submenuResultIndex) as? OneRegisterInstruction
+            ?: error("AMOLED AppMenu submenu: missing root result register")
+        check(submenuResult.opcode == Opcode.MOVE_RESULT_OBJECT) {
+            "AMOLED AppMenu submenu: Lf50.b must return a ViewGroup"
+        }
+        submenu.addInstructions(
+            submenuResultIndex + 1,
+            "invoke-static {v${submenuResult.registerA}}, " +
+                "Lapp/morphe/extension/cromite/amoled/AmoledBrightnessController;->applyNativeMenuSurface(Landroid/view/View;)V",
+        )
 
         // Original class: fourth and fifth matches are Drawable.setTint(I)
         // and Drawable.setTintMode(PorterDuff.Mode). Both are two-register invokes.
@@ -168,17 +246,14 @@ val pureAmoledAppMenuPatch = bytecodePatch(
         val modeRegister = (modeCall as FiveRegisterInstruction).registerD
 
         // Preserve the exact order and insertion offsets from the compiled original.
-        val tintSmali = when (theme) {
-            "black" -> "const v$colorRegister, -0x1000000"
-            "white" -> "const v$colorRegister, -0x1"
-            else -> """
-                const/4 v$colorRegister, 0x0
-                invoke-static {v1, v$colorRegister}, Lq72;->b(Landroid/content/Context;Z)I
-                move-result v$colorRegister
-            """.trimIndent()
-        }
+        // The native theme is resolved at runtime; never bake the old Morphe
+        // browserTheme option into menu icon tint.
+        val tintSmali = """
+            invoke-static {v1}, Lapp/morphe/extension/cromite/amoled/AmoledBrightnessController;->resolvedPureThemeForeground(Landroid/content/Context;)I
+            move-result v$colorRegister
+        """.trimIndent()
         method.addInstructions(tintIndex, tintSmali)
-        val offset = if (theme == "black" || theme == "white") 1 else 3
+        val offset = 2
         method.addInstructions(
             tintModeIndex + offset,
             "sget-object v$modeRegister, Landroid/graphics/PorterDuff\$Mode;->SRC_IN:Landroid/graphics/PorterDuff\$Mode;",
@@ -205,22 +280,12 @@ val pureAmoledAppMenuPatch = bytecodePatch(
         }
         val scratch = (idInstruction as OneRegisterInstruction).registerA
         val view = (viewResult as OneRegisterInstruction).registerA
-        val colorSmali = when (theme) {
-            "black" -> "const v$scratch, -0x1000000"
-            "white" -> "const v$scratch, -0x1"
-            else -> """
-                move-object/from16 v14, p1
-                const/4 v$scratch, 0x0
-                invoke-static {v14, v$scratch}, Lq72;->b(Landroid/content/Context;Z)I
-                move-result v$scratch
-            """.trimIndent()
-        }
+        // Use the verified app_menu_content_container, not a global UI traversal.
+        // This preserves register types and updates the text foreground as well.
         method.addInstructions(
             findIndex + 2,
-            """
-                $colorSmali
-                invoke-virtual {v$view, v$scratch}, Landroid/view/View;->setBackgroundColor(I)V
-            """.trimIndent(),
+            "invoke-static {v$view}, " +
+                "Lapp/morphe/extension/cromite/amoled/AmoledBrightnessController;->applyNativeMenuSurface(Landroid/view/View;)V",
         )
     }
 }

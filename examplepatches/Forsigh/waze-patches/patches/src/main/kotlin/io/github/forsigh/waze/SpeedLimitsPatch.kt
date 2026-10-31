@@ -22,6 +22,7 @@ val speedLimitsPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("Map & Alerts")
 
     dependsOn(configOverridesPatch)
 

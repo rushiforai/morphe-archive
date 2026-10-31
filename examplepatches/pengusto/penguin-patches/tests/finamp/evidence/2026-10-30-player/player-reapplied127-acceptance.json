@@ -1,0 +1,21 @@
+{
+  "case": "player",
+  "mask": 127,
+  "user": 0,
+  "installed_apk_sha256": "8cd8fa6321c1142dea5347795a1e11efae672e036f9f10130cce15a058b042b0",
+  "native_sha256": "9521f73e4a9281b90d42033f675138bddb3afd9387e1e5ce6331070f0df2dfd3",
+  "engine_sha256": "d70bbedc2b157630f90123a32ca894a6fa1816ec10cda9f335bada0692b376ee",
+  "source": "01a2d5f91b6ee4dd424bebb8de42e41b51b6d85f",
+  "display_size": "Physical size: 1080x1920",
+  "display_density": "Physical density: 420\nOverride density: 320",
+  "raw_unedited_adb_captures": true,
+  "captured_at": "2026-10-30T13:19:00.367150+00:00",
+  "player_menu_output_present": true,
+  "reviewed_actions_checked": [
+    "Output",
+    "Queue",
+    "Lyrics"
+  ],
+  "menu_scrolls": 2,
+  "all_expected_actions_visible": true
+}

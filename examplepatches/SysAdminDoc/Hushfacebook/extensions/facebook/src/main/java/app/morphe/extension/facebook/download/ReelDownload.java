@@ -126,6 +126,37 @@ public final class ReelDownload implements Function1<Object, Object> {
     static final String SIDEBAR_PAUSED = "UDD sidebar without Download, paused";
     static final String SIDEBAR_NOT_READY = "UDD sidebar without Download, settings not ready";
     static final String OTHER_SIDEBAR = "FbShorts sidebar, which gets no Download";
+    static final String LAYOUT_NEWER = "newer reel button layout from Facebook";
+    static final String LAYOUT_SWITCHED = "older reel button layout switched for Download";
+    static final String LAYOUT_OLDER = "older reel button layout kept, no Download";
+
+    /**
+     * Which of its two button layouts Facebook draws a reel with (#316, #298). The newer one builds
+     * the UDD sidebar and gets the Download button. The older one, which a server flag
+     * (fdsConfig.enableFDSVerticalUfiFbReels) still gives some accounts, draws its own strip that
+     * never reaches the sidebar, so those reels had no Download button at all. The patch hands this
+     * Facebook's answer as the reel is drawn. Yes stays yes. No becomes yes while the button is on,
+     * so the reel gets the newer layout and the button, and stays no when it's off, hidden, paused or
+     * before the settings are ready. Each answer is counted in Hook status. Never throws: Facebook's
+     * answer is the fallback.
+     */
+    public static boolean verticalUfi(boolean facebooks) {
+        try {
+            if (facebooks) {
+                HookStatus.counted(FamilyNames.REEL_DOWNLOAD, LAYOUT_NEWER);
+                return true;
+            }
+            boolean shows = Utils.settingsReady() && Settings.DOWNLOAD_REELS.get()
+                    && Settings.SHOW_REEL_DOWNLOAD_BUTTON.get();
+            HookStatus.counted(FamilyNames.REEL_DOWNLOAD, shows ? LAYOUT_SWITCHED : LAYOUT_OLDER);
+            return shows;
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.REEL_DOWNLOAD, "layout switch", t);
+            Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE,
+                () -> "could not pick the reel button layout", t);
+            return facebooks;
+        }
+    }
 
     /**
      * Whether the sidebar Facebook is building for a reel gets the Download button. The patch asks

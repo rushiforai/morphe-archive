@@ -1,0 +1,117 @@
+package app.template.patches.zalo.backup
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import app.template.patches.shared.bytecode.clearBody
+import app.template.patches.shared.Constants.COMPATIBILITY_ZALO
+
+private const val MAX_CONST16_REGISTER = 0xFF
+
+/**
+ * Forces only the value argument of the setter call immediately following the backup-media key.
+ * This setter takes two booleans; the second (default) argument is deliberately preserved.
+ */
+internal fun enableMediaBackup(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod, version261002: Boolean = false) {
+    val implementation = method.implementation
+        ?: error("Zalo Google Drive backup: configuration method has no implementation")
+    val instructions = implementation.instructions
+    val keys = instructions.indices.filter { index ->
+        (instructions[index] as? ReferenceInstruction)?.reference.let { it as? StringReference }
+            ?.string == "ENABLE_BACKUP_MEDIA"
+    }
+    check(keys.size == 1) {
+        "Zalo Google Drive backup: expected exactly one ENABLE_BACKUP_MEDIA key"
+    }
+    val keyIndex = keys.single()
+    val keyRegister = (instructions[keyIndex] as? OneRegisterInstruction)?.registerA
+        ?: error("Zalo Google Drive backup: backup key register not found")
+    check(
+        keyIndex + 1 < instructions.size &&
+            instructions[keyIndex + 1].opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE),
+    ) {
+        "Zalo Google Drive backup: setter call does not follow ENABLE_BACKUP_MEDIA key"
+    }
+    val writeIndex = keyIndex + 1
+    val writeInstruction = instructions[writeIndex]
+    check(keyRegister == invokeRegisterAt(writeInstruction, 0)) {
+        "Zalo Google Drive backup: setter key does not match ENABLE_BACKUP_MEDIA"
+    }
+    val writeReference = (writeInstruction as? ReferenceInstruction)?.reference as? MethodReference
+        ?: error("Zalo Google Drive backup: ENABLE_BACKUP_MEDIA write reference not found")
+    check(
+        writeReference.definingClass == (if (version261002) "Lp60/p0;" else "Lu40/p0;") &&
+            writeReference.name == (if (version261002) "x" else "i0") &&
+            writeReference.parameterTypes == listOf("Ljava/lang/String;", "Z", "Z"),
+    ) {
+        "Zalo Google Drive backup: unexpected ENABLE_BACKUP_MEDIA setter signature"
+    }
+    val valueRegister = invokeRegisterAt(writeInstruction, 1)
+        ?: error("Zalo Google Drive backup: backup value register not found")
+    val preservedRegister = invokeRegisterAt(writeInstruction, 2)
+        ?: error("Zalo Google Drive backup: preserved boolean register not found")
+    check(valueRegister != preservedRegister) {
+        "Zalo Google Drive backup: boolean arguments must use distinct registers"
+    }
+    check(valueRegister <= MAX_CONST16_REGISTER) {
+        "Zalo Google Drive backup: backup value register v$valueRegister is out of const/16 range"
+    }
+    method.addInstructions(writeIndex, "const/16 v$valueRegister, 0x1")
+}
+
+/**
+ * Resolves a non-negative argument slot to its register in a fixed or range invoke.
+ * Returns null when the slot is at or beyond the argument count or the instruction format is unsupported.
+ */
+@Suppress("MagicNumber") // DEX invoke register slots are positional (C through G).
+private fun invokeRegisterAt(instruction: Instruction, registerIndex: Int): Int? = when (instruction) {
+    is FiveRegisterInstruction -> if (registerIndex >= instruction.registerCount) {
+        null
+    } else {
+        when (registerIndex) {
+            0 -> instruction.registerC
+            1 -> instruction.registerD
+            2 -> instruction.registerE
+            3 -> instruction.registerF
+            4 -> instruction.registerG
+            else -> null
+        }
+    }
+
+    is RegisterRangeInstruction ->
+        if (registerIndex < instruction.registerCount) instruction.startRegister + registerIndex else null
+
+    else -> null
+}
+
+/** Removes the local target-backup eligibility check, preserving all other backup logic. */
+internal fun forceMediaBackupEligible(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
+    method.clearBody()
+    method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+}
+
+/** Enables the existing Google Drive photo-backup entry point for otherwise ineligible accounts. */
+@Suppress("unused")
+val enableZaloGoogleDriveMediaBackupPatch = bytecodePatch(
+    name = "Enable Google Drive photo backup",
+    description = "Makes Zalo's Google Drive photo backup available to more accounts. " +
+        "Google authorization and Drive retention still apply.",
+    default = false,
+) {
+    compatibleWith(COMPATIBILITY_ZALO)
+
+    execute {
+        val current = packageMetadata.versionName == "26.10.02"
+        val configuration = (if (current) BackupConfiguration261002 else BackupConfiguration).matchAll(1..1).single().method
+        val eligibility = (if (current) MediaBackupEligibility261002 else MediaBackupEligibility).matchAll(1..1).single().method
+        enableMediaBackup(configuration, current)
+        forceMediaBackupEligible(eligibility)
+    }
+}

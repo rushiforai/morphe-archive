@@ -1,6 +1,6 @@
 # Maps from scratch, then optional Gemini
 
-**TEST preview 10 guide.** Refresh the Remote source and check it shows preview 10 before following the Gemini steps. If you also have a Local or older source, turn the others off: all previews use the same patch name. You can also import the release `.mpp` as a Local source. The two tutorial videos are planned and have not been recorded yet.
+**TEST preview 11 guide.** Refresh the Remote source and check it shows preview 11 before following the Gemini steps. If you also have a Local or older source, turn the others off: all previews use the same patch name. You can also import the release `.mpp` as a Local source. The two tutorial videos are planned and have not been recorded yet.
 
 **Two independent parts:** Part 1 gets Maps working from a fresh Morphe installation. Part 2 adds Gemini to working Maps. Ordinary map use does not require Gemini, the companion Google app, or the optional BYD data reader.
 
@@ -86,7 +86,7 @@ Tested on one BYD Tang with DiLink 5.0 and MicroG-RE 7.2.2. Not yet tested in Di
 
 ### 1. Check the baseline
 
-Keep the working Maps installation and signing key. This Google/Gemini build requires **Android API 32+** and **MicroG-RE 7.2.2+**; 7.2.2 is the tested provider. Android 10/DiLink 3 support for Maps does not extend to this Gemini package. For an older Maps preview, repatch with the current preview 10 and your same key first.
+Keep the working Maps installation and signing key. This Google/Gemini build requires **Android API 32+** and **MicroG-RE 7.2.2+**; 7.2.2 is the tested provider. Android 10/DiLink 3 support for Maps does not extend to this Gemini package. For an older Maps preview, repatch with the current preview 11 and your same key first.
 
 ### 2. Build the companion Google app
 

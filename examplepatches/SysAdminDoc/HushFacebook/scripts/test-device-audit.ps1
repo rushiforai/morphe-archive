@@ -7,7 +7,7 @@ $auditAst = [System.Management.Automation.Language.Parser]::ParseFile($auditPath
 if ($parseErrors.Count) { throw ($parseErrors -join "`n") }
 $testFunctions = @('Assert-AuditLease', 'Assert-AuditSteps', 'Assert-AuditForeground', 'Invoke-Adb',
     'Get-AuditLocales', 'Get-AuditNightMode', 'Restore-AuditState', 'Format-Shell',
-    'New-AuditBaseline', 'Compare-AuditWalk', 'Test-AuditBaseline', 'Publish-AuditBaseline', 'Save-SettingsPages', 'Get-SettingsPages', 'Test-AuditSectionShown', 'Get-AuditLocaleTable', 'Write-Step', 'Test-AuditDestination', 'Select-AuditTapNode', 'Find-AuditTapNode', 'Get-UiNodes', 'Send-Profile', 'Test-AuditLocaleList', 'Get-AuditLauncher', 'Get-Report',
+    'New-AuditBaseline', 'Get-AuditOff', 'Compare-AuditWalk', 'Test-AuditBaseline', 'Publish-AuditBaseline', 'Save-SettingsPages', 'Get-SettingsPages', 'Test-AuditSectionShown', 'Get-AuditLocaleTable', 'Write-Step', 'Test-AuditDestination', 'Select-AuditTapNode', 'Find-AuditTapNode', 'Get-UiNodes', 'Send-Profile', 'Test-AuditLocaleList', 'Get-AuditLauncher', 'Get-Report',
     'Test-AuditReelViewer', 'Get-AuditReelProof', 'Close-AuditHoldCover', 'Open-AuditRoute', 'Test-AuditKeyboard', 'Test-AuditSettingsRestored', 'ConvertFrom-AuditJsonTable', 'Resolve-AuditStateBefore', 'Get-AuditCrashes')
 foreach ($functionName in $testFunctions) {
     $definition = $auditAst.Find({ param($node)
@@ -251,6 +251,16 @@ try {
         Assert-Throws { Invoke-Adb shell input swipe 10 20 10 5 } 'An overlay permitted input while Facebook remained resumed.'
         Assert-That (-not @($script:adbCalls | Where-Object { $_ -like '* input *' }).Count) 'Input escaped the window-focus guard.'
     }
+    # A second focus line (another display) is named in the refusal beside Facebook's first one.
+    $script:focusedWindow = "mCurrentFocus=Window{1 u0 $Package/$Package.Main}`n  mCurrentFocus=Window{2 u0 com.android.systemui/.Shade}"
+    $focusRefusal = ''
+    try { Assert-AuditForeground } catch { $focusRefusal = $_.Exception.Message }
+    Assert-That ($focusRefusal -clike "*$Package/$Package.Main}; mCurrentFocus=Window{2 u0 com.android.systemui/.Shade}*") `
+        "The focus refusal didn't name every focus line: $focusRefusal"
+    $script:focusedWindow = ''
+    $focusRefusal = ''
+    try { Assert-AuditForeground } catch { $focusRefusal = $_.Exception.Message }
+    Assert-That ($focusRefusal -clike '*(no mCurrentFocus line)*') "The focus refusal with no focus line said: $focusRefusal"
     $script:focusedWindow = "mCurrentFocus=Window{1 u0 $Package/$Package.Main}"
     $savedDump = $script:uiDump
     $script:uiDump = '<?xml version="1.0"?><hierarchy />'
@@ -597,7 +607,7 @@ try {
     $script:deviceSwitches = $null
     Get-ChildItem -LiteralPath $OutDir -Directory -Filter 'orphaned-audit-*' | Remove-Item -Recurse -Force
 
-    $version = '584.0.0.51.56'
+    $version = '585.0.0.47.54'
     $installedHash = 'a' * 64
     $installedAbi = 'arm64-v8a'
     $sdk = 36
@@ -625,6 +635,20 @@ try {
     }
     foreach ($validLocale in @('', 'de-DE,en-US', 'en-US-u-ca-gregory', 'en-x-a', 'x-private', 'zh-Hant-TW', 'en-GB-oed', 'i-klingon', 'de-CH-1901')) {
         Assert-That (Test-AuditLocaleList $validLocale) "A well-formed locale list was rejected: $validLocale"
+    }
+    $kept = @(Get-AuditOff -OnKeys @('hold_edge') -OffKeys @('long_press') -WalkKeys @('hold_edge', 'comment'))
+    Assert-That ($kept -join ',' -ceq 'comment,long_press') "A walk key asked for with -On stayed off, or -Off's key went missing: $($kept -join ',')"
+    Assert-That (@(Get-AuditOff -OnKeys @() -OffKeys @('a', 'b') -WalkKeys @('w')) -join ',' -ceq 'w,a,b') 'An -Off key replaced the walk keys.'
+    Assert-That (@(Get-AuditOff -OnKeys @('k') -OffKeys @('k') -WalkKeys @()) -join ',' -ceq 'k') 'A key in both -On and -Off ended on.'
+    Assert-That (@(Get-AuditOff -OnKeys @('Long_Press') -OffKeys @() -WalkKeys @('long_press')) -join ',' -ceq 'long_press') 'An -On key in another case took a walk key out.'
+    Assert-That (@(Get-AuditOff -OnKeys @() -OffKeys @('w') -WalkKeys @('w')) -join ',' -ceq 'w') 'A key in both -Off and the walk keys came back twice.'
+    Assert-That (@(Get-AuditOff -OnKeys @('a') -OffKeys @() -WalkKeys @('a')).Count -eq 0) 'A walk key asked for with -On came back.'
+    # The walk's own keys, which must stay real settings for the walk to reach its families.
+    $walkOff = @(Get-AuditOff -OnKeys @() -OffKeys @())
+    $settingsJava = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot '..\extensions\facebook\src\main\java\app\morphe\extension\facebook\settings\Settings.java')
+    foreach ($walkKey in @('hushfacebook_hold_reel_right_edge', 'hushfacebook_long_press_opens_comments', 'hushfacebook_hide_post_comment_button')) {
+        Assert-That ($walkOff -ccontains $walkKey) "The walk's keys lost $walkKey."
+        Assert-That ($settingsJava.Contains("new BooleanSetting(`"$walkKey`"")) "$walkKey isn't a setting any more."
     }
     $On = @('one')
     $Off = @('two')

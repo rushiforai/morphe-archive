@@ -46,6 +46,7 @@ public class ExternalGalleryTest {
         Settings.preferences.edit().clear().commit();
         Settings.activeAt.clear();
         Settings.hookErrors.clear();
+        Settings.chatTray = false;
         CrashGuard.resetForTests();
     }
 
@@ -631,5 +632,133 @@ public class ExternalGalleryTest {
         assertFalse("Pause leaves the pick to Messenger", Settings.galleryItems(thread, mixed));
         assertNull(started.getNextStartedActivity());
         assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    /** #101: each picked item comes apart as its own one-item result, with the type the pick screen read for it. */
+    @Test public void aPickComesApartIntoOneResultPerItemWithItsOwnType() {
+        String authority = "com.example.gallery.picked";
+        Robolectric.setupContentProvider(PickedProvider.class, authority);
+        Uri photo = Uri.parse("content://" + authority + "/image/7"), video = Uri.parse("content://" + authority + "/video/8");
+        Uri png = Uri.parse("content://" + authority + "/image/9");
+        Intent mixed = GalleryPicker.handBack(app, withClip(new Intent(), photo, video, png));
+        assertArrayEquals(new String[] {"image/jpeg", "video/mp4", "image/jpeg"}, mixed.getStringArrayExtra(GalleryPicker.ITEM_TYPES));
+        Intent[] items = GalleryPicker.chatItems(mixed);
+        assertEquals(3, items.length);
+        java.util.List<Uri> uris = new java.util.ArrayList<>();
+        java.util.List<String> types = new java.util.ArrayList<>();
+        for (Intent item : items) {
+            uris.add(item.getData());
+            types.add(item.getType());
+            assertNull(item.getClipData());
+            assertFalse(item.hasExtra(GalleryPicker.ITEMS_MARK));
+            assertTrue(item.getBooleanExtra(GalleryPicker.ONE_ITEM, false));
+            assertTrue(item.getBooleanExtra(GalleryPicker.RESULT_PREPARED, false));
+            assertNotEquals(0, item.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        }
+        assertEquals(Arrays.asList(photo, video, png), uris);
+        assertEquals(Arrays.asList("image/jpeg", "video/mp4", "image/jpeg"), types);
+
+        // One item, or a clip the pick screen didn't mark, is the one item in the data.
+        Intent single = GalleryPicker.handBack(app, new Intent().setData(video));
+        assertNull(single.getStringArrayExtra(GalleryPicker.ITEM_TYPES));
+        Intent unmarked = withClip(new Intent().setDataAndType(photo, "image/jpeg"), photo, video);
+        for (Intent one : new Intent[] {single, unmarked}) {
+            Intent[] split = GalleryPicker.chatItems(one);
+            assertEquals(1, split.length);
+            assertEquals(one.getData(), split[0].getData());
+            assertEquals(one.getType(), split[0].getType());
+            assertTrue(split[0].getBooleanExtra(GalleryPicker.ONE_ITEM, false));
+        }
+        // A marked pick missing its type list still splits, and each item's type is left for the chat to read.
+        mixed.removeExtra(GalleryPicker.ITEM_TYPES);
+        for (Intent item : GalleryPicker.chatItems(mixed)) assertNull(item.getType());
+    }
+
+    /** #101: with Put gallery picks in the chat on, the chat's photo handler runs once per item instead of opening the Send to sheet. */
+    @Test public void withPutInTheChatOnThePickGoesToTheChatsTrayNotTheSendToSheet() {
+        String authority = "com.example.gallery.picked";
+        Robolectric.setupContentProvider(PickedProvider.class, authority);
+        Uri photo = Uri.parse("content://" + authority + "/image/7"), video = Uri.parse("content://" + authority + "/video/8");
+        Uri thread = Uri.parse("thread://100000000000042");
+        var started = shadowOf(app);
+        Intent mixed = GalleryPicker.handBack(app, withClip(new Intent(), photo, video));
+        assertNull("Off leaves the pick to Messenger", Settings.galleryToChat(mixed));
+
+        // Without the gallery switch there's no pick screen to come back from, so the chat switch alone does nothing.
+        Settings.preferences.edit().putBoolean(GalleryPicker.CHAT_KEY, true).commit();
+        assertNull(Settings.galleryToChat(mixed));
+        Settings.preferences.edit().putBoolean(GalleryPicker.CHAT_KEY, false).putBoolean(GalleryPicker.KEY, true).commit();
+        assertNull("The gallery switch alone keeps the Send to sheet", Settings.galleryToChat(mixed));
+        assertEquals(0, Settings.lastActive(GalleryPicker.CHAT_KEY));
+
+        Settings.preferences.edit().putBoolean(GalleryPicker.CHAT_KEY, true).commit();
+        // A chat built before the switch went on has no tray, so its pick keeps the Send to sheet.
+        assertNull(Settings.galleryToChat(mixed));
+        assertTrue(Settings.galleryItems(thread, mixed));
+        assertEquals(Intent.ACTION_SEND_MULTIPLE, started.getNextStartedActivity().getAction());
+        mixed = GalleryPicker.handBack(app, withClip(new Intent(), photo, video));
+        assertTrue("The chat opened again builds the tray", Settings.galleryTray(false));
+        assertFalse("The Send to sheet steps aside", Settings.galleryItems(thread, mixed));
+        assertNull(started.getNextStartedActivity());
+        Intent[] items = Settings.galleryToChat(mixed);
+        assertEquals(2, items.length);
+        assertEquals(Arrays.asList(photo, video), Arrays.asList(items[0].getData(), items[1].getData()));
+        assertTrue(Settings.lastActive(GalleryPicker.CHAT_KEY) > 0);
+        assertTrue(mixed.getBooleanExtra(GalleryPicker.IN_CHAT, false));
+        // Messenger's second caller with the same pick runs the handler on nothing, so nothing lands twice.
+        assertEquals(0, Settings.galleryToChat(mixed).length);
+        // Each item the handler then runs on is left to the handler, and its copy goes in the tray, not the editor.
+        Object media = new Object();
+        for (Intent item : items) {
+            assertNull(Settings.galleryToChat(item));
+            assertFalse(Settings.galleryItems(thread, item));
+            assertEquals(java.util.Collections.singletonList(media), Settings.galleryChatItem(item, media));
+            assertNull("An item the chat couldn't copy opens nothing", Settings.galleryChatItem(item, null));
+        }
+        assertNull("A pick that wasn't split keeps Messenger's editor", Settings.galleryChatItem(mixed, media));
+        assertNull(Settings.galleryChatItem(new Intent().setData(photo), media));
+        assertNull(Settings.galleryChatItem(null, media));
+
+        // One item goes to the tray too, as a single run.
+        Intent single = GalleryPicker.handBack(app, new Intent().setData(photo));
+        Intent[] one = Settings.galleryToChat(single);
+        assertEquals(1, one.length);
+        assertEquals(photo, one[0].getData());
+        assertEquals("image/jpeg", one[0].getType());
+        // A photo from another app's share or Messenger's own gallery isn't the pick screen's, and nothing is no pick.
+        assertNull(Settings.galleryToChat(new Intent().setDataAndType(photo, "image/jpeg")));
+        assertNull(Settings.galleryToChat(new Intent().putExtra(GalleryPicker.RESULT_PREPARED, true)));
+        assertNull(Settings.galleryToChat(null));
+
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        Intent paused = GalleryPicker.handBack(app, withClip(new Intent(), photo, video));
+        assertNull("Pause leaves the pick to Messenger", Settings.galleryToChat(paused));
+        assertFalse(paused.hasExtra(GalleryPicker.IN_CHAT));
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    /** #101: the chat's tray, which the server leaves off for some accounts, is on while both switches are. */
+    @Test public void bothSwitchesOnGiveTheChatMessengersTray() {
+        assertFalse("Off keeps the server's answer", Settings.galleryTray(false));
+        assertTrue(Settings.galleryTray(true));
+        assertTrue(Settings.chatTray);
+        Settings.preferences.edit().putBoolean(GalleryPicker.CHAT_KEY, true).commit();
+        assertFalse("The chat switch needs the gallery switch", Settings.galleryTray(false));
+        assertFalse(Settings.chatTray);
+        assertEquals(0, Settings.lastActive(GalleryPicker.CHAT_KEY));
+        Settings.preferences.edit().putBoolean(GalleryPicker.KEY, true).commit();
+        assertTrue(Settings.galleryTray(false));
+        assertTrue(Settings.chatTray);
+        assertTrue(Settings.lastActive(GalleryPicker.CHAT_KEY) > 0);
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        assertFalse("Pause keeps the server's answer", Settings.galleryTray(false));
+        assertTrue(Settings.galleryTray(true));
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    @Test public void putInTheChatNeedsThePickScreenLikeTheGallerySwitch() {
+        assertFalse(Settings.available(GalleryPicker.CHAT_KEY));
+        installGallery();
+        assertTrue(Settings.available(GalleryPicker.CHAT_KEY));
     }
 }

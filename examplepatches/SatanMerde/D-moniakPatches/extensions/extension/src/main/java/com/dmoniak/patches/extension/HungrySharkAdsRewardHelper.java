@@ -18,7 +18,7 @@ import org.json.JSONObject;
  * upon show request without playing any video advertisements.
  * 
  * DISCLAIMER:
- * 100% AI Generated code for educational and research purposes only.
+ * Vibe-coded for educational and research purposes only.
  * No liability accepted.
  */
 public final class HungrySharkAdsRewardHelper {

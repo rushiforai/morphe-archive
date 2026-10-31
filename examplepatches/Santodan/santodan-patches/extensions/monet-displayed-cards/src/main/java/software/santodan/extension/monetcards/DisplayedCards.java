@@ -11,6 +11,7 @@ public final class DisplayedCards {
     private static final Map<Object, WeakReference<Controls>> CONTROLS = new WeakHashMap<>();
     private static final Map<Object, WeakReference<Controls>> FOOTERS = new WeakHashMap<>();
     private static Bridge bridge;
+    private static final ThreadLocal<String> FOOTER_TITLE = new ThreadLocal<>();
     private DisplayedCards() {}
 
     public static void buttons(String label, boolean enabled, Object focus, Object style, Object click,
@@ -58,7 +59,7 @@ public final class DisplayedCards {
         try {
             Bridge api = api();
             if (!CardLimit.isCardPicker(minimum, maximum)) {
-                api.footer.invoke(null, label, apply, focus, up, composer, flags);
+                api.renderFooter(label, apply, focus, up, composer, flags);
                 return;
             }
             api.begin.invoke(composer, 0x53444312);
@@ -74,11 +75,34 @@ public final class DisplayedCards {
                 controls.down = focus;
                 FOOTERS.put(focus, new WeakReference<>(controls));
                 FOOTERS.put(controls.max, new WeakReference<>(controls));
-                api.footer.invoke(null, "Max", controls.maxClick, controls.max, controls.minusTen, composer, 0);
-                api.footer.invoke(null, label, apply, focus, up, composer, flags);
+                api.renderFooter("Max", controls.maxClick, controls.max, controls.minusTen, composer, 0);
+                api.renderFooter(label, apply, focus, up, composer, flags);
             } finally { api.end.invoke(composer, false); }
         } catch (ReflectiveOperationException failure) {
             throw new IllegalStateException("Monet native displayed cards footer contract changed", failure);
+        }
+    }
+
+    /** 1.1.0 specializes Apply's label away; preserve its native renderer and callback. */
+    public static void footer110(int flags, Object focus, Object up, Object apply, Object composer,
+            Object state, int minimum, int maximum) {
+        footer("", apply, focus, up, composer, flags, state, minimum, maximum);
+    }
+
+    /** Remember within the native text group's own composition, including independent restarts. */
+    public static String text(String original, Object composer) {
+        try {
+            Bridge api = api();
+            api.begin.invoke(composer, 0x53444313);
+            try {
+                Object remembered = api.remember.invoke(composer);
+                String scoped = FOOTER_TITLE.get();
+                String title = scoped != null ? scoped : remembered instanceof String ? (String) remembered : "";
+                if (!title.equals(remembered)) api.save.invoke(composer, title);
+                return title.isEmpty() ? original : title;
+            } finally { api.end.invoke(composer, false); }
+        } catch (ReflectiveOperationException failure) {
+            throw new IllegalStateException("Monet native footer title contract changed", failure);
         }
     }
 
@@ -152,23 +176,37 @@ public final class DisplayedCards {
         final Method button, footer, configure, left, right, up, get, set, begin, remember, save, end;
         final Object empty, unit;
         Bridge() throws ReflectiveOperationException {
-            Class<?> focusType = Class.forName("a.cm1"), composerType = Class.forName("a.yr1");
-            click = Class.forName("a.iq1");
-            property = Class.forName("a.kq1");
+            boolean modern = NativeLayout.modern;
+            Class<?> focusType = Class.forName(modern ? "a.wp1" : "a.cm1"), composerType = Class.forName(modern ? "a.jw1" : "a.yr1");
+            click = Class.forName(modern ? "a.uu1" : "a.iq1");
+            property = Class.forName(modern ? "a.wu1" : "a.kq1");
             configure = property.getMethod("a", Object.class);
-            Class<?> properties = Class.forName("a.wl1");
+            Class<?> properties = Class.forName(modern ? "a.qp1" : "a.wl1");
             left = properties.getMethod("e", focusType); right = properties.getMethod("k", focusType);
             up = properties.getMethod("j", focusType);
-            footer = Class.forName("a.mq2").getMethod("L0", String.class, click, focusType, focusType, composerType, int.class);
+            footer = modern ? Class.forName("a.ux2").getMethod("B0", int.class, focusType, focusType, click, composerType)
+                : Class.forName("a.mq2").getMethod("L0", String.class, click, focusType, focusType, composerType, int.class);
             focus = focusType.getConstructor();
-            button = Class.forName("a.mq2").getMethod("M0", String.class, boolean.class, focusType,
-                Class.forName("a.zz4"), click, focusType, focusType, focusType, composerType, int.class, int.class);
-            Class<?> state = Class.forName("a.q15");
+            button = Class.forName(modern ? "a.ux2" : "a.mq2").getMethod(modern ? "C0" : "M0", String.class, boolean.class, focusType,
+                Class.forName(modern ? "a.y95" : "a.zz4"), click, focusType, focusType, focusType, composerType, int.class, int.class);
+            Class<?> state = Class.forName(modern ? "a.xb5" : "a.q15");
             get = state.getMethod("g"); set = state.getMethod("i", int.class);
-            begin = composerType.getMethod("g0", int.class); remember = composerType.getMethod("S");
-            save = composerType.getMethod("q0", Object.class); end = composerType.getMethod("q", boolean.class);
-            empty = Class.forName("a.am0").getField("a").get(null);
-            unit = Class.forName("a.s67").getField("a").get(null);
+            begin = composerType.getMethod(modern ? "h0" : "g0", int.class); remember = composerType.getMethod(modern ? "T" : "S");
+            save = composerType.getMethod(modern ? "r0" : "q0", Object.class); end = composerType.getMethod(modern ? "r" : "q", boolean.class);
+            empty = Class.forName(modern ? "a.pp0" : "a.am0").getField("a").get(null);
+            unit = Class.forName(modern ? "a.lo7" : "a.s67").getField("a").get(null);
+        }
+        void renderFooter(String label, Object apply, Object focus, Object up, Object composer, int flags) throws ReflectiveOperationException {
+            if (!NativeLayout.modern) {
+                footer.invoke(null, label, apply, focus, up, composer, flags);
+                return;
+            }
+            String previous = FOOTER_TITLE.get();
+            FOOTER_TITLE.set("Max".equals(label) ? "Max" : "");
+            try { footer.invoke(null, flags, focus, up, apply, composer); }
+            finally {
+                if (previous == null) FOOTER_TITLE.remove(); else FOOTER_TITLE.set(previous);
+            }
         }
         void render(String label, boolean enabled, Object focus, Object style, Object click,
                 Object left, Object right, Object down, Object composer, int flags, int defaults) throws ReflectiveOperationException {

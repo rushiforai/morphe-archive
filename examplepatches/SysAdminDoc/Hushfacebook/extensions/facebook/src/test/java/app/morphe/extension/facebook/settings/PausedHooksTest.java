@@ -64,6 +64,7 @@ import app.morphe.extension.facebook.chats.ReadReceipts;
 import app.morphe.extension.facebook.chats.TypingIndicator;
 import app.morphe.extension.facebook.download.ClipboardLinkForTests;
 import app.morphe.extension.facebook.download.CommentGifForTests;
+import app.morphe.extension.facebook.download.CommentVideoForTests;
 import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PhotoMenuItemForTests;
 import app.morphe.extension.facebook.download.PhotoSave;
@@ -306,6 +307,10 @@ public class PausedHooksTest {
         probes.put(Settings.SAVE_CRASH_FILE, app.morphe.extension.shared.settings.preference.CrashFileForTests::aCrashWritesAFile);
         // Leaving Facebook ends its processes a few seconds later.
         probes.put(Settings.CLOSE_WHEN_LEFT, app.morphe.extension.facebook.misc.CloseWhenLeftForTests::aLeaveCloses);
+        // A start from Facebook's icon puts the countdown cover over its first screen.
+        probes.put(Settings.OPENING_PAUSE, app.morphe.extension.facebook.misc.OpeningPauseForTests::aLaunchCovers);
+        // An hour of feed browsing puts a break over the feed.
+        probes.put(Settings.TAKE_BREAKS, app.morphe.extension.facebook.misc.BreakTimerForTests::aBreakCovers);
         return probes;
     }
 
@@ -495,8 +500,10 @@ public class PausedHooksTest {
                     return !FeedsHeader.roomForFilters(true);
                 }));
         probes.put(PatchFamily.SPONSORED_STORIES, Collections.singletonList(FeedFilter::hideSponsoredStories));
-        // A tray of a friend's bucket, a suggested one and one labelled SUGGESTED keeps only the friend's.
-        probes.put(PatchFamily.SUGGESTED_STORIES, Collections.singletonList(SuggestedStoriesForTests::hidesSuggestions));
+        // A tray of a friend's bucket, a suggested one and one labelled SUGGESTED keeps only the friend's,
+        // a Page's bucket leaves it, and so does a bucket you've watched.
+        probes.put(PatchFamily.SUGGESTED_STORIES, Arrays.asList(SuggestedStoriesForTests::hidesSuggestions,
+                SuggestedStoriesForTests::hidesPageStories, SuggestedStoriesForTests::hidesSeenStories));
         probes.put(PatchFamily.STORY_AUTO_ADVANCE, Arrays.asList(StoryAdvance::waitForTap, StoryAdvance::loop));
         // The story viewer's report of the stories you viewed goes out whole, and with Mark as seen
         // on a marked card goes alone and the button follows the card on screen.
@@ -562,6 +569,8 @@ public class PausedHooksTest {
                 () -> ReelDeclutter.filterChips(Arrays.asList(new TypedFeedUnit("XFBFBShortsSoundtrackTitle"))) != null,
                 // So does the Reels tab's own audio line row.
                 ReelDeclutter::hideAudioLine,
+                // And "Made with Edits" under the caption.
+                ReelDeclutter::hideEditsLabel,
                 // A stalled video's slow connection message.
                 ReelDeclutter::hideSlowConnectionMessage,
                 ReelDeclutter::hideFollowButton,
@@ -570,9 +579,15 @@ public class PausedHooksTest {
                 ReelDeclutter::skipSocialBubbles,
                 ReelMidCardsForTests::dropsAThreadsCard,
                 () -> ReelCleanMode.startClean(false),
+                // Its button takes the sticky way, and a reel taken out keeps it (#304).
+                () -> ReelCleanMode.stickyClean(false),
+                () -> ReelCleanMode.cleanButtonState(ReelCleanMode.markLeftClean(new Object[] {Boolean.FALSE})[0]) == Boolean.TRUE,
                 ReelLoopForTests::stopsAReel,
                 // A video whose audio Facebook would pick in Spanish is asked for no language.
                 () -> !"es".equals(OriginalAudio.language("es")),
+                // And a video's dubbed tracks are dropped as its manifest is read (#148).
+                () -> !OriginalAudio.dubbing(true),
+                () -> OriginalAudio.filtering(0) != 0,
                 // The search pill is answered as empty only while the patch runs.
                 ReelDeclutter::hideSearchPill,
                 // So is the prompt over a reel's comments.
@@ -587,6 +602,12 @@ public class PausedHooksTest {
                 () -> ReelDeclutter.hideSidebarButton(SidebarIcon.APP_WHATSAPP),
                 // A reel with comments off gets its Comment button only while the patch runs.
                 () -> ReelDeclutter.showsCommentButton(false),
+                // A video author's Subscribe pill stays out of the viewer's row and a shared row's slot (#291).
+                () -> !ReelDeclutter.showAuthorPill(true, true),
+                () -> {
+                    ReelDeclutter.noteAuthorPill(true);
+                    return ReelDeclutter.authorPillSlot(new Object()) == null;
+                },
                 // So is the speaker button under it.
                 () -> !ReelDeclutter.showsSoundButton(true),
                 // And the footer's speaker, when the footer builds it.
@@ -670,7 +691,15 @@ public class PausedHooksTest {
                     TapToPlayForTests.forget();
                     return !TapToPlay.allowLegacyStart(new Object(), TapToPlayForTests.Trigger.BY_AUTOPLAY);
                 },
-                () -> TapToPlay.autoplaySetting(TapToPlayForTests.Autoplay.ON) != TapToPlayForTests.Autoplay.ON,
+                () -> {
+                    // Inline feed video controls keeps the chosen setting, its button needs a player (#239).
+                    Settings.INLINE_FEED_VIDEO_CONTROLS.save(false);
+                    try {
+                        return TapToPlay.autoplaySetting(TapToPlayForTests.Autoplay.ON) != TapToPlayForTests.Autoplay.ON;
+                    } finally {
+                        Settings.INLINE_FEED_VIDEO_CONTROLS.save(true);
+                    }
+                },
                 () -> TapToPlay.showReelPlayButton(false)));
         // A long video left at 5:00 is saved, and its next start seeks back there.
         // A long video picks up where it was left, and a reel played on and a story viewed go on the
@@ -718,13 +747,17 @@ public class PausedHooksTest {
                 () -> StoryPhoto.menuTitle(new UnmarkedPhotoStoryCard()) != null,
                 // The recorder runs in every player Facebook builds, not only in stories.
                 PlayerSourcesForTests::recordsAPlayer));
-        // Every reel's sidebar gets the Download button, and a reel whose caption was seen gets Copy caption.
-        probes.put(PatchFamily.REEL_DOWNLOAD, Arrays.asList(ReelDownload::showsButton, ReelCaptionForTests::addsTheRow));
-        // A video post's menu gets Download to phone, and the video recorder keeps a player.
-        // Its copied-link option reads the clipboard as a screen comes to the front.
+        // Every reel's sidebar gets the Download button, a reel on Facebook's older button layout gets
+        // the newer one so it has the button too, and a reel whose caption was seen gets Copy caption.
+        probes.put(PatchFamily.REEL_DOWNLOAD, Arrays.asList(ReelDownload::showsButton,
+                () -> ReelDownload.verticalUfi(false), ReelCaptionForTests::addsTheRow));
+        // A video post's menu gets Download to phone, a video comment's sheet gets Save video, and
+        // the video recorder keeps a player. Its copied-link option reads the clipboard as a screen
+        // comes to the front.
         probes.put(PatchFamily.VIDEO_DOWNLOAD, Arrays.asList(
                 VideoMenuItemForTests::addsAnItem,
                 VideoMenuItemForTests::addsTheOpenItem,
+                CommentVideoForTests::addsARow,
                 PlayerSourcesForTests::recordsAVideoPlayer,
                 ClipboardLinkForTests::readsTheClipboard));
         // Every photo the viewer opens offers Save photo, a photo post's menu gets Save photo, and a
@@ -824,13 +857,15 @@ public class PausedHooksTest {
                 () -> CommentSheetOptions.incomingTypers(3) == 0,
                 () -> CommentSheetOptions.newCommentsPill("3 new comments").isEmpty()));
         // A reel's comment sheet asking for two thirds of the screen gets all of it, a split-screen
-        // launcher answers that it didn't open, a full-height sheet fills the screen, and the reel
-        // drawn above the comments is hidden.
+        // launcher answers that it didn't open, a full-height sheet fills the screen, the reel
+        // drawn above the comments is hidden, and a part-height sheet over the Reels tab lets a tap
+        // above it through to the reel.
         probes.put(PatchFamily.FULL_HEIGHT_COMMENTS, Arrays.asList(
                 () -> FullHeightComments.sheetHeight(0.66f) == 1f,
                 FullHeightComments::skipSplitScreen,
                 () -> FullHeightComments.fillsScreen(1f),
-                PausedHooksTest::hidesTheVideoAboveTheComments));
+                PausedHooksTest::hidesTheVideoAboveTheComments,
+                PausedHooksTest::letsATapThroughToTheReel));
         // A word without @ in a post or comment box looks nobody up, and a list of people left open
         // by an earlier @ is closed.
         probes.put(PatchFamily.TAG_SUGGESTIONS, Arrays.asList(
@@ -889,7 +924,12 @@ public class PausedHooksTest {
         probes.put(PatchFamily.SHARE_SHEET_ITEMS, Arrays.asList(
                 () -> ShareSheetGroups.sendToGroupButton(new Object()) == null,
                 () -> !ShareSheetGroups.offerNewGroup(true),
-                () -> !ShareSheetPeople.addRow(new java.util.ArrayList<>(), new Object())));
+                () -> !ShareSheetPeople.addRow(new java.util.ArrayList<>(), new Object()),
+                () -> {
+                    java.util.ArrayList<Object> children = new java.util.ArrayList<>();
+                    ShareSheetPeople.addRowThen(new Object(), null, children);
+                    return children.isEmpty();
+                }));
         // Search leaves out its Meta AI answer and its prompt modules, and a suggestion set to open
         // Meta AI opens the results.
         probes.put(PatchFamily.META_AI_SEARCH, Arrays.asList(
@@ -926,10 +966,12 @@ public class PausedHooksTest {
                 PictureInPictureForTests::homeFlagAllows, PictureInPictureForTests::offersTheMenuRow,
                 PictureInPictureForTests::offersTheButton));
         // An HDR window comes out in the default colour mode, a headroom as none, the screen
-        // answers as one that shows no HDR, and a manifest loses the HDR twin of an SDR rendition.
+        // answers as one that shows no HDR, a manifest loses the HDR twin of an SDR rendition, and
+        // a player goes from its SurfaceView to its TextureView.
         probes.put(PatchFamily.HDR_BRIGHTNESS, Arrays.asList(
                 HdrBrightnessForTests::keepsAnHdrWindowInTheUsualRange, HdrBrightnessForTests::holdsTheHeadroom,
-                HdrBrightnessForTests::answersTheScreenAsShowingNoHdr, HdrBrightnessForTests::dropsTheHdrRendition));
+                HdrBrightnessForTests::answersTheScreenAsShowingNoHdr, HdrBrightnessForTests::dropsTheHdrRendition,
+                HdrBrightnessForTests::drawsVideosWithTheScreen));
         // A sink's sound starts with its silent parts skipped.
         probes.put(PatchFamily.SKIP_SILENCE, Collections.singletonList(() -> SkipSilence.skipSilence(false)));
         // A new session starts muted, and a sound-on that isn't the user's keeps the feed muted.
@@ -1040,6 +1082,12 @@ public class PausedHooksTest {
         sheet.addView(header);
         FullHeightComments.watchHeader(sheet, 0x7f0a0612, true);
         return header.getVisibility() == View.GONE;
+    }
+
+    /** A part-height comment sheet opened from the Reels tab, surface 20, handed over by Facebook. */
+    private static boolean letsATapThroughToTheReel() {
+        return FullHeightComments.tapThrough(
+                new android.app.Dialog(Robolectric.buildActivity(Activity.class).setup().get()), 20);
     }
 
     /** A press at the far end of a bar whose thumb sits at its start, then a cancel to end it. */

@@ -1,0 +1,8 @@
+{"time": "2026-10-30T13:34:14.414655+00:00", "action": "tap", "selector": "Home\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Home\nTab 1 of 6", "bounds": "[127,152][251,220]"}
+{"time": "2026-10-30T13:34:18.994393+00:00", "action": "tap", "anchor": "Fixture Music", "selectorGap": "unlabelled drawer ImageView", "bounds": "[38,58][108,128]"}
+{"time": "2026-10-30T13:34:21.423001+00:00", "action": "tap", "selector": "Settings", "class": null, "index": null, "actualText": "", "actualDesc": "Settings", "bounds": "[0,1728][844,1824]"}
+{"time": "2026-10-30T13:34:25.835903+00:00", "action": "tap", "selector": "Layout & Theme", "class": null, "index": null, "actualText": "", "actualDesc": "Layout & Theme", "bounds": "[0,1168][1080,1280]"}
+{"time": "2026-10-30T13:34:43.608923+00:00", "action": "tap", "selector": "Home\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Home\nTab 1 of 6", "bounds": "[127,152][251,220]"}
+{"time": "2026-10-30T13:34:48.068379+00:00", "action": "tap", "anchor": "Fixture Music", "selectorGap": "unlabelled drawer ImageView", "bounds": "[38,58][108,128]"}
+{"time": "2026-10-30T13:34:50.449061+00:00", "action": "tap", "selector": "Settings", "class": null, "index": null, "actualText": "", "actualDesc": "Settings", "bounds": "[0,1728][844,1824]"}
+{"time": "2026-10-30T13:34:54.874377+00:00", "action": "tap", "selector": "Downloads", "class": null, "index": null, "actualText": "", "actualDesc": "Downloads", "bounds": "[0,496][1080,608]"}

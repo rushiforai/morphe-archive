@@ -1,0 +1,2 @@
+patches/src/main/resources/remoteatv/strings-6.1.0.tsv text eol=lf
+patches/src/main/resources/remoteatv/*.bfp.gz binary

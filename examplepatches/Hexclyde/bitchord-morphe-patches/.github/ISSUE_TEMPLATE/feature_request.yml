@@ -1,0 +1,16 @@
+name: Feature request
+description: Propose a focused improvement to the integration.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Problem and proposed behavior
+      description: Explain the user need, relevant versions and an example without private account data.
+    validations:
+      required: true
+  - type: textarea
+    id: considerations
+    attributes:
+      label: Alternatives and considerations
+      description: Consider storage, permissions, security, platform terms and compatibility where relevant.

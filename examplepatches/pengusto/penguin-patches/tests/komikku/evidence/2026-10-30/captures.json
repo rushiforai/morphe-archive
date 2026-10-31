@@ -1,0 +1,82 @@
+{
+  "before.png": {
+    "sha256": "f9870b4b15e519c589928e2b04d2bb79b9a523643995417c57eeadeab3039df0",
+    "sourceCapture": "008-original-exclude-meteor-clean.png",
+    "unedited": true
+  },
+  "before.xml": {
+    "sha256": "31a9bbd2c180e480e23812bdbb49476d8a3916a280d885f41f611e96fe4f5459",
+    "sourceCapture": "008-original-exclude-meteor-clean.xml",
+    "unedited": true
+  },
+  "after.png": {
+    "sha256": "5414274056e453d86869a1685db8aa4a9274663c6473038abcd6180c4778d8cd",
+    "sourceCapture": "016-patched-exclude-meteor-clean.png",
+    "unedited": true
+  },
+  "after.xml": {
+    "sha256": "bfda04a89323c631b0e7d17047f90464df47f14c25fee0ba2076ace82f3a98dc",
+    "sourceCapture": "016-patched-exclude-meteor-clean.xml",
+    "unedited": true
+  },
+  "verified-manager-source.png": {
+    "sha256": "b7c4063bea006f2fa5f4f536a11c7f54c0549be515b85e20c4aee49e8f49e66c",
+    "sourceCapture": "010-verified-manager-source.png",
+    "unedited": true
+  },
+  "verified-manager-source.xml": {
+    "sha256": "1d1f0b12e97e4e249820141121f384b30d186a8647a4ad0e0cb18d591c5dd9c9",
+    "sourceCapture": "010-verified-manager-source.xml",
+    "unedited": true
+  },
+  "manager-patch-disabled.png": {
+    "sha256": "0a41fd2d01bbd279cfb1ddb0bebd2936538230a37d2f4694922dadd8e428ed99",
+    "sourceCapture": "011-manager-patch-disabled.png",
+    "unedited": true
+  },
+  "manager-patch-disabled.xml": {
+    "sha256": "5fa5f1ab21bf4df7a657bb80431cbf9c79a6cfe4686a5bf8a04e141d0c89e8f3",
+    "sourceCapture": "011-manager-patch-disabled.xml",
+    "unedited": true
+  },
+  "manager-patch-selected.png": {
+    "sha256": "c12388e2a55c0f3bc0fb2d0c06fd0e2cc8d1d04bad9bdd53dfd495ab677c199f",
+    "sourceCapture": "012-manager-patch-selected.png",
+    "unedited": true
+  },
+  "manager-patch-selected.xml": {
+    "sha256": "094caca58a4df97e2b3b102b32cc1b2be88e744b1fe09d5971708bc9e2e1e3a0",
+    "sourceCapture": "012-manager-patch-selected.xml",
+    "unedited": true
+  },
+  "manager-patch-success.png": {
+    "sha256": "3207419750ade90ace97bba3af7c08693c342c70bba32b6d0836f8c74b35184a",
+    "sourceCapture": "013-manager-patch-success.png",
+    "unedited": true
+  },
+  "manager-patch-success.xml": {
+    "sha256": "ba411a577989e37c0f93bdfe1d450f538e6b22ca3310f9a8fe4ddb0e0878d40f",
+    "sourceCapture": "013-manager-patch-success.xml",
+    "unedited": true
+  },
+  "verified-manager-exported.png": {
+    "sha256": "8e1c50a8843d72ef5d93316d23902fee832ded07ff9a98279996e107e50c69dc",
+    "sourceCapture": "014-verified-manager-exported.png",
+    "unedited": true
+  },
+  "verified-manager-exported.xml": {
+    "sha256": "ba411a577989e37c0f93bdfe1d450f538e6b22ca3310f9a8fe4ddb0e0878d40f",
+    "sourceCapture": "014-verified-manager-exported.xml",
+    "unedited": true
+  },
+  "verified-manager-update-confirm.png": {
+    "sha256": "1a9096927195b4dcc592c0a17ebe5dea21059c5f0e60eb5ad3046a7c04674de8",
+    "sourceCapture": "015-verified-manager-update-confirm.png",
+    "unedited": true
+  },
+  "verified-manager-update-confirm.xml": {
+    "sha256": "846349dd2b76a60e49b617be5f00c71526324ba8fbb1c03a85e24ec242559807",
+    "sourceCapture": "015-verified-manager-update-confirm.xml",
+    "unedited": true
+  }
+}

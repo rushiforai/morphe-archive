@@ -25,6 +25,12 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * it set opens its Stories as `from_feed_inline_viewer_multi_bucket_unconnected`: the row of
  * several people's Stories you aren't connected to, "Stories you might like". Facebook's feed
  * ranking files the same rows under the story type MBSU_UNCONNECTED.
+ *
+ * 585 (2026-10-30): the component (arm64 `LX/094U;`, armv7 `LX/094Z;`) no longer reads the flag
+ * itself. Its `render` asks the unit model's accessor (arm64 `LX/0AeR;->HER()Z`, armv7
+ * `LX/0AeU;->HEP()Z`), and of that interface's two implementations one loads 0xaff56b7b into
+ * `TreeJNI.getBooleanValue` (arm64 `LX/094W;`, armv7 `LX/094b;`) and the other into the tree
+ * interface's own `(I)Z` (arm64 `LX/0CEv;`, armv7 `LX/0CEy;`). Nothing else in the APK loads the key.
  */
 internal const val DISCOVER_FEED_UNIT_TYPE = "DiscoverFeedUnit"
 internal const val UNCONNECTED_STORIES_FLAG = "is_unconnected_mbsu"
@@ -69,14 +75,47 @@ internal fun readsUnconnectedStoriesFlag(method: Method): Boolean {
     return false
 }
 
+/** Each `()Z` method [method] calls, as `Owner->name`: where 585's component asks the unit model's accessors. */
+internal fun booleanAccessorCalls(method: Method): Set<String> =
+    method.implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+        ?.filter { it.parameterTypes.isEmpty() && it.returnType == "Z" }
+        ?.map { "${it.definingClass}->${it.name}" }
+        ?.toSet() ?: emptySet()
+
 /**
- * The classes [layout]'s constructor takes that have a method reading [UNCONNECTED_STORIES_FLAG]:
- * DiscoverUnitComponent, as [classOf] finds each parameter's class. A build wants exactly one.
+ * Of [owners], each `Owner->name` accessor that [classDef] implements with a method reading
+ * [UNCONNECTED_STORIES_FLAG]: the class itself or an interface it declares, by the reading method's name.
  */
-internal fun unconnectedStoriesReaders(layout: ClassDef, classOf: (String) -> ClassDef?): List<ClassDef> =
-    layout.methods.filter { it.name == "<init>" }
+internal fun unconnectedStoriesAccessors(classDef: ClassDef, owners: Set<String>): Set<String> {
+    val implemented = (classDef.interfaces + classDef.type).filter { it in owners }
+    if (implemented.isEmpty()) return emptySet()
+    return classDef.methods.filter { it.parameterTypes.isEmpty() && it.returnType == "Z" && readsUnconnectedStoriesFlag(it) }
+        .flatMap { reader -> implemented.map { "$it->${reader.name}" } }
+        .toSet()
+}
+
+/**
+ * The classes [layout]'s constructor takes that read [UNCONNECTED_STORIES_FLAG]: DiscoverUnitComponent,
+ * as [classOf] finds each parameter's class. A build wants exactly one. Up to 584 the component reads
+ * the flag itself; 585's asks the unit model's `()Z` accessor (arm64 `LX/0AeR;->HER()Z`, armv7
+ * `LX/0AeU;->HEP()Z`), and [flagAccessors], handed the owners of every `()Z` call the candidates make,
+ * answers which of them have an implementation reading the flag ([unconnectedStoriesAccessors]).
+ */
+internal fun unconnectedStoriesReaders(
+    layout: ClassDef,
+    flagAccessors: (Set<String>) -> Set<String> = { emptySet() },
+    classOf: (String) -> ClassDef?,
+): List<ClassDef> {
+    val candidates = layout.methods.filter { it.name == "<init>" }
         .flatMap { constructor -> constructor.parameterTypes.map { it.toString() } }
         .filter { it.startsWith("L") }
         .distinct()
         .mapNotNull(classOf)
-        .filter { component -> component.methods.any(::readsUnconnectedStoriesFlag) }
+    // Why: 585 moved the tree read into the unit model's accessor, so a call to an accessor whose
+    // implementation reads the flag counts as the component reading it.
+    val asked = candidates.flatMap { component -> component.methods.flatMap(::booleanAccessorCalls) }.toSet()
+    val reading = if (asked.isEmpty()) emptySet() else flagAccessors(asked.map { it.substringBefore("->") }.toSet()) intersect asked
+    return candidates.filter { component ->
+        component.methods.any { readsUnconnectedStoriesFlag(it) || booleanAccessorCalls(it).any(reading::contains) }
+    }
+}

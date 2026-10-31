@@ -128,9 +128,15 @@ class TabBarColoursFixtureTest {
                 val inflaters = FixtureDex.methodsWhere(bundle, { dex -> dex.fieldSection.any { it.toString() == paint.toString() } }) {
                     lineColourReads(it, paint).isNotEmpty()
                 }
-                // The provider's setter reads the Paint too, with the provider's own colour.
-                val setters = inflaters.filter { it.definingClass == TAB_BAR_CONTAINER }
-                val inflater = inflaters.filter { it.definingClass != TAB_BAR_CONTAINER }.single()
+                val colour = selectedTabColour(layout) { type ->
+                    FixtureDex.classes(bundle, setOf(type))[type]?.let { AccessFlags.ABSTRACT.isSet(it.accessFlags) && !AccessFlags.INTERFACE.isSet(it.accessFlags) } == true
+                }
+                // The provider's setter reads the Paint too, with the provider's own colour. 585 moved the
+                // inflater into the layout as well, so the setter is the one that asks the provider.
+                val setters = inflaters.filter { it.definingClass == TAB_BAR_CONTAINER && selectedTabColourReads(it, colour).isNotEmpty() }
+                val inflater = inflaters.filter { candidate ->
+                    setters.none { it.definingClass == candidate.definingClass && it.sameAs(candidate) }
+                }.single()
                 assertEquals("$name: the layout's own setter", 1, setters.size)
                 val sites = lineColourReads(inflater, paint)
                 assertEquals("$name: one colour goes on the line's Paint when it's made", 1, sites.size)
@@ -138,12 +144,13 @@ class TabBarColoursFixtureTest {
                 val at = sites.single() + 1
                 val register = (original[at - 1] as OneRegisterInstruction).registerA
                 val colourCall = original.take(at - 1).last { it.called() != null }.called()!!
-                assertEquals("$name: the colour comes from a token resolver", fdsColorsOf(bundle).type, colourCall.definingClass)
+                // 585's inflater asks a static resolver that takes FDSColors' own token instead of FDSColors.
+                val colors = fdsColorsOf(bundle)
+                val token = fdsColourSource(colors)!!.parameterTypes[1].toString()
+                assertTrue("$name: the colour comes from a token resolver, not $colourCall", colourCall.definingClass == colors.type ||
+                    token in colourCall.parameterTypes.map(CharSequence::toString))
                 assertEquals("$name: the colour comes from a token resolver", "I", colourCall.returnType)
 
-                val colour = selectedTabColour(layout) { type ->
-                    FixtureDex.classes(bundle, setOf(type))[type]?.let { AccessFlags.ABSTRACT.isSet(it.accessFlags) && !AccessFlags.INTERFACE.isSet(it.accessFlags) } == true
-                }
                 val readers = FixtureDex.methodsWhere(bundle, { dex -> dex.methodSection.any { it.toString() == colour.toString() } }) {
                     selectedTabColourReads(it, colour).isNotEmpty()
                 }

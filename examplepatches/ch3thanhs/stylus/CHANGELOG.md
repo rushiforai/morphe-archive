@@ -1,3 +1,15 @@
+## [1.8.2](https://github.com/ch3thanhs/stylus/compare/v1.8.1...v1.8.2) (2026-10-30)
+
+### 🚀 Updated App Support
+
+* update Telegram app support to 13.1.1 and 13.1.0 (web version) ([36bcbfc](https://github.com/ch3thanhs/stylus/commit/36bcbfc1646185bacf68be3bf52c5b0863707a6f))
+
+## [1.8.2-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.8.1...v1.8.2-dev.1) (2026-10-30)
+
+### 🚀 Updated App Support
+
+* update Telegram app support to 13.1.1 and 13.1.0 (web version) ([36bcbfc](https://github.com/ch3thanhs/stylus/commit/36bcbfc1646185bacf68be3bf52c5b0863707a6f))
+
 ## [1.8.1](https://github.com/ch3thanhs/stylus/compare/v1.8.0...v1.8.1) (2026-10-23)
 
 ### 🚀 Updated App Support

@@ -1,0 +1,16 @@
+BadFella Patches contains code from the GPLv3 Paresh Patches project and the
+Morphe patch template. Their origins and exact revisions are recorded in the
+source project's NOTICE. Morphe's additional NOTICE terms are included.
+
+HiddenApiBypass: Copyright 2021-2025 LSPosed.
+https://github.com/LSPosed/AndroidHiddenApiBypass
+Licensed under the Apache License, Version 2.0; see Apache-2.0.txt.
+
+The Android extension build also includes Kotlin runtime classes provided by
+the Kotlin Gradle tooling. Kotlin is by JetBrains and contributors.
+https://github.com/JetBrains/kotlin
+Licensed under the Apache License, Version 2.0. Original Kotlin runtime
+license and notice resources are retained here when present in its artifact.
+
+The push certificate compatibility hook was adapted by Paresh with credit to
+https://github.com/L-JINBIN/ApkSignatureKillerEx.

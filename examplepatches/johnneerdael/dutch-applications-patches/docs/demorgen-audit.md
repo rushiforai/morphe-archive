@@ -44,10 +44,14 @@ The later Catsure two-sink change rebuilt successfully. Disable tracking passed 
 
 ## Remaining runtime questions
 
-Whether De Morgen's server supplies full premium article bodies anonymously is **Unknown**. Sibling anonymous samples are not evidence for this brand. Newspaper/pdf downloads retain actual server authorization. No backend probe, device install, app-data deletion or traffic capture was performed for this work.
+Whether De Morgen's server supplies full premium article bodies anonymously is **Unknown**. Sibling anonymous samples are not evidence for this brand. Newspaper/pdf downloads retain actual server authorization. The initial audit performed no device operations. The published candidate was subsequently installed on the approved OnePlus for owner testing; stable promotion was explicitly approved after that test. Backend and live-network checks remain unverified.
 
 Catsure queue and heartbeat uploads now stop at the two callback-free void repository methods. Remote cross-device queue/playback state is no longer updated from this app. The complete local queue/persistence classes, genuine audio authorization, global device-ID provider and radio URL enrichment remain independently pinned; static emitted execution confirms local queue publication and persistence still run. Server-side coordination effects and real audio playback after suppression still require runtime evidence. Content, login, push, configuration, edition/PDF and genuine consent services also retain necessary requests and identifiers. Game IMA initialization precedes the request boundary and is not a proven network-silence guarantee. Untraced remote HTML, server-stitched audio ads, remote configuration and re-signed runtime acceptance remain **Unknown**.
 
 See the [research record](research/2026-10-30/demorgen.md), [privacy notes](privacy/demorgen/README.md), [destination register](TRACKING_DESTINATIONS.md) and [user guide](site/en/apps/demorgen.md).
 
 Published candidate: [v1.20.0-dev.4](https://github.com/johnneerdael/dutch-applications-patches/releases/tag/v1.20.0-dev.4). The downloaded CI bundle has SHA-256 `3b8552f366231151645f219b4599eb31d060b3ed973d5bac49e433c5dc15c27a`; all 45 new-app/shared class payloads and the release catalogue match the validated source. Reapplying all controls with the downloaded published bundle also passed the patch report, output-signature and independent decoded-output checks for this app (`published-demorgen-validation.log`). Runtime and live-network acceptance remain unverified.
+
+## Stable promotion approval
+
+On 30 October 2026 the owner approved De Morgen for main after testing on the USB OnePlus CPH2747 (Android API 36). Promote the five existing default-on controls unchanged. The signed candidate is the one independently verified from v1.20.0-dev.4; this owner acceptance is not exhaustive network, anonymous-premium, audio/background or Android Auto evidence. Keep those validation limits explicit. The other four Belgian apps remain development targets pending their reported fixes.

@@ -25,6 +25,16 @@ have [selectable native patches](FINAMP_NATIVE.md) for the original official
 Finamp 1.0.1 APK, producing ARM64 output. Other roadmap candidates remain
 investigations; consult the generated catalogue for the current release.
 
+## Mihon status — 2026-10-30
+
+Default-category download retention has a version-pinned optional [Mihon patch](MIHON.md)
+and real Manager/data acceptance. The `0L` correction already exists in Marc Went /
+Dunky13's [PR #4182](https://github.com/mihonapp/mihon/pull/4182), head
+`11ebfe1d6d204c02a0622a42b3087ad9ccfdb8a8`; main remains
+`e588e04359fe1058206a2cbac1b01018ad787359`. Reuse that PR and supplement it with
+[public regressions](https://github.com/pengusto/mihon/commit/473c67a); no duplicate
+fix PR. This does not implement its separate Hide/Unhide feature.
+
 ## Historical Finamp-first queue
 
 [Finamp](https://github.com/finamp-app/finamp) is the Jellyfin music client,

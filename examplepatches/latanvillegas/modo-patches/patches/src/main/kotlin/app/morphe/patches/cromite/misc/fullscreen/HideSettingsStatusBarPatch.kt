@@ -1,5 +1,6 @@
 package app.morphe.patches.cromite.misc.fullscreen
 
+import app.morphe.patches.cromite.layout.theme.cromiteAmoledBrightnessPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -20,9 +21,10 @@ private val settingsActivityFingerprint = Fingerprint(
 @Suppress("unused")
 val hideSettingsStatusBarPatch = bytecodePatch(
     name = "Hide status bar in Settings",
-    description = "Independent Cromite Settings patch. Hides the Android status bar only in SettingsActivity and does not modify the working main-browser status-bar patch.",
+    description = "Synchronizes Settings status bar visibility with native Force Tablet Mode when window focus returns.",
 ) {
     compatibleWith("org.cromite.cromite"("153.0.8010.37"))
+    dependsOn(cromiteAmoledBrightnessPatch)
 
     execute {
         val settingsClass = settingsActivityFingerprint.classDef
@@ -37,13 +39,7 @@ val hideSettingsStatusBarPatch = bytecodePatch(
         val instructions = """
             invoke-super {p0, p1}, Landroid/app/Activity;->onWindowFocusChanged(Z)V
             if-eqz p1, :morphe_settings_status_done
-            invoke-virtual {p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
-            move-result-object v0
-            invoke-virtual {v0}, Landroid/view/Window;->getInsetsController()Landroid/view/WindowInsetsController;
-            move-result-object v0
-            if-eqz v0, :morphe_settings_status_done
-            const/4 p1, 0x1
-            invoke-interface {v0, p1}, Landroid/view/WindowInsetsController;->hide(I)V
+            invoke-static {p0}, Lapp/morphe/extension/cromite/amoled/AmoledBrightnessController;->applyTabletStatusBar(Landroid/app/Activity;)V
             :morphe_settings_status_done
             return-void
         """.trimIndent().toInstructions()

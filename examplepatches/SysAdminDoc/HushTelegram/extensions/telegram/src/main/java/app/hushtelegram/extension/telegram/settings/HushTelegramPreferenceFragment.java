@@ -81,6 +81,7 @@ import app.hushtelegram.extension.shared.settings.preference.ExportDiagnosticRep
 import app.hushtelegram.extension.shared.settings.preference.ImmediateAction;
 import app.hushtelegram.extension.shared.settings.preference.LogBufferManager;
 import app.hushtelegram.extension.shared.settings.preference.QuickSetups;
+import app.hushtelegram.extension.telegram.misc.CallRecorder;
 import app.hushtelegram.extension.telegram.misc.ChatTypeFolders;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
 import app.hushtelegram.extension.telegram.misc.FirebasePush;
@@ -335,6 +336,7 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
 
         addLinksPage(context, screen, build);
         addUpdatesPage(context, screen, build);
+        addRoutesPage(context, screen);
         addPausePage(context, screen, build);
         addBackupPage(context, screen, build);
         addDiagnosticsPage(context, screen);
@@ -353,6 +355,23 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                     PatchFamily.HIDE_COMMERCE.coverageSummary(L10n.t("Removes Premium, Stars, My Grams, Wallet, Business and Send a Gift from Settings, "
                             + "Wallet and Send Gram from the chat, profile and link menus, Gifts tabs on profiles, the Gift button in channels, "
                             + "and Premium stickers, their effects and Premium emoji packs if you don't have Premium."))));
+            if (PatchFamily.Capability.COMMERCE_EMOJI_STATUS.installed()) {
+                on(pages, PatchFamily.HIDE_COMMERCE).addPreference(toggle(context, Settings.HIDE_EMOJI_STATUS,
+                        L10n.t("Hide emoji statuses"), L10n.t("The emoji a Premium account puts next to its name goes away in chats, "
+                                + "the chat list and profiles, and the Premium star shows instead. Your own status hides too but stays "
+                                + "set for everyone else. A chat picks this up the next time you open it.")));
+            }
+            if (PatchFamily.Capability.COMMERCE_PREMIUM_ICONS.installed()) {
+                on(pages, PatchFamily.HIDE_COMMERCE).addPreference(toggle(context, Settings.UNLOCK_PREMIUM_ICONS,
+                        L10n.t("Unlock Premium app icons"), L10n.t("Premium, Turbo and Nox in Telegram's App Icon list work without "
+                                + "Premium, with no lock and no Premium sheet. Only the icon on your home screen changes.")));
+            }
+            if (PatchFamily.Capability.COMMERCE_LOCAL_EMOJI_STATUS.installed()) {
+                on(pages, PatchFamily.HIDE_COMMERCE).addPreference(toggle(context, Settings.LOCAL_EMOJI_STATUS,
+                        L10n.t("Emoji status on this phone"), L10n.t("Tap the star next to Telegram at the top of the chat list "
+                                + "and pick any emoji status, animated ones too, without Premium. It shows there on this phone only. "
+                                + "Nobody else sees it, and nothing is sent to Telegram.")));
+            }
         }
         if (build.contains(PatchFamily.HIDE_PROMOTIONAL_BANNERS)) {
             on(pages, PatchFamily.HIDE_PROMOTIONAL_BANNERS).addPreference(toggle(context, Settings.HIDE_PROMOTIONAL_BANNERS, L10n.t("Hide promotional banners"),
@@ -380,6 +399,14 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         L10n.t("Searching your chats and contacts also finds names written in letters like 𝐁𝐨𝐥𝐝, 𝘐𝘵𝘢𝘭𝘪𝘤 or "
                                 + "Ｗｉｄｅ when you type plain ones. Names still show as they're written and numbers aren't "
                                 + "changed. A name found this way isn't highlighted.")));
+            }
+            // A parental control: the settings lock is what keeps it on, so the row says to set it.
+            if (PatchFamily.Capability.BLOCK_NEW_CHATS.installed()) {
+                on(pages, PatchFamily.HIDE_POPULAR_APPS).addPreference(toggle(context, Settings.BLOCK_NEW_CHATS,
+                        L10n.t("Block new channels and groups"),
+                        L10n.t("Stops joining channels and groups, from search, a link or a shared folder, and opening ones "
+                                + "you aren't in. Chats you're already in stay. To keep this on, also turn on Lock HushTelegram "
+                                + "settings.")));
             }
         }
     }
@@ -511,6 +538,16 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             on(pages, PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS).addPreference(toggle(context, Settings.DISABLE_DOUBLE_TAP_REACTIONS, L10n.t("Disable double-tap reactions"),
                     PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS.coverageSummary(L10n.t("Double-tapping a message no longer adds a reaction. Scrolling, normal taps, "
                             + "selecting and the reaction menu work as before."))));
+            if (PatchFamily.Capability.REACTION_ROWS.installed()) {
+                on(pages, PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS).addPreference(toggle(context, Settings.HIDE_REACTION_ROWS,
+                        L10n.t("Hide reactions under messages"), L10n.t("The row of reactions under each message isn't drawn. "
+                                + "Nothing is removed, so turn it off and they're back. Tags in Saved Messages stay.")));
+            }
+            if (PatchFamily.Capability.REACTION_PICKER.installed()) {
+                on(pages, PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS).addPreference(toggle(context, Settings.HIDE_REACTION_PICKER,
+                        L10n.t("Hide the reaction picker"), L10n.t("The row of reactions at the top of the long-press menu and the "
+                                + "panel it opens are gone. The rest of the menu works as before.")));
+            }
         }
         if (build.contains(PatchFamily.HIDE_TRANSLATE_BAR)) {
             on(pages, PatchFamily.HIDE_TRANSLATE_BAR).addPreference(toggle(context, Settings.HIDE_TRANSLATE_BAR, L10n.t("Hide translate bar"),
@@ -566,6 +603,18 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_QUICK_FORWARD, L10n.t("Add Quick forward to the message menu"),
                     PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Adds Quick forward to a message's menu. One tap sends it to Saved"
                             + " Messages or a recent chat. Not in protected or secret chats."))));
+            on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_COPY_PROTECTED, L10n.t("Copy text from chats that don't allow saving"),
+                    PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(PatchFamily.Capability.COPY_SELECTION.installed()
+                            ? L10n.t("Puts Copy back in the menu of a message in a chat that doesn't allow saving, and lets you copy "
+                                    + "selected text there. Secret chats stay as they are.")
+                            : L10n.t("Puts Copy back in the menu of a message in a chat that doesn't allow saving. Secret chats stay "
+                                    + "as they are."))));
+            on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_SAVE_PROTECTED, L10n.t("Add Save to Downloads to the message menu"),
+                    PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Adds Save to Downloads to a downloaded photo, video, file or song "
+                            + "in a chat that doesn't allow saving. Nothing is copied until you tap it."))));
+            on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_FORWARD_COPY, L10n.t("Add Forward as copy to the message menu"),
+                    PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Adds Forward as copy to a message in a chat that doesn't allow forwarding. "
+                            + "Pick a chat and the message's text, or its downloaded photo or file, is sent there as a new message."))));
         }
         if (build.contains(PatchFamily.KEEP_DELETED_MESSAGES)) {
             on(pages, PatchFamily.KEEP_DELETED_MESSAGES).addPreference(toggle(context, Settings.KEEP_DELETED_MESSAGES, L10n.t("Keep deleted messages"),
@@ -626,12 +675,14 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             if (PatchFamily.Capability.VIDEO_EITHER_LANDSCAPE.installed()) {
                 on(pages, PatchFamily.KEEP_VIDEOS_MUTED).addPreference(toggle(context, Settings.VIDEO_EITHER_LANDSCAPE,
                         L10n.t("Full screen videos turn either way"), L10n.t("After you tap full screen, a video follows"
-                                + " your phone to either landscape side, even with auto-rotate off.")));
+                                + " your phone to either landscape side, even with auto-rotate off. Turning your phone"
+                                + " upright doesn't end full screen. Tap the button to leave it.")));
             }
             if (PatchFamily.Capability.VIDEO_ONLY_FROM_BUTTON.installed()) {
                 on(pages, PatchFamily.KEEP_VIDEOS_MUTED).addPreference(toggle(context, Settings.VIDEO_ONLY_FROM_BUTTON,
                         L10n.t("Turn videos only from the full screen button"), L10n.t("An open video stays upright when you"
-                                + " turn your phone. It goes landscape only when you tap full screen.")));
+                                + " turn your phone. It goes landscape only when you tap full screen, and back only when"
+                                + " you tap the button again.")));
             }
         }
         if (build.contains(PatchFamily.VOICE_ONE_AT_A_TIME)) {
@@ -675,6 +726,11 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                     L10n.t("With Save downloaded files on, files from chats whose owner turned off saving get copied too. Only use"
                             + " it where the owner is fine with you keeping a copy, since it goes past their setting. Secret chats"
                             + " still stay in Telegram.")));
+            on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(toggle(context, Settings.SAVE_TIMED_MEDIA,
+                    L10n.t("Also save view-once and timed media"),
+                    L10n.t("With Save downloaded files on, view-once and self-destructing photos, videos, voice and video"
+                            + " messages get copied to Download/Telegram when they download. The sender meant them to disappear,"
+                            + " so only use it where they're fine with you keeping a copy. Secret chats still stay in Telegram.")));
             if (PatchFamily.Capability.GALLERY_FOLDER.installed()) {
                 on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(galleryFolderRow(context));
             }
@@ -812,8 +868,9 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             SwitchPreference push = toggle(context, Settings.UNIFIED_PUSH, L10n.t("UnifiedPush notifications"),
                     PatchFamily.UNIFIED_PUSH.coverageSummary(L10n.t("For phones where Firebase notifications don't arrive. Telegram signs up an "
                             + "address from a UnifiedPush app like ntfy, and Telegram's servers call it to wake Telegram when "
-                            + "something arrives. The messages still come from Telegram itself. Turned off, Telegram goes back "
-                            + "to Firebase the next time it starts.")));
+                            + "something arrives. The messages still come from Telegram itself. It also turns on Telegram's own "
+                            + "Keep-Alive Service and Background Connection, unless you've set either one yourself. Turned "
+                            + "off, Telegram goes back to Firebase the next time it starts.")));
             Preference app = pushAppRow(context);
             push.setOnPreferenceChangeListener((row, value) -> {
                 boolean on = Boolean.TRUE.equals(value);
@@ -834,6 +891,13 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         L10n.t("Reaction notifications without push"), L10n.t("Shows a notification when someone reacts to your"
                                 + " message while Telegram is connected, even when no push arrives. A reaction that also"
                                 + " comes by push shows once.")));
+            }
+            // Pushed reactions too: Telegram keeps every reaction notification silent.
+            if (PatchFamily.Capability.REACTION_SOUND.installed()) {
+                on(pages, PatchFamily.UNIFIED_PUSH).addPreference(toggle(context, Settings.REACTION_SOUND,
+                        L10n.t("Sound for reaction notifications"), L10n.t("Telegram's reaction notifications make no sound."
+                                + " Turned on, they play the sound and vibration set in Telegram's Notifications and Sounds"
+                                + " > Reactions.")));
             }
         }
         if (build.contains(PatchFamily.SILENCE_NON_CONTACTS)) {
@@ -860,6 +924,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             on(pages, PatchFamily.HIDE_RECOMMENDATIONS).addPreference(toggle(context, Settings.HIDE_RECOMMENDATIONS, L10n.t("Hide recommendations"),
                     PatchFamily.HIDE_RECOMMENDATIONS.coverageSummary(L10n.t("Hides suggested similar channels and bots, including ones already saved, and "
                             + "stops asking Telegram for new ones."))));
+            if (PatchFamily.Capability.KEYBOARD_FEATURED.installed()) {
+                on(pages, PatchFamily.HIDE_RECOMMENDATIONS).addPreference(toggle(context, Settings.HIDE_KEYBOARD_FEATURED,
+                        L10n.t("Hide trending packs"), L10n.t("The sticker keyboard's Trending tab and row and the emoji keyboard's "
+                                + "trending packs go away, so both list only packs you've added. Search and the Stickers and Emoji "
+                                + "screen still show them. A chat picks this up the next time you open it.")));
+            }
         }
         if (build.contains(PatchFamily.QUIET_CONTACTS_NAG)) {
             on(pages, PatchFamily.QUIET_CONTACTS_NAG).addPreference(toggle(context, Settings.QUIET_CONTACTS_NAG, L10n.t("Quiet contacts prompts"),
@@ -950,6 +1020,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                 + "Mute button and the Search and Info buttons beside it. Channels you haven't joined still show "
                                 + "Join. To mute a channel, open its info. A channel picks this up the next time you open it.")));
             }
+            if (PatchFamily.Capability.HIDE_CHANNEL_SHARE.installed()) {
+                on(pages, PatchFamily.HIDE_CHANNEL_BUTTONS).addPreference(toggle(context, Settings.HIDE_CHANNEL_SHARE,
+                        L10n.t("Hide channel share button"), L10n.t("The round share button beside channel posts goes away, in the "
+                                + "channel and wherever a post is forwarded. A post's own menu still forwards it. Bots and Saved "
+                                + "Messages keep theirs. A chat picks this up the next time you open it.")));
+            }
         }
         if (build.contains(PatchFamily.HIDE_SEND_AS)) {
             on(pages, PatchFamily.HIDE_SEND_AS).addPreference(toggle(context, Settings.HIDE_SEND_AS, L10n.t("Hide Send as button"),
@@ -974,11 +1050,36 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 privacy.addPreference(toggle(context, Settings.DISABLE_ANALYTICS, L10n.t("Stop usage reports"),
                     PatchFamily.DISABLE_ANALYTICS.coverageSummary(L10n.t("Stops usage reports to Telegram, like how long you read each channel post and what "
                             + "you tap on Premium screens. Messages and calls work as before."))));
+                // Ghost mode and its parts: each part needs Ghost mode on, which starts off.
+                if (PatchFamily.Capability.GHOST_MODE.installed()) {
+                    privacy.addPreference(toggle(context, Settings.GHOST_MODE, L10n.t("Ghost mode"),
+                            L10n.t("Read chats and watch stories without anyone being told. Sending a message in a chat still marks "
+                                    + "it read, and your other devices keep showing it unread.")));
+                    privacy.addPreference(toggle(context, Settings.GHOST_READS, L10n.t("No read receipts"),
+                            L10n.t("Messages you read stay unread for the people who sent them, in private chats, groups and secret "
+                                    + "chats, and voice messages you play stay unplayed. Works with Ghost mode on.")));
+                    privacy.addPreference(toggle(context, Settings.GHOST_STORIES, L10n.t("View stories anonymously"),
+                            L10n.t("Stories you watch don't add you to their viewer list. Works with Ghost mode on.")));
+                    privacy.addPreference(toggle(context, Settings.GHOST_TYPING, L10n.t("Hide typing"),
+                            L10n.t("Other people don't see that you're typing, recording or sending a file. Works with Ghost mode on.")));
+                    privacy.addPreference(toggle(context, Settings.GHOST_ONLINE, L10n.t("Hide online status"),
+                            L10n.t("Telegram isn't told that you're online while you use it. Going offline still goes out. Works with Ghost mode on.")));
+                }
             }
             if (build.contains(PatchFamily.DISABLE_CALL_DEBUG)) {
                 privacy.addPreference(toggle(context, Settings.DISABLE_CALL_DEBUG, L10n.t("Stop call diagnostics"),
                         PatchFamily.DISABLE_CALL_DEBUG.coverageSummary(L10n.t("Stops your phone from automatically sending call problem reports and log files "
                                 + "when Telegram's server asks for them."))));
+                // Off as shipped: saving a call is the user's choice, and the other person isn't asked.
+                if (PatchFamily.Capability.CALL_RECORDING.installed()) {
+                    privacy.addPreference(toggle(context, Settings.RECORD_CALLS, L10n.t("Record calls"),
+                            L10n.f("Saves both sides of each call to %1$s on this phone. The other person isn't told.",
+                                    L10n.isolate(CallRecorder.folder()))));
+                }
+                if (PatchFamily.Capability.CALL_RECORD_BUTTON.installed()) {
+                    privacy.addPreference(toggle(context, Settings.RECORD_CALL_BUTTON, L10n.t("Record button on calls"),
+                            L10n.t("A button on the call screen records just that call, or stops recording it when Record calls is on.")));
+                }
             }
             if (build.contains(PatchFamily.DISABLE_DRAFT_PREVIEWS)) {
                 privacy.addPreference(toggle(context, Settings.DISABLE_DRAFT_PREVIEWS, L10n.t("No previews before sending"),
@@ -1066,6 +1167,41 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         + " the top of these settings. Nothing is downloaded.")));
         updates.addPreference(mark(checkNowRow(context), SettingsIcons.UPDATES));
         ReleaseCheck.watch(this);
+    }
+
+    /**
+     * Ways in (#29): which of the four ways open these settings. The last one on can't be turned off,
+     * and the settings lock holds these switches like the rest. None of them needs a restart.
+     */
+    private void addRoutesPage(Context context, PreferenceScreen screen) {
+        PreferenceCategory ways = category(screen, L10n.t("Ways in"));
+        ways.addPreference(info(context, L10n.t("Ways to open these settings"),
+                L10n.t("One way always stays on, so you can always get back here.")));
+        ways.addPreference(routeToggle(context, SettingsRoutes.SETTINGS_ROW, L10n.t("Row in Telegram's Settings"),
+                L10n.t("Adds a HushTelegram row to Telegram's Settings page.")));
+        ways.addPreference(routeToggle(context, SettingsRoutes.TITLE_PRESS, L10n.t("Long press on the chat list title"),
+                L10n.t("Hold the Telegram title at the top of your chats.")));
+        ways.addPreference(routeToggle(context, SettingsRoutes.SIDE_MENU_ROW, L10n.t("Row in the side menu"),
+                L10n.t("Adds a HushTelegram row to the side menu, which has its own switch.")));
+        ways.addPreference(routeToggle(context, SettingsRoutes.SHORTCUT, L10n.t("Home screen shortcut"),
+                L10n.t("Adds HushTelegram to the menu you get from holding Telegram's icon.")));
+    }
+
+    private static SwitchPreference routeToggle(Context context, BooleanSetting way, String title, String summary) {
+        SwitchPreference preference = toggle(context, way, title, summary);
+        preference.setOnPreferenceChangeListener((row, value) -> {
+            if (Boolean.FALSE.equals(value) && SettingsRoutes.wouldBeTheLast(way)) {
+                // The switch goes back on its own when the change is refused.
+                Utils.showToastLong(L10n.t("Keep one way into HushTelegram settings"));
+                return false;
+            }
+            if (way == SettingsRoutes.SHORTCUT) {
+                // Once the switch is saved, so the launcher follows what it says.
+                Utils.runOnMainThreadDelayed(() -> SettingsEntry.syncShortcut(context), 0);
+            }
+            return true;
+        });
+        return preference;
     }
 
     /** Pause, what it can't reach in this build, and the settings lock, which holds Pause too. */
@@ -2027,7 +2163,8 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
 
     /**
      * Applies one Quick setups choice to the switches on this page and says how many changed,
-     * pointing at the undo when something did, or how many couldn't change when nothing did.
+     * pointing at the undo when something did, how many couldn't change when nothing did, or that
+     * they were already set that way.
      */
     int applyQuickSetup(Map<BooleanSetting, Boolean> values) {
         PreferenceScreen screen = getPreferenceScreen();
@@ -2041,7 +2178,8 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             Utils.showToastLong(L10n.quantity(outcome.refused, "Nothing changed. %1$d switch couldn't change now.",
                     "Nothing changed. %1$d switches couldn't change now.", outcome.refused));
         } else {
-            Utils.showToastLong(L10n.quantity(changed, "Changed %1$d setting", "Changed %1$d settings", changed));
+            // "Changed 0 settings" read like something had failed.
+            Utils.showToastLong(L10n.t("Already set that way."));
         }
         return changed;
     }
@@ -2195,15 +2333,20 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
      * Lets a row's title and summary wrap to as many lines as they need. Android draws a row's
      * title on one line and cuts its summary at ten, and at 200% text size the paused card, the
      * Pause row and the list of what Pause can't reach ran past ten lines and lost their ends.
+     * Long words break where their language hyphenates them.
      */
     static void showAllText(View row) {
         TextView title = row.findViewById(android.R.id.title);
         if (title != null) {
             title.setSingleLine(false);
             title.setMaxLines(Integer.MAX_VALUE);
+            L10n.hyphenate(title);
         }
         TextView summary = row.findViewById(android.R.id.summary);
-        if (summary != null) summary.setMaxLines(Integer.MAX_VALUE);
+        if (summary != null) {
+            summary.setMaxLines(Integer.MAX_VALUE);
+            L10n.hyphenate(summary);
+        }
     }
 
     /** A section title, which a screen reader announces as a heading so a reader can jump between sections. */

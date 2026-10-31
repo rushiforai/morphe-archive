@@ -13,6 +13,11 @@ ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / ".github/scripts/generate_patches_readme.py"
 
 
+def app_count(data):
+    return len({pkg['packageName'] for patch in data['patches']
+                for pkg in patch.get('compatiblePackages', []) or []})
+
+
 class ReleaseReadmeTests(unittest.TestCase):
     def render(self, data=None, expanded=False, readme=None):
         with tempfile.TemporaryDirectory() as tmp:
@@ -36,9 +41,9 @@ class ReleaseReadmeTests(unittest.TestCase):
     def test_current_release_stays_compact_and_links_to_guides(self):
         result = self.render()
         self.assertNotIn("<details open>", result)
-        self.assertIn("All 11 apps and supported versions", result)
         metadata = json.loads((ROOT / "patches-list.json").read_text())
-        self.assertIn(f"{len(metadata['patches'])} patches · 11 apps", result)
+        self.assertIn(f"All {app_count(metadata)} apps and supported versions", result)
+        self.assertIn(f"{len(metadata['patches'])} patches · {app_count(metadata)} apps", result)
         for guide in re.findall(r"\]\((docs/[^)#]+)", result):
             self.assertTrue((ROOT / guide).is_file(), guide)
         self.assertIn("[Song artist order](docs/FINAMP_NATIVE.md)", result)
@@ -60,7 +65,8 @@ class ReleaseReadmeTests(unittest.TestCase):
     def test_expansion_requires_explicit_opt_in(self):
         result = self.render(expanded=True)
         catalogue = result.split("<!-- PATCHES_START EXPANDED -->")[1].split("<!-- PATCHES_END -->")[0]
-        self.assertEqual(catalogue.count("<details open>"), 12)
+        metadata = json.loads((ROOT / "patches-list.json").read_text())
+        self.assertEqual(catalogue.count("<details open>"), 1 + app_count(metadata))
 
     def check_gallery(self, data, rendered):
         gallery = (ROOT / "docs/PATCH_EXAMPLES.md").read_text()
@@ -97,12 +103,25 @@ class ReleaseReadmeTests(unittest.TestCase):
             self.assertIn(f"[Before / after](#preview-{slug})", result)
         self.assertNotIn("<details open>", result)
 
+    def test_mihon_preview_embeds_real_pair_and_guide(self):
+        data = {"version": "1.5.0", "patches": [{
+            "name": "Preserve excluded Default-category downloads",
+            "description": "Honor the existing Default deletion exclusion", "use": False,
+            "compatiblePackages": [{"packageName": "app.mihon", "name": "Mihon",
+                                    "targets": [{"version": "0.21.3"}]}]}]}
+        result = self.render(data)
+        self.check_gallery(data, result)
+        self.assertIn("docs/MIHON.md", result)
+        self.assertIn('src="tests/mihon/evidence/2026-10-30/before.png"', result)
+        self.assertIn('src="tests/mihon/evidence/2026-10-30/after.png"', result)
+        self.assertIn("Marc Went / Dunky13", result)
+
     def test_readme_embeds_every_released_pair_with_root_relative_paths(self):
         data = json.loads((ROOT / "patches-list.json").read_text())
         result = self.render(data)
         previews = result.split("<!-- PATCHES_PREVIEWS_START -->")[1].split("<!-- PATCHES_PREVIEWS_END -->")[0]
         self.assertEqual(previews.count("<summary>"), len(data["patches"]))
-        self.assertEqual(len(re.findall(r"^### ", previews, re.MULTILINE)), 11)
+        self.assertEqual(len(re.findall(r"^### ", previews, re.MULTILINE)), app_count(data))
         self.assertEqual(previews.count("<img "), 2 * len(data["patches"]))
         self.assertNotIn("## About these comparisons", previews)
         sections = dict(re.findall(r'<a id="preview-([^"]+)"></a>(.*?)(?=\n<a id=|\Z)', previews, re.DOTALL))

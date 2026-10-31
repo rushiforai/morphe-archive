@@ -18,6 +18,29 @@ PACKAGES = ('app.morphe.manager', 'com.android.documentsui', 'com.android.settin
             'com.google.android.permissioncontroller', 'android')
 
 
+def ensure_install_source(ui):
+    """Enable Morphe's install source only when its observed control is off."""
+    root, _ = ui.dump()
+    ui.find(root, 'Morphe', class_name='android.widget.TextView')
+    caption = ui.find(root, 'Allow from this source', class_name='android.widget.TextView')
+    parents = {child: parent for parent in root.iter() for child in parent}
+    control = caption
+    while control.get('checkable') != 'true' and control in parents:
+        control = parents[control]
+    before = control.get('checked') if control.get('checkable') == 'true' else None
+    if before not in ('true', 'false'):
+        raise RuntimeError('Install-source control has no unambiguous checked state')
+    if before == 'false':
+        ui.tap('Allow from this source', class_name='android.widget.TextView')
+    # Android can immediately return to its installer after enabling this row.
+    # Verify the actual permission without assuming Settings remains foreground.
+    permission = ui.adb('shell', 'cmd', 'appops', 'get', 'app.morphe.manager', 'REQUEST_INSTALL_PACKAGES')
+    if not re.search(r'\bREQUEST_INSTALL_PACKAGES: allow\b', permission):
+        raise RuntimeError('Morphe install-source permission is not enabled')
+    return {'before_checked': before == 'true', 'after_allowed': True,
+            'toggled': before == 'false', 'permission_verified': permission.strip()}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--adb', type=Path)
@@ -30,6 +53,8 @@ def main():
     inspect.add_argument('--limit', type=int, choices=range(1, 51), default=30)
     sub.add_parser('back')
     sub.add_parser('hide-ime')
+    sub.add_parser('launch', help='Open Manager using the observed active Android user')
+    sub.add_parser('ensure-install-source', help='Enable the observed Morphe install source without toggling an active control off')
     capture = sub.add_parser('capture')
     capture.add_argument('label')
     wait = sub.add_parser('wait')
@@ -56,7 +81,15 @@ def main():
     if not base.OUT_ROOT.is_relative_to((base.REPO_ROOT / '.scratch').resolve()):
         parser.error('--out-root must stay inside this repository scratch directory')
     ui = base.Android(out=args.out or base.OUT_ROOT / "ui", adb=args.adb)
-    if args.command == 'capture':
+    if args.command == 'ensure-install-source':
+        if args.package != 'com.android.settings':
+            parser.error('ensure-install-source requires the observed Android Settings page')
+        print(json.dumps(ensure_install_source(ui)))
+    elif args.command == 'launch':
+        if args.package != PACKAGES[0]:
+            parser.error('launch is limited to Morphe Manager')
+        ui.launch()
+    elif args.command == 'capture':
         ui.capture(args.label)
     elif args.command == 'wait':
         deadline = time.monotonic() + args.timeout

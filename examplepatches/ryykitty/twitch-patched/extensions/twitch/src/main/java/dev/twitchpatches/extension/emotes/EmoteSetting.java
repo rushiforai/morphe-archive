@@ -9,7 +9,7 @@ import java.util.List;
 final class EmoteSetting implements SettingGroup {
     @Override public String key() { return "third_party_emotes"; }
     @Override public String title() { return "Emotes"; }
-    @Override public String summary() { return "BTTV, FrankerFaceZ and 7TV emotes in chat and the emote picker."; }
+    @Override public String summary() { return "BTTV, FrankerFaceZ and 7TV emotes in chat, autocomplete and the emote picker."; }
     @Override public SettingSection section() { return SettingSection.CHAT; }
     @Override public List<ToggleSetting> children() {
         return Arrays.asList(new ProviderSetting(-1, "Enable all providers"), new ProviderSetting(0, "BTTV"),

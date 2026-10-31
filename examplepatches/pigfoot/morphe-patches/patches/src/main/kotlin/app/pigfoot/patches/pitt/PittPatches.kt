@@ -1,5 +1,6 @@
 package app.pigfoot.patches.pitt
 
+import app.pigfoot.patches.shared.certificate.requireOriginalCertificate
 import app.morphe.patcher.patch.*
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 
@@ -63,6 +64,7 @@ val pittLocalSponsoredPatch = bytecodePatch(
 internal val pittGmsInputPatch = bytecodePatch {
     dependsOn(pittInputPatch)
     execute {
+        requireOriginalCertificate(packageMetadata.signingCertificates.values.flatten(), PITT_STOCK_SHA1)
         for ((type, expected) in pittGmsClassPins) {
             val definition = requireNotNull(classDefByOrNull(type)) { "Missing qualified PiTT auth class: $type" }
             require(definition.methods.none { it.name == PITT_GOOGLE_PREPARE }) { "Existing PiTT Google login helper" }
@@ -75,7 +77,10 @@ internal val pittGmsInputPatch = bytecodePatch {
 
 private val pittGmsResources = resourcePatch {
     dependsOn(pittGmsInputPatch)
-    execute { document("AndroidManifest.xml").use { applyPittGmsManifest(it) } }
+    execute {
+        val certificate = requireOriginalCertificate(packageMetadata.signingCertificates.values.flatten(), PITT_STOCK_SHA1)
+        document("AndroidManifest.xml").use { applyPittGmsManifest(it, certificate.sha1) }
+    }
 }
 
 val pittGmsCorePatch = bytecodePatch(
@@ -87,13 +92,14 @@ val pittGmsCorePatch = bytecodePatch(
     availability { installer, _ -> if (installer == InstallerType.MOUNT) PatchAvailability.UNAVAILABLE else PatchAvailability.ENABLED }
     dependsOn(pittGmsInputPatch, pittGmsResources)
     execute {
+        val certificate = requireOriginalCertificate(packageMetadata.signingCertificates.values.flatten(), PITT_STOCK_SHA1)
         val replacements = (pittGmsStrings.keys + PITT_GMS_MODE + PITT_FIREBASE_HEADERS).map { id ->
             val owner = mutableClassDefBy(id.substringBefore("->"))
             val original = owner.methods.single { it.pittId() == id }
             val replacement = MutableMethod(original)
             when (id) {
                 PITT_GMS_MODE -> selectPittLegacyGmsMode(replacement)
-                PITT_FIREBASE_HEADERS -> restorePittFirebaseClientIdentity(replacement)
+                PITT_FIREBASE_HEADERS -> restorePittFirebaseClientIdentity(replacement, certificate.sha1)
                 else -> redirectPittGmsStrings(replacement)
             }
             Triple(owner, original, replacement)

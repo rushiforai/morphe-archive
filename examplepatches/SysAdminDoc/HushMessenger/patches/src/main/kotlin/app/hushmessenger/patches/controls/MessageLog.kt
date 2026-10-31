@@ -13,8 +13,10 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -286,4 +288,151 @@ private fun MutableMethod.injectIncomingMessage(gate: String, sink: String) {
         :incoming_hand_over
         invoke-static {v1, v0}, $sink
     """.trimIndent(), ExternalLabel("stock_behavior", getInstruction(0)))
+}
+
+/** Shared by Keep a message log and Keep unsent messages, the way story_ring is shared. */
+internal const val UNSENT_RECALL = "unsent_recall"
+private const val NOTIFICATION_RECALLER = "NotificationRecaller"
+private val UNSENT_RECALL_PARAMETERS = listOf(BUBBLE_SESSION, "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;")
+private const val UNSENT_RECALL_SINK = "$SETTINGS->unsentRecall(Ljava/lang/String;)Z"
+
+/**
+ * Messenger's notification recaller: the one instance (session, message id, push id, offline id)Z method that takes an
+ * unsent message out of its chat's notification. Plain unsends reach it from the notification manager, and encrypted
+ * one-to-one unsends from the Minos unsend handler, so it covers the chats Keep unsent messages can't reach in the
+ * chat itself. Its log tag is the only name it keeps across builds.
+ */
+internal fun findUnsentRecall(classes: Iterable<ClassDef>): List<Method> =
+    listOfNotNull(classes.flatMap { it.methods }.filter { it.isUnsentRecall() }.singleOrNull())
+
+private fun Method.isUnsentRecall(): Boolean {
+    if (AccessFlags.STATIC.isSet(accessFlags) || returnType != "Z" ||
+        parameterTypes.map(CharSequence::toString) != UNSENT_RECALL_PARAMETERS) return false
+    return implementation?.instructions?.any {
+        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == NOTIFICATION_RECALLER
+    } == true
+}
+
+/** The other control sharing the hook already put it in. */
+private fun MutableMethod.unsentRecallRouted() =
+    ((implementation?.instructions?.firstOrNull() as? ReferenceInstruction)?.reference as? MethodReference)?.toString() == UNSENT_RECALL_SINK
+
+internal fun MutableMethod.validateUnsentRecall() {
+    if (!isUnsentRecall()) throw PatchException("Messenger controls: ${hookId()} isn't the notification recaller")
+    validateScratch()
+}
+
+/**
+ * Before Messenger takes an unsent message out of its notification, the extension gets the message's id: the message
+ * log marks that message Unsent, and with Keep unsent messages on the method returns true at once, as if it had taken
+ * it out, so the notification keeps showing it. The id is p2 of the instance method, read with a range call since it
+ * sits past v15. The second control to claim the hook finds it in and leaves it.
+ */
+internal fun MutableMethod.injectUnsentRecall() {
+    validateUnsentRecall()
+    if (unsentRecallRouted()) return
+    addInstructionsWithLabels(0, """
+        invoke-static/range {p2 .. p2}, $UNSENT_RECALL_SINK
+        move-result v0
+        if-eqz v0, :stock_behavior
+        const/4 v0, 0x1
+        return v0
+    """.trimIndent(), ExternalLabel("stock_behavior", getInstruction(0)))
+}
+
+/** The recaller's other way out, shared by the same two controls. */
+internal const val UNSENT_CLEAR = "unsent_clear"
+private const val UNSEND_CLEAR_REASON = "UnsendMessage"
+private const val RECALLED_BY_CLEARING = "new_message_notification_recalled_by_clearing"
+private val CLEAR_THREAD_PARAMETERS = listOf(BUBBLE_SESSION, THREAD_KEY_TYPE, "Ljava/lang/String;")
+private val DROP_LOG_PARAMETERS = listOf(MESSAGES_NOTIFICATION_MANAGER, "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;")
+private val STRING_LOADS = setOf(Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO)
+private val STATIC_INVOKES = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+
+/**
+ * Where the notification manager clears a chat's notification for an unsend: [reason] is the "UnsendMessage" load
+ * into [reasonRegister], the clear call follows it, and [idRegister] holds the unsent message's id there.
+ */
+private class UnsentClearSite(val reason: Int, val reasonRegister: Int, val idRegister: Int)
+
+private fun Instruction.argumentRegisters(): List<Int> = when (this) {
+    is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    else -> emptyList()
+}
+
+private fun Instruction.invokes(definingClass: String?, parameters: List<String>, returnType: String): Boolean {
+    val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+    return (definingClass == null || reference.definingClass == definingClass) && reference.returnType == returnType &&
+        reference.parameterTypes.map(CharSequence::toString) == parameters
+}
+
+private fun Instruction.writes(register: Int) = opcode.setsRegister() && this is OneRegisterInstruction &&
+    (registerA == register || (opcode.setsWideRegister() && registerA + 1 == register))
+
+/**
+ * When the unsent message is the only one its chat's notification shows, the notification manager never asks the
+ * recaller: it loads "UnsendMessage" and calls its own (session, thread, reason)V clear, which takes the whole
+ * notification away (#70). The id is the register the same method hands the recaller as its message id, and
+ * Messenger's own drop log after the clear, in the same block, prints that register as the messageId with nothing
+ * writing it between.
+ */
+private fun Method.unsentClearSite(): UnsentClearSite? {
+    if (definingClass != MESSAGES_NOTIFICATION_MANAGER || RECALLED_BY_CLEARING !in stringRefs()) return null
+    val code = implementation?.instructions?.toList() ?: return null
+    val reasons = code.indices.filter { at ->
+        val load = code[at]
+        load.opcode in STRING_LOADS && ((load as ReferenceInstruction).reference as StringReference).string == UNSEND_CLEAR_REASON &&
+            code.getOrNull(at + 1)?.let { clear ->
+                clear.invokes(MESSAGES_NOTIFICATION_MANAGER, CLEAR_THREAD_PARAMETERS, "V") &&
+                    clear.argumentRegisters().lastOrNull() == (load as OneRegisterInstruction).registerA
+            } == true
+    }
+    val reason = reasons.singleOrNull() ?: return null
+    // A jump straight to the load or the clear would pass the hook by.
+    if (jumpTargets().let { reason in it || reason + 1 in it }) return null
+    val recalls = code.filter { it.opcode !in STATIC_INVOKES && it.invokes(null, UNSENT_RECALL_PARAMETERS, "Z") }
+    val id = recalls.singleOrNull()?.argumentRegisters()?.getOrNull(2) ?: return null
+    val blockEnd = (reason + 2 until code.size).firstOrNull { !code[it].opcode.canContinue() } ?: return null
+    val log = (reason + 2 until blockEnd).filter {
+        code[it].opcode in STATIC_INVOKES && code[it].invokes(MESSAGES_NOTIFICATION_MANAGER, DROP_LOG_PARAMETERS, "V")
+    }.singleOrNull() ?: return null
+    if (code[log].argumentRegisters().getOrNull(2) != id || (reason until log).any { code[it].writes(id) }) return null
+    return UnsentClearSite(reason, (code[reason] as OneRegisterInstruction).registerA, id)
+}
+
+/** The notification manager's one method with that clear. */
+internal fun findUnsentClear(classes: Iterable<ClassDef>): List<Method> =
+    listOfNotNull(classes.firstOrNull { it.type == MESSAGES_NOTIFICATION_MANAGER }?.methods
+        ?.filter { it.unsentClearSite() != null }?.singleOrNull())
+
+/** The other control sharing the hook already put it in. */
+private fun MutableMethod.unsentClearRouted() = implementation?.instructions?.any {
+    ((it as? ReferenceInstruction)?.reference as? MethodReference)?.toString() == UNSENT_RECALL_SINK
+} == true
+
+internal fun MutableMethod.validateUnsentClear() {
+    if (!unsentClearRouted() && unsentClearSite() == null) {
+        throw PatchException("Messenger controls: ${hookId()} isn't the notification manager's unsend clear")
+    }
+}
+
+/**
+ * Before the clear, the extension gets the message's id the way the recaller hook hands it over. When it keeps the
+ * message, the reason is loaded as stock loads it and only the clear call is skipped, so every register leaves the
+ * block as it would have. The id is read with a range call, which takes any register.
+ */
+internal fun MutableMethod.injectUnsentClear() {
+    validateUnsentClear()
+    if (unsentClearRouted()) return
+    val site = unsentClearSite()!!
+    val reason = "v${site.reasonRegister}"
+    addInstructionsWithLabels(site.reason, """
+        invoke-static/range {v${site.idRegister} .. v${site.idRegister}}, $UNSENT_RECALL_SINK
+        move-result $reason
+        if-eqz $reason, :stock_clear
+        const-string $reason, "$UNSEND_CLEAR_REASON"
+        goto :unsent_kept
+    """.trimIndent(), ExternalLabel("stock_clear", getInstruction(site.reason)),
+        ExternalLabel("unsent_kept", getInstruction(site.reason + 2)))
 }

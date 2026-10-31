@@ -10,12 +10,14 @@ import app.morphe.patches.facebook.feed.treeFieldKey
 import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -67,6 +69,25 @@ internal const val BUCKET_TYPE_FIELD = "story_bucket_type"
 
 /** The card types the bucket type enum's static initializer names, among the tray's other types. */
 internal val BUCKET_TYPE_NAMES = listOf("PYMK_PROFILE_FORWARD_STORY", "PYMK_STORY", "CONTACT_IMPORTER_STORY")
+
+/*
+ * Pages' stories and watched stories, read from 585 (2026-10-30, issues #313 and #317). The bucket
+ * interface (585 LX/053g;) declares a ()Z method its tree class (585 LX/01jP;) answers with
+ * TreeJNI.getBooleanValue of [SEEN_FIELD] (585 DtG), and a method answering the bucket's owner (585
+ * Fli()LX/0eTt;), an interface declaring getTypeName(). The tree class answers that one through a
+ * bridge to its own reader (585 A02()LX/028Y;), getCachedNullableTree of [OWNER_FIELD]'s key. Neither
+ * is needed to hide suggested stories, so a build without them only leaves the two switches unable to
+ * work.
+ */
+
+/** The GraphQL field a bucket the viewer has watched to the end carries as true. */
+internal const val SEEN_FIELD = "is_bucket_seen_by_viewer"
+
+/** The GraphQL field holding whoever posted a bucket's stories, a person or a Page. */
+internal const val OWNER_FIELD = "story_bucket_owner"
+
+/** The method a tree model's interface declares for its GraphQL type, "User" or "Page" for an owner. */
+internal const val TYPE_NAME = "getTypeName"
 
 internal const val IMMUTABLE_LIST = "Lcom/google/common/collect/ImmutableList;"
 
@@ -170,10 +191,79 @@ internal fun isTreeEnumReader(method: Method, field: String): Boolean {
         }
 }
 
+/**
+ * Whether [method] answers the tree's object [field]: an instance method with no arguments and an
+ * object back, loading the field's key and reading it with getCachedNullableTree(int, Class, int).
+ * Like getCachedEnum, the call names the tree class's own superclass, so only its name and shape count.
+ */
+internal fun isTreeNodeReader(method: Method, field: String): Boolean {
+    if (method.isStatic() || method.parameterTypes.isNotEmpty() || !method.returnType.startsWith("L")) return false
+    val body = method.body()
+    val key = treeFieldKey(field)
+    return body.any { (it as? NarrowLiteralInstruction)?.narrowLiteral == key } &&
+        body.any { instruction ->
+            val call = instruction.methodReference()
+            instruction.opcode == Opcode.INVOKE_VIRTUAL && call != null && call.name == "getCachedNullableTree" &&
+                call.parameterTypes.map { it.toString() } == listOf("I", "Ljava/lang/Class;", "I")
+        }
+}
+
+/**
+ * The methods of [classDef] taking nothing that answer the tree's object [field]: its reader, and
+ * each method that calls the reader, such as the interface's bridge (585 LX/01jP;->Fli calls A02).
+ */
+internal fun treeNodeAnswers(classDef: ClassDef, field: String): List<Method> {
+    val readers = classDef.methods.filter { isTreeNodeReader(it, field) }
+    if (readers.isEmpty()) return emptyList()
+    return classDef.methods.filter { method ->
+        !method.isStatic() && method.parameterTypes.isEmpty() &&
+            (method in readers || method.body().any { instruction ->
+                val call = instruction.methodReference()
+                instruction.opcode == Opcode.INVOKE_VIRTUAL && call != null && readers.any { call.refersTo(it) }
+            })
+    }
+}
+
+/** Whether [classDef] is a public interface declaring [TYPE_NAME]()String, so the extension can ask it. */
+internal fun namesItsType(classDef: ClassDef): Boolean =
+    AccessFlags.INTERFACE.isSet(classDef.accessFlags) && AccessFlags.PUBLIC.isSet(classDef.accessFlags) &&
+        classDef.methods.any { it.name == TYPE_NAME && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;" }
+
 /** Whether [method] is a static helper that answers a [label] for one of [buckets]. */
 internal fun isLabelHelper(method: Method, buckets: Set<String>, label: String): Boolean =
     method.isStatic() && method.implementation != null && method.returnType == label &&
         method.parameters().size == 1 && method.parameters().single() in buckets
+
+/*
+ * Home's tray on 585 (2026-10-30, issues #313 and #317). On Home the Stories tray comes inside the
+ * feed as a feed unit, and so does a single story shown in the feed. Their builders (585
+ * LX/0chr;->A01, the tray unit's parser, and LX/0C48;->A01, the inline story's component) hand the
+ * unit's tree buckets to the one method holding the trace name [TRAY_PARSE] (585 LX/0C4B;->A00),
+ * which turns them into the StoryBuckets the tray draws. That list never goes through the tray
+ * data's constructor, so Home kept drawing the buckets the filter took out of the light fetch's copy.
+ * Its elements are the same tree buckets, behind the bucket interface.
+ */
+
+/** Kept trace name of the parser that turns a tray's tree buckets into the buckets it draws. */
+internal const val TRAY_PARSE = "StoriesTrayParser.parse"
+
+/** Whether [method] is the tray parser: the trace name, one ImmutableList in and an ImmutableList back. */
+internal fun isTrayParse(method: Method): Boolean =
+    method.returnType == IMMUTABLE_LIST && listParameters(method).size == 1 && holdsString(method, TRAY_PARSE)
+
+/** Whether [method] hands its declared parameter [index] to a call. */
+internal fun passesOn(method: Method, index: Int): Boolean {
+    val register = method.parameterRegisterNumber(index)
+    return method.body().any { instruction ->
+        instruction.methodReference() != null && when (instruction) {
+            is FiveRegisterInstruction -> register in listOf(
+                instruction.registerC, instruction.registerD, instruction.registerE, instruction.registerF, instruction.registerG,
+            ).take(instruction.registerCount)
+            is RegisterRangeInstruction -> register in instruction.startRegister until instruction.startRegister + instruction.registerCount
+            else -> false
+        }
+    }
+}
 
 /*
  * The cards beside Create story (2026-10-04, issue #21). Facebook calls them the swipe right top

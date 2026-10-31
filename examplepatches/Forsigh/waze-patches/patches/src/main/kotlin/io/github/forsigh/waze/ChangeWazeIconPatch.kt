@@ -1,6 +1,7 @@
 package io.github.forsigh.waze
 
 import app.morphe.patcher.patch.ImageSize
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.colorOption
 import app.morphe.patcher.patch.imageOption
@@ -29,6 +30,7 @@ val changeWazeIconPatch = resourcePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("UI Customization")
 
     val style by stringOption(
         key = "style",
@@ -46,6 +48,12 @@ val changeWazeIconPatch = resourcePatch(
         default = "#FF33CCFF",
         title = "Ghost background",
         description = "Only used by the Waze ghost option. Stock is #FF33CCFF.",
+    )
+    val hideLaunchArt by booleanOption(
+        key = "hideLaunchArt",
+        default = false,
+        title = "Hide launch logo",
+        description = "Also drops the Waze ghost from the launch screen. The launch colour comes from the Launch screen row.",
     )
     val iconPath by imageOption(
         key = "icon",
@@ -80,6 +88,9 @@ val changeWazeIconPatch = resourcePatch(
             "ghost" -> paintGhostBackdrop(background)
             else -> throw PatchException("Change Waze icon: unreachable style")
         }
+        if (hideLaunchArt == true) {
+            hideLaunchLogo()
+        }
     }
 }
 
@@ -103,6 +114,7 @@ private fun resolveStyle(raw: String?): String {
 internal const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
 internal const val ADAPTIVE_ICON = "res/A8b.xml"
 internal const val FOREGROUND_VECTOR = "res/q1K.xml"
+internal const val SPLASH_LOGO = "res/drawable/splash_logo.xml"
 
 internal val DENSITY_BITMAPS = listOf(
     "res/VZx.webp", // mdpi
@@ -226,5 +238,62 @@ private fun app.morphe.patcher.patch.ResourcePatchContext.paintGhostBackdrop(col
         backdrop.setAttributeNS(ANDROID_NS, "android:fillColor", argb)
         root.insertBefore(backdrop, root.firstChild)
         println("Change Waze icon: stock ghost kept, backdrop $argb prepended")
+    }
+}
+
+/**
+ * Removes the ghost from the launch screen.
+ *
+ * The launch colour belongs to the Launch screen row; this only takes the logo away, on both the
+ * drawable older Android draws and the Android 12+ system splash (which needs a drawable to point
+ * at, so a 1x1 transparent vector is added).
+ */
+private fun app.morphe.patcher.patch.ResourcePatchContext.hideLaunchLogo() {
+    val drawables = get("res/drawable")
+    if (drawables == null || !drawables.isDirectory) {
+        throw PatchException("Change Waze icon: res/drawable missing - cannot hide the launch logo")
+    }
+    drawables.resolve("morphe_splash_blank.xml").writeText(
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+        <vector xmlns:android="http://schemas.android.com/apk/res/android"
+            android:width="1dp"
+            android:height="1dp"
+            android:viewportWidth="1"
+            android:viewportHeight="1">
+            <path android:fillColor="#00000000" android:pathData="M0,0h1v1h-1z" />
+        </vector>
+        """.trimIndent(),
+    )
+
+    try {
+        val splash = document(SPLASH_LOGO)
+        splash.use {
+            val root = splash.documentElement
+            val items = root.getElementsByTagName("item")
+            var removed = 0
+            for (i in items.length - 1 downTo 0) {
+                val item = items.item(i) as? Element ?: continue
+                if (item.getAttribute("android:drawable") == "@drawable/launch_icon_foreground") {
+                    root.removeChild(item)
+                    removed++
+                }
+            }
+            if (removed == 0) {
+                throw PatchException("Change Waze icon: asked to hide the logo but found no ghost layer")
+            }
+            println("Change Waze icon: launch logo removed from $SPLASH_LOGO")
+        }
+    } catch (e: PatchException) {
+        throw e
+    } catch (e: Exception) {
+        println("Change Waze icon: $SPLASH_LOGO not present - launch logo left as is")
+    }
+
+    try {
+        putSplashThemeItem("android:windowSplashScreenAnimatedIcon", "@drawable/morphe_splash_blank")
+        println("Change Waze icon: system splash logo hidden")
+    } catch (e: Exception) {
+        println("Change Waze icon: res/values-v31/styles.xml not present - system splash logo left stock")
     }
 }

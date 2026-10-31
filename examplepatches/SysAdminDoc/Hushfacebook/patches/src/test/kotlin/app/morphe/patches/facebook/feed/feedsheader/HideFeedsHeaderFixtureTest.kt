@@ -36,20 +36,20 @@ import java.io.File
 class HideFeedsHeaderFixtureTest {
     /**
      * Each declared build's container type, the controller's type, and the controller's register,
-     * by ABI. 584's two builds agree on all three.
+     * by ABI. 585's two builds share the container's type and the register, not the controller.
      */
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
-            "arm64-v8a" to Triple("LX/1yY;", "LX/XbL;", 5),
-            "armeabi-v7a" to Triple("LX/1yY;", "LX/XbL;", 5),
+            "arm64-v8a" to Triple("LX/0288;", "LX/0dI0;", 5),
+            "armeabi-v7a" to Triple("LX/0288;", "LX/0dHQ;", 5),
         ),
     )
 
     /** Each declared build's container controller and the runnable it posts with whether the filters show, by ABI. */
     private val room = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
-            "arm64-v8a" to ("LX/YHp;" to "LX/YV0;"),
-            "armeabi-v7a" to ("LX/YHp;" to "LX/YV0;"),
+            "arm64-v8a" to ("LX/0X1Z;" to "LX/0XB6;"),
+            "armeabi-v7a" to ("LX/0X10;" to "LX/0XAU;"),
         ),
     )
 
@@ -73,13 +73,13 @@ class HideFeedsHeaderFixtureTest {
                 val name = bundle.name
                 val abi = name.substringAfter("-$version-").substringBefore(".apkm")
                 val (containerController, runnable) = room.getValue(version).getValue(abi)
-                val read = FixtureDex.classes(bundle, setOf(FEED_FILTERS_FRAGMENT, containerController))
-                val fragment = read[FEED_FILTERS_FRAGMENT]
+                val fragment = FixtureDex.classes(bundle, setOf(FEED_FILTERS_FRAGMENT))[FEED_FILTERS_FRAGMENT]
                 assertNotNull("$name: no $FEED_FILTERS_FRAGMENT", fragment)
-                val controllerClass = read[containerController]
-                assertNotNull("$name: no $containerController", controllerClass)
                 assertEquals("$name: the container controller's type", containerController,
                     fragment!!.fields.single { it.name == CONTAINER_CONTROLLER_FIELD }.type)
+                val read = FixtureDex.classes(bundle, setOf(FEED_FILTERS_FRAGMENT, containerController))
+                val controllerClass = read[containerController]
+                assertNotNull("$name: no $containerController", controllerClass)
                 val made = controllerClass!!.methods.flatMap { method ->
                     method.implementation?.instructions?.toList().orEmpty().filter { it.opcode == Opcode.NEW_INSTANCE }
                         .map { ((it as ReferenceInstruction).reference as TypeReference).type }
@@ -87,7 +87,7 @@ class HideFeedsHeaderFixtureTest {
                 val classes = read + FixtureDex.classes(bundle, made)
                 val roomRead = filtersRoom(fragment) { classes[it] }
                 assertEquals("$name: the runnable", runnable, roomRead.runnable.type)
-                assertEquals("$name: the read of whether the filters show and its register", 4 to 0,
+                assertEquals("$name: the read of whether the filters show and its register", 9 to 0,
                     roomRead.index to roomRead.register)
                 val answers = navBarAnswers(fragment)
                 assertEquals("$name: the question's returns", listOf(7 to 0, 9 to 0), answers.returns)
@@ -128,13 +128,14 @@ class HideFeedsHeaderFixtureTest {
                 val stockRun = roomRead.method.code()
                 val margin = context.mutableClassDefBy(runnable).methods.single { it.name == "run" && it.parameterTypes.isEmpty() }.code()
                 assertEquals("$name: two instructions for the room's hook", stockRun.size + 2, margin.size)
-                assertEquals("$name: Facebook's read first", Opcode.IGET_BOOLEAN, margin[4].opcode)
-                assertEquals("$name: then the extension", ROOM, margin[5].reference)
-                assertEquals("$name: handed whether the filters show", listOf(0), margin[5].namedRegisters())
-                assertEquals("$name: its answer", Opcode.MOVE_RESULT, margin[6].opcode)
-                assertEquals("$name: in Facebook's register", listOf(0), margin[6].namedRegisters())
-                assertEquals("$name: then Facebook's branch", Opcode.IF_EQZ, margin[7].opcode)
-                assertEquals("$name: on that register", listOf(0), margin[7].namedRegisters())
+                val readAt = roomRead.index
+                assertEquals("$name: Facebook's read first", Opcode.IGET_BOOLEAN, margin[readAt].opcode)
+                assertEquals("$name: then the extension", ROOM, margin[readAt + 1].reference)
+                assertEquals("$name: handed whether the filters show", listOf(0), margin[readAt + 1].namedRegisters())
+                assertEquals("$name: its answer", Opcode.MOVE_RESULT, margin[readAt + 2].opcode)
+                assertEquals("$name: in Facebook's register", listOf(0), margin[readAt + 2].namedRegisters())
+                assertEquals("$name: then Facebook's branch", Opcode.IF_EQZ, margin[readAt + 3].opcode)
+                assertEquals("$name: on that register", listOf(0), margin[readAt + 3].namedRegisters())
 
                 val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "feedsHeader" }
                 assertEquals("$name: SettingsStatus.feedsHeader() isn't switched on", 1,

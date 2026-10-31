@@ -160,6 +160,7 @@ final class SettingsNavigation extends BaseAdapter {
         }
         section("Links", L10n.t("Links"), null, SettingsIcons.LINKS);
         section("Updates", L10n.t("Updates"), null, SettingsIcons.UPDATES);
+        section("Ways in", L10n.t("Ways in"), null, SettingsIcons.OPENING);
         section("Pause", L10n.t("Pause"), null, SettingsIcons.PAUSE);
         section("Settings backup", L10n.t("Settings backup"), null, SettingsIcons.EXPORT);
         section("Diagnostics", L10n.t("Diagnostics"), null, SettingsIcons.BUG);
@@ -914,13 +915,13 @@ final class SettingsNavigation extends BaseAdapter {
     /**
      * A section's heading: its chevron points down while it's closed and up while it's open, its
      * title takes the accent colour while open, and a screen reader hears it as a heading that
-     * expands or collapses.
+     * expands or collapses. TalkBack says "Collapsed" or "Expanded" from the expand and collapse
+     * actions alone, so a state description of its own made it say the state twice (S22,
+     * 2026-10-30).
      */
     private void bindHeader(View row, Preference item, String id) {
         boolean open = expanded.contains(id);
         row.setAccessibilityHeading(true);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R)
-            row.setStateDescription(L10n.t(open ? "Expanded" : "Collapsed"));
         View arrow = row.findViewWithTag(ScreenColors.CHEVRON);
         if (arrow != null) {
             boolean rtl = row.getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
@@ -933,8 +934,6 @@ final class SettingsNavigation extends BaseAdapter {
                 super.onInitializeAccessibilityNodeInfo(host, info);
                 boolean shown = expanded.contains(id);
                 info.setHeading(true);
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R)
-                    info.setStateDescription(L10n.t(shown ? "Expanded" : "Collapsed"));
                 info.addAction(shown ? AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE
                         : AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND);
             }
@@ -1042,6 +1041,14 @@ final class SettingsNavigation extends BaseAdapter {
             if (pause instanceof SwitchPreference) ((SwitchPreference) pause).setChecked(!nextPaused);
         }
         rebuild();
+        Preference card = screen.getPreference(0);
+        if (row == null && visible.contains(card)) {
+            // The toolbar's button steps aside for the card, which carries it from here. TalkBack's
+            // focus went with the button and nothing said what the tap did (S22, 2026-10-30), so
+            // the card comes into view and takes the focus.
+            refocus = card;
+            showAt(visible.indexOf(card), 0);
+        }
     }
 
     private boolean markerLeft() {

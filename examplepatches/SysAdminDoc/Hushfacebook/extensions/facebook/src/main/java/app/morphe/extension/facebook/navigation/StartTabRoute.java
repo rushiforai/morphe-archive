@@ -537,6 +537,28 @@ public final class StartTabRoute {
         }
     }
 
+    /** The class name of the tab the main screen [activity] shows, or null. Never throws. */
+    @Nullable
+    public static String shownTab(Activity activity) {
+        try {
+            Object tab = TabBar.currentTab(activity);
+            return tab == null ? null : tab.getClass().getName();
+        } catch (Throwable unreadable) {
+            return null;
+        }
+    }
+
+    /** Whether [activity] is the Feeds page the Menu's Feeds row opens. Never throws. */
+    public static boolean feedsPage(Activity activity) {
+        try {
+            Intent intent = activity.getIntent();
+            return PAGE_SCREEN.equals(activity.getClass().getName()) && intent != null
+                    && intent.getIntExtra("target_fragment", -1) == FEEDS_FRAGMENT;
+        } catch (Throwable unreadable) {
+            return false;
+        }
+    }
+
     /**
      * Facebook's tab bar, read through the names Redex keeps: the main screen's
      * {@code getCurrentTab()}, its delegate's lazy tab bar state, the {@code TabTag} class and its

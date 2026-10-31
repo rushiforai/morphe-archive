@@ -1,0 +1,128 @@
+{
+  "mask": 32,
+  "source": "8b4adc590944ddd177d3fdc42bf47518b3eb0c9d",
+  "native_sha256": "639130f60e15ca29cbb452f1daafd84456a634d6743aa61b5c6ba277999722a2",
+  "engine_sha256": "d70bbedc2b157630f90123a32ca894a6fa1816ec10cda9f335bada0692b376ee",
+  "installed_apk_sha256": "0764062ed738ff0733cb3359bee76da270ac24dd44a5fa9522cde370e7f39b1c",
+  "compact_size": "1100x680",
+  "bundle_sha256": "72921cf82a2a0787e5597721fa9e9291751e3f316e85614047593142df3eda12",
+  "raw_unedited_adb_captures": true,
+  "captured_at": "2026-10-30T12:59:44.246675+00:00",
+  "actual_routes": {
+    "Output": {
+      "opened_and_returned": true,
+      "scrolls": [
+        {
+          "direction": "up",
+          "method": "large pre-action scroll"
+        },
+        {
+          "direction": "up",
+          "method": "large pre-action scroll"
+        },
+        {
+          "direction": "up",
+          "method": "large pre-action scroll"
+        },
+        {
+          "direction": "up",
+          "method": "large pre-action scroll"
+        }
+      ]
+    },
+    "Queue": {
+      "opened_and_returned": true,
+      "scrolls": [
+        {
+          "direction": "up",
+          "method": "large pre-action scroll"
+        },
+        {
+          "direction": "up",
+          "method": "large pre-action scroll"
+        },
+        {
+          "direction": "up",
+          "method": "large pre-action scroll"
+        },
+        {
+          "direction": "up",
+          "method": "large pre-action scroll"
+        },
+        {
+          "direction": "up",
+          "points": [
+            550,
+            566,
+            550,
+            502
+          ],
+          "method": "short scroll below pinned header"
+        }
+      ]
+    },
+    "Lyrics": {
+      "opened_and_returned": true,
+      "scrolls": [
+        {
+          "direction": "up",
+          "method": "large pre-action scroll"
+        },
+        {
+          "direction": "up",
+          "method": "large pre-action scroll"
+        },
+        {
+          "direction": "up",
+          "method": "large pre-action scroll"
+        },
+        {
+          "direction": "up",
+          "method": "large pre-action scroll"
+        },
+        {
+          "direction": "up",
+          "points": [
+            550,
+            566,
+            550,
+            502
+          ],
+          "method": "short scroll below pinned header"
+        },
+        {
+          "direction": "up",
+          "points": [
+            550,
+            566,
+            550,
+            502
+          ],
+          "method": "short scroll below pinned header"
+        },
+        {
+          "direction": "up",
+          "points": [
+            550,
+            566,
+            550,
+            502
+          ],
+          "method": "short scroll below pinned header"
+        }
+      ]
+    }
+  },
+  "preference_false_and_adaptive_actions_hidden": true,
+  "installed": {
+    "package": "com.unicornsonlsd.finamp",
+    "sha256": "0764062ed738ff0733cb3359bee76da270ac24dd44a5fa9522cde370e7f39b1c"
+  },
+  "display_and_preference_restored": true,
+  "portrait_visible_actions_no_duplicates": {
+    "passed": true,
+    "native_sha256": "639130f60e15ca29cbb452f1daafd84456a634d6743aa61b5c6ba277999722a2",
+    "before_io_fix_apk_sha256": "3f6309098ff000ec26830484c2e9fbd8cf97de4f59554b96073b2cffa430ecbd",
+    "unchanged_native_code": true
+  }
+}

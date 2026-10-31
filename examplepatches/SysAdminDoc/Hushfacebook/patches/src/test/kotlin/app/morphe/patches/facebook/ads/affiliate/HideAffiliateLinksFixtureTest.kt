@@ -35,13 +35,32 @@ import java.io.File
 /**
  * Hide affiliate product links' four anchors on every Facebook build the bundle declares: the reel
  * overlay's one Z predicate in front of adding AFFILIATE_EYEBROW, the one string lookup the feed
- * video plugin's isFooterHidden… makes, the floating card plugin's one static card reader, and the
- * reel overlay's one filterCtasForCategorySuppression. Then the patch: every answer each of them
+ * video plugin's isFooterHidden… makes, the floating card plugin's one static card reader (on 585 its
+ * one static Z card check), and the
+ * reel overlay's one filterCtasForCategorySuppression (on 585, which dropped that name, the one list
+ * filter beside the overlay's kind sets, called from the overlay's builder). Then the patch: every answer each of them
  * gives goes through the extension on its own register, cast back where the hook answers a wider
  * type, the filter's with the list it was given beside it, and no branch skips the hook. Reads the
  * fixture bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class HideAffiliateLinksFixtureTest {
+    private val REC_PILL = "hasAffiliateRecPill"
+
+    /** How many Z predicates the reel overlay asks before adding the card, and how many are [REC_PILL], per build. */
+    private val expectedReelChecks = mapOf(
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to (2 to 1),
+    )
+
+    /** Whether the CTA filter still carries its kept name, per build: 585 dropped it. */
+    private val namedCtaFilter = mapOf(
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to false,
+    )
+
+    /** Whether the floating card plugin asks a Z card check instead of reading the model, per build: 585 does. */
+    private val commentCardCheck = mapOf(
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to true,
+    )
+
     private fun Method.code(): List<Instruction> = implementation!!.instructions.toList()
 
     private fun declaredBundles(): Map<String, List<File>> {
@@ -142,8 +161,12 @@ class HideAffiliateLinksFixtureTest {
                 val builders = FixtureDex.methodsWhere(bundle, dexFilter = { dex ->
                     dex.fieldSection.any { it.toString() == eyebrow }
                 }) { reelCardChecks(it, eyebrow!!).isNotEmpty() }
-                val reelChecks = builders.flatMap { reelCardChecks(it, eyebrow!!) }.map { it.toString() }.toSet()
-                assertEquals("$name: Z predicates in front of adding $eyebrow", 1, reelChecks.size)
+                val reelChecks = builders.flatMap { reelCardChecks(it, eyebrow!!) }.map { site -> site.map { it.toString() } }.toSet()
+                assertEquals("$name: places asking Z predicates before adding $eyebrow", 1, reelChecks.size)
+                // 585 asks the old predicate and the kept hasAffiliateRecPill, and adds the card on either yes.
+                val (predicates, kept) = expectedReelChecks.getValue(version)
+                assertEquals("$name: Z predicates in front of adding $eyebrow", predicates, reelChecks.single().size)
+                assertEquals("$name: the kept rec pill predicate", kept, reelChecks.single().count { it.contains("->$REC_PILL(") })
 
                 val footerChecks = FixtureDex.methodsWhere(bundle, dexFilter = { dex ->
                     dex.methodSection.any { it.name.startsWith(FOOTER_HIDDEN) }
@@ -151,37 +174,71 @@ class HideAffiliateLinksFixtureTest {
                 val footerIds = footerChecks.flatMap { footerIdCalls(it) }.map { it.toString() }.toSet()
                 assertEquals("$name: string lookups in $FOOTER_HIDDEN…", 1, footerIds.size)
 
-                val ctaFilters = FixtureDex.methodsWhere(bundle, dexFilter = { dex ->
+                // The CTA filter by its kept name, or (585) by what it does beside the overlay's kind sets.
+                val named = FixtureDex.methodsWhere(bundle, dexFilter = { dex ->
                     dex.methodSection.any { it.name == CTA_FILTER }
                 }) { isCtaFilter(it) }
-                assertEquals("$name: $CTA_FILTER($LIST$SET)$LIST", 1, ctaFilters.size)
+                assertEquals("$name: the filter keeps the name $CTA_FILTER", namedCtaFilter.getValue(version), named.isNotEmpty())
+                val ctaFilters = named.ifEmpty {
+                    val found = mutableListOf<Method>()
+                    FixtureDex.forEach(bundle) { dex ->
+                        if (dex.typeSection.none { it.toString() == "[${overlay.type}" }) return@forEach
+                        for (classDef in dex.classes) {
+                            val kindSets = overlayKindSets(classDef, overlay.type)
+                            if (kindSets.isNotEmpty()) classDef.methods.filterTo(found) { isCategoryCtaFilter(it, kindSets) }
+                        }
+                    }
+                    found
+                }
+                assertEquals("$name: CTA filters", 1, ctaFilters.size)
                 val ctaFilter = ctaFilters.single()
+                if (named.isEmpty()) {
+                    // The overlay's own builder, where the card checks sit, runs its kinds through it.
+                    assertTrue("$name: the reel overlay's builder never calls ${ctaFilter.name}", builders.any { builder ->
+                        builder.code().any { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { call ->
+                            MethodUtil.methodSignaturesMatch(call, ctaFilter) && call.definingClass == ctaFilter.definingClass
+                        } == true }
+                    })
+                }
                 val list = ctaListRegister(ctaFilter)
-                assertEquals("$name: the list is the filter's first parameter", ctaFilter.implementation!!.registerCount - 2, list)
+                // Every parameter is an object, so the first sits as many registers from the end as there are parameters.
+                assertEquals("$name: the list is the filter's first parameter",
+                    ctaFilter.implementation!!.registerCount - ctaFilter.parameterTypes.size, list)
 
                 val reelCheck = builders.flatMap { reelCardChecks(it, eyebrow!!) }.first()
                 val footerId = footerChecks.flatMap { footerIdCalls(it) }.first()
-                val types = (builders + footerChecks).map { it.definingClass }.toSet() +
-                    setOf(reelCheck.definingClass, footerId.definingClass, FLOATING_CARD_PLUGIN, ctaFilter.definingClass)
+                val types = (builders + footerChecks).map { it.definingClass }.toSet() + reelCheck.map { it.definingClass } +
+                    setOf(footerId.definingClass, FLOATING_CARD_PLUGIN, ctaFilter.definingClass)
                 val classes = FixtureDex.classes(bundle, types)
                 assertEquals("$name: classes read", types, classes.keys)
                 val plugin = classes.getValue(FLOATING_CARD_PLUGIN)
                 val readers = plugin.methods.filter(::isCommentCardReader)
-                assertEquals("$name: static card readers on the floating card plugin", 1, readers.size)
+                val cardChecks = plugin.methods.filter(::isCommentCardCheck)
+                val asksCheck = commentCardCheck.getValue(version)
+                assertEquals("$name: static card readers on the floating card plugin", if (asksCheck) 0 else 1, readers.size)
+                if (asksCheck) assertEquals("$name: static Z card checks on the floating card plugin", 1, cardChecks.size)
+                val commentCard = if (asksCheck) cardChecks.single() else readers.single()
 
                 fun original(reference: MethodReference) = classes.getValue(reference.definingClass).methods
                     .single { MethodUtil.methodSignaturesMatch(it, reference) }.code()
-                val originals = listOf(original(reelCheck), original(footerId), readers.single().code(), original(ctaFilter))
+                val reelOriginals = reelCheck.map(::original)
+                val originals = listOf(original(footerId), commentCard.code(), original(ctaFilter))
 
                 val context = PatchContexts.of(listOf(overlay) + classes.values + ExtensionDex.classDef(SETTINGS_STATUS))
                 hideAffiliateLinksPatch.execute(context)
 
                 fun patched(reference: MethodReference) = context.mutableClassDefBy(reference.definingClass).methods
                     .single { MethodUtil.methodSignaturesMatch(it, reference) }.code()
-                assertFiltered("$name reel card check", originals[0], patched(reelCheck), KEEP_REEL_CARD, null)
-                assertFiltered("$name footer id", originals[1], patched(footerId), KEEP_FOOTER, null)
-                assertFiltered("$name comment card", originals[2], patched(readers.single()), KEEP_COMMENT_CARD, readers.single().returnType)
-                assertCtaFiltered("$name CTA filter", originals[3], patched(ctaFilter), list)
+                reelCheck.zip(reelOriginals).forEach { (check, before) ->
+                    assertFiltered("$name reel card check ${check.name}", before, patched(check), KEEP_REEL_CARD, null)
+                }
+                assertFiltered("$name footer id", originals[0], patched(footerId), KEEP_FOOTER, null)
+                if (asksCheck) {
+                    assertFiltered("$name comment card check", originals[1], patched(commentCard), KEEP_COMMENT_CARD_CHECK, null)
+                } else {
+                    assertFiltered("$name comment card", originals[1], patched(commentCard), KEEP_COMMENT_CARD, commentCard.returnType)
+                }
+                assertCtaFiltered("$name CTA filter", originals[2], patched(ctaFilter), list)
 
                 val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "affiliateLinks" }
                 assertEquals("$name: SettingsStatus.affiliateLinks() isn't switched on", 1,

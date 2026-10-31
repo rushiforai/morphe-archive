@@ -7,15 +7,18 @@ package app.morphe.patches.facebook.navigation.starttab
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.settings.MAIN_TAB_ACTIVITY
+import app.morphe.patches.facebook.search.branchTarget
 import app.morphe.patches.facebook.shared.readsMobileConfig
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -46,7 +49,8 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  *    has no extras. A launcher is another app, so the tab asked for goes with the rest. Facebook's
  *    own tab shortcuts put the tab in a link for that reason, and its notifications carry the
  *    PendingIntent. The patch hands the step's copy to the extension, which asks for the tab
- *    again when it asked for one in the first place.
+ *    again when it asked for one in the first place. Up to 584 the step ran inside the dispatcher
+ *    that compares step names; 585 moves its body into a method of its own the case calls.
  * 2. "setup_main_view_controllers" asks the picker about the (now sanitized) intent, keeps the
  *    answer as the main screen's start tab and gives it to the tab bar. The tab bar's
  *    "TabBarController.determineStartingTabPosition" then uses it only when one of Facebook's
@@ -57,7 +61,8 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * 3. After the tab bar is set up, the main screen puts its own start tab back to the default
  *    unless a static check agrees the intent asked for exactly that tab (and two more of
  *    Facebook's settings allow it). The patch passes that check's answer through the extension
- *    the same way, so the screen's idea of its start tab matches the tab that shows.
+ *    the same way, so the screen's idea of its start tab matches the tab that shows. 585 runs the
+ *    check inline in the dispatcher, so there the patch asks where its no resets the start tab.
  *
  * None of this necessarily runs inside Android's onCreate. FbFragmentActivity.onCreate, where the
  * route hook goes first, hands on to the screen's delegate, and on a cold start the main screen's
@@ -204,6 +209,62 @@ internal fun keepsAskedStartTab(method: Method): Boolean =
         method.calls(INTENT, "getLongExtra", listOf("Ljava/lang/String;", "J"), "J") &&
         readsOwnLong(method)
 
+/** How far before the read of the intent's start tab the extra's name may be loaded: hasExtra, its answer and branch, the default. */
+private const val TAB_EXTRA_WINDOW = 8
+
+/**
+ * Where [method] runs the main screen's keep check inline, the index of the `iput-wide` that puts
+ * the screen's start tab back to the default when the check says no, or null when it doesn't.
+ *
+ * 585 no longer has 584's static check (`LX/1ym;->A09(FbMainTabActivity;LX/1ym;)Z`): the start-up
+ * dispatcher (`LX/03HL;->A00` arm64) runs its body in place. It reads the intent's
+ * "target_tab_id" as a long, compares it with the start tab the screen keeps
+ * (`LX/028u;->A01:J`), and when they differ branches to `iput-wide` of the default into that
+ * field, the same instruction the check's other no answers and its MobileConfig gates reach. A
+ * yes jumps to the instruction after it.
+ */
+internal fun inlineKeepReset(method: Method): Int? {
+    val code = method.implementation?.instructions?.toList() ?: return null
+    val resets = code.indices.mapNotNull { index ->
+        val call = code[index].call ?: return@mapNotNull null
+        if (call.definingClass != INTENT || call.name != "getLongExtra" || call.returnType != "J" ||
+            call.parameters() != listOf("Ljava/lang/String;", "J")
+        ) return@mapNotNull null
+        // The extra read has to be the start tab's: its name register was loaded with "target_tab_id" just before.
+        val name = code[index].callRegisters().getOrNull(1) ?: return@mapNotNull null
+        val named = (maxOf(0, index - TAB_EXTRA_WINDOW) until index).any {
+            val load = code[it]
+            (load.opcode == Opcode.CONST_STRING || load.opcode == Opcode.CONST_STRING_JUMBO) &&
+                (load as OneRegisterInstruction).registerA == name &&
+                ((load as ReferenceInstruction).reference as StringReference).string == TARGET_TAB_ID
+        }
+        if (!named) return@mapNotNull null
+        val asked = code.getOrNull(index + 1)?.takeIf { it.opcode == Opcode.MOVE_RESULT_WIDE } ?: return@mapNotNull null
+        // The check compares the asked tab with a long field the screen keeps, and differing branches away.
+        val kept = code.getOrNull(index + 2)?.takeIf { it.opcode == Opcode.IGET_WIDE } ?: return@mapNotNull null
+        val field = (kept as ReferenceInstruction).reference as FieldReference
+        if (field.type != "J") return@mapNotNull null
+        val compare = code.getOrNull(index + 3)?.takeIf { it.opcode == Opcode.CMP_LONG } as? ThreeRegisterInstruction
+            ?: return@mapNotNull null
+        val longs = setOf(compare.registerB, compare.registerC)
+        if (longs != setOf((asked as OneRegisterInstruction).registerA, (kept as TwoRegisterInstruction).registerA)) {
+            return@mapNotNull null
+        }
+        val branch = code.getOrNull(index + 4)
+        if (branch?.opcode != Opcode.IF_NEZ || (branch as OneRegisterInstruction).registerA != compare.registerA) {
+            return@mapNotNull null
+        }
+        val reset = branchTarget(code, index + 4) ?: return@mapNotNull null
+        // Where the no lands puts the default back into that same field of that same object.
+        val write = code[reset].takeIf { it.opcode == Opcode.IPUT_WIDE } ?: return@mapNotNull null
+        val written = (write as ReferenceInstruction).reference as FieldReference
+        val same = written.definingClass == field.definingClass && written.name == field.name && written.type == "J" &&
+            (write as TwoRegisterInstruction).registerB == (kept as TwoRegisterInstruction).registerB
+        if (same && reset + 1 < code.size) reset else null
+    }
+    return resets.distinct().singleOrNull()
+}
+
 /**
  * Where [method] runs the start-up step [SANITIZE_INTENT], the index of the `Activity.setIntent`
  * that hands the main screen the sanitized copy of its intent, or null when it doesn't.
@@ -212,8 +273,44 @@ internal fun keepsAskedStartTab(method: Method): Boolean =
  * [KEPT_EXTRA] last, and then hands it over: the first `setIntent` after that extra is loaded, on
  * the register the copy was built in.
  */
-internal fun sanitizedIntentHandOver(method: Method): Int? {
-    if (!holdsString(method, SANITIZE_INTENT)) return null
+internal fun sanitizedIntentHandOver(method: Method): Int? =
+    if (holdsString(method, SANITIZE_INTENT)) sanitizedCopyHandOver(method) else null
+
+/** What ends a case of the start-up dispatcher: the jump to its shared end, or a return. */
+private val CASE_ENDS = setOf(
+    Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32, Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_OBJECT,
+    Opcode.RETURN_WIDE, Opcode.THROW,
+)
+
+/**
+ * The calls [method] makes in the start-up dispatcher's case for [SANITIZE_INTENT]: from the
+ * `String.equals` that compares the step's name to the end of its case.
+ *
+ * 585 (`LX/03HL;->A00` arm64, about 6,000 instructions) no longer runs the step inline as 584's
+ * `LX/3UL;->A00` did: its case only fetches a holder and calls `LX/01i1;->A00(FragmentActivity)V`,
+ * the step's body, which builds and hands over the copy exactly as before.
+ */
+internal fun sanitizeStepCalls(method: Method): List<MethodReference> {
+    val code = method.implementation?.instructions?.toList() ?: return emptyList()
+    // A case starts by comparing the step's name, so a load of the literal elsewhere doesn't count.
+    val starts = code.indices.filter { index ->
+        ((code[index] as? ReferenceInstruction)?.reference as? StringReference)?.string == SANITIZE_INTENT &&
+            code.getOrNull(index + 1)?.call?.let { it.definingClass == "Ljava/lang/String;" && it.name == "equals" } == true
+    }
+    return starts.flatMap { start ->
+        val end = (start + 2 until code.size).firstOrNull { code[it].opcode in CASE_ENDS } ?: code.size
+        (start + 2 until end).mapNotNull { code[it].call }
+    }
+}
+
+/** The method of [owner] that [call] names, if it has code. */
+internal fun stepBody(owner: ClassDef, call: MethodReference): Method? = owner.methods.firstOrNull {
+    it.implementation != null && it.name == call.name && it.returnType == call.returnType &&
+        it.parameterTypes.map(CharSequence::toString) == call.parameters()
+}
+
+/** [sanitizedIntentHandOver] without the step's name: the copy's hand-over alone, for a step body moved out of the dispatcher. */
+internal fun sanitizedCopyHandOver(method: Method): Int? {
     val code = method.implementation?.instructions?.toList() ?: return null
     val kept = code.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == KEPT_EXTRA }
     if (kept < 0) return null

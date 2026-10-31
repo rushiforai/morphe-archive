@@ -10,12 +10,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 # Editorial destinations only; app names, versions and patches come from metadata.
 APP_PAGES = {
+    'mobi.inthepocket.mediafin.detijd': ('detijd', 'news'),
     'be.persgroep.android.news.mobiledm': ('demorgen', 'news'),
     'be.humo.tvgids': ('humo', 'news'),
     'be.persgroep.android.news.mobilehln': ('hln', 'news'),
     'com.twipemobile.nbmobile': ('nieuwsblad', 'news'),
     'com.twipemobile.dsmobile': ('dsnieuws', 'news'),
+    'be.concentra.hbvl.MediaApp': ('hbvl', 'news'),
+    'com.mecom.tctubantia.nl': ('tubantia', 'news'),
     'com.talpa.kijk': ('kijk-android-tv', 'entertainment'),
+    'nl.sbs.kijk': ('kijk', 'entertainment'),
     'nl.uitzendinggemist': ('npo-start-android-tv', 'entertainment'),
     'nl.tvgids': ('tvgids-nl', 'entertainment'),
     'nl.rtl.videoland.v2': ('videoland-android-tv', 'entertainment'),
@@ -32,11 +36,19 @@ APP_PAGES = {
     'nl.sanomamedia.android.nu': ('nunl', 'news'),
     'nl.rtl.rtlnieuws': ('rtl-nieuws', 'news'),
     'nl.omroepbrabant.android': ('omroep-brabant', 'news'),
+    'nl.omroepwest.android': ('omroep-west', 'news'),
     'nl.vi': ('voetbal-international', 'news'),
     'com.eoffice.android': ('nos-teletekst', 'news'),
     **{f'be.persgroep.android.news.mobile{suffix}': (slug, 'news')
        for suffix, slug in [('ad', 'ad'), ('pa', 'parool'), ('tr', 'trouw'), ('vk', 'volkskrant')]},
 }
+
+
+def app_page(package):
+    mobile = {'nl.uitzendinggemist': 'npo-start', 'nl.rtl.videoland.v2': 'videoland'}
+    if package.get('formFactor') == 'MOBILE' and package['packageName'] in mobile:
+        return mobile[package['packageName']], 'entertainment'
+    return APP_PAGES.get(package['packageName'], (None, 'other'))
 
 
 def _app_groups(data):
@@ -105,7 +117,7 @@ def render_home_apps(data, language, prerelease=None):
         ('Bijvoorbeeld: Buienalarm' if dutch else 'For example: Buienalarm') + '">',
         '<div class="dap-filters" role="group" aria-label="' + ('Appcategorieën' if dutch else 'App categories') + '">',
     ]
-    used = {APP_PAGES.get(g['package']['packageName'], (None, 'other'))[1] for g in groups.values()}
+    used = {app_page(g['package'])[1] for g in groups.values()}
     for key, label in categories.items():
         if key == 'all' or key in used:
             text.append(f'<button type="button" data-category="{key}" aria-pressed="{"true" if key == "all" else "false"}">{label}</button>')
@@ -121,7 +133,7 @@ def render_home_apps(data, language, prerelease=None):
              '</p>', '<div class="dap-app-grid" markdown>']
     for group in sorted(groups.values(), key=lambda g: g['package']['name'].casefold()):
         package = group['package']
-        slug, category = APP_PAGES.get(package['packageName'], (None, 'other'))
+        slug, category = app_page(package)
         name = package['name']
         if package.get('formFactor') not in (None, 'MOBILE') and not name.endswith('Android TV'):
             name += f' ({package["formFactor"]})'
@@ -204,7 +216,7 @@ def render(data, language):
         for patch, own_package in group['patches']:
             enabled = patch.get('default', True)
             state = ('Aan' if enabled else 'Uit') if dutch else ('On' if enabled else 'Off')
-            text += [f'### {patch["name"]}', '', f'**{"Standaard" if dutch else "Default"}: {state}**', '',
+            text += ['', f'### {patch["name"]}', '', f'**{"Standaard" if dutch else "Default"}: {state}**', '',
                      patch['description'], '']
             if own_package:
                 text += [('| App-versie | Build per architectuur | Min. SDK | Status |' if dutch else '| App version | Build by architecture | Min. SDK | Status |'),

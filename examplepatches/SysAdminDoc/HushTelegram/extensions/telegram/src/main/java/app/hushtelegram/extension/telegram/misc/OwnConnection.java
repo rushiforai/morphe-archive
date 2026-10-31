@@ -33,6 +33,10 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  * they're still as this left them. Switching either one in Telegram's settings is the user's
  * call and this never touches it again. Repair Firebase push registration off or Pause leaves
  * everything alone.
+ *
+ * <p>UnifiedPush gets the same treatment once Telegram has its address (#50). Telegram's servers
+ * accept that sign-up, but on the S22 they never called the address for a message (2026-10-13,
+ * 2026-10-29), so with Keep-Alive off messages waited until Telegram was opened.
  */
 public final class OwnConnection {
     /** Telegram's global notification settings (MessagesController.getGlobalNotificationsSettings). */
@@ -42,6 +46,8 @@ public final class OwnConnection {
     /** Ours: set while both switches are on because of a refusal, so only we turn them back. */
     static final String PREFS = "hushtelegram_own_connection";
     static final String TURNED_ON = "turned_on";
+    /** Ours: set beside {@link #TURNED_ON} when UnifiedPush rather than a refusal turned them on. */
+    static final String BESIDE_UNIFIED_PUSH = "beside_unified_push";
 
     private OwnConnection() { }
 
@@ -64,32 +70,56 @@ public final class OwnConnection {
             Context context = Utils.getContext();
             if (context == null) return;
             if (accepted) handBack(context);
-            else turnOn(context);
+            else turnOn(context, FamilyNames.REPAIR_FIREBASE_PUSH, false);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.REPAIR_FIREBASE_PUSH, "Telegram's own connection", failure);
         }
     }
 
-    private static void turnOn(Context context) {
+    /**
+     * Called once UnifiedPush has handed Telegram its address. Only while the UnifiedPush switch is
+     * on and nothing is paused. Turning UnifiedPush off later leaves them on until a Firebase
+     * sign-up is accepted, the safe side for a phone that was just getting messages this way.
+     */
+    static void besideUnifiedPush(@Nullable Context context) {
+        try {
+            if (context == null || !Utils.settingsReady() || HushTelegramPause.isPaused() || !Settings.UNIFIED_PUSH.get()) return;
+            turnOn(context, FamilyNames.UNIFIED_PUSH, true);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.UNIFIED_PUSH, "Telegram's own connection", failure);
+        }
+    }
+
+    private static void turnOn(Context context, String family, boolean besideUnifiedPush) {
         SharedPreferences telegram = telegramStore.apply(context);
         if (telegram.contains(KEEP_ALIVE) || telegram.contains(BACKGROUND)) {
             if (!store.apply(context).getBoolean(TURNED_ON, false)) {
-                HookStatus.counted(FamilyNames.REPAIR_FIREBASE_PUSH, "own connection left as set in Telegram");
+                HookStatus.counted(family, "own connection left as set in Telegram");
             }
             return;
         }
         // Ours first: if Telegram's write then fails, the next answer finds nothing to hand back.
-        if (!store.apply(context).edit().putBoolean(TURNED_ON, true).commit()) {
-            HookStatus.counted(FamilyNames.REPAIR_FIREBASE_PUSH, "own connection not saved");
+        // A failed commit still changes what this process reads, so each failure takes its values back out.
+        SharedPreferences.Editor ours = store.apply(context).edit().putBoolean(TURNED_ON, true);
+        if (besideUnifiedPush) ours.putBoolean(BESIDE_UNIFIED_PUSH, true);
+        if (!ours.commit()) {
+            store.apply(context).edit().remove(TURNED_ON).remove(BESIDE_UNIFIED_PUSH).commit();
+            HookStatus.counted(family, "own connection not saved");
             return;
         }
         if (!telegram.edit().putBoolean(KEEP_ALIVE, true).putBoolean(BACKGROUND, true).commit()) {
-            store.apply(context).edit().remove(TURNED_ON).commit();
-            HookStatus.counted(FamilyNames.REPAIR_FIREBASE_PUSH, "own connection not saved");
+            telegram.edit().remove(KEEP_ALIVE).remove(BACKGROUND).commit();
+            store.apply(context).edit().remove(TURNED_ON).remove(BESIDE_UNIFIED_PUSH).commit();
+            HookStatus.counted(family, "own connection not saved");
             return;
         }
-        HookStatus.counted(FamilyNames.REPAIR_FIREBASE_PUSH, "own connection turned on for a refused sign-up");
-        Logger.printInfo(() -> "Push sign-up refused: Keep-Alive Service and Background Connection turned on");
+        if (besideUnifiedPush) {
+            HookStatus.counted(family, "own connection kept on beside UnifiedPush");
+            Logger.printInfo(() -> "UnifiedPush in use: Keep-Alive Service and Background Connection turned on beside it");
+        } else {
+            HookStatus.counted(family, "own connection turned on for a refused sign-up");
+            Logger.printInfo(() -> "Push sign-up refused: Keep-Alive Service and Background Connection turned on");
+        }
         apply.run();
     }
 
@@ -105,7 +135,7 @@ public final class OwnConnection {
             Logger.printInfo(() -> "Push sign-up accepted: Keep-Alive Service and Background Connection back to Telegram's defaults");
             apply.run();
         }
-        ours.edit().remove(TURNED_ON).commit();
+        ours.edit().remove(TURNED_ON).remove(BESIDE_UNIFIED_PUSH).commit();
     }
 
     /** Both of Telegram's switches on, or null when they can't be read. */
@@ -120,11 +150,22 @@ public final class OwnConnection {
         }
     }
 
-    /** Whether the switches are on because of a refusal rather than the user. */
+    /** Whether the switches are on because of a refusal or UnifiedPush rather than the user. */
     static boolean turnedOnHere(@Nullable Context context) {
         if (context == null) return false;
         try {
             return store.apply(context).getBoolean(TURNED_ON, false);
+        } catch (Throwable unreadable) {
+            return false;
+        }
+    }
+
+    /** Whether UnifiedPush, not a refused sign-up, is what turned the switches on. */
+    static boolean turnedOnBesideUnifiedPush(@Nullable Context context) {
+        if (context == null) return false;
+        try {
+            SharedPreferences ours = store.apply(context);
+            return ours.getBoolean(TURNED_ON, false) && ours.getBoolean(BESIDE_UNIFIED_PUSH, false);
         } catch (Throwable unreadable) {
             return false;
         }

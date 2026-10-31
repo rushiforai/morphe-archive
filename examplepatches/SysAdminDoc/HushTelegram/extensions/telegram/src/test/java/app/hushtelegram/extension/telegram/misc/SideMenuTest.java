@@ -24,6 +24,7 @@ import app.hushtelegram.extension.shared.settings.PauseForTests;
 import app.hushtelegram.extension.shared.settings.SettingReadsForTests;
 import app.hushtelegram.extension.telegram.settings.Settings;
 import app.hushtelegram.extension.telegram.settings.SettingsEntry;
+import app.hushtelegram.extension.telegram.settings.SettingsRoutes;
 
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -218,6 +219,27 @@ public class SideMenuTest {
         assertEquals(SideMenu.Row.values().length, words.length);
         for (int i = 0; i < SideMenu.FALLBACK.length; i++) assertEquals(SideMenu.FALLBACK[i], words[i]);
         assertEquals(SettingsEntry.nativeSettingsTitle(), words[SideMenu.Row.HUSH.ordinal()]);
+    }
+
+    @Test public void theHushRowFollowsItsWayInSwitch() {
+        Activity activity = activity();
+        FrameLayout parent = new FrameLayout(activity);
+        activity.setContentView(parent);
+        SideMenuPanel panel = SideMenuPanel.in(parent, new Object());
+        try {
+            panel.showHush();
+            assertEquals(View.VISIBLE, panel.hushRow.getVisibility());
+            assertEquals(View.VISIBLE, panel.hushDivider.getVisibility());
+            SettingsRoutes.SIDE_MENU_ROW.save(false);
+            panel.showHush();
+            assertEquals("the row stayed with its way off", View.GONE, panel.hushRow.getVisibility());
+            assertEquals(View.GONE, panel.hushDivider.getVisibility());
+            SettingsRoutes.SIDE_MENU_ROW.save(true);
+            panel.showHush();
+            assertEquals(View.VISIBLE, panel.hushRow.getVisibility());
+        } finally {
+            SettingsRoutes.SIDE_MENU_ROW.resetToDefault();
+        }
     }
 
     @Test public void theMenuHasItsRowsAndIsAddedOnce() {

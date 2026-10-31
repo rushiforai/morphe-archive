@@ -9,11 +9,11 @@ import dev.twitchpatches.patches.twitch.shared.*
 @Suppress("unused")
 val thirdPartyEmotesPatch = bytecodePatch(
     name = "BTTV, FFZ and 7TV emotes",
-    description = "Adds global and channel emotes to live chat, replay chat and the emote picker, with animations and tap previews.",
+    description = "Adds global and channel emotes to chat, autocomplete and the emote picker, with animations and input previews.",
     default = true,
 ) {
     compatibleWith(TwitchTarget.compatibility)
-    dependsOn(settingsPatch, reactNativeEmotesPatch, nativeEmotePreviewPatch, nativeEmotePickerPatch)
+    dependsOn(settingsPatch, reactNativeEmotesPatch, nativeEmotePreviewPatch, nativeEmotePickerPatch, nativeEmoteInputPatch)
     execute {
         val hooks = resolveEmoteHooks()
         injectReplayEmotes()

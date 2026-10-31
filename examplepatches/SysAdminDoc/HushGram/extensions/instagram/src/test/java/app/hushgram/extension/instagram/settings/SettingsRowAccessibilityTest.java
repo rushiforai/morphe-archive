@@ -64,7 +64,7 @@ public class SettingsRowAccessibilityTest {
     private final List<AccessibilityEvent> events = new ArrayList<>();
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
         Settings.HIDE_ADS.save(false);
         Settings.START_ON_FOLLOWING.save(false);

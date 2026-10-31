@@ -53,7 +53,7 @@ public class SettingsTextAlignmentTest {
     private int save;
 
     @Before public void host() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         RuntimeEnvironment.getApplication().getApplicationInfo().flags |= ApplicationInfo.FLAG_SUPPORTS_RTL;
         Settings.SIGN_IN_NOTICE_HIDDEN.save(true);
         RuntimeEnvironment.setFontScale(1f);

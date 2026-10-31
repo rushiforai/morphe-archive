@@ -1,0 +1,114 @@
+{
+  "device": {
+    "serial": "emulator-5586",
+    "avd": "finamp-isolated-artist",
+    "properties": {
+      "ro.kernel.qemu": "1",
+      "ro.hardware": "ranchu",
+      "ro.build.version.sdk": "35",
+      "sys.boot_completed": "1"
+    },
+    "verifiedAt": "2026-10-30T12:16:05.903802+00:00"
+  },
+  "probe_jar_sha256": "d30236e0a1532d1923ddd7700e16eda4b93c1cd3a9783e905be76413e631e623",
+  "records": [
+    {
+      "sample": 0,
+      "nio_before_ms": 1793362566000,
+      "nio_after_ms": 1793362566000,
+      "file_before_ms": 1793362566148,
+      "file_after_ms": 1793362566148,
+      "same_nio_time": true,
+      "fixed_nio_ms": 1793362568000
+    },
+    {
+      "sample": 1,
+      "nio_before_ms": 1793362566000,
+      "nio_after_ms": 1793362566000,
+      "file_before_ms": 1793362566148,
+      "file_after_ms": 1793362566152,
+      "same_nio_time": true,
+      "fixed_nio_ms": 1793362568000
+    },
+    {
+      "sample": 2,
+      "nio_before_ms": 1793362566000,
+      "nio_after_ms": 1793362566000,
+      "file_before_ms": 1793362566152,
+      "file_after_ms": 1793362566152,
+      "same_nio_time": true,
+      "fixed_nio_ms": 1793362568000
+    },
+    {
+      "sample": 3,
+      "nio_before_ms": 1793362566000,
+      "nio_after_ms": 1793362566000,
+      "file_before_ms": 1793362566156,
+      "file_after_ms": 1793362566156,
+      "same_nio_time": true,
+      "fixed_nio_ms": 1793362568000
+    },
+    {
+      "sample": 4,
+      "nio_before_ms": 1793362566000,
+      "nio_after_ms": 1793362566000,
+      "file_before_ms": 1793362566156,
+      "file_after_ms": 1793362566160,
+      "same_nio_time": true,
+      "fixed_nio_ms": 1793362568000
+    },
+    {
+      "sample": 5,
+      "nio_before_ms": 1793362566000,
+      "nio_after_ms": 1793362566000,
+      "file_before_ms": 1793362566160,
+      "file_after_ms": 1793362566160,
+      "same_nio_time": true,
+      "fixed_nio_ms": 1793362568000
+    },
+    {
+      "sample": 6,
+      "nio_before_ms": 1793362566000,
+      "nio_after_ms": 1793362566000,
+      "file_before_ms": 1793362566160,
+      "file_after_ms": 1793362566160,
+      "same_nio_time": true,
+      "fixed_nio_ms": 1793362568000
+    },
+    {
+      "sample": 7,
+      "nio_before_ms": 1793362566000,
+      "nio_after_ms": 1793362566000,
+      "file_before_ms": 1793362566160,
+      "file_after_ms": 1793362566160,
+      "same_nio_time": true,
+      "fixed_nio_ms": 1793362568000
+    },
+    {
+      "sample": 8,
+      "nio_before_ms": 1793362566000,
+      "nio_after_ms": 1793362566000,
+      "file_before_ms": 1793362566160,
+      "file_after_ms": 1793362566164,
+      "same_nio_time": true,
+      "fixed_nio_ms": 1793362568000
+    },
+    {
+      "sample": 9,
+      "nio_before_ms": 1793362566000,
+      "nio_after_ms": 1793362566000,
+      "file_before_ms": 1793362566164,
+      "file_after_ms": 1793362566164,
+      "same_nio_time": true,
+      "fixed_nio_ms": 1793362568000
+    },
+    {
+      "actual_android_metadata": true,
+      "samples": 10,
+      "missed_same_size_writes": 10,
+      "all_fixed_cases_detected": true
+    }
+  ],
+  "manager_database_or_key_changed": false,
+  "temporary_probe_files_removed_by_helper": true
+}

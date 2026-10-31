@@ -10,9 +10,13 @@ import app.morphe.patcher.resource.ResourceType
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction30t
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11x
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction31c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22x
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22t
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -21,6 +25,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import com.android.tools.smali.dexlib2.immutable.value.ImmutableStringEncodedValue
 import org.w3c.dom.Element
@@ -60,25 +65,53 @@ private fun sha256(bytes: ByteArray) = MessageDigest.getInstance("SHA-256").dige
     .joinToString("") { "%02x".format(it.toInt() and 255) }
 private fun Method.id() = name + "(" + parameterTypes.joinToString("") + ")" + returnType
 private fun requireInput(metadata: PackageMetadata) {
-    if (metadata.packageName != ORIGINAL || metadata.versionName != "13.0.0.4.159" || metadata.versionCode != "1061801514") {
-        throw PatchException("Requires original APK: com.facebook.aura 13.0.0.4.159 (1061801514).")
+    if (metadata.packageName != ORIGINAL || !(
+        metadata.versionName == "13.0.0.4.159" && metadata.versionCode == "1061801514" ||
+        metadata.versionName == "14.0.0.4.149" && metadata.versionCode == "1061901406"
+    )) {
+        throw PatchException("Requires a supported original Muse APK.")
     }
 }
 private val museCompatibility = Compatibility(
     packageName = ORIGINAL, name = "Muse", apkFileType = ApkFileType.APK_REQUIRED,
-    targets = listOf(AppTarget(version = "13.0.0.4.159", versionCode = 1061801514, minSdk = 29))
+    targets = listOf(
+        AppTarget(version = "13.0.0.4.159", versionCode = 1061801514, minSdk = 29),
+        AppTarget(version = "14.0.0.4.149", versionCode = 1061901406, minSdk = 29)
+    )
 )
 private fun BytecodePatchContext.method(type: String, id: String): MutableMethod =
     mutableClassDefBy(type).methods.singleOrNull { it.id() == id }
         ?: throw PatchException("Expected exactly one $type->$id; unsupported build")
 private fun ref(instruction: Any): String? =
     ((instruction as? ReferenceInstruction)?.reference)?.toString()
+private fun MutableMethod.parameterRegister(index: Int): Int {
+    val implementation = implementation ?: throw PatchException("Missing implementation: ${id()}")
+    val isStatic = accessFlags and 0x8 != 0
+    val parameterWords = parameterTypes.sumOf { if (it.toString() in setOf("J", "D")) 2 else 1 }
+    val receiverWords = if (isStatic) 0 else 1
+    return implementation.registerCount - parameterWords - receiverWords + index
+}
+private fun MutableMethod.addStaticObjectCall(
+    index: Int,
+    reference: ImmutableMethodReference,
+    registers: IntArray,
+    resultRegister: Int
+) {
+    if (registers.size !in 1..5) throw PatchException("Unsupported invoke register count")
+    val implementation = implementation ?: throw PatchException("Missing implementation: ${id()}")
+    val padded = registers + IntArray(5 - registers.size)
+    implementation.addInstruction(index, BuilderInstruction35c(
+        Opcode.INVOKE_STATIC, registers.size, padded[0], padded[1], padded[2], padded[3], padded[4], reference
+    ))
+    implementation.addInstruction(index + 1, BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, resultRegister))
+}
 
 
 private val validateMuse = bytecodePatch {
     execute {
         requireInput(packageMetadata)
-        asset("guards.tsv").bufferedReader().useLines { lines ->
+        val guardFile = if (packageMetadata.versionName == "14.0.0.4.149") "guards-14.tsv" else "guards.tsv"
+        asset(guardFile).bufferedReader().useLines { lines ->
             lines.filter { it.isNotBlank() }.forEach { line ->
                 val p = line.split('\t')
                 val m = classDefBy(p[0]).methods.singleOrNull { it.id() == p[1] }
@@ -205,7 +238,7 @@ val museClone = bytecodePatch(
 
 
 
-private fun BytecodePatchContext.replaceBodies(group: String) {
+private fun BytecodePatchContext.replaceBodies(group: String, allowNewMethods: Set<String> = emptySet()) {
     val replacements = asset("$group.dex").buffered().use {
         DexBackedDexFile.fromInputStream(Opcodes.forApi(33), it)
     }
@@ -214,6 +247,9 @@ private fun BytecodePatchContext.replaceBodies(group: String) {
         c.methods.forEach { replacement ->
             val old = target.methods.singleOrNull { it.id() == replacement.id() }
             if (old == null) {
+                if ("${c.type}->${replacement.id()}" !in allowNewMethods) {
+                    throw PatchException("Expected existing method: ${c.type}->${replacement.id()}; unsupported build")
+                }
                 target.methods.add(replacement.toMutable())
             } else {
                 val patched = ImmutableMethod(old.definingClass, old.name, old.parameters, old.returnType,
@@ -244,34 +280,49 @@ val museDebugLongPress = bytecodePatch(
     dependsOn(museMcDebug)
     extendWith("muse/hatchdebug.dex")
     execute {
-        val menuButton = method("Lcom/facebook/aura/header/view/HatchHeaderLeadingButtonKt;",
-            "HatchHeaderLeadingButton(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2hz;ZLX/2Os;II)V")
+        val is14 = packageMetadata.versionName == "14.0.0.4.149"
+        val viewModifier = if (is14) "LX/2hU;" else "LX/2hz;"
+        val composer = if (is14) "LX/2yV;" else "LX/2Os;"
+        val callbackName = if (is14) "SidePanelShortcutCallback14" else "SidePanelShortcutCallback"
+        val callbackType = "Lcom/facebook/aura/settings/internal/mcdebug/$callbackName;"
+        val menuMethod = if (is14)
+            "HatchHeaderLeadingButton(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2hU;ZLX/2yV;II)V"
+        else "HatchHeaderLeadingButton(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2hz;ZLX/2Os;II)V"
+        val menuButton = method("Lcom/facebook/aura/header/view/HatchHeaderLeadingButtonKt;", menuMethod)
         val menuImpl = menuButton.implementation!!
         val iconButtonCall = menuImpl.instructions.indices.singleOrNull { index ->
             ref(menuImpl.instructions[index])?.startsWith(
                 "Lcom/facebook/aura/vds/compose/button/AuraElevatedButtonKt;->AuraElevatedIconButton-Xjqr6CI("
             ) == true
         } ?: throw PatchException("Side Panel icon-button call changed; unsupported build")
-        menuButton.addInstructions(iconButtonCall, """
-            invoke-static {v4, v11, v3}, Lcom/facebook/aura/settings/internal/mcdebug/SidePanelShortcutCallback;->maybeWrap(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2Os;)Lkotlin/jvm/functions/Function0;
-            move-result-object v11
-        """.trimIndent())
+        menuButton.addStaticObjectCall(iconButtonCall, ImmutableMethodReference(
+            callbackType, "maybeWrap",
+            listOf("Lcom/facebook/aura/header/view/HeaderLeadingButton;", "Lkotlin/jvm/functions/Function0;", composer),
+            "Lkotlin/jvm/functions/Function0;"
+        ), intArrayOf(4, 11, 3), 11)
 
-        val elevatedSurface = method("Lcom/facebook/aura/vds/compose/button/AuraElevatedButtonKt;",
-            "AuraElevatedIconSurface-7poYlZM(LX/2QG;Ljava/lang/String;Lkotlin/jvm/functions/Function0;LX/2hz;ZFLcom/facebook/aura/vds/compose/icons/AuraIconSize;LX/FMb;LX/2hz;ZLX/2Os;II)V")
+        val surfaceMethod = if (is14)
+            "AuraElevatedIconSurface-7poYlZM(LX/2Pp;Ljava/lang/String;Lkotlin/jvm/functions/Function0;LX/2hU;ZFLcom/facebook/aura/vds/compose/icons/AuraIconSize;LX/C9Z;LX/2hU;ZLX/2yV;II)V"
+        else "AuraElevatedIconSurface-7poYlZM(LX/2QG;Ljava/lang/String;Lkotlin/jvm/functions/Function0;LX/2hz;ZFLcom/facebook/aura/vds/compose/icons/AuraIconSize;LX/FMb;LX/2hz;ZLX/2Os;II)V"
+        val elevatedSurface = method("Lcom/facebook/aura/vds/compose/button/AuraElevatedButtonKt;", surfaceMethod)
         val surfaceImpl = elevatedSurface.implementation!!
         val surfaceCall = surfaceImpl.instructions.indices.singleOrNull { index ->
             ref(surfaceImpl.instructions[index])?.startsWith(
                 "Lcom/facebook/aura/vds/compose/surface/AuraElevatedSurfaceKt;->auraElevatedSurface("
             ) == true
         } ?: throw PatchException("Elevated icon surface call changed; unsupported build")
-        elevatedSurface.addInstructions(surfaceCall, """
-            move-object/from16 v15, p2
-            invoke-static {v12, v15, v6}, Lcom/facebook/aura/settings/internal/mcdebug/SidePanelShortcutCallback;->maybeAttachLongPress(LX/2hz;Lkotlin/jvm/functions/Function0;LX/2Os;)LX/2hz;
-            move-result-object v12
-            invoke-static {v11, v15}, Lcom/facebook/aura/settings/internal/mcdebug/SidePanelShortcutCallback;->maybeKeepDefaultTap(Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lkotlin/jvm/functions/Function0;
-            move-result-object v11
-        """.trimIndent())
+        surfaceImpl.addInstruction(surfaceCall, BuilderInstruction22x(
+            Opcode.MOVE_OBJECT_FROM16, 15, elevatedSurface.parameterRegister(2)
+        ))
+        elevatedSurface.addStaticObjectCall(surfaceCall + 1, ImmutableMethodReference(
+            callbackType, "maybeAttachLongPress",
+            listOf(viewModifier, "Lkotlin/jvm/functions/Function0;", composer), viewModifier
+        ), intArrayOf(12, 15, 6), 12)
+        elevatedSurface.addStaticObjectCall(surfaceCall + 3, ImmutableMethodReference(
+            callbackType, "maybeKeepDefaultTap",
+            listOf("Lkotlin/jvm/functions/Function0;", "Lkotlin/jvm/functions/Function0;"),
+            "Lkotlin/jvm/functions/Function0;"
+        ), intArrayOf(11, 15), 11)
         println("Debug long-press added to the Side Panel menu; tap behavior remains delegated to the original callback.")
     }
 }
@@ -284,8 +335,10 @@ val museJsonFlags = bytecodePatch(
     compatibleWith(museCompatibility)
     dependsOn(museMcDebug)
     extendWith("muse/jsonbridge.dex")
-    extendWith("muse/jsonhooks.dex")
-    execute { replaceBodies("jsonhooks") }
+    execute {
+        val group = if (packageMetadata.versionName == "14.0.0.4.149") "jsonhooks14" else "jsonhooks"
+        replaceBodies(group, setOf("Lcom/facebook/aura/main/AuraMainActivity;->onActivityResult(IILandroid/content/Intent;)V"))
+    }
 }
 
 val museLocalTrust = bytecodePatch(
@@ -296,38 +349,81 @@ val museLocalTrust = bytecodePatch(
     compatibleWith(museCompatibility)
     dependsOn(museMcDebug)
     execute {
-        replaceBodies("trust")
-        val cpz = method("LX/CPz;", "ABD(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;LX/COo;)Ljava/util/ArrayList;")
-        val cpzIns = cpz.implementation!!.instructions
-        val gate = cpzIns.indices.single { ref(cpzIns[it]) == "LX/CQ5;->A02:Ljava/lang/String;" } + 1
-        val branch = cpzIns[gate] as? BuilderInstruction21t ?: throw PatchException("CPz precheck branch changed")
-        if (branch.opcode != Opcode.IF_EQZ) throw PatchException("CPz branch is not IF_EQZ")
-        cpz.implementation!!.replaceInstruction(gate, BuilderInstruction30t(Opcode.GOTO_32, branch.target))
+        val is14 = packageMetadata.versionName == "14.0.0.4.149"
+        replaceBodies(if (is14) "trust14" else "trust")
+        if (is14) {
+            val cwMethod = method("LX/CWm;", "ABB(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;LX/CVI;)Ljava/util/ArrayList;")
+            val cwImpl = cwMethod.implementation!!
+            val localKey = cwImpl.instructions.indices.single { ref(cwImpl.instructions[it]) == "LX/CWw;->A02:Ljava/lang/String;" }
+            val containsKey = cwImpl.instructions.indices.single { it > localKey && ref(cwImpl.instructions[it]) == "Landroid/os/BaseBundle;->containsKey(Ljava/lang/String;)Z" }
+            val cwGate = containsKey + 3
+            val cwBranch = cwImpl.instructions[cwGate] as? BuilderInstruction22t ?: throw PatchException("CWm precheck branch changed")
+            if (cwBranch.opcode != Opcode.IF_NE) throw PatchException("CWm branch is not IF_NE")
+            cwImpl.replaceInstruction(cwGate, BuilderInstruction30t(Opcode.GOTO_32, cwImpl.newLabelForIndex(cwGate + 1)))
 
-        val cpy = mutableClassDefBy("LX/CPy;").methods.single { m ->
-            m.implementation?.instructions?.any { ref(it) == "LX/CRQ;->A04(Landroid/content/Context;Ljava/lang/String;)Z" } == true
+            val cwl = method("LX/CWl;", "A00(Landroid/content/Context;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/functions/Function0;LX/CWl;LX/CXI;LX/CVI;I)LX/CXg;")
+            val cwlImpl = cwl.implementation!!
+            val cwlCall = cwlImpl.instructions.indices.single { ref(cwlImpl.instructions[it]) == "LX/AOC;->A04(Landroid/content/Context;Ljava/lang/String;)Z" }
+            val cwlInvoke = cwlImpl.instructions[cwlCall] as? FiveRegisterInstruction ?: throw PatchException("CWl trust call format changed")
+            val contextReg = cwlInvoke.registerC
+            val packageReg = cwlInvoke.registerD
+            cwlImpl.removeInstruction(cwlCall)
+            cwlImpl.addInstruction(cwlCall, BuilderInstruction35c(
+                Opcode.INVOKE_VIRTUAL, 1, contextReg, 0, 0, 0, 0,
+                ImmutableMethodReference("Landroid/content/Context;", "getPackageName", emptyList(), "Ljava/lang/String;")
+            ))
+            cwlImpl.addInstruction(cwlCall + 1, BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, contextReg))
+            cwlImpl.addInstruction(cwlCall + 2, BuilderInstruction35c(
+                Opcode.INVOKE_VIRTUAL, 2, contextReg, packageReg, 0, 0, 0,
+                ImmutableMethodReference("Ljava/lang/String;", "equals", listOf("Ljava/lang/Object;"), "Z")
+            ))
+
+            val wa = method("Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;",
+                "readWhatsAppAccount(Landroid/content/Context;)Lcom/facebook/aura/login/nativeflow/NativeLoginSsoAccount;")
+            val wi = wa.implementation!!
+            val owner = wi.instructions.indices.single { ref(wi.instructions[it]) == "Landroid/content/pm/PackageItemInfo;->packageName:Ljava/lang/String;" }
+            val equalsCall = wi.instructions.indices.firstOrNull { it > owner && ref(wi.instructions[it]) == "Ljava/lang/String;->equals(Ljava/lang/Object;)Z" }
+                ?: throw PatchException("WhatsApp provider package comparison changed")
+            val ownerBranchIndex = equalsCall + 2
+            val ownerBranch = wi.instructions[ownerBranchIndex] as? BuilderInstruction21t ?: throw PatchException("WhatsApp provider check branch changed")
+            if (ownerBranch.opcode != Opcode.IF_EQZ) throw PatchException("WhatsApp provider check is not IF_EQZ")
+            val query = wi.instructions.indices.single { ref(wi.instructions[it]) == "Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;" }
+            if (query <= ownerBranchIndex) throw PatchException("WhatsApp query moved before provider check")
+            wi.replaceInstruction(ownerBranchIndex, BuilderInstruction30t(Opcode.GOTO_32, wi.newLabelForIndex(query)))
+        } else {
+            val cpz = method("LX/CPz;", "ABD(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;LX/COo;)Ljava/util/ArrayList;")
+            val cpzIns = cpz.implementation!!.instructions
+            val gate = cpzIns.indices.single { ref(cpzIns[it]) == "LX/CQ5;->A02:Ljava/lang/String;" } + 1
+            val branch = cpzIns[gate] as? BuilderInstruction21t ?: throw PatchException("CPz precheck branch changed")
+            if (branch.opcode != Opcode.IF_EQZ) throw PatchException("CPz branch is not IF_EQZ")
+            cpz.implementation!!.replaceInstruction(gate, BuilderInstruction30t(Opcode.GOTO_32, branch.target))
+
+            val cpy = mutableClassDefBy("LX/CPy;").methods.single { m ->
+                m.implementation?.instructions?.any { ref(it) == "LX/CRQ;->A04(Landroid/content/Context;Ljava/lang/String;)Z" } == true
+            }
+            val cpyImpl = cpy.implementation!!
+            val call = cpyImpl.instructions.indices.single { ref(cpyImpl.instructions[it]) == "LX/CRQ;->A04(Landroid/content/Context;Ljava/lang/String;)Z" }
+            val invoke = cpyImpl.instructions[call] as FiveRegisterInstruction
+            val contextReg = invoke.registerC
+            val packageReg = invoke.registerD
+            cpyImpl.removeInstruction(call)
+            cpyImpl.addInstruction(call, BuilderInstruction35c(
+                Opcode.INVOKE_VIRTUAL, 1, contextReg, 0, 0, 0, 0,
+                ImmutableMethodReference("Landroid/content/Context;", "getPackageName", emptyList(), "Ljava/lang/String;")
+            ))
+            cpyImpl.addInstruction(call + 1, BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, contextReg))
+            cpyImpl.addInstruction(call + 2, BuilderInstruction35c(
+                Opcode.INVOKE_VIRTUAL, 2, contextReg, packageReg, 0, 0, 0,
+                ImmutableMethodReference("Ljava/lang/String;", "equals", listOf("Ljava/lang/Object;"), "Z")
+            ))
+
+            val wa = method("Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;",
+                "readWhatsAppAccount(Landroid/content/Context;)Lcom/facebook/aura/login/nativeflow/NativeLoginSsoAccount;")
+            val wi = wa.implementation!!
+            val owner = wi.instructions.indices.single { ref(wi.instructions[it]) == "Landroid/content/pm/PackageItemInfo;->packageName:Ljava/lang/String;" }
+            val query = wi.instructions.indices.single { ref(wi.instructions[it]) == "Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;" }
+            wi.replaceInstruction(owner, BuilderInstruction30t(Opcode.GOTO_32, wi.newLabelForIndex(query)))
         }
-        val cpyImpl = cpy.implementation!!
-        val call = cpyImpl.instructions.indices.single { ref(cpyImpl.instructions[it]) == "LX/CRQ;->A04(Landroid/content/Context;Ljava/lang/String;)Z" }
-        val invoke = cpyImpl.instructions[call] as FiveRegisterInstruction
-        val contextReg = invoke.registerC
-        val packageReg = invoke.registerD
-
-        cpy.addInstructions(call + 1, """
-            invoke-virtual {v$contextReg}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
-            move-result-object v$contextReg
-            invoke-virtual {v$contextReg, v$packageReg}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
-        """.trimIndent())
-        cpyImpl.removeInstruction(call)
-
-        val wa = method("Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;",
-            "readWhatsAppAccount(Landroid/content/Context;)Lcom/facebook/aura/login/nativeflow/NativeLoginSsoAccount;")
-        val wi = wa.implementation!!
-        val owner = wi.instructions.indices.single { ref(wi.instructions[it]) == "Landroid/content/pm/PackageItemInfo;->packageName:Ljava/lang/String;" }
-        val query = wi.instructions.indices.single { ref(wi.instructions[it]) == "Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;" }
-        val target = wi.newLabelForIndex(query)
-
-        wi.replaceInstruction(owner, BuilderInstruction30t(Opcode.GOTO_32, target))
         println("Local trust applied; server checks unchanged.")
     }
 }

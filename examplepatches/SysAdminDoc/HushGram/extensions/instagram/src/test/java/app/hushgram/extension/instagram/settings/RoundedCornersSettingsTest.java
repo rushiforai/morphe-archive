@@ -39,7 +39,7 @@ public class RoundedCornersSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.ROUNDED_POST_CORNERS.resetToDefault();
         Settings.ROUNDED_REEL_CORNERS.resetToDefault();
         Settings.ROUNDED_STORY_CORNERS.resetToDefault();

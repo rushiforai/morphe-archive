@@ -1,22 +1,23 @@
 [versions]
 # Keep the patcher, fixture CLI and Manager floor together. Manager rejects a bundle built
-# against a newer patcher than it carries. These stable releases all carry patcher 2.0.1, which
-# went stable on 2026-10-25 and needs less memory to patch. The 2.0 API matches a fingerprint
-# string against the whole literal, decodes only the resources a patch asks for, and hides
-# compatiblePackages behind compatibility (PatchListGenerator rebuilds the old field). 2.0.1 pulls
-# in MorpheApp's ARSCLib 4695b583ef (2.0.0 pulled 10d0708212), and patches/build.gradle.kts
-# provides that same build. Manager 1.x refuses a 2.0 bundle with its update prompt, and desktop
-# CLI 1.19.x writes its result's step list as stepResults where 1.18.1 wrote patchingSteps.
-morphe-patcher = "2.0.1"
-desktop-cli = "1.19.1"
+# against a newer patcher than it carries. These stable releases all carry patcher 2.1.0, which
+# went stable on 2026-10-30, checks bundle signatures and won't load a class file built for
+# anything newer than Java 17. The 2.0 API matches a fingerprint string against the whole literal,
+# decodes only the resources a patch asks for, and hides compatiblePackages behind compatibility
+# (PatchListGenerator rebuilds the old field). 2.0.1 and 2.1.0 pull in MorpheApp's ARSCLib
+# 4695b583ef (2.0.0 pulled 10d0708212), and patches/build.gradle.kts provides that same build.
+# Manager 1.x refuses a 2.0 bundle with its update prompt, and desktop CLI 1.19 and newer write
+# its result's step list as stepResults where 1.18.1 wrote patchingSteps.
+morphe-patcher = "2.1.0"
+desktop-cli = "1.20.0"
 # First stable Manager release that bundled the patcher above. The release fact check holds the
 # README's stated floor to this value.
-manager-floor = "2.2.0"
+manager-floor = "2.3.0"
 # Read by the app.morphe.patches settings plugin, not by anything in this repo: remove it and
 # configuration fails with "Version with alias smali not found in version catalog". The commit
 # resolves as com.github.MorpheApp.smali through JitPack. It is not waiting on an official
 # release, which google/smali 3.0.10 delivered on 2026-08-20: the pin has to be the commit the
-# patcher above requests (2.0.1 asks for ac700e1942; 2.0.0 asked for 4220ae75f7), because a
+# patcher above requests (2.1.0 and 2.0.1 ask for ac700e1942; 2.0.0 asked for 4220ae75f7), because a
 # mismatch puts two copies of dexlib2 on the R8 classpath and buildAndroid fails with
 # "Classpath type already present".
 #noinspection GradleDependency

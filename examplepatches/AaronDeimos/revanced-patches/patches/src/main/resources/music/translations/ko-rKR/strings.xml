@@ -1,0 +1,968 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gms_core_dialog_continue_text">계속</string>
+    <string name="gms_core_dialog_dismiss_text">다시 보지 않기</string>
+    <string name="gms_core_dialog_not_whitelisted_not_allowed_in_background_message">"MicroG에는 백그라운드에서 실행할 수 있는 권한이 없습니다
+
+본 기기의 \"Don't kill my app\" 가이드를 참고하여 MicroG 설치에 관한 지침을 적용하세요
+
+이러한 조치 없이는 앱이 정상적으로 작동하지 않습니다"</string>
+    <string name="gms_core_dialog_not_whitelisted_using_battery_optimizations_message">"MicroG 앱 배터리 최적화를 비활성화(제한 없음)하여 앱 문제를 방지할 수 있습니다
+
+MicroG 앱 배터리 최적화를 비활성화(제한 없음)하더라도, 배터리 사용량에 부정적인 영향을 미치지 않습니다
+
+앱 배터리 최적화를 비활성화(제한 없음)하려면 '계속' 버튼을 탭하세요"</string>
+    <string name="gms_core_dialog_open_website_text">웹사이트 열기</string>
+    <string name="gms_core_dialog_title">필수 조치</string>
+    <string name="gms_core_settings_summary">RVX Music 알림 수신을 위한 클라우드 메시징 설정을 할 수 있습니다</string>
+    <string name="gms_core_settings_title">GmsCore 설정 열기</string>
+    <string name="gms_core_toast_not_installed_message">MicroG가 설치되어 있지 않습니다. 설치하세요</string>
+    <string name="morphe_app_refresh_rate_default">기본값</string>
+    <string name="morphe_app_refresh_rate_fps">%s FPS</string>
+    <string name="morphe_app_refresh_rate_title">앱 주사율</string>
+    <string name="morphe_app_refresh_rate_type_entry_1">항상</string>
+    <string name="morphe_app_refresh_rate_type_entry_2">세로 모드 재생</string>
+    <string name="morphe_app_refresh_rate_type_entry_3">전체 화면 재생</string>
+    <string name="morphe_app_refresh_rate_type_entry_4">세로 모드 및 전체 화면 재생</string>
+    <string name="morphe_app_refresh_rate_type_title">앱 주사율 재정의</string>
+    <string name="morphe_crossfade_duration_10000ms">10 초</string>
+    <string name="morphe_crossfade_duration_1000ms">1 초</string>
+    <string name="morphe_crossfade_duration_11000ms">11 초</string>
+    <string name="morphe_crossfade_duration_12000ms">12 초</string>
+    <string name="morphe_crossfade_duration_2000ms">2 초</string>
+    <string name="morphe_crossfade_duration_250ms">250 밀리초</string>
+    <string name="morphe_crossfade_duration_3000ms">3 초</string>
+    <string name="morphe_crossfade_duration_4000ms">4 초</string>
+    <string name="morphe_crossfade_duration_5000ms">5 초</string>
+    <string name="morphe_crossfade_duration_500ms">500 밀리초</string>
+    <string name="morphe_crossfade_duration_6000ms">6 초</string>
+    <string name="morphe_crossfade_duration_7000ms">7 초</string>
+    <string name="morphe_crossfade_duration_750ms">750 밀리초</string>
+    <string name="morphe_crossfade_duration_8000ms">8 초</string>
+    <string name="morphe_crossfade_duration_9000ms">9 초</string>
+    <string name="morphe_custom_branding_apply_to_rvx_settings_summary">사용할 수 있는 경우에 선택한 앱 아이콘을 RVX 설정 항목에 사용합니다</string>
+    <string name="morphe_custom_branding_apply_to_rvx_settings_title">RVX 설정에서 아이콘 사용</string>
+    <string name="morphe_custom_branding_icon_title">앱 아이콘</string>
+    <string name="morphe_custom_branding_name_title">앱 이름</string>
+    <string name="morphe_custom_branding_splash_animation_size_summary">사용자 정의 스플래시 애니메이션의 크기를 설정할 수 있습니다</string>
+    <string name="morphe_custom_branding_splash_animation_size_title">스플래시 애니메이션 크기</string>
+    <string name="morphe_dark_theme_custom_color_summary">사용자 정의가 선택된 경우에 사용됩니다</string>
+    <string name="morphe_dark_theme_custom_color_title">사용자 정의 테마 색상</string>
+    <string name="morphe_dark_theme_title">앱 테마</string>
+    <string name="morphe_disable_drc_audio_summary_off">DRC 오디오를 활성화합니다</string>
+    <string name="morphe_disable_drc_audio_summary_on">DRC 오디오를 비활성화합니다</string>
+    <string name="morphe_disable_quic_protocol_summary_off">QUIC 프로토콜을 활성화합니다</string>
+    <string name="morphe_disable_quic_protocol_summary_on">QUIC 프로토콜을 비활성화합니다</string>
+    <string name="morphe_external_potoken_provider_user_dialog_message">이 기능이 작동하지 않는다면, MicroG를 강제로 종료하세요</string>
+    <string name="morphe_force_original_audio_not_available">이 기능을 사용하려면, \'동영상 스트림 속이기\'에서 \'기본 클라이언트\'를 \'Android Studio\'와 \'Android VR Downgraded\'를 제외한 다른 클라이언트로 변경하세요</string>
+    <string name="morphe_force_original_audio_summary">더빙 버전 대신 동영상의 원본 오디오 트랙을 항상 재생합니다</string>
+    <string name="morphe_force_original_audio_summary_off">기본 오디오 언어를 활성화합니다</string>
+    <string name="morphe_force_original_audio_summary_on">원본 오디오 언어를 활성화합니다</string>
+    <string name="morphe_force_original_audio_title">원본 오디오 언어 강제로 활성화</string>
+    <string name="morphe_music_apple_music_token_dialog_instruction">"music.apple.com에서 media-user-token 쿠키를 붙여넣으세요
+
+단계:
+1. music.apple.com에 회원 사용자로 로그인합니다
+2. 개발자 도구 → 응용 프로그램 → 쿠키 → music.apple.com을 엽니다
+3. 'media-user-token' 값을 복사합니다"</string>
+    <string name="morphe_music_apple_music_token_title">Apple Music Media-user-token</string>
+    <string name="morphe_music_apple_music_token_toast_cleared">Apple Music: media-user-token이 삭제됨</string>
+    <string name="morphe_music_apple_music_token_toast_invalid">Apple Music: 잘못된 media-user-token - 확인 후 다시 시도하세요</string>
+    <string name="morphe_music_apple_music_token_toast_saved">Apple Music: media-user-token이 저장됨</string>
+    <string name="morphe_music_apple_token_optional_hint">Apple Music 토큰은 선택 사항입니다. 토큰이 없으면 Lyrically가 대체 서비스로 사용됩니다</string>
+    <string name="morphe_music_crossfade_about_best_summary">일반적인 트랙 간 재생 및 자동 다음 트랙 재생, 한 트랙 반복(트랙이 자기 자신으로 크로스페이드됨), 그리고 휴대폰 스피커, 유선 이어폰/헤드폰, Bluetooth, USB 등 로컬 오디오 환경에서 가장 잘 작동합니다</string>
+    <string name="morphe_music_crossfade_about_best_title">가장 잘 작동하는 경우</string>
+    <string name="morphe_music_crossfade_about_credit_summary">VazerOG의 크로스페이드 기능</string>
+    <string name="morphe_music_crossfade_about_credit_title">크레딧</string>
+    <string name="morphe_music_crossfade_about_how_summary">"크로스페이드는 한 곡의 끝부분과 다음 곡의 시작 부분을 겹쳐 재생하는 기능으로, 설정한 지속 시간과 곡선에 따라 크로스페이드를 적용합니다
+
+이 기능은 자동 다음 곡 재생과 수동으로 곡을 건너뛸 때 작동하며, 각각 별도로 활성화하거나 비활성화할 수 있습니다. 자동 다음 곡 재생에서는 곡이 끝나기 몇 초 전부터 크로스페이드가 시작됩니다"</string>
+    <string name="morphe_music_crossfade_about_how_title">작동 방식</string>
+    <string name="morphe_music_crossfade_about_known_summary">"첫 번째 트랙으로 설정된 뮤직 비디오나 현재 재생목록 외부에서 시작된 뮤직 비디오는 오디오 전용 모드가 적용되기 전까지 잠시 동영상으로 표시될 수 있습니다
+
+뮤직 비디오를 시청하기 위해 크로스페이드를 일시 중지하면 일부 동영상(자체 오디오를 사용하는 동영상)이 검은 화면으로 표시될 수 있습니다. 이를 방지하려면 트랙을 선택하기 전에 크로스페이드를 일시 중지하세요"</string>
+    <string name="morphe_music_crossfade_about_known_title">알려진 문제점</string>
+    <string name="morphe_music_crossfade_about_quirks_summary">"크로스페이드가 활성화되어 있으면 뮤직비디오는 오디오만 재생됩니다. 셔플 버튼을 길게 탭하여 크로스페이드를 일시 중지하면 동영상을 시청할 수 있습니다
+
+재생이 시작된 뮤직비디오는 다음 곡이 재생될 때까지 동영상 모드로 유지됩니다
+
+페이드 지속 시간보다 재생 시간이 짧은 곡에는 크로스페이드가 적용되지 않습니다
+
+전환 중에는 잠금 화면이나 알림에 이전 상태가 일시적으로 표시될 수 있습니다
+
+뮤직비디오를 시청하기 위해 크로스페이드를 일시 중지하면 일부 동영상 화면이 검게 표시될 수 있습니다. 이를 방지하려면 곡을 선택하기 전에 크로스페이드를 일시 중지하세요"</string>
+    <string name="morphe_music_crossfade_about_quirks_title">제한 사항</string>
+    <string name="morphe_music_crossfade_about_summary">크로스페이드 작동 방식과 제한 사항</string>
+    <string name="morphe_music_crossfade_about_title">정보</string>
+    <string name="morphe_music_crossfade_about_unsupported_summary">"오디오 캐스팅 또는 미러링를 사용하는 경우 (Chromecast, 화면 또는 오디오 미러링)
+
+SABR 프로토콜을 사용하여 재생하는 경우 (동영상 스트림 속이기가 비활성화된 경우)"</string>
+    <string name="morphe_music_crossfade_about_unsupported_title">지원되지 않음</string>
+    <string name="morphe_music_crossfade_cast_unstable_toast">캐스팅 중에는 크로스페이드가 비활성화됩니다</string>
+    <string name="morphe_music_crossfade_curve_entry_ease_out_cubic">미묘한 홀드</string>
+    <string name="morphe_music_crossfade_curve_entry_ease_out_quad">부드러운 완화</string>
+    <string name="morphe_music_crossfade_curve_entry_equal_power">동일한 음량</string>
+    <string name="morphe_music_crossfade_curve_entry_smoothstep">부드러운 S-곡선</string>
+    <string name="morphe_music_crossfade_curve_preview_incoming">다음 트랙</string>
+    <string name="morphe_music_crossfade_curve_preview_outgoing">현재 트랙</string>
+    <string name="morphe_music_crossfade_curve_title">페이드 곡선</string>
+    <string name="morphe_music_crossfade_duration_title">크로스페이드 지속 시간</string>
+    <string name="morphe_music_crossfade_enabled_title">크로스페이드 활성화</string>
+    <string name="morphe_music_crossfade_on_auto_advance_summary">트랙이 자연스럽게 종료될 경우에 크로스페이드 효과를 적용합니다</string>
+    <string name="morphe_music_crossfade_on_auto_advance_title">자동 트랙 넘김 시 크로스페이드</string>
+    <string name="morphe_music_crossfade_on_skip_summary">다음 트랙으로 수동으로 넘길 경우에 크로스페이드 효과를 적용합니다</string>
+    <string name="morphe_music_crossfade_on_skip_title">수동 트랙 넘김 시 크로스페이드</string>
+    <string name="morphe_music_crossfade_paused_toast">이 세션에서 크로스페이드를 일시 중지하였습니다</string>
+    <string name="morphe_music_crossfade_resumed_toast">크로스페이드를 다시 시작하였습니다</string>
+    <string name="morphe_music_crossfade_screen_summary">트랙을 서로 부드럽게 이어지도록 재생할 수 있습니다</string>
+    <string name="morphe_music_crossfade_screen_title">크로스페이드</string>
+    <string name="morphe_music_crossfade_session_control_summary">셔플 버튼을 길게 탭하여 크로스페이드를 일시 중지하거나 다시 실행할 수 있습니다</string>
+    <string name="morphe_music_crossfade_session_control_title">세션 제어</string>
+    <string name="morphe_music_crossfade_video_mode_disabled_toast">크로스페이드가 활성화된 동안에는 동영상 모드를 사용할 수 없습니다</string>
+    <string name="morphe_music_deezer_arl_dialog_instruction">"Deezer에서 arl 쿠키를 붙여넣으세요
+
+단계:
+1. deezer.com에 로그인합니다
+2. 개발자 도구 → 응용 프로그램 → 쿠키 → deezer.com을 엽니다
+3. 'arl' 값을 복사합니다"</string>
+    <string name="morphe_music_deezer_arl_title">Deezer ARL</string>
+    <string name="morphe_music_deezer_arl_toast_cleared">Deezer: arl 삭제됨</string>
+    <string name="morphe_music_deezer_arl_toast_invalid">Deezer: 잘못된 arl - 확인 후 다시 시도하세요</string>
+    <string name="morphe_music_deezer_arl_toast_saved">Deezer: arl 저장됨</string>
+    <string name="morphe_music_downloads_already_running">이미 디운로드 진행 중입니다</string>
+    <string name="morphe_music_downloads_already_saved">이미 다운로드됨</string>
+    <string name="morphe_music_downloads_complete">다운로드 완료</string>
+    <string name="morphe_music_downloads_failed">다운로드 실패</string>
+    <string name="morphe_music_downloads_notification_channel">오디오 다운로드</string>
+    <string name="morphe_music_downloads_progress">%s%% 다운로드 중</string>
+    <string name="morphe_music_downloads_sort">정렬</string>
+    <string name="morphe_music_downloads_started">다운로드 시작</string>
+    <string name="morphe_music_downloads_starting">다운로드 시작 중…</string>
+    <string name="morphe_music_downloads_unknown_track">다운로드할 트랙을 식별할 수 없습니다</string>
+    <string name="morphe_music_in_app_downloads_summary">외부 다운로더 앱을 실행하지 않고 YouTube Music 내에서 오디오를 다운로드합니다</string>
+    <string name="morphe_music_in_app_downloads_title">앱 내 다운로드</string>
+    <string name="morphe_music_lyrics_about_summary">"가사는 곡 제목과 아티스트를 기준으로 검색합니다. 메타데이터가 특이한 경우 가사를 찾지 못하거나 다른 버전의 가사가 검색될 수 있습니다. 새로고침을 눌러 다른 버전으로 전환할 수 있습니다. * 표시가 있는 제공자는 토큰이 필요합니다. 활성화된 모든 제공자에 설정된 순서대로 항상 요청하는 것은 아니며, 각 제공자의 응답 속도에 따라 결과가 반환됩니다\n\n가사는 RVX와 제휴하거나 후원 또는 보증 관계에 있지 않은 서드파티 서비스에서 제공됩니다. 각 서비스는 별도의 수정 없이 그대로 사용되며, 가사의 내용과 제공 여부 및 라이선스는 해당 서비스와 라이선스 보유자의 책임입니다. 가사를 이용할 때는 각 서비스의 이용약관이 적용될 수 있습니다. 활성화된 서비스에는 사용자가 요청한 검색에 필요한 정보만 전달됩니다. 여기에는 곡 제목과 아티스트 이름, 그리고 해당 서비스에서 필요한 경우 동영상 ID가 포함됩니다. 선택 사항인 AI 엔드포인트와 QuickLRC 받아쓰기 기능은 사용자가 직접 설정한 경우에만 실행되며, 가사 텍스트 또는 해당 곡의 동영상 URL을 전달받습니다"</string>
+    <string name="morphe_music_lyrics_about_title">서드파티 가사에 대한 정보</string>
+    <string name="morphe_music_lyrics_ai_config_api_token_hint">API 키 (익명 접속을 원하시면 비워 두세요)</string>
+    <string name="morphe_music_lyrics_ai_config_base_url_hint">API 엔드포인트 URL (예시: https://text.pollinations.ai/openai)</string>
+    <string name="morphe_music_lyrics_ai_config_dialog_instruction">AI 기반 가사 번역, 로마자 표기 및 섹션 감지를 위해 OpenAI 호환 API 엔드포인트를 설정합니다</string>
+    <string name="morphe_music_lyrics_ai_config_dialog_title">AI 설정</string>
+    <string name="morphe_music_lyrics_ai_config_model_hint">모델 이름 (예시: openai-fast, gpt-4o-mini)</string>
+    <string name="morphe_music_lyrics_ai_config_status_empty_model">모델 이름은 비워둘 수 없습니다</string>
+    <string name="morphe_music_lyrics_ai_config_status_empty_url">기본 URL은 비워둘 수 없습니다</string>
+    <string name="morphe_music_lyrics_ai_config_status_invalid_url">기본 URL은 http:// 또는 https://로 시작해야 합니다</string>
+    <string name="morphe_music_lyrics_ai_config_status_validating">연결 유효성을 검사하는 중…</string>
+    <string name="morphe_music_lyrics_ai_config_summary_configured">모델 %1$s 구성됨</string>
+    <string name="morphe_music_lyrics_ai_config_toast_invalid">AI 엔드포인트에 연결할 수 없습니다. 설정을 확인하세요</string>
+    <string name="morphe_music_lyrics_ai_config_toast_reset">AI 설정 초기화</string>
+    <string name="morphe_music_lyrics_ai_config_toast_saved">AI 설정 저장됨</string>
+    <string name="morphe_music_lyrics_ai_extra_body_hint">추가 요청 본문 (JSON, 모든 AI 요청에 병합됨)</string>
+    <string name="morphe_music_lyrics_ai_extra_body_invalid">유효한 JSON이 아닙니다. 저장하기 전에 수정하거나 필드를 지우세요</string>
+    <string name="morphe_music_lyrics_ai_prompt_dialog_hint">자리 표시자: {language}, {task}, {title}, {artist}, {count}, {lines}</string>
+    <string name="morphe_music_lyrics_ai_prompt_dialog_title">프롬프트 템플릿</string>
+    <string name="morphe_music_lyrics_ai_prompt_toast_endpoint_invalid">프롬프트가 저장되었지만 AI 엔드포인트는 아직 사용할 수 없습니다. 먼저 AI 설정에서 구성하세요</string>
+    <string name="morphe_music_lyrics_ai_prompt_toast_reset">프롬프트 초기화</string>
+    <string name="morphe_music_lyrics_ai_prompt_toast_saved">프롬프트 저장됨</string>
+    <string name="morphe_music_lyrics_clear_cache_done">%1$s MB 지워짐</string>
+    <string name="morphe_music_lyrics_clear_cache_summary">이 기기에 저장된 가사를 삭제합니다</string>
+    <string name="morphe_music_lyrics_clear_cache_title">저장된 가사 지우기</string>
+    <string name="morphe_music_lyrics_contribute_credit">복사 버튼을 길게 탭하면 이 LRC 파일을 저장할 수 있습니다. 타이밍을 세밀하게 조정하고 커뮤니티 제공자와 공유해 주시면 감사하겠습니다</string>
+    <string name="morphe_music_lyrics_copied">클립보드에 복사하였습니다</string>
+    <string name="morphe_music_lyrics_credit_line_regex_summary">가사가 잘못 필터링되어 하단으로 내려가는 경우 이 설정을 조정하거나 비워 두세요. 쉼표로 구분된 마커: 마커가 포함된 줄에 콜론(:)이 뒤따르면 해당 줄은 크레딧 정보로 간주되어 하단에 표시됩니다. 비워두면 비활성화됩니다</string>
+    <string name="morphe_music_lyrics_credit_line_regex_title">정보 줄 마커</string>
+    <string name="morphe_music_lyrics_custom_regex_summary">가사를 검색하기 전과 두 제목이 일치하는지 판단할 때 제목, 아티스트, 앨범에 적용할 정규식입니다. 비워 두면 두 기능 모두 비활성화됩니다. 기본값은 \'Official Video\', \'Remaster\', \'【插曲】\', \'- Topic\'과 같은 불필요한 문구를 제거합니다</string>
+    <string name="morphe_music_lyrics_custom_regex_title">메타데이터 정규식</string>
+    <string name="morphe_music_lyrics_display_artist_first_summary">미니 플레이어와 MediaSession에서 아티스트와 제목의 표시 순서를 전환합니다. 활성화되면 \'아티스트 - 제목\', 비활성화되면 \'제목 - 아티스트\'로 표시됩니다. 가사 검색에는 영향을 주지 않습니다</string>
+    <string name="morphe_music_lyrics_display_artist_first_title">아티스트 및 제목 표시 순서</string>
+    <string name="morphe_music_lyrics_dual_only">듀얼 모드</string>
+    <string name="morphe_music_lyrics_enabled_summary">서드파티 서비스의 가사를 표시합니다. 가사를 찾을 수 없는 경우에는 내장된 가사를 대신 표시합니다</string>
+    <string name="morphe_music_lyrics_enabled_title">서드파티 가사 사용</string>
+    <string name="morphe_music_lyrics_hide_info_summary">가사 아래에 표시되는 크레딧 라인을 숨깁니다</string>
+    <string name="morphe_music_lyrics_hide_info_title">크레딧 라인 숨기기</string>
+    <string name="morphe_music_lyrics_hide_played_summary">현재 재생 중인 줄 위의 가사 줄을 숨깁니다</string>
+    <string name="morphe_music_lyrics_hide_played_title">재생된 가사 숨기기</string>
+    <string name="morphe_music_lyrics_hide_unplayed_summary">현재 재생 중인 줄 아래의 가사 줄을 숨깁니다</string>
+    <string name="morphe_music_lyrics_hide_unplayed_title">재생되지 않은 가사 숨기기</string>
+    <string name="morphe_music_lyrics_keep_screen_on_summary">가사 패널이 열려 있는 동안 화면이 꺼지지 않도록 방지합니다</string>
+    <string name="morphe_music_lyrics_keep_screen_on_title">가사 보는 동안 화면 켜두기</string>
+    <string name="morphe_music_lyrics_local_romanization_dict_building">%1$s 읽는 중: %2$d%%</string>
+    <string name="morphe_music_lyrics_local_romanization_dict_failed">다운로드 실패 - 다시 시도하려면 껐다가 다시 켜세요</string>
+    <string name="morphe_music_lyrics_local_romanization_dict_ready">읽기 준비 완료 (%1$d 항목)</string>
+    <string name="morphe_music_lyrics_local_romanization_summary">가사 제공자, 사용 중인 모델, Google 번역이 모두 실패했을 때 기기에서 직접 로마자 표기 변환합니다. 발음 표시는 시간에 맞춰 표시되는 가사의 각 단어 뒤에 표시됩니다. 이 기능을 사용하려면 단어 동기화가 켜져 있어야 합니다. 중국어, 광둥어, 일본어, 한국어, 그리스어, 러시아어, 조지아어, 아르메니아어를 지원하며, 용량은 약 120MB입니다</string>
+    <string name="morphe_music_lyrics_local_romanization_title">로컬 로마자 표기 및 정렬</string>
+    <string name="morphe_music_lyrics_mediasession_summary">잠금 화면, Android Auto 및 블루투스에서 현재 가사 줄을 표시합니다. Android 11 이상이 필요합니다</string>
+    <string name="morphe_music_lyrics_mediasession_title">잠금 화면에 MediaSession 가사 표시</string>
+    <string name="morphe_music_lyrics_miniplayer_summary">미니 플레이어에 현재 가사 줄을 표시하고, 노래 정보를 제목 하단으로 이동합니다</string>
+    <string name="morphe_music_lyrics_miniplayer_title">미니 플레이어 가사 표시</string>
+    <string name="morphe_music_lyrics_offset_ms_summary">싱크된 가사는 재생에 맞춰 따라갑니다. 가사가 음악과 어긋나는 경우 타이밍 오프셋을 조정하세요. 싱크된 가사를 앞으로 또는 뒤로 이동할 수 있습니다. 가사가 노래보다 앞서 나오는 경우에는 양수 값을 사용하세요</string>
+    <string name="morphe_music_lyrics_offset_ms_title">전역 타이밍 오프셋</string>
+    <string name="morphe_music_lyrics_refreshed">새로고침됨</string>
+    <string name="morphe_music_lyrics_refreshing">새로고침 중</string>
+    <string name="morphe_music_lyrics_romanize_failed">가사를 로마자로 표기할 수 없습니다</string>
+    <string name="morphe_music_lyrics_romanize_hide">로마자 표기됨</string>
+    <string name="morphe_music_lyrics_romanize_language_title">로마자 변환 언어</string>
+    <string name="morphe_music_lyrics_romanize_only">로마자 표기만</string>
+    <string name="morphe_music_lyrics_romanized_by_ai">%s에 의해 로마자 표기됨</string>
+    <string name="morphe_music_lyrics_romanized_by_google">Google에 의해 로마자 표기됨</string>
+    <string name="morphe_music_lyrics_romanizing">로마자 표기 중…</string>
+    <string name="morphe_music_lyrics_saved">저장됨</string>
+    <string name="morphe_music_lyrics_sb_matching_summary">SponsorBlock이 건너뛰는 구간을 제외한 오디오에 맞추고, 가사를 정식 발매된 음원에 맞춰 조정합니다. 비활성화하면 SponsorBlock을 완전히 무시합니다</string>
+    <string name="morphe_music_lyrics_sb_matching_title">가사 오프셋에 SponsorBlock 구간 사용하기</string>
+    <string name="morphe_music_lyrics_sb_no_video">이 트랙에는 제출할 동영상 ID가 없습니다</string>
+    <string name="morphe_music_lyrics_search_artist_hint">아티스트</string>
+    <string name="morphe_music_lyrics_search_dialog_title">가사 검색</string>
+    <string name="morphe_music_lyrics_search_empty">노래 제목과 아티스트를 입력하세요</string>
+    <string name="morphe_music_lyrics_search_no_providers">활성화된 제공자 중 다른 노래를 검색할 수 있는 곳이 없습니다</string>
+    <string name="morphe_music_lyrics_search_title_hint">노래 제목</string>
+    <string name="morphe_music_lyrics_show_copy_button_summary">버튼을 탭하여 원본 가사를 일반 텍스트로 복사할 수 있고, 길게 탭하면 원본 가사 소스 파일을 다운로드에 저장할 수 있습니다</string>
+    <string name="morphe_music_lyrics_show_copy_button_title">복사 버튼 표시</string>
+    <string name="morphe_music_lyrics_show_refresh_button_summary">버튼을 탭하여 다음 우선순위의 가사 제공자로 전환할 수 있고, 길게 탭하면 노래 제목과 아티스트로 가사를 검색할 수 있습니다</string>
+    <string name="morphe_music_lyrics_show_refresh_button_title">새로고침 버튼 표시</string>
+    <string name="morphe_music_lyrics_show_romanize_button_summary">버튼을 탭하여 로마자 표기를 켜거나 끌 수 있고, 길게 탭하면 로마자 표기만 표시됩니다. 제공자 로마자 표기, Google 번역 또는 OpenAI 호환 API를 사용합니다</string>
+    <string name="morphe_music_lyrics_show_romanize_button_title">로마자 표기 버튼 표시</string>
+    <string name="morphe_music_lyrics_show_section_summary">가사에 절 또는 후렴과 같은 작은 태그를 붙여 각 새로운 섹션을 표시합니다</string>
+    <string name="morphe_music_lyrics_show_section_title">섹션 태그 표시하기</string>
+    <string name="morphe_music_lyrics_show_translate_button_summary">버튼을 탭하여 번역을 켜거나 끌 수 있고, 길게 탭하면 번역만 표시됩니다. 제공자 번역, Google 번역 또는 OpenAI 호환 API를 사용합니다</string>
+    <string name="morphe_music_lyrics_show_translate_button_title">번역 버튼 표시</string>
+    <string name="morphe_music_lyrics_source_all_disabled">모든 제공자가 비활성화됨 - 내장된 가사 및 삽입된 가사</string>
+    <string name="morphe_music_lyrics_source_label">출처: %s</string>
+    <string name="morphe_music_lyrics_source_reset_message">제공자를 기본 우선순위 순서로 복원합니다</string>
+    <string name="morphe_music_lyrics_source_reset_title">제공자 순서를 초기화하시겠습니까?</string>
+    <string name="morphe_music_lyrics_source_title">가사 서비스</string>
+    <string name="morphe_music_lyrics_split_background_summary">\'(Oh) I want you\'와 같이 괄호로 작성된 백그라운드 보컬을 가사 줄에서 분리하여, 별도의 흐릿한 줄로 이동합니다</string>
+    <string name="morphe_music_lyrics_split_background_title">백그라운드 보컬 별도 표시하기</string>
+    <string name="morphe_music_lyrics_swap_trans_roma_summary">활성화되면 로마자 표기를 가사 아래에 표시하고, 번역은 가사 위에 표시합니다; 비활성화되면 로마자 표기를 가사 위에 표시하고, 번역은 가사 아래에 표시합니다</string>
+    <string name="morphe_music_lyrics_swap_trans_roma_title">번역과 로마자 표기 위치 바꾸기</string>
+    <string name="morphe_music_lyrics_tap_to_seek_summary">가사 한 줄을 탭하면 노래의 해당 부분으로 이동하고, 길게 탭하면 손가락이 위치한 단어를 복사합니다. 단어 위가 아닌 곳을 길게 탭하면 해당 줄 전체가 복사됩니다. 비횔성화하면 두 기능 모두 사용할 수 없습니다</string>
+    <string name="morphe_music_lyrics_tap_to_seek_title">가사를 탭하여 구간 이동</string>
+    <string name="morphe_music_lyrics_text_filter_summary">원본 가사 텍스트에만 적용되는 정규식입니다. 번역이나 로마자 표기에는 적용되지 않습니다. 비워두면 비활성화됩니다</string>
+    <string name="morphe_music_lyrics_text_filter_title">가사 필터 정규식</string>
+    <string name="morphe_music_lyrics_text_size_summary">가사 텍스트 크기</string>
+    <string name="morphe_music_lyrics_text_size_title">텍스트 크기</string>
+    <string name="morphe_music_lyrics_transcribe_align">QuickLRC 정렬 요청</string>
+    <string name="morphe_music_lyrics_transcribe_aligning">정렬하는 중</string>
+    <string name="morphe_music_lyrics_transcribe_apply_align">정렬 적용</string>
+    <string name="morphe_music_lyrics_transcribe_cancelled">기록 취소됨</string>
+    <string name="morphe_music_lyrics_transcribe_failed">QuickLRC에서 이 트랙을 처리할 수 없습니다</string>
+    <string name="morphe_music_lyrics_transcribe_key_cleared">QuickLRC API 키가 지워졌습니다</string>
+    <string name="morphe_music_lyrics_transcribe_key_dialog_instruction">QuickLRC는 가사에 타임스탬프가 없는 경우 타이밍을 추가하거나, 트랙의 오디오를 바탕으로 가사를 기록합니다. 이 기능을 사용하면 크레딧이 소모됩니다. 키를 설정하면 가사가 없는 트랙에서 기록 기능을 사용할 수 있으며, 가사 검색 창에 정렬 버튼이 추가됩니다</string>
+    <string name="morphe_music_lyrics_transcribe_key_rejected">QuickLRC에서 해당 키를 수락하지 않았습니다</string>
+    <string name="morphe_music_lyrics_transcribe_key_saved">QuickLRC API 키를 저장하였습니다</string>
+    <string name="morphe_music_lyrics_transcribe_key_set_summary">QuickLRC 키가 저장되었습니다. 가사 검색 대화상자에서 정렬 버튼을 누르거나, 트랙에 가사가 없을 때 표시되는 패널의 프롬프트를 사용하세요</string>
+    <string name="morphe_music_lyrics_transcribe_key_summary">QuickLRC는 현재 재생 중인 트랙의 가사를 기록하거나 가사와 오디오의 타이밍을 맞춰 줍니다. 위의 OpenAI 호환 엔드포인트와는 관련이 없는 별도의 서비스입니다</string>
+    <string name="morphe_music_lyrics_transcribe_key_title">QuickLRC API 키</string>
+    <string name="morphe_music_lyrics_transcribe_local_unsupported">YouTube에서 재생된 트랙만 기록할 수 있습니다</string>
+    <string name="morphe_music_lyrics_transcribe_no_text">정렬할 가사 없음 - 대신 기록합니다</string>
+    <string name="morphe_music_lyrics_transcribe_out_of_credits">이 트랙에 대한 QuickLRC 크레딧이 모두 소진되었습니다</string>
+    <string name="morphe_music_lyrics_transcribe_prompt">QuickLRC 기록 요청</string>
+    <string name="morphe_music_lyrics_transcribe_working">기록하는 중</string>
+    <string name="morphe_music_lyrics_translate_failed">가사를 번역할 수 없습니다</string>
+    <string name="morphe_music_lyrics_translate_hide">번역됨</string>
+    <string name="morphe_music_lyrics_translate_only">번역만</string>
+    <string name="morphe_music_lyrics_translated_by_ai">%s에 의해 번역됨</string>
+    <string name="morphe_music_lyrics_translated_by_google">Google에 의해 번역됨</string>
+    <string name="morphe_music_lyrics_translating">번역하는 중…</string>
+    <string name="morphe_music_lyrics_translation_language_title">번역 언어</string>
+    <string name="morphe_music_lyrics_use_ai_romanization_summary">제공자에서 기본 제공하는 로마자 표기를 우선 사용하고, 그다음 OpenAI 호환 모델을 사용하며, Google 번역은 마지막 순위로 사용합니다</string>
+    <string name="morphe_music_lyrics_use_ai_romanization_title">AI 로마자 표기</string>
+    <string name="morphe_music_lyrics_use_ai_section_summary">제공자가 후렴 또는 절 등의 섹션 라벨을 제공하지 않는 경우에만 사용되며, 이때 OpenAI 호환 모델이 가사의 섹션을 감지하여 라벨을 붙입니다</string>
+    <string name="morphe_music_lyrics_use_ai_section_title">AI 섹션</string>
+    <string name="morphe_music_lyrics_use_ai_title">OpenAI 호환 API</string>
+    <string name="morphe_music_lyrics_use_ai_translation_summary">제공자에서 기본 제공하는 번역을 우선 사용하고, 그다음 OpenAI 호환 모델을 사용하며, Google 번역은 마지막 순위로 사용합니다</string>
+    <string name="morphe_music_lyrics_use_ai_translation_title">AI 번역</string>
+    <string name="morphe_music_lyrics_word_sync_summary">가능한 경우 단어 단위로 표시되는 가사를 우선합니다. 가사에 단어별 타이밍 정보가 포함되어 있으면, 음악에 맞춰 각 단어 음절을 순서대로 강조 표시합니다</string>
+    <string name="morphe_music_lyrics_word_sync_title">동기화된 단어 또는 음절 강조 표시</string>
+    <string name="morphe_music_musixmatch_token_dialog_hint">사용자 토큰</string>
+    <string name="morphe_music_musixmatch_token_dialog_instruction">본인 계정을 사용하려는 경우에만 토큰을 입력하세요. 토큰은 반드시 Musixmatch Android 앱에서 가져온 것이어야 합니다: musixmatch.com에서 복사한 토큰은 더 이상 사용되지 않는 데스크톱 클라이언트용이므로 API에서 이를 거부합니다</string>
+    <string name="morphe_music_musixmatch_token_optional_hint">Musixmatch는 토큰 없이도 작동하므로 이 필드는 비워 둘 수 있습니다</string>
+    <string name="morphe_music_musixmatch_token_title">Musixmatch 토큰</string>
+    <string name="morphe_music_musixmatch_token_toast_cleared">Musixmatch: 사용자 토큰이 삭제됨</string>
+    <string name="morphe_music_musixmatch_token_toast_invalid">Musixmatch: 잘못된 사용자 토큰 - 확인 후 다시 시도하세요</string>
+    <string name="morphe_music_musixmatch_token_toast_saved">Musixmatch: 사용자 토큰이 저장됨</string>
+    <string name="morphe_music_scrobbling_log_out">로그아웃</string>
+    <string name="morphe_music_spotify_token_dialog_instruction">"Spotify에서 sp_dc 쿠키를 붙여넣으세요
+
+단계:
+1. open.spotify.com에 로그인합니다
+2. 개발자 도구 → 응용 프로그램 → 쿠키 → open.spotify.com을 엽니다
+3. 'sp_dc' 값을 복사합니다"</string>
+    <string name="morphe_music_spotify_token_title">Spotify SpDc</string>
+    <string name="morphe_music_spotify_token_toast_cleared">Spotify: sp_dc가 삭제됨</string>
+    <string name="morphe_music_spotify_token_toast_invalid">Spotify: 잘못된 sp_dc - 확인 후 다시 시도하세요</string>
+    <string name="morphe_music_spotify_token_toast_saved">Spotify: sp_dc가 저장됨</string>
+    <string name="morphe_music_token_dialog_get_token">토큰 가져오기</string>
+    <string name="morphe_music_youtube_cookies_dialog_instruction">"YouTube에서 자막과 타임텍스트를 조회하려면 YouTube 쿠키를 붙여넣으세요
+
+단계:
+1. 브라우저에서 youtube.com을 열고 로그인합니다
+2. 개발자 도구(F12) → 응용 프로그램 → 쿠키 → youtube.com을 엽니다
+3. 전체 쿠키 문자열(세미콜론으로 구분된 키=값 쌍)을 복사합니다
+
+필수 쿠키: SID, HSID, SSID, SAPISID,
+_ Secure-3PAPISID, _ Secure-1PAPISID,
+LOGIN_INFO"</string>
+    <string name="morphe_music_youtube_cookies_title">YouTube 쿠키</string>
+    <string name="morphe_music_youtube_cookies_toast_cleared">YouTube: 쿠키가 삭제됨</string>
+    <string name="morphe_music_youtube_cookies_toast_invalid">YouTube: 잘못된 쿠키 - 확인 후 다시 시도하세요</string>
+    <string name="morphe_music_youtube_cookies_toast_saved">YouTube: 쿠키가 저장됨</string>
+    <string name="morphe_notification_dot_color_summary">알림 점의 색상을 변경합니다</string>
+    <string name="morphe_notification_dot_color_title">알림 점 색상</string>
+    <string name="morphe_oauth2_connection_failure_auth_error">VR에 로그인할 수 없습니다: %s</string>
+    <string name="morphe_oauth2_connection_failure_auth_not_approved">VR에 로그인할 수 없습니다. 웹사이트 인증이 승인되지 않았습니다</string>
+    <string name="morphe_oauth2_connection_failure_generic">OAuth2를 일시적으로 사용할 수 없습니다</string>
+    <string name="morphe_oauth2_connection_failure_status">OAuth2을 일시적으로 사용할 수 없습니다 (상태 코드: %s)</string>
+    <string name="morphe_oauth2_connection_failure_status_400">Android VR 로그인이 만료되었습니다. VR에 다시 로그인하세요</string>
+    <string name="morphe_oauth2_connection_failure_timeout">OAuth2를 일시적으로 사용할 수 없습니다 (API 시간 초과)</string>
+    <string name="morphe_oauth2_toast_invalid">잘못된 VR 로그인 토큰입니다. 다시 VR에 로그인하세요</string>
+    <string name="morphe_oauth2_toast_reset">Android VR에서 로그아웃되었습니다</string>
+    <string name="morphe_potoken_provider_expired_dialog_message">이 버전에 내장된 PotHelper 토큰이 더 이상 작동하지 않습니다
+
+재생 문제를 해결하려면 \'동영상 스트림 속이기\' 설정을 활성화하세요</string>
+    <string name="morphe_potoken_provider_expired_dialog_title">PotHelper가 더 이상 작동하지 않음</string>
+    <string name="morphe_potoken_provider_expired_dialog_turn_on">활성화</string>
+    <string name="morphe_potoken_provider_summary">"내부 PoToken 생성기를 사용하여 재생 문제를 수정합니다 (실험 기능)
+
+YouTube Premium 사용자는 이 설정이 필요하지 않을 수 있습니다"</string>
+    <string name="morphe_potoken_provider_title">PoToken 제공자</string>
+    <string name="morphe_potoken_provider_unavailable_summary">"내부 PoToken 생성기를 사용하여 재생 문제를 수정합니다 (실험 기능)
+
+이 기능을 사용하려면, '동영상 스트림 속이기'를 비활성화하세요"</string>
+    <string name="morphe_replace_music_with_youtube_summary">공유 링크에서 music.youtube.com을 youtube.com으로 변경합니다</string>
+    <string name="morphe_replace_music_with_youtube_summary_off">공유 링크를 \'music.youtube.com\'으로 사용합니다</string>
+    <string name="morphe_replace_music_with_youtube_summary_on">공유 링크를 \'youtube.com\'으로 사용합니다</string>
+    <string name="morphe_replace_music_with_youtube_title">공유 링크를 \'youtube.com\'으로 변경</string>
+    <string name="morphe_romanize_language_DEFAULT">자동</string>
+    <string name="morphe_sanitize_sharing_links_summary">링크를 공유할 경우에 URL에서 추적 쿼리 매개변수를 제거합니다</string>
+    <string name="morphe_sanitize_sharing_links_summary_off">링크를 공유할 경우에 URL에서 추적 쿼리 매개변수를 제거하지 않습니다</string>
+    <string name="morphe_sanitize_sharing_links_summary_on">링크를 공유할 경우에 URL에서 추적 쿼리 매개변수를 제거합니다</string>
+    <string name="morphe_sanitize_sharing_links_title">추적 쿼리를 제거한 링크 공유</string>
+    <string name="morphe_sb_new_segment_choose_category">구간 카테고리를 선택하세요</string>
+    <string name="morphe_sb_new_segment_confirm_submit">제출</string>
+    <string name="morphe_sb_new_segment_start_is_before_end">구간의 시작 또는 끝을 잘못 설정하였습니다</string>
+    <string name="morphe_sb_new_segment_title">새 SponsorBlock 구간</string>
+    <string name="morphe_settings_menu_copy_path">복사됨: %s</string>
+    <string name="morphe_settings_menu_filter_picker_empty">목록을 생성하려면 일반 앱 설정 화면을 한 번 실행해야 합니다</string>
+    <string name="morphe_settings_menu_filter_screen_summary">일반 앱 설정 화면에서 표시되는 이름을 기준으로 항목을 숨깁니다</string>
+    <string name="morphe_settings_menu_filter_screen_title">설정 메뉴 필터</string>
+    <string name="morphe_settings_name_custom_item_hint">이름을 입력하세요</string>
+    <string name="morphe_settings_name_empty_warning">이름을 비워 둘 수 없습니다</string>
+    <string name="morphe_settings_name_title">RVX 설정 이름</string>
+    <string name="morphe_settings_save">저장</string>
+    <string name="morphe_skip_silence_minimum_pause_summary">최소 이 시간 이상 일시 정지하는 경우에만 단축됩니다. 다음 동영상이 시작될 때 적용됩니다</string>
+    <string name="morphe_skip_silence_minimum_pause_title">최소 일시 정지 길이</string>
+    <string name="morphe_skip_silence_summary">동영상 오디오에서 무음 구간을 자동으로 건너뜁니다</string>
+    <string name="morphe_skip_silence_title">무음 건너뛰기</string>
+    <string name="morphe_spoof_video_streams_client_failing_dialog_message">"%1$s는 연속으로 여러 번 작동하지 않았지만, %2$s는 작동하였습니다 
+
+%2$s를 기본 클라이언트로 설정하시겠습니까?"</string>
+    <string name="morphe_spoof_video_streams_client_failing_dialog_switch">전환</string>
+    <string name="morphe_spoof_video_streams_client_failing_dialog_title">기본 클라이언트가 작동하지 않습니다</string>
+    <string name="morphe_spoof_video_streams_client_type_title">기본 클라이언트</string>
+    <string name="morphe_spoof_video_streams_no_clients_toast">클라이언트 스트림을 가져올 수 없습니다</string>
+    <string name="morphe_spoof_video_streams_screen_summary">클라이언트 동영상 스트림을 속여서 재생 문제를 방지할 수 있습니다</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Android VR에 로그인되어 있지 않습니다 \n로그인하려면 여기를 탭하세요</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">이 기능을 사용하려면, \'동영상 스트림 속이기\'에서 \'기본 클라이언트\'를 \'Android VR\'로 변경하세요</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">현재 Android VR에 로그인되어 있습니다</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">Android VR에 로그인</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_message">"활성화 코드: %s
+
+1. 아래에 있는 '웹사이트 열기'를 탭하여 '기기 연결' 웹사이트를 엽니다
+2. 위에 표시된 활성화 코드를 클립보드로부터 붙여넣거나 입력합니다
+3. 로그인이 요청되면 Google에 로그인합니다. 계정이 여러 개인 경우에는 RVX에서 사용하는 YouTube 계정을 선택합니다
+4. YouTube VR 액세스를 허용합니다
+5. '기기에 연결됨' 메시지가 표시되면 이 앱으로 돌아옵니다"</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_title">설명서</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_not_signed_in_message">"Android VR에 로그인하면 일부 사용자의 재생 문제가 해결될 수 있습니다
+
+로그인하려면 아래에 있는 '계속'를 탭하세요"</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_reset">로그아웃</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_title">Android VR에 로그인</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_message">"인증을 저장하였습니다
+
+• RVX 설정에서 Android VR 인증을 가져오거나 내보낼 수 없습니다
+• 이 앱을 6개월 동안 사용하지 않으면 Google에서 이 인증을 취소합니다
+• Google 암호를 변경하거나 Google 설정에서 이 기기 등록을 해제하면 다시 로그인해야 합니다"</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_title">로그인 성공</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_activation_code_failed">활성화 코드를 발급할 수 없습니다</string>
+    <string name="morphe_spoof_video_streams_summary">"호환되는 동영상 스트림을 요청하여 대부분의 사용자의 재생 문제를 해결할 수 있습니다
+
+YouTube Premium 사용자는 이 설정이 필요하지 않을 수 있습니다"</string>
+    <string name="morphe_spoof_video_streams_summary_off">"동영상 스트림이 속여지지 않습니다
+
+재생 문제가 발생할 수 있습니다
+
+이 기능을 사용하려면, 'PoToken 제공자'를 비활성화하세요"</string>
+    <string name="morphe_spoof_video_streams_summary_on">"동영상 스트림이 속여집니다
+
+YouTube Premium 사용자라면 이 설정은 필요하지 않을 수 있습니다"</string>
+    <string name="morphe_spoof_video_streams_title">동영상 스트림 속이기</string>
+    <string name="morphe_spoof_video_streams_user_dialog_message">이 설정을 비활성화하면 재생 문제가 발생할 수 있습니다</string>
+    <string name="morphe_theme_entry_amoled_black">순수 검정색</string>
+    <string name="morphe_theme_entry_classic_youtube">클래식 (이전 YouTube)</string>
+    <string name="morphe_theme_entry_dark_blue">어두운 파란색</string>
+    <string name="morphe_theme_entry_dark_green">어두운 초록색</string>
+    <string name="morphe_theme_entry_dark_orange">어두운 주황색</string>
+    <string name="morphe_theme_entry_dark_pink">어두운 분홍색</string>
+    <string name="morphe_theme_entry_dark_red">어두운 빨간색</string>
+    <string name="morphe_theme_entry_dark_yellow">어두운 노란색</string>
+    <string name="morphe_theme_entry_material_you_neutral">Material You (뉴트럴)</string>
+    <string name="morphe_theme_entry_material_you_primary">Material You - 기본</string>
+    <string name="morphe_theme_entry_material_you_secondary">Material You - 2차</string>
+    <string name="morphe_theme_entry_material_you_tertiary">Material You - 3차</string>
+    <string name="morphe_theme_entry_modern_youtube">모던 스타일 YouTube</string>
+    <string name="revanced_add_miniplayer_next_button_summary">미니 플레이어에 다음 트랙 재생 버튼을 추가합니다</string>
+    <string name="revanced_add_miniplayer_next_button_title">미니 플레이어 다음 재생 버튼 추가</string>
+    <string name="revanced_add_miniplayer_previous_button_summary">미니 플레이어에 이전 트랙 재생 버튼을 추가합니다</string>
+    <string name="revanced_add_miniplayer_previous_button_title">미니 플레이어 이전 재생 버튼 추가</string>
+    <string name="revanced_app_info_dialog_message">&lt;b&gt;앱 이름&lt;/b&gt;&lt;br&gt;&lt;small&gt;%1$s&lt;/small&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;앱 버전&lt;/b&gt;&lt;br&gt;&lt;small&gt;%2$s&lt;/small&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;RVX Patches&lt;/b&gt;&lt;br&gt;&lt;small&gt;%3$s&lt;/small&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;패치된 날짜&lt;/b&gt;&lt;br&gt;&lt;small&gt;%4$s&lt;/small&gt;</string>
+    <string name="revanced_app_info_summary">앱 이름, 앱 버전, 패치 버전 및 패치된 날짜를 확인하려면 여기를 탭하세요</string>
+    <string name="revanced_app_info_title">앱 정보</string>
+    <string name="revanced_bypass_image_region_restrictions_summary">이미지 도메인을 변경하여 일부 국가에서 차단된 재생목록 썸네일, 채널 프로필 사진, 커뮤니티 게시물 이미지 등을 수신할 수 있습니다</string>
+    <string name="revanced_bypass_image_region_restrictions_title">이미지 표시 제한 국가 우회</string>
+    <string name="revanced_change_action_bar_position_summary">작업 버튼바가 재생 버튼 아래로 이동합니다</string>
+    <string name="revanced_change_action_bar_position_title">작업 버튼바 위치 변경</string>
+    <string name="revanced_change_miniplayer_color_summary">미니 플레이어 색상을 전체 화면 플레이어와 일치하도록 변경합니다</string>
+    <string name="revanced_change_miniplayer_color_title">미니 플레이어 색상 변경</string>
+    <string name="revanced_change_player_background_color_summary">풀레이어 배경 색상을 사용자 정의 색상으로 변경합니다</string>
+    <string name="revanced_change_player_background_color_title">플레이어 배경 색상 변경</string>
+    <string name="revanced_change_seekbar_position_summary">재생바가 재생 버튼 아래로 이동합니다</string>
+    <string name="revanced_change_seekbar_position_title">재생바 위치 변경</string>
+    <string name="revanced_change_share_sheet_summary">기본 공유 시트에서 시스템 공유 시트로 변경합니다</string>
+    <string name="revanced_change_share_sheet_title">공유 시트 변경</string>
+    <string name="revanced_change_start_page_entry_charts">차트</string>
+    <string name="revanced_change_start_page_entry_episodes_for_later">나중에 감상할 에피소드</string>
+    <string name="revanced_change_start_page_entry_explore">둘러보기</string>
+    <string name="revanced_change_start_page_entry_history">기록</string>
+    <string name="revanced_change_start_page_entry_library">보관함</string>
+    <string name="revanced_change_start_page_entry_liked_music">좋아요 표시한 음악</string>
+    <string name="revanced_change_start_page_entry_podcasts">팟캐스트</string>
+    <string name="revanced_change_start_page_entry_samples">샘플</string>
+    <string name="revanced_change_start_page_entry_search">검색</string>
+    <string name="revanced_change_start_page_entry_subscriptions">구독</string>
+    <string name="revanced_change_start_page_summary">앱 시작 페이지를 변경합니다</string>
+    <string name="revanced_change_start_page_title">앱 시작 페이지</string>
+    <string name="revanced_confirm_user_dialog_title">계속하시겠습니까?</string>
+    <string name="revanced_credits_title">크레딧</string>
+    <string name="revanced_custom_filter_strings_summary">필터링할 컴포넌트 패스 빌더 문자열을 줄바꿈으로 구분하여 설정하세요</string>
+    <string name="revanced_custom_filter_strings_title">사용자 정의 필터</string>
+    <string name="revanced_custom_filter_summary">사용자 정의 필터를 활성화하여 레이아웃 구성요소를 숨깁니다</string>
+    <string name="revanced_custom_filter_title">사용자 정의 필터 활성화</string>
+    <string name="revanced_custom_filter_toast_invalid_syntax">잘못된 사용자 정의 필터 값입니다: %s</string>
+    <string name="revanced_custom_navigation_bar_color_value_invalid_invalid_toast">잘못된 하단바 색상 값입니다</string>
+    <string name="revanced_custom_navigation_bar_color_value_summary">사용하고 싶은 하단바 색상의 헥스 코드를 입력하세요</string>
+    <string name="revanced_custom_navigation_bar_color_value_title">사용자 정의 하단바 색상</string>
+    <string name="revanced_custom_playback_speeds_invalid">사용자 정의 재생 속도는 %s배속보다 작아야 합니다</string>
+    <string name="revanced_custom_playback_speeds_parse_exception">잘못된 재생 속도 값입니다</string>
+    <string name="revanced_custom_playback_speeds_summary">사용하고 싶은 재생 속도 값을 추가하거나 변경할 수 있습니다</string>
+    <string name="revanced_custom_playback_speeds_title">사용자 정의 재생 속도 편집</string>
+    <string name="revanced_custom_player_background_color_primary_summary">"사용하고 싶은 플레이어 배경 주요 색상의 헥스 코드를 입력하세요
+
+앱이 밝은 테마를 지원하지 않으므로 가능하면 어두운 색상을 사용하세요"</string>
+    <string name="revanced_custom_player_background_color_primary_title">플레이어 배경 주요 색상</string>
+    <string name="revanced_custom_player_background_color_secondary_summary">"사용하고 싶은 플레이어 배경 보조 색상의 헥스 코드를 입력하세요
+
+앱이 밝은 테마를 지원하지 않으므로 가능하면 어두운 색상을 사용하세요"</string>
+    <string name="revanced_custom_player_background_color_secondary_title">플레이어 배경 보조 색상</string>
+    <string name="revanced_custom_player_background_invalid_toast">잘못된 플레이어 배경 색상입니다</string>
+    <string name="revanced_debug_protobuffer_summary">개발자가 앱 구성 요소를 식별할 수 있도록 추가 로그 정보를 추가합니다</string>
+    <string name="revanced_debug_protobuffer_title">디버그 로그 프로토콜 버퍼</string>
+    <string name="revanced_debug_spannable_summary">디버그 로그에 스패너블을 포함합니다</string>
+    <string name="revanced_debug_spannable_title">로그 스패너블</string>
+    <string name="revanced_debug_summary">디버그 로그를 출력합니다</string>
+    <string name="revanced_debug_title">디버그 로그 활성화</string>
+    <string name="revanced_default_app_settings_summary">YT Music 링크를 RVX Music으로 열려면 \'지원되는 링크 열기\'를 활성화하고 지원되는 링크를 추가하세요. 링크 추가가 잠겨있다면 순정 YT Music 앱 정보 → \'기본적으로 열기\'에서 \'지원되는 링크 열기\'를 비활성화한 후에 추가할 수 있습니다</string>
+    <string name="revanced_default_app_settings_title">기본 앱 설정 열기</string>
+    <string name="revanced_disable_auto_captions_summary">자동 자막이 강제로 활성화되지 않도록 설정합니다</string>
+    <string name="revanced_disable_auto_captions_title">강제된 자동 자막 비활성화</string>
+    <string name="revanced_disable_cairo_splash_animation_summary">앱을 시작할 때, Cairo 스플래시 애니메이션을 비활성화합니다</string>
+    <string name="revanced_disable_cairo_splash_animation_title">Cairo 스플래시 애니메이션 비활성화</string>
+    <string name="revanced_disable_dislike_redirection_summary">싫어요 버튼을 탭하면 다음 트랙으로 리다이렉션할 수 없습니다</string>
+    <string name="revanced_disable_dislike_redirection_title">싫어요 리다이렉션 비활성화</string>
+    <string name="revanced_disable_drc_audio_summary">오디오에 적용된 DRC (Dynamic Range Compression)를 비활성화합니다</string>
+    <string name="revanced_disable_drc_audio_title">DRC 오디오 비활성화</string>
+    <string name="revanced_disable_miniplayer_gesture_summary">미니 플레이어에서 스와이프하여 트랙을 변경할 수 없습니다</string>
+    <string name="revanced_disable_miniplayer_gesture_title">미니 플레이어 제스처 비활성화</string>
+    <string name="revanced_disable_music_video_in_album_redirect_type_entry_on_click">노래 / 동영상 토글 탭하기</string>
+    <string name="revanced_disable_music_video_in_album_redirect_type_entry_on_long_click">노래 / 동영상 토글 길게 탭하기</string>
+    <string name="revanced_disable_music_video_in_album_redirect_type_entry_redirect">리다이렉션</string>
+    <string name="revanced_disable_music_video_in_album_redirect_type_summary">정식 음원으로 리다이렉션하는 방법을 지정할 수 있습니다</string>
+    <string name="revanced_disable_music_video_in_album_redirect_type_title">리다이렉션 유형</string>
+    <string name="revanced_disable_music_video_in_album_summary">"Premium이 아닌 사용자가 앨범에 포함된 노래를 재생할 때, 간혹 정식 음원 대신 뮤직 비디오가 재생되는 경우가 있습니다
+
+앨범에서 뮤직 비디오가 재생되는 것이 감지되면 정식 음원을 찾아줍니다
+
+제한 사항:
+• Kids 동영상은 리다이렉션되지 않을 수 있습니다"</string>
+    <string name="revanced_disable_music_video_in_album_title">앨범에서 뮤직 비디오 비활성화</string>
+    <string name="revanced_disable_player_gesture_summary">플레이어에서 스와이프하여 트랙을 변경할 수 없습니다</string>
+    <string name="revanced_disable_player_gesture_title">플레이어 제스처 비활성화</string>
+    <string name="revanced_disable_quic_protocol_summary">"CronetEngine's QUIC 프로토콜을 비활성화합니다"</string>
+    <string name="revanced_disable_quic_protocol_title">QUIC 프로토콜 비활성화</string>
+    <string name="revanced_disable_trim_silence_summary">"재생 속도 메뉴 구성요소에서 '무음 건너뛰기' 스위치를 비활성화합니다
+
+알림:
+• 이 기능은 팟캐스트용입니다
+• 이 기능은 아직 개발 중이므로 불안정할 수 있습니다"</string>
+    <string name="revanced_disable_trim_silence_title">무음 건너뛰기 스위치 비활성화</string>
+    <string name="revanced_enable_comments_scroll_top_summary">"댓글 패널 제목(‘댓글’)을 탭하면 상단으로 스크롤됩니다
+
+제한 사항:
+• 댓글 답글에는 적용되지 않습니다"</string>
+    <string name="revanced_enable_comments_scroll_top_title">댓글에서 맨 위로 스크롤 활성화</string>
+    <string name="revanced_enable_compact_dialog_summary">"휴대폰에서 소형 메뉴 구성요소를 활성화합니다
+
+제한 사항:
+• 보관함 탭에서 앨범 아트가 그리드로 구성될 때 작아집니다
+• 취침 타이머 레이아웃이 비정상적으로 보일 수 있습니다"</string>
+    <string name="revanced_enable_compact_dialog_title">소형 대화 상자 활성화</string>
+    <string name="revanced_enable_custom_navigation_bar_color_summary">사용자 정의 하단바 색상을 활성화합니다</string>
+    <string name="revanced_enable_custom_navigation_bar_color_title">사용자 정의 하단바 색상 활성화</string>
+    <string name="revanced_enable_forced_miniplayer_summary">새로운 트랙으로 변경되면 강제로 미니 플레이어를 활성화합니다</string>
+    <string name="revanced_enable_forced_miniplayer_title">강제된 미니 플레이어 활성화</string>
+    <string name="revanced_enable_landscape_mode_summary">앱을 가로로 회전할 수 있도록 합니다</string>
+    <string name="revanced_enable_landscape_mode_title">가로 모드 활성화</string>
+    <string name="revanced_enable_opus_codec_summary">"플레이어 응답에 OPUS 코덱이 포함된 경우에 OPUS 코덱을 활성화합니다
+
+알림:
+• 최신 YT Music 클라이언트는 기본적으로 OPUS 코덱을 사용합니다
+• 클라이언트 또는 동영상 스트림이 속여진 경우에는 이 옵션이 필요할 수 있습니다"</string>
+    <string name="revanced_enable_opus_codec_title">OPUS 코덱 활성화</string>
+    <string name="revanced_enable_smooth_transition_animation_summary">미니 플레이어를 최소화 상태에서 최대화할 때, 부드러운 애니메이션을 활성화합니다</string>
+    <string name="revanced_enable_smooth_transition_animation_title">부드러운 전환 애니메이션 활성화</string>
+    <string name="revanced_enable_swipe_to_dismiss_miniplayer_summary">미니 플레이어를 아래로 스와이프하여 닫을 수 있습니다</string>
+    <string name="revanced_enable_swipe_to_dismiss_miniplayer_title">스와이프하여 미니 플레이어 닫기 활성화</string>
+    <string name="revanced_enable_thick_seekbar_summary">"두꺼운 재생바를 활성화합니다
+
+제한 사항:
+• 재생바에서 SponsorBlock 구간이 표시되지 않습니다"</string>
+    <string name="revanced_enable_thick_seekbar_title">두꺼운 재생바 활성화</string>
+    <string name="revanced_enable_zen_mode_podcast_summary">팟캐스트에서 집중 모드를 활성화합니다</string>
+    <string name="revanced_enable_zen_mode_podcast_title">팟캐스트에서 집중 모드 활성화</string>
+    <string name="revanced_enable_zen_mode_summary">동영상 플레이어의 색상을 회색조로 설정해 눈의 피로를 줄입니다</string>
+    <string name="revanced_enable_zen_mode_title">집중 모드 활성화</string>
+    <string name="revanced_external_downloader_action_summary">오프라인 저장 버튼으로 외부 다운로더 앱을 실행할 수 있습니다</string>
+    <string name="revanced_external_downloader_action_title">오프라인 저장 버튼 재정의</string>
+    <string name="revanced_external_downloader_dialog_title">외부 다운로더 앱</string>
+    <string name="revanced_external_downloader_flyout_menu_summary">피드 \'동영상 오프라인 저장\' 메뉴로 기본 다운로더 대신 사용자가 선택한 외부 다운로더를 사용합니다</string>
+    <string name="revanced_external_downloader_flyout_menu_title">동영상 오프라인 저장 메뉴 재정의</string>
+    <string name="revanced_external_downloader_not_installed_dialog_message">"%1$s 가 설치되어 있지 않습니다
+웹사이트에서 %2$s 를 다운로드하세요"</string>
+    <string name="revanced_external_downloader_not_installed_dialog_title">경고</string>
+    <string name="revanced_external_downloader_not_installed_warning">\'%s\'가 설치되지 않았습니다. 설치하세요</string>
+    <string name="revanced_external_downloader_package_name_summary">NewPipe 또는 YTDLnis와 같은 설치된 외부 다운로더 앱 패키지명입니다</string>
+    <string name="revanced_external_downloader_package_name_title">외부 다운로더 앱 패키지명</string>
+    <string name="revanced_fullscreen_ads_closed_toast">전체 화면 광고가 닫아졌습니다</string>
+    <string name="revanced_gms_show_dialog_summary">앱을 시작할 때마다 GmsCore에 대한 배터리 최적화 대화 상자를 표시합니다</string>
+    <string name="revanced_gms_show_dialog_title">GmsCore 배터리 최적화 대화 상자 표시</string>
+    <string name="revanced_hide_account_menu_empty_component_summary">계정 메뉴에서 비어있는 구성요소를 숨깁니다</string>
+    <string name="revanced_hide_account_menu_empty_component_title">비어있는 구성요소 제거</string>
+    <string name="revanced_hide_account_menu_filter_strings_summary">필터링할 계정 메뉴 이름 목록을 줄바꿈으로 구분하여 설정합니다</string>
+    <string name="revanced_hide_account_menu_filter_strings_title">계정 메뉴 필터</string>
+    <string name="revanced_hide_account_menu_summary">사용자 정의 필터를 사용하여 계정 메뉴 구성요소를 숨깁니다</string>
+    <string name="revanced_hide_account_menu_title">계정 메뉴 제거</string>
+    <string name="revanced_hide_action_button_add_to_playlist_summary">저장 버튼을 숨깁니다</string>
+    <string name="revanced_hide_action_button_add_to_playlist_title">저장 버튼 제거</string>
+    <string name="revanced_hide_action_button_comment_summary">댓글 버튼을 숨깁니다</string>
+    <string name="revanced_hide_action_button_comment_title">댓글 버튼 제거</string>
+    <string name="revanced_hide_action_button_details_summary">팟캐스트에서 세부정보 버튼을 숨깁니다</string>
+    <string name="revanced_hide_action_button_details_title">세부정보 버튼 제거</string>
+    <string name="revanced_hide_action_button_disabled_summary">사용 중지된 댓글 버튼과 같은 사용 중지된 버튼을 숨깁니다</string>
+    <string name="revanced_hide_action_button_disabled_title">사용 중지된 버튼 제거</string>
+    <string name="revanced_hide_action_button_download_summary">오프라인 저장 버튼을 숨깁니다</string>
+    <string name="revanced_hide_action_button_download_title">오프라인 저장 버튼 제거</string>
+    <string name="revanced_hide_action_button_label_summary">작업 버튼에서 라벨을 숨깁니다</string>
+    <string name="revanced_hide_action_button_label_title">작업 버튼 라벨 제거</string>
+    <string name="revanced_hide_action_button_like_dislike_summary">좋아요 &amp; 싫어요 버튼을 숨깁니다. \n이전 플레이어 레이아웃에서는 작동하지 않습니다</string>
+    <string name="revanced_hide_action_button_like_dislike_title">좋아요 &amp; 싫어요 버튼 제거</string>
+    <string name="revanced_hide_action_button_live_chat_replay_summary">'실시간 채팅 다시보기' 버튼을 숨깁니다</string>
+    <string name="revanced_hide_action_button_live_chat_replay_title">'실시간 채팅 다시보기' 버튼 제거</string>
+    <string name="revanced_hide_action_button_lyrics_summary">가사 버튼을 숨깁니다</string>
+    <string name="revanced_hide_action_button_lyrics_title">가사 버튼 제거</string>
+    <string name="revanced_hide_action_button_radio_summary">믹스 버튼을 숨깁니다</string>
+    <string name="revanced_hide_action_button_radio_title">믹스 버튼 제거</string>
+    <string name="revanced_hide_action_button_share_summary">공유 버튼을 숨깁니다</string>
+    <string name="revanced_hide_action_button_share_title">공유 버튼 제거</string>
+    <string name="revanced_hide_action_button_song_video_summary">"노래 / 동영상 버튼을 숨깁니다
+(이 버튼은 일부 사용자만 사용할 수 있습니다.)"</string>
+    <string name="revanced_hide_action_button_song_video_title">노래 / 동영상 버튼 제거</string>
+    <string name="revanced_hide_button_shelf_summary">피드에서 버튼형 선반을 숨깁니다</string>
+    <string name="revanced_hide_button_shelf_title">버튼형 선반 제거</string>
+    <string name="revanced_hide_carousel_shelf_summary">피드에서 좌우 슬라이드형 선반을 숨깁니다</string>
+    <string name="revanced_hide_carousel_shelf_title">좌우 슬라이드형 선반 제거</string>
+    <string name="revanced_hide_cast_button_summary">크롬캐스트 버튼을 숨깁니다</string>
+    <string name="revanced_hide_cast_button_title">크롬캐스트 버튼 제거</string>
+    <string name="revanced_hide_category_bar_summary">필터 바를 숨깁니다</string>
+    <string name="revanced_hide_category_bar_title">필터 바 제거</string>
+    <string name="revanced_hide_comment_channel_guidelines_summary">댓글 섹션 상단에서 커뮤니티 가이드라인을 숨깁니다</string>
+    <string name="revanced_hide_comment_channel_guidelines_title">커뮤니티 가이드라인 제거</string>
+    <string name="revanced_hide_comment_timestamp_and_emoji_buttons_summary">댓글을 입력할 때, 타임스탬프 및 이모지 버튼을 숨깁니다</string>
+    <string name="revanced_hide_comment_timestamp_and_emoji_buttons_title">타임스탬프 &amp; 이모지 버튼 제거</string>
+    <string name="revanced_hide_comments_information_button_summary">댓글 패널에서 정보 버튼을 숨깁니다</string>
+    <string name="revanced_hide_comments_information_button_title">정보 버튼 제거</string>
+    <string name="revanced_hide_double_tap_overlay_filter_summary">두 번 탭하여 탐색할 때 표시되는 어두운 오버레이를 숨깁니다</string>
+    <string name="revanced_hide_double_tap_overlay_filter_title">두 번 탭하기 오버레이 필터</string>
+    <string name="revanced_hide_floating_button_summary">보관함에서 플로팅 버튼을 숨깁니다</string>
+    <string name="revanced_hide_floating_button_title">플로팅 버튼 제거</string>
+    <string name="revanced_hide_flyout_menu_3_column_component_title">3-열 구성요소 제거</string>
+    <string name="revanced_hide_flyout_menu_add_to_queue_title">현재 재생목록에 추가 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_captions_title">자막 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_delete_playlist_title">재생목록 삭제 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_dismiss_queue_title">현재 재생목록 닫기 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_download_title">오프라인 저장 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_edit_playlist_title">재생목록 수정 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_go_to_album_title">앨범으로 이동 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_go_to_artist_title">아티스트 페이지로 이동 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_go_to_episode_title">에피소드로 이동 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_go_to_podcast_title">팟캐스트로 이동 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_help_title">고객센터 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_not_interested_title">관심 없음 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_pin_to_speed_dial_title">빠른 선곡에 고정 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_play_next_title">다음에 재생 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_quality_title">품질 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_remove_from_library_title">보관함에서 삭제 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_remove_from_playlist_title">재생목록에서 삭제 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_report_title">신고 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_save_episode_for_later_save_to_library_title">나중에 볼 에피소드 저장 \n&amp; 보관함에 저장 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_save_episode_for_later_title">나중에 볼 에피소드 저장 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_save_to_playlist_title">재생목록에 저장 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_share_title">공유 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_shuffle_play_title">셔플 재생 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_sleep_timer_title">취침 타이머 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_start_radio_title">믹스 시작 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_stats_for_nerds_title">동영상 통계 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_subscribe_title">'구독' / '구독 취소' 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_taste_match_title">취향 일치 메뉴 제거</string>
+    <string name="revanced_hide_flyout_menu_unpin_from_speed_dial_title">빠른 선곡에서 고정 해제 제거</string>
+    <string name="revanced_hide_flyout_menu_view_song_credit_title">노래 크레딧 보기 메뉴 제거</string>
+    <string name="revanced_hide_fullscreen_ads_summary">"전체 화면 광고를 숨깁니다"</string>
+    <string name="revanced_hide_fullscreen_ads_title">전체 화면 광고 제거</string>
+    <string name="revanced_hide_fullscreen_share_button_summary">전체 화면에서 공유 버튼을 숨깁니다</string>
+    <string name="revanced_hide_fullscreen_share_button_title">전체 화면에서 공유 버튼 제거</string>
+    <string name="revanced_hide_general_ads_summary">일반 레이아웃 광고를 숨깁니다</string>
+    <string name="revanced_hide_general_ads_title">일반 레이아웃 광고 제거</string>
+    <string name="revanced_hide_handle_summary">계정 메뉴에서 핸들(@사용자 아이디)을 숨깁니다</string>
+    <string name="revanced_hide_handle_title">핸들(@사용자 아이디) 제거</string>
+    <string name="revanced_hide_history_button_summary">툴바에서 최근 감상 기록 버튼을 숨깁니다</string>
+    <string name="revanced_hide_history_button_title">최근 감상 기록 버튼 제거</string>
+    <string name="revanced_hide_lyrics_share_button_summary">가사 섹션에서 공유 버튼을 숨깁니다</string>
+    <string name="revanced_hide_lyrics_share_button_title">가사 공유 버튼 제거</string>
+    <string name="revanced_hide_music_ads_summary">미디어를 재생하는 동안에 광고를 숨깁니다</string>
+    <string name="revanced_hide_music_ads_title">미디어 광고 제거</string>
+    <string name="revanced_hide_navigation_bar_summary">하단바를 숨깁니다</string>
+    <string name="revanced_hide_navigation_bar_title">하단바 제거</string>
+    <string name="revanced_hide_navigation_explore_button_summary">둘러보기 버튼을 숨깁니다</string>
+    <string name="revanced_hide_navigation_explore_button_title">둘러보기 버튼 제거</string>
+    <string name="revanced_hide_navigation_home_button_summary">홈 버튼을 숨깁니다</string>
+    <string name="revanced_hide_navigation_home_button_title">홈 버튼 제거</string>
+    <string name="revanced_hide_navigation_label_summary">하단바 버튼에서 라벨을 숨깁니다</string>
+    <string name="revanced_hide_navigation_label_title">하단바 버튼 라벨 제거</string>
+    <string name="revanced_hide_navigation_library_button_summary">보관함 버튼을 숨깁니다</string>
+    <string name="revanced_hide_navigation_library_button_title">보관함 버튼 제거</string>
+    <string name="revanced_hide_navigation_samples_button_summary">샘플 버튼을 숨깁니다</string>
+    <string name="revanced_hide_navigation_samples_button_title">샘플 버튼 제거</string>
+    <string name="revanced_hide_navigation_upgrade_button_summary">업그레이드 버튼을 숨깁니다</string>
+    <string name="revanced_hide_navigation_upgrade_button_title">업그레이드 버튼 제거</string>
+    <string name="revanced_hide_notification_button_summary">툴바에서 알림 버튼을 숨깁니다</string>
+    <string name="revanced_hide_notification_button_title">알림 버튼 제거</string>
+    <string name="revanced_hide_paid_promotion_label_summary">유료 광고 포함 라벨을 숨깁니다</string>
+    <string name="revanced_hide_paid_promotion_label_title">유료 광고 포함 라벨 제거</string>
+    <string name="revanced_hide_playlist_card_shelf_summary">피드에서 재생목록 카드 선반을 숨깁니다</string>
+    <string name="revanced_hide_playlist_card_shelf_title">재생목록 카드 선반 제거</string>
+    <string name="revanced_hide_premium_promotion_closed_toast">Premium 프로모션 팝업이 닫아졌습니다</string>
+    <string name="revanced_hide_premium_promotion_summary">Premium 프로모션 팝업을 숨깁니다</string>
+    <string name="revanced_hide_premium_promotion_title">Premium 프로모션 팝업 제거</string>
+    <string name="revanced_hide_premium_renewal_summary">Premium 갱신 배너를 숨깁니다</string>
+    <string name="revanced_hide_premium_renewal_title">Premium 갱신 배너 제거</string>
+    <string name="revanced_hide_promotion_alert_banner_summary">프로모션 알림 배너를 숨깁니다</string>
+    <string name="revanced_hide_promotion_alert_banner_title">프로모션 알림 배너 제거</string>
+    <string name="revanced_hide_samples_shelf_summary">피드에서 샘플 선반을 숨깁니다</string>
+    <string name="revanced_hide_samples_shelf_title">샘플 선반 제거</string>
+    <string name="revanced_hide_search_button_summary">툴바에서 검색 버튼을 숨깁니다</string>
+    <string name="revanced_hide_search_button_title">검색 버튼 제거</string>
+    <string name="revanced_hide_song_video_toggle_summary">플레이어에서 노래 / 동영상 토글을 숨깁니다</string>
+    <string name="revanced_hide_song_video_toggle_title">노래 / 동영상 토글 제거</string>
+    <string name="revanced_hide_sound_search_button_summary">툴바에서 노래 검색 버튼을 숨깁니다</string>
+    <string name="revanced_hide_sound_search_button_title">노래 검색 버튼 제거</string>
+    <string name="revanced_hide_tap_to_update_button_summary">탭하여 업데이트 버튼을 숨깁니다</string>
+    <string name="revanced_hide_tap_to_update_button_title">탭하여 업데이트 버튼 제거</string>
+    <string name="revanced_hide_terms_container_summary">서비스 약관 컨테이너를 숨깁니다</string>
+    <string name="revanced_hide_terms_container_title">서비스 약관 컨테이너 제거</string>
+    <string name="revanced_hide_voice_search_button_summary">툴바에서 음성 검색 버튼을 숨깁니다</string>
+    <string name="revanced_hide_voice_search_button_title">음성 검색 버튼 제거</string>
+    <string name="revanced_icon_custom">사용자 정의</string>
+    <string name="revanced_music_change_navigation_bar_color_summary">하단바 색상을 전체 화면 플레이어와 일치하도록 변경합니다</string>
+    <string name="revanced_music_change_navigation_bar_color_title">하단바 색상 변경</string>
+    <string name="revanced_preference_screen_account_title">계정</string>
+    <string name="revanced_preference_screen_action_bar_title">작업 버튼바</string>
+    <string name="revanced_preference_screen_ads_title">광고</string>
+    <string name="revanced_preference_screen_flyout_title">메뉴 구성요소</string>
+    <string name="revanced_preference_screen_general_title">일반</string>
+    <string name="revanced_preference_screen_lyrics_title">가사</string>
+    <string name="revanced_preference_screen_misc_title">기타</string>
+    <string name="revanced_preference_screen_navigation_title">하단바</string>
+    <string name="revanced_preference_screen_player_title">플레이어</string>
+    <string name="revanced_preference_screen_return_youtube_username_title">Return YouTube Username</string>
+    <string name="revanced_preference_screen_ryd_title">Return YouTube Dislike</string>
+    <string name="revanced_preference_screen_sb_title">SponsorBlock</string>
+    <string name="revanced_preference_screen_settings_title">설정 메뉴</string>
+    <string name="revanced_preference_screen_video_title">동영상</string>
+    <string name="revanced_remember_playback_speed_last_selected_summary">재생 속도 값을 변경할 때마다 저장합니다</string>
+    <string name="revanced_remember_playback_speed_last_selected_title">재생 속도 저장 활성화</string>
+    <string name="revanced_remember_playback_speed_last_selected_toast_summary">기본 동영상 재생 속도 값으로 변경되었을 때, 팝업 메시지를 표시합니다</string>
+    <string name="revanced_remember_playback_speed_last_selected_toast_title">팝업 메시지 표시</string>
+    <string name="revanced_remember_playback_speed_toast">기본 재생 속도 값을 %s 로 변경하였습니다</string>
+    <string name="revanced_remember_repeat_state_summary">반복 재생 토글 상태를 저장합니다</string>
+    <string name="revanced_remember_repeat_state_title">반복 상태 저장</string>
+    <string name="revanced_remember_shuffle_state_summary">셔플 재생 토글 상태를 저장합니다</string>
+    <string name="revanced_remember_shuffle_state_title">셔플 상태 저장</string>
+    <string name="revanced_remember_video_quality_auto_mobile">모바일 네트워크에서의 기본 동영상 품질 값을 자동으로 변경합니다</string>
+    <string name="revanced_remember_video_quality_auto_wifi">Wi-Fi에서의 기본 동영상 품질 값을 자동으로 변경합니다</string>
+    <string name="revanced_remember_video_quality_last_selected_summary">동영상 품질 값을 변경할 때마다 저장합니다</string>
+    <string name="revanced_remember_video_quality_last_selected_title">동영상 품질 저장 활성화</string>
+    <string name="revanced_remember_video_quality_last_selected_toast_summary">기본 동영상 화질 값으로 변경되었을 때, 팝업 메시지를 표시합니다</string>
+    <string name="revanced_remember_video_quality_mobile">모바일 네트워크에서의 기본 동영상 품질 값을 %s으로 변경합니다</string>
+    <string name="revanced_remember_video_quality_none">동영상 품질을 설정할 수 없습니다</string>
+    <string name="revanced_remember_video_quality_wifi">Wi-Fi에서의 기본 동영상 품질 값을 %s으로 변경합니다</string>
+    <string name="revanced_remove_viewer_discretion_dialog_summary">이 설정은 대화 상자를 자동으로 허용하기만 하며 연령 제한(성인인증 절차)을 우회할 수 없습니다</string>
+    <string name="revanced_remove_viewer_discretion_dialog_title">시청 경고 대화 상자 제거</string>
+    <string name="revanced_replace_action_button_like_summary">"좋아요 버튼에 다른 아이콘과 애니메이션을 사용합니다
+
+• 서버 측에서 문제가 해결되면 이 설정은 더 이상 필요하지 않을 수 있습니다"</string>
+    <string name="revanced_replace_action_button_like_title">좋아요 버튼 변경</string>
+    <string name="revanced_replace_action_button_like_type_summary">"더 작은 좋아요 버튼을 사용합니다
+
+• 일부 사용자에게는 더 낮은 작업 버튼바가 표시됩니다 (A/B 테스트)
+• 이 설정은 이러한 사용자를 위한 것이지만 테스트되지 않았습니다"</string>
+    <string name="revanced_replace_action_button_like_type_title">더 작은 아이콘 사용</string>
+    <string name="revanced_replace_flyout_menu_dismiss_queue_continue_watch_summary">\'YouTube로 음악 감상\' 메뉴를 탭하면 YouTube 앱으로 변경하여 현재 재생 시간부터 이어서 음악을 감상합니다</string>
+    <string name="revanced_replace_flyout_menu_dismiss_queue_continue_watch_title">이어서 음악 감상</string>
+    <string name="revanced_replace_flyout_menu_dismiss_queue_summary">\'현재 재생목록 닫기\' 메뉴를 \'YouTube로 음악 감상\' 메뉴로 변경합니다</string>
+    <string name="revanced_replace_flyout_menu_dismiss_queue_title">현재 재생목록 닫기 메뉴 변경</string>
+    <string name="revanced_replace_flyout_menu_dismiss_queue_watch_on_youtube_label">YouTube로 음악 감상</string>
+    <string name="revanced_replace_flyout_menu_dismiss_queue_watch_on_youtube_warning">잘못된 동영상 URL입니다</string>
+    <string name="revanced_replace_flyout_menu_report_only_player_summary">댓글 섹션에서 \'신고\' 메뉴를 그대로 유지합니다</string>
+    <string name="revanced_replace_flyout_menu_report_only_player_title">댓글에서 신고 메뉴 유지</string>
+    <string name="revanced_replace_flyout_menu_report_summary">\'신고\' 메뉴를 \'재생 속도\' 메뉴로 변경합니다</string>
+    <string name="revanced_replace_flyout_menu_report_title">신고 메뉴 변경</string>
+    <string name="revanced_replace_navigation_button_about_summary">"이 기능은 실험 단계입니다
+YouTube Music의 검색 및 설정과 같은 활동은 공개되지 않으므로 패치에는 구조적인 제한이 있습니다
+
+제한 사항:
+• 검색 및 설정과 같은 교체된 활동이 닫히면 앱 시작 페이지가 열립니다
+
+앱 시작 페이지 설정을 열려면 여기를 탭하세요"</string>
+    <string name="revanced_replace_navigation_button_about_title">버튼 변경에 대한 정보</string>
+    <string name="revanced_replace_navigation_samples_button_summary">샘플 버튼을 검색 버튼으로 변경합니다</string>
+    <string name="revanced_replace_navigation_samples_button_title">샘플 버튼 변경</string>
+    <string name="revanced_replace_navigation_upgrade_button_summary">업그레이드 버튼을 설정 버튼으로 변경합니다</string>
+    <string name="revanced_replace_navigation_upgrade_button_title">업그레이드 버튼 변경</string>
+    <string name="revanced_reset_to_default_toast">기본값으로 초기화하였습니다</string>
+    <string name="revanced_restart_dialog_message">이 변경 사항을 적용하려면 앱을 다시 시작해야 합니다</string>
+    <string name="revanced_restart_first_run">설정을 완료하려면 다시 시작하세요</string>
+    <string name="revanced_restart_message">새로고침 및 다시 시작</string>
+    <string name="revanced_restart_title">앱을 다시 시작하세요</string>
+    <string name="revanced_restore_old_comments_popup_panels_summary">이전 댓글 팝업 패널으로 복원합니다</string>
+    <string name="revanced_restore_old_comments_popup_panels_title">이전 댓글 팝업 패널으로 복원</string>
+    <string name="revanced_restore_old_player_background_summary">이전 플레이어 배경으로 복원합니다</string>
+    <string name="revanced_restore_old_player_background_title">이전 플레이어 배경으로 복원</string>
+    <string name="revanced_restore_old_player_layout_summary">"이전 플레이어 레이아웃으로 복원합니다
+이전 플레이어 레이아웃에서 일부 기능이 제대로 작동하지 않을 수 있습니다"</string>
+    <string name="revanced_restore_old_player_layout_title">이전 플레이어 레이아웃으로 복원</string>
+    <string name="revanced_restore_old_style_library_shelf_summary">이전 보관함 탭으로 복원합니다 (실험 기능)</string>
+    <string name="revanced_restore_old_style_library_shelf_title">이전 보관함 선반으로 복원</string>
+    <string name="revanced_return_youtube_username_display_format_handle_username">\@핸들 (사용자 이름)</string>
+    <string name="revanced_return_youtube_username_display_format_summary">사용자 이름 표시 형식을 선택하세요</string>
+    <string name="revanced_return_youtube_username_display_format_title">표시 형식</string>
+    <string name="revanced_return_youtube_username_display_format_username_handle">사용자 이름 (@핸들)</string>
+    <string name="revanced_return_youtube_username_display_format_username_only">사용자 이름</string>
+    <string name="revanced_return_youtube_username_enabled_summary">댓글에서 핸들(@사용자 아이디)이 아닌 사용자 이름을 표시합니다</string>
+    <string name="revanced_return_youtube_username_enabled_title">Return YouTube Username 활성화</string>
+    <string name="revanced_return_youtube_username_youtube_data_api_v3_about_summary">"핸들을 사용자 이름으로 변경하려면 YouTube Data API v3 Developer Key가 필요합니다 
+
+무료 요금제에서 API Key의 일일 할당량은 10,000개이며, 1개의 할당량은 댓글 1개에 대해 핸들을 사용자 이름으로 변경하는 데 사용됩니다 
+
+API Key를 발급받는 방법을 보려면 여기를 탭하세요"</string>
+    <string name="revanced_return_youtube_username_youtube_data_api_v3_about_title">YouTube Data API Key에 대한 정보</string>
+    <string name="revanced_return_youtube_username_youtube_data_api_v3_developer_key_summary">YouTube Data API v3를 사용하기 위한 Developer Key입니다</string>
+    <string name="revanced_return_youtube_username_youtube_data_api_v3_developer_key_title">YouTube Data API Key</string>
+    <string name="revanced_return_youtube_username_youtube_data_api_v3_dialog_message">1. &lt;a href=%1$s&gt;새 프로젝트 만들기&lt;/a&gt; 로 이동합니다.&lt;br&gt;2. &lt;b&gt;만들기&lt;/b&gt; 버튼을 탭합니다.&lt;br&gt;3. &lt;a href=%2$s&gt;YouTube Data API v3&lt;/a&gt; 로 이동합니다.&lt;br&gt;4. &lt;b&gt;사용&lt;/b&gt; 버튼을 탭합니다.&lt;br&gt;5. &lt;b&gt;사용자 인증 정보 만들기&lt;/b&gt; 버튼을 탭합니다.&lt;br&gt;6. &lt;b&gt;공개 데이터&lt;/b&gt; 옵션을 선택합니다.&lt;br&gt;7. &lt;b&gt;다음&lt;/b&gt; 버튼을 탭합니다.&lt;br&gt;8. API Key를 복사합니다.&lt;br&gt;&lt;br&gt;※ API Key는 다른 사람과 공유해서는 안 되므로 가져오기 / 내보내기 설정에 포함되지 않습니다</string>
+    <string name="revanced_return_youtube_username_youtube_data_api_v3_dialog_title">YouTube Data API v3 Developer Key 발급</string>
+    <string name="revanced_ryd_attribution_summary">"Return YouTube Dislike는 YouTube가 2021년에 숨긴 싫어요 수를 복원합니다. 싫어요 수는 해당 기능이 제거되기 전에 보관된 데이터를 기반으로 하며, 이후에 게시된 동영상의 싫어요 수는 사용자들의 투표 데이터를 바탕으로 추정합니다. 따라서 표시되는 수치는 정확하지 않을 수 있으며, 며칠마다 업데이트됩니다
+
+시청 중인 동영상의 ID는 Return YouTube Dislike API로 전송되며, 추정치의 정확도를 높이기 위해 사용자의 좋아요 및 싫어요 정보도 익명으로 전송됩니다"</string>
+    <string name="revanced_ryd_attribution_title">ReturnYouTubeDislike.com</string>
+    <string name="revanced_ryd_compact_layout_summary">공간을 절약하기 위해 좋아요 버튼의 너비를 줄입니다</string>
+    <string name="revanced_ryd_compact_layout_title">최소화된 좋아요 버튼 사용</string>
+    <string name="revanced_ryd_dislike_percentage_summary">싫어요 수를 숫자 대신 퍼센트로 표시합니다</string>
+    <string name="revanced_ryd_dislike_percentage_title">싫어요 수를 백분율로 표시</string>
+    <string name="revanced_ryd_enabled_summary">싫어요 수를 표시합니다</string>
+    <string name="revanced_ryd_enabled_title">Return YouTube Dislike 활성화</string>
+    <string name="revanced_ryd_estimated_like_summary">좋아요 수가 숨겨진 동영상에서 추정되는 좋아요 수를 표시합니다</string>
+    <string name="revanced_ryd_estimated_like_title">추정되는 좋아요 수 표시</string>
+    <string name="revanced_ryd_failure_client_rate_limit_requested">싫어요 수를 표시할 수 없습니다 (클라이언트 API 제한 도달)</string>
+    <string name="revanced_ryd_failure_connection_status_code">싫어요 수를 표시할 수 없습니다 (상태 코드: %s)</string>
+    <string name="revanced_ryd_failure_connection_timeout">싫어요 수를 일시적으로 표시할 수 없습니다 (API 시간 초과)</string>
+    <string name="revanced_ryd_failure_generic">싫어요 수를 표시할 수 없습니다 (%s)</string>
+    <string name="revanced_ryd_toast_on_connection_error_summary">Return YouTube Dislike 서버를 사용할 수 없을 경우에 알림을 표시합니다</string>
+    <string name="revanced_ryd_toast_on_connection_error_title">연결 오류 알림 표시</string>
+    <string name="revanced_ryd_video_likes_hidden_by_video_owner">소유자에 의해 숨겨짐</string>
+    <string name="revanced_sb_about_api">sponsor.ajay.app</string>
+    <string name="revanced_sb_about_api_sum">건너뛸 구간의 데이터는 SponsorBlock API에 의해 제공됩니다. 자세한 내용을 보려면 여기를 탭하세요</string>
+    <string name="revanced_sb_api_url">API URL 변경</string>
+    <string name="revanced_sb_api_url_changed">API URL을 변경하였습니다</string>
+    <string name="revanced_sb_api_url_invalid">잘못된 주소입니다</string>
+    <string name="revanced_sb_api_url_reset">API URL 초기화하기</string>
+    <string name="revanced_sb_api_url_sum">SponsorBlock이 요청을 보낼 서버 URL입니다. 이것이 무슨 역할을 하는지 모르는 경우에는 이 URL을 변경하지 마세요</string>
+    <string name="revanced_sb_color_changed">설정한 색상을 적용하였습니다</string>
+    <string name="revanced_sb_color_dot_label">색상:</string>
+    <string name="revanced_sb_color_invalid">잘못된 헥스 코드입니다</string>
+    <string name="revanced_sb_color_reset">색상을 초기화하였습니다</string>
+    <string name="revanced_sb_diff_segments">각 구간에 설정할 동작</string>
+    <string name="revanced_sb_enabled">SponsorBlock 활성화</string>
+    <string name="revanced_sb_enabled_sum">SponsorBlock은 YouTube 동영상 내 성가신 구간을 건너뛰게 해주는 크라우드소싱 시스템입니다</string>
+    <string name="revanced_sb_segments_filler">주제와 관련 없는 구간</string>
+    <string name="revanced_sb_segments_filler_sum">전반적인 동영상의 주제를 이해하는 데 필요 없는 내용을 포함하고 있습니다</string>
+    <string name="revanced_sb_segments_hook">흥미 유발 / 인사말</string>
+    <string name="revanced_sb_segments_hook_sum">예정 동영상, 인사말 그리고 마무리 인사말에 대한 내레이션 트레일러 구간입니다. 추가 콘텐츠를 포함하는 부분은 제외됩니다</string>
+    <string name="revanced_sb_segments_interaction">상호 작용 요청 (구독)</string>
+    <string name="revanced_sb_segments_interaction_sum">좋아요, 구독, 알림 설정을 요청하는 내용에 관한 구간입니다</string>
+    <string name="revanced_sb_segments_intro">무음 / 인트로 구간</string>
+    <string name="revanced_sb_segments_intro_sum">아무 내용도 없는 구간입니다. 애니메이션이나 정적 프레임과 같은 내용을 포함하고 있습니다</string>
+    <string name="revanced_sb_segments_nomusic">음악이 아닌 구간</string>
+    <string name="revanced_sb_segments_nomusic_sum">정식 음원이 아닌 동영상 음원에서 음악이 아닌 구간이 해당됩니다</string>
+    <string name="revanced_sb_segments_outro">최종 화면 / 크레딧</string>
+    <string name="revanced_sb_segments_outro_sum">엔딩 크레딧이나 최종 화면이 나타나는 구간입니다</string>
+    <string name="revanced_sb_segments_preview">미리 보기 / 요약</string>
+    <string name="revanced_sb_segments_preview_sum">이전 에피소드를 간략히 요약하거나 현재 동영상의 하이라이트를 미리 보여줍니다</string>
+    <string name="revanced_sb_segments_selfpromo">자체 홍보 구간</string>
+    <string name="revanced_sb_segments_selfpromo_sum">\'스폰서 광고\' 구간과 비슷하지만, 자발적으로 홍보하는 내용을 포함하는 구간입니다. 채널 굿즈 광고, 기부 광고와 동영상에 참여한 사람들을 홍보하는 광고가 해당됩니다</string>
+    <string name="revanced_sb_segments_sponsor">스폰서 광고</string>
+    <string name="revanced_sb_segments_sponsor_sum">유료 광고, 협찬과 같은 직/간접적인 광고 구간입니다</string>
+    <string name="revanced_sb_skip_automatically">자동으로 건너뛰기</string>
+    <string name="revanced_sb_skip_automatically_once">한 번만 자동으로 건너뛰기</string>
+    <string name="revanced_sb_skip_ignore">사용하지 않기</string>
+    <string name="revanced_sb_skipped_filler">주제와 관련 없는 구간을 건너뛰었습니다</string>
+    <string name="revanced_sb_skipped_hook">흥미 유발 구간을 건너뛰었습니다</string>
+    <string name="revanced_sb_skipped_interaction">상호 작용 요청을 건너뛰었습니다</string>
+    <string name="revanced_sb_skipped_intro_beginning">인트로를 건너뛰었습니다</string>
+    <string name="revanced_sb_skipped_intro_end">무음 구간을 건너뛰었습니다</string>
+    <string name="revanced_sb_skipped_multiple_segments">여러 구간을 건너뛰었습니다</string>
+    <string name="revanced_sb_skipped_nomusic">음악이 아닌 구간을 건너뛰었습니다</string>
+    <string name="revanced_sb_skipped_outro">최종 화면을 건너뛰었습니다</string>
+    <string name="revanced_sb_skipped_preview_beginning">미리 보기를 건너뛰었습니다</string>
+    <string name="revanced_sb_skipped_preview_end">요약을 건너뛰었습니다</string>
+    <string name="revanced_sb_skipped_selfpromo">자체 홍보 구간을 건너뛰었습니다</string>
+    <string name="revanced_sb_skipped_sponsor">스폰서 광고를 건너뛰었습니다</string>
+    <string name="revanced_sb_sponsorblock_connection_failure_generic">SponsorBlock을 일시적으로 사용할 수 없습니다</string>
+    <string name="revanced_sb_sponsorblock_connection_failure_status">SponsorBlock을 일시적으로 사용할 수 없습니다 (상태 코드: %s)</string>
+    <string name="revanced_sb_sponsorblock_connection_failure_timeout">SponsorBlock을 일시적으로 사용할 수 없습니다 (응답 시간 초과)</string>
+    <string name="revanced_sb_toast_on_connection_error_sum">SponsorBlock를 사용할 수 없을 때, 팝업 메시지를 표시합니다</string>
+    <string name="revanced_sb_toast_on_skip">자동으로 구간을 건너뛸 때, 팝업 메시지 표시</string>
+    <string name="revanced_sb_toast_on_skip_sum">자동으로 구간을 건너뛸 때, 팝업 메시지를 표시합니다</string>
+    <string name="revanced_settings_export_as_file">파일로 설정 내보내기</string>
+    <string name="revanced_settings_export_failed">설정을 내보낼 수 없습니다</string>
+    <string name="revanced_settings_export_success">설정을 성공적으로 내보냈습니다</string>
+    <string name="revanced_settings_import">가져오기</string>
+    <string name="revanced_settings_import_as_file">파일에서 설정 가져오기</string>
+    <string name="revanced_settings_import_copy">복사</string>
+    <string name="revanced_settings_import_export_as_text">텍스트로 설정 가져오기 / 내보내기</string>
+    <string name="revanced_settings_import_export_summary">RVX Music 설정을 가져오거나 내보낼 수 있습니다</string>
+    <string name="revanced_settings_import_export_title">설정 가져오기 / 내보내기</string>
+    <string name="revanced_settings_import_failed">설정을 가져올 수 없습니다: %s</string>
+    <string name="revanced_settings_import_reset">RVX 설정을 기본값으로 초기화합니다</string>
+    <string name="revanced_settings_import_success">%s 개의 설정을 가져왔습니다</string>
+    <string name="revanced_settings_navigate_up">위로 이동</string>
+    <string name="revanced_settings_reset">초기화</string>
+    <string name="revanced_settings_reset_color">색상 초기화</string>
+    <string name="revanced_settings_search_clear_history">검색 기록 지우기</string>
+    <string name="revanced_settings_search_clear_history_message">모든 검색 기록을 지우시겠습니까?</string>
+    <string name="revanced_settings_search_empty_history_summary">검색 기록을 저장하려면 검색어를 입력하고 엔터키를 탭하세요</string>
+    <string name="revanced_settings_search_empty_history_title">검색 기록이 비어 있습니다</string>
+    <string name="revanced_settings_search_history_summary_off">설정 검색 기록을 표시하지 않습니다</string>
+    <string name="revanced_settings_search_history_summary_on">설정 검색 기록을 표시합니다</string>
+    <string name="revanced_settings_search_history_title">설정 검색 기록 표시</string>
+    <string name="revanced_settings_search_no_results_summary">다른 키워드를 검색해 보세요</string>
+    <string name="revanced_settings_search_no_results_title">\'%s\'에 대한 검색 결과가 없습니다</string>
+    <string name="revanced_settings_search_recent_searches">최근 검색어</string>
+    <string name="revanced_settings_search_remove">검색 기록에서 제거</string>
+    <string name="revanced_settings_search_remove_message">검색 기록에서 제거하시겠습니까?</string>
+    <string name="revanced_settings_search_tips_summary">"• 경로를 탭하여 설정 카테고리로 이동할 수 있습니다
+• 설정을 길게 탭하여 설정 위치로 이동할 수 있습니다
+• 엔터키를 탭하여 검색어를 기록에 저장할 수 있습니다
+• 검색할 경우에 대소문자와 구두점이 무시됩니다
+• 상위 설정이 비활성화된 하위 설정 위에 표시됩니다"</string>
+    <string name="revanced_settings_search_tips_title">검색 팁</string>
+    <string name="revanced_settings_search_title">%s 검색</string>
+    <string name="revanced_settings_show_slider_summaries_summary">슬라이더 설정에 대한 요약을 표시하거나 숨길 수 있습니다</string>
+    <string name="revanced_settings_show_slider_summaries_title">슬라이더 설정에 대한 요약 표시</string>
+    <string name="revanced_share_copy_settings_success">설정을 클립보드에 복사하였습니다</string>
+    <string name="revanced_spoof_app_version_for_lyrics_summary">가사에 사용된 클라이언트 버전이 이전 버전으로 속여집니다</string>
+    <string name="revanced_spoof_app_version_for_lyrics_target_entry_6_42_55">6.42.55 - 실시간 가사가 없습니다</string>
+    <string name="revanced_spoof_app_version_for_lyrics_target_entry_7_12_52">7.12.52 - 실시간 가사가 있습니다</string>
+    <string name="revanced_spoof_app_version_for_lyrics_target_entry_8_06_52">8.06.52 - 실시간 가사 + 공유 버튼</string>
+    <string name="revanced_spoof_app_version_for_lyrics_target_entry_8_33_54">8.33.54 - 실시간 가사 + 공유 버튼 + 번역 버튼 (Premium 사용자 전용)</string>
+    <string name="revanced_spoof_app_version_for_lyrics_target_summary">가사를 위해 속여질 앱 버전을 선택하세요</string>
+    <string name="revanced_spoof_app_version_for_lyrics_target_title">가사를 위해 속여질 앱 버전</string>
+    <string name="revanced_spoof_app_version_for_lyrics_title">가사를 위한 앱 버전 속이기</string>
+    <string name="revanced_spoof_app_version_summary">서버가 사용 중인 앱 버전을 더 오래된 버전으로 인식하도록 속여, 이전 레이아웃 기능을 다시 복원합니다</string>
+    <string name="revanced_spoof_app_version_target_entry_4_27_53">4.27.53 - 캐나다 지역에서 믹스 모드를 비활성화합니다</string>
+    <string name="revanced_spoof_app_version_target_entry_6_11_52">6.11.52 - 실시간 가사를 비활성화합니다</string>
+    <string name="revanced_spoof_app_version_target_entry_6_35_52">6.35.52 - 이전 구성요소 패널로 복원합니다</string>
+    <string name="revanced_spoof_app_version_target_entry_6_42_55">6.42.55 - 실시간 가사를 비활성화합니다</string>
+    <string name="revanced_spoof_app_version_target_entry_7_16_53">7.16.53 - 이전 작업 버튼바로 복원합니다</string>
+    <string name="revanced_spoof_app_version_target_entry_7_17_52">7.17.52 - 홈 피드에서 댓글 섹션이 표시되지 않습니다</string>
+    <string name="revanced_spoof_app_version_target_entry_8_05_50">8.05.50 - 앱 업데이트 화면이 수정됩니다</string>
+    <string name="revanced_spoof_app_version_target_invalid_toast">속여질 앱 버전이 잘못되었습니다: %s</string>
+    <string name="revanced_spoof_app_version_target_summary">속여질 앱 버전을 선택하세요</string>
+    <string name="revanced_spoof_app_version_target_title">속이기에 사용될 앱 버전</string>
+    <string name="revanced_spoof_app_version_title">앱 버전 속이기</string>
+    <string name="revanced_spoof_client_summary">클라이언트를 속여서 재생 문제를 방지할 수 있습니다</string>
+    <string name="revanced_spoof_client_title">클라이언트 속이기</string>
+    <string name="revanced_spoof_client_type_summary">"부작용:
+• 작업 버튼 또는 플레이어 메뉴 구성요소가 제대로 표시되지 않을 수 있습니다
+• 이러한 부작용은 앱 데이터를 지우고 다시 로그인하면 해결될 수 있습니다
+
+부작용 (요청 차단):
+• VPN 또는 DNS를 사용할 경우에 앱이 강제로 종료될 수 있습니다"</string>
+    <string name="revanced_spoof_streaming_data_no_sdk_auth_token_about_summary">인증 토큰을 받는 방법을 보려면 여기를 탭하세요</string>
+    <string name="revanced_spoof_streaming_data_no_sdk_auth_token_about_title">Android SDK 없음 인증 있음에 대한 정보</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_about_summary">Android SDK 없음에 로그인하는 방법을 보려면 여기를 탭하세요</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_about_title">Android SDK 없음에 로그인</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_dialog_get_authorization_token_text">승인 토큰 받기</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_dialog_message">"Android SDK 없음 (YouTube)에 로그인은 Google에서 제공하는 가이드라인 (Google 계정 승인 - Android 애플리케이션을 위한 OAuth 2.0)을 따릅니다
+
+1. '승인 토큰 가져오기'를 탭하여 WebView에서 로그인 페이지를 엽니다
+2. Google 계정에 로그인합니다
+3. 로그인 결과가 5초 이내에 표시됩니다
+
+* 인증 토큰을 제거하려면 '초기화'를 탭하세요"</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_success_dialog_message">"인증 토큰을 저장하였습니다
+
+• 이 과정을 통해 발급된 인증 토큰은 YouTube에서만 사용할 수 있습니다 (RVX에서는 YouTube에서 스트리밍 데이터를 가져오는 데 사용됩니다)
+• 6개월 이상 사용되지 않은 인증 토큰은 Google 서버에서 취소됩니다
+• 비밀번호를 변경하거나 계정 설정에서 기기 등록을 해제하거나 앱을 제거하면 인증 토큰을 다시 발급받아야 합니다"</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_success_dialog_title">로그인하였습니다</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_toast_reset">인증 토큰을 초기화하였습니다</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_vr_activation_code_toast_copy">활성화 코드를 클립보드에 복사하였습니다: %s</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_vr_toast_failed">인증 토큰을 발급할 수 없습니다</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_vr_toast_failed_suggestion">초기화를 탭하고 다시 시도하세요</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_vr_toast_reset">인증 토큰과 활성화 코드를 초기화하였습니다</string>
+    <string name="revanced_spoof_streaming_data_vr_auth_token_about_title">Android VR 인증 있음에 대한 정보</string>
+    <string name="revanced_spoof_video_streams_default_client_summary">"부작용:
+• VPN 또는 DNS를 사용할 경우에 앱이 강제로 종료될 수 있습니다
+• 적응형 비트레이트 스트리밍 클라이언트 (Android VR 1.43.32 이외의 모든 클라이언트)를 사용하는 경우에 오디오 재생이 간헐적으로 끊길 수 있습니다"</string>
+    <string name="revanced_translations_title">번역에 도움주기</string>
+    <string name="revanced_watch_history_type_entry_1">원본</string>
+    <string name="revanced_watch_history_type_entry_2">도메인 변경</string>
+    <string name="revanced_watch_history_type_entry_3">검색 기록 차단</string>
+    <string name="revanced_watch_history_type_summary">"• 원본: Google 계정의 시청 기록 설정을 따르지만 DNS 또는 VPN으로 인하여 시청 기록이 작동되지 않을 수 있습니다
+• 도메인 변경: Google 계정의 시청 기록 설정을 따릅니다
+• 시청 기록 차단: 시청 기록이 차단됩니다"</string>
+    <string name="revanced_watch_history_type_title">시청 기록 유형</string>
+    <string name="revanced_webview_cookies">Cookies</string>
+    <string name="revanced_webview_data_sync_id">Data Sync ID</string>
+    <string name="revanced_webview_toast_copy_success">\'%s\'를 클립보드에 복사하였습니다</string>
+    <string name="revanced_webview_toast_empty">\'%s\'가 비워져있습니다</string>
+    <string name="revanced_webview_toast_no_network">네트워크 연결상태를 확인하세요</string>
+    <string name="revanced_webview_toast_unavailable">WebView를 사용할 수 없습니다</string>
+</resources>

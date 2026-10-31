@@ -2,6 +2,12 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      recover_tag:
+        description: 'Existing dev tag to publish after an interrupted release'
+        required: false
+        default: ''
+        type: string
   push:
     branches: [dev, main]
   pull_request:
@@ -22,11 +28,19 @@ jobs:
       attestations: write
     runs-on: ubuntu-latest
     steps:
+      - name: Validate recovery request
+        if: inputs.recover_tag != ''
+        env:
+          RECOVER_TAG: ${{ inputs.recover_tag }}
+        run: |
+          [[ "$GITHUB_EVENT_NAME" == workflow_dispatch && "$GITHUB_REF_NAME" == dev ]]
+          [[ "$RECOVER_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]+$ ]]
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'pull_request' && github.ref || github.ref_name }}
+          ref: ${{ inputs.recover_tag || (github.event_name == 'pull_request' && github.ref || github.ref_name) }}
 
       - name: Setup Java
         uses: actions/setup-java@v6
@@ -59,15 +73,93 @@ jobs:
         run: ./gradlew clean :patches:buildAndroid :patches:generatePatchesList :patches:test :extensions:twitch:testDebugUnitTest --no-daemon
 
       - name: Release
-        if: github.event_name != 'pull_request' && vars.PATCH_RELEASES_ENABLED == 'true'
+        if: github.event_name != 'pull_request' && vars.PATCH_RELEASES_ENABLED == 'true' && inputs.recover_tag == ''
         uses: cycjimmy/semantic-release-action@v6
         id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Prepare recovered prerelease
+        if: inputs.recover_tag != '' && vars.PATCH_RELEASES_ENABLED == 'true'
+        id: recovery
+        env:
+          RECOVER_TAG: ${{ inputs.recover_tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${RECOVER_TAG#v}"
+          bundle="patches/build/libs/patches-$version.mpp"
+          [[ "$(git rev-parse HEAD)" == "$(git rev-parse "$RECOVER_TAG^{commit}")" ]]
+          [[ "$(git show -s --format=%s HEAD)" == "chore: Release $RECOVER_TAG [skip ci]" ]]
+          [[ "$(jq -r .version patches-bundle.json)" == "$version" ]]
+          [[ "$(sed -n 's/^version[[:space:]]*=[[:space:]]*//p' gradle.properties)" == "$version" ]]
+          test -s "$bundle"
+          git fetch origin "refs/notes/semantic-release-$RECOVER_TAG:refs/notes/semantic-release-$RECOVER_TAG"
+          git notes --ref="semantic-release-$RECOVER_TAG" show "$RECOVER_TAG" | jq -e '.channels | index("dev") != null'
+          notes="$RUNNER_TEMP/recovery-notes.md"
+          jq -r .description patches-bundle.json > "$notes"
+          if gh release view "$RECOVER_TAG" --json isDraft,isPrerelease,assets > "$RUNNER_TEMP/recovery-release.json"; then
+            jq -e '.isDraft and .isPrerelease' "$RUNNER_TEMP/recovery-release.json"
+            if jq -e --arg name "$(basename "$bundle")" '.assets[] | select(.name == $name)' "$RUNNER_TEMP/recovery-release.json" > /dev/null; then
+              gh release download "$RECOVER_TAG" --pattern "$(basename "$bundle")" --dir "$RUNNER_TEMP/recovery-assets"
+              cmp "$bundle" "$RUNNER_TEMP/recovery-assets/$(basename "$bundle")"
+            else
+              gh release upload "$RECOVER_TAG" "$bundle"
+            fi
+          else
+            gh release create "$RECOVER_TAG" "$bundle" --draft --prerelease --latest=false --verify-tag --title "$RECOVER_TAG" --notes-file "$notes"
+          fi
+          printf 'ready=true\nversion=%s\ntag=%s\n' "$version" "$RECOVER_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Record recovery provenance
+        if: steps.recovery.outputs.ready == 'true' && github.event.repository.private == false
+        id: recovery_provenance
+        env:
+          RECOVER_TAG: ${{ inputs.recover_tag }}
+        run: |
+          predicate="$RUNNER_TEMP/recovery-provenance.json"
+          jq -n --arg tag "$RECOVER_TAG" --arg sha "$(git rev-parse "$RECOVER_TAG^{commit}")" '
+            ($ENV.GITHUB_SERVER_URL + "/" + $ENV.GITHUB_REPOSITORY) as $repository |
+            {
+              buildDefinition: {
+                buildType: "https://actions.github.io/buildtypes/workflow/v1",
+                externalParameters: {
+                  workflow: {
+                    ref: $ENV.GITHUB_REF,
+                    repository: $repository,
+                    path: ($ENV.GITHUB_WORKFLOW_REF | ltrimstr($ENV.GITHUB_REPOSITORY + "/") | rtrimstr("@" + $ENV.GITHUB_REF))
+                  },
+                  inputs: {recover_tag: $tag}
+                },
+                internalParameters: {github: {
+                  event_name: $ENV.GITHUB_EVENT_NAME,
+                  repository_id: $ENV.GITHUB_REPOSITORY_ID,
+                  repository_owner_id: $ENV.GITHUB_REPOSITORY_OWNER_ID,
+                  runner_environment: $ENV.RUNNER_ENVIRONMENT
+                }},
+                resolvedDependencies: [
+                  {uri: ("git+" + $repository + "@" + $ENV.GITHUB_REF), digest: {gitCommit: $ENV.GITHUB_WORKFLOW_SHA}},
+                  {uri: ("git+" + $repository + "@refs/tags/" + $tag), digest: {gitCommit: $sha}}
+                ]
+              },
+              runDetails: {
+                builder: {id: ($ENV.GITHUB_SERVER_URL + "/" + $ENV.GITHUB_WORKFLOW_REF)},
+                metadata: {invocationId: ($repository + "/actions/runs/" + $ENV.GITHUB_RUN_ID + "/attempts/" + $ENV.GITHUB_RUN_ATTEMPT)}
+              }
+            }' > "$predicate"
+          printf 'type=https://slsa.dev/provenance/v1\npath=%s\n' "$predicate" >> "$GITHUB_OUTPUT"
+
       - name: Attest
-        if: steps.release.outputs.new_release_published == 'true' && github.event.repository.private == false
+        if: (steps.release.outputs.new_release_published == 'true' || steps.recovery.outputs.ready == 'true') && github.event.repository.private == false
         uses: actions/attest-build-provenance@v4
         with:
-          subject-name: 'Twitch patches ${{ steps.release.outputs.new_release_git_tag }}'
-          subject-path: patches/build/libs/patches-${{ steps.release.outputs.new_release_version }}.mpp
+          subject-name: 'Twitch patches ${{ steps.recovery.outputs.tag || steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-${{ steps.recovery.outputs.version || steps.release.outputs.new_release_version }}.mpp
+          predicate-type: ${{ steps.recovery_provenance.outputs.type }}
+          predicate-path: ${{ steps.recovery_provenance.outputs.path }}
+
+      - name: Publish recovered prerelease
+        if: steps.recovery.outputs.ready == 'true'
+        env:
+          RECOVER_TAG: ${{ inputs.recover_tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "$RECOVER_TAG" --draft=false --prerelease --latest=false

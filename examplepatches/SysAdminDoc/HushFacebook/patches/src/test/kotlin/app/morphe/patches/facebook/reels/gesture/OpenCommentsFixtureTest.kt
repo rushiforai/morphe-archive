@@ -326,7 +326,13 @@ class OpenCommentsFixtureTest {
                     AccessFlags.PUBLIC.isSet(helper.accessFlags) && AccessFlags.STATIC.isSet(helper.accessFlags))
                 val helperCode = helper.code()
                 val buildCall = helperCode.single { it.call?.let(::key) == key(sheet.build) } as RegisterRangeInstruction
-                assertEquals("$name: the builder's range", listOf(0, 19), listOf(buildCall.startRegister, buildCall.registerCount))
+                assertEquals("$name: the builder's range", listOf(0, sheet.build.parameterTypes.size),
+                    listOf(buildCall.startRegister, buildCall.registerCount))
+                // The number sits right before the two booleans, wherever 585's List pushed it.
+                val numberWrite = helperCode.subList(0, helperCode.indexOf(buildCall as Instruction)).last {
+                    (it as? OneRegisterInstruction)?.registerA == sheet.numberArgument
+                }
+                assertEquals("$name: the helper's number", sheet.number, (numberWrite as NarrowLiteralInstruction).narrowLiteral)
                 val calls = helperCode.mapNotNull { it.call?.let(::key) }
                 listOf(sheet.surface, sheet.story, sheet.merge, sheet.wrap, sheet.build, sheet.show).map(::key).forEach {
                     assertTrue("$name: the helper never calls $it", it in calls)

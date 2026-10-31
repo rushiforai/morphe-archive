@@ -8,6 +8,7 @@ import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.media.taptoplay.MOTION_EVENT
 import app.morphe.patches.facebook.media.taptoplay.calls
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.facebook.reels.hold.playerCallees
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -31,7 +32,9 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  *   static seek calls. It answers yes when a MobileConfig flag or the player's state says to and
  *   the two are closer than a MobileConfig int, which a step of one frame can be.
  * - The view the player is attached to (A04), its one ViewGroup field the static attach holding
- *   "FbGrootPlayer.attachPlayerViewInternal" writes. The detach and the release clear it.
+ *   "FbGrootPlayer.attachPlayerViewInternal" writes. The detach and the release clear it. On 585 the
+ *   attach (05gS.A0R, v7a 05gY.A0R) no longer writes it itself: it hands the work to the player's
+ *   static A0Q, which writes A06, so the player's methods the attach calls directly are read too.
  *
  * The tap side is GestureReactionComponent (582 LX/8Hb;), the Litho component that lays a gesture
  * view over nearly every reel and video player, which Turn off double tap to like finds by its
@@ -90,8 +93,13 @@ internal fun grootAttaches(owner: ClassDef): List<Method> = owner.methods.filter
     it.isStatic() && holdsString(it, GROOT_ATTACH)
 }
 
-/** The ViewGroup fields of [owner] itself that [attach] writes, each once however often it's written. */
-internal fun playerViewFields(owner: ClassDef, attach: Method): List<FieldReference> = attach.code()
+/**
+ * The ViewGroup fields of [owner] itself that [attach] writes, each once however often it's written.
+ * 585 moved the write out of the attach into the one static [owner] method the attach hands the work
+ * to, so the attach's own body and the [owner] methods it calls directly are both read.
+ */
+internal fun playerViewFields(owner: ClassDef, attach: Method): List<FieldReference> = (listOf(attach) + playerCallees(owner, attach))
+    .flatMap { it.code() }
     .filter { it.opcode == Opcode.IPUT_OBJECT }
     .mapNotNull { (it as ReferenceInstruction).reference as? FieldReference }
     .filter { it.definingClass == owner.type && it.type == VIEW_GROUP }

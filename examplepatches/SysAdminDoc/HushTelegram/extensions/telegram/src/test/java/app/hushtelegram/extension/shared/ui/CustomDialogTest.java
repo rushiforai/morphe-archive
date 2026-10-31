@@ -164,6 +164,24 @@ public class CustomDialogTest {
         }
     }
 
+    /** A dialog's title and message break long words where the text's language hyphenates them. */
+    @Test @Config(sdk = 36, qualifiers = "de")
+    public void titleAndMessageHyphenateInTheTextsLanguage() {
+        try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+            Pair<Dialog, LinearLayout> result = CustomDialog.create(activity.get(), "Benachrichtigungsberechtigung",
+                    "Firebase-Push-Registrierung reparieren", null, "OK", () -> {}, null, null, null, true);
+            try {
+                TextView title = (TextView) result.second.getChildAt(0);
+                TextView message = (TextView) ((ViewGroup) scroll(result.second).getChildAt(0)).getChildAt(0);
+                assertEquals("Firebase-Push-Registrierung reparieren", String.valueOf(message.getText()));
+                for (TextView text : new TextView[]{title, message}) {
+                    assertEquals(android.text.Layout.HYPHENATION_FREQUENCY_NORMAL, text.getHyphenationFrequency());
+                    assertEquals("de", text.getTextLocale().getLanguage());
+                }
+            } finally { result.first.dismiss(); }
+        }
+    }
+
     @Test public void customContentScrollsWithoutMovingCancelOffscreen() {
         try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
             LinearLayout content = new LinearLayout(activity.get());

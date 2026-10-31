@@ -38,8 +38,13 @@ public class ChannelMuteTest {
         HookStatus.clear();
     }
 
+    /** A bar as the patch leaves it: its own setVisibility asks {@link ChannelMute#visibility} first. */
     private static View bar() {
-        return new View(RuntimeEnvironment.getApplication());
+        return new View(RuntimeEnvironment.getApplication()) {
+            @Override public void setVisibility(int visibility) {
+                super.setVisibility(ChannelMute.visibility(this, visibility));
+            }
+        };
     }
 
     private static void update(View bar, boolean mute) {
@@ -124,6 +129,34 @@ public class ChannelMuteTest {
         update(bar, false);
         assertTrue("a bar given back brings the bubble back", ChannelMute.bubble(holder, 1));
         assertTrue(ChannelMute.bubble(null, 1));
+    }
+
+    /** What Telegram asks for while the bar is held is what the bar gets back, a hide or a change made with the switch off included. */
+    @Test public void aHeldBarComesBackAsTelegramLastAskedForIt() {
+        Settings.HIDE_CHANNEL_MUTE.save(true);
+        View bar = bar();
+        update(bar, true);
+        bar.setVisibility(View.GONE);
+        update(bar, false);
+        assertEquals("Telegram hid the bar while it was held", View.GONE, bar.getVisibility());
+
+        View other = bar();
+        update(other, true);
+        Settings.HIDE_CHANNEL_MUTE.save(false);
+        other.setVisibility(View.INVISIBLE);
+        update(other, false);
+        assertEquals("Telegram changed the bar with the switch off", View.INVISIBLE, other.getVisibility());
+    }
+
+    /** The update's own hide goes through the bar's setVisibility too, and isn't what the bar comes back as. */
+    @Test public void muteUpdatesInARowGiveTheBarBackAsItWas() {
+        Settings.HIDE_CHANNEL_MUTE.save(true);
+        View bar = bar();
+        update(bar, true);
+        update(bar, true);
+        assertEquals(View.GONE, bar.getVisibility());
+        update(bar, false);
+        assertEquals(View.VISIBLE, bar.getVisibility());
     }
 
     @Test public void turningTheSwitchOffBringsAHeldBarBack() {

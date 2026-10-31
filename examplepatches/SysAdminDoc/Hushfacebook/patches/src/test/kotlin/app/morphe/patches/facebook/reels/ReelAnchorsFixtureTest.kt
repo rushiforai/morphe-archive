@@ -141,16 +141,25 @@ class ReelAnchorsFixtureTest {
                 assertNull("$name: ${follow.problem}", follow.problem)
                 val getter = follow.getter
                 if (getter == null) {
-                    // 583 and 584: two flag reads in a merged lambda, each a static case with a local for its hook.
+                    // 583 to 585: two flag reads in merged lambdas (one class each on 585), hooked in each lambda's
+                    // invoke() by key, which needs two locals there and the field the switch reads the key from.
                     assertEquals("$name: ${follow.flags}", 2, follow.flags.size)
-                    val lambda = FixtureDex.classes(bundle, setOf(follow.flags.first().definingClass)).values.single()
+                    val lambdas = FixtureDex.classes(bundle, follow.flags.map { it.lambda }.toSet())
                     for (flag in follow.flags) {
-                        val method = lambda.methods.single {
-                            it.name == flag.name && it.parameterTypes.map(Any::toString) == flag.parameterTypes.map(Any::toString)
+                        val lambda = lambdas.getValue(flag.lambda)
+                        val invoke = lambda.methods.single {
+                            it.name == "invoke" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/Object;"
                         }
-                        assertTrue("$name: ${flag.name} isn't static", AccessFlags.STATIC.isSet(method.accessFlags))
-                        assertTrue("$name: ${flag.name} has no local for the hook", locals(method) >= 1)
+                        assertTrue("$name: ${flag.lambda}'s invoke() has ${locals(invoke)} locals", locals(invoke) >= 2)
+                        assertEquals("$name: ${flag.lambda}'s key field", "\$t", lambdaKeyField(lambda)?.name)
                     }
+                    // Redex names differ per ABI: the lambda classes and their keys, then the method each flag is read in.
+                    val abi = name.substringAfter("-$version-").substringBefore(".apkm")
+                    val pinned = mapOf(
+                        "585.0.0.47.54 arm64-v8a" to "LX/0ACw;:155:A1Z LX/0ACj;:107:A0F",
+                        "585.0.0.47.54 armeabi-v7a" to "LX/0AD1;:155:A1Z LX/0ACo;:105:A0F",
+                    )["$version $abi"]
+                    assertEquals(name, pinned, follow.flags.joinToString(" ") { "${it.lambda}:${it.key}:${it.reader.name}" })
                 } else {
                     val (readers, owner) = readers(bundle, getter)
                     assertNull("$name: readers", followReaderProblem(readers, dumper))
@@ -167,7 +176,7 @@ class ReelAnchorsFixtureTest {
                     assertTrue("$name: $run has no local for the hook", locals(run) >= 1)
                 }
                 checked[version] = "${follow.literals} Follow literal(s), " +
-                    (getter?.let { "getter ${it.definingClass}->${it.name}" } ?: "flags ${follow.flags.joinToString { it.name }}")
+                    (getter?.let { "getter ${it.definingClass}->${it.name}" } ?: "flags ${follow.flags.joinToString { "${it.lambda}:${it.key}" }}")
             }
         }
         assertEquals("a declared build went unchecked: $checked", versions.toSet(), checked.keys)
@@ -201,11 +210,10 @@ class ReelAnchorsFixtureTest {
                     requireNotNull(authorRow(readers, dumper)) { "$name: no author row among $readers" }
                 }
 
-                val owners = FixtureDex.classes(bundle, staticCalls(author).map { it.definingClass }.toSet())
-                val asked = followCheck(author) { call -> owners[call.definingClass]?.let { resolveStatic(it, call) } }
+                val owners = FixtureDex.classes(bundle, staticOrVirtualCalls(author).map { it.definingClass }.toSet())
+                val asked = followCheck(author) { call -> owners[call.definingClass]?.let { resolveCalled(it, call) } }
                 assertNull("$name: ${asked.problem}", asked.problem)
                 val check = asked.check!!
-                assertTrue("$name: ${check.name} isn't static", AccessFlags.STATIC.isSet(check.accessFlags))
                 assertTrue("$name: ${check.name} has no local for the hook", locals(check) >= 1)
                 checked[version] = "${check.definingClass}->${check.name}"
             }
@@ -233,6 +241,33 @@ class ReelAnchorsFixtureTest {
                 assertEquals("$name: $rows", 1, rows.size)
                 assertTrue("$name: the row has no local for the hook", locals(rows.single()) >= 1)
                 checked[version] = rows.single().definingClass
+            }
+        }
+        assertEquals("a declared build went unchecked: $checked", versions.toSet(), checked.keys)
+    }
+
+    /**
+     * "Made with Edits" under a caption (#314), found the way the patch finds it: the one `render`
+     * reading the video's Edits flag and nothing else from the tree. The flag's other readers are
+     * static helpers.
+     */
+    @Test
+    fun `every declared build has one Made with Edits line, with a local for its hook`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }
+        assertTrue("the bundle declares no Facebook build", versions.isNotEmpty())
+        val checked = mutableMapOf<String, String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val name = bundle.name
+                val lines = mutableListOf<Method>()
+                FixtureDex.forEach(bundle) { dex ->
+                    for (classDef in dex.classes) {
+                        classDef.methods.filter(::isEditsLabelRender).mapTo(lines) { ImmutableMethod.of(it) }
+                    }
+                }
+                assertEquals("$name: $lines", 1, lines.size)
+                assertTrue("$name: the line has no local for the hook", locals(lines.single()) >= 1)
+                checked[version] = lines.single().definingClass
             }
         }
         assertEquals("a declared build went unchecked: $checked", versions.toSet(), checked.keys)

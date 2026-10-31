@@ -1,0 +1,271 @@
+Isolated on-device summary engine
+  Version 0.5.6. Existing Whisper large-v3-turbo Q5_0 and Gemma
+  E4B model bytes, stable runtime pins and inference budgets are unchanged.
+  Interactive jobs select CPU directly; noninteractive jobs prefer Whisper Vulkan
+  and LiteRT-LM GPU with bounded initialization-only CPU fallback.
+  Android-device GPU inference/performance remains unverified.
+
+Build/integration
+  Include :summary-engine in root settings. Run :summary-engine:payload with
+  ANDROID_HOME (or ANDROID_SDK_ROOT), platform android-36 and build-tools 36.0.0.
+  Native Whisper also requires NDK 29.0.14206865 and CMake 3.22.1. Build the pinned,
+  SHA256-verified stock whisper.cpp v1.9.5 source for arm64-v8a and x86_64.
+  Separate libebpatcher_whisper.so and libebpatcher_whisper_vulkan.so statically
+  link private whisper/ggml copies and the C++ runtime. Vulkan uses NDK host glslc,
+  the Android loader, and SHA256-pinned Khronos SDK 1.4.341.0 headers. A host C/C++
+  compiler is required; no separately installed Vulkan SDK is needed.
+  Declare libOpenCL.so and libvndksupport.so as optional Android native libraries
+  for LiteRT GPU access; absence must not prevent installation.
+  This module deliberately uses Java + the SDK's inspected Java-visible Kotlin
+  overloads. It does not require a second Kotlin compiler/plugin in the host build.
+  Run Gradle with JDK 21 or newer: the upstream SDK contains class-file version 65.
+  DEX compilation uses pinned com.android.tools:r8:9.1.57, required for the SDK's
+  Kotlin 2.4 metadata; the Android build-tools 36 D8 is too old for this dependency.
+  Embed build/payload under assets/ebpatcher/summary; NEVER merge its DEX/classes
+  into ACall or recorder DEX. Load engine.zip via DexClassLoader with the boot/system
+  parent and extracted lib/<process-ABI> as nativeLibrarySearchPath. Keep the JAR
+  resources inside engine.zip: Kotlin builtins, metadata and service descriptors
+  are required by the SDK's transitive dependencies. Use a 64-bit process, API29+.
+  payload includes all resolved transitive JVM artifacts, AAR classes.jar and
+  libs/*.jar, all AAR JNI libraries, dependency listing and original notices.
+  payload generates engine-files.json as a sorted array of {path,sha256,size} for
+  engine.zip and every lib/<abi>/*.so, excluding the index itself. Parent verifies
+  these exact byte sizes/digests and extracts only the matching process ABI into
+  digest-specific private, read-only files before creating the class loader.
+  A boot-classloader java.util.function.Consumer<String> carries only whitelisted
+  stage identifiers and chunk/channel counters to the parent. No transcript,
+  prompt or generated content crosses the progress channel. Notification failures
+  do not change inference outcomes.
+  Required Android APIs: MediaExtractor, MediaCodec, PCM16/float decoder output,
+  android.system.Os, filesystem sync/rename. No Android resources are needed by
+  the inspected SDK AAR; packaging fails on an unexpected resource-bearing AAR.
+
+Facade
+  io.github.emotionbug.summaryengine.OfflineEngine(String gemmaPath, String whisperPath, String cacheDir, boolean useGpu)
+  String run(String localAudioPath, String originalSummary, String apiDocumentJson, AtomicBoolean cancelled)
+  String refine(String localDocumentJson, String originalSummary, String apiDocumentJson, AtomicBoolean cancelled)
+  void cancel()
+  void close()
+  Both return JSON with transcript, summary, local:{title,summary,segments},
+  and selection:{source:api|local|uncertain,reason}. Segments contain text, speaker,
+  startMs/endMs; unknown times are null, never invented.
+  refine consumes the retained timed local document and NEVER decodes/transcribes
+  audio. Legacy flat transcripts require fresh ASR, not fabricated segment times.
+  Constructor checks Gemma availability; Whisper is initialized lazily only for
+  missing ASR checkpoints. refine accepts an empty whisperPath. The downloader
+  MUST validate model.json and whisper-model.json sizes/SHA256 before readiness.
+  useGpu=false selects CPU directly for both models, without attempting Vulkan/GPU.
+  useGpu=true retains GPU preference with classified initialization-only CPU fallback.
+  This policy is immutable for the facade; keep checkpoint identity unchanged between policies.
+  No model download or network code exists in the engine. Input audio is opened as a local FileInputStream and
+  passed to MediaExtractor by descriptor; /proc/self/fd/N works while parent holds
+  the corresponding readable descriptor open. No filename-extension assumptions.
+
+Lifecycle and resumability
+  Call on a worker thread in the parent's dedicated summary process. One facade
+  at a time may use a recording's private cacheDir; keep this path stable across
+  stopped/restarted jobs. cancel is terminal for the facade; create a new facade
+  for a later job. AtomicBoolean is checked during decode and inference waits.
+  Engine initialization is a synchronous upstream API with NO cancellation API;
+  parent may terminate only the summary process if native initialization hangs.
+  Gemma async inference is cancelled through Conversation.cancelProcess(), then
+  waits for native completion/error before releasing conversation and engine.
+  Whisper uses its native abort callback; model loading checks cancellation before
+  and after the noninterruptible load. Native context free waits for active use.
+  Upstream abort checks occur only after the encoder graph: the measured host
+  cancellation missed a 60-second deadline. No result was published; native memory
+  was released only after the worker ended. Parent summary-process isolation remains
+  the escape hatch, not a claim of responsive native cancellation.
+  Responsiveness policy: the parent does not require device inactivity.
+  Interactive/unknown power state selects CPU; noninteractive state prefers GPU.
+  Screen-on during GPU-permitted work returns unfinished work to JobScheduler and
+  terminates only the isolated process after framework completion acknowledgement.
+  The replacement selects CPU if still interactive and reuses completed ASR chunks.
+  CPU work is not restarted on screen-off. Scheduler restart is not instantaneous;
+  unfinished ASR chunks and Gemma generation can repeat. No in-place GPU/CPU migration.
+  Coordinator, Whisper and Gemma threads retain Android background priority.
+  Models, CPU4 limits, decoding and token budgets are unchanged. Host CPU-only and
+  GPU-initialization-fallback execution passed; actual OnePlus performance is unverified.
+  Completed 30-second, per-channel segment results are stored under transcript-checkpoints/.
+  Writes sync the file, atomically rename it, and sync the directory. Identity
+  includes the same opened audio FD's device/inode/size/mtime/ctime plus the exact
+  Whisper model, pinned native decoder/configuration and PCM version. Changed
+  identity invalidates checkpoints, including old Gemma ASR; changing audio mid-run fails the result.
+  A checkpoint lock rejects concurrent transcription. Channel-aware checkpoint
+  keys are chunkIndex * channelCount + channelIndex. The decoder identity
+  invalidates old downmixed checkpoints, not retained original recordings/results.
+  Resume decodes from the start to preserve deterministic boundaries but reuses
+  completed timed segments without repeated audio-model transcription. Text note
+  reduction may be recomputed. Checkpoints survive cancel, failure and success;
+  parent removes them on explicit deletion or retirement beyond five terminal
+  histories, deferring deletion while a live worker holds the cache lease.
+  WAV/summary-note scratch is removed on ordinary completion/failure; a later
+  invocation removes scratch left by process death, never durable checkpoints.
+
+Processing and explicit bounds
+  Decode all samples from exactly one audio track; reject multiple audio tracks
+  rather than silently skipping one. Retain each of up to 8 channels independently,
+  area-resample 8kHz..192kHz PCM to mono16kHz per channel, and emit time-aligned
+  PCM16 WAV chunks <=30 seconds. Never downmix before transcription.
+  PCM buffers are bounded; at most one chunk WAV per input channel exists.
+  Rate/channel-count changes midstream are rejected to preserve identity.
+  Short final chunks and silent channels are submitted too; no recording-duration
+  truncation is performed. Transcripts retain time and neutral channel labels,
+  and reduction receives that labeled text; generated notes may omit labels.
+  Caller identities are not inferred. Multi-channel input increases model work.
+  Whisper large-v3-turbo Q5_0 transcribes each chunk with stock whisper.cpp,
+  Korean fixed, beam5, best-of5, temperature0/step0.2 and explicit upstream
+  entropy/logprob/no-speech thresholds. No prompt, VAD or normalization is added.
+  Native errors/cancellation fail the operation;
+  empty chunks remain empty, and an entirely empty transcript is an explicit error.
+  No custom decoder-confidence rejection or fabricated silence text is added.
+  Whisper context is released before Gemma initialization. Whisper prefers Vulkan;
+  a missing optional payload, no suitable GPU or explicit unsuccessful native
+  initialization permits one CPU attempt. Escaped native initialization exceptions
+  are not retried because upstream state construction is not exception-safe.
+  Gemma prefers GPU text inference, with audioBackend=null and visionBackend=null.
+  Its native lifecycle, conversations and cancellation run on one owning thread.
+  Only classified LiteRT engine-creation failures permit one CPU4 initialization
+  attempt. Model/configuration errors, inference errors, incomplete results and
+  cancellations do not trigger retries. Backend/fallback diagnostics contain no text.
+  Checkpoint-only ASR does not load JNI/model, allocate PCM scratch or start a worker.
+  Short transcripts go directly to schema-constrained Korean title/summary
+  generation; larger inputs use bounded UTF8 slices and disk-backed pairwise notes.
+  Meaningless fields, incomplete generation and invalid/bloated documents fail
+  before persistence. Comparison names API/local summaries and source transcripts
+  in separate flat fields, so evidence in a transcript is not treated as content
+  already retained by its summary. Exact meaningful source quotations, numeric
+  support and an explicit uncertain outcome gate recommendation. Larger comparison
+  fields are reduced independently, never mixed across sources or with summaries;
+  each quoted field is <=1000 UTF8 bytes. Quotes still must match the RAW source,
+  not a generated paraphrase. Unmatched citations retain the original API result.
+  Decimal signs and telephone leading zeroes survive numeric normalization.
+  Numeric or semantic disagreement is not resolved by fluency or confidence.
+  Original app records are not read or written by this module. The main-process
+  parent preserves independent API backups and writes the selected candidate to
+  canonical native briefing tables through the original Room transaction.
+  All evidence is JSON-quoted, with explicit system instructions not to follow
+  embedded commands. There are no tools, automatic tool calling is disabled, and
+  returned tool requests are rejected. Generated prose is not an executable action.
+  As with every generative model, prompt instructions cannot guarantee factual
+  accuracy. Settings retain labeled candidates and access to API originals;
+  normal native history consumes the selected canonical rows without an overlay.
+  Gemma text context is 8192 tokens; outputs are limited to 2048 tokens with thinking disabled.
+  Completion requires onDone, nonempty text, no error/tool request/cancellation,
+  and measured decode tokens <2048 and KV tokens <8192. Equality is rejected,
+  including a possible genuine EOS exactly at a limit; no partial acceptance.
+  ExperimentalFlags.enableBenchmark is enabled before Engine construction.
+  getBenchmarkInfo/getTokenCount are read after the terminal callback and before
+  conversation close. Missing/nonpositive measurements fail closed.
+  There is no application-generated completion sentinel in prompts or validation.
+  The SDK's onDone alone also occurs at output/context caps and is not sufficient.
+  Counts below limits do not prove semantic completeness or expose an EOS reason.
+  No missing/empty/oversized response is replaced with a fabricated summary;
+  budgets are unchanged and there are no silent retries.
+  Full transcript JSON requires materializing the transcript. To bound that public
+  String API, transcript and original inputs are limited to 1,000,000 UTF16 chars;
+  larger recordings fail explicitly with split-recording guidance, NOT success
+  with a truncated transcript. Notes are <=1800 UTF8 bytes; raw text slices <=2000
+  UTF8 bytes; serialized quoted inputs <=5000 bytes. Failure to satisfy a note
+  bound is reported rather than discarding evidence. No partial summary is returned.
+
+Content-free diagnostics
+  EBPatcherSummary logs stage, chunk/channel/checkpoint reuse or note/reduction
+  identity and elapsed time. Gemma text inference additionally reports measured
+  prefill/decode/KV counts, buffered output UTF16 chars and fixed termination labels.
+  -1 means an unavailable count; Whisper ASR is not a Gemma token-budget measurement.
+  Checkpoint reuse is explicitly labeled and does not claim a fresh inference.
+  Parent service logs local job ID/revision, run versus refine, start/finish and
+  elapsed time with fixed failure categories. Completion reports computation;
+  existing store revision arbitration still decides whether the result is current.
+  No audio path, text, phone/account/API data, exception message or stack trace
+  is appended to these application diagnostics. Native callback failures use a
+  fixed informative UI error instead of quoting potentially private SDK input.
+  Other existing user-visible local error messages remain available in the UI.
+  SDK-internal logging is outside these application log statements.
+
+Historical 0.3.x Gemma-audio completion investigation and verification
+  The exact pinned model with Linux litert-lm-api 0.18.1 produced a coherent
+  68-character Korean refinement with 51 decoded tokens and 297 KV tokens,
+  completed normally, and omitted the old textual sentinel. A forced 8-token
+  cap also completed normally while truncated. Old-prompt 1s/15s zero PCM
+  repeated labels until 2048 decoded tokens (2230/2580 KV); five public Korean
+  FLEURS clips transcribed with the old marker normally. These observations
+  motivate the measured completion policy, not a diagnosis of private audio.
+  Updated production prompts completed both normal text cases, both synthetic
+  silent clips and five public Korean FLEURS clips below limits on the same
+  pinned Linux runtime. The forced 8-token control remained rejected.
+  Silence ended after 7 decode tokens, but was labeled unintelligible rather than silent.
+  These fixtures establish stopped repetition, not accurate silence detection.
+  A headless Robolectric harness exercised production Java callback handling:
+  sentinel-free success; rejection of output/context equality, absent counters,
+  empty/error/cancel/tool/oversized output; content-free diagnostic assertions.
+  Controlled SDK callbacks do not establish Android-native model performance.
+  No private recordings or phone UI were accessed. Remaining caps fail explicitly.
+  v0.18.1 exposes no public finish reason: onDone plus below-limit counters is a
+  conservative budget check, not a guarantee that every requested fact was given.
+  Official SDK source:
+    https://github.com/google-ai-edge/LiteRT-LM/blob/v0.18.1/kotlin/java/com/google/ai/edge/litertlm/ExperimentalFlags.kt
+    https://github.com/google-ai-edge/LiteRT-LM/blob/v0.18.1/kotlin/java/com/google/ai/edge/litertlm/Benchmark.kt
+    https://github.com/google-ai-edge/LiteRT-LM/blob/v0.18.1/kotlin/java/com/google/ai/edge/litertlm/Conversation.kt
+    https://github.com/google-ai-edge/LiteRT-LM/blob/v0.18.1/runtime/conversation/internal_callback_util.cc
+    https://github.com/google-ai-edge/LiteRT-LM/blob/v0.18.1/runtime/core/tasks.cc
+
+Pinned models and provenance
+  model.json describes Gemma 4 E4B for text summaries and source comparison, using
+  gemma-4-E4B-it.litertlm, not a Web/GPU or device-specific NPU artifact.
+  Official LiteRT Community repo, immutable revision:
+    e6a3892a8c22cf87ff99583996149cf3cb32452b
+  SHA256: 0b2a8980ce155fd97673d8e820b4d29d9c7d99b8fa6806f425d969b145bd52e0
+  Bytes: 3659530240. License: Apache-2.0. Ungated; no HF token or account required.
+  Metadata source:
+    https://huggingface.co/api/models/litert-community/gemma-4-E4B-it-litert-lm/revision/e6a3892a8c22cf87ff99583996149cf3cb32452b?blobs=true
+  Model card:
+    https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm/blob/e6a3892a8c22cf87ff99583996149cf3cb32452b/README.md
+  Official SDK/model family reference:
+    https://github.com/google-ai-edge/LiteRT-LM/blob/v0.18.1/README.md
+  SDK API and implementation inspected at v0.18.1:
+    https://github.com/google-ai-edge/LiteRT-LM/blob/v0.18.1/docs/api/kotlin/getting_started.md
+    https://github.com/google-ai-edge/LiteRT-LM/tree/v0.18.1/kotlin/java/com/google/ai/edge/litertlm
+  0.5.0 E4B bytes were downloaded, hash-verified and exercised on host CPU for
+  actual-recording summaries and semantic comparison controls. No E4B phone
+  performance or downloader run is claimed. In historical 0.3.x work, E2B download
+  and hash checks ran on host and Android with an owned HTTPS loopback mirror.
+  Both models remain outside source/payload; no private audio was uploaded.
+  whisper-model.json independently describes Whisper large-v3-turbo Q5_0:
+    https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-large-v3-turbo-q5_0.bin
+  SHA256: 394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2
+  Bytes: 574041195. License: MIT. Candidate downloads were verified for local
+  inference, then removed; no weights are embedded. Native source commit:
+    d1be6fde11ac6e0407606b4e42fe72d34add8037
+  Native source archive SHA256:
+    645445da884df6dbd52b30f82d7be7c01d1767c938714e477e786b88d529e9f4
+  Model-selection tradeoffs and community-report limitations: SUMMARY-DESIGN.md.
+
+SDK artifact evidence (static inspection, not inference verification)
+  com.google.ai.edge.litertlm:litertlm-android:0.18.1
+  AAR SHA256: 05c6bdc8acda834efcca12c0ad5d06d2cd8c83e60770f056d8d222f699f3012b
+  REA inspect_artifact: ev_a2ddfdd20183da3714b745be893cd9948dd34d2c63ddd4ba96ca3aab95788331
+  REA extraction: ev_207ad82b95ce26e8357762ac3c9f61faa42fd26e2a586ca117197d66379fe82d
+  Shipped classes.jar was inspected with javap for constructor, message callback,
+  createConversation, cancelProcess and close signatures. JNI exists for arm64-v8a
+  and x86_64 only. Arm64 DT_NEEDED contains Android system libraries only:
+  android,z,GLESv2,EGL,GLESv3,log,dl,m,c. No separate libc++_shared is required.
+  Published SDK POM dependencies: Gson 2.14.0, kotlin-reflect 2.4.0,
+  kotlinx-coroutines-android 1.11.0. Transitives include kotlin-stdlib 2.4.0 and
+  kotlinx-coroutines-core-jvm 1.11.0; actual full resolved list ships in notices.
+
+Historical 0.3.x Android Gemma-audio verification and remaining limits
+  The built isolated loader initialized the actual model on Android 17/API37,
+  transcribed a public Korean Google FLEURS WAV, generated a Korean summary, and
+  refined the saved transcript using an original-summary fixture without audio
+  re-decoding. Total was 40.9 seconds in one run, not a throughput guarantee.
+  Pre-cancelled execution failed correctly; the engine classloader was reused.
+  The real Android JobScheduler service separately completed the same public-audio
+  path, preserving the supplied original text. Model/data deletion preserved
+  source audio. The temporary helper was removed.
+  An observed recognition error confused the Korean words for "under a bridge" and "iron"; generated text carried
+  it forward. Accuracy is not guaranteed. No personal call recording was used.
+  Real new-call interruption, compressed long-call/multi-chunk quality, sustained
+  memory/thermal/battery behavior, cancellation during native initialization and
+  forced-stop checkpoint resumption remain unverified on the user's phone.

@@ -35,7 +35,7 @@ public class DoubleTapHiddenChatsSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.DOUBLE_TAP_HIDDEN_CHATS.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();

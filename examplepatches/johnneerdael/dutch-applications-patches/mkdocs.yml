@@ -116,6 +116,9 @@ nav:
   - Guides:
       - guides/index.md
       - guides/install.md
+      - guides/shizuku.md
+      - guides/shizuku-tv.md
+      - guides/android-auto.md
       - guides/downloads.md
       - guides/choose-patches.md
       - guides/troubleshooting.md
@@ -134,15 +137,19 @@ nav:
           - apps/trouw.md
           - apps/ftm.md
           - apps/ad.md
+          - apps/tubantia.md
           - apps/nrc.md
           - apps/parool.md
           - apps/demorgen.md
           - apps/humo.md
           - apps/hln.md
           - apps/nieuwsblad.md
+          - apps/hbvl.md
+          - apps/detijd.md
           - apps/dsnieuws.md
           - apps/rtl-nieuws.md
           - apps/omroep-brabant.md
+          - apps/omroep-west.md
           - apps/voetbal-international.md
           - apps/nos-teletekst.md
       - Traffic and navigation:
@@ -152,9 +159,12 @@ nav:
       - Entertainment:
           - apps/entertainment/index.md
           - apps/dumpert.md
+          - apps/kijk.md
           - apps/kijk-android-tv.md
+          - apps/npo-start.md
           - apps/npo-start-android-tv.md
           - apps/tvgids-nl.md
+          - apps/videoland.md
           - apps/videoland-android-tv.md
       - Other apps:
           - apps/other/index.md

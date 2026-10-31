@@ -143,12 +143,22 @@ internal class SheetCalls(
     val environment: String get() = surface.definingClass
     val holder: String get() = story.definingClass
     val config: String get() = build.parameterTypes[CONFIG_ARGUMENT].toString()
+
+    /** How many arguments the builder takes, and where its number goes. */
+    val arguments: Int get() = build.parameterTypes.size
+    val numberArgument: Int get() = numberArgumentOf(build)
 }
 
-/** Where the comment sheet's builder takes the viewer config, its two log names and its number. */
+/** Where [build] takes its number: right before the two booleans it ends with. */
+private fun numberArgumentOf(build: MethodReference) = build.parameterTypes.size - 3
+
+/** Where the comment sheet's builder takes the viewer config and its two log names. */
 private const val CONFIG_ARGUMENT = 11
 private val NAME_ARGUMENTS = listOf(12, 13)
-private const val NUMBER_ARGUMENT = 16
+
+// 584's builder took 19 arguments. 585 put a List after the four log names (the click passes null),
+// moving the number from 16 to 17.
+private val SHEET_BUILD_SIZES = setOf(19, 20)
 
 private val STATIC_INVOKES = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
 
@@ -168,14 +178,15 @@ private fun rangeInvoke(call: Instruction) = when (call.opcode) {
 /**
  * The comment sheet's builder as [click] calls it, once, with its shape checked: the context, the
  * view, the session and the reel ([itemType]) first, the two comments, the reel's feedback, the
- * composer action and the search prompt, four log names, a number and two booleans.
+ * composer action and the search prompt, four log names, on 585 a List, then a number and two booleans.
  */
 private fun isSheetBuild(call: MethodReference, itemType: String): Boolean {
     val types = call.parameters()
-    return types.size == 19 && types.take(4) == listOf(CONTEXT, VIEW, FB_USER_SESSION, itemType) &&
+    return types.size in SHEET_BUILD_SIZES && types.take(4) == listOf(CONTEXT, VIEW, FB_USER_SESSION, itemType) &&
         types[6] == GRAPHQL_COMMENT && types[7] == GRAPHQL_COMMENT && types[9] == COMPOSER_ACTION &&
         types[10] == SEARCH_PROMPT && types.subList(12, 16).all { it == STRING } &&
-        types.drop(16) == listOf("I", "Z", "Z") && call.returnType.startsWith("L")
+        types.subList(16, types.size - 3).all { it == LIST } &&
+        types.takeLast(3) == listOf("I", "Z", "Z") && call.returnType.startsWith("L")
 }
 
 /** The literal [code] last puts in [register] before [at], when that write is a constant; null otherwise. */
@@ -205,7 +216,7 @@ internal fun sheetCalls(click: Method, itemType: String): SheetCalls {
     val first = (code[buildAt] as? RegisterRangeInstruction)?.startRegister
         ?: refuse("$where builds the comment sheet without a register range")
     val names = NAME_ARGUMENTS.map { literalBefore(code, buildAt, first + it) as? String }
-    val number = literalBefore(code, buildAt, first + NUMBER_ARGUMENT) as? Int
+    val number = literalBefore(code, buildAt, first + numberArgumentOf(build)) as? Int
     if (names.any { it == null } || number == null) refuse("$where hands the comment sheet's builder no constant log names and number")
 
     fun distinct(what: String, matches: (Instruction, MethodReference) -> Boolean): Pair<Instruction, MethodReference> {
@@ -483,11 +494,12 @@ internal fun BytecodePatchContext.applyGestureAnchors(anchors: GestureAnchors) {
 }
 
 /**
- * The builder's arguments from the comments on, in v6 to v18: the config, the click's own log names and
- * number, and null or false for the rest. The click passes the button's copy of the reel's feedback and
- * sometimes a search prompt, but the builder takes the feedback from the props when it gets none.
+ * The builder's arguments from the comments on, in v6 up to its last: the config, the click's own log
+ * names and number, and null or false for the rest. The click passes the button's copy of the reel's
+ * feedback and sometimes a search prompt, but the builder takes the feedback from the props when it
+ * gets none, and on 585 it passes null for the List too.
  */
-private fun sheetArguments(sheet: SheetCalls): String = (6..18).joinToString("\n") { argument ->
+private fun sheetArguments(sheet: SheetCalls): String = (6 until sheet.arguments).joinToString("\n") { argument ->
     val register = "v$argument"
     val zero = if (argument < 16) "const/4" else "const/16"
     when (argument) {
@@ -496,7 +508,7 @@ private fun sheetArguments(sheet: SheetCalls): String = (6..18).joinToString("\n
             val name = sheet.names[NAME_ARGUMENTS.indexOf(argument)].replace("\\", "\\\\").replace("\"", "\\\"")
             "const-string $register, \"$name\""
         }
-        NUMBER_ARGUMENT -> "const $register, ${sheet.number}"
+        sheet.numberArgument -> "const $register, ${sheet.number}"
         else -> "$zero $register, 0x0"
     }
 }
@@ -504,7 +516,7 @@ private fun sheetArguments(sheet: SheetCalls): String = (6..18).joinToString("\n
 /**
  * The extension's helper taking [types] (the view, the session, the reel, the environment, the
  * story holder and the config): it builds the comment sheet with the values the click passes, shows
- * it, and answers whether there was one. v0 to v18 are the builder's arguments. With no story holder
+ * it, and answers whether there was one. v0 up are the builder's arguments, one register each. With no story holder
  * it makes one from the reel with [holderInit], as Facebook does for a reel it has no story for yet;
  * v6 is free until the arguments fill it.
  */
@@ -521,7 +533,7 @@ private fun sheetHelper(sheet: SheetCalls, types: List<String>, holderInit: Meth
         AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
         null,
         null,
-        MutableMethodImplementation(19 + types.size),
+        MutableMethodImplementation(sheet.arguments + types.size),
     ).toMutable().apply {
         addInstructions(
             0,
@@ -547,7 +559,7 @@ private fun sheetHelper(sheet: SheetCalls, types: List<String>, holderInit: Meth
                 invoke-static { v5 }, ${sheet.wrap.key()}
                 move-result-object v5
 ${sheetArguments(sheet)}
-                invoke-static/range { v0 .. v18 }, ${build.key()}
+                invoke-static/range { v0 .. v${sheet.arguments - 1} }, ${build.key()}
                 move-result-object v1
                 if-eqz v1, :none
                 invoke-static { v0, v1 }, ${sheet.show.key()}

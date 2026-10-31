@@ -1,0 +1,11 @@
+{
+  "bytes": 41354074,
+  "sha256": "76675e076faa4737d7cad1d7eb653c535e9b29e9f4f7dfe248b6fa4f7bf93265",
+  "stableSamples": 4,
+  "actualExportPath": "/sdcard/Download/komikku-manager-verified-jvm.apk",
+  "signatureVerified": true,
+  "testedBundleVersion": "1.5.0-komikku-verified",
+  "bundleSha256": "ea6b47b3ee8f827ebd3dcafb2f36551a6b45ce8d567b389da441c1db2afbf9b4",
+  "originalCacheSha256": "5dec6178557c89944bf2ef0b5059a5c36a5ab8ebf74dab92fa9281997879d2e2",
+  "installedApkSha256": "76675e076faa4737d7cad1d7eb653c535e9b29e9f4f7dfe248b6fa4f7bf93265"
+}

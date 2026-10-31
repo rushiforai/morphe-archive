@@ -34,7 +34,7 @@ public class ReelAutoScrollSettingsTest {
     private HushgramPreferenceFragment page;
 
     @Before public void prepare() {
-        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 36;
+        RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion = 37;
         Settings.KEEP_REEL_AUTO_SCROLL.resetToDefault();
         Settings.REEL_AUTO_ADVANCE.resetToDefault();
         Settings.REEL_AUTO_SCROLL_ON.resetToDefault();
@@ -92,7 +92,7 @@ public class ReelAutoScrollSettingsTest {
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         assertTrue(Settings.KEEP_REEL_AUTO_SCROLL.get());
-        assertEquals(36, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
+        assertEquals(37, RuntimeEnvironment.getApplication().getApplicationInfo().targetSdkVersion);
     }
     /**
      * Move on when a reel ends sits right under Keep auto scroll on, off to start, and asks for a

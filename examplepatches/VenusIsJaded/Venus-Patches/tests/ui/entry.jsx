@@ -1,11 +1,11 @@
 // Boots the real Venus runtime (patches/src/main/resources/venus/bootstrap.js, every feature patched in) on a tiny
-// stand-in for Metro, then draws one Venus settings page in a 412 dp wide phone frame. Driven by the URL:
+// stand-in for Metro, then draws one Venus settings page in a phone-wide frame (412 dp, or WIDTH). Driven by the URL:
 //   page=VENUS_PLUGINS        the route to draw (VENUS_PLUGINS, VENUS_GENERAL, VENUS_BACKUP, VENUS_LANGUAGE, VENUS_<FEATURE>)
 //   on=noDelete,quests        features (or any boolean settings) turned on
 //   set={"readAllMode":"dms"} any other saved settings, as JSON
 //   fresh=1                   a fresh install: nothing saved yet (shows Start with the essentials)
 //   theme=dark|light|midnight|darker   lang=de   search=pin   (search: typed into the Features search bar)
-//   tap=Custom                 taps the element with that accessibility label or text once the page is drawn
+//   tap=Custom                 taps the element with that accessibility label or text once the page is drawn (a|b taps a, then b)
 //   scene=serverMenu|readAll   instead of a settings page, a Discord screen with what Venus adds to it, on made-up
 //                              data (tests/ui/scenes.jsx); sheets Venus opens (Server info, Read all) slide up over it
 import * as React from "react";
@@ -30,7 +30,10 @@ const RN = Object.assign({}, RNW, { Animated, Modal: RNW.Modal || (() => null),
 
 // Discord's file module: the saved settings file comes from the URL, language packs from the repo.
 const on = (q.get("on") || "").split(",").filter(Boolean);
-const saved = Object.assign({ language: q.get("lang") || "en", setupDone: true }, Object.fromEntries(on.map(k => [k, true])), JSON.parse(q.get("set") || "{}"));
+// A scene starts with the features it draws turned on (S.SCENE_SETTINGS); on= and set= still win.
+const scene = q.get("scene");
+if (scene && !S.SCENE_SETTINGS[scene]) console.warn("No scene called " + scene + " (the list is at the top of tests/ui/scenes.jsx)");
+const saved = Object.assign({ language: q.get("lang") || "en", setupDone: true }, scene ? S.SCENE_SETTINGS[scene] : null, Object.fromEntries(on.map(k => [k, true])), JSON.parse(q.get("set") || "{}"));
 const settingsText = q.get("fresh") === "1" ? null : JSON.stringify(saved);
 // installed=<file in work/themes>[,<file>...]: those published themes are installed (the first one in use), as if added
 // from their links, so every page and scene draws in that theme's compiled colors (and wallpaper).
@@ -44,7 +47,7 @@ const files = { getConstants: () => ({ DocumentsDirPath: "/docs", CacheDirPath: 
   writeFile: () => Promise.resolve(), getVideoDimensions: () => Promise.resolve(),
   readAsset: name => fetch("i18n/" + name.split(":").pop() + ".json").then(r => r.text()) };
 
-const me = { id: "123456789012345678", username: "venus", globalName: "Venus", avatar: null };
+const me = { id: "123456789012345678", username: "venus", globalName: "Venus", avatar: null, premiumType: q.get("nitro") === "0" ? 0 : 2 };
 const store = extra => Object.assign({ addChangeListener() {}, removeChangeListener() {} }, extra);
 const go = route => { const next = new URLSearchParams(location.search); next.set("page", route); location.search = next.toString(); };
 const modules = {
@@ -60,7 +63,17 @@ const modules = {
   5300: { default: { show: o => console.log("DIALOG " + o.title + " | " + o.body) } },
   4809: { default: { open: (key, o) => console.log("TOAST " + (o && o.text)) } },
   6889: { Clipboard: { setString() {}, getString: () => Promise.resolve("") } },
+  // Voice channel options: the sounds Discord's soundboard store has loaded, one list per server (the servers come from scenes.jsx).
+  5428: { default: store({ getSounds: () => SOUNDS }) }, 5430: { DEFAULT_SOUND_GUILD_ID: "0" }, 7048: { maybeFetchSoundboardSounds() {} },
 };
+const sound = (guildId, i, name, emojiName) => ({ soundId: String(100 + i), guildId, name, emojiName, emojiId: null, available: true });
+const SOUNDS = q.get("sounds") === "0" ? new Map() : new Map([
+  ["0", [["Quack", "\u{1F986}"], ["Airhorn", "\u{1F4E2}"], ["Crickets", "\u{1F997}"], ["Cow", "\u{1F42E}"], ["Wow", "\u{1F62E}"], ["Golf clap", "\u{1F44F}"],
+    ["Sad horn", "\u{1F3BA}"], ["Bonk", "\u{1F528}"], ["Ba dum tss", "\u{1F941}"]].map(([name, emoji], i) => sound("0", i, name, emoji))],
+  ["1100000000000000002", [["SUS", "\u{1F928}"], ["RAHHH", "\u{1F480}"], ["Cat laughing", "\u{1F63C}"], ["Metal pipe", "\u{1F974}"], ["Yippee", "\u{1F389}"], ["Boing", "\u{1F998}"],
+    ["Fart", "\u{1F4A9}"]].map(([name, emoji], i) => sound("1100000000000000002", 20 + i, name, emoji))],
+  ["1100000000000000003", [["EXE stopped", "\u274C"], ["Yoda death sound", ""], ["Trololo", "\u{1F921}"]].map(([name, emoji], i) => sound("1100000000000000003", 40 + i, name, emoji))],
+]);
 Object.assign(modules, S.modules(store, me));
 const icons = {};
 const fallback = new Proxy({}, { get: (_, k) => typeof k === "string" && /Icon$/.test(k) ? icons[k] || (icons[k] = D.makeIcon(k)) : undefined });
@@ -95,10 +108,13 @@ function boot() {
   colorTables();
   modules[14839] = { SETTING_RENDERER_CONFIG: { ACCOUNT: { type: "route", IconComponent: D.makeIcon("UserCircleIcon") } } };
   modules[14971] = { SettingsList: D.makeSettingsList(() => registry) };
+  modules[14974] = { toSettingListItems: node => node };
+  modules[14973] = { renderSettingItem: D.makeSettingItem(() => registry) };
+  modules[14838] = { default: D.makeBlocklistStore() };
   modules[10664] = { createList: x => x };
   const define = (id, exports) => global.__d((g, r, i, a, module) => { module.exports = exports; }, id, []);
   define(120, { default: () => {} });
-  [17, 19, 1162, 6265, 6896, 14971, 10664, 14839, 591, 589, 590, 1205].concat(S.hooked).forEach(id => define(id, modules[id]));
+  [17, 19, 1162, 6265, 6896, 14971, 14973, 14974, 14838, 10664, 14839, 591, 589, 590, 1205].concat(S.hooked).forEach(id => define(id, modules[id]));
   defined[120].exports.default();
   registry = defined[14839].exports.SETTING_RENDERER_CONFIG;
 }
@@ -111,18 +127,24 @@ window.__venusStart = function () {
     ReactDOM.createRoot(document.getElementById("root")).render(<SceneFrame />); return;
   }
   const page = q.get("page") || "VENUS_PLUGINS", node = registry[page];
+  if (!node) console.warn("No page called " + page);
   const Page = node && node.screen && node.screen.getComponent();
   if (q.get("search")) setTimeout(() => { const input = document.querySelector("input"); if (input) { const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set; set.call(input, q.get("search")); input.dispatchEvent(new Event("input", { bubbles: true })); } }, 300);
   function Frame() {
-    const [, bump] = React.useState(0);
+    const [, bump] = React.useState(0), [sheets, setSheets] = React.useState([]);
     rerender = () => bump(n => n + 1);
+    // Sheets Venus opens (showActionSheet) slide up over the page, like Discord's.
+    S.setHost({ show: (key, content) => setSheets(list => list.filter(x => x.key !== key).concat([{ key, content }])), hide: key => setSheets(list => list.filter(x => x.key !== key)) });
     const title = node && node.useTitle ? node.useTitle() : page;
-    return <RNW.View style={{ width: 412, minHeight: "100vh", backgroundColor: D.tok("BACKGROUND_BASE_LOW") }}>
+    return <RNW.View style={{ width: Number(q.get("width")) || D.W, minHeight: "100vh", backgroundColor: D.tok("BACKGROUND_BASE_LOW") }}>
       <RNW.View style={{ height: 56, flexDirection: "row", alignItems: "center", gap: 16, paddingHorizontal: 16 }}>
         {React.createElement(D.makeIcon("ArrowLargeLeftIcon"), { size: "md", color: D.tok("INTERACTIVE_ICON_DEFAULT") })}
         <D.Text variant="heading-lg/bold" color="text-strong">{title}</D.Text>
       </RNW.View>
       {Page ? <Page /> : <D.Text color="text-feedback-critical">No page called {page}</D.Text>}
+      {sheets.length ? <RNW.View style={{ position: "fixed", top: 0, left: 0, bottom: 0, width: Number(q.get("width")) || 412, backgroundColor: D.tok("BACKGROUND_SCRIM"), justifyContent: "flex-end" }}>
+        <RNW.View style={{ maxHeight: "92%", overflow: "scroll" }}>{sheets[sheets.length - 1].content}</RNW.View>
+      </RNW.View> : null}
     </RNW.View>;
   }
   ReactDOM.createRoot(document.getElementById("root")).render(<Frame />);
@@ -130,8 +152,11 @@ window.__venusStart = function () {
 };
 
 // tap=<text>: taps the first element whose accessibility label or text is exactly that, after the page draws.
-if (q.get("tap")) setTimeout(() => {
-  const want = q.get("tap"), all = Array.from(document.querySelectorAll("#root [aria-label], #root div[tabindex], #root [role]"));
-  const hit = all.find(e => e.getAttribute("aria-label") === want) || all.find(e => (e.innerText || "").trim() === want);
+// Several taps are separated by "|" and run one after another.
+if (q.get("tap")) q.get("tap").split("|").forEach((want, i) => setTimeout(() => {
+  const all = Array.from(document.querySelectorAll("#root [aria-label], #root div[tabindex], #root [role]"));
+  // A row's own text (its title, without the description under it) taps the row it's in.
+  const hit = all.find(e => e.getAttribute("aria-label") === want) || all.find(e => (e.innerText || "").trim() === want) ||
+    Array.from(document.querySelectorAll("#root div[dir], #root span")).find(e => !e.children.length && (e.textContent || "").trim() === want);
   if (hit) hit.click(); else console.warn("tap: nothing labelled " + want);
-}, 400);
+}, 400 + i * 300));

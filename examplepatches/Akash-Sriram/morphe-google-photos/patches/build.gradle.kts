@@ -3,10 +3,10 @@ group = "app.morphe"
 patches {
     about {
         name = "Morphe Google Photos Patches"
-        description = "Google Photos patches, ported for Morphe."
+        description = "Advanced Google Photos patches featuring decoupled DCIM, independent folder backup control, native Morphe Toolkit, AMOLED dark theme, and GmsCore support."
         source = "https://github.com/Akash-Sriram/morphe-google-photos"
-        author = "Morphe Photo Patches"
-        contact = "na"
+        author = "Akash Sriram"
+        contact = "https://github.com/Akash-Sriram/morphe-google-photos/issues"
         website = "https://github.com/Akash-Sriram/morphe-google-photos"
         license = "GNU General Public License v3.0, with additional GPL section 7 requirements"
     }

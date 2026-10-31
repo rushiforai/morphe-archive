@@ -20,6 +20,7 @@ import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.patches.telegram.misc.messagemenu.CHOSEN
 import app.morphe.patches.telegram.misc.messagemenu.FILL
+import app.morphe.patches.telegram.misc.messagemenu.isSelectionCanCopy
 import app.morphe.patches.telegram.misc.messagemenu.messageMenuPatch
 import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
@@ -58,8 +59,8 @@ class OutsideTranslateFixtureTest {
         "Lorg/telegram/tgnet/TLRPC\$TL_messageActionEmpty;", "Lorg/telegram/messenger/MessagesController;",
         "Lorg/telegram/messenger/ChatObject;", "Lorg/telegram/messenger/UserObject;", "Lorg/telegram/messenger/DialogObject;",
         "Lorg/telegram/messenger/FileLoader;", "Lorg/telegram/messenger/ApplicationLoader;", "Landroidx/core/content/FileProvider;",
-        "Lorg/telegram/messenger/SendMessagesHelper;", "Lorg/telegram/tgnet/TLRPC\$Dialog;", "Lorg/telegram/tgnet/TLRPC\$Chat;",
-        "Lorg/telegram/messenger/R\$string;",
+        "Lorg/telegram/messenger/SendMessagesHelper;", "Lorg/telegram/messenger/AccountInstance;", "Lorg/telegram/tgnet/TLRPC\$Dialog;",
+        "Lorg/telegram/tgnet/TLRPC\$Chat;", "Lorg/telegram/messenger/R\$string;",
     )
 
     private fun Instruction.shape() = listOf(opcode, namedRegisters(), (this as? ReferenceInstruction)?.reference?.toString())
@@ -74,7 +75,7 @@ class OutsideTranslateFixtureTest {
                 params.size == 3 && params[0] == "I" && params[1] == "I" && params[2] in setOf("Ljava/lang/String;", "Ljava/lang/CharSequence;") &&
                 m.returnType.startsWith("Lorg/telegram/ui/ActionBar/") ||
                 neighbours && (AccessFlags.STATIC.isSet(m.accessFlags) && params == listOf("I", "I", list, list) && m.returnType == "V" ||
-                    m.name == "getParentActivity" && params.isEmpty() ||
+                    m.name == "getParentActivity" && params.isEmpty() || m.isSelectionCanCopy() ||
                     m.controlBody().map { it.controlRef() }.let { IS_PREMIUM in it && FORWARDS in it && NAME_HIDE in it })
         }
         val items = found.flatMap { it.methods }.filter { m ->

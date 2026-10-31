@@ -227,7 +227,7 @@ class FeedVideoAloneFixtureTest {
                 val answers = listOf(
                     Triple(fetchOwner to fetch, HOLDS_BACK, 0),
                     Triple(loaderOwner to loader, HOLDS_BACK, 0),
-                    Triple(sourceOwner to source, SEED_ONLY, 1),
+                    Triple(sourceOwner to source, SEED_CHECK, 1),
                 )
                 for ((at, hook, answer) in answers) {
                     val (owner, method) = at
@@ -278,7 +278,7 @@ class FeedVideoAloneFixtureTest {
             "${stub!!.definingClass}->${stub.name}(${stub.parameterTypes.joinToString("")})${stub.returnType}")
         assertTrue("the stub isn't public static",
             AccessFlags.STATIC.isSet(stub.accessFlags) && AccessFlags.PUBLIC.isSet(stub.accessFlags))
-        for (hook in listOf(FEED_VIDEO_TAPPED, VIEWER_OPENING, HOLDS_BACK, WARION_OPENING, WARION_CLOSED, SEED_ONLY, MORE_REELS_COMING)) {
+        for (hook in listOf(FEED_VIDEO_TAPPED, VIEWER_OPENING, HOLDS_BACK, WARION_OPENING, WARION_CLOSED, SEED_CHECK, MORE_REELS_COMING)) {
             val type = hook.substringBefore("->")
             val name = hook.substringAfter("->").substringBefore("(")
             val method = ExtensionDex.classDef(type).methods.singleOrNull { it.name == name }

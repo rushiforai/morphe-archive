@@ -1,3 +1,15 @@
+## [1.31.0](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.30.1...v1.31.0) (2026-10-30)
+
+### ⚠ BREAKING CHANGES
+
+* **word:** drop Word patch target
+* **powerpoint:** drop PowerPoint patch target
+
+### New Features
+
+* **powerpoint:** drop PowerPoint patch target ([4350310](https://github.com/kveld9/kveld-extra-morphe-patches/commit/4350310a23a01e9a43d5ee4e29c92c483b15cddc))
+* **word:** drop Word patch target ([b2e054f](https://github.com/kveld9/kveld-extra-morphe-patches/commit/b2e054f07338fe34c39a62c8c29d00e93ebde638))
+
 ## [1.30.1](https://github.com/kveld9/kveld-extra-morphe-patches/compare/v1.30.0...v1.30.1) (2026-10-28)
 
 ### Bug Fixes

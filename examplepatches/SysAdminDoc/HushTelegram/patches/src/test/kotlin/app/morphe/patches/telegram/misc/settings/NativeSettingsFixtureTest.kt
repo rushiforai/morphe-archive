@@ -88,7 +88,12 @@ class NativeSettingsFixtureTest {
             assertEquals(1, row.body().count { it.ref() == "$ENTRY->nativeSettingsTitle()Ljava/lang/String;" })
             assertEquals(1, row.body().count { it.ref() == factory.toString() })
             assertEquals(1, row.body().count { it.ref() == APPEND })
-            assertEquals(NATIVE_ROW_ID, (row.body().first() as NarrowLiteralInstruction).narrowLiteral)
+            // The way's switch is asked first, and the row is only built when it answers yes.
+            assertEquals("$ENTRY->nativeRowShown()Z", row.body().first().ref())
+            assertEquals(Opcode.MOVE_RESULT, row.body()[1].opcode)
+            assertEquals(Opcode.IF_EQZ, row.body()[2].opcode)
+            assertEquals(NATIVE_ROW_ID, (row.body()[3] as NarrowLiteralInstruction).narrowLiteral)
+            assertEquals(Opcode.RETURN_VOID, row.body().last().opcode)
             assertEquals(listOf(0, 1, 2, 3, 4, 5, 6), row.body().single { it.ref() == factory.toString() }.namedRegisters())
             assertEquals(listOf(7, 0), row.body().single { it.ref() == APPEND }.namedRegisters())
             val builder = owner.methods.single { it.toString() == plan.builder.toString() }
@@ -149,8 +154,9 @@ class NativeSettingsFixtureTest {
             val before = operations(method)
             val warnings = PatchLogCapture.warnings { hideCommercePatch.execute(context) }
             // Only Settings is loaded here: the profile, channel, Wallet menu, Send Gram and Premium
-            // sticker targets each report themselves missing.
-            assertEquals(CommerceTarget.entries.size - 1 + PremiumStickerTarget.entries.size, warnings.size)
+            // sticker targets each report themselves missing, and so do the emoji status, Premium
+            // app icon and local emoji status switches.
+            assertEquals(CommerceTarget.entries.size - 1 + PremiumStickerTarget.entries.size + 3, warnings.size)
             assertEquals(1, method.body().count { it.ref()?.contains("->$NATIVE_ROW_BRIDGE(") == true })
             assertEquals(5, method.body().count { it.ref()?.contains("->addSettingsRow(") == true })
             val body = method.body()
@@ -163,7 +169,8 @@ class NativeSettingsFixtureTest {
             for ((name, expected) in mapOf("hideCommerce" to 1, "commerceSettingsRows" to 1,
                 "commerceProfileGifts" to 0, "commerceChannelGift" to 0, "commerceAttachWallet" to 0, "commerceMenuWallet" to 0,
                 "commerceProfileSendGram" to 0, "commerceAddressSendGram" to 0, "commerceTransferSendGram" to 0,
-                "commercePremiumStickers" to 0, "commercePremiumEffects" to 0, "commercePremiumEmojiPacks" to 0)) {
+                "commercePremiumStickers" to 0, "commercePremiumEffects" to 0, "commercePremiumEmojiPacks" to 0,
+                "commerceEmojiStatus" to 0, "commercePremiumIcons" to 0, "commerceLocalEmojiStatus" to 0)) {
                 val flag = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }
                 assertEquals(expected, (flag.body().first() as NarrowLiteralInstruction).narrowLiteral)
             }
@@ -209,7 +216,7 @@ class NativeSettingsFixtureTest {
             "click identity", "click title", "click switch", "ordinary account click", "click callback target",
             "click capture", "fill dispatch", "fill route", "view binding", "view owner", "parent access",
             "factory access", "factory store", "factory mask", "factory title", "renderer title",
-        ) + listOf("openFromNative", "nativeSettingsTitle").flatMap { listOf("missing $it", "access $it", "ambiguous $it") }) {
+        ) + listOf("openFromNative", "nativeSettingsTitle", "nativeRowShown").flatMap { listOf("missing $it", "access $it", "ambiguous $it") }) {
             val context = context(build)
             val plan = context.resolveNativeSettings()!!
             val owner = context.mutableClassDefBy(plan.builder.definingClass)

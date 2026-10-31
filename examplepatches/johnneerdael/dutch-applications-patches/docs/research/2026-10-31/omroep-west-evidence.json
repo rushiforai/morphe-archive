@@ -1,0 +1,4319 @@
+{
+  "date": "2026-10-31",
+  "scope": "Static original-APK research; no patch or runtime success implied",
+  "package": "nl.omroepwest.android",
+  "version_name": "20.1",
+  "version_code": 10596,
+  "min_sdk": 32,
+  "target_sdk": 36,
+  "publisher_sha256": "5b364bd01320e86c272a126b37b62be15753363565d930706c721d4909416a03",
+  "publisher_signature_verified_splits": true,
+  "repo_head": "8f32a79fa209923fc46747ed60d728da5385bbc5",
+  "artifacts": [
+    {
+      "name": "omroep-west.apks",
+      "bytes": 10099612,
+      "sha256": "8d72f5494d2a6c224efb3322ce9967f4d80455be4fde4239abb542a127657798"
+    },
+    {
+      "name": "base.apk",
+      "bytes": 18127793,
+      "sha256": "03763df28de7dbdf39e8b2018c4b4850788ab9865e6c55f48d3167bf8783c02f"
+    },
+    {
+      "name": "split_config.arm64_v8a.apk",
+      "bytes": 1991059,
+      "sha256": "20f145586482c2d5a7f9402253b13cec0d2b07a2322a6b9fd0d81dde910129b0"
+    },
+    {
+      "name": "split_config.xxxhdpi.apk",
+      "bytes": 310754,
+      "sha256": "a4612c48dd97db0a297c2b06993e3435dccb4328030766e7d25f7e97a4b79cc5"
+    }
+  ],
+  "smali_class_count": 15591,
+  "brabant_target_overlap": [
+    {
+      "source": "patches/src/main/kotlin/patches/brabant/AdsTargets.kt",
+      "source_sha256": "30385cbd8d9df851d4f62548383b525cc46bd57b32000eedfd47ca6005ca79d6",
+      "target_count": 16,
+      "same_owner_signature": [
+        {
+          "owner": "Lcom/startapp/sdk/adsbase/StartAppInitProvider;",
+          "signature": "attachInfo(Landroid/content/Context;Landroid/content/pm/ProviderInfo;)V"
+        },
+        {
+          "owner": "Lcom/bluebillywig/bbnativeshared/model/EmbedObject;",
+          "signature": "getAdSchedulingData()Lcom/bluebillywig/bbnativeshared/model/AdSchedulingData;"
+        },
+        {
+          "owner": "Lcom/bluebillywig/bbnativeshared/model/EmbedObject;",
+          "signature": "getAdServicesData()Ljava/util/List;"
+        }
+      ]
+    },
+    {
+      "source": "patches/src/main/kotlin/patches/brabant/TrackingTargets.kt",
+      "source_sha256": "a68987d0deeabb45e7ed554cd981ae952b55610d653292d65453964199c474a8",
+      "target_count": 46,
+      "same_owner_signature": [
+        {
+          "owner": "Lcom/startapp/sdk/internal/e2;",
+          "signature": "a(Landroid/content/Context;Lcom/startapp/sdk/adsbase/model/AdPreferences;)V"
+        }
+      ]
+    },
+    {
+      "source": "patches/src/main/kotlin/patches/brabant/ConsentTargets.kt",
+      "source_sha256": "5e6b655957e3cc67292ee6b525be6cb51d8160cd9f82a63dcfaf8c95e6e5c53b",
+      "target_count": 5,
+      "same_owner_signature": []
+    }
+  ],
+  "source_methods": [
+    {
+      "owner": "Lcom/startapp/sdk/adsbase/StartAppInitProvider;",
+      "signature": "attachInfo(Landroid/content/Context;Landroid/content/pm/ProviderInfo;)V",
+      "header": "public final attachInfo(Landroid/content/Context;Landroid/content/pm/ProviderInfo;)V",
+      "file": "smali_classes3/com/startapp/sdk/adsbase/StartAppInitProvider.smali",
+      "line": 17,
+      "body_sha256": "1108c8bba2254772ad9afa4208493b00ccea5eb1e3a013bb8b73863d444d4bba",
+      "file_sha256": "ce810a7a1d161730206bad05a67dcca5ddee607aa0764c886b46e79893d69f62",
+      "anchors": [],
+      "anchors_total": 0,
+      "full_body": "    .locals 0\n\n    invoke-super {p0, p1, p2}, Landroid/content/ContentProvider;->attachInfo(Landroid/content/Context;Landroid/content/pm/ProviderInfo;)V\n\n    invoke-static {p1}, Lcom/startapp/sdk/internal/xh;->c(Landroid/content/Context;)V\n\n    return-void\n"
+    },
+    {
+      "owner": "Lcom/startapp/sdk/internal/e2;",
+      "signature": "a(Landroid/content/Context;Lcom/startapp/sdk/adsbase/model/AdPreferences;)V",
+      "header": "public final a(Landroid/content/Context;Lcom/startapp/sdk/adsbase/model/AdPreferences;)V",
+      "file": "smali_classes3/com/startapp/sdk/internal/e2.smali",
+      "line": 475,
+      "body_sha256": "a30bfb266c51e0a3a9746eacb28109c74d777b2e32dd302b5d3fd7e3ba2f2157",
+      "file_sha256": "5f98a55b69eb3300be973b5968d735d24b49e8043f1170bbaaeea601ac673363",
+      "anchors": [
+        {
+          "line": 493,
+          "text": ".catchall {:try_start_0 .. :try_end_0} :catchall_0"
+        },
+        {
+          "line": 500,
+          "text": "invoke-static {v0}, Lcom/startapp/sdk/internal/o9;->a(Ljava/lang/Throwable;)V"
+        },
+        {
+          "line": 508,
+          "text": ".catchall {:try_start_1 .. :try_end_1} :catchall_1"
+        },
+        {
+          "line": 514,
+          "text": ".catchall {:try_start_2 .. :try_end_2} :catchall_2"
+        },
+        {
+          "line": 521,
+          "text": "invoke-static {p2}, Lcom/startapp/sdk/internal/o9;->a(Ljava/lang/Throwable;)V"
+        },
+        {
+          "line": 527,
+          "text": ".catchall {:try_start_3 .. :try_end_3} :catchall_3"
+        },
+        {
+          "line": 534,
+          "text": "invoke-static {p2}, Lcom/startapp/sdk/internal/o9;->a(Ljava/lang/Throwable;)V"
+        },
+        {
+          "line": 538,
+          "text": "sget-object p2, Lcom/startapp/sdk/internal/gh;->b:Ljava/util/concurrent/atomic/AtomicBoolean;"
+        },
+        {
+          "line": 577,
+          "text": "sget-object p2, Lcom/startapp/sdk/internal/gh;->a:Ljava/lang/String;"
+        },
+        {
+          "line": 581,
+          "text": ".catchall {:try_start_4 .. :try_end_4} :catchall_4"
+        },
+        {
+          "line": 586,
+          "text": "invoke-static {p2}, Lcom/startapp/sdk/internal/o9;->a(Ljava/lang/Throwable;)V"
+        },
+        {
+          "line": 608,
+          "text": ".catchall {:try_start_5 .. :try_end_5} :catchall_5"
+        },
+        {
+          "line": 615,
+          "text": "invoke-static {p2}, Lcom/startapp/sdk/internal/o9;->a(Ljava/lang/Throwable;)V"
+        },
+        {
+          "line": 621,
+          "text": ".catchall {:try_start_6 .. :try_end_6} :catchall_6"
+        },
+        {
+          "line": 628,
+          "text": "invoke-static {p2}, Lcom/startapp/sdk/internal/o9;->a(Ljava/lang/Throwable;)V"
+        },
+        {
+          "line": 634,
+          "text": ".catchall {:try_start_7 .. :try_end_7} :catchall_7"
+        },
+        {
+          "line": 641,
+          "text": "invoke-static {p0}, Lcom/startapp/sdk/internal/o9;->a(Ljava/lang/Throwable;)V"
+        }
+      ],
+      "anchors_total": 17,
+      "full_body": null
+    },
+    {
+      "owner": "Lcom/bluebillywig/bbnativeshared/model/EmbedObject;",
+      "signature": "getAdSchedulingData()Lcom/bluebillywig/bbnativeshared/model/AdSchedulingData;",
+      "header": "public final getAdSchedulingData()Lcom/bluebillywig/bbnativeshared/model/AdSchedulingData;",
+      "file": "smali/com/bluebillywig/bbnativeshared/model/EmbedObject.smali",
+      "line": 2778,
+      "body_sha256": "85e26e8f5504136dd32258c2c234d032ea8264d07c2da43d685d88b3144889de",
+      "file_sha256": "0df1fab52e9f1715fbeb51db4487102ccaf841245cae0cce4a4e8ae65639d0dc",
+      "anchors": [],
+      "anchors_total": 0,
+      "full_body": "    .locals 0\n\n    iget-object p0, p0, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->adSchedulingData:Lcom/bluebillywig/bbnativeshared/model/AdSchedulingData;\n\n    return-object p0\n"
+    },
+    {
+      "owner": "Lcom/bluebillywig/bbnativeshared/model/EmbedObject;",
+      "signature": "getAdServicesData()Ljava/util/List;",
+      "header": "public final getAdServicesData()Ljava/util/List;",
+      "file": "smali/com/bluebillywig/bbnativeshared/model/EmbedObject.smali",
+      "line": 2786,
+      "body_sha256": "12a2ad9bc9f92d85692c54f771adc2094a73c967cc53996522f4798880d9127f",
+      "file_sha256": "0df1fab52e9f1715fbeb51db4487102ccaf841245cae0cce4a4e8ae65639d0dc",
+      "anchors": [],
+      "anchors_total": 0,
+      "full_body": "    .locals 0\n    .annotation system Ldalvik/annotation/Signature;\n        value = {\n            \"()\",\n            \"Ljava/util/List<\",\n            \"Lcom/bluebillywig/bbnativeshared/model/AdUnit;\",\n            \">;\"\n        }\n    .end annotation\n\n    iget-object p0, p0, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->adServicesData:Ljava/util/List;\n\n    return-object p0\n"
+    },
+    {
+      "owner": "Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;",
+      "signature": "e(Lz7;)V",
+      "header": "public final e(Lz7;)V",
+      "file": "smali_classes3/nl/pinch/optoutadvertising/sdk/ui/OptOutAdView.smali",
+      "line": 510,
+      "body_sha256": "6fd130678e026672f8a3b7eeff62d46ed6626ef377f4968afb673251bb5e242c",
+      "file_sha256": "448ad7438ba642b0f72fa38e353882f9d3eab71158d77eb72b192dea225db010",
+      "anchors": [
+        {
+          "line": 531,
+          "text": "invoke-direct {p0}, Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;->getWrappedAdView()Lnl/pinch/optoutadvertising/sdk/webview/OptOutBridgeWebView;"
+        },
+        {
+          "line": 541,
+          "text": "invoke-virtual {v0, v1}, Lnl/pinch/optoutadvertising/sdk/webview/OptOutBridgeWebView;->e(Lz7;)V"
+        }
+      ],
+      "anchors_total": 2,
+      "full_body": "    .locals 3\n\n    iget-object v0, p0, Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;->c:Lix0;\n\n    iget-object v0, v0, Lix0;->b:Ljava/lang/Object;\n\n    check-cast v0, Lpi7;\n\n    new-instance v1, Lzk8;\n\n    const/4 v2, 0x0\n\n    invoke-direct {v1, v2, v2, v2}, Lzk8;-><init>(ZZZ)V\n\n    invoke-virtual {v0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;\n\n    const/4 v2, 0x0\n\n    invoke-virtual {v0, v2, v1}, Lpi7;->k(Ljava/lang/Object;Ljava/lang/Object;)Z\n\n    invoke-direct {p0}, Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;->getWrappedAdView()Lnl/pinch/optoutadvertising/sdk/webview/OptOutBridgeWebView;\n\n    move-result-object v0\n\n    new-instance v1, Lls8;\n\n    const/16 v2, 0x1c\n\n    invoke-direct {v1, v2, p1, p0}, Lls8;-><init>(ILjava/lang/Object;Ljava/lang/Object;)V\n\n    invoke-virtual {v0, v1}, Lnl/pinch/optoutadvertising/sdk/webview/OptOutBridgeWebView;->e(Lz7;)V\n\n    return-void\n"
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/base/BaseController;",
+      "signature": "buildModels()V",
+      "header": "public buildModels()V",
+      "file": "smali_classes3/nl/stichtingrpo/news/base/BaseController.smali",
+      "line": 4725,
+      "body_sha256": "ac2546526678e4a276500cc89dd341a8b4c7a7c937d57c7a747bd9dad6c4a6af",
+      "file_sha256": "817e4e648d145bc31efb166d4a231c73e66956982a3891b3649e8f976027bc1a",
+      "anchors": [
+        {
+          "line": 4781,
+          "text": "invoke-direct {p0, v0, v2}, Lnl/stichtingrpo/news/base/BaseController;->renderColumn(La71;Let5;)V"
+        },
+        {
+          "line": 4878,
+          "text": "const-string v7, \"section_\""
+        },
+        {
+          "line": 4934,
+          "text": "invoke-direct {v5}, Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModel_;-><init>()V"
+        },
+        {
+          "line": 4946,
+          "text": "invoke-interface {v5, v7}, Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;->id(Ljava/lang/CharSequence;)Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;"
+        },
+        {
+          "line": 4950,
+          "text": "invoke-interface {v5, v7}, Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;->layout(I)Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;"
+        },
+        {
+          "line": 4954,
+          "text": "invoke-interface {v5, v3}, Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;->backgroundOffset(I)Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;"
+        },
+        {
+          "line": 4972,
+          "text": "invoke-interface {v5, v3}, Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;->backgroundColor(Ljava/lang/Integer;)Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;"
+        },
+        {
+          "line": 4984,
+          "text": "invoke-interface {v5, v2}, Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;->shouldUseNegativeMargins(Z)Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;"
+        },
+        {
+          "line": 5002,
+          "text": "invoke-interface {v5, v2}, Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;->backgroundColorDarkMode(Ljava/lang/Integer;)Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;"
+        },
+        {
+          "line": 5010,
+          "text": "invoke-interface {v5, v2}, Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;->isEmbedded(Z)Lnl/stichtingrpo/news/views/epoxy/models/VerticalGroupModelBuilder;"
+        },
+        {
+          "line": 5022,
+          "text": "invoke-direct {p0, v2, v3}, Lnl/stichtingrpo/news/base/BaseController;->renderColumn(La71;Let5;)V"
+        },
+        {
+          "line": 5039,
+          "text": "invoke-direct {p0, v2, v3}, Lnl/stichtingrpo/news/base/BaseController;->renderColumn(La71;Let5;)V"
+        },
+        {
+          "line": 5054,
+          "text": "const-string v8, \"_twocolumn\""
+        },
+        {
+          "line": 5078,
+          "text": "const-string v9, \"_leftcolumn\""
+        },
+        {
+          "line": 5102,
+          "text": "invoke-direct {p0, v9, v12}, Lnl/stichtingrpo/news/base/BaseController;->renderColumn(La71;Let5;)V"
+        },
+        {
+          "line": 5116,
+          "text": "const-string v2, \"_rightcolumn\""
+        },
+        {
+          "line": 5138,
+          "text": "invoke-direct {p0, v2, v7}, Lnl/stichtingrpo/news/base/BaseController;->renderColumn(La71;Let5;)V"
+        }
+      ],
+      "anchors_total": 17,
+      "full_body": null
+    },
+    {
+      "owner": "Ly43;",
+      "signature": "T(Lt43;Ly43;Let5;Lxp5;Lki6;)V",
+      "header": "public static final T(Lt43;Ly43;Let5;Lxp5;Lki6;)V",
+      "file": "smali_classes3/y43.smali",
+      "line": 95,
+      "body_sha256": "176b9beff266dc56b1f1e95bfebf0d78046893227290bcd5466cffedabf47e97",
+      "file_sha256": "105ff7f527a908eb90c9dde73871ef59881c9a44f819a37a70a42d8ffa809d83",
+      "anchors": [
+        {
+          "line": 102,
+          "text": "const-string v1, \"_advertisement\""
+        },
+        {
+          "line": 110,
+          "text": "invoke-virtual {v1}, Lnl/stichtingrpo/news/base/BaseController;->getDisabledAdIds()Ljava/util/Set;"
+        },
+        {
+          "line": 150,
+          "text": "invoke-virtual {v1}, Lnl/stichtingrpo/news/base/BaseController;->getDidRotateScreen()Z"
+        },
+        {
+          "line": 172,
+          "text": "invoke-direct {v2}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;-><init>()V"
+        },
+        {
+          "line": 176,
+          "text": "invoke-interface {v2, v4}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->id(Ljava/lang/CharSequence;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 180,
+          "text": "invoke-interface {v2, v4}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->isHalfWidth(Z)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 184,
+          "text": "invoke-interface {v2, v5}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->showLabel(Z)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 186,
+          "text": "invoke-interface {v2, v4}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->canBeFluid(Z)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 196,
+          "text": "iget-object v5, v5, Lr37;->j:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 198,
+          "text": "sget-object v6, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 204,
+          "text": "invoke-static {v5}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;"
+        },
+        {
+          "line": 208,
+          "text": "invoke-interface {v2, v5}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->isNewNavigationEnabled(Ljava/lang/Boolean;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 210,
+          "text": "invoke-static {p0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;"
+        },
+        {
+          "line": 214,
+          "text": "invoke-interface {v2, p0}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->isLeft(Ljava/lang/Boolean;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 216,
+          "text": "invoke-interface {v2, p3}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->pageMetadata(Lxp5;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 218,
+          "text": "invoke-interface {v2, v3}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->component(Lx9;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 220,
+          "text": "invoke-interface {v2, v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->timestamp(J)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 228,
+          "text": "invoke-interface {v2, p0}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->loadFailedAction(Lty2;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        }
+      ],
+      "anchors_total": 18,
+      "full_body": null
+    },
+    {
+      "owner": "Ly43;",
+      "signature": "U(Ly43;Lt9;)Z",
+      "header": "public static final U(Ly43;Lt9;)Z",
+      "file": "smali_classes3/y43.smali",
+      "line": 243,
+      "body_sha256": "2bbf37a9c4d272d36a8b5abdfb4d425f2162f55efabb8aa1a5da6c138ae29c3d",
+      "file_sha256": "105ff7f527a908eb90c9dde73871ef59881c9a44f819a37a70a42d8ffa809d83",
+      "anchors": [],
+      "anchors_total": 0,
+      "full_body": "    .locals 2\n\n    iget-object p0, p0, Ly43;->d:Landroid/content/Context;\n\n    invoke-virtual {p0}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;\n\n    move-result-object p0\n\n    const v0, 0x7f050009\n\n    invoke-virtual {p0, v0}, Landroid/content/res/Resources;->getBoolean(I)Z\n\n    move-result p0\n\n    const/4 v0, 0x0\n\n    if-eqz p1, :cond_0\n\n    iget-object v1, p1, Lt9;->a:Lv9;\n\n    if-eqz v1, :cond_0\n\n    iget-object v1, v1, Lv9;->b:Ljava/util/List;\n\n    goto :goto_0\n\n    :cond_0\n    move-object v1, v0\n\n    :goto_0\n    if-eqz v1, :cond_1\n\n    if-nez p0, :cond_3\n\n    :cond_1\n    if-eqz p1, :cond_2\n\n    iget-object p1, p1, Lt9;->a:Lv9;\n\n    if-eqz p1, :cond_2\n\n    iget-object v0, p1, Lv9;->c:Ljava/util/List;\n\n    :cond_2\n    if-eqz v0, :cond_4\n\n    if-nez p0, :cond_4\n\n    :cond_3\n    const/4 p0, 0x1\n\n    return p0\n\n    :cond_4\n    const/4 p0, 0x0\n\n    return p0\n"
+    },
+    {
+      "owner": "Ly43;",
+      "signature": "W(Lia5;Ly43;Lxp5;Lka5;Let5;Z)V",
+      "header": "public static final W(Lia5;Ly43;Lxp5;Lka5;Let5;Z)V",
+      "file": "smali_classes3/y43.smali",
+      "line": 303,
+      "body_sha256": "feca90b530cca9b2884317fe6ae6822d8102e21fb7c5219621fc954c7d5f3758",
+      "file_sha256": "105ff7f527a908eb90c9dde73871ef59881c9a44f819a37a70a42d8ffa809d83",
+      "anchors": [
+        {
+          "line": 320,
+          "text": "const-string v1, \"_advertisement\""
+        },
+        {
+          "line": 328,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/base/BaseController;->getDisabledAdIds()Ljava/util/Set;"
+        },
+        {
+          "line": 372,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/base/BaseController;->getDidRotateScreen()Z"
+        },
+        {
+          "line": 392,
+          "text": "invoke-direct {v0}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;-><init>()V"
+        },
+        {
+          "line": 396,
+          "text": "invoke-interface {v0, v5}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->id(Ljava/lang/CharSequence;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 400,
+          "text": "invoke-interface {v0, v5}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->showLabel(Z)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 404,
+          "text": "invoke-interface {v0, v5}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->canBeFluid(Z)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 412,
+          "text": "iget-object v5, v5, Lr37;->j:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 414,
+          "text": "sget-object v6, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 420,
+          "text": "invoke-static {v5}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;"
+        },
+        {
+          "line": 424,
+          "text": "invoke-interface {v0, v5}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->isNewNavigationEnabled(Ljava/lang/Boolean;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 426,
+          "text": "invoke-interface {v0, v4}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->component(Lx9;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 428,
+          "text": "invoke-interface {v0, p2}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->pageMetadata(Lxp5;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 430,
+          "text": "invoke-interface {v0, v2, v3}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->timestamp(J)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 438,
+          "text": "invoke-interface {v0, p2}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;->loadFailedAction(Lty2;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModelBuilder;"
+        },
+        {
+          "line": 452,
+          "text": "iget-object p2, p2, Lr37;->j:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 454,
+          "text": "sget-object p5, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 462,
+          "text": "iget-object p0, p0, Lia5;->u:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 480,
+          "text": "invoke-direct {p2}, Lnl/stichtingrpo/news/views/epoxy/models/DividerModel_;-><init>()V"
+        },
+        {
+          "line": 482,
+          "text": "const-string p5, \"_divider\""
+        },
+        {
+          "line": 488,
+          "text": "invoke-interface {p2, p3}, Lnl/stichtingrpo/news/views/epoxy/models/DividerModelBuilder;->id(Ljava/lang/CharSequence;)Lnl/stichtingrpo/news/views/epoxy/models/DividerModelBuilder;"
+        },
+        {
+          "line": 500,
+          "text": "invoke-interface {p2, p0}, Lnl/stichtingrpo/news/views/epoxy/models/DividerModelBuilder;->color(Ljava/lang/Integer;)Lnl/stichtingrpo/news/views/epoxy/models/DividerModelBuilder;"
+        }
+      ],
+      "anchors_total": 22,
+      "full_body": null
+    },
+    {
+      "owner": "Ly43;",
+      "signature": "X(Ly43;Lt9;)Z",
+      "header": "public static final X(Ly43;Lt9;)Z",
+      "file": "smali_classes3/y43.smali",
+      "line": 509,
+      "body_sha256": "2bbf37a9c4d272d36a8b5abdfb4d425f2162f55efabb8aa1a5da6c138ae29c3d",
+      "file_sha256": "105ff7f527a908eb90c9dde73871ef59881c9a44f819a37a70a42d8ffa809d83",
+      "anchors": [],
+      "anchors_total": 0,
+      "full_body": "    .locals 2\n\n    iget-object p0, p0, Ly43;->d:Landroid/content/Context;\n\n    invoke-virtual {p0}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;\n\n    move-result-object p0\n\n    const v0, 0x7f050009\n\n    invoke-virtual {p0, v0}, Landroid/content/res/Resources;->getBoolean(I)Z\n\n    move-result p0\n\n    const/4 v0, 0x0\n\n    if-eqz p1, :cond_0\n\n    iget-object v1, p1, Lt9;->a:Lv9;\n\n    if-eqz v1, :cond_0\n\n    iget-object v1, v1, Lv9;->b:Ljava/util/List;\n\n    goto :goto_0\n\n    :cond_0\n    move-object v1, v0\n\n    :goto_0\n    if-eqz v1, :cond_1\n\n    if-nez p0, :cond_3\n\n    :cond_1\n    if-eqz p1, :cond_2\n\n    iget-object p1, p1, Lt9;->a:Lv9;\n\n    if-eqz p1, :cond_2\n\n    iget-object v0, p1, Lv9;->c:Ljava/util/List;\n\n    :cond_2\n    if-eqz v0, :cond_4\n\n    if-nez p0, :cond_4\n\n    :cond_3\n    const/4 p0, 0x1\n\n    return p0\n\n    :cond_4\n    const/4 p0, 0x0\n\n    return p0\n"
+    },
+    {
+      "owner": "Lvb3;",
+      "signature": "L(Lub3;Let5;)Z",
+      "header": "public final L(Lub3;Let5;)Z",
+      "file": "smali_classes3/vb3.smali",
+      "line": 191,
+      "body_sha256": "03ed7941a82ee42a7ef6acd972f9e4cba06f0faa4c86fc5a5f30f66bc5303b48",
+      "file_sha256": "4cf6b85a8a65e3fde5774e5b4d7bfd50d78c1efb859a1d0d87da75198af66452",
+      "anchors": [
+        {
+          "line": 324,
+          "text": "const-string v8, \"_advertisement\""
+        },
+        {
+          "line": 332,
+          "text": "invoke-virtual {v10}, Lnl/stichtingrpo/news/base/BaseController;->getDisabledAdIds()Ljava/util/Set;"
+        },
+        {
+          "line": 370,
+          "text": "invoke-virtual {v10}, Lnl/stichtingrpo/news/base/BaseController;->getDidRotateScreen()Z"
+        },
+        {
+          "line": 395,
+          "text": "invoke-direct {v14}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;-><init>()V"
+        },
+        {
+          "line": 397,
+          "text": "invoke-virtual {v14, v8}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;->id(Ljava/lang/CharSequence;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;"
+        },
+        {
+          "line": 399,
+          "text": "invoke-virtual {v14, v7}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;->showLabel(Z)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;"
+        },
+        {
+          "line": 403,
+          "text": "invoke-virtual {v14, v10}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;->canBeFluid(Z)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;"
+        },
+        {
+          "line": 407,
+          "text": "invoke-virtual {v14, v10}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;->embedType(Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel$EmbedType;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;"
+        },
+        {
+          "line": 409,
+          "text": "invoke-virtual {v14, v11}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;->component(Lx9;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;"
+        },
+        {
+          "line": 413,
+          "text": "invoke-virtual {v14, v10, v11}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;->timestamp(J)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;"
+        },
+        {
+          "line": 421,
+          "text": "invoke-virtual {v14, v10}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;->loadFailedAction(Lty2;)Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;"
+        },
+        {
+          "line": 432,
+          "text": "invoke-direct {v8}, Lnl/stichtingrpo/news/views/epoxy/models/HorizontalScrollModel_;-><init>()V"
+        },
+        {
+          "line": 450,
+          "text": "invoke-virtual {v8, v11}, Lnl/stichtingrpo/news/views/epoxy/models/HorizontalScrollModel_;->id([Ljava/lang/Number;)Lnl/stichtingrpo/news/views/epoxy/models/HorizontalScrollModel_;"
+        },
+        {
+          "line": 452,
+          "text": "invoke-virtual {v8, v9}, Lnl/stichtingrpo/news/views/epoxy/models/HorizontalScrollModel_;->newsAsset(Lea5;)Lnl/stichtingrpo/news/views/epoxy/models/HorizontalScrollModel_;"
+        },
+        {
+          "line": 456,
+          "text": "invoke-virtual {v8, v10}, Lnl/stichtingrpo/news/views/epoxy/models/HorizontalScrollModel_;->thumbnailRatio(Lew7;)Lnl/stichtingrpo/news/views/epoxy/models/HorizontalScrollModel_;"
+        },
+        {
+          "line": 464,
+          "text": "invoke-virtual {v8, v10}, Lnl/stichtingrpo/news/views/epoxy/models/HorizontalScrollModel_;->clickAction(Lty2;)Lnl/stichtingrpo/news/views/epoxy/models/HorizontalScrollModel_;"
+        },
+        {
+          "line": 563,
+          "text": "invoke-direct {v7}, Lnl/stichtingrpo/news/views/epoxy/models/SpaceModel_;-><init>()V"
+        },
+        {
+          "line": 567,
+          "text": "const-string v9, \"horizontal-scroll-space-before\""
+        },
+        {
+          "line": 577,
+          "text": "invoke-interface {v7, v8}, Lnl/stichtingrpo/news/views/epoxy/models/SpaceModelBuilder;->id(Ljava/lang/CharSequence;)Lnl/stichtingrpo/news/views/epoxy/models/SpaceModelBuilder;"
+        },
+        {
+          "line": 579,
+          "text": "invoke-interface {v7, v1}, Lnl/stichtingrpo/news/views/epoxy/models/SpaceModelBuilder;->space(I)Lnl/stichtingrpo/news/views/epoxy/models/SpaceModelBuilder;"
+        },
+        {
+          "line": 653,
+          "text": "invoke-direct {v0}, Lnl/stichtingrpo/news/views/epoxy/models/SpaceModel_;-><init>()V"
+        },
+        {
+          "line": 657,
+          "text": "const-string v5, \"horizontal-scroll-space-after\""
+        },
+        {
+          "line": 667,
+          "text": "invoke-interface {v0, v2}, Lnl/stichtingrpo/news/views/epoxy/models/SpaceModelBuilder;->id(Ljava/lang/CharSequence;)Lnl/stichtingrpo/news/views/epoxy/models/SpaceModelBuilder;"
+        },
+        {
+          "line": 669,
+          "text": "invoke-interface {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/SpaceModelBuilder;->space(I)Lnl/stichtingrpo/news/views/epoxy/models/SpaceModelBuilder;"
+        }
+      ],
+      "anchors_total": 24,
+      "full_body": null
+    },
+    {
+      "owner": "Lot9;",
+      "signature": "e(Lqm5;Let5;Lxp5;)Z",
+      "header": "public e(Lqm5;Let5;Lxp5;)Z",
+      "file": "smali/ot9.smali",
+      "line": 1155,
+      "body_sha256": "204503cb964e63e91a5f5b2246160df092fe8f8e973ffb41f7eff74fe67578c1",
+      "file_sha256": "dce036d4195b54143213c3a3af5bcfe3dfa5e533c5d132031e871f16818efafa",
+      "anchors": [
+        {
+          "line": 1321,
+          "text": "const-string p1, \"Partner key must not be empty\""
+        },
+        {
+          "line": 1447,
+          "text": "const-string v4, \"android.intent.action.VIEW\""
+        },
+        {
+          "line": 1449,
+          "text": "const-string v6, \"https://stackoverflow.com\""
+        },
+        {
+          "line": 1471,
+          "text": "invoke-direct {p2}, Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModel_;-><init>()V"
+        },
+        {
+          "line": 1475,
+          "text": "invoke-interface {p2, v0}, Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModelBuilder;->id(Ljava/lang/CharSequence;)Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModelBuilder;"
+        },
+        {
+          "line": 1479,
+          "text": "invoke-interface {p2, v0}, Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModelBuilder;->widgetId(Ljava/lang/String;)Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModelBuilder;"
+        },
+        {
+          "line": 1502,
+          "text": "invoke-interface {p2, v2}, Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModelBuilder;->articleUrl(Ljava/lang/String;)Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModelBuilder;"
+        },
+        {
+          "line": 1506,
+          "text": "invoke-interface {p2, p1}, Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModelBuilder;->widgetIndex(I)Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModelBuilder;"
+        },
+        {
+          "line": 1508,
+          "text": "invoke-interface {p2, v3}, Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModelBuilder;->installationKey(Ljava/lang/String;)Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModelBuilder;"
+        },
+        {
+          "line": 1521,
+          "text": "invoke-direct {p2}, Lnl/stichtingrpo/news/views/epoxy/models/NoWebViewModel_;-><init>()V"
+        },
+        {
+          "line": 1531,
+          "text": "const-string p1, \" _no_webview\""
+        },
+        {
+          "line": 1539,
+          "text": "invoke-interface {p2, p1}, Lnl/stichtingrpo/news/views/epoxy/models/NoWebViewModelBuilder;->id(Ljava/lang/CharSequence;)Lnl/stichtingrpo/news/views/epoxy/models/NoWebViewModelBuilder;"
+        },
+        {
+          "line": 1548,
+          "text": "invoke-direct {p2}, Lnl/stichtingrpo/news/views/epoxy/models/NoBrowserModel_;-><init>()V"
+        },
+        {
+          "line": 1558,
+          "text": "const-string p1, \"_no_browser\""
+        },
+        {
+          "line": 1566,
+          "text": "invoke-interface {p2, p1}, Lnl/stichtingrpo/news/views/epoxy/models/NoBrowserModelBuilder;->id(Ljava/lang/CharSequence;)Lnl/stichtingrpo/news/views/epoxy/models/NoBrowserModelBuilder;"
+        }
+      ],
+      "anchors_total": 15,
+      "full_body": null
+    },
+    {
+      "owner": "Lot9;",
+      "signature": "onFailure(Ljava/lang/Throwable;)V",
+      "header": "public onFailure(Ljava/lang/Throwable;)V",
+      "file": "smali/ot9.smali",
+      "line": 2231,
+      "body_sha256": "4cd303520a968e71bc1683c79ee73a8645141ef8c5c00c1561eae2819c0f441f",
+      "file_sha256": "dce036d4195b54143213c3a3af5bcfe3dfa5e533c5d132031e871f16818efafa",
+      "anchors": [
+        {
+          "line": 2298,
+          "text": "invoke-virtual {p1}, Ljava/lang/Throwable;->toString()Ljava/lang/String;"
+        },
+        {
+          "line": 2306,
+          "text": "const-string v1, \"registerTriggerAsync failed. May try later. App ID, throwable\""
+        },
+        {
+          "line": 2341,
+          "text": "invoke-virtual {p1}, Ljava/lang/Throwable;->toString()Ljava/lang/String;"
+        },
+        {
+          "line": 2349,
+          "text": "const-string v5, \"registerTriggerAsync failed. App ID, delay in seconds, throwable\""
+        }
+      ],
+      "anchors_total": 4,
+      "full_body": null
+    },
+    {
+      "owner": "Lot9;",
+      "signature": "onSuccess(Ljava/lang/Object;)V",
+      "header": "public onSuccess(Ljava/lang/Object;)V",
+      "file": "smali/ot9.smali",
+      "line": 2421,
+      "body_sha256": "92c70db32a2742bf05c7ac23dad82d46f3a9a34b0b7cd1cf9db907f4c6dbd3b8",
+      "file_sha256": "dce036d4195b54143213c3a3af5bcfe3dfa5e533c5d132031e871f16818efafa",
+      "anchors": [
+        {
+          "line": 2510,
+          "text": "const-string v6, \"uriSources\""
+        },
+        {
+          "line": 2514,
+          "text": "const-string v3, \"uriTimestamps\""
+        },
+        {
+          "line": 2536,
+          "text": "const-string v1, \"Successfully registered trigger URI\""
+        }
+      ],
+      "anchors_total": 3,
+      "full_body": null
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel;",
+      "signature": "bind(Lnl/stichtingrpo/news/databinding/ListComponentOptOutAdvertisementBinding;)V",
+      "header": "public bind(Lnl/stichtingrpo/news/databinding/ListComponentOptOutAdvertisementBinding;)V",
+      "file": "smali_classes3/nl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel.smali",
+      "line": 312,
+      "body_sha256": "ddd4ef4275ace1a5ede0e0b00358e16a1792f515b03fea13564b77a203dbbb2b",
+      "file_sha256": "fb3628f639e7c79f7788a8ab2e60f6e3ec3ea545d129c7cba40ad109326a5079",
+      "anchors": [
+        {
+          "line": 321,
+          "text": "invoke-direct {p0, v0}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel;->prepareForReuse(Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;)V"
+        },
+        {
+          "line": 323,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel;->getComponent()Lx9;"
+        },
+        {
+          "line": 329,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel;->getComponent()Lx9;"
+        },
+        {
+          "line": 337,
+          "text": "invoke-direct {p0, v0}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel;->largestAdSize(Ljava/util/List;)Landroid/util/Size;"
+        },
+        {
+          "line": 341,
+          "text": "const-string v0, \"null cannot be cast to non-null type android.view.ViewGroup.MarginLayoutParams\""
+        },
+        {
+          "line": 357,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel;->getCanBeFluid()Z"
+        },
+        {
+          "line": 387,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel;->isLeft()Ljava/lang/Boolean;"
+        },
+        {
+          "line": 401,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ListComponentOptOutAdvertisementBinding;->getRoot()Lnl/stichtingrpo/news/views/AdContainer;"
+        },
+        {
+          "line": 415,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ListComponentOptOutAdvertisementBinding;->getRoot()Lnl/stichtingrpo/news/views/AdContainer;"
+        },
+        {
+          "line": 429,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ListComponentOptOutAdvertisementBinding;->getRoot()Lnl/stichtingrpo/news/views/AdContainer;"
+        },
+        {
+          "line": 522,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel;->getShowLabel()Z"
+        },
+        {
+          "line": 538,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ListComponentOptOutAdvertisementBinding;->getRoot()Lnl/stichtingrpo/news/views/AdContainer;"
+        },
+        {
+          "line": 556,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ListComponentOptOutAdvertisementBinding;->getRoot()Lnl/stichtingrpo/news/views/AdContainer;"
+        },
+        {
+          "line": 570,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel;->isLeft()Ljava/lang/Boolean;"
+        },
+        {
+          "line": 574,
+          "text": "sget-object v10, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 598,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel;->isLeft()Ljava/lang/Boolean;"
+        },
+        {
+          "line": 602,
+          "text": "sget-object v10, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 679,
+          "text": "const-string v0, \"tablet\""
+        },
+        {
+          "line": 684,
+          "text": "const-string v0, \"phone\""
+        },
+        {
+          "line": 697,
+          "text": "const-string v2, \"os\""
+        },
+        {
+          "line": 699,
+          "text": "const-string v4, \"android\""
+        },
+        {
+          "line": 701,
+          "text": "invoke-virtual {v9, v2, v4}, Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;->b(Ljava/lang/String;Ljava/lang/String;)V"
+        },
+        {
+          "line": 703,
+          "text": "const-string v2, \"device\""
+        },
+        {
+          "line": 705,
+          "text": "invoke-virtual {v9, v2, v0}, Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;->b(Ljava/lang/String;Ljava/lang/String;)V"
+        },
+        {
+          "line": 721,
+          "text": "const-string v2, \"darkmode\""
+        },
+        {
+          "line": 723,
+          "text": "invoke-virtual {v9, v2, v0}, Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;->b(Ljava/lang/String;Ljava/lang/String;)V"
+        },
+        {
+          "line": 733,
+          "text": "const-string v2, \"url\""
+        },
+        {
+          "line": 735,
+          "text": "invoke-virtual {v9, v2, v0}, Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;->b(Ljava/lang/String;Ljava/lang/String;)V"
+        },
+        {
+          "line": 744,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ListComponentOptOutAdvertisementBinding;->getRoot()Lnl/stichtingrpo/news/views/AdContainer;"
+        },
+        {
+          "line": 750,
+          "text": "invoke-direct {p0, p1, v9, v1}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel;->delayLoadForHorizontalScroll(Landroid/view/View;Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;Ll8;)V"
+        },
+        {
+          "line": 755,
+          "text": "invoke-virtual {v9, v1, v12}, Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;->c(Ll8;Landroid/util/Size;)V"
+        },
+        {
+          "line": 763,
+          "text": "invoke-virtual {v9, v0}, Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;->setOnHeightChangedListener(Lvy2;)V"
+        },
+        {
+          "line": 771,
+          "text": "invoke-direct/range {v1 .. v6}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel$bind$1$4$3;-><init>(Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel;Ljava/lang/String;Lnl/stichtingrpo/news/databinding/ListComponentOptOutAdvertisementBinding;Landroid/util/Size;Z)V"
+        },
+        {
+          "line": 775,
+          "text": "invoke-virtual {v9, v1}, Lnl/pinch/optoutadvertising/sdk/ui/OptOutAdView;->e(Lz7;)V"
+        },
+        {
+          "line": 779,
+          "text": "invoke-virtual {v4}, Lnl/stichtingrpo/news/databinding/ListComponentOptOutAdvertisementBinding;->getRoot()Lnl/stichtingrpo/news/views/AdContainer;"
+        }
+      ],
+      "anchors_total": 37,
+      "full_body": null
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModel;",
+      "signature": "bind(Lnl/stichtingrpo/news/databinding/ListComponentOutbrainBinding;)V",
+      "header": "public bind(Lnl/stichtingrpo/news/databinding/ListComponentOutbrainBinding;)V",
+      "file": "smali_classes3/nl/stichtingrpo/news/views/epoxy/models/OutbrainModel.smali",
+      "line": 148,
+      "body_sha256": "4a54cb24ac99a22a644ce5312620a592fd9387795f7e108c423cfd180c34a55d",
+      "file_sha256": "332418137f826c065150c9d8559718f82b37728d554e19a43ff9bb3a566b4662",
+      "anchors": [
+        {
+          "line": 153,
+          "text": "invoke-direct {p0, p1}, Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModel;->smartFeedWidget(Lfh8;)Lnl/stichtingrpo/news/views/SmartFeedWidget;"
+        },
+        {
+          "line": 157,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ListComponentOutbrainBinding;->getRoot()Lnl/stichtingrpo/news/views/SmartFeedWidget;"
+        },
+        {
+          "line": 171,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ListComponentOutbrainBinding;->getRoot()Lnl/stichtingrpo/news/views/SmartFeedWidget;"
+        },
+        {
+          "line": 212,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ListComponentOutbrainBinding;->getRoot()Lnl/stichtingrpo/news/views/SmartFeedWidget;"
+        },
+        {
+          "line": 230,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ListComponentOutbrainBinding;->getRoot()Lnl/stichtingrpo/news/views/SmartFeedWidget;"
+        },
+        {
+          "line": 243,
+          "text": "invoke-direct {v2, p0, p1, v0, v1}, Lrm5;-><init>(Lnl/stichtingrpo/news/views/epoxy/models/OutbrainModel;Lnl/stichtingrpo/news/databinding/ListComponentOutbrainBinding;Lnl/stichtingrpo/news/views/SmartFeedWidget;I)V"
+        },
+        {
+          "line": 249,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ListComponentOutbrainBinding;->getRoot()Lnl/stichtingrpo/news/views/SmartFeedWidget;"
+        },
+        {
+          "line": 263,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ListComponentOutbrainBinding;->getRoot()Lnl/stichtingrpo/news/views/SmartFeedWidget;"
+        }
+      ],
+      "anchors_total": 8,
+      "full_body": null
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;",
+      "signature": "A(Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;Lnl/stichtingrpo/news/databinding/ActivityVerticalVideoBinding;I)V",
+      "header": "public static final A(Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;Lnl/stichtingrpo/news/databinding/ActivityVerticalVideoBinding;I)V",
+      "file": "smali_classes3/nl/stichtingrpo/news/vertical_video/VerticalVideoActivity.smali",
+      "line": 102,
+      "body_sha256": "88f7c250c6ece2f136fb1c48500d0c4002dd810e23f87cc2dcddf8bddeaace66",
+      "file_sha256": "d593539ea8ae14f717fa96dc7450beb840f533accd04fae40130d27f09b07383",
+      "anchors": [
+        {
+          "line": 115,
+          "text": "invoke-virtual {v4}, Landroidx/viewpager2/widget/ViewPager2;->getAdapter()Lgh6;"
+        },
+        {
+          "line": 157,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->E()Lcf8;"
+        },
+        {
+          "line": 177,
+          "text": "invoke-virtual {v0, v12}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->D(I)I"
+        },
+        {
+          "line": 187,
+          "text": "const-string v14, \"allAssets\""
+        },
+        {
+          "line": 197,
+          "text": "invoke-virtual {v0, v13}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->D(I)I"
+        },
+        {
+          "line": 276,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->E()Lcf8;"
+        },
+        {
+          "line": 299,
+          "text": "sget-boolean v4, Lgp2;->b:Z"
+        },
+        {
+          "line": 303,
+          "text": "invoke-static {}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->C()V"
+        },
+        {
+          "line": 305,
+          "text": "const-string v11, \"5990173\""
+        },
+        {
+          "line": 331,
+          "text": "const-string v4, \"regiogroei_west_android_videoplayer_vertical_preroll\""
+        },
+        {
+          "line": 351,
+          "text": "const-string v11, \"https://\""
+        },
+        {
+          "line": 353,
+          "text": "const-string v12, \".\""
+        },
+        {
+          "line": 359,
+          "text": "const-string v9, \"sourceid_string:\""
+        },
+        {
+          "line": 367,
+          "text": "const-string v9, \"q\""
+        },
+        {
+          "line": 372,
+          "text": "const-string v9, \"c\""
+        },
+        {
+          "line": 415,
+          "text": "invoke-virtual {v1}, Le70;->a()Lcom/bluebillywig/bbnativeshared/model/MediaClip;"
+        },
+        {
+          "line": 443,
+          "text": "invoke-static {v6}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;"
+        },
+        {
+          "line": 447,
+          "text": "invoke-virtual {v4, v6}, Le70;->g(Ljava/lang/Boolean;)V"
+        },
+        {
+          "line": 465,
+          "text": "sget-object v7, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 469,
+          "text": "const-string v9, \"autoPlay\""
+        },
+        {
+          "line": 475,
+          "text": "const-string v10, \"noChromeCast\""
+        },
+        {
+          "line": 499,
+          "text": "invoke-static {v6}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;"
+        },
+        {
+          "line": 503,
+          "text": "invoke-virtual {v4, v6}, Le70;->g(Ljava/lang/Boolean;)V"
+        },
+        {
+          "line": 515,
+          "text": "invoke-virtual {v1}, Lnl/stichtingrpo/news/databinding/ActivityVerticalVideoBinding;->getRoot()Landroidx/constraintlayout/widget/ConstraintLayout;"
+        },
+        {
+          "line": 545,
+          "text": "sget-object v1, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;"
+        }
+      ],
+      "anchors_total": 25,
+      "full_body": null
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;",
+      "signature": "C()V",
+      "header": "public static C()V",
+      "file": "smali_classes3/nl/stichtingrpo/news/vertical_video/VerticalVideoActivity.smali",
+      "line": 568,
+      "body_sha256": "54b3478583086922322a57720d70dd63e03ebdf5d34023a5cfca588f3f014e4a",
+      "file_sha256": "d593539ea8ae14f717fa96dc7450beb840f533accd04fae40130d27f09b07383",
+      "anchors": [
+        {
+          "line": 571,
+          "text": "sget-boolean v0, Lgp2;->b:Z"
+        },
+        {
+          "line": 578,
+          "text": "const-string v0, \"This broadcaster does not support ads in vertical video!\""
+        }
+      ],
+      "anchors_total": 2,
+      "full_body": "    .locals 1\n\n    sget-boolean v0, Lgp2;->b:Z\n\n    if-eqz v0, :cond_0\n\n    return-void\n\n    :cond_0\n    const-string v0, \"This broadcaster does not support ads in vertical video!\"\n\n    invoke-static {v0}, Liq8;->n(Ljava/lang/String;)V\n\n    return-void\n"
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;",
+      "signature": "D(I)I",
+      "header": "public final D(I)I",
+      "file": "smali_classes3/nl/stichtingrpo/news/vertical_video/VerticalVideoActivity.smali",
+      "line": 636,
+      "body_sha256": "151a9de34c95173760780fb8389ebaa5d00a75f6356d9924835b6d5ab12a4734",
+      "file_sha256": "d593539ea8ae14f717fa96dc7450beb840f533accd04fae40130d27f09b07383",
+      "anchors": [
+        {
+          "line": 639,
+          "text": "sget-boolean v0, Lgp2;->b:Z"
+        },
+        {
+          "line": 662,
+          "text": "invoke-static {}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->C()V"
+        },
+        {
+          "line": 664,
+          "text": "const-string v3, \"5990173\""
+        },
+        {
+          "line": 680,
+          "text": "const-string p0, \"allAssets\""
+        }
+      ],
+      "anchors_total": 4,
+      "full_body": "    .locals 4\n\n    sget-boolean v0, Lgp2;->b:Z\n\n    if-eqz v0, :cond_3\n\n    const/4 v0, 0x0\n\n    move v1, p1\n\n    :goto_0\n    if-ge v0, p1, :cond_2\n\n    iget-object v2, p0, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->J:Ljava/util/List;\n\n    if-eqz v2, :cond_1\n\n    invoke-interface {v2, v0}, Ljava/util/List;->get(I)Ljava/lang/Object;\n\n    move-result-object v2\n\n    check-cast v2, Lea5;\n\n    iget-object v2, v2, Lea5;->y:Ljava/lang/String;\n\n    invoke-static {}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->C()V\n\n    const-string v3, \"5990173\"\n\n    invoke-static {v2, v3}, Lms3;->f(Ljava/lang/Object;Ljava/lang/Object;)Z\n\n    move-result v2\n\n    if-eqz v2, :cond_0\n\n    add-int/lit8 v1, v1, -0x1\n\n    :cond_0\n    add-int/lit8 v0, v0, 0x1\n\n    goto :goto_0\n\n    :cond_1\n    const-string p0, \"allAssets\"\n\n    invoke-static {p0}, Lms3;->E(Ljava/lang/String;)V\n\n    const/4 p0, 0x0\n\n    throw p0\n\n    :cond_2\n    return v1\n\n    :cond_3\n    return p1\n"
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;",
+      "signature": "onCreate(Landroid/os/Bundle;)V",
+      "header": "public final onCreate(Landroid/os/Bundle;)V",
+      "file": "smali_classes3/nl/stichtingrpo/news/vertical_video/VerticalVideoActivity.smali",
+      "line": 761,
+      "body_sha256": "6b74682e33046cf9aab6fcb09de94d902acb043a4877e2bc363c8e9d5da5b131",
+      "file_sha256": "d593539ea8ae14f717fa96dc7450beb840f533accd04fae40130d27f09b07383",
+      "anchors": [
+        {
+          "line": 764,
+          "text": "invoke-virtual {p0, p1}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->F(Landroid/os/Bundle;)V"
+        },
+        {
+          "line": 766,
+          "text": "invoke-virtual {p0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 785,
+          "text": "invoke-virtual {p0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 791,
+          "text": "invoke-virtual {p1}, Lnl/stichtingrpo/news/databinding/ActivityVerticalVideoBinding;->getRoot()Landroidx/constraintlayout/widget/ConstraintLayout;"
+        },
+        {
+          "line": 805,
+          "text": "invoke-virtual {p0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 822,
+          "text": "const-string v2, \"all_assets\""
+        },
+        {
+          "line": 828,
+          "text": ".catch Ljava/lang/Exception; {:try_start_0 .. :try_end_0} :catch_0"
+        },
+        {
+          "line": 830,
+          "text": "const-string v2, \"\""
+        },
+        {
+          "line": 846,
+          "text": "invoke-virtual {v5}, Lnl/stichtingrpo/news/models/NewsAsset$Companion;->serializer()Lnx3;"
+        },
+        {
+          "line": 858,
+          "text": ".catch Ljava/lang/Exception; {:try_start_1 .. :try_end_1} :catch_0"
+        },
+        {
+          "line": 864,
+          "text": "const-string v4, \"start_index\""
+        },
+        {
+          "line": 872,
+          "text": "sget-boolean v4, Lgp2;->b:Z"
+        },
+        {
+          "line": 884,
+          "text": "invoke-static {}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->C()V"
+        },
+        {
+          "line": 886,
+          "text": "invoke-static {}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->C()V"
+        },
+        {
+          "line": 902,
+          "text": "const-string v9, \"\""
+        },
+        {
+          "line": 906,
+          "text": "const-string v8, \"5990173\""
+        },
+        {
+          "line": 965,
+          "text": "const-string v2, \"allAssets\""
+        },
+        {
+          "line": 980,
+          "text": "sget-object v7, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 991,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->E()Lcf8;"
+        },
+        {
+          "line": 999,
+          "text": "invoke-direct {v0, p0, v3, v4, p0}, Laf8;-><init>(Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;Lcf8;Ljava/util/List;Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;)V"
+        },
+        {
+          "line": 1005,
+          "text": "invoke-virtual {p0, v0}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->D(I)I"
+        },
+        {
+          "line": 1020,
+          "text": "invoke-virtual {p0, v0}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->D(I)I"
+        },
+        {
+          "line": 1033,
+          "text": "invoke-direct {v0, p0, v1}, Lwe8;-><init>(Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;I)V"
+        },
+        {
+          "line": 1037,
+          "text": "invoke-virtual {p0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 1063,
+          "text": "invoke-virtual {p0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 1073,
+          "text": "invoke-direct {v1, p0, v6}, Lwe8;-><init>(Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;I)V"
+        },
+        {
+          "line": 1081,
+          "text": "invoke-virtual {p0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 1093,
+          "text": "invoke-direct {v1, v0, p0}, Lhr7;-><init>(Lwe8;Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;)V"
+        },
+        {
+          "line": 1098,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->E()Lcf8;"
+        },
+        {
+          "line": 1122,
+          "text": "invoke-virtual {p0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 1159,
+          "text": "const-string v2, \"Unable to parse assets from intent!\""
+        },
+        {
+          "line": 1163,
+          "text": "invoke-virtual {v0, p1, v2, v1}, Ljw7;->d(Ljava/lang/Throwable;Ljava/lang/String;[Ljava/lang/Object;)V"
+        }
+      ],
+      "anchors_total": 32,
+      "full_body": null
+    },
+    {
+      "owner": "Lgp2;",
+      "signature": "<clinit>()V",
+      "header": "static constructor <clinit>()V",
+      "file": "smali_classes3/gp2.smali",
+      "line": 17,
+      "body_sha256": "81648899e9d38e95bf4dc7587800cee254dbc12a6a14c52310532c23b162e151",
+      "file_sha256": "792caec9c741ce98155f2eb338f9d72ffd606c9f8868828b57ac16cf94e8fef7",
+      "anchors": [
+        {
+          "line": 34,
+          "text": "sput-boolean v0, Lgp2;->b:Z"
+        },
+        {
+          "line": 36,
+          "text": "sput-boolean v0, Lgp2;->c:Z"
+        }
+      ],
+      "anchors_total": 2,
+      "full_body": "    .locals 2\n\n    new-instance v0, Lkd2;\n\n    const/16 v1, 0xe\n\n    invoke-direct {v0, v1}, Lkd2;-><init>(I)V\n\n    new-instance v1, Lyp7;\n\n    invoke-direct {v1, v0}, Lyp7;-><init>(Lty2;)V\n\n    sput-object v1, Lgp2;->a:Lyp7;\n\n    const/4 v0, 0x1\n\n    sput-boolean v0, Lgp2;->b:Z\n\n    sput-boolean v0, Lgp2;->c:Z\n\n    return-void\n"
+    },
+    {
+      "owner": "Lwe8;",
+      "signature": "onPageSelected(I)V",
+      "header": "public final onPageSelected(I)V",
+      "file": "smali_classes3/we8.smali",
+      "line": 118,
+      "body_sha256": "5cf56425ae9fdffa58ed340f148044b27bdc6c354effa1e8b236d00c37d15e67",
+      "file_sha256": "8bc3c133bd349b7037c9b3525fa5887737ad7b86aa9f2b320fa5f6ecf5de4a9c",
+      "anchors": [
+        {
+          "line": 125,
+          "text": "const-string v2, \"allAssets\""
+        },
+        {
+          "line": 162,
+          "text": "invoke-virtual {p0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 168,
+          "text": "invoke-static {p0, v0, p1}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->A(Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;Lnl/stichtingrpo/news/databinding/ActivityVerticalVideoBinding;I)V"
+        },
+        {
+          "line": 194,
+          "text": "sget-boolean v3, Lgp2;->b:Z"
+        },
+        {
+          "line": 200,
+          "text": "invoke-static {}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->C()V"
+        },
+        {
+          "line": 202,
+          "text": "const-string v3, \"5990173\""
+        },
+        {
+          "line": 216,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/vertical_video/VerticalVideoActivity;->E()Lcf8;"
+        },
+        {
+          "line": 242,
+          "text": "invoke-virtual {v7}, Le70;->a()Lcom/bluebillywig/bbnativeshared/model/MediaClip;"
+        },
+        {
+          "line": 248,
+          "text": "invoke-virtual {v7}, Lcom/bluebillywig/bbnativeshared/model/MediaClip;->getId()Ljava/lang/String;"
+        },
+        {
+          "line": 268,
+          "text": "const-string v6, \"swipe_up\""
+        },
+        {
+          "line": 273,
+          "text": "const-string v6, \"swipe_down\""
+        },
+        {
+          "line": 276,
+          "text": "invoke-virtual {v2}, Lp08;->e()Ljava/util/LinkedHashMap;"
+        },
+        {
+          "line": 280,
+          "text": "const-string v9, \"click\""
+        },
+        {
+          "line": 284,
+          "text": "const-string v6, \"click_chapter1\""
+        },
+        {
+          "line": 286,
+          "text": "const-string v9, \"vertical_video\""
+        },
+        {
+          "line": 290,
+          "text": "const-string v6, \"av_video_position\""
+        },
+        {
+          "line": 298,
+          "text": "const-string v3, \"av_aspect_ratio\""
+        },
+        {
+          "line": 300,
+          "text": "const-string v6, \"9:16\""
+        },
+        {
+          "line": 304,
+          "text": "const-string v3, \"av_content\""
+        },
+        {
+          "line": 310,
+          "text": "const-string v0, \"av_content_id\""
+        },
+        {
+          "line": 315,
+          "text": "invoke-virtual {v2, v1}, Lp08;->b(Ljava/lang/Integer;)Ljava/util/Map;"
+        },
+        {
+          "line": 321,
+          "text": "invoke-virtual {v2}, Lp08;->d()Lxy5;"
+        },
+        {
+          "line": 329,
+          "text": "const-string v2, \"click.navigation\""
+        },
+        {
+          "line": 356,
+          "text": "const-string p0, \"Event name should be filled\""
+        }
+      ],
+      "anchors_total": 24,
+      "full_body": null
+    },
+    {
+      "owner": "Lv70;",
+      "signature": "K()V",
+      "header": "public final K()V",
+      "file": "smali/v70.smali",
+      "line": 8829,
+      "body_sha256": "d19da239b4518283b58817d8cc8caaad38050baaa70be7d3ae48d02c98ddecfa",
+      "file_sha256": "60f62c13c53bfc6d0237a37f1e0e4d2f6ce33b273939006eddcb3a3c722db2f9",
+      "anchors": [
+        {
+          "line": 8860,
+          "text": "invoke-virtual {p0}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getTimeDisplay()Ljava/lang/String;"
+        },
+        {
+          "line": 8885,
+          "text": "const-string v4, \"Show progress time\""
+        },
+        {
+          "line": 8913,
+          "text": "const-string v4, \"Hide\""
+        },
+        {
+          "line": 8941,
+          "text": "const-string v4, \"Show remaining time\""
+        },
+        {
+          "line": 8969,
+          "text": "const-string v4, \"Show progress and total time\""
+        }
+      ],
+      "anchors_total": 5,
+      "full_body": null
+    },
+    {
+      "owner": "Lv70;",
+      "signature": "l(Ljava/lang/String;Ljava/util/Map;)V",
+      "header": "public final l(Ljava/lang/String;Ljava/util/Map;)V",
+      "file": "smali/v70.smali",
+      "line": 18004,
+      "body_sha256": "609540b4a04142023eb407f86bf1c657c5bbccb1aa5bb9e38cd9d65f70f3f30c",
+      "file_sha256": "60f62c13c53bfc6d0237a37f1e0e4d2f6ce33b273939006eddcb3a3c722db2f9",
+      "anchors": [
+        {
+          "line": 18013,
+          "text": "const-string v3, \"noStats_content\""
+        },
+        {
+          "line": 18015,
+          "text": "const-string v4, \"noStats_commercial\""
+        },
+        {
+          "line": 18033,
+          "text": "invoke-static {v2}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;"
+        },
+        {
+          "line": 18037,
+          "text": "const-string v6, \"canRequestAds\""
+        },
+        {
+          "line": 18053,
+          "text": "const-string v6, \"consent_string\""
+        },
+        {
+          "line": 18061,
+          "text": "const-string v8, \"\""
+        },
+        {
+          "line": 18068,
+          "text": "const-string v9, \"IABTCF_TCString\""
+        },
+        {
+          "line": 18082,
+          "text": "const-string v10, \"consent_string: \""
+        },
+        {
+          "line": 18092,
+          "text": "const-string v9, \"\\n\""
+        },
+        {
+          "line": 18098,
+          "text": "const-string v10, \"BBNativePlayerView\""
+        },
+        {
+          "line": 18110,
+          "text": "const-string v7, \"\\\\..*$\""
+        },
+        {
+          "line": 18128,
+          "text": "const-string v7, \"_\""
+        },
+        {
+          "line": 18130,
+          "text": "const-string v11, \"/\""
+        },
+        {
+          "line": 18136,
+          "text": "const-string v7, \"-\""
+        },
+        {
+          "line": 18138,
+          "text": "const-string v12, \"+\""
+        },
+        {
+          "line": 18287,
+          "text": "const-string v7, \"bitStringPurposesConsent: \""
+        },
+        {
+          "line": 18335,
+          "text": "const-string v13, \"bitStringPurposesLITrans: \""
+        },
+        {
+          "line": 18375,
+          "text": "invoke-static {v12}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;"
+        },
+        {
+          "line": 18389,
+          "text": "const-string v13, \"noStats_commercial: \""
+        },
+        {
+          "line": 18427,
+          "text": "invoke-static {v4}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;"
+        },
+        {
+          "line": 18441,
+          "text": "const-string v6, \"noStats_content: \""
+        },
+        {
+          "line": 18457,
+          "text": ".catch Ljava/lang/Exception; {:try_start_0 .. :try_end_0} :catch_0"
+        },
+        {
+          "line": 18461,
+          "text": "const-string v3, \"consent_gdprApplies\""
+        },
+        {
+          "line": 18481,
+          "text": "const-string v6, \"IABTCF_gdprApplies\""
+        },
+        {
+          "line": 18499,
+          "text": "const-string v6, \"consent_gdprApplies: \""
+        },
+        {
+          "line": 18515,
+          "text": "const-string v3, \"consent_cmpVersion\""
+        },
+        {
+          "line": 18535,
+          "text": "const-string v6, \"IABTCF_CmpSdkVersion\""
+        },
+        {
+          "line": 18553,
+          "text": "const-string v4, \"consent_cmpVersion: \""
+        },
+        {
+          "line": 18581,
+          "text": "const-string v3, \"[?#]+.*$\""
+        },
+        {
+          "line": 18589,
+          "text": "const-string v4, \"\\\\.[^.]*$\""
+        },
+        {
+          "line": 18633,
+          "text": "const-string v7, \"//\""
+        },
+        {
+          "line": 18685,
+          "text": "const-string v4, \"^[\\\\w:]*//([\\\\w-.]+)\\\\.[\\\\w-]+\\\\.[\\\\w-]+/?\""
+        },
+        {
+          "line": 18738,
+          "text": "const-string v4, \"getObjectFromJsonUrl: \""
+        },
+        {
+          "line": 18748,
+          "text": "const-string v6, \"ContentLoader\""
+        }
+      ],
+      "anchors_total": 34,
+      "full_body": null
+    },
+    {
+      "owner": "Lv70;",
+      "signature": "t()V",
+      "header": "public final t()V",
+      "file": "smali/v70.smali",
+      "line": 19610,
+      "body_sha256": "7c69ece9e0c214e52b60656489295f3e0f6aa5bc85df49ff871a16d978f1c9aa",
+      "file_sha256": "60f62c13c53bfc6d0237a37f1e0e4d2f6ce33b273939006eddcb3a3c722db2f9",
+      "anchors": [],
+      "anchors_total": 0,
+      "full_body": null
+    },
+    {
+      "owner": "Lre0;",
+      "signature": "k(Lcom/bluebillywig/bbnativeshared/model/EmbedObject;Ljava/util/Map;)V",
+      "header": "public final k(Lcom/bluebillywig/bbnativeshared/model/EmbedObject;Ljava/util/Map;)V",
+      "file": "smali/re0.smali",
+      "line": 4672,
+      "body_sha256": "a0c97a77d29167701f7cc062dc4d73d7ed9f46c0cc63500750f81577a7e9ac5b",
+      "file_sha256": "3ffdba00831bdc9ad3289575846ed76e168118f8201a43ced33cd5877b27eadd",
+      "anchors": [
+        {
+          "line": 4679,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPublicationData()Lcom/bluebillywig/bbnativeshared/model/Publication;"
+        },
+        {
+          "line": 4685,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPublicationData()Lcom/bluebillywig/bbnativeshared/model/Publication;"
+        },
+        {
+          "line": 4689,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Publication;->getCustomfields()Lcom/bluebillywig/bbnativeshared/model/CustomFields;"
+        },
+        {
+          "line": 4695,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPublicationData()Lcom/bluebillywig/bbnativeshared/model/Publication;"
+        },
+        {
+          "line": 4699,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Publication;->getName()Ljava/lang/String;"
+        },
+        {
+          "line": 4714,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPublicationData()Lcom/bluebillywig/bbnativeshared/model/Publication;"
+        },
+        {
+          "line": 4718,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Publication;->getName()Ljava/lang/String;"
+        },
+        {
+          "line": 4726,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4732,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4736,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getName()Ljava/lang/String;"
+        },
+        {
+          "line": 4742,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4746,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getName()Ljava/lang/String;"
+        },
+        {
+          "line": 4753,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4757,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getPublication()Ljava/lang/String;"
+        },
+        {
+          "line": 4763,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4767,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getPublication()Ljava/lang/String;"
+        },
+        {
+          "line": 4774,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4778,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getDisableCookies()Ljava/lang/String;"
+        },
+        {
+          "line": 4784,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4788,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getDisableCookies()Ljava/lang/String;"
+        },
+        {
+          "line": 4791,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4795,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getLogProgressAsQuartiles()Ljava/lang/String;"
+        },
+        {
+          "line": 4799,
+          "text": "const-string v2, \"true\""
+        },
+        {
+          "line": 4803,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4807,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getLogProgressAsQuartiles()Ljava/lang/String;"
+        },
+        {
+          "line": 4818,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4822,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getAutoPlay()Ljava/lang/String;"
+        },
+        {
+          "line": 4828,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4832,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getAutoPlay()Ljava/lang/String;"
+        },
+        {
+          "line": 4843,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4847,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getAutoMute()Ljava/lang/String;"
+        },
+        {
+          "line": 4853,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4857,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getAutoMute()Ljava/lang/String;"
+        },
+        {
+          "line": 4868,
+          "text": "invoke-virtual {p1}, Lcom/bluebillywig/bbnativeshared/model/EmbedObject;->getPlayoutData()Lcom/bluebillywig/bbnativeshared/model/Playout;"
+        },
+        {
+          "line": 4872,
+          "text": "invoke-virtual {v1}, Lcom/bluebillywig/bbnativeshared/model/Playout;->getAutoLoop()Ljava/lang/String;"
+        }
+      ],
+      "anchors_total": 52,
+      "full_body": null
+    },
+    {
+      "owner": "Lp08;",
+      "signature": "<init>(Landroid/content/Context;Ls67;Lqx;Lcc5;Lyz;)V",
+      "header": "public constructor <init>(Landroid/content/Context;Ls67;Lqx;Lcc5;Lyz;)V",
+      "file": "smali_classes3/p08.smali",
+      "line": 50,
+      "body_sha256": "54db9453aae8caa4733943e4fefbb35ea375f13adfe9ef05f65c40d39728276e",
+      "file_sha256": "2b118f6ea4eeb544b253be9e4a86f56acd2de9f3d9741e7087a10811f4174b36",
+      "anchors": [
+        {
+          "line": 117,
+          "text": "const-string p3, \"nederlands\""
+        },
+        {
+          "line": 177,
+          "text": "invoke-direct {p4, p0}, Ln08;-><init>(Lp08;)V"
+        },
+        {
+          "line": 254,
+          "text": "invoke-static {p0}, Ljava/lang/Thread;->setDefaultUncaughtExceptionHandler(Ljava/lang/Thread$UncaughtExceptionHandler;)V"
+        },
+        {
+          "line": 258,
+          "text": ".catchall {:try_start_0 .. :try_end_0} :catchall_0"
+        },
+        {
+          "line": 291,
+          "text": "const-string p0, \"Piano Analytics SDK is not initialized! Make sure that you initialize it\""
+        },
+        {
+          "line": 298,
+          "text": "const-string p0, \"You have to provide collectDomain and site or reportUrlProvider\""
+        }
+      ],
+      "anchors_total": 6,
+      "full_body": null
+    },
+    {
+      "owner": "Lp08;",
+      "signature": "e()Ljava/util/LinkedHashMap;",
+      "header": "public final e()Ljava/util/LinkedHashMap;",
+      "file": "smali_classes3/p08.smali",
+      "line": 576,
+      "body_sha256": "e5f96af54bc23e1903af9ba44e668f8d666fe6558bbc8b6d4c458f5329e32508",
+      "file_sha256": "2b118f6ea4eeb544b253be9e4a86f56acd2de9f3d9741e7087a10811f4174b36",
+      "anchors": [
+        {
+          "line": 595,
+          "text": "const-string v3, \"user_setting_test_group\""
+        },
+        {
+          "line": 607,
+          "text": "const-string v3, \"splittest_group\""
+        },
+        {
+          "line": 622,
+          "text": "const-string v2, \"anonymous\""
+        },
+        {
+          "line": 627,
+          "text": "const-string v2, \"npo-id\""
+        },
+        {
+          "line": 630,
+          "text": "const-string v3, \"user_type\""
+        },
+        {
+          "line": 644,
+          "text": "const-string v3, \"user_profile_id\""
+        },
+        {
+          "line": 655,
+          "text": "const-string v0, \"domain\""
+        },
+        {
+          "line": 661,
+          "text": "const-string p0, \"platform\""
+        },
+        {
+          "line": 663,
+          "text": "const-string v0, \"app\""
+        }
+      ],
+      "anchors_total": 9,
+      "full_body": null
+    },
+    {
+      "owner": "Lp08;",
+      "signature": "j(Ljava/lang/CharSequence;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V",
+      "header": "public final j(Ljava/lang/CharSequence;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V",
+      "file": "smali_classes3/p08.smali",
+      "line": 1791,
+      "body_sha256": "f61f09b4e5e468cec9762f0facb061fd4038999a1c8d2a7811f60d3b022dc3b3",
+      "file_sha256": "2b118f6ea4eeb544b253be9e4a86f56acd2de9f3d9741e7087a10811f4174b36",
+      "anchors": [
+        {
+          "line": 1800,
+          "text": "const-string v2, \"Tracking event: click.action [tap, title: \""
+        },
+        {
+          "line": 1806,
+          "text": "const-string v2, \"]\""
+        },
+        {
+          "line": 1820,
+          "text": "invoke-virtual {p0}, Lp08;->e()Ljava/util/LinkedHashMap;"
+        },
+        {
+          "line": 1824,
+          "text": "const-string v1, \"click\""
+        },
+        {
+          "line": 1830,
+          "text": "const-string p1, \"click_chapter1\""
+        },
+        {
+          "line": 1837,
+          "text": "const-string p1, \"content_id\""
+        },
+        {
+          "line": 1848,
+          "text": "const-string p2, \"content_position\""
+        },
+        {
+          "line": 1859,
+          "text": "invoke-virtual {p0, p1}, Lp08;->b(Ljava/lang/Integer;)Ljava/util/Map;"
+        },
+        {
+          "line": 1865,
+          "text": "invoke-virtual {p0}, Lp08;->d()Lxy5;"
+        },
+        {
+          "line": 1873,
+          "text": "const-string p2, \"click.action\""
+        },
+        {
+          "line": 1902,
+          "text": "const-string p0, \"Event name should be filled\""
+        }
+      ],
+      "anchors_total": 11,
+      "full_body": null
+    },
+    {
+      "owner": "Lp08;",
+      "signature": "k(Ljava/lang/String;JLjava/lang/Double;)V",
+      "header": "public final k(Ljava/lang/String;JLjava/lang/Double;)V",
+      "file": "smali_classes3/p08.smali",
+      "line": 1909,
+      "body_sha256": "2b1a1b3c54748b4d9d89d0afb69866b46f8f74aab43290e4929db8c9bef8a798",
+      "file_sha256": "2b118f6ea4eeb544b253be9e4a86f56acd2de9f3d9741e7087a10811f4174b36",
+      "anchors": [
+        {
+          "line": 1929,
+          "text": "invoke-virtual {p0}, Lp08;->e()Ljava/util/LinkedHashMap;"
+        },
+        {
+          "line": 1946,
+          "text": "const-string p2, \"av.volume\""
+        },
+        {
+          "line": 1963,
+          "text": "const-string p3, \"av_volume\""
+        },
+        {
+          "line": 2003,
+          "text": "invoke-static {p3}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2033,
+          "text": "const-string p4, \"av.seek.start\""
+        },
+        {
+          "line": 2083,
+          "text": "invoke-static {v0}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2140,
+          "text": "invoke-static {p4}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2180,
+          "text": "const-string p4, \"av.fast.backward\""
+        },
+        {
+          "line": 2228,
+          "text": "invoke-static {v5}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2285,
+          "text": "invoke-static {v4}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2347,
+          "text": "invoke-static {p3}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2377,
+          "text": "const-string p4, \"av.pause\""
+        },
+        {
+          "line": 2425,
+          "text": "invoke-static {p4}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2457,
+          "text": "const-string p4, \"av.close\""
+        },
+        {
+          "line": 2501,
+          "text": "invoke-static {v4}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2559,
+          "text": "invoke-static {p3}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2611,
+          "text": "const-string p4, \"av.fast.forward\""
+        },
+        {
+          "line": 2659,
+          "text": "invoke-static {v5}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2716,
+          "text": "invoke-static {v4}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2778,
+          "text": "invoke-static {p3}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2808,
+          "text": "const-string p4, \"av.seek.end\""
+        },
+        {
+          "line": 2854,
+          "text": "invoke-static {v2}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2916,
+          "text": "invoke-static {p4}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 2946,
+          "text": "const-string p4, \"av.stop\""
+        },
+        {
+          "line": 2990,
+          "text": "invoke-static {p4}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 3022,
+          "text": "const-string p4, \"av.play\""
+        },
+        {
+          "line": 3072,
+          "text": "invoke-static {p3}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 3133,
+          "text": "invoke-static {v1}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 3191,
+          "text": "invoke-static {p3}, Lp08;->a(Ljava/util/Map$Entry;)Lya6;"
+        },
+        {
+          "line": 3222,
+          "text": "const-string p1, \"av.start\""
+        }
+      ],
+      "anchors_total": 30,
+      "full_body": null
+    },
+    {
+      "owner": "Lcc5;",
+      "signature": "a()Ljava/lang/String;",
+      "header": "public final a()Ljava/lang/String;",
+      "file": "smali_classes3/cc5.smali",
+      "line": 31,
+      "body_sha256": "a272e284ddd68815df0300c5d412f962895e71165051785e6496c6480dc33cad",
+      "file_sha256": "5a266028948fc4f14b508278725571402a47e61d7717dd2ef983c9a4a2c5a1b2",
+      "anchors": [
+        {
+          "line": 49,
+          "text": "const-string v3, \"nmo_piano_uuid\""
+        },
+        {
+          "line": 57,
+          "text": "const-string v5, \"nmo_piano_uuid_timestamp\""
+        },
+        {
+          "line": 93,
+          "text": "const-string v0, \"Loaded valid UUID from settings: \""
+        },
+        {
+          "line": 114,
+          "text": "const-string v7, \"Generated new UUID: \""
+        },
+        {
+          "line": 140,
+          "text": "const-string p0, \"Successfully saved new UUID: \""
+        }
+      ],
+      "anchors_total": 5,
+      "full_body": null
+    },
+    {
+      "owner": "Lcc5;",
+      "signature": "b(Ljava/lang/String;Lg25;)Ljava/lang/Object;",
+      "header": "public final b(Ljava/lang/String;Lg25;)Ljava/lang/Object;",
+      "file": "smali_classes3/cc5.smali",
+      "line": 151,
+      "body_sha256": "2696ae70b7f8fb3048274daa7832025db7fa2491215822f4f9d8e043a82dfd02",
+      "file_sha256": "5a266028948fc4f14b508278725571402a47e61d7717dd2ef983c9a4a2c5a1b2",
+      "anchors": [
+        {
+          "line": 158,
+          "text": "const-string v1, \"piano\""
+        },
+        {
+          "line": 164,
+          "text": "const-string v2, \"vendor\""
+        },
+        {
+          "line": 168,
+          "text": "const-string v1, \"c12\""
+        },
+        {
+          "line": 182,
+          "text": "const-string v2, \"\""
+        }
+      ],
+      "anchors_total": 4,
+      "full_body": "    .locals 4\n\n    new-instance v0, Ljava/util/LinkedHashMap;\n\n    invoke-direct {v0}, Ljava/util/LinkedHashMap;-><init>()V\n\n    const-string v1, \"piano\"\n\n    invoke-static {v1}, Ldr;->J(Ljava/lang/Object;)Ljava/util/List;\n\n    move-result-object v1\n\n    const-string v2, \"vendor\"\n\n    invoke-interface {v0, v2, v1}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;\n\n    const-string v1, \"c12\"\n\n    invoke-static {p1}, Ldr;->J(Ljava/lang/Object;)Ljava/util/List;\n\n    move-result-object p1\n\n    invoke-interface {v0, v1, p1}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;\n\n    new-instance p1, Ljava/util/LinkedHashMap;\n\n    invoke-direct {p1}, Ljava/util/LinkedHashMap;-><init>()V\n\n    new-instance v1, Lkm6;\n\n    const-string v2, \"\"\n\n    sget-object v3, Lum6;->a:Lum6;\n\n    invoke-direct {v1, v3, v2, p1, v0}, Lkm6;-><init>(Lum6;Ljava/lang/String;Ljava/util/LinkedHashMap;Ljava/util/LinkedHashMap;)V\n\n    iget-object p0, p0, Lcc5;->b:Lbc5;\n\n    sget-object p1, Ls72;->a:Ls72;\n\n    invoke-virtual {p0, v1, p1, p2}, Lhn;->a(Lkm6;Ljava/lang/Object;Lta1;)Ljava/lang/Object;\n\n    move-result-object p0\n\n    sget-object p1, Lxc1;->a:Lxc1;\n\n    if-ne p0, p1, :cond_0\n\n    return-object p0\n\n    :cond_0\n    sget-object p0, Le88;->a:Le88;\n\n    return-object p0\n"
+    },
+    {
+      "owner": "Lw95;",
+      "signature": "s(Ljava/lang/Object;)Ljava/lang/Object;",
+      "header": "public final s(Ljava/lang/Object;)Ljava/lang/Object;",
+      "file": "smali_classes3/w95.smali",
+      "line": 134,
+      "body_sha256": "7354d56e1d7cfe340e68b87bf48bfa701ec36cf8a71eac64566037669881ec5d",
+      "file_sha256": "566ecd620ea0e2a316dc9bd1d281e24741aecaa1cba1729f94a649a637fbce53",
+      "anchors": [
+        {
+          "line": 141,
+          "text": "const-string v2, \"call to \\'resume\\' before \\'invoke\\' with coroutine\""
+        },
+        {
+          "line": 184,
+          "text": "invoke-direct {v2, v4, v7, v6}, Lw95;-><init>(Lnl/stichtingrpo/news/news/NewsArticleFragment;Lra1;I)V"
+        },
+        {
+          "line": 326,
+          "text": "invoke-virtual {v4}, Lnl/stichtingrpo/news/news/NewsArticleFragment;->p0()Lca5;"
+        },
+        {
+          "line": 330,
+          "text": "invoke-virtual {v4}, Lnl/stichtingrpo/news/news/NewsArticleFragment;->p0()Lca5;"
+        },
+        {
+          "line": 356,
+          "text": "invoke-virtual {v1}, Lnl/stichtingrpo/news/news/NewsArticleActivity;->D()Lak5;"
+        },
+        {
+          "line": 393,
+          "text": "invoke-virtual {v0}, Lcc5;->a()Ljava/lang/String;"
+        },
+        {
+          "line": 403,
+          "text": "invoke-virtual/range {v9 .. v15}, Lp08;->f(Ljava/lang/String;Ldo5;Ljava/lang/String;Ljava/lang/String;Lak5;Ljava/lang/Integer;)Ljava/util/LinkedHashMap;"
+        },
+        {
+          "line": 412,
+          "text": "invoke-virtual {v9}, Lp08;->d()Lxy5;"
+        },
+        {
+          "line": 420,
+          "text": "const-string v3, \"article.read\""
+        },
+        {
+          "line": 447,
+          "text": "const-string v0, \"Event name should be filled\""
+        }
+      ],
+      "anchors_total": 10,
+      "full_body": null
+    },
+    {
+      "owner": "Lk82;",
+      "signature": "u(Lii3;Ldo5;Ljava/lang/String;Ljava/lang/String;Lak5;Ljava/lang/Integer;I)V",
+      "header": "public static u(Lii3;Ldo5;Ljava/lang/String;Ljava/lang/String;Lak5;Ljava/lang/Integer;I)V",
+      "file": "smali/k82.smali",
+      "line": 1088,
+      "body_sha256": "891d92aee61494271ffe3249aaee33433696c99abc4e8ac6626e37827e1351d4",
+      "file_sha256": "8577dab29bd02cada585579ceb45d98ac6c3e2338e95f4b1884d2259d3c89976",
+      "anchors": [
+        {
+          "line": 1159,
+          "text": "const-string v3, \"-\""
+        },
+        {
+          "line": 1161,
+          "text": "const-string v4, \", name=\""
+        },
+        {
+          "line": 1163,
+          "text": "const-string v5, \"Tracking screen: page=\""
+        },
+        {
+          "line": 1169,
+          "text": "const-string v2, \", chapter1=\""
+        },
+        {
+          "line": 1183,
+          "text": "invoke-virtual {p5}, Lcc5;->a()Ljava/lang/String;"
+        },
+        {
+          "line": 1199,
+          "text": "invoke-virtual/range {p0 .. p6}, Lp08;->f(Ljava/lang/String;Ldo5;Ljava/lang/String;Ljava/lang/String;Lak5;Ljava/lang/Integer;)Ljava/util/LinkedHashMap;"
+        },
+        {
+          "line": 1208,
+          "text": "invoke-virtual {p0}, Lp08;->d()Lxy5;"
+        },
+        {
+          "line": 1216,
+          "text": "const-string v3, \"page.display\""
+        },
+        {
+          "line": 1222,
+          "text": "const-string v5, \"Event name should be filled\""
+        },
+        {
+          "line": 1250,
+          "text": "invoke-virtual {p0}, Lp08;->e()Ljava/util/LinkedHashMap;"
+        },
+        {
+          "line": 1256,
+          "text": "const-string v3, \"mv_wave\""
+        },
+        {
+          "line": 1268,
+          "text": "const-string v4, \"mv_test\""
+        },
+        {
+          "line": 1328,
+          "text": "const-string v3, \"mv_creation\""
+        },
+        {
+          "line": 1333,
+          "text": "invoke-virtual {p0}, Lp08;->d()Lxy5;"
+        },
+        {
+          "line": 1341,
+          "text": "const-string v4, \"mv_test.display\""
+        },
+        {
+          "line": 1374,
+          "text": "const-string p5, \"index\""
+        },
+        {
+          "line": 1382,
+          "text": "const-string p5, \"home\""
+        }
+      ],
+      "anchors_total": 17,
+      "full_body": null
+    },
+    {
+      "owner": "Lsz6;",
+      "signature": "run()V",
+      "header": "public final run()V",
+      "file": "smali_classes3/sz6.smali",
+      "line": 74,
+      "body_sha256": "a6ab093b04f79ada7edeb48c553a8eb782ec43be586dda10d4981539ab0241fd",
+      "file_sha256": "1b8a7e2f3d810406fc27432048dd84977aaa57e7d6cbce704594b2f6aa7df88a",
+      "anchors": [
+        {
+          "line": 119,
+          "text": "const-string v5, \"events\""
+        },
+        {
+          "line": 121,
+          "text": "const-string v6, \"time < ?\""
+        },
+        {
+          "line": 123,
+          "text": "invoke-virtual {v3, v5, v6, v4}, Landroid/database/sqlite/SQLiteDatabase;->delete(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)I"
+        },
+        {
+          "line": 145,
+          "text": "const-string v6, \"isSent = 0 AND _id <= (SELECT _id FROM events WHERE isSent = 0 ORDER by _id DESC LIMIT 1 OFFSET ?)\""
+        },
+        {
+          "line": 147,
+          "text": "invoke-virtual {v4, v5, v6, v0}, Landroid/database/sqlite/SQLiteDatabase;->delete(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)I"
+        },
+        {
+          "line": 163,
+          "text": "const-string v1, \"Can\\'t send events - no connection\""
+        },
+        {
+          "line": 178,
+          "text": "const-string v7, \"events\""
+        },
+        {
+          "line": 182,
+          "text": "const-string v9, \"isSent = 0\""
+        },
+        {
+          "line": 190,
+          "text": "const-string v13, \"time ASC\""
+        },
+        {
+          "line": 233,
+          "text": "const-string v13, \"cursorRowToContentValues\""
+        },
+        {
+          "line": 235,
+          "text": "const-string v14, \"cursorRowToContentValues(Landroid/database/Cursor;)Landroid/content/ContentValues;\""
+        },
+        {
+          "line": 271,
+          "text": ".catchall {:try_start_0 .. :try_end_0} :catchall_1"
+        },
+        {
+          "line": 275,
+          "text": "invoke-static {v6, v7}, Lr35;->g(Ljava/io/Closeable;Ljava/lang/Throwable;)V"
+        },
+        {
+          "line": 311,
+          "text": "const-string v8, \"https\""
+        },
+        {
+          "line": 333,
+          "text": "const-string v8, \"s\""
+        },
+        {
+          "line": 345,
+          "text": "const-string v8, \"idclient\""
+        },
+        {
+          "line": 444,
+          "text": "const-string v0, \"POST\""
+        },
+        {
+          "line": 462,
+          "text": ".catchall {:try_start_1 .. :try_end_1} :catchall_0"
+        },
+        {
+          "line": 469,
+          "text": "invoke-direct {v8, v0}, Lpo6;-><init>(Ljava/lang/Throwable;)V"
+        },
+        {
+          "line": 474,
+          "text": "invoke-static {v0}, Lso6;->a(Ljava/lang/Object;)Ljava/lang/Throwable;"
+        },
+        {
+          "line": 482,
+          "text": "invoke-virtual {v10, v8}, Ljw7;->k(Ljava/lang/Throwable;)V"
+        },
+        {
+          "line": 529,
+          "text": ".catchall {:try_start_2 .. :try_end_2} :catchall_2"
+        },
+        {
+          "line": 534,
+          "text": "invoke-static {v6, v1}, Lr35;->g(Ljava/io/Closeable;Ljava/lang/Throwable;)V"
+        }
+      ],
+      "anchors_total": 23,
+      "full_body": null
+    },
+    {
+      "owner": "Lim9;",
+      "signature": "run()V",
+      "header": "public final run()V",
+      "file": "smali/im9.smali",
+      "line": 120,
+      "body_sha256": "29a6c0eea3ffdfe00dae93ed6c2c64038d82441c1f3de56b16bd3e93d5d349e7",
+      "file_sha256": "3ff73e5025030ce487e3a8f3714b72a2769a2692ade0eddf2e06b827a76c898f",
+      "anchors": [
+        {
+          "line": 129,
+          "text": "const-string v3, \"Failed to obtain HTTP connection\""
+        },
+        {
+          "line": 131,
+          "text": "const-string v5, \"gzip\""
+        },
+        {
+          "line": 133,
+          "text": "const-string v6, \"Content-Encoding\""
+        },
+        {
+          "line": 135,
+          "text": "const-string v7, \"Uploading data. size\""
+        },
+        {
+          "line": 153,
+          "text": "const-string v14, \"Error closing HTTP compressed POST connection output stream. appId\""
+        },
+        {
+          "line": 174,
+          "text": "invoke-virtual {v12}, Ljava/net/URL;->openConnection()Ljava/net/URLConnection;"
+        },
+        {
+          "line": 194,
+          "text": "invoke-virtual {v3, v15}, Ljava/net/HttpURLConnection;->setInstanceFollowRedirects(Z)V"
+        },
+        {
+          "line": 200,
+          "text": ".catch Ljava/io/IOException; {:try_start_0 .. :try_end_0} :catch_5"
+        },
+        {
+          "line": 201,
+          "text": ".catchall {:try_start_0 .. :try_end_0} :catchall_6"
+        },
+        {
+          "line": 241,
+          "text": ".catch Ljava/io/IOException; {:try_start_1 .. :try_end_1} :catch_0"
+        },
+        {
+          "line": 242,
+          "text": ".catchall {:try_start_1 .. :try_end_1} :catchall_0"
+        },
+        {
+          "line": 278,
+          "text": ".catch Ljava/io/IOException; {:try_start_2 .. :try_end_2} :catch_2"
+        },
+        {
+          "line": 279,
+          "text": ".catchall {:try_start_2 .. :try_end_2} :catchall_0"
+        },
+        {
+          "line": 302,
+          "text": "invoke-virtual {v3, v9}, Ljava/net/HttpURLConnection;->setFixedLengthStreamingMode(I)V"
+        },
+        {
+          "line": 310,
+          "text": ".catch Ljava/io/IOException; {:try_start_3 .. :try_end_3} :catch_0"
+        },
+        {
+          "line": 311,
+          "text": ".catchall {:try_start_3 .. :try_end_3} :catchall_0"
+        },
+        {
+          "line": 318,
+          "text": ".catch Ljava/io/IOException; {:try_start_4 .. :try_end_4} :catch_1"
+        },
+        {
+          "line": 319,
+          "text": ".catchall {:try_start_4 .. :try_end_4} :catchall_1"
+        },
+        {
+          "line": 368,
+          "text": "const-string v6, \"Failed to gzip post request content\""
+        },
+        {
+          "line": 376,
+          "text": "invoke-virtual {v3}, Ljava/net/HttpURLConnection;->getResponseCode()I"
+        },
+        {
+          "line": 380,
+          "text": ".catch Ljava/io/IOException; {:try_start_5 .. :try_end_5} :catch_0"
+        },
+        {
+          "line": 381,
+          "text": ".catchall {:try_start_5 .. :try_end_5} :catchall_0"
+        },
+        {
+          "line": 388,
+          "text": ".catch Ljava/io/IOException; {:try_start_6 .. :try_end_6} :catch_4"
+        },
+        {
+          "line": 389,
+          "text": ".catchall {:try_start_6 .. :try_end_6} :catchall_5"
+        },
+        {
+          "line": 400,
+          "text": ".catchall {:try_start_7 .. :try_end_7} :catchall_4"
+        },
+        {
+          "line": 428,
+          "text": ".catchall {:try_start_8 .. :try_end_8} :catchall_2"
+        },
+        {
+          "line": 433,
+          "text": ".catch Ljava/io/IOException; {:try_start_9 .. :try_end_9} :catch_3"
+        },
+        {
+          "line": 434,
+          "text": ".catchall {:try_start_9 .. :try_end_9} :catchall_3"
+        },
+        {
+          "line": 436,
+          "text": "invoke-virtual {v3}, Ljava/net/HttpURLConnection;->disconnect()V"
+        },
+        {
+          "line": 468,
+          "text": ".catch Ljava/io/IOException; {:try_start_a .. :try_end_a} :catch_3"
+        },
+        {
+          "line": 469,
+          "text": ".catchall {:try_start_a .. :try_end_a} :catchall_3"
+        },
+        {
+          "line": 546,
+          "text": ".catch Ljava/io/IOException; {:try_start_b .. :try_end_b} :catch_5"
+        },
+        {
+          "line": 547,
+          "text": ".catchall {:try_start_b .. :try_end_b} :catchall_6"
+        },
+        {
+          "line": 564,
+          "text": ".catch Ljava/io/IOException; {:try_start_c .. :try_end_c} :catch_6"
+        },
+        {
+          "line": 587,
+          "text": "invoke-virtual {v6}, Ljava/net/HttpURLConnection;->disconnect()V"
+        }
+      ],
+      "anchors_total": 64,
+      "full_body": null
+    },
+    {
+      "owner": "Lo50;",
+      "signature": "h(Z)V",
+      "header": "public h(Z)V",
+      "file": "smali/o50.smali",
+      "line": 2063,
+      "body_sha256": "5341560fc1dfa8b0f29ff00ebcc3ae3112c53c785b0687155f4899ea28e98956",
+      "file_sha256": "b1c34c857978b3b35c338978c919bff8da63c5cbad3525eeed0d09a00af30b32",
+      "anchors": [
+        {
+          "line": 2098,
+          "text": "const-string v1, \"mRemoteIndicator\""
+        },
+        {
+          "line": 2133,
+          "text": ".catch Ljava/lang/Exception; {:try_start_0 .. :try_end_0} :catch_0"
+        }
+      ],
+      "anchors_total": 2,
+      "full_body": "    .locals 2\n\n    if-eqz p1, :cond_0\n\n    const/4 p1, -0x1\n\n    goto :goto_0\n\n    :cond_0\n    iget-object p1, p0, Lo50;->a:Ljava/lang/Object;\n\n    check-cast p1, Landroid/content/Context;\n\n    const v0, 0x7f060084\n\n    invoke-virtual {p1, v0}, Landroid/content/Context;->getColor(I)I\n\n    move-result p1\n\n    :goto_0\n    iget-object p0, p0, Lo50;->g:Ljava/lang/Object;\n\n    check-cast p0, Landroidx/mediarouter/app/MediaRouteButton;\n\n    if-nez p0, :cond_1\n\n    return-void\n\n    :cond_1\n    :try_start_0\n    invoke-virtual {p0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;\n\n    move-result-object v0\n\n    const-string v1, \"mRemoteIndicator\"\n\n    invoke-virtual {v0, v1}, Ljava/lang/Class;->getDeclaredField(Ljava/lang/String;)Ljava/lang/reflect/Field;\n\n    move-result-object v0\n\n    const/4 v1, 0x1\n\n    invoke-virtual {v0, v1}, Ljava/lang/reflect/AccessibleObject;->setAccessible(Z)V\n\n    invoke-virtual {v0, p0}, Ljava/lang/reflect/Field;->get(Ljava/lang/Object;)Ljava/lang/Object;\n\n    move-result-object v0\n\n    instance-of v1, v0, Landroid/graphics/drawable/Drawable;\n\n    if-eqz v1, :cond_2\n\n    check-cast v0, Landroid/graphics/drawable/Drawable;\n\n    goto :goto_1\n\n    :cond_2\n    const/4 v0, 0x0\n\n    :goto_1\n    if-eqz v0, :cond_3\n\n    sget-object v1, Landroid/graphics/PorterDuff$Mode;->SRC_IN:Landroid/graphics/PorterDuff$Mode;\n\n    invoke-virtual {v0, p1, v1}, Landroid/graphics/drawable/Drawable;->setColorFilter(ILandroid/graphics/PorterDuff$Mode;)V\n\n    :cond_3\n    invoke-virtual {p0}, Landroid/view/View;->invalidate()V\n    :try_end_0\n    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_0} :catch_0\n\n    return-void\n\n    :catch_0\n    move-exception p0\n\n    sget-object p1, Llw7;->a:Ljw7;\n\n    const/4 v0, 0x0\n\n    new-array v0, v0, [Ljava/lang/Object;\n\n    invoke-virtual {p1, p0, v0}, Ljw7;->a(Ljava/lang/Exception;[Ljava/lang/Object;)V\n\n    return-void\n"
+    },
+    {
+      "owner": "Ld03;",
+      "signature": "s(Ljava/lang/Object;)Ljava/lang/Object;",
+      "header": "public final s(Ljava/lang/Object;)Ljava/lang/Object;",
+      "file": "smali_classes3/d03.smali",
+      "line": 112,
+      "body_sha256": "d2cc6406a49b25e4e3b6d54a06b46b511e3034dbe0d0bd9db6175d7a9d066685",
+      "file_sha256": "a3e7009b5862ca59b86e4c9920e7b411090f801e258472ce14d036c62b3d25fe",
+      "anchors": [
+        {
+          "line": 133,
+          "text": "const-string p1, \"omsdk-v1.js\""
+        },
+        {
+          "line": 156,
+          "text": ".catchall {:try_start_0 .. :try_end_0} :catchall_0"
+        },
+        {
+          "line": 168,
+          "text": ".catchall {:try_start_1 .. :try_end_1} :catchall_1"
+        },
+        {
+          "line": 173,
+          "text": "invoke-static {p0, p1}, Lr35;->g(Ljava/io/Closeable;Ljava/lang/Throwable;)V"
+        },
+        {
+          "line": 188,
+          "text": "const-string p1, \"gambling.js\""
+        },
+        {
+          "line": 211,
+          "text": ".catchall {:try_start_2 .. :try_end_2} :catchall_2"
+        },
+        {
+          "line": 223,
+          "text": ".catchall {:try_start_3 .. :try_end_3} :catchall_3"
+        },
+        {
+          "line": 228,
+          "text": "invoke-static {p0, p1}, Lr35;->g(Ljava/io/Closeable;Ljava/lang/Throwable;)V"
+        }
+      ],
+      "anchors_total": 8,
+      "full_body": null
+    },
+    {
+      "owner": "Lnb1;",
+      "signature": "a(I)Z",
+      "header": "public final a(I)Z",
+      "file": "smali_classes3/nb1.smali",
+      "line": 109,
+      "body_sha256": "e26a529c4275bae022fc8322b5b5446f177af7a757953d220036c1e22e7b96e3",
+      "file_sha256": "3fed2baea5f5957872e2d4dc6e01baad02fffa2d4787d793925ce89cd3dca4fe",
+      "anchors": [
+        {
+          "line": 112,
+          "text": "invoke-virtual {p0, p1}, Lnb1;->d(I)Lsa8;"
+        },
+        {
+          "line": 120,
+          "text": "const-string v0, \"Vendor with ID \""
+        },
+        {
+          "line": 122,
+          "text": "const-string v1, \" not found in cookie wall vendors. No consent given.\""
+        }
+      ],
+      "anchors_total": 3,
+      "full_body": "    .locals 2\n\n    invoke-virtual {p0, p1}, Lnb1;->d(I)Lsa8;\n\n    move-result-object p0\n\n    if-nez p0, :cond_0\n\n    sget-object p0, Llw7;->a:Ljw7;\n\n    const-string v0, \"Vendor with ID \"\n\n    const-string v1, \" not found in cookie wall vendors. No consent given.\"\n\n    invoke-static {p1, v0, v1}, Lk82;->i(ILjava/lang/String;Ljava/lang/String;)Ljava/lang/String;\n\n    move-result-object p1\n\n    const/4 v0, 0x0\n\n    new-array v1, v0, [Ljava/lang/Object;\n\n    invoke-virtual {p0, p1, v1}, Ljw7;->j(Ljava/lang/String;[Ljava/lang/Object;)V\n\n    return v0\n\n    :cond_0\n    sget-object p1, Lj51;->b:Ljava/util/LinkedHashSet;\n\n    invoke-interface {p1, p0}, Ljava/util/Set;->contains(Ljava/lang/Object;)Z\n\n    move-result p0\n\n    return p0\n"
+    },
+    {
+      "owner": "Lnb1;",
+      "signature": "b(Lzv0;ZLty2;)V",
+      "header": "public final b(Lzv0;ZLty2;)V",
+      "file": "smali_classes3/nb1.smali",
+      "line": 146,
+      "body_sha256": "3da5acb18f7c4d3d8af136af4cffca5841ebd31c1540ad7a9c1da3d8845fe789",
+      "file_sha256": "3fed2baea5f5957872e2d4dc6e01baad02fffa2d4787d793925ce89cd3dca4fe",
+      "anchors": [
+        {
+          "line": 167,
+          "text": "const-string p3, \"animations_enabled\""
+        }
+      ],
+      "anchors_total": 1,
+      "full_body": null
+    },
+    {
+      "owner": "Lnb1;",
+      "signature": "f(Z)V",
+      "header": "public final f(Z)V",
+      "file": "smali_classes3/nb1.smali",
+      "line": 892,
+      "body_sha256": "9a9aa5db3780868c67a0ccd48defcd2d48330a9c5b51205ec8bdd2c68c93584c",
+      "file_sha256": "3fed2baea5f5957872e2d4dc6e01baad02fffa2d4787d793925ce89cd3dca4fe",
+      "anchors": [
+        {
+          "line": 946,
+          "text": "const-string v5, \"has_recommendations_consent\""
+        },
+        {
+          "line": 956,
+          "text": "const-string v7, \"has_puzzles_consent\""
+        },
+        {
+          "line": 966,
+          "text": "const-string v7, \"has_social_media_consent\""
+        },
+        {
+          "line": 981,
+          "text": "invoke-virtual {p0, v0}, Lnb1;->a(I)Z"
+        },
+        {
+          "line": 987,
+          "text": "invoke-virtual {p0, v1}, Lnb1;->a(I)Z"
+        },
+        {
+          "line": 999,
+          "text": "const-string v9, \"User consent has changed: Firebase enabled: \""
+        },
+        {
+          "line": 1005,
+          "text": "const-string v9, \", Facebook enabled: \""
+        },
+        {
+          "line": 1011,
+          "text": "const-string v9, \", recommendations enabled: \""
+        },
+        {
+          "line": 1035,
+          "text": "invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;"
+        },
+        {
+          "line": 1043,
+          "text": "invoke-direct {v10, v8, v0}, Lsg9;-><init>(Lcj9;Ljava/lang/Boolean;)V"
+        },
+        {
+          "line": 1096,
+          "text": "invoke-static {v1}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;"
+        },
+        {
+          "line": 1100,
+          "text": "iput-object v8, v4, Ldb8;->c:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 1128,
+          "text": ".catchall {:try_start_0 .. :try_end_0} :catchall_0"
+        },
+        {
+          "line": 1133,
+          "text": "invoke-static {v7, v0}, Lkd1;->a(Ljava/lang/Object;Ljava/lang/Throwable;)V"
+        },
+        {
+          "line": 1204,
+          "text": "const-string v4, \"Tracking event: settings.modify [consent settings changed, choices: \""
+        },
+        {
+          "line": 1210,
+          "text": "const-string v4, \"]\""
+        },
+        {
+          "line": 1222,
+          "text": "invoke-virtual {p0}, Lp08;->e()Ljava/util/LinkedHashMap;"
+        },
+        {
+          "line": 1271,
+          "text": "const-string p1, \"declined\""
+        },
+        {
+          "line": 1282,
+          "text": "const-string p1, \"social media\""
+        },
+        {
+          "line": 1293,
+          "text": "const-string p1, \"puzzles\""
+        },
+        {
+          "line": 1304,
+          "text": "const-string p1, \"personalisation\""
+        },
+        {
+          "line": 1315,
+          "text": "const-string v1, \"privacy_cookies\""
+        },
+        {
+          "line": 1319,
+          "text": "invoke-virtual {p0, v3}, Lp08;->b(Ljava/lang/Integer;)Ljava/util/Map;"
+        },
+        {
+          "line": 1325,
+          "text": "invoke-static {}, Lp08;->i()Ljava/util/LinkedHashMap;"
+        },
+        {
+          "line": 1331,
+          "text": "invoke-virtual {p0}, Lp08;->d()Lxy5;"
+        },
+        {
+          "line": 1339,
+          "text": "const-string v1, \"settings.modify\""
+        },
+        {
+          "line": 1368,
+          "text": "const-string p0, \"Event name should be filled\""
+        }
+      ],
+      "anchors_total": 27,
+      "full_body": null
+    },
+    {
+      "owner": "Ln90;",
+      "signature": "y(Lty2;)V",
+      "header": "public final y(Lty2;)V",
+      "file": "smali_classes3/n90.smali",
+      "line": 616,
+      "body_sha256": "3d659e6b4ea015e04cd6f40e60f981d6b4f58eda75f52df2a0c8fb1f9bfe9c74",
+      "file_sha256": "70b053f2468f3b99f99f6137b22635176799aad8ee276820e4b72aa02e32f36e",
+      "anchors": [
+        {
+          "line": 625,
+          "text": "const-string v2, \"notification\""
+        },
+        {
+          "line": 651,
+          "text": "const-string v5, \"REL\""
+        },
+        {
+          "line": 670,
+          "text": "const-string v7, \"BAKLAVA\""
+        },
+        {
+          "line": 688,
+          "text": "const-string v9, \"Tiramisu\""
+        },
+        {
+          "line": 754,
+          "text": "const-string v1, \"android.permission.POST_NOTIFICATIONS\""
+        },
+        {
+          "line": 768,
+          "text": "invoke-virtual {p0, p1, v0}, Landroid/app/Activity;->requestPermissions([Ljava/lang/String;I)V"
+        }
+      ],
+      "anchors_total": 6,
+      "full_body": null
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/home/HomeFragment;",
+      "signature": "M()V",
+      "header": "public final M()V",
+      "file": "smali_classes3/nl/stichtingrpo/news/home/HomeFragment.smali",
+      "line": 153,
+      "body_sha256": "990be36c470d574a14bf0bc34c103e655cd00b2dbc8190425e05f70eb95379d4",
+      "file_sha256": "a2f182922d4644efa2824a1e06ea4312d816e0ef61d2273e177961919bf1c707",
+      "anchors": [
+        {
+          "line": 160,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/home/HomeFragment;->q0()Lpb3;"
+        },
+        {
+          "line": 178,
+          "text": "const-string v3, \"Page is \""
+        },
+        {
+          "line": 180,
+          "text": "const-string v4, \" seconds old.\""
+        },
+        {
+          "line": 198,
+          "text": "const-string v1, \"Refreshing homepage, because it is out of date.\""
+        },
+        {
+          "line": 204,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/home/HomeFragment;->q0()Lpb3;"
+        },
+        {
+          "line": 249,
+          "text": "invoke-virtual {v0, p0, v4, v2}, Lnb1;->b(Lzv0;ZLty2;)V"
+        }
+      ],
+      "anchors_total": 6,
+      "full_body": null
+    },
+    {
+      "owner": "Lf95;",
+      "signature": "b(Ljava/lang/Object;)Ljava/lang/Object;",
+      "header": "public final b(Ljava/lang/Object;)Ljava/lang/Object;",
+      "file": "smali_classes3/f95.smali",
+      "line": 30,
+      "body_sha256": "251ad25ed778b776f0d4ff717ba3daffbd8e6a7ee37a5b5b51341d7b5eba373e",
+      "file_sha256": "9f425d9c4d8104f9a4e3dcaa8097ef70ac40fc604ca63e5207a383f9ded40c53",
+      "anchors": [
+        {
+          "line": 45,
+          "text": "check-cast v1, Ljava/lang/Boolean;"
+        },
+        {
+          "line": 56,
+          "text": "check-cast v1, Ljava/lang/Boolean;"
+        },
+        {
+          "line": 67,
+          "text": "check-cast v1, Ljava/lang/Boolean;"
+        },
+        {
+          "line": 78,
+          "text": "check-cast v1, Ljava/lang/Boolean;"
+        },
+        {
+          "line": 102,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/news/NewsArticleActivity;->E()Lo95;"
+        },
+        {
+          "line": 122,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/news/NewsArticleActivity;->E()Lo95;"
+        },
+        {
+          "line": 130,
+          "text": "const-string v6, \"context_id\""
+        },
+        {
+          "line": 153,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/news/NewsArticleActivity;->E()Lo95;"
+        },
+        {
+          "line": 161,
+          "text": "invoke-virtual {v0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 169,
+          "text": "invoke-virtual {v4, v5}, Lnl/stichtingrpo/news/views/TtsPlayer;->setPage(Ldo5;)V"
+        },
+        {
+          "line": 175,
+          "text": "const-string v6, \"do_not_track_page\""
+        },
+        {
+          "line": 185,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/news/NewsArticleActivity;->E()Lo95;"
+        },
+        {
+          "line": 189,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/news/NewsArticleActivity;->D()Lak5;"
+        },
+        {
+          "line": 218,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/news/NewsArticleActivity;->D()Lak5;"
+        },
+        {
+          "line": 230,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/news/NewsArticleActivity;->E()Lo95;"
+        },
+        {
+          "line": 264,
+          "text": "invoke-virtual {v4, v3, v10, v7}, Lnb1;->b(Lzv0;ZLty2;)V"
+        },
+        {
+          "line": 276,
+          "text": "invoke-virtual {v0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 284,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/news/NewsArticleActivity;->E()Lo95;"
+        },
+        {
+          "line": 288,
+          "text": "invoke-virtual {v3, v0, v4}, Lnl/stichtingrpo/news/tv_radio/audio_player/MiniPlayerView;->q(Lzv2;Ldy;)V"
+        },
+        {
+          "line": 295,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/news/NewsArticleActivity;->E()Lo95;"
+        },
+        {
+          "line": 299,
+          "text": "invoke-virtual {v0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 343,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/news/NewsArticleActivity;->E()Lo95;"
+        },
+        {
+          "line": 347,
+          "text": "invoke-virtual {v0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 469,
+          "text": "const-string v1, \"\""
+        },
+        {
+          "line": 536,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/news/NewsArticleActivity;->E()Lo95;"
+        },
+        {
+          "line": 553,
+          "text": "check-cast v1, Ljava/lang/Boolean;"
+        }
+      ],
+      "anchors_total": 26,
+      "full_body": null
+    },
+    {
+      "owner": "Lva3;",
+      "signature": "onClick(Landroid/view/View;)V",
+      "header": "public final onClick(Landroid/view/View;)V",
+      "file": "smali_classes3/va3.smali",
+      "line": 30,
+      "body_sha256": "7e2ee5ebd2cc2f646a89252adf85736013da33ed5cdaf8dbde6b3551a3cd1d04",
+      "file_sha256": "477d86c25349f58c72aab5c4f8737c8365de414178648b70b4f34b55ece4546f",
+      "anchors": [
+        {
+          "line": 53,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/ProgramListItemModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/ProgramListItemModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 291,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/PhotoHeaderImageModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/PhotoHeaderImageModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 367,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/PageQuoteModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/PageQuoteModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 383,
+          "text": "invoke-virtual {v0, v4}, Lnl/stichtingrpo/news/onboarding/fragments/OnboardingLanguageFragment;->j0(Ljava/lang/String;)V"
+        },
+        {
+          "line": 412,
+          "text": "invoke-virtual {v0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 424,
+          "text": "invoke-virtual {v0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 432,
+          "text": "invoke-virtual {v2}, Landroidx/viewpager2/widget/ViewPager2;->getAdapter()Lgh6;"
+        },
+        {
+          "line": 470,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/onboarding/OnboardingActivity;->D()Lxi5;"
+        },
+        {
+          "line": 488,
+          "text": "invoke-virtual {v0, v1}, Ln90;->y(Lty2;)V"
+        },
+        {
+          "line": 497,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/onboarding/OnboardingActivity;->C()V"
+        },
+        {
+          "line": 502,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/onboarding/OnboardingActivity;->D()Lxi5;"
+        },
+        {
+          "line": 518,
+          "text": "invoke-virtual {v1, v2, v5, v3}, Lnb1;->b(Lzv0;ZLty2;)V"
+        },
+        {
+          "line": 523,
+          "text": "invoke-virtual {v0}, Ln90;->u()Lfh8;"
+        },
+        {
+          "line": 545,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/NoWebViewModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/NoWebViewModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 552,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/NewsCategoryPreviewExpandedItemModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/NewsCategoryPreviewExpandedItemModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 593,
+          "text": "invoke-virtual {v2, v1}, Lnl/stichtingrpo/news/base/BaseController;->setConstructedLayout(Lb71;)V"
+        },
+        {
+          "line": 600,
+          "text": "const-string v0, \"controller\""
+        },
+        {
+          "line": 608,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/news/NewsArticleFragment;->t0()V"
+        },
+        {
+          "line": 620,
+          "text": "invoke-virtual {v0, v1, v6}, Lnl/stichtingrpo/news/news/NewsArticleFragment;->q0(Lea4;Z)V"
+        },
+        {
+          "line": 637,
+          "text": "invoke-direct {v2, v0, v5}, Lv95;-><init>(Lnl/stichtingrpo/news/news/NewsArticleFragment;I)V"
+        },
+        {
+          "line": 655,
+          "text": "invoke-direct {v2, v0, v6}, Lv95;-><init>(Lnl/stichtingrpo/news/news/NewsArticleFragment;I)V"
+        },
+        {
+          "line": 666,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/MoreMenuLanguageSwitcherModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/MoreMenuLanguageSwitcherModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 673,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/MoreMenuItemModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/MoreMenuItemModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 721,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/LoginPanelItemModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/LoginPanelItemModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 728,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/LiveProgramWidgetModel;->e(Lnl/stichtingrpo/news/views/epoxy/models/LiveProgramWidgetModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 735,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/LinkTextItemModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/LinkTextItemModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 742,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/LaneItemModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/LaneItemModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 749,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/LaneExtraItemVerticalModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/LaneExtraItemVerticalModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 756,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/LaneExtraItemModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/LaneExtraItemModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 763,
+          "text": "invoke-static {v0, v1}, Lnl/stichtingrpo/news/views/epoxy/models/HorizontalScrollModel;->d(Lnl/stichtingrpo/news/views/epoxy/models/HorizontalScrollModel;Landroid/view/View;)V"
+        },
+        {
+          "line": 802,
+          "text": "const-string v4, \"PlayCore\""
+        },
+        {
+          "line": 812,
+          "text": "const-string v2, \"onError(%d)\""
+        },
+        {
+          "line": 836,
+          "text": "const-string v2, \"completeUpdate(%s)\""
+        }
+      ],
+      "anchors_total": 33,
+      "full_body": null
+    },
+    {
+      "owner": "Lt57;",
+      "signature": "c()Ljava/lang/Object;",
+      "header": "public final c()Ljava/lang/Object;",
+      "file": "smali_classes3/t57.smali",
+      "line": 30,
+      "body_sha256": "f93b5e32fdfa22332e5c33a77cddd1e1f5c92f5aa5a1525a3b197fe4101ffcde",
+      "file_sha256": "ed8e556bcc4a895aa1776070828570e589e91d088383b969a23486311aed5cd4",
+      "anchors": [
+        {
+          "line": 145,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/settings/SettingsOverviewComposeFragment;->n0()Ll77;"
+        },
+        {
+          "line": 163,
+          "text": "invoke-virtual {v0, p0, v3, v1}, Lnb1;->b(Lzv0;ZLty2;)V"
+        }
+      ],
+      "anchors_total": 2,
+      "full_body": null
+    },
+    {
+      "owner": "Lb67;",
+      "signature": "onClick(Landroid/view/View;)V",
+      "header": "public final onClick(Landroid/view/View;)V",
+      "file": "smali_classes3/b67.smali",
+      "line": 30,
+      "body_sha256": "9be298eb01502bdafd18736a7af93ec1c2c75d878515a2e4b4ee2b40603b7e8a",
+      "file_sha256": "86ba911eb76a82e6137d9315d57893dc65d4f568111bb81898e66601de0a372e",
+      "anchors": [
+        {
+          "line": 57,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 76,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 99,
+          "text": "const-string p0, \"Force crashing the app, to send logs to Crashlytics!\""
+        },
+        {
+          "line": 120,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 136,
+          "text": "invoke-virtual {p1, p0, v0, v1}, Lnb1;->b(Lzv0;ZLty2;)V"
+        }
+      ],
+      "anchors_total": 5,
+      "full_body": null
+    },
+    {
+      "owner": "Lec5;",
+      "signature": "c()Ljava/lang/Object;",
+      "header": "public final c()Ljava/lang/Object;",
+      "file": "smali_classes3/ec5.smali",
+      "line": 30,
+      "body_sha256": "584505eda82d6e731c22f9efe8573afb84f1bf9b4a425fdb4943278e17461288",
+      "file_sha256": "82d47f4a48a91d2a32b248ac2f7e34aa5cc9ba009435c97ff74dc7495058b1a9",
+      "anchors": [
+        {
+          "line": 68,
+          "text": "invoke-virtual {p0, v0, v3, v4}, Lnb1;->b(Lzv0;ZLty2;)V"
+        }
+      ],
+      "anchors_total": 1,
+      "full_body": "    .locals 6\n\n    iget v0, p0, Lec5;->a:I\n\n    sget-object v1, Le88;->a:Le88;\n\n    iget-object p0, p0, Lec5;->b:Lfc5;\n\n    packed-switch v0, :pswitch_data_0\n\n    iget-object p0, p0, Lfc5;->b:Lnl/stichtingrpo/news/base/BaseController;\n\n    invoke-virtual {p0}, Ljc2;->requestModelBuild()V\n\n    return-object v1\n\n    :pswitch_0\n    iget-object v0, p0, Lfc5;->d:Lwb0;\n\n    new-instance v2, Lec5;\n\n    const/4 v3, 0x1\n\n    invoke-direct {v2, p0, v3}, Lec5;-><init>(Lfc5;I)V\n\n    iget-object p0, v0, Lwb0;->e:Lnb1;\n\n    invoke-static {v0}, Lui8;->a(Lsi8;)Lzv0;\n\n    move-result-object v0\n\n    new-instance v4, Ldn;\n\n    const/4 v5, 0x7\n\n    invoke-direct {v4, v2, v5}, Ldn;-><init>(Ljava/lang/Object;I)V\n\n    invoke-virtual {p0, v0, v3, v4}, Lnb1;->b(Lzv0;ZLty2;)V\n\n    return-object v1\n\n    nop\n\n    :pswitch_data_0\n    .packed-switch 0x0\n        :pswitch_0\n    .end packed-switch\n"
+    },
+    {
+      "owner": "Lfc5;",
+      "signature": "L(Lh01;Ljava/lang/String;Ljava/lang/Integer;ILet5;I)V",
+      "header": "public final L(Lh01;Ljava/lang/String;Ljava/lang/Integer;ILet5;I)V",
+      "file": "smali_classes3/fc5.smali",
+      "line": 79,
+      "body_sha256": "53fb2453598406938b47b015fd054d4a95f2af02e5f8aecdd2028f48e3dc3da0",
+      "file_sha256": "3df8e54cae0411c72aaa9fcd001d0c71d9147e3568b2392a63e3710043b25e92",
+      "anchors": [
+        {
+          "line": 158,
+          "text": "invoke-virtual {p3, p2, p5}, Lnl/stichtingrpo/news/base/BaseController;->buildComponent(Lh01;Let5;)Z"
+        },
+        {
+          "line": 188,
+          "text": "invoke-virtual {v3, p6}, Lnb1;->d(I)Lsa8;"
+        },
+        {
+          "line": 231,
+          "text": "invoke-direct {v3}, Lnl/stichtingrpo/news/views/epoxy/models/NoConsentModel_;-><init>()V"
+        },
+        {
+          "line": 237,
+          "text": "invoke-interface {v3, p1}, Lnl/stichtingrpo/news/views/epoxy/models/NoConsentModelBuilder;->id(Ljava/lang/CharSequence;)Lnl/stichtingrpo/news/views/epoxy/models/NoConsentModelBuilder;"
+        },
+        {
+          "line": 239,
+          "text": "invoke-interface {v3, p6}, Lnl/stichtingrpo/news/views/epoxy/models/NoConsentModelBuilder;->descriptionCopy(Ljava/lang/String;)Lnl/stichtingrpo/news/views/epoxy/models/NoConsentModelBuilder;"
+        },
+        {
+          "line": 254,
+          "text": "invoke-interface {v3, v2}, Lnl/stichtingrpo/news/views/epoxy/models/NoConsentModelBuilder;->goToPlatformCopy(Ljava/lang/String;)Lnl/stichtingrpo/news/views/epoxy/models/NoConsentModelBuilder;"
+        },
+        {
+          "line": 260,
+          "text": "invoke-interface {v3, p3}, Lnl/stichtingrpo/news/views/epoxy/models/NoConsentModelBuilder;->clickConsentAction(Lty2;)Lnl/stichtingrpo/news/views/epoxy/models/NoConsentModelBuilder;"
+        },
+        {
+          "line": 268,
+          "text": "invoke-interface {v3, p1}, Lnl/stichtingrpo/news/views/epoxy/models/NoConsentModelBuilder;->clickGoToPlatformAction(Lty2;)Lnl/stichtingrpo/news/views/epoxy/models/NoConsentModelBuilder;"
+        }
+      ],
+      "anchors_total": 8,
+      "full_body": null
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/splash/SplashActivity;",
+      "signature": "onCreate(Landroid/os/Bundle;)V",
+      "header": "public final onCreate(Landroid/os/Bundle;)V",
+      "file": "smali_classes3/nl/stichtingrpo/news/splash/SplashActivity.smali",
+      "line": 136,
+      "body_sha256": "b6ee699bccbd74be388c93f2f48cc858a626ec0cefdacedff47cee5ab3e0535e",
+      "file_sha256": "01eeda624827caf5ec6f98c4ee0e0d60ef9dc9f345c5193e15a240d8b6a1911f",
+      "anchors": [
+        {
+          "line": 139,
+          "text": "invoke-virtual {p0, p1}, Lnl/stichtingrpo/news/splash/SplashActivity;->w(Landroid/os/Bundle;)V"
+        },
+        {
+          "line": 147,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/splash/SplashActivity;->v()Ltf7;"
+        },
+        {
+          "line": 177,
+          "text": "invoke-direct {v1, p0}, Lhf7;-><init>(Lnl/stichtingrpo/news/splash/SplashActivity;)V"
+        },
+        {
+          "line": 182,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/splash/SplashActivity;->v()Ltf7;"
+        },
+        {
+          "line": 205,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/splash/SplashActivity;->v()Ltf7;"
+        },
+        {
+          "line": 273,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/splash/SplashActivity;->v()Ltf7;"
+        },
+        {
+          "line": 316,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/splash/SplashActivity;->v()Ltf7;"
+        },
+        {
+          "line": 324,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/splash/SplashActivity;->v()Ltf7;"
+        },
+        {
+          "line": 338,
+          "text": "const-string v5, \"language_preferences\""
+        },
+        {
+          "line": 344,
+          "text": "const-string v5, \"selected_language\""
+        },
+        {
+          "line": 365,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/splash/SplashActivity;->v()Ltf7;"
+        },
+        {
+          "line": 380,
+          "text": "const-string v0, \"splash_preferences\""
+        },
+        {
+          "line": 386,
+          "text": "const-string v5, \"launch_count\""
+        },
+        {
+          "line": 398,
+          "text": "const-string v8, \"Synchronizing subjects...\""
+        },
+        {
+          "line": 432,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/splash/SplashActivity;->v()Ltf7;"
+        },
+        {
+          "line": 474,
+          "text": "const-string v8, \"IABTCF_\""
+        },
+        {
+          "line": 512,
+          "text": "const-string v7, \"Cookiewall upgrade - removed IAB TC key: \""
+        },
+        {
+          "line": 527,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/splash/SplashActivity;->v()Ltf7;"
+        },
+        {
+          "line": 535,
+          "text": "invoke-direct {v0, p0, v4}, Lif7;-><init>(Lnl/stichtingrpo/news/splash/SplashActivity;I)V"
+        },
+        {
+          "line": 545,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/splash/SplashActivity;->v()Ltf7;"
+        },
+        {
+          "line": 553,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/splash/SplashActivity;->v()Ltf7;"
+        },
+        {
+          "line": 561,
+          "text": "invoke-direct {v0, p0, v1}, Lif7;-><init>(Lnl/stichtingrpo/news/splash/SplashActivity;I)V"
+        },
+        {
+          "line": 569,
+          "text": "invoke-virtual {p0}, Lnl/stichtingrpo/news/splash/SplashActivity;->v()Ltf7;"
+        }
+      ],
+      "anchors_total": 23,
+      "full_body": null
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;",
+      "signature": "Q(Landroid/view/View;Landroid/os/Bundle;)V",
+      "header": "public final Q(Landroid/view/View;Landroid/os/Bundle;)V",
+      "file": "smali_classes3/nl/stichtingrpo/news/settings/SettingsOverviewFragment.smali",
+      "line": 141,
+      "body_sha256": "e9d70539d6b68b3d9db28c3fc514d780261240b67ad067bad40e55dba0da92e1",
+      "file_sha256": "161ddaf798e24edf4bd19f2d1d5734d12076f9ffa61f119d227d3db8c50856cb",
+      "anchors": [
+        {
+          "line": 148,
+          "text": "invoke-super/range {p0 .. p2}, Lnl/stichtingrpo/news/base/BaseFragment;->Q(Landroid/view/View;Landroid/os/Bundle;)V"
+        },
+        {
+          "line": 240,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 272,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 300,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 330,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 358,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 368,
+          "text": "check-cast v2, Ljava/lang/Boolean;"
+        },
+        {
+          "line": 372,
+          "text": "invoke-virtual {v2}, Ljava/lang/Boolean;->booleanValue()Z"
+        },
+        {
+          "line": 406,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 416,
+          "text": "check-cast v2, Ljava/lang/Boolean;"
+        },
+        {
+          "line": 420,
+          "text": "invoke-virtual {v2}, Ljava/lang/Boolean;->booleanValue()Z"
+        },
+        {
+          "line": 442,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 467,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 479,
+          "text": "invoke-direct {v3, v0, v6}, La67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 489,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 503,
+          "text": "invoke-direct {v3, v0, v4}, La67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 511,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 525,
+          "text": "invoke-direct {v3, v0, v8}, La67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 533,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 547,
+          "text": "invoke-direct {v3, v0, v9}, La67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 565,
+          "text": "invoke-direct {v2, v0, v4}, Lz71;-><init>(Lnl/stichtingrpo/news/base/BaseFragment;I)V"
+        },
+        {
+          "line": 579,
+          "text": "invoke-direct {v2, v0, v6}, Lb67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 593,
+          "text": "invoke-direct {v2, v0, v4}, Lb67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 607,
+          "text": "invoke-direct {v2, v0, v8}, Lb67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 621,
+          "text": "invoke-direct {v2, v0, v9}, Lb67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 637,
+          "text": "invoke-direct {v2, v0, v3}, Lb67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 653,
+          "text": "invoke-direct {v2, v0, v3}, Lb67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 669,
+          "text": "invoke-direct {v2, v0, v3}, Lb67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 685,
+          "text": "invoke-direct {v2, v0, v3}, Lb67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 699,
+          "text": "invoke-direct {v2, v0, v5}, Lb67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 727,
+          "text": "const-string v2, \"\\n20.1 (10596)\""
+        },
+        {
+          "line": 749,
+          "text": "invoke-direct {v2, v0, v3}, Lb67;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;I)V"
+        },
+        {
+          "line": 753,
+          "text": "invoke-virtual {v0}, Lnl/stichtingrpo/news/settings/SettingsOverviewFragment;->k0()Ll77;"
+        },
+        {
+          "line": 787,
+          "text": "const-string v12, \"index\""
+        }
+      ],
+      "anchors_total": 34,
+      "full_body": null
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/settings/SettingsOverviewComposeFragment;",
+      "signature": "j0(Ljava/lang/String;Lev7;Ll77;Lm21;I)V",
+      "header": "public final j0(Ljava/lang/String;Lev7;Ll77;Lm21;I)V",
+      "file": "smali_classes3/nl/stichtingrpo/news/settings/SettingsOverviewComposeFragment.smali",
+      "line": 1128,
+      "body_sha256": "4f3e98edfda6fedb3a17262d82eb8873363362778b4badefbd916f2f82104a58",
+      "file_sha256": "551311d1442db3d65e72c86ac476a22d194ae0bc31112c42f72ab5a5824ed3e0",
+      "anchors": [
+        {
+          "line": 1239,
+          "text": "sget-object v6, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;"
+        },
+        {
+          "line": 1427,
+          "text": "check-cast v2, Ljava/lang/Boolean;"
+        },
+        {
+          "line": 1431,
+          "text": "invoke-virtual {v2}, Ljava/lang/Boolean;->booleanValue()Z"
+        },
+        {
+          "line": 1527,
+          "text": "invoke-direct/range {v0 .. v6}, Lv57;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewComposeFragment;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;II)V"
+        }
+      ],
+      "anchors_total": 4,
+      "full_body": null
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/base/BaseController;",
+      "signature": "buildComponent(Lh01;Let5;)Z",
+      "header": "public final buildComponent(Lh01;Let5;)Z",
+      "file": "smali_classes3/nl/stichtingrpo/news/base/BaseController.smali",
+      "line": 890,
+      "body_sha256": "d992a0aef8038599634cc16d68774985c67f75949e789a0e7b847325f1fdf518",
+      "file_sha256": "817e4e648d145bc31efb166d4a231c73e66956982a3891b3649e8f976027bc1a",
+      "anchors": [
+        {
+          "line": 1037,
+          "text": "new-instance v2, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;"
+        },
+        {
+          "line": 1039,
+          "text": "invoke-direct {v2}, Lnl/stichtingrpo/news/views/epoxy/models/OptOutAdvertisementModel_;-><init>()V"
+        },
+        {
+          "line": 1079,
+          "text": "return v14"
+        },
+        {
+          "line": 1104,
+          "text": "return v14"
+        },
+        {
+          "line": 1129,
+          "text": "return v14"
+        },
+        {
+          "line": 1160,
+          "text": "return v14"
+        },
+        {
+          "line": 1325,
+          "text": "return v14"
+        },
+        {
+          "line": 1360,
+          "text": "return v14"
+        },
+        {
+          "line": 1510,
+          "text": "invoke-interface {v4, v2}, Lnl/stichtingrpo/news/views/epoxy/models/BbwNativeVideoModelBuilder;->videoHasConsent(Z)Lnl/stichtingrpo/news/views/epoxy/models/BbwNativeVideoModelBuilder;"
+        },
+        {
+          "line": 1520,
+          "text": "return v14"
+        },
+        {
+          "line": 1574,
+          "text": "return v14"
+        },
+        {
+          "line": 1823,
+          "text": "return v14"
+        },
+        {
+          "line": 2011,
+          "text": "return v28"
+        },
+        {
+          "line": 2026,
+          "text": "return v28"
+        },
+        {
+          "line": 2489,
+          "text": "return v28"
+        },
+        {
+          "line": 2616,
+          "text": "return v28"
+        },
+        {
+          "line": 2643,
+          "text": "return v28"
+        },
+        {
+          "line": 2800,
+          "text": "return v4"
+        },
+        {
+          "line": 2853,
+          "text": "return v8"
+        },
+        {
+          "line": 2884,
+          "text": "return v4"
+        },
+        {
+          "line": 2951,
+          "text": "return v8"
+        },
+        {
+          "line": 3016,
+          "text": "return v28"
+        },
+        {
+          "line": 3179,
+          "text": "return v28"
+        },
+        {
+          "line": 3200,
+          "text": "return v8"
+        },
+        {
+          "line": 3330,
+          "text": "return v28"
+        },
+        {
+          "line": 3359,
+          "text": "return v28"
+        },
+        {
+          "line": 3374,
+          "text": "return v28"
+        },
+        {
+          "line": 3435,
+          "text": "return v11"
+        },
+        {
+          "line": 3450,
+          "text": "return v11"
+        },
+        {
+          "line": 3463,
+          "text": "return v11"
+        },
+        {
+          "line": 3476,
+          "text": "return v11"
+        },
+        {
+          "line": 3489,
+          "text": "return v11"
+        },
+        {
+          "line": 3502,
+          "text": "return v11"
+        },
+        {
+          "line": 3539,
+          "text": "return v11"
+        },
+        {
+          "line": 3554,
+          "text": "return v11"
+        }
+      ],
+      "anchors_total": 106,
+      "full_body": null
+    },
+    {
+      "owner": "Lv70;",
+      "signature": "H(Lpn;Ljava/util/Map;)V",
+      "header": "public final H(Lpn;Ljava/util/Map;)V",
+      "file": "smali/v70.smali",
+      "line": 5350,
+      "body_sha256": "887740c4977cfa5b916f10083a828ee5c853b2e41faa02680b2b39c7c2fbcecf",
+      "file_sha256": "60f62c13c53bfc6d0237a37f1e0e4d2f6ce33b273939006eddcb3a3c722db2f9",
+      "anchors": [
+        {
+          "line": 5405,
+          "text": ".catch Ljava/lang/Error; {:try_start_0 .. :try_end_0} :catch_0"
+        },
+        {
+          "line": 5465,
+          "text": "return-void"
+        },
+        {
+          "line": 5470,
+          "text": "return-void"
+        },
+        {
+          "line": 5475,
+          "text": "return-void"
+        },
+        {
+          "line": 5480,
+          "text": "return-void"
+        },
+        {
+          "line": 5489,
+          "text": "return-void"
+        },
+        {
+          "line": 5580,
+          "text": "return-void"
+        },
+        {
+          "line": 5593,
+          "text": "return-void"
+        },
+        {
+          "line": 5611,
+          "text": "return-void"
+        },
+        {
+          "line": 5616,
+          "text": "return-void"
+        },
+        {
+          "line": 6422,
+          "text": ".catch Ljava/lang/Exception; {:try_start_1 .. :try_end_1} :catch_1"
+        },
+        {
+          "line": 6560,
+          "text": ".catch Ljava/lang/Exception; {:try_start_2 .. :try_end_2} :catch_2"
+        },
+        {
+          "line": 6688,
+          "text": ".catch Ljava/lang/Exception; {:try_start_3 .. :try_end_3} :catch_3"
+        },
+        {
+          "line": 6751,
+          "text": "const-string v0, \"adServicesData\""
+        },
+        {
+          "line": 7121,
+          "text": ".catch Ljava/lang/Exception; {:try_start_4 .. :try_end_4} :catch_4"
+        },
+        {
+          "line": 7171,
+          "text": "return-void"
+        }
+      ],
+      "anchors_total": 16,
+      "full_body": null
+    },
+    {
+      "owner": "Lv70;",
+      "signature": "N(Ljava/lang/String;Ljava/util/Map;)V",
+      "header": "public final N(Ljava/lang/String;Ljava/util/Map;)V",
+      "file": "smali/v70.smali",
+      "line": 9534,
+      "body_sha256": "6913f51cbd986aec76db2ad6d5b0648a084611384b7c4d88f8a1bd700f3b339c",
+      "file_sha256": "60f62c13c53bfc6d0237a37f1e0e4d2f6ce33b273939006eddcb3a3c722db2f9",
+      "anchors": [
+        {
+          "line": 9992,
+          "text": "const-string v0, \"handleConsentManagement\""
+        },
+        {
+          "line": 10002,
+          "text": "const-string v0, \"handleConsentManagement\""
+        },
+        {
+          "line": 10021,
+          "text": "const-string v0, \"handleConsentManagement\""
+        },
+        {
+          "line": 10031,
+          "text": "const-string v0, \"handleConsentManagement\""
+        },
+        {
+          "line": 10048,
+          "text": "const-string v0, \"tagForUnderAgeOfConsent\""
+        },
+        {
+          "line": 10058,
+          "text": "const-string v0, \"tagForUnderAgeOfConsent\""
+        },
+        {
+          "line": 10077,
+          "text": "const-string v0, \"tagForUnderAgeOfConsent\""
+        },
+        {
+          "line": 10087,
+          "text": "const-string v0, \"tagForUnderAgeOfConsent\""
+        },
+        {
+          "line": 10358,
+          "text": "const-string v6, \"consentStatus \""
+        },
+        {
+          "line": 10423,
+          "text": "return-void"
+        },
+        {
+          "line": 10456,
+          "text": "const-string v3, \"going to request consent update\""
+        },
+        {
+          "line": 10491,
+          "text": ".catchall {:try_start_0 .. :try_end_0} :catchall_0"
+        },
+        {
+          "line": 10511,
+          "text": "return-void"
+        },
+        {
+          "line": 10521,
+          "text": ".catchall {:try_start_1 .. :try_end_1} :catchall_0"
+        },
+        {
+          "line": 10556,
+          "text": "const-string v0, \"consent flow requested (waitForCmp=true) but no FragmentActivity host resolvable from context chain (\""
+        },
+        {
+          "line": 10581,
+          "text": "return-void"
+        }
+      ],
+      "anchors_total": 16,
+      "full_body": null
+    },
+    {
+      "owner": "Lv70;",
+      "signature": "i(Lse2;Ljava/util/Map;)V",
+      "header": "public final i(Lse2;Ljava/util/Map;)V",
+      "file": "smali/v70.smali",
+      "line": 12877,
+      "body_sha256": "a492c032c92a30770149f267124a6791aaee3741e2529acf7205e0bd46caf045",
+      "file_sha256": "60f62c13c53bfc6d0237a37f1e0e4d2f6ce33b273939006eddcb3a3c722db2f9",
+      "anchors": [
+        {
+          "line": 13058,
+          "text": "return-void"
+        },
+        {
+          "line": 13229,
+          "text": "return-void"
+        },
+        {
+          "line": 13234,
+          "text": "return-void"
+        },
+        {
+          "line": 13239,
+          "text": "return-void"
+        },
+        {
+          "line": 13244,
+          "text": "return-void"
+        },
+        {
+          "line": 13253,
+          "text": "return-void"
+        },
+        {
+          "line": 13262,
+          "text": "return-void"
+        },
+        {
+          "line": 13426,
+          "text": "return-void"
+        },
+        {
+          "line": 13451,
+          "text": "return-void"
+        },
+        {
+          "line": 13510,
+          "text": "return-void"
+        },
+        {
+          "line": 13537,
+          "text": "return-void"
+        },
+        {
+          "line": 13546,
+          "text": "return-void"
+        },
+        {
+          "line": 13551,
+          "text": "return-void"
+        },
+        {
+          "line": 13567,
+          "text": "return-void"
+        },
+        {
+          "line": 13583,
+          "text": "return-void"
+        },
+        {
+          "line": 13592,
+          "text": "return-void"
+        },
+        {
+          "line": 13601,
+          "text": "return-void"
+        },
+        {
+          "line": 13619,
+          "text": "return-void"
+        },
+        {
+          "line": 13645,
+          "text": "return-void"
+        },
+        {
+          "line": 13716,
+          "text": "return-void"
+        },
+        {
+          "line": 13867,
+          "text": "return-void"
+        },
+        {
+          "line": 13905,
+          "text": "return-void"
+        },
+        {
+          "line": 13910,
+          "text": "return-void"
+        },
+        {
+          "line": 13950,
+          "text": "return-void"
+        },
+        {
+          "line": 13999,
+          "text": "return-void"
+        },
+        {
+          "line": 14089,
+          "text": "return-void"
+        },
+        {
+          "line": 14141,
+          "text": "return-void"
+        },
+        {
+          "line": 14223,
+          "text": "return-void"
+        },
+        {
+          "line": 14254,
+          "text": "return-void"
+        },
+        {
+          "line": 14261,
+          "text": "return-void"
+        },
+        {
+          "line": 14270,
+          "text": "return-void"
+        },
+        {
+          "line": 14289,
+          "text": "return-void"
+        },
+        {
+          "line": 14294,
+          "text": "return-void"
+        },
+        {
+          "line": 14397,
+          "text": "return-void"
+        },
+        {
+          "line": 14402,
+          "text": "return-void"
+        }
+      ],
+      "anchors_total": 53,
+      "full_body": null
+    },
+    {
+      "owner": "Lo50;",
+      "signature": "f(Lg60;I)V",
+      "header": "public f(Lg60;I)V",
+      "file": "smali/o50.smali",
+      "line": 777,
+      "body_sha256": "fe4d1c65e948667b6036a318545720b143bc9280eef358748d52144a29292155",
+      "file_sha256": "b1c34c857978b3b35c338978c919bff8da63c5cbad3525eeed0d09a00af30b32",
+      "anchors": [
+        {
+          "line": 849,
+          "text": "return-void"
+        },
+        {
+          "line": 966,
+          "text": "const-string v7, \"GDT_CLIENT_METRICS\""
+        },
+        {
+          "line": 989,
+          "text": ".catch Ljava/io/IOException; {:try_start_0 .. :try_end_0} :catch_0"
+        },
+        {
+          "line": 1226,
+          "text": ".catch Ljava/lang/NumberFormatException; {:try_start_1 .. :try_end_1} :catch_1"
+        },
+        {
+          "line": 1616,
+          "text": "return-void"
+        },
+        {
+          "line": 1710,
+          "text": ".catch Ljava/lang/IllegalArgumentException; {:try_start_2 .. :try_end_2} :catch_2"
+        },
+        {
+          "line": 1806,
+          "text": ".catch Ljava/io/IOException; {:try_start_3 .. :try_end_3} :catch_3"
+        },
+        {
+          "line": 1839,
+          "text": ".catch Ljava/io/IOException; {:try_start_4 .. :try_end_4} :catch_4"
+        },
+        {
+          "line": 1875,
+          "text": ".catch Ljava/io/IOException; {:try_start_5 .. :try_end_5} :catch_3"
+        },
+        {
+          "line": 1923,
+          "text": "return-void"
+        },
+        {
+          "line": 2060,
+          "text": "return-void"
+        }
+      ],
+      "anchors_total": 11,
+      "full_body": null
+    },
+    {
+      "owner": "Lnl/stichtingrpo/news/settings/SettingsOverviewComposeFragment;",
+      "signature": "i0(Ll77;Lm21;I)V",
+      "header": "public final i0(Ll77;Lm21;I)V",
+      "file": "smali_classes3/nl/stichtingrpo/news/settings/SettingsOverviewComposeFragment.smali",
+      "line": 456,
+      "body_sha256": "8dd7ccffc3d9e710549c894d5016fc23342f11b5da74ebb3c18fd495cdb2e255",
+      "file_sha256": "551311d1442db3d65e72c86ac476a22d194ae0bc31112c42f72ab5a5824ed3e0",
+      "anchors": [
+        {
+          "line": 981,
+          "text": "new-instance v2, Lt57;"
+        },
+        {
+          "line": 985,
+          "text": "invoke-direct {v2, v14, v0}, Lt57;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewComposeFragment;I)V"
+        },
+        {
+          "line": 1070,
+          "text": "new-instance v2, Lt57;"
+        },
+        {
+          "line": 1074,
+          "text": "invoke-direct {v2, v14, v0}, Lt57;-><init>(Lnl/stichtingrpo/news/settings/SettingsOverviewComposeFragment;I)V"
+        }
+      ],
+      "anchors_total": 4,
+      "full_body": null
+    }
+  ],
+  "decode_note": "apktool 3.0.2; base-only decode warns about image resources supplied by density split; no resource rebuild attempted",
+  "decompiler_note": "Optional JADX Java output has restructuring warnings. Native smali is authoritative.",
+  "manifest": {
+    "file_sha256": "9ba4fa1e35397cfd809ca7d2925cde817975bbcadf3655bbbe9e51dad28840e8",
+    "package": "nl.omroepwest.android",
+    "permissions": [
+      "android.permission.INTERNET",
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+      "android.permission.POST_NOTIFICATIONS",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
+      "android.permission.READ_PHONE_STATE",
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.ACCESS_NETWORK_STATE",
+      "com.google.android.gms.permission.AD_ID",
+      "android.permission.AD_ID",
+      "android.permission.ACCESS_ADSERVICES_ATTRIBUTION",
+      "android.permission.ACCESS_ADSERVICES_AD_ID",
+      "android.permission.AD_SERVICES_CONFIG",
+      "android.permission.WAKE_LOCK",
+      "com.google.android.c2dm.permission.RECEIVE",
+      "com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE",
+      "android.permission.ACCESS_WIFI_STATE",
+      "android.permission.RECEIVE_BOOT_COMPLETED",
+      "android.permission.ACCESS_ADSERVICES_TOPICS",
+      "android.permission.REORDER_TASKS",
+      "android.permission.ACCESS_ADSERVICES_CUSTOM_AUDIENCE",
+      "nl.omroepwest.android.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+    ],
+    "components": [
+      {
+        "authorities": "nl.omroepwest.android.fileprovider",
+        "exported": "false",
+        "grantUriPermissions": "true",
+        "name": "androidx.core.content.FileProvider"
+      },
+      {
+        "authorities": "nl.omroepwest.android.firebaseinitprovider",
+        "directBootAware": "true",
+        "exported": "false",
+        "initOrder": "100",
+        "name": "com.google.firebase.provider.FirebaseInitProvider"
+      },
+      {
+        "authorities": "nl.omroepwest.android.startappinitprovider",
+        "exported": "false",
+        "name": "com.startapp.sdk.adsbase.StartAppInitProvider"
+      },
+      {
+        "authorities": "nl.omroepwest.android.androidx-startup",
+        "exported": "false",
+        "name": "androidx.startup.InitializationProvider"
+      },
+      {
+        "authorities": "nl.omroepwest.android.FacebookInitProvider",
+        "exported": "false",
+        "name": "com.facebook.internal.FacebookInitProvider"
+      },
+      {
+        "authorities": "nl.omroepwest.android.com.squareup.picasso",
+        "exported": "false",
+        "name": "com.squareup.picasso.PicassoProvider"
+      },
+      {
+        "exported": "false",
+        "name": "nl.stichtingrpo.news.messaging.FirebaseMessagingService"
+      },
+      {
+        "enabled": "true",
+        "exported": "true",
+        "foregroundServiceType": "mediaPlayback",
+        "name": "nl.stichtingrpo.news.tv_radio.audio_player.AudioPlayerService"
+      },
+      {
+        "exported": "false",
+        "foregroundServiceType": "mediaPlayback",
+        "name": "com.google.android.gms.cast.framework.media.MediaNotificationService"
+      },
+      {
+        "exported": "false",
+        "name": "com.google.android.gms.cast.framework.ReconnectionService"
+      },
+      {
+        "directBootAware": "true",
+        "exported": "false",
+        "name": "com.google.firebase.messaging.FirebaseMessagingService"
+      },
+      {
+        "directBootAware": "true",
+        "exported": "false",
+        "name": "com.google.firebase.components.ComponentDiscoveryService"
+      },
+      {
+        "enabled": "true",
+        "exported": "false",
+        "name": "com.google.android.gms.measurement.AppMeasurementService"
+      },
+      {
+        "enabled": "true",
+        "exported": "false",
+        "name": "com.google.android.gms.measurement.AppMeasurementJobService",
+        "permission": "android.permission.BIND_JOB_SERVICE"
+      },
+      {
+        "enabled": "false",
+        "exported": "false",
+        "name": "com.google.firebase.sessions.SessionLifecycleService"
+      },
+      {
+        "name": "com.startapp.sdk.cachedservice.BackgroundService"
+      },
+      {
+        "name": "com.startapp.sdk.jobs.SchedulerService",
+        "permission": "android.permission.BIND_JOB_SERVICE"
+      },
+      {
+        "directBootAware": "false",
+        "enabled": "@bool/enable_system_alarm_service_default",
+        "exported": "false",
+        "name": "androidx.work.impl.background.systemalarm.SystemAlarmService"
+      },
+      {
+        "directBootAware": "false",
+        "enabled": "@bool/enable_system_job_service_default",
+        "exported": "true",
+        "name": "androidx.work.impl.background.systemjob.SystemJobService",
+        "permission": "android.permission.BIND_JOB_SERVICE"
+      },
+      {
+        "directBootAware": "false",
+        "enabled": "@bool/enable_system_foreground_service_default",
+        "exported": "false",
+        "name": "androidx.work.impl.foreground.SystemForegroundService"
+      },
+      {
+        "directBootAware": "true",
+        "exported": "false",
+        "name": "androidx.room.MultiInstanceInvalidationService"
+      },
+      {
+        "exported": "false",
+        "name": "com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+      },
+      {
+        "exported": "false",
+        "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService",
+        "permission": "android.permission.BIND_JOB_SERVICE"
+      },
+      {
+        "exported": "false",
+        "name": "com.jakewharton.processphoenix.PhoenixService",
+        "process": ":phoenix"
+      },
+      {
+        "exported": "false",
+        "name": "nl.stichtingrpo.news.widget.LatestNewsWidget"
+      },
+      {
+        "exported": "false",
+        "name": "nl.stichtingrpo.news.widget.AppWidgetPinnedReceiver"
+      },
+      {
+        "exported": "false",
+        "name": "com.google.android.gms.cast.framework.media.MediaIntentReceiver"
+      },
+      {
+        "exported": "true",
+        "name": "com.google.firebase.iid.FirebaseInstanceIdReceiver",
+        "permission": "com.google.android.c2dm.permission.SEND"
+      },
+      {
+        "enabled": "true",
+        "exported": "false",
+        "name": "com.google.android.gms.measurement.AppMeasurementReceiver"
+      },
+      {
+        "exported": "true",
+        "name": "com.startapp.sdk.adsbase.remoteconfig.BootCompleteListener"
+      },
+      {
+        "exported": "false",
+        "name": "androidx.car.app.notification.CarAppNotificationBroadcastReceiver"
+      },
+      {
+        "directBootAware": "false",
+        "enabled": "true",
+        "exported": "false",
+        "name": "androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver"
+      },
+      {
+        "directBootAware": "false",
+        "enabled": "false",
+        "exported": "false",
+        "name": "androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryChargingProxy"
+      },
+      {
+        "directBootAware": "false",
+        "enabled": "false",
+        "exported": "false",
+        "name": "androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryNotLowProxy"
+      },
+      {
+        "directBootAware": "false",
+        "enabled": "false",
+        "exported": "false",
+        "name": "androidx.work.impl.background.systemalarm.ConstraintProxy$StorageNotLowProxy"
+      },
+      {
+        "directBootAware": "false",
+        "enabled": "false",
+        "exported": "false",
+        "name": "androidx.work.impl.background.systemalarm.ConstraintProxy$NetworkStateProxy"
+      },
+      {
+        "directBootAware": "false",
+        "enabled": "false",
+        "exported": "false",
+        "name": "androidx.work.impl.background.systemalarm.RescheduleReceiver"
+      },
+      {
+        "directBootAware": "false",
+        "enabled": "@bool/enable_system_alarm_service_default",
+        "exported": "false",
+        "name": "androidx.work.impl.background.systemalarm.ConstraintProxyUpdateReceiver"
+      },
+      {
+        "directBootAware": "false",
+        "enabled": "true",
+        "exported": "true",
+        "name": "androidx.work.impl.diagnostics.DiagnosticsReceiver",
+        "permission": "android.permission.DUMP"
+      },
+      {
+        "exported": "false",
+        "name": "com.facebook.CurrentAccessTokenExpirationBroadcastReceiver"
+      },
+      {
+        "exported": "false",
+        "name": "com.facebook.AuthenticationTokenManager$CurrentAuthenticationTokenChangedBroadcastReceiver"
+      },
+      {
+        "directBootAware": "false",
+        "enabled": "true",
+        "exported": "true",
+        "name": "androidx.profileinstaller.ProfileInstallReceiver",
+        "permission": "android.permission.DUMP"
+      },
+      {
+        "exported": "false",
+        "name": "com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+      }
+    ],
+    "metadata": [
+      {
+        "name": "com.google.android.gms.car.application",
+        "resource": "@xml/automotive_app_desc"
+      },
+      {
+        "name": "androidx.car.app.minCarApiLevel",
+        "value": "1"
+      },
+      {
+        "name": "com.google.firebase.messaging.default_notification_icon",
+        "value": "@null"
+      },
+      {
+        "name": "com.google.firebase.messaging.default_notification_color",
+        "resource": "@color/colorAccent"
+      },
+      {
+        "name": "com.facebook.sdk.ApplicationId",
+        "value": "@string/facebook_app_id"
+      },
+      {
+        "name": "com.facebook.sdk.ClientToken",
+        "value": "@string/facebook_client_token"
+      },
+      {
+        "name": "firebase_analytics_collection_enabled",
+        "value": "false"
+      },
+      {
+        "name": "delivery_metrics_exported_to_big_query_enabled",
+        "value": "true"
+      },
+      {
+        "name": "com.facebook.sdk.AutoLogAppEventsEnabled",
+        "value": "false"
+      },
+      {
+        "name": "androidx.media3.session.MediaNotification.SmallIcon",
+        "resource": "@null"
+      },
+      {
+        "name": "com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME",
+        "value": "com.bluebillywig.bbnativeplayersdk.BBCastOptionsProvider"
+      },
+      {
+        "name": "preloaded_fonts",
+        "resource": "@array/preloaded_fonts"
+      },
+      {
+        "name": "com.startapp.sdk.RETURN_ADS_ENABLED",
+        "value": "false"
+      },
+      {
+        "name": "com.startapp.sdk.SPLASH_ENABLED",
+        "value": "false"
+      },
+      {
+        "name": "com.startapp.sdk.CONSENT_ENABLED",
+        "value": "false"
+      },
+      {
+        "name": "com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING",
+        "value": "true"
+      },
+      {
+        "name": "com.google.android.gms.ads.AD_MANAGER_APP",
+        "value": "true"
+      },
+      {
+        "name": "com.google.android.gms.version",
+        "value": "@integer/google_play_services_version"
+      },
+      {
+        "name": "com.android.vending.splits.required",
+        "value": "true"
+      },
+      {
+        "name": "com.android.stamp.source",
+        "value": "https://play.google.com/store"
+      },
+      {
+        "name": "com.android.stamp.type",
+        "value": "STAMP_TYPE_DISTRIBUTION_APK"
+      },
+      {
+        "name": "com.android.vending.splits",
+        "resource": "@xml/splits0"
+      },
+      {
+        "name": "com.android.vending.derived.apk.id",
+        "value": "4"
+      }
+    ]
+  },
+  "resource_values": {
+    "facebook_app_id": "",
+    "gcw_settings_title": "Cookie instellingen",
+    "tracking_domain": "omroepwest.nl",
+    "web_base_url": "https://www.omroepwest.nl"
+  },
+  "resource_values_sha256": "54eb7809a5546cf84f444fa59071cd4b4db617e953a062d9597688ec5e6b2339",
+  "legacy_brabant_layout_exists_in_west": true,
+  "legacy_brabant_layout": {
+    "file": "res/layout/fragment_more.xml",
+    "sha256": "05ca7c8110da021dc240e408a369e5e78f2ab51eb1ddf0368f06379b0132c1db",
+    "content": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<androidx.coordinatorlayout.widget.CoordinatorLayout android:layout_width=\"match_parent\" android:layout_height=\"match_parent\"\n  xmlns:android=\"http://schemas.android.com/apk/res/android\" xmlns:app=\"http://schemas.android.com/apk/res-auto\">\n    <com.google.android.material.appbar.AppBarLayout android:id=\"@id/app_bar\" android:background=\"@color/transparent\" android:fitsSystemWindows=\"true\" android:layout_width=\"match_parent\" android:layout_height=\"wrap_content\" app:layout_scrollFlags=\"scroll|enterAlways|snap\">\n        <androidx.appcompat.widget.Toolbar android:id=\"@id/toolbar\" android:background=\"@color/colorShadowA98Light\" android:fitsSystemWindows=\"false\" android:layout_width=\"match_parent\" android:layout_height=\"?actionBarSize\">\n            <FrameLayout android:layout_width=\"match_parent\" android:layout_height=\"match_parent\">\n                <TextView android:textAppearance=\"@style/AppTheme.TextAppearance.Nav\" android:textColor=\"@color/textPrimary\" android:ellipsize=\"end\" android:gravity=\"center\" android:layout_gravity=\"center\" android:id=\"@id/title_view\" android:paddingRight=\"?actionBarSize\" android:layout_width=\"wrap_content\" android:layout_height=\"wrap_content\" android:text=\"@string/BottomMenu_More\" android:maxLines=\"2\" />\n                <LinearLayout android:gravity=\"center_vertical\" android:layout_gravity=\"right|center\" android:orientation=\"horizontal\" android:id=\"@id/search_container\" android:focusable=\"true\" android:clickable=\"true\" android:layout_width=\"wrap_content\" android:layout_height=\"48.0dp\" android:layout_marginRight=\"@dimen/page_side_spacing\" android:foreground=\"?actionBarItemBackground\">\n                    <ImageView android:paddingLeft=\"16.0dp\" android:paddingTop=\"14.0dp\" android:paddingBottom=\"14.0dp\" android:layout_width=\"48.0dp\" android:layout_height=\"48.0dp\" app:srcCompat=\"@drawable/ic_search\" app:tint=\"@color/colorAccent\" />\n                </LinearLayout>\n            </FrameLayout>\n        </androidx.appcompat.widget.Toolbar>\n    </com.google.android.material.appbar.AppBarLayout>\n    <com.airbnb.epoxy.EpoxyRecyclerView android:id=\"@id/recycler_view\" android:paddingTop=\"@dimen/page_top_spacing\" android:paddingBottom=\"@dimen/page_top_spacing\" android:clipChildren=\"false\" android:clipToPadding=\"false\" android:layout_width=\"match_parent\" android:layout_height=\"match_parent\" android:paddingVertical=\"@dimen/page_top_spacing\" app:layout_behavior=\"@string/appbar_scrolling_view_behavior\" />\n</androidx.coordinatorlayout.widget.CoordinatorLayout>\n"
+  }
+}

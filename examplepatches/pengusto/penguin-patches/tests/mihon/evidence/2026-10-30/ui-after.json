@@ -1,0 +1,20 @@
+{
+  "mode": "ui-after",
+  "cases": [
+    {
+      "name": "offline test",
+      "read": true,
+      "bookmark": false,
+      "exclude": [
+        "0"
+      ],
+      "expectedRetained": true,
+      "actualRetained": true,
+      "retainedBytesUnchanged": true,
+      "passed": true,
+      "realCacheDownloaded": true
+    }
+  ],
+  "failures": 0,
+  "apkSha256": "2a71924ada3f41cac5dd4adf9733ddc369bd7efea61f3bdb2391d5548933f1d3"
+}

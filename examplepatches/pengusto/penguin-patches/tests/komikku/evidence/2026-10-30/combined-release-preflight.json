@@ -1,0 +1,13 @@
+{
+  "candidateVersion": "1.6.0-komikku-candidate",
+  "candidateBundleSha256": "51030a14c5fc3b8d1fa07208ea19390c8d81681240954e0dcc606af3244f0934",
+  "finampOriginalApkSha256": "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581",
+  "verifiedNativeSelections": 127,
+  "allSourcePinsAndNativeOutputsVerified": true,
+  "priorRelease": "v1.5.0",
+  "unchangedPriorMpeCount": 7,
+  "unchangedFinampResourceCount": 135,
+  "managerExportAll27909ClassDigestsEqual": true,
+  "readmeTestsPassed": 11,
+  "ci": "https://github.com/pengusto/penguin-patches/actions/runs/41044626154"
+}

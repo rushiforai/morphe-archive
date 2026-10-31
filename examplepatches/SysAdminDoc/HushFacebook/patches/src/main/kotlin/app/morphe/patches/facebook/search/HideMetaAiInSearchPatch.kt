@@ -77,13 +77,17 @@ val hideMetaAiInSearchPatch = bytecodePatch(
         val accessor = roleAccessors(module, role).singleOrNull() ?: throw PatchException(
             "$PATCH: ${module.type} has ${roleAccessors(module, role).size} public accessors of its $role role, expected one",
         )
-        val page = answerPageConstructor(answerBuilder, module.type) ?: throw PatchException(
+        // 585's builders call a short page constructor, which pageCall reads to reach the full one.
+        val constructors = { call: MethodReference ->
+            classDefByOrNull(call.definingClass)?.methods?.firstOrNull { isConstructor(it, call) }
+        }
+        val page = answerPageConstructor(answerBuilder, module.type, constructors) ?: throw PatchException(
             "$PATCH: ${answerBuilder.definingClass}->${answerBuilder.name} no longer builds its page from a list of " +
                 "${module.type}'s result modules",
         )
         val tabPages = classDefByStrings(META_AI_TAB_PAGE, StringComparisonType.EQUALS)
             .flatMap { methodsHolding(it, META_AI_TAB_PAGE) }
-            .filter { namesPage(it, page, META_AI_TAB_PAGE) }
+            .filter { namesPage(it, page, META_AI_TAB_PAGE, constructors) }
         if (tabPages.size != 1) {
             throw PatchException(
                 "$PATCH: expected one method building the Meta AI tab's page named \"$META_AI_TAB_PAGE\", found " +
@@ -98,7 +102,13 @@ val hideMetaAiInSearchPatch = bytecodePatch(
         mutableClassDefBy(question.definingClass).methods.single { isAnswerQuestion(it, question) }
             .answerNoWhileMetaAiHidden()
         fillStoryModelStub(META_AI_SEARCH, ROLE_STUB, accessor)
-        mutableClassDefBy(page.definingClass).methods.single { isConstructor(it, page) }.filterPageModulesFirst(PATCH)
+        // Every other constructor of the page class must hand its page to this one, or a page skips the hook.
+        val pageClass = mutableClassDefBy(page.definingClass)
+        val pageConstructor = pageConstructorOf(pageClass.methods, pageClass.superclass, PATCH)
+        if (!isConstructor(pageConstructor, page)) {
+            throw PatchException("$PATCH: the answer page builder's page constructor isn't ${page.definingClass}'s full one")
+        }
+        pageConstructor.filterPageModulesFirst(PATCH)
         val (parser, store) = routeStore
         mutableClassDefBy(parser.definingClass).methods.single {
             it.name == parser.name && it.returnType == parser.returnType &&
@@ -176,7 +186,7 @@ private fun resultModule(modules: List<ClassDef>, role: String): ClassDef {
  * The suggestion parser and where it stores the route flag, held to the evidence: the results router
  * asks the spec one boolean first, GraphSearchQuerySpecImpl answers it from one field, its
  * constructor copies that field from one builder field, and the parser stores that builder field
- * from the server's tree in exactly one place.
+ * from the server's tree (on 585 through the suggestion model's own accessor) in exactly one place.
  */
 private fun BytecodePatchContext.suggestionRouteStore(): Pair<Method, RouteStore> {
     val questions = classDefByStrings(META_AI_TAB, StringComparisonType.EQUALS)

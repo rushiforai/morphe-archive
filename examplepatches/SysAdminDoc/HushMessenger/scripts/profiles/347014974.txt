@@ -66,6 +66,7 @@ hook bubbles LX/2XG;->A00()Z
 hook business_suggestions LX/7VN;->A05(LX/7VN;)Z
 hook business_suggestions LX/7WT;->A04(LX/7WT;)Z
 hook business_suggestions LX/Kou;->A02()Z
+hook car_messages LX/0Qx;->Ahe(LX/0MA;)V
 hook chat_animation Landroidx/fragment/app/Fragment;->onCreateAnimation(IZI)Landroid/view/animation/Animation;
 hook chat_fragment LX/1lQ;-><init>()V
 hook chat_inbox LX/1jz;-><init>()V
@@ -123,12 +124,17 @@ hook font_repository LX/7bP;->A00(LX/7bM;LX/7bP;LX/5ph;I)Landroid/graphics/Typef
 hook font_roboto LX/275;->A00(Landroid/content/Context;Ljava/lang/Integer;)Landroid/graphics/Typeface;
 hook friend_requests LX/1sP;->A08()Z
 hook friend_requests LX/2QK;->A04()Z
+hook gallery_to_chat LX/6Lb;->A00(Landroidx/fragment/app/Fragment;Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/xapp/messaging/composer/activity/event/ActivityResultEvent;LX/5Yh;)V
+hook gallery_to_chat LX/AJ1;->A1J()Z
+hook gallery_to_chat LX/NOw;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;
 hook growth LX/1sP;->A09()Z
 hook growth_notes Lcom/facebook/presence/note/ui/nux/controller/NotesNuxController;->A01(Landroidx/fragment/app/Fragment;LX/Or6;Ljava/util/List;LX/5WB;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 hook growth_story_card Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->A15(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)Z
 hook hide_read_receipts LX/4ot;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4ot;Ljava/lang/String;)V
 hook inbox_promotions LX/27L;->A0J()Z
 hook inbox_promotions LX/27L;->A0K()Z
+hook instants_button LX/1oE;->A0D(LX/1oE;)V
+hook instants_button LX/ZiQ;->A0X(LX/ZiQ;)V
 hook keep_unsent LX/MWa;->A02(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/util/Map;)V
 hook mark_read_action LX/HiF;->A0V()Z
 hook mark_read_action LX/JrM;->A0F()Z
@@ -173,6 +179,7 @@ hook recent_media LX/AP5;->A01(LX/5Yh;Lkotlin/jvm/functions/Function0;)V
 hook reels_badge LX/4OB;->A09(LX/4OB;)Z
 hook reply_read LX/AKh;->A01(Lcom/facebook/auth/usersession/FbUserSession;LX/5C7;LX/4vV;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;LX/DAc;LX/5Fc;LX/5C6;LX/D8N;LX/5w6;LX/5Yh;LX/5RA;Lcom/facebook/xapp/messaging/composer/send/event/SendMessageEvent;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;LX/4vd;Ljava/lang/String;)V
 hook save_stories LX/SE4;->onClick(Landroid/view/View;)V
+hook save_voice LX/NeI;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/NeI;LX/NeM;)Landroid/net/Uri;
 hook screenshot_viewers Lcom/facebook/messaging/media/ephemeralmedia/viewer/EphemeralMediaViewerFragment;->A1J(Landroid/os/Bundle;)Landroid/app/Dialog;
 hook screenshot_viewers Lcom/facebook/messaging/media/ephemeralmedia/viewer/EphemeralMediaViewerFragment;->onResume()V
 hook screenshot_viewers Lcom/facebook/messaging/quicksnap/consumption/viewer/MsgrQuicksnapViewerFragment;->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;
@@ -180,6 +187,8 @@ hook share_story LX/JrJ;->A8X()V
 hook share_story Lcom/facebook/messaging/sharing/broadcastflow/mutation/loader/plugins/sections/morewaystoshare/hoisted/BroadcastFlowHoistedMoreWaysToShareSectionsLoader;->A01()V
 hook stories LX/1qK;->A00()Z
 hook story_hold LX/QQL;->DjS()V
+hook story_ring LX/2nj;->onCreateMountContent(Landroid/content/Context;)Ljava/lang/Object;
+hook story_ring LX/33B;->draw(Landroid/graphics/Canvas;)V
 hook subtabs LX/2Mk;->run()V
 hook suggested_replies LX/7VN;->A06(LX/7VN;)Z
 hook suggested_replies LX/7WT;->A05(LX/7WT;)Z
@@ -197,7 +206,9 @@ hook tab_people LX/1mA;->A0E(LX/1mA;)Z
 hook text_style LX/A9D;->onFocusChanged(ZILandroid/graphics/Rect;)V
 hook typing LX/BJi;->run()V
 hook typing_mailbox LX/8sW;->A0M(Ljava/lang/String;Z)LX/33a;
+hook unsent_clear Lcom/facebook/messaging/notify/client/MessagesNotificationManager;->A0G(Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/notify/type/NewMessageNotification;)V
 hook unsent_indicator LX/TCX;->CfG(I)Ljava/lang/String;
+hook unsent_recall LX/9Cx;->A00(Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z
 hook wifi_identity LX/1gq;->A02()LX/XxB;
 hook wifi_identity LX/37Y;->B8W()Ljava/lang/String;
 hook wifi_identity LX/37Y;->Bx8()J

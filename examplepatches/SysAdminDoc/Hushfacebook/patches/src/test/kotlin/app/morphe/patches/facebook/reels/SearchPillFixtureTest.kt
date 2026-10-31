@@ -8,6 +8,9 @@ import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patches.facebook.feed.FixtureDex
+import app.morphe.patches.facebook.feed.isStringTableCall
+import app.morphe.patches.facebook.feed.namesString
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -45,16 +48,25 @@ class SearchPillFixtureTest {
                 val name = bundle.name
                 val named = FixtureDex.classesHolding(bundle, ELEVATED_CTA)
                     .filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.distinctBy { it.type }
-                val components = named.filter(::isPillComponent)
+                // 585 moved the view tag into a string table the render asks, so the tables the
+                // candidates call are read before the component is picked, the way the patch reads them.
+                val tableOwners = named.flatMap { it.methods }.flatMap { method ->
+                    method.implementation?.instructions?.toList().orEmpty().filter(::isStringTableCall)
+                        .mapNotNull { ((it as ReferenceInstruction).reference as? MethodReference)?.definingClass }
+                }.toSet()
+                val tables = FixtureDex.classes(bundle, tableOwners)
+                val resolve = { call: MethodReference -> tables[call.definingClass]?.let { resolveStatic(it, call) } }
+                val components = named.filter { isPillComponent(it, resolve) }
                 assertEquals("$name: components that name and render the pill", 1, components.size)
                 val component = components.single()
 
-                // Positive control: the view tag the pill sets lives in the component's render method,
-                // and a class that only names the component (the decoy) doesn't qualify.
-                val tagged = FixtureDex.classesHolding(bundle, PIVOT_VIEW_TAG).map { it.type }
-                assertTrue("$name: the component doesn't hold $PIVOT_VIEW_TAG", component.type in tagged)
+                // Positive control: the view tag the pill sets is named by the component's render method
+                // (held, or asked of a string table), and a class that only names the component (the
+                // decoy) doesn't qualify.
+                val render = component.methods.single { it.name == "render" }
+                assertTrue("$name: the component's render doesn't name $PIVOT_VIEW_TAG", namesString(render, PIVOT_VIEW_TAG, resolve))
                 assertTrue("$name: nothing else is rejected, so the check proves nothing",
-                    named.size >= 1 && named.all { it.type == component.type || !isPillComponent(it) })
+                    named.size >= 1 && named.all { it.type == component.type || !isPillComponent(it, resolve) })
 
                 val builders = FixtureDex.methodsWhere(bundle, { true }) { isPillBuilder(it, component.type) }
                     .filter { !it.definingClass.startsWith("L$EXTENSION_PACKAGE") }
@@ -64,7 +76,7 @@ class SearchPillFixtureTest {
                 assertNotNull("$name: the builder ends in no empty answer", empty)
                 val owner = FixtureDex.classes(bundle, setOf(builder.definingClass)).getValue(builder.definingClass)
 
-                val context = PatchContexts.of(listOf(component, owner))
+                val context = PatchContexts.of((listOf(component, owner) + tables.values).distinctBy { it.type })
                 context.hideSearchPill()
                 val patched = context.mutableClassDefBy(owner.type).methods.single {
                     it.name == builder.name && it.returnType == builder.returnType &&

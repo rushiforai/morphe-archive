@@ -38,7 +38,7 @@ internal const val GALLERY_ITEMS = "LX/B5V;->A00($ANDROIDX_FRAGMENT$FB_USER_SESS
 private const val ITEMS_INTENT = "$ACTIVITY_RESULT_EVENT->A02:Landroid/content/Intent;"
 
 /** The chat's handler for a photo from another app, cut down to its request check and the intent it reads. Parameters start at v8. */
-private val GALLERY_ITEMS_BODY = """
+internal val GALLERY_ITEMS_BODY = """
     iget v0, p3, $ACTIVITY_RESULT_EVENT->A00:I
     const/16 v1, $EXTERNAL_MEDIA_REQUEST
     if-ne v0, v1, :other
@@ -144,10 +144,10 @@ private fun handlerClass(body: String = GALLERY_HANDLER_BODY, registers: Int = 1
         ImmutableField("LX/6CC;", name, type, AccessFlags.FINAL.value, null, null, null)
     }, flags = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value)
 
-private fun itemsClass(body: String = GALLERY_ITEMS_BODY, id: String = GALLERY_ITEMS, registers: Int = 13, flags: Int = STATIC) =
+internal fun itemsClass(body: String = GALLERY_ITEMS_BODY, id: String = GALLERY_ITEMS, registers: Int = 13, flags: Int = STATIC) =
     fixtureClass(id.substringBefore("->"), listOf(fixtureMethod(id, body, registers = registers, flags = flags)))
 
-private fun resultEventClass(intentFlags: Int = AccessFlags.FINAL.value, intentName: String = "A02", secondIntent: String? = null) =
+internal fun resultEventClass(intentFlags: Int = AccessFlags.FINAL.value, intentName: String = "A02", secondIntent: String? = null) =
     fixtureClass(ACTIVITY_RESULT_EVENT, extraFields = (listOf("A00" to "I", "A01" to "I", intentName to "Landroid/content/Intent;") +
         listOfNotNull(secondIntent?.let { it to "Landroid/content/Intent;" })).map { (name, type) ->
         ImmutableField(ACTIVITY_RESULT_EVENT, name, type, if (type == "I") AccessFlags.FINAL.value else intentFlags, null, null, null)

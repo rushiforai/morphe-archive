@@ -1,3 +1,79 @@
+## [2.0.3](https://github.com/wchill/patcheddit/compare/v2.0.2...v2.0.3) (2026-10-30)
+
+
+### Bug Fixes
+
+* Comment loading and gallery loading for all reddit apps ([48cb357](https://github.com/wchill/patcheddit/commit/48cb357ca0bdcaaf7aa9f8a694db479e95a7c0ae))
+
+## [2.0.3-dev.1](https://github.com/wchill/patcheddit/compare/v2.0.2...v2.0.3-dev.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* Comment loading and gallery loading for all reddit apps ([48cb357](https://github.com/wchill/patcheddit/commit/48cb357ca0bdcaaf7aa9f8a694db479e95a7c0ae))
+
+## [2.0.2](https://github.com/wchill/patcheddit/compare/v2.0.1...v2.0.2) (2026-10-30)
+
+
+### Bug Fixes
+
+* Empty responses from reddit no longer throw errors ([a7bb013](https://github.com/wchill/patcheddit/commit/a7bb0131827926c9d3b440da135cd79d917b7c49))
+
+## [2.0.2-dev.1](https://github.com/wchill/patcheddit/compare/v2.0.1...v2.0.2-dev.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* Empty responses from reddit no longer throw errors ([a7bb013](https://github.com/wchill/patcheddit/commit/a7bb0131827926c9d3b440da135cd79d917b7c49))
+
+## [2.0.1](https://github.com/wchill/patcheddit/compare/v2.0.0...v2.0.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* 403 when loading more comments in Boost ([86cb39f](https://github.com/wchill/patcheddit/commit/86cb39fde6f9aaa06a67bc4f2444b30da45149d0))
+* BaconReader redirect uri losing its query parameter name ([3cbf80c](https://github.com/wchill/patcheddit/commit/3cbf80cfbc966625bd199179874ff3f8cc56aec8))
+* Infinity support up to 8.3.4 ([bf1afaf](https://github.com/wchill/patcheddit/commit/bf1afaf50d8c614d7181cdf6cf4a60f67327ed5a))
+* preserve descendant replies when loading more comments ([82c4d3d](https://github.com/wchill/patcheddit/commit/82c4d3d70d0880fd33aa67123df480516ae0feb2))
+* Relay patching broken due to missing extension ([ad9d2c5](https://github.com/wchill/patcheddit/commit/ad9d2c579a0f0fdbbdd85e2894ae57cb1e50c71a))
+* resolve Sync OAuth fingerprints ([c050118](https://github.com/wchill/patcheddit/commit/c050118f67d34c840f86e3b28f12785b111326ef))
+
+## [2.0.1-dev.5](https://github.com/wchill/patcheddit/compare/v2.0.1-dev.4...v2.0.1-dev.5) (2026-10-30)
+
+
+### Bug Fixes
+
+* BaconReader redirect uri losing its query parameter name ([3cbf80c](https://github.com/wchill/patcheddit/commit/3cbf80cfbc966625bd199179874ff3f8cc56aec8))
+
+## [2.0.1-dev.4](https://github.com/wchill/patcheddit/compare/v2.0.1-dev.3...v2.0.1-dev.4) (2026-10-30)
+
+
+### Bug Fixes
+
+* resolve Sync OAuth fingerprints ([c050118](https://github.com/wchill/patcheddit/commit/c050118f67d34c840f86e3b28f12785b111326ef))
+
+## [2.0.1-dev.3](https://github.com/wchill/patcheddit/compare/v2.0.1-dev.2...v2.0.1-dev.3) (2026-10-30)
+
+
+### Bug Fixes
+
+* preserve descendant replies when loading more comments ([82c4d3d](https://github.com/wchill/patcheddit/commit/82c4d3d70d0880fd33aa67123df480516ae0feb2))
+
+## [2.0.1-dev.2](https://github.com/wchill/patcheddit/compare/v2.0.1-dev.1...v2.0.1-dev.2) (2026-10-30)
+
+
+### Bug Fixes
+
+* 403 when loading more comments in Boost ([86cb39f](https://github.com/wchill/patcheddit/commit/86cb39fde6f9aaa06a67bc4f2444b30da45149d0))
+
+## [2.0.1-dev.1](https://github.com/wchill/patcheddit/compare/v2.0.0...v2.0.1-dev.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* Infinity support up to 8.3.4 ([bf1afaf](https://github.com/wchill/patcheddit/commit/bf1afaf50d8c614d7181cdf6cf4a60f67327ed5a))
+* Relay patching broken due to missing extension ([ad9d2c5](https://github.com/wchill/patcheddit/commit/ad9d2c579a0f0fdbbdd85e2894ae57cb1e50c71a))
+
 # [2.0.0](https://github.com/wchill/patcheddit/compare/v1.4.0...v2.0.0) (2026-10-28)
 
 

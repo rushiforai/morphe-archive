@@ -20,7 +20,9 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
  * - The cards Facebook puts between reels (people you may know, groups, games, a Threads post) are
  *   Reels mid-cards, typed by a GraphQL enum whose constant names Redex keeps: THREADS_MIDCARD
  *   beside PYML_MIDCARD, GYSJ_MIDCARD and UNSET_OR_UNRECOGNIZED_ENUM_VALUE (581 LX/55V). One larger
- *   enum names THREADS_MIDCARD too (581 LX/5bI), but no model answers it.
+ *   enum names THREADS_MIDCARD too (581 LX/5bI), but no model answers it. 585 has two interfaces
+ *   answering the small enum (arm64 LX/12g6; and LX/05rD;, enum LX/05VV;), so the chain below is
+ *   followed from each and exactly one has to reach a reel item.
  * - The mid-card model answers its type through one no-argument interface method (581
  *   LX/UeF;->B75), and the unit that holds the model hands it over through one more (581
  *   LX/Udt;->BOZ).
@@ -67,7 +69,7 @@ internal class MidCardType(
  * step required to be the only one. Shared by the patch and its fixture test.
  */
 internal class MidCardScan {
-    private class Getter(val owner: String, val name: String, val public: Boolean)
+    private class Getter(val owner: String, val name: String, val public: Boolean, val type: String)
     private class ItemField(val owner: String, val name: String, val public: Boolean)
 
     class Result(val found: MidCardType?, val problem: String?)
@@ -93,7 +95,7 @@ internal class MidCardScan {
             for (method in classDef.methods) {
                 if (method.parameterTypes.isNotEmpty() || !AccessFlags.ABSTRACT.isSet(method.accessFlags)) continue
                 if (!method.returnType.startsWith("L")) continue
-                interfaceGetters.getOrPut(method.returnType) { mutableListOf() } += Getter(classDef.type, method.name, public)
+                interfaceGetters.getOrPut(method.returnType) { mutableListOf() } += Getter(classDef.type, method.name, public, method.returnType)
             }
             return
         }
@@ -109,29 +111,49 @@ internal class MidCardScan {
         }
     }
 
-    fun resolve(): Result {
-        if (enums.isEmpty()) return Result(null, "no enum names $THREADS_MID_CARD")
+    /** A type getter followed down to the reel item, or where it stopped. */
+    private class Chain(val typeGetter: Getter, val modelGetter: Getter?, val field: ItemField?, val problem: String?)
 
-        val typeGetters = enums.flatMap { interfaceGetters[it].orEmpty() }
-        val typeGetter = typeGetters.singleOrNull() ?: return Result(
-            null,
-            "expected one interface getter of an enum naming $THREADS_MID_CARD (${enums.joinToString()}), " +
-                "found ${typeGetters.size}",
-        )
-        val type = enums.single { interfaceGetters[it].orEmpty().isNotEmpty() }
-
+    private fun chain(typeGetter: Getter): Chain {
         val modelGetters = interfaceGetters[typeGetter.owner].orEmpty()
-        val modelGetter = modelGetters.singleOrNull() ?: return Result(
-            null,
+        val modelGetter = modelGetters.singleOrNull() ?: return Chain(
+            typeGetter, null, null,
             "expected one interface getter of the mid-card model ${typeGetter.owner}, found ${modelGetters.size}",
         )
 
         val fields = itemFields[modelGetter.owner].orEmpty()
-        val field = fields.singleOrNull() ?: return Result(
-            null,
+        val field = fields.singleOrNull() ?: return Chain(
+            typeGetter, modelGetter, null,
             "expected one reel item keeping the mid-card unit ${modelGetter.owner}, " +
                 "found ${fields.joinToString { "${it.owner}->${it.name}" }.ifEmpty { "none" }}",
         )
+        return Chain(typeGetter, modelGetter, field, null)
+    }
+
+    fun resolve(): Result {
+        if (enums.isEmpty()) return Result(null, "no enum names $THREADS_MID_CARD")
+
+        val typeGetters = enums.flatMap { interfaceGetters[it].orEmpty() }
+        if (typeGetters.isEmpty()) {
+            return Result(null, "no interface getter of an enum naming $THREADS_MID_CARD (${enums.joinToString()})")
+        }
+        // 585: two interfaces answer the enum, and only the mid-card model's unit is kept by a reel item,
+        // so the chain down to the item (each step the only one) tells them apart.
+        val chains = typeGetters.map(::chain)
+        val whole = chains.filter { it.problem == null }
+        val reached = whole.singleOrNull() ?: return Result(
+            null,
+            if (whole.isEmpty()) {
+                "no interface getter of an enum naming $THREADS_MID_CARD (${enums.joinToString()}) leads to a reel item: " +
+                    chains.joinToString("; ") { "${it.typeGetter.owner}: ${it.problem}" }
+            } else {
+                "expected one interface getter of an enum naming $THREADS_MID_CARD (${enums.joinToString()}) to lead to a " +
+                    "reel item, found ${whole.joinToString { it.typeGetter.owner }}"
+            },
+        )
+        val typeGetter = reached.typeGetter
+        val modelGetter = reached.modelGetter!!
+        val field = reached.field!!
 
         if (!typeGetter.public || !modelGetter.public || !field.public) {
             return Result(
@@ -149,7 +171,7 @@ internal class MidCardScan {
                 modelGetter = modelGetter.name,
                 model = typeGetter.owner,
                 typeGetter = typeGetter.name,
-                type = type,
+                type = typeGetter.type,
             ),
             null,
         )

@@ -37,6 +37,7 @@ final class MessagesCategory {
                 || build.contains(PatchFamily.SCREENSHOT_BLOCK)
                 || build.contains(PatchFamily.KEEP_IN_CHAT)
                 || build.contains(PatchFamily.CHAT_REELS)
+                || build.contains(PatchFamily.CHAT_HISTORY)
                 || build.contains(PatchFamily.ASK_BEFORE_CALL)
                 || build.contains(PatchFamily.MESSAGE_BOX)
                 || build.contains(PatchFamily.FULL_SCREEN_BARS)) {
@@ -75,6 +76,10 @@ final class MessagesCategory {
                                 + "and tap Mark as read. A newer message in it stays unread too. Turned off, a chat you "
                                 + "open stays read on this phone until a newer message comes in, even after your "
                                 + "messages refresh.")));
+                messages.addPreference(toggle(context, Settings.MARK_SEEN_ON_REPLY,
+                        L10n.t("Mark a chat seen when you reply"),
+                        L10n.t("Sending a message in a chat lets the other person see that you've read what they "
+                                + "sent before it. Chats you don't answer stay unseen to them.")));
             }
             if (build.contains(PatchFamily.TYPING)) {
                 messages.addPreference(toggle(context, Settings.HIDE_TYPING, L10n.t("Hide that you're typing"),
@@ -120,6 +125,14 @@ final class MessagesCategory {
                         L10n.t("Reels you opened from a chat end after the last one shared in that chat, with no "
                                 + "suggested reels after it. Works with Swipe through a chat's reels on.")));
             }
+            if (build.contains(PatchFamily.CHAT_HISTORY)) {
+                messages.addPreference(toggle(context, Settings.JUMP_IN_CHAT, L10n.t("Jump to the first message or a date"),
+                        L10n.t("Long press a chat's name and pick Jump to the first message or Jump to a date. The "
+                                + "chat loads its older messages on its own, with a count and a Cancel button.")));
+                messages.addPreference(toggle(context, Settings.EXPORT_CHAT, L10n.t("Export a chat as text"),
+                        L10n.t("Long press a chat's name and pick Export chat. The whole chat is saved as a text file "
+                                + "in Downloads, HushGram folder, one line per message.")));
+            }
             if (build.contains(PatchFamily.ASK_BEFORE_CALL)) {
                 messages.addPreference(toggle(context, Settings.ASK_BEFORE_CALL, L10n.t("Ask before a call"),
                         L10n.t("Tapping a call button in a chat asks first, so a stray tap doesn't ring anyone. "
@@ -153,6 +166,7 @@ final class MessagesCategory {
                         L10n.t("Two quick taps on the Messages button, on the tab bar or at the top of Home, open "
                                 + "your hidden chats. While a lock is on, it asks for it first. One tap opens Messages "
                                 + "as usual.")));
+                messages.addPreference(page.pinnedChatsRow(context));
             }
         }
     }

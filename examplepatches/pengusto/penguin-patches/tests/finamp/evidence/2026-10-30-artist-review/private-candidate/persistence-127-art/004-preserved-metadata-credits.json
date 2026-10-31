@@ -1,0 +1,261 @@
+{
+  "capturedAt": "2026-10-30T14:12:11.724199+00:00",
+  "serial": "emulator-5586",
+  "package": "com.unicornsonlsd.finamp",
+  "labels": [
+    {
+      "text": "",
+      "content-desc": "Back",
+      "class": "android.view.View",
+      "bounds": "[0,48][112,160]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Fixture Credits",
+      "class": "android.view.View",
+      "bounds": "[112,76][395,132]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Favorite",
+      "class": "android.widget.Button",
+      "bounds": "[696,56][792,152]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Sync and download missing items.",
+      "class": "android.widget.Button",
+      "bounds": "[792,56][888,152]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Delete",
+      "class": "android.widget.Button",
+      "bounds": "[888,56][984,152]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Z Lead (Artist)\nZ Lead",
+      "class": "android.widget.Button",
+      "bounds": "[274,175][434,223]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "8 Tracks (00:32)",
+      "class": "android.view.View",
+      "bounds": "[330,239][539,279]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "2026",
+      "class": "android.view.View",
+      "bounds": "[330,295][395,335]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Fixture Pop",
+      "class": "android.widget.Button",
+      "bounds": "[332,351][494,399]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Fixture Jazz",
+      "class": "android.widget.Button",
+      "bounds": "[502,351][675,399]",
+      "clickable": "false",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "New Queue",
+      "class": "android.view.View",
+      "bounds": "[288,440][473,494]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Play Next",
+      "class": "android.view.View",
+      "bounds": "[473,440][634,494]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Play Last",
+      "class": "android.view.View",
+      "bounds": "[634,440][792,494]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Play",
+      "class": "android.widget.Button",
+      "bounds": "[16,494][540,646]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "Shuffle",
+      "class": "android.widget.Button",
+      "bounds": "[540,494][1064,646]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "1\n01 - Credit Order\nB Guest, Z Lead, A Guest\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,646][1080,786]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "2\n02 - Credit Order\nB Guest, Z Lead, A Guest\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,786][1080,926]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "3\n03 - Credit Order\nB Guest, Z Lead, A Guest\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,926][1080,1066]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "4\n04 - Credit Order\nB Guest, Z Lead, A Guest\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,1066][1080,1206]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "5\n05 - Credit Order\nB Guest, Z Lead, A Guest\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,1206][1080,1346]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "6\n06 - Credit Order\nB Guest, Z Lead, A Guest\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,1346][1080,1486]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "7\n07 - Lead Solo\nZ Lead\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,1486][1080,1626]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    },
+    {
+      "text": "",
+      "content-desc": "8\n08 - Album Credit Only\nA Guest\n4 Seconds",
+      "class": "android.widget.Button",
+      "bounds": "[0,1626][1080,1766]",
+      "clickable": "true",
+      "enabled": "true",
+      "focused": "false",
+      "checkable": "false",
+      "checked": "false"
+    }
+  ],
+  "pngSha256": "38cb9a94db47744ee8152863a53c8f8bdf2d61b676ad2017e81e1b7acbd6c88e"
+}

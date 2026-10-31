@@ -25,9 +25,11 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction12x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31i
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc
@@ -275,6 +277,86 @@ class MetaAiSearchShapesTest {
         assertFalse(namesPage(tabPageBuilder(), ref(page, "<init>", pageParameters.dropLast(1), "V"), META_AI_TAB_PAGE))
     }
 
+    // ------------------------------------------------------------------ 585's short page constructor
+
+    private val shortParameters = listOf(IMMUTABLE_LIST, IMMUTABLE_LIST, string, string, string, "Z")
+    private val shortConstructor = ref(page, "<init>", shortParameters, "V")
+    private val noModules = ref(IMMUTABLE_LIST, "of", emptyList(), IMMUTABLE_LIST)
+
+    /**
+     * 585's short page constructor: 18 registers, so this is v11 and its arguments v12 to v17. It moves
+     * them into v0 to v10 around a null header, an empty third list, a null fourth string and a false
+     * flag, and hands everything to the full constructor.
+     */
+    private fun shortConstructorMethod(self: Int = 11, fillsModules: Boolean = false, branches: Boolean = false): Method {
+        val code = mutableListOf<Instruction>(
+            ImmutableInstruction11n(Opcode.CONST_4, 1, 0),
+            ImmutableInstruction11n(Opcode.CONST_4, 10, 0),
+            invoke(Opcode.INVOKE_STATIC, noModules),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 4),
+            ImmutableInstruction12x(Opcode.MOVE_OBJECT, 0, self),
+            ImmutableInstruction12x(Opcode.MOVE_OBJECT, 2, 12),
+            ImmutableInstruction12x(Opcode.MOVE_OBJECT, 3, 13),
+            ImmutableInstruction12x(Opcode.MOVE_OBJECT, 5, 14),
+            ImmutableInstruction12x(Opcode.MOVE_OBJECT, 6, 15),
+            ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 7, 16),
+            ImmutableInstruction22x(Opcode.MOVE_FROM16, 9, 17),
+            ImmutableInstruction12x(Opcode.MOVE_OBJECT, 8, 1),
+        )
+        if (fillsModules) {
+            code += invoke(Opcode.INVOKE_STATIC, noModules)
+            code += ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 2)
+        }
+        if (branches) code += ImmutableInstruction10t(Opcode.GOTO, 1)
+        code += ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 0, 11, pageConstructor)
+        code += ImmutableInstruction10x(Opcode.RETURN_VOID)
+        return method(page, "<init>", shortParameters, "V", 18, code)
+    }
+
+    private fun resolving(constructor: Method) = { call: MethodReference -> constructor.takeIf { isConstructor(it, call) } }
+
+    /** The answer builder on 585: modules wrapped into v2, the page built through the short constructor from v1 to v7. */
+    private fun shortPageBuilder(modulesAt: Int = 2): Method = method(builderClass, "A00",
+        listOf(USER_SESSION, RESULTS_CONTEXT, loader), "V", 13, listOf(
+            invoke(Opcode.INVOKE_STATIC, wrap, 0),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, modulesAt),
+            ImmutableInstruction21c(Opcode.NEW_INSTANCE, 1, ImmutableTypeReference(page)),
+            ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 1, 7, shortConstructor),
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+        ))
+
+    /** The Meta AI tab's builder on 585: the name loaded into v4, the page built through the short constructor from v0 to v6. */
+    private fun shortTabPageBuilder(at: Int = 4): Method = method("Lfixture/MetaAiTab;", "AoM",
+        listOf(USER_SESSION, RESULTS_CONTEXT, "Lfixture/FetchType;", IMMUTABLE_LIST), "V", 16, listOf(
+            text(META_AI_TAB_PAGE, at),
+            ImmutableInstruction21c(Opcode.NEW_INSTANCE, 0, ImmutableTypeReference(page)),
+            ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 0, 7, shortConstructor),
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+        ))
+
+    @Test
+    fun `a page built through 585's short constructor is read through its moves onto the full one`() {
+        val resolve = resolving(shortConstructorMethod())
+        val built = pageCall(shortConstructor, resolve)
+        assertNotNull(built)
+        assertEquals(pageConstructor, built!!.page)
+        // The header, the third list, the fourth string and the second flag are filled in, not passed.
+        assertEquals(listOf(null, 1, 2, null, 3, 4, 5, null, 6, null), built.positions)
+        assertEquals((1..10).toList(), pageCall(pageConstructor) { null }!!.positions)
+        assertEquals(pageConstructor, answerPageConstructor(shortPageBuilder(), module, resolve))
+        assertTrue(namesPage(shortTabPageBuilder(), pageConstructor, META_AI_TAB_PAGE, resolve))
+        // Negative controls: nothing to read the short constructor with, the modules or the name in
+        // another argument, and a short constructor that fills in the modules itself, hands over
+        // something other than this, or branches.
+        assertNull(answerPageConstructor(shortPageBuilder(), module))
+        assertFalse(namesPage(shortTabPageBuilder(), pageConstructor, META_AI_TAB_PAGE))
+        assertNull(answerPageConstructor(shortPageBuilder(modulesAt = 3), module, resolve))
+        assertFalse(namesPage(shortTabPageBuilder(at = 5), pageConstructor, META_AI_TAB_PAGE, resolve))
+        assertNull(answerPageConstructor(shortPageBuilder(), module, resolving(shortConstructorMethod(fillsModules = true))))
+        assertNull(pageCall(shortConstructor, resolving(shortConstructorMethod(self = 12))))
+        assertNull(pageCall(shortConstructor, resolving(shortConstructorMethod(branches = true))))
+    }
+
     /** The page's constructor: this in v1 after one local, the modules in v3. */
     private fun pageConstructorMethod(registers: Int = 12) = method(page, "<init>", pageParameters, "V", registers, listOf(
         invoke(Opcode.INVOKE_DIRECT, ref("Ljava/lang/Object;", "<init>", emptyList(), "V"), registers - 11),
@@ -393,6 +475,44 @@ class MetaAiSearchShapesTest {
         assertTrue(isSuggestionParser(parser()) { null })
         assertEquals(listOf(RouteStore(3, 0)), routeStores(parser(), builderFlag))
         assertEquals(emptyList<RouteStore>(), routeStores(parser(), ImmutableFieldReference(specBuilder, "A0X", "Z")))
+    }
+
+    private val suggestionModel = "Lfixture/Suggestion;"
+
+    /**
+     * 585's parser: ask the suggestion model its kept getName(), then read the flag through the model's
+     * own `()Z` accessor and store it. [named] off asks getName() of another class; [takesKey] gives the
+     * accessor an int parameter.
+     */
+    private fun modelParser(named: Boolean = true, takesKey: Boolean = false): Method {
+        val code = mutableListOf<Instruction>()
+        val nameOwner = if (named) suggestionModel else "Lfixture/Other;"
+        code += invoke(Opcode.INVOKE_INTERFACE, ref(nameOwner, "getName", emptyList(), string), 1)
+        code += ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 2)
+        code += if (takesKey) {
+            invoke(Opcode.INVOKE_INTERFACE, ref(suggestionModel, "opensAssistant", listOf("I"), "Z"), 1, 3)
+        } else {
+            invoke(Opcode.INVOKE_INTERFACE, ref(suggestionModel, "opensAssistant", emptyList(), "Z"), 1)
+        }
+        code += ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)
+        code += ImmutableInstruction22c(Opcode.IPUT_BOOLEAN, 0, 15, builderFlag)
+        code += text(KEYWORD_TYPE_FAILURE)
+        code += text(TYPEAHEAD_SUGGESTION)
+        code += ImmutableInstruction10x(Opcode.RETURN_VOID)
+        return method("Lfixture/Parser;", "apply", listOf("Ljava/lang/Object;"), "Ljava/lang/Object;", 21, code)
+    }
+
+    @Test
+    fun `585's parser stores the flag the suggestion model's own accessor reads`() {
+        assertEquals(listOf(RouteStore(4, 0)), routeStores(modelParser(), builderFlag))
+        // An accessor on a class the parser never names, or one handed an argument, isn't the flag.
+        assertEquals(emptyList<RouteStore>(), routeStores(modelParser(named = false), builderFlag))
+        assertEquals(emptyList<RouteStore>(), routeStores(modelParser(takesKey = true), builderFlag))
+        // The hook still lands between the accessor's answer and the store.
+        val parser = MutableMethod(modelParser())
+        parser.askBeforeStoringRoute(RouteStore(4, 0))
+        assertEquals(OPENS_META_AI, ((parser.at(4) as ReferenceInstruction).reference as MethodReference).toString())
+        assertEquals(Opcode.IPUT_BOOLEAN, parser.at(6).opcode)
     }
 
     @Test

@@ -52,6 +52,8 @@ public class ReactionAlertsTest {
         PauseForTests.resume();
         SettingReadsForTests.mend(Settings.REACTION_ALERTS);
         Settings.REACTION_ALERTS.resetToDefault();
+        SettingReadsForTests.mend(Settings.REACTION_SOUND);
+        Settings.REACTION_SOUND.resetToDefault();
         ReactionAlerts.sources = REAL_SOURCES;
         ReactionAlerts.updates = REAL_UPDATES;
         ReactionAlerts.forget();
@@ -93,6 +95,31 @@ public class ReactionAlertsTest {
         assertTrue(account.shown.isEmpty());
     }
 
+    @Test public void aReactionStaysSilentUntilTheSoundSwitchIsOn() {
+        assertFalse(Settings.REACTION_SOUND.defaultValue);
+        assertFalse("not a reaction, so Telegram's own check goes on", ReactionAlerts.quiet(0));
+        assertTrue(ReactionAlerts.quiet(1));
+        assertFalse(String.join("\n", HookStatus.report()).contains("reaction sounds let through"));
+
+        Settings.REACTION_SOUND.save(true);
+        assertFalse(ReactionAlerts.quiet(1));
+        assertFalse(ReactionAlerts.quiet(0));
+        assertTrue(String.join("\n", HookStatus.report()).contains("reaction sounds let through"));
+    }
+
+    @Test public void pausedOrUnreadableTheReactionStaysSilent() {
+        Settings.REACTION_SOUND.save(true);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            assertTrue(reason.name(), ReactionAlerts.quiet(1));
+            PauseForTests.resume();
+        }
+        SettingReadsForTests.breakReads(Settings.REACTION_SOUND);
+        assertTrue(ReactionAlerts.quiet(1));
+        assertFalse(ReactionAlerts.quiet(0));
+    }
+
     @Test public void onlyTheNewestUnreadEmojiReactionFromSomeoneElseCounts() {
         List<ReactionAlerts.Reaction> skipped = Arrays.asList(
                 new ReactionAlerts.Reaction(FRIEND, 7, 0, FRIEND, "heart", NOW, false, false),
@@ -113,6 +140,35 @@ public class ReactionAlertsTest {
         mixed.add(newer);
         assertSame(newer, ReactionAlerts.pick(mixed, SELF, NOW));
         assertSame(older, ReactionAlerts.pick(Collections.singletonList(older), SELF, NOW));
+    }
+
+    @Test public void aLoadedCustomEmojiShowsAsTheEmojiItStandsFor() {
+        account.loaded.put(77L, "heart");
+        ReactionAlerts.changed(Collections.singletonList(
+                new ReactionAlerts.Reaction(FRIEND, 7, 0, FRIEND, null, NOW, true, false, 77)), null);
+        assertEquals(Collections.singletonList(FRIEND + ":7:null"), account.shown);
+        assertEquals(Collections.singletonList("heart"), account.emoji);
+        ReactionAlerts.changed(Collections.singletonList(
+                new ReactionAlerts.Reaction(FRIEND, 7, 0, FRIEND, null, NOW, true, false, 77)), null);
+        assertEquals("the same reaction again shows once", 1, account.shown.size());
+    }
+
+    @Test public void aCustomEmojiThisPhoneHasntLoadedIsLeftToThePush() {
+        ReactionAlerts.Reaction plain = reaction(FRIEND, 7, FRIEND, "fire", NOW - 10);
+        ReactionAlerts.Reaction unloaded = new ReactionAlerts.Reaction(FRIEND, 7, 0, FRIEND, null, NOW, true, false, 78);
+        List<ReactionAlerts.Reaction> update = Arrays.asList(plain, unloaded);
+        assertSame(update, ReactionAlerts.named(update, account));
+        // The newest one the phone can name counts, as before.
+        ReactionAlerts.changed(update, null);
+        assertEquals(Collections.singletonList("fire"), account.emoji);
+    }
+
+    @Test public void aFailedCustomEmojiLookupKeepsTheReactionsBesideIt() {
+        account.failEmoji = true;
+        ReactionAlerts.changed(Arrays.asList(reaction(FRIEND, 7, FRIEND, "fire", NOW - 10),
+                new ReactionAlerts.Reaction(FRIEND, 7, 0, FRIEND, null, NOW, true, false, 79)), null);
+        assertEquals(Collections.singletonList("fire"), account.emoji);
+        assertTrue(String.join("\n", HookStatus.report()).contains("custom emoji"));
     }
 
     @Test public void aReactionToSomeoneElsesMessageStaysQuietAndAnUnstoredOneShowsWithoutText() {
@@ -163,12 +219,18 @@ public class ReactionAlertsTest {
         assertFalse(Character.isHighSurrogate(cut.charAt(cut.length() - 2)));
     }
 
-    /** One account: the stored messages it has, and what it showed, as chat:id:text. Runs queue work at once. */
+    /**
+     * One account: the stored messages and custom emoji it has, and what it showed, as chat:id:text
+     * and the emoji. Runs queue work at once.
+     */
     private static final class Account implements ReactionAlerts.Source {
         final Map<String, ReactionAlerts.Stored> rows = new HashMap<>();
+        final Map<Long, String> loaded = new HashMap<>();
         final List<String> shown = new ArrayList<>();
+        final List<String> emoji = new ArrayList<>();
         long self = SELF;
         boolean failStored;
+        boolean failEmoji;
 
         @Override public long self() { return self; }
         @Override public int now() { return NOW; }
@@ -181,6 +243,12 @@ public class ReactionAlertsTest {
 
         @Override public void show(ReactionAlerts.Reaction reaction, String text) {
             shown.add(reaction.dialog + ":" + reaction.id + ":" + text);
+            emoji.add(reaction.emoji);
+        }
+
+        @Override public String emojiOf(long document) {
+            if (failEmoji) throw new IllegalStateException("moved method");
+            return loaded.get(document);
         }
     }
 }

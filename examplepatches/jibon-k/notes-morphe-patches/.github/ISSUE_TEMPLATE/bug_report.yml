@@ -1,0 +1,32 @@
+name: Bug report
+description: Something in the patched Notes app doesn't work.
+title: "bug: "
+labels: ["Bug report"]
+body:
+  - type: textarea
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what you got instead. Add screenshots if the problem is on screen.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Device and ROM
+      description: For example, Redmi Pad 2 with crDroid 12.12 GSI (Android 16).
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Samsung Notes version
+      description: The version of the APK you patched, for example 4.4.48.15.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Patches and options
+      description: Which patches you turned on or off, and any options you changed.
+  - type: textarea
+    attributes:
+      label: Crash log
+      description: Run `adb logcat -b crash -d` after the crash and paste the output.
+      render: shell

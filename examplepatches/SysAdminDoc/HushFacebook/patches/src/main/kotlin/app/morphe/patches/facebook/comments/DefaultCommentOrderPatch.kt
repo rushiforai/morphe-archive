@@ -11,12 +11,14 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
+import app.morphe.patches.facebook.feed.methodsNaming
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
  * Comment sheets ask for the order picked in Hushfacebook's settings where Facebook's servers
@@ -64,16 +66,22 @@ val defaultCommentOrderPatch = bytecodePatch(
         )
         mutableClassDefBy(handler.definingClass).findMutableMethodOf(handler).tellThePick()
 
-        val keyMaps = selectorKeyMaps(
-            classDefByStrings(SELECTOR_KEY, StringComparisonType.EQUALS).filterNot { it.type.startsWith(EXTENSION_CLASSES) },
-        )
-        val headers = classDefByStrings(INTENT_FLAG, StringComparisonType.EQUALS)
+        val keyOwners = classDefByStrings(SELECTOR_KEY, StringComparisonType.EQUALS)
             .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
-            .flatMap { owner -> owner.methods.mapNotNull { sortHeaderIn(it, keyMaps) } }
-            .distinctBy { "${it.definingClass}->${it.name}${it.parameterTypes}" }
+        val keyMaps = selectorKeyMaps(keyOwners)
+        val intentGetters = sheetGetters(INTENT_FLAG)
+        val interrankedGetters = sheetGetters(INTERRANKED)
+        val found = mutableListOf<MethodReference>()
+        // The renderer reads the key's map, so it names the map's class; 585's holds neither string to look it up by.
+        if (keyMaps.isNotEmpty()) classDefForEachReferencing(types = keyOwners.map { it.type }) { owner ->
+            if (owner.type.startsWith(EXTENSION_CLASSES)) return@classDefForEachReferencing
+            owner.methods.mapNotNullTo(found) { sortHeaderIn(it, keyMaps, intentGetters, interrankedGetters) }
+        }
+        val headers = found.distinctBy { "${it.definingClass}->${it.name}${it.parameterTypes}" }
         val header = headers.singleOrNull() ?: throw PatchException(
-            "$PATCH: expected one comment sort menu header built by the method holding \"$INTENT_FLAG\" and " +
-                "\"$INTERRANKED\" and filed under \"$SELECTOR_KEY\", found ${headers.size}",
+            "$PATCH: expected one comment sort menu header built by the method naming \"$INTENT_FLAG\" and " +
+                "\"$INTERRANKED\" (or calling a model's getter for each) and filed under \"$SELECTOR_KEY\", " +
+                "found ${headers.size}",
         )
         val headerClass = mutableClassDefBy(header.definingClass)
         val headerConstructor = headerClass.methods.firstOrNull {
@@ -116,6 +124,13 @@ internal fun BytecodePatchContext.hookPostPage() {
             "${constructor.parameterTypes.size}-parameter constructor, found ${builds.size}",
     )
     mutableClassDefBy(build.method.definingClass).findMutableMethodOf(build.method).askForThePageOrder(build)
+}
+
+/** The interface getters whose models name [literal], held or asked of a string table ([interfaceGetters]). */
+private fun BytecodePatchContext.sheetGetters(literal: String): Set<String> {
+    val getters = methodsNaming(literal, ::isSheetGetter)
+    val models = getters.map { it.definingClass }.distinct().mapNotNull { classDefByOrNull(it) }
+    return interfaceGetters(models, getters)
 }
 
 /**

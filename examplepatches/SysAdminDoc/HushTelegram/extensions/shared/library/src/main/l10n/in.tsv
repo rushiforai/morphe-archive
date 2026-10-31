@@ -121,6 +121,8 @@ No matching settings	Tidak ada pengaturan yang cocok
 %1$d settings found	%1$d pengaturan ditemukan
 Try a different word or clear the search.	Coba kata lain atau hapus pencarian.
 Search settings	Cari pengaturan
+# context: the settings search field's hint when "Search settings" doesn't fit its width (a narrow screen or large text).
+Search	Cari
 Clear search	Hapus pencarian
 Your switches are working.	Sakelar Anda aktif.
 Pause	Jeda
@@ -174,10 +176,8 @@ Stops usage reports, strips tracking from links and covers your own phone number
 Back to defaults	Kembali ke bawaan
 # context: what Back to defaults does, under its name
 Puts every feature switch back the way it started.	Mengembalikan setiap sakelar fitur seperti semula.
-# context: toast after a Quick setups choice changed exactly one switch
-Changed %1$d setting	%1$d pengaturan diubah
-# context: the same toast for any other count, zero included; %1$d is how many
-Changed %1$d settings	%1$d pengaturan diubah
+# context: toast after a Quick setups choice (Quiet, Privacy or Back to defaults) found every switch it sets already set that way, so nothing changed
+Already set that way.	Sudah diatur seperti itu.
 Ads in channels and search	Iklan di saluran dan pencarian
 Ads in channels	Iklan di saluran
 Ads in search	Iklan di pencarian
@@ -204,6 +204,12 @@ Hide recommendations	Sembunyikan rekomendasi
 Hides suggested similar channels and bots, including ones already saved, and stops asking Telegram for new ones.	Menyembunyikan saran kanal dan bot serupa, termasuk yang sudah tersimpan, dan berhenti meminta saran baru dari Telegram.
 similar channels and bots	saluran dan bot serupa
 cached recommendations	rekomendasi tersimpan
+# context: a switch under Hide recommendations. Trending packs are the sticker and emoji packs Telegram features in its keyboards; use the applied translation of Telegram's term (key FeaturedStickersShort, "Trending").
+Hide trending packs	Sembunyikan paket Trending
+# context: that switch's summary. Trending is the sticker keyboard's tab (key FeaturedStickersShort) and Stickers and Emoji is the Settings screen that lists packs (key StickersName); use the applied translations of both.
+The sticker keyboard's Trending tab and row and the emoji keyboard's trending packs go away, so both list only packs you've added. Search and the Stickers and Emoji screen still show them. A chat picks this up the next time you open it.	Tab Trending dan barisnya di keyboard stiker serta paket trending di keyboard emoji hilang, jadi keduanya hanya menampilkan paket yang Anda tambahkan. Pencarian dan layar Stiker dan Emoji tetap menampilkannya. Obrolan akan menerapkannya saat Anda membukanya lagi.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide recommendations that hides the keyboards' trending packs.
+trending packs in the sticker and emoji keyboards	paket trending di keyboard stiker dan emoji
 Stop call diagnostics	Hentikan diagnostik panggilan
 Stops your phone from automatically sending call problem reports and log files when Telegram's server asks for them.	Mencegah ponsel Anda mengirim laporan masalah panggilan dan berkas log secara otomatis saat server Telegram memintanya.
 call debug reports	laporan debug panggilan
@@ -222,6 +228,24 @@ Gram transfer Send Gram item	item Kirim Gram di transfer Gram
 Premium stickers in the keyboard and packs	stiker Premium di keyboard dan paket
 Premium sticker effects	efek stiker Premium
 Premium emoji packs in the emoji keyboard	paket emoji Premium di keyboard emoji
+# context: a switch under Hide Premium, gifts and Stars. An emoji status is the emoji a Premium account sets next to its name; use the applied translation of Telegram's term (key PremiumPreviewEmojiStatus, "Emoji Statuses").
+Hide emoji statuses	Sembunyikan Status Emoji
+# context: that switch's summary. The Premium star is the star Telegram draws next to a Premium account's name when it has no emoji status.
+The emoji a Premium account puts next to its name goes away in chats, the chat list and profiles, and the Premium star shows instead. Your own status hides too but stays set for everyone else. A chat picks this up the next time you open it.	Emoji yang dipasang akun Premium di samping namanya hilang di obrolan, daftar obrolan, dan profil, lalu bintang Premium muncul sebagai gantinya. Status Anda sendiri juga disembunyikan, tetapi tetap terpasang bagi orang lain. Obrolan akan menerapkannya saat Anda membukanya lagi.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide Premium, gifts and Stars that hides emoji statuses.
+emoji statuses next to names	status emoji di samping nama
+# context: a switch under Hide Premium, gifts and Stars. App Icon is Telegram's list of launcher icons in its appearance settings; use the applied translations of its title (key AppIcon, "App Icon") and of the icon names (keys AppIconPremium, AppIconTurbo, AppIconNox).
+Unlock Premium app icons	Buka Kunci Ikon Aplikasi Premium
+# context: that switch's summary. Premium, Turbo and Nox are three icons in that list (keys AppIconPremium, AppIconTurbo, AppIconNox). The Premium sheet is the page Telegram opens to sell Premium when a locked icon is tapped.
+Premium, Turbo and Nox in Telegram's App Icon list work without Premium, with no lock and no Premium sheet. Only the icon on your home screen changes.	Premium, Turbo, dan Nox di daftar Ikon Aplikasi Telegram bisa dipakai tanpa Premium, tanpa gembok dan tanpa layar Premium. Hanya ikon di layar utama Anda yang berubah.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide Premium, gifts and Stars that unlocks the Premium app icons.
+Premium icons in the App Icon list	ikon Premium di daftar Ikon Aplikasi
+# context: a switch under Hide Premium, gifts and Stars. An emoji status is the emoji a Premium account sets next to its name; use the applied translation of Telegram's term (key PremiumPreviewEmojiStatus, "Emoji Status"), in the singular.
+Emoji status on this phone	Status Emoji di ponsel ini
+# context: that switch's summary. Telegram is the title at the top of the chat list; the star next to it is Telegram's Premium star, which opens the emoji status picker.
+Tap the star next to Telegram at the top of the chat list and pick any emoji status, animated ones too, without Premium. It shows there on this phone only. Nobody else sees it, and nothing is sent to Telegram.	Ketuk bintang di samping Telegram di bagian atas daftar chat dan pilih Status Emoji apa saja, termasuk yang animasi, tanpa Premium. Status itu hanya tampil di sana di ponsel ini. Tidak ada orang lain yang melihatnya, dan tidak ada yang dikirim ke Telegram.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide Premium, gifts and Stars that keeps your emoji status on this phone.
+your emoji status on this phone	Status Emoji Anda di ponsel ini
 Hide promotional banners	Sembunyikan banner promosi
 Hides the Premium, birthday and low Stars balance banners above your chat list. Account security notices and other suggestions still show.	Menyembunyikan banner Premium, ulang tahun, dan saldo Stars yang menipis di atas daftar obrolan Anda. Pemberitahuan keamanan akun dan saran lainnya tetap tampil.
 promotional suggestions	saran promosi
@@ -249,6 +273,27 @@ Premium promo taps	ketukan promosi Premium
 Premium promo accepts	persetujuan promosi Premium
 Premium promo failures	kegagalan promosi Premium
 dual camera reports	laporan kamera ganda
+# context: Privacy page switch title under Stop usage reports. When on, Telegram isn't told that you read a chat or watched a story.
+Ghost mode	Mode hantu
+# context: Summary under that switch. Sending a message tells Telegram the chat was read anyway, and the account's other devices never learn it was read.
+Read chats and watch stories without anyone being told. Sending a message in a chat still marks it read, and your other devices keep showing it unread.	Baca obrolan dan tonton cerita tanpa ada yang diberi tahu. Mengirim pesan di sebuah obrolan tetap menandainya sudah dibaca, dan perangkat Anda yang lain tetap menampilkannya belum dibaca.
+# context: Switch title under Ghost mode. Read receipts are the ticks that tell a sender their message was read.
+No read receipts	Tanpa laporan dibaca
+# context: Summary under that switch. A voice message stays marked unplayed for its sender until it's played.
+Messages you read stay unread for the people who sent them, in private chats, groups and secret chats, and voice messages you play stay unplayed. Works with Ghost mode on.	Pesan yang Anda baca tetap belum dibaca bagi pengirimnya, di obrolan pribadi, grup, dan obrolan rahasia, dan pesan suara yang Anda putar tetap belum diputar. Berfungsi saat Mode hantu aktif.
+# context: Switch title under Ghost mode. When on, watching someone's story doesn't put you on its viewer list.
+View stories anonymously	Lihat cerita secara anonim
+Stories you watch don't add you to their viewer list. Works with Ghost mode on.	Cerita yang Anda tonton tidak menambahkan Anda ke daftar penontonnya. Berfungsi saat Mode hantu aktif.
+# context: Switch title under Ghost mode. When on, the chat doesn't show the other person that you're typing, recording or uploading.
+Hide typing	Sembunyikan mengetik
+# context: Summary under that switch. Covers the typing, voice recording, video and file uploading statuses shown at the top of a chat.
+Other people don't see that you're typing, recording or sending a file. Works with Ghost mode on.	Orang lain tidak melihat bahwa Anda sedang mengetik, merekam, atau mengirim berkas. Berfungsi saat Mode hantu aktif.
+# context: Switch title under Ghost mode. When on, Telegram isn't told the account is online, so Last seen doesn't update while you use the app.
+Hide online status	Sembunyikan status online
+# context: Summary under that switch. Telegram is still told when the app goes offline, so the account shows as offline.
+Telegram isn't told that you're online while you use it. Going offline still goes out. Works with Ghost mode on.	Telegram tidak diberi tahu bahwa Anda online saat Anda memakainya. Beralih ke offline tetap dikirim. Berfungsi saat Mode hantu aktif.
+# context: Lowercase noun phrase naming the part of Stop usage reports that Ghost mode covers, listed in coverage lines with "channel read metrics" and "dual camera reports".
+read receipts and story views	laporan dibaca dan tayangan cerita
 Accounts	Akun
 Every switch here applies to all the accounts in this Telegram app, not only the one you have open.	Setiap sakelar di sini berlaku untuk semua akun di aplikasi Telegram ini, bukan hanya akun yang sedang Anda buka.
 No previews before sending	Tanpa pratinjau sebelum mengirim
@@ -328,13 +373,13 @@ Volume keys only change the volume. They no longer start the video or round vide
 # context: a second switch under Keep videos muted on volume keys (#27). Telegram turns a video put in full screen to one fixed landscape side; with this on it follows the phone to either side.
 Full screen videos turn either way	Video layar penuh berputar ke dua arah
 # context: that switch's summary. "full screen" is Telegram's full screen button on a video; "auto-rotate" is Android's own screen rotation setting, use the phone's name for it.
-After you tap full screen, a video follows your phone to either landscape side, even with auto-rotate off.	Setelah kamu mengetuk layar penuh, video mengikuti ponselmu ke sisi lanskap mana pun, meski putar otomatis nonaktif.
+After you tap full screen, a video follows your phone to either landscape side, even with auto-rotate off. Turning your phone upright doesn't end full screen. Tap the button to leave it.	Setelah kamu mengetuk layar penuh, video mengikuti ponselmu ke sisi lanskap mana pun, meski putar otomatis nonaktif. Menegakkan ponsel tidak keluar dari layar penuh. Ketuk tombolnya untuk keluar.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that lets a full screen video turn to either landscape side.
 full screen video turning either way	putaran video layar penuh ke dua arah
 # context: a third switch under Keep videos muted on volume keys (#27). With it on, an open video in the viewer stays in portrait when the phone is turned, and goes landscape only from Telegram's full screen button.
 Turn videos only from the full screen button	Putar video hanya dari tombol layar penuh
 # context: that switch's summary. "full screen" is Telegram's full screen button on a video; use the phone's own words for turning the phone.
-An open video stays upright when you turn your phone. It goes landscape only when you tap full screen.	Video yang terbuka tetap tegak saat kamu memutar ponsel. Video baru berubah ke lanskap saat kamu mengetuk layar penuh.
+An open video stays upright when you turn your phone. It goes landscape only when you tap full screen, and back only when you tap the button again.	Video yang terbuka tetap tegak saat kamu memutar ponsel. Video baru berubah ke lanskap saat kamu mengetuk layar penuh, dan baru kembali saat kamu mengetuk tombolnya lagi.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that keeps an open video upright until full screen.
 keeping a video upright until full screen	menjaga video tetap tegak sampai layar penuh
 Swipe back on profiles	Geser kembali di profil
@@ -554,6 +599,12 @@ Hide channel Mute button	Sembunyikan tombol Bisukan kanal
 The bar at the bottom of a channel you've joined goes away, along with its Mute button and the Search and Info buttons beside it. Channels you haven't joined still show Join. To mute a channel, open its info. A channel picks this up the next time you open it.	Bilah di bagian bawah kanal yang sudah Anda ikuti hilang, bersama tombol Bisukan dan tombol Cari serta Info di sebelahnya. Kanal yang belum Anda ikuti tetap menampilkan Gabung. Untuk membisukan kanal, buka infonya. Kanal akan menerapkannya saat Anda membukanya lagi.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide channel bar buttons that hides the Mute button of a joined channel's bar.
 Mute button on the channel bar	tombol Bisukan di bilah kanal
+# context: a third switch under Hide channel bar buttons. The share button is the round arrow button Telegram shows beside a channel's posts, in the channel and in any chat a post is forwarded to.
+Hide channel share button	Sembunyikan tombol bagikan kanal
+# context: that switch's summary. Saved Messages is Telegram's own name for the chat with yourself (key SavedMessages); use its applied translation.
+The round share button beside channel posts goes away, in the channel and wherever a post is forwarded. A post's own menu still forwards it. Bots and Saved Messages keep theirs. A chat picks this up the next time you open it.	Tombol bagikan bundar di samping postingan kanal hilang, di kanal dan di mana pun postingan itu diteruskan. Menu postingan itu sendiri tetap bisa meneruskannya. Bot dan Pesan Tersimpan tetap punya tombolnya. Obrolan akan menerapkannya saat Anda membukanya lagi.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide channel bar buttons that hides the round share button beside channel posts.
+share button beside channel posts	tombol bagikan di samping postingan kanal
 Hide Send as button	Sembunyikan tombol Kirim sebagai
 Your picture next to the message box goes away in groups and channels where you could post as a channel, while you're posting as yourself. Once you pick a channel it shows again, so you can always see who you're posting as. To pick one, turn this off first. A chat picks this up the next time you open it.	Foto Anda di samping kotak pesan hilang di grup dan kanal tempat Anda bisa memposting sebagai kanal, selama Anda memposting sebagai diri sendiri. Setelah Anda memilih kanal, foto itu muncul lagi, jadi Anda selalu tahu sebagai siapa Anda memposting. Untuk memilih kanal, matikan ini dulu. Obrolan akan menerapkannya saat Anda membukanya lagi.
 # context: Hide Contacts tab. Contacts, Calls and Settings are Telegram's own names for the tabs in the bar at the bottom of the main screen; the new message button is the round pencil button on the chat list.
@@ -646,7 +697,7 @@ Your AI service didn't accept the key	Layanan AI-mu tidak menerima kunci itu
 # context: a switch on the Notifications page. UnifiedPush is the name of an open notification standard and stays as it is.
 UnifiedPush notifications	Notifikasi UnifiedPush
 # context: that switch's summary. Firebase is Google's notification service and ntfy is an app; both names stay as they are.
-For phones where Firebase notifications don't arrive. Telegram signs up an address from a UnifiedPush app like ntfy, and Telegram's servers call it to wake Telegram when something arrives. The messages still come from Telegram itself. Turned off, Telegram goes back to Firebase the next time it starts.	Untuk ponsel yang tidak menerima notifikasi Firebase. Telegram mendaftarkan alamat dari aplikasi UnifiedPush seperti ntfy, dan server Telegram memanggilnya untuk membangunkan Telegram saat ada yang masuk. Pesannya tetap datang dari Telegram sendiri. Jika dimatikan, Telegram kembali ke Firebase saat dimulai berikutnya.
+For phones where Firebase notifications don't arrive. Telegram signs up an address from a UnifiedPush app like ntfy, and Telegram's servers call it to wake Telegram when something arrives. The messages still come from Telegram itself. It also turns on Telegram's own Keep-Alive Service and Background Connection, unless you've set either one yourself. Turned off, Telegram goes back to Firebase the next time it starts.	Untuk ponsel yang tidak menerima notifikasi Firebase. Telegram mendaftarkan alamat dari aplikasi UnifiedPush seperti ntfy, dan server Telegram memanggilnya untuk membangunkan Telegram saat ada yang masuk. Pesannya tetap datang dari Telegram sendiri. Ini juga menyalakan Biarkan Layanan Tetap Menyala dan Koneksi Latar milik Telegram, kecuali Anda sudah mengatur salah satunya sendiri. Jika dimatikan, Telegram kembali ke Firebase saat dimulai berikutnya.
 # context: a row under that switch, and the title of the list it opens: which installed UnifiedPush app, like ntfy, delivers the notifications.
 Push app	Aplikasi push
 Install a UnifiedPush app like ntfy, then come back here.	Pasang aplikasi UnifiedPush seperti ntfy, lalu kembali ke sini.
@@ -673,6 +724,10 @@ Each file or song you download also goes to Download/Telegram on your phone, whe
 Also save from chats that don't allow saving	Simpan juga dari obrolan yang tidak mengizinkan penyimpanan
 # context: that switch's summary, a warning that it goes past the chat owner's choice. "Save downloaded files" is the name of the switch above it.
 With Save downloaded files on, files from chats whose owner turned off saving get copied too. Only use it where the owner is fine with you keeping a copy, since it goes past their setting. Secret chats still stay in Telegram.	Saat Simpan file yang diunduh aktif, file dari obrolan yang pemiliknya mematikan penyimpanan juga ikut disalin. Pakai hanya jika pemiliknya tidak keberatan kamu menyimpan salinan, karena ini melewati pengaturannya. Obrolan rahasia tetap di Telegram.
+# context: a third switch under Save downloaded files (#9). Turned on, it also copies view-once and self-destructing (timed) photos, videos, voice and video messages. Secret chats stay excluded.
+Also save view-once and timed media	Simpan juga media sekali lihat dan berwaktu
+# context: that switch's summary, a warning that it goes past the sender's choice to have the media disappear. "Save downloaded files" is the name of the first switch.
+With Save downloaded files on, view-once and self-destructing photos, videos, voice and video messages get copied to Download/Telegram when they download. The sender meant them to disappear, so only use it where they're fine with you keeping a copy. Secret chats still stay in Telegram.	Saat Simpan file yang diunduh aktif, foto, video, pesan suara, dan pesan video sekali lihat atau yang bisa hancur sendiri juga disalin ke Download/Telegram saat diunduh. Pengirimnya ingin media itu hilang, jadi pakai hanya jika dia tidak keberatan kamu menyimpan salinan. Obrolan rahasia tetap di Telegram.
 # context: Folders by chat type, a switch on the Chat list page. Turning it on makes Telegram chat folders for each kind of chat.
 Folders by chat type	Folder menurut jenis obrolan
 # context: that switch's summary. Private, Groups, Channels and Bots are the folder names, use the same words as their own entries.
@@ -874,6 +929,14 @@ Find names in styled letters	Temukan nama dengan huruf bergaya
 Searching your chats and contacts also finds names written in letters like 𝐁𝐨𝐥𝐝, 𝘐𝘵𝘢𝘭𝘪𝘤 or Ｗｉｄｅ when you type plain ones. Names still show as they're written and numbers aren't changed. A name found this way isn't highlighted.	Pencarian di obrolan dan kontak Anda juga menemukan nama yang ditulis dengan huruf seperti 𝐓𝐞𝐛𝐚𝐥, 𝘔𝘪𝘳𝘪𝘯𝘨 atau Ｌｅｂａｒ saat Anda mengetik huruf biasa. Nama tetap tampil seperti aslinya dan angka tidak diubah. Nama yang ditemukan dengan cara ini tidak disorot.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide popular apps that lets search find names written in styled letters
 styled names in search	nama berhuruf bergaya dalam pencarian
+# context: Switch on the Ads page under Hide popular apps, off by default. A parental control: with it on, joining channels and groups and opening ones you aren't a member of are blocked
+Block new channels and groups	Blokir kanal dan grup baru
+# context: Summary of Block new channels and groups. A shared folder is a chat folder someone shares by link (Telegram's chat folder invite link). Lock HushTelegram settings is the settings lock row on the Pause page: use that row's translation exactly
+Stops joining channels and groups, from search, a link or a shared folder, and opening ones you aren't in. Chats you're already in stay. To keep this on, also turn on Lock HushTelegram settings.	Mencegah bergabung ke kanal dan grup dari pencarian, tautan, atau folder bersama, serta membuka kanal dan grup yang belum Anda ikuti. Obrolan yang sudah Anda ikuti tetap ada. Agar tetap aktif, aktifkan juga Kunci pengaturan HushTelegram.
+# context: Toast when the block stops a join or keeps a channel or group you aren't in from opening. HushTelegram settings is this app's settings page
+New chats are blocked in HushTelegram settings.	Obrolan baru diblokir di pengaturan HushTelegram.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide popular apps that blocks joining channels and groups
+joining new channels and groups	bergabung ke kanal dan grup baru
 # context: Toast after Save in the report preview when some parts were left out, so it isn't the full report. %1$s is where the file went, like Download/Morphe/name.txt. Match the wording of Full report saved to %1$s
 Report saved to %1$s	Laporan disimpan ke %1$s
 # context: Note in the report preview when the text couldn't be redrawn after a box was ticked or unticked. Copy and Save are the dialog's buttons, so use the same words as those buttons
@@ -968,9 +1031,6 @@ Search languages	Cari bahasa
 Couldn't save the language. Try again in a moment.	Bahasa tidak dapat disimpan. Coba lagi sebentar lagi.
 # context: Line in the settings import preview when the file changes the Translate into language.
 The translation language will change.	Bahasa terjemahan akan berubah.
-# context: A screen reader's state for a settings section heading that opens and closes in place.
-Expanded	Diluaskan
-Collapsed	Diciutkan
 # context: Switch title under Save downloaded files. It moves the folder Telegram keeps its own downloads in from Android/data to the phone's main storage.
 Keep Telegram's files in internal storage	Simpan file Telegram di penyimpanan internal
 # context: Summary under that switch. Internal storage/Telegram and Android/data are folder paths: translate Internal storage as Android's Files app does, keep Telegram and Android/data as they are. All files access is Android's name for the special app access page.
@@ -989,3 +1049,70 @@ Reaction notifications without push	Notifikasi reaksi tanpa push
 Shows a notification when someone reacts to your message while Telegram is connected, even when no push arrives. A reaction that also comes by push shows once.	Menampilkan notifikasi saat seseorang bereaksi pada pesan Anda selama Telegram terhubung, meski tidak ada push yang masuk. Reaksi yang juga datang lewat push hanya ditampilkan sekali.
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of UnifiedPush notifications that shows reactions without a push.
 reaction notifications without push	notifikasi reaksi tanpa push
+# context: Two switches under Disable double-tap reactions, for the reaction row under messages and the picker in the long-press menu.
+Hide reactions under messages	Sembunyikan reaksi di bawah pesan
+The row of reactions under each message isn't drawn. Nothing is removed, so turn it off and they're back. Tags in Saved Messages stay.	Baris reaksi di bawah setiap pesan tidak ditampilkan. Tidak ada yang dihapus, jadi matikan saja dan reaksinya kembali. Tag di Pesan Tersimpan tetap ada.
+Hide the reaction picker	Sembunyikan pemilih reaksi
+The row of reactions at the top of the long-press menu and the panel it opens are gone. The rest of the menu works as before.	Baris reaksi di bagian atas menu tekan lama dan panel yang dibukanya dihilangkan. Menu lainnya berfungsi seperti biasa.
+# context: Coverage labels for the reaction row and reaction picker hooks.
+reaction rows under messages	baris reaksi di bawah pesan
+the reaction picker in the message menu	pemilih reaksi di menu pesan
+# context: Switch on the Conversations page for copying text in a chat or message that doesn't allow saving (#43), its toast, and the label for the text selection part.
+Copy text from chats that don't allow saving	Salin teks dari chat yang tidak mengizinkan penyimpanan
+Puts Copy back in the menu of a message in a chat that doesn't allow saving, and lets you copy selected text there. Secret chats stay as they are.	Mengembalikan Salin ke menu pesan di chat yang tidak mengizinkan penyimpanan, dan membuat teks yang dipilih di sana bisa disalin. Chat rahasia tidak berubah.
+Puts Copy back in the menu of a message in a chat that doesn't allow saving. Secret chats stay as they are.	Mengembalikan Salin ke menu pesan di chat yang tidak mengizinkan penyimpanan. Chat rahasia tidak berubah.
+Text copied	Teks disalin
+text selection in chats that don't allow saving	pemilihan teks di chat yang tidak mengizinkan penyimpanan
+# context: Switch for Save to Downloads in the message menu (#29), its item (Telegram's own key SaveToDownloads) and its toasts.
+Add Save to Downloads to the message menu	Tambahkan Simpan ke Unduhan ke menu pesan
+Adds Save to Downloads to a downloaded photo, video, file or song in a chat that doesn't allow saving. Nothing is copied until you tap it.	Menambahkan Simpan ke Unduhan pada foto, video, file, atau lagu yang sudah diunduh di chat yang tidak mengizinkan penyimpanan. Tidak ada yang disalin sampai kamu mengetuknya.
+Save to Downloads	Simpan ke Unduhan
+Saved to Downloads	Disimpan ke Unduhan
+Already in Downloads	Sudah ada di Unduhan
+Couldn't save that. Try again.	Tidak bisa menyimpannya. Coba lagi.
+# context: Switch for Forward as copy in the message menu (#46), its item, picker title and toast.
+Add Forward as copy to the message menu	Tambahkan Teruskan sebagai salinan ke menu pesan
+Adds Forward as copy to a message in a chat that doesn't allow forwarding. Pick a chat and the message's text, or its downloaded photo or file, is sent there as a new message.	Menambahkan Teruskan sebagai salinan pada pesan di chat yang tidak mengizinkan penerusan. Pilih chat, lalu teks pesan, atau foto atau file yang sudah diunduh, dikirim ke sana sebagai pesan baru.
+Forward as copy	Teruskan sebagai salinan
+Open it first to download it	Buka dulu untuk mengunduhnya
+# context: Ways in section (#29): four switches for the ways that open the HushTelegram settings. 'Settings' in the Telegram row is Telegram's own applied Settings label (translations.telegram.org key Settings).
+Ways in	Cara masuk
+Ways to open these settings	Cara membuka pengaturan ini
+One way always stays on, so you can always get back here.	Satu cara selalu tetap aktif, jadi Anda selalu bisa kembali ke sini.
+Row in Telegram's Settings	Baris di Pengaturan Telegram
+Adds a HushTelegram row to Telegram's Settings page.	Menambahkan baris HushTelegram ke halaman Pengaturan Telegram.
+Long press on the chat list title	Tekan lama judul daftar chat
+Hold the Telegram title at the top of your chats.	Tahan judul Telegram di bagian atas chat Anda.
+Row in the side menu	Baris di menu samping
+Adds a HushTelegram row to the side menu, which has its own switch.	Menambahkan baris HushTelegram ke menu samping, yang punya sakelar sendiri.
+Home screen shortcut	Pintasan layar utama
+Adds HushTelegram to the menu you get from holding Telegram's icon.	Menambahkan HushTelegram ke menu yang muncul saat ikon Telegram ditahan.
+Keep one way into HushTelegram settings	Sisakan satu cara ke pengaturan HushTelegram
+# context: a third switch under UnifiedPush notifications on the Notifications page, off by default. Telegram keeps every reaction notification silent; turned on, a reaction's notification plays the sound and vibration chosen for reactions in Telegram's own settings. "Reaction" is Telegram's word for an emoji reaction to a message.
+Sound for reaction notifications	Suara notifikasi reaksi
+# context: that switch's summary. "Notifications and Sounds > Reactions" is the path in Telegram's own Settings, written with Telegram's applied labels for this language (keys NotificationsAndSounds and NotificationReactions on translations.telegram.org; Bulgarian has no applied NotificationReactions, so Telegram shows the English "Reactions" there).
+Telegram's reaction notifications make no sound. Turned on, they play the sound and vibration set in Telegram's Notifications and Sounds > Reactions.	Notifikasi reaksi Telegram tidak bersuara. Jika diaktifkan, notifikasi ini memakai suara dan getaran yang diatur di Notifikasi dan Suara > Reaksi Telegram.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of UnifiedPush notifications that plays a sound for reactions.
+sound for reaction notifications	suara notifikasi reaksi
+# context: a switch on the Privacy page under Stop call diagnostics, off by default. Turned on, every call's audio, both what you say and what you hear, is saved to an audio file on the phone once the call ends.
+Record calls	Rekam panggilan
+# context: that switch's summary. %1$s is the folder the file goes to, an English folder name on the phone's storage such as Recordings/Telegram calls, so it stays as it is. "The other person" is whoever is on the call with you.
+Saves both sides of each call to %1$s on this phone. The other person isn't told.	Menyimpan kedua sisi setiap panggilan ke %1$s di ponsel ini. Lawan bicara tidak diberi tahu.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Stop call diagnostics that records calls to a file.
+call recording	perekaman panggilan
+# context: a short toast shown when a call ends and its recording was saved. %1$s is the English folder name on the phone's storage, such as Recordings/Telegram calls.
+Call saved to %1$s	Panggilan disimpan ke %1$s
+# context: a short toast shown when a call ends and its recording couldn't be written or saved.
+Couldn't save the call recording.	Rekaman panggilan tidak dapat disimpan.
+# context: a switch on the Privacy page under Record calls (#39), off by default. Turned on, it puts a round record button on Telegram's call screen, right under the minimize arrow in the top left corner.
+Record button on calls	Tombol rekam saat panggilan
+# context: that switch's summary. "Record calls" is the name of the switch above it, which records every call. A tap on the button records only the call on screen, or, with Record calls on, skips recording that one call.
+A button on the call screen records just that call, or stops recording it when Record calls is on.	Tombol di layar panggilan merekam panggilan itu saja, atau berhenti merekamnya saat Rekam panggilan aktif.
+# context: a short toast shown when the record button on the call screen is tapped and the call starts recording.
+Recording this call	Merekam panggilan ini
+# context: a short toast shown when the record button on the call screen is tapped again and the call stops recording. What was already recorded is still saved.
+Recording stopped	Perekaman dihentikan
+# context: what a screen reader says for the round record button on the call screen. It's a toggle, so the screen reader adds on or off by itself.
+Record call	Rekam panggilan
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the record button on the call screen.
+call record button	tombol rekam panggilan

@@ -64,8 +64,9 @@ public final class AuditMode {
     /**
      * Switches all-on leaves at their defaults, since each one stops a tour of the app from
      * seeing what it should: a single kept tab, a lock over every screen, a Facebook that closes
-     * whenever the tour opens another app, links and chats handed to other apps, whole kinds of
-     * posts gone from the feed, and the second tab bar position.
+     * whenever the tour opens another app, a cover before every launch or after half an hour of
+     * feeds, links and chats handed to
+     * other apps, whole kinds of posts gone from the feed, and the second tab bar position.
      */
     static final List<BooleanSetting> ALL_ON_EXCLUDED = Collections.unmodifiableList(Arrays.asList(
             Settings.MARKETPLACE_ONLY,
@@ -73,6 +74,8 @@ public final class AuditMode {
             Settings.TOP_TAB_BAR,
             Settings.APP_LOCK,
             Settings.CLOSE_WHEN_LEFT,
+            Settings.OPENING_PAUSE,
+            Settings.TAKE_BREAKS,
             Settings.OPEN_LINKS_EXTERNALLY,
             Settings.OPEN_MESSENGER_APP,
             Settings.LEAVE_CALLS_AND_CHATS_TO_MESSENGER,

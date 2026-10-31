@@ -37,7 +37,7 @@ public class CommentCopyTest {
 
     @Before public void enable() {
         context = RuntimeEnvironment.getApplication();
-        context.getApplicationInfo().targetSdkVersion = 36;
+        context.getApplicationInfo().targetSdkVersion = 37;
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         BaseSettings.SAFE_MODE.save(false);
@@ -68,7 +68,7 @@ public class CommentCopyTest {
         assertNotNull(clip);
         assertEquals(text, clip.getItemAt(0).getText().toString());
         assertTrue(clip.getDescription().getExtras().getBoolean("android.content.extra.IS_SENSITIVE"));
-        assertEquals(36, context.getApplicationInfo().targetSdkVersion);
+        assertEquals(37, context.getApplicationInfo().targetSdkVersion);
     }
 
     @Test public void immutableAndRepeatedMenusKeepStockIdentityAndOnlyOneOwnedRow() {

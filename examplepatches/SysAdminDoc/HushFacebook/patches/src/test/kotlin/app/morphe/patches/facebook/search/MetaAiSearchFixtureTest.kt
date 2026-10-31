@@ -40,7 +40,7 @@ import org.junit.Test
  * Hide Meta AI in search on every Facebook build the bundle declares: one answer page builder whose
  * two callers ask one question before it; one result role enum naming every role the extension
  * leaves out; one result module class with one role accessor; the answer page built from that
- * class's modules; one results router, one route field and one parser storing it from the server;
+ * class's modules (on 585 through the page class's short constructor); one results router, one route field and one parser storing it from the server;
  * and the explicit ways in (the Meta AI button's AI mode start and the Meta AI tab's own answer)
  * going around all three. Then the patch itself, run on those classes. Reads the fixture bundles
  * from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
@@ -57,6 +57,16 @@ class MetaAiSearchFixtureTest {
     private val metaAiTabModule = "search_meta_ai_answer_module"
 
     private val strings = listOf(ANSWER_PAGE, ROLE_PARSE_FAILURE, META_AI_TAB, KEYWORD_TYPE_FAILURE, aiModeStart, metaAiTabModule)
+
+    /** Whether the answer page builder calls the full page constructor itself, per build: 585 goes through its short one. */
+    private val directPageCall = mapOf(
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to false,
+    )
+
+    /** Whether the parser reads the route flag through the suggestion model's accessor, per build: 585 does, not TreeJNI itself. */
+    private val readThroughModel = mapOf(
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to true,
+    )
 
     private val Instruction.call: MethodReference?
         get() = (this as? ReferenceInstruction)?.reference as? MethodReference
@@ -100,6 +110,8 @@ class MetaAiSearchFixtureTest {
                 val callers = mutableListOf<Method>()
                 val callerClasses = mutableListOf<ClassDef>()
                 val modules = mutableListOf<ClassDef>()
+                // Each method loading the route flag's key, as "name(params)return".
+                val keyReaders = mutableListOf<String>()
                 FixtureDex.forEach(fixture) { dex ->
                     for (classDef in dex.classes) {
                         var calls = false
@@ -107,6 +119,12 @@ class MetaAiSearchFixtureTest {
                             if (callsMethod(method, builder)) {
                                 callers += ImmutableMethod.of(method)
                                 calls = true
+                            }
+                            if (method.implementation?.instructions?.any {
+                                    it is NarrowLiteralInstruction && it.narrowLiteral == routeFlagKey
+                                } == true
+                            ) {
+                                keyReaders += "${method.name}(${method.parameterTypes.joinToString("")})${method.returnType}"
                             }
                             if (isModuleConstructor(method, role)) modules += ImmutableClassDef.of(classDef)
                         }
@@ -121,8 +139,20 @@ class MetaAiSearchFixtureTest {
                 val module = modules.first()
                 val accessors = roleAccessors(module, role)
                 assertEquals("$name: the module's role accessors", 1, accessors.size)
-                val page = answerPageConstructor(builder, module.type)
+                // 585's builders build their pages through a short constructor, read from its own class.
+                val tabAnswers = held(metaAiTabModule).flatMap { methodsHolding(it, metaAiTabModule) }
+                val constructorTypes = (tabAnswers + builder).flatMap { method ->
+                    method.implementation!!.instructions.filter { it.opcode == Opcode.INVOKE_DIRECT || it.opcode == Opcode.INVOKE_DIRECT_RANGE }
+                        .mapNotNull { instruction -> instruction.call?.takeIf { it.name == "<init>" }?.definingClass }
+                }.toSet()
+                val constructorClasses = FixtureDex.classes(fixture, constructorTypes)
+                val resolve = { call: MethodReference ->
+                    constructorClasses[call.definingClass]?.methods?.firstOrNull { isConstructor(it, call) }
+                }
+                val page = answerPageConstructor(builder, module.type, resolve)
                 assertNotNull("$name: the answer page isn't built from the module class's list", page)
+                assertEquals("$name: the answer page builder calls the page constructor itself", directPageCall.getValue(version),
+                    builder.implementation!!.instructions.any { it.call?.let(::isPageConstructor) == true })
 
                 val kept = FixtureDex.classes(fixture, setOf(question.definingClass, role, page!!.definingClass, IMMUTABLE_LIST,
                     QUERY_SPEC_IMPL))
@@ -165,8 +195,17 @@ class MetaAiSearchFixtureTest {
                 assertEquals("$name: stores of the route flag from the server", 1, stores.size)
                 val store = stores.single()
                 val parserCode = parser.implementation!!.instructions.toList()
-                assertEquals("$name: the flag's key", routeFlagKey,
-                    (parserCode[store.store - 3] as NarrowLiteralInstruction).narrowLiteral)
+                if (readThroughModel.getValue(version)) {
+                    // The accessor the parser calls is the one method (constructors aside) loading the key.
+                    val read = parserCode[store.store - 2].call!!
+                    val accessor = "${read.name}()Z"
+                    assertTrue("$name: no class reads the flag's key in $accessor", accessor in keyReaders)
+                    assertEquals("$name: methods reading the flag's key that aren't the accessor or a constructor",
+                        emptyList<String>(), keyReaders.filterNot { it == accessor || it.startsWith("<init>(") })
+                } else {
+                    assertEquals("$name: the flag's key", routeFlagKey,
+                        (parserCode[store.store - 3] as NarrowLiteralInstruction).narrowLiteral)
+                }
                 assertTrue("$name: the flag is kept past v15", store.register <= 15)
 
                 // The explicit ways in go around the hooks: the AI mode start sets the builder's
@@ -182,16 +221,17 @@ class MetaAiSearchFixtureTest {
                     }
                 }
                 assertEquals("$name: AI mode starts setting the route with a constant", 1, starts.size)
-                val tabAnswers = held(metaAiTabModule).flatMap { methodsHolding(it, metaAiTabModule) }
                 assertEquals("$name: the Meta AI tab's answer", 1, tabAnswers.size)
                 assertFalse("$name: the Meta AI tab asks the answer question",
                     tabAnswers.single().implementation!!.instructions.any { instruction ->
                         instruction.call?.let { it.definingClass == question.definingClass && it.name == question.name } == true
                     })
                 assertTrue("$name: the Meta AI tab builds a page too",
-                    tabAnswers.single().implementation!!.instructions.any { it.call?.let(::isPageConstructor) == true })
+                    tabAnswers.single().implementation!!.instructions.any { instruction ->
+                        instruction.call?.let { pageCall(it, resolve)?.page }?.let { isConstructor(pageConstructor, it) } == true
+                    })
                 assertTrue("$name: the Meta AI tab doesn't name its page \"$META_AI_TAB_PAGE\"",
-                    namesPage(tabAnswers.single(), page, META_AI_TAB_PAGE))
+                    namesPage(tabAnswers.single(), page, META_AI_TAB_PAGE, resolve))
                 assertEquals("$name: the Meta AI tab's page name is its builder's literal", metaAiTabModule, META_AI_TAB_PAGE)
 
                 // The patch, on this build's own classes.

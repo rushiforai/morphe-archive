@@ -16,9 +16,11 @@ import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
 import app.morphe.patches.telegram.misc.extension.freeLocalsAt
 import app.morphe.patches.telegram.misc.extension.parameterRegisterNumber
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireParameterIntact
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
+import app.morphe.patches.telegram.misc.localcontrols.controlHook
 import app.morphe.patches.telegram.misc.settings.settingsPatch
 import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -60,8 +62,18 @@ val disableCallDebugPatch = bytecodePatch(
         requireStatusMethod("callDebugUpload")
         requireStatusMethod("callLogFileUpload")
         requireStatusMethod("callLogUpload")
+        requireStatusMethod("callRecording")
+        requireStatusMethod("callRecordButton")
+        for (engine in CallAudioEngine.entries) {
+            controlHook(CALL_RECORDER, engine.recorded, CALL_RECORDER_RECORDED, "V")
+            controlHook(CALL_RECORDER, engine.played, CALL_RECORDER_PLAYED, "V")
+        }
+        controlHook(CALL_RECORD_BUTTON, "attach", listOf(VIEW), "V")
         // Every gate, original return and borrowed register is checked before the first edit.
         val hooks = resolveCallDebugHooks()
+        // Call recording is an extra: an engine that can't be tapped is left out with a warning.
+        val audio = resolveCallAudio()
+        val button = resolveCallRecordButton()
         for ((target, hook) in hooks) {
             hook.method.addInstructionsAtControlFlowLabel(hook.index, hook.code,
                 ExternalLabel("hush_done", hook.method.getInstruction(hook.finish)))
@@ -69,6 +81,18 @@ val disableCallDebugPatch = bytecodePatch(
                 CallDebugTarget.DEBUG -> enableCapability("callDebugUpload")
                 CallDebugTarget.FILE -> enableCapability("callLogFileUpload")
                 CallDebugTarget.LOG -> enableCapability("callLogUpload")
+            }
+        }
+        applyCallAudio(audio)
+        for ((engine, why) in audio.missing) {
+            patchLog.warning("$PATCH: $why. The patch goes on without call recording on the ${engine.label} engine.")
+        }
+        if (audio.taps.isNotEmpty()) {
+            enableCapability("callRecording")
+            // The call screen's record button only makes sense with audio to record.
+            if (applyCallRecordButton(button)) enableCapability("callRecordButton")
+            button.missing?.let { why ->
+                patchLog.warning("$PATCH: $why. The patch goes on without the record button on the call screen.")
             }
         }
         enableStatus("disableCallDebug")

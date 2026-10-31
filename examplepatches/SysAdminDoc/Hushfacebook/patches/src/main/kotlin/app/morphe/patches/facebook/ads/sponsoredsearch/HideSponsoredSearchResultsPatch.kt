@@ -16,6 +16,7 @@ import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.facebook.search.PAGE_MODULES
 import app.morphe.patches.facebook.search.filterPageModulesFirst
 import app.morphe.patches.facebook.search.isPageConstructor
+import app.morphe.patches.facebook.search.pageConstructorOf
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.singleOrPatchException
@@ -45,6 +46,12 @@ internal class SearchPages(
  * (SearchResultsPageHook.kt): it goes in once, and the extension runs each patch's filter in turn
  * behind its own switch. Only the module list changes: a page with no ad keeps the very list
  * Facebook built, and the tabs, filters and every other module stay as they came.
+ *
+ * On 585 the page class (arm64 LX/0D1n) has two constructors: the full one the GraphQL page
+ * builders call (LX/0iK7 A00 and A01), and a short one taking two lists, three strings and a flag
+ * that only hands its page to the full one (called by the Meta AI answer builder LX/0DyI A00 and by
+ * LX/0lDL BdR). The hook goes in the full one, and pageConstructorOf refuses a page class with any
+ * constructor that doesn't hand its page there.
  */
 @Suppress("unused")
 val hideSponsoredSearchResultsPatch = bytecodePatch(
@@ -61,9 +68,8 @@ val hideSponsoredSearchResultsPatch = bytecodePatch(
     execute {
         val search = searchPages()
         fillModuleStubs(search)
-        val constructor = mutableClassDefBy(search.page).methods
-            .filter { it.name == "<init>" }
-            .singleOrPatchException("$PATCH: the one constructor of the search results page ${search.page}")
+        val page = mutableClassDefBy(search.page)
+        val constructor = pageConstructorOf(page.methods, page.superclass, PATCH)
         requireSharedPageShape(constructor, search.moduleList)
         constructor.filterPageModulesFirst(PATCH)
         enableStatus("sponsoredSearch")
@@ -74,7 +80,7 @@ val hideSponsoredSearchResultsPatch = bytecodePatch(
  * The search results page and module, held to the evidence the filter rests on: one enum builds
  * every ad role, one module class holds it in one field its constructor reads from `result_role`,
  * that class's own ad set is exactly [FACEBOOK_AD_ROLES], one class is what the page builders
- * answer, and their calls of its one constructor fill exactly one parameter with the module
+ * answer, and their calls of its page-shaped constructor fill exactly one parameter with the module
  * converter's answer.
  */
 internal fun BytecodePatchContext.searchPages(): SearchPages {
@@ -118,8 +124,9 @@ internal fun BytecodePatchContext.searchPages(): SearchPages {
         "$PATCH: expected the search page builders taking (FbUserSession, GraphQLResult, SearchResultsMutableContext) " +
             "to answer one class, found ${pages.joinToString().ifEmpty { "none" }}",
     )
-    val constructor = classDefBy(page).methods.filter { it.name == "<init>" }
-        .singleOrPatchException("$PATCH: the one constructor of the search results page $page")
+    // The page-shaped constructor, since 585 gives the page a second, delegating one.
+    val pageClass = classDefBy(page)
+    val constructor = pageConstructorOf(pageClass.methods, pageClass.superclass, PATCH)
     val lists = moduleListParameters(builders.filter { it.returnType == page }, constructor, converter)
     val moduleList = lists.singleOrNull() ?: throw PatchException(
         "$PATCH: expected the page builders to hand $page's constructor the module converter's list in one parameter, " +

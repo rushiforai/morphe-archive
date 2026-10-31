@@ -1,0 +1,21 @@
+{
+  "baseUrl": "http://127.0.0.1:18966",
+  "reverse": "tcp:18966 tcp:18966",
+  "process": {
+    "pid": 76638,
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "/Users/jarvis/Documents/Codex/2026-10-30/penguin-finamp-artist-patch/work/penguin-patches/tests/finamp/mock_jellyfin.py",
+      "--port",
+      "18966",
+      "--data-dir",
+      "/Users/jarvis/Documents/Codex/2026-10-30/penguin-finamp-artist-patch/work/penguin-patches/.scratch/finamp/android/fixture-live",
+      "--profile",
+      "credits"
+    ],
+    "startedAt": "2026-10-30T14:55:32.277054+00:00",
+    "baseUrl": "http://127.0.0.1:18966",
+    "keptRunning": true
+  }
+}

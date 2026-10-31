@@ -30,6 +30,20 @@ internal object FbnsPackageCheckFingerprint : Fingerprint(
 )
 
 /**
+ * Facebook's family intent scope filter (585: `LX/00ZK;->A00(Context, Intent, String, List)Intent`).
+ * It keeps the targets whose signer Meta trusts and answers null when none is left, which is how a
+ * patched Instagram's links get dropped (#287). Its log line is a literal Facebook keeps; the class
+ * and method names are Redex names.
+ */
+internal object FamilyScopeFilterFingerprint : Fingerprint(
+    returnType = "Landroid/content/Intent;",
+    parameters = listOf("Landroid/content/Context;", "Landroid/content/Intent;", "Ljava/lang/String;", "Ljava/util/List;"),
+    filters = listOf(
+        string("Components matching the intent were found but none match the given scope. ["),
+    ),
+)
+
+/**
  * The method that gives Facebook's security code the signers of a package.
  *
  * Facebook's trust checks read the signers through this method. It prefers the

@@ -1,0 +1,11 @@
+{"time": "2026-10-30T14:55:43.282444+00:00", "action": "tap", "selector": "Home\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Home\nTab 1 of 6", "bounds": "[127,152][251,220]"}
+{"time": "2026-10-30T14:55:47.640195+00:00", "action": "tap", "anchor": "Fixture Music", "selectorGap": "unlabelled drawer ImageView", "bounds": "[38,58][108,128]"}
+{"time": "2026-10-30T14:55:49.976507+00:00", "action": "tap", "selector": "Settings", "class": null, "index": null, "actualText": "", "actualDesc": "Settings", "bounds": "[0,1728][844,1824]"}
+{"time": "2026-10-30T14:55:54.414003+00:00", "action": "tap", "selector": "Layout & Theme", "class": null, "index": null, "actualText": "", "actualDesc": "Layout & Theme", "bounds": "[0,1168][1080,1280]"}
+{"time": "2026-10-30T14:56:27.184559+00:00", "action": "tap", "selector": "Home\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Home\nTab 1 of 6", "bounds": "[127,152][251,220]"}
+{"time": "2026-10-30T14:56:29.586181+00:00", "action": "tap", "selector": "Albums\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Albums\nTab 2 of 6", "bounds": "[251,152][397,220]"}
+{"time": "2026-10-30T14:56:31.910076+00:00", "action": "tap", "selector": "Fixture Credits\nZ Lead", "class": null, "index": null, "actualText": "", "actualDesc": "Fixture Credits\nZ Lead", "bounds": "[12,296][256,648]"}
+{"time": "2026-10-30T14:56:42.729326+00:00", "action": "tap", "selector": "Home\nTab", "class": null, "index": null, "actualText": "", "actualDesc": "Home\nTab 1 of 6", "bounds": "[127,152][252,220]"}
+{"time": "2026-10-30T14:56:47.077046+00:00", "action": "tap", "anchor": "Fixture Music", "selectorGap": "unlabelled drawer ImageView", "bounds": "[38,58][108,128]"}
+{"time": "2026-10-30T14:56:49.558577+00:00", "action": "tap", "selector": "Settings", "class": null, "index": null, "actualText": "", "actualDesc": "Settings", "bounds": "[0,1728][844,1824]"}
+{"time": "2026-10-30T14:56:53.904455+00:00", "action": "tap", "selector": "Downloads", "class": null, "index": null, "actualText": "", "actualDesc": "Downloads", "bounds": "[0,496][1080,608]"}

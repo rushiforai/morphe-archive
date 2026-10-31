@@ -7,17 +7,21 @@ package app.morphe.patches.facebook.navigation.starttab
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.feedsheader.FEED_FILTERS_FRAGMENT
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.freeLocalsAt
 import app.morphe.patches.facebook.misc.settings.MAIN_TAB_ACTIVITY
 import app.morphe.patches.facebook.misc.settings.declaredInHierarchy
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.iface.Method
@@ -34,7 +38,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
  * has read it yet. It takes the parameters as they come, so it borrows no register. Three more
  * sit in Facebook's start-up: where it hands the main screen a sanitized copy of its intent, where
  * the tab bar decides whether to use the start tab it was given, and where the main screen checks
- * it keeps that tab. Each reads and writes only registers Facebook's own code already uses there.
+ * it keeps that tab. Each reads and writes only registers Facebook's own code already uses there,
+ * except where 585 runs that last check inline: there the hook borrows one register nothing reads.
  * Three more go in the Feeds tab, so a start sent there can open on a chosen filter: see
  * FeedsSubtabAnchors.kt.
  *
@@ -61,15 +66,26 @@ val openOnChosenTabPatch = bytecodePatch(
         if (pickers.size != 1) {
             throw PatchException(
                 "$PATCH: expected one method that answers Facebook's start tab from an intent's " +
-                    "\"$TARGET_TAB_ID\", found ${pickers.size}. Facebook no longer opens a tab the way this patch asks for one.",
+                    "\"$TARGET_TAB_ID\", found ${pickers.size}${listed(pickers)}. Facebook no longer opens a tab the way " +
+                    "this patch asks for one.",
             )
         }
 
         // Every anchor is found before anything changes, so a build missing one is left untouched.
+        val steps = classDefByStrings(SANITIZE_INTENT, StringComparisonType.EQUALS)
+        val inline = steps.flatMap { owner ->
+            owner.methods.mapNotNull { method -> sanitizedIntentHandOver(method)?.let { method to it } }
+        }
+        // 585 moves the step's body out of the dispatcher, so it's the method the step's case calls.
+        val handOvers = inline.ifEmpty {
+            steps.flatMap { owner -> owner.methods.flatMap(::sanitizeStepCalls) }.distinctBy { it.toString() }
+                .mapNotNull { call ->
+                    val body = classDefByOrNull(call.definingClass)?.let { stepBody(it, call) } ?: return@mapNotNull null
+                    sanitizedCopyHandOver(body)?.let { body to it }
+                }
+        }
         val handOver = exactlyOne(
-            classDefByStrings(SANITIZE_INTENT, StringComparisonType.EQUALS).flatMap { owner ->
-                owner.methods.mapNotNull { method -> sanitizedIntentHandOver(method)?.let { method to it } }
-            },
+            handOvers,
             "start-up step that hands the main screen a sanitized copy of its intent (\"$SANITIZE_INTENT\")",
         )
         val gate = exactlyOne(
@@ -78,13 +94,21 @@ val openOnChosenTabPatch = bytecodePatch(
             },
             "tab bar start position (\"$START_POSITION\") whose MobileConfig check guards the start tab it was given",
         )
-        val keeps = classDefByStrings(TARGET_TAB_ID, StringComparisonType.EQUALS)
-            .flatMap { owner -> owner.methods.filter(::keepsAskedStartTab) }
-        if (keeps.size != 1) {
+        val holders = classDefByStrings(TARGET_TAB_ID, StringComparisonType.EQUALS)
+        val keeps = holders.flatMap { owner -> owner.methods.filter(::keepsAskedStartTab) }
+        // 585 runs the check inline in its start-up, where its no lands on a reset of the start tab.
+        val inlineKeeps = if (keeps.isNotEmpty()) emptyList() else holders.flatMap { owner ->
+            owner.methods.mapNotNull { method -> inlineKeepReset(method)?.let { method to it } }
+        }
+        if (keeps.size + inlineKeeps.size != 1) {
             throw PatchException(
                 "$PATCH: expected one static check on the main screen that it keeps the start tab its " +
-                    "intent's \"$TARGET_TAB_ID\" asked for, found ${keeps.size}.",
+                    "intent's \"$TARGET_TAB_ID\" asked for, or one run inline, found ${keeps.size} and " +
+                    "${inlineKeeps.size}${listed(keeps + inlineKeeps.map { it.first })}.",
             )
+        }
+        val keepFlag = inlineKeeps.singleOrNull()?.let { (method, reset) ->
+            method.freeLocalsAt(PATCH, reset, 1, targets = listOf(reset + 1), highest = 255).single()
         }
         // The Feeds tab's filter (#56), through the handler the Feeds tab already has for one.
         val feeds = classDefByOrNull(FEED_FILTERS_FRAGMENT)
@@ -99,7 +123,8 @@ val openOnChosenTabPatch = bytecodePatch(
             .tellExtensionAtResumeReturns()
         mutable(handOver.first).handSanitizedIntentToExtension(handOver.second)
         mutable(gate.first).askExtensionAfterGate(gate.second)
-        mutable(keeps.single()).askExtensionAtReturns()
+        keeps.singleOrNull()?.let { mutable(it).askExtensionAtReturns() }
+        inlineKeeps.singleOrNull()?.let { (method, reset) -> mutable(method).askExtensionAtKeepReset(reset, keepFlag!!) }
 
         declaredInHierarchy(MAIN_TAB_ACTIVITY, "onCreate", "Landroid/os/Bundle;")
             .addInstruction(0, "invoke-static/range { p0 .. p1 }, $ROUTE")
@@ -107,9 +132,13 @@ val openOnChosenTabPatch = bytecodePatch(
     }
 }
 
-/** The one [found], or a stop naming [what] and how many there were. */
-private fun <T> exactlyOne(found: List<T>, what: String): T =
-    found.singleOrNull() ?: throw PatchException("$PATCH: expected one $what, found ${found.size}.")
+/** The one [found], or a stop naming [what], how many there were and where. */
+private fun <T> exactlyOne(found: List<Pair<Method, T>>, what: String): Pair<Method, T> =
+    found.singleOrNull() ?: throw PatchException("$PATCH: expected one $what, found ${found.size}${listed(found.map { it.first })}.")
+
+/** [methods] by class and name after a colon, for a refusal to say where it looked; empty when none. */
+private fun listed(methods: List<Method>): String =
+    if (methods.isEmpty()) "" else ": " + methods.joinToString { "${it.definingClass}->${it.name}" }
 
 private fun BytecodePatchContext.mutable(method: Method): MutableMethod =
     mutableClassDefBy(method.definingClass).methods.single {
@@ -169,4 +198,24 @@ internal fun MutableMethod.askExtensionAtReturns() {
         addInstruction(index + 1, "move-result v$register")
         addInstruction(index + 2, "return v$register")
     }
+}
+
+/**
+ * Asks the extension where the inline keep check's every no lands, the reset at [reset], with
+ * [flag], a register nothing reads from there or from the instruction after the reset. When it
+ * answers yes, the code skips the reset the way Facebook's own yes does. The call goes in under
+ * the reset's label, so each branch to the reset goes through it. A yes from Facebook skips both,
+ * which is what the extension would answer, since it never turns a yes into a no.
+ */
+internal fun MutableMethod.askExtensionAtKeepReset(reset: Int, flag: Int) {
+    addInstructionsAtControlFlowLabel(
+        reset,
+        """
+            const/16 v$flag, 0x0
+            invoke-static/range { v$flag .. v$flag }, $KEEP_ASKED_START_TAB
+            move-result v$flag
+            if-nez v$flag, :keep
+        """,
+        ExternalLabel("keep", getInstruction(reset + 1)),
+    )
 }

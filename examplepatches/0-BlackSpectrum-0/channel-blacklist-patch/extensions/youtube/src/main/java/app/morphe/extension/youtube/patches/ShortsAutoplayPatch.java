@@ -71,14 +71,6 @@ public class ShortsAutoplayPatch {
     }
 
     /**
-     * @return If the app is currently in background PiP mode.
-     */
-    private static boolean isAppInBackgroundPiPMode() {
-        Activity activity = Utils.getActivity();
-        return activity != null && activity.isInPictureInPictureMode();
-    }
-
-    /**
      * Injection point.
      */
     public static void setYTShortsRepeatEnum(Enum<?> ytEnum) {
@@ -96,7 +88,8 @@ public class ShortsAutoplayPatch {
      */
     public static Enum<?> changeShortsRepeatBehavior(Enum<?> original) {
         try {
-            final boolean inBackgroundPiP = isAppInBackgroundPiPMode();
+            Activity activity = Utils.getActivity();
+            final boolean inBackgroundPiP = activity != null && activity.isInPictureInPictureMode();
             boolean autoplay = inBackgroundPiP
                     ? Settings.SHORTS_AUTOPLAY_BACKGROUND.get()
                     : Settings.SHORTS_AUTOPLAY.get();
