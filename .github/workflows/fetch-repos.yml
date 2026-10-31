@@ -4,7 +4,16 @@ on:
   schedule:
       - cron: "0 0 * * *"
   workflow_dispatch:
+  # Only rerun when this workflow's own inputs change. Unfiltered, every push ran the
+  # full GitHub-wide discovery - up to an hour - and its data commit then raced the
+  # scheduled run; editing a workflow or the README should not cost a runner hour.
   push:
+    paths:
+      - "scripts/**"
+      - "repos.txt"
+      - "custom_repos.txt"
+      - "ignore_repos.txt"
+      - "rejected_repos.txt"
 
 concurrency:
   group: morphe-repo-fetcher
