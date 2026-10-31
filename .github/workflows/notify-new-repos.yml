@@ -110,4 +110,44 @@ jobs:
           # If the token is not allowed to merge its own PR, leave it open: an open PR
           # still notifies, and a maintainer can merge it when convenient.
           gh pr merge "$PR_URL" --squash --delete-branch \
+
+      # The baseline is a file in the repo, but it was only ever written inside the
+      # PR step above, which runs when there is something new. With no baseline in
+      # the tree, the diff adopts the index as the baseline, reports 0 new, skips
+      # the PR, and saves nothing - so every later run repeats that forever. Persist
+      # the baseline on quiet runs too, so the next run compares against this one.
+      - name: Record the baseline when nothing is new
+        if: steps.diff.outputs.count == '0'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASELINE=".github/new-repos-baseline.json"
+          if [ -f "$BASELINE" ] && cmp -s "$BASELINE" "$INDEX_FILE"; then
+            echo "Baseline already matches the index."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          mkdir -p .github
+          cp "$INDEX_FILE" "$BASELINE"
+          git add "$BASELINE"
+          git commit -m "chore(data): record the new-repos baseline [skip ci]"
+
+          pushed=0
+          for attempt in 1 2 3; do
+            if git push origin main; then
+              pushed=1
+              break
+            fi
+            echo "Push rejected (attempt $attempt). Rebasing onto the latest main and retrying."
+            git pull --rebase --autostash origin main
+            sleep $((attempt * 5))
+          done
+
+          if [ "$pushed" -ne 1 ]; then
+            echo "::warning::Could not push the baseline; the next run will report the same repos again."
+          fi
             || echo "::warning::Opened the PR but could not merge it automatically; merge it by hand."
