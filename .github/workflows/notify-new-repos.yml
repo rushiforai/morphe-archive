@@ -8,6 +8,12 @@ on:
     # in exactly the repos that reach the published index.
     workflows: ["Fetch Morphe Repos"]
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      simulate:
+        description: 'Testing only: also report this repo as newly added (e.g. example/test-patches)'
+        required: false
+        default: ''
 
 concurrency:
   group: notify-new-repos
@@ -24,8 +30,10 @@ env:
 
 jobs:
   notify:
-    # Only the run that actually published something is worth reporting on.
-    if: github.event.workflow_run.conclusion == 'success'
+    # Only the run that actually published something is worth reporting on, plus
+    # manual runs, which exist so the PR path can be exercised without waiting for a
+    # real discovery (the fetch run takes an hour).
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -42,6 +50,8 @@ jobs:
       - name: Compare the index against the last notification
         id: diff
         shell: bash
+        env:
+          SIMULATE: ${{ github.event.inputs.simulate }}
         run: |
           python - <<'PY'
           import json, os, subprocess, sys
@@ -67,6 +77,14 @@ jobs:
               previous = current
 
           new = sorted(current - previous)
+
+          # A manual run may ask for one repo to be reported even though nothing new
+          # arrived, so the PR step can be tested on demand. It only affects this run's
+          # report; the baseline still records whatever the index holds.
+          simulate = (os.environ.get("SIMULATE") or "").strip()
+          if simulate:
+              new = sorted(set(new) | {simulate})
+
           with open("new-repos.txt", "w", encoding="utf-8") as handle:
               handle.write("\n".join(new))
 
