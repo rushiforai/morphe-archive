@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenNovaLauncher v1.0.0 — Mockups &amp; Screenshots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@700;900&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #15181e;
+    --border: #242933;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #f97316;
+    --success: #22c55e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Geist', system-ui, sans-serif;
+    line-height: 1.5;
+    padding: 48px 24px;
+    background-image: radial-gradient(#222730 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; }
+  header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(249, 115, 22, 0.12);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    border-radius: 999px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .badge .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  h1 {
+    font-family: 'Doto', sans-serif;
+    font-weight: 900;
+    font-size: clamp(32px, 5vw, 64px);
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  h1 span { color: var(--accent); }
+  p.subtitle {
+    color: var(--muted);
+    font-size: 18px;
+    max-width: 60ch;
+    margin: 0 auto;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 40px;
+    align-items: start;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: #3b4252;
+  }
+  .card-header {
+    width: 100%;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-title {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .card-tag {
+    font-family: 'Geist Mono', monospace;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #1e232d;
+    color: var(--muted);
+  }
+  .screen-wrap {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    justify-content: center;
+  }
+  .screen-wrap img {
+    width: 100%;
+    height: auto;
+    border-radius: 40px;
+    display: block;
+  }
+  .card-desc {
+    width: 100%;
+    margin-top: 18px;
+    font-size: 14px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+  footer {
+    margin-top: 64px;
+    text-align: center;
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="badge"><span class="dot"></span> v1.0.0 MILESTONE</div>
+    <h1>OpenNova<span>Launcher</span></h1>
+    <p class="subtitle">Simulated device previews of the reconstructed, telemetry-free, de-bloated OpenNova Launcher interface.</p>
+  </header>
+
+  <div class="grid">
+    <!-- Screen 1: Home -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">01 // Desktop Workspace</span>
+        <span class="card-tag">HOME</span>
+      </div>
+      <div class="screen-wrap">
+        <img src="01-home-screen.svg" alt="OpenNovaLauncher Home Screen Mockup">
+      </div>
+      <p class="card-desc">Subgrid positioning, adaptive Material You icon layout, dynamic clock widget, and floating Nova search bar with elevated dock.</p>
+    </div>
+
+    <!-- Screen 2: Drawer -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">02 // App Drawer</span>
+        <span class="card-tag">DRAWER</span>
+      </div>
+      <div class="screen-wrap">
+        <img src="02-app-drawer.svg" alt="OpenNovaLauncher App Drawer Mockup">
+      </div>
+      <p class="card-desc">Fast-scroll alphabet navigation, tabbed categories (Apps, Work, Games, System), and instant keyword app search.</p>
+    </div>
+
+    <!-- Screen 3: Settings -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">03 // Privacy &amp; Prime</span>
+        <span class="card-tag">SETTINGS</span>
+      </div>
+      <div class="screen-wrap">
+        <img src="03-privacy-settings.svg" alt="OpenNovaLauncher Settings Mockup">
+      </div>
+      <p class="card-desc">Zero telemetry: Branch Metrics and Amplitude SDK stripped, paywall permanently eliminated, Prime features 100% unlocked.</p>
+    </div>
+
+    <!-- Screen 4: S24/S25 Technical Minimal -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">04 // S24 / S25 Edge Edition</span>
+        <span class="card-tag">TECH-MINIMAL</span>
+      </div>
+      <div class="screen-wrap">
+        <img src="s24_s25_technical_minimal.svg" alt="Galaxy S24/S25 Technical Minimal Mockup">
+      </div>
+      <p class="card-desc">Optimized for Galaxy S24, S25, and S25 Edge (120Hz LTPO, punch-hole cutout, edge-to-edge) with the Nothing/Teenage Engineering dot-matrix theme &amp; icon pack.</p>
+    </div>
+  </div>
+
+  <footer>
+    OpenNovaLauncher • Community Edition • Educational &amp; Preservation Project
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.stripe.android.paymentsheet.ui.PrimaryButton
+        android:id="0x7f0b0521"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0x7f070502"
+        android:text="0x7f140ad5"/>
+</FrameLayout>

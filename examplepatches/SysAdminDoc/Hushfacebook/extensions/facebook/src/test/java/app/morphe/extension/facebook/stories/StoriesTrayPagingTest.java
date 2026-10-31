@@ -26,8 +26,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 
 /**
  * Issue #317: while the filters leave buckets out of Home's tray, a gray placeholder coming into
- * view loads the tray's next page even with the server flag off, and a page that adds nothing in
- * view is followed by another while a placeholder is still in view.
+ * view loads the tray's next page even with the server flag off, a page that adds nothing in view
+ * is followed by another while a placeholder is still in view, and a fetch still running when the
+ * page settles is waited out.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -129,13 +130,40 @@ public class StoriesTrayPagingTest {
         assertEquals("never counts below none", List.of(2), handler.loads);
     }
 
-    @Test public void aFetchRunningAsksNothing() {
+    private static void idleRetries(int count) {
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(count * StoriesTrayPaging.RETRY_MS + 50));
+    }
+
+    @Test public void aFetchRunningAsksNothingUntilItEnds() {
         StoriesTrayPaging.sawTray(1, 14);
         handler.fetching = true;
         showShortRow();
         settle();
+        idleRetries(2);
         assertEquals(List.of(), handler.loads);
         assertEquals("", line());
+
+        // A cold start's first page settles before its fetch does: once the fetch ends, the tile shown again asks.
+        handler.fetching = false;
+        idleRetries(1);
+        assertEquals(List.of(4), handler.loads);
+        idleRetries(3);
+        assertEquals("one ask, then nothing more to look again for", List.of(4), handler.loads);
+    }
+
+    @Test public void aFetchThatNeverEndsIsLookedAtOnlyALimitedNumberOfTimes() {
+        StoriesTrayPaging.sawTray(1, 14);
+        handler.fetching = true;
+        showShortRow();
+        settle();
+        idleRetries(StoriesTrayPaging.MAX_RETRIES + 3);
+        handler.fetching = false;
+        idleRetries(3);
+        assertEquals("it stopped looking", List.of(), handler.loads);
+
+        StoriesTrayPaging.sawTray(1, 18);
+        settle();
+        assertEquals("the next page starts it again", List.of(4), handler.loads);
     }
 
     @Test public void pagesThatAddNoKeptStoryStopAfterTheLimit() {

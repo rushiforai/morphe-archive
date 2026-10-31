@@ -7,6 +7,9 @@ package app.hushgram.extension.instagram.misc;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
 
 import androidx.annotation.Nullable;
@@ -56,6 +59,12 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * gray and the liked heart stays red. The wordmark is tinted with the primary text color, so it stays
  * too.
  *
+ * <p>Home's newer header tints its heart and Create buttons with a color it reads from the primary text
+ * color's resource as it's built, so no attribute reaches them. With Icons in the accent color on, the
+ * patch hands that color to {@link #headerIcons} as the header keeps it, which answers the icon color the
+ * theme holds instead (#8). Home's older header bakes that color into each icon as it builds it, so the
+ * patch hands each icon to {@link #headerIcon}, which lays the theme's icon color over it.
+ *
  * <p>Fails open: with the switch off, Instagram blue picked, HushGram paused, the resources missing or
  * anything thrown, the theme stays Instagram's. A change shows on screens opened after a restart.
  */
@@ -80,6 +89,9 @@ public final class AccentTheme {
 
     /** What's counted when Icons in the accent color is on but the patch added no icon style, so icons keep their color. */
     static final String ICONS_MISSING = "themes left with Instagram's icon color, the icon styles are missing";
+
+    /** What's counted each time Home's newer header takes the picked icon color for its buttons. */
+    static final String HEADER_ICONS = "Home header icons given the accent color";
 
     /** The theme attribute Instagram's icons read, the patch's ICON_ATTRIBUTE. */
     static final String ICON_ATTRIBUTE = "igds_color_primary_icon";
@@ -171,6 +183,59 @@ public final class AccentTheme {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.ACCENT_COLOR, "theme", failure);
         }
+    }
+
+    /**
+     * Injected where Home's newer header keeps the color it tints its heart and Create buttons with,
+     * [color], read from the primary text color (#8). With Icons in the accent color on, answers the
+     * color [context]'s theme holds for {@link #ICON_ATTRIBUTE}, the picked link shade once
+     * {@link #apply(Context)} has laid the icon style on. Answers [color] with the switch off, HushGram
+     * paused, no plain color there or anything thrown.
+     */
+    public static int headerIcons(Context context, int color) {
+        try {
+            Integer icons = iconColor(context);
+            if (icons == null || icons == color) return color;
+            HookStatus.counted(FamilyNames.ACCENT_COLOR, HEADER_ICONS);
+            return icons;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "header icons", failure);
+            return color;
+        }
+    }
+
+    /**
+     * Injected after Home's older header builds each icon, [icon], for the heart and the plain buttons
+     * (#8). That header bakes the primary text color into the icon's bitmap as it's made, so with Icons
+     * in the accent color on this lays the color [context]'s theme holds for {@link #ICON_ATTRIBUTE}
+     * over it. The badge on the heart has its own paint and stays as it is. Leaves the icon alone with
+     * the switch off, HushGram paused, no plain color there or anything thrown.
+     */
+    public static void headerIcon(Context context, Drawable icon) {
+        try {
+            Integer color = icon == null ? null : iconColor(context);
+            if (color == null) return;
+            icon.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
+            HookStatus.counted(FamilyNames.ACCENT_COLOR, HEADER_ICONS);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "header icon", failure);
+        }
+    }
+
+    /**
+     * The plain color [context]'s theme holds for {@link #ICON_ATTRIBUTE} with Icons in the accent color
+     * on, or null with the switch off, HushGram paused, no context or no plain color there.
+     */
+    @Nullable
+    private static Integer iconColor(@Nullable Context context) {
+        if (context == null || AccentColor.picked() == null || !Settings.ACCENT_ICONS.get()) return null;
+        int attr = id(context.getResources(), ICON_ATTRIBUTE, "attr", context.getPackageName());
+        TypedValue value = new TypedValue();
+        if (attr == 0 || !context.getTheme().resolveAttribute(attr, value, true)
+                || value.type < TypedValue.TYPE_FIRST_COLOR_INT || value.type > TypedValue.TYPE_LAST_COLOR_INT) {
+            return null;
+        }
+        return value.data;
     }
 
     /**

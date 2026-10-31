@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.teslacoilsw.launcher.Hotseat xmlns:android="http://schemas.android.com/apk/res/android" xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:theme="0x7f150177"
+    android:id="0x7f0b033e"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:importantForAccessibility="no"
+    launcher:containerType="1"/>

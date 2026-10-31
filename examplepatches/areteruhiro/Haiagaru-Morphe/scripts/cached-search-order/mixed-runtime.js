@@ -1,0 +1,7 @@
+rpc.exports={test(){return new Promise((resolve,reject)=>Java.perform(()=>Java.scheduleOnMainThread(()=>{try{
+ const P='app.morphe.extension.chmate.',app=Java.use('android.app.ActivityThread').currentApplication(),pkg=String(app.getPackageName());if(!/\.haiagaru\.(settingsfix191|resumefix226|resumefix242)$/.test(pkg))throw Error('verification app required');
+ const Row=Java.use(pkg.endsWith('191')?'o.mg':pkg.endsWith('226')?'o.createFromParcel':'o.startResolutionForResult'),Order=Java.use(P+'CachedSearchOrder'),rows=Java.use('java.util.ArrayList').$new();
+ const urls=['https://egg.5ch.io/test/read.cgi/android/1500000000/','https://mercury.bbspink.com/test/read.cgi/example/1600000000/','https://bbs.eddibb.cc/test/read.cgi/liveedge/1800000000/','https://hayabusa.5ch.io/test/read.cgi/example/1700000000/'];const items=urls.map(u=>Row.$new('title',u,null,0));items.forEach(r=>rows.add(r));let checks=0;
+ for(const mode of [1,2]){const result=Order.sorted(rows,mode);for(let i=0;i<4;i++){const expected=mode===1?[2,3,1,0][i]:[0,1,3,2][i];if(!result.get(i).equals(items[expected]))throw Error('global order/click identity mismatch');checks++;}}
+ if(!Order.sorted(rows,0).equals(rows))throw Error('standard order changed');checks++;for(let i=0;i<4;i++){if(!rows.get(i).equals(items[i]))throw Error('source mutated');checks++;}resolve({checks,globalBoardOrder:true,nativeClickTargetsRetained:true});
+ }catch(e){reject(Error(String(e.stack||e)));}})));}};

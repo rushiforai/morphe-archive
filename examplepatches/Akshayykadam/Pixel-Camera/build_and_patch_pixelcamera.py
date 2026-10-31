@@ -20,6 +20,7 @@ import shutil
 import zipfile
 import subprocess
 import re
+import struct
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 APKTOOL_DIR = os.path.join(ROOT_DIR, "apktool_full")
@@ -331,10 +332,11 @@ def patch_vku_smali():
         return src[:m_start] + new_m + src[m_end:]
 
     content = replace_method(content, "l()Z", "const/4 v0, 0x1\n\n    return v0")
+    content = replace_method(content, "q()Z", "const/4 v0, 0x1\n\n    return v0")
 
     with open(vku_path, "w", encoding="utf-8") as f:
         f.write(content)
-    print("    [+] vku.smali patched: l() returns true (sauce eligible). e(), g() and f() preserved.")
+    print("    [+] vku.smali patched: l() and q() return true (device recognized and supported). e(), g() and f() preserved.")
 
 def patch_ksf_smali():
     print("[*] Patching ksf.smali (Gouda flags, Mantis, Looks, Segmenter model interception, was klm)...")
@@ -1381,8 +1383,96 @@ def patch_ksf_smali():
     invoke-virtual {{p0, {reg}, v6}}, Lksf;->n(Lkps;Z)V"""
             content = content.replace(old_str, new_str)
 
+    # 7. Neutralize UnsupportedOperationException on unrecognized devices and fallback to full Pro profile (kov.a)
+    cond_13_target = """    :cond_13
+    sget-object p1, Landroid/os/Build;->MANUFACTURER:Ljava/lang/String;
+
+    sget-object p3, Landroid/os/Build;->DEVICE:Ljava/lang/String;
+
+    sget-object p4, Landroid/os/Build;->FINGERPRINT:Ljava/lang/String;
+
+    invoke-static {p1, p3, p4}, Lvku;->b(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lvku;
+
+    move-result-object p1
+
+    invoke-virtual {p1}, Lvku;->q()Z
+
+    move-result p1
+
+    if-eqz p1, :cond_18"""
+
+    cond_13_repl = """    :cond_13
+    sget-object p3, Lksf;->a:Lkrz;
+
+    invoke-static {p0, p0, p2, p3}, Lkov;->a(Lksf;Lksf;Lvku;Lkrz;)V
+
+    goto :goto_2"""
+
+    cond_18_target = """    :cond_18
+    new-instance p0, Ljava/lang/UnsupportedOperationException;
+
+    const-string p1, "Device is not recognized or not supported"
+
+    invoke-direct {p0, p1}, Ljava/lang/UnsupportedOperationException;-><init>(Ljava/lang/String;)V
+
+    throw p0"""
+
+    cond_18_repl = """    :cond_18
+    sget-object p3, Lksf;->a:Lkrz;
+
+    invoke-static {p0, p0, p2, p3}, Lkov;->a(Lksf;Lksf;Lvku;Lkrz;)V
+
+    goto :goto_2"""
+
+    if cond_13_target in content:
+        content = content.replace(cond_13_target, cond_13_repl)
+        print("    [+] ksf.smali: cond_13 fallback patched to initialize Pro profile via kov.a.")
+    elif cond_13_repl in content:
+        print("    [+] ksf.smali: cond_13 fallback already patched.")
+    else:
+        print("    [!] ksf.smali: cond_13 target pattern not found.")
+
+    if cond_18_target in content:
+        content = content.replace(cond_18_target, cond_18_repl)
+        print("    [+] ksf.smali: cond_18 UnsupportedOperationException neutralized with kov.a.")
+    elif cond_18_repl in content:
+        print("    [+] ksf.smali: cond_18 already patched.")
+    else:
+        print("    [!] ksf.smali: cond_18 target pattern not found.")
+
     with open(ksf_path, "w", encoding="utf-8") as f:
         f.write(content)
+
+def patch_rop_smali():
+    print("[*] Patching rop.smali (Device unrecognizable safeguard)...")
+    rop_path = os.path.join(APKTOOL_DIR, "smali", "rop.smali")
+    if not os.path.exists(rop_path):
+        print("    [!] Warning: rop.smali not found.")
+        return
+    with open(rop_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    old_abort = """    :cond_4
+    new-instance p0, Lyje;
+
+    const-string v0, "Device is not recognizable. Aborting."
+
+    invoke-direct {p0, v0}, Lyje;-><init>(Ljava/lang/String;)V
+
+    throw p0"""
+
+    new_safe = """    :cond_4
+    sget-object p0, Lnkt;->b:Lnkt;
+
+    return-object p0"""
+
+    if old_abort in content:
+        content = content.replace(old_abort, new_safe)
+        with open(rop_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("    [+] rop.smali: Lyje abort neutralized, safe fallback to Lnkt.b (Pro tier).")
+    else:
+        print("    [+] rop.smali: already patched or target pattern not found.")
 
 def patch_hpq_smali():
     print("[*] Patching fue.smali / hpq.smali (Device portrait configuration)...")
@@ -1952,6 +2042,34 @@ def patch_aaog_smali():
         #     print("    [+] aaog.smali: Redirected l(String) to LasagnaModelLoader.openAsset().")
 
 
+def build_propatcher():
+    print("[*] Building libpropatcher.so (Dynamic Tuning Engine)...")
+    ndk_clang = os.path.expanduser("~/Library/Android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android34-clang")
+    if not os.path.exists(ndk_clang):
+        sdk = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT") or os.path.expanduser("~/Library/Android/sdk")
+        ndk_dir = os.path.join(sdk, "ndk")
+        if os.path.isdir(ndk_dir):
+            for v in sorted(os.listdir(ndk_dir), reverse=True):
+                cand = os.path.join(ndk_dir, v, "toolchains", "llvm", "prebuilt", "darwin-x86_64", "bin", "aarch64-linux-android34-clang")
+                if os.path.exists(cand):
+                    ndk_clang = cand
+                    break
+    src = os.path.join(ROOT_DIR, "jni", "propatcher", "propatcher.c")
+    out = os.path.join(APKTOOL_DIR, "lib", "arm64-v8a", "libpropatcher.so")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    if os.path.exists(ndk_clang) and os.path.exists(src):
+        cmd = [ndk_clang, "-shared", "-fPIC", "-O3", "-Wall", "-Wextra", "-llog", "-landroid", src, "-o", out]
+        res = subprocess.run(cmd)
+        if res.returncode == 0:
+            print(f"    [+] Compiled libpropatcher.so -> {out}")
+        else:
+            print("    [!] Warning: Failed to compile libpropatcher.so with NDK")
+    elif os.path.exists(out):
+        print(f"    [+] Using existing precompiled libpropatcher.so -> {out}")
+    else:
+        print("    [!] Warning: Neither NDK clang nor precompiled libpropatcher.so found!")
+
+
 def patch_libgcastartup():
     print("[*] Patching libgcastartup.so (Bypassing EdgeTPU Darwinn assertion for Motion Blur / Lasagna)...")
     so_path = os.path.join(APKTOOL_DIR, "lib", "arm64-v8a", "libgcastartup.so")
@@ -2024,49 +2142,51 @@ def patch_libgcastartup():
         elif orig5 == bytes.fromhex("20008052c0035fd6"):
             print("    [+] 0x2420880 already patched.")
 
-        # 6. 0x442ef3c: cbz x8, #0x442ef68 (68 01 00 b4) -> b #0x442ef68 (0b 00 00 14)
-        # Bypasses Halide pyramidal Luma denoiser kernel in finish_raw, jumping straight to operator delete(runner)
-        f.seek(0x442ef3c)
-        orig6 = f.read(4)
-        if orig6 == bytes.fromhex("680100b4"):
-            f.seek(0x442ef3c)
-            f.write(bytes.fromhex("0b000014"))
-            print("    [+] Patched 0x442ef3c: cbz -> b (bypass Halide Luma denoiser kernel)")
-        elif orig6 == bytes.fromhex("0b000014"):
-            print("    [+] 0x442ef3c already patched.")
+        # 6. Dynamic Tuning Engine:
+        # Denoiser kernels, Pecan noise residual scaling, and 70 embedded sharpen tuning curves
+        # are handled dynamically at runtime by libpropatcher.so via TomteInitHelper.applyNativeTuning()
+        # and in-app Pro Settings UI toggles (Soft 0.0x / Natural 0.5x / Standard 1.0x; Off / Low / Standard).
+        # We preserve stock code instructions and stock curve data on disk so runtime scaling works accurately.
+        print("    [+] Dynamic tuning enabled: Sharpen & Denoise handled at runtime by libpropatcher.so.")
 
-        # 7. 0x442efb4: cbz x8, #0x442efe4 (88 01 00 b4) -> b #0x442efe4 (0c 00 00 14)
-        # Bypasses Halide pyramidal Chroma denoiser kernel in finish_raw
-        f.seek(0x442efb4)
-        orig7 = f.read(4)
-        if orig7 == bytes.fromhex("880100b4"):
-            f.seek(0x442efb4)
-            f.write(bytes.fromhex("0c000014"))
-            print("    [+] Patched 0x442efb4: cbz -> b (bypass Halide Chroma denoiser kernel)")
-        elif orig7 == bytes.fromhex("0c000014"):
-            print("    [+] 0x442efb4 already patched.")
 
-        # 8. 0x534f36c: cbz w9, #0x534f424 (c9 05 00 34) -> nop (1f 20 03 d5)
-        # Forces Pecan neural RAW denoiser into PecanNoOpCopy mode (skips TPU/GPU neural network inference, copying raw sensor pixels directly)
-        f.seek(0x534f36c)
-        orig8 = f.read(4)
-        if orig8 == bytes.fromhex("c9050034"):
-            f.seek(0x534f36c)
-            f.write(bytes.fromhex("1f2003d5"))
-            print("    [+] Patched 0x534f36c: cbz -> nop (force PecanNoOpCopy)")
-        elif orig8 == bytes.fromhex("1f2003d5"):
-            print("    [+] 0x534f36c already patched.")
+def patch_embedded_sharpen_tuning(f, scale=0.0):
+    """
+    Scans the internal asset Table of Contents (TOC) at 0x79f0000 - 0x7a05000 in libgcastartup.so
+    and scales all embedded sharpen_*.binarypb frequency band multipliers (field 1 in curve submessages).
+    Setting scale=0.0f eliminates artificial unsharp-masking halos and digital ringing on 50MP/12MP shots.
+    """
+    f.seek(0)
+    data = bytearray(f.read())
+    toc_start = 0x79f0000
+    toc_end = 0x7a05000
+    patched_assets = 0
+    patched_floats = 0
 
-        # 9. 0x534f5f4: fmov s10, #1.00000000 (0a 10 2e 1e) -> fmov s10, wzr (ea 03 27 1e)
-        # Sets Pecan residual_scaling_factor to 0.0f (no noise residual subtraction)
-        f.seek(0x534f5f4)
-        orig9 = f.read(4)
-        if orig9 == bytes.fromhex("0a102e1e"):
-            f.seek(0x534f5f4)
-            f.write(bytes.fromhex("ea03271e"))
-            print("    [+] Patched 0x534f5f4: fmov s10, #1.0 -> fmov s10, wzr (0.0f residual scaling)")
-        elif orig9 == bytes.fromhex("ea03271e"):
-            print("    [+] 0x534f5f4 already patched.")
+    for i in range(toc_start, toc_end, 40):
+        chunk = data[i:i+40]
+        if len(chunk) < 40: break
+        p_name, p_data, sz, h1, h2 = struct.unpack('<QQQQQ', chunk)
+        if 0x62980 <= p_name < 0x1f00000 and 0x62980 <= p_data < 0x23c6200 and 0 < sz < 500000:
+            name_str = data[p_name:p_name+100].split(b'\x00')[0].decode('latin1', errors='ignore')
+            if 'sharpen_' in name_str:
+                patched_assets += 1
+                pb_end = p_data + sz
+                idx = p_data
+                while idx < pb_end - 7:
+                    if data[idx:idx+3] == b'\x0a\x14\x0d':
+                        orig_flt = struct.unpack('<f', data[idx+3:idx+7])[0]
+                        new_flt = orig_flt * scale
+                        data[idx+3:idx+7] = struct.pack('<f', new_flt)
+                        patched_floats += 1
+                        idx += 7
+                    else:
+                        idx += 1
+
+    f.seek(0)
+    f.write(data)
+    f.flush()
+    print(f"    [+] Embedded sharpen assets patched: {patched_assets} files, {patched_floats} sharpen multipliers scaled to {scale}x (Zero Halos).")
 
 
 def patch_msr_smali():
@@ -3480,17 +3600,55 @@ def patch_qxg_smali():
 
     if target in content:
         content = content.replace(target, replacement)
-        print("    [+] qxg.smali: TomteInitHelper.onLookObjectSelected notified on look change.")
+        print("    [+] qxg.smali: TomteInitHelper.onLookObjectSelected notified on look change (g).")
     elif "onLookObjectSelected" in content:
         print("    [+] qxg.smali: already patched with onLookObjectSelected.")
     else:
         print("    [!] Warning: target in qxg.smali not found or already patched.")
 
+    b_target = """.method public final b(Lqvj;)V
+    .locals 1
+
+    iget-object v0, p0, Lqxg;->e:Lurt;"""
+
+    b_repl = """.method public final b(Lqvj;)V
+    .locals 1
+
+    if-eqz p1, :cond_skip_b
+
+    invoke-static {p1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->onLookObjectSelected(Lqvj;)V
+
+    :cond_skip_b
+    iget-object v0, p0, Lqxg;->e:Lurt;"""
+
+    if b_target in content:
+        content = content.replace(b_target, b_repl)
+        print("    [+] qxg.smali: TomteInitHelper.onLookObjectSelected notified on look change (b).")
+
+    c_target = """.method public final c(Lqvj;)V
+    .locals 1
+
+    invoke-virtual {p1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;"""
+
+    c_repl = """.method public final c(Lqvj;)V
+    .locals 1
+
+    if-eqz p1, :cond_skip_c
+
+    invoke-static {p1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->onLookObjectSelected(Lqvj;)V
+
+    :cond_skip_c
+    invoke-virtual {p1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;"""
+
+    if c_target in content:
+        content = content.replace(c_target, c_repl)
+        print("    [+] qxg.smali: TomteInitHelper.onLookObjectSelected notified on look change (c).")
+
     with open(qxg_path, "w", encoding="utf-8") as f:
         f.write(content)
 
 def patch_rfx_smali():
-    print("[*] Patching rfx.smali (Sauce EXIF metadata fallback via TomteInitHelper, was qkj)...")
+    print("[*] Patching rfx.smali (Sauce EXIF metadata fallback via TomteInitHelper)...")
     rfx_path = os.path.join(APKTOOL_DIR, "smali", "rfx.smali")
     if not os.path.exists(rfx_path):
         return
@@ -3509,13 +3667,255 @@ def patch_rfx_smali():
 
     if target in content:
         content = content.replace(target, replacement, 1)
-        with open(rfx_path, "w", encoding="utf-8") as f:
-            f.write(content)
         print("    [+] rfx.smali: Added TomteInitHelper fallback to Sauce EXIF builder.")
-    elif "getEffectiveLookOrFallback" in content:
-        print("    [+] rfx.smali: already patched with TomteInitHelper fallback.")
+
+    with open(rfx_path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+def patch_wlo_smali():
+    print("[*] Patching wlo.smali (Viewfinder Real-Time Look Preview via GL Fragment Shader Injection)...")
+    wlo_path = os.path.join(APKTOOL_DIR, "smali", "wlo.smali")
+    if not os.path.exists(wlo_path):
+        return
+    with open(wlo_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    target = """    :cond_1
+    const-string p1, "#extension GL_OES_EGL_image_external : require\\nprecision mediump float;\\nuniform samplerExternalOES uImgTex;\\nvarying vec2 texCoord;\\nvoid main() {\\n  gl_FragColor = texture2D(uImgTex, texCoord);\\n}\""""
+
+    replacement = """    :cond_1
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getViewfinderFragmentShader()Ljava/lang/String;
+
+    move-result-object p1"""
+
+    if target in content:
+        content = content.replace(target, replacement, 1)
+        with open(wlo_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("    [+] wlo.smali: Injected TomteInitHelper.getViewfinderFragmentShader into GLTextureCopier.")
+    elif "getViewfinderFragmentShader" in content:
+        print("    [+] wlo.smali: already patched with getViewfinderFragmentShader.")
     else:
-        print("    [!] Warning: rfx.smali target not found.")
+        print("    [!] Warning: wlo.smali target not found.")
+
+def patch_surface_control_buffer_flinger():
+    print("[*] Patching SurfaceControlBufferFlinger.smali (Real-Time Viewfinder Looks Hook)...")
+    smali_path = os.path.join(APKTOOL_DIR, "smali", "com", "google", "android", "apps", "camera", "viewfindereffects", "bufferflinger", "SurfaceControlBufferFlinger.smali")
+    if not os.path.exists(smali_path):
+        print(f"    [!] Error: {smali_path} not found!")
+        return
+    with open(smali_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    hook_code = "    invoke-static/range {p1 .. p1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->processHardwareBuffer(Landroid/hardware/HardwareBuffer;)V\n\n"
+    if "processHardwareBuffer" in content:
+        print("    [*] SurfaceControlBufferFlinger.smali already patched.")
+        return
+
+    target = "    move-object/from16 v2, p3\n\n    monitor-enter p0\n\n    :try_start_0\n"
+    replacement = "    move-object/from16 v2, p3\n\n    monitor-enter p0\n\n    :try_start_0\n" + hook_code
+    if target in content:
+        content = content.replace(target, replacement, 1)
+        with open(smali_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("    [+] Successfully hooked SurfaceControlBufferFlinger.d -> TomteInitHelper.processHardwareBuffer")
+    else:
+        print("    [!] Warning: Could not find target injection point in SurfaceControlBufferFlinger.smali")
+
+def patch_tgt_smali():
+    # HardwareBuffer processing is cleanly handled at the final display output in SurfaceControlBufferFlinger.d
+    # To avoid double-grading frames, tgt.m is left clean.
+    pass
+
+def patch_vhw_smali():
+    print("[*] Patching vhw.smali (Enabling CPU Write Usage for Viewfinder HardwareBuffer)...")
+    smali_path = os.path.join(APKTOOL_DIR, "smali", "vhw.smali")
+    if not os.path.exists(smali_path):
+        print(f"    [!] Error: {smali_path} not found!")
+        return
+    with open(smali_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    if "getPreviewBufferUsage" in content:
+        print("    [*] vhw.smali already patched.")
+        return
+
+    target = """    iget-wide v2, p1, Lvlo;->e:J
+
+    const-wide/16 v4, -0x1
+
+    cmp-long p0, v2, v4
+
+    if-eqz p0, :cond_2
+
+    invoke-virtual {v1, v2, v3}, Landroid/media/ImageReader$Builder;->setUsage(J)Landroid/media/ImageReader$Builder;
+
+    :cond_2"""
+
+    replacement = """    iget-wide v2, p1, Lvlo;->e:J
+
+    invoke-static {v2, v3}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPreviewBufferUsage(J)J
+
+    move-result-wide v2
+
+    invoke-virtual {v1, v2, v3}, Landroid/media/ImageReader$Builder;->setUsage(J)Landroid/media/ImageReader$Builder;
+
+    :cond_2"""
+
+    if target in content:
+        content = content.replace(target, replacement, 1)
+        with open(smali_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("    [+] Successfully patched vhw.smali for CPU write buffer allocation")
+    else:
+        print("    [!] Warning: Could not find target usage block in vhw.smali")
+
+def patch_rvq_smali():
+    print("[*] Patching rvq.smali (Force VFE Pipeline Enablement)...")
+    smali_path = os.path.join(APKTOOL_DIR, "smali_classes2", "rvq.smali")
+    if not os.path.exists(smali_path):
+        return
+    with open(smali_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    target = """    :cond_0
+    invoke-interface {p0}, Lacnw;->a()Ljava/lang/Object;
+
+    move-result-object p0
+
+    check-cast p0, Lksf;
+
+    sget-object v0, Lkpk;->r:Lkps;
+
+    invoke-virtual {p0, v0}, Lksf;->q(Lkps;)Z
+
+    move-result p0
+
+    if-eqz p0, :cond_1
+
+    sget-object p0, Lyuq;->a:Lyuq;
+
+    const/4 v0, 0x0
+
+    invoke-static {p0, v0}, Lthd;->c(Ljava/util/Set;Z)Lthd;
+
+    move-result-object p0
+
+    goto :goto_0
+
+    :cond_1
+    sget-object p0, Lthd;->a:Lthd;
+
+    :goto_0
+    invoke-virtual {p0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+
+    return-object p0"""
+
+    replacement = """    :cond_0
+    sget-object p0, Lyuq;->a:Lyuq;
+
+    const/4 v0, 0x0
+
+    invoke-static {p0, v0}, Lthd;->c(Ljava/util/Set;Z)Lthd;
+
+    move-result-object p0
+
+    invoke-virtual {p0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+
+    return-object p0"""
+
+    if target in content:
+        content = content.replace(target, replacement, 1)
+        with open(smali_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("    [+] rvq.smali: Forced VFE pipeline enabled (thd.c == false).")
+    elif replacement in content:
+        print("    [*] rvq.smali already patched.")
+
+def patch_rva_smali():
+    print("[*] Patching rva.smali (Force VFE Presentation Pipeline Creation)...")
+    smali_path = os.path.join(APKTOOL_DIR, "smali_classes2", "rva.smali")
+    if not os.path.exists(smali_path):
+        return
+    with open(smali_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    target = """    iget-object v5, v0, Lrva;->am:Lurt;
+
+    invoke-interface {v5}, Lurt;->d()Ljava/lang/Object;
+
+    move-result-object v5
+
+    check-cast v5, Ljava/lang/Boolean;
+
+    invoke-virtual {v5}, Ljava/lang/Boolean;->booleanValue()Z
+
+    move-result v5
+
+    if-eqz v5, :cond_19"""
+
+    replacement = """    iget-object v5, v0, Lrva;->am:Lurt;
+
+    invoke-interface {v5}, Lurt;->d()Ljava/lang/Object;
+
+    move-result-object v5
+
+    check-cast v5, Ljava/lang/Boolean;
+
+    invoke-virtual {v5}, Ljava/lang/Boolean;->booleanValue()Z
+
+    move-result v5
+
+    const/4 v5, 0x1
+
+    if-eqz v5, :cond_19"""
+
+    if target in content:
+        content = content.replace(target, replacement, 1)
+        with open(smali_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        print("    [+] rva.smali: Bypassed absent VFE jump, creating Optional.of(wuq).")
+    elif replacement in content:
+        print("    [*] rva.smali already patched.")
+
+def patch_ozw_smali():
+    print("[*] Patching ozw.smali (Route Viewfinder Stream to ImageReader for VFE)...")
+    smali_path = os.path.join(APKTOOL_DIR, "smali_classes2", "ozw.smali")
+    if not os.path.exists(smali_path):
+        return
+    with open(smali_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    target = """    move-result p1
+
+    if-nez p1, :cond_0"""
+
+    replacement = """    move-result p1
+
+    goto :cond_0"""
+
+    if target in content:
+        content = content.replace(target, replacement, 1)
+        print("    [+] ozw.smali: Forced viewfinder stream to IMAGE_READER.")
+    elif replacement in content:
+        print("    [*] ozw.smali already patched for IMAGE_READER.")
+
+    # Also ensure buffer usage is CPU cacheable (0x922)
+    target_usage = """    const-wide/16 v0, 0x100
+
+    invoke-virtual {p1, v0, v1}, Lvbf;->t(J)V"""
+    repl_usage = """    const-wide/16 v0, 0x922
+
+    invoke-virtual {p1, v0, v1}, Lvbf;->t(J)V"""
+
+    if target_usage in content:
+        content = content.replace(target_usage, repl_usage, 1)
+        print("    [+] ozw.smali: Updated buffer usage to 0x922 (CPU cacheable).")
+
+    with open(smali_path, "w", encoding="utf-8") as f:
+        f.write(content)
+
+
 
 def patch_mia_smali():
     print("[*] Patching mia.smali (Force TomteGrain#initialize at app startup)...")
@@ -8691,12 +9091,20 @@ def main():
     patch_qus_smali()
     patch_qxg_smali()
     patch_ksf_smali()
+    patch_rop_smali()
     patch_fzf_smali()
     patch_izk_smali()
     patch_msr_smali()
     patch_ndf_smali()
     patch_jex_smali()
     patch_rfx_smali()
+    patch_wlo_smali()
+    patch_surface_control_buffer_flinger()
+    patch_tgt_smali()
+    patch_vhw_smali()
+    patch_rvq_smali()
+    patch_rva_smali()
+    patch_ozw_smali()
     patch_mtt_smali()
     patch_pyp_smali()
     patch_rdb_smali()
@@ -8726,6 +9134,7 @@ def main():
     patch_qge_smali()
     patch_qgh_smali()
     inject_splits()
+    build_propatcher()
     patch_libgcastartup()
     balance_dex_limits()
     ensure_keystore()

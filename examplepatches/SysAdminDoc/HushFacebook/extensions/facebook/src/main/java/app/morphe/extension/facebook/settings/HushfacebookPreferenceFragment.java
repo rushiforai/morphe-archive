@@ -20,6 +20,7 @@ import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.view.ContextThemeWrapper;
 import android.view.View;
@@ -43,6 +44,8 @@ import java.util.Set;
 
 import app.morphe.extension.facebook.coexist.FamilySignatureTrust;
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.reels.BurnInMode;
+import app.morphe.extension.facebook.reels.BurnInWait;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
@@ -63,6 +66,8 @@ import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.misc.BreakTimer;
 import app.morphe.extension.facebook.misc.HeaderText;
+import app.morphe.extension.facebook.profile.LocalProfileCounts;
+import app.morphe.extension.facebook.stories.StoriesTrayCircles;
 import app.morphe.extension.facebook.misc.OpeningPause;
 import app.morphe.extension.facebook.menu.MenuTiles;
 import app.morphe.extension.facebook.misc.ShareSheetItems;
@@ -91,8 +96,11 @@ import app.morphe.extension.facebook.settings.ValueRows.SeenKeepRow;
 import app.morphe.extension.facebook.settings.ValueRows.BreakRow;
 import app.morphe.extension.facebook.settings.ValueRows.PauseLengthRow;
 import app.morphe.extension.facebook.settings.ValueRows.WatchedKeepRow;
+import app.morphe.extension.facebook.settings.ValueRows.BurnInGuardRow;
+import app.morphe.extension.facebook.settings.ValueRows.BurnInWaitRow;
 import app.morphe.extension.facebook.settings.ValueRows.AccentRow;
 import app.morphe.extension.facebook.settings.ValueRows.BackgroundRow;
+import app.morphe.extension.facebook.settings.ValueRows.CountRow;
 import app.morphe.extension.facebook.settings.ValueRows.HeaderTextRow;
 import app.morphe.extension.facebook.settings.ValueRows.MarkColorRow;
 import app.morphe.extension.facebook.settings.ValueRows.ReactionCeilingRow;
@@ -1741,6 +1749,88 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     }
 
     /**
+     * Burn-in guard on the Reels screen (#288). Like the watched entries row, its values are the
+     * setting's own names and its summary says what the choice does.
+     */
+    static BurnInGuardRow burnInGuardRow(Context context) {
+        BurnInGuardRow row = new BurnInGuardRow(context);
+        row.setKey(Settings.BURN_IN_GUARD.key);
+        row.setTitle(L10n.t("Burn-in guard"));
+        row.setDialogTitle(L10n.t("Burn-in guard"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        BurnInMode[] choices = BurnInMode.values();
+        CharSequence[] entries = new CharSequence[choices.length];
+        CharSequence[] values = new CharSequence[choices.length];
+        for (int i = 0; i < choices.length; i++) {
+            entries[i] = burnInLabel(choices[i]);
+            values[i] = choices[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.BURN_IN_GUARD.savedValue().name());
+        return row;
+    }
+
+    /** What the list and the sentences about it call [mode]. */
+    static String burnInLabel(BurnInMode mode) {
+        switch (mode) {
+            case DIM:
+                return L10n.t("Dim when idle");
+            case DIM_AND_SHIFT:
+                return L10n.t("Dim when idle and shift");
+            default:
+                return L10n.t("Off");
+        }
+    }
+
+    /** What the choice does, for the row's summary. */
+    static String burnInSummary(BurnInMode mode) {
+        switch (mode) {
+            case DIM:
+                return L10n.t("On the Reels screen, the buttons, caption and bars fade when you leave them alone. "
+                        + "Touching one of them brings them back.");
+            case DIM_AND_SHIFT:
+                return L10n.t("On the Reels screen, the buttons, caption and bars fade when you leave them alone, and "
+                        + "the screen moves a step every 2 minutes. Touching one of them brings them back.");
+            default:
+                return L10n.t("Off. It can fade a reel's buttons while the screen sits untouched, so they don't burn "
+                        + "into an OLED screen.");
+        }
+    }
+
+    /** How long the Reels screen goes untouched before Burn-in guard dims it (#288). */
+    static BurnInWaitRow burnInWaitRow(Context context) {
+        BurnInWaitRow row = new BurnInWaitRow(context);
+        row.setKey(Settings.BURN_IN_WAIT.key);
+        row.setTitle(L10n.t("Dim after"));
+        row.setDialogTitle(L10n.t("Dim after"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        BurnInWait[] choices = BurnInWait.values();
+        CharSequence[] entries = new CharSequence[choices.length];
+        CharSequence[] values = new CharSequence[choices.length];
+        for (int i = 0; i < choices.length; i++) {
+            entries[i] = burnInWaitLabel(choices[i]);
+            values[i] = choices[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.BURN_IN_WAIT.savedValue().name());
+        return row;
+    }
+
+    /** What the list and the sentences about it call [wait]. */
+    static String burnInWaitLabel(BurnInWait wait) {
+        if (wait == BurnInWait.AT_ONCE) return L10n.t("At once");
+        return L10n.f("After %1$d seconds", (int) (wait.millis / 1000));
+    }
+
+    /** What the choice does, for the row's summary. */
+    static String burnInWaitSummary(BurnInWait wait) {
+        return L10n.f("%1$s. Tapping the video and double-tapping it to like don't count as a touch, so the buttons "
+                + "stay faded.", burnInWaitLabel(wait));
+    }
+
+    /**
      * How large Facebook's text is. Like the comment order row, its values are the setting's own
      * names and its summary says what the choice does.
      */
@@ -2082,6 +2172,90 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         return row;
     }
 
+    /** The setting a Local profile counts row keeps its digits in. */
+    static StringSetting countSetting(LocalProfileCounts.Count count) {
+        switch (count) {
+            case FOLLOWERS: return Settings.LOCAL_FOLLOWERS;
+            case FOLLOWING: return Settings.LOCAL_FOLLOWING;
+            default: return Settings.LOCAL_FRIENDS;
+        }
+    }
+
+    /**
+     * Local profile counts (#280): the number your own profile shows for [count] on this phone. What's
+     * saved is its digits, without leading zeros, blank for Facebook's own.
+     */
+    static CountRow countRow(Context context, LocalProfileCounts.Count count) {
+        StringSetting setting = countSetting(count);
+        CountRow row = new CountRow(context, count);
+        row.setKey(setting.key);
+        String title = count == LocalProfileCounts.Count.FOLLOWERS ? L10n.t("Followers shown")
+                : count == LocalProfileCounts.Count.FOLLOWING ? L10n.t("Following shown") : L10n.t("Friends shown");
+        row.setTitle(title);
+        row.setDialogTitle(title);
+        row.setDialogMessage(L10n.t("Digits only, up to 10. Your own profile shows this number on this phone. Leave it "
+                + "blank for Facebook's real one."));
+        row.setPositiveButtonText(L10n.t("Save"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        EditText field = row.getEditText();
+        keepEditorInDialog(field, false);
+        field.setInputType(InputType.TYPE_CLASS_NUMBER);
+        field.setFilters(new InputFilter[] {new InputFilter.LengthFilter(LocalProfileCounts.MAX_DIGITS)});
+        field.setHint("1234");
+        row.setText(setting.savedValue());
+        row.setOnPreferenceChangeListener((preference, typed) -> {
+            String raw = typed == null ? "" : typed.toString().trim();
+            String clean = LocalProfileCounts.clean(raw);
+            if (clean.equals(raw)) return true;
+            // Keeps the digits as they're saved in place of what was typed, as the header text row does.
+            ((CountRow) preference).setText(clean);
+            return false;
+        });
+        return row;
+    }
+
+    /** What a Local profile counts row says for [text], the digits typed there. */
+    static String countSummary(LocalProfileCounts.Count count, String text) {
+        String digits = LocalProfileCounts.clean(text);
+        if (digits.isEmpty()) return L10n.t("Facebook's real number shows. Type digits to show your own.");
+        return L10n.f("Your profile shows %1$s on this phone.", L10n.isolate(LocalProfileCounts.formatted(digits)));
+    }
+
+    /**
+     * Round stories tray (#260): how wide each round picture is, in dp. What's saved is digits only,
+     * blank for the default size.
+     */
+    static ValueRows.SizeRow sizeRow(Context context) {
+        StringSetting setting = Settings.STORIES_TRAY_SIZE;
+        ValueRows.SizeRow row = new ValueRows.SizeRow(context);
+        row.setKey(setting.key);
+        row.setTitle(L10n.t("Round picture size"));
+        row.setDialogTitle(L10n.t("Round picture size"));
+        row.setDialogMessage(L10n.f("Width in dp, from %1$s to %2$s. Leave it blank for %3$s.",
+                StoriesTrayCircles.MIN_DP, StoriesTrayCircles.MAX_DP, StoriesTrayCircles.DEFAULT_DP));
+        row.setPositiveButtonText(L10n.t("Save"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        EditText field = row.getEditText();
+        keepEditorInDialog(field, false);
+        field.setInputType(InputType.TYPE_CLASS_NUMBER);
+        field.setFilters(new InputFilter[] {new InputFilter.LengthFilter(3)});
+        field.setHint(String.valueOf(StoriesTrayCircles.DEFAULT_DP));
+        row.setText(setting.savedValue());
+        row.setOnPreferenceChangeListener((preference, typed) -> {
+            String raw = typed == null ? "" : typed.toString().trim();
+            String clean = LocalProfileCounts.clean(raw);
+            if (clean.equals(raw)) return true;
+            ((ValueRows.SizeRow) preference).setText(clean);
+            return false;
+        });
+        return row;
+    }
+
+    /** What the Round picture size row says for [text], the digits typed there. */
+    static String sizeSummary(String text) {
+        return L10n.f("Round pictures are %1$s dp wide.", StoriesTrayCircles.diameterDp(text));
+    }
+
     /** What the Home header text row says for [text], the words typed there. */
     static String headerTextSummary(String text) {
         String shown = HeaderText.clean(text);
@@ -2266,6 +2440,10 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             ((PauseLengthRow) listPreference).showSummary();
         } else if (listPreference instanceof WatchedKeepRow) {
             ((WatchedKeepRow) listPreference).showSummary();
+        } else if (listPreference instanceof BurnInGuardRow) {
+            ((BurnInGuardRow) listPreference).showSummary();
+        } else if (listPreference instanceof BurnInWaitRow) {
+            ((BurnInWaitRow) listPreference).showSummary();
         } else if (listPreference instanceof BreakRow) {
             ((BreakRow) listPreference).showSummary();
         } else if (listPreference instanceof TextSizeRow) {

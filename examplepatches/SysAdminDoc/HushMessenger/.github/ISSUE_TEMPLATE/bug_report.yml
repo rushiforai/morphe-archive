@@ -18,7 +18,7 @@ body:
     attributes:
       label: HushMessenger and Messenger versions
       description: HushMessenger's version is under **App > About** in its settings (long-press Messenger's icon and tap **Patch controls**). Messenger's is on its App info page in Android's settings.
-      placeholder: HushMessenger 0.27.0 on Messenger 585.0.0.53.94
+      placeholder: HushMessenger 0.28.0 on Messenger 585.0.0.53.94
     validations:
       required: true
   - type: dropdown

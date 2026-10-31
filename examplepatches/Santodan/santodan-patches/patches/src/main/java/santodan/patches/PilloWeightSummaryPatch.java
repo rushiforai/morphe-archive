@@ -26,7 +26,7 @@ public final class PilloWeightSummaryPatch {
 
     private static BytecodePatch createPatch() {
         return PatchKt.bytecodePatch(NAME,
-            "Adds signed Total weight change, an All default filter, a selectable Last since date, and Last 30 days / Last 15 days / Change summaries using full profile history.",
+            "Adds signed Total weight change, an All default filter, a selectable comparison date, and Last 30 days / Last 15 days / Change summaries using full profile history.",
             false, builder -> {
                 builder.compatibleWith(new Compatibility("xyz.rtrvr.pillo", "Pillo", null, ApkFileType.APK,
                     null, null, List.of(new AppTarget("0.6.27", null, false, null, null), new AppTarget("0.6.20", null, false, null, null)), app.morphe.patcher.patch.FormFactor.MOBILE, false));

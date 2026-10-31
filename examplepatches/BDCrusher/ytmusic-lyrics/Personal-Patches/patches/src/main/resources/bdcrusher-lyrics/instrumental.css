@@ -1,0 +1,95 @@
+/* Instrumental break styles */
+.blyrics--instrumental-icon {
+	height: var(--blyrics-font-size);
+	width: calc(var(--blyrics-font-size) + var(--blyrics-font-size) / 3);
+	overflow: visible;
+	margin-left: calc(var(--blyrics-font-size) / -3);
+}
+
+.blyrics-rtl.blyrics--instrumental .blyrics--instrumental-icon {
+	margin-left: 0;
+	margin-right: calc(var(--blyrics-font-size) / -3);
+}
+
+.blyrics--instrumental[data-agent="v2"] .blyrics--instrumental-icon,
+.blyrics--instrumental[data-agent="v3"] .blyrics--instrumental-icon {
+	margin-left: 0px;
+	margin-right: calc(var(--blyrics-font-size) / -3);
+}
+
+.blyrics--instrumental[data-agent="v1000"] .blyrics--instrumental-icon {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.blyrics--instrumental-bg {
+	fill: var(--blyrics-lyric-inactive-color);
+}
+
+.blyrics--instrumental-fill {
+	fill: var(--blyrics-lyric-active-color);
+	transition: opacity var(--blyrics-lyric-highlight-fade-out-duration, 0.5s) ease;
+	opacity: 0;
+}
+
+.blyrics--instrumental.blyrics--animating .blyrics--instrumental-fill {
+	transition: none;
+	opacity: 1;
+}
+
+.blyrics--instrumental:not(.blyrics--pre-animating) .blyrics--wave-clip {
+	transition-property: transform;
+	transition-duration: 1000000s;
+	transition-delay: 0s;
+	transform: translateY(0%);
+}
+
+.blyrics--instrumental.blyrics--pre-animating:not(.blyrics--animating) .blyrics--wave-clip {
+	animation: none;
+	transform: translateY(78%);
+}
+
+.blyrics--instrumental.blyrics--animating .blyrics--wave-clip {
+	transition-property: transform;
+	transition-duration: calc(var(--blyrics-duration, 1ms) * 1);
+	transition-timing-function: linear;
+	transition-delay: var(--blyrics-anim-delay);
+	transform: translateY(-4%);
+}
+
+.blyrics--wave-path {
+	/* Set the transform origin to the bottom of the wave shape (y=4). */
+	transform-box: fill-box;
+	transform-origin: bottom;
+
+	/* Prepare the WAAPI flatten transition. */
+	transform: scaleY(1.2);
+
+	d: var(--blyrics-instrumental-wave-path-high);
+}
+
+/* Gecko misplaces a fill-box origin inside a clipPath, so pin the wave's floor (y=4) in user units. */
+.blyrics-container[data-browser-engine="gecko"] .blyrics--wave-path {
+	transform-box: view-box;
+	transform-origin: 0 4px;
+}
+
+/* Trigger the Flattening */
+.blyrics--instrumental.blyrics--animating:not(.blyrics--paused) .blyrics--wave-path {
+	/* Flatten the wave to 0 height */
+	transform: scaleY(0);
+
+	transition-property: transform;
+	transition-duration: calc(var(--blyrics-duration, 1ms) * 1);
+	transition-timing-function: ease-in;
+	transition-delay: var(--blyrics-anim-delay);
+}
+
+/* If paused, we freeze the flattening where it is */
+.blyrics--instrumental.blyrics--animating.blyrics--paused .blyrics--wave-path {
+	transform: scaleY(0.0001); /* slightly different to force recalculation */
+	transition-duration: 10000000000s;
+	transition-property: transform;
+	transition-timing-function: ease-out;
+	transition-delay: 0s;
+}

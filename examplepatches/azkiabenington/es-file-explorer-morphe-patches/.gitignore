@@ -1,0 +1,13 @@
+*.apk
+*.apkm
+*.xapk
+*.zip
+.gradle/
+build/
+patches/build/
+*.mpp
+*.log
+local.properties
+.idea/
+*.iml
+

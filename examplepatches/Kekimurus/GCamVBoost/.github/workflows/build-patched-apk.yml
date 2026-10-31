@@ -1,0 +1,130 @@
+name: Build Patched GCam with Morphe
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: 'Direct HTTPS URL to Google Camera (.apk, or .apkm bundle from APKMirror)'
+        required: true
+        type: string
+      file_type:
+        description: 'File type at the URL'
+        required: true
+        default: 'apkm'
+        type: choice
+        options:
+          - apkm
+          - apk
+
+permissions:
+  contents: read
+  packages: read # the Morphe Gradle plugin is hosted on GitHub Packages
+
+env:
+  MORPHE_DESKTOP_VERSION: '1.18.1'
+
+jobs:
+  build-and-patch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (patch bundle build)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Build Morphe patch bundle (.mpp)
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :patches:build
+
+      - name: Set up JDK 21 (Morphe desktop needs 21+)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Android SDK (apksigner)
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'build-tools;35.0.0'
+
+      - name: Download Morphe desktop
+        run: |
+          curl -fL -o morphe-desktop.jar \
+            "https://github.com/MorpheApp/morphe-desktop/releases/download/v${MORPHE_DESKTOP_VERSION}/morphe-desktop-${MORPHE_DESKTOP_VERSION}-all.jar"
+
+      - name: Download Google Camera
+        run: |
+          curl -fL -o "input.${{ inputs.file_type }}" "${{ inputs.apk_url }}"
+          if [ ! -s "input.${{ inputs.file_type }}" ]; then
+            echo "Downloaded file is empty or the URL is invalid!"
+            exit 1
+          fi
+
+      - name: Apply patches
+        run: |
+          PATCH_BUNDLE=$(find patches/build/libs -name "patches-*.mpp" ! -name "*-sources.mpp" ! -name "*-javadoc.mpp" | head -n 1)
+          echo "Using patch bundle: $PATCH_BUNDLE"
+
+          java -jar morphe-desktop.jar patch \
+            -p "$PATCH_BUNDLE" \
+            --exclusive \
+            -e "Clone Google Camera" \
+            -e "Video Boost startup state" \
+            -e "Video Boost shortcuts" \
+            -e "Fix Magic Capture crash" \
+            -e "Fix MediaProvider invalid column crash" \
+            -e "Fix launcher app shortcuts" \
+            --unsigned \
+            -o patched_unsigned.apk \
+            "input.${{ inputs.file_type }}"
+
+      - name: Sign APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+          else
+            # Without a stored keystore every run gets a new key, so updates won't install over
+            # the previous build. Add the KEYSTORE_* secrets to keep the same signature.
+            keytool -genkeypair -keystore release.keystore -alias androiddebugkey -keyalg RSA -keysize 2048 \
+              -validity 10000 -storepass android -keypass android -dname "CN=Android Debug,O=Android,C=US"
+            KEYSTORE_PASS="android"
+            KEY_ALIAS="androiddebugkey"
+            KEY_PASS="android"
+          fi
+
+          # Morphe already zip-aligns the output, so it can be signed directly.
+          "$APKSIGNER" sign \
+            --ks release.keystore \
+            --ks-pass "pass:${KEYSTORE_PASS}" \
+            --ks-key-alias "${KEY_ALIAS}" \
+            --key-pass "pass:${KEY_PASS}" \
+            --out GoogleCameraEng-Patched.apk \
+            patched_unsigned.apk
+
+          "$APKSIGNER" verify GoogleCameraEng-Patched.apk
+          rm -f release.keystore
+
+      - name: Upload patched APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GoogleCameraEng-Patched
+          path: GoogleCameraEng-Patched.apk
+          retention-days: 7
+          compression-level: 0 # APKs are already compressed

@@ -42,10 +42,17 @@ the locally available source APK is 242 dev, not the same build.
   integrity plus the columns 191 reads. Then rename the previous DB to a unique
   `roidon.sqlite.before-restore-*` recovery file before installing the stage.
   Do not force a newer schema/version number down to 191's version.
-- If installation fails, retain the pending DB path and `restoreTmp`, skip the
-  native cleanup, log `NATIVE_RESTORE_DB_INSTALL_FAILED`, and show the failure
-  on the next resumed activity. An existing nonempty WAL/journal is rejected
-  rather than ignored. The original ZIP is never edited or deleted.
+- Before switching databases, hold the same lock used by 191's lazy database
+  opener and confirm its database handle is closed. If a source or destination
+  has a nonempty journal/WAL/SHM, open it with Android SQLite so SQLite can
+  recover a hot journal or checkpoint committed WAL data; set journal mode to
+  DELETE, run `quick_check`, and close all handles. The streaming installer
+  then rejects any sidecar that remains. Sidecars are never deleted to bypass
+  the check.
+- If recovery, validation, or installation fails, retain the pending DB path
+  and `restoreTmp`, skip native cleanup, log
+  `NATIVE_RESTORE_DB_INSTALL_FAILED`, and show the failure on the next resumed
+  activity. The previous DB and original ZIP are retained for recovery.
 
 This is not a whole-archive transaction: native DAT/preferences copying still
 uses ChMate's implementation. Process death, device/storage failure, changing
@@ -69,6 +76,17 @@ preview parsing, retained fragment, background/resume sentinel, native restore
 worker and next-start DB installation. Inject an invalid pending DB and verify
 that the previous DB, source, pending path and error all survive restart.
 
-Not verified with the reported 1.95 GiB / roughly 18 GiB / 200,000-file archive,
-nor on the reported Samsung Android 16 device. Included in the 1.8.1 prerelease;
-the large-archive migration remains unverified.
+Verification of the journal recovery helper used Android SQLite on Mi Note 10
+and an emulator for 67 cases, including PERSIST journals, hot rollback
+journals, committed WAL data, previous-DB preservation, and corrupt input
+preservation. The patched DEX hooks were also checked in both the distribution
+191 APK and the isolated restore-test APK. On `emulator-5580`, the isolated
+191 app created a standard ChMate backup ZIP and restored it through the native
+BackupActivity flow back to HOME. The installed `roidon.sqlite` SHA-256 matched
+the DB entry in the ZIP (`3cac65411ff7b7c0bd86645837fdfc1c188b1f29f11b13da0dbee062674d60a0`),
+and the pre-restore DB was retained as `roidon.sqlite.before-restore-*`.
+The generated ZIP had no sidecar entries, so the full UI run did not reproduce
+the reported nonempty-journal state; the separate 67-case Android SQLite
+fixtures cover those recovery cases. The user's original ZIP was not available.
+The reported 1.95 GiB / roughly 18 GiB / 200,000-file archive and Samsung
+Android 16 device are also unverified.

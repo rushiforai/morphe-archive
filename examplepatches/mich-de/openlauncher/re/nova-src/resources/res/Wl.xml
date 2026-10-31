@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="0x7f060024"/>
+    <foreground>
+        <inset
+            android:drawable="0x7f0802d8"
+            android:inset="25%"/>
+    </foreground>
+</adaptive-icon>

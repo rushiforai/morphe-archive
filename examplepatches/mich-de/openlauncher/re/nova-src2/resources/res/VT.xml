@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textAppearance="?unknown_attr_ref: 7f040627"
+    android:textColor="?unknown_attr_ref: 7f040637"
+    android:ellipsize="marquee"
+    android:gravity="center_vertical"
+    android:id="@android:id/text1"
+    android:paddingLeft="?unknown_attr_ref: 7f0403cb"
+    android:paddingRight="?unknown_attr_ref: 7f0403cc"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="?unknown_attr_ref: 7f0403c9"/>

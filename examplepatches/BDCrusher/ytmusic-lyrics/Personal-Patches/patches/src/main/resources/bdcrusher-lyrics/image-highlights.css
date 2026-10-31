@@ -1,0 +1,67 @@
+/* The renderer adds these classes only for blyrics-image-highlights = true.
+   An SDR image is equally valid. HDR assets and dynamic-range-limit belong to the theme. */
+.blyrics--word.blyrics-word-highlight.blyrics-image-highlight {
+  background: none;
+  mask: none;
+  -webkit-mask: none;
+  color: transparent;
+}
+.blyrics-image-fill,
+.blyrics-word-highlight.blyrics-image-highlight .blyrics--letter {
+  background-image: var(--blyrics-highlight-image, none);
+  background-color: var(--blyrics-lyric-active-color, white);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+/* The content-box copy keeps each letter's image; the padding-box copy carries it under glyph overhang. */
+.blyrics-word-highlight.blyrics-image-highlight .blyrics--letter {
+  background-image: var(--blyrics-highlight-image, none), var(--blyrics-highlight-image, none);
+  background-origin: content-box, padding-box;
+}
+.blyrics-image-highlight:not(.blyrics-word-highlight--lettered) .blyrics-image-fill {
+  --blyrics-image-sweep-angle: 90deg;
+  mask-image: linear-gradient(var(--blyrics-image-sweep-angle),
+    #000 calc(100% * var(--lyric-transition-amount-start)),
+    transparent calc(100% * var(--lyric-transition-amount-end) + 1px));
+  mask-repeat: no-repeat;
+}
+.blyrics-image-highlight.blyrics-rtl:not(.blyrics-word-highlight--lettered) .blyrics-image-fill {
+  --blyrics-image-sweep-angle: 270deg;
+}
+.blyrics-image-highlight.blyrics-word-highlight--lettered .blyrics-image-fill {
+  background: none;
+}
+.blyrics-image-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  overflow: visible;
+}
+/* A parallel run reproduces the full inline formatting context, including bidi
+   reordering and every wrapped fragment. No generated text or per-frame measuring. */
+.blyrics-image-glow-run .blyrics-image-glow {
+  position: static;
+  inset: auto;
+  display: inline;
+}
+.blyrics-instrumental-image { display: none; }
+.blyrics--instrumental-icon[data-image-ready] .blyrics-instrumental-image { display: inline; }
+.blyrics--instrumental-icon[data-image-ready] .blyrics-instrumental-color { display: none; }
+@media (forced-colors: active) {
+  .blyrics-image-glow,
+  .blyrics-image-glow-run .blyrics-image-glow { display: none; }
+  .blyrics-image-fill,
+  .blyrics-word-highlight.blyrics-image-highlight .blyrics--letter {
+    background: none;
+    color: CanvasText;
+    -webkit-text-fill-color: CanvasText;
+  }
+  .blyrics--instrumental-icon[data-image-ready] .blyrics-instrumental-image { display: none; }
+  .blyrics--instrumental-icon[data-image-ready] .blyrics-instrumental-color { display: inline; }
+}

@@ -3,6 +3,7 @@ package com.dmoniak.patches.coinsnap
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.hungryshark.util.replaceMethod
+import com.dmoniak.patches.shared.AdBlockHelper.executeComprehensiveAdBlock
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_COINSNAP
 import java.util.logging.Logger
 
@@ -16,6 +17,7 @@ val coinSnapPremiumPatch = bytecodePatch(
     execute {
         val logger = Logger.getLogger(this::class.java.name)
         logger.info("Executing Unlock VIP patch for CoinSnap...")
+        val adBlockCount = executeComprehensiveAdBlock(logger, "CoinSnap")
 
         var vipInfoCount = 0
         var appViewModelCount = 0

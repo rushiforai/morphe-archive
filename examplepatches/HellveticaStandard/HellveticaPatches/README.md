@@ -1,4 +1,4 @@
-﻿# 👋🧩 HellveticaStandard Patches
+# 👋🧩 HellveticaStandard Patches
 
 Morphe Patches by HellveticaStandard.
 
@@ -9,9 +9,9 @@ Patches for apps maintained by HellveticaStandard.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.4](https://github.com/HellveticaStandard/HellveticaPatches/releases/tag/v1.1.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.2.0](https://github.com/HellveticaStandard/HellveticaPatches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
-<summary>📦 Sankaku App&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Sankaku App&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -22,6 +22,7 @@ Patches for apps maintained by HellveticaStandard.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Disable Infinite Upgrade Popup](#disable-infinite-upgrade-popup) | Disables the "Want unlimited access? Get Sankaku Infinite!" upsell popup that periodically appears while browsing the app. |  |
+| [Hide Trending Tags Section](#hide-trending-tags-section) | Hides the "Trending tags" carousel section from the browse feed. |  |
 
 </details>
 

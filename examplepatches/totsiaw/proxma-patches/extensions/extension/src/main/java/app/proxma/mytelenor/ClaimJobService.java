@@ -51,6 +51,14 @@ public final class ClaimJobService extends JobService {
             submit(js, builder(context, JOB_PERIODIC).setPeriodic(6 * HOUR, HOUR));
         }
         Log.i(TAG, "JOBS_SCHEDULED");
+        ClaimAlarm.arm(context);
+    }
+
+    /** One-off run in ~5 s, used when a foreground-service start is refused. */
+    static void runSoon(Context context) {
+        JobScheduler js = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        if (js == null) return;
+        submit(js, builder(context, JOB_NOW).setMinimumLatency(5_000L));
     }
 
     private static void scheduleMidnight(Context context, JobScheduler js) {
@@ -79,6 +87,16 @@ public final class ClaimJobService extends JobService {
     @Override
     public boolean onStartJob(final JobParameters params) {
         final Context context = getApplicationContext();
+        // Hand the run to the foreground service when the system allows it (the app is exempt from
+        // battery optimisation): ColorOS cuts background jobs off after a few seconds. Otherwise run
+        // inline as before.
+        if (ClaimService.start(context, "job-" + Integer.toHexString(params.getJobId()))) {
+            if (params.getJobId() == JOB_MIDNIGHT) {
+                JobScheduler js = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+                if (js != null) scheduleMidnight(context, js);
+            }
+            return false;
+        }
         new Thread(() -> {
             try {
                 runClaims(context, params.getJobId());
@@ -101,11 +119,15 @@ public final class ClaimJobService extends JobService {
         return true;
     }
 
-    private static synchronized void runClaims(Context context, int jobId) {
+    static synchronized void runClaims(Context context, int jobId) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         String day = AutoClaim.today();
         int retries = day.equals(prefs.getString(KEY_RETRY_DAY, "")) ? prefs.getInt(KEY_RETRY_N, 0) : 0;
         Log.i(TAG, "JOB_START id=" + Integer.toHexString(jobId) + " retries=" + retries);
+
+        if (AutoClaim.check(context, "streak") == null || AutoClaim.check(context, "quiz") == null) {
+            AppSession.seedNetworkHeader(context);
+        }
 
         boolean streakDone = false;
         try {
@@ -159,7 +181,7 @@ public final class ClaimJobService extends JobService {
         submit(js, builder(context, JOB_RETRY).setMinimumLatency(delay));
     }
 
-    private static long msUntilNextMidnight() {
+    static long msUntilNextMidnight() {
         Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Asia/Karachi"));
         Calendar target = (Calendar) now.clone();
         target.add(Calendar.DAY_OF_YEAR, 1);

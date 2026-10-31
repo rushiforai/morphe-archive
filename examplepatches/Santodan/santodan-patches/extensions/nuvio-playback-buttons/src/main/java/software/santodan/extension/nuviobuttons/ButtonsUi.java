@@ -104,7 +104,7 @@ final class ButtonsUi {
                 Object padding = loader.loadClass("e0.o1").getDeclaredConstructor(float.class, float.class, float.class, float.class)
                     .newInstance(0f, 4f, 0f, 4f);
                 Object spacing = NuvioPlaybackButtons.method(loader.loadClass("e0.i"), "g", 1).invoke(null, 8f);
-                NuvioPlaybackButtons.method(loader.loadClass(NuvioNative.LAZY_LIST_NAME), "i", 12).invoke(null,
+                NuvioPlaybackButtons.method(loader.loadClass(NuvioNative.LAZY_LIST_NAME), NuvioNative.LAZY_LIST_METHOD, 12).invoke(null,
                     modifier, state, padding, spacing, null, null, true, null, items, nested, 0, 488);
                 return unit(loader);
             }), true);

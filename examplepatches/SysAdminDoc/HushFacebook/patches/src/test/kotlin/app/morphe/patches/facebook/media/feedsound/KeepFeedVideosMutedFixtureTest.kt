@@ -22,7 +22,8 @@ import java.io.File
  * Keep feed videos muted on each declared Facebook build: the feed sound state's session setter
  * asks the extension for its flag before anything reads it, and its reasoned setter asks right
  * after reading the flag the state holds, each answer going back in the flag's own register, with
- * the rest of both methods as Facebook wrote it.
+ * the rest of both methods as Facebook wrote it. The story viewer's volume setter asks for each
+ * story's volume right before it builds the request that carries it (#261).
  */
 class KeepFeedVideosMutedFixtureTest {
     private fun bundles(check: (File) -> Unit) {
@@ -93,5 +94,38 @@ class KeepFeedVideosMutedFixtureTest {
         assertEquals("$sessionWhere: the answer's form", Opcode.MOVE_RESULT, sessionAnswer.opcode)
         assertEquals("$sessionWhere: the answer's register", state.sessionFlag, (sessionAnswer as OneRegisterInstruction).registerA)
         for (at in sessionCode.indices) assertEquals("$sessionWhere: instruction $at", sessionCode[at].opcode, sessionBody[at + 2].opcode)
+    }
+
+    @Test
+    fun `each declared build's story volume setter asks before building its request`() = bundles { bundle ->
+        val owners = FixtureDex.classesHolding(bundle, STORY_AUDIBLE)
+        // Probed on 585 (2026-10-31): StoryViewerVideoComponentSpec's static setter, 0Cb4 on arm64 and 0Cb7 on v7.
+        assertEquals("${bundle.name}: classes holding $STORY_AUDIBLE", 1, owners.size)
+        val context = PatchContexts.of(owners)
+        val volume = context.storyVolume()
+        val type = owners.single().type
+        assertEquals("${bundle.name}: the story viewer", type, volume.owner)
+        val code = volume.method.implementation!!.instructions.toList()
+        assertEquals("${bundle.name}: the request's build", Opcode.NEW_INSTANCE, code[volume.askAt].opcode)
+        assertEquals("${bundle.name}: the player call", Opcode.INVOKE_VIRTUAL, code[volume.askAt + 2].opcode)
+        assertEquals("${bundle.name}: the volume rides in the call", volume.volume,
+            (code[volume.askAt + 2] as FiveRegisterInstruction).registerE)
+
+        context.askStorySound(volume)
+        val where = "${bundle.name}: $type->${volume.method.name}"
+        val body = context.mutableClassDefBy(type).methods.single { same(it, volume.method) }.implementation!!.instructions.toList()
+        assertEquals("$where: two instructions added", code.size + 2, body.size)
+        val ask = body[volume.askAt]
+        assertEquals("$where: the ask's form", Opcode.INVOKE_STATIC, ask.opcode)
+        assertEquals("$where: the ask", OWN_STORY_VOLUME, (ask as ReferenceInstruction).reference.toString())
+        assertEquals("$where: the ask reads one register", 1, (ask as FiveRegisterInstruction).registerCount)
+        assertEquals("$where: the ask reads the volume", volume.volume, ask.registerC)
+        val answer = body[volume.askAt + 1]
+        assertEquals("$where: the answer's form", Opcode.MOVE_RESULT, answer.opcode)
+        assertEquals("$where: the answer's register", volume.volume, (answer as OneRegisterInstruction).registerA)
+        for (index in code.indices) {
+            val patchedIndex = if (index < volume.askAt) index else index + 2
+            assertEquals("$where: instruction $index", code[index].opcode, body[patchedIndex].opcode)
+        }
     }
 }

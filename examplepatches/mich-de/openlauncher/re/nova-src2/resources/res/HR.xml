@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.teslacoilsw.launcher.launcher3.NovaAppDrawerSearchBar xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_gravity="top|center_horizontal"
+    android:id="0x7f0b0593"
+    android:paddingTop="10dp"
+    android:saveEnabled="false"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="0x7f07010d"
+    android:layout_marginBottom="-24dp"
+    android:maxLines="1"
+    android:scrollHorizontally="true"
+    android:layout_centerHorizontal="true"/>

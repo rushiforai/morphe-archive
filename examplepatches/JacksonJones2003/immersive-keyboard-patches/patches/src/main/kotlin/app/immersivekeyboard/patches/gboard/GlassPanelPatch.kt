@@ -16,7 +16,8 @@ val glassPanelPatch = bytecodePatch(
         "the system's own glass material, with real refraction, rim light and dispersion; " +
         "elsewhere it draws lit edges and a sheen. Keys are left as they are. Works on top of " +
         "Translucent Bottom Bar and Frosted Glass. Floating popups, like the keyboard switcher " +
-        "shown with a hardware keyboard, get the same glass.",
+        "shown with a hardware keyboard, get the same glass." +
+        " Keeps Frosted Glass's Seamless Nav Bar off, which conflicts with it.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)

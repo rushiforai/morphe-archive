@@ -106,8 +106,8 @@ object NuvioStreamPreload {
             if (!allowed())
                 throw CancellationException("Preload is no longer needed")
             // Verified native NetworkResult.Success on beta7.
-            success = result.javaClass.name == "b9.l" && (field(result, "a") as? List<*>)?.isNotEmpty() == true
-            if (result.javaClass.name == "b9.l") {
+            success = result.javaClass.name == "b9.q" && (field(result, "a") as? List<*>)?.isNotEmpty() == true
+            if (result.javaClass.name == "b9.q") {
                 val addons = field(result, "a") as List<*>
                 groups = addons.size
                 sources = addons.sumOf { addon -> (get(addon!!, "getStreams") as List<*>).size }
@@ -223,12 +223,12 @@ object NuvioStreamPreload {
 
     /** Allow local scrapers only for the exact next episode during its delayed search. */
     @JvmStatic fun nextEpisodePluginPause(request: Any): Flow<Boolean> {
-        val owner = field(request, "o")!!
+        val owner = field(request, "i")!!
         @Suppress("UNCHECKED_CAST")
         val native = field(owner, "l") as StateFlow<Boolean>
         return try {
-            val media = StreamTargets.Media(field(request, "q") as String, field(request, "p") as String,
-                field(request, "r") as? Int, field(request, "s") as? Int)
+            val media = StreamTargets.Media(field(request, "k") as String, field(request, "j") as String,
+                field(request, "l") as? Int, field(request, "m") as? Int)
             val activeProfile = profileFlow() ?: return native
             combine(native, nextPermits, activeProfile, settings) { paused, permits, active, _ ->
                 paused && !(enabled(NEXT) && permits.values.any { it.profile == active && it.media == media })

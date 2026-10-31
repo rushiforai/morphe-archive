@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="image_load_fail">Зургийг ачаалж чадсангүй</string>
+    <string name="pick_image">Зураг сонгох</string>
+    <string name="wallpaper_accessibility_name">%2$d ханын цаасны %1$d нь</string>
+    <string name="wallpaper_delete">Устгах</string>
+    <string name="wallpaper_instructions">Ханын зургийг тохируулах</string>
+    <string name="wallpaper_load_fail">Зургийг ханын зураг болгож ачаалж чадсангүй</string>
+</resources>

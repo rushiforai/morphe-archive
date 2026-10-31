@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-10-30T02:59:15",
+  "description": "## [2.1.0](https://github.com/Sylonin/xposed-newx-patches/compare/v2.0.1...v2.1.0) (2026-10-30)\n\n### ✨ New Features\n\n* add X 12.38.1-prod.01 as supported target ([5400aa8](https://github.com/Sylonin/xposed-newx-patches/commit/5400aa8c1e7ac75e234d1d41fe9b4f338164e9e3))",
+  "download_url": "https://github.com/Sylonin/xposed-newx-patches/releases/download/v2.1.0/patches-2.1.0.mpp",
+  "signature_download_url": "",
+  "version": "2.1.0"
+}

@@ -1,0 +1,1 @@
+package app.morphe.extension.chmate; final class ResponseArchiveEntry { static Object field(Object o,String name)throws ReflectiveOperationException { return o.getClass().getField(name).get(o); } }

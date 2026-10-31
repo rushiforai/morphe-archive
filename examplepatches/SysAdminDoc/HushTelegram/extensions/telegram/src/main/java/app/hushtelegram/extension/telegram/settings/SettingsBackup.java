@@ -160,6 +160,7 @@ public final class SettingsBackup {
             Settings.KEEP_DELETED_MESSAGES,
             Settings.RED_DELETED_LABEL,
             Settings.KEEP_EDIT_HISTORY,
+            Settings.KEEP_TIMED_MEDIA,
             Settings.ASK_BEFORE_STICKER,
             Settings.OUTSIDE_TRANSLATE,
             Settings.HIDE_CHANNEL_BUTTONS,

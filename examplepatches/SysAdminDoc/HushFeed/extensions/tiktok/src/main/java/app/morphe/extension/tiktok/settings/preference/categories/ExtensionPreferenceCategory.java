@@ -222,6 +222,11 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "that don't follow you back.",
                     Settings.SHOW_FOLLOW_STATUS
             ));
+            addPreference(new TogglePreference(context, "Show when an account was made",
+                    "Under the @username on someone else's profile, show the month and year the "
+                            + "account was made. It's read from the account's ID, so very old "
+                            + "accounts show nothing.",
+                    Settings.SHOW_JOIN_DATE));
             addPreference(new TogglePreference(context, "Local profile counts",
                     "Show chosen counts on your own profile on this phone. Other people see the real counts.",
                     Settings.LOCAL_PROFILE_COUNTS));
@@ -238,7 +243,9 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     context,
                     "Copy bio and IDs",
                     "Long-press a bio to copy it. A profile's share sheet gets buttons that copy its "
-                            + "username and user ID, and a video's share sheet one that copies the video ID.",
+                            + "username and user ID, and a video's share sheet one that copies the video ID."
+                            + " On a LIVE profile card, long-press the name, username or bio to copy it, "
+                            + "or tap the copy mark by the username.",
                     Settings.COPY_IDS
             ));
             addPreference(new TogglePreference(
@@ -473,7 +480,9 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     "Sign in without a passkey",
                     "TikTok treats your phone as one without passkeys, so signing in asks for your "
                             + "password or a code by email or text instead. Password managers won't "
-                            + "hand a passkey to a patched app.",
+                            + "hand a passkey to a patched app. If TikTok's 2-step check still wants "
+                            + "only a passkey, add email or text as a way to verify on tiktok.com or "
+                            + "another phone first.",
                     Settings.SKIP_PASSKEY_SIGN_IN
             ));
         }

@@ -21,7 +21,7 @@ import kotlin.Unit;
 public final class NuvioMovieReleaseDatesPatch {
     public static final String NAME = "NuvioTV - Upcoming movie dates in library and collections";
     static final String PACKAGE = NuvioNative.PACKAGE_NAME;
-    static final String VERSION = NuvioLayout.BETA8;
+    static final String VERSION = NuvioLayout.LATEST;
     static final String EXTENSION = "Lsoftware/santodan/extension/nuviomovierelease/NuvioMovieReleaseDates;";
 
     private NuvioMovieReleaseDatesPatch() {}

@@ -224,7 +224,7 @@ class GhostModeFixtureTest {
 
     internal companion object {
         /**
-         * [patched] opens with the gate: the request (p1) goes to the extension, a false answer
+         * [patched] opens with the gate: the request and its callback (p1, p2) go to the extension, a false answer
          * falls to the stock first instruction and a true one returns. Below it the stock body is
          * whole, nothing branches back into the gate, and no register was added.
          */
@@ -235,7 +235,7 @@ class GhostModeFixtureTest {
             assertEquals("$where: asks first", Opcode.INVOKE_STATIC_RANGE, call.opcode)
             assertEquals("$where: asks Ghost mode", GHOST_MODE_DROP, (call as ReferenceInstruction).reference.toString())
             val p1 = patched.implementation!!.registerCount - patched.numberOfParameterRegisters + 1
-            assertEquals("$where: hands it the request", listOf(p1, 1),
+            assertEquals("$where: hands it the request and its callback", listOf(p1, 2),
                 listOf((call as RegisterRangeInstruction).startRegister, call.registerCount))
             assertEquals("$where: the gate", listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID), after.subList(1, 4).map { it.opcode })
             assertEquals("$where: answer and test share v0", listOf(listOf(0), listOf(0)), after.subList(1, 3).map { it.namedRegisters() })

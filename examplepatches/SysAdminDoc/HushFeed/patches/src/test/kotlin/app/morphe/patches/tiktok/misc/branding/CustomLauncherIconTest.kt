@@ -1,6 +1,7 @@
 package app.morphe.patches.tiktok.misc.branding
 
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.tiktok.misc.theme.appendColorEntries
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -191,6 +192,48 @@ class CustomLauncherIconTest {
     }
 
     @Test
+    fun `the notification icon keeps TikTok's note unless Hushfeed's H is picked`() {
+        val option = customLauncherIconPatch.options["notificationIcon"]
+        assertEquals(NotificationIcon.TIKTOK.key, option.default)
+        assertFalse("older saved options have no value for it", option.required)
+        assertEquals(NotificationIcon.TIKTOK, notificationIcon(null))
+        assertEquals(NotificationIcon.TIKTOK, notificationIcon(" "))
+        assertEquals(NotificationIcon.HUSHFEED, notificationIcon("hushfeed"))
+        assertEquals(NotificationIcon.HUSHFEED, notificationIcon("Hushfeed's H"))
+        assertThrows(PatchException::class.java) { notificationIcon("purple") }
+    }
+
+    @Test
+    fun `Hushfeed's H is one white shape inside a status bar icon's middle`() {
+        val vector = parse(HUSHFEED_STATUS_ICON).documentElement
+        assertEquals("vector", vector.tagName)
+        assertEquals("24dp", vector.getAttribute("android:width"))
+        assertEquals("24", vector.getAttribute("android:viewportWidth"))
+        val (data, fill) = paths(vector).single()
+        assertEquals("Android draws only the shape, so it's white", GLYPH_FILL, fill)
+        // Walks the path's absolute and relative lines and keeps every corner it reaches.
+        var x = 0.0
+        var y = 0.0
+        val corners = Regex("""([MHVhvz])([\d.,-]*)""").findAll(data).map { step ->
+            val numbers = step.groupValues[2].split(',').filter { it.isNotEmpty() }.map(String::toDouble)
+            when (step.groupValues[1]) {
+                "M" -> { x = numbers[0]; y = numbers[1] }
+                "H" -> x = numbers[0]
+                "V" -> y = numbers[0]
+                "h" -> x += numbers[0]
+                "v" -> y += numbers[0]
+            }
+            x to y
+        }.toList()
+        assertEquals(13, corners.size)
+        assertEquals("z closes it with a straight line down the left edge", corners[0].first, corners[11].first, 0.0)
+        assertTrue(corners.toString(), corners.all { (cx, cy) -> cx in 2.0..22.0 && cy in 2.0..22.0 })
+        // The two bars are as wide as each other, and the crossbar sits in the H's middle.
+        assertEquals(corners[1].first - corners[0].first, corners[5].first - corners[7].first, 0.001)
+        assertEquals((corners[0].second + corners[11].second) / 2, (corners[2].second + corners[8].second) / 2, 0.5)
+    }
+
+    @Test
     fun `a picture replaces the note, keeps the style's background and drops the themed layer`() {
         val picture = "@drawable/$PICTURE_NAME"
         val kept = parse(ADAPTIVE_ICON.replace("<foreground android:drawable=\"@drawable/c27\"/>", "<foreground>$FOREGROUND_BODY</foreground>"))
@@ -214,6 +257,105 @@ class CustomLauncherIconTest {
         // The note isn't read when a picture takes its place.
         val noNote = parse(FOREGROUND.replace("#ffffffff", "#ff25f4ee")).documentElement
         restyleAdaptiveIcon(parse(ADAPTIVE_ICON), IconLayers(parse(BACKGROUND).documentElement, noNote), IconStyle.TIKTOK, picture)
+    }
+
+    @Test
+    fun `Material You draws the note and its background from colors the system fills in`() {
+        assertEquals(IconStyle.MATERIAL_YOU, iconStyle("Material You"))
+        assertEquals(IconStyle.MATERIAL_YOU, iconStyle("material-you"))
+        assertEquals("material-you", customLauncherIconPatch.options["iconStyle"].values!!["Material You"])
+
+        val icon = parse(ADAPTIVE_ICON)
+        assertTrue(restyleAdaptiveIcon(icon, layers(), IconStyle.MATERIAL_YOU))
+        val root = icon.documentElement
+        assertEquals(listOf(SQUARE to "@color/$ICON_BACKGROUND_COLOR"), paths(inlineVector(layer(root, "background"))))
+        assertEquals(listOf(WHITE_NOTE to "@color/$ICON_GLYPH_COLOR"), paths(inlineVector(layer(root, "foreground"))))
+        assertEquals(listOf(WHITE_NOTE to GLYPH_FILL), paths(inlineVector(layer(root, "monochrome"))))
+
+        // White on black before Android 12, then the system's own light and dark pairs.
+        assertEquals(listOf("values", "values-v31", "values-night-v31"), MATERIAL_YOU_COLORS.keys.toList())
+        assertEquals("#ff000000" to "#ffffffff", MATERIAL_YOU_COLORS["values"])
+        val system = Regex("@android:color/system_(accent|neutral)[12]_(100|700|800)")
+        for (folder in listOf("values-v31", "values-night-v31")) {
+            val (background, glyph) = MATERIAL_YOU_COLORS.getValue(folder)
+            assertTrue(background, system.matches(background))
+            assertTrue(glyph, system.matches(glyph))
+            assertTrue("the note stands out from its background in $folder", background != glyph)
+        }
+    }
+
+    @Test
+    fun `the Material You colors join each values folder's colors file, or start one`() {
+        val res = folder.newFolder("res")
+        write(res, "values/colors.xml", "<resources>\n    <color name=\"c1\">#ff161823</color>\n</resources>\n")
+        write(res, "values-night-v31/colors.xml", "<resources><color name=\"c2\">#ff000000</color></resources>")
+        val files = materialYouColorFiles(res)
+        assertEquals(MATERIAL_YOU_COLORS.keys.toList(), files.keys.toList())
+        assertFalse(files.getValue("values-v31").exists())
+
+        for ((folder, file) in files) appendColorEntries(file, materialYouColorEntries(folder))
+
+        for ((folder, pair) in MATERIAL_YOU_COLORS) {
+            val file = res.resolve("$folder/colors.xml")
+            assertEquals(folder, pair.first, colorValue(file, ICON_BACKGROUND_COLOR))
+            assertEquals(folder, pair.second, colorValue(file, ICON_GLYPH_COLOR))
+        }
+        assertEquals("TikTok's own colors stay", "#ff161823", colorValue(res.resolve("values/colors.xml"), "c1"))
+        assertEquals("#ff000000", colorValue(res.resolve("values-night-v31/colors.xml"), "c2"))
+
+        // A file that already has the colors, or can't take more, is refused before anything is written.
+        val again = assertThrows(PatchException::class.java) { materialYouColorFiles(res) }.message!!
+        assertTrue(again, again.contains("values/colors.xml") && again.contains("Nothing was changed"))
+        val broken = folder.newFolder("broken")
+        write(broken, "values/colors.xml", "<resources>")
+        assertThrows(PatchException::class.java) { materialYouColorFiles(broken) }
+        assertFalse(broken.resolve("values-v31").exists())
+    }
+
+    @Test
+    fun `the background color takes RRGGBB and refuses anything else`() {
+        val option = customLauncherIconPatch.options["iconBackground"]
+        assertNull(option.default)
+        assertFalse(option.required)
+        assertEquals("the default style is unchanged", IconStyle.TIKTOK.key, customLauncherIconPatch.options["iconStyle"].default)
+
+        assertNull(iconBackground(null))
+        assertNull(iconBackground("  "))
+        for (written in listOf("#1E88E5", "1e88e5", " #1e88e5 ", "#FF1E88E5", "ff1E88e5")) {
+            assertEquals(written, "#ff1e88e5", iconBackground(written))
+        }
+        for (wrong in listOf("blue", "#12345", "#1234567", "#GG88E5", "#801E88E5", "#1E88E5FF", "##1E88E5")) {
+            val message = assertThrows(wrong, PatchException::class.java) { iconBackground(wrong) }.message!!
+            assertTrue(message, message.contains("isn't a color") && message.contains("Nothing was changed"))
+        }
+    }
+
+    @Test
+    fun `a background color goes behind the note or the picture in any style`() {
+        val color = "#ff1e88e5"
+        val tiktok = parse(ADAPTIVE_ICON)
+        assertTrue(restyleAdaptiveIcon(tiktok, layers(), IconStyle.TIKTOK, background = color))
+        assertEquals(listOf(SQUARE to color), paths(inlineVector(layer(tiktok.documentElement, "background"))))
+        assertEquals("TikTok's colored note stays", "@drawable/c27", layer(tiktok.documentElement, "foreground").getAttribute("android:drawable"))
+        assertNotNull(layer(tiktok.documentElement, "monochrome"))
+
+        val materialYou = parse(ADAPTIVE_ICON)
+        restyleAdaptiveIcon(materialYou, layers(), IconStyle.MATERIAL_YOU, background = color)
+        assertEquals(listOf(SQUARE to color), paths(inlineVector(layer(materialYou.documentElement, "background"))))
+        assertEquals(listOf(WHITE_NOTE to "@color/$ICON_GLYPH_COLOR"), paths(inlineVector(layer(materialYou.documentElement, "foreground"))))
+
+        val picture = parse(ADAPTIVE_ICON)
+        restyleAdaptiveIcon(picture, layers(), IconStyle.BLACK_ON_WHITE, "@drawable/$PICTURE_NAME", color)
+        assertEquals(listOf(SQUARE to color), paths(inlineVector(layer(picture.documentElement, "background"))))
+        assertEquals("@drawable/$PICTURE_NAME", layer(picture.documentElement, "foreground").getAttribute("android:drawable"))
+
+        // A background that isn't a vector can't take the color either, and the refusal says which.
+        val untouched = parse(ADAPTIVE_ICON)
+        val refusal = assertThrows(PatchException::class.java) {
+            restyleAdaptiveIcon(untouched, IconLayers(null, parse(FOREGROUND).documentElement), IconStyle.TIKTOK, background = color)
+        }.message!!
+        assertTrue(refusal, refusal.contains("background color $color"))
+        assertEquals(serialize(parse(ADAPTIVE_ICON)), serialize(untouched))
     }
 
     @Test
@@ -422,6 +564,10 @@ class CustomLauncherIconTest {
 
     private fun parse(xml: String): Document =
         DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml.trim().byteInputStream())
+
+    private fun colorValue(file: File, name: String): String? =
+        parse(file.readText()).getElementsByTagName("color").elements()
+            .singleOrNull { it.getAttribute("name") == name }?.textContent
 
     private fun serialize(document: Document): String = StringWriter().also {
         TransformerFactory.newInstance().newTransformer().transform(DOMSource(document), StreamResult(it))

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="abc_action_bar_default_height_material">48dp</dimen>
+    <dimen name="apps_customize_tab_bar_height">42dp</dimen>
+    <dimen name="dynamic_grid_hotseat_side_padding">16dp</dimen>
+    <dimen name="dynamic_grid_icon_drawable_padding">4dp</dimen>
+    <dimen name="edit_shortcut_drawergroup_frame_height">144dp</dimen>
+    <dimen name="fancy_settings_preview_size">160dp</dimen>
+    <dimen name="fancypref_padding_preview_height">96dp</dimen>
+    <dimen name="fancypref_padding_preview_width">144dp</dimen>
+    <dimen name="fastscroll_popup_height">48dp</dimen>
+    <dimen name="fastscroll_popup_padding">10dp</dimen>
+    <dimen name="fastscroll_popup_text_size">24dp</dimen>
+    <dimen name="fastscroll_popup_width">58dp</dimen>
+    <dimen name="folder_window_preview_size">200dp</dimen>
+    <dimen name="icon_layout_preview_size">160dp</dimen>
+    <dimen name="material_time_picker_minimum_screen_height">450dp</dimen>
+    <dimen name="material_time_picker_minimum_screen_width">600dp</dimen>
+    <dimen name="mtrl_alert_dialog_background_inset_bottom">24dp</dimen>
+    <dimen name="mtrl_alert_dialog_background_inset_top">24dp</dimen>
+    <dimen name="mtrl_calendar_days_of_week_height">20dp</dimen>
+    <dimen name="mtrl_calendar_header_content_padding">4dp</dimen>
+    <dimen name="mtrl_calendar_header_height_fullscreen">96dp</dimen>
+    <dimen name="mtrl_calendar_header_toggle_margin_bottom">0dp</dimen>
+    <dimen name="mtrl_calendar_header_toggle_margin_top">0dp</dimen>
+    <dimen name="mtrl_calendar_landscape_header_width">104dp</dimen>
+    <dimen name="mtrl_calendar_selection_baseline_to_top_fullscreen">68dp</dimen>
+    <dimen name="mtrl_calendar_selection_text_baseline_to_top">64dp</dimen>
+    <dimen name="mtrl_calendar_title_baseline_to_top">24dp</dimen>
+    <dimen name="mtrl_calendar_title_baseline_to_top_fullscreen">32dp</dimen>
+</resources>

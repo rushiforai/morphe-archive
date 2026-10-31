@@ -7,9 +7,11 @@ package app.morphe.patches.facebook.feed.suggested
 import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.facebook.feed.BASE_MODEL_WITH_TREE
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.GRAPHQL_STORY
+import app.morphe.patches.facebook.feed.TREE_JNI
 import app.morphe.patches.facebook.feed.aidetected.GRAPHQL_STORY_ATTACHMENT
 import app.morphe.patches.facebook.feed.aidetected.isModelListAccessor
 import app.morphe.patches.facebook.feed.holdsString
@@ -17,6 +19,7 @@ import app.morphe.patches.facebook.feed.isModelAccessor
 import app.morphe.patches.facebook.feed.isStoryModelAccessor
 import app.morphe.patches.facebook.feed.loadedClass
 import app.morphe.patches.facebook.feed.modelAccessors
+import app.morphe.patches.facebook.feed.treeTypeTag
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -31,9 +34,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -210,6 +217,72 @@ class GroupJoinStateFixtureTest {
 
     private fun Instruction.called() = (this as? ReferenceInstruction)?.reference as? MethodReference
 
+    /**
+     * A group a story's title names (#195) is a bare entity, read again as the class the story's `to`
+     * is read as through TreeJNI's public reinterpret(Class, int), which every declared build keeps.
+     * The patch turns the load of the extension's storyTargetClass stub into a `const-class` of that
+     * class, which the stub's own return hands back.
+     */
+    @Test
+    fun `each declared build reinterprets a tree as another class, and the stub answers the class of to`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }
+        assertTrue("the bundle declares no Facebook build", versions.isNotEmpty())
+        val checked = mutableMapOf<String, String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val name = bundle.name
+                val first = FixtureDex.classes(bundle, setOf(GRAPHQL_STORY, TREE_JNI))
+                val story = first[GRAPHQL_STORY] ?: throw AssertionError("$name has no $GRAPHQL_STORY")
+                val tree = first[TREE_JNI] ?: throw AssertionError("$name has no $TREE_JNI")
+                assertTrue("$name: TreeJNI has no public $TREE_REINTERPRET(Class, int)", hasPublicReinterpret(tree))
+                val target = storyTargetAccessors(story).single()
+                val profile = FixtureDex.classes(bundle, setOf(target.returnType))[target.returnType]
+                    ?: throw AssertionError("$name has no ${target.returnType}")
+
+                val context = PatchContexts.of(listOf(story, tree, profile, ExtensionDex.classDef(GROUP_POSTS)))
+                context.fillStoryTargetClassStub()
+                val code = context.mutableClassDefBy(GROUP_POSTS).stub(TARGET_CLASS_STUB).code()
+                assertEquals("$name: the stub's load replaced, its return kept", 2, code.size)
+                assertEquals("$name: const-class first", Opcode.CONST_CLASS, code[0].opcode)
+                assertEquals("$name: the class `to` is read as", target.returnType,
+                    ((code[0] as ReferenceInstruction).reference as TypeReference).type)
+                assertEquals("$name: answered second", Opcode.RETURN_OBJECT, code[1].opcode)
+                assertEquals("$name: answered from the register it loaded",
+                    (code[0] as OneRegisterInstruction).registerA, (code[1] as OneRegisterInstruction).registerA)
+                checked[version] = target.returnType
+            }
+        }
+        assertEquals("a declared build went unchecked: $checked", versions.toSet(), checked.keys)
+    }
+
+    /**
+     * The control: a TreeJNI whose reinterpret is missing, static, private, takes other arguments or
+     * answers something else doesn't pass, and the patch refuses a tree without one before it asks
+     * anything of the story.
+     */
+    @Test
+    fun `a tree without a public reinterpret(Class, int) is refused`() {
+        fun tree(vararg methods: Method): ClassDef =
+            ImmutableClassDef(TREE_JNI, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null, methods.toList())
+        fun reinterpret(flags: Int, vararg parameters: String, returnType: String = TREE_JNI): Method = ImmutableMethod(
+            TREE_JNI, TREE_REINTERPRET, parameters.map { ImmutableMethodParameter(it, null, null) }, returnType, flags,
+            null, null, null,
+        )
+        val native = AccessFlags.PUBLIC.value or AccessFlags.NATIVE.value
+        assertTrue("Facebook's", hasPublicReinterpret(tree(reinterpret(native, "Ljava/lang/Class;", "I"))))
+        assertFalse("none", hasPublicReinterpret(tree()))
+        assertFalse("static", hasPublicReinterpret(tree(reinterpret(native or AccessFlags.STATIC.value, "Ljava/lang/Class;", "I"))))
+        assertFalse("private", hasPublicReinterpret(
+            tree(reinterpret(AccessFlags.PRIVATE.value or AccessFlags.NATIVE.value, "Ljava/lang/Class;", "I"))))
+        assertFalse("other arguments", hasPublicReinterpret(tree(reinterpret(native, "I"))))
+        assertFalse("another answer", hasPublicReinterpret(
+            tree(reinterpret(native, "Ljava/lang/Class;", "I", returnType = "Ljava/lang/Object;"))))
+        val refusal = assertThrows(PatchException::class.java) {
+            PatchContexts.of(listOf(tree(), ExtensionDex.classDef(GROUP_POSTS))).fillStoryTargetClassStub()
+        }.message!!
+        assertTrue(refusal, refusal.contains(TREE_REINTERPRET))
+    }
+
     @Test
     fun `each declared build asks Home for join states through the extension`() {
         val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
@@ -273,9 +346,12 @@ class GroupJoinStateFixtureTest {
         assertEquals(STORY_TARGET_GROUP_FIELD, ExtensionDex.stringConstant(GROUP_POSTS, "TARGET_GROUP_FIELD"))
         assertEquals(VIEWER_JOIN_STATE_FIELD, ExtensionDex.stringConstant(GROUP_POSTS, "JOIN_STATE_FIELD"))
         assertEquals(STORY_TARGET_GROUP_TYPE, ExtensionDex.stringConstant(GROUP_POSTS, "GROUP_TYPE"))
+        assertEquals(TREE_REINTERPRET, ExtensionDex.stringConstant(GROUP_POSTS, "REINTERPRET"))
+        assertEquals("the Group type tag a title's group is read as", treeTypeTag(STORY_TARGET_GROUP_TYPE),
+            ExtensionDex.intConstant(GROUP_POSTS, "GROUP_TYPE_TAG"))
         val stubs = ExtensionDex.classDef(GROUP_POSTS).methods.map { it.name }
         for (stub in listOf(STORY_TARGET_STUB, STORY_TARGET_GROUP_STUB, JOIN_STATE_STUB, STORY_TITLE_STUB,
-            STORY_SHAREABLE_STUB, TITLE_RANGES_STUB, RANGE_ENTITY_STUB, ATTACHMENT_TARGET_STUB)) {
+            STORY_SHAREABLE_STUB, TITLE_RANGES_STUB, RANGE_ENTITY_STUB, ATTACHMENT_TARGET_STUB, TARGET_CLASS_STUB)) {
             assertTrue("the extension has no $stub", stub in stubs)
         }
         val hook = ExtensionDex.classDef(GROUP_POSTS).methods.singleOrNull { it.name == "askForJoinState" }

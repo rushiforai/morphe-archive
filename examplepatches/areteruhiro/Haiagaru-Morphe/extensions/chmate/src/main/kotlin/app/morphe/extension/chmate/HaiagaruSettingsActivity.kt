@@ -6,6 +6,9 @@ import android.view.MotionEvent
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -41,7 +44,9 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
         setContent { HaiagaruUi.Theme { SettingsScreen() } }
         gestures = HaiagaruSettingsGestures(this, window.decorView,
             { onBackPressedDispatcher.onBackPressed() }, { top() }, { bottom() }).also { it.setCloseAction { finish() } }
-        if (savedInstanceState == null) window.decorView.post { MinimalSetup.offer(this) }
+        if (savedInstanceState == null) window.decorView.post {
+            PersonalNgSubmissions.offerOnSettingsOpen(this) { MinimalSetup.offer(this) }
+        }
     }
 
     @Deprecated("Activity result compatibility")
@@ -154,33 +159,37 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
             LazyColumn(state = list, modifier = Modifier.fillMaxSize().padding(insets).imePadding(),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (selected < 0) {
-                    item { OutlinedTextField(query, { query = it }, label = { Text(if (english) "Find a setting" else "設定を検索") },
+                    item { OutlinedTextField(query, { query = it }, placeholder = { Text(if (english) "Find a setting" else "設定を検索") },
                         leadingIcon = { Icon(Icons.Filled.Search, null) }, singleLine = true,
                         modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp)) }
                     if (query.isBlank()) {
                         item {
-                            HaiagaruUi.Group {
-                                TextButton(onClick = { SettingsProfiles.share(this@HaiagaruSettingsActivity) }) { Text("設定を共有（.haiagaru）") }
-                                TextButton(onClick = { SettingsProfiles.open(this@HaiagaruSettingsActivity) }) { Text("設定ファイルを読み込む") }
-                                TextButton(onClick = { MinimalSetup.show(this@HaiagaruSettingsActivity) }) { Text("最低限構成を選び直す") }
+                            SettingsHomeCard {
+                                SettingsHomeAction(if (english) "Share settings (.haiagaru)" else "設定を共有（.haiagaru）") { SettingsProfiles.share(this@HaiagaruSettingsActivity) }
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                SettingsHomeAction(if (english) "Load settings file" else "設定ファイルを読み込む") { SettingsProfiles.open(this@HaiagaruSettingsActivity) }
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                SettingsHomeAction(if (english) "Choose minimal setup again" else "最低限構成を選び直す") { MinimalSetup.show(this@HaiagaruSettingsActivity) }
                                 Text("共有するのは表示・動作設定です。認証情報、履歴、NG登録、標準ツールバー設定は含めません。",
-                                    style = MaterialTheme.typography.bodySmall)
+                                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
                             }
                         }
                         item { Text(if (english) "Saved automatically. Choose what you want to change." else "変更は自動で保存されます。変えたいことから選べます。",
                             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = 8.dp)) }
                         items(groups, key = { it.id }) { group ->
-                            HaiagaruUi.Group {
+                            SettingsHomeCard(onClick = { selected = groups.indexOf(group) }, padded = false) {
                                 ListItem(headlineContent = { Text(group.title(english), style = MaterialTheme.typography.titleMedium) },
                                     supportingContent = { Text(if (english) group.enSummary else group.summary) },
-                                    leadingContent = { Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.secondaryContainer) {
+                                    leadingContent = { Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerLow,
+                                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)) {
                                         Box(Modifier.size(52.dp), contentAlignment = Alignment.Center) {
-                                            Text(group.mark, style = MaterialTheme.typography.titleMedium)
+                                            SettingsCategoryIcon(group.id, group.mark)
                                         } } },
                                     trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
-                                    colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                                    modifier = Modifier.clickable { selected = groups.indexOf(group) })
+                                    colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
+                                    modifier = Modifier.heightIn(min = 88.dp))
                             }
                         }
                         item { Text(if (english) "Toolbar buttons: change visibility in ChMate's toolbar editor. Search options are on the search screen."
@@ -241,13 +250,73 @@ private data class SettingsGroup(val id: String, val ja: String, val en: String,
 }
 
 private fun settingsGroups() = listOf(
-    SettingsGroup("reading", "スレを読む", "Reading", "画面・文字・コピー・リンクカード", "Layout, text, copying and link cards", "Aa", listOf("DISPLAY", "SOCIAL")),
+    SettingsGroup("reading", "スレッド", "Reading", "画面・文字・コピー・リンクカード", "Layout, text, copying and link cards", "Aa", listOf("DISPLAY", "SOCIAL")),
     SettingsGroup("search", "探す・過去ログ", "Find posts and old threads", "IDチェッカー・DAT取得・保存したレス", "ID checker, DAT retrieval and saved posts", "↗", listOf("CHECKER", "ARCHIVE")),
     SettingsGroup("posting", "書き込む", "Posting", "入力・送信・画像や動画のアップロード", "Editor, sending and media uploads", "✎", listOf("POSTING", "UPLOAD")),
     SettingsGroup("media", "画像・動画", "Images and video", "再生・サムネイル・保存・キャッシュ", "Playback, thumbnails, downloads and cache", "▷", listOf("MEDIA")),
     SettingsGroup("ng", "NG・ミュート", "NG and muting", "見たくない投稿・ID・名前を隠す", "Hide unwanted posts, IDs and names", "−", listOf("NG")),
-    SettingsGroup("history", "履歴・コピーした文章", "History and copied text", "閲覧・書き込みの履歴と保存件数", "Browsing, posting and retention", "↶", listOf("HISTORY")),
+    SettingsGroup("history", "履歴・コピーした記事", "History and copied text", "閲覧・書き込みの履歴と保存件数", "Browsing, posting and retention", "↶", listOf("HISTORY")),
     SettingsGroup("backup", "バックアップ・機種変更", "Backup and transfer", "ローカル保存・復元・MEGA同期・データ移行", "Local backups, restore, MEGA sync and transfer", "↓", listOf("BACKUP")),
     SettingsGroup("system", "アプリ・通信", "App and network", "言語・広告・接続・外部板の認証", "Language, ads, connections and board sign-in", "⚙", listOf("GENERAL", "ADVANCED")),
     SettingsGroup("expert", "エキスパート設定", "Expert settings", "個別の動作を細かく切り替える", "Control additional behaviors individually", "⚙", listOf("EXPERT")),
 )
+
+/** Home-only cards; preference editors keep their existing controls and persistence. */
+@Composable
+private fun SettingsHomeCard(onClick: (() -> Unit)? = null, padded: Boolean = true,
+    content: @Composable ColumnScope.() -> Unit) {
+    Surface(modifier = Modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+        shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = .3f)),
+        shadowElevation = 2.dp) {
+        Column(if (padded) Modifier.padding(horizontal = 20.dp, vertical = 12.dp) else Modifier, content = content)
+    }
+}
+
+@Composable
+private fun SettingsHomeAction(title: String, onClick: () -> Unit) {
+    Box(Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 48.dp), contentAlignment = Alignment.CenterStart) {
+        Text(title, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+@Composable
+private fun SettingsCategoryIcon(id: String, mark: String) {
+    if (id == "reading") {
+        Text("Aa", style = MaterialTheme.typography.headlineMedium)
+    } else {
+        // Vector paths avoid platform-dependent emoji and remain crisp at any density.
+        val color = MaterialTheme.colorScheme.onSurface
+        androidx.compose.foundation.Canvas(Modifier.size(30.dp)) {
+            val scale = size.width / 24f
+            fun path(points: List<Pair<Float, Float>>, close: Boolean = false) {
+                val p = androidx.compose.ui.graphics.Path()
+                points.forEachIndexed { i, v -> if (i == 0) p.moveTo(v.first * scale, v.second * scale) else p.lineTo(v.first * scale, v.second * scale) }
+                if (close) p.close()
+                drawPath(p, color, style = androidx.compose.ui.graphics.drawscope.Stroke(1.5f * scale,
+                    cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+            }
+            when (id) {
+                "search" -> { path(listOf(5f to 19f, 19f to 5f)); path(listOf(7f to 5f, 19f to 5f, 19f to 17f)) }
+                "posting" -> { path(listOf(3f to 21f, 5f to 14f, 17f to 2f, 22f to 7f, 10f to 19f), true); path(listOf(14f to 5f, 19f to 10f)) }
+                "media" -> path(listOf(6f to 2f, 21f to 12f, 6f to 22f), true)
+                "ng" -> path(listOf(3f to 12f, 21f to 12f))
+                "backup" -> { path(listOf(12f to 2f, 12f to 21f)); path(listOf(6f to 15f, 12f to 21f, 18f to 15f)) }
+                "history" -> {
+                    drawArc(color, -135f, 300f, false, androidx.compose.ui.geometry.Offset(3f * scale, 3f * scale),
+                        androidx.compose.ui.geometry.Size(18f * scale, 18f * scale), style = androidx.compose.ui.graphics.drawscope.Stroke(1.5f * scale))
+                    path(listOf(2f to 2f, 2f to 8f, 8f to 8f)); path(listOf(12f to 6f, 12f to 12f, 16f to 15f))
+                }
+                else -> {
+                    val points = (0 until 48).map { i ->
+                        val a = i * Math.PI / 24 - Math.PI / 2
+                        val r = if (i % 6 in 1..3) 10.0 else 8.0
+                        (12 + kotlin.math.cos(a) * r).toFloat() to (12 + kotlin.math.sin(a) * r).toFloat()
+                    }
+                    path(points, true)
+                    drawCircle(color, 3f * scale, style = androidx.compose.ui.graphics.drawscope.Stroke(1.5f * scale))
+                }
+            }
+        }
+    }
+}

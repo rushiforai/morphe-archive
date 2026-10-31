@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:drawable="0x7f08000f">
+    <target
+        android:name="path_circle"
+        android:animation="0x7f080010"/>
+    <target
+        android:name="path_handle"
+        android:animation="0x7f080011"/>
+    <target
+        android:name="path_square_2"
+        android:animation="0x7f080012"/>
+    <target
+        android:name="path_square_1"
+        android:animation="0x7f080013"/>
+</animated-vector>

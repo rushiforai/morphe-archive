@@ -1,0 +1,101 @@
+package gy;
+
+import kotlinx.serialization.KSerializer;
+import kotlinx.serialization.UnknownFieldException;
+import kotlinx.serialization.descriptors.SerialDescriptor;
+import kotlinx.serialization.encoding.CompositeDecoder;
+import kotlinx.serialization.encoding.CompositeEncoder;
+import kotlinx.serialization.encoding.Decoder;
+import kotlinx.serialization.encoding.Encoder;
+import kotlinx.serialization.internal.BooleanSerializer;
+import kotlinx.serialization.internal.FloatSerializer;
+import kotlinx.serialization.internal.GeneratedSerializer;
+import kotlinx.serialization.internal.PluginGeneratedSerialDescriptor;
+import org.jetbrains.annotations.NotNull;
+
+/* loaded from: classes.dex */
+public final /* synthetic */ class a implements GeneratedSerializer {
+
+    /* renamed from: a, reason: collision with root package name */
+    public static final a f58213a;
+
+    @NotNull
+    private static final SerialDescriptor descriptor;
+
+    static {
+        a aVar = new a();
+        f58213a = aVar;
+        PluginGeneratedSerialDescriptor pluginGeneratedSerialDescriptor = new PluginGeneratedSerialDescriptor("com.teslacoilsw.launcher.composeui.ComposableSearchBarConfig", aVar, 3);
+        pluginGeneratedSerialDescriptor.addElement("enabled", false);
+        pluginGeneratedSerialDescriptor.addElement("cornerRadiusPercentage", false);
+        pluginGeneratedSerialDescriptor.addElement("shadow", false);
+        descriptor = pluginGeneratedSerialDescriptor;
+    }
+
+    @Override // kotlinx.serialization.internal.GeneratedSerializer
+    public final KSerializer[] childSerializers() {
+        BooleanSerializer booleanSerializer = BooleanSerializer.INSTANCE;
+        return new KSerializer[]{booleanSerializer, FloatSerializer.INSTANCE, booleanSerializer};
+    }
+
+    @Override // kotlinx.serialization.DeserializationStrategy
+    public final Object deserialize(Decoder decoder) {
+        boolean zDecodeBooleanElement;
+        boolean zDecodeBooleanElement2;
+        float fDecodeFloatElement;
+        int i5;
+        SerialDescriptor serialDescriptor = descriptor;
+        CompositeDecoder compositeDecoderBeginStructure = decoder.beginStructure(serialDescriptor);
+        if (compositeDecoderBeginStructure.decodeSequentially()) {
+            zDecodeBooleanElement = compositeDecoderBeginStructure.decodeBooleanElement(serialDescriptor, 0);
+            fDecodeFloatElement = compositeDecoderBeginStructure.decodeFloatElement(serialDescriptor, 1);
+            zDecodeBooleanElement2 = compositeDecoderBeginStructure.decodeBooleanElement(serialDescriptor, 2);
+            i5 = 7;
+        } else {
+            float fDecodeFloatElement2 = 0.0f;
+            boolean z11 = true;
+            zDecodeBooleanElement = false;
+            boolean zDecodeBooleanElement3 = false;
+            int i11 = 0;
+            while (z11) {
+                int iDecodeElementIndex = compositeDecoderBeginStructure.decodeElementIndex(serialDescriptor);
+                if (iDecodeElementIndex == -1) {
+                    z11 = false;
+                } else if (iDecodeElementIndex == 0) {
+                    zDecodeBooleanElement = compositeDecoderBeginStructure.decodeBooleanElement(serialDescriptor, 0);
+                    i11 |= 1;
+                } else if (iDecodeElementIndex == 1) {
+                    fDecodeFloatElement2 = compositeDecoderBeginStructure.decodeFloatElement(serialDescriptor, 1);
+                    i11 |= 2;
+                } else {
+                    if (iDecodeElementIndex != 2) {
+                        throw new UnknownFieldException(iDecodeElementIndex);
+                    }
+                    zDecodeBooleanElement3 = compositeDecoderBeginStructure.decodeBooleanElement(serialDescriptor, 2);
+                    i11 |= 4;
+                }
+            }
+            zDecodeBooleanElement2 = zDecodeBooleanElement3;
+            fDecodeFloatElement = fDecodeFloatElement2;
+            i5 = i11;
+        }
+        compositeDecoderBeginStructure.endStructure(serialDescriptor);
+        return new c(fDecodeFloatElement, i5, zDecodeBooleanElement, zDecodeBooleanElement2);
+    }
+
+    @Override // kotlinx.serialization.KSerializer, kotlinx.serialization.SerializationStrategy, kotlinx.serialization.DeserializationStrategy
+    public final SerialDescriptor getDescriptor() {
+        return descriptor;
+    }
+
+    @Override // kotlinx.serialization.SerializationStrategy
+    public final void serialize(Encoder encoder, Object obj) {
+        c cVar = (c) obj;
+        SerialDescriptor serialDescriptor = descriptor;
+        CompositeEncoder compositeEncoderBeginStructure = encoder.beginStructure(serialDescriptor);
+        compositeEncoderBeginStructure.encodeBooleanElement(serialDescriptor, 0, cVar.f58248a);
+        compositeEncoderBeginStructure.encodeFloatElement(serialDescriptor, 1, cVar.f58249b);
+        compositeEncoderBeginStructure.encodeBooleanElement(serialDescriptor, 2, cVar.f58250c);
+        compositeEncoderBeginStructure.endStructure(serialDescriptor);
+    }
+}

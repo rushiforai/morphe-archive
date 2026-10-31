@@ -84,8 +84,10 @@ internal val FEED_PICKER_FLAGS = listOf(REMEMBERED_FEED_FLAG, FOR_YOU_PICKER_FLA
 val startOnFollowingPatch = bytecodePatch(
     name = "Start Home on Following",
     description = "Opens Home on posts from accounts you follow instead of For you. A second switch removes For " +
-        "you from Home, and a third keeps Instagram's logo at the top of Home in place of the feed's name. Restart " +
-        "Instagram to see the change. Starts off. Turn it on in HushGram settings > Feed.",
+        "you from Home, and a third keeps Instagram's logo at the top of Home in place of the feed's name. A " +
+        "fourth, Fall back to Following, opens Home on Following for an account whose For you brings only " +
+        "suggested posts, unless you picked a feed. Restart Instagram to see the change. Starts off. Turn it on " +
+        "in HushGram settings > Feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch, instagramExtensionPatch)
@@ -257,8 +259,10 @@ internal fun BytecodePatchContext.findTitleLabel(): TitleLabel {
 }
 
 /**
- * First thing in the name method, asks [KEEP_LOGO]. A yes shows the logo, with the arrow the caller
- * asked for, and returns before the name is set. Only called once [findTitleLabel] found it.
+ * First thing in the name method, asks [KEEP_LOGO]. A 1 shows the logo, with the arrow the caller
+ * asked for, and returns before the name is set. A 2 (the logo is already up) returns without
+ * showing it again, since that restarts its fade on every scroll step. Only called once
+ * [findTitleLabel] found it.
  */
 internal fun BytecodePatchContext.keepLogoInTitle(title: TitleLabel) {
     val method = mutableClassDefBy(title.type).methods.single {
@@ -271,8 +275,11 @@ internal fun BytecodePatchContext.keepLogoInTitle(title: TitleLabel) {
             invoke-static/range { p0 .. p0 }, $KEEP_LOGO
             move-result $free
             if-eqz $free, :name
+            add-int/lit8 $free, $free, -0x1
+            if-nez $free, :shown
             const/4 $free, 0x0
             invoke-virtual { p0, $free, $free, $free, p1 }, ${title.type}->${title.logo}(${STRING}${STRING}ZZ)V
+            :shown
             return-void
         """,
         ExternalLabel("name", method.getInstruction(0)),

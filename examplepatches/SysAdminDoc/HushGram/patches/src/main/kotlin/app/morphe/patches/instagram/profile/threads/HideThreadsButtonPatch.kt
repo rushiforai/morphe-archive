@@ -73,10 +73,17 @@ private const val ADD = "Ljava/util/List;->add(Ljava/lang/Object;)Z"
 internal const val SHARE_BUTTON = "$EXTENSION_PACKAGE/profile/ShareProfileButton;"
 internal const val SHARE_HOOK = "$SHARE_BUTTON->button(Landroid/view/View;Ljava/lang/Object;)V"
 internal const val SHARE_STUB = "isShare"
+internal const val SUBSCRIBE_STUB = "isSubscribe"
+internal const val OVERFLOW_STUB = "isOverflow"
 
 /** The strings only Share profile's tap loads: what it logs sharing, and where it was tapped. */
 internal const val SHARE_URL = "share_profile_url"
 internal const val SHARE_TRAY = "button_tray"
+
+/** What a tap on Subscribe and on the arrow at the row's end logs, each with [PROFILE_HEADER] as where it was tapped (#248). */
+internal const val SUBSCRIBE_TAP = "subscribe_tap"
+internal const val OVERFLOW_TAP = "tap_dropdown_menu"
+internal const val PROFILE_HEADER = "user_profile_header"
 
 /** The pool tags of the action row's text buttons and of Share profile as an icon, loaded by their builders. */
 internal const val TEXT_TAG = "generic"
@@ -100,16 +107,16 @@ private const val ITERATOR = "Ljava/util/List;->iterator()Ljava/util/Iterator;"
  * Two more switches ride along, each off to start. The same list holds the Create button on your
  * own profile, which the extension leaves out by its icon (#254). Instagram 451 builds that plus in
  * the profile screen's action bar instead, so the action bar asks the extension before adding it.
- * And the two methods building the row of action buttons under the bio, as text and as icons, hand
- * each button and its model to the extension, which hides Share profile's and lets the others take
- * its space (#253).
+ * And the methods building the row of action buttons under the bio, as text, as icons and as the
+ * arrow at its end, hand each button and its model to the extension, which hides Share profile's
+ * (#253), Subscribe's and the arrow's (#248), and lets the others take their space.
  */
 @Suppress("unused")
 val hideThreadsButtonPatch = bytecodePatch(
     name = "Hide the Threads button",
     description = "Takes the Threads button off the top of profiles, with switches for the Create button and Share " +
-        "profile on your own. The menu and the other buttons stay. Each starts off. Turn them on in HushGram " +
-        "settings > Profiles.",
+        "profile on your own, and Subscribe and the arrow after the buttons on creators' profiles. The menu and " +
+        "the other buttons stay. Each starts off. Turn them on in HushGram settings > Profiles.",
     default = true,
 ) {
     category("Profiles")
@@ -386,13 +393,14 @@ internal fun BytecodePatchContext.hideCreateInBar(site: CreateInBarSite) {
 }
 
 /**
- * Where Share profile is hidden: [model] is the class of its buttons' models, and [builders] the
- * methods building the action row's buttons that hand one back.
+ * Where the row's buttons are hidden: [model], [subscribe] and [overflow] are the classes of Share
+ * profile's, Subscribe's and the arrow's models, and [builders] the methods building the action
+ * row's buttons that hand one back.
  */
-internal class ShareButtonSite(val model: String, val builders: List<ShareBuilder>)
+internal class ShareButtonSite(val model: String, val subscribe: String, val overflow: String, val builders: List<ShareBuilder>)
 
-/** A static [name] of [type] taking [parameters] that hands back the button in [view], built from the model in [from], at [returnAt]. */
-internal class ShareBuilder(val type: String, val name: String, val parameters: List<String>, val returnAt: Int, val view: Int, val from: Int)
+/** A static [name] of [type] taking [parameters] that hands back the button in [view], built from the model in [from], at each of [returns]. */
+internal class ShareBuilder(val type: String, val name: String, val parameters: List<String>, val returns: List<Int>, val view: Int, val from: Int)
 
 /**
  * Finds Share profile's buttons, failing before anything changes when any of it isn't there exactly
@@ -400,7 +408,11 @@ internal class ShareBuilder(val type: String, val name: String, val parameters: 
  * kind of action button, the one interface it has. Each button of the row under the bio is built by
  * a static method taking a model of that kind first and handing back a View. The class building
  * Share profile as an icon, the one method loading [SHARE_ICON_TAG], builds the text buttons too, in
- * the one loading [TEXT_TAG]. Each of those two has one return, and neither writes over its model.
+ * the one loading [TEXT_TAG]. Subscribe's and the arrow's models are the one public class of that
+ * kind each whose onClick loads [SUBSCRIBE_TAP] or [OVERFLOW_TAP] with [PROFILE_HEADER]. The text
+ * builder builds Subscribe, and the arrow has a builder of its own in the same class, the one taking
+ * the arrow's model first (#248). Each keeps its model in one register up to its returns (some
+ * builds copy it out first and reuse the parameter's), and hands back its button from one register.
  */
 internal fun BytecodePatchContext.findShareButton(): ShareButtonSite {
     val models = classesLoadingString(SHARE_URL).filter { candidate ->
@@ -426,49 +438,116 @@ internal fun BytecodePatchContext.findShareButton(): ShareButtonSite {
     val texts = owner.methods.filter { builds(it) && loadsString(it, TEXT_TAG) }
     val text = texts.singleOrNull()
         ?: refuse("expected one method in ${owner.type} building the action row's text buttons from a $kind, found ${texts.size}")
+    val subscribe = rowModel(kind, SUBSCRIBE_TAP, "Subscribe")
+    val overflow = rowModel(kind, OVERFLOW_TAP, "arrow")
+    val menus = owner.methods.filter {
+        AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == VIEW && it.parameters().firstOrNull() == overflow
+    }
+    val menu = menus.singleOrNull()
+        ?: refuse("expected one method in ${owner.type} building the arrow from its $overflow, found ${menus.size}")
 
     val extension = classDefByOrNull(SHARE_BUTTON) ?: refuse("the extension has no $SHARE_BUTTON")
     if (extension.methods.none { it.signature() == SHARE_HOOK && it.publicStatic() }) refuse("the extension has no public static $SHARE_HOOK")
-    if (extension.methods.none { it.isShareStub() }) refuse("$SHARE_BUTTON has no public static Z $SHARE_STUB($OBJECT)")
-    return ShareButtonSite(model.type, listOf(text, icon).map { shareBuilder(owner.type, it) })
+    for (stub in listOf(SHARE_STUB, SUBSCRIBE_STUB, OVERFLOW_STUB)) {
+        if (extension.methods.none { it.isRowStub(stub) }) refuse("$SHARE_BUTTON has no public static Z $stub($OBJECT)")
+    }
+    return ShareButtonSite(model.type, subscribe, overflow, listOf(text, icon, menu).map { shareBuilder(owner.type, it) })
+}
+
+/** The one public action button of [kind] whose onClick loads [tap] and [PROFILE_HEADER]: the model of [what]'s button. */
+private fun BytecodePatchContext.rowModel(kind: String, tap: String, what: String): String {
+    val models = classesLoadingString(tap).filter { candidate ->
+        kind in candidate.interfaces && candidate.methods.any {
+            it.name == "onClick" && it.parameters() == listOf(VIEW) && it.returnType == "V" &&
+                loadsString(it, tap) && loadsString(it, PROFILE_HEADER)
+        }
+    }
+    val model = models.singleOrNull()
+        ?: refuse("expected one $what button of $kind loading \"$tap\" and \"$PROFILE_HEADER\" when tapped, found ${models.size}")
+    if (!AccessFlags.PUBLIC.isSet(model.accessFlags)) refuse("${model.type} isn't public, so the extension can't check for it")
+    return model.type
 }
 
 private fun shareBuilder(owner: String, builder: Method): ShareBuilder {
     val where = "$owner->${builder.name}"
     val code = builder.code()
     val returns = code.indices.filter { code[it].opcode == Opcode.RETURN_OBJECT }
-    val returnAt = returns.singleOrNull() ?: refuse("expected one return in $where, found ${returns.size}")
-    val view = (code[returnAt] as OneRegisterInstruction).registerA
+    if (returns.isEmpty()) refuse("expected a return in $where, found none")
+    val views = returns.map { (code[it] as OneRegisterInstruction).registerA }.toSet()
+    val view = views.singleOrNull() ?: refuse("$where hands back its button from ${views.size} registers, expected one")
     val registers = builder.implementation!!.registerCount
-    val from = registers - builder.parameters().sumOf { if (it == "J" || it == "D") 2 else 1 }
-    if (code.any { it.writes(from) }) refuse("$where writes over its model in v$from")
+    val parameter = registers - builder.parameters().sumOf { if (it == "J" || it == "D") 2 else 1 }
+    val from = if (code.none { it.writes(parameter) }) parameter else modelCopy(where, builder, code, parameter, returns)
     if (view == from) refuse("$where hands back its model")
     if (view > 15 || from > 15) refuse("$where keeps its button or model past v15, out of a plain call's reach")
-    return ShareBuilder(owner, builder.name, builder.parameters(), returnAt, view, from)
+    return ShareBuilder(owner, builder.name, builder.parameters(), returns, view, from)
 }
 
 /**
- * Writes the stub that tells Share profile's model, then hands each button and its model to
- * [SHARE_HOOK] right before its builder gives it back, on the return's own label so every branch
- * there runs it. Only called once [findShareButton] found everything.
+ * Where [builder] keeps its model once it reuses the model's [parameter] register: the one register
+ * it copies the model into on the way to every return, before anything writes [parameter], and never
+ * writes again (453's 385914503 arrow builder moves it out at its start and builds the button in its
+ * place).
+ */
+private fun modelCopy(where: String, builder: Method, code: List<Instruction>, parameter: Int, returns: List<Int>): Int {
+    val copies = code.indices.filter {
+        code[it].opcode in MOVE_OBJECTS && (code[it] as TwoRegisterInstruction).registerB == parameter
+    }
+    val copy = copies.singleOrNull() ?: refuse("$where writes over its model in v$parameter")
+    val register = (code[copy] as OneRegisterInstruction).registerA
+    val flow = try {
+        ControlFlow.of(builder)
+    } catch (failure: IllegalArgumentException) {
+        refuse("$where can't be followed: ${failure.message}")
+    }
+    // Every instruction reachable from [starts] without going through the copy.
+    fun reach(starts: List<Int>): Set<Int> {
+        val seen = mutableSetOf<Int>()
+        val pending = ArrayDeque(starts)
+        while (pending.isNotEmpty()) {
+            val at = pending.removeFirst()
+            if (at != copy && seen.add(at)) pending += flow.normal[at] + flow.exceptional[at]
+        }
+        return seen
+    }
+    val before = reach(listOf(0))
+    if (returns.any { it in before }) refuse("$where can return before copying its model out of v$parameter")
+    if (before.any { code[it].writes(parameter) }) refuse("$where writes over its model in v$parameter before copying it")
+    val after = reach(flow.normal[copy] + flow.exceptional[copy])
+    if (after.any { copy in flow.normal[it] || copy in flow.exceptional[it] }) refuse("$where copies its model out of v$parameter more than once")
+    if (code.indices.any { it != copy && code[it].writes(register) }) refuse("$where writes over its model's copy in v$register")
+    return register
+}
+
+private val MOVE_OBJECTS = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
+
+/**
+ * Writes the stubs that tell Share profile's, Subscribe's and the arrow's models, then hands each
+ * button and its model to [SHARE_HOOK] right before its builder gives it back, on each return's own
+ * label so every branch there runs it. Only called once [findShareButton] found everything.
  */
 internal fun BytecodePatchContext.hideShareButton(site: ShareButtonSite) {
-    replace(mutableClassDefBy(SHARE_BUTTON).methods.single { it.isShareStub() }, 1, """
-        instance-of p0, p0, ${site.model}
-        return p0
-    """)
+    for ((stub, model) in listOf(SHARE_STUB to site.model, SUBSCRIBE_STUB to site.subscribe, OVERFLOW_STUB to site.overflow)) {
+        replace(mutableClassDefBy(SHARE_BUTTON).methods.single { it.isRowStub(stub) }, 1, """
+            instance-of p0, p0, $model
+            return p0
+        """)
+    }
     for (builder in site.builders) {
         val method = mutableClassDefBy(builder.type).methods.single {
             it.name == builder.name && it.parameters() == builder.parameters && it.returnType == VIEW
         }
-        val at = method.implementation!!.instructions[builder.returnAt]
-        if (at.opcode != Opcode.RETURN_OBJECT || (at as OneRegisterInstruction).registerA != builder.view) {
-            refuse("${builder.type}->${builder.name} changed before its button could be hooked")
+        // From the last return back, so each hook leaves the returns before it where they were.
+        for (returnAt in builder.returns.sortedDescending()) {
+            val at = method.implementation!!.instructions[returnAt]
+            if (at.opcode != Opcode.RETURN_OBJECT || (at as OneRegisterInstruction).registerA != builder.view) {
+                refuse("${builder.type}->${builder.name} changed before its button could be hooked")
+            }
+            method.addInstructionsAtControlFlowLabel(
+                returnAt,
+                "invoke-static { v${builder.view}, v${builder.from} }, $SHARE_HOOK",
+            )
         }
-        method.addInstructionsAtControlFlowLabel(
-            builder.returnAt,
-            "invoke-static { v${builder.view}, v${builder.from} }, $SHARE_HOOK",
-        )
     }
 }
 
@@ -511,7 +590,7 @@ private fun Instruction.writes(register: Int): Boolean {
 
 private fun Method.isIconStub() = name == ICON_STUB && parameters() == listOf(OBJECT) && returnType == "I" && publicStatic()
 
-private fun Method.isShareStub() = name == SHARE_STUB && parameters() == listOf(OBJECT) && returnType == "Z" && publicStatic()
+private fun Method.isRowStub(stub: String) = name == stub && parameters() == listOf(OBJECT) && returnType == "Z" && publicStatic()
 
 private fun Method.publicStatic() = AccessFlags.PUBLIC.isSet(accessFlags) && AccessFlags.STATIC.isSet(accessFlags)
 

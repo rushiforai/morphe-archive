@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt">
+    <objectAnimator
+        android:interpolator="0x7f01005a"
+        android:duration="3000"
+        android:startOffset="0"
+        android:repeatCount="infinite"
+        android:repeatMode="reverse"
+        android:valueFrom="0"
+        android:valueTo="3"
+        android:valueType="floatType"
+        android:propertyName="rotation"/>
+    <objectAnimator
+        android:interpolator="0x7f01005a"
+        android:duration="300"
+        android:startOffset="0"
+        android:repeatCount="infinite"
+        android:repeatMode="reverse"
+        android:valueFrom="0"
+        android:valueTo="0.5"
+        android:valueType="floatType"
+        android:propertyName="translateX"/>
+</set>

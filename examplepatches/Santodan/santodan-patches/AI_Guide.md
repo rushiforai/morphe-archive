@@ -81,6 +81,8 @@ This is the working guide for coding agents, including local models in LM Studio
 The app-specific sections below describe existing implementations; they are not
 instructions to expand their historical version support.
 
+For the latest NuvioTV **1.1.0-beta.9** (1072) port, read [NuvioBeta9.md](docs/NuvioBeta9.md). The active shared contract and `verifyNuvioLatest` target beta.9; historical beta.8 fixtures remain unchanged.
+
 ### Scope and evidence
 
 - Respond in English unless the user explicitly requests another language.
@@ -118,7 +120,7 @@ Paths below are relative to `E:\Morphe\santodan-patches` unless stated otherwise
 | `../.morphe-template-reference/`, `../.morphe-patches-reference/` | Local API/example references; check against installed dependency versions |
 | `../Apps/` | Patched app outputs; do not use as original patch inputs |
 
-At this guide update, relevant original inputs include NuvioTV `1.1.0-beta.8`,
+At this guide update, relevant original inputs include NuvioTV `1.1.0-beta.9`,
 Pillo `0.6.27`, Reddit `2026.37.0`, MEO Android TV `5.7.0`, and Peafowl
 `GMS_27.5.1`. These are discovery hints, not a permanent version allowlist.
 Rescan inputs for each task. Apps without existing patches need their own inspection.
@@ -176,8 +178,8 @@ rg --files patches/src/main extensions patches/src/test
 rg -n 'register<JavaExec>|verify' patches/build.gradle.kts
 .\build-local.ps1 :patches:tasks --all
 .\build-local.ps1 :patches:buildAndroid
-# Example for a Nuvio beta.8 hook change; add the relevant feature/runtime tasks:
-.\build-local.ps1 :patches:verifyNuvioBeta8
+# Example for a Nuvio beta.9 hook change; add the relevant feature/runtime tasks:
+.\build-local.ps1 :patches:verifyNuvioBeta9
 # When patch names/descriptions/options/compatibility change:
 .\build-local.ps1 :patches:generatePatchesList
 git diff --check
@@ -371,8 +373,8 @@ prepared frame and foreground lifecycle, and verify the side-by-side combination
 Do not mark the startup placeholder snapshot ready or clear it before restoring;
 retain the current snapshot until a complete refresh can apply entry changes.
 
-NuvioTV patches target `com.nuvio.tv` `1.1.0-beta.8` only. See
-`docs/NuvioBeta8.md` for native contracts, input provenance, and verification.
+NuvioTV patches target `com.nuvio.tv` `1.1.0-beta.9` only. See
+`docs/NuvioBeta9.md` for native contracts, input provenance, and verification.
 Launcher channels are opt-in and use native repositories, per-profile settings,
 and the shared Layout menu. Their artwork-provider authority follows side-by-side
 package renaming. Device checks are documented in `docs/NuvioLauncherChannels.md`.
@@ -441,6 +443,18 @@ reported on 2026-10-30 that everything seemed to be working; preserve this as a
 user-reported device result, not agent-run UI verification. See Pillo627.md for the compatible converted backup
 and exact migration restrictions. No new app signing/installation was performed for
 this restore fix.
+
+The summary row keeps every label inside its own cell. `DividedRow` gives each
+full-width child a one-third share, so the date cell passes that same modifier to
+`ValueDisplay` with the native `clickableNoRipple` applied
+(`ModifierExtensionKt` on the `s3.p.a` `Modifier.Companion` singleton) instead of
+wrapping it. The 0.6.27 app no longer has
+`ui/report/tracker/components/box/ClickableNoRippleKt`, and a wrapper would be
+measured at the full row width. Native labels have `softWrap=false`, so the
+**Since**/**Min**/**Max** labels need explicit line breaks to grow the row and
+align the three values. `Pillo627Contracts` requires `clickableNoRipple` and
+`Ls3/p;->a:Ls3/p;`; `verifyPillo627Bundle` passed after the rebuild, and the
+packaged DEX contains neither the removed wrapper nor a missing class reference.
 
 ## Pillo 0.6.19 and 0.6.20
 
@@ -536,7 +550,7 @@ mutation scope, rejection cases, and DEX write/reload. Full release verification
 also patch and rebuild the original app bundle. Users must select Pillo's Banner/Light
 notification mode for the hybrid routing to apply.
 
-## NuvioTV 1.1.0-beta.8
+## NuvioTV 1.1.0-beta.9
 
 For future Nuvio updates, start with `docs/NuvioMaintenance.md` and
 `contracts/nuvio/native.properties`. Run `:patches:reportNuvioUpdate` against
@@ -544,25 +558,31 @@ the new original to inspect candidates; update the reviewed contract after
 proving changes. Run `:patches:verifyNuvioLatest` after building. Do not edit
 generated `NuvioNative.java`, guess ambiguous matches, or remove exact guards.
 
-The sixteen published NuvioTV patches target beta.8 (version code 1071).
-Use verified beta.8 symbols directly. Read `docs/NuvioBeta8.md` for provenance,
+The sixteen published NuvioTV patches target beta.9 (version code 1072).
+Use verified beta.9 symbols directly. Read `docs/NuvioBeta9.md` for provenance,
 DEX contracts and verification commands. Important reflection contracts include
-`h1.h.t(Object):h1.r1`, `ba.a5.l(String,String,Integer,Integer,boolean):Flow`,
-and static `wa.p0.D(Meta,NextToWatch,List):Video`. Hilt's stream provider is
+`h1.h.s(Object):h1.r1`, `ba.f5.l(String,String,Integer,Integer,boolean):Flow`,
+and static `xa.s0.D(Meta,NextToWatch,List):Video`. Hilt's stream provider is
 `q8.e.e3`; its tracking coordinator is `q8.e.R3`. Same-arity methods and
 same-typed provider fields are not interchangeable.
 
-The player has 53 constructor parameters, controller `ab.mc`, state `ab.nm`,
+The player has 53 constructor parameters, controller `bb.bc`, state `bb.el`,
 current video `C0`, next episode `v1`, and error `j1`. Native Chapters is in the
 main row; player-engine selection is in More. Playback customization preserves
-both native callbacks and availability. The new collection card has 63 registers;
-use the beta.8 original and verifiers, retaining historical fixtures unchanged.
+both native callbacks and availability. The new collection card has 57 registers;
+use the beta.9 original and verifiers, retaining historical fixtures unchanged.
+
+R8 split poster rendering (`gb.dg`) from styling (`gb.dh`), and tracking-source
+selection (`na.f3`) from its Compose wrapper (`gb.ch`). Native controls and
+pause-overlay timers are `bb.df.H` and `J`; cancellation is `j`. Home-card
+progress/next-up captures are `r`/`s`, and the title is `l`. Use the reviewed
+contract rather than class-level similarity guesses.
 
 Regenerate compatibility metadata with `:patches:generatePatchesList`.
 
 The independent, disabled-by-default startup track reselection patch guards
 ExoPlayer's missing playing period before seeking. Next-episode preload cooldowns
-survive pause/buffering for the same target. See `docs/NuvioBeta8.md` for the
+survive pause/buffering for the same target. See `docs/NuvioBeta9.md` for the
 reviewed DEX contract and focused scheduler/guard verification tasks.
 
 ## Reddit 2026.37.0

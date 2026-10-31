@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="0x7f0b011d"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true"
+    android:scrollIndicators="bottom|top"
+    style="?unknown_attr_ref: 7f0400db">
+    <androidx.appcompat.widget.ButtonBarLayout
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layoutDirection="locale"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="2dp">
+        <Button
+            android:id="@android:id/button3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?unknown_attr_ref: 7f0400d9"/>
+        <android.widget.Space
+            android:id="0x7f0b061b"
+            android:visibility="?unknown_attr_ref: 7f0403e5"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+        <Button
+            android:id="@android:id/button2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?unknown_attr_ref: 7f0400d8"/>
+        <Button
+            android:id="@android:id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?unknown_attr_ref: 7f0400da"/>
+    </androidx.appcompat.widget.ButtonBarLayout>
+</ScrollView>

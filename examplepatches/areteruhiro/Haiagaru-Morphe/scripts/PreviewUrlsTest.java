@@ -4,6 +4,16 @@ public final class PreviewUrlsTest {
  static int checks;
  static void check(boolean ok,String text){if(!ok)throw new AssertionError(text);checks++;}
  public static void main(String[] args){
+  for(String id:new String[]{"A.Af1CYTq","ID:A.Af1CYTq","abcd.xy123","A.Af1CYTq (3/3 緑川)"})
+   check(PreviewUrls.extract(id,8).isEmpty(),"ID must not become domain: "+id);
+  for(String id:new String[]{"eRNd.ru1f","ID:eRNd.ru1f","ID: eRNd.ru1f","ID：eRNd.ru1f",
+    "ID: Abcd.efgh","ID：Abcd.efgh","ID : Abcd.efgh","ID:\tAbcd.efgh","ID:Abcd.efgh/0"})
+   check(PreviewUrls.extract(id,8).isEmpty(),"ID namespace excluded: "+id);
+  check(PreviewUrls.extract("101 エッヂの名無し 2026/10/31(土) 19:50:16.569 ID:eRNd.ru1f\n>>55\n誰か一人にほかの2人\n勿論",8).isEmpty(),"reported response 101 has no URL");
+  check(PreviewUrls.extract("ID: Abcd.efgh example.org/page ID：Other.domains example.com/next",8).equals(List.of("https://example.org/page","https://example.com/next")),"ID labels do not hide subsequent real links");
+  check(PreviewUrls.extract("ID: Abcd.efgh\nexample.org/page",1).equals(List.of("https://example.org/page")),"rejected ID does not consume maximum");
+  for(String prefix:new String[]{"https://","http://","ttps://","ttp://","tps://","tp://","//"})
+   check(PreviewUrls.extract("ID: "+prefix+"example.org/page",8).size()==1,"explicit URL preserved after ID label");
   String news="news.yahoo.co.jp/articles/07aad05fddc054aaa796a565184505e101616415";
   for(String prefix:new String[]{"https://","ttps://","tps://","ttp://","tp://","//",""}){
    check(PreviewUrls.normalize(prefix+news).equals("https://"+news),"normalize "+prefix);

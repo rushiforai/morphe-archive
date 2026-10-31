@@ -1,0 +1,96 @@
+﻿{
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
+  "version": "1.2.3",
+  "patches": [
+    {
+      "name": "Enable Auto Scroll",
+      "description": "TikTok Lite縺ｮ閾ｪ蜍輔せ繧ｯ繝ｭ繝ｼ繝ｫ讖溯・繧呈怏蜉ｹ蛹悶＠縺ｾ縺・,
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.ss.android.ugc.tiktok.lite",
+          "name": null,
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.2.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Example Patch",
+      "description": "Example patch to start with.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.example.app",
+          "name": "XYZ app",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FF0045",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.2.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "1.2.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Splash Ads",
+      "description": "TikTok Lite縺ｮ繧ｹ繝励Λ繝・す繝･蠎・相繧貞炎髯､縺励∪縺・,
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.ss.android.ugc.tiktok.lite",
+          "name": null,
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.2.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    }
+  ]
+}
+
+
+
+
+

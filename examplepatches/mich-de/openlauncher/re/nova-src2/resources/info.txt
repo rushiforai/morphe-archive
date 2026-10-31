@@ -1,0 +1,7 @@
+name: Singular-v12.14.0-ccc781a.master
+env: standardRelease
+git_commit: ccc781a
+git_branch: master
+version_name: 12.14.0
+version_code:1
+build_date: Mon, 22 Jun 2026 09:52:58 +0000

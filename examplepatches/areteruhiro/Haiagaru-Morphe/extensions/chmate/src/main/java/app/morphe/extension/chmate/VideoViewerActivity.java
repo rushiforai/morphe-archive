@@ -30,6 +30,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     private VideoViewerGestures gestures;
     private VideoTouchControls touchControls;
     private android.media.MediaPlayer mediaPlayer;
+    private final VideoSeekState seeks = new VideoSeekState();
     private androidx.media3.exoplayer.ExoPlayer gifFallback;
     private android.view.TextureView gifFallbackView;
     private boolean gifFallbackAttempted;
@@ -147,7 +148,14 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         frame.addView(holdSpeedIndicator, indicatorLayout);
         root.addView(frame, new LinearLayout.LayoutParams(-1, 0, 1));
         status = new TextView(this); status.setTextColor(Color.WHITE); status.setPadding(16, 8, 16, 12);
-        root.addView(HaiagaruUi.controls(this, status));
+        // Status overlays the player; transient messages must never resize the video.
+        FrameLayout.LayoutParams statusLayout=new FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM);
+        frame.addView(status,statusLayout);
+        frame.getViewTreeObserver().addOnPreDrawListener(()->{
+            int inset=controls instanceof HaiagaruMediaController?((HaiagaruMediaController)controls).controlHeight():0;
+            FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)status.getLayoutParams();
+            if(lp.bottomMargin!=inset){lp.bottomMargin=inset;status.setLayoutParams(lp);}return true;
+        });
         HaiagaruUi.showPlayer(this, root); root.requestApplyInsets();
         controls = new HaiagaruMediaController(this) {
             private Runnable unregisterControllerBack;
@@ -185,20 +193,27 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         video.setOnPreparedListener(player -> {
             prepared = true;
             mediaPlayer = player;
+            player.setOnSeekCompleteListener(completed -> {
+                if (completed != mediaPlayer) return;
+                int next = seeks.completed();
+                if (next >= 0) issueSeek(next);
+            });
             applyMute();
             // X's GIFs are silent MP4s. Preserve their repeating animation behavior.
             if(VideoViewerSettings.xGif(url))player.setLooping(true);
             applyPlaybackSpeed(player, playbackSpeed);
-            if (position > 0) video.seekTo(position);
+            if (position > 0) seekAbsolute(position);
             setStatus("");
             if (foreground && playWhenReady) video.start();
             controls.show(0);
         });
         video.setOnCompletionListener(player -> {
+            seeks.reset();
             playWhenReady = false; position = 0;
             setStatus("再生が終了しました。再生ボタンで最初から再生できます"); controls.show(0);
         });
         video.setOnErrorListener((player, what, extra) -> {
+            seeks.reset();
             endHoldSpeed();
             prepared = false; mediaPlayer = null;
             if (startGifFallback()) return true;
@@ -221,8 +236,8 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
             public void start() { if(gifFallback!=null)gifFallback.play();else video.start(); }
             public void pause() { if(gifFallback!=null)gifFallback.pause();else video.pause(); }
             public int getDuration() { return gifFallback!=null?(int)Math.max(0,gifFallback.getDuration()):video.getDuration(); }
-            public int getCurrentPosition() { return gifFallback!=null?(int)gifFallback.getCurrentPosition():video.getCurrentPosition(); }
-            public void seekTo(int value) { if(gifFallback!=null)gifFallback.seekTo(value);else video.seekTo(value); }
+            public int getCurrentPosition() { return playbackPosition(); }
+            public void seekTo(int value) { seekAbsolute(value); }
             public boolean isPlaying() { return gifFallback!=null?gifFallback.isPlaying():video.isPlaying(); }
             public int getBufferPercentage() { return gifFallback!=null?gifFallback.getBufferedPercentage():video.getBufferPercentage(); }
             public boolean canPause() { return gifFallback!=null||video.canPause(); }
@@ -324,6 +339,7 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
     }
 
     private void load() {
+        seeks.reset();
         endHoldSpeed();
         closeGifFallback();
         gifFallbackAttempted=false;
@@ -415,10 +431,30 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         status.setVisibility(message.isEmpty() ? View.GONE : View.VISIBLE);
     }
     void gestureStatus(String message) { setStatus(message); }
+    private int playbackPosition() {
+        return gifFallback != null ? (int)gifFallback.getCurrentPosition() : seeks.position(video.getCurrentPosition());
+    }
+    private void seekAbsolute(int target) {
+        if (gifFallback != null) { gifFallback.seekTo(Math.max(0, target)); return; }
+        if (!prepared || mediaPlayer == null) return;
+        int duration = video.getDuration();
+        target = Math.max(0, duration > 0 ? Math.min(duration - 1, target) : target);
+        int next = seeks.request(target);
+        if (next >= 0) issueSeek(next);
+    }
+    private void issueSeek(int target) {
+        try {
+            // VideoView.seekTo uses SEEK_PREVIOUS_SYNC: a five-second skip can land on
+            // the same keyframe repeatedly. Decode to the closest frame instead.
+            if (android.os.Build.VERSION.SDK_INT >= 26)
+                mediaPlayer.seekTo((long)target, android.media.MediaPlayer.SEEK_CLOSEST);
+            else mediaPlayer.seekTo(target);
+        } catch (IllegalStateException error) { seeks.reset(); }
+    }
     void seekRelative(int seconds) {
         if(gifFallback!=null){gifFallback.seekTo(VideoPlaybackMath.seekTarget((int)gifFallback.getCurrentPosition(),(int)Math.max(0,gifFallback.getDuration()),seconds));return;}
         if (!prepared || video.getDuration() <= 0) return;
-        video.seekTo(VideoPlaybackMath.seekTarget(video.getCurrentPosition(), video.getDuration(), seconds));
+        seekAbsolute(VideoPlaybackMath.seekTarget(playbackPosition(), video.getDuration(), seconds));
         setStatus(Math.abs(seconds) + (seconds < 0 ? "秒巻き戻し" : "秒早送り"));
     }
     boolean dispatchVideoTouch(MotionEvent event) { return super.dispatchTouchEvent(event); }
@@ -434,8 +470,8 @@ public final class VideoViewerActivity extends HaiagaruComposeActivity {
         }
         switch (key) {
             case "gestureBack": case "gestureCloseTab": finish(); break;
-            case "gestureTop": if (prepared) video.seekTo(0); break;
-            case "gestureBottom": if (prepared) video.seekTo(Math.max(0, video.getDuration() - 1)); break;
+            case "gestureTop": if (prepared) seekAbsolute(0); break;
+            case "gestureBottom": if (prepared) seekAbsolute(Math.max(0, video.getDuration() - 1)); break;
             case "gestureRefresh":
                 if (prepared) position = video.getCurrentPosition();
                 video.stopPlayback(); playWhenReady = true; load(); break;

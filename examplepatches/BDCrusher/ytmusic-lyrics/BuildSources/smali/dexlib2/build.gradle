@@ -1,0 +1,182 @@
+/*
+ * Copyright 2012, Google LLC
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following disclaimer
+ * in the documentation and/or other materials provided with the
+ * distribution.
+ *     * Neither the name of Google LLC nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+import java.security.MessageDigest
+import java.util.UUID
+
+private static UUID uuid5(UUID namespace, String name) {
+    MessageDigest md = MessageDigest.getInstance("SHA-1")
+    md.update(uuidToBytes(namespace))
+    md.update(name.getBytes())
+    byte[] sha1Bytes = md.digest()
+    // Set version 5 (upper 4 bits of octet 6)
+    sha1Bytes[6] = (byte)((sha1Bytes[6] & 0x0f) | 0x50)
+    // Set two upper bits of octet 8 to 10
+    sha1Bytes[8] = (byte)((sha1Bytes[8] & 0x3f) | 0x80)
+    return uuidFromBytes(sha1Bytes)
+}
+
+private static UUID uuidFromBytes(byte[] data) {
+    assert data.length >= 16
+    return new UUID(toNetworkOrder(data, 0), toNetworkOrder(data, 8))
+}
+
+private static byte[] uuidToBytes(UUID uuid) {
+    byte[] result = new byte[16]
+    fromNetworkByteOrder(uuid.getMostSignificantBits(), result, 0)
+    fromNetworkByteOrder(uuid.getLeastSignificantBits(), result, 8)
+    return result
+}
+
+private static long toNetworkOrder(byte[] data, int dataIndex) {
+    long result = 0
+    for (int i = 0; i < 8; i++) {
+        result = (result << 8) | (data[dataIndex + i] & 0xff)
+    }
+    return result
+}
+
+private static void fromNetworkByteOrder(long value, byte[] dest, int destIndex) {
+    for (int i = 0; i < 8; i++) {
+        dest[destIndex + i] = (byte)((value >> ((7 - i) * 8)) & 0xff)
+    }
+}
+
+plugins {
+  id("org.spdx.sbom") version "0.8.0"
+}
+
+ext.testAccessorOutputDir = file("${buildDir}/generated-src/accessorTest/java")
+ext.testAccessorOutputFile = file("${testAccessorOutputDir}/com/android/tools/smali/dexlib2/AccessorTypes.java")
+
+sourceSets {
+    main {
+        java {
+            srcDirs "${project.rootDir}/third_party/dexlib2/src/main/java"
+        }
+    }
+    accessorTest {
+        java {
+            srcDir testAccessorOutputDir
+        }
+    }
+}
+
+configurations {
+    accessorTestGenerator
+    dx
+}
+
+dependencies {
+    implementation depends.findbugs
+    implementation depends.guava
+
+    testImplementation depends.junit
+    testImplementation depends.mockito
+
+    accessorTestGenerator project('accessorTestGenerator')
+
+    dx depends.dx
+}
+
+// You must manually execute this task to regenerate SyntheticAccessorFSM.java, after modifying the ragel file
+// e.g. ./gradlew ragel
+task ragel(type:Exec) {
+    workingDir = 'src/main/ragel'
+
+    commandLine 'ragel', '-J', '-o', file('src/main/java/com/android/tools/smali/dexlib2/util/SyntheticAccessorFSM.java'),
+            'SyntheticAccessorFSM.rl'
+}
+
+task generateAccessorTestSource(type: JavaExec) {
+    file(testAccessorOutputFile.parent).mkdirs()
+    outputs.dir file(testAccessorOutputDir)
+
+    classpath = configurations.accessorTestGenerator
+    main = 'com.android.tools.smali.dexlib2.AccessorTestGenerator'
+    args testAccessorOutputFile
+}
+compileAccessorTestJava.dependsOn(generateAccessorTestSource)
+
+// You must manually execute this task to regenerate src/test/resources/accessorTest.dex
+task generateAccessorTestDex(type: JavaExec, dependsOn: compileAccessorTestJava) {
+    def outputDex = file('src/test/resources/accessorTest.dex')
+    file(outputDex.parent).mkdirs()
+
+    inputs.dir(project.sourceSets.accessorTest.output.classesDirs)
+    outputs.file outputDex
+
+    main 'com.android.dx.command.Main'
+    classpath = configurations.dx
+
+    args '--dex'
+    args '--no-strict'
+    args "--output=${outputDex}"
+    args sourceSets.accessorTest.output.classesDirs
+}
+
+publish {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                pom {
+                    description = 'dexlib2 is a library for reading/modifying/writing Android dex files'
+                    scm {
+                        url = 'https://github.com/google/smali/tree/master/dexlib2'
+                    }
+                }
+            }
+        }
+    }
+}
+
+spdxSbom {
+    targets {
+        // create a target named "release",
+        // this is used for the task name (spdxSbomForRelease)
+        // and output file (release.spdx.json)
+        create("release") {
+            scm {
+                uri.set("https://github.com/google/smali")
+                revision.set(project.version)
+            }
+            document {
+                name.set("dexlib2 library")
+                // Generate version 5 UUID from fixed namespace UUID and name generated from revision
+                // (git hash) and artifact name.
+                namespace.set(
+                    "https://spdx.google/" + uuid5(UUID.fromString("21043d46-f605-42c1-bc56-e407d40afeff"),
+                    project.version + "-dexlib2"))
+                creator.set("Organization: Google LLC")
+                packageSupplier.set("Organization: Google LLC")
+            }
+        }
+    }
+}

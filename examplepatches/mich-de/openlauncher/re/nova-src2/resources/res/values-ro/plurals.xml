@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">Derulează rapid înainte cu %d secundă</item>
+        <item quantity="few">Derulează rapid înainte cu %d secunde</item>
+        <item quantity="other">Derulează rapid înainte cu %d de secunde</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">Derulează înapoi cu %d secundă</item>
+        <item quantity="few">Derulează înapoi cu %d secunde</item>
+        <item quantity="other">Derulează înapoi cu %d de secunde</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d întâlniri</item>
+        <item quantity="one">%d întâlnire</item>
+        <item quantity="two">%d întâlniri</item>
+        <item quantity="few">%d întâlniri</item>
+        <item quantity="many">%d întâlniri</item>
+        <item quantity="other">%d întâlniri</item>
+    </plurals>
+</resources>

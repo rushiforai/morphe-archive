@@ -11,11 +11,14 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.diagnostics.BUILD_DETAILS_ASSET
 import app.morphe.patches.tiktok.misc.diagnostics.BuildDetails
 import app.morphe.patches.tiktok.misc.diagnostics.buildDetailsPatch
+import app.morphe.patches.tiktok.misc.theme.WALLPAPER_COLORS_FILE
+import app.morphe.patches.tiktok.misc.theme.appendColorEntries
 import app.morphe.patches.tiktok.misc.theme.decodedPackageRoots
 import app.morphe.patches.tiktok.misc.theme.decodedResourceDirectories
 import app.morphe.patches.tiktok.misc.theme.renamedPathCollisions
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.util.Locale
 import java.util.zip.CRC32
 import java.util.zip.DataFormatException
 import java.util.zip.Inflater
@@ -44,6 +47,10 @@ private const val MAX_PICTURE_MEGABYTES = 8
 
 private val PNG_SIGNATURE = byteArrayOf(0x89.toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)
 
+/** The colors the Material You style draws with, which [MATERIAL_YOU_COLORS] fills in. */
+internal const val ICON_BACKGROUND_COLOR = "hushfeed_launcher_background"
+internal const val ICON_GLYPH_COLOR = "hushfeed_launcher_glyph"
+
 /**
  * The looks this patch offers. Each one only rewrites the adaptive icon, so it shows on Android 8
  * and up; older launchers keep TikTok's own PNGs.
@@ -53,14 +60,52 @@ internal enum class IconStyle(val key: String, val label: String, val background
     BLACK("black", "Black background", "#ff000000", null),
     WHITE_ON_BLACK("white-on-black", "White on black", "#ff000000", "#ffffffff"),
     BLACK_ON_WHITE("black-on-white", "Black on white", "#ffffffff", "#ff000000"),
+    MATERIAL_YOU("material-you", "Material You", "@color/$ICON_BACKGROUND_COLOR", "@color/$ICON_GLYPH_COLOR"),
 }
+
+/**
+ * The background and note colors of the Material You style in each values folder: white on black
+ * before Android 12, then the pairs Android's own themed icons use (Launcher3's
+ * ThemedIconDrawable), light and dark. The launcher reads them through TikTok's resources, so the
+ * icon follows the wallpaper and the dark theme with the launcher's themed icons off too.
+ */
+internal val MATERIAL_YOU_COLORS = linkedMapOf(
+    "values" to ("#ff000000" to "#ffffffff"),
+    "values-v31" to ("@android:color/system_accent1_100" to "@android:color/system_neutral2_700"),
+    "values-night-v31" to ("@android:color/system_neutral1_800" to "@android:color/system_accent1_100"),
+)
+
+/**
+ * The small icon every TikTok notification sets (the push builder and the compat builder both
+ * load it): a white note drawn only for xhdpi screens, so other screens scale it.
+ */
+internal const val STATUS_ICON = "status_icon_l"
+
+/** What the status bar shows for TikTok's notifications (Discussion #114). */
+internal enum class NotificationIcon(val key: String, val label: String) {
+    TIKTOK("tiktok", "TikTok's note"),
+    HUSHFEED("hushfeed", "Hushfeed's H"),
+}
+
+/**
+ * Hushfeed's H as a status bar icon, white on clear inside the 20dp middle a status bar icon
+ * keeps to. Android draws only the shape, in the status bar's own color, so it's one path.
+ */
+internal const val HUSHFEED_STATUS_ICON =
+    "<vector xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+        "    android:width=\"24dp\" android:height=\"24dp\"\n" +
+        "    android:viewportWidth=\"24\" android:viewportHeight=\"24\">\n" +
+        "    <path android:fillColor=\"#ffffffff\"\n" +
+        "        android:pathData=\"M5,4h4.3v6.6h5.4V4H19v16h-4.3v-6.1H9.3V20H5z\" />\n" +
+        "</vector>\n"
 
 @Suppress("unused")
 val customLauncherIconPatch = resourcePatch(
     name = "Custom launcher icon",
     description = "Gives TikTok's home screen icon a themed version that takes your " +
-        "wallpaper's color on Android 13 and up. The options can also make it black, plain or " +
-        "your own picture. Only patching again without it puts the old icon back.",
+        "wallpaper's color on Android 13 and up. The options can also make it black, plain, " +
+        "Material You, any background color or your own picture, and put Hushfeed's H in the " +
+        "status bar. Only patching again without it puts the old icons back.",
     default = false,
 ) {
     category("Interface")
@@ -72,9 +117,19 @@ val customLauncherIconPatch = resourcePatch(
         values = IconStyle.entries.associate { it.label to it.key },
         title = "Icon style",
         description = "TikTok colors keeps the icon as it is. Black background puts TikTok's note " +
-            "on pure black, and the two plain styles draw only the note in one color. Every " +
-            "style gets the themed icon.",
+            "on pure black, and the two plain styles draw only the note in one color. Material " +
+            "You colors the note and its background from your wallpaper on Android 12 and up, " +
+            "light or dark with the system, even with themed icons off, and is white on black " +
+            "before that. Every style gets the themed icon.",
         required = true,
+    )
+    val backgroundColor by stringOption(
+        key = "iconBackground",
+        default = null,
+        title = "Icon background color",
+        description = "A color like #1E88E5 to put behind the note, or behind your picture, " +
+            "instead of the style's own. Leave it empty to keep the style's.",
+        required = false,
     )
     val pictureFile by stringOption(
         key = "iconPicture",
@@ -87,11 +142,22 @@ val customLauncherIconPatch = resourcePatch(
             "Leave it empty to keep the note.",
         required = false,
     )
+    val notification by stringOption(
+        key = "notificationIcon",
+        default = NotificationIcon.TIKTOK.key,
+        values = NotificationIcon.entries.associate { it.label to it.key },
+        title = "Notification icon",
+        description = "The small icon TikTok's notifications show in the status bar. TikTok's " +
+            "note keeps it as it is. Hushfeed's H swaps it for a sharp H on every screen.",
+        required = false,
+    )
 
     execute {
-        // Checked before anything is read, so a refused style or picture changes nothing.
+        // Checked before anything is read, so a refused style, color or picture changes nothing.
         val chosen = iconStyle(style)
+        val background = iconBackground(backgroundColor) ?: chosen.background
         val picture = launcherPicture(pictureFile)
+        val statusIcon = notificationIcon(notification)
         val packageRoot = get("res").parentFile
         val decodedRoots = decodedPackageRoots(packageRoot)
         val decodable by lazy { listDecodableFiles("res/**").toSet() }
@@ -116,22 +182,54 @@ val customLauncherIconPatch = resourcePatch(
                 .mapNotNull { appResource(it.getAttribute(DRAWABLE)) }
                 .forEach { (type, name) -> decode("res/$type*/$name.xml") }
         }
+        val colorFiles = if (chosen != IconStyle.MATERIAL_YOU) emptyMap() else {
+            decode(*MATERIAL_YOU_COLORS.keys.map { "res/$it/$WALLPAPER_COLORS_FILE" }.toTypedArray())
+            materialYouColorFiles(res)
+        }
         val pictureReference = picture?.let { "@drawable/$PICTURE_NAME" }
         // A dry run on a throwaway copy of each icon first: a refusal leaves every file as it was.
         val layers = adaptiveIcons.associateWith { file ->
-            IconLayers.of(res, readXml(file)).also { restyleAdaptiveIcon(readXml(file), it, chosen, pictureReference) }
+            IconLayers.of(res, readXml(file)).also { restyleAdaptiveIcon(readXml(file), it, chosen, pictureReference, background) }
+        }
+        if (statusIcon != NotificationIcon.TIKTOK) {
+            decode("res/drawable*/$STATUS_ICON.png")
+            val drawables = res.listFiles().orEmpty().filter { it.isDirectory && it.name.startsWith("drawable") }
+            if (drawables.none { it.resolve("$STATUS_ICON.png").isFile }) throw PatchException(missingStatusIconRefusal())
         }
         // One unscaled file: the launcher scales the layer to its icon size on every screen, and
         // Morphe Manager patches on the phone, where there's no image library to resize it with.
         picture?.let { res.resolve("drawable-nodpi/$PICTURE_NAME.png").apply { parentFile.mkdirs() }.writeBytes(it.bytes) }
+        for ((folder, file) in colorFiles) appendColorEntries(file, materialYouColorEntries(folder))
         for ((file, layer) in layers) {
             document(file.relativeTo(get(".")).invariantSeparatorsPath).use { icon ->
-                restyleAdaptiveIcon(icon, layer, chosen, pictureReference)
+                restyleAdaptiveIcon(icon, layer, chosen, pictureReference, background)
             }
+        }
+        if (statusIcon == NotificationIcon.HUSHFEED) {
+            // An anydpi file wins over TikTok's xhdpi picture on every screen, and the picture
+            // itself stays byte for byte, so only a configuration is added.
+            res.resolve("drawable-anydpi/$STATUS_ICON.xml").apply { parentFile.mkdirs() }
+                .writeText(HUSHFEED_STATUS_ICON, Charsets.UTF_8)
         }
         BuildDetails.applied(get(BUILD_DETAILS_ASSET), "customLauncherIcon")
     }
 }
+
+/** The chosen notification icon. An empty option, which older saved options have, keeps TikTok's. */
+internal fun notificationIcon(raw: String?): NotificationIcon {
+    val key = raw?.trim().orEmpty()
+    if (key.isEmpty()) return NotificationIcon.TIKTOK
+    return NotificationIcon.entries.firstOrNull { it.key.equals(key, ignoreCase = true) || it.label.equals(key, ignoreCase = true) }
+        ?: throw PatchException(
+            "Custom launcher icon: \"$key\" isn't a notification icon. Pick one of " +
+                NotificationIcon.entries.joinToString { it.key } + ".",
+        )
+}
+
+internal fun missingStatusIconRefusal() =
+    "Custom launcher icon: this TikTok has no $STATUS_ICON picture, the status bar icon its " +
+        "notifications set, so there's nothing to swap. Nothing was changed. Patch with the " +
+        "notification icon left on TikTok's note."
 
 internal fun renamedIconPathsRefusal(collisions: Int) =
     "Custom launcher icon: this TikTok APK was merged from a split bundle in a way that moved " +
@@ -147,6 +245,48 @@ internal fun iconStyle(raw: String?): IconStyle {
             "Custom launcher icon: \"$key\" isn't a style. Pick one of " +
                 IconStyle.entries.joinToString { it.key } + ".",
         )
+}
+
+/**
+ * The background color option as `#ffrrggbb`, or null when it's empty. It takes `#RRGGBB`, with
+ * or without the `#`, or the same with an opaque `FF` in front. A see-through color is refused:
+ * the launcher would show whatever is behind the icon through it.
+ */
+internal fun iconBackground(raw: String?): String? {
+    val text = raw?.trim().orEmpty()
+    if (text.isEmpty()) return null
+    val hex = text.removePrefix("#").let { if (it.length == 8 && it.startsWith("ff", ignoreCase = true)) it.substring(2) else it }
+    if (!Regex("[0-9a-fA-F]{6}").matches(hex)) {
+        throw PatchException("Custom launcher icon: \"$text\" isn't a color. Write it as #RRGGBB, like #1E88E5. Nothing was changed.")
+    }
+    return "#ff" + hex.lowercase(Locale.ROOT)
+}
+
+/**
+ * The colors file in each of the Material You style's values folders, or a refusal when one
+ * already names either of its colors or has no closing tag to add them before. It runs before
+ * anything is written, so a refusal leaves the APK as it was. A folder with no colors file gets one.
+ */
+internal fun materialYouColorFiles(res: File): Map<String, File> =
+    MATERIAL_YOU_COLORS.keys.associateWith { res.resolve(it).resolve(WALLPAPER_COLORS_FILE) }.onEach { (folder, file) ->
+        if (!file.isFile) return@onEach
+        val text = file.readText(Charsets.UTF_8)
+        if (listOf(ICON_BACKGROUND_COLOR, ICON_GLYPH_COLOR).any { text.contains("name=\"$it\"") }) {
+            throw PatchException(
+                "Custom launcher icon: $folder/$WALLPAPER_COLORS_FILE already has the colors the Material " +
+                    "You style adds, so the patch would write over them. Nothing was changed.",
+            )
+        }
+        if (!text.contains("</resources>")) {
+            throw PatchException("Custom launcher icon: $folder/$WALLPAPER_COLORS_FILE has no closing resources tag. Nothing was changed.")
+        }
+    }
+
+/** The Material You style's two `<color>` lines for one values [folder]. */
+internal fun materialYouColorEntries(folder: String): String {
+    val (background, glyph) = MATERIAL_YOU_COLORS.getValue(folder)
+    return "    <color name=\"$ICON_BACKGROUND_COLOR\">$background</color>\n" +
+        "    <color name=\"$ICON_GLYPH_COLOR\">$glyph</color>\n"
 }
 
 /** A supplied picture, read and checked before the patch reads or writes anything else. */
@@ -398,18 +538,27 @@ internal class IconLayers(val background: Element?, val foreground: Element) {
  *
  * <p>With a [picture], the foreground draws that drawable instead, the style's note color goes
  * unused and the icon loses any themed layer, which would show TikTok's note in its place.
+ *
+ * <p>[background] is the style's own unless the background color option names another.
  */
-internal fun restyleAdaptiveIcon(icon: Document, layers: IconLayers, style: IconStyle, picture: String? = null): Boolean {
+internal fun restyleAdaptiveIcon(
+    icon: Document,
+    layers: IconLayers,
+    style: IconStyle,
+    picture: String? = null,
+    background: String? = style.background,
+): Boolean {
     val root = icon.documentElement
     if (root?.tagName != ADAPTIVE_ICON) throw PatchException("Custom launcher icon: the icon isn't an adaptive icon.")
     val note = if (picture == null) glyphVector(icon, layers.foreground, GLYPH_FILL) else null
-    style.background?.let { color ->
-        val background = layers.background ?: throw PatchException(
+    background?.let { color ->
+        val chosen = if (color == style.background) "\"${style.label}\" style" else "background color $color"
+        val shape = layers.background ?: throw PatchException(
             "Custom launcher icon: the icon's background isn't a single vector, so the " +
-                "\"${style.label}\" style can't recolor it. Nothing was changed.",
+                "$chosen can't recolor it. Nothing was changed.",
         )
         val layer = root.layer("background") ?: throw PatchException("Custom launcher icon: the icon has no background layer.")
-        layer.drawInline(recolored(icon, background, color))
+        layer.drawInline(recolored(icon, shape, color))
     }
     if (picture != null) {
         val layer = root.layer("foreground") ?: throw PatchException("Custom launcher icon: the icon has no foreground layer.")

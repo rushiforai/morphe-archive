@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/secondaryProgress">
+        <shape>
+            <solid android:color="#80000000"/>
+            <corners android:radius="6dp"/>
+        </shape>
+    </item>
+    <item android:id="@android:id/progress">
+        <clip
+            android:gravity="left"
+            android:drawable="0x7f0802ab"
+            android:clipOrientation="horizontal"/>
+    </item>
+</layer-list>

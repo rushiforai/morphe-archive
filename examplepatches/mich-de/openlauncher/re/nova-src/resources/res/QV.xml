@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:theme="http://schemas.android.com/apk/res-auto">
+    <category title="0x7f140995"/>
+    <item drawable="0x7f080377"/>
+    <item drawable="0x7f080378"/>
+    <item drawable="0x7f080379"/>
+    <item drawable="0x7f08037a"/>
+    <item drawable="0x7f08037b"/>
+    <item drawable="0x7f08037c"/>
+    <item drawable="0x7f08037d"/>
+    <item drawable="0x7f08037e"/>
+    <item drawable="0x7f08037f"/>
+    <item drawable="0x7f080380"/>
+    <item drawable="0x7f080223"/>
+</resources>

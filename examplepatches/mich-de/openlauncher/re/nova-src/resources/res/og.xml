@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.teslacoilsw.launcher.widget.FontFamilyToolbar
+        android:id="0x7f0b06c3"
+        style="?unknown_attr_ref: 7f040680"/>
+    <include
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_below="0x7f0b06c3"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        layout="0x7f0e01bd"/>
+    <View
+        android:background="0x7f08021c"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_below="0x7f0b06c3"/>
+</RelativeLayout>

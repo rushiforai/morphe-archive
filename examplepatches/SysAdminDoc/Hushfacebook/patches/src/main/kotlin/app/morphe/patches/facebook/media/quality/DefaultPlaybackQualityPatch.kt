@@ -52,6 +52,7 @@ val defaultPlaybackQualityPatch = bytecodePatch(
 
     execute {
         applyQualityAnchors(findQualityAnchors())
+        keepQualityRow(findQualityListStore().getOrElse { refuse(it.message.orEmpty()) })
         enableStatus("defaultPlaybackQuality")
     }
 }

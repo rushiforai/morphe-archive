@@ -38,7 +38,7 @@ import kotlin.Unit;
 public final class NuvioAiringSeriesPatch {
     public static final String NAME = "NuvioTV - Keep airing series in Upcoming";
     static final String PACKAGE = NuvioNative.PACKAGE_NAME;
-    static final String VERSION = NuvioLayout.BETA8;
+    static final String VERSION = NuvioLayout.LATEST;
     static final String EXTENSION = "Lsoftware/santodan/extension/nuvioairing/NuvioAiringSeries;";
 
     private NuvioAiringSeriesPatch() {}

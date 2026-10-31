@@ -15,7 +15,7 @@ private class RuntimeComponent(profile: RuntimeProfile, repository: RuntimeRepos
     @JvmField val e3 = RuntimeProvider(repository)
 }
 private class RuntimeProgress(val contentType: String, val videoId: String, val season: Int?, val episode: Int?)
-private class RuntimeCard(@JvmField val x: RuntimeProgress, @JvmField val y: Any? = null)
+private class RuntimeCard(@JvmField val r: RuntimeProgress, @JvmField val s: Any? = null)
 private typealias RuntimeMeta = com.nuvio.tv.domain.model.Meta
 private typealias RuntimeNext = com.nuvio.tv.domain.model.NextToWatch
 private class RuntimeState(@JvmField val b: RuntimeMeta?, @JvmField val h: RuntimeNext?, @JvmField val f: List<Any> = emptyList())
@@ -34,8 +34,8 @@ private class RuntimePlayerModel(private val flow: MutableStateFlow<RuntimePlaye
     fun e(): StateFlow<RuntimePlayerState> = flow
     fun f(): Unit = error("Void player action must never be invoked to read state")
 }
-private class RuntimePluginRequest(@JvmField val o: RuntimeRepository, @JvmField val p: String,
-                                  @JvmField val q: String, @JvmField val r: Int?, @JvmField val s: Int?)
+private class RuntimePluginRequest(@JvmField val i: RuntimeRepository, @JvmField val j: String,
+                                  @JvmField val k: String, @JvmField val l: Int?, @JvmField val m: Int?)
 private class RuntimeRepository(private val profile: RuntimeProfile, private val scope: CoroutineScope) {
     @JvmField val l = MutableStateFlow(false)
     val wrongSearchCalls = AtomicInteger()
@@ -65,7 +65,7 @@ private class RuntimeRepository(private val profile: RuntimeProfile, private val
                 localSearches.add(id)
                 delay(30)
                 seen.add(id)
-                b9.l(listOf(RuntimeAddonStreams(listOf("source-$id"))))
+                b9.q(listOf(RuntimeAddonStreams(listOf("source-$id"))))
             }
         }
         emit(session.await())
@@ -86,12 +86,12 @@ fun main() = runBlocking {
         prefs.edit().putBoolean("continue_watching", true).apply()
         repeat(100) { NuvioStreamPreload.onContinueWatching(card) }
         suspend fun waitFor(timeout: Long = 3_000, condition: () -> Boolean) = withTimeout(timeout) {
-            while (!condition()) delay(5)
+            try { while (!condition()) delay(5) } catch(e: Exception) { println(Log.messages.joinToString("\n"));println(Log.errors.joinToString("\n"));throw e }
         }
         waitFor { "tt1:2:3" in repository.seen }
         check(repository.networkCalls.get() == 1)
         val playbackSources = withContext(Dispatchers.Default) { repository.l("series", "tt1:2:3", 2, 3, false).first() }
-        check(((playbackSources as b9.l).a as List<*>).let { (it.single() as RuntimeAddonStreams).streams } == listOf("source-tt1:2:3"))
+        check(((playbackSources as b9.q).a as List<*>).let { (it.single() as RuntimeAddonStreams).streams } == listOf("source-tt1:2:3"))
         check(repository.networkCalls.get() == 1)
         prefs.edit().putBoolean("details", true).apply()
         val state = MutableStateFlow(RuntimeState(RuntimeMeta("movie", "ttmovie"), RuntimeNext(null, null, null)))
@@ -145,7 +145,7 @@ fun main() = runBlocking {
         val nextSources = withContext(Dispatchers.Default) {
             repository.l("series", "ttnext:1:2", 1, 2, NuvioStreamPreload.nextEpisodePickerRefresh(true)).first()
         }
-        check(((nextSources as b9.l).a as List<*>).let { (it.single() as RuntimeAddonStreams).streams } == listOf("source-ttnext:1:2"))
+        check(((nextSources as b9.q).a as List<*>).let { (it.single() as RuntimeAddonStreams).streams } == listOf("source-ttnext:1:2"))
         check(repository.networkCalls.get() == 5)
         check(NuvioStreamPreload.nextEpisodePluginPause(RuntimePluginRequest(repository, "unrelated", "series", 1, 2)).first())
         NuvioStreamPreload.stopNextEpisode(playerModel)

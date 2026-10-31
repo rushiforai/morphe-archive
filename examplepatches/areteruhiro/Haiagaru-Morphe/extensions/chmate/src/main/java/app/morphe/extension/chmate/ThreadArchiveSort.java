@@ -4,8 +4,14 @@ import java.io.File;
 import java.util.regex.*;
 
 final class ThreadArchiveSort {
-    private static final Pattern KEY=Pattern.compile("(?:\\[|_)([0-9]{9,11})(?:]|\\.dat)$");
-    static long created(File f){Matcher m=KEY.matcher(f.getName());return m.find()?Long.parseLong(m.group(1)):0;}
+    private static final Pattern KEY=Pattern.compile("(?:^|\\[|_)([0-9]{9,13})(?:])?(?:\\.dat)?$");
+    static long created(File f){
+        for(File current=f;current!=null;current=current.getParentFile()){
+            Matcher m=KEY.matcher(current.getName());
+            if(m.find())return Long.parseLong(m.group(1));
+        }
+        return 0;
+    }
     static int compare(File a,File b,int mode){
         long x=mode<=2?created(a):a.lastModified(),y=mode<=2?created(b):b.lastModified();
         if(x==0 || y==0){if(x!=y)return x==0?1:-1;}

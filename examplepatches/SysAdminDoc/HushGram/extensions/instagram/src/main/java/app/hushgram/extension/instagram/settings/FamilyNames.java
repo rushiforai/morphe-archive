@@ -32,6 +32,7 @@ public final class FamilyNames {
     public static final String BACK_LEAVES_HOME = "Back leaves Home";
     public static final String HOME_PLACE = "Keep your place in Home";
     public static final String STORY_LOOP = "Loop a story";
+    public static final String SMOOTH_STORY_OPEN = "Smooth story opening";
     public static final String STORY_SOUND = "Start stories with sound";
     public static final String STORY_SWIPE_REPLY = "Stop swipe up to reply";
     public static final String STORY_FONTS = "Story text fonts";
@@ -41,9 +42,13 @@ public final class FamilyNames {
     public static final String FEED_SEEK_BAR = "Seek bar on feed videos";
     public static final String LONG_PRESS_ZOOM = "Long press to zoom";
     public static final String ROUNDED_POST_CORNERS = "Rounded post corners";
+    public static final String CAROUSEL_ARROWS = "Carousel arrows";
+    public static final String AMBIENT_LIGHT = "Ambient light";
     public static final String STORY_SEEN = "View stories anonymously";
     public static final String DM_MEDIA_SEEN = "View DM photos and videos anonymously";
     public static final String SPOOF_LOCATION = "Spoof location";
+    public static final String APP_PROXY = "App-only proxy";
+    public static final String SETUP_POPUPS = "Skip the contacts and location popups";
     public static final String THREAD_SEEN = "Read messages without the seen receipt";
     public static final String TYPING = "Hide that you're typing";
     public static final String ACTIVE_STATUS = "Hide your active status";
@@ -65,6 +70,7 @@ public final class FamilyNames {
     public static final String EXPLORE_GRID = "Hide the Explore grid";
     public static final String RECENT_SEARCHES = "Don't save recent searches";
     public static final String ALL_RECENT_SEARCHES = "Show all recent searches";
+    public static final String EXPLORE_MENU = "Explore without personalization";
     public static final String NOTES_ROW = "Hide the notes row";
     public static final String INBOX_SEARCH = "Hide the search bar in Messages";
     public static final String INBOX_SUGGESTIONS = "Hide suggested accounts in DMs";
@@ -86,6 +92,7 @@ public final class FamilyNames {
     public static final String FONT = "Font";
     public static final String NOTIFICATION_GROUPS = "Group Instagram's notifications";
     public static final String HDR_BOOST = "Turn off HDR brightness boosts";
+    public static final String STOP_LOOPING = "Stop videos looping";
     public static final String MEDIA_CACHE = "Clear the media cache";
     public static final String FRIENDSHIP_STATUS = "Show if a profile follows you";
     public static final String PROFILE_SUGGESTIONS = "Hide suggested people on profiles";
@@ -140,6 +147,7 @@ public final class FamilyNames {
     public static final String SCREENSHOT_REPORTS = "Don't report screenshots";
     public static final String SCREENSHOT_BLOCK = "Allow screenshots";
     public static final String KEEP_IN_CHAT = "Keep in chat";
+    public static final String VIEW_ONCE_MARK = "Mark one-time photos and videos";
     public static final String CHAT_REELS = "Swipe through a chat's reels";
     public static final String CHAT_HISTORY = "Chat history tools";
     public static final String ASK_BEFORE_CALL = "Ask before a call";

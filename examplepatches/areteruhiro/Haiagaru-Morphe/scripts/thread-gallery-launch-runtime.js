@@ -1,0 +1,18 @@
+rpc.exports={test(){return new Promise((resolve,reject)=>Java.perform(()=>{try{
+const app=Java.use('android.app.ActivityThread').currentApplication();if(!String(app.getPackageName()).includes('.haiagaru.'))throw Error('verification package required');
+const E=Java.use('app.morphe.extension.chmate.ExtraQuickFilters'),N=Java.use('app.morphe.extension.chmate.MediaViewerNavigation'),Intent=Java.use('android.content.Intent'),Array=Java.use('java.util.ArrayList'),Str=Java.use('java.lang.String');
+const pref=app.getSharedPreferences('io.github.areteruhiro.chmate.haiagaru.ui-config',0),had=pref.contains('mediaSwipeWholeThread'),old=pref.getBoolean('mediaSwipeWholeThread',false);let activity,lastGallery;
+for(const name of ['jp.syoboi.a2chMate.activity.TabletHomeActivity','jp.syoboi.a2chMate.activity.HomeActivity'])Java.choose(name,{onMatch(a){if(!a.isFinishing())activity=Java.retain(a);},onComplete(){}});if(!activity)throw Error('source activity required');
+const check=[];try{
+pref.edit().putBoolean('mediaSwipeWholeThread',true).commit();
+for(const url of ['https://i.imgur.com/FPbIGqD.png','https://i.imgur.com/7dWXW8q.png','https://i.imgur.com/plIzBCz.png','https://i.imgur.com/RtFIpTS.jpeg']){
+ const links=Array.$new();links.add(Str.$new(url));const intent=Intent.$new();intent.putStringArrayListExtra('links',links);intent.putExtra.overload('java.lang.String','int').call(intent,'index',0);
+ N.prepareNativeIntent(intent,activity);const all=intent.getStringArrayListExtra('haiagaru.media.links');if(!all||all.size()<4||!all.contains(Str.$new(url)))throw Error('thread gallery missing '+url);
+ lastGallery=all;check.push({selected:url,total:all.size(),thread:intent.getBooleanExtra('haiagaru.media.thread',false)});
+}
+let video;for(let v=0;v<lastGallery.size();v++){const link=String(lastGallery.get(v));if(/\.mp4(?:\?|$)/.test(link)){video=link;break;}}
+if(video){const poster=Java.use('app.morphe.extension.chmate.XMediaAttachments').generatedPoster(video);if(poster){const frame=Intent.$new(),frames=Array.$new();frames.add(poster);frame.putStringArrayListExtra('links',frames);N.prepareNativeIntent(frame,activity);const mapped=frame.getStringArrayListExtra('links'),gallery=frame.getStringArrayListExtra('haiagaru.media.links');if(String(mapped.get(0))!==video||!gallery||gallery.size()<4)throw Error('frame poster lost source media');check.push({framePosterMappedToVideo:true,total:gallery.size()});}const incoming=Intent.$new('android.intent.action.VIEW',Java.use('android.net.Uri').parse(video));const method=N.class.getDeclaredMethod('prepare',Java.array('java.lang.Class',[Intent.class]));method.setAccessible(true);method.invoke(null,Java.array('java.lang.Object',[incoming]));const all=incoming.getStringArrayListExtra('haiagaru.media.links');if(!all||all.size()<4||!incoming.getBooleanExtra('haiagaru.media.thread',false))throw Error('direct video missing gallery');check.push({directVideoWithoutBodyTouch:true,total:all.size()});}
+pref.edit().putBoolean('mediaSwipeWholeThread',false).commit();const off=Intent.$new();const one=Array.$new();one.add(Str.$new('https://i.imgur.com/FPbIGqD.png'));off.putStringArrayListExtra('links',one);N.prepareNativeIntent(off,activity);if(off.hasExtra('haiagaru.media.links'))throw Error('OFF changes gallery');
+resolve({check,offPreserved:true});
+}finally{const edit=pref.edit();if(had)edit.putBoolean('mediaSwipeWholeThread',old);else edit.remove('mediaSwipeWholeThread');edit.commit();}
+}catch(e){console.log('LAUNCH_TEST_ERROR '+String(e.stack||e));reject('gallery launch failed');}}));}};

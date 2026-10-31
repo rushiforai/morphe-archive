@@ -182,7 +182,10 @@ def build_content(expanded=True):
         "### 🧪 Experimental Patches (Vibe-Coded)",
         "",
         "> [!WARNING]",
-        "> **Experimental Notice:** These patches are vibe-coded prototypes and haven't been tested across all physical devices yet. If a patch needs fine-tuning, [submit a request on GitHub](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml) to prioritize full testing and refinement in the next release!",
+        "> **Experimental Notice:** These patches are vibe-coded prototypes and haven't been tested across all physical devices yet.",
+        ">",
+        "> ✅ **Tested an experimental patch and it works?** [Submit a Validation Report](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_validation.yml) with your device details and app version so we can promote it to the **Tested & Functional** category in the next update!",
+        ">",
         "> 💡 **Want a patch to work?** [Submit a request on GitHub](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml) to prioritize reverse-engineering and make it fully functional in the next update!",
         ""
     ])

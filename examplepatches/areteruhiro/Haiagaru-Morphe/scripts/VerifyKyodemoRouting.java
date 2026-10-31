@@ -7,6 +7,9 @@ public class VerifyKyodemoRouting {
     }
 
     public static void main(String[] args) {
+        check("https://www.kyodemo.net/sdemo/b/e_e_liveedge/?bs=hi&k=ID%3AG5TW0FSD0".equals(
+                KyodemoRouting.wacchoiSearchUrl("bbs.eddibb.cc", "liveedge", "ID:G5TW0FSD0")),
+                "ID search must preserve the explicit ID: prefix");
         for (String suffix : new String[]{"-uDul", "-a+/B", "-a&=#", "-日本語！"}) {
             String url = KyodemoRouting.wacchoiSearchUrl("egg.5ch.io", "android", suffix);
             check(url != null && suffix.equals(java.net.URLDecoder.decode(

@@ -95,6 +95,12 @@ final class MarketplaceResponseDiagnostics {
             "text", "currency", "amount_with_offset", "amount_with_offset_in_currency",
             "formatted_amount_zeros_stripped", "offset",
             "redacted_description", "creation_time", "latitude", "longitude", "listing_inventory_type"));
+    // A listing's own page names every key it has (#303): the S22's capture of it came back mostly
+    // unnamed, and the listing's time is one of those. Keys are Facebook's schema names, never
+    // values, and only a lowercase snake_case key of up to 48 characters is named.
+    private static final Set<String> NAMED_KEY_QUERIES = new HashSet<>(Arrays.asList(
+            "MarketplacePDPSurfaceQuery", "MarketplaceProductDetailsPageAppQuery"));
+    private static final int MAX_KEY_CHARS = 48;
     private static final Map<Object, Observer> observers = new WeakHashMap<>();
     private static final Map<String, Set<String>> shapes = new HashMap<>();
     private static final Set<String> summaryBudgetNotices = new HashSet<>();
@@ -128,7 +134,7 @@ final class MarketplaceResponseDiagnostics {
             if (decoded == null) return;
             String text = new String(decoded.bytes, 0, decoded.length, StandardCharsets.UTF_8);
             MarketplaceSearchAds.Value variables = MarketplaceSearchAds.Parser.whole(text);
-            if (variables.kind == '{') record(query, "request variables " + fields(text, variables));
+            if (variables.kind == '{') record(query, "request variables " + fields(query, text, variables));
         } catch (Throwable unreadable) {
             record(query, "unreadable request variables");
         }
@@ -247,11 +253,11 @@ final class MarketplaceResponseDiagnostics {
                 if (model.equals("unrecognized")) unrecognizedModels++;
                 else if (!model.equals("none")) models.put(model, models.getOrDefault(model, 0) + 1);
                 // The walk goes on, so the model counts stay whole; only this shape's line is dropped.
-                if (!record(query, path + " model=" + model + " " + fields(text, value))) missing("shape budget");
+                if (!record(query, path + " model=" + model + " " + fields(query, text, value))) missing("shape budget");
                 for (int i = 0; i < value.items.size(); i++) {
                     MarketplaceSearchAds.Value child = value.items.get(i);
                     if (child.kind != '{' && child.kind != '[') continue;
-                    inspect(text, child, path + "." + field(text, value.names.get(i)), level + 1, visits);
+                    inspect(text, child, path + "." + field(query, text, value.names.get(i)), level + 1, visits);
                 }
             } else if (value.kind == '[') {
                 for (MarketplaceSearchAds.Value child : value.items) inspect(text, child, path + "[]", level + 1, visits);
@@ -279,11 +285,11 @@ final class MarketplaceResponseDiagnostics {
         }
     }
 
-    private static String fields(String text, MarketplaceSearchAds.Value object) {
+    private static String fields(String query, String text, MarketplaceSearchAds.Value object) {
         Set<String> fields = new TreeSet<>();
         Map<String, Integer> unknown = new TreeMap<>();
         for (int i = 0; i < object.items.size(); i++) {
-            String field = field(text, object.names.get(i));
+            String field = field(query, text, object.names.get(i));
             String shape = type(text, object.items.get(i));
             if (field.equals("other")) unknown.put(shape, unknown.getOrDefault(shape, 0) + 1);
             else fields.add(field + ":" + shape);
@@ -292,11 +298,23 @@ final class MarketplaceResponseDiagnostics {
         return "fields={" + String.join(",", fields) + "}";
     }
 
-    private static String field(String text, int[] range) {
+    private static String field(String query, String text, int[] range) {
         for (String known : FIELDS) {
             if (range[1] - range[0] == known.length() && text.startsWith(known, range[0])) return known;
         }
-        return "other";
+        return NAMED_KEY_QUERIES.contains(query) && schemaName(text, range[0], range[1])
+                ? text.substring(range[0], range[1]) : "other";
+    }
+
+    private static boolean schemaName(String text, int start, int end) {
+        if (end - start < 1 || end - start > MAX_KEY_CHARS) return false;
+        char first = text.charAt(start);
+        if (first < 'a' || first > 'z') return false;
+        for (int i = start + 1; i < end; i++) {
+            char c = text.charAt(i);
+            if (!(c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '_')) return false;
+        }
+        return true;
     }
 
     private static String model(String text, MarketplaceSearchAds.Value object) {

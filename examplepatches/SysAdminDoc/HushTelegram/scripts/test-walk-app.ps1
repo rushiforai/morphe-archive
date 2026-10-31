@@ -325,6 +325,20 @@ try {
             $walkText.Contains("if (-not `$PSBoundParameters.ContainsKey('$listed'))")) `
             "walk-app.ps1's -$listed has a default of its own instead of walk-scenarios.json's."
     }
+    # The walk's sections are the settings home's headings, in the order it draws them. A heading the
+    # list leaves out reads as rows of the section above it, so that section never reads closed: the
+    # 0.0.23 walks failed on Updates once Ways in went in under it.
+    $settingsDir = Join-Path (Split-Path -Parent $PSScriptRoot) 'extensions\telegram\src\main\java\app\hushtelegram\extension\telegram\settings'
+    $familyText = [IO.File]::ReadAllText((Join-Path $settingsDir 'PatchFamily.java'))
+    $pageEnum = [regex]::Match($familyText, '(?s)enum Page \{(.*?);')
+    Assert-True $pageEnum.Success 'PatchFamily.java has no Page enum to read the switch pages from.'
+    $drawn = [Collections.Generic.List[string]]::new()
+    foreach ($page in [regex]::Matches($pageEnum.Groups[1].Value, '(?m)^\s*[A-Z_]+\("([^"]+)"')) { $drawn.Add($page.Groups[1].Value) }
+    $navigationText = [IO.File]::ReadAllText((Join-Path $settingsDir 'SettingsNavigation.java'))
+    foreach ($fixed in [regex]::Matches($navigationText, '(?m)^\s*section\("([^"]+)"')) { $drawn.Add($fixed.Groups[1].Value) }
+    $walked = @(Read-WalkScenarios | Where-Object Kind -CEQ 'section' | ForEach-Object Page)
+    Assert-True ($drawn.Count -gt 7 -and ($walked -join '|') -ceq ($drawn -join '|')) `
+        "walk-scenarios.json walks the settings sections $($walked -join ', ') but the home list draws $($drawn -join ', ')."
     # The screen and scenario tally is made before the first screen counts into it. Lost once in a
     # rewrite, every walk died at launch on "The property 'Screens' cannot be found".
     $walkAst = [Management.Automation.Language.Parser]::ParseInput($walkText, [ref]$null, [ref]$null)

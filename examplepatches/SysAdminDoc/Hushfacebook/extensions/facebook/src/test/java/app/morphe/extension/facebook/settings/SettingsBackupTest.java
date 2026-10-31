@@ -152,6 +152,13 @@ public class SettingsBackupTest {
         out.put("hushfacebook_header_picture",
                 "it names the picture at the top of Home, whose shrunk copy only this install holds. A settings file "
                         + "can't carry the picture itself, and the name alone would point at nothing on another phone.");
+        out.put("hushfacebook_stories_tray_size",
+                "it is a width in dp picked for this phone's screen, which reads differently on another phone.");
+        for (String count : new String[] {"friends", "followers", "following"}) {
+            out.put("hushfacebook_local_" + count,
+                    "it's a number typed for your own profile on this phone, for fun. It stays here and isn't "
+                            + "something to share in a settings file.");
+        }
         out.put("hushfacebook_save_storage",
                 "it names the SD card saves go to by the volume name Android gave that card in this phone, which "
                         + "points at nothing on another phone.");
@@ -208,6 +215,8 @@ public class SettingsBackupTest {
         Settings.REELS_PLAYBACK_QUALITY.resetToDefault();
         Settings.STORIES_PLAYBACK_QUALITY.resetToDefault();
         Settings.REELS_ORDER.resetToDefault();
+        Settings.BURN_IN_GUARD.resetToDefault();
+        Settings.BURN_IN_WAIT.resetToDefault();
         Settings.RECENTLY_WATCHED_KEEP.resetToDefault();
         Settings.QUIET_HOURS_FROM.resetToDefault();
         Settings.QUIET_HOURS_UNTIL.resetToDefault();
@@ -278,7 +287,7 @@ public class SettingsBackupTest {
         for (Setting<?> setting : SettingsBackup.VALUES) {
             assertFalse(setting.key + " is carried and kept out at once", VALUES_STAY_OUT.containsKey(setting.key));
         }
-        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDDEN_FEED_TYPES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.REELS_ORDER, Settings.RECENTLY_WATCHED_KEEP, Settings.HIDDEN_SHARE_ITEMS, Settings.HIDDEN_MENU_TILES, Settings.HOME_FEED, Settings.AMOLED_BACKGROUND, Settings.AMOLED_LIGHT_BACKGROUND, Settings.HEADER_TEXT, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
+        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDDEN_FEED_TYPES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.BURN_IN_GUARD, Settings.BURN_IN_WAIT, Settings.REELS_ORDER, Settings.RECENTLY_WATCHED_KEEP, Settings.HIDDEN_SHARE_ITEMS, Settings.HIDDEN_MENU_TILES, Settings.HOME_FEED, Settings.AMOLED_BACKGROUND, Settings.AMOLED_LIGHT_BACKGROUND, Settings.HEADER_TEXT, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
                 Settings.SAVE_FOLDER, Settings.VIDEO_SUBFOLDER, Settings.PHOTO_SUBFOLDER, Settings.DOWNLOAD_QUALITY,
                 Settings.FILENAME_TEMPLATE, Settings.PHOTO_FILENAME_TEMPLATE, Settings.DOWNLOAD_ACTION, Settings.SEND_TO_APP,
                 Settings.START_TAB, Settings.FEEDS_SUBTAB, Settings.COMMENT_ORDER, Settings.PLAYBACK_QUALITY,
@@ -306,6 +315,8 @@ public class SettingsBackupTest {
         assertEquals(Settings.REELS_PLAYBACK_QUALITY, SettingsBackup.REELS_QUALITY);
         assertEquals(Settings.STORIES_PLAYBACK_QUALITY, SettingsBackup.STORIES_QUALITY);
         assertEquals(Settings.REELS_ORDER, SettingsBackup.REELS_ORDER);
+        assertEquals(Settings.BURN_IN_GUARD, SettingsBackup.BURN_IN);
+        assertEquals(Settings.BURN_IN_WAIT, SettingsBackup.BURN_IN_WAIT);
         assertEquals(Settings.QUIET_HOURS_FROM, SettingsBackup.QUIET_FROM);
         assertEquals(Settings.QUIET_HOURS_UNTIL, SettingsBackup.QUIET_UNTIL);
         assertEquals(Settings.TEXT_SIZE, SettingsBackup.TEXT_SIZE);

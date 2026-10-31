@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="exo_controls_playback_speeds">
+        <item>أسرع بـ 0.25 مرة</item>
+        <item>أسرع بـ 0.5 مرات</item>
+        <item>أسرع بـ 0.75 مرة</item>
+        <item>عادية</item>
+        <item>أسرع بـ 1.25 مرة</item>
+        <item>أسرع بـ 1.5 مرة</item>
+        <item>أسرع بمرتين</item>
+    </array>
+    <array name="pref_screen_orientation">
+        <item>الافتراضي</item>
+        <item>التدوير التلقائي</item>
+        <item>فرض استخدام الواجهة رأسياً</item>
+        <item>فرض استخدام الواجهة أفقياً</item>
+    </array>
+</resources>

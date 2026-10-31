@@ -1,3 +1,9 @@
+## [1.8.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.7.0...v1.8.0) (2026-10-31)
+
+### ✨ New Features
+
+* **yahoo-finance:** add tested A2 A3 A5 A7 patches ([113fb81](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/113fb81174a29d8eadf206987eff5233bf284019))
+
 ## [1.7.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.6.1...v1.7.0) (2026-10-31)
 
 ### ✨ New Features

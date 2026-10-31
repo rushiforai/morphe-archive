@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.CheckableFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="0x7f0806c1"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="0x7f07054c"
+    android:layout_height="0x7f07054b"
+    android:foreground="0x7f0806c1">
+    <ImageView
+        android:layout_gravity="center"
+        android:id="0x7f0b0735"
+        android:background="0x7f060303"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"/>
+    <ImageView
+        android:layout_gravity="center"
+        android:id="0x7f0b0734"
+        android:visibility="gone"
+        android:layout_width="0x7f07054a"
+        android:layout_height="0x7f07054a"/>
+    <TextView
+        android:textColor="@android:color/white"
+        android:ellipsize="marquee"
+        android:gravity="center"
+        android:layout_gravity="bottom"
+        android:id="0x7f0b0736"
+        android:background="0x7f060648"
+        android:padding="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"/>
+</com.android.launcher3.CheckableFrameLayout>

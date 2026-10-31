@@ -143,6 +143,10 @@ private fun modelFingerprint(view: View?): Long {
         value = value * 31 + System.identityHashCode(view.adapter) + (view.adapter?.count ?: 0)
         return value * 31 + view.selectedItemPosition
     }
+    // Archive result rows are immutable between a render/appearance revision.
+    // Their labels can contain thousands of characters; do not rehash them five times a second.
+    val resultRevision = view.getTag(EddiArchiveSearchUi.RESULTS_REVISION_TAG)
+    if (resultRevision != null) return value * 31 + resultRevision.hashCode() + ((view as? ViewGroup)?.childCount ?: 0)
     if (view is NativeSurfaceSlot) return value
     if (view is ViewGroup) for (index in 0 until view.childCount) value = value * 31 + modelFingerprint(view.getChildAt(index))
     return value
@@ -206,7 +210,8 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
         val first = view.getTag(EddiArchiveSearchUi.RESULT_FIRST_TAG) == true
         val padding = EddiArchiveSearchUi.clampResultPadding(view.getTag(EddiArchiveSearchUi.RESULT_PADDING_TAG) as? Int ?: 16)
         Box(modifier.fillMaxWidth().heightIn(min = 48.dp).combinedClickable(
-            enabled = view.isEnabled, onClick = { view.performClick(); changed() }) .drawBehind {
+            enabled = view.isEnabled, onClick = { view.performClick(); changed() },
+            onLongClick = { view.performLongClick(); changed() }) .drawBehind {
             val stroke = 1.dp.toPx()
             if (first) drawLine(ruleColor, Offset(0f, stroke / 2), Offset(size.width, stroke / 2), stroke)
             drawLine(ruleColor, Offset(0f, size.height - stroke / 2), Offset(size.width, size.height - stroke / 2), stroke)

@@ -1,0 +1,1 @@
+package o; public class createFromParcel {public String a,e;public CharSequence b;public int h;public createFromParcel(String title,String url,CharSequence text,int flags){a=title;e=url;b=text;h=flags;}}

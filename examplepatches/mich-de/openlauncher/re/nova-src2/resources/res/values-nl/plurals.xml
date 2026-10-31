@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">%d seconde vooruitspoelen</item>
+        <item quantity="other">%d seconden vooruitspoelen</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">%d seconde terugspoelen</item>
+        <item quantity="other">%d seconden terugspoelen</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d vergaderingen</item>
+        <item quantity="one">%d vergadering</item>
+        <item quantity="two">%d vergaderingen</item>
+        <item quantity="few">%d vergaderingen</item>
+        <item quantity="many">%d vergaderingen</item>
+        <item quantity="other">%d vergaderingen</item>
+    </plurals>
+</resources>

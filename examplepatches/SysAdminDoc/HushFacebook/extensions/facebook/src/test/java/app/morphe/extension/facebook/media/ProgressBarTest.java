@@ -6,6 +6,7 @@ package app.morphe.extension.facebook.media;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -25,6 +26,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowSystemClock;
 
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ import app.morphe.extension.facebook.settings.PatchFamily;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.PauseForTests;
 
@@ -720,6 +723,51 @@ public class ProgressBarTest {
         assertEquals("the update ran again after c drew", 2, runs.size());
         String line = statusLine();
         assertTrue(line, line.contains(ProgressBar.UPDATE_AGAIN + " 2"));
+    }
+
+    @Test
+    public void theReelBarsDebugLinesPairReelsWithoutTheirFacebookIds() {
+        String held = "1134540631592283";
+        String shown = "1316146539584337463";
+        BaseSettings.DEBUG.save(true);
+        ShadowLog.clear();
+        try {
+            Settings.KEEP_PROGRESS_BAR.save(true);
+            LinearLayout label = new LinearLayout(RuntimeEnvironment.getApplication());
+            SeekBar bar = new SeekBar(RuntimeEnvironment.getApplication());
+            scrubberViews(label, bar);
+            ProgressBar.updateAgainForTests = ran -> { };
+            // Every line that names a reel: a hand-over left on the last reel, a held look, the
+            // mount, a watch that runs the update again and the draw that ends it, then the reel
+            // the scrubber holds coming back.
+            ProgressBar.handsOver(label, bar, held, shown);
+            ProgressBar.leftOnLastReel();
+            ProgressBar.lookFor(label, 1);
+            ProgressBar.noScrubber();
+            ProgressBar.mounts(label, new Object());
+            idle(ProgressBar.UPDATE_CHECK_MS);
+            ProgressBar.refreshesTime(label, bar);
+            ProgressBar.handsOver(label, bar, held, shown);
+            ProgressBar.leftOnLastReel();
+            ProgressBar.handsOver(label, bar, held, held);
+
+            List<String> lines = new ArrayList<>();
+            for (ShadowLog.LogItem item : ShadowLog.getLogs()) {
+                if (item.msg != null && item.msg.contains("Reel bar:")) lines.add(item.msg);
+            }
+            assertTrue("no reel bar line was logged", lines.size() >= 8);
+            String joined = String.join("\n", lines);
+            assertFalse("a reel's Facebook id reached logcat:\n" + joined, joined.contains(held) || joined.contains(shown));
+            assertTrue(joined, joined.contains(ProgressBar.reelName(held)));
+            assertTrue(joined, joined.contains(ProgressBar.reelName(shown)));
+        } finally {
+            BaseSettings.DEBUG.resetToDefault();
+        }
+        assertNotEquals("two reels got one name", ProgressBar.reelName(held), ProgressBar.reelName(shown));
+        assertEquals("the same reel got two names", ProgressBar.reelName(held), ProgressBar.reelName(held));
+        assertTrue(ProgressBar.reelName(held), ProgressBar.reelName(held).matches("reel [0-9a-f]{6}"));
+        assertEquals("no reel", ProgressBar.reelName(null));
+        assertEquals("no reel", ProgressBar.reelName(""));
     }
 
     @Test

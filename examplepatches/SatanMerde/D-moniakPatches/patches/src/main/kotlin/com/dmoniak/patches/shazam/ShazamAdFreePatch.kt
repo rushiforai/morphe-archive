@@ -8,7 +8,7 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val shazamAdFreePatch = bytecodePatch(
-    name = "Ad-Free & Clean Interface - Shazam",
+    name = "Ad-Free & Clean Interface - Shazam (Experimental)",
     description = "Strips post-recognition promo cards, Apple Music targeted upsells, in-app survey banners, and announcement sheets in Shazam.",
 ) {
     compatibleWith(COMPATIBILITY_SHAZAM)

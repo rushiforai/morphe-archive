@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="260" viewBox="0 0 1200 260">
+  <rect width="1200" height="260" rx="16" fill="#1e2327"/>
+  <rect x="0" y="0" width="12" height="260" fill="#6c4dff"/>
+  <text x="600" y="125" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="68" font-weight="600" fill="#ffffff">VK Messenger</text>
+  <text x="600" y="180" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="26" fill="#9fb3c8">Патчи Morphe для VK Мессенджера</text>
+  <text x="600" y="232" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="18" fill="#6b7d8f">PerfLite</text>
+</svg>

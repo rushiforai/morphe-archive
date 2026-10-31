@@ -63,7 +63,7 @@ final class SiteCards {
         }return new ArrayList<>(result);
     }
     static void onBound(Object object){
-        if(!(object instanceof TextView)||object instanceof EditText||writing(object)||Looper.myLooper()!=Looper.getMainLooper())return;
+        if(!DirectBodySelection.isBody(object)||writing(object)||Looper.myLooper()!=Looper.getMainLooper())return;
         TextView view=(TextView)object;CharSequence text=view.getText();
         if(!(text instanceof Spanned)||text instanceof Editable||text.length()>100000)return;
         if(!Haiagaru.siteCardsEnabled()) {if(strip(text)!=text)write(view,strip(text));return;}
@@ -85,7 +85,7 @@ final class SiteCards {
         if(rendered!=text&&(!rendered.toString().equals(text.toString())||markers.length>0))write(view,rendered);
     }
     static CharSequence decorate(CharSequence source,TextView view){
-        source=strip(source);if(!Haiagaru.siteCardsEnabled())return source;
+        source=strip(source);if(!DirectBodySelection.isBody(view)||!Haiagaru.siteCardsEnabled())return source;
         SpannableStringBuilder result=null;
         for(String url:urls(source)) {
             Entry entry=CACHE.get(url);

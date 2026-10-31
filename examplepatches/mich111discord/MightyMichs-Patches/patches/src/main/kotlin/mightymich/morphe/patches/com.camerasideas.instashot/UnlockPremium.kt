@@ -7,51 +7,39 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
-/**
- * Unlocks InShot Pro (same chokepoint as community Morphe patch):
- *
- * Whole-app Pro check funnels through one read in UserManager (obfuscated class):
- * instance method ()Z that reads the pref key "DebugPro".
- *
- * Class is found by unique pref literal "SubscribeProOfHw" (R8 keeps string constants).
- * Forcing that gate to true unlocks watermark-off, remove-ads SKU gate, paid packs, HD export.
- *
- * On-device AI tools may still fail on re-signed builds (native signing-key check).
- */
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium",
-    description = "Unlocks InShot Pro: no export watermark, no ads, paid filters/effects/HD. " +
-        "On-device AI tools may still require original signing key.",
+    description = "Enables InShot Pro",
     default = true
 ) {
+    dependsOn(patchVideoEngineKillPatch)
+
     compatibleWith(InShotCompatibility.INSHOT)
 
     execute {
-        // Pin UserManager by unique pref key (stable across R8 renames)
-        val userManagerDef = classDefByStrings("SubscribeProOfHw")
+        val managerClass = classDefByStrings("SubscribeProOfHw")
             .singleOrNull()
             ?: throw PatchException(
-                "InShot: UserManager (Pro gate) not found by pref key \"SubscribeProOfHw\". " +
-                    "Obfuscation map may have changed."
+                "Pro entitlement class not found (missing pref key SubscribeProOfHw). " +
+                    "InShot may have changed its preference identifiers."
             )
-        val userManager = mutableClassDefBy(userManagerDef)
 
-        // Pro decision: lone instance ()Z that reads "DebugPro"
-        val isProGate = userManager.methods.singleOrNull { method ->
+        val manager = mutableClassDefBy(managerClass)
+
+        val proCheck = manager.methods.singleOrNull { method ->
             !AccessFlags.STATIC.isSet(method.accessFlags) &&
                 method.returnType == "Z" &&
                 method.parameterTypes.isEmpty() &&
-                method.implementation?.instructions?.any { instruction ->
-                    (instruction as? ReferenceInstruction)?.reference
-                        ?.let { it as? StringReference }
-                        ?.string == "DebugPro"
+                method.implementation?.instructions?.any { insn ->
+                    val ref = (insn as? ReferenceInstruction)?.reference as? StringReference
+                    ref?.string == "DebugPro"
                 } == true
         } ?: throw PatchException(
-            "InShot: Pro decision ()Z reading \"DebugPro\" not found uniquely in UserManager."
+            "Could not uniquely resolve the instance boolean Pro gate that reads DebugPro."
         )
 
-        isProGate.addInstructions(
+        proCheck.addInstructions(
             0,
             """
                 const/4 v0, 0x1

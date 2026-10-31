@@ -348,6 +348,46 @@ try {
     Remove-Item -LiteralPath $advisoryScratch -Recurse -Force -ErrorAction SilentlyContinue
 }
 
+# The tracked-file scan preflight runs, since everyday pushes skip the pre-push hook's. A scratch
+# repository passes clean and stops once a tracked file names a phone, and preflight still calls it.
+# The stand-in git above would answer the scan's git grep, so the real one comes back first.
+Remove-Item -LiteralPath Function:\git
+. (Join-Path (Split-Path -Parent $PSScriptRoot) 'common.ps1')
+foreach ($name in @('Write-Step', 'Assert-NoMachineNames')) {
+    $found = @($releaseAst.FindAll({ param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+        $node.Name -eq $name }, $true))
+    Assert-True ($found.Count -eq 1) "release.ps1 no longer defines $name once."
+    Invoke-Expression $found[0].Extent.Text
+}
+$nameScratch = Join-Path ([IO.Path]::GetTempPath()) ('hushtelegram-release-names-' + [guid]::NewGuid().ToString('N'))
+$savedGit = @{}
+foreach ($variable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'GIT_*' })) {
+    $savedGit[$variable.Name] = $variable.Value
+    Remove-Item -LiteralPath ('Env:\' + $variable.Name)
+}
+try {
+    $Root = $nameScratch
+    New-Item -ItemType Directory -Path $Root | Out-Null
+    $readme = Join-Path $Root 'README.md'
+    Set-Content -LiteralPath $readme -Value 'scratch' -Encoding ASCII
+    $preference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        git -C $Root init -q 2>&1 | Out-Null
+        git -C $Root add README.md 2>&1 | Out-Null
+    } finally {
+        $ErrorActionPreference = $preference
+    }
+    Assert-NoMachineNames 6> $null
+    Set-Content -LiteralPath $readme -Value ('adb -s R5' + 'C' + 'ZZZZ9999 install app.apk') -Encoding ASCII
+    Assert-Throws { Assert-NoMachineNames 6> $null } '*name the maintainer*README.md:1:*' 'A tracked file naming a phone got past preflight.'
+} finally {
+    foreach ($name in $savedGit.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $savedGit[$name] }
+    Remove-Item -LiteralPath $nameScratch -Recurse -Force -ErrorAction SilentlyContinue
+}
+$preflightBlock = [regex]::Match($releaseText, "(?s)'preflight' \{(.*?)\r?\n    \}\r?\n").Groups[1].Value
+Assert-True ($preflightBlock -match '(?m)^\s+Assert-NoMachineNames\s*$') '-Stage preflight no longer scans the tracked files for machine names.'
+
 Write-Host "[release] release text and stage order contracts passed ($cases cases)"
 # The stage order cases end on release.ps1 runs that refuse, and a caller reads their exit code
 # as this script's own unless it says otherwise.

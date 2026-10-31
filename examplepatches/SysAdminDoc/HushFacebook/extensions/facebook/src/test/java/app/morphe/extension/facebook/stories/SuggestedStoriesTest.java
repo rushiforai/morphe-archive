@@ -596,7 +596,9 @@ public class SuggestedStoriesTest {
     /**
      * Issue #313: with Hide stories from Pages on, a Page's bucket leaves the tray, whether its owner
      * says Page or its type is one a Page's stories come as, and whether or not Facebook suggests it.
-     * A person's stories stay, and so does a bucket with no owner. Off, the tray is Facebook's.
+     * A profile-style Page's bucket goes by its type though its owner says User (the S22's tray kept
+     * one, 2026-10-31). A person's stories stay, professional mode included, and so does a bucket with
+     * no owner. Off, the tray is Facebook's.
      */
     @Test
     public void pageStoriesLeaveWithTheirSwitch() {
@@ -606,14 +608,18 @@ public class SuggestedStoriesTest {
         Bucket suggestedPage = new Bucket(true, null).ownedBy(SuggestedStories.PAGE_OWNER);
         Bucket typed = Bucket.of(Type.PAGE_STORY);
         Bucket shared = Bucket.of(Type.SHARED_PAGE_STORY);
+        Bucket profilePage = new Bucket(false, null, Type.ADMINED_ADDITIONAL_PROFILE_STORY).ownedBy("User");
+        Bucket profilePlus = new Bucket(false, null, Type.PROFILE_PLUS_STORY).ownedBy("User");
+        Bucket creator = new Bucket(false, null, Type.PROFESSIONAL_STORY).ownedBy("User");
         Bucket ownerless = new Bucket(false, null);
-        List<Bucket> tray = Arrays.asList(friend, page, suggestedPage, typed, shared, ownerless);
+        List<Bucket> tray = Arrays.asList(friend, page, suggestedPage, typed, shared, profilePage, profilePlus,
+                creator, ownerless);
         Settings.HIDE_SUGGESTED_STORIES.save(false);
         assertSame("off, Facebook's tray", tray, SuggestedStoriesForTests.keptBuckets(tray));
 
         Settings.HIDE_PAGE_STORIES.save(true);
-        assertEquals(Arrays.asList(friend, ownerless), SuggestedStoriesForTests.keptBuckets(tray));
-        assertTrue(counterLine(), counterLine().contains("Removed: " + SuggestedStories.PAGE_STORY + " 4."));
+        assertEquals(Arrays.asList(friend, creator, ownerless), SuggestedStoriesForTests.keptBuckets(tray));
+        assertTrue(counterLine(), counterLine().contains("Removed: " + SuggestedStories.PAGE_STORY + " 6."));
         assertTrue(statusLine(), statusLine().endsWith(" 0 missing"));
     }
 

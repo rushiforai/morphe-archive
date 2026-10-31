@@ -9,7 +9,7 @@ private class Progress(val contentType: String, val videoId: String, val season:
 private class NextUp(@JvmField val b: String, @JvmField val g: String, @JvmField val h: Int,
                      @JvmField val i: Int, @JvmField val n: Boolean)
 private class Item(@JvmField val a: Any)
-private class Card(@JvmField val x: Progress?, @JvmField val y: Item?)
+private class Card(@JvmField val r: Progress?, @JvmField val s: Item?)
 private class Meta(val apiType: String, val id: String)
 private class Next(val nextVideoId: String?, val nextSeason: Int?, val nextEpisode: Int?, val watchProgress: Progress?)
 private class Detail(@JvmField val b: Meta?, @JvmField val h: Next?, @JvmField val f: List<Any> = emptyList())

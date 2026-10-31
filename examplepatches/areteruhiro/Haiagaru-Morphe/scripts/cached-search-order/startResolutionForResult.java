@@ -1,0 +1,1 @@
+package o; public class startResolutionForResult {public String a,d;public CharSequence c;public int h;public startResolutionForResult(String title,String url,CharSequence text,int flags){a=title;d=url;c=text;h=flags;}}

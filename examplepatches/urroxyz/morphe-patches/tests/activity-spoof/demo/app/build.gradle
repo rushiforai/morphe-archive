@@ -1,0 +1,15 @@
+plugins { id 'com.android.application' }
+android {
+ namespace 'xyz.urro.activitydemo'
+ compileSdk 36
+ defaultConfig { applicationId 'xyz.urro.activitydemo'; minSdk 29; targetSdk 36; versionCode 1; versionName '1.0' }
+ flavorDimensions += 'receiver'
+ productFlavors {
+  alpha { dimension 'receiver'; applicationIdSuffix '.alpha'; resValue 'string','app_name','Activity demo A' }
+  beta { dimension 'receiver'; applicationIdSuffix '.beta'; resValue 'string','app_name','Activity demo B' }
+  control { dimension 'receiver'; applicationIdSuffix '.control'; resValue 'string','app_name','Activity demo control' }
+ }
+ buildTypes { release { minifyEnabled true; proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro' } }
+ compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+}
+dependencies { implementation 'com.google.android.gms:play-services-location:21.4.0' }

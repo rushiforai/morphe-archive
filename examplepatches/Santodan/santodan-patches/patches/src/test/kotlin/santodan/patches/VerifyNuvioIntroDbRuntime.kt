@@ -1,4 +1,4 @@
-﻿package santodan.patches
+package santodan.patches
 
 import java.io.File
 import java.net.URLClassLoader
@@ -48,15 +48,15 @@ fun main(args: Array<String>) {
         "h1.b3" to """package h1; public interface b3 {Object getValue();}""",
         "h1.i1" to """package h1; public interface i1 extends h1.b3 {void setValue(Object v);}""",
         "h1.r1" to """package h1; public class r1 implements h1.i1 {Object v;public r1(Object v){this.v=v;}public Object getValue(){return v;}public void setValue(Object v){this.v=v;}}""",
-        "h1.h" to """package h1; public class h {public static h1.r1 t(Object v){return new h1.r1(v);}}""",
+        "h1.h" to """package h1; public class h {public static h1.r1 s(Object v){return new h1.r1(v);}}""",
         "h1.k0" to """package h1; public class k0 {public int depth;public Object j(Object key){return new y2.m2();}public void d0(int k){depth++;}public void p(boolean v){if(--depth<0)throw new AssertionError();}}""",
         "x1.n" to """package x1; public class n {public static final Object b=new Object();}""",
         "c2.z" to """package c2; public class z {}""",
         "m3.m" to """package m3; public class m {}""",
         "r1.s" to """package r1; public class s {Object callback;public s(int k,Object c,boolean tracked){callback=c;}
             public void render(Object composer){((kotlin.jvm.functions.Function3)callback).invoke(new Object(),composer,0);}}""",
-        "eb.d" to """package eb;public class d {public final String a,b;public d(String label,String value){a=label;b=value;}}""",
-        "eb.a" to """package eb;import fixture.Ui;import kotlin.jvm.functions.*;public class a {
+        "fb.d" to """package fb;public class d {public final String a,b;public d(String label,String value){a=label;b=value;}}""",
+        "fb.a" to """package fb;import fixture.Ui;import kotlin.jvm.functions.*;public class a {
             public static void b(Object modifier,String title,String value,String selected,boolean expanded,java.util.List<d> options,Function1 expand,Function1 select,boolean blocked,Object composer,int flags){
                 if(!title.equals("Segment type")||!value.equals(selected)||options.size()!=3)throw new AssertionError();
                 Ui.expand=expand;Ui.expanded=expanded;Ui.select=select;Ui.dropdownBlocked=blocked;}
@@ -73,7 +73,7 @@ fun main(args: Array<String>) {
             public static void clear(){actions.clear();enabled.clear();labels.clear();button=null;title=null;select=null;}
             public static void click(String name){if(Boolean.TRUE.equals(enabled.get(name)))actions.get(name).invoke();}
         }""",
-        "fb.nd" to """package fb; import kotlin.jvm.functions.*;import fixture.Ui; public class nd {
+        "gb.gd" to """package gb; import kotlin.jvm.functions.*;import fixture.Ui; public class gd {
             public static void m(String t,String s,boolean v,Function0 c,Object mod,Function0 f,boolean x,Object i,long l,boolean z,Object co,int flags,int defaults){Ui.toggle=c;Ui.setting=v;}
             public static void a(String t,String s,String v,Function0 c,Object m,Object f,boolean e,Object i,Object j,long l,Object k,Object n,float x,long color,Object co,int a,int b,int mask){
                 if(mask!=16368)throw new AssertionError();Ui.keyRow=c;Ui.keyStatus=v;}
@@ -81,30 +81,30 @@ fun main(args: Array<String>) {
             public static void e(Object a,r1.s content,Object co,int flags,int defaults){int previous=Ui.row;Ui.row=++Ui.nextRow;content.render(co);Ui.row=previous;}
             public static void j(String t,java.util.List<?> opts,Object value,Function1 select,Function0 dismiss,Object sub,float w,float h,Object co,int flags,int defaults){Ui.select=select;Ui.dismiss=dismiss;}
         }""",
-        "fb.ve" to """package fb; public class ve {public static void b(String t,Object m,Object style,Object co,int a,int b){fixture.Ui.labels.add(t);}}""",
-        "fb.v" to """package fb;import kotlin.jvm.functions.*;public class v implements Function3 {
+        "gb.ke" to """package gb; public class ke {public static void b(String t,Object m,Object style,Object co,int a,int b){fixture.Ui.labels.add(t);}}""",
+        "gb.u" to """package gb;import kotlin.jvm.functions.*;public class u implements Function3 {
             public static h1.i1 text;public static c2.z focus;
-            public v(c2.z f,y2.m2 keyboard,h1.i1 v,h1.i1 focused,int branch){if(branch!=0||keyboard==null)throw new AssertionError();text=v;focus=f;}
+            public u(c2.z f,y2.m2 keyboard,h1.i1 v,h1.i1 focused,int branch){if(branch!=0||keyboard==null)throw new AssertionError();text=v;focus=f;}
             public Object invoke(Object scope,Object composer,Object flags){return kotlin.Unit.INSTANCE;}
         }""",
-        "fb.w0" to """package fb;public class w0 implements kotlin.jvm.functions.Function1 {public w0(int branch,h1.i1 state){if(branch!=2)throw new AssertionError();}public Object invoke(Object focus){return kotlin.Unit.INSTANCE;}}""",
-        "ab.a2" to """package ab;public class a2 implements kotlin.jvm.functions.Function0 {public a2(c2.z f,int branch){if(branch!=0)throw new AssertionError();}public Object invoke(){return kotlin.Unit.INSTANCE;}}""",
-        "fb.l0" to """package fb;public class l0 {
+        "gb.x" to """package gb;public class x implements kotlin.jvm.functions.Function1 {public x(int branch,h1.i1 state){if(branch!=2)throw new AssertionError();}public Object invoke(Object focus){return kotlin.Unit.INSTANCE;}}""",
+        "bb.w1" to """package bb;public class w1 implements kotlin.jvm.functions.Function0 {public w1(c2.z f,int branch){if(branch!=0)throw new AssertionError();}public Object invoke(){return kotlin.Unit.INSTANCE;}}""",
+        "gb.j0" to """package gb;public class j0 {
             static r1.s text(String label){return new r1.s(1,(kotlin.jvm.functions.Function3)(x,y,z)->{fixture.Ui.nativeText=label;return kotlin.Unit.INSTANCE;},true);}
             public static final r1.s a=text("Cancel"),b=text("Clear");
         }""",
-        "fb.w" to """package fb;public class w implements kotlin.jvm.functions.Function3 {
-            public w(h1.b3 value,int branch){if(branch!=0||(Boolean)value.getValue())throw new AssertionError();}
+        "gb.v" to """package gb;public class v implements kotlin.jvm.functions.Function3 {
+            public v(h1.b3 value,int branch){if(branch!=0||(Boolean)value.getValue())throw new AssertionError();}
             public Object invoke(Object scope,Object composer,Object flags){fixture.Ui.nativeText="Save";return kotlin.Unit.INSTANCE;}
         }""",
         "y2.l1" to """package y2;public class l1 {public static final Object q=new Object();}""",
         "y2.m2" to """package y2;public class m2 {}""",
         "androidx.compose.foundation.layout.b" to """package androidx.compose.foundation.layout;public class b {public static Object f(Object m,float fraction){return m;}}""",
         "c2.d" to """package c2;public class d {public static Object i(Object m,Object callback){return m;}}""",
-        "g0.t" to """package g0;public class t {public static ib.e y(Object composer){return new ib.e();}public static ib.m A(Object composer){return new ib.m();}}""",
-        "ib.e" to """package ib;public class e {public long b=1,c=2,l=3,x=4;}""",
-        "ib.l0" to """package ib;public class l0 {public static final ib.l0 a=new ib.l0();public float b=1,c=2;}""",
-        "ib.m" to """package ib;public class m {public y.u a(float width,float alpha){return new y.u();}}""",
+        "gb.dh" to """package gb;public class dh {public static jb.e s(Object composer){return new jb.e();}public static jb.m u(Object composer){return new jb.m();}}""",
+        "jb.e" to """package jb;public class e {public long b=1,c=2,l=3,x=4;}""",
+        "jb.l0" to """package jb;public class l0 {public static final jb.l0 a=new jb.l0();public float b=1,c=2;}""",
+        "jb.m" to """package jb;public class m {public y.u a(float width,float alpha){return new y.u();}}""",
         "y.m" to """package y;public class m {public static y.u a(long color,float width){return new y.u();}}""",
         "y.u" to """package y;public class u {}""",
         "e2.w0" to """package e2;public interface w0 {}""",
@@ -123,20 +123,20 @@ fun main(args: Array<String>) {
             public static void a(Function0 click,Object modifier,boolean enabled,Object shape,Object scale,Object colors,Object border,Object padding,r1.s text,Object composer,int flags,int flags2,int defaults){
                 if(defaults!=3966)throw new AssertionError();text.render(composer);fixture.Ui.actions.put(fixture.Ui.nativeText,click);fixture.Ui.enabled.put(fixture.Ui.nativeText,true);}
         }""",
-        "ma.y1" to """package ma;import kotlin.jvm.functions.*;public class y1 {
+        "na.y1" to """package na;import kotlin.jvm.functions.*;public class y1 {
             public static void z(Function0 d,String title,String sub,float width,int align,boolean suppress,boolean platform,Object brush,Object border,float a,float b,float c,float e,Object bg,r1.s content,Object composer,int f,int f2,int defaults){
                 if(title.equals("IntroDB API key")?(defaults!=16368||width!=700):defaults!=16336)throw new AssertionError();fixture.Ui.title=title;fixture.Ui.subtitle=sub;fixture.Ui.dismiss=d;content.render(composer);}
         }""",
         "k2.e" to """package k2;public class e {public final String name;public e(String n){name=n;}}""",
         "k2.d" to """package k2;public class d {String name;public d(String n,float a,float b,float c,float e,long color,int tint,boolean mirror,int flags){name=n;}
-            public static void a(d vector,java.util.ArrayList<?> path,int fill,e2.y0 brush){if(path.size()<20)throw new AssertionError();}public e b(){return new e(name);}}
+            public static void a(d vector,java.util.ArrayList<?> path,int fill,e2.a1 brush){if(path.size()<20)throw new AssertionError();}public e b(){return new e(name);}}
         """,
         "e2.z" to """package e2;public class z {public static final long b=0L;}""",
-        "e2.y0" to """package e2;public class y0 {public y0(long color){}}""",
+        "e2.a1" to """package e2;public class a1 {public a1(long color){}}""",
         "io.sentry.d2" to """package io.sentry;public class d2 {public java.util.ArrayList<Object> b=new java.util.ArrayList<>();public d2(int mode){}
             public void o(float x,float y){b.add(new float[]{x,y});}public void m(float x,float y){b.add(new float[]{x,y});}public void e(){b.add("close");}}
         """,
-        "ab.pl" to """package ab;import kotlin.jvm.functions.*;public class pl {
+        "bb.hk" to """package bb;import kotlin.jvm.functions.*;public class hk {
             public static void c(Object i,Object painter,String label,Function0 click,Object focus,Object up,boolean enabled,Object down,Object focused,long color,Object composer,int flags,int defaults){
                 if(up==null||down==null||focused==null||defaults!=530)throw new AssertionError();fixture.Ui.icon=i;fixture.Ui.button=enabled?click:null;fixture.Ui.buttonLabel=label;}
         }""",
@@ -147,22 +147,22 @@ fun main(args: Array<String>) {
         "kotlinx.coroutines.flow.StateFlow" to """package kotlinx.coroutines.flow;public class StateFlow {
             public Object value;public StateFlow(Object v){value=v;}public Object getValue(){return value;}
         }""",
-        "ab.j6" to """package ab;public class j6 {public boolean d;}""",
-        "ab.mc" to """package ab;public class mc {
-            public Long position=0L;public int reads,timers,pauseTimers;public boolean standby;public kotlinx.coroutines.Job T0=new kotlinx.coroutines.Job(),d4=new kotlinx.coroutines.Job();
-            public kotlinx.coroutines.flow.StateFlow H0=new kotlinx.coroutines.flow.StateFlow(new ab.j6());
+        "bb.c6" to """package bb;public class c6 {public boolean d;}""",
+        "bb.bc" to """package bb;public class bc {
+            public Long position=0L;public int reads,timers,pauseTimers;public boolean standby;public kotlinx.coroutines.Job U0=new kotlinx.coroutines.Job(),k4=new kotlinx.coroutines.Job();
+            public kotlinx.coroutines.flow.StateFlow H0=new kotlinx.coroutines.flow.StateFlow(new bb.c6());
         }""",
-        "ab.te" to """package ab;public class te {public static Long e(ab.mc c){c.reads++;return c.position;}}""",
-        "ab.zf" to """package ab;public class zf {public static void F(ab.mc c){
+        "bb.ce" to """package bb;public class ce {public static Long e(bb.bc c){c.reads++;return c.position;}}""",
+        "bb.df" to """package bb;public class df {public static void H(bb.bc c){
             if(software.santodan.extension.nuviointro.NuvioIntroDb.holdControlsTimer(c))return;
-            c.timers++;c.T0=new kotlinx.coroutines.Job();}
-            public static void H(ab.mc c){if(software.santodan.extension.nuviointro.NuvioIntroDb.holdControlsTimer(c))return;
-                c.pauseTimers++;c.d4=new kotlinx.coroutines.Job();}
-            public static void i(ab.mc c){if(c.d4!=null)c.d4.cancelled=true;c.d4=null;c.standby=false;}}""",
-        "ab.qm" to """package ab;public class qm {public ab.mc Y=new ab.mc();}""",
-        "ab.nm" to """package ab;public class nm {public Integer A0=2,B0=3;public String C0="tt12345:2:3",i="https://video.invalid/cut1";}""",
-        "ab.cj" to """package ab;public class cj {public ab.qm c=new ab.qm();public ab.nm e=new ab.nm();public Object o=new Object();
-            public kotlin.jvm.functions.Function0 p=()->kotlin.Unit.INSTANCE,q=()->kotlin.Unit.INSTANCE;}
+            c.timers++;c.U0=new kotlinx.coroutines.Job();}
+            public static void J(bb.bc c){if(software.santodan.extension.nuviointro.NuvioIntroDb.holdControlsTimer(c))return;
+                c.pauseTimers++;c.k4=new kotlinx.coroutines.Job();}
+            public static void j(bb.bc c){if(c.k4!=null)c.k4.cancelled=true;c.k4=null;c.standby=false;}}""",
+        "bb.hl" to """package bb;public class hl {public bb.bc Y=new bb.bc();}""",
+        "bb.el" to """package bb;public class el {public Integer A0=2,B0=3;public String C0="tt12345:2:3",i="https://video.invalid/cut1";}""",
+        "bb.ai" to """package bb;public class ai {public bb.hl c=new bb.hl();public bb.el d=new bb.el();public Object i=new Object();
+            public kotlin.jvm.functions.Function0 j=()->kotlin.Unit.INSTANCE,k=()->kotlin.Unit.INSTANCE;}
         """,
         "fixture.Runner" to """package fixture;
             import android.app.*;import android.os.*;import software.santodan.extension.nuviointro.NuvioIntroDb;
@@ -172,9 +172,9 @@ fun main(args: Array<String>) {
                 static volatile String payload;static volatile CountDownLatch entered;static h1.k0 composer=new h1.k0();
                 static void check(boolean v){if(!v)throw new AssertionError();}
                 static void settings()throws Exception{Ui.clear();NuvioIntroDb.renderSettings(composer);check(composer.depth==0);}
-                static void render(ab.cj owner){Ui.clear();NuvioIntroDb.renderControl(owner,composer);check(composer.depth==0);}
+                static void render(bb.ai owner){Ui.clear();NuvioIntroDb.renderControl(owner,composer);check(composer.depth==0);}
                 static void complete()throws Exception{Runnable r=Handler.queue.poll(5,TimeUnit.SECONDS);check(r!=null);r.run();}
-                static void capture(ab.cj owner){owner.c.Y.position=12345L;render(owner);check(((k2.e)Ui.icon).name.endsWith(".0"));Object first=Ui.icon;
+                static void capture(bb.ai owner){owner.c.Y.position=12345L;render(owner);check(((k2.e)Ui.icon).name.endsWith(".0"));Object first=Ui.icon;
                     Ui.button.invoke();render(owner);check(Ui.title==null&&Ui.buttonLabel.contains("mark end")&&Ui.icon!=first&&((k2.e)Ui.icon).name.endsWith(".1"));
                     owner.c.Y.position=23456L;Ui.button.invoke();render(owner);check(Ui.title.equals("Submit segment to IntroDB")&&((k2.e)Ui.icon).name.endsWith(".2"));}
                 public static void run()throws Exception{
@@ -187,29 +187,29 @@ fun main(args: Array<String>) {
                                 long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);while(block&&System.nanoTime()<until)try{Thread.sleep(5);}catch(InterruptedException e){throw new IOException(e);}return response;}
                         };}
                     }:null);
-                    Activity activity=new Activity();NuvioIntroDb.resume(activity);ab.cj owner=new ab.cj();
+                    Activity activity=new Activity();NuvioIntroDb.resume(activity);bb.ai owner=new bb.ai();
                     settings();check(!Ui.setting&&Ui.keyStatus.equals("Not set"));render(owner);check(Ui.button==null&&owner.c.Y.reads==0&&requests==0);
                     settings();Ui.keyRow.invoke();settings();check(Ui.title.equals("IntroDB API key")&&Ui.actions.keySet().containsAll(java.util.List.of("Cancel","Clear","Save")));
-                    fb.v.text.setValue("test-key");Ui.click("Save");
+                    gb.u.text.setValue("test-key");Ui.click("Save");
                     settings();check(Ui.keyStatus.equals("Configured"));Ui.toggle.invoke();settings();check(Ui.setting);
-                    var pendingStandby=owner.c.Y.d4;owner.c.Y.standby=true;
-                    capture(owner);check(owner.c.Y.reads==2&&owner.c.Y.T0.cancelled);check(Ui.labels.contains("Start: 00:00:12.345")&&Ui.labels.contains("End: 00:00:23.456"));
-                    check(pendingStandby.cancelled&&owner.c.Y.d4==null&&!owner.c.Y.standby);
+                    var pendingStandby=owner.c.Y.k4;owner.c.Y.standby=true;
+                    capture(owner);check(owner.c.Y.reads==2&&owner.c.Y.U0.cancelled);check(Ui.labels.contains("Start: 00:00:12.345")&&Ui.labels.contains("End: 00:00:23.456"));
+                    check(pendingStandby.cancelled&&owner.c.Y.k4==null&&!owner.c.Y.standby);
                     check(NuvioIntroDb.holdControlsTimer(owner.c.Y));
-                    check(!NuvioIntroDb.holdControlsTimer(new ab.mc()));
-                    ab.zf.F(owner.c.Y);check(owner.c.Y.timers==0&&owner.c.Y.T0.cancelled);
-                    ab.zf.H(owner.c.Y);check(owner.c.Y.pauseTimers==0&&owner.c.Y.d4==null);
+                    check(!NuvioIntroDb.holdControlsTimer(new bb.bc()));
+                    bb.df.H(owner.c.Y);check(owner.c.Y.timers==0&&owner.c.Y.U0.cancelled);
+                    bb.df.J(owner.c.Y);check(owner.c.Y.pauseTimers==0&&owner.c.Y.k4==null);
                     check(Ui.actionRows.get("Submit").equals(Ui.actionRows.get("Cancel")));
                     Ui.expand.invoke(true);render(owner);check(Ui.expanded&&Ui.title.equals("Submit segment to IntroDB"));
-                    ab.zf.F(owner.c.Y);check(owner.c.Y.timers==0&&owner.c.Y.T0.cancelled);
-                    ab.zf.H(owner.c.Y);check(owner.c.Y.pauseTimers==0&&owner.c.Y.d4==null);
+                    bb.df.H(owner.c.Y);check(owner.c.Y.timers==0&&owner.c.Y.U0.cancelled);
+                    bb.df.J(owner.c.Y);check(owner.c.Y.pauseTimers==0&&owner.c.Y.k4==null);
                     Ui.expand.invoke(false);render(owner);check(!Ui.expanded&&Ui.title.equals("Submit segment to IntroDB"));
                     check(NuvioIntroDb.holdControlsTimer(owner.c.Y));
-                    Ui.expand.invoke(true);render(owner);Ui.select.invoke(new eb.d("outro","outro"));render(owner);check(!Ui.expanded&&Ui.labels.contains("Segment: outro"));
+                    Ui.expand.invoke(true);render(owner);Ui.select.invoke(new fb.d("outro","outro"));render(owner);check(!Ui.expanded&&Ui.labels.contains("Segment: outro"));
                     Ui.click("Submit");Ui.click("Submit");complete();render(owner);check(requests==1&&background&&payload.contains("\"start_ms\":12345")&&payload.contains("\"end_sec\":23.456"));
                     check(payload.contains("\"segment_type\":\"outro\"")&&!Ui.enabled.get("Submit"));Ui.click("Submit");check(requests==1);Ui.click("Close");check(owner.c.Y.timers==1);
                     check(!NuvioIntroDb.holdControlsTimer(owner.c.Y));
-                    check(owner.c.Y.pauseTimers==1&&owner.c.Y.d4!=null);
+                    check(owner.c.Y.pauseTimers==1&&owner.c.Y.k4!=null);
                     capture(owner);response=401;Ui.click("Submit");complete();render(owner);check(Ui.labels.stream().anyMatch(x->x.contains("rejected the API key"))&&Ui.enabled.get("Submit"));
                     response=500;Ui.click("Submit");complete();render(owner);check(Ui.labels.stream().anyMatch(x->x.contains("HTTP 500")));
                     response=400;Ui.click("Submit");complete();render(owner);check(Ui.labels.stream().anyMatch(x->x.contains("intro duration out of range"))&&Ui.enabled.get("Submit"));
@@ -218,14 +218,14 @@ fun main(args: Array<String>) {
                     check(owner.c.Y.pauseTimers==pauseRestarts);
                     check(!NuvioIntroDb.holdControlsTimer(owner.c.Y));
                     NuvioIntroDb.resume(activity);render(owner);check(Ui.title==null&&Ui.buttonLabel.contains("mark start"));
-                    Ui.button.invoke();render(owner);check(Ui.buttonLabel.contains("mark end"));owner.e.C0="tt12345:2:4";owner.e.B0=4;render(owner);check(Ui.buttonLabel.contains("mark start"));
-                    Ui.button.invoke();owner.e.i="https://video.invalid/cut2";render(owner);check(Ui.buttonLabel.contains("mark start"));
+                    Ui.button.invoke();render(owner);check(Ui.buttonLabel.contains("mark end"));owner.d.C0="tt12345:2:4";owner.d.B0=4;render(owner);check(Ui.buttonLabel.contains("mark start"));
+                    Ui.button.invoke();owner.d.i="https://video.invalid/cut2";render(owner);check(Ui.buttonLabel.contains("mark start"));
                     Ui.button.invoke();settings();Ui.toggle.invoke();render(owner);check(Ui.button==null);
-                    settings();Ui.keyRow.invoke();settings();fb.v.text.setValue("unsaved-key");Ui.click("Cancel");settings();check(Ui.keyStatus.equals("Configured"));
+                    settings();Ui.keyRow.invoke();settings();gb.u.text.setValue("unsaved-key");Ui.click("Cancel");settings();check(Ui.keyStatus.equals("Configured"));
                     Ui.keyRow.invoke();settings();Ui.click("Clear");settings();check(Ui.keyStatus.equals("Not set"));
                     Ui.toggle.invoke();render(owner);Ui.button.invoke();render(owner);check(Ui.title.equals("Submit segment to IntroDB")&&Ui.labels.stream().anyMatch(x->x.contains("Settings"))&&!Ui.enabled.get("Submit"));
-                    Ui.click("Cancel");((ab.j6)owner.c.Y.H0.value).d=true;render(owner);check(Ui.button==null);
-                    ((ab.j6)owner.c.Y.H0.value).d=false;
+                    Ui.click("Cancel");((bb.c6)owner.c.Y.H0.value).d=true;render(owner);check(Ui.button==null);
+                    ((bb.c6)owner.c.Y.H0.value).d=false;
                     software.santodan.extension.nuviobuttons.NuvioPlaybackButtons.collect=true;
                     render(owner);check(Ui.button==null);
                     Object[] captured=software.santodan.extension.nuviobuttons.NuvioPlaybackButtons.captured;

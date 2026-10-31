@@ -26,10 +26,11 @@ public final class ResponseMenuSettings {
     }
     static boolean handleTools(Object item){if(!(item instanceof android.view.MenuItem)||((android.view.MenuItem)item).getItemId()!=TOOLS)return false;Runnable action=TOOL_ACTIONS.get(item);if(action!=null)action.run();return true;}
     private ResponseMenuSettings() {}
-    static final int[] IDS = {0x7e484b01, 0x7e484a01, 0x7e484a03, 75, 76, 0x7e000077, 0x7e000078, 0x7e000079};
-    static final String[] NAMES={"投稿者を強調","レスを保存","保存済みレスを見る","ﾜｯﾁｮｲで検索","ﾜｯﾁｮｲ下4桁をNG登録","ﾜｯﾁｮｲ下4桁で検索","ﾜｯﾁｮｲ上4桁で検索","ﾜｯﾁｮｲ上4桁をNG登録"};
-    static boolean defaultVisible(int id){for(int action:IDS)if(action==id)return !FeatureSwitches.enabled(MinimalSetup.ACTIVE,false)&&(id==75||id==76);return true;}
+    static final int[] IDS = {0x7e484b01, 0x7e484a01, 0x7e484a03, 75, 76, 0x7e000077, 0x7e000078, 0x7e000079, RedIdAutoNg.MENU_EXCLUSION};
+    static final String[] NAMES={"投稿者を強調","レスを保存","保存済みレスを見る","ﾜｯﾁｮｲで検索","ﾜｯﾁｮｲ下4桁をNG登録","ﾜｯﾁｮｲ下4桁で検索","ﾜｯﾁｮｲ上4桁で検索","ﾜｯﾁｮｲ上4桁をNG登録","自動NGの除外IDに追加"};
+    static boolean defaultVisible(int id){for(int action:IDS)if(action==id)return !FeatureSwitches.enabled(MinimalSetup.ACTIVE,false)&&(id==75||id==76||id==RedIdAutoNg.MENU_EXCLUSION);return true;}
     private static int icon(int id) {
+        if(id==RedIdAutoNg.MENU_EXCLUSION)return android.R.drawable.ic_menu_add;
         if(id==75)return wacchoiSearchIcon();
         if(id==0x7e484a01)return ResponseArchive.archiveIcon(true);
         if(id==0x7e484a03)return ResponseArchive.archiveIcon(false);

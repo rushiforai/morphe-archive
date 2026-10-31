@@ -19,6 +19,7 @@ import app.morphe.patches.facebook.misc.extension.parameterRegister
 import app.morphe.patches.facebook.misc.extension.requireStatusMethod
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -34,7 +35,10 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
  * are untouched. Behind that, the reel like helper's double-tap like finds no key for the reel,
  * which stops the players that call it themselves before the reel's sidebar hears of it, and the
  * helper's like holds back a like whose source is a double tap. The feed attachment that plays its
- * own heart leaves its double tap unhandled. The Like button likes as before.
+ * own heart leaves its double tap unhandled. On Home's photos the double-tap listener their
+ * components share answers no double tap, so no heart plays and nothing is liked, while the single
+ * tap that opens a photo and the long press have detectors of their own; the feed's double-tap like
+ * helper holds its like back behind that. The Like button likes as before.
  *
  * In the default selection with its switch off: a double tap to like is a gesture people use on
  * purpose, so taking it away is a choice to make, as with Tap to play.
@@ -43,16 +47,16 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 val turnOffDoubleTapLikePatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Turn off double tap to like",
-    description = "Stops a double tap on a reel or video from liking it, so you don't like things by accident. A " +
-        "single tap still plays or pauses, and the Like button still works. Starts off. Turn it on in " +
-        "Hushfacebook settings > Reels and Watch.",
+    description = "Stops a double tap on a reel, a video or a photo in the feed from liking it, so you don't like " +
+        "things by accident. A single tap still plays, pauses or opens the photo, and the Like button still works. " +
+        "Starts off. Turn it on in Hushfacebook settings > Reels and Watch.",
 ) {
     category("Reels")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
     execute {
-        // Every anchor of both hooks is found, every reader that would refuse the gesture-view hook
+        // Every anchor of every hook is found, every reader that would refuse the gesture-view hook
         // is checked, and SettingsStatus is confirmed to carry the switch's own method, before either
         // hook changes a single instruction. A build that fails anywhere in the find phase is refused
         // with nothing patched: the like hooks, the gesture view or a reader partway through can't
@@ -61,6 +65,7 @@ val turnOffDoubleTapLikePatch = bytecodePatch(
         requireStatusMethod("doubleTapLike")
         val reelLikeAnchors = findReelLikeAnchors()
         val gestureViewAnchors = findGestureViewAnchors()
+        val feedPhotoAnchors = findFeedPhotoAnchors()
         // The two hooks read different classes in every build seen so far; if a reader the gesture
         // view hook would change ever turned out to live in the helper or the attachment, changing
         // one hook would shift the read positions the other already recorded. Refuse rather than
@@ -72,8 +77,14 @@ val turnOffDoubleTapLikePatch = bytecodePatch(
                     "reel like hooks; the two hooks can't be told apart",
             )
         }
+        // The feed photo hooks' classes are kept apart from the other hooks' for the same reason.
+        val feedPhotoClasses = setOf(feedPhotoAnchors.like.definingClass, feedPhotoAnchors.listener.definingClass)
+        (gestureViewAnchors.plans.map { it.reader.definingClass } + reelLikeClasses).firstOrNull { it in feedPhotoClasses }?.let {
+            refuse("$it is part of both the feed photo hooks and the reel or gesture view hooks; the hooks can't be told apart")
+        }
         applyReelLikeAnchors(reelLikeAnchors)
         applyGestureViewAnchors(gestureViewAnchors)
+        applyFeedPhotoAnchors(feedPhotoAnchors)
         enableStatus("doubleTapLike")
     }
 }
@@ -184,6 +195,79 @@ private fun BytecodePatchContext.applyGestureViewAnchors(anchors: GestureViewAnc
         // Last read first, so each index still names its read.
         plan.reads.sortedDescending().forEach { mutable.askAfterRead(it, anchors.handler, plan.hook) }
     }
+}
+
+/** What [findFeedPhotoAnchors] found, for [applyFeedPhotoAnchors] to change. */
+private class FeedPhotoAnchors(val like: Method, val listener: Method)
+
+/**
+ * Home's photos: the double-tap listener their components share answers no double tap, and the
+ * feed's double-tap like helper holds its like back. Finds both; changes neither.
+ */
+private fun BytecodePatchContext.findFeedPhotoAnchors(): FeedPhotoAnchors {
+    val helpers = classDefByStrings(FEED_LIKE_HAPTIC, StringComparisonType.EQUALS).filter(::isFeedLikeHelper)
+    val helper = helpers.singleOrNull() ?: refuse(
+        "expected one class loading \"$FEED_LIKE_HAPTIC\" with an instance $ANIMATION_POSITION answering a PointF, " +
+            "found ${helpers.size}",
+    )
+    val like = feedLikes(helper).singleOrNull()
+        ?: refuse("expected the feed's double-tap like helper to have one static like taking a GraphQLFeedback")
+    // The feed components calling the helper make the listener along with their other detectors'.
+    val made = mutableSetOf<String>()
+    classDefForEachReferencing(types = listOf(helper.type)) { owner ->
+        if (owner.type != helper.type && callsInto(owner, helper.type)) made += typesMadeBy(owner)
+    }
+    val listeners = made.mapNotNull(::classDefByOrNull).mapNotNull(::feedDoubleTapEvent)
+    val listener = listeners.singleOrNull() ?: refuse(
+        "expected one $GESTURE_LISTENER with only $DOUBLE_TAP_EVENT made by a class calling the feed's double-tap " +
+            "like helper, found ${listeners.size}",
+    )
+    // Both hooks borrow v0 at index 0; checked before any hook of this patch changes anything.
+    like.requireOneLocal()
+    listener.requireOneLocal()
+    return FeedPhotoAnchors(like, listener)
+}
+
+private fun BytecodePatchContext.applyFeedPhotoAnchors(anchors: FeedPhotoAnchors) {
+    mutableClassDefBy(anchors.like.definingClass).findMutableMethodOf(anchors.like).holdBackFeedLike()
+    mutableClassDefBy(anchors.listener.definingClass).findMutableMethodOf(anchors.listener).leaveFeedDoubleTapUnreported()
+}
+
+/**
+ * First thing in the feed photo listener's onDoubleTapEvent: hand the extension the event and
+ * answer false, no double tap, while the switch holds it back. v0 is free at index 0, checked by
+ * [requireOneLocal] before any hook of this patch changes anything.
+ */
+private fun MutableMethod.leaveFeedDoubleTapUnreported() {
+    addInstructionsWithLabels(
+        0,
+        """
+            move-object/from16 v0, ${parameterRegister(0)}
+            invoke-static { v0 }, $HOLD_BACK_FEED_TAP
+            move-result v0
+            if-eqz v0, :tap
+            const/4 v0, 0x0
+            return v0
+        """,
+        ExternalLabel("tap", getInstruction(0)),
+    )
+}
+
+/**
+ * First thing in the feed's double-tap like: return without liking while the switch holds it back.
+ * v0 is free at index 0, checked by [requireOneLocal] before any hook of this patch changes anything.
+ */
+private fun MutableMethod.holdBackFeedLike() {
+    addInstructionsWithLabels(
+        0,
+        """
+            invoke-static { }, $HOLD_BACK_FEED_LIKE
+            move-result v0
+            if-eqz v0, :like
+            return-void
+        """,
+        ExternalLabel("like", getInstruction(0)),
+    )
 }
 
 /**

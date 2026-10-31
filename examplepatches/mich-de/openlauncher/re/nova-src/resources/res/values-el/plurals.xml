@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">Γρήγορη προώθηση κατά %d δευτερόλεπτο</item>
+        <item quantity="other">Γρήγορη προώθηση κατά %d δευτερόλεπτα</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">Μετάβαση προς τα πίσω κατά %d δευτερόλεπτο</item>
+        <item quantity="other">Μετάβαση προς τα πίσω κατά %d δευτερόλεπτα</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d συναντήσεις</item>
+        <item quantity="one">%d συνάντηση</item>
+        <item quantity="two">%d συναντήσεις</item>
+        <item quantity="few">%d συναντήσεις</item>
+        <item quantity="many">%d συναντήσεις</item>
+        <item quantity="other">%d συναντήσεις</item>
+    </plurals>
+</resources>

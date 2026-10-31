@@ -7,6 +7,7 @@ package app.morphe.patches.facebook.search
 import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.layout.theme.branchTargets
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
@@ -188,9 +189,133 @@ class PreSearchSectionsFixtureTest {
         assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), abis)
     }
 
+    /** Runs [check] on every declared build's bundles, then asserts each build and ABI was seen. */
+    private fun forEachBundle(check: (name: String, bundle: File, entry: String, classes: List<ClassDef>) -> Unit) {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        assertTrue("the bundle declares no Facebook build", versions.isNotEmpty())
+        val checked = mutableSetOf<String>()
+        val abis = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                abis += bundle.name.substringAfter("-$version-").substringBefore(".apkm")
+                val list = FixtureDex.classesHolding(bundle, PRE_SEARCH_LIST).filterNot { it.type.startsWith(EXTENSION_PACKAGE) }
+                val entry = PatchContexts.of(list).preSearchEntryType()
+                assertNotNull("${bundle.name}: no entry class for \"$PRE_SEARCH_LIST\"", entry)
+                val entryClass = FixtureDex.classes(bundle, setOf(entry!!))[entry]
+                    ?: throw AssertionError("${bundle.name} has no $entry")
+                check(bundle.name, bundle, entry, list + entryClass)
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), abis)
+    }
+
+    /** [method] of [type] once [context] patched it. */
+    private fun patched(context: BytecodePatchContext, type: String, method: Method) =
+        context.mutableClassDefBy(type).methods.single {
+            it.name == method.name && it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)
+        }.code()
+
+    /** Asserts [patched] is [code] with [hook]'s three instructions at [at], keeping [kept] cast back to [type]. */
+    private fun assertHanded(name: String, code: List<Instruction>, patched: List<Instruction>, at: Int, hook: String, kept: Int, type: String) {
+        assertEquals("$name: three instructions added", code.opcodes().size + 3, patched.opcodes().size)
+        val hand = patched[at] as FiveRegisterInstruction
+        assertEquals("$name: the extension handed the node",
+            listOf(Opcode.INVOKE_STATIC, hook, 1, kept), listOf(hand.opcode, hand.call().toString(), hand.registerCount, hand.registerC))
+        assertEquals("$name: the answer is kept where the node was",
+            listOf(Opcode.MOVE_RESULT_OBJECT, kept), listOf(patched[at + 1].opcode, (patched[at + 1] as OneRegisterInstruction).registerA))
+        val cast = patched[at + 2]
+        assertEquals("$name: the answer is cast back",
+            listOf(Opcode.CHECK_CAST, kept, type),
+            listOf(cast.opcode, (cast as OneRegisterInstruction).registerA, ((cast as ReferenceInstruction).reference as TypeReference).type))
+        assertEquals("$name: the rest is Facebook's", code.opcodes(), patched.filterIndexed { index, _ -> index !in at..at + 2 }.opcodes())
+    }
+
+    @Test
+    fun `each declared build's first page builder hands each node to the extension`() = forEachBundle { name, bundle, entry, classes ->
+        val heads = FixtureDex.classesHolding(bundle, PRE_SEARCH_HEAD)
+        val context = PatchContexts.of((classes + heads).distinctBy { it.type })
+        assertEquals("$name: builders naming themselves \"$PRE_SEARCH_HEAD\"", 1, context.preSearchHeads().size)
+        val head = context.preSearchHeads().single()
+        val entryInterfaces = classes.first { it.type == entry }.interfaces.toSet()
+        val sites = preSearchSites(head, entry, entryInterfaces).filter { it.byNode }
+        assertEquals("$name: places the builder reads an entry's node", 1, sites.size)
+        val site = sites.single()
+        val code = site.method.code()
+        // Positive control: the builder answers a list, and each module it reads goes into one.
+        assertEquals("$name: the builder answers a list", "Lcom/google/common/collect/ImmutableList;", site.method.returnType)
+        val added = code[site.read + 5]
+        assertEquals("$name: the module goes into a list",
+            listOf("add", site.module), listOf(added.call()?.name, (added as? FiveRegisterInstruction)?.registers()?.getOrNull(1)))
+        context.hookPreSearchHead()
+        assertHanded(name, code, patched(context, head.type, site.method), site.read + 1, PRE_SEARCH_HEAD_NODE, site.node, site.type)
+    }
+
+    @Test
+    fun `each declared build's null-state query hands each node to the extension`() = forEachBundle { name, bundle, entry, classes ->
+        // The classes holding the node type's key, then those calling an accessor among them.
+        val key = NULL_STATE_NODE_KEY
+        val holders = FixtureDex.methodsWhere(bundle, { dex -> dex.stringSection.any { it == CONCRETE_READER } }) { method ->
+            method.implementation?.instructions?.any { it is NarrowLiteralInstruction && it.narrowLiteral == key } == true
+        }
+        val holderClasses = FixtureDex.classes(bundle, holders.map { it.definingClass }.toSet()).values.toList()
+        val owners = holderClasses.filter { it.type != entry }.flatMap { it.interfaces + it.type }.toSet()
+        val callers = FixtureDex.methodsWhere(bundle, { dex -> dex.typeSection.any { it in owners } }) { method ->
+            AccessFlags.STATIC.isSet(method.accessFlags) &&
+                method.implementation?.instructions?.any { it.call()?.definingClass in owners } == true
+        }
+        val callerClasses = FixtureDex.classes(bundle, callers.map { it.definingClass }.toSet()).values.toList()
+        val context = PatchContexts.of((classes + holderClasses + callerClasses).distinctBy { it.type })
+        val sites = context.preSearchQuerySites(entry)
+        assertEquals("$name: places the query reads an entry's node", 1, sites.size)
+        val site = sites.single()
+        val code = site.method.code()
+        // Positive control: the loop body adds what it reads off the node to the list it's handed.
+        assertTrue("$name: the query adds nothing to its list", code.subList(site.test, code.size).any {
+            it.call()?.let { call -> call.definingClass == "Lcom/google/common/collect/ImmutableList\$Builder;" && call.name == "add" } == true
+        })
+        assertTrue("$name: a jump lands on the null test", site.test !in branchTargets(code))
+        context.hookPreSearchQuery()
+        assertHanded(name, code, patched(context, site.method.definingClass, site.method), site.test, PRE_SEARCH_QUERY_NODE, site.node, site.type)
+    }
+
+    @Test
+    fun `each declared build hands the section's paginated list to the extension`() = forEachBundle { name, bundle, entry, classes ->
+        val sections = FixtureDex.classesHolding(bundle, PRE_SEARCH_SECTION).filterNot { it.type.startsWith(EXTENSION_PACKAGE) }
+        val context = PatchContexts.of((classes + sections).distinctBy { it.type })
+        val section = context.preSearchSections().single()
+        val sites = preSearchListSites(section)
+        assertEquals("$name: places the section keeps its paginated list", 1, sites.size)
+        val site = sites.single()
+        val code = site.method.code()
+        // Positive control: the list is then handed to the section builder.
+        assertEquals("$name: the list read", PRE_SEARCH_PAGINABLE, code[site.read - 1].call()?.returnType)
+        assertTrue("$name: the list isn't handed on", code.subList(site.read + 1, minOf(code.size, site.read + 30)).any {
+            it.call()?.parameterTypes?.map(CharSequence::toString)?.contains(PRE_SEARCH_PAGINABLE) == true
+        })
+        // The register the hook borrows is written again right after, on every path.
+        assertTrue("$name: the borrowed register is written next", code[site.read + 1] is OneRegisterInstruction &&
+            (code[site.read + 1] as OneRegisterInstruction).registerA == site.scratch)
+        context.hookPreSearchList()
+        val patched = patched(context, section.type, site.method)
+        assertEquals("$name: four instructions added", code.opcodes().size + 4, patched.opcodes().size)
+        val hand = patched[site.read + 2] as FiveRegisterInstruction
+        assertEquals("$name: the extension handed the list and the accessor",
+            listOf(Opcode.CONST_STRING, Opcode.INVOKE_STATIC, PRE_SEARCH_LIST_HOOK, 2, site.list, site.scratch),
+            listOf(patched[site.read + 1].opcode, hand.opcode, hand.call().toString(), hand.registerCount, hand.registerC, hand.registerD))
+        assertEquals("$name: the answer is kept as the list and cast back",
+            listOf(Opcode.MOVE_RESULT_OBJECT, site.list, Opcode.CHECK_CAST, site.list, PRE_SEARCH_PAGINABLE),
+            listOf(patched[site.read + 3].opcode, (patched[site.read + 3] as OneRegisterInstruction).registerA,
+                patched[site.read + 4].opcode, (patched[site.read + 4] as OneRegisterInstruction).registerA,
+                ((patched[site.read + 4] as ReferenceInstruction).reference as TypeReference).type))
+        assertEquals("$name: the rest is Facebook's", code.opcodes(),
+            patched.filterIndexed { index, _ -> index !in site.read + 1..site.read + 4 }.opcodes())
+    }
+
     @Test
     fun `the extension has the hooks`() {
-        for (descriptor in listOf(PRE_SEARCH_ENTRY, PRE_SEARCH_NODE)) {
+        for (descriptor in listOf(PRE_SEARCH_LIST_HOOK, PRE_SEARCH_ENTRY, PRE_SEARCH_NODE, PRE_SEARCH_HEAD_NODE, PRE_SEARCH_QUERY_NODE)) {
             val type = descriptor.substringBefore("->")
             val name = descriptor.substringAfter("->").substringBefore("(")
             val hook = ExtensionDex.classDef(type).methods.singleOrNull { it.name == name }

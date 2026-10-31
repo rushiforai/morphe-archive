@@ -1,0 +1,464 @@
+package com.google.android.gms.internal.play_billing;
+
+import ads_mobile_sdk.pd;
+import com.instabridge.ai.tools.perapp.PerAppFeatureCatalog;
+import com.vungle.ads.internal.protos.Sdk;
+
+/* loaded from: classes3.dex */
+public enum w4 implements z2 {
+    REASON_UNSPECIFIED(0),
+    SERVICE_CONNECTION_NOT_READY(1),
+    GET_BUY_INTENT_ERROR(2),
+    LAUNCH_BILLING_FLOW_TIMEOUT(3),
+    LAUNCH_BILLING_FLOW_EXCEPTION(4),
+    INVALID_BUNDLE(5),
+    INVALID_REQUEST_CODE(6),
+    INVALID_LISTENER(7),
+    SUBSCRIPTIONS_NOT_SUPPORTED(8),
+    SUBSCRIPTIONS_UPDATE_NOT_SUPPORTED(9),
+    NULL_BUNDLE_IN_BROADCAST_RECEIVER(10),
+    MISSING_LISTENER(11),
+    MISSING_PURCHASE_DATA(12),
+    INVALID_FIRST_PARTY_PURCHASE_DATA(13),
+    MISSING_ALTERNATIVE_BILLING_LISTENER(14),
+    MISSING_ALTERNATIVE_BILLING_USER_CHOICE_DATA(15),
+    INVALID_ALTERNATIVE_BILLING_USER_CHOICE_DATA(16),
+    EXTRA_PARAMS_NOT_SUPPORTED(17),
+    MULTI_ITEM_NOT_SUPPORTED(18),
+    PRODUCT_DETAILS_NOT_SUPPORTED(19),
+    OFFER_ID_TOKEN_NOT_SUPPORTED(20),
+    NULL_BUNDLE_IN_ACTIVITY_RESULT(21),
+    BILLING_RESULT_RECEIVED_FROM_PHONESKY(22),
+    EXECUTE_ASYNC_TIMEOUT(23),
+    MISSING_RESULT_FROM_EXECUTE_ASYNC(24),
+    EMPTY_PURCHASE_TOKEN(25),
+    API_VERSION_NOT_V9(26),
+    ACKNOWLEDGE_PURCHASE_SERVICE_CALL_EXCEPTION(27),
+    CONSUME_PURCHASE_SERVICE_CALL_EXCEPTION(28),
+    IN_APP_MESSAGE_NOT_SUPPORTED(29),
+    CROSS_APP_NOT_SUPPORTED(30),
+    GET_BILLING_CONFIG_NOT_SUPPORTED(31),
+    QUERY_PRODUCT_DETAILS_WITH_SERIALIZED_DOCID_NOT_SUPPORTED(32),
+    UNKNOWN_FEATURE(33),
+    PRICE_CHANGE_CONFIRMATION_NOT_SUPPORTED(34),
+    ONE_TIME_PRODUCT_NOT_SUPPORTED(35),
+    BILLING_CLIENT_CONNECTING(36),
+    BILLING_CLIENT_CLOSED(37),
+    BILLING_SERVICE_BLOCKED(38),
+    INVALID_PHONESKY_PACKAGE(39),
+    INTENT_SERVICE_NOT_FOUND(40),
+    IS_BILLING_SUPPORTED_SERVICE_CALL_EXCEPTION(41),
+    GET_SKU_DETAILS_SERVICE_CALL_EXCEPTION(42),
+    NULL_BUNDLE_FROM_GET_SKU_DETAILS_SERVICE_CALL(43),
+    MISSING_DETAILS_LIST_IN_GET_SKU_DETAILS_RESPONSE(44),
+    NULL_DETAILS_LIST_IN_GET_SKU_DETAILS_RESPONSE(45),
+    ERROR_DECODING_SKU_DETAILS(46),
+    EMPTY_SKU_LIST(47),
+    EMPTY_SKU_TYPE(48),
+    EMPTY_PRODUCT_TYPE(49),
+    ERROR_DECODING_PURCHASE_DATA(50),
+    GET_PURCHASE_SERVICE_CALL_EXCEPTION(51),
+    INVALID_PURCHASES_BUNDLE(52),
+    NULL_OWNED_ITEMS_LIST(53),
+    MISSING_REQUIRED_PURCHASE_KEY(54),
+    NULL_SKUS_LIST(55),
+    NULL_PURCHASES_LIST(56),
+    NULL_SIGNATURES_LIST(57),
+    GET_PURCHASE_HISTORY_SERVICE_CALL_EXCEPTION(58),
+    QUERY_PRODUCT_DETAILS_WITH_DEVELOPER_SPECIFIED_ACCOUNT_NOT_SUPPORTED(59),
+    PBL_FOR_PAYMENTS_GATEWAY_BUYFLOW_NOT_SUPPORTED(60),
+    GET_BILLING_CONFIG_SERVICE_CALL_EXCEPTION(61),
+    NULL_BUNDLE_FROM_GET_BILLING_CONFIG_SERVICE_CALL(62),
+    MISSING_BILLING_CONFIG_IN_GET_BILLING_CONFIG_RESPONSE(63),
+    ERROR_DECODING_BILLING_CONFIG_DATA(64),
+    ALTERNATIVE_BILLING_ONLY_NOT_SUPPORTED(65),
+    NULL_BUNDLE_FROM_IS_ALTERNATIVE_BILLING_ONLY_AVAILABLE_SERVICE_CALL(66),
+    ERROR_DECODING_ALTERNATIVE_BILLING_ONLY_AVAILABILITY(67),
+    IS_ALTERNATIVE_BILLING_ONLY_AVAILABLE_SERVICE_CALL_EXCEPTION(68),
+    CREATE_ALTERNATIVE_BILLING_ONLY_TOKEN_SERVICE_CALL_EXCEPTION(69),
+    NULL_BUNDLE_FROM_CREATE_ALTERNATIVE_BILLING_ONLY_TOKEN_SERVICE_CALL(70),
+    ERROR_DECODING_ALTERNATIVE_BILLING_ONLY_REPORTING_DETAILS(71),
+    NULL_BUNDLE_IN_ALTERNATIVE_BILLING_ONLY_INFORMATION_DIALOG_RECEIVER(72),
+    SHOW_ALTERNATIVE_BILLING_ONLY_DIALOG_SERVICE_CALL_EXCEPTION(73),
+    MISSING_ALTERNATIVE_BILLING_ONLY_DIALOG_RESULT_RECEIVER(74),
+    RUNTIME_EXCEPTION_ON_LAUNCHING_ALTERNATIVE_BILLING_ONLY_DIALOG_INTENT(75),
+    MISSING_USER_CHOICE_BILLING_LISTENER(76),
+    NULL_BUNDLE_FROM_GET_BUY_INTENT_EXTRA_PARAMS_SERVICE_CALL(77),
+    NULL_BUNDLE_FROM_GET_BUY_INTENT_TO_REPLACE_SKUS_SERVICE_CALL(78),
+    NULL_BUNDLE_FROM_GET_BUY_INTENT_SERVICE_CALL(79),
+    IS_EXTERNAL_PAYMENT_AVAILABLE_SERVICE_CALL_EXCEPTION(90),
+    NULL_BUNDLE_FROM_IS_EXTERNAL_PAYMENT_AVAILABLE_SERVICE_CALL(91),
+    EXTERNAL_OFFER_NOT_SUPPORTED(102),
+    CREATE_EXTERNAL_PAYMENT_REPORTING_DETAILS_SERVICE_CALL_EXCEPTION(93),
+    NULL_BUNDLE_FROM_CREATE_EXTERNAL_PAYMENT_REPORTING_DETAILS_SERVICE_CALL(94),
+    ERROR_DECODING_EXTERNAL_OFFER_REPORTING_DETAILS(103),
+    NULL_BUNDLE_IN_EXTERNAL_PAYMENT_INFORMATION_DIALOG_RECEIVER(96),
+    SHOW_EXTERNAL_PAYMENT_DIALOG_SERVICE_CALL_EXCEPTION(97),
+    RUNTIME_EXCEPTION_ON_LAUNCHING_EXTERNAL_PAYMENT_DIALOG_INTENT(98),
+    IS_BILLING_SUPPORTED_REMOTE_EXCEPTION(99),
+    IS_BILLING_SUPPORTED_DEAD_OBJECT_EXCEPTION(100),
+    IS_BILLING_SUPPORTED_SECURITY_EXCEPTION(101),
+    LICENSE_TESTER_BILLING_OVERRIDE(104),
+    BILLING_OVERRIDE_SERVICE_CONNECTION_NOT_READY(105),
+    BILLING_OVERRIDE_SERVICE_CALL_EXCEPTION(106),
+    NULL_LISTENER_IN_DELEGATE_TO_BACKEND_CALLBACK(107),
+    ERROR_DECODING_DELEGATE_TO_BACKEND_RESPONSE_DATA(108),
+    NULL_BUNDLE_FROM_DELEGATE_TO_BACKEND_SERVICE_CALL(109),
+    MISSING_BILLING_RESULT_IN_DELEGATE_TO_BACKEND_RESPONSE(110),
+    ERROR_DECODING_DELEGATE_TO_BACKEND_BILLING_RESULT(111),
+    MISSING_RESPONSE_DATA_IN_DELEGATE_TO_BACKEND_RESPONSE(112),
+    BILLING_OVERRIDE_SERVICE_CALL_TIMEOUT(113),
+    BILLING_OVERRIDE_SERVICE_FALLBACK_ERROR(114),
+    MULTI_ITEM_WITH_SEASON_PASS_NOT_SUPPORTED(115),
+    BILLING_CLIENT_TRANSITIONED_OUT_OF_CONNECTING(Sdk.SDKError.Reason.GZIP_ENCODE_ERROR_VALUE),
+    SERVICE_CALL_EXCEPTION(Sdk.SDKError.Reason.ASSET_FAILED_STATUS_CODE_VALUE),
+    SERVICE_RESET_TO_NULL(Sdk.SDKError.Reason.PROTOBUF_SERIALIZATION_ERROR_VALUE),
+    INVALID_BILLING_FLOW_PARAMS(Sdk.SDKError.Reason.JSON_ENCODE_ERROR_VALUE),
+    SERVICE_DISCONNECTED(120),
+    BINDING_DIED(Sdk.SDKError.Reason.TPAT_ERROR_VALUE),
+    FIRST_PARTY_CLIENT_MISSING_1P_LISTENER(Sdk.SDKError.Reason.INVALID_ADS_ENDPOINT_VALUE),
+    FIRST_PARTY_CLIENT_MISSING_3P_LISTENER(Sdk.SDKError.Reason.INVALID_RI_ENDPOINT_VALUE),
+    NULL_DATA_WITH_OK_RESULT_CODE_IN_PROXY_BILLING_ACTIVITY_RESULT(Sdk.SDKError.Reason.INVALID_LOG_ERROR_ENDPOINT_VALUE),
+    NULL_DATA_WITH_CANCELLED_RESULT_CODE_IN_PROXY_BILLING_ACTIVITY_RESULT(Sdk.SDKError.Reason.INVALID_METRICS_ENDPOINT_VALUE),
+    NULL_DATA_WITH_PLAY_CANCELED_RESULT_CODE(145),
+    NULL_DATA_WITH_PLAY_CANCELED_WITHOUT_COMPLETE_ACTION_RESULT_CODE(146),
+    NULL_DATA_WITH_OTHER_RESULT_CODE_IN_PROXY_BILLING_ACTIVITY_RESULT(Sdk.SDKError.Reason.ASSET_FAILED_INSUFFICIENT_SPACE_VALUE),
+    NULL_DATA_WITH_ON_CREATE_RUNTIME_EXCEPTION_RESULT_CODE(147),
+    AUTO_PAY_NOT_SUPPORTED(Sdk.SDKError.Reason.ASSET_FAILED_MAX_SPACE_EXCEEDED_VALUE),
+    BILLING_PROGRAM_NOT_SUPPORTED(128),
+    LAUNCH_EXTERNAL_OFFER_FLOW_NOT_SUPPORTED(Sdk.SDKError.Reason.EMPTY_TPAT_ERROR_VALUE),
+    NULL_BUNDLE_RETURNED_BY_PHONESKY(Sdk.SDKError.Reason.MRAID_DOWNLOAD_JS_ERROR_VALUE),
+    LAUNCH_EXTERNAL_LINK_NOT_SUPPORTED(Sdk.SDKError.Reason.MRAID_JS_WRITE_FAILED_VALUE),
+    RUNTIME_EXCEPTION_WHEN_LAUNCHING_INTENT(Sdk.SDKError.Reason.OMSDK_DOWNLOAD_JS_ERROR_VALUE),
+    NULL_INTENT_RETURNED_BY_PHONESKY(Sdk.SDKError.Reason.OMSDK_JS_WRITE_FAILED_VALUE),
+    ERROR_IN_ACTIVITY_RESULT(Sdk.SDKError.Reason.STORE_REGION_CODE_ERROR_VALUE),
+    MISSING_RESPONSE_CODE_IN_PHONESKY_BUNDLE(Sdk.SDKError.Reason.INVALID_CONFIG_RESPONSE_VALUE),
+    BILLING_API_VERSION_NOT_SET_IN_BUNDLE(Sdk.SDKError.Reason.PRIVACY_URL_ERROR_VALUE),
+    RESPONSE_CODE_NOT_SET_IN_BUNDLE(Sdk.SDKError.Reason.TPAT_RETRY_FAILED_VALUE),
+    NON_OK_CODE_RETURNED_BY_PHONESKY(Sdk.SDKError.Reason.CONFIG_REFRESH_FAILED_VALUE),
+    INITIALIZE_SERVICE_CALL_EXCEPTION(139),
+    INITIALIZE_DEAD_OBJECT_EXCEPTION(140),
+    INITIALIZE_SECURITY_EXCEPTION(141),
+    INITIALIZE_REMOTE_EXCEPTION(142),
+    RUNTIME_EXCEPTION_ON_LAUNCH_EXTERNAL_LINK_INTENT(143),
+    NULL_BUNDLE_IN_LAUNCH_EXTERNAL_LINK_RESULT_RECEIVER(144),
+    INTENT_SENDER_EXCEPTION(148),
+    INCLUDE_SUSPENDED_SUBSCRIPTIONS_NOT_SUPPORTED(149),
+    PLAY_STORE_ON_CREATE_RUNTIME_EXCEPTION(PerAppFeatureCatalog.MAX_TOOLS),
+    MISSING_DEVELOPER_PROVIDED_BILLING_LISTENER(151),
+    NULL_DEVELOPER_MANAGED_BILLING_LISTENER(152);
+
+
+    /* renamed from: a, reason: collision with root package name */
+    public final int f33645a;
+
+    w4(int i5) {
+        this.f33645a = i5;
+    }
+
+    public static w4 a(int i5) {
+        if (i5 == 90) {
+            return IS_EXTERNAL_PAYMENT_AVAILABLE_SERVICE_CALL_EXCEPTION;
+        }
+        if (i5 == 91) {
+            return NULL_BUNDLE_FROM_IS_EXTERNAL_PAYMENT_AVAILABLE_SERVICE_CALL;
+        }
+        if (i5 == 93) {
+            return CREATE_EXTERNAL_PAYMENT_REPORTING_DETAILS_SERVICE_CALL_EXCEPTION;
+        }
+        if (i5 == 94) {
+            return NULL_BUNDLE_FROM_CREATE_EXTERNAL_PAYMENT_REPORTING_DETAILS_SERVICE_CALL;
+        }
+        switch (i5) {
+            case 0:
+                return REASON_UNSPECIFIED;
+            case 1:
+                return SERVICE_CONNECTION_NOT_READY;
+            case 2:
+                return GET_BUY_INTENT_ERROR;
+            case 3:
+                return LAUNCH_BILLING_FLOW_TIMEOUT;
+            case 4:
+                return LAUNCH_BILLING_FLOW_EXCEPTION;
+            case 5:
+                return INVALID_BUNDLE;
+            case 6:
+                return INVALID_REQUEST_CODE;
+            case 7:
+                return INVALID_LISTENER;
+            case 8:
+                return SUBSCRIPTIONS_NOT_SUPPORTED;
+            case 9:
+                return SUBSCRIPTIONS_UPDATE_NOT_SUPPORTED;
+            case 10:
+                return NULL_BUNDLE_IN_BROADCAST_RECEIVER;
+            case 11:
+                return MISSING_LISTENER;
+            case 12:
+                return MISSING_PURCHASE_DATA;
+            case 13:
+                return INVALID_FIRST_PARTY_PURCHASE_DATA;
+            case 14:
+                return MISSING_ALTERNATIVE_BILLING_LISTENER;
+            case 15:
+                return MISSING_ALTERNATIVE_BILLING_USER_CHOICE_DATA;
+            case 16:
+                return INVALID_ALTERNATIVE_BILLING_USER_CHOICE_DATA;
+            case 17:
+                return EXTRA_PARAMS_NOT_SUPPORTED;
+            case 18:
+                return MULTI_ITEM_NOT_SUPPORTED;
+            case 19:
+                return PRODUCT_DETAILS_NOT_SUPPORTED;
+            case 20:
+                return OFFER_ID_TOKEN_NOT_SUPPORTED;
+            case 21:
+                return NULL_BUNDLE_IN_ACTIVITY_RESULT;
+            case 22:
+                return BILLING_RESULT_RECEIVED_FROM_PHONESKY;
+            case 23:
+                return EXECUTE_ASYNC_TIMEOUT;
+            case 24:
+                return MISSING_RESULT_FROM_EXECUTE_ASYNC;
+            case 25:
+                return EMPTY_PURCHASE_TOKEN;
+            case 26:
+                return API_VERSION_NOT_V9;
+            case 27:
+                return ACKNOWLEDGE_PURCHASE_SERVICE_CALL_EXCEPTION;
+            case 28:
+                return CONSUME_PURCHASE_SERVICE_CALL_EXCEPTION;
+            case 29:
+                return IN_APP_MESSAGE_NOT_SUPPORTED;
+            case 30:
+                return CROSS_APP_NOT_SUPPORTED;
+            case 31:
+                return GET_BILLING_CONFIG_NOT_SUPPORTED;
+            case 32:
+                return QUERY_PRODUCT_DETAILS_WITH_SERIALIZED_DOCID_NOT_SUPPORTED;
+            case 33:
+                return UNKNOWN_FEATURE;
+            case 34:
+                return PRICE_CHANGE_CONFIRMATION_NOT_SUPPORTED;
+            case 35:
+                return ONE_TIME_PRODUCT_NOT_SUPPORTED;
+            case 36:
+                return BILLING_CLIENT_CONNECTING;
+            case 37:
+                return BILLING_CLIENT_CLOSED;
+            case 38:
+                return BILLING_SERVICE_BLOCKED;
+            case 39:
+                return INVALID_PHONESKY_PACKAGE;
+            case 40:
+                return INTENT_SERVICE_NOT_FOUND;
+            case 41:
+                return IS_BILLING_SUPPORTED_SERVICE_CALL_EXCEPTION;
+            case 42:
+                return GET_SKU_DETAILS_SERVICE_CALL_EXCEPTION;
+            case 43:
+                return NULL_BUNDLE_FROM_GET_SKU_DETAILS_SERVICE_CALL;
+            case 44:
+                return MISSING_DETAILS_LIST_IN_GET_SKU_DETAILS_RESPONSE;
+            case 45:
+                return NULL_DETAILS_LIST_IN_GET_SKU_DETAILS_RESPONSE;
+            case 46:
+                return ERROR_DECODING_SKU_DETAILS;
+            case 47:
+                return EMPTY_SKU_LIST;
+            case 48:
+                return EMPTY_SKU_TYPE;
+            case 49:
+                return EMPTY_PRODUCT_TYPE;
+            case 50:
+                return ERROR_DECODING_PURCHASE_DATA;
+            case 51:
+                return GET_PURCHASE_SERVICE_CALL_EXCEPTION;
+            case 52:
+                return INVALID_PURCHASES_BUNDLE;
+            case 53:
+                return NULL_OWNED_ITEMS_LIST;
+            case 54:
+                return MISSING_REQUIRED_PURCHASE_KEY;
+            case 55:
+                return NULL_SKUS_LIST;
+            case 56:
+                return NULL_PURCHASES_LIST;
+            case 57:
+                return NULL_SIGNATURES_LIST;
+            case 58:
+                return GET_PURCHASE_HISTORY_SERVICE_CALL_EXCEPTION;
+            case 59:
+                return QUERY_PRODUCT_DETAILS_WITH_DEVELOPER_SPECIFIED_ACCOUNT_NOT_SUPPORTED;
+            case 60:
+                return PBL_FOR_PAYMENTS_GATEWAY_BUYFLOW_NOT_SUPPORTED;
+            case 61:
+                return GET_BILLING_CONFIG_SERVICE_CALL_EXCEPTION;
+            case 62:
+                return NULL_BUNDLE_FROM_GET_BILLING_CONFIG_SERVICE_CALL;
+            case 63:
+                return MISSING_BILLING_CONFIG_IN_GET_BILLING_CONFIG_RESPONSE;
+            case 64:
+                return ERROR_DECODING_BILLING_CONFIG_DATA;
+            case 65:
+                return ALTERNATIVE_BILLING_ONLY_NOT_SUPPORTED;
+            case 66:
+                return NULL_BUNDLE_FROM_IS_ALTERNATIVE_BILLING_ONLY_AVAILABLE_SERVICE_CALL;
+            case 67:
+                return ERROR_DECODING_ALTERNATIVE_BILLING_ONLY_AVAILABILITY;
+            case 68:
+                return IS_ALTERNATIVE_BILLING_ONLY_AVAILABLE_SERVICE_CALL_EXCEPTION;
+            case 69:
+                return CREATE_ALTERNATIVE_BILLING_ONLY_TOKEN_SERVICE_CALL_EXCEPTION;
+            case 70:
+                return NULL_BUNDLE_FROM_CREATE_ALTERNATIVE_BILLING_ONLY_TOKEN_SERVICE_CALL;
+            case 71:
+                return ERROR_DECODING_ALTERNATIVE_BILLING_ONLY_REPORTING_DETAILS;
+            case 72:
+                return NULL_BUNDLE_IN_ALTERNATIVE_BILLING_ONLY_INFORMATION_DIALOG_RECEIVER;
+            case 73:
+                return SHOW_ALTERNATIVE_BILLING_ONLY_DIALOG_SERVICE_CALL_EXCEPTION;
+            case 74:
+                return MISSING_ALTERNATIVE_BILLING_ONLY_DIALOG_RESULT_RECEIVER;
+            case 75:
+                return RUNTIME_EXCEPTION_ON_LAUNCHING_ALTERNATIVE_BILLING_ONLY_DIALOG_INTENT;
+            case 76:
+                return MISSING_USER_CHOICE_BILLING_LISTENER;
+            case 77:
+                return NULL_BUNDLE_FROM_GET_BUY_INTENT_EXTRA_PARAMS_SERVICE_CALL;
+            case 78:
+                return NULL_BUNDLE_FROM_GET_BUY_INTENT_TO_REPLACE_SKUS_SERVICE_CALL;
+            case 79:
+                return NULL_BUNDLE_FROM_GET_BUY_INTENT_SERVICE_CALL;
+            default:
+                switch (i5) {
+                    case pd.A0 /* 96 */:
+                        return NULL_BUNDLE_IN_EXTERNAL_PAYMENT_INFORMATION_DIALOG_RECEIVER;
+                    case pd.H0 /* 97 */:
+                        return SHOW_EXTERNAL_PAYMENT_DIALOG_SERVICE_CALL_EXCEPTION;
+                    case pd.Q0 /* 98 */:
+                        return RUNTIME_EXCEPTION_ON_LAUNCHING_EXTERNAL_PAYMENT_DIALOG_INTENT;
+                    case pd.R0 /* 99 */:
+                        return IS_BILLING_SUPPORTED_REMOTE_EXCEPTION;
+                    case 100:
+                        return IS_BILLING_SUPPORTED_DEAD_OBJECT_EXCEPTION;
+                    case 101:
+                        return IS_BILLING_SUPPORTED_SECURITY_EXCEPTION;
+                    case 102:
+                        return EXTERNAL_OFFER_NOT_SUPPORTED;
+                    case 103:
+                        return ERROR_DECODING_EXTERNAL_OFFER_REPORTING_DETAILS;
+                    case 104:
+                        return LICENSE_TESTER_BILLING_OVERRIDE;
+                    case 105:
+                        return BILLING_OVERRIDE_SERVICE_CONNECTION_NOT_READY;
+                    case 106:
+                        return BILLING_OVERRIDE_SERVICE_CALL_EXCEPTION;
+                    case 107:
+                        return NULL_LISTENER_IN_DELEGATE_TO_BACKEND_CALLBACK;
+                    case 108:
+                        return ERROR_DECODING_DELEGATE_TO_BACKEND_RESPONSE_DATA;
+                    case 109:
+                        return NULL_BUNDLE_FROM_DELEGATE_TO_BACKEND_SERVICE_CALL;
+                    case 110:
+                        return MISSING_BILLING_RESULT_IN_DELEGATE_TO_BACKEND_RESPONSE;
+                    case 111:
+                        return ERROR_DECODING_DELEGATE_TO_BACKEND_BILLING_RESULT;
+                    case 112:
+                        return MISSING_RESPONSE_DATA_IN_DELEGATE_TO_BACKEND_RESPONSE;
+                    case 113:
+                        return BILLING_OVERRIDE_SERVICE_CALL_TIMEOUT;
+                    case 114:
+                        return BILLING_OVERRIDE_SERVICE_FALLBACK_ERROR;
+                    case 115:
+                        return MULTI_ITEM_WITH_SEASON_PASS_NOT_SUPPORTED;
+                    case GZIP_ENCODE_ERROR_VALUE:
+                        return BILLING_CLIENT_TRANSITIONED_OUT_OF_CONNECTING;
+                    case ASSET_FAILED_STATUS_CODE_VALUE:
+                        return SERVICE_CALL_EXCEPTION;
+                    case PROTOBUF_SERIALIZATION_ERROR_VALUE:
+                        return SERVICE_RESET_TO_NULL;
+                    case JSON_ENCODE_ERROR_VALUE:
+                        return INVALID_BILLING_FLOW_PARAMS;
+                    case 120:
+                        return SERVICE_DISCONNECTED;
+                    case TPAT_ERROR_VALUE:
+                        return BINDING_DIED;
+                    case INVALID_ADS_ENDPOINT_VALUE:
+                        return FIRST_PARTY_CLIENT_MISSING_1P_LISTENER;
+                    case INVALID_RI_ENDPOINT_VALUE:
+                        return FIRST_PARTY_CLIENT_MISSING_3P_LISTENER;
+                    case INVALID_LOG_ERROR_ENDPOINT_VALUE:
+                        return NULL_DATA_WITH_OK_RESULT_CODE_IN_PROXY_BILLING_ACTIVITY_RESULT;
+                    case INVALID_METRICS_ENDPOINT_VALUE:
+                        return NULL_DATA_WITH_CANCELLED_RESULT_CODE_IN_PROXY_BILLING_ACTIVITY_RESULT;
+                    case ASSET_FAILED_INSUFFICIENT_SPACE_VALUE:
+                        return NULL_DATA_WITH_OTHER_RESULT_CODE_IN_PROXY_BILLING_ACTIVITY_RESULT;
+                    case ASSET_FAILED_MAX_SPACE_EXCEEDED_VALUE:
+                        return AUTO_PAY_NOT_SUPPORTED;
+                    case 128:
+                        return BILLING_PROGRAM_NOT_SUPPORTED;
+                    case EMPTY_TPAT_ERROR_VALUE:
+                        return LAUNCH_EXTERNAL_OFFER_FLOW_NOT_SUPPORTED;
+                    case MRAID_DOWNLOAD_JS_ERROR_VALUE:
+                        return NULL_BUNDLE_RETURNED_BY_PHONESKY;
+                    case MRAID_JS_WRITE_FAILED_VALUE:
+                        return LAUNCH_EXTERNAL_LINK_NOT_SUPPORTED;
+                    case OMSDK_DOWNLOAD_JS_ERROR_VALUE:
+                        return RUNTIME_EXCEPTION_WHEN_LAUNCHING_INTENT;
+                    case OMSDK_JS_WRITE_FAILED_VALUE:
+                        return NULL_INTENT_RETURNED_BY_PHONESKY;
+                    case STORE_REGION_CODE_ERROR_VALUE:
+                        return ERROR_IN_ACTIVITY_RESULT;
+                    case INVALID_CONFIG_RESPONSE_VALUE:
+                        return MISSING_RESPONSE_CODE_IN_PHONESKY_BUNDLE;
+                    case PRIVACY_URL_ERROR_VALUE:
+                        return BILLING_API_VERSION_NOT_SET_IN_BUNDLE;
+                    case TPAT_RETRY_FAILED_VALUE:
+                        return RESPONSE_CODE_NOT_SET_IN_BUNDLE;
+                    case CONFIG_REFRESH_FAILED_VALUE:
+                        return NON_OK_CODE_RETURNED_BY_PHONESKY;
+                    case 139:
+                        return INITIALIZE_SERVICE_CALL_EXCEPTION;
+                    case 140:
+                        return INITIALIZE_DEAD_OBJECT_EXCEPTION;
+                    case 141:
+                        return INITIALIZE_SECURITY_EXCEPTION;
+                    case 142:
+                        return INITIALIZE_REMOTE_EXCEPTION;
+                    case 143:
+                        return RUNTIME_EXCEPTION_ON_LAUNCH_EXTERNAL_LINK_INTENT;
+                    case 144:
+                        return NULL_BUNDLE_IN_LAUNCH_EXTERNAL_LINK_RESULT_RECEIVER;
+                    case 145:
+                        return NULL_DATA_WITH_PLAY_CANCELED_RESULT_CODE;
+                    case 146:
+                        return NULL_DATA_WITH_PLAY_CANCELED_WITHOUT_COMPLETE_ACTION_RESULT_CODE;
+                    case 147:
+                        return NULL_DATA_WITH_ON_CREATE_RUNTIME_EXCEPTION_RESULT_CODE;
+                    case 148:
+                        return INTENT_SENDER_EXCEPTION;
+                    case 149:
+                        return INCLUDE_SUSPENDED_SUBSCRIPTIONS_NOT_SUPPORTED;
+                    case PerAppFeatureCatalog.MAX_TOOLS /* 150 */:
+                        return PLAY_STORE_ON_CREATE_RUNTIME_EXCEPTION;
+                    case 151:
+                        return MISSING_DEVELOPER_PROVIDED_BILLING_LISTENER;
+                    case 152:
+                        return NULL_DEVELOPER_MANAGED_BILLING_LISTENER;
+                    default:
+                        return null;
+                }
+        }
+    }
+
+    @Override // java.lang.Enum
+    public final String toString() {
+        return Integer.toString(this.f33645a);
+    }
+
+    @Override // com.google.android.gms.internal.play_billing.z2
+    public final int zza() {
+        return this.f33645a;
+    }
+}

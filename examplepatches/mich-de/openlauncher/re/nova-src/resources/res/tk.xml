@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:launcher="http://schemas.android.com/apk/res-auto">
+    <com.android.launcher3.shortcuts.DeepShortcutTextView
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:ellipsize="end"
+        android:gravity="start|center_vertical"
+        android:id="0x7f0b0115"
+        android:background="?android:attr/selectableItemBackground"
+        android:paddingTop="0x7f07007d"
+        android:paddingBottom="0x7f07007d"
+        android:focusable="false"
+        android:minHeight="0x7f07007c"
+        android:maxLines="2"
+        android:minLines="1"
+        android:textAlignment="viewStart"
+        android:paddingStart="0x7f0700b7"
+        android:paddingEnd="0x7f070494"
+        android:hyphenationFrequency="full"
+        launcher:iconDisplay="4"
+        launcher:layoutHorizontal="true"
+        style="0x7f150132"/>
+    <View
+        android:layout_gravity="start|center_vertical"
+        android:id="0x7f0b036a"
+        android:layout_width="0x7f070533"
+        android:layout_height="0x7f070533"
+        android:layout_marginStart="0x7f070534"
+        android:backgroundTint="?android:attr/textColorPrimary"/>
+</merge>

@@ -203,4 +203,52 @@ public class SkipSilenceTest {
         assertEquals(Collections.singletonList("BY_PLAYER@12000"), reel.seeks);
         assertFalse(SkipSilence.skipSilence(false));
     }
+
+    // ---- Facebook's checks on dropped frames (#286) ---------------------------------------------
+
+    @Test
+    public void whileSkippingFacebooksDropChecksReadAsOff() {
+        Settings.SKIP_SILENT_PARTS.save(true);
+        SkipSilenceForTests.playing("111");
+        assertEquals("the health check still looks at a normal speed", 2f, SkipSilence.healthSpeed(1f), 0f);
+        assertEquals("a speed the check skips anyway changed", 1.5f, SkipSilence.healthSpeed(1.5f), 0f);
+        assertFalse("the drop fallback stayed on", SkipSilence.dropFallback(true));
+        assertEquals("a drop threshold can still be reached", Long.MAX_VALUE, SkipSilence.dropThreshold(40));
+        assertEquals("a threshold that's off came on", 0, SkipSilence.dropThreshold(0));
+        assertEquals("dav1d's drop warnings still recover", 0, SkipSilence.dropRecovery(2));
+        assertTrue(statusLine(), statusLine().contains(SkipSilence.HEALTH_LEFT_OUT + " 1"));
+    }
+
+    @Test
+    public void offPausedOrKeptWholeFacebooksDropChecksStandAsTheyAre() {
+        assertEquals("off, the health check was left out", 1f, SkipSilence.healthSpeed(1f), 0f);
+        assertTrue("off, the drop fallback went off", SkipSilence.dropFallback(true));
+        assertEquals("off, a threshold moved", 40, SkipSilence.dropThreshold(40));
+        assertEquals("off, dav1d's recovery went off", 2, SkipSilence.dropRecovery(2));
+
+        Settings.SKIP_SILENT_PARTS.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertEquals("paused, the health check was left out", 1f, SkipSilence.healthSpeed(1f), 0f);
+        assertTrue("paused, the drop fallback went off", SkipSilence.dropFallback(true));
+        PauseForTests.resume();
+
+        SkipSilenceForTests.playing("111");
+        SkipSilence.flip(null, "111");
+        assertEquals("a video keeping its silent parts left the health check out", 1f, SkipSilence.healthSpeed(1f), 0f);
+        assertEquals("a video keeping its silent parts moved a threshold", 40, SkipSilence.dropThreshold(40));
+        assertFalse("nothing was left out, yet it was counted",
+                String.valueOf(statusLine()).contains(SkipSilence.HEALTH_LEFT_OUT));
+        assertFalse("a server flag that's off came on", SkipSilence.dropFallback(false));
+    }
+
+    @Test
+    public void theHealthCheckIsCountedOncePerChange() {
+        Settings.SKIP_SILENT_PARTS.save(true);
+        for (int tick = 0; tick < 5; tick++) SkipSilence.healthSpeed(1f);
+        Settings.SKIP_SILENT_PARTS.save(false);
+        SkipSilence.healthSpeed(1f);
+        Settings.SKIP_SILENT_PARTS.save(true);
+        SkipSilence.healthSpeed(1f);
+        assertTrue(statusLine(), statusLine().contains(SkipSilence.HEALTH_LEFT_OUT + " 2"));
+    }
 }

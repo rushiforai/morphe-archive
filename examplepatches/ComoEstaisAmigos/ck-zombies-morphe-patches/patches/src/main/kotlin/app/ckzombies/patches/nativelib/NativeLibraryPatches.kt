@@ -1,5 +1,6 @@
 package app.ckzombies.patches.nativelib
 
+import app.ckzombies.patches.compat.obbMessagePatch
 import app.ckzombies.patches.shared.Constants.COMPATIBILITY_CK_ZOMBIES
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
@@ -88,7 +89,7 @@ val unlimitedCurrencyPatch = rawResourcePatch(
 ) {
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)
 
-    dependsOn(nativeLibraryCheckPatch)
+    dependsOn(nativeLibraryCheckPatch, obbMessagePatch)
 
     execute {
         for (abi in ABIS) {
@@ -123,12 +124,12 @@ val unlimitedCurrencyPatch = rawResourcePatch(
  */
 @Suppress("unused")
 val hiddenWeaponsPatch = rawResourcePatch(
-    name = "Hidden weapons",
+    name = "Show hidden weapons",
     description = "Shows the two hidden weapons, AA-2012 and Dual MP-643, in the store.",
 ) {
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)
 
-    dependsOn(nativeLibraryCheckPatch)
+    dependsOn(nativeLibraryCheckPatch, obbMessagePatch)
 
     execute {
         editLibraries(NativeEdits.HIDDEN_WEAPONS)
@@ -155,7 +156,7 @@ val hideDailyDealPatch = rawResourcePatch(
 ) {
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)
 
-    dependsOn(nativeLibraryCheckPatch)
+    dependsOn(nativeLibraryCheckPatch, obbMessagePatch)
 
     execute {
         editLibraries(NativeEdits.DAILY_DEAL)

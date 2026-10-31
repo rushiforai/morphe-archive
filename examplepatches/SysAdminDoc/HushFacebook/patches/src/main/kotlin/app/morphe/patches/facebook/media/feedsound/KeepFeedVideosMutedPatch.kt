@@ -13,6 +13,7 @@ import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.ControlFlow
@@ -46,6 +47,10 @@ internal const val NEW_SESSION = "startNewSession"
  * its reason and the flag the state holds now, right after the setter reads that. A tap on a
  * video's speaker, the volume up key and every mute pass as Facebook sent them.
  *
+ * Its Mute stories switch (#261) asks the extension's StorySound for each story video's volume in
+ * the story viewer's volume setter ([storyVolume]), which works its answer out apart from the
+ * feed's flag on most builds.
+ *
  * In the default selection with its switch off: a feed that stays quiet after the user turned
  * its sound on would be a surprise nobody asked for.
  */
@@ -62,6 +67,13 @@ val keepFeedVideosMutedPatch = bytecodePatch(
 
     execute {
         askFeedSound(feedSoundState())
+        // Mute stories (#261) asks in the story viewer's volume setter. A moved story viewer
+        // costs that switch, not the feed's.
+        try {
+            askStorySound(storyVolume())
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The patch goes on without muting stories.")
+        }
         enableStatus("keepFeedVideosMuted")
     }
 }

@@ -171,6 +171,11 @@ public final class HissiMenuController extends ToolScreenController {
             kyodemoTarget = KyodemoRouting.wacchoiSearchUrl(sourceHost, sourceBoard,
                     initialWacchoiQuery);
             target = kyodemoTarget;
+        } else if (isKyodemoBoardSearch(incoming)) {
+            currentUsesKyodemo = true;
+            hissiTarget = null;
+            kyodemoTarget = incoming.buildUpon().scheme("https").build().toString();
+            target = kyodemoTarget;
         } else if (eddiArchiveMode) {
             // The archive is a normal HTML search site. Keep its query intact
             // so a saved search can be opened directly in ChMate as well.
@@ -193,6 +198,8 @@ public final class HissiMenuController extends ToolScreenController {
             }
             target = currentUsesKyodemo ? kyodemoTarget : hissiTarget;
         }
+        if(getIntent().getBooleanExtra("haiagaru.checker.forceKyodemo",false)&&incoming!=null
+                &&"www.kyodemo.net".equalsIgnoreCase(incoming.getHost())){currentUsesKyodemo=true;target=incoming.toString();}
         if (target == null) {
             TextView error = new TextView(this);
             error.setText(currentUsesKyodemo
@@ -400,7 +407,7 @@ public final class HissiMenuController extends ToolScreenController {
                 if (recoverKyodemoAnalysis(view, url)) return;
                 applyViewerTheme(rootLayout, view, Haiagaru.hissiViewerTheme());
                 if (kyodemoAnalysisButton != null) {
-                    kyodemoAnalysisButton.setVisibility(isKyodemoAnalysisUrl(url)
+                    kyodemoAnalysisButton.setVisibility((isKyodemoAnalysisUrl(url)||"hissi.org".equalsIgnoreCase(Uri.parse(url).getHost()))
                             && Haiagaru.hissiViewerToolbarButtonVisible(
                                     Haiagaru.HISSI_TOOLBAR_ANALYSIS)
                             ? View.VISIBLE : View.GONE);
@@ -510,7 +517,8 @@ public final class HissiMenuController extends ToolScreenController {
             hissi.setOnClickListener(view -> { if (openHissiWacchoiSearch()) finish(); });
             providers.addView(hissi, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
             layout.addView(providers);
-        } else if (!wacchoiSearchLaunch && !eddiArchiveMode && checkerMode == 3) {
+        } else if (!wacchoiSearchLaunch && !eddiArchiveMode && checkerMode == 3
+                && hissiTarget != null && kyodemoTarget != null) {
             Button alternate = toolbarButton(currentUsesKyodemo ? "hissi.orgで開く" : "Kyodemoで開く");
             alternate.setText(currentUsesKyodemo ? "hissi.orgで開く" : "Kyodemoで開く");
             alternate.setTextColor(Color.BLUE);
@@ -638,7 +646,7 @@ public final class HissiMenuController extends ToolScreenController {
             Button search = toolbarButton("ID/ﾜｯﾁｮｲ");
             search.setVisibility(Haiagaru.hissiViewerToolbarButtonVisible(
                     Haiagaru.HISSI_TOOLBAR_SEARCH) ? View.VISIBLE : View.GONE);
-            search.setOnClickListener(view -> showKyodemoSearch(webView, null));
+            search.setOnClickListener(view -> showPosterSearch());
             toolbar.addView(search, buttonParams());
         }
         if (!eddiArchiveMode) {
@@ -650,7 +658,9 @@ public final class HissiMenuController extends ToolScreenController {
                 requestKyodemoAnalysis(webView);
                 return true;
             });
-            analysis.setOnClickListener(view -> webView.evaluateJavascript(
+            analysis.setOnClickListener(view -> {
+                if("hissi.org".equalsIgnoreCase(Uri.parse(webView.getUrl()).getHost())){webView.evaluateJavascript(HissiActivityGraph.SCRIPT,null);return;}
+                webView.evaluateJavascript(
                     "(function(){if(location.hostname!=='www.kyodemo.net'"
                             + "||!location.pathname.startsWith('/sdemo/b/'))return 'unavailable';"
                             + "var panel=document.querySelector('#b>.right-column');"
@@ -675,7 +685,8 @@ public final class HissiMenuController extends ToolScreenController {
                         } else {
                             analysis.setText("\"opened\"".equals(result) ? "投稿" : "分析");
                         }
-                    }));
+                    });
+            });
             toolbar.addView(analysis, buttonParams());
         }
 
@@ -856,6 +867,80 @@ public final class HissiMenuController extends ToolScreenController {
         showModel("投稿検索・結果", content);
     }
 
+    private void showPosterSearch(){
+        EditText input=new EditText(this);input.setSingleLine(true);input.setHint("ID:投稿ID または ワッチョイ");
+        String id=selectedCheckerId(incomingUri);
+        if(id==null&&incomingUri!=null){List<String> p=incomingUri.getPathSegments();if(!p.isEmpty())id=decodeHissiId(p.get(p.size()-1));}
+        input.setText(initialWacchoiQuery!=null?initialWacchoiQuery:id==null?"":id.startsWith("ID:")?id:"ID:"+id);
+        LinearLayout form=new LinearLayout(this);form.setOrientation(LinearLayout.VERTICAL);form.addView(input);
+        String today=new java.text.SimpleDateFormat("yyyyMMdd",java.util.Locale.US).format(new java.util.Date());
+        EditText from=new EditText(this),to=new EditText(this);
+        from.setSingleLine(true);to.setSingleLine(true);from.setHint("開始日 YYYYMMDD");to.setHint("終了日 YYYYMMDD");
+        from.setText(today);to.setText(today);form.addView(from);form.addView(to);
+        addPosterCalendar(form, from, "開始日をカレンダーで選択");
+        addPosterCalendar(form, to, "終了日をカレンダーで選択");
+        android.widget.Spinner provider=new android.widget.Spinner(this);
+        provider.setAdapter(new android.widget.ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,new String[]{"hissi.org","Kyodemo"}));
+        provider.setSelection(FullWacchoiProvider.edge(sourceHost)?1:0);form.addView(provider);
+        new HaiagaruDialog.Builder(this).setTitle("ID／ワッチョイを検索・日付範囲").setView(form)
+            .setPositiveButton("検索",(dialog,which)->{
+                String query=input.getText().toString().trim();if(query.isEmpty())return;
+                String start=from.getText().toString().replace("-",""),end=to.getText().toString().replace("-","");
+                if(!validPosterDate(start)||!validPosterDate(end)||start.compareTo(end)>0){Toast.makeText(this,"日付範囲を確認してください",Toast.LENGTH_SHORT).show();return;}
+                boolean edge=FullWacchoiProvider.edge(sourceHost);
+                if(provider.getSelectedItemPosition()==1){
+                    String term=KyodemoRouting.isWacchoiToken(query)?query:query.regionMatches(true,0,"ID:",0,3)?query:"ID:"+query;
+                    String url=KyodemoRouting.wacchoiSearchUrl(sourceHost,sourceBoard,term);
+                    if(url==null)return;
+                    Uri range=Uri.parse(url).buildUpon().appendQueryParameter("fr",start.substring(0,4)+"-"+start.substring(4,6)+"-"+start.substring(6))
+                        .appendQueryParameter("to",end.substring(0,4)+"-"+end.substring(4,6)+"-"+end.substring(6)).build();
+                    currentUsesKyodemo=true;updateWacchoiQuery(term);viewerWebView.loadUrl(range.toString());return;
+                }
+                Intent intent=new Intent(this,HissiWacchoiSearchActivity.class)
+                    .putExtra("haiagaru.wacchoi.query",query)
+                    .putExtra("haiagaru.wacchoi.host",sourceHost)
+                    .putExtra("haiagaru.wacchoi.board",sourceBoard)
+                    .putExtra("haiagaru.search.allowCrossBoard",true).putExtra("haiagaru.search.from",start).putExtra("haiagaru.search.to",end);
+                if(!edge&&!WacchoiSearch.SLIP.matcher(WacchoiSearch.normalizeSlipText(query)).find()){
+                    String value=query.regionMatches(true,0,"ID:",0,3)?query.substring(3).trim():query;
+                    if(!value.matches("[A-Za-z0-9._+/-]{1,32}")){Toast.makeText(this,"IDを確認してください",Toast.LENGTH_SHORT).show();return;}
+                    intent.putExtra("haiagaru.wacchoi.query","ID:"+value);
+                }
+                if(!edge)intent.putExtra("haiagaru.wacchoi.hissi",true);
+                WacchoiLongPressMenu.launchSearch(this,intent);
+            }).setNeutralButton("エッヂで検索",(dialog,which)->{
+                String query=input.getText().toString().trim();if(query.isEmpty())return;
+                String start=from.getText().toString().replace("-",""),end=to.getText().toString().replace("-","");
+                if(!validPosterDate(start)||!validPosterDate(end)||start.compareTo(end)>0){Toast.makeText(this,"日付範囲を確認してください",Toast.LENGTH_SHORT).show();return;}
+                String term=KyodemoRouting.isWacchoiToken(query)?query:query.regionMatches(true,0,"ID:",0,3)?"ID:"+query.substring(3).trim():"ID:"+query;
+                String address=KyodemoRouting.wacchoiSearchUrl("bbs.eddibb.cc","liveedge",term);
+                if(address==null)return;
+                Uri range=Uri.parse(address).buildUpon()
+                    .appendQueryParameter("fr",start.substring(0,4)+"-"+start.substring(4,6)+"-"+start.substring(6))
+                    .appendQueryParameter("to",end.substring(0,4)+"-"+end.substring(4,6)+"-"+end.substring(6)).build();
+                Intent intent=new Intent(this,HissiMenuActivity.class).setData(range)
+                    .putExtra("haiagaru.wacchoi.query",term).putExtra("haiagaru.wacchoi.host","bbs.eddibb.cc")
+                    .putExtra("haiagaru.wacchoi.board","liveedge").putExtra("haiagaru.checker.forceKyodemo",true);
+                WacchoiLongPressMenu.launchSearch(this,intent);
+            }).setNegativeButton("キャンセル",null).show();
+    }
+
+    private static boolean validPosterDate(String value) {
+        if(!value.matches("[0-9]{8}"))return false;
+        java.text.SimpleDateFormat format=new java.text.SimpleDateFormat("yyyyMMdd",java.util.Locale.US);
+        format.setLenient(false);
+        try{return format.parse(value)!=null;}catch(java.text.ParseException invalid){return false;}
+    }
+
+    private void addPosterCalendar(LinearLayout form, EditText field, String label) {
+        android.widget.Button calendar=new android.widget.Button(this);calendar.setText(label);
+        calendar.setOnClickListener(view->{
+            Calendar initial=Calendar.getInstance();String value=field.getText().toString().replace("-","");
+            if(validPosterDate(value))initial.set(Integer.parseInt(value.substring(0,4)),Integer.parseInt(value.substring(4,6))-1,Integer.parseInt(value.substring(6)));
+            HaiagaruDates.show(host,initial,(year,month,day)->field.setText(String.format(java.util.Locale.US,"%04d%02d%02d",year,month+1,day)));
+        });form.addView(calendar);
+    }
+
     private void showKyodemoSearch(WebView webView, String initialValue) {
         EditText input = new EditText(this);
         input.setSingleLine(true);
@@ -869,7 +954,7 @@ public final class HissiMenuController extends ToolScreenController {
         if (initialValue != null && !initialValue.trim().isEmpty()) {
             input.setText(initialValue.trim());
         } else if (selectedId != null && !selectedId.trim().isEmpty()) {
-            input.setText(selectedId);
+            input.setText(selectedId.regionMatches(true,0,"ID:",0,3)?selectedId:"ID:"+selectedId);
         }
         int padding = (int) (20 * getResources().getDisplayMetrics().density);
         input.setPadding(padding, input.getPaddingTop(), padding, input.getPaddingBottom());
@@ -1720,6 +1805,14 @@ public final class HissiMenuController extends ToolScreenController {
 
     private static String toKyodemoUrl(Uri uri, String sourceHost) {
         return toKyodemoUrl(uri, sourceHost, null);
+    }
+
+    private static boolean isKyodemoBoardSearch(Uri uri) {
+        if (uri == null || !("www.kyodemo.net".equalsIgnoreCase(uri.getHost())
+                || "kyodemo.net".equalsIgnoreCase(uri.getHost()))) return false;
+        String path = uri.getPath();
+        return path != null && path.matches("/sdemo/b/[A-Za-z0-9_-]+/")
+                && uri.getQueryParameter("k") != null;
     }
 
     private static String toKyodemoUrl(Uri uri, String sourceHost, String dateOverride) {

@@ -76,6 +76,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean smoothStoryOpen() {
+        return false;
+    }
+
     public static boolean storySound() {
         return false;
     }
@@ -101,6 +105,15 @@ public final class SettingsStatus {
     }
 
     public static boolean spoofLocation() {
+        return false;
+    }
+
+    public static boolean appProxy() {
+        return false;
+    }
+
+    /** Rewritten by the Skip the contacts and location popups patch. */
+    public static boolean setupPopups() {
         return false;
     }
 
@@ -146,6 +159,10 @@ public final class SettingsStatus {
     }
 
     public static boolean allRecentSearches() {
+        return false;
+    }
+
+    public static boolean exploreMenu() {
         return false;
     }
 
@@ -229,6 +246,11 @@ public final class SettingsStatus {
     }
 
     public static boolean hdrBoost() {
+        return false;
+    }
+
+    /** Rewritten by the Stop videos looping patch. */
+    public static boolean stopLooping() {
         return false;
     }
 
@@ -578,8 +600,23 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by the Carousel arrows patch. */
+    public static boolean carouselArrows() {
+        return false;
+    }
+
+    /** Rewritten by the Ambient light patch. */
+    public static boolean ambientLight() {
+        return false;
+    }
+
     /** Rewritten by the Keep in chat patch. */
     public static boolean keepInChat() {
+        return false;
+    }
+
+    /** Rewritten by the Mark one-time photos and videos patch. */
+    public static boolean viewOnceMark() {
         return false;
     }
 

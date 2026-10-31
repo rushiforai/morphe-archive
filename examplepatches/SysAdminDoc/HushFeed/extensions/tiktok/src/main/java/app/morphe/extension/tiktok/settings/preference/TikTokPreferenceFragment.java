@@ -90,6 +90,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private static final char ROW_MARK = '#';
     /** The page names a restart's return marker carries ({@link #pageKey}). */
     public static final String PAGE_HOME = "home";
+    /** The Feature Gate Lab, which the settings screen opens over home after a restart from it. */
+    public static final String PAGE_LAB = "lab";
     static final String REPORT_PROBLEM_KEY = "action_report_problem";
     static final String SUPPORT_KEY = "action_support_hushfeed";
     static final String SUPPORT_URL = "https://ko-fi.com/X8K126YVER";
@@ -355,7 +357,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     public static void openDownloadPathFolderPicker(DownloadPathPreference preference) {
         if (activeFragment == null) {
             app.morphe.extension.shared.Utils.showToastLong(L10n.t(
-                    "This phone has no folder picker. Type the folder into the row instead."));
+                    "No folder picker here. Type the folder in the row."));
             return;
         }
 
@@ -369,7 +371,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         } catch (ActivityNotFoundException exception) {
             pendingDownloadPathKey = null;
             app.morphe.extension.shared.Utils.showToastLong(L10n.t(
-                    "This phone has no folder picker. Type the folder into the row instead."));
+                    "No folder picker here. Type the folder in the row."));
         }
     }
 
@@ -459,6 +461,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
         if (!applySettingToPreference && setting == Settings.KEEP_CAPTIONS_CLEAR_DISPLAY) {
             CaptionTools.onSettingChanged();
+        }
+        if (!applySettingToPreference && setting == Settings.COMMENT_BATCH_TRANSLATION) {
+            app.morphe.extension.tiktok.translation.CommentTranslateButton.onAutoTranslateChanged();
         }
         if (!applySettingToPreference && (setting == Settings.SHOW_COMMENTER_HANDLE
                 || setting == Settings.SHOW_COMMENTER_REGION || setting == Settings.COLOR_COMMENTER_NAMES
@@ -598,7 +603,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         app.morphe.extension.shared.settings.preference.LogBufferManager.savedToMessage =
                 L10n.t(context, "Full report saved to %1$s");
         app.morphe.extension.shared.settings.preference.LogBufferManager.couldNotStartMessage =
-                L10n.t(context, "Couldn't start the report export. Try again in a moment.");
+                L10n.t(context, "Couldn't start the report export. Try again.");
         // Four whole sentences rather than five fragments, so each one is a row a translator
         // can move the numbers around inside. The context is asked for when a line is written
         // rather than captured here: this writer is a static and outlives the screen.

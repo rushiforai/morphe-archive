@@ -1,0 +1,1 @@
+<com.curve.design.buttons.CrvButton xmlns:android="http://schemas.android.com/apk/res/android" style="@style/Curve.Button.Secondary" android:layout_width="wrap_content" android:layout_height="wrap_content"/>

@@ -1,0 +1,260 @@
+{
+  "upstreamTag": "v1.48.0-dev.19",
+  "upstreamCommit": "db2338b3bf8a0342b50c738cbc7cf50b0ce0d15c",
+  "branchBase": "adc2a9f901283c01e5e7fec99ffd96f601746d5b",
+  "branch": "bdcrusher/better-lyrics",
+  "betterLyricsCommit": "272d7c16c9e882b28170277e3cbc876f11169995",
+  "braccatoCore": "1.16.11",
+  "braccatoParsers": "0.4.0",
+  "officialBundleSha256": "82bc696c94c26dbf75242b59980251315145457575b663200b981ca351e1c0f7",
+  "morphe-patches-gradle-plugin": "a230c33f7eca1e18b07bf1114ca850421520f98d",
+  "morphe-patcher": "812e96eaac173cd058ba49e242325371959befae",
+  "morphe-patches-library": "0284c65b53d1d83da8a58a9cff97019825396d68",
+  "smali": "d92701d9473095244e81edadee0b7d158df74744",
+  "ARSCLib": "9b742c412dc52c3b243a7bb553a156049df6a43e",
+  "morphe-patcher-beta": "0d59d43d892d27858f61e8d215ec54abb918a231",
+  "smali-beta": "4220ae75f7faf79ec6158d30dcac2e5409881cdf",
+  "ARSCLib-beta": "10d0708212cb356d6a77eda3b2637aa2749580f0",
+  "stableVerification": {
+    "patcher": {
+      "commit": "8c7ff9f29d4cf6395fcbe42a4ceddd034d71fecf",
+      "version": "2.0.0",
+      "archiveSha256": "1f17ce6a4923a90c3ff46fc6088f14ab3297a6ea81e7fe8ba8b0d104ef3d3666",
+      "localAdaptation": "settings.gradle.kts reuses pinned local ARSCLib-beta/Smali"
+    },
+    "official": {
+      "version": "1.48.0",
+      "url": "https://github.com/MorpheApp/morphe-patches/releases/download/v1.48.0/patches-1.48.0.mpp",
+      "sha256": "82bc696c94c26dbf75242b59980251315145457575b663200b981ca351e1c0f7"
+    }
+  },
+  "localBraccatoCorrection": {
+    "package": "@braccato/core",
+    "version": "1.16.11",
+    "file": "dist/engine.js",
+    "upstreamSha256": "a3abca4640ef83edd4c5d2b34e7efb221e439365a24005051e34f92851c1f834",
+    "patchedSha256": "53340e91e9c842269444017e00792561ae59b7ab51e412ce20d8d107c6a159e1",
+    "rendererUpstreamSha256": "6c695c762dafcf6c66acc6dabf088f5f43f0b048eff0ae95516c7a3267170575",
+    "rendererPatchedSha256": "6935dbe2e0f89f706f9c124191cf2ba6f3f610e65b57e758082dce050f78f721",
+    "change": "Exact upstream per-line scroll transforms, duration, stagger and easing; only clamp/coalesce expected scroll events and distinguish explicit user input. No alternate viewport animation."
+  },
+  "nativeLyricsEntry": {
+    "target": "9.42.52 / 94252240 arm64-v8a",
+    "inputSha256": "9c38d63907362715f6172545bcb36f11ddbd45f014938626068016f06dcc3c56",
+    "messageInfoSha256": [
+      "8fc64abc179f34880c1a844395f4702fc105499590740019c64949d8cf80b5d7",
+      "98c13c5c887d4193b35a5140491299e8f7c048f6d767bd501c6ec0e08cf826ef",
+      "d416323315ace3f553433540090546ab1bd38f76adffe582bd2603f630b5f8ed",
+      "7599e673ff8f5002e581cbca58445c8caf1d73ce9e0f51860ab05cde5fea0cf8",
+      "289ce2a3ce19fd3d6cbbf2f00e06c1d5305a77aff4bfdb06525c376c25a6b8e3",
+      "4e39c2f3040ef4c41496d06062ca6921803ae8e33ebc6393c983120ba7311cab"
+    ],
+    "bytecodeEvidence": "Verification/native-protocol-contracts.txt",
+    "report": "Research/NATIVE-MODEL-FIX-2026-10-22.md",
+    "deviceVerified": false,
+    "modelBytecodeEvidence": "Verification/native-model-contracts.txt",
+    "fixtureSha256": {
+      "Inputs\\native-video-actionbar-element.pb": "92cdef16a4263a467c6f48b3d3ddab2116dc35f683d1c4f895b7d12411ef8444",
+      "Inputs\\native-music-related-panel.pb": "8dcc9d2ec93edb3ef32dfd14da17bb938e06df65f8296d02c75e507d6158b273"
+    },
+    "modelPath": [
+      172660663,
+      1,
+      168777401,
+      5,
+      389155117
+    ],
+    "buttonPath": [
+      10,
+      461054335
+    ],
+    "lyricsEndpoint": "music_watch_lyrics_panel",
+    "dockReport": "Research/DOCK-BOTTOM-FIX-2026-10-22.md"
+  },
+  "betterLyricsReleaseCheck": {
+    "tag": "v3.0.1",
+    "commit": "7a6a6a104d0667baac6df9f3e126385e3822f179",
+    "archiveSha256": "6d97f48a008f90ddf64db240132424b607cb3dce1f645121a6c9a1f1c1b58abc",
+    "providerAndRendererCodeUnchangedFromPinnedSource": true,
+    "checkedOn": "2026-10-25",
+    "decoderComparison": "Verification/revision32-upstream-decoder-comparison.json"
+  },
+  "nativeLyricsFactoryProfile": {
+    "sha256": "7bc335a95608014c5d4d9ba2ca5e97752cc4b34706dfc8a69fdc225203229727",
+    "instructions": 238,
+    "originalApkSha256": "9c38d63907362715f6172545bcb36f11ddbd45f014938626068016f06dcc3c56",
+    "schemaReport": "revision28-panel-schema.json"
+  },
+  "automaticSourceConnection": {
+    "extensionTag": "v3.0.1",
+    "extensionCommit": "7a6a6a104d0667baac6df9f3e126385e3822f179",
+    "reference": "src/modules/lyrics/providers/unified.ts",
+    "renewWhenSecondsRemaining": 3600,
+    "automaticAttemptCooldownMs": 300000,
+    "verificationDeadlineMs": 120000,
+    "transientAttempts": 3,
+    "verificationExchange": "Normal same-origin browser fetch with credentials include; no native bridge",
+    "checkedOn": "2026-10-25"
+  },
+  "quietStatusAndTiming": {
+    "version": "0.2.10-beta.1",
+    "nativePlaybackTimestamp": "PlaybackState.getLastPositionUpdateTime / SystemClock.elapsedRealtime",
+    "hookPerEdition": 1,
+    "bridgeVisibleIntervalMs": 250,
+    "bridgeHiddenIntervalMs": 1000,
+    "clockMaxPhaseCorrectionRate": 0.08,
+    "frameDiagnosticIntervalMs": 30000,
+    "sourceIngestionCacheEntries": 128,
+    "sourceIngestionCacheBytes": 1048576,
+    "ordinaryLiveJavaBrokerProviders": [
+      "qq",
+      "lrclib",
+      "kugou",
+      "golyrics",
+      "binimum",
+      "musixmatch"
+    ],
+    "phoneVerified": false
+  },
+  "lyricsNavigation": {
+    "version": "0.3.0-beta.1",
+    "mode": "shared-window-scoped-transparent",
+    "matchingMode": false,
+    "colorSampling": false,
+    "opaqueOverlays": false,
+    "iconAppearanceOverride": false,
+    "layoutBehindNavigation": true,
+    "safeControlInsets": true,
+    "restoresOwnedWindowState": true,
+    "phoneVerified": false
+  },
+  "shaders": {
+    "version": "1.5.1",
+    "commit": "88be3b81450b8d66bd8af445bf6062caac7d2747",
+    "archiveSha256": "318062ab777c08a6734fba1bba8b74303f86b949f7d1a30d2f98498bf4767a23",
+    "kawarp": "1.3.1",
+    "altcha": "2.5.0",
+    "packages": {
+      "altcha-lib-2.5.0-registry.json": {
+        "name": "altcha-lib",
+        "version": "2.5.0",
+        "integrity": "sha512-MiqlwnImoooVTmFzZ8odhpqtCsSl7M/6cmgaX42Tkuvd41e5IVveg6hiw/e9rXSb6dm1RvniPmeURwO64wWTuQ=="
+      },
+      "kawarp_core-1.3.1-registry.json": {
+        "name": "@kawarp/core",
+        "version": "1.3.1",
+        "integrity": "sha512-gDR4d5kMr/viItEzZb5XBlHHi5WcWRsIPbnSj3ToVdLfc6ykP03VlTUpAhxA4mn/ZayICJbgFqZkGWSrySCQPQ=="
+      }
+    },
+    "webSourceSha256": "b91e2823d767d2ee04e4e76445fe4cbe668b6fded51218fa96341c656cc7db5f",
+    "bundledWebSha256": "9e306cfc307154b4ada23241d1e7408bbd444c6a629a7c1b113cf4d6b5381d96",
+    "nativeVideoSampling": false,
+    "phoneVerified": false
+  },
+  "playbackUiRevision": {
+    "version": "0.3.0-beta.2",
+    "report": "Research/PLAYBACK-UI-0.3.0-BETA.2-2026-10-28.md",
+    "artworkRegression": "WHmexVwElEE",
+    "artworkFileSha256": "94c5312d26ba2cc1b93f893b7a5681ab9afbf4cdeaa20526e0aa6117d6cdf77d",
+    "coverDecoder": "Android MediaPlayer/TextureView, one decoder",
+    "containerFinalizer": "Android MediaExtractor/MediaMuxer; no re-encoding",
+    "background": "Kawarp still-art mesh, no additional HTML video decoder",
+    "deviceAcceptance": false
+  },
+  "fullCollectionRevision": {
+    "version": "0.4.0-beta.1",
+    "edition": "Full Collection only; retired add-on preserved in history",
+    "report": "Research/IMPLEMENTATION-0.4.0-BETA.1-2026-10-28.md",
+    "artworkCache": "lookup/availability metadata only; native HTTPS stream, no retained MP4 library",
+    "nativeVideoSampling": false,
+    "animatedArtworkSampling": {
+      "width": 208,
+      "height": 117,
+      "maxFps": 4,
+      "smoothingMs": 250
+    },
+    "diagnostics": "Historical 0.4: timed capture replaced in dualTargetDebugRevision",
+    "phoneVerified": false
+  },
+  "dualTargetDebugRevision": {
+    "version": "0.5.0-beta.1",
+    "targets": [
+      {
+        "version": "9.42.52",
+        "versionCode": 94252240,
+        "abi": "arm64-v8a",
+        "apkSha256": "9c38d63907362715f6172545bcb36f11ddbd45f014938626068016f06dcc3c56"
+      },
+      {
+        "version": "9.43.51",
+        "versionCode": 94351240,
+        "abi": "arm64-v8a",
+        "apkSha256": "da28424a01714090f392f963c2d822dff10eed9dc397b443e3e34e3691cf4dd9"
+      }
+    ],
+    "patcher": {
+      "version": "2.1.0-dev.4",
+      "commit": "bd7bca01f438687c34ad4a5d9d8e6e6f20f0a2d1",
+      "sourceArchiveSha256": "6097caf69b4d276d49a02ce9d5f88b06d9add030a961eb17e2e7b06db5b45e52",
+      "source": "https://github.com/MorpheApp/morphe-patcher/tree/bd7bca01f438687c34ad4a5d9d8e6e6f20f0a2d1",
+      "files": 233,
+      "buildInputsOnly": true
+    },
+    "verificationDependencies": [
+      {
+        "name": "smali",
+        "commit": "ac700e1942d26a7374166dce35f6da049a10e1a5",
+        "sourceArchiveSha256": "fcc59441cd378d9dd83d3a75b618c3a41d3fe762b8f177b1c22dd85eaf7c50ca",
+        "materializedLinks": [
+          {
+            "file": "LICENSE",
+            "archiveTarget": "third_party/NOTICE",
+            "materializedAsRegularFile": true
+          },
+          {
+            "file": "smali/src/main/antlr/smaliParser.g",
+            "archiveTarget": "third_party/smali/src/main/antlr/smaliParser.g",
+            "materializedAsRegularFile": true
+          },
+          {
+            "file": "smali/src/main/antlr/smaliTreeWalker.g",
+            "archiveTarget": "third_party/smali/src/main/antlr/smaliTreeWalker.g",
+            "materializedAsRegularFile": true
+          },
+          {
+            "file": "smali/src/test/antlr/com/android/tools/smali/smali/expectedTokensTestGrammar.g",
+            "archiveTarget": "third_party/smali/src/test/antlr/com/android/tools/smali/smali/expectedTokensTestGrammar.g",
+            "materializedAsRegularFile": true
+          }
+        ]
+      },
+      {
+        "name": "ARSCLib",
+        "commit": "4695b583ef51890ce283f3f2e0f6f63dff230ef0",
+        "sourceArchiveSha256": "b56e7623a3f3a4adcaa9d54c1f3dd160a866dbc986a6c0b9c27781c2cd03f40a",
+        "materializedLinks": []
+      },
+      {
+        "buildOnlySettingsAdaptationSha256": "c1fd943b15cb09f5e98dec2d293aabd2080946c40b95f11df5cd0c9ca083a14e"
+      }
+    ],
+    "jam": "9.42.52 only; 9.43 metadata palette integration not ported",
+    "diagnostics": "Existing BaseSettings.DEBUG / Logger export; actual platform deadlines plus bounded callback cadence. No timed capture.",
+    "report": "Research/FIXES-0.5.0-BETA.1-2026-10-29.md",
+    "phoneVerified": false
+  },
+  "playlistOwnershipRevision": {
+    "version": "0.6.0-beta.1",
+    "date": "2026-10-30",
+    "targets": [
+      "9.42.52/94252240 arm64-v8a",
+      "9.43.51/94351240 arm64-v8a"
+    ],
+    "report": "Research/FIXES-0.6.0-BETA.1-2026-10-30.md",
+    "nativeContracts": "Exact native row extension161429595, native browse request/response adapters, Elements Uri image loader and native scoped FileProvider; no duplicate AndroidX/Guava implementations.",
+    "storage": "One best rich lyric per recording. Static downloaded-playlist covers and native page snapshots; animation media remains streamed, metadata-only permanent shader storage.",
+    "externalFiles": "Persisted user-granted read-only SAF folder; exact known recording ID matching, not title inference.",
+    "debugging": "Existing Enable debug logging / Export debug logs; no capture timer; reproduce line stutter without screen recording.",
+    "phoneVerified": false
+  }
+}

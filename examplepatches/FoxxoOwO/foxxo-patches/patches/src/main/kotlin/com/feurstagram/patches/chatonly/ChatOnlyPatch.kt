@@ -103,8 +103,9 @@ private fun restartRelayManifestPatch(): Patch<*> = resourcePatch(
 val chatOnlyPatch = bytecodePatch(
     name = "Chat only",
     description = "Turns Instagram into a chat-only messenger: opens Direct instead of the feed " +
-        "and removes the home feed, Reels, Explore, Stories, ads and suggestions. Long-press " +
-        "the Direct title (or the Profile tab) to open the Feurstagram settings.",
+        "and removes the home feed, Reels, Explore, ads and suggestions, while the Stories tray " +
+        "stays visible. Long-press any bottom tab (or the Direct title) to open the Feurstagram " +
+        "settings.",
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 

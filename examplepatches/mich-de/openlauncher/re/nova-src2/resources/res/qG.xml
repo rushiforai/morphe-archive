@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView
+        android:textAppearance="?unknown_attr_ref: 7f040623"
+        android:gravity="end|center_vertical"
+        android:id="0x7f0b0620"
+        android:clickable="false"
+        android:duplicateParentState="true"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:maxWidth="160dp"
+        android:singleLine="true"
+        style="?unknown_attr_ref: 7f04059e"/>
+</merge>

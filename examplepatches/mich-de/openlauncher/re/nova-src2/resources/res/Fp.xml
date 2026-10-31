@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:id="0x7f0b06a7"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toStartOf="0"
+        app:layout_constraintTop_toTopOf="0"
+        style="0x7f150171"/>
+    <com.teslacoilsw.launcher.widget.Rotate90ParentView
+        android:id="0x7f0b0569"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="0"
+        app:layout_constraintEnd_toEndOf="0"
+        app:layout_constraintStart_toStartOf="0"
+        app:layout_constraintTop_toBottomOf="0x7f0b071a">
+        <SeekBar
+            android:id="0x7f0b05b5"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"/>
+    </com.teslacoilsw.launcher.widget.Rotate90ParentView>
+    <TextView
+        android:textColor="0x7f060112"
+        android:gravity="center"
+        android:id="0x7f0b071a"
+        android:paddingTop="0dp"
+        android:paddingBottom="0dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="24sp"
+        app:layout_constraintEnd_toEndOf="0"
+        app:layout_constraintStart_toStartOf="0"
+        app:layout_constraintTop_toTopOf="0"
+        style="0x7f150171"/>
+</merge>

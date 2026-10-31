@@ -19,6 +19,7 @@ import app.morphe.patches.facebook.reels.doubletap.GESTURE_REACTION
 import app.morphe.patches.facebook.reels.doubletap.HEART_RISE
 import app.morphe.patches.facebook.reels.doubletap.MUTATE_LIKE
 import app.morphe.patches.facebook.reels.doubletap.doubleTapLikes
+import app.morphe.patches.facebook.reels.doubletap.feedPhotoFixtureClasses
 import app.morphe.patches.facebook.reels.doubletap.hearts
 import app.morphe.patches.facebook.reels.doubletap.isAttachmentDoubleTap
 import app.morphe.patches.facebook.reels.doubletap.isGestureReactionComponent
@@ -234,7 +235,7 @@ class OpenCommentsFixtureTest {
                 val name = bundle.name
                 val found = read(bundle)
                 val classes = (listOf(found.helper, found.component, found.view, found.attachmentClass, found.button, found.activity, found.feedbackParams, found.holder) +
-                    found.owners + found.handlers).distinctBy { it.type } +
+                    found.owners + found.handlers + feedPhotoFixtureClasses(bundle)).distinctBy { it.type } +
                     ExtensionDex.classDef(SETTINGS_STATUS) + ExtensionDex.classDef(REEL_GESTURES)
                 val context = PatchContexts.of(classes)
                 turnOffDoubleTapLikePatch.execute(context)

@@ -1,0 +1,27 @@
+# Build outputs
+*.apk
+*.apkm
+*.idsig
+*.mpe
+*.mpp
+
+# Local tooling (Morphe CLI is downloaded locally)
+tools/
+
+# Local signing material
+*.keystore
+*.jks
+
+# Gradle / build
+.gradle/
+build/
+**/build/
+.kotlin/
+local.properties
+
+# IDE
+*.iml
+/.idea
+
+# OS
+.DS_Store

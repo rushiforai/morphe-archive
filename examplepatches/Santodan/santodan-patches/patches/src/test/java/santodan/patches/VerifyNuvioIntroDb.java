@@ -27,23 +27,23 @@ public final class VerifyNuvioIntroDb {
                     for (ClassDef c : DexBackedDexFile.fromInputStream(null, input).getClasses()) check(classes.put(c.getType(), c) == null);
                 }
         }
-        ClassDef originalMain = classes.get("Lab/cj;"), originalMore = classes.get("Lab/ij;"), originalActivity = classes.get("Lcom/nuvio/tv/MainActivity;");
+        ClassDef originalMain = classes.get("Lbb/ai;"), originalMore = classes.get("Lbb/fi;"), originalActivity = classes.get("Lcom/nuvio/tv/MainActivity;");
         MutableClass main = new MutableClass(originalMain), activity = new MutableClass(originalActivity);
-        NuvioIntroDbPatch.validateState(new MutableClass(classes.get("Lab/nm;")));
-        MutableClass timers = new MutableClass(classes.get("Lab/zf;"));
-        var nativeTimer = NuvioIntroDbPatch.require(timers, "Lab/zf;->F(Lab/mc;)V");
+        NuvioIntroDbPatch.validateState(new MutableClass(classes.get("Lbb/el;")));
+        MutableClass timers = new MutableClass(classes.get("Lbb/df;"));
+        var nativeTimer = NuvioIntroDbPatch.require(timers, software.santodan.nuvio.NuvioNative.REF_PLAYER_TIMERS_F);
         NuvioIntroDbPatch.validateTimer(nativeTimer);
         check(NuvioPlaybackButtonsPatch.fingerprint(NuvioIntroDbPatch.require(timers, NuvioIntroDbPatch.CANCEL_PAUSE))
             .equals(NuvioIntroDbPatch.CANCEL_PAUSE_HASH));
         MutableClass missingTimer = new MutableClass(timers);
-        missingTimer.getMethods().removeIf(m -> m.getName().equals("F"));
+        missingTimer.getMethods().removeIf(m -> m.getName().equals("H"));
         rejected(() -> NuvioIntroDbPatch.hookTimer(missingTimer));
         MutableClass changedTimer = new MutableClass(timers);
         NuvioIntroDbPatch.require(changedTimer, nativeTimer.toString()).getImplementation()
             .replaceInstruction(0, new BuilderInstruction10x(Opcode.NOP));
         rejected(() -> NuvioIntroDbPatch.hookTimer(changedTimer));
         MutableClass missingPauseTimer = new MutableClass(timers);
-        missingPauseTimer.getMethods().removeIf(m -> m.getName().equals("H"));
+        missingPauseTimer.getMethods().removeIf(m -> m.getName().equals("J"));
         rejected(() -> NuvioIntroDbPatch.hookTimer(missingPauseTimer));
         MutableClass changedPauseTimer = new MutableClass(timers);
         NuvioIntroDbPatch.require(changedPauseTimer, NuvioIntroDbPatch.PAUSE_TIMER).getImplementation()
@@ -72,7 +72,7 @@ public final class VerifyNuvioIntroDb {
             List.of(new ImmutableMethodParameter("Ljava/lang/String;", Set.of(), null), nativeInvoke.getParameters().get(1)),
             nativeInvoke.getReturnType(), nativeInvoke.getAccessFlags(), nativeInvoke.getAnnotations(), nativeInvoke.getHiddenApiRestrictions(), nativeInvoke.getImplementation())));
         rejected(() -> NuvioIntroDbPatch.hook(ambiguous, new MutableClass(originalActivity)));
-        MutableClass badState = new MutableClass(classes.get("Lab/nm;"));
+        MutableClass badState = new MutableClass(classes.get("Lbb/el;"));
         badState.getFields().removeIf(f -> f.getName().equals("A0"));
         rejected(() -> NuvioIntroDbPatch.validateState(badState));
         NuvioIntroDbPatch.hook(main, activity);
@@ -83,7 +83,7 @@ public final class VerifyNuvioIntroDb {
             if (first) NuvioIntroDbPatch.hook(combined, a);
             NuvioPlaybackButtonsPatch.hook(combined, more);
             if (!first) NuvioIntroDbPatch.hook(combined, a);
-            check(NuvioPlaybackButtonsPatch.fingerprint(NuvioIntroDbPatch.originalMain(NuvioPlaybackButtonsPatch.invoke(combined, 2))).equals("f85add171d7abfd57224e7f09c2846646f4da568717bd400d53e04de9b1800f3"));
+            check(NuvioPlaybackButtonsPatch.fingerprint(NuvioIntroDbPatch.originalMain(NuvioPlaybackButtonsPatch.invoke(combined, 2))).equals("723284a2022669658e7ab797b779a4dd54c2dca296fadf4acc86eb9e1c2179e1"));
             var instructions = NuvioAiringSeriesPatch.instructions(NuvioPlaybackButtonsPatch.invoke(combined, 2));
             int introAt = -1, finishAt = -1;
             for (int i = 0; i < instructions.size(); i++) {
@@ -108,10 +108,10 @@ public final class VerifyNuvioIntroDb {
                     check(body.get(1).getOpcode() == Opcode.MOVE_RESULT && body.get(2).getOpcode() == Opcode.IF_EQZ && body.get(3).getOpcode() == Opcode.RETURN_VOID);
                     check(NuvioAnchors.branchTarget(body, 2) == 4);
                     for (int n = 0; n < 4; n++) restored.getImplementation().removeInstruction(0);
-                    check(NuvioPlaybackButtonsPatch.fingerprint(restored).equals(m.getName().equals("F") ? NuvioIntroDbPatch.TIMER_HASH : NuvioIntroDbPatch.PAUSE_TIMER_HASH));
+                    check(NuvioPlaybackButtonsPatch.fingerprint(restored).equals(m.getName().equals("H") ? NuvioIntroDbPatch.TIMER_HASH : NuvioIntroDbPatch.PAUSE_TIMER_HASH));
                     check(restored.getImplementation().getTryBlocks().isEmpty());
                 }
-                if (c.getType().equals("Lab/zf;") && !guardedTimer) {
+                if (c.getType().equals("Lbb/df;") && !guardedTimer) {
                     Method original = java.util.stream.StreamSupport.stream(classes.get(c.getType()).getMethods().spliterator(), false)
                         .filter(candidate -> candidate.toString().equals(m.toString())).findFirst().orElseThrow();
                     if (m.getImplementation() != null) check(NuvioPlaybackButtonsPatch.fingerprint(new MutableMethod(m))

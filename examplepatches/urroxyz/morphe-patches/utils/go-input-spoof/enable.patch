@@ -1,0 +1,246 @@
+--- /dev/null
++++ b/extensions/extension/src/main/java/xyz/urro/transit/GoInputSpoof.java
+@@ -0,0 +1,161 @@
++package xyz.urro.transit;
++
++import android.location.Location;
++import android.os.SystemClock;
++import java.util.ArrayList;
++import java.util.List;
++
++public final class GoInputSpoof {
++    private static volatile boolean enabled = false;
++    private static volatile boolean boarded = false;
++    private static volatile int stopIndex = 0;
++    private static volatile List<double[]> routeCoordinates = new ArrayList<>();
++
++    public static synchronized void setEnabled(boolean e) {
++        enabled = e;
++        if (!e) {
++            boarded = false;
++            stopIndex = 0;
++        }
++    }
++
++    public static boolean isEnabled() {
++        return enabled;
++    }
++
++    public static synchronized void setBoarded(boolean b) {
++        boarded = b;
++    }
++
++    public static boolean isBoarded() {
++        return boarded;
++    }
++
++    public static synchronized void setRoute(List<double[]> coords) {
++        if (coords != null && !coords.isEmpty()) {
++            routeCoordinates = new ArrayList<>(coords);
++            stopIndex = 0;
++        }
++    }
++
++    public static synchronized int getStopIndex() {
++        return stopIndex;
++    }
++
++    public static synchronized int getStopCount() {
++        return routeCoordinates.size();
++    }
++
++    public static synchronized void previousStop() {
++        if (stopIndex > 0) {
++            stopIndex--;
++        }
++    }
++
++    public static synchronized void advanceStop() {
++        if (!routeCoordinates.isEmpty() && stopIndex < routeCoordinates.size() - 1) {
++            stopIndex++;
++        }
++    }
++
++    public static synchronized void alight() {
++        boarded = false;
++    }
++
++    public static void rewriteFix(Location loc) {
++        if (!enabled || loc == null) return;
++        double[] pt = getCurrentPoint();
++        if (pt == null) return;
++        loc.setLatitude(pt[0]);
++        loc.setLongitude(pt[1]);
++        loc.setTime(System.currentTimeMillis());
++        loc.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
++        loc.setAccuracy(5.0f);
++        if (boarded) {
++            loc.setSpeed(11.0f); // ~40 km/h in transit
++        } else {
++            loc.setSpeed(0.0f);
++        }
++    }
++
++    public static int[] motion(int[] current) {
++        if (!enabled || !boarded) return current;
++        // MLMotionType: Automotive = 5
++        return new int[]{5};
++    }
++
++    /**
++     * Loads stop coordinates from a native MapContent model (reflection only).
++     * Takes placemarks whose type is Stop, in list order. LatLng fields are obfuscated as a (lat) and b (lng).
++     */
++    private static boolean emptyLogged = false;
++
++    private static synchronized boolean sameRoute(List<double[]> stops) {
++        if (stops.size() != routeCoordinates.size()) return false;
++        for (int i = 0; i < stops.size(); i++) {
++            if (stops.get(i)[0] != routeCoordinates.get(i)[0] || stops.get(i)[1] != routeCoordinates.get(i)[1]) return false;
++        }
++        return true;
++    }
++
++    public static boolean loadFromMapContent(Object mapContent) {
++        GoActivityTransmitter.onMap(mapContent);
++        if (mapContent == null) return false;
++        try {
++            Object list = mapContent.getClass().getMethod("getPlacemarks").invoke(mapContent);
++            if (!(list instanceof Iterable)) return false;
++            List<double[]> stops = new ArrayList<>();
++            for (Object p : (Iterable<?>) list) {
++                Object type = p.getClass().getMethod("getType").invoke(p);
++                if (type == null || !"Stop".equals(((Enum<?>) type).name())) continue;
++                Object pos = p.getClass().getMethod("getPosition").invoke(p);
++                if (pos == null) continue;
++                double lat = pos.getClass().getField("a").getDouble(pos);
++                double lng = pos.getClass().getField("b").getDouble(pos);
++                stops.add(new double[]{lat, lng});
++            }
++            if (stops.isEmpty()) {
++                if (!emptyLogged) { emptyLogged = true; android.util.Log.i("TransitMorphe", "spoof_route_empty placemarks=" + ((Iterable<?>) list).iterator().hasNext()); }
++                return false;
++            }
++            if (sameRoute(stops)) return true; // map refreshes must not reset the stop index
++            setRoute(stops);
++            android.util.Log.i("TransitMorphe", "spoof_route_loaded stops=" + stops.size());
++            GoModelDiagnostics.trace("spoof_route_loaded", "stops=" + stops.size());
++            return true;
++        } catch (ReflectiveOperationException | RuntimeException e) {
++            return false;
++        }
++    }
++
++    /**
++     * Inspects any generic model to extract Stop coordinates or placemarks if present.
++     */
++    public static boolean inspectModelForStops(Object model) {
++        if (model == null) return false;
++        try {
++            // If the model has getPlacemarks directly
++            if (loadFromMapContent(model)) return true;
++            // Or getMapContent
++            try {
++                Object mc = model.getClass().getMethod("getMapContent").invoke(model);
++                if (mc != null && loadFromMapContent(mc)) return true;
++            } catch (NoSuchMethodException ignored) {}
++            // Or getMapSummary -> getMapContent
++            try {
++                Object ms = model.getClass().getMethod("getMapSummary").invoke(model);
++                if (ms != null) {
++                    Object mc = ms.getClass().getMethod("getMapContent").invoke(ms);
++                    if (mc != null && loadFromMapContent(mc)) return true;
++                }
++            } catch (NoSuchMethodException ignored) {}
++        } catch (Exception ignored) {}
++        return false;
++    }
++
++    private static synchronized double[] getCurrentPoint() {
++        if (routeCoordinates.isEmpty()) return null;
++        int idx = Math.min(stopIndex, routeCoordinates.size() - 1);
++        return routeCoordinates.get(idx);
++    }
++}
+--- a/extensions/extension/src/main/java/xyz/urro/transit/TransitHooks.java
++++ b/extensions/extension/src/main/java/xyz/urro/transit/TransitHooks.java
+@@ -35,6 +35,8 @@
+  static boolean bikeFeature(){return bikeFeature;}
+  static boolean motionFeature(){return motionFeature;}
+  public static void init(Application a){
++  // Keeps the input-spoof entry points linked: patch hooks call them, but no other code does.
++  if (System.nanoTime() < 0) { GoInputSpoof.rewriteFix(null); GoInputSpoof.motion(null); }
+   if(app!=null)return;app=a;GoActivityTransmitter.init(a);
+   if(GoSimulation.enabled)a.getSystemService(android.app.NotificationManager.class).cancel("go-simulation",0x47534d);
+   prefs().registerOnSharedPreferenceChangeListener(PREF_LISTENER);
+@@ -169,6 +171,11 @@
+     Object[] h=parts(heading,10);h[0]="xyz.urro.transit.heading";h[7]=null;h[8]=label(h[8],"MORPHE");out.add(copy(heading,h));
+     if(bikeFeature)out.add(rowButton(template,"editor","Bike mode settings","Customize reminders; previews and reset to defaults"));
+     if(activityFeature)out.add(toggle(template,"activity_spoof","Spoof Physical Activity","Tells patched receiver apps IN_VEHICLE while GO confirms you are aboard",prefs().getBoolean("activity_spoof",false)));
++    out.add(toggle(template,"spoof","Live GO Input Spoofing","Simulates bus GPS & motion inputs along the selected route",GoInputSpoof.isEnabled()));
++    if(GoInputSpoof.isEnabled()){
++     out.add(toggle(template,"spoof_boarded","Spoof: Boarded vehicle","Simulates boarding the vehicle with automotive motion & speed",GoInputSpoof.isBoarded()));
++     out.add(rowButton(template,"spoof_advance","Spoof: Next stop ("+GoInputSpoof.getStopIndex()+"/"+GoInputSpoof.getStopCount()+")","Advance simulated location to next stop"));
++    }
+     if(GoSimulation.enabled)out.add(rowButton(template,"simulation","GO Simulation / Developer Testing","Local GO model replay; not real navigation"));
+     out.add(rowButton(template,"diagnostics","GO diagnostics","Opt-in troubleshooting traces; no locations or stop names"));
+    }
+@@ -182,6 +189,18 @@
+    if(!id.startsWith("xyz.urro.transit."))return false;
+    if(id.equals("xyz.urro.transit.bike"))prefs().edit().putBoolean("bike",!prefs().getBoolean("bike",false)).apply();
+    else if(id.equals("xyz.urro.transit.activity_spoof"))prefs().edit().putBoolean("activity_spoof",!prefs().getBoolean("activity_spoof",false)).apply();
++   else if(id.equals("xyz.urro.transit.spoof")){
++    GoInputSpoof.setEnabled(!GoInputSpoof.isEnabled());
++    Activity a=activity.get();if(a!=null)a.recreate();
++   }
++   else if(id.equals("xyz.urro.transit.spoof_boarded")){
++    GoInputSpoof.setBoarded(!GoInputSpoof.isBoarded());
++    Activity a=activity.get();if(a!=null)a.recreate();
++   }
++   else if(id.equals("xyz.urro.transit.spoof_advance")){
++    GoInputSpoof.advanceStop();
++    Activity a=activity.get();if(a!=null)a.recreate();
++   }
+    else if(id.equals("xyz.urro.transit.editor")){Activity a=activity.get();if(a!=null)a.runOnUiThread(()->editor(a));}
+    else if(id.equals("xyz.urro.transit.simulation")){Activity a=activity.get();if(a!=null)a.runOnUiThread(()->GoSimulation.show(a));}
+    else if(id.equals("xyz.urro.transit.diagnostics")){Activity a=activity.get();if(a!=null)a.runOnUiThread(()->diagnostics(a));}
+--- a/extensions/extension/src/main/java/xyz/urro/transit/GoModelDiagnostics.java
++++ b/extensions/extension/src/main/java/xyz/urro/transit/GoModelDiagnostics.java
+@@ -30,6 +30,7 @@
+   if(type.startsWith("djinni.java.src.GO")||type.endsWith(".EndOfRide"))trace("go_model_callback",type);
+   if(type.equals("djinni.java.src.TripDetails"))capture("trip_details",model);
+   else if(enabled())capture("model_"+model.getClass().getSimpleName(),model);
++  GoInputSpoof.inspectModelForStops(model);
+  }
+  public static void onLiveModel(Object model){if(model!=null)capture("go_live_model",model);}
+  private static void capture(String source,Object model){
+--- a/patches/src/main/kotlin/xyz/urro/transit/TransitGoPatch.kt
++++ b/patches/src/main/kotlin/xyz/urro/transit/TransitGoPatch.kt
+@@ -22,7 +22,10 @@
+ private val modelCallback = Fingerprint(definingClass="Lcom/thetransitapp/droid/shared/service/ViperModuleProtocolService\$getModelFlow\$1\$callback\$1;",name="onResponse",returnType="V",parameters=listOf("Ljava/lang/Object;"))
+ private val goNotification = Fingerprint(definingClass="Lcom/thetransitapp/droid/shared/service/GoService;",name="a",returnType="Landroid/app/Notification;",parameters=listOf("Ldjinni/java/src/GOLiveActivityPlatformData;"))
+ private val serviceDestroy = Fingerprint(definingClass="Ltr5;",name="onDestroy",returnType="V",parameters=emptyList())
+ private val goCommand = Fingerprint(definingClass="Lcom/thetransitapp/droid/shared/service/GoService;",name="onStartCommand",returnType="I",parameters=listOf("Landroid/content/Intent;","I","I"))
++private val locationFeed = Fingerprint(definingClass="Lcom/thetransitapp/droid/shared/data/TransitLib;",name="f0",returnType="V",parameters=listOf("Landroid/location/Location;"))
++private val mapCallback = Fingerprint(definingClass="Lcom/thetransitapp/droid/trip_details/service/TripDetailsBusinessService\$getTripDetailsMapFlow\$1\$callback\$1;",name="onResponse",returnType="V",parameters=listOf("Ljava/lang/Object;"))
++private val motionFeed = Fingerprint(definingClass="Lcom/thetransitapp/droid/shared/data/TransitLib;",name="lambda\$startMotionDetection\$53",returnType="V",parameters=listOf("Lcom/thetransitapp/droid/shared/core/service/CppCallbackRef;","[I"))
+ private val dispatch = Fingerprint(definingClass="Lcom/thetransitapp/droid/shared/view_model/d;",name="f",returnType="V",parameters=listOf("Lcom/thetransitapp/droid/shared/model/cpp/UserAction;","Z"))
+ 
+ internal val transitCompatibility = Compatibility(name="Transit",packageName="com.thetransitapp.droid",apkFileType=ApkFileType.APKM,appIconColor=0x00aa77,
+@@ -33,6 +36,16 @@
+  extendWith("extensions/extension.mpe")
+  execute {
+   app.method.addInstructions(0,"invoke-static {p0}, $HOOK->init(Landroid/app/Application;)V")
++  // Opt-in input override: replaces the position and motion the native engine receives. Passthrough when off.
++  locationFeed.method.addInstructions(0,"""
++    invoke-static/range {p1 .. p1}, Lxyz/urro/transit/GoInputSpoof;->rewriteFix(Landroid/location/Location;)V
++  """)
++  motionFeed.method.addInstructions(0,"""
++    invoke-static {p1}, Lxyz/urro/transit/GoInputSpoof;->motion([I)[I
++    move-result-object p1
++  """)
++  // Trip map placemarks (stop coordinates) arrive here, not on the GO model stream.
++  mapCallback.method.addInstructions(0,"invoke-static/range {p1 .. p1}, Lxyz/urro/transit/GoInputSpoof;->loadFromMapContent(Ljava/lang/Object;)Z")
+   modelCallback.method.addInstructions(0,"invoke-static/range {p1 .. p1}, Lxyz/urro/transit/GoModelDiagnostics;->onModel(Ljava/lang/Object;)V")
+   goNotification.method.addInstructions(0,"invoke-static/range {p0 .. p1}, Lxyz/urro/transit/LiveReminders;->notification(Ljava/lang/Object;Ljava/lang/Object;)V")
+   goCommand.method.addInstructions(0,"invoke-static/range {p1 .. p1}, Lxyz/urro/transit/GoActivityTransmitter;->serviceCommand(Landroid/content/Intent;)V")

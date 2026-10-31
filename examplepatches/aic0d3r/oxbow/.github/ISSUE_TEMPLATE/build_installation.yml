@@ -1,0 +1,113 @@
+name: Build or installation help
+description: Report a patching, signing, installation, APK, APKM, or device compatibility problem
+title: "[Build/Install]: "
+labels: ["help wanted", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for patch.sh failures, APK installation problems, clone/classic install conflicts, Android warnings, APKM/bundle questions, or device architecture compatibility.
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Problem type
+      options:
+        - patch.sh failed
+        - APK does not install
+        - Android security / unknown sources warning
+        - Clone APK conflict
+        - Classic APK conflict
+        - APKM / bundle / split APK question
+        - Device architecture compatibility
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: feurstagram-version
+    attributes:
+      label: Feurstagram version or commit
+      placeholder: "Example: v1.2.3 or commit hash"
+    validations:
+      required: false
+
+  - type: input
+    id: instagram-apk
+    attributes:
+      label: Instagram APK details
+      description: Include the Instagram version, source, minAPI, DPI, and architecture if known.
+      placeholder: "Example: 433.0.0.47.68, APKMirror, minAPI28, arm64-v8a, nodpi"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Computer OS
+      placeholder: "Example: macOS 15, Ubuntu 24.04, WSL2, PureOS"
+    validations:
+      required: false
+
+  - type: input
+    id: device
+    attributes:
+      label: Android device and Android version
+      placeholder: "Example: Samsung Galaxy A13, Android 13"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: apk-type
+    attributes:
+      label: APK type
+      options:
+        - Classic APK
+        - Clone APK
+        - Built from source
+        - Not sure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: Device / APK architecture
+      options:
+        - arm64-v8a
+        - armeabi-v7a / 32-bit
+        - x86_64
+        - Universal APK
+        - Not sure
+    validations:
+      required: false
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command or install step
+      description: Paste the exact command you ran or describe the install step that failed.
+      placeholder: |
+        FEURSTAGRAM_KEYSTORE=./feurstagram.keystore \
+        FEURSTAGRAM_KEYSTORE_PASS=android \
+        FEURSTAGRAM_KEY_ALIAS=feurstagram \
+        ./patch.sh instagram.apk
+    validations:
+      required: false
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Full error output
+      description: Paste the complete terminal output, Android install error, or screenshot text.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+      description: Mention whether you ran cleanup.sh, tried another APK version, changed clone/classic mode, or reinstalled.
+    validations:
+      required: false

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="0x7f070012"
+    android:insetRight="0x7f070012"
+    android:insetTop="0x7f070013"
+    android:insetBottom="0x7f070013">
+    <shape android:shape="rectangle">
+        <corners android:radius="0x7f070018"/>
+        <solid android:color="@android:color/white"/>
+        <padding
+            android:left="0x7f070014"
+            android:top="0x7f070015"
+            android:right="0x7f070014"
+            android:bottom="0x7f070015"/>
+    </shape>
+</inset>

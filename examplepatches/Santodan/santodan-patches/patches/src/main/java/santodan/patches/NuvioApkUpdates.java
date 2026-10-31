@@ -11,8 +11,8 @@ import java.util.*;
 /** Beta.8 native updater: same-width constants only; coroutine/installer code stays native. */
 public final class NuvioApkUpdates {
     static final String JOB = "Lcom/nuvio/tv/updater/UpdateJobService;";
-    public static final List<String> TYPES = List.of("Lkb/j0;", "Lkb/q0;", "Lkb/m0;", "Lkb/k;", "Lkb/q;", JOB);
-    static final String APP_VERSION = "1.1.0-beta.8";
+    public static final List<String> TYPES = List.of("Llb/j0;", "Llb/q0;", "Llb/m0;", "Llb/k;", "Llb/q;", JOB);
+    static final String APP_VERSION = "1.1.0-beta.9";
     static final class Contract {
         final String type, name, hash;
         final int versions;
@@ -26,14 +26,14 @@ public final class NuvioApkUpdates {
         public String toString() { return type + "->" + name; }
     }
     static final List<Contract> CONTRACTS = List.of(
-        new Contract("Lkb/j0;", "a", "c23daa24d9d163e582d250495ba1da9057367266ca1ddbdd898b391479b9324e", 0),
-        new Contract("Lkb/q0;", "a", "da2a56fb92c119e38e4aee56e49e173876213e10617d4d121ba078e4d9ede79f", 1),
-        new Contract("Lkb/q0;", "b", "19f0863342661e59da9bd2a2c86bf216e65401ff2f0d13c75eb33e6043d7fca2", 1),
-        new Contract("Lkb/m0;", "invokeSuspend", "7def0f93422cc20060386be9f0eaf3daf149d4f7c82c3db62f4e290f7b990a5a", 1),
-        new Contract("Lkb/k;", "a", "6d505efc1a8172a7d6aa744553a6b9604ce09effad077174c73a693f8a197c00", 1),
-        new Contract("Lkb/q;", "a", "d26897cc81c3822d4052f611e96510d0582bee7b44f829912e0b9f560619eb25", 1),
-        new Contract("Lkb/q;", "d", "b70177cdb8ab1c0a1515e8ecc2d19968d2f0c2e9b2cb438820e31363f9c25741", 1),
-        new Contract(JOB, "a", "376bfbf4651aea2871060eea3e6970b7cf65b4aa3fcc71a36198c7b5de2ba90a", 1));
+        new Contract("Llb/j0;", "a", "b160c7d497b0eb00a9de4ff8060fbae7acdb9e3fab8c7c43e0dc99553bc3fcc9", 0),
+        new Contract("Llb/q0;", "a", "4b2edf04a701576b92d08505a92905a84d61b40c617fa2b3c199fd135b450c7d", 1),
+        new Contract("Llb/q0;", "b", "9afd02f26427b7efe38e4e4bb5a43e6a861e8b15d54b8626a64b51fce4492c97", 1),
+        new Contract("Llb/m0;", "invokeSuspend", "9c950c9d46d9241899f6e3556ea4ca793d9d2f23cceda011324a2e9732702a2a", 1),
+        new Contract("Llb/k;", "a", "5046d2fc93e4c6cd47185d0c9a0cc43cfad8a64e33da4d597425144af8f37f1f", 1),
+        new Contract("Llb/q;", "a", "d5ef2250fcb8da2c0e69e9759115af55f95800592d4cea1f57ef320073a2bbd0", 1),
+        new Contract("Llb/q;", "d", "5bf7bb27828120efc9c195101124200f07daeb0c9746c70397be1f1434163000", 1),
+        new Contract(JOB, "a", "0e41161ce80bda8e5577a9821500ce8faac99a73c0ec186bc4c3eca5616e9b40", 1));
 
     public static boolean validVersion(String value) {
         return value.matches("(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?");
@@ -51,11 +51,11 @@ public final class NuvioApkUpdates {
             var candidates = owner.getMethods().stream().filter(m -> m.getName().equals(c.name())).collect(java.util.stream.Collectors.toList());
             if (candidates.size() != 1) throw new IllegalStateException("Missing/ambiguous native updater " + c);
             MutableMethod method = candidates.get(0);
-            String parameters = c.type().equals("Lkb/j0;") ? "Lkb/l;Lkotlin/coroutines/jvm/internal/ContinuationImpl;" :
-                c.type().equals("Lkb/q0;") ? c.name().equals("a") ? "Lkb/q0;Lkotlin/coroutines/jvm/internal/ContinuationImpl;" : "Lkb/q0;Lkb/l;" :
-                c.type().equals("Lkb/m0;") ? "Ljava/lang/Object;" : c.type().equals("Lkb/k;") ? "" : "Lkotlin/coroutines/jvm/internal/ContinuationImpl;";
-            String result = c.type().equals("Lkb/k;") ? "Lkb/l;" : c.type().equals("Lkb/q0;") && c.name().equals("b") ? "Ljava/lang/String;" : "Ljava/lang/Object;";
-            boolean isStatic = c.type().equals("Lkb/q0;") || c.type().equals("Lkb/k;");
+            String parameters = c.type().equals("Llb/j0;") ? "Llb/l;Lkotlin/coroutines/jvm/internal/ContinuationImpl;" :
+                c.type().equals("Llb/q0;") ? c.name().equals("a") ? "Llb/q0;Lkotlin/coroutines/jvm/internal/ContinuationImpl;" : "Llb/q0;Llb/l;" :
+                c.type().equals("Llb/m0;") ? "Ljava/lang/Object;" : c.type().equals("Llb/k;") ? "" : "Lkotlin/coroutines/jvm/internal/ContinuationImpl;";
+            String result = c.type().equals("Llb/k;") ? "Llb/l;" : c.type().equals("Llb/q0;") && c.name().equals("b") ? "Ljava/lang/String;" : "Ljava/lang/Object;";
+            boolean isStatic = c.type().equals("Llb/q0;") || c.type().equals("Llb/k;");
             if (c.type().equals(JOB)) {
                 parameters = JOB + "Lcom/nuvio/tv/updater/UpdateJobService$a;Lkotlin/coroutines/jvm/internal/ContinuationImpl;";
                 isStatic = true;
@@ -85,7 +85,7 @@ public final class NuvioApkUpdates {
             for (int index = 0; index < code.size(); index++) {
                 Instruction instruction = code.get(index);
                 String old = string(instruction);
-                String replacement = old.equals(APP_VERSION) ? version : method.getDefiningClass().equals("Lkb/j0;") ?
+                String replacement = old.equals(APP_VERSION) ? version : method.getDefiningClass().equals("Llb/j0;") ?
                     old.equals("NuvioMedia") ? owner : old.equals("NuvioTV") ? repository : null : null;
                 if (replacement != null) {
                     if (instruction.getOpcode() != Opcode.CONST_STRING) throw new IllegalStateException("Unexpected constant encoding");

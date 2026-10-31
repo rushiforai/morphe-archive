@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" android:paddingMode="stack">
+    <item>
+        <ripple android:color="?unknown_attr_ref: 7f040167">
+            <item android:id="@android:id/mask">
+                <inset android:insetBottom="2dp">
+                    <shape
+                        android:tint="?unknown_attr_ref: 7f040164"
+                        android:shape="rectangle">
+                        <corners
+                            android:topLeftRadius="4dp"
+                            android:topRightRadius="4dp"/>
+                        <solid android:color="@android:color/white"/>
+                    </shape>
+                </inset>
+            </item>
+        </ripple>
+    </item>
+    <item android:drawable="0x7f080106"/>
+</layer-list>

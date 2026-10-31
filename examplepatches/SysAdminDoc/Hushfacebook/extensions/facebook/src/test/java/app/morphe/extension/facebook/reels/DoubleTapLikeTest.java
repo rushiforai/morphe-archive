@@ -9,6 +9,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
+
+import android.os.Looper;
+import android.os.SystemClock;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
+
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
@@ -16,6 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
@@ -29,8 +38,9 @@ import app.morphe.extension.shared.settings.PauseForTests;
  * The hooks that keep a double tap on a reel or a video from liking it: while the switch is on,
  * the player's double-tap handler reads as absent, the heart has no handler to play for, the reel
  * like's lookup key comes back empty, a like whose source is a double tap isn't sent and a feed
- * attachment's own double tap is left unhandled. Everything else, and everything while the switch
- * is off or Hushfacebook is paused, goes through as Facebook handed it over.
+ * attachment's own double tap is left unhandled. A photo on Home reports no double tap and the
+ * feed's double-tap like isn't sent. Everything else, and everything while the switch is off or
+ * Hushfacebook is paused, goes through as Facebook handed it over.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -150,6 +160,99 @@ public class DoubleTapLikeTest {
         assertNull(DoubleTapLike.heart(null));
         assertNull(DoubleTapLike.likeKey(null));
         assertEquals(status(3, 0), statusLine());
+    }
+
+    private static MotionEvent event(long down, long at, int action) {
+        return MotionEvent.obtain(down, at, action, 40f, 40f, 0);
+    }
+
+    /**
+     * #220: Home's photo listener, the way the patch leaves it. The hook first, then Facebook's own
+     * answer, true on the second tap's lift. Its detector answering true is what plays the heart and
+     * sends the like.
+     */
+    private static final class FeedPhotoListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onDoubleTapEvent(MotionEvent event) {
+            if (DoubleTapLike.holdBackFeedTap(event)) return false;
+            return event.getAction() == MotionEvent.ACTION_UP;
+        }
+    }
+
+    /** Whether a real GestureDetector with [listener] answers true to any event of a double tap. */
+    private static boolean reportsADoubleTap(GestureDetector.SimpleOnGestureListener listener) {
+        GestureDetector detector = new GestureDetector(RuntimeEnvironment.getApplication(), listener);
+        long start = SystemClock.uptimeMillis();
+        boolean reported = false;
+        MotionEvent[] taps = {
+            event(start, start, MotionEvent.ACTION_DOWN),
+            event(start, start + 50, MotionEvent.ACTION_UP),
+            event(start + 150, start + 150, MotionEvent.ACTION_DOWN),
+            event(start + 150, start + 200, MotionEvent.ACTION_UP),
+        };
+        for (MotionEvent tap : taps) {
+            reported |= detector.onTouchEvent(tap);
+            tap.recycle();
+        }
+        shadowOf(Looper.getMainLooper()).idleFor(1, TimeUnit.SECONDS);
+        return reported;
+    }
+
+    @Test
+    public void onAFeedPhotoDetectorNeverReportsADoubleTapAndCountsItOnceOnTheLift() {
+        assertFalse("the photo's double-tap detector reported a double tap", reportsADoubleTap(new FeedPhotoListener()));
+        // The second tap's press and lift reach the listener; only the lift counts.
+        assertEquals(status(2, 1), statusLine());
+        assertTrue("the feed's double-tap like went out", DoubleTapLike.holdBackFeedLike());
+        assertEquals(status(3, 2), statusLine());
+        assertTrue("no event left the double tap to like", DoubleTapLike.holdBackFeedTap(null));
+        assertEquals(status(4, 2), statusLine());
+    }
+
+    @Test
+    public void offOrPausedAFeedPhotoDoubleTapLikesAsFacebookBuiltIt() {
+        Settings.TURN_OFF_DOUBLE_TAP_LIKE.save(false);
+        assertTrue("off, the photo's detector lost its double tap", reportsADoubleTap(new FeedPhotoListener()));
+        assertFalse(DoubleTapLike.holdBackFeedLike());
+        assertEquals(status(3, 0), statusLine());
+        Settings.TURN_OFF_DOUBLE_TAP_LIKE.save(true);
+        for (HushfacebookPause.Reason reason : new HushfacebookPause.Reason[] {
+                HushfacebookPause.Reason.SWITCH, HushfacebookPause.Reason.CRASH_LOOP}) {
+            PauseForTests.pause(reason);
+            assertTrue(reason.name(), reportsADoubleTap(new FeedPhotoListener()));
+            assertFalse(reason.name(), DoubleTapLike.holdBackFeedLike());
+        }
+        PauseForTests.resume();
+        assertFalse(reportsADoubleTap(new FeedPhotoListener()));
+    }
+
+    /** A single tap, which opens the photo through a detector of its own, never reaches the hook. */
+    @Test
+    public void aSingleTapOnAFeedPhotoNeverAsksTheHook() {
+        GestureDetector detector = new GestureDetector(RuntimeEnvironment.getApplication(), new FeedPhotoListener());
+        long start = SystemClock.uptimeMillis();
+        MotionEvent down = event(start, start, MotionEvent.ACTION_DOWN);
+        MotionEvent up = event(start, start + 50, MotionEvent.ACTION_UP);
+        assertFalse(detector.onTouchEvent(down));
+        assertFalse(detector.onTouchEvent(up));
+        down.recycle();
+        up.recycle();
+        shadowOf(Looper.getMainLooper()).idleFor(1, TimeUnit.SECONDS);
+        assertNull("a single tap asked the hook", statusLine());
+    }
+
+    /** Double tap opens comments is a Reels gesture; alone it leaves a photo's double tap on Home to like. */
+    @Test
+    public void opensCommentsAloneLeavesAFeedPhotoDoubleTapToLike() {
+        Settings.TURN_OFF_DOUBLE_TAP_LIKE.save(false);
+        Settings.DOUBLE_TAP_OPENS_COMMENTS.save(true);
+        try {
+            assertTrue(reportsADoubleTap(new FeedPhotoListener()));
+            assertFalse(DoubleTapLike.holdBackFeedLike());
+            assertEquals(status(3, 0), statusLine());
+        } finally {
+            Settings.DOUBLE_TAP_OPENS_COMMENTS.resetToDefault();
+        }
     }
 
     /** Each double tap is counted, however many come, and a diagnostic clear starts over. */

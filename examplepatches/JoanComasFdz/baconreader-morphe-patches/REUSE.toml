@@ -1,0 +1,45 @@
+version = 1
+
+# ── These patches' own files, including the ports from ReVanced ────────────
+
+[[annotations]]
+path = ["**"]
+SPDX-FileCopyrightText = "2026 JoanComasFdz"
+SPDX-License-Identifier = "GPL-3.0-only"
+
+# ── From the Morphe patches template ───────────────────────────────────────
+
+[[annotations]]
+path = [
+    ".github/ISSUE_TEMPLATE/**",
+    ".github/dependabot.yml",
+    ".github/workflows/dev_build.yml",
+    ".github/workflows/open_pull_request.yml",
+    ".github/workflows/release.yml",
+    ".editorconfig",
+    ".gitattributes",
+    ".gitignore",
+    ".releaserc",
+    "build.gradle.kts",
+    "gradle/libs.versions.toml",
+    "NOTICE",
+    "package.json",
+    "package-lock.json",
+    "patches/build.gradle.kts",
+    "patches/src/main/kotlin/util/PatchListGenerator.kt",
+    "settings.gradle.kts",
+]
+SPDX-FileCopyrightText = "MorpheApp contributors"
+SPDX-License-Identifier = "GPL-3.0-only"
+
+# ── Gradle wrapper ─────────────────────────────────────────────────────────
+
+[[annotations]]
+path = [
+    "gradle/wrapper/gradle-wrapper.jar",
+    "gradle/wrapper/gradle-wrapper.properties",
+    "gradlew",
+    "gradlew.bat",
+]
+SPDX-FileCopyrightText = "2015-2024 the original authors"
+SPDX-License-Identifier = "Apache-2.0"

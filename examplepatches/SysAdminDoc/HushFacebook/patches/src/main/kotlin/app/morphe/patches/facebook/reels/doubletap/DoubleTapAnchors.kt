@@ -54,6 +54,28 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  *   own (580 LX/RwO;, 577 LX/STv;). It asks the helper's double-tap like and then animates a heart
  *   it adds to the screen, and it's the one onDoubleTap in either build loading "translationY".
  *   When its own config check says no it returns false, which is what the hook answers too.
+ *
+ * Home's photos like through a path of their own (read from 585 arm64 and armeabi-v7a, 2026-10-31,
+ * #220):
+ *
+ * - The feed's double-tap like helper (585 LX/070z;, 585 armeabi-v7a LX/0711;). Its one kept name
+ *   is getAnimationPosition, an instance method answering the PointF where the heart plays; no
+ *   other class in either build has a method by that name. It's one of the classes loading
+ *   "like_main", the haptic it plays on a double tap. Its like is its one static method taking a
+ *   GraphQLFeedback and returning nothing (A02), which sends the like through Facebook's feedback
+ *   mutator. Every method calling it calls getAnimationPosition too: it's the double tap's like,
+ *   never the Like button's.
+ * - PhotoAttachmentComponent (585 LX/03jC;) and five more feed components showing media (the
+ *   message flyout among them) give each photo gesture detectors of their own: one for the single
+ *   tap that opens the photo (LX/03B6; onSingleTapConfirmed), one for a long press (LX/03D9;), and
+ *   one whose listener only overrides onDoubleTapEvent and answers true on the second tap's lift
+ *   (585 LX/03BA;). Its detector answering true is what plays the heart, the haptic and the like. That
+ *   listener is the one class made by a class calling the helper that extends
+ *   SimpleOnGestureListener with nothing but onDoubleTapEvent; the build's four other
+ *   onDoubleTapEvent overriders aren't made there. The hook goes first in it and answers false
+ *   while the switch holds the double tap back, so the detector never reports one. The single-tap
+ *   and long-press detectors are separate and keep working; a double tap never opened the photo.
+ *   The helper's like also asks first and returns, for any double tap that reaches it another way.
  */
 
 internal const val PATCH = "Turn off double tap to like"
@@ -64,6 +86,19 @@ internal const val HEART = "$DOUBLE_TAP_LIKE->heart(Ljava/lang/Object;)Ljava/lan
 internal const val LIKE_KEY = "$DOUBLE_TAP_LIKE->likeKey(Ljava/lang/Object;)Ljava/lang/Object;"
 internal const val HOLD_BACK_LIKE = "$DOUBLE_TAP_LIKE->holdBackLike(Ljava/lang/String;)Z"
 internal const val HOLD_BACK_TAP = "$DOUBLE_TAP_LIKE->holdBackTap()Z"
+internal const val HOLD_BACK_FEED_TAP = "$DOUBLE_TAP_LIKE->holdBackFeedTap(Landroid/view/MotionEvent;)Z"
+internal const val HOLD_BACK_FEED_LIKE = "$DOUBLE_TAP_LIKE->holdBackFeedLike()Z"
+
+/** The haptic the feed's double-tap like helper plays, which narrows the classes to look in for it. */
+internal const val FEED_LIKE_HAPTIC = "like_main"
+
+/** The feed helper's kept method answering where the heart plays. */
+internal const val ANIMATION_POSITION = "getAnimationPosition"
+
+internal const val GRAPHQL_FEEDBACK = "Lcom/facebook/graphql/model/GraphQLFeedback;"
+internal const val GESTURE_LISTENER = "Landroid/view/GestureDetector\$SimpleOnGestureListener;"
+internal const val DOUBLE_TAP_EVENT = "onDoubleTapEvent"
+private const val POINT_F = "Landroid/graphics/PointF;"
 
 /** The trace the reel like helper's like opens: the helper's own name, which Redex keeps. */
 internal const val MUTATE_LIKE = "FbShortsMutationUtil.mutateViewerLikeReaction"
@@ -196,6 +231,29 @@ internal fun reachedOnlyFrom(method: Method, target: Int, from: Int): Boolean {
     val flow = ControlFlow.of(method)
     return flow.instructions.indices.all { index ->
         target !in flow.exceptional[index] && (index == from || target !in flow.normal[index])
+    }
+}
+
+/** Whether [owner] is the feed's double-tap like helper: it has an instance [ANIMATION_POSITION] answering a PointF. */
+internal fun isFeedLikeHelper(owner: ClassDef): Boolean =
+    owner.methods.any { it.name == ANIMATION_POSITION && !it.isStatic() && it.returnType == POINT_F }
+
+/** [helper]'s likes: static methods with a body taking a GraphQLFeedback and returning nothing. */
+internal fun feedLikes(helper: ClassDef): List<Method> = helper.methods.filter {
+    it.isStatic() && it.returnType == "V" && it.implementation != null && GRAPHQL_FEEDBACK in it.parameters()
+}
+
+/** Whether any of [owner]'s methods calls a method of [type]. */
+internal fun callsInto(owner: ClassDef, type: String): Boolean =
+    owner.methods.any { method -> method.code().any { it.call?.definingClass == type } }
+
+/** [listener]'s onDoubleTapEvent, when it's a SimpleOnGestureListener with that method and nothing else but constructors. */
+internal fun feedDoubleTapEvent(listener: ClassDef): Method? {
+    if (listener.superclass != GESTURE_LISTENER) return null
+    val methods = listener.methods.filter { it.name != "<init>" }
+    return methods.singleOrNull()?.takeIf {
+        it.name == DOUBLE_TAP_EVENT && !it.isStatic() && it.returnType == "Z" && it.parameters() == listOf(MOTION_EVENT) &&
+            it.implementation != null
     }
 }
 

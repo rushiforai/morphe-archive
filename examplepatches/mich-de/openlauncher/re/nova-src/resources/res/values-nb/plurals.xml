@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">Spol %d sekund fremover</item>
+        <item quantity="other">Spol %d sekunder fremover</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">Spol %d sekund bakover</item>
+        <item quantity="other">Spol %d sekunder bakover</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d møter</item>
+        <item quantity="one">%d møte</item>
+        <item quantity="two">%d møter</item>
+        <item quantity="few">%d møter</item>
+        <item quantity="many">%d møter</item>
+        <item quantity="other">%d møter</item>
+    </plurals>
+</resources>

@@ -1,0 +1,44 @@
+name: Build
+
+# Her push ve pull request'te kontrol amaçlı derleme. Yayın yapmaz.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Debug bayrağı depoda kapalı olmalı
+        run: |
+          grep -q 'DEBUG_LOGS: Boolean = false' patches/src/main/kotlin/dev/karmapatches/DebugLog.kt
+
+      - name: Build Morphe patches
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew buildAndroid --no-daemon
+
+      - name: Upload patch bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: karma-patches
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error

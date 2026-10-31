@@ -38,7 +38,7 @@ import kotlin.Unit;
 public final class NuvioFinaleDatesPatch {
     public static final String NAME = "NuvioTV - Finale dates in library and collections";
     static final String PACKAGE = NuvioNative.PACKAGE_NAME;
-    static final String VERSION = NuvioLayout.BETA8;
+    static final String VERSION = NuvioLayout.LATEST;
     static final String EXTENSION = "Lsoftware/santodan/extension/nuviofinale/NuvioFinaleDates;";
 
     private NuvioFinaleDatesPatch() {}
@@ -132,7 +132,7 @@ public final class NuvioFinaleDatesPatch {
     static void hookCard(MutableClass owner, String extension) {
         boolean library = NuvioNative.LIBRARY_CARD_TYPE.equals(owner.getType());
         MutableMethod target = unique(owner, "invoke", 3);
-        if (target.getImplementation().getRegisterCount() != (library ? (36) : 63))
+        if (target.getImplementation().getRegisterCount() != (library ? (36) : 57))
             throw unsupported("Finale card register layout changed");
         List<Instruction> ins = instructions(target);
         List<Integer> images = new ArrayList<>();

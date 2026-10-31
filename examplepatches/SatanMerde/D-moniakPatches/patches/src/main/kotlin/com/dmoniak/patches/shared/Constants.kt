@@ -718,6 +718,209 @@ object Constants {
         targets = listOf(AppTarget("2.1.0", isExperimental = true))
     )
 
+    val COMPATIBILITY_LETTERBOXD = Compatibility(
+        packageName = "com.letterboxd.letterboxd",
+        name = "Letterboxd",
+        description = "Letterboxd: Social network for film lovers by Letterboxd Limited",
+        appIconColor = 0x00E054
+    )
+
+    val COMPATIBILITY_IMDB = Compatibility(
+        packageName = "com.imdb.mobile",
+        name = "IMDb",
+        description = "IMDb: Movies & TV Shows by IMDb",
+        appIconColor = 0xF5C518
+    )
+
+    val COMPATIBILITY_TUMBLR = Compatibility(
+        packageName = "com.tumblr",
+        name = "Tumblr",
+        description = "Tumblr: Fandom, art, and chaotic social blog feed by Tumblr, Inc.",
+        appIconColor = 0x001935
+    )
+
+    val COMPATIBILITY_QUIZLET = Compatibility(
+        packageName = "com.quizlet",
+        name = "Quizlet",
+        description = "Quizlet: AI-powered Flashcards & Study Sets by Quizlet Inc.",
+        appIconColor = 0x4257B2
+    )
+
+    val COMPATIBILITY_CHESS = Compatibility(
+        packageName = "com.chess",
+        name = "Chess.com",
+        description = "Chess.com: Play chess online & offline against bots and friends by Chess.com",
+        appIconColor = 0x7FA650
+    )
+
+    val COMPATIBILITY_MOOVIT = Compatibility(
+        packageName = "com.moovit.android.phone",
+        name = "Moovit",
+        description = "Moovit: Public Transit & Urban Mobility by Moovit",
+        appIconColor = 0xF36F21
+    )
+
+    val COMPATIBILITY_HEVY = Compatibility(
+        packageName = "com.hevy.app",
+        name = "Hevy",
+        description = "Hevy: Gym Workout Tracker & Weight Lifting Log by HevyApp",
+        appIconColor = 0x3B82F6
+    )
+
+    val COMPATIBILITY_MYFITNESSPAL = Compatibility(
+        packageName = "com.myfitnesspal.android",
+        name = "MyFitnessPal",
+        description = "MyFitnessPal: Calorie Counter, Macro & Nutrition Tracker by MyFitnessPal, Inc.",
+        appIconColor = 0x0066EE
+    )
+
+    val COMPATIBILITY_CRONOMETER = Compatibility(
+        packageName = "com.cronometer.android.gold",
+        name = "Cronometer",
+        description = "Cronometer: Nutrition & Calorie Tracker by Cronometer Software Inc.",
+        appIconColor = 0xFF6F00
+    )
+
+    val COMPATIBILITY_TODOIST = Compatibility(
+        packageName = "com.todoist",
+        name = "Todoist",
+        description = "Todoist: To-Do List & Task Planner by Doist",
+        appIconColor = 0xE44332
+    )
+
+    val COMPATIBILITY_POWERAMP = Compatibility(
+        packageName = "com.maxmpz.audioplayer",
+        name = "Poweramp",
+        description = "Poweramp: Music Player (Equalizer & Hi-Res Audio) by Max MP",
+        appIconColor = 0x222222
+    )
+
+    val COMPATIBILITY_MONEY_MANAGER = Compatibility(
+        packageName = "com.realbyteapps.moneymanager",
+        name = "Money Manager",
+        description = "Money Manager: Expense Tracker & Budget by Realbyte Inc.",
+        appIconColor = 0xE53935
+    )
+
+    val COMPATIBILITY_SWIFTKEY = Compatibility(
+        packageName = "com.touchtype.swiftkey",
+        name = "Microsoft SwiftKey",
+        description = "Microsoft SwiftKey AI Keyboard by Microsoft Corporation",
+        appIconColor = 0x0078D4
+    )
+
+    val COMPATIBILITY_AUTOZEN = Compatibility(
+        packageName = "com.zenoph.autozen",
+        name = "AutoZen",
+        description = "AutoZen: Car Dashboard & Navigation by Zenoph Labs",
+        appIconColor = 0x1E88E5
+    )
+
+    val COMPATIBILITY_BLOCKERHERO = Compatibility(
+        packageName = "com.blockerhero",
+        name = "BlockerHero",
+        description = "BlockerHero: Porn & Adult Content Blocker by BlockerHero Team",
+        appIconColor = 0x2196F3
+    )
+
+    val COMPATIBILITY_NOKOPRINT = Compatibility(
+        packageName = "com.nokoprint",
+        name = "NokoPrint",
+        description = "NokoPrint: Mobile Printing for Android by NokoPrint",
+        appIconColor = 0x4CAF50
+    )
+
+    val COMPATIBILITY_TEACH_ME_ANATOMY = Compatibility(
+        packageName = "info.cloudmed.teachmeanatomy",
+        name = "Teach Me Anatomy",
+        description = "Teach Me Anatomy: 3D Human Anatomy & Clinical Encyclopedia by CloudMed",
+        appIconColor = 0x009688
+    )
+
+    val COMPATIBILITY_BUSUU = Compatibility(
+        packageName = "com.busuu.android.enc",
+        name = "Busuu",
+        description = "Busuu: Learn Languages, Grammar & Vocabulary by Busuu Limited",
+        appIconColor = 0x1976D2
+    )
+
+    val COMPATIBILITY_GOODREADS = Compatibility(
+        packageName = "com.goodreads",
+        name = "Goodreads",
+        description = "Goodreads: Book Reviews & Reading Tracker by Goodreads",
+        appIconColor = 0x553B08
+    )
+
+    val COMPATIBILITY_GENIUS = Compatibility(
+        packageName = "com.genius.android",
+        name = "Genius",
+        description = "Genius: Song Lyrics & Music Knowledge by Genius Media Group",
+        appIconColor = 0xFFFF64
+    )
+
+    val COMPATIBILITY_POCKET_CASTS = Compatibility(
+        packageName = "au.com.shiftyjelly.pocketcasts",
+        name = "Pocket Casts",
+        description = "Pocket Casts: Podcast Player by Automattic / Pocket Casts",
+        appIconColor = 0xF43E37
+    )
+
+    val COMPATIBILITY_TIDAL = Compatibility(
+        packageName = "com.aspiro.tidal",
+        name = "Tidal",
+        description = "TIDAL Music: HiFi Sound & Streaming by TIDAL",
+        appIconColor = 0x000000
+    )
+
+    val COMPATIBILITY_BUMBLE = Compatibility(
+        packageName = "com.bumble.app",
+        name = "Bumble",
+        description = "Bumble: Dating, Friends & Chat by Bumble Holding",
+        appIconColor = 0xFFC629
+    )
+
+    val COMPATIBILITY_MATHWAY = Compatibility(
+        packageName = "com.bagatrix.mathway.android",
+        name = "Mathway",
+        description = "Mathway: Math Problem Solver & Calculator by Chegg",
+        appIconColor = 0x00A859
+    )
+
+    val COMPATIBILITY_MT_MANAGER = Compatibility(
+        packageName = "bin.mt.plus",
+        name = "MT Manager",
+        description = "MT Manager: Powerful APK editor & file manager by Lin Jin Bin",
+        appIconColor = 0xF57C00
+    )
+
+    val COMPATIBILITY_VIRTUAL_MASTER = Compatibility(
+        packageName = "com.clone.android.dual.space",
+        name = "Virtual Master",
+        description = "Virtual Master: Android on Android VM & Dual Space by VM Space Tech",
+        appIconColor = 0x6200EE
+    )
+
+    val COMPATIBILITY_VIRTUAL_MASTER_ALT = Compatibility(
+        packageName = "com.virtualmaster",
+        name = "Virtual Master (Alt)",
+        description = "Virtual Master: Android on Android VM & Dual Space (Standalone / Direct)",
+        appIconColor = 0x6200EE
+    )
+
+    val COMPATIBILITY_CAPCUT = Compatibility(
+        packageName = "com.lemon.lvoverseas",
+        name = "CapCut",
+        description = "CapCut: Video Editor & Maker by Bytedance",
+        appIconColor = 0x000000
+    )
+
+    val COMPATIBILITY_CAPCUT_ALT = Compatibility(
+        packageName = "com.lemon.lv",
+        name = "CapCut (Alt)",
+        description = "CapCut: Video Editor & Maker (Domestic / JianYing)",
+        appIconColor = 0x000000
+    )
+
     // Aliases
     val COMPATIBILITY_ANGRY_BIRDS_CLASSIC = COMPATIBILITY_ANGRY_BIRDS
     val COMPATIBILITY_HIDE_ME = COMPATIBILITY_HIDEME

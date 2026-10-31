@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="exo_controls_playback_speeds">
+        <item>0.25 倍</item>
+        <item>0.5 倍</item>
+        <item>0.75 倍</item>
+        <item>正常</item>
+        <item>1.25 倍</item>
+        <item>1.5 倍</item>
+        <item>2 倍</item>
+    </array>
+    <array name="pref_screen_orientation">
+        <item>默认</item>
+        <item>自动旋转</item>
+        <item>强制竖屏</item>
+        <item>强制横屏</item>
+    </array>
+</resources>

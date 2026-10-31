@@ -333,15 +333,19 @@ public class PatchFamilyTest {
         PatchFamily family = PatchFamily.KEEP_DELETED_MESSAGES;
         assertEquals("Keep deleted messages", family.patchName);
         // The second switch, the red label, starts off too and shows at the next measuring. The third,
-        // the edit history, starts off and keeps from the next edit on.
-        assertEquals(Arrays.asList(Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_EDIT_HISTORY), family.switches);
+        // the edit history, starts off and keeps from the next edit on. The fourth, timed media, starts off
+        // and holds the next timed media you open.
+        assertEquals(Arrays.asList(Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_EDIT_HISTORY,
+                Settings.KEEP_TIMED_MEDIA), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             assertFalse(setting.key, setting.rebootApp);
         }
-        assertEquals(EnumSet.of(PatchFamily.Capability.RED_DELETED_LABEL, PatchFamily.Capability.EDIT_HISTORY), family.expectedCapabilities());
+        assertEquals(EnumSet.of(PatchFamily.Capability.RED_DELETED_LABEL, PatchFamily.Capability.EDIT_HISTORY,
+                PatchFamily.Capability.TIMED_MEDIA), family.expectedCapabilities());
         assertEquals("redDeletedLabel", PatchFamily.Capability.RED_DELETED_LABEL.statusMethod);
         assertEquals("keepEditHistory", PatchFamily.Capability.EDIT_HISTORY.statusMethod);
+        assertEquals("keepTimedMedia", PatchFamily.Capability.TIMED_MEDIA.statusMethod);
         assertOnItsPage(family);
     }
 

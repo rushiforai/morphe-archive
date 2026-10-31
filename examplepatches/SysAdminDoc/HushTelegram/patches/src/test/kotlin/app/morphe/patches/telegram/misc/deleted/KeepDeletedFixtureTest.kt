@@ -175,6 +175,8 @@ class KeepDeletedFixtureTest {
             assertEquals(1L, (painted.first() as WideLiteralInstruction).wideLiteral)
             val history = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "keepEditHistory" }.controlBody()
             assertEquals(1L, (history.first() as WideLiteralInstruction).wideLiteral)
+            val timed = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "keepTimedMedia" }.controlBody()
+            assertEquals("$name: the timed media switch shows", 1L, (timed.first() as WideLiteralInstruction).wideLiteral)
             // Message times with seconds wasn't picked, so its switch stays hidden (#49).
             val seconds = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "messageSeconds" }.controlBody()
             assertEquals("$name: no seconds switch without its patch", 0L, (seconds.first() as WideLiteralInstruction).wideLiteral)
@@ -201,6 +203,24 @@ class KeepDeletedFixtureTest {
             val status = context.mutableClassDefBy(SETTINGS_STATUS).methods
             assertEquals(1L, (status.single { it.name == "keepDeleted" }.controlBody().first() as WideLiteralInstruction).wideLiteral)
             assertEquals(0L, (status.single { it.name == "keepEditHistory" }.controlBody().first() as WideLiteralInstruction).wideLiteral)
+        }
+    }
+
+    @Test fun `a moved timed media place leaves that switch out and keeps the rest`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = context(build)
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageTimePatch.execute(context) })
+            context.mutableClassDefBy(MESSAGES_STORAGE).methods.removeAll { it.name == "emptyMessagesMedia" }
+            val warnings = PatchLogCapture.warnings { keepDeletedPatch.execute(context) }
+            assertEquals("$name: $warnings", 1, warnings.size)
+            assertTrue(warnings.single(), "emptyMessagesMedia" in warnings.single() && "without Keep view-once and timed media" in warnings.single())
+            val played = context.mutableClassDefBy(MESSAGES_CONTROLLER).methods.single { it.name == "markMessageContentAsRead" }
+            assertTrue("$name: no timed media hook", played.controlBody().none { it.controlRef()?.startsWith(KEEP_TIMED_MEDIA) == true })
+            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods
+            assertEquals(1L, (status.single { it.name == "keepDeleted" }.controlBody().first() as WideLiteralInstruction).wideLiteral)
+            assertEquals(1L, (status.single { it.name == "keepEditHistory" }.controlBody().first() as WideLiteralInstruction).wideLiteral)
+            assertEquals(0L, (status.single { it.name == "keepTimedMedia" }.controlBody().first() as WideLiteralInstruction).wideLiteral)
         }
     }
 
@@ -341,10 +361,16 @@ class KeepDeletedFixtureTest {
         assertEquals("${build.name}: every class the extension reads", KEEP_DELETED_TYPES, telegram.keys)
         val sparse = FixtureDex.classes(build, setOf(sparseType(build)))
         assertEquals("${build.name}: the renamed sparse array", setOf(sparseType(build)), sparse.keys)
+        val dialog = FixtureDex.classes(build, setOf(TIMED_DIALOG_OBJECT))
+        assertEquals("${build.name}: the chat kinds", setOf(TIMED_DIALOG_OBJECT), dialog.keys)
+        // The bubble and time hosts, plus the chat that opens and expires timed media.
         val hosts = FixtureDex.classesWhere(build, { true }) { m ->
-            m.definingClass == FAST_DATE_FORMAT || m.controlBody().any { it.controlRef() == EDITED_MESSAGE }
-        }.map(ImmutableClassDef::of)
-        return PatchContexts.of(ExtensionDex.classes() + telegram.values + sparse.values + hosts)
+            m.definingClass == FAST_DATE_FORMAT || m.controlBody().any { it.controlRef().let { ref ->
+                ref == EDITED_MESSAGE || ref == TIMED_OPENED || ref == TIMED_SHOW_ONCE
+            } }
+        }.filter { it.type !in telegram.keys && it.type !in sparse.keys && it.type != TIMED_DIALOG_OBJECT }
+            .distinctBy { it.type }.map(ImmutableClassDef::of)
+        return PatchContexts.of(ExtensionDex.classes() + telegram.values + sparse.values + dialog.values + hosts)
     }
 
     /** Read independently of the patch: the cleanup's first parameter, as the fixture declares it. */

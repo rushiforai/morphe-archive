@@ -1,0 +1,41 @@
+# Native Lyrics presentation and extension scrolling -2026-10-25
+
+Canonical app home remains C:/Morphe/App's/YT-Music; Personal-Patches is development, not the reviewed public checkout. User asks for native-like fallback, actual Better Lyrics scrolling, second-position native Lyrics until confirmed empty, stronger retrieval and explanation of Connect sources. MuMu/device/sign/install operations remain excluded. GitHub updates continue under the existing explicit authorization for this project.
+
+## Native presentation
+
+The previous cold fallback cloned Related and forced snap/palette fields. The original9.42.52 APK also contains its own built-in offline Lyrics presentation factory. Its238 instructions have normalized opcode/reference/literal SHA256 `7bc335a95608014c5d4d9ba2ca5e97752cc4b34706dfc8a69fdc225203229727`, now checked by the scoped patch along with the existing six native message schemas. Evidence: Verification/revision28-native-presentation.txt, revision28-panel-schema.json and revision28-native-factory-pin.json. This does not distribute vendor APK/classes.
+
+Cold fallback now mirrors that native factory's default header/profile: native title header, ve95102, disable-pull-refresh6=true, persistence15=true, allow-replace20=true, background-style37=2, online Lyrics identity and the native below-mini-player snap. It does not copy Related content/palette/entity/resize restrictions. Native controller/header/close/content root build the panel; our WebView remains transparent inside its native content body. There is no separately drawn player panel or fake action label.
+
+A real supplied Lyrics definition is now preserved byte-for-byte, including all native snap/style/header fields. A new typed native-registration observer captures late native Lyrics definitions and discards the generated-profile marker. Self-registration is guarded to avoid caching our own fallback as genuine. Warm presentation caches strip previous lyric content only. Registry readiness may be checked using Related, but no presentation fields come from it.
+
+Additional bytecode/resource inspection confirms native background style handling in Lvor.F, which chooses its own raised header/body drawable. Native raised resource0x7f0801c1 resolves to res/brL.xml with native theme attribute `ytRaisedBackground` (0x7f04098e); our profile paints no hardcoded black/song color. Retained evidence: revision28-native-background-paths.txt, revision28-native-raised-resource.txt, revision28-native-raised-xml.txt and revision28-native-raised-attribute.txt. **The cold profile is the APK's built-in default, not a captured online server definition. Pixel parity and phone theme/gestures remain unverified.**
+
+## Actual extension motion
+
+The0.2.7 custom750ms physical viewport animation is removed, including its JS module and optional engine sink. Braccato's own per-line additive translate animations, varied durations/stagger, easing, group-follow and highlighting are restored. Monotonic/native timestamp playback sampling remains. Only scroll-event bookkeeping is adapted: coalesce expected events instead of accumulating counts, clamp expired suppression at zero and identify actual wheel/touchmove/navigation-key input. A120ms seek/resume guard ignores queued programmatic scroll events; fresh user gestures bypass it immediately. No additional scrolling/easing algorithm runs.
+
+Better Lyrics latest stable was rechecked via its primary GitHub release API on2026-10-25: stillv3.0.1 (`7a6a6a104d0667baac6df9f3e126385e3822f179`), core1.16.11. Original engine hash `a3abca4640ef83edd4c5d2b34e7efb221e439365a24005051e34f92851c1f834`; the patch script verifies original engine/renderer by inversion before each adaptation. Exact local hashes are in web/braccato-local-patch.json and SOURCE-PINS.json.
+
+Browser comparison builds the same host against the untouched retained core package and compares it with the final renderer. Eight scroll animations match translate keyframes, varied durations, delays and easing exactly. The first scroll effect is810ms with cubic-bezier(0.86,0,0.2,1). The final301-frame visual trace has zero reverse steps and maximum27.53px step in desktop Chrome156. Real wheel during movement, resume, actual lyric tap/seek, reduced motion, real Wake Up Better Lyrics TTML and Love Me Dead Unison TTML pass. All16 variants, vocal agents/BG vocals/letter wave, light/narrow/large layout, transparent glass dock/flyout, hidden scrollbars and manual selection regressions pass. Desktop checks do not establish Samsung performance.
+
+## Button and lookup
+
+The scoped native model rewrite orders Lyrics second even before metadata/provider completion. It preserves the real native disabled state/command while pending, enables the same native action on a found result, explicitly orders it last after typed confirmed-empty completion and restores the original model when disabled. Network/auth failures remain unknown. Tests use the actual retained action-row wire fixture; no native view/listener overlay is involved.
+
+Metadata normalization removes only bracketed Official Music Video/Official Audio/Lyrics Video labels and the channel Topic suffix. Cover/live/remix qualifiers remain significant. LRCLib404/empty get can use a bounded search result only if normalized title/artist match and known duration differs by at most2 seconds. Wrong artists/versions/longer differences reject;403/rate/auth failures cannot invoke this fallback. Valid rich results and intentional manual selections still survive later empty replies; no persistent Unison cache or alternate recording-time conversion was introduced.
+
+## Connect sources
+
+This opens the normal Cloudflare Turnstile verification for `lyrics.api.dacubeking.com`, the additional-provider broker used by the extension. A successful verification stores its expiring JWT in app-private preferences and refreshes the current lookup. The broker receives video ID/title/artist/album/duration. It is not a Google/YouTube login or account link. Public Better Lyrics, Unison, LRCLib and native sources run independently. Additional broker results include BiniLyrics, Musixmatch, Portato/QQ and Legato/KuGou. Connecting permits querying them; it cannot create missing lyrics. Renew if verification expires. No token is printed, exported or borrowed.
+
+Native settings/dialog now explain this; connection/error status can remain visible even while a public lyric is displaying. A generic network error does not unnecessarily show a verification button. Saved source ordering, rendering preferences and connection data remain.
+
+## Verification and limits
+
+Personal0.2.8-beta.1 MPP SHA256 `f938863a742cc77af0c14a59b9982fde391752b81d7aeed289544d41719bc29d`. Original9.42.52/94252240 arm64/minSDK26 SHA256 `9c38d63907362715f6172545bcb36f11ddbd45f014938626068016f06dcc3c56`; official1.48.0 SHA256 `82bc696c94c26dbf75242b59980251315145457575b663200b981ca351e1c0f7`. Stable verification engine2.0.0; inherited1.15.1 fingerprint matching semantics stay intentional. JDK25.0.5.0.2 replaced the removed25.0.4.1 path in app-owned wrappers; no external tools were installed.
+
+Four fresh exact-bundle APK applications, both source orders, five invalid selections and compiled native registration/action/identity/replay/panel/SDK/hierarchy/reference/asset/duplicate audits pass. Add-on108 owned classes, no foreign/duplicate runtime classes. Java39 host,33 catalog and23 lifecycle checks pass with explicit Android/native/HTTP simulations. The byte-identical31-check navigation simulation is reused with exact source hash. JVM/lint and live Java requests for all three supplied regression IDs pass. Exact identities/results are in Personal-Patches/dist/0.2.8-beta.1/verification.json.
+
+No phone/pixel-parity/performance acceptance; check native cold/warm header/theme/gesture/snap, early/pending/found/empty button/click, line transitions, seek/resume, rapid changes and source verification on the phone. Alternate video/audio timeline conversion and Shaders remain absent. No MuMu/device/sign/install/uninstall operations. Candidate and delivery scratch remain in bounded revision28 app folders; no cleanup authorized. Publication receipt, when complete: Verification/publication/v0.2.8-beta.1/publication-result.json. Do not rerun completed generators or push private source history.

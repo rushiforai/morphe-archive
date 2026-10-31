@@ -125,7 +125,7 @@ public final class NuvioDateLabelStyle {
         modifier = method(Class.forName("e0.b", false, loader), "u", 2).invoke(null, modifier, 6f);
         modifier = method(Class.forName("b2.j", false, loader), "b", 2).invoke(null, modifier, staticValue(loader, shapeOwner, "a"));
         modifier = method(Class.forName("y.m", false, loader), "g", 3).invoke(null, modifier,
-            color(scope, 2), staticValue(loader, "e2.g0", "b"));
+            color(scope, 2), staticValue(loader, "e2.i0", "b"));
         float scale = percent(scope, 1) / 100f;
         Object spacing = staticValue(loader, NuvioNative.NATIVE_SPACING_LOCAL_NAME, "a");
         float horizontal = field(spacing.getClass(), "e").getFloat(spacing);

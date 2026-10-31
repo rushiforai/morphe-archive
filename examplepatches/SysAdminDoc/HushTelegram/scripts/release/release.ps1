@@ -185,6 +185,16 @@ function Assert-SourceVersion {
     if (-not $entry.Valid) { throw "The CHANGELOG isn't ready for ${Version}: $($entry.Reason)" }
 }
 
+function Assert-NoMachineNames {
+    # Everyday pushes skip the pre-push hook, and its scan of the tracked files with it, so a name of
+    # the maintainer's machine or phone can sit on main until a contract run reads it. 0.0.23's
+    # build stage comment named the working notes for a day that way. The release reads the tree
+    # here, before anything is built from it.
+    $named = @(Find-MachineNames -Root $Root)
+    if ($named.Count -gt 0) { throw "Tracked files name the maintainer's machine or phone: $($named -join '; ')" }
+    Write-Step "no tracked file names the maintainer's machine or phone"
+}
+
 function Invoke-ReleaseGradle {
     param([string[]]$Tasks)
     $wrapper = $env:HUSHTELEGRAM_BUILD_WRAPPER
@@ -374,6 +384,7 @@ switch ($Stage) {
         $unparsed = @(Get-UnparsedScripts)
         if ($unparsed.Count -gt 0) { throw "Tracked scripts that don't parse: $($unparsed -join '; ')" }
         Write-Step 'every tracked PowerShell script parses'
+        Assert-NoMachineNames
         Invoke-Step 'The release text and stage order tests' { & (Join-Path $releaseScripts 'test-release-text.ps1') -Root $Root }
         Invoke-Step 'The release facts precheck' {
             & (Join-Path $scripts 'validate-release-facts.ps1') -Root $Root -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipTestResults
@@ -408,7 +419,7 @@ switch ($Stage) {
             return
         }
         # The full gate's wall time, queue waits included, kept next to the bundle hash so the next
-        # release can hold it against the 14m22s v0.0.11 baseline in CLAUDE.md.
+        # release can hold it against the v0.0.11 baseline of 14m22s.
         $clock = [Diagnostics.Stopwatch]::StartNew()
         $fixtures = @(Get-DeclaredFixtures)
         $desktopJar = Resolve-DesktopCli -Root $Root -Required

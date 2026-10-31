@@ -12,6 +12,10 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -29,6 +33,11 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.PatchFamily;
@@ -185,6 +194,113 @@ public class TranslucentBarsTest {
         screen.layOut();
         assertTrue(TranslucentBars.holdsSurface(screen.page, box));
         assertTrue(TranslucentBars.holdsSurface(new SurfaceView(screen.activity), box));
+    }
+
+    @Test
+    public void theFrostIsCopiedAroundAFeedVideoAndClearedWhereItIs() {
+        // #250: a feed video anywhere on Home kept both bars plain, which read as the frost turning
+        // into a dark strip each time one scrolled into view. The copy now leaves the video out.
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        Drawn far = new Drawn(screen.activity);
+        FrameLayout post = new FrameLayout(screen.activity);
+        Drawn title = new Drawn(screen.activity);
+        Video video = new Video(screen.activity);
+        post.addView(title, new FrameLayout.LayoutParams(720, 100));
+        FrameLayout.LayoutParams below = new FrameLayout.LayoutParams(720, 200);
+        below.topMargin = 100;
+        post.addView(video, below);
+        screen.page.addView(far, new FrameLayout.LayoutParams(720, 600));
+        FrameLayout.LayoutParams low = new FrameLayout.LayoutParams(720, 300);
+        low.topMargin = 1350;
+        screen.page.addView(post, low);
+        screen.layOut();
+        Rect tabBar = new Rect(0, 1400, 720, 1600);
+        Tracking canvas = new Tracking();
+
+        TranslucentBars.record(screen.page, canvas, tabBar, new Rect());
+
+        assertEquals("the post's title under the bar is copied", 1, title.draws);
+        assertEquals("the video itself never is", 0, video.draws);
+        assertEquals("a post nowhere near the bar isn't drawn", 0, far.draws);
+        assertEquals("the copy is cleared where the video is", 1, canvas.cleared.size());
+        assertEquals(new Rect(0, 1450, 720, 1650), canvas.cleared.get(0));
+        assertEquals("the area is given back as it was", new Rect(0, 1400, 720, 1600), tabBar);
+
+        post.removeView(video);
+        screen.layOut();
+        canvas = new Tracking();
+        TranslucentBars.record(screen.page, canvas, tabBar, new Rect());
+        assertEquals("with no video the page is drawn whole", 1, far.draws);
+        assertTrue(canvas.cleared.isEmpty());
+    }
+
+    /** A view that counts its draws. */
+    private static final class Drawn extends View {
+        int draws;
+
+        Drawn(Context context) {
+            super(context);
+            setWillNotDraw(false);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            draws++;
+        }
+    }
+
+    /** A video's SurfaceView that counts its draws. */
+    private static final class Video extends SurfaceView {
+        int draws;
+
+        Video(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            draws++;
+            super.draw(canvas);
+        }
+    }
+
+    /** A canvas that keeps its translation and each cleared box, in its starting coordinates. */
+    private static final class Tracking extends Canvas {
+        final List<Rect> cleared = new ArrayList<>();
+        private final Deque<float[]> stack = new ArrayDeque<>();
+        private float x;
+        private float y;
+
+        @Override
+        public int save() {
+            stack.push(new float[]{x, y});
+            return stack.size();
+        }
+
+        @Override
+        public void restore() {
+            float[] top = stack.pop();
+            x = top[0];
+            y = top[1];
+        }
+
+        @Override
+        public void restoreToCount(int count) {
+            while (stack.size() >= count) restore();
+        }
+
+        @Override
+        public void translate(float dx, float dy) {
+            x += dx;
+            y += dy;
+        }
+
+        @Override
+        public void drawRect(float left, float top, float right, float bottom, Paint paint) {
+            if (paint.getXfermode() instanceof PorterDuffXfermode) {
+                cleared.add(new Rect(Math.round(left + x), Math.round(top + y), Math.round(right + x), Math.round(bottom + y)));
+            }
+        }
     }
 
     @Test

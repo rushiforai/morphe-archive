@@ -12,6 +12,8 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.category;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.hiddenBarsRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.likeAnimationRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.reelCapBreakRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.reelCapCountRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.scrollBreakRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
 
@@ -112,6 +114,10 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.KEEP_REEL_CLEAR_MODE, L10n.t("Keep clear mode on"),
                     L10n.t("Turn on Instagram's clear mode on a reel and the next reels open in it too. Leave clear "
                             + "mode yourself and the next reels show their buttons again.")));
+            reels.add(toggle(context, Settings.START_REEL_CLEAR_MODE, L10n.t("Start every reel in clear mode"),
+                    L10n.t("Reels open in clear mode from the first one, with no tap. Leave it yourself and the next "
+                            + "reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow "
+                            + "screenshots is on.")));
         }
         if (build.contains(PatchFamily.KEEP_REELS_TOP_BAR)) {
             reels.add(toggle(context, Settings.KEEP_REELS_TOP_BAR, L10n.t("Keep the Reels top bar"),
@@ -218,9 +224,12 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.STOP_REELS_SCROLLING, L10n.t("Stop Reels scrolling"),
                     L10n.t("A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new "
                             + "ones. The reel you opened still plays. Restart Instagram to see the change.")));
-            reels.add(toggle(context, Settings.REEL_CAP, L10n.t("Stop after 20 reels"),
-                    L10n.t("After 20 reels, swiping in Reels stops until Instagram has been in the background for "
-                            + "15 minutes. A reel you open from a message or a post still plays.")));
+            reels.add(toggle(context, Settings.REEL_CAP, L10n.t("Stop after a set number of reels"),
+                    L10n.t("After the reels you pick below, swiping in Reels stops until Instagram has been in the "
+                            + "background for the time you pick. A reel you open from a message or a post still "
+                            + "plays.")));
+            reels.add(reelCapCountRow(context));
+            reels.add(reelCapBreakRow(context));
             reels.add(scrollBreakRow(context));
         }
         if (build.contains(PatchFamily.SWIPE_TO_PROFILE)) {
@@ -248,6 +257,9 @@ final class ReelsCategory {
                     L10n.t("Puts a music icon beside a reel. Tap it and the Reels tab skips other reels using that "
                             + "sound. Tap it again to bring them back.")));
             reels.add(page.hiddenSoundsRow(context));
+            reels.add(toggle(context, Settings.TEXT_BUTTON_ON_REELS, L10n.t("Copy text button on reels"),
+                    L10n.t("Puts a Lens icon beside a reel. Tap it and Google Lens opens on what's showing, so you "
+                            + "can select and copy its text.")));
         }
         if (!reels.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Reels"), SettingsIcons.REELS,

@@ -83,6 +83,7 @@ import app.morphe.extension.facebook.feed.SeenPostsForTests;
 import app.morphe.extension.facebook.feed.FeedsHeader;
 import app.morphe.extension.facebook.feed.FollowingHome;
 import app.morphe.extension.facebook.feed.GroupPosts;
+import app.morphe.extension.facebook.feed.HomeBack;
 import app.morphe.extension.facebook.feed.ReturnRefresh;
 import app.morphe.extension.facebook.feed.FeedGuardForTests;
 import app.morphe.extension.facebook.feed.FullPostText;
@@ -94,8 +95,10 @@ import app.morphe.extension.facebook.feed.ProfileSuggestionsForTests;
 import app.morphe.extension.facebook.feed.RelatedPosts;
 import app.morphe.extension.facebook.misc.AppLockForTests;
 import app.morphe.extension.facebook.feed.TypedFeedUnit;
+import app.morphe.extension.facebook.feed.WhoSharedForTests;
 import app.morphe.extension.facebook.font.OwnFont;
 import app.morphe.extension.facebook.comments.DefaultCommentOrderForTests;
+import app.morphe.extension.facebook.comments.CommentBlock;
 import app.morphe.extension.facebook.comments.CommentSheetOptions;
 import app.morphe.extension.facebook.comments.FullHeightComments;
 import app.morphe.extension.facebook.comments.MetaAiSummaries;
@@ -109,6 +112,7 @@ import app.morphe.extension.facebook.media.ProgressBar;
 import app.morphe.extension.facebook.media.QualityChoiceForTests;
 import app.morphe.extension.facebook.media.SkipSilence;
 import app.morphe.extension.facebook.media.ReelSpeedForTests;
+import app.morphe.extension.facebook.media.ReplaySpeed;
 import app.morphe.extension.facebook.media.RecentlyWatchedForTests;
 import app.morphe.extension.facebook.media.ResumePlaybackForTests;
 import app.morphe.extension.facebook.media.TapToPlay;
@@ -160,6 +164,8 @@ import app.morphe.extension.facebook.reels.SeenStateSendForTests;
 import app.morphe.extension.facebook.reels.TapShowsControls;
 import app.morphe.extension.facebook.search.MetaAiSearchForTests;
 import app.morphe.extension.facebook.search.PreSearchSectionsForTests;
+import app.morphe.extension.facebook.search.SearchDateRange;
+import app.morphe.extension.facebook.search.SearchDateRangeTest;
 import app.morphe.extension.facebook.search.SearchHistory;
 import app.morphe.extension.facebook.stories.StoryAdvance;
 import app.morphe.extension.facebook.stories.StorySeenForTests;
@@ -432,7 +438,12 @@ public class PausedHooksTest {
                 },
                 ReturnRefresh::holdStalePost,
                 ReturnRefresh::holdTabAutoRefresh,
-                ReturnRefresh::holdTabEntryHotLoad));
+                ReturnRefresh::holdTabEntryHotLoad,
+                () -> {
+                    // A Back on a scrolled Home (#247), past the last one's two seconds so it's a first Back.
+                    SystemClock.sleep(3_000);
+                    return HomeBack.holdScrollToTop();
+                }));
         // A story Facebook's own detection marked as made with AI, one only its creator labelled as AI,
         // and a reel whose GenAI attribution carries the detected flag, at both levels a page of reels
         // enters.
@@ -485,6 +496,8 @@ public class PausedHooksTest {
         probes.put(PatchFamily.POST_DATES, Collections.singletonList(() -> !PostDates.cycling(true)));
         // A post's cut text is answered with null, so Facebook keeps the whole text with no See more.
         probes.put(PatchFamily.FULL_POST_TEXT, Collections.singletonList(() -> FullPostText.cut(new SpannableString("x")) == null));
+        // A shared post's menu gets the See who shared row below Facebook's.
+        probes.put(PatchFamily.WHO_SHARED, Collections.singletonList(WhoSharedForTests::addsARow));
         // A post marked for automatic translation reads as one to translate on request, and the
         // reels footer hears a caption can't be translated by itself, so it asks for nothing.
         probes.put(PatchFamily.AUTO_TRANSLATION, Arrays.asList(AutoTranslationForTests::keepsThePost,
@@ -514,6 +527,9 @@ public class PausedHooksTest {
         // A Story video's upload asks for high quality.
         probes.put(PatchFamily.PINCH_TO_ZOOM, Collections.singletonList(PinchZoomForTests::zoomsAPhoto));
         probes.put(PatchFamily.STORY_UPLOAD_HD, Collections.singletonList(() -> "high".equals(StoryUpload.quality("standard"))));
+        // A tile in the stories row comes out round.
+        probes.put(PatchFamily.STORIES_TRAY_CIRCLES,
+                Collections.singletonList(app.morphe.extension.facebook.stories.StoriesTrayCirclesForTests::rounds));
         // A photo's song gets the longer clip.
         probes.put(PatchFamily.STORY_MUSIC_LENGTH, Collections.singletonList(() -> StoryMusic.clipLength(15000) == 30000));
         probes.put(PatchFamily.SPONSORED_REELS, Arrays.asList(
@@ -540,6 +556,9 @@ public class PausedHooksTest {
                 Collections.singletonList(ProfileAdFilterForTests::hidesASponsoredStory));
         // The note bubble over a profile picture is left out of its Bloks children.
         probes.put(PatchFamily.PROFILE_NOTES, Collections.singletonList(ProfileNotesForTests::hidesANote));
+        // Your own profile's count line shows the number you typed.
+        probes.put(PatchFamily.LOCAL_PROFILE_COUNTS,
+                Collections.singletonList(app.morphe.extension.facebook.profile.LocalProfileCountsForTests::swapsAFriendsCount));
         // A post's row gets Save and loses Like, and a video post's row gets Download.
         probes.put(PatchFamily.POST_ACTION_BUTTONS, Arrays.asList(
                 PostActionButtonsForTests::addsSave,
@@ -635,13 +654,16 @@ public class PausedHooksTest {
         // A Reels rerank that put an older reel first hands the newer one the first slot.
         probes.put(PatchFamily.NEWEST_REELS_FIRST, Collections.singletonList(NewestReelsForTests::putsTheNewestFirst));
         // A double tap on a reel finds no handler and no heart, the reel like helper finds no key and
-        // sends no like from a double tap, and a feed attachment leaves its double tap unhandled.
+        // sends no like from a double tap, a feed attachment leaves its double tap unhandled, and a
+        // photo on Home reports no double tap and sends no like.
         probes.put(PatchFamily.DOUBLE_TAP_LIKE, Arrays.asList(
                 () -> DoubleTapLike.handler(new Object()) == null,
                 () -> DoubleTapLike.heart(new Object()) == null,
                 () -> DoubleTapLike.likeKey("reel") == null,
                 () -> DoubleTapLike.holdBackLike("DOUBLE_TAP"),
-                DoubleTapLike::holdBackTap));
+                DoubleTapLike::holdBackTap,
+                () -> DoubleTapLike.holdBackFeedTap(null),
+                DoubleTapLike::holdBackFeedLike));
         // Facebook's double-tap skip test, read as off, is answered on.
         probes.put(PatchFamily.DOUBLE_TAP_SKIP, Collections.singletonList(() -> DoubleTapSkip.flag(false)));
         // A reel tap gets the controls in place of the pause, they stay up longer, and the unified player hides them.
@@ -677,10 +699,11 @@ public class PausedHooksTest {
                 // With Hide the pull down to lock hint on, the 2x pill's hint is drawn as the plain pill.
                 ReelHoldForTests::hidesTheLockHint));
         // A speed picked on a reel is set on the next reel the viewer starts, and one picked on a
-        // feed video on the next feed video.
+        // feed video on the next feed video. A full-screen video that isn't live, and isn't an ad,
+        // gets Playback speed in its gear menu (#238).
         probes.put(PatchFamily.KEEP_REEL_SPEED, Arrays.asList(ReelSpeedForTests::keepsAPickedSpeed,
                 ReelSpeedForTests::keepsAPickedVideoSpeed, ReelSpeedForTests::offersSlowerSpeeds,
-                ReelSpeedForTests::gearOffersSlowerSpeeds));
+                ReelSpeedForTests::gearOffersSlowerSpeeds, () -> ReplaySpeed.offerSpeed(0)));
         // A player's start with no tap before it is held, and Facebook's Autoplay setting reads Off.
         probes.put(PatchFamily.TAP_TO_PLAY, Arrays.asList(
                 () -> {
@@ -851,7 +874,16 @@ public class PausedHooksTest {
                 () -> !CommentSheetOptions.viewMoreRepliesTextOnly(true),
                 () -> CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS),
                 () -> CommentSheetOptions.holdsPostComments(CommentSheetOptions.INLINE_COMMENTS),
-                CommentSheetOptions::holdsCommentDislike,
+                () -> {
+                    // Block button on comments keeps the dislike it redraws (#271).
+                    Settings.COMMENT_BLOCK_BUTTON.save(false);
+                    try {
+                        return CommentSheetOptions.holdsCommentDislike();
+                    } finally {
+                        Settings.COMMENT_BLOCK_BUTTON.save(true);
+                    }
+                },
+                CommentBlock::blockIcon,
                 () -> CommentSheetOptions.hidesComment(new GraphQLComment("https://s.shopee.vn/9zKs")),
                 () -> CommentSheetOptions.hidesComment(new GraphQLComment("Big SPOILER inside")),
                 () -> CommentSheetOptions.incomingTypers(3) == 0,
@@ -942,6 +974,17 @@ public class PausedHooksTest {
             SearchHistory.keepRecent(recent, "filter", "list");
             return recent.isEmpty();
         }));
+        // The Posted date filter keeps its list of years.
+        probes.put(PatchFamily.SEARCH_DATE_RANGE, Arrays.asList(
+                () -> SearchDateRange.kind(new SearchDateRangeTest.Filter("rp_creation_time"),
+                        SearchDateRangeTest.Kind.MULTI_CHOICE) == SearchDateRangeTest.Kind.DATE_RANGE_PICKER,
+                () -> {
+                    SearchDateRange.kind(new SearchDateRangeTest.Filter("rp_creation_time"),
+                            SearchDateRangeTest.Kind.MULTI_CHOICE);
+                    return !SearchDateRange.bottomSheet(true);
+                },
+                () -> SearchDateRange.callback(new SearchDateRangeTest.Filter("rp_creation_time"),
+                        SearchDateRangeTest.Kind.MULTI_CHOICE, "callback") == null));
         // XAnalytics' upload and uploader resume are skipped, and the Papaya job finishes unrun.
         probes.put(PatchFamily.ANALYTICS_UPLOADS, Arrays.asList(
                 AnalyticsUploads::holdXAnalyticsUpload,

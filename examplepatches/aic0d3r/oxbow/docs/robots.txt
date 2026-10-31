@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://aic0d3r.github.io/oxbow/sitemap.xml

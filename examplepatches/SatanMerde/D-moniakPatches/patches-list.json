@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.53.0",
+  "version": "1.62.1",
   "patches": [
     {
       "name": "120 FPS High Refresh Rate & Low Latency - Subway Surfers (Experimental)",
@@ -705,6 +705,33 @@
       "options": []
     },
     {
+      "name": "Ad-Free & Clean Dating Interface - Bumble (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Neutralizes sponsored swipe profiles, bottom banner ads, and suppresses repetitive Bumble Premium / Boost upgrade popups across swipe decks.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.bumble.app",
+          "name": "Bumble",
+          "description": "Bumble: Dating, Friends & Chat by Bumble Holding",
+          "apkFileType": null,
+          "appIconColor": "#FFC629",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Ad-Free & Clean Dialer - Truecaller (Experimental)",
       "description": "⚠️ [Experimental / Untested] Removes intrusive post-call ads, banner ads inside the call history and dialer tabs, and promotional Gold upsells by neutralizing ad SDK calls.",
       "default": true,
@@ -739,7 +766,105 @@
       "options": []
     },
     {
-      "name": "Ad-Free & Clean Interface - Shazam",
+      "name": "Ad-Free & Clean Environment - Virtual Master (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Strips all boot interstitials, launcher advertisements, app clone promotion banners, and telemetry popups from Virtual Master by hooking internal AdMob wrappers and ad containers.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.clone.android.dual.space",
+          "name": "Virtual Master",
+          "description": "Virtual Master: Android on Android VM & Dual Space by VM Space Tech",
+          "apkFileType": null,
+          "appIconColor": "#6200EE",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.virtualmaster",
+          "name": "Virtual Master (Alt)",
+          "description": "Virtual Master: Android on Android VM & Dual Space (Standalone / Direct)",
+          "apkFileType": null,
+          "appIconColor": "#6200EE",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad-Free & Clean Interface - IMDb (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Strips banner ads, sponsored recommendation cards, interstitial popups, and video pre-roll advertisements before movie and TV show trailers in IMDb.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.imdb.mobile",
+          "name": "IMDb",
+          "description": "IMDb: Movies & TV Shows by IMDb",
+          "apkFileType": null,
+          "appIconColor": "#F5C518",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad-Free & Clean Interface - Letterboxd (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Removes in-app banner ads, sponsored film promo carousels, and recurring Pro/Patron subscription prompts across the Letterboxd home feed and film detail screens.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.letterboxd.letterboxd",
+          "name": "Letterboxd",
+          "description": "Letterboxd: Social network for film lovers by Letterboxd Limited",
+          "apkFileType": null,
+          "appIconColor": "#00E054",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad-Free & Clean Interface - Shazam (Experimental)",
       "description": "Strips post-recognition promo cards, Apple Music targeted upsells, in-app survey banners, and announcement sheets in Shazam.",
       "default": true,
       "category": null,
@@ -793,6 +918,87 @@
       "options": []
     },
     {
+      "name": "Ad-Free & Gold Features - Cronometer (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Removes in-app banner ads, diary promotional banners, and hooks client-side Gold membership status for target scheduler and nutrition charts in Cronometer.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.cronometer.android.gold",
+          "name": "Cronometer",
+          "description": "Cronometer: Nutrition & Calorie Tracker by Cronometer Software Inc.",
+          "apkFileType": null,
+          "appIconColor": "#FF6F00",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad-Free & Plus Features - Quizlet (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Removes in-app banner ads, study interruption interstitials, and hooks client-side membership verification for Quizlet Plus study features.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.quizlet",
+          "name": "Quizlet",
+          "description": "Quizlet: AI-powered Flashcards & Study Sets by Quizlet Inc.",
+          "apkFileType": null,
+          "appIconColor": "#4257B2",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad-Free & Premium Nutrition - MyFitnessPal (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Removes sponsored food cards, bottom banner ads, and hooks client-side Premium subscription status for custom macronutrient goals in MyFitnessPal.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.myfitnesspal.android",
+          "name": "MyFitnessPal",
+          "description": "MyFitnessPal: Calorie Counter, Macro & Nutrition Tracker by MyFitnessPal, Inc.",
+          "apkFileType": null,
+          "appIconColor": "#0066EE",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Ad-Free & Pure Player - MX Player (Experimental)",
       "description": "⚠️ [Experimental / Untested] Strips all banner ads on the main folder list, full-screen interstitial video ads upon pausing or exiting videos, and online OTT feed promotions by neutralizing ad SDK calls.",
       "default": true,
@@ -805,6 +1011,87 @@
           "description": "MX Player: Video Player & Streaming by MX Media / Time Internet",
           "apkFileType": null,
           "appIconColor": "#0078FF",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad-Free & Step-by-Step Solver - Mathway (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Removes interstitial ads after calculating solutions, strips bottom ad banners, and hooks client-side subscription verification for step-by-step problem explanations in Mathway.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.bagatrix.mathway.android",
+          "name": "Mathway",
+          "description": "Mathway: Math Problem Solver & Calculator by Chegg",
+          "apkFileType": null,
+          "appIconColor": "#00A859",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad-Free & Unlimited Bot Games - Chess.com (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Removes interstitial popups after chess matches, banner ads, and hooks client-side bot game limits and custom board themes.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.chess",
+          "name": "Chess.com",
+          "description": "Chess.com: Play chess online & offline against bots and friends by Chess.com",
+          "apkFileType": null,
+          "appIconColor": "#7FA650",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad-Free & Unlimited Printing - NokoPrint (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Removes interstitial ads shown when generating print spools, strips bottom ad banners, and unlocks unlimited multi-page document printing in NokoPrint.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.nokoprint",
+          "name": "NokoPrint",
+          "description": "NokoPrint: Mobile Printing for Android by NokoPrint",
+          "apkFileType": null,
+          "appIconColor": "#4CAF50",
           "signatures": null,
           "targets": [
             {
@@ -847,6 +1134,33 @@
       "options": []
     },
     {
+      "name": "Ad-Free Lyrics & Clean Reader - Genius (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Strips persistent bottom banner ads, video player interstitials, and cleans up promotional merch cards across Genius song lyrics and annotation screens.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.genius.android",
+          "name": "Genius",
+          "description": "Genius: Song Lyrics & Music Knowledge by Genius Media Group",
+          "apkFileType": null,
+          "appIconColor": "#FFFF64",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Ad-Free Speedtest by Ookla (Experimental)",
       "description": "⚠️ [Experimental / Untested] Removes post-test video ads, top and bottom banner ads, and sponsored server promotions by neutralizing ad SDK calls.",
       "default": true,
@@ -859,6 +1173,33 @@
           "description": "Speedtest by Ookla by Ookla LLC",
           "apkFileType": null,
           "appIconColor": "#141526",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad-Free Transit & Clean Interface - Moovit (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Neutralizes full-screen interstitial ads when viewing schedules, removes bottom banner ads, and declutters live transit map overlays in Moovit.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.moovit.android.phone",
+          "name": "Moovit",
+          "description": "Moovit: Public Transit & Urban Mobility by Moovit",
+          "apkFileType": null,
+          "appIconColor": "#F36F21",
           "signatures": null,
           "targets": [
             {
@@ -1539,7 +1880,7 @@
       "options": []
     },
     {
-      "name": "Always-On Auto Shazam - Shazam",
+      "name": "Always-On Auto Shazam - Shazam (Experimental)",
       "description": "Keeps Auto Shazam background listening continuously active without automatic timeout cancellation or sleep limits.",
       "default": true,
       "category": null,
@@ -1836,7 +2177,7 @@
       "options": []
     },
     {
-      "name": "Block Ads & Declutter Feed - BandLab",
+      "name": "Block Ads & Declutter Feed - BandLab (Experimental)",
       "description": "Removes in-app promotional banners, upgrade prompts, sponsored artist cards, and interstitial ads across the BandLab home feed and studio screens.",
       "default": true,
       "category": null,
@@ -1848,6 +2189,33 @@
           "description": "BandLab: Music Making Studio, DAW, Beat Maker & Audio Recording",
           "apkFileType": null,
           "appIconColor": "#EE3344",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Block Ads & Declutter Feed - Tumblr (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Neutralizes sponsored blog posts, promoted radar items, interstitial video ads, and declutters recommendation carousels in Tumblr dashboard feeds.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tumblr",
+          "name": "Tumblr",
+          "description": "Tumblr: Fandom, art, and chaotic social blog feed by Tumblr, Inc.",
+          "apkFileType": null,
+          "appIconColor": "#001935",
           "signatures": null,
           "targets": [
             {
@@ -2704,6 +3072,50 @@
           "description": "Claude: AI Assistant by Anthropic",
           "apkFileType": null,
           "appIconColor": "#D97706",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Bypass Integrity & Update Dialog - CapCut (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Bypasses CapCut tamper detection, security advisory notice, and force update popups.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.lemon.lvoverseas",
+          "name": "CapCut",
+          "description": "CapCut: Video Editor & Maker by Bytedance",
+          "apkFileType": null,
+          "appIconColor": "#000000",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.lemon.lv",
+          "name": "CapCut (Alt)",
+          "description": "CapCut: Video Editor & Maker (Domestic / JianYing)",
+          "apkFileType": null,
+          "appIconColor": "#000000",
           "signatures": null,
           "targets": [
             {
@@ -3853,6 +4265,33 @@
       "options": []
     },
     {
+      "name": "Declutter Interface & Disable Upsells - Tidal (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Strips recurring HiFi Plus subscription upgrade banners, trial extension dialogs, and declutters promotional artist spotlight carousels in Tidal.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.aspiro.tidal",
+          "name": "Tidal",
+          "description": "TIDAL Music: HiFi Sound & Streaming by TIDAL",
+          "apkFileType": null,
+          "appIconColor": "#000000",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Declutter UI & Hide Go+ Upsells - SoundCloud (Experimental)",
       "description": "⚠️ [Experimental / Untested] Hides persistent 'Try SoundCloud Go+' upgrade promotions, subscription nag cards, and declutters stream navigation.",
       "default": true,
@@ -4150,6 +4589,50 @@
       "options": []
     },
     {
+      "name": "Disable Ending Watermark & Ad Prompts - CapCut (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Disables default ending clip watermark insertion, strips in-app advertisements, upgrade subscription banners, and paywall popups in CapCut.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.lemon.lvoverseas",
+          "name": "CapCut",
+          "description": "CapCut: Video Editor & Maker by Bytedance",
+          "apkFileType": null,
+          "appIconColor": "#000000",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.lemon.lv",
+          "name": "CapCut (Alt)",
+          "description": "CapCut: Video Editor & Maker (Domestic / JianYing)",
+          "apkFileType": null,
+          "appIconColor": "#000000",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Disable Proximity Sensor - Telegram (Experimental)",
       "description": "⚠️ [Experimental / Untested] Prevents the proximity sensor from turning off the display or switching audio output while listening to voice and video messages.",
       "default": true,
@@ -4351,6 +4834,33 @@
           "description": "Google Photos: Photo & Video Storage by Google LLC",
           "apkFileType": null,
           "appIconColor": "#EA4335",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable Telemetry & Clean Onboarding - Microsoft SwiftKey (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Disables telemetry logging, user feedback surveys, and bypasses forced Microsoft cloud account sign-in prompts on initial keyboard setup in SwiftKey.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.touchtype.swiftkey",
+          "name": "Microsoft SwiftKey",
+          "description": "Microsoft SwiftKey AI Keyboard by Microsoft Corporation",
+          "apkFileType": null,
+          "appIconColor": "#0078D4",
           "signatures": null,
           "targets": [
             {
@@ -8764,7 +9274,7 @@
       "options": []
     },
     {
-      "name": "Pure AMOLED Black Theme - Fossify Phone",
+      "name": "Pure AMOLED Black Theme - Fossify Phone (Experimental)",
       "description": "Applies a pure #000000 AMOLED dark theme across dialpad, in-call screen, contacts list, and call history for optimal OLED battery savings.",
       "default": true,
       "category": null,
@@ -8872,6 +9382,33 @@
       "options": []
     },
     {
+      "name": "Pure AMOLED Dark Theme & Ad-Free - Goodreads (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Enforces a true pitch-black #000000 AMOLED dark theme across bookshelves, reader reviews, and book details, while stripping banner advertisements in Goodreads.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.goodreads",
+          "name": "Goodreads",
+          "description": "Goodreads: Book Reviews & Reading Tracker by Goodreads",
+          "apkFileType": null,
+          "appIconColor": "#553B08",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Pure AMOLED Dark Theme & Declutter - VLC (Experimental)",
       "description": "⚠️ [Experimental / Untested] Forces a pitch-black AMOLED dark theme, hides tips and audio/video discovery clutter across the VLC player UI.",
       "default": true,
@@ -8884,6 +9421,33 @@
           "description": "VLC for Android: Fast, Open-Source Media Player by VideoLAN",
           "apkFileType": null,
           "appIconColor": "#FF8800",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Pure AMOLED Dark Theme & Plus Perks - Pocket Casts (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Enforces a true #000000 AMOLED Extra Dark theme across podcast player, episode filters, and discovery feed, and unlocks client-side Plus icon customization in Pocket Casts.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "au.com.shiftyjelly.pocketcasts",
+          "name": "Pocket Casts",
+          "description": "Pocket Casts: Podcast Player by Automattic / Pocket Casts",
+          "apkFileType": null,
+          "appIconColor": "#F43E37",
           "signatures": null,
           "targets": [
             {
@@ -8955,6 +9519,33 @@
           "description": "Firefox: Fast, Private & Safe Web Browser by Mozilla",
           "apkFileType": null,
           "appIconColor": "#FF7139",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Pure AMOLED Dark Theme - Letterboxd (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Applies a pure pitch-black #000000 AMOLED dark theme across Letterboxd film lists, review feeds, diary entries, and member profiles for maximum OLED battery savings.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.letterboxd.letterboxd",
+          "name": "Letterboxd",
+          "description": "Letterboxd: Social network for film lovers by Letterboxd Limited",
+          "apkFileType": null,
+          "appIconColor": "#00E054",
           "signatures": null,
           "targets": [
             {
@@ -9090,6 +9681,33 @@
           "description": "YouTube: Watch, Stream & Discover Videos by Google LLC",
           "apkFileType": null,
           "appIconColor": "#FF0000",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Ads & Update Prompts - MT Manager (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Removes banner and interstitial advertisements, disables forced update dialogs and upgrade check nags in MT Manager.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "bin.mt.plus",
+          "name": "MT Manager",
+          "description": "MT Manager: Powerful APK editor & file manager by Lin Jin Bin",
+          "apkFileType": null,
+          "appIconColor": "#F57C00",
           "signatures": null,
           "targets": [
             {
@@ -9699,7 +10317,7 @@
       "options": []
     },
     {
-      "name": "Silent & Unrestricted Call Recording - Fossify Phone",
+      "name": "Silent & Unrestricted Call Recording - Fossify Phone (Experimental)",
       "description": "Unlocks call recording across all regions/devices, suppresses carrier/recording warning beeps and disclosure alerts, and automatically enables two-way audio recording directly to local storage.",
       "default": true,
       "category": null,
@@ -9744,172 +10362,6 @@
               "version": null,
               "versionCodes": null,
               "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Spicetify AMOLED Black Theme - Spotify (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Implements an OLED True Black (#000000) theme for Spotify Mobile, replacing dark-grey backgrounds across Android resources (res/values/colors.xml), Jetpack Compose Encore design system (64-bit literals), obfuscated Dalvik bytecode (32-bit & 24-bit literals), semantic theme methods, and string tables for maximum contrast and battery savings.",
-      "default": true,
-      "category": null,
-      "dependencies": [
-        "BytecodePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.spotify.music",
-          "name": "Spotify",
-          "description": "Spotify: Music and Podcasts by Spotify AB",
-          "apkFileType": null,
-          "appIconColor": "#1DB954",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "9.1.84.2231",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Spicetify AMOLED Black Theme Bytecode",
-      "description": "Bytecode engine for Spicetify AMOLED Black Theme",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.spotify.music",
-          "name": "Spotify",
-          "description": "Spotify: Music and Podcasts by Spotify AB",
-          "apkFileType": null,
-          "appIconColor": "#1DB954",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "9.1.84.2231",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Spicetify Community Addons & Settings - Spotify (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Attempts to expose developer lab flags. NOTE: Spicetify extensions are made for Desktop and cannot run natively on Android without an LSPosed/Xposed framework.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.spotify.music",
-          "name": "Spotify",
-          "description": "Spotify: Music and Podcasts by Spotify AB",
-          "apkFileType": null,
-          "appIconColor": "#1DB954",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "9.1.84.2231",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Spicetify Custom Accent Color - Spotify (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Replaces Spotify brand green (#1DB954 / #1ED760) with custom Cyberpunk Electric Purple (#8A2BE2) across Android resources (res/values/colors.xml), Jetpack Compose Encore design system (64-bit literals), obfuscated Dalvik bytecode (32-bit & 24-bit literals including Lottie float rounding variations and checkmarks), semantic theme methods, and string tables.",
-      "default": true,
-      "category": null,
-      "dependencies": [
-        "BytecodePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.spotify.music",
-          "name": "Spotify",
-          "description": "Spotify: Music and Podcasts by Spotify AB",
-          "apkFileType": null,
-          "appIconColor": "#1DB954",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "9.1.84.2231",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Spicetify Custom Accent Color Bytecode",
-      "description": "Bytecode engine for Spicetify Custom Accent Color",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.spotify.music",
-          "name": "Spotify",
-          "description": "Spotify: Music and Podcasts by Spotify AB",
-          "apkFileType": null,
-          "appIconColor": "#1DB954",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "9.1.84.2231",
-              "versionCodes": null,
-              "isExperimental": true,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Spicetify Declutter UI - Spotify (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Attempts to hide Premium upgrade prompts and promotional elements. NOTE: Spotify uses server-driven UI and code obfuscation; some banners are injected directly from Spotify backend.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.spotify.music",
-          "name": "Spotify",
-          "description": "Spotify: Music and Podcasts by Spotify AB",
-          "apkFileType": null,
-          "appIconColor": "#1DB954",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "9.1.84.2231",
-              "versionCodes": null,
-              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -10422,7 +10874,7 @@
       "options": []
     },
     {
-      "name": "Unlock 3D Maps & Off-Route Alerts - AllTrails",
+      "name": "Unlock 3D Maps & Off-Route Alerts - AllTrails (Experimental)",
       "description": "Unlocks 3D trail maps, real-time off-route audio and wrong-turn notifications, and environmental weather overlays in AllTrails.",
       "default": true,
       "category": null,
@@ -10861,7 +11313,7 @@
       "options": []
     },
     {
-      "name": "Unlock Creator Membership & Audio Tools - BandLab",
+      "name": "Unlock Creator Membership & Audio Tools - BandLab (Experimental)",
       "description": "Hooks Google Play Billing Client and membership state models in BandLab to unlock client-side Creator Membership perks, audio presets, master presets, and removes membership upgrade paywalls.",
       "default": true,
       "category": null,
@@ -11050,7 +11502,7 @@
       "options": []
     },
     {
-      "name": "Unlock Full Game - Silt",
+      "name": "Unlock Full Game - Silt (Experimental)",
       "description": "Unlocks the full game, all oceanic abyss chapters, and in-app purchase verification in Silt (v1.0.10). Automatically neutralizes PairIP native DRM in Google Play installations.",
       "default": true,
       "category": null,
@@ -11079,7 +11531,7 @@
       "options": []
     },
     {
-      "name": "Unlock Full Game Bytecode - Silt",
+      "name": "Unlock Full Game Bytecode - Silt (Experimental)",
       "description": "Bytecode de-obfuscation and unlock engine for Silt",
       "default": true,
       "category": null,
@@ -11095,6 +11547,33 @@
           "targets": [
             {
               "version": "1.0.10",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Full Version & Feature Pack - Poweramp (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Neutralizes trial expiration timers, unlocks the full version license state, and enables Hi-Res audio output plugins in Poweramp.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.maxmpz.audioplayer",
+          "name": "Poweramp",
+          "description": "Poweramp: Music Player (Equalizer & Hi-Res Audio) by Max MP",
+          "apkFileType": null,
+          "appIconColor": "#222222",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -11297,6 +11776,33 @@
           "description": "Instagram by Meta Platforms Inc.",
           "apkFileType": null,
           "appIconColor": "#E1306C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Lifetime Premium & Ad-Free - AutoZen (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Removes in-car banner ads, unlocks lifetime premium car dashboard navigation, custom speed cameras alerts, and weather radar overlays in AutoZen.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zenoph.autozen",
+          "name": "AutoZen",
+          "description": "AutoZen: Car Dashboard & Navigation by Zenoph Labs",
+          "apkFileType": null,
+          "appIconColor": "#1E88E5",
           "signatures": null,
           "targets": [
             {
@@ -11765,6 +12271,87 @@
       "options": []
     },
     {
+      "name": "Unlock Premium 3D Models & Quizzes - Teach Me Anatomy (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Removes in-app banner ads, unlocks full 3D bio-digital anatomy cross-sections, clinical articles, and question bank quizzes in Teach Me Anatomy.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "info.cloudmed.teachmeanatomy",
+          "name": "Teach Me Anatomy",
+          "description": "Teach Me Anatomy: 3D Human Anatomy & Clinical Encyclopedia by CloudMed",
+          "apkFileType": null,
+          "appIconColor": "#009688",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium Custom Blocklists - BlockerHero (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Hooks Google Play Billing to unlock client-side Premium features in BlockerHero, enabling custom URL keywords, strict uninstall protection, and unlimited app locks.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.blockerhero",
+          "name": "BlockerHero",
+          "description": "BlockerHero: Porn & Adult Content Blocker by BlockerHero Team",
+          "apkFileType": null,
+          "appIconColor": "#2196F3",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium Features & Passcode - Money Manager (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Removes in-app banner ads, unlocks unlimited sub-accounts/categories, biometric passcode protection, and PC manager sync in Money Manager.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.realbyteapps.moneymanager",
+          "name": "Money Manager",
+          "description": "Money Manager: Expense Tracker & Budget by Realbyte Inc.",
+          "apkFileType": null,
+          "appIconColor": "#E53935",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Unlock Premium Server Locations - VPN.lat (Experimental)",
       "description": "⚠️ [Experimental / Untested] Hooks Google Play Billing and installer check in VPN.lat. NOTE: Remote VPN tunnels and server bandwidth require server-side authentication.",
       "default": true,
@@ -11868,6 +12455,60 @@
       "options": []
     },
     {
+      "name": "Unlock Premium Vocabulary & Grammar - Busuu (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Removes lesson banner ads, unlocks client-side Premium grammar units, Smart Review vocabulary practice, and offline lesson downloads in Busuu.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.busuu.android.enc",
+          "name": "Busuu",
+          "description": "Busuu: Learn Languages, Grammar & Vocabulary by Busuu Limited",
+          "apkFileType": null,
+          "appIconColor": "#1976D2",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Pro & Custom Routines - Hevy (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Hooks Google Play Billing and subscription status in Hevy to unlock client-side Pro perks, unlimited custom workout routines, and advanced graph analytics.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.hevy.app",
+          "name": "Hevy",
+          "description": "Hevy: Gym Workout Tracker & Weight Lifting Log by HevyApp",
+          "apkFileType": null,
+          "appIconColor": "#3B82F6",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Unlock Pro & Formality - DeepL (Experimental)",
       "description": "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for DeepL Pro (tone and formality selection, extended translation limits, and dictionary features).",
       "default": true,
@@ -11880,6 +12521,50 @@
           "description": "DeepL Translate: Accurate Multilingual Translator by DeepL SE",
           "apkFileType": null,
           "appIconColor": "#0F2B46",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Pro & Multi-Instance - Virtual Master (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Unlocks Virtual Master Pro edition, allowing unlimited virtual Android instances, root permission toggles, customized device ID spoofing, and advanced backup/restore by hooking MemberStatusResponse, obfuscated BillingManager gatekeepers, and Google Play Billing.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.clone.android.dual.space",
+          "name": "Virtual Master",
+          "description": "Virtual Master: Android on Android VM & Dual Space by VM Space Tech",
+          "apkFileType": null,
+          "appIconColor": "#6200EE",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.virtualmaster",
+          "name": "Virtual Master (Alt)",
+          "description": "Virtual Master: Android on Android VM & Dual Space (Standalone / Direct)",
+          "apkFileType": null,
+          "appIconColor": "#6200EE",
           "signatures": null,
           "targets": [
             {
@@ -11961,6 +12646,77 @@
           "description": "Session: Private Messenger by Oxen Privacy Tech / The Session Foundation",
           "apkFileType": null,
           "appIconColor": "#00E599",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Pro & VIP Effects - CapCut (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Unlocks CapCut Pro filters, VIP transitions, premium audio effects, high-bitrate export settings, and removes default ending watermark prompts by hooking VIP user entitlements and Google Play Billing.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.lemon.lvoverseas",
+          "name": "CapCut",
+          "description": "CapCut: Video Editor & Maker by Bytedance",
+          "apkFileType": null,
+          "appIconColor": "#000000",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.lemon.lv",
+          "name": "CapCut (Alt)",
+          "description": "CapCut: Video Editor & Maker (Domestic / JianYing)",
+          "apkFileType": null,
+          "appIconColor": "#000000",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Pro Features & Layouts - Todoist (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Hooks Google Play Billing and subscription status in Todoist to unlock client-side Pro features, custom theme palettes, unlimited task reminders, and full activity logs.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.todoist",
+          "name": "Todoist",
+          "description": "Todoist: To-Do List & Task Planner by Doist",
+          "apkFileType": null,
+          "appIconColor": "#E44332",
           "signatures": null,
           "targets": [
             {
@@ -12146,33 +12902,6 @@
               "version": null,
               "versionCodes": null,
               "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Unlock Spotify Premium & Playback Restrictions - Spotify (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Unlocks Spotify Premium features: unlimited skips, on-demand playback without forced shuffle, seek/scrub bar support, track repeat, and removes audio/visual advertisements.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.spotify.music",
-          "name": "Spotify",
-          "description": "Spotify: Music and Podcasts by Spotify AB",
-          "apkFileType": null,
-          "appIconColor": "#1DB954",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "9.1.84.2231",
-              "versionCodes": null,
-              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -12416,6 +13145,33 @@
               "version": "2.10.2",
               "versionCodes": null,
               "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock VIP Features & Themes - MT Manager (Experimental)",
+      "description": "⚠️ [Experimental / Untested] Unlocks MT Manager VIP features (batch rename, DEX/Arsc editor++, syntax highlighting, XML/DEX search & replace, signature verification bypass, VIP theme customization) by hooking VIP privilege getters, expiration checks, and Google Play Billing.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "bin.mt.plus",
+          "name": "MT Manager",
+          "description": "MT Manager: Powerful APK editor & file manager by Lin Jin Bin",
+          "apkFileType": null,
+          "appIconColor": "#F57C00",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
               "minSdk": null,
               "description": null
             }

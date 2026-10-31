@@ -1,0 +1,18 @@
+# Gradle
+.gradle/
+**/build/
+!src/**/build/
+local.properties
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Apps (copyrighted)
+*.apk
+*.apkm
+
+# Logs
+*.log
+hs_err_pid*

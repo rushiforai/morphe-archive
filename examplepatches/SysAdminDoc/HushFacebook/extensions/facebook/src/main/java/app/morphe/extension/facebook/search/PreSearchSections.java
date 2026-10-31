@@ -37,6 +37,13 @@ import app.morphe.extension.shared.settings.BaseSettings;
  * {@link #PEOPLE_YOU_MAY_KNOW_MODULE} (a reporter's Debug log, 583, 2026-10-22), and it leaves while
  * Hide "People you may know" in search is on. Recent searches don't come through here.
  *
+ * <p>The section draws only the entries after the first page. Facebook can draw that first page
+ * itself, straight into the list (its "nullstate_nt_head_network" builder), and on some accounts every
+ * row comes that way (#285), so the patch hands those nodes to {@link #headNode} too, where a null
+ * node leaves the entry out. Facebook's older null-state query reads nodes of the same type, and its
+ * entries come through {@link #queryNode} the same way. The Debug line ends with which builder handed
+ * the node over: {@link #FROM_LIST}, {@link #FROM_HEAD} or {@link #FROM_QUERY}.
+ *
  * <p>With Debug logging on, this logs the GraphQL type names of the node and the module, read through
  * {@link FeedFilter#typeName}'s checks, and the module names. Only names survive: a type or module
  * name that isn't letters, underscores and at most four digits is logged as "other", so no id, title
@@ -66,6 +73,14 @@ public final class PreSearchSections {
     /** Counted under the patch's name each time the People you may know entry is drawn empty. */
     static final String HIDDEN_PEOPLE = "Search screen drawn without People you may know";
 
+    /** Counted and logged each time the list is handed to Facebook without a next page (#235). */
+    static final String PAGING_STOPPED = "Search screen: stopped paging, every loaded row hidden";
+
+    /** How the Debug line names the builder that handed a node over. */
+    static final String FROM_LIST = "list";
+    static final String FROM_HEAD = "head";
+    static final String FROM_QUERY = "query";
+
     private static final String FAMILY = FamilyNames.SUGGESTED_POSTS;
     private static final String HOOK = "search screen entry";
 
@@ -88,7 +103,7 @@ public final class PreSearchSections {
      */
     @Nullable
     public static Object entry(@Nullable Object node, @Nullable Object module) {
-        log(node, module, true);
+        log(node, module, true, null);
         return hides(node, module != null) ? null : module;
     }
 
@@ -102,7 +117,89 @@ public final class PreSearchSections {
      */
     @Nullable
     public static Object node(@Nullable Object node) {
-        if (node != null) log(node, null, false);
+        return byNode(node, FROM_LIST);
+    }
+
+    /**
+     * Injection point in the head builder (#285), right after it reads an entry's node and before
+     * Facebook tests it for null. The head draws the first page of entries straight into the list,
+     * never through the section, and skips an entry whose node is null. Never throws.
+     *
+     * @param node the entry's node, null when Facebook skips the entry.
+     * @return the node to draw, null to skip the entry.
+     */
+    @Nullable
+    public static Object headNode(@Nullable Object node) {
+        return byNode(node, FROM_HEAD);
+    }
+
+    /**
+     * Injection point in the null-state query's entry reader (#285), right after it reads an entry's
+     * node as a {@link #NULL_STATE_NODE} and before Facebook tests it for null. That query's entries
+     * are drawn straight into the list, and an entry whose node is null is left out. Never throws.
+     *
+     * @param node the entry's node, null when Facebook leaves the entry out.
+     * @return the node to draw, null to leave the entry out.
+     */
+    @Nullable
+    public static Object queryNode(@Nullable Object node) {
+        return byNode(node, FROM_QUERY);
+    }
+
+    /**
+     * Injection point in the section's build, right after it reads its paginated list and before it
+     * hands the list to Facebook's paging (#235). A hidden row is drawn with no height, so a list whose
+     * every row is hidden keeps its end in view, loads the next page, gets the same hidden rows back
+     * and loops with a spinner under "No recent searches". While a hide switch is on and every row
+     * loaded so far is hidden, this answers a copy of the list that says it has no next page. Any
+     * visible row, both switches off, Hushfacebook paused or anything unreadable leaves Facebook's
+     * list as it is. Never throws.
+     *
+     * @param list     the paginated list, null when the section has none.
+     * @param accessor the name of the entry's no-argument node accessor, as the patch read it.
+     * @return the list to page, Facebook's own unless every row of it is hidden.
+     */
+    @Nullable
+    public static Object list(@Nullable Object list, @Nullable String accessor) {
+        try {
+            HookStatus.invoked(FAMILY);
+            if (list == null || accessor == null || !Utils.settingsReady()) return list;
+            boolean forYou = Settings.HIDE_SEARCH_FOR_YOU.get();
+            boolean people = Settings.HIDE_SEARCH_PEOPLE_YOU_MAY_KNOW.get();
+            Object stopped = withoutPaging(list, accessor, forYou, people);
+            if (stopped == list) return list;
+            HookStatus.bound(FAMILY, HOOK);
+            HookStatus.counted(FAMILY, PAGING_STOPPED);
+            Logger.printDebug(() -> PAGING_STOPPED);
+            return stopped;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, HOOK, failure);
+            return list;
+        }
+    }
+
+    /**
+     * [list] itself, or a copy without paging when it has a next page, has rows, and every row is
+     * one a switch hides (an entry with no node is drawn empty too). Reads nothing with both off.
+     */
+    static Object withoutPaging(Object list, String accessor, boolean forYou, boolean people) throws Exception {
+        if (!forYou && !people) return list;
+        Class<?> type = list.getClass();
+        if (!Boolean.TRUE.equals(type.getMethod("hasNextPage").invoke(list))) return list;
+        Method rows = type.getMethod("underlyingList");
+        Object loaded = rows.invoke(list);
+        if (!(loaded instanceof List) || ((List<?>) loaded).isEmpty()) return list;
+        for (Object entry : (List<?>) loaded) {
+            if (entry == null) continue;
+            Object node = entry.getClass().getMethod(accessor).invoke(entry);
+            if (node != null && hidden(node, forYou, people) == null) return list;
+        }
+        Object copy = type.getMethod("withoutPaging", rows.getReturnType()).invoke(null, loaded);
+        return copy == null ? list : copy;
+    }
+
+    private static Object byNode(@Nullable Object node, String from) {
+        if (node != null) log(node, null, false, from);
         return hides(node, node != null) ? null : node;
     }
 
@@ -141,15 +238,19 @@ public final class PreSearchSections {
         return null;
     }
 
-    /** Logs the node, and the module unless {@code moduleRead} is false (584 hands over the node alone). */
-    private static void log(@Nullable Object node, @Nullable Object module, boolean moduleRead) {
+    /**
+     * Logs the node, and the module unless {@code moduleRead} is false (584 hands over the node
+     * alone), and which of Facebook's builders handed it over when {@code from} names one.
+     */
+    private static void log(@Nullable Object node, @Nullable Object module, boolean moduleRead, @Nullable String from) {
         if (!enabled() || full) return;
         try {
             String nodeType = FeedFilter.typeName(node);
             // A node whose type can't be read may be released, and its strings aren't asked.
             String modules = nodeType == null ? "unread" : modules(node);
             String moduleName = !moduleRead ? "" : " module=" + (module == null ? "none" : name(FeedFilter.typeName(module)));
-            record("node=" + name(nodeType) + moduleName + " rendered_modules=" + modules);
+            String source = from == null ? "" : " from=" + from;
+            record("node=" + name(nodeType) + moduleName + " rendered_modules=" + modules + source);
         } catch (Throwable unreadable) {
             record("unreadable entry");
         }

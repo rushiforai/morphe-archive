@@ -35,6 +35,11 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * {@link #check} shows the tray's tile handler that placeholder again. Ten asks while the kept
  * count stays the same stop it, so a tray of nothing but suggestions isn't paged forever. Nothing
  * changes while the filters keep every bucket.
+ *
+ * <p>The handler skips a placeholder without a word while the tray's fetch is still running, and a
+ * cold start's first page often settles before that fetch does, so the gray tiles stayed (S22,
+ * 2026-10-31). While Facebook doesn't get as far as the flag, {@link #check} looks again every
+ * {@link #RETRY_MS}, {@link #MAX_RETRIES} times a page.
  */
 public final class StoriesTrayPaging {
     /** Counted under its own name each time the tray is asked for its next page. */
@@ -53,6 +58,10 @@ public final class StoriesTrayPaging {
 
     /** Asks that may add no kept story before paging stops. */
     static final int MAX_EMPTY_PAGES = 10;
+
+    /** How long after a placeholder shown again went nowhere it's shown again, and how many times a page. */
+    static final long RETRY_MS = 1000;
+    static final int MAX_RETRIES = 8;
 
     /** The tray's tile handler, with the method the patch adds to it. */
     public interface Pager {
@@ -77,6 +86,12 @@ public final class StoriesTrayPaging {
 
     /** The extension is showing the handler a placeholder itself. */
     private static boolean showing;
+
+    /** The handler got as far as the flag while the extension showed it a placeholder. */
+    private static boolean flagRead;
+
+    /** Placeholders shown again since the last page that went nowhere. */
+    private static int retries;
 
     @Nullable private static Handler main;
     private static final Runnable CHECK = StoriesTrayPaging::check;
@@ -129,11 +144,15 @@ public final class StoriesTrayPaging {
      */
     public static boolean placeholderPages(boolean flag) {
         if (flag) {
+            synchronized (StoriesTrayPaging.class) {
+                if (showing) flagRead = true;
+            }
             if (filtered) Logger.printDebug(() -> "Stories tray: Facebook loads the next page for a gray tile itself");
             return true;
         }
         try {
             synchronized (StoriesTrayPaging.class) {
+                if (showing) flagRead = true;
                 if (!filtered) return false;
                 long now = SystemClock.uptimeMillis();
                 // The placeholders come into view together, and the first one asked.
@@ -174,21 +193,25 @@ public final class StoriesTrayPaging {
                     asks = 0;
                     gaveUp = false;
                 }
+                retries = 0;
             }
-            if (filtered) schedule();
+            if (filtered) schedule(SETTLE_MS);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.SUGGESTED_STORIES, "tray paging", failure);
         }
     }
 
-    private static void schedule() {
+    private static void schedule(long delayMs) {
         Handler handler = main;
         if (handler == null) main = handler = new Handler(Looper.getMainLooper());
         handler.removeCallbacks(CHECK);
-        handler.postDelayed(CHECK, SETTLE_MS);
+        handler.postDelayed(CHECK, delayMs);
     }
 
-    /** Shows the handler the last placeholder again while one is in view. */
+    /**
+     * Shows the handler the last placeholder again while one is in view, and again after
+     * {@link #RETRY_MS} while the handler stops short of the flag.
+     */
     static void check() {
         try {
             Pager handler;
@@ -197,18 +220,32 @@ public final class StoriesTrayPaging {
                 handler = pager.get();
                 position = lastPlaceholder;
                 if (handler == null || placeholdersInView <= 0) {
+                    retries = 0;
                     final boolean noTray = handler == null;
                     Logger.printDebug(() -> "Stories tray: " + (noTray ? "no tray yet" : "no gray tile in view"));
                     return;
                 }
                 showing = true;
+                flagRead = false;
             }
+            boolean again;
+            boolean lastTry;
             try {
                 handler.hushShowPlaceholder(position);
             } finally {
                 synchronized (StoriesTrayPaging.class) {
                     showing = false;
+                    again = !flagRead && retries < MAX_RETRIES;
+                    lastTry = !flagRead && !again;
+                    retries = again ? retries + 1 : 0;
                 }
+            }
+            if (again) {
+                Logger.printDebug(() -> "Stories tray: still loading, so it looks at the gray tiles again in "
+                        + RETRY_MS + " ms");
+                schedule(RETRY_MS);
+            } else if (lastTry) {
+                Logger.printDebug(() -> "Stories tray: Facebook still won't load a next page for the gray tiles");
             }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.SUGGESTED_STORIES, "tray paging", failure);
@@ -228,6 +265,8 @@ public final class StoriesTrayPaging {
             gaveUp = false;
             askedAt = Long.MIN_VALUE / 2;
             showing = false;
+            flagRead = false;
+            retries = 0;
         }
         if (main != null) main.removeCallbacks(CHECK);
     }

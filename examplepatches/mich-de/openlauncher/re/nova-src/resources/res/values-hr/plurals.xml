@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">Premotavanje unaprijed za %d sekundu</item>
+        <item quantity="few">Premotavanje unaprijed za %d sekunde</item>
+        <item quantity="other">Premotavanje unaprijed za %d sekundi</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">Premotavanje unatrag za %d sekundu</item>
+        <item quantity="few">Premotavanje unatrag za %d sekunde</item>
+        <item quantity="other">Premotavanje unatrag za %d sekundi</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d sastanaka</item>
+        <item quantity="one">%d sastanak</item>
+        <item quantity="two">%d sastanaka</item>
+        <item quantity="few">%d sastanka</item>
+        <item quantity="many">%d sastanaka</item>
+        <item quantity="other">%d sastanaka</item>
+    </plurals>
+</resources>

@@ -1,0 +1,3 @@
+# Toasts that already wrapped past two lines of 28 characters when SettingsL10nTest's
+# everyToastFitsTwoLines came in: the language, a tab, then the English message.
+# This list only gets shorter.

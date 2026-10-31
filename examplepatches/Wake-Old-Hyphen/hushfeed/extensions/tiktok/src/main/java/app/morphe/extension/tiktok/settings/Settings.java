@@ -150,11 +150,11 @@ public class Settings extends BaseSettings {
             Setting.parent(DOWNLOAD_PHOTOS_AS_VIDEO)).withRange(1, 10);
     public static final BooleanSetting DOWNLOAD_AUDIO_TRACK = new BooleanSetting("download_audio_track", FALSE);
     /**
-     * "original" keeps a saved sound in TikTok's own container; "opus" makes an .ogg. The row
-     * greys where the phone can't make one, and says why itself, since no switch would help.
+     * "original" keeps a saved sound in TikTok's own container; "opus" makes an .ogg where the
+     * phone can; "mp3" makes an .mp3 on any phone. The row stays open everywhere, since MP3 is
+     * always possible, and its note says when Opus isn't.
      */
-    public static final StringSetting DOWNLOAD_SOUND_FORMAT = new StringSetting("download_sound_format", "original",
-            false, app.morphe.extension.tiktok.download.SoundFormat::opusPossible);
+    public static final StringSetting DOWNLOAD_SOUND_FORMAT = new StringSetting("download_sound_format", "original");
     /** TikTok's watermarked copy saved when the clean file can't be fetched, instead of nothing. */
     public static final BooleanSetting DOWNLOAD_WATERMARK_FALLBACK = new BooleanSetting("download_watermark_fallback", FALSE);
     /** The video's cover, at the largest size it comes in, saved with each Download. */
@@ -381,6 +381,15 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_MESSAGE_STREAKS =
             new BooleanSetting("hide_message_streaks", FALSE);
     /**
+     * Leaves a message in the chat when the other person unsends it. Messages you unsend
+     * yourself are still removed. Off by default. See KeepUnsent.
+     */
+    public static final BooleanSetting KEEP_UNSENT_MESSAGES =
+            new BooleanSetting("keep_unsent_messages", FALSE);
+    /** Adds "unsent" after the text of a message Keep unsent messages kept. On by default. See KeepUnsent. */
+    public static final BooleanSetting MARK_KEPT_UNSENT_MESSAGES =
+            new BooleanSetting("mark_kept_unsent_messages", TRUE);
+    /**
      * Dispatches one message per selected chat a day at {@link #AUTO_STREAK_MINUTE},
      * so a streak with them keeps going on a day nobody opens the app. Off by default. See
      * AutoStreak.
@@ -559,6 +568,17 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting COMMENT_TRANSLATE_BUTTON_TURNED_ON =
             new BooleanSetting("comment_translate_button_turned_on", FALSE, false, false);
     /**
+     * Whether the comment header's translate toggle was last turned off by its button while
+     * {@link #COMMENT_BATCH_TRANSLATION} was on (#282). No row of its own: it is how Auto
+     * translate comments stops for the whole app, the way TikTok's toggle does, until the button
+     * or the switch turns it back on. Not kept when paused: a pause stops the translating anyway.
+     * Turning the toggle back on clears it, paused or not, while an off while paused and TikTok's
+     * erase when the comment page closes leave it as it was. Kept out of import and export like
+     * the mark above.
+     */
+    public static final BooleanSetting COMMENT_TRANSLATION_TURNED_OFF =
+            new BooleanSetting("comment_translation_turned_off", FALSE, false, false);
+    /**
      * TikTok's translation for accounts it takes it away from (#143): the rows on its own Settings
      * and privacy > Language page, and See translation on videos. Restart-gated: the Language page
      * asks each time it opens, but the videos' answer is read once per process.
@@ -633,6 +653,11 @@ public class Settings extends BaseSettings {
      * Read each time a preview would start its countdown, so no restart.
      */
     public static final BooleanSetting STOP_LIVE_AUTO_ENTER = new BooleanSetting("stop_live_auto_enter", FALSE);
+    /**
+     * Hides the Service+ row under a LIVE preview in the feed; the LIVE controls patch. Read each
+     * time the row would show, so no restart.
+     */
+    public static final BooleanSetting HIDE_LIVE_SERVICE_PLUS = new BooleanSetting("hide_live_service_plus", FALSE);
     /**
      * Shows a LIVE's exact viewer count in its room instead of TikTok's rounded one; the LIVE
      * controls patch. Read each time the count is drawn, so no restart.
@@ -786,6 +811,12 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting LEAVE_ON_REST_REMINDER = new BooleanSetting(
             "leave_on_rest_reminder", FALSE);
     /**
+     * Minutes a TikTok screen can go without a touch before TikTok goes to the background, or
+     * zero for never. Off by default. See IdleLeave.
+     */
+    public static final IntegerSetting IDLE_LEAVE_MINUTES = new IntegerSetting(
+            "idle_leave_minutes", 0).withRange(0, 240);
+    /**
      * A daily budget for the feed, off at zero. The two counts are independent of
      * {@link #AUTO_ADVANCE_LIMIT}, which only ever counted videos Hushfeed itself advanced past.
      */
@@ -891,6 +922,8 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting FEED_MUTED = new BooleanSetting("feed_muted", FALSE, false, false);
     public static final BooleanSetting FEED_MUTE_BUTTON = new BooleanSetting("feed_mute_button", FALSE);
+    /** TikTok's audio focus waits for a video to play, so opening the app or a chat leaves other apps' music alone (#283). */
+    public static final BooleanSetting FOCUS_WAITS_FOR_VIDEO = new BooleanSetting("focus_waits_for_video", FALSE);
     public static final BooleanSetting HIDE_FEED_CAPTION = new BooleanSetting("hide_feed_caption", FALSE);
     /** Native description and creator name, independently of spoken subtitles. Zero keeps TikTok's size. */
     public static final IntegerSetting FEED_DESCRIPTION_TEXT_SIZE =
@@ -1234,6 +1267,9 @@ public class Settings extends BaseSettings {
     /** The search box at the top of an opened video, with the feed's search button (#158). Read on each layout. */
     public static final BooleanSetting HIDE_OPENED_VIDEO_SEARCH = new BooleanSetting(
             "hide_opened_video_search", FALSE, false, Setting.parent(HIDE_FEED_SEARCH_BUTTON));
+    /** The Back button beside that box, with it (#251). Read on each layout. */
+    public static final BooleanSetting HIDE_OPENED_VIDEO_BACK = new BooleanSetting(
+            "hide_opened_video_back", FALSE, false, Setting.parent(HIDE_OPENED_VIDEO_SEARCH));
     /** The profile views button and Add friends at the top of your Profile tab (#158). Read on each layout. */
     public static final BooleanSetting HIDE_PROFILE_VIEWS_BUTTON = new BooleanSetting("hide_profile_views_button", FALSE);
     public static final BooleanSetting HIDE_PROFILE_ADD_FRIENDS = new BooleanSetting("hide_profile_add_friends", FALSE);
@@ -1355,6 +1391,8 @@ public class Settings extends BaseSettings {
     public static final StringSetting POPUP_LABEL_CATALOG = new StringSetting("popup_label_catalog", "");
     // "Follows you" under the @username on a profile, and a mark on the follow list accounts that don't follow back.
     public static final BooleanSetting SHOW_FOLLOW_STATUS = new BooleanSetting("show_follow_status", TRUE);
+    // "Joined Jan 2020" in the same spot on someone else's profile, read from the account's ID.
+    public static final BooleanSetting SHOW_JOIN_DATE = new BooleanSetting("show_join_date", FALSE);
     public static final BooleanSetting LOCAL_PROFILE_COUNTS = new BooleanSetting("local_profile_counts", FALSE, true);
     public static final BooleanSetting LOCAL_PROFILE_VERIFIED_BADGE = new BooleanSetting("local_profile_verified_badge", FALSE, true);
     public static final BooleanSetting HIDE_OWN_PROFILE_RESTRICTION_NOTICE = new BooleanSetting("hide_own_profile_restriction_notice", FALSE, true);

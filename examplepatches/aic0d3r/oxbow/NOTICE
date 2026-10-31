@@ -1,0 +1,29 @@
+Oxbow
+=====
+
+Copyright (C) Oxbow contributors.
+Copyright (C) Feurstagram contributors.
+
+Oxbow is a fork of Feurstagram (https://github.com/jean-voila/FeurStagram)
+by Jean Herail.
+
+Licensed under the GNU General Public License v3.0 (see LICENSE).
+
+This project is built with and attributes the following GPLv3 works:
+
+- Morphe (https://morphe.software) — the patcher and Gradle tooling used to
+  build and apply the patches. Per the Morphe NOTICE (GPLv3 Section 7c), the
+  "Morphe" name is used here only descriptively, for compatibility; Oxbow
+  is a distinct, independent project and does not imply authorship by, or
+  affiliation with, the Morphe project.
+
+- Piko (https://github.com/crimera/piko) — some Instagram patch approaches
+  (notably the network-blocking and clone techniques, and the hook points
+  behind Oxbow's downloads and ghost mode) are adapted from Piko.
+
+- HushGram (https://github.com/SysAdminDoc/HushGram) — Oxbow's "Hide Meta AI" patch
+  (patches/.../metaai/HideMetaAiPatch.kt and the extension's MetaAi.java) is adapted from
+  HushGram's Meta AI patch: the share sheet's "hatch" case, the quick-promotion builder hook
+  and the Meta AI feed unit names.
+
+All other code is original to Oxbow and Feurstagram.

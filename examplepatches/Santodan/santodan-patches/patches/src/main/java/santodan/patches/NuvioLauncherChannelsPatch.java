@@ -53,7 +53,7 @@ public final class NuvioLauncherChannelsPatch {
             if (!(instruction instanceof com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction) ||
                 !(instruction instanceof com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction)) continue;
             var reference = ((com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction) instruction).getReference();
-            if (!reference.toString().equals("Lcom/nuvio/tv/data/local/v0;->n:Z")) continue;
+            if (!reference.toString().equals("Lcom/nuvio/tv/data/local/u0;->n:Z")) continue;
             var registers = (com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction) instruction;
             target.getImplementation().replaceInstruction(i, new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,
                 registers.getRegisterB(), 1, new ImmutableMethodReference(EXTENSION, "effectiveCachedHasAired", List.of("Ljava/lang/Object;"), "Z")));

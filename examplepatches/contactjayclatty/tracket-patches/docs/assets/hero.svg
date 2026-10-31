@@ -28,7 +28,7 @@
     <rect x="76" y="379" width="174" height="39" rx="8" fill="#e4b15a" fill-opacity=".12" stroke="#e4b15a" stroke-opacity=".43"/>
     <text x="93" y="404" fill="#ffd9a0" font-size="15" font-weight="700">TARGET  0.9.38</text>
     <rect x="263" y="379" width="172" height="39" rx="8" fill="#ffffff" fill-opacity=".04" stroke="#ffffff" stroke-opacity=".15"/>
-    <text x="279" y="404" fill="#d4d5d7" font-size="15" font-weight="700">BUNDLE  v1.0.0</text>
+    <text x="279" y="404" fill="#d4d5d7" font-size="15" font-weight="700">BUNDLE  v1.0.1</text>
     <text x="76" y="455" fill="#817f7d" font-size="12" letter-spacing="1.2">UNOFFICIAL  /  COMMUNITY MAINTAINED  /  GPL-3.0-OR-LATER</text>
   </g>
   <g transform="translate(765 63)">

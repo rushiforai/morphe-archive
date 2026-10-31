@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:icon="0x7f080387"
+        android:id="0x7f0b01f8"
+        android:title="Toggle Guide"
+        app:showAsAction="0x2"/>
+    <group android:checkableBehavior="single">
+        <item
+            android:id="0x7f0b01c9"
+            android:title="Left"/>
+        <item
+            android:id="0x7f0b01c8"
+            android:title="Center"/>
+        <item
+            android:id="0x7f0b01d1"
+            android:title="Right"/>
+    </group>
+</menu>

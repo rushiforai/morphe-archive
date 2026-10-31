@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.stripe.android.stripe3ds2.views.ThreeDS2TextView
+        android:id="0x7f0b0398"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:labelFor="0x7f0b0691"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="0x7f0b05bd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

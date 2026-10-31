@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <color android:color="#ff6f00"/>
+    </item>
+    <item>
+        <ripple android:color="?unknown_attr_ref: 7f040167">
+            <item android:id="@android:id/mask">
+                <color android:color="@android:color/white"/>
+            </item>
+        </ripple>
+    </item>
+</layer-list>

@@ -1,0 +1,79 @@
+name: Feature request
+description: Suggest an improvement for Feurstagram
+title: "[Feature]: "
+labels: ["enhancement", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Explain the user problem or distraction this feature would address.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe what you would like Feurstagram to do.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature-area
+    attributes:
+      label: Feature area
+      options:
+        - Feed / suggested posts
+        - Reels / Blend / shared reels
+        - Stories
+        - Direct Messages
+        - Navigation tabs / default landing page
+        - Settings / permanent lock
+        - Privacy / ghost mode
+        - Ads / telemetry
+        - Installation / clone APK
+        - Build system / patcher
+        - Device architecture support
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Mention any alternatives or workarounds.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Feature category
+      options:
+        - Remove distraction
+        - Privacy / telemetry
+        - Navigation / UX
+        - Installation
+        - Build system
+        - Compatibility
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: related-issues
+    attributes:
+      label: Related issues
+      description: Link any similar existing issues if you found them.
+      placeholder: "Example: #2, #40"
+    validations:
+      required: false

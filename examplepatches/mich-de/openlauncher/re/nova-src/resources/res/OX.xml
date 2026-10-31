@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="0x7f0b0586"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+    <com.teslacoilsw.launcher.preferences.widget.MatchWrapLinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="0x7f0b0308"
+            android:text="0x7f140646"
+            style="0x7f1501fa"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefCheckableView
+            android:id="0x7f0b0309"
+            android:text="0x7f14032a"
+            android:summary="0x7f14032b"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefSpinnerView
+            android:id="0x7f0b030a"
+            android:text="0x7f140330"
+            app:bind="google_now_theme"
+            app:entries="0x7f03002d"
+            app:entryValues="0x7f03002e"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefSummaryListView
+            android:id="0x7f0b030b"
+            android:visibility="gone"
+            android:text="0x7f140873"
+            android:summary="%s"
+            app:bind="google_now_transition"
+            app:entries="0x7f03002f"
+            app:entrySummaries="0x7f030030"
+            app:entryValues="0x7f030031"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+            android:id="0x7f0b030f"
+            android:visibility="gone"
+            android:text="0x7f14032d"
+            android:summary="0x7f140335"
+            app:includeInSearch="2"
+            app:searchKeywords="Google Now"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+            android:id="0x7f0b0183"
+            android:text="Nova Google Companion APK"
+            android:summary="0x7f140878"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+            android:id="0x7f0b0311"
+            android:text="Google App"
+            android:summary="0x7f140326"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+            android:id="0x7f0b055d"
+            android:text="0x7f1408cf"
+            android:summary="0x7f1408d0"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefCardBorderView android:id="0x7f0b0310"/>
+        <TextView
+            android:text="Sesame Shortcuts"
+            style="0x7f1501fa"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+            android:id="0x7f0b05cb"
+            android:text="0x7f14079e"
+            android:summary="0x7f1407a0"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefCheckableView
+            android:id="0x7f0b05c8"
+            android:text="0x7f140926"
+            android:summary="0x7f140927"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefCheckableView
+            android:id="0x7f0b05cc"
+            android:text="0x7f140929"
+            android:summary="0x7f14092a"
+            app:bind="sesame_shortcut_menu"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+            android:id="0x7f0b05c7"
+            android:text="Sesame Shortcuts"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefCardBorderView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:minHeight="32dp"
+            app:shadowAtBottom="false"/>
+    </com.teslacoilsw.launcher.preferences.widget.MatchWrapLinearLayout>
+</ScrollView>

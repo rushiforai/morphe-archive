@@ -1,0 +1,1 @@
+package app.morphe.extension.chmate; final class ThreadSearchOptions { static final String ID="id",WACCHOI="w",NAME="name"; static int mask=7; static boolean enabled(String key){return (mask&(key.equals(ID)?1:key.equals(WACCHOI)?2:4))!=0;} }

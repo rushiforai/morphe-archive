@@ -9,8 +9,8 @@ it too.
 
 ## State markers (update on every sync)
 
-- **Upstream baseline:** stable tag `v1.48.0` (commit `f3acc10e2691`)
-- **Last synced upstream release:** v1.48.0 (2026-10-22)
+- **Upstream baseline:** stable tag `v2.0.0` (commit `6cb8e6b6ee42`)
+- **Last synced upstream release:** v2.0.0 (2026-10-30)
 
 ## What is fork-local
 
@@ -42,7 +42,7 @@ patch no longer applies cleanly):
 | `extensions/youtube/.../settings/Settings.java` | Add `CAT_LOCK_BUTTON = new BooleanSetting("morphe_cat_lock_button", FALSE, true)` among the overlay buttons. (Same file as brainrot above.) |
 | `patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml` | **New file.** Top-controls button, anchored `toStartOf @id/morphe_external_download_button`. |
 | `patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button{,_bold}.xml` | **New files.** Cat-face vector icon. |
-| `extensions/youtube/.../swipecontrols/SwipeControlsHostActivity.kt` | In `dispatchTouchEvent`, short-circuit swipe controls while `CatLockOverlay.isLocked()` (swipe controls act at the Activity level, ahead of the overlay view, so brightness/volume swipes must be suppressed while locked). Import `CatLockOverlay`. |
+| `extensions/youtube/.../swipecontrols/SwipeControlsHostActivity.java` | In `dispatchTouchEvent`, short-circuit swipe controls while `CatLockOverlay.isLocked()` (swipe controls act at the Activity level, ahead of the overlay view, so brightness/volume swipes must be suppressed while locked). Import `CatLockOverlay`. v2.0.0 converted the whole `swipecontrols` package from Kotlin to Java, so this row moved from `.kt` to `.java`: the delta hunk could not apply (`does not exist in index`) and was re-applied by hand. The Java `dispatchTouchEvent` takes a non-null `MotionEvent` and dropped the old `ev != null` guard, so the condition is now just `!CatLockOverlay.isLocked() && gesture.submitTouchEvent(ev)`. |
 
 **Feature: NSFW mode (Reddit)** — an opt-in mode that reduces feed listings to their 18+ posts. Off until enabled in Morphe settings.
 

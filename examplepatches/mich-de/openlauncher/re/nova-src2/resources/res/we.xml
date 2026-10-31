@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.teslacoilsw.launcher.popup.SimplePopupView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="0x7f0b0203"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:importantForAccessibility="yes"
+    android:elevation="0x7f0700b5"/>

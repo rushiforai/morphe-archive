@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">Avanzar %d segundo</item>
+        <item quantity="other">Avanzar %d segundos</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">Retroceder %d segundo</item>
+        <item quantity="other">Retroceder %d segundos</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d reuniones</item>
+        <item quantity="one">%d reunión</item>
+        <item quantity="two">%d reuniones</item>
+        <item quantity="few">%d reuniones</item>
+        <item quantity="many">%d reuniones</item>
+        <item quantity="other">%d reuniones</item>
+    </plurals>
+</resources>

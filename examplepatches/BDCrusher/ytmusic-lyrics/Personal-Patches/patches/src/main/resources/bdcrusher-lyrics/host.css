@@ -1,0 +1,100 @@
+/* BDCrusher Android host; source flyout adapted from Better Lyrics 272d7c16c9e8, GPL-3.0. */
+
+@font-face{font-family:Satoshi;src:url('Satoshi-Variable.woff2') format('woff2');font-weight:300 900;font-display:swap}
+
+:root{color-scheme:dark light;--bd-foreground:#fff;--bd-pill:rgba(255,255,255,.08);--bd-bg-size:.65;--bd-bg-opacity:.7;--dock-clearance:170px;--safe-bottom:0px;--safe-left:0px;--safe-right:0px;--blyrics-font-size:28px;--blyrics-translated-font-size:.56em;--blyrics-font-weight:700;--blyrics-romanized-font-size:.56em;--blyrics-lyric-inactive-color:rgba(255,255,255,.3)}
+
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent!important}
+
+/* Keep touch/keyboard scrolling, without a track/thumb on any lyric surface. */
+
+*{scrollbar-width:none!important}*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+
+body{color:var(--bd-foreground);font-family:Satoshi,Roboto,sans-serif}
+
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+
+button{font:inherit;color:inherit;border:0;border-radius:999px;background:transparent;padding:8px 14px;touch-action:manipulation;cursor:pointer;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:background-color .14s ease,scale .14s ease}
+
+button:active{scale:.95}button:disabled{opacity:.35;cursor:default}button:focus-visible{outline:2px solid currentColor;outline-offset:-3px}
+
+button svg,button img{width:24px;height:24px;display:block;flex:none;margin:0}
+
+#scroll{position:absolute;inset:0;overflow:auto;overscroll-behavior:contain;padding:12px 24px var(--dock-clearance);scrollbar-width:none;contain:layout style;clip-path:inset(0 var(--safe-right) var(--safe-bottom) var(--safe-left));scroll-padding-bottom:var(--dock-clearance);scroll-behavior:auto!important}
+
+#scroll::-webkit-scrollbar{display:none}#empty{font-size:15px;opacity:.65;padding:24px 0;line-height:1.5}
+
+/* The lyrics continue behind the floating controls. Never paint a rectangular dock surface. */
+
+/* The native panel handles window insets. The collapsed opener sits at the
+
+   bottom; as controls expand upward, their collapse button rises above them. */
+
+#dock{position:absolute;bottom:var(--safe-bottom);left:0;right:0;padding:0 max(20px,var(--safe-right)) 0 max(20px,var(--safe-left));z-index:2;pointer-events:none}
+
+#dock button,.source-pill{pointer-events:auto}
+
+#collapse,.source-pill,.toolbar button,#resume,#connection{background:linear-gradient(160deg,#ffffff0b,#ffffff02),var(--bd-pill);box-shadow:inset 0 1px 0 #ffffff20,0 4px 16px #00000010}
+
+#collapse{display:flex;margin:0 auto 5px;padding:0;min-width:46px;width:46px;min-height:44px;height:44px;transition:transform .24s ease,margin-bottom .24s ease,background-color .14s ease}
+
+#dock.collapsed #collapse{margin-bottom:0}
+
+#collapse svg{width:20px;height:20px}#dock.collapsed #collapse{transform:rotate(180deg)}
+
+#dock-content{display:grid;grid-template-rows:1fr;opacity:1;transition:grid-template-rows .24s ease,opacity .2s ease}
+
+#dock.collapsed #dock-content{grid-template-rows:0fr;opacity:0;pointer-events:none}#dock.collapsed #dock-content button{pointer-events:none}.dock-inner{min-height:0;overflow:hidden}
+
+.source-row{display:flex;align-items:center;gap:10px;margin:0 0 8px;min-width:0}.source-row>button{flex:none;width:44px;height:44px;padding:0}.source-row>button svg{width:26px;height:26px}
+
+.source-pill{display:flex;align-items:center;flex:1;min-width:0;border-radius:999px;height:38px}
+
+.source-pill button{min-height:38px;height:38px;padding:0 6px}.source-pill>button:first-child,.source-pill>button:last-child{min-width:32px;width:32px}.source-pill>button svg{width:18px;height:18px}
+
+#source-label{display:flex;gap:6px;align-items:center;justify-content:center;flex:1;min-width:0;font-size:12px;font-weight:700}
+
+#source-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#source-position{font-size:10px;opacity:.6;white-space:nowrap}#source-icon{display:flex;align-items:center;flex:none}#source-icon svg{width:16px;height:16px}
+
+/* Same body portal, glass, spacing, selected tint and flyout easing as the extension. */
+
+#source-menu{position:fixed;z-index:10;min-width:160px;max-width:calc(100vw - 16px);max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:1px;padding:5px;border-radius:11px;background-color:hsla(0,0%,100%,.07);box-shadow:rgba(0,0,0,.28) 0 10px 28px -10px,inset rgba(255,255,255,.1) 0 1px 0 0;backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px);opacity:0;visibility:hidden;transform:translateY(6px);transition:opacity 160ms cubic-bezier(.4,0,.2,1),transform 160ms cubic-bezier(.4,0,.2,1),visibility 160ms cubic-bezier(.4,0,.2,1)}
+
+#source-menu.open{opacity:1;visibility:visible;transform:translateY(0)}
+
+#source-menu button{display:flex;justify-content:flex-start;gap:8px;width:100%;padding:6px 8px;min-height:36px;border:0;border-radius:7px;background:transparent;color:color-mix(in srgb,var(--bd-foreground) 78%,transparent);font-size:12px;font-weight:500;white-space:nowrap;text-align:left;transition:background-color 140ms cubic-bezier(.4,0,.2,1),color 140ms cubic-bezier(.4,0,.2,1)}
+
+#source-menu button:hover{background:hsla(0,0%,100%,.08);color:var(--bd-foreground)}
+
+#source-menu button.selected{color:var(--dock-accent,#fde69b);background:color-mix(in srgb,var(--dock-accent,#fde69b) 15%,transparent)}
+
+#source-menu button>span:first-child{display:inline-flex;align-items:center}#source-menu svg{width:14px;height:14px}
+
+.toolbar{display:flex;justify-content:space-evenly;gap:12px}.toolbar button{height:44px;flex:1;max-width:84px;padding:8px 12px;font-size:11px}
+
+.toolbar button[aria-pressed=true]{background:linear-gradient(160deg,#ffffff28,#ffffff12),var(--bd-pill);box-shadow:inset 0 0 0 1px #ffffff35}
+
+.sync{display:flex;align-items:center;gap:10px;justify-content:center;font-size:10px;min-height:24px;padding-top:5px}#status{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+#resume{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);z-index:4;font-size:12px;white-space:nowrap}
+
+#connection{position:relative;pointer-events:auto;display:flex;align-items:center;gap:8px;font-size:12px;line-height:1.4;padding:10px 14px;margin:6px 0 0;border:1px solid #ffffff20;border-radius:20px;max-height:100px;background:linear-gradient(160deg,#ffffff0b,#ffffff02),var(--bd-pill);color:var(--bd-foreground)}
+#connection[hidden]{display:none}#connection p{margin:0;flex:1}#connection #notice{display:none!important}#connection button{font-size:12px;min-height:40px;padding:2px 8px;background:transparent;box-shadow:none}
+
+
+.sync>span{opacity:.6}#source-health{min-width:28px;width:28px;min-height:24px;height:24px;padding:0;flex:none}#source-health>span{width:9px;height:9px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor}#source-health[data-state=orange]{color:#f0b55a}#source-health[data-state=green]{color:#65d795}#source-health[data-state=red]{color:#f07178}
+
+[hidden]{display:none!important}
+
+/* Disable Android's rectangular touch flash and selection, retaining Braccato's text highlight. */
+
+#lyrics{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}#lyrics ::selection{background:transparent}#lyrics .blyrics--line:focus{outline:none}
+
+.blyrics-background-line{font-size:calc(1em * var(--bd-bg-size));opacity:var(--bd-bg-opacity)}.blyrics-background-line .blyrics-background-lyric{font-size:1em!important}.no-background .blyrics-background-line{display:none}
+
+.blyrics--line>.blyrics--translated,.blyrics--line>.blyrics--romanized{white-space:normal;overflow-wrap:anywhere}
+
+@media(prefers-reduced-motion:reduce){:root{--blyrics-animate-word-wobble:0;--blyrics-animate-line-scale:0;--blyrics-animate-scroll:0}#dock-content,#collapse,#source-menu,button{transition:none}}
+
+.reduce-motion{--blyrics-animate-word-wobble:0;--blyrics-animate-line-scale:0;--blyrics-animate-scroll:0;--blyrics-animate-highlight-glow:0}.reduce-motion #dock-content,.reduce-motion #collapse,.reduce-motion #source-menu,.reduce-motion button{transition:none}
+

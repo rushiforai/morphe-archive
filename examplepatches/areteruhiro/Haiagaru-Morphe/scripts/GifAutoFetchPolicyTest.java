@@ -24,6 +24,8 @@ public final class GifAutoFetchPolicyTest {
         check(GifAutoFetchPolicy.extract(null).length == 0);
         StringBuilder many = new StringBuilder(); for (int i = 0; i < 30; i++) many.append("https://example.org/").append(i).append(".gif ");
         check(GifAutoFetchPolicy.extract(many.toString()).length == 8);
+        for(String host:new String[]{"img.5ch.io","img.5ch.net","img.2ch.net"})for(String folder:new String[]{"ico","premium"})check(!GifAutoFetchPolicy.supported("https://"+host+"/"+folder+"/sample.gif"));
+        check(Arrays.equals(GifAutoFetchPolicy.extract("https://img.5ch.io/ico/sample.gif https://example.org/real.gif"),new String[]{"https://example.org/real.gif"}));
         System.out.println("PASS GIF auto-fetch URL/policy " + checks + " checks");
     }
 }

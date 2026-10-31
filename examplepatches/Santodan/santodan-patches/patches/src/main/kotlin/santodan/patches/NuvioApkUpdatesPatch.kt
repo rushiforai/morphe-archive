@@ -28,11 +28,11 @@ val nuvioApkUpdatesPatch = bytecodePatch(
         NuvioApkUpdates.apply(NuvioApkUpdates.TYPES.associateWith { mutableClassDefBy(it) }, repo[0], repo[1], requireNotNull(releaseVersion.value))
         NuvioUpdateInstaller.disableMetadata(mutableClassDefBy(NuvioUpdateInstaller.INSTALLER), mutableClassDefBy(NuvioUpdateInstaller.RECEIVER))
         NuvioUpdateFlowPatch.install(
-            mutableClassDefBy("Lkb/q;"), mutableClassDefBy("Lkb/b;"),
+            mutableClassDefBy("Llb/q;"), mutableClassDefBy("Llb/b;"),
             mutableClassDefBy(NuvioUpdateInstaller.INSTALLER),
             mutableClassDefBy(NuvioUpdateFlowPatch.INSTALL_UI),
             mutableClassDefBy("Landroidx/core/content/FileProvider;"), mutableClassDefBy("Lb4/a;"),
-            mutableClassDefBy("Llb/a;"),
+            mutableClassDefBy("Lmb/a;"),
         )
     }
 }

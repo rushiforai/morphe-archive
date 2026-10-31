@@ -35,14 +35,14 @@ public final class NuvioProviderBadge {
 
     public static String source(Object card, Map<String, String> origins) throws ReflectiveOperationException {
         if (card == null) return null;
-        Object progress = field(card, "x");
+        Object progress = field(card, "r");
         Object id;
         Object type;
         if (progress != null) {
             id = get(progress, "getContentId");
             type = get(progress, "getContentType");
         } else {
-            Object nextUp = field(card, "y");
+            Object nextUp = field(card, "s");
             if (nextUp == null) return null;
             Object info = field(nextUp, "a");
             if (info == null) return null;

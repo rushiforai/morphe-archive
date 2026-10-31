@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <androidx.compose.ui.platform.ComposeView
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:id="0x7f0b0398"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <ImageView
+        android:layout_gravity="end|center_vertical"
+        android:id="0x7f0b03c1"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="0x7f0805bc"
+        android:contentDescription="@null"
+        android:layout_marginStart="0x7f070518"
+        android:layout_marginEnd="0x7f070518"/>
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:layout_gravity="end|center_vertical"
+        android:id="0x7f0b0192"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:layout_marginStart="0x7f070518"
+        android:layout_marginEnd="0x7f070518"
+        app:indicatorColor="0x7f0605fd"
+        app:indicatorSize="0x7f070519"
+        app:trackThickness="1dp"/>
+    <ImageView
+        android:layout_gravity="end|center_vertical"
+        android:id="0x7f0b0191"
+        android:visibility="invisible"
+        android:layout_width="0x7f070519"
+        android:layout_height="0x7f070519"
+        android:src="0x7f0805eb"
+        android:contentDescription="@null"
+        android:layout_marginStart="0x7f070518"
+        android:layout_marginEnd="0x7f070518"/>
+</merge>

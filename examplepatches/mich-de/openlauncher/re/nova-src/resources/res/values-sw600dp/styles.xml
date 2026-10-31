@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.Design.TabLayout" parent="@style/Base.Widget.Design.TabLayout">
+        <item name="tabGravity">1</item>
+        <item name="tabMode">1</item>
+    </style>
+    <style name="ia_expand_collapse_button_style" parent="@style/ia_top_right_overlay">
+        <item name="android:background">@drawable/ia_round_overlay_bg</item>
+        <item name="android:padding">@dimen/ia_image_control_padding</item>
+        <item name="android:layout_width">@dimen/ia_image_control_size</item>
+        <item name="android:layout_height">@dimen/ia_image_control_size</item>
+        <item name="android:src">@drawable/ia_sel_expand_collapse</item>
+        <item name="android:scaleType">3</item>
+    </style>
+    <style name="ia_mute_button_style" parent="@style/ia_top_left_overlay">
+        <item name="android:background">@drawable/ia_bg_circle_overlay</item>
+        <item name="android:padding">@dimen/ia_image_control_padding</item>
+        <item name="android:layout_width">@dimen/ia_image_control_size</item>
+        <item name="android:layout_height">@dimen/ia_image_control_size</item>
+        <item name="android:src">@drawable/ia_sel_mute</item>
+        <item name="android:scaleType">3</item>
+    </style>
+</resources>

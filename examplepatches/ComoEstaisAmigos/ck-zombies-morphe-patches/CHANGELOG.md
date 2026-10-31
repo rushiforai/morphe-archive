@@ -1,3 +1,9 @@
+## [1.4.1](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.4.0...v1.4.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Include the missing OBB message with every patch and rename two patches for clarity ([e88c81a](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/commit/e88c81a1a0454ebc108e87bf90f3b6f37f9bb3d2))
+
 ## [1.4.0](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/compare/v1.3.2...v1.4.0) (2026-10-30)
 
 ### ✨ New Features

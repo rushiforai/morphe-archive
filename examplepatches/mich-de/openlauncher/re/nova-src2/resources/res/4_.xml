@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.CheckableFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="0x7f0806c1"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="0x7f07054c"
+    android:layout_height="0x7f07054b"
+    android:foreground="0x7f0806c1">
+    <ImageView
+        android:id="0x7f0b0735"
+        android:background="0x7f060648"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"/>
+    <TextView
+        android:textColor="@android:color/white"
+        android:ellipsize="marquee"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:id="0x7f0b0736"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0x7f140c6b"
+        android:drawableTop="0x7f0803cb"
+        android:drawablePadding="4dp"/>
+</com.android.launcher3.CheckableFrameLayout>

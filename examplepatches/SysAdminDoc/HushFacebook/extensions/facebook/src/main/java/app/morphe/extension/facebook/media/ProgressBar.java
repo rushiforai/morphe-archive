@@ -12,6 +12,9 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
@@ -457,6 +460,20 @@ public final class ProgressBar {
     }
 
     /**
+     * A reel as the debug lines name it: "reel" and the first six characters of its id's SHA-256,
+     * so the lines of one hand-over still pair up without the reel's Facebook id in logcat.
+     */
+    static String reelName(@Nullable String reel) {
+        if (reel == null || reel.isEmpty()) return "no reel";
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(reel.getBytes(StandardCharsets.UTF_8));
+            return String.format(Locale.ROOT, "reel %02x%02x%02x", digest[0], digest[1], digest[2]);
+        } catch (NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException(impossible);
+        }
+    }
+
+    /**
      * The hook first thing in Facebook's Reels scrubber registry as a new reel shows, with whether its
      * hide flag is set and the reel's key. With the flag set, which the Watch tab's controller does,
      * the registry asks every scrubber it holds for the look that hides the bar and returns. With no
@@ -506,7 +523,7 @@ public final class ProgressBar {
             HookStatus.counted(FAMILY, NO_SCRUBBER_HIDDEN);
             String held = over.held;
             Logger.printDebug(() -> "Reel bar: Facebook's registry has no scrubber for the reel on screen, so the bar of "
-                    + held + " is hidden until a reel takes it");
+                    + reelName(held) + " is hidden until a reel takes it");
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "reel registry", failure);
         }
@@ -533,7 +550,7 @@ public final class ProgressBar {
             if (shown != null && shown.equals(held)) {
                 HandOver over = handOvers.remove(label);
                 if (over != null && showBarAgain(over)) {
-                    Logger.printDebug(() -> "Reel bar: " + shown + " is back on screen, the bar shows again");
+                    Logger.printDebug(() -> "Reel bar: " + reelName(shown) + " is back on screen, the bar shows again");
                 }
                 return;
             }
@@ -554,7 +571,7 @@ public final class ProgressBar {
             }
             handOvers.put(label, over);
             handingOver = new WeakReference<>(label);
-            Logger.printDebug(() -> "Reel bar: handing the bar from " + held + " to " + shown);
+            Logger.printDebug(() -> "Reel bar: handing the bar from " + reelName(held) + " to " + reelName(shown));
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "reel hand-over", failure);
         }
@@ -589,7 +606,7 @@ public final class ProgressBar {
             if (over == null) return;
             over.mounted = true;
             boolean back = showBarAgain(over);
-            Logger.printDebug(() -> "Reel bar: Facebook handed the bar " + over.shown + (back ? ", which shows again" : ""));
+            Logger.printDebug(() -> "Reel bar: Facebook handed the bar to " + reelName(over.shown) + (back ? ", which shows again" : ""));
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "reel hand-over", failure);
         }
@@ -629,7 +646,7 @@ public final class ProgressBar {
                 watch.runs++;
                 HookStatus.counted(FAMILY, UPDATE_AGAIN);
                 if (watch.runs == 1) {
-                    Logger.printDebug(() -> "Reel bar: nothing drew " + watch.reel + " since Facebook handed over the bar, so its update runs again");
+                    Logger.printDebug(() -> "Reel bar: nothing drew " + reelName(watch.reel) + " since Facebook handed over the bar, so its update runs again");
                 }
                 UpdateAgain forced = updateAgainForTests;
                 if (forced != null) {
@@ -672,7 +689,7 @@ public final class ProgressBar {
             if (!Utils.settingsReady() || !Settings.KEEP_PROGRESS_BAR.get()) return;
             hide(label, over);
             HookStatus.counted(FAMILY, LAST_REEL_HIDDEN);
-            Logger.printDebug(() -> "Reel bar: Facebook left the bar on " + over.held + " with " + over.shown
+            Logger.printDebug(() -> "Reel bar: Facebook left the bar on " + reelName(over.held) + " with " + reelName(over.shown)
                     + " on screen, so it's hidden until a reel takes it");
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "reel hand-over", failure);
@@ -705,7 +722,7 @@ public final class ProgressBar {
             HookStatus.counted(FAMILY, LAST_REEL_LOOK);
             if (!over.dropLogged) {
                 over.dropLogged = true;
-                Logger.printDebug(() -> "Reel bar: kept look " + look + " from showing the bar of " + over.held);
+                Logger.printDebug(() -> "Reel bar: kept look " + look + " from showing the bar of " + reelName(over.held));
             }
             return null;
         } catch (Throwable failure) {
@@ -849,7 +866,7 @@ public final class ProgressBar {
             // Facebook found the reel's position and length and moved the bar: the update draws.
             Watch watch = watches.remove(label);
             if (watch != null && watch.runs > 0) {
-                Logger.printDebug(() -> "Reel bar: " + watch.reel + " drew after its update ran again " + watch.runs + " time(s)");
+                Logger.printDebug(() -> "Reel bar: " + reelName(watch.reel) + " drew after its update ran again " + watch.runs + " time(s)");
             }
             if (!showsTime()) return false;
             HandOver over = handOvers.get(label);

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="image_load_fail">ບໍ່ສາມາດໂຫຼດຮູບໄດ້</string>
+    <string name="pick_image">ເລືອກ​ຮູບ​ພາບ</string>
+    <string name="wallpaper_accessibility_name">ພາບພື້ນຫຼັງ %1$d ໃນ %2$d</string>
+    <string name="wallpaper_delete">ລຶບ</string>
+    <string name="wallpaper_instructions">ຕັ້ງເປັນພາບພື້ນຫຼັງ</string>
+    <string name="wallpaper_load_fail">ບໍ່ສາມາດໂຫຼດຮູບເປັນພາບພື້ນຫຼັງໄດ້</string>
+</resources>

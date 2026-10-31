@@ -41,7 +41,7 @@ public final class NuvioPreferredAddonPatch {
                 builder.execute(context -> {
                     if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
                         !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName()))
-                        throw new IllegalStateException("Preferred add-on requires NuvioTV 1.1.0-beta.8");
+                        throw new IllegalStateException("Preferred add-on requires NuvioTV 1.1.0-beta.9");
                     validateContracts(type -> new MutableClass(context.classDefBy(type)));
                     MutableClass snapshot = context.mutableClassDefBy(NuvioNative.ADDON_SNAPSHOT_TYPE);
                     MutableClass selector = context.mutableClassDefBy(NuvioNative.ADDON_SELECTOR_TYPE);

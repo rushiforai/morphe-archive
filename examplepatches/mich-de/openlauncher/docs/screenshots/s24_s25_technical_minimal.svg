@@ -1,0 +1,232 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 452 932" width="452" height="932">
+  <defs>
+    <clipPath id="screen-clip-s25">
+      <rect x="20" y="20" width="412" height="892" rx="42" />
+    </clipPath>
+    <linearGradient id="s25-frame" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a2b2f"/>
+      <stop offset="50%" stop-color="#151618"/>
+      <stop offset="100%" stop-color="#0a0a0c"/>
+    </linearGradient>
+    <pattern id="s25-dot-grid" width="16" height="16" patternUnits="userSpaceOnUse">
+      <circle cx="8" cy="8" r="1.2" fill="#2b2b2b"/>
+    </pattern>
+    <filter id="phone-shadow" x="-8%" y="-8%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+
+  <!-- S24/S25 Titanium Armor Frame -->
+  <rect x="6" y="6" width="440" height="920" rx="46" fill="url(#s25-frame)" stroke="#3e4149" stroke-width="1.8" filter="url(#phone-shadow)"/>
+  <rect x="18" y="18" width="416" height="896" rx="42" fill="#000000" stroke="#1f2126" stroke-width="1.2"/>
+
+  <!-- Screen Surface -->
+  <g clip-path="url(#screen-clip-s25)">
+    <!-- OLED True Black Backdrop with Radial Dot Grid -->
+    <rect x="20" y="20" width="412" height="892" fill="#0e0e0e"/>
+    <rect x="20" y="20" width="412" height="892" fill="url(#s25-dot-grid)"/>
+
+    <!-- Status Bar for S24/S25 120Hz -->
+    <g transform="translate(20, 20)">
+      <text x="24" y="27" fill="#ecebe8" font-family="-apple-system, sans-serif" font-size="14" font-weight="600">09:41</text>
+      <!-- Center Camera Punch Hole -->
+      <circle cx="206" cy="20" r="6.5" fill="#040404" stroke="#181818" stroke-width="1.2"/>
+      <circle cx="204.8" cy="18.8" r="2" fill="#0c1928" opacity="0.8"/>
+      <!-- Right Status Indicators -->
+      <text x="312" y="26" fill="#ff5a1f" font-family="monospace" font-size="10" font-weight="700">120Hz</text>
+      <g transform="translate(350, 15)">
+        <rect x="0" y="8" width="2" height="4" fill="#ecebe8"/>
+        <rect x="3.5" y="6" width="2" height="6" fill="#ecebe8"/>
+        <rect x="7" y="3.5" width="2" height="8.5" fill="#ecebe8"/>
+        <rect x="10.5" y="0" width="2" height="12" fill="#ecebe8"/>
+        <g transform="translate(18, 0)">
+          <rect x="0" y="0.5" width="18" height="11" rx="2.5" fill="none" stroke="#ecebe8" stroke-width="1.2"/>
+          <rect x="2" y="2.5" width="11" height="7" rx="1.2" fill="#ecebe8"/>
+        </g>
+      </g>
+    </g>
+
+    <!-- Technical Minimal Dot-Matrix Widget -->
+    <g transform="translate(52, 100)">
+      <line x1="0" y1="0" x2="348" y2="0" stroke="#262626" stroke-width="1"/>
+      <circle cx="0" cy="0" r="3" fill="#ff5a1f"/>
+      <circle cx="348" cy="0" r="3" fill="#ff5a1f"/>
+
+      <text x="0" y="44" fill="#ecebe8" font-family="monospace" font-size="46" font-weight="800" letter-spacing="-1">09:41</text>
+      <text x="2" y="70" fill="#9a968f" font-family="monospace" font-size="12" letter-spacing="1">WED // 24 OCT • 21°C TOKYO</text>
+      <g transform="translate(2, 86)">
+        <rect width="210" height="22" rx="4" fill="#151515" stroke="#262626" stroke-width="1"/>
+        <circle cx="12" cy="11" r="3" fill="#ff5a1f"/>
+        <text x="22" y="15" fill="#ecebe8" font-family="monospace" font-size="10" font-weight="600" letter-spacing="0.5">TECHNICAL MINIMAL v1.0.0</text>
+      </g>
+    </g>
+
+    <!-- 4x4 App Grid with Technical Minimal Icon Pack -->
+    <g transform="translate(56, 260)">
+      <!-- Row 1 -->
+      <g transform="translate(0, 0)">
+        <rect width="54" height="54" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <path d="M36,32.5 v3 a2,2 0 0,1 -2.18,2 a19.8,19.8 0 0,1 -8.63,-3.07 a19.5,19.5 0 0,1 -6,-6 a19.8,19.8 0 0,1 -3.07,-8.67 A2,2 0 0,1 17.11,17.67 h3 a2,2 0 0,1 2,1.72 c0.12,0.96 0.36,1.9 0.7,2.81 a2,2 0 0,1 -0.45,2.11 l-1.27,1.27 a16,16 0 0,0 6,6 l1.27,-1.27 a2,2 0 0,1 2.11,-0.45 c0.91,0.34 1.85,0.58 2.81,0.7 A2,2 0 0,1 36,32.5 Z" stroke="#ecebe8" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="38" cy="16" r="2.2" fill="#ff5a1f"/>
+        <text x="27" y="70" fill="#9a968f" font-family="monospace" font-size="11" text-anchor="middle">PHONE</text>
+      </g>
+
+      <g transform="translate(90, 0)">
+        <rect width="54" height="54" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <path d="M38,19 a2,2 0 0,1 2,2 v14 a2,2 0 0,1 -2,2 H22 l-5,4 v-4 h-1 a2,2 0 0,1 -2,-2 V21 a2,2 0 0,1 2,-2 Z" stroke="#ecebe8" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <circle cx="22" cy="27" r="1.5" fill="#9a968f"/>
+        <circle cx="28" cy="27" r="1.5" fill="#9a968f"/>
+        <circle cx="34" cy="27" r="1.5" fill="#ff5a1f"/>
+        <text x="27" y="70" fill="#9a968f" font-family="monospace" font-size="11" text-anchor="middle">CHAT</text>
+      </g>
+
+      <g transform="translate(180, 0)">
+        <rect width="54" height="54" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <path d="M39,36 H15 a2,2 0 0,1 -2,-2 V20 a2,2 0 0,1 2,-2 h4 l2,-3 h6 l2,3 h6 a2,2 0 0,1 2,2 v14 a2,2 0 0,1 -2,2 Z" stroke="#ecebe8" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <circle cx="27" cy="27" r="5" stroke="#ecebe8" stroke-width="1.5" fill="none"/>
+        <circle cx="36" cy="21" r="1.8" fill="#ff5a1f"/>
+        <text x="27" y="70" fill="#9a968f" font-family="monospace" font-size="11" text-anchor="middle">CAMERA</text>
+      </g>
+
+      <g transform="translate(270, 0)">
+        <rect width="54" height="54" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <circle cx="27" cy="27" r="12" stroke="#ecebe8" stroke-width="1.5" fill="none"/>
+        <line x1="15" y1="27" x2="39" y2="27" stroke="#5f5b55" stroke-width="1.2"/>
+        <path d="M27,15 C24,19 24,35 27,39 M27,15 C30,19 30,35 27,39" stroke="#5f5b55" stroke-width="1.2" fill="none"/>
+        <circle cx="27" cy="27" r="2.2" fill="#ff5a1f"/>
+        <text x="27" y="70" fill="#9a968f" font-family="monospace" font-size="11" text-anchor="middle">WEB</text>
+      </g>
+
+      <!-- Row 2 -->
+      <g transform="translate(0, 96)">
+        <rect width="54" height="54" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <circle cx="27" cy="27" r="6" stroke="#ecebe8" stroke-width="1.5" fill="none"/>
+        <line x1="27" y1="15" x2="27" y2="18" stroke="#ecebe8" stroke-width="1.5"/>
+        <line x1="27" y1="36" x2="27" y2="39" stroke="#ecebe8" stroke-width="1.5"/>
+        <line x1="15" y1="27" x2="18" y2="27" stroke="#ecebe8" stroke-width="1.5"/>
+        <line x1="36" y1="27" x2="39" y2="27" stroke="#ecebe8" stroke-width="1.5"/>
+        <circle cx="27" cy="27" r="2.2" fill="#ff5a1f"/>
+        <text x="27" y="70" fill="#9a968f" font-family="monospace" font-size="11" text-anchor="middle">CONFIG</text>
+      </g>
+
+      <g transform="translate(90, 96)">
+        <rect width="54" height="54" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <rect x="16" y="16" width="22" height="22" stroke="#ecebe8" stroke-width="1.5" fill="none"/>
+        <line x1="16" y1="32" x2="26" y2="22" stroke="#ecebe8" stroke-width="1.5"/>
+        <line x1="24" y1="24" x2="38" y2="38" stroke="#ecebe8" stroke-width="1.5"/>
+        <circle cx="22" cy="22" r="2" fill="#ff5a1f"/>
+        <text x="27" y="70" fill="#9a968f" font-family="monospace" font-size="11" text-anchor="middle">PHOTOS</text>
+      </g>
+
+      <g transform="translate(180, 96)">
+        <rect width="54" height="54" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <path d="M15,18 H23 L26,21 H39 v15 H15 Z" stroke="#ecebe8" stroke-width="1.5" fill="none"/>
+        <line x1="19" y1="28" x2="31" y2="28" stroke="#ff5a1f" stroke-width="2"/>
+        <text x="27" y="70" fill="#9a968f" font-family="monospace" font-size="11" text-anchor="middle">FILES</text>
+      </g>
+
+      <g transform="translate(270, 96)">
+        <rect width="54" height="54" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <path d="M18,20 l6,6 l-6,6" stroke="#ecebe8" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <rect x="27" y="30" width="8" height="2" fill="#ff5a1f"/>
+        <text x="27" y="70" fill="#9a968f" font-family="monospace" font-size="11" text-anchor="middle">TERM</text>
+      </g>
+
+      <!-- Row 3 -->
+      <g transform="translate(0, 192)">
+        <rect width="54" height="54" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <circle cx="27" cy="27" r="12" stroke="#ecebe8" stroke-width="1.5" fill="none"/>
+        <line x1="27" y1="20" x2="27" y2="27" stroke="#ecebe8" stroke-width="1.5"/>
+        <line x1="27" y1="27" x2="32" y2="30" stroke="#ecebe8" stroke-width="1.5"/>
+        <circle cx="27" cy="27" r="1.8" fill="#ff5a1f"/>
+        <text x="27" y="70" fill="#9a968f" font-family="monospace" font-size="11" text-anchor="middle">CLOCK</text>
+      </g>
+
+      <g transform="translate(90, 192)">
+        <rect width="54" height="54" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <rect x="16" y="16" width="22" height="22" stroke="#ecebe8" stroke-width="1.5" fill="none"/>
+        <line x1="16" y1="22" x2="38" y2="22" stroke="#ecebe8" stroke-width="1.5"/>
+        <circle cx="27" cy="29" r="2.2" fill="#ff5a1f"/>
+        <text x="27" y="70" fill="#9a968f" font-family="monospace" font-size="11" text-anchor="middle">CALENDAR</text>
+      </g>
+
+      <g transform="translate(180, 192)">
+        <rect width="54" height="54" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <rect x="16" y="15" width="22" height="24" stroke="#ecebe8" stroke-width="1.5" fill="none"/>
+        <line x1="19" y1="19" x2="35" y2="19" stroke="#ecebe8" stroke-width="1.5"/>
+        <circle cx="22" cy="25" r="1.2" fill="#5f5b55"/>
+        <circle cx="27" cy="25" r="1.2" fill="#5f5b55"/>
+        <circle cx="32" cy="25" r="1.2" fill="#5f5b55"/>
+        <circle cx="32" cy="32" r="1.5" fill="#ff5a1f"/>
+        <text x="27" y="70" fill="#9a968f" font-family="monospace" font-size="11" text-anchor="middle">CALC</text>
+      </g>
+
+      <g transform="translate(270, 192)">
+        <rect width="54" height="54" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <path d="M19,18 v14 M31,18 v14 M19,18 h12" stroke="#ecebe8" stroke-width="1.5" fill="none"/>
+        <circle cx="19" cy="32" r="2.5" fill="#ecebe8"/>
+        <circle cx="31" cy="32" r="2.5" fill="#ff5a1f"/>
+        <text x="27" y="70" fill="#9a968f" font-family="monospace" font-size="11" text-anchor="middle">AUDIO</text>
+      </g>
+    </g>
+
+    <!-- Technical Minimal Search Pill -->
+    <g transform="translate(48, 706)">
+      <rect width="356" height="48" rx="8" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+      <line x1="0" y1="24" x2="6" y2="24" stroke="#ff5a1f" stroke-width="2"/>
+      <g transform="translate(18, 14)">
+        <circle cx="8" cy="8" r="6" stroke="#9a968f" stroke-width="1.4" fill="none"/>
+        <line x1="13" y1="13" x2="17" y2="17" stroke="#9a968f" stroke-width="1.4"/>
+        <text x="28" y="14" fill="#5f5b55" font-family="monospace" font-size="13">EXECUTE COMMAND // APP...</text>
+      </g>
+      <circle cx="334" cy="24" r="4" fill="#ff5a1f"/>
+    </g>
+
+    <!-- Dock Area: 5 Technical Minimal Icons -->
+    <g transform="translate(52, 776)">
+      <line x1="0" y1="-8" x2="348" y2="-8" stroke="#262626" stroke-width="1"/>
+      <g transform="translate(0, 0)">
+        <rect width="52" height="52" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <path d="M34,31 v3 a2,2 0 0,1 -2,2 a18,18 0 0,1 -8,-3 a18,18 0 0,1 -6,-6 a18,18 0 0,1 -3,-8 a2,2 0 0,1 2,-2 h3 a2,2 0 0,1 2,1.6 c0.1,0.9 0.3,1.8 0.6,2.6 a2,2 0 0,1 -0.4,2 l-1.2,1.2 a15,15 0 0,0 5.6,5.6 l1.2,-1.2 a2,2 0 0,1 2,-0.4 c0.9,0.3 1.7,0.5 2.6,0.6 A2,2 0 0,1 34,31 Z" stroke="#ecebe8" stroke-width="1.4" fill="none"/>
+        <circle cx="36" cy="16" r="2" fill="#ff5a1f"/>
+      </g>
+      <g transform="translate(74, 0)">
+        <rect width="52" height="52" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <path d="M36,18 a2,2 0 0,1 2,2 v13 a2,2 0 0,1 -2,2 H21 l-5,4 v-4 h-1 a2,2 0 0,1 -2,-2 V20 a2,2 0 0,1 2,-2 Z" stroke="#ecebe8" stroke-width="1.4" fill="none"/>
+        <circle cx="31" cy="26" r="1.5" fill="#ff5a1f"/>
+      </g>
+      <g transform="translate(148, 0)">
+        <rect width="52" height="52" rx="14" fill="#151515" stroke="#ff5a1f" stroke-width="1.4"/>
+        <!-- Matrix Core Icon -->
+        <circle cx="21" cy="21" r="1.5" fill="#5f5b55"/>
+        <circle cx="26" cy="21" r="1.5" fill="#5f5b55"/>
+        <circle cx="31" cy="21" r="1.5" fill="#5f5b55"/>
+        <circle cx="21" cy="26" r="1.5" fill="#5f5b55"/>
+        <circle cx="26" cy="26" r="2.8" fill="#ff5a1f"/>
+        <circle cx="31" cy="26" r="1.5" fill="#5f5b55"/>
+        <circle cx="21" cy="31" r="1.5" fill="#5f5b55"/>
+        <circle cx="26" cy="31" r="1.5" fill="#5f5b55"/>
+        <circle cx="31" cy="31" r="1.5" fill="#5f5b55"/>
+      </g>
+      <g transform="translate(222, 0)">
+        <rect width="52" height="52" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <!-- Browser / Globe -->
+        <circle cx="26" cy="26" r="11" stroke="#ecebe8" stroke-width="1.5" fill="none"/>
+        <line x1="15" y1="26" x2="37" y2="26" stroke="#9a968f" stroke-width="1.2"/>
+        <path d="M 26,15 C 20.5,18.5 20.5,33.5 26,37 M 26,15 C 31.5,18.5 31.5,33.5 26,37" stroke="#9a968f" stroke-width="1.2" fill="none"/>
+        <circle cx="26" cy="26" r="2" fill="#ff5a1f"/>
+      </g>
+      <g transform="translate(296, 0)">
+        <rect width="52" height="52" rx="14" fill="#151515" stroke="#262626" stroke-width="1.2"/>
+        <!-- Camera -->
+        <path d="M 35,34 H 17 a 2.5,2.5 0 0,1 -2.5,-2.5 V 22 a 2.5,2.5 0 0,1 2.5,-2.5 h 3.5 l 2,-2.5 h 7 l 2,2.5 H 35 a 2.5,2.5 0 0,1 2.5,2.5 v 9.5 a 2.5,2.5 0 0,1 -2.5,2.5 Z" stroke="#ecebe8" stroke-width="1.5" stroke-linejoin="round" fill="none"/>
+        <circle cx="26" cy="26.5" r="4.5" stroke="#ecebe8" stroke-width="1.4" fill="none"/>
+        <circle cx="26" cy="26.5" r="1.8" fill="#5f5b55"/>
+        <circle cx="33" cy="22" r="1.5" fill="#ff5a1f"/>
+      </g>
+    </g>
+
+    <!-- Edge-to-Edge Navigation Bar Gesture Pill -->
+    <rect x="159.0" y="898" width="134" height="4.5" rx="2.5" fill="#ecebe8" opacity="0.6"/>
+  </g>
+</svg>

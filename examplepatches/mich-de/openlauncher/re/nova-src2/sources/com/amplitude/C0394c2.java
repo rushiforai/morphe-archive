@@ -1,0 +1,6 @@
+package com.amplitude;
+
+/* renamed from: com.amplitude.c2, reason: case insensitive filesystem */
+/* loaded from: classes2.dex */
+public final class C0394c2 {
+}

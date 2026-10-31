@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.instabridge.ai.chat.ui.InteractiveChatTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textSize="14sp"
+    android:textColor="0x7f06003f"
+    android:textColorHighlight="0x7f06005c"
+    android:textColorLink="0x7f060046"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textIsSelectable="true"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"/>

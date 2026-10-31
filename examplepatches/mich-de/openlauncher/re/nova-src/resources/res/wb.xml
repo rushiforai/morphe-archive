@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.shortcuts.DeepShortcutView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:theme="0x7f1501c3"
+    android:background="0x7f0804ba"
+    android:layout_width="0x7f07007e"
+    android:layout_height="0x7f07007c"
+    android:elevation="0x7f0700b5">
+    <com.android.launcher3.shortcuts.DeepShortcutTextView
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:ellipsize="end"
+        android:gravity="start|center_vertical"
+        android:id="0x7f0b0115"
+        android:background="?android:attr/selectableItemBackground"
+        android:focusable="false"
+        android:singleLine="true"
+        android:drawablePadding="0x7f0700b3"
+        android:drawableEnd="0x7f080436"
+        android:textAlignment="viewStart"
+        android:paddingStart="0x7f0700b7"
+        android:paddingEnd="0x7f070494"
+        launcher:iconDisplay="4"
+        launcher:iconSizeOverride="0x7f0700b4"
+        launcher:layoutHorizontal="true"
+        style="0x7f150132"/>
+    <View
+        android:layout_gravity="start|center_vertical"
+        android:id="0x7f0b036a"
+        android:background="0x7f08032d"
+        android:layout_width="0x7f0700b4"
+        android:layout_height="0x7f0700b4"
+        android:layout_marginStart="0x7f070495"
+        android:outlineProvider="none"/>
+    <include layout="0x7f0e016f"/>
+</com.android.launcher3.shortcuts.DeepShortcutView>

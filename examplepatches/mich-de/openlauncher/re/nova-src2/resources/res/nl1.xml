@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectAnimator xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:interpolator="@android:anim/linear_interpolator"
+    android:duration="60000"
+    android:repeatCount="infinite"
+    android:repeatMode="restart"
+    android:valueFrom="0"
+    android:valueTo="360"
+    android:valueType="floatType"
+    android:propertyName="rotation"/>

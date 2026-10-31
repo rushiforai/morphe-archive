@@ -1,0 +1,17 @@
+**/.gradle/
+**/build/
+BuildCache/
+Inputs/
+**/dist/
+**/output/
+**/node_modules/
+Personal-Patches/web/tools/esbuild/
+Verification/scratch/
+**/local.properties
+*.apk
+*.mpp
+*.mpe
+*.jks
+*.keystore
+*.p12
+.env*

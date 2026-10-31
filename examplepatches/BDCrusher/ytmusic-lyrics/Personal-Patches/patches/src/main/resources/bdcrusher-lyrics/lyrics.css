@@ -1,0 +1,339 @@
+@import url("image-highlights.css");
+
+/* Resolve the default stack at each language boundary. A root-level var() would freeze
+   the host's language-specific fallback before the lyric/translation language is known.
+   Theme overrides remain inherited through --blyrics-font-family. */
+.blyrics--line,
+.blyrics--translated,
+.blyrics--romanized {
+	--blyrics-default-font-family:
+		Satoshi, var(--noto-sans-universal, "Noto Sans"), Avenir, -apple-system,
+		BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Open Sans,
+		Helvetica Neue, sans-serif;
+	font-family: var(--blyrics-font-family, var(--blyrics-default-font-family));
+}
+
+/* Main container styles */
+.blyrics-container {
+	font-family: var(--blyrics-font-family, var(--blyrics-default-font-family));
+	font-size: var(--blyrics-font-size);
+	font-weight: var(--blyrics-font-weight);
+	isolation: isolate;
+	line-height: var(--blyrics-line-height);
+	padding-bottom: calc(var(--blyrics-padding-bottom));
+	padding-top: 2rem;
+	position: relative !important;
+	will-change: transform;
+	z-index: 1;
+}
+
+.blyrics-container > div {
+	box-sizing: border-box;
+	cursor: pointer;
+	padding: var(--blyrics-padding) 0.25em !important;
+	transform: scale(var(--blyrics-scale));
+	transform-origin: left center;
+}
+
+.blyrics--active {
+	cursor: default;
+}
+
+.blyrics--line {
+	color: var(--blyrics-lyric-inactive-color);
+	max-width: 100%;
+	unicode-bidi: plaintext;
+	white-space: normal;
+	word-break: normal;
+}
+
+.blyrics-line-main {
+	display: block;
+	max-width: 100%;
+	overflow-wrap: normal;
+	position: relative;
+	text-align: inherit;
+	unicode-bidi: plaintext;
+	white-space: normal;
+}
+
+.blyrics-background-line {
+	display: block;
+	margin-top: 0.1em;
+	max-width: 100%;
+	position: relative;
+	text-align: inherit;
+	unicode-bidi: plaintext;
+	white-space: normal;
+}
+
+.blyrics-bidi-run {
+	display: block;
+	max-width: 100%;
+	unicode-bidi: normal;
+	white-space: inherit;
+}
+
+.blyrics-highlight-run {
+	inset: 0 0 auto;
+	pointer-events: none;
+	position: absolute;
+	user-select: none;
+	width: auto;
+	z-index: 1;
+}
+
+.blyrics-word-group {
+	display: inline-block;
+	max-width: 100%;
+	unicode-bidi: normal;
+	vertical-align: baseline;
+	white-space: nowrap;
+}
+
+.blyrics-word-group-long {
+	display: inline;
+	overflow-wrap: anywhere;
+	white-space: normal;
+	word-break: break-word;
+}
+
+.blyrics--word {
+	color: var(--blyrics-lyric-inactive-color);
+	display: inline;
+	position: relative;
+	transform: translateY(0);
+	unicode-bidi: normal;
+	white-space: inherit;
+}
+
+.blyrics-word-group:not(.blyrics-word-group-long) .blyrics--word {
+	display: inline-block;
+}
+
+.blyrics-bidi-sensitive .blyrics-word-group,
+.blyrics-bidi-sensitive .blyrics-word-group-long {
+	display: contents;
+	max-width: none;
+	overflow-wrap: normal;
+	unicode-bidi: normal;
+	white-space: normal;
+	word-break: normal;
+}
+
+.blyrics-bidi-sensitive .blyrics--word,
+.blyrics-bidi-sensitive .blyrics-word-group:not(.blyrics-word-group-long) .blyrics--word {
+	display: inline;
+	white-space: inherit;
+}
+
+@property --lyric-transition-amount-start {
+	syntax: "<number>";
+	inherits: true;
+	initial-value: -0.2;
+}
+
+@property --lyric-transition-amount-end {
+	syntax: "<number>";
+	inherits: true;
+	initial-value: -0.1;
+}
+
+.blyrics--word.blyrics-word-highlight {
+	color: transparent;
+	background-image: linear-gradient(
+		90deg,
+		var(--blyrics-lyric-active-color)
+			calc(100% * var(--lyric-transition-amount-start)),
+		#00000000
+			calc(100% * var(--lyric-transition-amount-end) + 1px)
+	);
+	background-clip: text;
+	opacity: 0;
+	pointer-events: none;
+	--lyric-transition-amount-start: var(
+		--blyrics-highlight-swipe-start-from,
+		-0.2
+	);
+	--lyric-transition-amount-end: var(--blyrics-highlight-swipe-end-from, -0.1);
+}
+.blyrics-word-highlight.blyrics-rtl {
+	background-image: linear-gradient(
+		270deg,
+		var(--blyrics-lyric-active-color)
+			calc(100% * var(--lyric-transition-amount-start)),
+		#00000000
+			calc(100% * var(--lyric-transition-amount-end) + 1px)
+	);
+}
+
+.blyrics--letter {
+	display: inline-block;
+}
+
+/* Atomic letter boxes otherwise take their visual ordering from the surrounding
+   paragraph. Isolate each word's own dir=auto while keeping it inline/wrappable. */
+.blyrics--word.blyrics-word--lettered {
+	unicode-bidi: isolate;
+}
+
+/* WebRender snaps 2D-translated glyphs to whole pixels; perspective rasterizes them in local space. */
+.blyrics-container[data-browser-engine="gecko"] .blyrics--animating .blyrics-word--lettered {
+	perspective: 100000px;
+}
+
+.blyrics-word-highlight.blyrics-word-highlight--lettered {
+	background-image: none;
+}
+
+/* A mask clips to the border box, cutting off glyph overhang (a j's hook, italics). The padding
+   widens that clip without moving layout, and the content-box origin keeps the sweep geometry. */
+.blyrics-word-highlight .blyrics--letter {
+	padding-inline: 0.25em;
+	margin-inline: -0.25em;
+	-webkit-mask-origin: content-box;
+	mask-origin: content-box;
+	color: var(--blyrics-lyric-active-color);
+	-webkit-mask-image: linear-gradient(90deg, #000 0, #000 50%, #0000 calc(50% + var(--mask-fade, 3%)));
+	mask-image: linear-gradient(90deg, #000 0, #000 50%, #0000 calc(50% + var(--mask-fade, 3%)));
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	-webkit-mask-size: calc((var(--letters, 1) + 2) * 100%) 100%;
+	mask-size: calc((var(--letters, 1) + 2) * 100%) 100%;
+	-webkit-mask-position: 0% 0%;
+	mask-position: 0% 0%;
+}
+
+.blyrics-word-highlight.blyrics-rtl .blyrics--letter {
+	-webkit-mask-image: linear-gradient(270deg, #000 0, #000 50%, #0000 calc(50% + var(--mask-fade, 3%)));
+	mask-image: linear-gradient(270deg, #000 0, #000 50%, #0000 calc(50% + var(--mask-fade, 3%)));
+	-webkit-mask-position: 100% 0%;
+	mask-position: 100% 0%;
+}
+
+/* text-decoration skips inline-block letters and rides the wave, so draw on the word box instead, from its
+   center (fixed against the text at any line-height), with layout-neutral padding so a tight box can hold it. */
+[blyrics-alt-hover] .blyrics--word:hover {
+	padding-block: 0.25em;
+	margin-block: -0.25em;
+	background-image: linear-gradient(currentColor, currentColor);
+	background-position: 0 calc(50% + 0.54em);
+	background-repeat: no-repeat;
+	background-size: 100% 0.06em;
+}
+
+.blyrics--line > .blyrics-line-main > .blyrics-background-lyric,
+.blyrics--line > .blyrics-background-line > .blyrics-background-lyric,
+.blyrics--line > .blyrics-line-main > .blyrics-bidi-run > .blyrics-background-lyric,
+.blyrics--line > .blyrics-background-line > .blyrics-bidi-run > .blyrics-background-lyric {
+	font-size: 0.75em;
+	font-weight: 500;
+}
+
+.blyrics--line > .blyrics-line-main > .blyrics-word-group.blyrics-background-lyric,
+.blyrics--line > .blyrics-background-line > .blyrics-word-group.blyrics-background-lyric,
+.blyrics--line > .blyrics-line-main > .blyrics-bidi-run > .blyrics-word-group.blyrics-background-lyric,
+.blyrics--line > .blyrics-background-line > .blyrics-bidi-run > .blyrics-word-group.blyrics-background-lyric {
+	color: color-mix(in srgb, var(--blyrics-lyric-inactive-color) 78%, transparent);
+}
+
+.blyrics--translated,
+.blyrics--romanized {
+	animation: blyrics-decoration-in calc(var(--blyrics-animate-decoration-entry) * 0.35s)
+		cubic-bezier(0.25, 1, 0.5, 1) both;
+	color: var(--blyrics-translated-color);
+	display: block;
+	font-family: var(--blyrics-translated-font-family, var(--blyrics-font-family, var(--blyrics-default-font-family)));
+	font-size: var(--blyrics-translated-font-size);
+	font-weight: var(--blyrics-translated-font-weight);
+	line-height: normal;
+	margin-top: 8px;
+	max-width: 100%;
+	text-align: inherit;
+	unicode-bidi: plaintext;
+	white-space: normal;
+}
+
+@keyframes blyrics-decoration-in {
+	from {
+		opacity: 0;
+		transform: translateY(-0.4em);
+	}
+}
+
+.blyrics-container > .blyrics-credits {
+	box-sizing: border-box;
+	cursor: default;
+	margin: 0;
+	padding: var(--blyrics-padding) 0.25em;
+	transform: scale(var(--blyrics-scale));
+	transform-origin: left center;
+}
+
+.blyrics-credits {
+	color: var(--blyrics-ui-text-color);
+	opacity: var(--blyrics-credits-opacity);
+	transition: opacity 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.blyrics-credits__text {
+	display: block;
+	font-size: var(--blyrics-credits-font-size);
+}
+
+.blyrics-credits__text::before {
+	content: var(--blyrics-credits-label) " ";
+}
+
+.blyrics-container[data-credits-focused] > .blyrics-credits,
+.blyrics-container[data-sync="none"] > .blyrics-credits {
+	opacity: var(--blyrics-credits-focused-opacity);
+}
+
+.blyrics--romanized {
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 1rem;
+	box-sizing: border-box;
+	display: block;
+	font-size: calc(var(--blyrics-translated-font-size) / 1.25);
+	padding: 0.25rem 0.75rem;
+	width: fit-content;
+}
+
+.blyrics-rtl {
+	direction: rtl;
+}
+
+.blyrics--line[data-direction="rtl"] {
+	text-align: right;
+	transform-origin: right center;
+}
+
+/* Secondary and tertiary vocals */
+.blyrics--line[data-agent="v2"],
+.blyrics--line[data-agent="v3"] {
+	text-align: right;
+	transform-origin: right center !important;
+}
+
+/* All vocals together */
+.blyrics--line[data-agent="v1000"] {
+	text-align: center;
+	transform-origin: center center !important;
+}
+
+.blyrics--line[data-agent="v2"] .blyrics--romanized,
+.blyrics--line[data-agent="v3"] .blyrics--romanized,
+.blyrics--line[data-direction="rtl"] .blyrics--romanized {
+	margin-left: auto;
+}
+
+.blyrics--line[data-agent="v1000"] .blyrics--romanized {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#blyrics-wrapper {
+	margin-top: 0;
+}

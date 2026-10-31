@@ -280,6 +280,9 @@ Keep feed position on return	Manter a posição no feed ao voltar
 Returning to Facebook within ten minutes, or switching back to Home, keeps your place. Pull to refresh still works.	Ao voltar ao Facebook em até dez minutos, ou ao voltar para a Página inicial, você continuará no ponto em que estava. O gesto de puxar para baixo para atualizar continuará funcionando.
 No time limit	Sem limite de tempo
 With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	Com a opção acima ativada, você continua no ponto em que estava, não importa quanto tempo fique fora. Puxar para atualizar e iniciar o Facebook novamente continuam carregando novas publicações.
+Back leaves Home where it is	Voltar deixa a Página inicial onde está
+Pressing Back on a scrolled Home no longer jumps to the top and reloads the feed. Press Back again within two seconds to do that.	Tocar em Voltar na Página inicial rolada não pula mais para o topo nem recarrega o feed. Toque em Voltar de novo em até dois segundos para isso.
+Press Back again to go to the top	Toque em Voltar de novo para ir ao topo
 A finished story stays on screen until you tap or swipe. Turn this off for Facebook's timing.	Um Story concluído permanece na tela até você tocar ou deslizar. Desative esta opção para usar a duração padrão do Facebook.
 View stories anonymously	Ver Stories anonimamente
 Facebook isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you. Stories you watch to the end show as watched on this phone only, until that person posts a new one.	O Facebook não fica sabendo quais Stories você assiste, então você fica fora das listas de quem viu. Responder ou reagir ainda mostra você. Stories que você assiste até o fim aparecem como vistos só neste celular, até a pessoa postar um novo.
@@ -438,6 +441,8 @@ Hide comments under posts	Ocultar os comentários embaixo das publicações
 Feed posts stop showing a few comments under their buttons. Tap Comment to read them all.	As publicações do feed deixam de mostrar comentários embaixo dos botões. Toque em Comentar para ler todos.
 Hide dislike on comments	Ocultar o polegar para baixo nos comentários
 Takes the thumbs-down off comments. Like and Reply stay.	Tira o polegar para baixo dos comentários. Curtir e Responder continuam.
+Hide Like on comments	Ocultar Curtir nos comentários
+Takes Like off the row under comments. Reply and the reaction count stay.	Tira o Curtir da linha abaixo dos comentários. Responder e a contagem de reações continuam.
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	Só Curtir
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -705,7 +710,7 @@ Saving... To cancel, open Downloads in Hushfacebook settings.	Salvando… Para c
 # context: switch title under Reels and Watch; on, a double tap on a reel or a video doesn't like it
 Turn off double tap to like	Desativar toque duplo para curtir
 # context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
-A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like button work as before.	Tocar duas vezes em um reel ou vídeo não curte mais nem mostra um coração. Um toque e o botão Curtir funcionam como antes.
+A double tap on a reel, a video or a photo in the feed no longer likes it or shows a heart. A single tap and the Like button work as before.	Tocar duas vezes em um reel, vídeo ou foto do feed não curte mais nem mostra um coração. Um toque e o botão Curtir funcionam como antes.
 # context: switch title under Reels and Watch; on, a double tap on the left or right edge of a reel or a video skips back or forward in it
 Double tap to skip	Toque duplo para pular
 # context: summary of that switch; the edge is about a fifth of the player's width, and 30 seconds is the whole length of the reel or video
@@ -852,6 +857,11 @@ Keep post dates	Manter a data das publicações
 Shows the post's date under the poster's name instead of Facebook's rotating details, which can go blank on some phones.	Mostra a data da publicação abaixo do nome de quem publicou, em vez dos detalhes rotativos do Facebook, que ficam em branco em alguns celulares.
 Show full post text	Mostrar o texto completo das publicações
 Posts in the feed show all of their text, so there's no See more to tap.	As publicações do feed mostram todo o texto, então não precisa tocar em Ver mais.
+# context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
+See who shared	Ver quem compartilhou
+Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Adiciona Ver quem compartilhou ao menu de uma publicação. Abre a lista do Facebook com as pessoas que a compartilharam.
+# context: message shown when tapping that row doesn't open the list
+Couldn't open the list of shares.	Não foi possível abrir a lista de compartilhamentos.
 # context: switch title under News feed; the Feeds header is the row at the top of the Feeds tab with Feeds, the menu and search, and the filters under it, All, Favorites, Friends, Groups and Pages
 Hide the Feeds header	Ocultar o cabeçalho dos Feeds
 # context: description of that switch; the Feeds tab is where Facebook lists posts by those filters, and the title row is the one with the tab's name
@@ -1370,6 +1380,8 @@ Only the first reel waits	Só o primeiro reel espera
 With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed, Watch and stories always wait.	Com o botão acima ligado, depois que você toca um reel, os reels para os quais você desliza tocam sozinhos. O feed, o Watch e os stories sempre esperam.
 Slower speeds	Velocidades mais lentas
 Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a fast moment.	Adiciona 0,1x e 0,25x ao menu de velocidade dos reels e dos vídeos do feed e do Watch, para desacelerar um momento rápido.
+Speed on finished live videos	Velocidade em vídeos ao vivo encerrados
+A live video that has ended gets Playback speed in its gear menu, like other videos. Videos that are still live, and ads, keep Facebook's menu.	Um vídeo ao vivo que já terminou ganha Velocidade de reprodução no menu da engrenagem, como os outros vídeos. Vídeos ainda ao vivo e anúncios continuam com o menu do Facebook.
 Share now	Compartilhar agora
 Send in Messenger	Enviar no Messenger
 Share to your story	Compartilhar no seu Story
@@ -1591,6 +1603,8 @@ Hide who is typing in comments	Ocultar quem está digitando nos comentários
 Takes away the line that says someone is typing a comment. Your own typing is a separate switch under Privacy.	Remove a linha que mostra que alguém está digitando um comentário. A sua própria digitação tem uma chave separada em Privacidade.
 Hide the search pill on reels	Ocultar a sugestão de pesquisa nos reels
 Hides the search suggestion under a reel's caption, the magnifier with a question to look up, the one at the top of its comments and the search bar over reels you open from a profile.	Oculta a sugestão de pesquisa abaixo da legenda de um reel, a lupa com uma pergunta para consultar, a que fica no topo dos comentários e a barra de pesquisa sobre os reels que você abre a partir de um perfil.
+Hide the top right buttons on opened videos	Ocultar os botões do canto superior direito nos vídeos abertos
+Takes Search and the button next to it off the top of a video or reel you open. Back stays, and so does More at the bottom of the side buttons, where Download is.	Tira Pesquisar e o botão ao lado do topo de um vídeo ou reel que você abre. Voltar continua, e o Mais embaixo dos botões laterais, onde fica Baixar, também.
 # context: switch title under Appearance; the button is Facebook's Messenger icon in the top bar of Home
 Hide the Messenger button	Ocultar o botão do Messenger
 # context: summary of that switch; the other top bar buttons move over to fill the space; Hushfacebook is the app's name
@@ -1607,6 +1621,9 @@ Hide the Create button	Ocultar o botão Criar
 Takes the + button for making a post, reel or story out of the top bar. Restart Facebook to see the change.	Tira da barra superior o botão + para criar publicações, reels e stories. Reinicie o Facebook para ver a mudança.
 Hide the search button	Ocultar o botão de busca
 Takes the search button out of the top bar. Restart Facebook to see the change.	Tira o botão de busca da barra superior. Reinicie o Facebook para ver a mudança.
+Search with a picture	Buscar com uma imagem
+Press and hold the search button to open Google Lens, then point the camera at something or pick a picture to find out what it is. The picture goes to Google, not Facebook. Restart Facebook to see the change.	Toque e segure o botão de busca para abrir o Google Lens. Depois aponte a câmera para algo ou escolha uma imagem para descobrir o que é. A imagem vai para o Google, não para o Facebook. Reinicie o Facebook para ver a mudança.
+No app on this phone can open Google Lens	Nenhum app neste celular consegue abrir o Google Lens
 # context: switch title under News feed; the counts are the numbers on the Like, Comment and Share buttons under a post
 Hide counts on posts	Ocultar os números nas publicações
 # context: summary of that switch; Like, Comment and Share are Facebook's own button labels, so use Facebook's wording in your language
@@ -1765,6 +1782,10 @@ Hides the People you may know row Facebook shows when you open search. Your rece
 Don't save search history	Não salvar o histórico de pesquisa
 # context: summary of that switch; searches already in the history are the user's own past searches, which stay until the user deletes them
 What you search for, and the pages and profiles you open from a search, aren't added to your Facebook search history. Searches already there stay until you delete them.	O que você pesquisa, e as páginas e perfis que você abre a partir de uma pesquisa, não são adicionados ao seu histórico de pesquisa do Facebook. As pesquisas que já estão lá continuam até você apagá-las.
+# context: switch title under Search; on, the Date posted filter in post search asks for a from and to month instead of a list of years; Date posted is Facebook's own filter name in search results
+Search date range	Intervalo de datas na pesquisa
+# context: summary of that switch; Date posted is Facebook's own filter name in post search results, named here as Facebook shows it
+The Date posted filter in post search asks for a from and to month, in place of a list of years.	O filtro de data da publicação na pesquisa de posts pede um mês inicial e um final, em vez de uma lista de anos.
 # context: switch title under Reels and Watch; the audio line is the scrolling line at the bottom of a reel naming its sound, like "Name · Original audio" or a song title
 Hide the audio line on reels	Ocultar a linha de áudio nos reels
 # context: summary of that switch; "Original audio" is Facebook's own label, so use the wording Facebook shows in this language
@@ -1992,6 +2013,8 @@ If your patched Facebook includes Badge and logo colors, the selected tab will b
 Hide the emoji row on comments	Ocultar a fileira de emojis nos comentários
 The row of emoji over the comment box goes away. You can still type emoji from your keyboard.	A fileira de emojis acima da caixa de comentário some. Você ainda pode digitar emojis pelo teclado.
 Show Comment when comments are off	Mostrar Comentar quando os comentários estão desativados
+Show the post date on reels	Mostrar a data da publicação nos reels
+Shows when a reel or a video you open full screen was posted, under the name of who posted it. A change shows from the next reel.	Mostra quando um reel ou um vídeo que você abre em tela cheia foi publicado, abaixo do nome de quem publicou. A mudança aparece a partir do próximo reel.
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	Mantém o botão Comentar nos reels com comentários desativados, para você ainda ler os que já estão lá. A mudança aparece a partir do próximo reel.
 Select part of a post's text	Selecionar parte do texto de uma publicação
 Holding a post's text still copies all of it, and also opens the text in a box where you can select just the part you want and copy that.	Segurar o texto de uma publicação continua copiando tudo e também abre o texto em uma caixa onde você pode selecionar só a parte que quiser e copiar.
@@ -2135,6 +2158,11 @@ Advanced Marketplace search	Pesquisa avançada no Marketplace
 Lets you type rules into Marketplace search. Put a word in quotes, like "word", to keep only titles with it, put a minus in front, like -word, to hide titles with it, and add in:place to keep listings in that place.	Permite digitar regras na pesquisa do Marketplace. Coloque uma palavra entre aspas, como "palavra", para manter só os títulos com ela, coloque um sinal de menos na frente, como -palavra, para ocultar os títulos com ela, e adicione in:lugar para manter os anúncios desse lugar.
 Adv. Filters button	Botão Filtros av.
 Adds an Adv. Filters button under Marketplace's Filters on search results. It opens lists of words to keep, words to hide and places, and writes the rules into the search for you.	Adiciona um botão Filtros av. abaixo dos Filtros do Marketplace nos resultados da pesquisa. Ele abre listas de palavras para manter, palavras para ocultar e lugares, e escreve as regras na pesquisa para você.
+# context: switch title and summary under Marketplace; a listing is something for sale
+Show when listings went up	Mostrar quando os anúncios foram publicados
+A listing's page says how long ago it was listed and the date, next to its place. Facebook only shows it for new listings.	A página de um anúncio mostra, ao lado do local, há quanto tempo ele foi publicado e a data. O Facebook só mostra isso em anúncios novos.
+# context: added after a listing's place on its Marketplace page, like Moncton, NB; %1$s is how long ago in your language from the phone, like 3 weeks ago, %2$s is the date
+Listed %1$s (%2$s)	Publicado %1$s (%2$s)
 How Adv. Filters works	Como os Filtros av. funcionam
 Type a word or a phrase and tap Add. A phrase of more than one word has to be in the title as written. A term matches anywhere in a title, so cat also matches cats. Put it in quotes with a space after it, like "cat ", to leave out cats. Go puts these into the search box and searches again.	Digite uma palavra ou frase e toque em Adicionar. Uma frase com mais de uma palavra precisa estar no título do jeito que foi escrita. Um termo corresponde em qualquer parte do título, então cat também corresponde a cats. Coloque entre aspas com um espaço depois, como "cat ", para deixar cats de fora. Ir coloca isso na caixa de pesquisa e pesquisa de novo.
 You can also type "word", -word or in:place straight into the search box.	Você também pode digitar "palavra", -palavra ou in:lugar direto na caixa de pesquisa.
@@ -2167,3 +2195,65 @@ The Subscribe button some authors get there instead, which subscribes with one t
 Fix washed-out video colors	Corrigir cores desbotadas nos vídeos
 # context: summary under that switch; Disable HW overlays and developer options are Android's own setting names, use the names Android shows in this language
 Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery.	Vídeos e Reels são desenhados junto com o resto da tela, como Desativar sobreposições de HW nas opções do desenvolvedor. Experimente se os Reels ficam pálidos até algo cobri-los. Gasta um pouco mais de bateria.
+# context: Reels and Watch: title of the list that fades a full-screen video's buttons while the screen sits untouched, so they don't burn into an OLED screen (#288)
+Burn-in guard	Proteção contra burn-in
+Dim when idle	Escurecer quando parado
+Dim when idle and shift	Escurecer quando parado e mover
+On the Reels screen, the buttons, caption and bars fade when you leave them alone. Touching one of them brings them back.	Na tela de Reels, os botões, a legenda e as barras ficam mais fracos quando você não mexe neles. Tocar em um deles os traz de volta.
+On the Reels screen, the buttons, caption and bars fade when you leave them alone, and the screen moves a step every 2 minutes. Touching one of them brings them back.	Na tela de Reels, os botões, a legenda e as barras ficam mais fracos quando você não mexe neles, e a tela se move um pouco a cada 2 minutos. Tocar em um deles os traz de volta.
+Off. It can fade a reel's buttons while the screen sits untouched, so they don't burn into an OLED screen.	Desativado. Pode deixar os botões de um reel mais fracos enquanto a tela fica sem toque, para que não marquem uma tela OLED.
+# context: Reels and Watch: title of the list that sets how long the screen goes untouched before Burn-in guard fades it
+Dim after	Escurecer após
+At once	Na hora
+# context: a choice in the Dim after list; %1$d is 2, 5 or 10
+After %1$d seconds	Depois de %1$d segundos
+# context: summary under Dim after; %1$s is the chosen wait, At once or After 5 seconds
+%1$s. Tapping the video and double-tapping it to like don't count as a touch, so the buttons stay faded.	%1$s. Tocar no vídeo e tocar duas vezes para curtir não contam como toque, então os botões continuam fracos.
+# context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
+Stay dim when I tap	Continuar escurecido quando eu tocar
+Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	Depois que a Proteção contra burn-in esmaece os botões, eles continuam esmaecidos no Reels, não importa o que você toque ou deslize, inclusive no próximo reel. Eles continuam funcionando. Sair do Reels traz os botões de volta.
+# context: settings import preview; %1$s is a Burn-in guard choice such as Dim when idle
+Burn-in guard will be set to %1$s.	A Proteção contra burn-in será %1$s.
+Burn-in guard will dim the Reels screen as soon as you stop touching it.	A Proteção contra burn-in vai escurecer a tela de Reels assim que você parar de tocar nela.
+# context: settings import preview; %1$d is 2, 5 or 10
+Burn-in guard will dim the Reels screen after %1$d seconds without a touch.	A Proteção contra burn-in vai escurecer a tela de Reels depois de %1$d segundos sem toque.
+Mute stories	Silenciar Stories
+Video stories wait for a tap	Stories em vídeo esperam um toque
+Stories start with the sound off every time you open Facebook. Tap a speaker or press volume up to hear them, and they stay on until you mute again.	Os Stories começam sem som toda vez que você abre o Facebook. Toque em um alto-falante ou aperte o volume para cima para ouvi-los, e o som continua ligado até você silenciar de novo.
+Video stories don't start by themselves. Touch and hold a story, then let go, to play it. Works with Tap to play on or off.	Stories em vídeo não começam sozinhos. Toque e segure um story e depois solte para reproduzi-lo. Funciona com "Tocar para reproduzir" ligado ou desligado.
+# context: switch title under News feed; the numbers are the friends, followers and following counts at the top of your own profile
+Local profile counts	Números do próprio perfil
+# context: summary of that switch; 'below' means the three rows right under it
+Shows the friends, followers and following numbers you type below on your own profile, on this phone only. Other profiles and Facebook's real numbers aren't touched. Applies the next time you open your profile.	Mostra no seu próprio perfil os números de amigos, seguidores e seguindo que você digitar abaixo, só neste celular. Outros perfis e os números reais do Facebook não são alterados. Vale na próxima vez que você abrir seu perfil.
+# context: row title; the number of friends your own profile shows on this phone
+Friends shown	Amigos exibidos
+# context: row title; the number of followers your own profile shows on this phone
+Followers shown	Seguidores exibidos
+# context: row title; the number of people your own profile follows, shown on this phone
+Following shown	Seguindo exibidos
+# context: message in that row's edit dialog
+Digits only, up to 10. Your own profile shows this number on this phone. Leave it blank for Facebook's real one.	Só dígitos, até 10. Seu próprio perfil mostra este número neste celular. Deixe em branco para ver o número real do Facebook.
+# context: summary of that row when it is blank
+Facebook's real number shows. Type digits to show your own.	O número real do Facebook aparece. Digite números para mostrar o seu.
+# context: summary of that row; %1$s is the number typed, already grouped for the language
+Your profile shows %1$s on this phone.	Seu perfil mostra %1$s neste celular.
+# context: switch title under Stories; the stories row at the top of Home shown as round pictures
+Round stories tray	Bandeja de stories redonda
+# context: summary of that switch
+Draws the stories row on Home as round pictures, like Instagram. Applies the next time Home loads its stories.	Mostra a linha de stories do Início como imagens redondas, como no Instagram. Vale na próxima vez que o Início carregar os stories.
+# context: row title and dialog title; how wide each round story picture is
+Round picture size	Tamanho das imagens redondas
+# context: message in that row's edit dialog; dp is the Android density-independent size unit; %1$s is the smallest, %2$s the largest, %3$s the default
+Width in dp, from %1$s to %2$s. Leave it blank for %3$s.	Largura em dp, de %1$s a %2$s. Deixe em branco para usar %3$s.
+# context: summary of that row; %1$s is the width in dp
+Round pictures are %1$s dp wide.	As imagens redondas têm %1$s dp de largura.
+Block button on comments	Botão de bloquear nos comentários
+The thumbs-down on a comment becomes Block. One tap opens Facebook's own block screen for that person.	O polegar para baixo de um comentário vira Bloquear. Um toque abre a tela de bloqueio do Facebook para essa pessoa.
+Block	Bloquear
+Couldn't open Block for this comment.	Não foi possível abrir Bloquear para este comentário.
+this person	essa pessoa
+Most viewed on profile Reels	Mais vistos nos Reels do perfil
+A profile's Reels tab lists its most viewed reels first instead of the newest. Off keeps Facebook's order. Only the reels the tab has loaded are sorted, and a reel with no view count stays after the rest.	A aba Reels de um perfil mostra primeiro os reels mais vistos em vez dos mais recentes. Desativado mantém a ordem do Facebook. Só os reels que a aba já carregou são ordenados, e um reel sem número de visualizações fica depois dos demais.
+Not in this build, so dark mode stays Facebook's dark gray. Morphe Manager doesn't pick it by default. Turn on Expert mode in Manager, choose the %1$s patch and patch again.	Não faz parte desta versão, então o modo escuro continua no cinza-escuro do Facebook. O Morphe Manager não o escolhe por padrão. Ative o modo especialista no Manager, escolha o patch %1$s e aplique os patches novamente.
+Cast button on reels	Botão de transmitir nos reels
+Adds a cast button to reels, under Download. It hands the reel to a casting app you have, such as Web Video Caster, which sends it to your TV.	Adiciona um botão de transmitir aos reels, abaixo de Baixar. Ele entrega o reel a um app de transmissão que você tenha, como o Web Video Caster, que o envia para sua TV.

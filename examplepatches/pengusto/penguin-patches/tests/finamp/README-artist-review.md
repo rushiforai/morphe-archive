@@ -1,10 +1,19 @@
 # Artist-page review backport
 
-The existing **Load artist pages faster** selection (bit 4) follows final
+The released **Load artist pages faster** selection (bit 4) follows
 [Finamp PR #1832](https://github.com/finamp-app/finamp/pull/1832), commit
 `3f463b0e697f11aeebc37e1a6b614cde391b7f7f`. It targets the original official
 Finamp 1.0.1 universal APK and pinned engine described in
 [FINAMP_NATIVE.md](../../docs/FINAMP_NATIVE.md). Outputs are ARM64 only.
+The later upstream `AsyncValue` review revision is not part of these released
+source pins or payloads; the documented loading and error behavior is unchanged.
+The [subsequent source diff](../../docs/patches/finamp-1.0.1-artist-asyncvalue.patch)
+adapts upstream commit `e53f3ceb` to the released 1.0.1 Artist source, including
+the 1.0.1 localization test. The 23 targeted Artist tests pass on the local
+mask-4 source with Flutter 3.47.2. The four touched source/test files have the
+same Git blob IDs in all 64 historical masks containing Artist. This source diff
+does not update or verify the native payloads, source matrix, Manager exports,
+or any released bundle.
 
 The count uses one bounded `ArtistIds` union query, including album-artist and
 track-artist credits without adding overlapping totals. The header retains its

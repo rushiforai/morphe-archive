@@ -1,3 +1,14 @@
+## [1.4.10](https://github.com/variablenine/morphe-patches/compare/v1.4.9...v1.4.10) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Point findFreeRegister import at app.morphe.patcher.util ([127e60f](https://github.com/variablenine/morphe-patches/commit/127e60fc2648aaf9dffa2ec389216d0701dad6fe))
+
+### 🚀 Updated App Support
+
+* Sync upstream Morphe patches v2.0.0 ([631895f](https://github.com/variablenine/morphe-patches/commit/631895f36c1282392e5c861a1601ca7d61e5ed3f))
+* Sync upstream Morphe patches v2.0.0 ([#81](https://github.com/variablenine/morphe-patches/issues/81)) ([559db15](https://github.com/variablenine/morphe-patches/commit/559db15f54b218fb309c6a14e6bde0bfda9133ac))
+
 ## [1.4.9](https://github.com/variablenine/morphe-patches/compare/v1.4.8...v1.4.9) (2026-10-23)
 
 ### 🚀 Updated App Support

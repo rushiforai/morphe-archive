@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.afollestad.materialdialogs.internal.MDRootLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="0x7f0b0568"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include layout="0x7f0e0125"/>
+    <FrameLayout
+        android:id="0x7f0b01da"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <include layout="0x7f0e0121"/>
+</com.afollestad.materialdialogs.internal.MDRootLayout>

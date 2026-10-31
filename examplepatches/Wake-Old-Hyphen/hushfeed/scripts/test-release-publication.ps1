@@ -13,7 +13,8 @@ $ast = [Management.Automation.Language.Parser]::ParseFile($ReleaseScript, [ref]$
 if ($parseErrors.Count) { throw ($parseErrors -join "`n") }
 foreach ($name in @('Step', 'Invoke-PublicationCommand', 'Get-PublicationApi', 'Get-PublicationRelease',
         'Assert-PublicationTag', 'Assert-PublicationRelease', 'Get-PublishedReleaseDate', 'Assert-ImmutablePublicationEnabled',
-        'Assert-PublicationDownloads', 'Assert-SingleTagRelease', 'Remove-UnfinishedDraftAsset', 'Invoke-ReleasePublication')) {
+        'Assert-PublicationDownloads', 'Assert-SingleTagRelease', 'Remove-UnfinishedDraftAsset', 'Invoke-ReleasePublication',
+        'Get-LocalOnlyTag')) {
     $definition = $ast.Find({ param($node)
         $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq $name
     }, $false)
@@ -144,6 +145,8 @@ function git {
     switch -Exact ($command) {
         'rev-parse|--verify|HEAD' { $script:state.Head; return }
         'tag|--list|v1.2.3' { if ($script:state.LocalTag) { 'v1.2.3' }; return }
+        'tag|-l' { if ($script:state.LocalTag) { 'v1.2.3' }; return }
+        'ls-remote|--tags|origin' { if ($script:state.RemoteTag) { "$($script:state.RemoteTag)`trefs/tags/v1.2.3" }; return }
         'rev-parse|refs/tags/v1.2.3^{commit}' { $script:state.LocalTag; return }
         'ls-remote|--tags|origin|refs/tags/v1.2.3|refs/tags/v1.2.3^{}' {
             if ($script:state.RemoteTagObject) {
@@ -808,6 +811,7 @@ try {
             $Repository = 'example/project'
             $tag = 'v1.2.3'
             $Version = '1.2.3'
+            $root = $script:invoke.Root
             function Assert-PushedHead { return $commit }
             function Get-SourceVersion { return '1.2.3' }
             function Invoke-Gradle { throw 'REACHED-GRADLE' }
@@ -928,6 +932,41 @@ try {
         }
         Assert-Throws { Invoke-ReleasePublication @script:invoke } 'Local release notes changed'
         Assert-NoPublish
+    }
+    Test-Case 'Local tags origin lacks are named, peeled and case-different tags are not' {
+        $remoteRefs = @(
+            "$commit`trefs/tags/v0.79.0",
+            "$commit`trefs/tags/v0.78.0",
+            "$commit`trefs/tags/v0.78.0^{}",
+            "$commit`trefs/tags/Mixed")
+        $strays = @(Get-LocalOnlyTag -Local @('v0.78.0', 'v0.79.0', 'v1.0.0', 'mixed') -RemoteRefs $remoteRefs)
+        Assert-True (($strays -join ',') -ceq 'v1.0.0,mixed') "Expected v1.0.0 and mixed, got '$($strays -join ',')'."
+        $none = @(Get-LocalOnlyTag -Local @('v0.79.0') -RemoteRefs $remoteRefs)
+        Assert-True ($none.Count -eq 0) 'A tag origin has was reported as missing.'
+        Assert-True (@(Get-LocalOnlyTag -Local @() -RemoteRefs @()).Count -eq 0) 'No tags at all reported something.'
+    }
+    Test-Case 'The bundle signature reader accepts a MorpheSig1 comment and refuses anything else' {
+        $key = [Convert]::ToBase64String([byte[]](1..32))
+        $sig = [Convert]::ToBase64String([byte[]](1..64))
+        function New-CommentedZip([string]$Path, [string]$Comment) {
+            $text = [Text.Encoding]::ASCII.GetBytes($Comment)
+            $end = [byte[]](0x50, 0x4b, 5, 6) + [byte[]]::new(16) + [byte[]](($text.Length -band 255), ($text.Length -shr 8)) + $text
+            [IO.File]::WriteAllBytes($Path, $end)
+        }
+        $unsigned = Join-Path $testRoot 'unsigned.mpp'
+        New-CommentedZip $unsigned ''
+        Assert-True ($null -eq (Get-BundleSignature -Path $unsigned)) 'An archive with no comment must read as unsigned.'
+        $signed = Join-Path $testRoot 'signed.mpp'
+        New-CommentedZip $signed "MorpheSig1 $key $sig"
+        $read = Get-BundleSignature -Path $signed
+        Assert-True ($read.PublicKey -eq $key -and $read.Signature -eq $sig) 'The signature fields were misread.'
+        $foreign = Join-Path $testRoot 'foreign.mpp'
+        New-CommentedZip $foreign 'built by someone else'
+        Assert-Throws { Get-BundleSignature -Path $foreign } 'not a MorpheSig1 signature'
+        $notZip = Join-Path $testRoot 'not-a-zip.mpp'
+        [IO.File]::WriteAllBytes($notZip, [byte[]](1..40))
+        Assert-Throws { Get-BundleSignature -Path $notZip } 'not a zip archive'
+        Assert-True ((Get-BundlePublicKey -Root (Split-Path -Parent $PSScriptRoot)) -match '^[A-Za-z0-9+/]{43}=$') 'morphe-signing.pub must hold a Base64 Ed25519 key.'
     }
     Test-Case 'Native command exit codes and stderr cannot pass as success' {
         $native = Join-Path $script:invoke.Root 'native boundary with spaces.cmd'

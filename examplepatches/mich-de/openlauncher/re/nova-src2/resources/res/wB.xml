@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+        android:id="0x7f0b02ca"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"/>
+    <ImageView
+        android:layout_gravity="center"
+        android:id="0x7f0b03fb"
+        android:background="?unknown_attr_ref: 7f040541"
+        android:padding="4dp"
+        android:layout_width="32dp"
+        android:layout_height="match_parent"
+        android:src="0x7f0802c6"
+        android:scaleType="center"
+        android:tint="0x7f0600a4"
+        android:layout_weight="0"
+        android:contentDescription="0x7f14003d"/>
+</LinearLayout>

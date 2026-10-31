@@ -96,7 +96,7 @@ final class NativeNgStore {
             long time = 0;
             // Pattern public field is set by the first constructor argument; identify it
             // from toString, retaining the remaining public String as the board key.
-            for (Field field : item.getClass().getDeclaredFields()) {
+            for (Field field : NativeFields.all(item.getClass())) {
                 if (Modifier.isStatic(field.getModifiers())) continue;
                 field.setAccessible(true);
                 if (field.getType() == short.class) bits = field.getShort(item);

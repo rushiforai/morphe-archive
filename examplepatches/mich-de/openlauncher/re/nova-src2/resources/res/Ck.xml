@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<inset xmlns:android="http://schemas.android.com/apk/res/android" android:inset="8dp">
+    <shape android:shape="rectangle">
+        <corners android:radius="@android:dimen/system_app_widget_background_radius"/>
+        <solid android:color="#77000000"/>
+    </shape>
+</inset>

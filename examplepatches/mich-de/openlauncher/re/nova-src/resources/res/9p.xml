@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.teslacoilsw.launcher.widget.SwipeyDividierView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_gravity="center_vertical"
+    android:id="0x7f0b061e"
+    android:layout_width="match_parent"
+    android:layout_height="24dp"
+    android:layout_marginLeft="16dp"
+    android:layout_marginTop="0dp"
+    android:layout_marginRight="16dp"
+    android:layout_marginBottom="-8dp"/>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:height="24dp"
+    android:width="24dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <path
+        android:pathData="0x7f140c89"
+        android:strokeColor="?unknown_attr_ref: 7f0406db"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+    <group
+        android:name="bolt_group"
+        android:pivotX="32"
+        android:pivotY="52">
+        <path
+            android:name="bolt_path"
+            android:fillColor="?unknown_attr_ref: 7f0406df"
+            android:pathData="M29.4,35.3 L24.2,51h5.2l-2.6,13 13,-18.3H32l5.2,-10.4h-7.8z"/>
+    </group>
+</vector>

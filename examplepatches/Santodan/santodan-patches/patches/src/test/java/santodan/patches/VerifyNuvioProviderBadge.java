@@ -16,10 +16,10 @@ public final class VerifyNuvioProviderBadge {
     }
     public static final class Next { public final Info a; Next(Info info) { a = info; } }
     public static final class Card {
-        public final Progress x;
-        public final Next y;
-        public final String r = "Same title";
-        Card(Progress progress, Next next) { x = progress; y = next; }
+        public final Progress r;
+        public final Next s;
+        public final String l = "Same title";
+        Card(Progress progress, Next next) { r = progress; s = next; }
     }
     private static void expect(String expected, Card card, Map<String, String> origins) throws Exception {
         String actual = NuvioProviderBadge.source(card, origins);

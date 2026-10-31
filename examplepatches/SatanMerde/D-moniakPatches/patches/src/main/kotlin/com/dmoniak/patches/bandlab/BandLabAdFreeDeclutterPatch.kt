@@ -10,7 +10,7 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val bandLabAdFreeDeclutterPatch = bytecodePatch(
-    name = "Block Ads & Declutter Feed - BandLab",
+    name = "Block Ads & Declutter Feed - BandLab (Experimental)",
     description = "Removes in-app promotional banners, upgrade prompts, sponsored artist cards, and interstitial ads across the BandLab home feed and studio screens.",
 ) {
     compatibleWith(COMPATIBILITY_BANDLAB)

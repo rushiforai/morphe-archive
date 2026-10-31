@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_gravity="center_vertical"
+    android:background="?unknown_attr_ref: 7f040541"
+    android:padding="8dp"
+    android:duplicateParentState="false"
+    android:layout_width="40dp"
+    android:layout_height="40dp"
+    android:src="0x7f080434"
+    android:scaleType="centerInside"
+    android:tint="?android:attr/textColorHint"
+    android:contentDescription="0x7f14003d"/>

@@ -418,13 +418,13 @@ public class PausedHooksTest {
                 () -> Analytics.skipDeviceAppLog("android_dual_camera"),
                 // Ghost mode keeps story views back, and a pause lets them go out.
                 () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(
-                        new org.telegram.tgnet.tl.TL_stories.TL_stories_readStories()),
+                        new org.telegram.tgnet.tl.TL_stories.TL_stories_readStories(), null),
                 () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(
-                        new org.telegram.tgnet.tl.TL_stories.TL_stories_incrementStoryViews()),
+                        new org.telegram.tgnet.tl.TL_stories.TL_stories_incrementStoryViews(), null),
                 // Typing and going online are kept back too, and a pause lets both go out.
-                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.TLRPC.TL_messages_setTyping()),
-                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.TLRPC.TL_messages_setEncryptedTyping()),
-                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.tl.TL_account.updateStatus())));
+                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.TLRPC.TL_messages_setTyping(), null),
+                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.TLRPC.TL_messages_setEncryptedTyping(), null),
+                () -> app.hushtelegram.extension.telegram.misc.GhostMode.drop(new org.telegram.tgnet.tl.TL_account.updateStatus(), null)));
         // Links open in the browser, and Mini Apps and web pages inside Telegram get no location.
         probes.put(PatchFamily.OPEN_EXTERNAL_LINKS, Arrays.asList(
                 PausedHooksTest::externalBrowserOpened,

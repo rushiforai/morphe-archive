@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shareInterpolator="false"
+    android:zAdjustment="top">
+    <translate
+        android:interpolator="@android:interpolator/accelerate_quad"
+        android:duration="225"
+        android:fillBefore="true"
+        android:fillAfter="true"
+        android:fromYDelta="0"
+        android:toYDelta="109.9976%"
+        android:fillEnabled="true"/>
+</set>

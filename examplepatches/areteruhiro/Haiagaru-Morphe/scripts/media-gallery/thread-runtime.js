@@ -2,7 +2,7 @@
 let threadLaunch;
 const originalSetup=rpc.exports.setup;
 rpc.exports.setup=function(value){return originalSetup(value).then(result=>main(()=>{
- for(const key of ['gifUseNativeViewer','videoUseNativeViewer','mediaSwipeWholeThread','videoLetterboxTouch','xMp4GifAutoplay','inlineGifAutoplay']){
+ for(const key of ['gifUseNativeViewer','videoUseNativeViewer','mediaSwipeWholeThread','videoLetterboxTouch','xMp4GifAutoplay','inlineGifAutoplay','inlineGifWifiOnly']){
   saved.push({key,had:prefs.contains(key),value:prefs.getBoolean(key,key==='videoLetterboxTouch'||key==='xMp4GifAutoplay')});prefs.edit().putBoolean(key,key==='videoLetterboxTouch').commit();
  }
  return result;
@@ -227,10 +227,20 @@ rpc.exports.inlineSetup=function(){return main(()=>{
 rpc.exports.inlineState=function(){return main(()=>{const slot=inlineFixture.body.getTag(0x48694731);if(!slot)return {slot:false};const r=field(slot,'installed').getBoolean(slot),drawable=field(slot,'drawable').get(slot),player=field(slot,'player').get(slot);return {text:String(inlineFixture.body.getText()),expected:String(field(slot,'text').get(slot)),slot:true,installed:r,closed:field(slot,'closed').getBoolean(slot),animated:drawable!==null,playing:drawable!==null?Java.use('android.graphics.drawable.Animatable').class.isInstance(drawable)&&Java.cast(drawable,Java.use('android.graphics.drawable.Animatable')).isRunning():player!==null&&String(Java.cast(player,Java.use('java.lang.Object')).getClass().getMethod('isPlaying',Java.array('java.lang.Class',[])).invoke(player,Java.array('java.lang.Object',[])))==='true'};});};
 rpc.exports.inlineX=function(){return main(()=>{inlineFixture.body.setVisibility(0);inlineFixture.body.setText(Java.use('android.text.SpannableString').$new(J().$new('https://x.com/Z3RO_GRAVITY_/status/1989826585013424339')));Java.use(P+'InlineGifPlayback').onBound(inlineFixture.body);return true;});};
 rpc.exports.inlineHide=function(){return main(()=>{inlineFixture.body.setVisibility(4);return true;});};
-rpc.exports.inlineCleanup=function(){return main(()=>{Java.use(P+'GifMediaLoader').load.implementation=null;if(inlineFixture){inlineFixture.body.setText(inlineFixture.original);inlineFixture.body.setVisibility(inlineFixture.visibility);inlineFixture=null;}return true;});};
+rpc.exports.inlineCleanup=function(){return main(()=>{Java.use(P+'GifMediaLoader').load.implementation=null;Java.use(P+'VideoViewerSettings').inlineNetworkAllowed.implementation=null;if(inlineFixture){inlineFixture.body.setText(inlineFixture.original);inlineFixture.body.setVisibility(inlineFixture.visibility);inlineFixture=null;}return true;});};
 
 rpc.exports.inlineLimits=function(){return main(()=>{
  const S=Java.use(P+'VideoViewerSettings'),keys=['inlineGifLimit','inlineGifMaxMb'],old=keys.map(k=>({k,had:prefs.contains(k),v:prefs.getInt(k,k==='inlineGifLimit'?2:8)}));
  try{for(const [limit,mb] of [[1,1],[2,8],[8,64]]){prefs.edit().putInt(keys[0],limit).putInt(keys[1],mb).commit();if(S.inlineLimit(app())!==limit||S.inlineMaxMb(app())!==mb)throw Error('Limits not applied');}return 'PASS user limits minimum/default/maximum';}
  finally{const e=prefs.edit();old.forEach(s=>s.had?e.putInt(s.k,s.v):e.remove(s.k));e.commit();}
 });};
+
+rpc.exports.inlineBounds=function(){return main(()=>{
+ const body=inlineFixture.body,slot=body.getTag(0x48694731),texture=Java.cast(field(slot,'texture').get(slot),Java.use('android.view.View')),host=Java.cast(field(slot,'overlayHost').get(slot),Java.use('android.view.ViewGroup'));
+ if(!host.equals(body.getParent()))throw Error('Overlay is not row-local');
+ const point=Java.array('int',[0,0]),hp=Java.array('int',[0,0]),visible=Java.use('android.graphics.Rect').$new();body.getLocationOnScreen(point);host.getLocationOnScreen(hp);body.getGlobalVisibleRect(visible);
+ const clip=texture.getClipBounds(),left=Number(hp[0])+texture.getLeft(),top=Number(hp[1])+texture.getTop();
+ if(texture.isShown()&&clip!==null&&(left+clip.left.value<visible.left.value||top+clip.top.value<visible.top.value||left+clip.right.value>visible.right.value||top+clip.bottom.value>visible.bottom.value))throw Error('Playback escapes body visible bounds');
+ const aspect=field(slot,'videoAspect').getFloat(slot),matrix=Java.use('android.graphics.Matrix').$new(),values=Java.array('float',[0,0,0,0,0,0,0,0,0]);Java.cast(texture,Java.use('android.view.TextureView')).getTransform(matrix);matrix.getValues(values);if(aspect>0&&Math.abs(texture.getWidth()*values[0]/(texture.getHeight()*values[4])-aspect)>.02)throw Error('Aspect stretched');return {rowLocal:true,left,top,clip:String(clip),body:String(visible),shown:texture.isShown(),aspect};
+});};
+rpc.exports.inlineNetwork=function(allowed){return main(()=>{const Settings=Java.use(P+'VideoViewerSettings');Settings.inlineNetworkAllowed.implementation=function(context){return allowed;};return true;});};

@@ -426,18 +426,16 @@ public final class Settings {
         root.addView(scroll, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
-        LinearLayout surfaces = addSection(context, column, "Blocked surfaces");
-        addRow(context, surfaces, "Home feed", "block_feed", Config.isFeedBlocked());
-        addRow(context, surfaces, "Explore", "block_explore", Config.isExploreBlocked());
-        addRow(context, surfaces, "Reels", "block_reels", Config.isReelsBlocked());
-        addRow(context, surfaces, "Friends in Reels", "block_friends_lane", Config.isFriendsLaneBlocked());
-        addRow(context, surfaces, "Stories", "block_stories", Config.isStoriesBlocked());
-        addRow(context, surfaces, "Instants", "block_instants", Config.isInstantsBlocked());
-        addRow(context, surfaces, "Notes", "block_notes", Config.isNotesBlocked());
-        addRow(context, surfaces, "Suggested accounts", "block_suggested", Config.isSuggestedBlocked());
-        addRow(context, surfaces, "Ads", "block_ads", Config.isAdsBlocked());
-        addRow(context, surfaces, "Notifications button", "block_notifications",
-                Config.isNotificationsButtonBlocked());
+        // Only the surfaces that still exist while chat-only is on: everything that
+        // rides on the feed (Home, Explore, Reels, Friends in Reels, the heart button,
+        // the following-only feed) is gone with the feed itself, so its toggles were
+        // dead switches and have been dropped.
+        LinearLayout surfaces = addSection(context, column, "Inbox");
+        addRow(context, surfaces, "Hide Stories", "block_stories", Config.isStoriesBlocked());
+        addRow(context, surfaces, "Hide Notes tray", "block_notes", Config.isNotesBlocked());
+        addRow(context, surfaces, "Hide Instants", "block_instants", Config.isInstantsBlocked());
+        addRow(context, surfaces, "Hide suggested accounts", "block_suggested", Config.isSuggestedBlocked());
+        addRow(context, surfaces, "Hide ads", "block_ads", Config.isAdsBlocked());
         sealGroup(context, surfaces);
 
         // Hiding a nav icon also takes its surface out of the landing-page picker,
@@ -447,17 +445,14 @@ public final class Settings {
             if (landingSync[0] != null) landingSync[0].run();
         };
 
-        LinearLayout nav = addSection(context, column, "Navigation bar");
-        addRow(context, nav, "Search", "nav_show_search", Config.getBlocked("nav_show_search", true), onNavChanged);
-        addRow(context, nav, "Reels", "nav_show_reels", Config.getBlocked("nav_show_reels", false), onNavChanged);
-        addRow(context, nav, "Create", "nav_show_create", Config.getBlocked("nav_show_create", true), onNavChanged);
-        addRow(context, nav, "Messages", "nav_show_direct", Config.getBlocked("nav_show_direct", true), onNavChanged);
-        addRow(context, nav, "Profile", "nav_show_profile", Config.getBlocked("nav_show_profile", true), onNavChanged);
+        // Search, Reels and Create are not offered: their tabs lead to surfaces the
+        // Chat only patch removes, so switching them on produced empty screens.
+        LinearLayout nav = addSection(context, column, "Bottom bar");
+        addRow(context, nav, "Messages tab", "nav_show_direct", Config.getBlocked("nav_show_direct", true), onNavChanged);
+        addRow(context, nav, "Profile tab", "nav_show_profile", Config.getBlocked("nav_show_profile", true), onNavChanged);
+        addRow(context, nav, "Stories tab (replaces Home)", "nav_show_stories_tab",
+                Config.isStoriesTabEnabled(), onNavChanged);
         sealGroup(context, nav);
-
-        LinearLayout feed = addSection(context, column, "Feed");
-        addRow(context, feed, "Following feed only", "limit_following_feed", Config.isFollowingFeedOnly());
-        sealGroup(context, feed);
 
         LinearLayout popups = addSection(context, column, "Popups");
         addRow(context, popups, "Instagram popups", "hide_toasts", Config.arePopupsHidden());
@@ -478,6 +473,17 @@ public final class Settings {
         Button checkUpdate = makeButton(context, "Check for updates", SURFACE_CONTAINER_HIGH, ON_SURFACE, true);
         checkUpdate.setOnClickListener(v -> UpdateChecker.checkNow(context));
         column.addView(checkUpdate, stackedButtonParams(context, 12));
+
+        Button reset = makeButton(context, "Reset all settings", 0, ON_SURFACE, false);
+        reset.setBackground(outlined(context, OUTLINE_VARIANT));
+        reset.setOnClickListener(v -> showConfirm(context, "Reset all settings?",
+                "Every toggle goes back to the chat-only default and Instagram restarts.",
+                "Reset", ERROR, ON_ERROR,
+                () -> {
+                    Config.resetAll();
+                    CacheCleaner.clearAndRestart(context);
+                }));
+        column.addView(reset, stackedButtonParams(context, 8));
 
         addSectionLabel(context, column, "Support");
 
@@ -551,7 +557,7 @@ public final class Settings {
         }
         showConfirm(context, "Enable permanent lock?",
                 "This is permanent for this installation. You will no longer be able to "
-                        + "re-enable Home feed, Explore, Reels or Stories without reinstalling the app.",
+                        + "re-enable the Stories tray, Notes or Instants without reinstalling the app.",
                 "Enable lock", ERROR, ON_ERROR,
                 () -> {
                     Config.enableHardcoreMode();
@@ -824,6 +830,11 @@ public final class Settings {
         if (key.equals("limit_following_feed")) return "Show only accounts you follow (needs the feed unblocked).";
         if (key.equals("hide_toasts")) return "Hide every Instagram popup, including “couldn’t refresh feed”.";
         if (key.equals("force_sdr")) return "Keep blacks deep by stopping Instagram forcing HDR on the UI.";
+        if (key.equals("block_stories")) return "Drop the story tray above the Direct inbox.";
+        if (key.equals("nav_show_stories_tab")) return "Turn the Home tab into a Stories tab: ring icon, no feed.";
+        if (key.equals("block_notes")) return "Hide the Notes tray at the top of the inbox.";
+        if (key.equals("block_instants")) return "Hide the Instants entry points.";
+        if (key.equals("block_suggested")) return "Hide suggested accounts and units.";
         if (key.equals("block_friends_lane")) return "Hide the Friends tab and its avatars in the Reels header.";
         if (key.equals("block_notifications")) return "Hide the notifications (heart) button in the feed header.";
         if (key.startsWith("nav_show_")) return "Show this icon in the navigation bar.";
@@ -833,7 +844,7 @@ public final class Settings {
     // --- Landing page picker --------------------------------------------------
 
     private static final String[] LANDING_VALUES = {"home", "search", "direct", "profile"};
-    private static final String[] LANDING_LABELS = {"Home feed", "Search", "Direct messages", "Profile"};
+    private static final String[] LANDING_LABELS = {"Stories", "Search", "Direct messages", "Profile"};
 
     /**
      * @param landingSync out-parameter: receives a runnable that re-checks which

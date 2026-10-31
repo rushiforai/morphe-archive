@@ -132,8 +132,7 @@ def source_contracts(root=ROOT):
                     spec["calls" if kind == "methodCall" else "fields"].append(
                         {k: literal(v) for k, v in fields.items()})
             fingerprints.append(spec)
-    bridge_path = root / config["bridge_source"]
-    bridge = uncomment(bridge_path.read_text(encoding="utf-8"))
+    bridge = uncomment((root / config["bridge_source"]).read_text(encoding="utf-8")) if config.get("bridge_source") else ""
     reflection = {}
     for match in re.finditer(r'\b(invoke|tryCall|invokeNoArg|requiredNoArg|tryInvoke)\(\s*(\w+)\s*,\s*"(\w+)"', bridge):
         operation, receiver, name = match.groups()
@@ -426,7 +425,7 @@ def markdown(report):
                           *[f"- Caller: `{caller}`" for caller in hint["callers"]]])
     lines.extend(["", "## Next steps", "", "1. Inspect changed contracts and candidate callers in the stock APK.",
                   "2. Follow the TickTick update guide in BadFella-Patches-Docs; resolve semantics before editing fingerprints.",
-                  "3. Build and validate both patch sets, inspect the actual APK and run runtime gates.",
+                  "3. Build and validate the patch bundle, inspect the actual APK and run runtime gates.",
                   "4. Add compatibility only after the required evidence passes. Publish only when authorized.",
                   "", "## Limits", "", *["- " + x for x in report["limitations"]]])
     return "\n".join(lines) + "\n"

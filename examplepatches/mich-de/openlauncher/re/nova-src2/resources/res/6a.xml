@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:height="24dp"
+    android:width="24dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <group
+        android:name="all"
+        android:translateY="12">
+        <path
+            android:pathData="M8,42 L28,42 L32,36 L36,42 L56,42"
+            android:strokeColor="?unknown_attr_ref: 7f0406db"
+            android:strokeWidth="3"
+            android:strokeLineCap="round"/>
+        <clip-path android:pathData="M0,38, L64,38, L64,0, 0,0z"/>
+        <path
+            android:pathData="M45.3 32a13.3 13.3 0 1 1-26.6 0 13.3 13.3 0 0 1 26.6 0z"
+            android:strokeColor="?unknown_attr_ref: 7f0406df"
+            android:strokeWidth="3.22"
+            android:strokeLineJoin="round"/>
+        <group
+            android:name="rays"
+            android:pivotX="32"
+            android:pivotY="32">
+            <path
+                android:name="path_12"
+                android:pathData="M 32 10.029 L 32 1.653"
+                android:strokeColor="?unknown_attr_ref: 7f0406df"
+                android:strokeWidth="4"
+                android:strokeLineCap="round"/>
+            <path
+                android:name="path_1"
+                android:pathData="M 53.458 10.542 L 47.537 16.463"
+                android:strokeColor="?unknown_attr_ref: 7f0406df"
+                android:strokeWidth="4"
+                android:strokeLineCap="round"/>
+            <path
+                android:name="path_10"
+                android:pathData="M 16.462 16.463 L 10.542 10.542"
+                android:strokeColor="?unknown_attr_ref: 7f0406df"
+                android:strokeWidth="4"
+                android:strokeLineCap="round"/>
+            <path
+                android:name="path_9"
+                android:pathData="M 10.03 32 L 1.654 32"
+                android:strokeColor="?unknown_attr_ref: 7f0406df"
+                android:strokeWidth="4"
+                android:strokeLineCap="round"/>
+            <path
+                android:name="path_3"
+                android:pathData="M62 32 L54 32 "
+                android:strokeColor="?unknown_attr_ref: 7f0406df"
+                android:strokeWidth="4"
+                android:strokeLineCap="round"/>
+            <path
+                android:name="path_7"
+                android:pathData="M 16.462 47.538 L 10.542 53.458"
+                android:strokeColor="?unknown_attr_ref: 7f0406df"
+                android:strokeWidth="4"
+                android:strokeLineCap="round"/>
+        </group>
+    </group>
+</vector>

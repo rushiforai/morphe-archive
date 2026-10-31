@@ -56,6 +56,9 @@ import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.facebook.misc.settings.settingsPatch
+import app.morphe.patches.facebook.search.hookPreSearchHead
+import app.morphe.patches.facebook.search.hookPreSearchList
+import app.morphe.patches.facebook.search.hookPreSearchQuery
 import app.morphe.patches.facebook.search.hookPreSearchSections
 import app.morphe.util.classDefForEachReferencing
 import app.morphe.util.findMutableMethodOf
@@ -210,17 +213,44 @@ val hideSuggestedPostsPatch = bytecodePatch(
         } catch (exception: PatchException) {
             patchLog.warning("${exception.message}, so Home asks for groups' join states only when Facebook does.")
         }
-        // Debug logging's shape of a kept story posted to no profile: where else it names a group (#195).
+        // A story posted to no profile names its group in its title or an attachment, and Debug logging says which (#195).
         try {
             fillStoryShapeStubs()
         } catch (exception: PatchException) {
-            patchLog.warning("${exception.message}, so Debug logging can't say what a story posted to no profile carries.")
+            patchLog.warning(
+                "${exception.message}, so Hide posts from groups you're not in can't read a group a post's title or " +
+                    "attachment names, and Debug logging can't say what a story posted to no profile carries.",
+            )
+        }
+        // A title's group is a bare entity, read again as the class the join state stub takes (#195).
+        try {
+            fillStoryTargetClassStub()
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so Hide posts from groups you're not in can't read a group a post's title names.")
+        }
+        // A list of only hidden rows loads page after page without end (#235). Before the section hook, which changes the shape this reads.
+        try {
+            hookPreSearchList()
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so the search screen can keep loading while every row is hidden.")
         }
         // The search screen's For you and People you may know rows, and Debug logging's names for every row there (#80).
         try {
             hookPreSearchSections()
         } catch (exception: PatchException) {
             patchLog.warning("${exception.message}, so For you and People you may know stay on the search screen.")
+        }
+        // The first page of those rows has a builder of its own, which the section never sees (#285).
+        try {
+            hookPreSearchHead()
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so For you and People you may know stay on the search screen's first page.")
+        }
+        // Facebook's older null-state query reads the same rows its own way (#285).
+        try {
+            hookPreSearchQuery()
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so the search screen's rows from Facebook's older query stay as they are.")
         }
         // The Related posts list under a post is a plugin of the socket under its buttons, not a feed unit (#231).
         try {

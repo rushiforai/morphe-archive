@@ -1,3 +1,63 @@
+## [1.21.3](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.21.2...v1.21.3) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Keep Seamless Nav Bar off while the glass sheet is applied ([71f681e](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/71f681e038532de8c48a961ba119c8d43f1de499))
+
+## [1.21.3-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.21.2...v1.21.3-dev.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Keep Seamless Nav Bar off while the glass sheet is applied ([71f681e](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/71f681e038532de8c48a961ba119c8d43f1de499))
+
+## [1.21.2](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.21.1...v1.21.2) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Keep InputView drawing so the glass applies on a cold start ([d4de3b5](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/d4de3b57980c5f76ac6df0ffb407e5d0bd90d9b2))
+
+## [1.21.2-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.21.1...v1.21.2-dev.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Keep InputView drawing so the glass applies on a cold start ([d4de3b5](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/d4de3b57980c5f76ac6df0ffb407e5d0bd90d9b2))
+
+## [1.21.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.21.0...v1.21.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Only stand in for Frosted Glass in one-handed mode ([e35ab89](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/e35ab8971644c4cc0cf97ad430b0aef0a1c4949a))
+
+## [1.21.1-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.21.0...v1.21.1-dev.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Only stand in for Frosted Glass in one-handed mode ([e35ab89](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/e35ab8971644c4cc0cf97ad430b0aef0a1c4949a))
+
+## [1.21.0](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.20.1...v1.21.0) (2026-10-31)
+
+### ✨ New Features
+
+* Add Key Mapper Watchdog patch ([3d86cc0](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/3d86cc07d6303ae54e5fefdf8c5912114ffdd60e))
+
+## [1.21.0-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.20.1...v1.21.0-dev.1) (2026-10-31)
+
+### ✨ New Features
+
+* Add Key Mapper Watchdog patch ([3d86cc0](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/3d86cc07d6303ae54e5fefdf8c5912114ffdd60e))
+
+## [1.20.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.20.0...v1.20.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Remove the fallback blur when Frosted Glass applies its own late ([ff598ea](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/ff598ead3e374793c1d09606aeb4c978c1da920f))
+
+## [1.20.1-dev.1](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.20.0...v1.20.1-dev.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Remove the fallback blur when Frosted Glass applies its own late ([ff598ea](https://github.com/JacksonJones2003/immersive-keyboard-patches/commit/ff598ead3e374793c1d09606aeb4c978c1da920f))
+
 ## [1.20.0](https://github.com/JacksonJones2003/immersive-keyboard-patches/compare/v1.19.0...v1.20.0) (2026-10-28)
 
 ### ✨ New Features

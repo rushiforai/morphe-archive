@@ -164,6 +164,9 @@ private fun SearchScreen(a: HissiWacchoiSearchController, showTopBar: Boolean, e
             a.boardStatus.error?.let { add(it.toString()) }
             a.fromInput.error?.let { add(it.toString()) }
             a.toInput.error?.let { add(it.toString()) }
+        } else if (source == 1 && a.edgeMode.selectedItemPosition == 0) {
+            a.fromInput.error?.let { add(it.toString()) }
+            a.toInput.error?.let { add(it.toString()) }
         }
         if (source != 2) {
             a.pageLimitInput.error?.let { add(it.toString()) }
@@ -215,7 +218,13 @@ private fun SearchScreen(a: HissiWacchoiSearchController, showTopBar: Boolean, e
                         modifier = Modifier.fillMaxWidth()) { Text("前回の続きから検索") }
                     Button(onClick = { keyboard?.hide(); focus.clearFocus(); a.searchFromCompose() }, enabled = enabled && a.startButton.isEnabled,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                        Text(when { fullWacchoi -> "Hissiで全文を検索"; source == 1 -> "エッヂを検索"; source == 2 -> "ZZZSearchで検索"; else -> "選んだ板を検索" })
+                        Text(when {
+                            fullWacchoi -> "Hissiで全文を検索"
+                            source == 1 && a.edgeMode.selectedItemPosition == 0 -> "このIDと日付範囲でKyodemoを検索"
+                            source == 1 -> "エッヂを検索"
+                            source == 2 -> "ZZZSearchで検索"
+                            else -> "選んだ板を検索"
+                        })
                     }
                 }
             }
@@ -241,6 +250,7 @@ private fun SearchScreen(a: HissiWacchoiSearchController, showTopBar: Boolean, e
                     }
                 }
             }
+            if(a.idSearch() && source != 1) item { OutlinedButton(onClick={a.openFullWacchoiKyodemo()},enabled=editing,modifier=Modifier.fillMaxWidth()){Text("このIDと日付範囲でKyodemoを検索")} }
             if (!a.postsOnly()) item {
                 if (fullWacchoi) {
                     HaiagaruUi.Group("検索先") {
@@ -287,7 +297,24 @@ private fun SearchScreen(a: HissiWacchoiSearchController, showTopBar: Boolean, e
                         modifier = Modifier.padding(12.dp))
                 }
             }
-            if (!a.postsOnly()) item {
+            if (source == 1 && a.edgeMode.selectedItemPosition == 0) item {
+                HaiagaruUi.Group("KyodemoでIDを検索する日付") {
+                    Row(Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { dateField = "from" }, enabled = editing,
+                            modifier = Modifier.weight(1f)) {
+                            Text("開始 ${displayDate(a.fromInput.text.toString())}")
+                        }
+                        OutlinedButton(onClick = { dateField = "to" }, enabled = editing,
+                            modifier = Modifier.weight(1f)) {
+                            Text("終了 ${displayDate(a.toInput.text.toString())}")
+                        }
+                    }
+                    Text("初期範囲は直近7日です。カレンダーで範囲を変更できます。ID検索はKyodemoの検索結果を直接開き、スレを順に走査しません。",
+                        Modifier.padding(horizontal = 12.dp), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            if (!a.postsOnly() || (source == 1 && !fullWacchoi)) item {
                 HaiagaruUi.Group("絞り込み") {
                     if (source == 1) {
                         ChoiceChips(listOf("投稿ID", "ワッチョイ上4桁", "ワッチョイ下4桁"), a.edgeMode.selectedItemPosition, editing) {
@@ -300,13 +327,17 @@ private fun SearchScreen(a: HissiWacchoiSearchController, showTopBar: Boolean, e
                         }
                     }
                     BoundTextField(a.fourInput,
-                        if (fullWacchoi) "ワッチョイ全文（例：abcd-Ef12）" else if (source == 1 && a.edgeMode.selectedItemPosition == 0) "投稿ID（空欄可・ID:は省略可）" else "ワッチョイの文字（部分一致・空欄可）",
+                        if (fullWacchoi) "ワッチョイ全文（例：abcd-Ef12）" else if (source == 1 && a.edgeMode.selectedItemPosition == 0) "投稿ID（ID:付き可）" else "ワッチョイの文字（部分一致・空欄可）",
                         enabled = editing, changed = changed)
-                    if (source != 0) {
+                    if (source == 2 || (source == 1 && a.edgeMode.selectedItemPosition != 0)) {
                         BoundTextField(a.titleKeywordInput, "スレ名に含まれる言葉（空欄可）", editing, changed)
                         BoundTextField(a.bodyKeywordInput, "レス本文に含まれる言葉（空欄可）", editing, changed)
                         Text("スレ名だけ・本文だけでも検索できます。複数の言葉は空白で区切ります。",
                             Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else if (source == 1 && a.edgeMode.selectedItemPosition == 0) {
+                        Text("IDはKyodemoの検索を直接開きます。スレごとの走査は行いません。",
+                            Modifier.padding(12.dp), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     if (source == 1) ChoiceChips(listOf("過去ログ", "現行スレ"), if (a.edgePast.isChecked) 0 else 1, editing) {
                         a.edgePast.isChecked = it == 0; changed()

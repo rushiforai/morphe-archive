@@ -10,9 +10,10 @@ import java.util.*;
 /** A display projection: native search order and click targets remain unchanged. */
 public final class CachedSearchOrder {
     static final String KEY="cachedSearchCreatedOrder";
-    private static final String[] LABELS={"標準の並び順","スレ作成日時：新しい順","スレ作成日時：古い順"};
+    private static final String[] LABELS={"標準の並び順","全板混合：スレ作成日時の新しい順","全板混合：スレ作成日時の古い順",
+            "全レス混合：レス投稿日時の新しい順","全レス混合：レス投稿日時の古い順"};
     private static final Map<Object,List<?>> LEGACY=new WeakHashMap<>();
-    static int mode(Context c){int n=SettingsProfiles.prefs(c).getInt(KEY,0);return n>=0&&n<3?n:0;}
+    static int mode(Context c){int n=SettingsProfiles.prefs(c).getInt(KEY,0);return n>=0&&n<LABELS.length?n:0;}
     static long created(String url){
         try{String path=URI.create(url).getPath();String[] pieces=path.split("/");
             for(int i=0;i<pieces.length;i++)if(pieces[i].matches("[0-9]{9,11}"))return Long.parseLong(pieces[i]);
@@ -26,6 +27,7 @@ public final class CachedSearchOrder {
     }
     static List<?> sorted(List<?> rows,int mode)throws Exception{
         if(mode==0)return rows;
+        if(mode==3||mode==4)return CachedResponseOrder.sorted(rows,mode==3);
         IdentityHashMap<Object,Long> dates=new IdentityHashMap<>();
         for(Object row:rows)dates.put(row,created(url(row)));
         ArrayList<Object> copy=new ArrayList<>(rows);

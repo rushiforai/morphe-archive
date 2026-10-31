@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="branch_user_agent_process">:BranchUserAgent</string>
+    <string name="notification_service_label">@string/notification_dots_service_title</string>
+</resources>

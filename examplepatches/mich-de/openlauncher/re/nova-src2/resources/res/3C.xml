@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:background="0x7f080199"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="14dp">
+    <FrameLayout
+        android:background="0x7f08019c"
+        android:layout_width="32dp"
+        android:layout_height="32dp">
+        <ImageView
+            android:layout_gravity="center"
+            android:id="0x7f0b0709"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:contentDescription="@null"
+            app:tint="0x7f06007d"/>
+    </FrameLayout>
+    <TextView
+        android:textSize="14sp"
+        android:textColor="0x7f06007d"
+        android:id="0x7f0b070a"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginStart="14dp"
+        android:letterSpacing="-0.01"/>
+    <ImageView
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:src="0x7f0802d1"
+        android:contentDescription="@null"
+        android:layout_marginStart="8dp"
+        app:tint="0x7f06007f"/>
+</LinearLayout>

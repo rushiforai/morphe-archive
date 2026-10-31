@@ -1,7 +1,7 @@
 # Finamp source contributions
 
-Source/test records checked 2026-10-28; title/banner upstream status refreshed
-2026-10-29. [Finamp](https://github.com/finamp-app/finamp) is an MPL-2.0
+Source/test records checked 2026-10-28; upstream status refreshed
+2026-10-31. [Finamp](https://github.com/finamp-app/finamp) is an MPL-2.0
 Jellyfin music client built with Flutter/Dart. Its
 [contribution guide](https://github.com/finamp-app/finamp/blob/redesign/CONTRIBUTING.md)
 requests `redesign` as the source/PR branch.
@@ -11,7 +11,7 @@ The three original changes also have a separate, version-pinned
 Finamp 1.0.1 APK with ARM64 output. The historical source-branch/debug-preview
 checks below are distinct from that APK compatibility evidence.
 
-## Upstream status (2026-10-29)
+## Upstream status (2026-10-31)
 
 - **Section-title validation:** [PR #1830](https://github.com/finamp-app/finamp/pull/1830)
   was merged into `redesign` on 2026-10-29, merge commit
@@ -22,14 +22,17 @@ checks below are distinct from that APK compatibility evidence.
   [`124edc8`](https://github.com/finamp-app/finamp/commit/124edc8b94ea8fcba637a1dba31e7bd266644aa8).
   Our duplicate [PR #1837](https://github.com/finamp-app/finamp/pull/1837)
   was closed on 2026-10-29 in favor of that existing fix.
+- **Offline artist tracks:** [PR #1834](https://github.com/finamp-app/finamp/pull/1834)
+  was merged into `redesign` on 2026-10-31, closing [#1689](https://github.com/finamp-app/finamp/issues/1689).
+- **Player actions:** [PR #1836](https://github.com/finamp-app/finamp/pull/1836)
+  was merged into `redesign` on 2026-10-31, closing [#1355](https://github.com/finamp-app/finamp/issues/1355).
 
-The latest official release checked on this date is still
-[Finamp 1.0.1](https://github.com/finamp-app/finamp/releases/tag/1.0.1).
-Neither the title merge nor the unreleased hotfix changes that original APK.
+The latest official release checked is [Finamp 1.0.2](https://github.com/finamp-app/finamp/releases/tag/1.0.2),
+published on 2026-10-29 from `hotfix-1.0.2`, before the two October 31 merges.
 **All seven Penguin patches remain selectable for the original official 1.0.1
-APK, including the title and banner backports.** Future upstream releases must
-be checked for included fixes and APK compatibility separately; no later-version
-compatibility is declared here. [Native-patch setup and verification](FINAMP_NATIVE.md).
+APK.** Upstream merges do not change that APK; Finamp 1.0.2 is not a supported
+input for these version-pinned native patches. Later releases must be assessed
+separately. [Native-patch setup and verification](FINAMP_NATIVE.md).
 
 ## Custom-section title validation
 
@@ -276,7 +279,7 @@ five-fix native source tree passes **66** tests.
 The banner text now uses `onPrimaryContainer`, matching the icons on its
 `primaryContainer` background. This keeps the text readable with custom accents.
 The existing upstream hotfix and the closed duplicate PR are recorded in
-[the status update above](#upstream-status-2026-10-29).
+[the status update above](#upstream-status-2026-10-31).
 
 The optional **Fix quick settings banner contrast** Penguin patch remains
 available for the original Finamp 1.0.1 APK. Its source regressions and matched

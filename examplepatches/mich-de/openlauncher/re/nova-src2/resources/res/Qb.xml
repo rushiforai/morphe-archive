@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textSize="14sp"
+    android:textColor="?android:attr/colorForeground"
+    android:ellipsize="end"
+    android:id="@android:id/message"
+    android:background="0x7f08064a"
+    android:paddingTop="6.5dp"
+    android:paddingBottom="6.5dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:maxWidth="256dp"
+    android:maxLines="1"
+    android:fontFamily="sans-serif"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"/>

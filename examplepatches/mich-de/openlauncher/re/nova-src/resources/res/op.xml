@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:id="0x7f0b037f"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp"
+    android:clipChildren="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:forceHasOverlappingRendering="false">
+    <com.android.launcher3.folder.FolderNameEditText
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="?unknown_attr_ref: 7f0402ab"
+        android:textColorHighlight="?android:attr/colorControlHighlight"
+        android:textColorHint="?unknown_attr_ref: 7f0402ab"
+        android:gravity="center_horizontal"
+        android:layout_gravity="center_vertical"
+        android:id="0x7f0b02ee"
+        android:background="@android:color/transparent"
+        android:paddingTop="0x7f070152"
+        android:paddingBottom="0x7f070151"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="0x7f1402e5"
+        android:singleLine="true"
+        android:layout_weight="1"
+        android:imeOptions="flagNoExtractUi"
+        android:fontFamily="sans-serif-condensed"/>
+    <com.android.launcher3.pageindicators.PageIndicatorDots
+        android:layout_gravity="center_vertical"
+        android:id="0x7f0b02ef"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="1dp"/>
+    <ImageView
+        android:layout_gravity="end|center_vertical"
+        android:id="0x7f0b02ed"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:src="0x7f0802c5"
+        android:minWidth="32dp"
+        android:contentDescription="0x7f140443"
+        android:paddingStart="0dp"
+        android:paddingEnd="8dp"/>
+</LinearLayout>

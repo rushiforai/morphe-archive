@@ -120,7 +120,9 @@ val unifiedPushPatch = bytecodePatch(
     name = "UnifiedPush notifications",
     description = "Lets Telegram get its notifications through a UnifiedPush app like ntfy, for phones where Firebase " +
         "notifications don't arrive. Telegram's servers wake it through the app, and the messages still come from " +
-        "Telegram. Starts off. Turn it on in HushTelegram settings > Notifications.",
+        "Telegram. It also turns on Telegram's own Keep-Alive Service and Background Connection, unless you've set " +
+        "either one yourself, so messages keep coming while Telegram is closed. Starts off. Turn it on in " +
+        "HushTelegram settings > Notifications.",
     default = true,
 ) {
     category("Notifications")

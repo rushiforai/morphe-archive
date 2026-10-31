@@ -1,0 +1,47 @@
+{
+  "version": "2.1.0-dev.4",
+  "commit": "bd7bca01f438687c34ad4a5d9d8e6e6f20f0a2d1",
+  "sourceArchiveSha256": "6097caf69b4d276d49a02ce9d5f88b06d9add030a961eb17e2e7b06db5b45e52",
+  "source": "https://github.com/MorpheApp/morphe-patcher/tree/bd7bca01f438687c34ad4a5d9d8e6e6f20f0a2d1",
+  "files": 233,
+  "buildInputsOnly": true,
+  "dependencies": [
+    {
+      "name": "smali",
+      "commit": "ac700e1942d26a7374166dce35f6da049a10e1a5",
+      "sourceArchiveSha256": "fcc59441cd378d9dd83d3a75b618c3a41d3fe762b8f177b1c22dd85eaf7c50ca",
+      "materializedLinks": [
+        {
+          "file": "LICENSE",
+          "archiveTarget": "third_party/NOTICE",
+          "materializedAsRegularFile": true
+        },
+        {
+          "file": "smali/src/main/antlr/smaliParser.g",
+          "archiveTarget": "third_party/smali/src/main/antlr/smaliParser.g",
+          "materializedAsRegularFile": true
+        },
+        {
+          "file": "smali/src/main/antlr/smaliTreeWalker.g",
+          "archiveTarget": "third_party/smali/src/main/antlr/smaliTreeWalker.g",
+          "materializedAsRegularFile": true
+        },
+        {
+          "file": "smali/src/test/antlr/com/android/tools/smali/smali/expectedTokensTestGrammar.g",
+          "archiveTarget": "third_party/smali/src/test/antlr/com/android/tools/smali/smali/expectedTokensTestGrammar.g",
+          "materializedAsRegularFile": true
+        }
+      ]
+    },
+    {
+      "name": "ARSCLib",
+      "commit": "4695b583ef51890ce283f3f2e0f6f63dff230ef0",
+      "sourceArchiveSha256": "b56e7623a3f3a4adcaa9d54c1f3dd160a866dbc986a6c0b9c27781c2cd03f40a",
+      "materializedLinks": []
+    },
+    {
+      "buildOnlySettingsAdaptationSha256": "c1fd943b15cb09f5e98dec2d293aabd2080946c40b95f11df5cd0c9ca083a14e"
+    }
+  ],
+  "reconstruction": "Fetch the pinned public GitHub source archives, verify SHA256, extract only archive-local regular files and materialize the four validated archive-local Smali links. Use Verification/revision37-patcher-settings.gradle.kts as the build-only Patcher settings adaptation. Keep writable caches under the app home. No vendor APK or credentials are distributed."
+}

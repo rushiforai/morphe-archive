@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="0x7f0b0586"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+    <com.teslacoilsw.launcher.preferences.widget.MatchWrapLinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+            android:icon="0x7f11000f"
+            android:text="0x7f140165"
+            android:summary="0x7f140028"
+            app:preferenceRowLayout="0x7f0e00c2"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefCardBorderView/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+            android:id="0x7f0b01bd"
+            android:text="Copyright 2011-2021"
+            android:summary="TeslaCoil Apps, LLC"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefCardBorderView/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefExpanderView android:text="0x7f14002a">
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Arabic"
+                android:summary="almaqhor, fighter-life, m9321"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Azerbaijani"
+                android:summary="Elnur Musayev"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Bengali"
+                android:summary="মোরশেদুল আলম (morshedintouch)"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Bulgarian"
+                android:summary="Dimitar Dimitrov"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Catalan"
+                android:summary="Ferran Rius Riu"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Chinese Simplified"
+                android:summary="Celery, yespgg, wth88888888"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Chinese Traditional"
+                android:summary="Pheena, Calvin Kwong"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Croatian"
+                android:summary="krux3r, davidboca, iJohnny"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Czech"
+                android:summary="mitman, Filip Havlín"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Danish"
+                android:summary="Enit, Kvens, Lar5"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Finnish"
+                android:summary="Saku Kauppinen, Toni Toivanen, TimoJ"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="French"
+                android:summary="blustorm, Eric MORAND, M1ck"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="German"
+                android:summary="hoffm59, Harald Emrich, Christian Wajdlejt, Peter Bonge"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Greek"
+                android:summary="Vasilis T, Jimdem, Thanasis Koligliatis"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Hindi"
+                android:summary="Vaibhav Dwivedi"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Hebrew"
+                android:summary="Thomas Shimko, Anna Berkovitch"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Hungarian"
+                android:summary="crashka"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Indonesian"
+                android:summary="anton_s"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Italian"
+                android:summary="Erto90, Vladimir"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Japanese"
+                android:summary="stmay30, bigriver9615"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Korean"
+                android:summary="LunaR, rell13"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Lithuanian"
+                android:summary="Daan, p.saulius"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Norwegian"
+                android:summary="raptuz, Espen Fjellvær Olsen"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Persian"
+                android:summary="Reza Molaee, Habib Najafi"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Polish"
+                android:summary="Sławomir Bandzerewicz"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Portuguese"
+                android:summary="Celso Fernandes, omartins, Nightmarept"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Portuguese, Brazilian"
+                android:summary="Celso Fernandes, Breno Carvalho"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Romanian"
+                android:summary="Mircea Marin"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Russian"
+                android:summary="fraddy, nikos444"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Serbian"
+                android:summary="Rancher"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Slovak"
+                android:summary="Juraj Janecek"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Spanish"
+                android:summary="Perilla, Aminadab Lugo, Miguel A. Alvarez"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Swedish"
+                android:summary="Dennis Fluttershy, Dawid Nyberg, Ted Lundwall, Johan Nordström"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Thai"
+                android:summary="potter9, Peacher5, popularpae"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Turkish"
+                android:summary="Fatih Fırıncı, Ömer Emin DEDE"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Ukrainian"
+                android:summary="Rax Garfield, Дмитро"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+                android:text="Vietnamese"
+                android:summary="An Trần, Thắng Trần, Giang Minh Mẫn, nhh1994, Nguyễn Trung Hậu"/>
+        </com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefExpanderView>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefCardBorderView/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefExpanderView android:text="0x7f140027">
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="Android Open Source Project"
+                android:summary="Copyright (c) 2005-2021, The Android Open Source Project"
+                app:license="0x7f13000b"
+                app:url="http://source.android.com"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="AndroidX"
+                android:summary="Copyright (c) 2005-2021, The Android Open Source Project"
+                app:license="0x7f13000b"
+                app:url="https://developer.android.com/jetpack/androidx/"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="ADW.Launcher"
+                android:summary="Copyright 2010 AnderWeb (Gustavo Claramunt) &lt;anderweb@gmail.com&gt;\10Based on Launcher2 Copyright (c) 2005-2012 The Android Open Source Project"
+                app:license="0x7f13000b"
+                app:url="https://github.com/AnderWeb/android_packages_apps_Launcher"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="AnimatedSvgView"
+                android:summary="Copyright (C) 2016, Jared Rummler"
+                app:license="0x7f13000b"
+                app:url="https://github.com/jaredrummler/AnimatedSvgView"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="Apache Commons"
+                android:summary="Copyright 2005-2017 The Apache Software Foundation"
+                app:license="0x7f13000b"
+                app:url="https://commons.apache.org/"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="AXMLPrinter2"
+                android:summary="Copyright (c) 2008 Android4ME"
+                app:license="0x7f13000b"
+                app:url="https://code.google.com/archive/p/android4me/downloads"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="Coil"
+                android:summary="Copyright 2021 Coil Contributors"
+                app:license="0x7f13000b"
+                app:url="https://github.com/coil-kt/coil"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="ColorPickerPreference"
+                android:summary="Copyright (c) 2011 Sergey Margaritov &amp; Daniel Nilsson"
+                app:license="0x7f13000b"
+                app:url="https://github.com/attenzione/android-ColorPickerPreference"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="Expandable RecyclerView"
+                android:summary="Copyright (c) 2015 Big Nerd Ranch"
+                app:license="0x7f13000e"
+                app:url="https://github.com/bignerdranch/expandable-recycler-view"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="exp4j"
+                android:summary="Copyright Frank Asseg"
+                app:license="0x7f13000b"
+                app:url="https://www.objecthunter.net/exp4j/"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="Guava"
+                android:summary="Copyright (C) 2007-2015 The Guava Authors"
+                app:license="0x7f13000b"
+                app:url="https://github.com/google/guava"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="Kotlin"
+                android:summary="Copyright 2000-2020 JetBrains s.r.o. and Kotlin Programming Language contributors."
+                app:license="0x7f13000b"
+                app:url="https://github.com/JetBrains/kotlin"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="Material Design Icons"
+                android:summary="Copyright 2014-2015 Google, licensed under CC BY 4.0"
+                app:license="0x7f13000c"
+                app:url="https://github.com/google/material-design-icons"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="material-dialogs"
+                android:summary="Copyright (c) 2014 Aidan Michael Follestad"
+                app:license="0x7f13000e"
+                app:url="https://github.com/afollestad/material-dialogs"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="OkHttp3"
+                android:summary="Copyright 2014 Square, Inc."
+                app:license="0x7f13000b"
+                app:url="https://square.github.io/okhttp/"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="prettytime"
+                android:summary="Copyright 2012 Lincoln Baxter, III"
+                app:license="0x7f13000b"
+                app:url="https://github.com/ocpsoft/prettytime"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="Plaid"
+                android:summary="Copyright 2015 Google, Inc."
+                app:license="0x7f13000b"
+                app:url="https://github.com/nickbutcher/plaid"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="RxAndroid"
+                android:summary="Copyright 2015 The RxAndroid authors"
+                app:license="0x7f13000b"
+                app:url="https://github.com/ReactiveX/RxAndroid"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="RxJava"
+                android:summary="Copyright 2013-2016 Netflix, Inc."
+                app:license="0x7f13000b"
+                app:url="https://github.com/ReactiveX/RxAndroid"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="Rx Preferences"
+                android:summary="Copyright 2014 Prateek Srivastava"
+                app:license="0x7f13000b"
+                app:url="https://github.com/f2prateek/rx-preferences"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="Retrofit"
+                android:summary="Copyright 2013 Square, Inc"
+                app:license="0x7f13000b"
+                app:url="https://github.com/square/retrofit"/>
+            <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefLicenseView
+                android:text="Units of Measurement API"
+                android:summary="Copyright 2004-2021 Jean-Marie Dautelle, Werner Keil, Otavio Santana and others"
+                app:license="0x7f13000d"
+                app:url="https://unitsofmeasurement.github.io/pages/about.html"/>
+        </com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefExpanderView>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefCardBorderView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:minHeight="32dp"
+            app:shadowAtBottom="false"/>
+    </com.teslacoilsw.launcher.preferences.widget.MatchWrapLinearLayout>
+</ScrollView>

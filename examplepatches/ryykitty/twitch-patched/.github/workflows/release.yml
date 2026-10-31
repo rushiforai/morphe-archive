@@ -74,7 +74,7 @@ jobs:
 
       - name: Release
         if: github.event_name != 'pull_request' && vars.PATCH_RELEASES_ENABLED == 'true' && inputs.recover_tag == ''
-        uses: cycjimmy/semantic-release-action@v6
+        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6
         id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

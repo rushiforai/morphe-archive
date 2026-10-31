@@ -123,6 +123,10 @@ final class HushfacebookPages {
                             + "Restart Facebook to see the change.")));
             tabs.addPreference(toggle(context, Settings.HIDE_SEARCH_BUTTON,
                     L10n.t("Takes the search button out of the top bar. Restart Facebook to see the change.")));
+            tabs.addPreference(toggle(context, Settings.SEARCH_WITH_PICTURE,
+                    L10n.t("Press and hold the search button to open Google Lens, then point the camera at something "
+                            + "or pick a picture to find out what it is. The picture goes to Google, not Facebook. "
+                            + "Restart Facebook to see the change.")));
         }
         if (build.contains(PatchFamily.HIDDEN_TABS)) {
             subheading(tabs, L10n.t("Tabs to hide"));
@@ -207,6 +211,12 @@ final class HushfacebookPages {
             appearance.addPreference(toggle(context, Settings.AMOLED_FEED_GAPS,
                     L10n.t("A thin gray line between posts in the feed, so posts without photos don't run together on "
                             + "the black page.")));
+        } else if (!build.contains(PatchFamily.MATERIAL_YOU_THEME)) {
+            // Morphe Manager leaves the theme out unless it's picked, so dark mode staying gray says why (#275).
+            appearance.addPreference(info(context, L10n.t(FamilyNames.AMOLED_THEME),
+                    L10n.f("Not in this build, so dark mode stays Facebook's dark gray. Morphe Manager doesn't pick it "
+                            + "by default. Turn on Expert mode in Manager, choose the %1$s patch and patch again.",
+                            L10n.isolate(FamilyNames.AMOLED_THEME))));
         }
         subheading(appearance, L10n.t("Screen and motion"));
         if (build.contains(PatchFamily.BOTTOM_TAB_BAR)) {

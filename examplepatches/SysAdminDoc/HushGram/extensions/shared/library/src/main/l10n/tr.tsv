@@ -122,7 +122,7 @@ Set when you patched	Yamaladığında ayarlananlar
 Settings couldn't open	Ayarlar açılamadı
 Settings couldn't refresh completely. Reopen settings and try again.	Ayarlar tamamen yenilenemedi. Ayarları yeniden açıp tekrar dene.
 Source code and issues	Kaynak kodu ve sorunlar
-Hides sponsored posts, reels and stories. No empty gap is left where an ad would have been.	Sponsorlu gönderileri, reels'leri ve hikâyeleri gizler. Reklamın olacağı yerde boşluk kalmaz.
+Hides sponsored posts, reels, stories and the ad in comments. No empty gap is left where an ad would have been.	Sponsorlu gönderileri, reels'leri, hikâyeleri ve yorumlardaki reklamı gizler. Reklamın olacağı yerde boşluk kalmaz.
 Stays in while paused	Duraklatılsa da devrede kalır
 Removes tracking tags from links you copy or share, and opens bio links without Instagram's click tracker. The link still opens the same post, reel or profile.	Kopyaladığın veya paylaştığın bağlantılardan izleme etiketlerini kaldırır ve biyografideki bağlantıları Instagram'ın tıklama izleyicisi olmadan açar. Bağlantı yine aynı gönderiyi, reels'i veya profili açar.
 Tap to hide this.	Gizlemek için dokun.
@@ -379,7 +379,7 @@ Removes the empty gap under Instagram's tab bar that appears when your phone hid
 Only accounts you follow	Yalnızca takip ettiğin hesaplar
 Removes For you from the choices at the top of Home, so it stays on Following or Favorites. Needs Start Home on Following. Restart Instagram to see the change.	Ana Sayfa'nın üstündeki seçeneklerden Senin için'i kaldırır, böylece Takip edilenler veya Favoriler'de kalır. Start Home on Following gerekir. Değişikliği görmek için Instagram'ı yeniden başlat.
 Instagram logo on Home	Ana sayfada Instagram logosu
-Keeps Instagram's logo at the top of Home in place of the feed's name. Tap it to switch feeds. Needs Start Home on Following. Restart Instagram to see the change.	Ana Sayfa'nın üstünde akışın adı yerine Instagram logosunu tutar. Akışı değiştirmek için üzerine dokun. Ana Sayfa'yı Takip Edilenler ile aç gerekir. Değişikliği görmek için Instagram'ı yeniden başlat.
+Keeps Instagram's logo at the top of Home in place of the feed's name. Tap it to switch feeds. Restart Instagram to see the change.	Ana Sayfa'nın üstünde akışın adı yerine Instagram logosunu tutar. Akışı değiştirmek için üzerine dokun. Değişikliği görmek için Instagram'ı yeniden başlat.
 Profiles	Profiller
 Show if a profile follows you	Bir profilin seni takip edip etmediğini göster
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Birinin profilinde adının yanına, zamirleri varsa onlardan sonra, Seni takip ediyor ya da Seni takip etmiyor ekler. Instagram kontrol edene kadar hiçbir şey görünmez.
@@ -582,7 +582,7 @@ Stop after the chat's reels	Sohbetin reels videolarından sonra dur
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	Bir sohbetten açtığın reels videoları o sohbette paylaşılan sonuncusunda biter, ardından önerilen video gelmez. Bir sohbetin reels videolarında kaydır açıkken çalışır.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	İndir'in altına Kapağı indir ekler. Bir reel'in oynatılmadan önce gösterdiği hareketsiz görüntüyü en büyük boyutunda kaydeder.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	İndir'in altına Sesi indir ekler. Reel'in sesini bir ses dosyası olarak kaydeder.
-After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	20 reel'den sonra Instagram 15 dakika arka planda kalana kadar Reels'te kaydırma durur. Bir mesajdan veya gönderiden açtığın reel yine oynar.
+After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	Aşağıda seçtiğin sayıda reel'den sonra Instagram seçtiğin süre boyunca arka planda kalana kadar Reels'te kaydırma durur. Bir mesajdan veya gönderiden açtığın reel yine oynar.
 Find the reel you came from	Geldiğin reel'i bul
 Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	Bir reel'den içerik üreticinin profilini, ardından Reels sekmesini aç, sekme o reel'e kayar ve onu kısa bir süre çerçeveler. Fotoğraflı bir reel gönderilerinde bulunur. Aramayı durdur düğmesi aramayı olduğu yerde bitirir.
 Wait for a tap to find it	Bulmak için dokunmayı bekle
@@ -613,7 +613,12 @@ Send downloads to another app	İndirmeleri başka bir uygulamaya gönder
 Send to	Gönderilecek uygulama
 Sent to another app. To save here instead, turn off Send downloads to another app under Downloads.	Başka bir uygulamaya gönderildi. Burada kaydetmek için İndirmeler'de İndirmeleri başka bir uygulamaya gönder'i kapat.
 Spoof location	Konumu taklit et
-Stop after 20 reels	20 reel'den sonra dur
+Stop after a set number of reels	Belirli sayıda reel'den sonra dur
+# context: Reels settings: two sliders under Stop after a set number of reels (#405). The first picks how many reels play before swiping stops, %1$d is 5 to 100; the second how long Instagram stays in the background before swiping comes back, %1$d is 5 to 120 minutes
+Reels before swiping stops	Kaydırma durmadan önceki reel sayısı
+%1$d reels	%1$d reel
+Time away before swiping comes back	Kaydırma geri gelmeden önceki ara
+%1$d minutes in the background	Arka planda %1$d dakika
 Take a scroll break	Kaydırmaya mola ver
 # context: a choice in the scroll break list; %1$d is 10, 20, 30 or 60
 After %1$d minutes	%1$d dakika sonra
@@ -1059,6 +1064,9 @@ Off. It can fade a reel's buttons while the screen sits untouched, so they don't
 Takes the Save button out of the column of buttons beside a reel, and the count under it. Posts in your feed keep theirs.	Kaydet düğmesini reel'in yanındaki düğme sütunundan ve altındaki sayıyı kaldırır. Akışındaki gönderiler kendi düğmesini korur.
 Keep clear mode on	Temiz mod açık kalsın
 Turn on Instagram's clear mode on a reel and the next reels open in it too. Leave clear mode yourself and the next reels show their buttons again.	Bir reel'de Instagram'ın temiz modunu aç, sonraki reels'ler de bu modda açılır. Temiz moddan kendin çıkarsan sonraki reels'ler düğmelerini yeniden gösterir.
+# context: Reels settings: a switch under Keep clear mode on (#138). Clear mode is the name used for Instagram's own mode that hides a reel's buttons; Allow screenshots is HushGram's switch of that name
+Start every reel in clear mode	Her reel'i temiz modda başlat
+Reels open in clear mode from the first one, with no tap. Leave it yourself and the next reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow screenshots is on.	Reels'ler ilkinden itibaren dokunmadan temiz modda açılır. Temiz moddan kendin çıkarsan sonraki reels'ler düğmelerini yeniden gösterir. Ekran görüntülerine izin ver açık değilse Instagram temiz modda ekran görüntülerini engeller.
 Unlock with	Kilidi şununla aç
 Phone lock	Telefon kilidi
 HushGram PIN	HushGram PIN'i
@@ -1221,6 +1229,11 @@ Hide the Create button	Oluştur düğmesini gizle
 Takes the plus for new posts off the top of your own profile. The other buttons stay where they were.	Yeni gönderiler için artı düğmesini kendi profilinin üstünden kaldırır. Diğer düğmeler oldukları yerde kalır.
 Hide Share profile	Profili paylaş düğmesini gizle
 Takes the Share profile button off your profile, and Edit profile stretches to fill the space.	Profili paylaş düğmesini profilinden kaldırır, Profili düzenle de boşluğu dolduracak şekilde genişler.
+# context: Profiles: switches that hide Subscribe and the arrow at the end of the action buttons on someone's profile, which opens a menu of the buttons that didn't fit (#248). Subscribe is Instagram's own button label, as in the Feed switch that hides Follow and Subscribe.
+Hide Subscribe on profiles	Profillerde Abone Ol düğmesini gizle
+Takes the Subscribe button off creators' profiles, and the other buttons stretch to fill the space.	Abone Ol düğmesini içerik üreticilerinin profillerinden kaldırır, diğer düğmeler de boşluğu dolduracak şekilde genişler.
+Hide the arrow at the end of the buttons	Düğmelerin sonundaki oku gizle
+Takes the arrow off the end of a profile's row of buttons, along with the menu it opens, and the other buttons stretch to fill the space.	Bir profilin düğme sırasının sonundaki oku, açtığı menüyle birlikte kaldırır, diğer düğmeler de boşluğu dolduracak şekilde genişler.
 # context: Layout: Glass tab bar's switch that stops the liquid pill shrinking as you scroll (#256)
 Keep the pill full size	Hapı tam boyutta tut
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	Bir listeyi aşağı kaydırınca sıvı cam hap olduğu gibi kalır, her sekme yerinde durur. Değiştirdikten sonra Instagram'ı yeniden başlat.
@@ -1383,6 +1396,9 @@ Hide captions	Açıklamaları gizle
 Takes the caption off posts in your feed and off reels. The post stays, and the comments sheet still shows it.	Akıştaki gönderilerden ve reel'lerden açıklamayı kaldırır. Gönderi kalır, yorumlar sayfası açıklamayı yine gösterir.
 Keep Home's top bar	Ana sayfanın üst çubuğunu sabitle
 Keeps the Instagram logo and the buttons beside it at the top of Home while you scroll, instead of sliding them away.	Kaydırırken Instagram logosunu ve yanındaki düğmeleri kaydırıp gizlemek yerine Ana sayfanın üstünde tutar.
+# context: Feed settings: the See-through top bar switch, right under Keep Home's top bar (#418). It blurs the posts that scroll under Home's header, the bar with the Instagram logo.
+See-through top bar	Saydam üst çubuk
+Shows your feed blurred under Home's top bar, like frosted glass.	Akışınızı Ana sayfanın üst çubuğunun altında buzlu cam gibi bulanık gösterir.
 Keep the Reels top bar	Reels üst çubuğunu sabitle
 Keeps the Reels title, the Friends tab and the buttons beside them at the top while you swipe through reels, instead of sliding them away.	Reels arasında kaydırırken Reels başlığını, Arkadaşlar sekmesini ve yanındaki düğmeleri gizlemek yerine üstte tutar.
 Keep a viewing history	Görüntüleme geçmişi tut
@@ -1396,3 +1412,84 @@ Clear viewing history	Görüntüleme geçmişini temizle
 Forgets every post, reel, story and profile on the list, for all your accounts. The switch stays as it is.	Listedeki tüm gönderileri, reels'leri, hikayeleri ve profilleri tüm hesapların için unutur. Anahtar olduğu gibi kalır.
 Viewing history cleared.	Görüntüleme geçmişi temizlendi.
 Couldn't clear the viewing history. Try again.	Görüntüleme geçmişi temizlenemedi. Tekrar dene.
+Mark one-time photos and videos	Tek seferlik fotoğraf ve videoları işaretle
+Puts a border and Instagram's view once icon on a one-time photo or video in a chat, so you can tell it from the rest before you open it. Only how the chat looks changes.	Sohbetteki tek seferlik bir fotoğrafa veya videoya bir çerçeve ve Instagram'ın tek görüntüleme simgesini koyar, böylece açmadan önce diğerlerinden ayırt edebilirsin. Yalnızca sohbetin görünümü değişir.
+Fall back to Following	Takip edilenler'e geç
+When For you brings an account only suggested posts, page after page, Home opens on Following for that account. A feed you pick at the top of Home stays picked. Restart Instagram to see the change.	Senin için bir hesaba sayfa sayfa yalnızca önerilen gönderiler getirirse, Ana Sayfa o hesap için Takip edilenler'de açılır. Ana Sayfa'nın üstünde seçtiğin akış seçili kalır. Değişikliği görmek için Instagram'ı yeniden başlat.
+Only suggestions in For you. Home will open on Following.	Senin için'de sadece öneri var. Takip edilenler açılacak.
+Explore without personalization	Kişiselleştirme olmadan Keşfet
+Where Instagram offers it (in the EU), Explore opens with the grid that isn't personalized every time, and stays on it past ten minutes.	Instagram'ın sunduğu yerlerde (AB'de), Keşfet her seferinde kişiselleştirilmemiş ızgarayla açılır ve on dakika sonra da öyle kalır.
+Hide Explore's personalized menu	Keşfet'in kişiselleştirme menüsünü gizle
+Hides the top bar button that switches Explore's personalization, where Instagram shows it (in the EU).	Instagram'ın gösterdiği yerlerde (AB'de), Keşfet'in kişiselleştirmesini değiştiren üst çubuk düğmesini gizler.
+# context: Feed settings: the Carousel arrows switch and the two arrow buttons' TalkBack labels (#417)
+Carousel arrows	Çoklu gönderi okları
+Puts a back and a next arrow on a carousel post's photos and videos. Tap one to move a page without swiping.	Çoklu gönderinin fotoğraf ve videolarına bir geri ve bir ileri oku koyar. Kaydırmadan sayfa değiştirmek için birine dokun.
+Previous page	Önceki sayfa
+Next page	Sonraki sayfa
+# context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
+Page dots on a pill	Hap üzerinde sayfa noktaları
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	Çoklu gönderinin sayfa noktalarını fotoğrafın veya videonun altındaki yuvarlak bir hapın üzerine taşır. Bulunduğun sayfa mavi görünür.
+# context: Feed settings: the Ambient light switch and its Glow spread and Glow speed lists (#416)
+Ambient light	Ortam ışığı
+Puts a soft glow in a post's own colors around its photo or video, and in the bands around a reel that doesn't fill the screen. The glow follows a video as it plays.	Bir gönderinin fotoğrafının veya videosunun çevresine kendi renklerinde yumuşak bir parıltı ekler. Ekranı doldurmayan bir reels videosunun çevresindeki şeritlere de ekler. Parıltı, video oynarken onu takip eder.
+Glow spread	Parıltı yayılımı
+Glow speed	Parıltı hızı
+Narrow	Dar
+Medium	Orta
+Wide	Geniş
+Slow	Yavaş
+Fast	Hızlı
+# context: Reels settings: a switch for a Lens icon beside each reel that opens Google Lens on the reel to copy its text (#303)
+Copy text button on reels	Reels'te Metni kopyala düğmesi
+Puts a Lens icon beside a reel. Tap it and Google Lens opens on what's showing, so you can select and copy its text.	Bir reel'in yanına Lens simgesi koyar. Dokunduğunda Google Lens ekranda görünenle açılır, böylece metni seçip kopyalayabilirsin.
+# context: Stories settings: the same Lens button, in the story header beside the three dots (#303)
+Copy text button on stories	Hikayelerde Metni kopyala düğmesi
+Puts a Lens icon at the top of a story, beside the three dots. Tap it and Google Lens opens on what's showing, so you can select and copy its text.	Bir hikayenin üstüne, üç noktanın yanına Lens simgesi koyar. Dokunduğunda Google Lens ekranda görünenle açılır, böylece metni seçip kopyalayabilirsin.
+# context: the spoken label of that Lens icon, for screen readers
+Copy text	Metni kopyala
+# context: title of the share sheet offered when Google Lens isn't installed; the apps listed below it read the picture's text
+Copy text with	Metni şununla kopyala
+# context: toast, under two lines of about 28 characters: the screen picture for Lens couldn't be made
+Couldn't copy this screen	Bu ekran kopyalanamadı
+# context: toast, under two lines of about 28 characters: no installed app takes a picture to read its text
+No app here can read text	Metni okuyacak uygulama yok
+# context: Ads and privacy settings: switch that sends only Instagram's traffic through a proxy server the person sets (#219)
+App-only proxy	Yalnızca uygulama için proxy
+# context: summary under that switch
+Sends Instagram through the HTTP proxy set below. Other apps and your phone's own settings aren't changed.	Instagram'ı aşağıda ayarlanan HTTP proxy üzerinden gönderir. Diğer uygulamalar ve telefonunun kendi ayarları değişmez.
+# context: title of the row and its dialog where the proxy server is typed
+Proxy server	Proxy sunucusu
+# context: that dialog's message; keep the example address as it is
+An HTTP proxy's address and port, with a colon between them, like 192.168.1.10:8080. Proxies that need a password, and SOCKS proxies, don't work here. Instagram needs a restart to use it.	Bir HTTP proxy'nin adresi ve portu, aralarında iki nokta üst üste ile, örneğin 192.168.1.10:8080. Parola isteyen proxy'ler ve SOCKS proxy'ler burada çalışmaz. Kullanmak için Instagram'ın yeniden başlaması gerekir.
+# context: toast and field error, under two lines of about 28 characters: what was typed isn't host:port; keep the example address
+That isn't a proxy server. Try 10.0.0.2:8080.	Proxy sunucusu değil. Örnek: 10.0.0.2:8080
+# context: the server row's summary while it's blank
+No server set. Until there is one, Instagram goes out directly.	Sunucu ayarlanmadı. Ayarlanana kadar Instagram doğrudan bağlanır.
+# context: the server row's summary; %1$s is the server as host:port
+Instagram goes through %1$s.	Instagram %1$s üzerinden bağlanır.
+# context: Stories settings: switch that slows the zoom a story opens with from the stories row and takes out its bounce (#409)
+Smooth story opening	Hikâyeleri yumuşak aç
+# context: summary under that switch
+A story you tap in the stories row opens with a slower zoom that doesn't bounce, and closes the same way.	Hikâye satırında dokunduğun bir hikâye, sekmeyen daha yavaş bir yakınlaştırmayla açılır ve aynı şekilde kapanır.
+Emoji pack	Emoji paketi
+Your phone's emoji	Telefonunun emojileri
+An emoji font file	Bir emoji yazı tipi dosyası
+Your phone's emoji, or Google's with the switch above on. You can also download a free emoji pack or pick a color emoji font file.	Telefonunun emojileri, yukarıdaki anahtar açıksa Google'ınkiler. Ücretsiz bir emoji paketi indirebilir ya da renkli bir emoji yazı tipi dosyası seçebilirsin.
+Emoji draw as %1$s, downloaded from its maker. Restart Instagram to see a change.	Emojiler, yapımcısından indirilen %1$s olarak çizilir. Bir değişikliği görmek için Instagram'ı yeniden başlat.
+Emoji draw from the emoji font file you picked. Pick it again to change the file. Restart Instagram to see a change.	Emojiler seçtiğin emoji yazı tipi dosyasından çizilir. Dosyayı değiştirmek için yeniden seç. Bir değişikliği görmek için Instagram'ı yeniden başlat.
+Downloading the emoji...	Emojiler indiriliyor...
+Couldn't download the emoji. Try again.	Emojiler indirilemedi. Tekrar dene.
+Emoji saved. Restart Instagram to see them.	Emojiler kaydedildi. Instagram'ı yeniden başlat.
+No color emoji in that file. Nothing changed.	Bu dosyada renkli emoji yok. Hiçbir şey değişmedi.
+Couldn't load your emoji, so the phone's show.	Emojilerin yüklenemedi. Telefonunkiler görünüyor.
+# context: Stories settings: the Ambient light in stories switch (#420)
+Ambient light in stories	Hikayelerde ortam ışığı
+Fills the bands above and below a story that doesn't fill the screen with a soft glow in its own colors. Glow spread and Glow speed, under Feed, set it too.	Ekranı doldurmayan bir hikayenin üstündeki ve altındaki boşlukları kendi renklerinde yumuşak bir parıltıyla doldurur. Akış altındaki Parıltı yayılımı ve Parıltı hızı bunu da ayarlar.
+# context: Ads and privacy settings: switch that keeps Instagram's screens asking to sync contacts and to turn on location services from opening at each start (#295, #329, #421)
+Skip the contacts and location popups	Kişiler ve konum açılır pencerelerini atla
+# context: summary under that switch
+The screens asking you to sync your contacts and turn on location services stop opening each time Instagram starts. Nothing else is skipped.	Kişilerini eşitlemeni ve konum hizmetlerini açmanı isteyen ekranlar, Instagram her açıldığında artık açılmaz. Başka hiçbir şey atlanmaz.
+# context: Playback settings: switch that stops feed videos and reels from playing again from the start when they end (#248, #175)
+Stop videos looping	Videoları tekrarlama
+# context: summary under that switch; auto scroll is Instagram's own Reels setting, worded as in Keep auto scroll on
+Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	Akıştaki videolar ve reels videoları yeniden oynatılmak yerine son karelerinde durur. Otomatik kaydırma açıkken reels videoları bir sonrakine geçebilmesi için tekrarlanmaya devam eder.

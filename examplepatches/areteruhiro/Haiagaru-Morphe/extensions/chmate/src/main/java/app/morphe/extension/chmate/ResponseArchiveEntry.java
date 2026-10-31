@@ -47,10 +47,6 @@ public final class ResponseArchiveEntry {
 
     static Object field(Object target, String name) throws ReflectiveOperationException {
         if (target == null) return null;
-        for (Class<?> type = target.getClass(); type != null; type = type.getSuperclass()) {
-            try { Field f = type.getDeclaredField(name); f.setAccessible(true); return f.get(target); }
-            catch (NoSuchFieldException ignored) { }
-        }
-        throw new NoSuchFieldException(name);
+        return NativeFields.find(target.getClass(), name).get(target);
     }
 }

@@ -1,0 +1,11 @@
+package com.stripe.android.core.strings;
+
+import android.content.Context;
+import android.os.Parcelable;
+import kotlin.Metadata;
+
+@Metadata(d1 = {"\u0000\n\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\bg\u0018\u00002\u00020\u0001¨\u0006\u0002"}, d2 = {"Lcom/stripe/android/core/strings/ResolvableString;", "Landroid/os/Parcelable;", "stripe-core_release"}, k = 1, mv = {2, 1, 0}, xi = 48)
+/* loaded from: classes4.dex */
+public interface ResolvableString extends Parcelable {
+    String T(Context context);
+}

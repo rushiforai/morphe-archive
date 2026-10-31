@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="components_browser">
+        <item>com.android.browser/.BrowserActivity</item>
+        <item>com.google.android.browser/com.android.browser.BrowserActivity</item>
+    </array>
+    <array name="components_calculator">
+        <item>com.android.calculator2/.Calculator</item>
+        <item>com.sec.android.app.popupcalculator/.Calculator</item>
+        <item>com.sec.android.app.calculator/.Calculator</item>
+        <item>com.htc.calculator/.Calculator</item>
+    </array>
+    <array name="components_calendar">
+        <item>com.android.calendar/.AllInOneActivity</item>
+        <item>com.htc.calendar/.CalendarActivityMain</item>
+        <item>com.htc.calendar/.LaunchActivity</item>
+        <item>com.android.calendar/.LaunchActivity</item>
+        <item>com.motorola.calendar/com.android.calendar.AllInOneActivity</item>
+    </array>
+    <array name="components_camera">
+        <item>com.android.camera/.Camera</item>
+        <item>com.android.camera/.CameraLauncher</item>
+        <item>com.google.android.camera/.Camera</item>
+        <item>com.sec.android.app.camera/.Camera</item>
+        <item>com.android.camera/.CameraEntry</item>
+        <item>com.motorola.Camera/.Camera</item>
+        <item>com.motorola.camera/.Camera</item>
+        <item>com.sonyericsson.android.camera/.CameraActivity</item>
+        <item>com.lge.camera/.CameraAppLauncher</item>
+        <item>com.htc.camera/.CameraEntry</item>
+        <item>com.google.android.GoogleCamera/com.android.camera.CameraLauncher</item>
+    </array>
+    <array name="components_clock">
+        <item>com.android.deskclock/.DeskClock</item>
+        <item>com.google.android.deskclock/com.android.deskclock.DeskClock</item>
+        <item>com.htc.android.worldclock/.WorldClockTabControl</item>
+        <item>com.sec.android.app.clockpackage/.ClockPackage</item>
+        <item>com.android.deskclock/.AlarmClock</item>
+        <item>com.sonyericsson.organizer/.Organizer</item>
+        <item>com.lge.clock/.ATTAlarmClockActivity</item>
+        <item>com.lge.clock/.TCLAlarmClockActivity</item>
+        <item>com.lge.clock/.AlarmClockActivity</item>
+    </array>
+    <array name="components_contacts">
+        <item>com.android.contacts/.activities.PeopleActivity</item>
+        <item>com.android.htccontacts/.BrowseLayerCarouselActivity</item>
+        <item>com.sonyericsson.android.socialphonebook/.LaunchActivity</item>
+        <item>com.htc.contacts/.BrowseLayerCarouselActivity</item>
+    </array>
+    <array name="components_email">
+        <item>com.android.email/.activity.Welcome</item>
+        <item>com.google.android.email/com.android.email.activity.Welcome</item>
+        <item>com.htc.android.mail/.MultipleActivitiesMain</item>
+        <item>com.htc.android.mail/.MailListTab</item>
+        <item>com.motorola.motoemail/com.android.email.activity.Welcome</item>
+        <item>com.lge.email/.ui.setupwizard.Welcome</item>
+    </array>
+    <array name="components_gallery">
+        <item>com.android.gallery3d/.app.Gallery</item>
+        <item>com.google.android.gallery3d/com.android.gallery3d.app.Gallery</item>
+        <item>com.cooliris.media/.Gallery</item>
+        <item>com.sec.android.gallery3d/.app.Gallery</item>
+        <item>com.htc.album/.AlbumMain.ActivityMainDropList</item>
+        <item>com.motorola.motgallery/com.motorola.cgallery.Dashboard</item>
+        <item>com.motorola.MotGallery2/com.android.gallery3d.app.Gallery</item>
+        <item>com.motorola.MotGallery2/com.android.gallery3d.app.GalleryActivity</item>
+        <item>com.sonyericsson.album/.MainActivity</item>
+    </array>
+    <array name="components_phone">
+        <item>com.android.dialer/com.android.dialer.DialtactsActivity</item>
+        <item>com.android.contacts/.activities.DialtactsActivity</item>
+        <item>com.android.htccontacts/.DialerTabActivity</item>
+        <item>com.sonyericsson.android.socialphonebook/.DialerEntryActivity</item>
+        <item>com.android.contacts/com.android.dialer.DialtactsActivity</item>
+        <item>com.htc.contacts/.DialerTabActivity</item>
+        <item>com.android.dialer/.DialtactsActivity</item>
+    </array>
+    <array name="components_sms">
+        <item>com.android.mms/.ui.ConversationList</item>
+        <item>com.android.mms/.ui.ConversationComposer</item>
+        <item>com.motorola.messaging/.activity.ConversationListActivity</item>
+        <item>com.motorola.messaging/.activity.MessagingActivity</item>
+        <item>com.android.mms/.ui.BootActivity</item>
+        <item>com.sonyericsson.conversations/.ui.ConversationListActivity</item>
+        <item>com.htc.sense.mms/.ui.ConversationList</item>
+    </array>
+    <array name="contact_support_topic_values">
+        <item>Bug</item>
+        <item>Feature</item>
+        <item>Help</item>
+        <item>Other</item>
+    </array>
+    <array name="contact_support_topics">
+        <item>Bug Report</item>
+        <item>Feature Request</item>
+        <item>Help</item>
+        <item>Other</item>
+    </array>
+    <array name="corner_type">
+        <item>@string/icon_shape_corner_crop</item>
+        <item>@string/icon_shape_round</item>
+        <item>@string/icon_shape_squircle</item>
+    </array>
+    <array name="corner_type_values">
+        <item>CROP</item>
+        <item>ROUND</item>
+        <item>SQUIRCLE</item>
+    </array>
+    <array name="delay_showing_prompt_models">
+        <item>Pixel 4</item>
+        <item>Pixel 4 XL</item>
+    </array>
+    <array name="exo_controls_playback_speeds">
+        <item>0.25x</item>
+        <item>0.5x</item>
+        <item>0.75x</item>
+        <item>Normal</item>
+        <item>1.25x</item>
+        <item>1.5x</item>
+        <item>2x</item>
+    </array>
+    <array name="letter_tile_colors">
+        <item>#ffdb4437</item>
+        <item>#ffe91e63</item>
+        <item>#ff9c27b0</item>
+        <item>#ff673ab7</item>
+        <item>#ff3f51b5</item>
+        <item>#ff4285f4</item>
+        <item>#ff039be5</item>
+        <item>#ff0097a7</item>
+        <item>#ff009688</item>
+        <item>#ff0f9d58</item>
+        <item>#ff689f38</item>
+        <item>#ffef6c00</item>
+        <item>#ffff5722</item>
+        <item>#ff757575</item>
+    </array>
+    <array name="pref_activity_animation">
+        <item>@string/system</item>
+        <item>@string/folder_background_circle</item>
+        <item>@string/app_anim_adaptive_icon</item>
+        <item>@string/anim_clip_reveal</item>
+        <item>@string/anim_slide_up</item>
+        <item>@string/anim_zoom</item>
+        <item>@string/anim_blink</item>
+        <item>@string/anim_slide_left</item>
+    </array>
+    <array name="pref_activity_animation_summaries">
+        <item>@string/anim_dont_override</item>
+        <item />
+        <item />
+        <item>@string/app_anim_marshmallow_summary</item>
+        <item>@string/app_anim_slide_up_summary</item>
+        <item>@string/app_anim_jellybean_summary</item>
+        <item>@string/app_anim_ics_summary</item>
+        <item />
+    </array>
+    <array name="pref_activity_animation_values">
+        <item>SYSTEM</item>
+        <item>CIRCLE</item>
+        <item>PSEUDO_PIE</item>
+        <item>MARSHMALLOW</item>
+        <item>SLIDE_UP</item>
+        <item>JELLYBEAN</item>
+        <item>ICS</item>
+        <item>SLIDE</item>
+    </array>
+    <array name="pref_auto_on_off">
+        <item>@string/wallpaper_mode_on</item>
+        <item>@string/wallpaper_mode_off</item>
+        <item>@string/auto</item>
+    </array>
+    <array name="pref_auto_on_off_values">
+        <item>ON</item>
+        <item>OFF</item>
+        <item>AUTO</item>
+    </array>
+    <array name="pref_drawer_bar_position">
+        <item>@string/none</item>
+        <item>@string/placement_top</item>
+        <item>@string/placement_bottom</item>
+    </array>
+    <array name="pref_drawer_bar_position_values">
+        <item>NONE</item>
+        <item>TOP</item>
+        <item>BOTTOM</item>
+    </array>
+    <array name="pref_drawer_menu_action_icons">
+        <item>@drawable/ic_action_search</item>
+        <item>@drawable/ic_action_market</item>
+        <item>@drawable/ic_action_more</item>
+    </array>
+    <array name="pref_drawer_menu_action_values">
+        <item>SEARCH</item>
+        <item>MARKET</item>
+        <item>MENU</item>
+    </array>
+    <array name="pref_drawer_menu_actions">
+        <item>@string/nova_action_text_search</item>
+        <item>@string/market</item>
+        <item>@string/menu</item>
+    </array>
+    <array name="pref_drawer_open_mode">
+        <item>@string/swipe_to_open</item>
+        <item>@string/icon</item>
+        <item>@string/other</item>
+    </array>
+    <array name="pref_drawer_open_mode_values">
+        <item>SWIPE</item>
+        <item>ICON</item>
+        <item>OTHER</item>
+    </array>
+    <array name="pref_drawer_style">
+        <item>@string/vertical</item>
+        <item>@string/list</item>
+        <item>@string/horizontal</item>
+    </array>
+    <array name="pref_drawer_style_values">
+        <item>VERTICAL</item>
+        <item>VERTICAL_LIST</item>
+        <item>HORIZONTAL_PAGINATED</item>
+    </array>
+    <array name="pref_folder_scroll_direction">
+        <item>@string/vertical</item>
+        <item>@string/horizontal</item>
+    </array>
+    <array name="pref_folder_scroll_direction_values">
+        <item>VERTICAL</item>
+        <item>HORIZONTAL</item>
+    </array>
+    <array name="pref_folder_window_style">
+        <item>@string/window</item>
+        <item>@string/preset_immersive</item>
+    </array>
+    <array name="pref_folder_window_style_values">
+        <item>WINDOW</item>
+        <item>IMMERSIVE</item>
+    </array>
+    <array name="pref_google_now_theme">
+        <item>@string/preset_light</item>
+        <item>@string/preset_dark</item>
+        <item>@string/follow_night_mode</item>
+    </array>
+    <array name="pref_google_now_theme_values">
+        <item>LIGHT</item>
+        <item>DARK</item>
+        <item>FOLLOW_NIGHT_MODE</item>
+    </array>
+    <array name="pref_google_now_transition">
+        <item>@string/google_now_transition_page</item>
+        <item>@string/google_now_transition_overlay</item>
+    </array>
+    <array name="pref_google_now_transition_summaries">
+        <item>@string/google_now_transition_page_summary</item>
+        <item>@string/google_now_transition_overlay_summary</item>
+    </array>
+    <array name="pref_google_now_transition_values">
+        <item>PAGE</item>
+        <item>OVERLAY</item>
+    </array>
+    <array name="pref_hide_clock">
+        <item>@string/hide_clock_never</item>
+        <item>@string/hide_clock_default_screen</item>
+        <item>@string/hide_clock_desktop_only</item>
+        <item>@string/hide_clock_desktop_drawer</item>
+    </array>
+    <array name="pref_hide_clock_values">
+        <item>DISABLED</item>
+        <item>HOMEPAGE</item>
+        <item>DESKTOP</item>
+        <item>ALL</item>
+    </array>
+    <array name="pref_label_fontfamily">
+        <item>Normal</item>
+        <item>Medium</item>
+        <item>Condensed</item>
+        <item>Light</item>
+    </array>
+    <array name="pref_label_fontfamily_values">
+        <item />
+        <item>sans-serif-medium</item>
+        <item>sans-serif-condensed</item>
+        <item>sans-serif-light</item>
+    </array>
+    <array name="pref_long_press_menu_style">
+        <item>Block</item>
+        <item>Pills</item>
+        <item>Android 12</item>
+    </array>
+    <array name="pref_long_press_menu_style_values">
+        <item>OREO</item>
+        <item>NOUGAT</item>
+        <item>SNOWCONE</item>
+    </array>
+    <array name="pref_night_mode">
+        <item>@string/wallpaper_mode_on</item>
+        <item>@string/wallpaper_mode_off</item>
+        <item>@string/pref_night_mode_auto</item>
+        <item>@string/pref_night_mode_custom</item>
+    </array>
+    <array name="pref_night_mode_values">
+        <item>ALWAYS</item>
+        <item>NEVER</item>
+        <item>AUTO</item>
+        <item>CUSTOM</item>
+    </array>
+    <array name="pref_reshape_legacy">
+        <item>@string/reshape_legacy_always</item>
+        <item>@string/reshape_legacy_unthemed</item>
+        <item>@string/wallpaper_mode_off</item>
+    </array>
+    <array name="pref_reshape_legacy_values">
+        <item>ON</item>
+        <item>AUTO</item>
+        <item>OFF</item>
+    </array>
+    <array name="pref_screen_orientation">
+        <item>Default</item>
+        <item>Auto-rotate</item>
+        <item>Force Portrait</item>
+        <item>Force Landscape</item>
+    </array>
+    <array name="pref_screen_orientation_values">
+        <item>NOSENSOR</item>
+        <item>UNSPECIFIED</item>
+        <item>PORTRAIT</item>
+        <item>LANDSCAPE</item>
+    </array>
+    <array name="pref_scroll_effect_prime">
+        <item>@string/none</item>
+        <item>@string/effect_simple</item>
+        <item>@string/effect_cube</item>
+        <item>@string/effect_card_stack</item>
+        <item>@string/effect_tablet</item>
+        <item>@string/effect_revolving_door</item>
+        <item>@string/effect_flip</item>
+        <item>@string/effect_flip_vertical</item>
+        <item>@string/effect_in_and_out</item>
+        <item>@string/effect_accordion</item>
+        <item>@string/effect_glass</item>
+        <item>@string/effect_wipe</item>
+        <item>@string/effect_zoom_fade</item>
+        <item>@string/effect_throw</item>
+    </array>
+    <array name="pref_scroll_effect_values">
+        <item>NONE</item>
+        <item>SIMPLE</item>
+        <item>CUBE</item>
+        <item>CARDSTACK</item>
+        <item>TABLET</item>
+        <item>REVOLVING_DOOR</item>
+        <item>FLIP</item>
+        <item>FLIP_VERTICAL</item>
+        <item>IN_AND_OUT</item>
+        <item>ACCORDION</item>
+        <item>GLASS</item>
+        <item>WIPE</item>
+        <item>ZOOMFADE</item>
+        <item>THROW</item>
+        <item>ZOOMY</item>
+    </array>
+    <array name="pref_scroll_indicator">
+        <item>@string/none</item>
+        <item />
+        <item />
+        <item />
+    </array>
+    <array name="pref_scroll_indicator_icons">
+        <item>0</item>
+        <item>@drawable/pref_scroll_indicator_circle_preview</item>
+        <item>@drawable/pref_scroll_indicator_dot_preview</item>
+        <item>@drawable/pref_scroll_indicator_line_preview</item>
+    </array>
+    <array name="pref_scroll_indicator_values">
+        <item>NONE</item>
+        <item>CIRCLE</item>
+        <item>DOT</item>
+        <item>LINE</item>
+    </array>
+    <array name="pref_searchbar_placement">
+        <item>@string/none</item>
+        <item>@string/search_bar_placement_widget</item>
+        <item>@string/search_bar_placement_dock_above</item>
+        <item>@string/search_bar_placement_dock_below</item>
+        <item>@string/search_bar_placement_persistent</item>
+    </array>
+    <array name="pref_searchbar_placement_values">
+        <item>NONE</item>
+        <item>WIDGET</item>
+        <item>DOCK_ABOVE_ICONS</item>
+        <item>DOCK_BELOW_ICONS</item>
+        <item>PERSISTENT</item>
+    </array>
+    <array name="pref_transition_animation">
+        <item>@string/anim_zoom</item>
+        <item>@string/anim_slide_up</item>
+        <item>@string/anim_fade</item>
+    </array>
+    <array name="pref_transition_animation_values">
+        <item>ZOOM</item>
+        <item>SLIDE</item>
+        <item>FADE</item>
+    </array>
+    <array name="pref_wallpaper_scrolling">
+        <item>@string/wallpaper_mode_on</item>
+        <item>@string/wallpaper_mode_off</item>
+        <item>@string/wallpaper_mode_reverse</item>
+    </array>
+    <array name="pref_wallpaper_scrolling_values">
+        <item>ON</item>
+        <item>DISABLED</item>
+        <item>REVERSE</item>
+        <item>MANUAL</item>
+    </array>
+    <array name="pref_weather_units">
+        <item>@string/weather_celsius</item>
+        <item>@string/weather_fahrenheit</item>
+    </array>
+    <array name="pref_weather_units_values">
+        <item>CELSIUS</item>
+        <item>FAHRENHEIT</item>
+    </array>
+    <array name="wallpaper_modes">
+        <item>@string/wallpaper_mode_home_screen</item>
+        <item>@string/wallpaper_mode_lock_screen</item>
+        <item>@string/wallpaper_mode_home_and_lock_screen</item>
+    </array>
+</resources>

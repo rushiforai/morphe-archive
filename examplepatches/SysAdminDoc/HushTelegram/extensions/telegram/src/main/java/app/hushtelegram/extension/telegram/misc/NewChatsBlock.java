@@ -4,7 +4,6 @@
  */
 package app.hushtelegram.extension.telegram.misc;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -79,27 +78,12 @@ public final class NewChatsBlock {
         return JOINS.contains(className);
     }
 
-    /**
-     * Runs the callback's {@code run(response, error)} with no response and Telegram's own error type,
-     * read off that method, so nothing here names a class R8 could move. Telegram's lookup callbacks
-     * hand the answer to the main thread themselves.
-     */
+    /** Answers a dropped lookup with an error. Telegram's lookup callbacks hand it to the main thread themselves. */
     private static void answer(Object callback) {
         try {
-            for (Class<?> type = callback.getClass(); type != null; type = type.getSuperclass()) {
-                for (Class<?> face : type.getInterfaces()) {
-                    for (Method run : face.getMethods()) {
-                        Class<?>[] parameters = run.getParameterTypes();
-                        if (!run.getName().equals("run") || parameters.length != 2 || !parameters[1].getName().endsWith("$TL_error")) continue;
-                        Object error = parameters[1].getConstructor().newInstance();
-                        parameters[1].getField("code").setInt(error, ERROR_CODE);
-                        parameters[1].getField("text").set(error, ERROR_TEXT);
-                        run.invoke(callback, null, error);
-                        return;
-                    }
-                }
+            if (!RequestAnswers.error(callback, ERROR_CODE, ERROR_TEXT)) {
+                HookStatus.missingMember(FamilyNames.HIDE_POPULAR_APPS, "method", callback.getClass().getName(), "run");
             }
-            HookStatus.missingMember(FamilyNames.HIDE_POPULAR_APPS, "method", callback.getClass().getName(), "run");
         } catch (Throwable t) {
             // The block holds without the answer; Telegram's loading circle just stays up.
             HookStatus.threw(FamilyNames.HIDE_POPULAR_APPS, "new chats block lookup answer", t);

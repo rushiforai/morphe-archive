@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.instabridge.ai.chat.ui.InteractiveChatTextView
+        android:textSize="13sp"
+        android:textColor="0x7f060052"
+        android:textColorHighlight="0x7f06005c"
+        android:textColorLink="0x7f060046"
+        android:gravity="center"
+        android:layout_gravity="center_horizontal"
+        android:id="0x7f0b0661"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textIsSelectable="true"/>
+</FrameLayout>

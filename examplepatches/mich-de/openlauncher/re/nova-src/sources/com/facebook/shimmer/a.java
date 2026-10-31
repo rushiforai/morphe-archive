@@ -1,0 +1,8 @@
+package com.facebook.shimmer;
+
+/* loaded from: classes2.dex */
+public abstract class a {
+
+    /* renamed from: a, reason: collision with root package name */
+    public static final int[] f27531a = {2130969941, 2130969942, 2130969943, 2130969944, 2130969945, 2130969946, 2130969947, 2130969948, 2130969949, 2130969950, 2130969951, 2130969952, 2130969953, 2130969954, 2130969955, 2130969956, 2130969957, 2130969958, 2130969959, 2130969960};
+}

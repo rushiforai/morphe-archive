@@ -17,6 +17,133 @@ SPEC.loader.exec_module(sync_upstream)
 
 
 class SyncUpstreamTests(unittest.TestCase):
+    def test_dev210_pip_arrays_keep_all_yandex_languages(self):
+        names = ('target_language_entries', 'target_language_entry_values',
+                 'source_language_entries', 'source_language_entry_values',
+                 'timer_position_entries', 'timer_position_entry_values')
+        base = '<resources>\n    <string-array name="existing"><item>old</item></string-array>\n</resources>\n'
+        dual = ''.join(f'    <string-array name="dualvot_yandex_{name}"><item>{name}</item></string-array>\n'
+                       for name in names)
+        pip = ('    <string-array name="morphe_pip_action_entries"><item>Play/pause</item></string-array>\n'
+               '    <string-array name="morphe_pip_action_entry_values"><item>PLAY_PAUSE</item></string-array>\n')
+        ours = base.replace('</resources>', dual + '</resources>')
+        theirs = base.replace('</resources>', pip + '</resources>')
+        merged = sync_upstream.merge_yandex_arrays_with_upstream_changes(base, ours, theirs)
+        self.assertEqual(merged, theirs.replace('</resources>', dual + '</resources>'))
+        for invalid in (ours.replace('existing', 'changed'),
+                        ours.replace('timer_position_entry_values', 'unknown')):
+            with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.merge_yandex_arrays_with_upstream_changes(base, invalid, theirs)
+
+    def test_dev210_streaming_keeps_reuse_and_uncached_direct_method(self):
+        conflict = (
+            '<<<<<<< HEAD\n'
+            '        // Always fetch, even if there is an existing request for the same video.\n'
+            '        cache.put(videoId, new StreamingDataRequest(videoId, isInline, fetchHeaders, false,\n'
+            '                clientOrderToUse, false, false));\n'
+            '    }\n'
+            '\n'
+            '    /**\n'
+            '     * Starts an uncached player request restricted to clients that return ordinary DASH URLs.\n'
+            '     * The caller owns the returned request. This does not change spoof playback state, its cache,\n'
+            '     * or the client shown in Stats for nerds.\n'
+            '     */\n'
+            '    @NonNull\n'
+            '    public static StreamingDataRequest fetchDirectStreamRequest(\n'
+            '            String videoId,\n'
+            '            boolean isInline,\n'
+            '            Map<String, String> fetchHeaders\n'
+            '    ) {\n'
+            '        return new StreamingDataRequest(videoId, isInline, fetchHeaders, false,\n'
+            '                DIRECT_STREAM_CLIENT_ORDER, false, true);\n'
+            '=======\n'
+            '        ClientType[] clientOrder = clientOrderToUse;\n'
+            '        synchronized (cache) {\n'
+            '            // The app can ask for the same video again while the first fetch is still running.\n'
+            '            // A fetch that is done is never reused, because its streams can be expired or missing.\n'
+            '            StreamingDataRequest existing = cache.get(videoId);\n'
+            '            if (existing != null && existing.isFetchInProgress(isInline, fetchHeaders, clientOrder)) {\n'
+            '                Logger.printDebug(() -> "Using the fetch in progress for: " + videoId);\n'
+            '                return;\n'
+            '            }\n'
+            '            cache.put(videoId, new StreamingDataRequest(videoId, isInline, fetchHeaders, false,\n'
+            '                    clientOrder, false));\n'
+            '        }\n'
+            '    }\n'
+            '\n'
+            '    private boolean isFetchInProgress(boolean isInline, Map<String, String> playerHeaders,\n'
+            '                                      ClientType[] clientOrder) {\n'
+            '        return !future.isDone()\n'
+            '                && this.isInline == isInline\n'
+            '                && this.clientOrder == clientOrder\n'
+            '                && Objects.equals(authorization, playerHeaders.get(AUTHORIZATION_HEADER));\n'
+            '>>>>>>> v2.1.0-dev.4\n'
+            '    }\n'
+            '<<<<<<< HEAD\n'
+            '=======\n'
+            '     * <p>\n'
+            '     * The clients are given by the caller instead of taken from the playback order, which stays at\n'
+            '     * the enum default while spoofing is off and then begins with a SABR client that has no urls.\n'
+            '     *\n'
+            '     * @param preferredClient Tried first, unless it is a SABR client.\n'
+            '>>>>>>> v2.1.0-dev.4\n'
+        )
+        merged = sync_upstream.merge_streaming_data_request_dev210(conflict)
+        self.assertIn('synchronized (cache)', merged)
+        self.assertIn('!future.isDone()', merged)
+        self.assertIn('Objects.equals(authorization, playerHeaders.get(AUTHORIZATION_HEADER))', merged)
+        self.assertIn('clientOrder, false, false));', merged)
+        self.assertIn('DIRECT_STREAM_CLIENT_ORDER, false, true);', merged)
+        self.assertIn('@param preferredClient', merged)
+        direct = merged[merged.index('    /**\n     * Starts an uncached player request'):]
+        self.assertNotIn('cache.', direct)
+        self.assertLess(merged.index('private boolean isFetchInProgress'), merged.index('fetchDirectStreamRequest'))
+        self.assertNotIn('<<<<<<<', merged)
+        self.assertEqual(merged.count('{') + 1, merged.count('}'))
+        for invalid in (conflict + conflict, conflict.replace('clientOrder, false));', 'unknown'),
+                        conflict.replace('@param preferredClient', '@param changed'),
+                        conflict + '<<<<<<< extra\n'):
+            with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.merge_streaming_data_request_dev210(invalid)
+
+    def test_dev210_test_dependencies_keep_alias_and_test_only_kotlin(self):
+        conflict = (
+            '<<<<<<< HEAD\n'
+            '    testImplementation("org.json:json:20240303")\n'
+            '    // Legacy event fixtures only; never package Kotlin into the Java-only extension.\n'
+            '    testImplementation("org.jetbrains.kotlin:kotlin-stdlib:2.4.0")\n'
+            '=======\n'
+            '    testImplementation(libs.json)\n'
+            '>>>>>>> v2.1.0-dev.4\n'
+        )
+        merged = sync_upstream.merge_dev210_test_dependencies(conflict)
+        self.assertIn('testImplementation(libs.json)', merged)
+        self.assertIn('testImplementation("org.jetbrains.kotlin:kotlin-stdlib:2.4.0")', merged)
+        self.assertNotIn('org.json:json:', merged)
+        for invalid in (conflict + conflict, conflict.replace('libs.json', 'libs.unknown')):
+            with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.merge_dev210_test_dependencies(invalid)
+
+    def test_dev210_unknown_inputs_remain_unresolved(self):
+        cases = (
+            (sync_upstream.STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS,
+             sync_upstream.STREAMING_DATA_REQUEST_PATH, sync_upstream.resolve_streaming_data_request_conflict),
+            (sync_upstream.DEV210_TEST_DEPENDENCY_BLOBS,
+             'extensions/youtube/build.gradle.kts', sync_upstream.resolve_stable200_test_dependencies),
+            (sync_upstream.DEV210_ARRAYS_CONFLICT_BLOBS,
+             sync_upstream.DUAL_YANDEX_ARRAYS_PATH, sync_upstream.resolve_dual_yandex_arrays_conflict),
+        )
+        for known, path, resolver in cases:
+            for stage in range(3):
+                blobs = list(known)
+                blobs[stage] = 'unknown'
+                with (self.subTest(path=path, stage=stage),
+                      mock.patch.object(sync_upstream, 'unresolved_paths', return_value=[path]),
+                      mock.patch.object(sync_upstream, 'output_of', side_effect=blobs),
+                      mock.patch.object(sync_upstream, 'run') as run):
+                    resolver()
+                    run.assert_not_called()
+
     def test_stable200_test_dependencies_keep_both_test_only_libraries(self):
         ours = (
             '    // Legacy event fixtures only; never package Kotlin into the Java-only extension.\n'
@@ -415,8 +542,8 @@ class SyncUpstreamTests(unittest.TestCase):
             self.assertNotIn("VotOriginalVolumePatch", source)
 
     def test_merges_direct_streams_with_upstream_download_requests(self):
-        root = MODULE_PATH.parents[2]
-        source = (root / sync_upstream.STREAMING_DATA_REQUEST_PATH).read_text(
+        # Pin the historical input: current runtime source evolves after each sync.
+        source = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-before-downloads.java").read_text(
             encoding="utf-8"
         )
 
@@ -445,8 +572,8 @@ class SyncUpstreamTests(unittest.TestCase):
         )
 
     def test_merges_explicit_download_clients_with_direct_stream_requests(self):
-        root = MODULE_PATH.parents[2]
-        source = (root / sync_upstream.STREAMING_DATA_REQUEST_PATH).read_text(
+        # Pin the historical input: current runtime source evolves after each sync.
+        source = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-before-downloads.java").read_text(
             encoding="utf-8"
         )
         source_with_downloads = (
@@ -475,8 +602,8 @@ class SyncUpstreamTests(unittest.TestCase):
         )
 
     def test_merges_cumulative_stable_download_changes(self):
-        root = MODULE_PATH.parents[2]
-        source = (root / sync_upstream.STREAMING_DATA_REQUEST_PATH).read_text(
+        # Pin the historical input: current runtime source evolves after each sync.
+        source = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-before-downloads.java").read_text(
             encoding="utf-8"
         )
 

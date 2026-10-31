@@ -38,6 +38,7 @@ import app.morphe.extension.facebook.feed.HiddenTally;
 import app.morphe.extension.facebook.feed.SeenPosts;
 import app.morphe.extension.facebook.misc.BreakTimer;
 import app.morphe.extension.facebook.navigation.MarketplaceOnly;
+import app.morphe.extension.facebook.profile.LocalProfileCounts;
 import app.morphe.extension.facebook.settings.SettingsRows.Row;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Utils;
@@ -154,6 +155,7 @@ final class FeedPages {
                 || build.contains(PatchFamily.AI_DETECTED_POSTS)
                 || build.contains(PatchFamily.SPONSORED_PROFILE_POSTS)
                 || build.contains(PatchFamily.PROFILE_NOTES)
+                || build.contains(PatchFamily.LOCAL_PROFILE_COUNTS)
                 || build.contains(PatchFamily.POST_ACTION_BUTTONS)
                 || build.contains(PatchFamily.AFFILIATE_LINKS)
                 || build.contains(PatchFamily.POST_WORDS)
@@ -301,6 +303,10 @@ final class FeedPages {
                         L10n.t("Holding a post's text still copies all of it, and also opens the text in a box where you "
                                 + "can select just the part you want and copy that.")));
             }
+            if (build.contains(PatchFamily.WHO_SHARED)) {
+                feed.addPreference(toggle(context, Settings.SEE_WHO_SHARED,
+                        L10n.t("Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.")));
+            }
             if (build.contains(PatchFamily.AUTO_TRANSLATION)) {
                 // Each post and reel reads the answer as it's drawn, so a change shows on the next ones.
                 feed.addPreference(toggle(context, Settings.TURN_OFF_AUTO_TRANSLATION,
@@ -319,6 +325,16 @@ final class FeedPages {
                         L10n.t("Hides the note bubble that sits on profile pictures. Applies the next time you open a "
                                 + "profile.")));
             }
+            // Read each time Facebook lays a profile out, so a change shows on the next profile opened.
+            if (build.contains(PatchFamily.LOCAL_PROFILE_COUNTS)) {
+                feed.addPreference(toggle(context, Settings.LOCAL_PROFILE_COUNTS,
+                        L10n.t("Shows the friends, followers and following numbers you type below on your own profile, "
+                                + "on this phone only. Other profiles and Facebook's real numbers aren't touched. "
+                                + "Applies the next time you open your profile.")));
+                feed.addPreference(HushfacebookPreferenceFragment.countRow(context, LocalProfileCounts.Count.FRIENDS));
+                feed.addPreference(HushfacebookPreferenceFragment.countRow(context, LocalProfileCounts.Count.FOLLOWERS));
+                feed.addPreference(HushfacebookPreferenceFragment.countRow(context, LocalProfileCounts.Count.FOLLOWING));
+            }
             if (build.contains(PatchFamily.RETURN_REFRESH)) {
                 feed.addPreference(toggle(context, Settings.BLOCK_RETURN_REFRESH,
                         L10n.t("Returning to Facebook within ten minutes, or switching back to Home, keeps your place. "
@@ -326,6 +342,9 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.RETURN_REFRESH_NO_LIMIT,
                         L10n.t("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts."))
                         .needs(Settings.BLOCK_RETURN_REFRESH));
+                feed.addPreference(toggle(context, Settings.BACK_KEEPS_HOME,
+                        L10n.t("Pressing Back on a scrolled Home no longer jumps to the top and reloads the feed. "
+                                + "Press Back again within two seconds to do that.")));
             }
             subheading(feed, L10n.t("Content filters"));
             if (build.contains(PatchFamily.SEEN_POSTS)) {
@@ -491,7 +510,8 @@ final class FeedPages {
         if (build.contains(PatchFamily.SPONSORED_STORIES) || build.contains(PatchFamily.SUGGESTED_STORIES)
                 || build.contains(PatchFamily.STORY_AUTO_ADVANCE) || build.contains(PatchFamily.STORY_SEEN)
                 || build.contains(PatchFamily.STORY_DOWNLOAD) || build.contains(PatchFamily.STORY_UPLOAD_HD)
-                || build.contains(PatchFamily.STORY_MUSIC_LENGTH) || build.contains(PatchFamily.PINCH_TO_ZOOM)) {
+                || build.contains(PatchFamily.STORY_MUSIC_LENGTH) || build.contains(PatchFamily.STORIES_TRAY_CIRCLES)
+                || build.contains(PatchFamily.PINCH_TO_ZOOM)) {
             PreferenceCategory stories = category(screen, L10n.t("Stories"));
             if (build.contains(PatchFamily.SPONSORED_STORIES)) {
                 stories.addPreference(toggle(context, Settings.HIDE_SPONSORED_STORIES,
@@ -553,6 +573,13 @@ final class FeedPages {
                 stories.addPreference(toggle(context, Settings.LONGER_STORY_MUSIC,
                         L10n.t("A song you add to a photo for your Story plays for up to 30 seconds instead of 15. "
                                 + "Applies to the next song you pick.")));
+            }
+            if (build.contains(PatchFamily.STORIES_TRAY_CIRCLES)) {
+                // Read as each tile appears, so a change shows the next time Home loads its stories.
+                stories.addPreference(toggle(context, Settings.STORIES_TRAY_CIRCLES,
+                        L10n.t("Draws the stories row on Home as round pictures, like Instagram. Applies the next time "
+                                + "Home loads its stories.")));
+                stories.addPreference(HushfacebookPreferenceFragment.sizeRow(context));
             }
             if (build.contains(PatchFamily.PINCH_TO_ZOOM)) {
                 // Asked as each second finger lands, so a change shows from the next pinch.
@@ -618,6 +645,10 @@ final class FeedPages {
                     L10n.t("Feed posts stop showing a few comments under their buttons. Tap Comment to read them all.")));
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_DOWNVOTE_BUTTON,
                     L10n.t("Takes the thumbs-down off comments. Like and Reply stay.")));
+            comments.addPreference(toggle(context, Settings.HIDE_COMMENT_LIKE_BUTTON,
+                    L10n.t("Takes Like off the row under comments. Reply and the reaction count stay.")));
+            comments.addPreference(toggle(context, Settings.COMMENT_BLOCK_BUTTON,
+                    L10n.t("The thumbs-down on a comment becomes Block. One tap opens Facebook's own block screen for that person.")));
             comments.addPreference(toggle(context, Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS,
                     L10n.t("A group post's comments end without the Related groups list and its Join buttons.")));
             comments.addPreference(toggle(context, Settings.HIDE_SHOP_LINK_COMMENTS,

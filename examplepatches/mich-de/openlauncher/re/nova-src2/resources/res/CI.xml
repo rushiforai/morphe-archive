@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <com.afollestad.materialdialogs.internal.MDButton
+        android:id="0x7f0b011b"
+        style="0x7f150182"/>
+    <com.afollestad.materialdialogs.internal.MDButton
+        android:id="0x7f0b011a"
+        style="0x7f150182"/>
+    <com.afollestad.materialdialogs.internal.MDButton
+        android:id="0x7f0b011c"
+        style="0x7f150182"/>
+</merge>

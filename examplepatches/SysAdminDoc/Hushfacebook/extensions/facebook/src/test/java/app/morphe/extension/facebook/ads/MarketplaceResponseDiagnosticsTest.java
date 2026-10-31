@@ -117,6 +117,32 @@ public class MarketplaceResponseDiagnosticsTest {
      * named as candidates, so a capture shows which of them Android gets too. A name outside the list
      * still stays a count, and no value reaches the report.
      */
+    /** A listing's own page names its keys so the listing time can be found (#303), never a value. */
+    @Test
+    public void aListingPageNamesItsSchemaKeysButNoValue() {
+        String response = "{\"data\":{\"viewer\":{\"marketplace_product_details_page\":{\"target\":{"
+                + "\"__typename\":\"GroupCommerceProductItem\",\"id\":\"987654321012345\","
+                + "\"listing_creation_time_label\":\"SensitiveListedAgo\",\"publish_time\":1761600000,"
+                + "\"Weird Key\":\"SensitiveWeird\",\"https://private.example/key\":2,"
+                + "\"a_key_that_runs_on_far_past_forty_eight_characters_long\":3}}}}}";
+        for (String query : new String[] {"MarketplacePDPSurfaceQuery", "MarketplaceProductDetailsPageAppQuery"}) {
+            assertSame(response, MarketplaceAdFilterForTests.responseWhole(query, response));
+        }
+        assertSame(response, MarketplaceAdFilterForTests.responseWhole(THEMED, response));
+        String report = LogBufferManager.buildExportText();
+        for (String query : new String[] {"MarketplacePDPSurfaceQuery", "MarketplaceProductDetailsPageAppQuery"}) {
+            assertTrue(report, report.contains(SHAPE + query + " response.data.viewer.marketplace_product_details_page.target"
+                    + " model=GroupCommerceProductItem fields={__typename:string,id:string,listing_creation_time_label:string,"
+                    + "other_number:2,other_string:1,publish_time:number}"));
+        }
+        assertTrue(report, report.contains(SHAPE + THEMED + " response.data.other.other.other model=GroupCommerceProductItem"));
+        assertFalse(report, report.contains(THEMED + " response.data.viewer"));
+        for (String privateText : new String[] {"Sensitive", "987654321012345", "1761600000", "Weird", "private.example",
+                "far_past"}) {
+            assertFalse(privateText + " reached the diagnostic report", report.contains(privateText));
+        }
+    }
+
     @Test
     public void webListingNamesAreCandidatesAndTheirValuesStayPrivate() {
         String response = "{\"data\":{\"edges\":[{\"node\":{\"__typename\":\"MarketplaceFeedGeneralListingObject\","

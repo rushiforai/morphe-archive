@@ -457,6 +457,12 @@ Keeps the text a message had before someone else edited it, on this phone only. 
 earlier text of edited messages	предишния текст на редактираните съобщения
 # context: an action row under Keep edit history; a tap forgets every earlier text that switch kept
 Clear edit history	Изчистване на историята на редакциите
+# context: a fourth switch under Keep deleted messages (#9). Turned on, view-once and self-destructing (timed) media someone sends you stays in the chat after it's opened, with no timer. Secret chats stay excluded. Same terms as Also save view-once and timed media.
+Keep view-once and timed media	Запазване на медия за еднократно гледане и със самоунищожение
+# context: that switch's summary. "The sender doesn't see them opened" means the sender's app never shows the media as opened or played.
+View-once and timed photos, videos and voice messages someone sends you stay in the chat after you open them, with no timer. The sender doesn't see them opened. Secret chats work as usual.	Снимките, видеата и гласовите съобщения за еднократно гледане или със самоунищожение, които някой ви изпрати, остават в чата, след като ги отворите, без таймер. Подателят не вижда, че сте ги отворили. Тайните чатове работят както обикновено.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps view-once and timed media.
+view-once and timed media	медията за еднократно гледане и със самоунищожение
 Forgets the earlier text this phone kept for edited messages, in every account.	Забравя предишния текст, който този телефон е запазил за редактирани съобщения, във всички акаунти.
 # context: the notice after that tap when nothing was kept. A toast: two short lines at most.
 There's no edit history to clear.	Няма история на редакциите за изчистване.

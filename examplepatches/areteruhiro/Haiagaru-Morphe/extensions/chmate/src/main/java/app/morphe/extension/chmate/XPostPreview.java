@@ -320,7 +320,7 @@ public final class XPostPreview {
             result.setSpan(new StyleSpan(Typeface.BOLD), author, result.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             String body = Haiagaru.xPostPreviewFullText() ? data.text : data.excerpt;
             result.append(body);
-            if (!data.date.isEmpty()) result.append(card ? "\n\n" : "\n").append(data.date);
+            if (!data.date.isEmpty()) result.append(card ? "\n\n" : "\n").append(XPostTime.japan(data.date));
             result.append(card ? "\n\n投稿を開く" : "\n投稿を開く");
             result.setSpan(new XPostPreviewTouch.PostLink("https://x.com/" + data.handle + "/status/" + id),
                     result.length() - 5, result.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

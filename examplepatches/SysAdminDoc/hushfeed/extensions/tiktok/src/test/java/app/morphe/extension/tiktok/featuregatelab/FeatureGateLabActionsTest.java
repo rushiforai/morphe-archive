@@ -15,6 +15,7 @@ import app.morphe.extension.tiktok.DocumentExportProvider;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.preference.DocumentOperation;
 import app.morphe.extension.tiktok.settings.preference.DocumentOperationTest;
+import app.morphe.extension.tiktok.settings.preference.RestartPendingPreference;
 import app.morphe.extension.tiktok.settings.preference.SettingsActionBanner;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import java.io.ByteArrayOutputStream;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +45,14 @@ import org.robolectric.shadows.ShadowToast;
 @Config(sdk = 28, qualifiers = "night")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class FeatureGateLabActionsTest {
+    /** The Lab's restart debt lives in the settings' shared set, so no test leaves it behind. */
+    @After public void clearRestartDebt() throws Exception {
+        FeatureGateLabFragment.awaitFileIoForTests();
+        Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        FeatureGateLabSession.resetForTests();
+    }
+
     @Before public void setup() throws Exception {
         Utils.setContext(RuntimeEnvironment.getApplication());
         Utils.setIsDarkModeEnabled(true);
@@ -274,13 +284,13 @@ public class FeatureGateLabActionsTest {
             assertFalse(FeatureGateLabStore.masterEnabled());
             save("gate", "true", true);
             action(fragment, 4);
-            waitFor("Lab overrides reset.");
+            waitForToast("Lab overrides reset");
             assertTrue(FeatureGateLabStore.rules().isEmpty());
             action(fragment, 6);
-            waitFor("Lab settings put back.");
+            waitForToast("Lab settings put back");
             assertEquals(1, FeatureGateLabStore.rules().size());
             action(fragment, 5);
-            waitFor("Lab data reset.");
+            waitForToast("Lab data reset");
             assertFalse(master.isChecked());
             assertFalse(FeatureGateLabStore.warningAcknowledged());
             assertNull(ShadowDialog.getLatestDialog());
@@ -295,7 +305,7 @@ public class FeatureGateLabActionsTest {
             ShadowToast.reset();
             FeatureGateLabSession.showRestartDialog(activity);
             FeatureGateLabSession.showAfterHostExit(activity);
-            assertEquals("the exit toast is redundant now that every action says restart", 0, ShadowToast.shownToastCount());
+            assertEquals("the exit toast is redundant now that the Lab's restart row says restart", 0, ShadowToast.shownToastCount());
             assertNull(ShadowDialog.getLatestDialog());
         }
     }
@@ -323,7 +333,7 @@ public class FeatureGateLabActionsTest {
             assertEquals(1, FeatureGateLabStore.rules().size());
             assertFalse("the result dialog was dismissed", ShadowDialog.getLatestDialog().isShowing());
             action(fragment, 6);
-            waitFor("Lab settings put back.");
+            waitForToast("Lab settings put back");
             assertTrue(FeatureGateLabStore.rules().isEmpty());
         }
     }
@@ -359,8 +369,7 @@ public class FeatureGateLabActionsTest {
             app.morphe.extension.shared.BuildNames.setRunningBuildForTests("47.5.3");
             try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
                 attach(owner.get());
-                waitFor("2 overrides were turned off because the Lab couldn't confirm their gates are "
-                        + "unchanged in TikTok 47.5.3. Review them before turning them back on.");
+                waitFor("Turned off 2 overrides. Check them for TikTok 47.5.3.");
                 assertTrue(FeatureGateLabStore.rule("abmock", "1005_max_limit_count_daily", "INT").enabled);
             }
         } finally {
@@ -382,7 +391,7 @@ public class FeatureGateLabActionsTest {
                     .contents(root.toString().getBytes(StandardCharsets.UTF_8));
             LogBufferManager.clearLogBuffer();
             fragment.onActivityResult(started.requestCode, Activity.RESULT_OK, new Intent().setData(provider.uri));
-            waitFor("These loaded values are for a different TikTok version.");
+            waitFor("These loaded values are for a different TikTok version");
             assertTrue(FeatureGateLabStore.rules().isEmpty());
             assertLoggedOnce("INFO", "Loaded-value file import refused", "Loaded-value file import failed");
         }
@@ -463,7 +472,18 @@ public class FeatureGateLabActionsTest {
             started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
             provider = DocumentExportProvider.register(activity).contents(plain);
             fragment.onActivityResult(started.requestCode, Activity.RESULT_OK, new Intent().setData(provider.uri));
-            waitFor("Nothing new was imported. 1 already matched, 14999 unavailable, 0 rejected.");
+            // The counts went in the dialog the first import got. As one toast they ran to four
+            // lines and lost the last two.
+            FeatureGateLabFragment.awaitFileIoForTests();
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            var nothing = (android.app.AlertDialog) ShadowDialog.getLatestDialog();
+            assertEquals("Nothing new was imported", String.valueOf(Shadows.shadowOf(nothing).getTitle()));
+            // Nothing came in, so there's nothing for Undo to take back but the first import.
+            var undo = nothing.getButton(android.content.DialogInterface.BUTTON_NEGATIVE);
+            assertTrue("Undo offered for an import that took nothing",
+                    undo == null || undo.getVisibility() != View.VISIBLE);
+            waitForImportDialog("1 already matched", "14999 unavailable", "0 rejected");
             assertEquals(1, FeatureGateLabStore.rules().size());
         }
     }
@@ -491,7 +511,7 @@ public class FeatureGateLabActionsTest {
                     .contents(loadedValues(rules).toString().getBytes(StandardCharsets.UTF_8));
             LogBufferManager.clearLogBuffer();
             fragment.onActivityResult(started.requestCode, Activity.RESULT_OK, new Intent().setData(provider.uri));
-            waitFor("The Lab keeps at most 1,024 rules. This change would make 1,030, so nothing was changed.");
+            waitFor("1,030 rules, but the limit is 1,024. Nothing changed.");
             assertTrue(FeatureGateLabStore.rules().isEmpty());
             assertLoggedOnce("INFO", "Lab change refused", "Lab change failed");
         }
@@ -534,7 +554,7 @@ public class FeatureGateLabActionsTest {
             action(fragment, 2);
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
-            assertEquals("Loaded values are still being read. Try again in a moment.",
+            assertEquals("Still reading loaded values. Try again soon.",
                     ShadowToast.getTextOfLatestToast());
             assertNull("an empty export still opened a file picker",
                     Shadows.shadowOf(activity).getNextStartedActivityForResult());
@@ -629,7 +649,7 @@ public class FeatureGateLabActionsTest {
                     "readLoadedValuesFile", android.net.Uri.class);
             read.setAccessible(true);
             read.invoke(fragment, uri);
-            waitFor("Loaded values are still being read. Try again in a moment.");
+            waitFor("Still reading loaded values. Try again soon.");
             assertTrue(FeatureGateLabStore.rules().isEmpty());
         }
     }
@@ -656,7 +676,7 @@ public class FeatureGateLabActionsTest {
 
             // With the Lab gone there is nothing to hang the dialog on, so the one line goes
             // out as a toast, with the way back named.
-            waitFor("Imported 1 values. Undo last Lab change is in the menu.");
+            waitFor("Imported 1 values. The menu can undo it.");
             assertEquals("true", FeatureGateLabStore.rule(
                     "abmock", "gate", "BOOLEAN").value);
         }
@@ -725,7 +745,7 @@ public class FeatureGateLabActionsTest {
             } finally {
                 release.countDown();
             }
-            assertEquals("The export wasn't saved. Export again when the file app is ready.", settledBanner(activity));
+            assertEquals("The export wasn't saved. Try again.", settledBanner(activity));
             DocumentOperationTest.assertStopLoggedAsInfo("Loaded-value file export failed");
             assertFalse("the empty document the export never filled was left behind", provider.exists);
             assertFalse(DocumentOperation.busy(DocumentOperation.Kind.LAB_FILE));
@@ -751,7 +771,7 @@ public class FeatureGateLabActionsTest {
                 assertTrue(bannerAction(activity).performClick());
                 // Settled before the open is let go, so the file app has given up rather than
                 // opened the file "wt", which would have emptied it.
-                assertEquals("The export wasn't saved. Export again when the file app is ready.", settledBanner(activity));
+                assertEquals("The export wasn't saved. Try again.", settledBanner(activity));
             } finally {
                 release.countDown();
             }
@@ -943,7 +963,7 @@ public class FeatureGateLabActionsTest {
                 reset.invoke(fragment, false);
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
 
-                assertEquals("Couldn't start the Lab change. Try again in a moment.",
+                assertEquals("Couldn't start the Lab change. Try again.",
                         ShadowToast.getTextOfLatestToast());
                 assertFalse("the Lab remained busy after rejected scheduling", changing.get());
                 assertNotNull("the rejected reset changed Lab storage",
@@ -956,11 +976,9 @@ public class FeatureGateLabActionsTest {
                 assertNull("the same reset could not be retried",
                         FeatureGateLabStore.rule("abmock", "gate", "BOOLEAN"));
                 assertFalse(changing.get());
-                // "Restart TikTok to apply this." is the one sentence the whole settings screen
-                // uses now; this message said it a ninth way.
-                assertEquals("Lab overrides reset. Undo last Lab change is in the menu."
-                                + " Restart TikTok to apply this.",
-                        ShadowToast.getTextOfLatestToast());
+                // The undo hint is left to the menu, which lists Undo last Lab change, and the
+                // restart to the Lab's restart row.
+                assertEquals("Lab overrides reset", ShadowToast.getTextOfLatestToast());
             }
         }
     }
@@ -978,7 +996,7 @@ public class FeatureGateLabActionsTest {
                 master.performClick();
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
 
-                assertEquals("Couldn't start the Lab change. Try again in a moment.",
+                assertEquals("Couldn't start the Lab change. Try again.",
                         ShadowToast.getTextOfLatestToast());
                 assertFalse("the rejected change altered storage",
                         FeatureGateLabStore.masterEnabled());
@@ -1088,6 +1106,80 @@ public class FeatureGateLabActionsTest {
     }
 
     /**
+     * Forcing, turning off and resetting gates says what happened and nothing about a restart.
+     * With overrides off TikTok never reads the rules, so telling the reader to restart sent
+     * them on a restart that changed nothing. With overrides on the restart row says it.
+     */
+    @Test public void selectionToastsLeaveTheRestartToTheRestartRow() throws Exception {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var activity = controller.get();
+            var fragment = attach(activity);
+            settle();
+            assertFalse(FeatureGateLabStore.masterEnabled());
+
+            String[][] steps = {{"Disable", "Turned off 2 gates"}, {"Enable", "Forced 2 gates"},
+                    {"Reset", "Reset 2 gates"}};
+            for (String[] step : steps) {
+                selectBoth(fragment);
+                ShadowToast.reset();
+                selectionAction(fragment, step[0]).performClick();
+                waitForToast(step[1]);
+                assertFalse(step[0] + " with overrides off owes a restart",
+                        FeatureGateLabSession.restartNeeded());
+                assertEquals(step[0] + " with overrides off offers a restart",
+                        View.GONE, restartRow(fragment).getVisibility());
+            }
+
+            Switch master = findSwitch(fragment.getView());
+            master.performClick();
+            settle();
+            assertTrue(FeatureGateLabStore.masterEnabled());
+            // With overrides on, every way of changing gates: the selection's three, Reset
+            // overrides (menu item 4) and Undo (6), which both keep overrides on.
+            String[][] liveSteps = {{"Disable", "Turned off 2 gates"}, {"Enable", "Forced 2 gates"},
+                    {"4", "Lab overrides reset"}, {"6", "Lab settings put back"},
+                    {"Reset", "Reset 2 gates"}};
+            for (String[] step : liveSteps) {
+                // Turning overrides on, and each leg before, owes a restart of its own. Forget it,
+                // and let a change that writes nothing put the row away, so the row answers for
+                // this leg alone.
+                FeatureGateLabSession.resetForTests();
+                assertTrue(fragment.runLabChangeForTests(() -> ""));
+                settle();
+                assertEquals(View.GONE, restartRow(fragment).getVisibility());
+
+                ShadowToast.reset();
+                if (Character.isDigit(step[0].charAt(0))) {
+                    action(fragment, Integer.parseInt(step[0]));
+                } else {
+                    selectBoth(fragment);
+                    selectionAction(fragment, step[0]).performClick();
+                }
+                waitForToast(step[1]);
+                assertTrue(FeatureGateLabStore.masterEnabled());
+                assertTrue(step[0] + " with overrides on owes a restart",
+                        FeatureGateLabSession.restartNeeded());
+                assertEquals(step[0] + ": the restart the toast no longer mentions isn't offered",
+                        View.VISIBLE, restartRow(fragment).getVisibility());
+            }
+        }
+    }
+
+    private static void selectBoth(FeatureGateLabFragment fragment) throws Exception {
+        android.widget.ListView list = listOf(fragment);
+        assertTrue(list.getOnItemLongClickListener()
+                .onItemLongClick(list, null, 0, list.getItemIdAtPosition(0)));
+        assertTrue(list.performItemClick(null, 1, list.getItemIdAtPosition(1)));
+        assertEquals("2 gates selected", selectionCountText(fragment));
+    }
+
+    private static View restartRow(FeatureGateLabFragment fragment) {
+        View row = fragment.getView().findViewWithTag(RestartPendingPreference.ROW_TAG);
+        assertNotNull("the Lab has no restart row", row);
+        return row;
+    }
+
+    /**
      * A row's own accessibility delegate kept the list from offering its items' click, so a
      * switch or voice user couldn't open a gate, and Select did nothing. The list also ended a
      * fixed 80 dp above a bar taller than that, so the last gate stayed under it.
@@ -1135,7 +1227,38 @@ public class FeatureGateLabActionsTest {
             ShadowToast.reset();
             selectionAction(fragment, "Reset").performClick();
             settle();
-            assertEquals("None of these gates had an override to reset.",
+            assertEquals("None of these gates had an override to reset",
+                    ShadowToast.getTextOfLatestToast());
+        }
+    }
+
+    /**
+     * A change with nothing to say shows no toast. Handed an empty string, the default toast was
+     * a blank pill. A refusal built with no reason says to try again rather than nothing.
+     */
+    @Test public void aChangeWithNoNoticeShowsNoToast() throws Exception {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var fragment = attach(controller.get());
+            settle();
+
+            ShadowToast.reset();
+            assertTrue(fragment.runLabChangeForTests(() -> "Lab notice"));
+            settle();
+            assertEquals("a notice is still told", 1, ShadowToast.shownToastCount());
+            assertEquals("Lab notice", ShadowToast.getTextOfLatestToast());
+
+            ShadowToast.reset();
+            assertTrue(fragment.runLabChangeForTests(() -> null));
+            settle();
+            assertTrue(fragment.runLabChangeForTests(() -> " "));
+            settle();
+            assertEquals("no notice, no toast", 0, ShadowToast.shownToastCount());
+
+            assertTrue(fragment.runLabChangeForTests(() -> {
+                throw new FeatureGateLabStore.RuleLimitRefused(null);
+            }));
+            settle();
+            assertEquals("Couldn't change the Lab settings. Try again.",
                     ShadowToast.getTextOfLatestToast());
         }
     }
@@ -1354,6 +1477,12 @@ public class FeatureGateLabActionsTest {
         if (toast == null || !toast.startsWith(prefix)) {
             fail("Missing completion: " + toast);
         }
+    }
+
+    /** The whole toast, so a sentence tacked on after the expected one fails too. */
+    private static void waitForToast(String exact) throws Exception {
+        settle();
+        assertEquals("Missing completion", exact, ShadowToast.getTextOfLatestToast());
     }
 
     /**

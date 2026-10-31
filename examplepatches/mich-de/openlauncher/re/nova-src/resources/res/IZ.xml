@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.teslacoilsw.launcher.widget.FontFamilyToolbar
+        android:id="0x7f0b06c3"
+        android:layout_alignParentTop="true"
+        style="?unknown_attr_ref: 7f040680"/>
+    <com.teslacoilsw.launcher.widget.SlidingTabIndicatorScrollView
+        android:layout_gravity="center_horizontal"
+        android:id="0x7f0b0669"
+        android:background="?unknown_attr_ref: 7f040183"
+        android:scrollbars="none"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true"
+        android:layout_below="0x7f0b06c3"
+        app:bottomBarHeight="0dp"
+        app:indicatorHeight="2dp"
+        app:indicatorMinWidth="20dp">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:id="@android:id/tabs"
+            android:layout_width="match_parent"
+            android:layout_height="0x7f070076"
+            android:layout_marginTop="0x7f070077"
+            android:divider="@null"/>
+    </com.teslacoilsw.launcher.widget.SlidingTabIndicatorScrollView>
+    <com.teslacoilsw.launcher.widget.PagedViewSimple
+        android:id="0x7f0b04a5"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="0x7f0b0669">
+        <include
+            android:id="0x7f0b0475"
+            layout="0x7f0e01bd"/>
+        <include
+            android:id="0x7f0b00ae"
+            layout="0x7f0e01bd"/>
+        <include
+            android:id="0x7f0b05f6"
+            layout="0x7f0e01bd"/>
+    </com.teslacoilsw.launcher.widget.PagedViewSimple>
+    <View
+        android:id="0x7f0b06c7"
+        android:background="0x7f08021c"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_below="0x7f0b0669"/>
+</RelativeLayout>

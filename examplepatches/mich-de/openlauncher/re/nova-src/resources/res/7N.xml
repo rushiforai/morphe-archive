@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.teslacoilsw.launcher.widget.IsMeasuringGridView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="0x7f0b031d"
+    android:paddingLeft="0x7f07053d"
+    android:paddingTop="16dp"
+    android:paddingRight="0x7f07053d"
+    android:paddingBottom="16dp"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:listSelector="?unknown_attr_ref: 7f040541"
+    android:drawSelectorOnTop="true"/>

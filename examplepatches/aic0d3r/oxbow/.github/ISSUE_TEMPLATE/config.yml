@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discord community
+    url: https://discord.gg/Z9QvMw8s76
+    about: Ask quick support questions and discuss development with the community.
+  - name: Security policy
+    url: https://github.com/jean-voila/Feurstagram/blob/main/SECURITY.md
+    about: Read how to report sensitive security issues.

@@ -1,0 +1,77 @@
+Morphe NOTICE
+=============
+
+7c. Project Name Restriction
+----------------------------
+
+This license does not grant permission to use the name "Morphe", or any
+name, logo, or branding that is confusingly similar, as the name or
+primary identifying mark of any modified version, fork, or derivative work.
+
+Any redistribution or derivative work must adopt a distinct name and
+branding that clearly differentiates it from the Morphe project and does
+not cause confusion as to source or origin.
+
+References to Morphe are permitted solely for descriptive compatibility
+purposes (e.g., "compatible with Morphe" or "XYZ patches for use with Morphe"),
+provided that such references:
+
+- Are accurate, factual, and non-misleading;
+- Do not suggest authorship by the Morphe project; and
+- Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+
+X-Posed
+=======
+
+This project ports parts of X-Posed (https://github.com/xaitax/x-account-location-device):
+the badge design and colors, the country, alias and region tables, and the icon paths.
+X-Posed is licensed under the MIT License:
+
+    Copyright (c) Alexander Hagenah
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+
+xposed-patches
+==============
+
+This project is a port of xposed-patches (https://github.com/AetherMagee/xposed-patches),
+licensed under the GNU General Public License v3.0. The extension code, the patch structure
+and the project setup originate there. Copyright (C) 2026 AetherMagee.
+
+Changes for the Compose-based X ("NewX"), including the bytecode analysis helpers and the
+Compose integration, are Copyright (C) 2026 Sylonin.
+
+
+morphe-patches-template
+=======================
+
+The Gradle setup, the release workflow (.github/workflows, .releaserc), the README generator
+(.github/scripts) and util/PatchListGenerator.kt come from the Morphe patches template
+(https://github.com/MorpheApp/morphe-patches-template), licensed under the GNU General
+Public License v3.0. Copyright 2025 Morphe.
+
+
+piko
+====
+
+The list of supported NewX versions and the general approach to hooking NewX follow piko-newx
+(https://github.com/crimera/piko-newx) and piko (https://github.com/crimera/piko, GPLv3,
+by crimera and contributors).

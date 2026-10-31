@@ -1,0 +1,140 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
+package app.morphe.extension.youtube.patches.components;
+
+import java.util.Collections;
+import java.util.Set;
+
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.patches.components.BufferAsciiStrings;
+import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
+import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
+import app.morphe.extension.shared.patches.components.ContextInterface;
+import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.StringFilterGroup;
+import app.morphe.extension.youtube.patches.LayoutReloadObserverPatch;
+import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.shared.EngagementPanel;
+import app.morphe.extension.youtube.shared.NavigationBar;
+import app.morphe.extension.youtube.shared.NavigationBar.NavigationButton;
+import app.morphe.extension.youtube.shared.PlayerType;
+import app.morphe.extension.youtube.shared.ShortsPlayerState;
+
+@SuppressWarnings("unused")
+public final class HorizontalShelvesFilter extends Filter {
+    /**
+     * Identifiers of the shelves hidden outside the player.
+     * <p>
+     * The feed behind the player is also reloaded while the player is open,
+     * such as when entering or exiting fullscreen. These shelves are not under the player,
+     * and must stay hidden, otherwise they show again until the feed is scrolled.
+     */
+    private static final Set<String> hiddenShelfIdentifiers = Collections.synchronizedSet(
+            Collections.newSetFromMap(Utils.createSizeRestrictedMap(100)));
+
+    private final ByteArrayFilterGroupList descriptionBuffers = new ByteArrayFilterGroupList();
+    private final ByteArrayFilterGroupList generalBuffers = new ByteArrayFilterGroupList();
+
+    public HorizontalShelvesFilter() {
+        StringFilterGroup horizontalShelves = new StringFilterGroup(
+                null,
+                "horizontal_shelf.e"
+        );
+
+        addPathCallbacks(horizontalShelves);
+
+        descriptionBuffers.addAll(
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_ATTRIBUTES_SECTION,
+                        "cell_video_attribute"
+                ),
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_QUIZZES_SECTION,
+                        "post_base_wrapper_slim"
+                )
+        );
+
+        generalBuffers.addAll(
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_CREATOR_STORE_SHELF,
+                        "shopping_item_card_list"
+                ),
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_HISTORY_SHELF,
+                        // Browse id of the History page, opened by the shelf header.
+                        "FEhistory"
+                ),
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_MOVIES_SECTION,
+                        "movie_card.e"
+                ),
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_PLAYABLES,
+                        "FEmini_app_destination"
+                ),
+                new ByteArrayFilterGroup(
+                        Settings.HIDE_TICKET_SHELF,
+                        "ticket_item.e"
+                )
+        );
+    }
+
+    private boolean hideShelves(ContextInterface contextInterface, String identifier) {
+        if (!Settings.HIDE_HORIZONTAL_SHELVES.get()) {
+            return false;
+        }
+        if (isPlayerOrDescription()) {
+            return identifier != null && hiddenShelfIdentifiers.contains(identifier);
+        }
+        final boolean hide = contextInterface.isHomeFeedOrRelatedVideo()
+                || NavigationBar.isSearchBarActive()
+                || NavigationBar.isBackButtonVisible()
+                || NavigationButton.getSelectedNavigationButton() != NavigationButton.LIBRARY;
+        if (identifier != null) {
+            // Shelves of different feeds can have the same identifier, such as the History shelf of
+            //  the 'You' tab, so the last feed where the shelf was loaded decides.
+            if (hide) {
+                hiddenShelfIdentifiers.add(identifier);
+            } else {
+                hiddenShelfIdentifiers.remove(identifier);
+            }
+        }
+        return hide;
+    }
+
+    private boolean isPlayerOrDescription() {
+        return EngagementPanel.isDescription()
+                || PlayerType.getCurrent().isMaximizedOrFullscreen()
+                || LayoutReloadObserverPatch.isActionBarVisible.get()
+                || ShortsPlayerState.isOpen();
+    }
+
+    @Override
+    public boolean isFiltered(ContextInterface contextInterface,
+                              String identifier,
+                              String accessibility,
+                              CharSequence path,
+                              byte[] buffer,
+                              BufferAsciiStrings asciiStrings,
+                              StringFilterGroup matchedGroup,
+                              FilterContentType contentType,
+                              int contentIndex) {
+        if (contentIndex != 0) {
+            return false;
+        }
+        if (generalBuffers.check(buffer).isFiltered()) {
+            return true;
+        }
+        if (descriptionBuffers.check(buffer).isFiltered()) {
+            if (isPlayerOrDescription()) {
+                return true;
+            }
+        }
+        return hideShelves(contextInterface, identifier);
+    }
+}

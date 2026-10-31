@@ -8,20 +8,20 @@ import com.android.tools.smali.dexlib2.iface.instruction.*;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference;
 import java.util.List;
 
-/** Reuse beta.8's native updater host and banner without replacing its drawing code. */
+/** Reuse beta.9's native updater host and banner without replacing its drawing code. */
 final class NuvioNativeSyncBanner {
     static final String EXT = "Lsoftware/santodan/extension/nuviomerged/NuvioSyncBanner;";
-    static final String HOST = "Lfb/uj;->i(Lkb/k0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lr1/s;Lh1/n;I)V";
+    static final String HOST = "Lna/k1;->n(Llb/k0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lr1/s;Lh1/n;I)V";
     static void hook(BytecodePatchContext context) {
         hookRoot(context.mutableClassDefBy("Lq8/l;"));
-        hookBanner(context.mutableClassDefBy("Lmb/a;"));
+        hookBanner(context.mutableClassDefBy("Lnb/a;"));
     }
     static ImmutableMethodReference ref(String name, List<String> args, String returns) {
         return new ImmutableMethodReference(EXT, name, args, returns);
     }
     static void hookRoot(MutableClass owner) {
         MutableMethod method=NuvioRemainingEpisodesPatch.unique(owner,"invoke",3);
-        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("b9bcb00e932f362e8bd4d632b937371b65ebae2e4f019c0064c69f9db0ebaf86"))
+        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("e2821f28134885f7f897be21e75c6e4fef65f744c51afa62a45a644d820e400a"))
             throw new IllegalStateException("Native updater root changed or already patched");
         var instructions=NuvioRemainingEpisodesPatch.instructions(method);
         int anchor=-1;
@@ -38,7 +38,7 @@ final class NuvioNativeSyncBanner {
     }
     static void hookBanner(MutableClass owner) {
         MutableMethod method=NuvioRemainingEpisodesPatch.unique(owner,"b",10);
-        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("50512aec1d322f8645869c4d99221fdccfb518d08abfdd302b73198a0d49ef9b"))
+        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("c182d07bc2cfa306a82fb98fe718093f273397befe20334af816176e6079d1e0"))
             throw new IllegalStateException("Native updater banner changed or already patched");
         var code=method.getImplementation();
         var instructions=NuvioRemainingEpisodesPatch.instructions(method);
@@ -50,16 +50,16 @@ final class NuvioNativeSyncBanner {
             List<String> args=null;
             // The installed-app close path calls a timed auto-dismiss control.
             // Sync cancellation must use the ordinary explicit close action instead.
-            if(i==731){
-                if(instruction.getOpcode()!=Opcode.IF_EQZ || ((OneRegisterInstruction)instruction).getRegisterA()!=66)
+            if(i==732){
+                if(instruction.getOpcode()!=Opcode.IF_EQZ || ((OneRegisterInstruction)instruction).getRegisterA()!=68)
                     throw new IllegalStateException("Native banner close timer guard changed");
-                code.addInstruction(i,new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,66,1,ref("timedClose",List.of("Z"),"Z")));
-                code.addInstruction(i+1,new BuilderInstruction11x(Opcode.MOVE_RESULT,66));
+                code.addInstruction(i,new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,68,1,ref("timedClose",List.of("Z"),"Z")));
+                code.addInstruction(i+1,new BuilderInstruction11x(Opcode.MOVE_RESULT,68));
                 timerGuards++;
             }
-            // Original beta.8 b(): instruction 728, v34 cached isDownloading, directly
+            // Original beta.9 b(): instruction 729, v34 cached isDownloading, directly
             // after the primary action group closes. Its branch hides only the Close control.
-            if(i==728){
+            if(i==729){
                 if(instruction.getOpcode()!=Opcode.IF_NEZ || ((OneRegisterInstruction)instruction).getRegisterA()!=34 ||
                     !NuvioPlaybackButtonsPatch.reference(instructions.get(i-1)).equals("Lh1/k0;->p(Z)V"))
                     throw new IllegalStateException("Native banner close guard changed");
@@ -67,12 +67,12 @@ final class NuvioNativeSyncBanner {
                 code.addInstruction(i+1,new BuilderInstruction11x(Opcode.MOVE_RESULT,34));
                 closeGuards++;
             }
-            if(i==758){
+            if(i==759){
                 if(!target.equals("Lu6/g;->d0(ILh1/n;)Ljava/lang/String;"))
                     throw new IllegalStateException("Native banner close label changed");
                 name="closeText";args=List.of("I","Ljava/lang/Object;");closeLabels++;
             }
-            if(target.equals("Lma/r;->h(Lh1/k0;IILh1/k0;Z)Ljava/lang/String;")){
+            if(target.equals("Lm9/a5;->i(Lh1/k0;IILh1/k0;Z)Ljava/lang/String;")){
                 name="groupText";args=List.of("Ljava/lang/Object;","I","I","Ljava/lang/Object;","Z");
             } else if(target.equals("Lu6/g;->e0(I[Ljava/lang/Object;Lh1/n;)Ljava/lang/String;")){
                 name="formatted";args=List.of("I","[Ljava/lang/Object;","Ljava/lang/Object;");
@@ -98,8 +98,8 @@ final class NuvioNativeSyncBanner {
             if(instruction.getOpcode()==Opcode.RETURN_VOID)returns++;
         }
         if(lookups!=6||returns!=1||scopeEnds!=1||closeGuards!=1||closeLabels!=1||timerGuards!=1)throw new IllegalStateException("Native updater labels/returns changed: "+lookups+"/"+returns);
-        code.addInstruction(0,new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,64,1,ref("begin",List.of("Ljava/lang/Object;"),"V")));
-        code.addInstruction(1,new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,66,1,ref("installed",List.of("Z"),"Z")));
-        code.addInstruction(2,new BuilderInstruction11x(Opcode.MOVE_RESULT,66));
+        code.addInstruction(0,new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,NuvioAnchors.parameter(method,0),1,ref("begin",List.of("Ljava/lang/Object;"),"V")));
+        code.addInstruction(1,new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,NuvioAnchors.parameter(method,2),1,ref("installed",List.of("Z"),"Z")));
+        code.addInstruction(2,new BuilderInstruction11x(Opcode.MOVE_RESULT,NuvioAnchors.parameter(method,2)));
     }
 }

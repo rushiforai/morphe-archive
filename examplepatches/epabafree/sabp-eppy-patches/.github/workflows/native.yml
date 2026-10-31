@@ -1,0 +1,81 @@
+name: Native engine
+
+# Builds eppy's speech engine (whisper.cpp v1.9.5 + native/eppywhisper/jni.c):
+#  - host build + a real transcription test on the JVM (tiny.en and base.en, quantized);
+#  - Android arm64 libraries (baseline armv8-a and armv8.2-a+fp16+dotprod).
+# The libraries, test output and timings are pushed to the native-libs branch, from which they
+# are copied into patches/src/main/resources/sabp/native/arm64-v8a/ (see native/README.md).
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths:
+      - native/**
+      - extensions/sabp/src/main/java/app/morphe/extension/sabp/read/Whisper.java
+      - .github/workflows/native.yml
+
+permissions:
+  contents: write
+
+env:
+  WHISPER_TAG: v1.9.5
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Get whisper.cpp
+        run: git clone --depth 1 --branch "$WHISPER_TAG" https://github.com/ggml-org/whisper.cpp "$RUNNER_TEMP/whisper.cpp"
+
+      - name: Host build and transcription test
+        run: |
+          set -o pipefail
+          OUT=$RUNNER_TEMP/out; mkdir -p "$OUT"
+          cmake -S native/eppywhisper -B build/host -DWHISPER_SRC="$RUNNER_TEMP/whisper.cpp" -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/host -j4 --target eppywhisper
+          javac -d build/jt extensions/sabp/src/main/java/app/morphe/extension/sabp/read/Whisper.java native/eppywhisper/test/HostTest.java
+          for m in tiny.en-q5_1 base.en-q5_1; do
+            curl -fsSL -o "build/$m.bin" "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-$m.bin"
+            ls -l "build/$m.bin" | tee -a "$OUT/models.txt"
+            java -Djava.library.path=build/host -cp build/jt HostTest "build/$m.bin" "$RUNNER_TEMP/whisper.cpp/samples/jfk.wav" "John F. Kennedy" 2>&1 \
+              | grep -v '^whisper_\|^ggml_\|^load_backend' | tee "$OUT/host-$m.txt"
+          done
+
+      - name: Android arm64 builds
+        run: |
+          OUT=$RUNNER_TEMP/out; mkdir -p "$OUT/arm64-v8a"
+          TC="$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake"
+          build() { # name, flags
+            cmake -S native/eppywhisper -B "build/$1" -DWHISPER_SRC="$RUNNER_TEMP/whisper.cpp" -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_TOOLCHAIN_FILE="$TC" -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-26 \
+              -DEPPY_LIB_NAME="$1" -DEPPY_VARIANT_FLAGS="$2"
+            cmake --build "build/$1" -j4 --target "$1"
+            "$ANDROID_NDK_LATEST_HOME"/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip --strip-unneeded -o "$OUT/arm64-v8a/lib$1.so" "build/$1/lib$1.so"
+          }
+          build eppywhisper "-march=armv8-a"
+          build eppywhisper_v82 "-march=armv8.2-a+fp16+dotprod"
+          ls -l "$OUT/arm64-v8a" | tee "$OUT/sizes.txt"
+          (cd "$OUT/arm64-v8a" && ls *.so) > "$OUT/libs.txt"
+          "$ANDROID_NDK_LATEST_HOME"/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-nm -D --defined-only "$OUT/arm64-v8a/libeppywhisper.so" | grep Java_ | tee "$OUT/symbols.txt"
+
+      - name: Publish to the native-libs branch
+        if: always()
+        run: |
+          OUT=$RUNNER_TEMP/out
+          echo "${GITHUB_SHA} ${GITHUB_REF_NAME} ${WHISPER_TAG} $(date -u +%FT%TZ)" > "$OUT/SOURCE"
+          cd "$OUT"
+          git init -q -b native-libs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Native engine build for ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" native-libs

@@ -8,6 +8,14 @@ import java.util.List;
 public final class ThumbnailClickAttachments {
     private ThumbnailClickAttachments() {}
 
+    public static boolean openThread(Object clicked){
+        if(!(clicked instanceof android.view.View))return false;
+        try{
+            String selected=url(clicked);if(selected==null)return false;
+            return MediaViewerNavigation.openThreadThumbnail(((android.view.View)clicked).getContext(),selected);
+        }catch(ReflectiveOperationException|RuntimeException error){return false;}
+    }
+
     public static CharSequence[] links(Object row, Object clicked, CharSequence[] original) {
         if (row == null || clicked == null || original == null) return original;
         try {

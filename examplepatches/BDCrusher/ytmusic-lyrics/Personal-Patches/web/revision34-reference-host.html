@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=3">
+<link rel="icon" href="data:,"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+<link rel="stylesheet" href="variables.css"><link rel="stylesheet" href="lyrics.css"><link rel="stylesheet" href="instrumental.css"><link rel="stylesheet" href="host.css">
+<style id="agents"></style><title>BDCrusher’s Lyrics</title></head>
+<body><div id="track" class="sr-only" aria-live="polite"></div>
+<main id="scroll"><p id="empty">Looking for lyrics…</p><div id="lyrics"></div></main><button id="resume" hidden>Resume scrolling</button>
+<section id="dock" aria-label="Lyrics controls">
+<button id="collapse" aria-label="Collapse lyrics controls" aria-expanded="true" aria-controls="dock-content">⌄</button>
+<div id="dock-content"><div class="dock-inner">
+<div class="source-row"><button id="earlier" aria-label="Lyrics 100 milliseconds earlier">−</button>
+<div class="source-pill"><button id="previous" aria-label="Previous lyric source">‹</button>
+<button id="source-label" aria-label="Choose lyric source" aria-expanded="false"><span id="source-icon"></span><span id="source-name">Looking for lyrics…</span><small id="source-position"></small></button>
+<button id="next" aria-label="Next lyric source">›</button></div><button id="later" aria-label="Lyrics 100 milliseconds later">+</button></div>
+<div id="source-menu" role="menu" aria-label="Available lyric sources" hidden></div><select id="sources" aria-label="Lyrics source" hidden></select>
+<div class="toolbar"><button id="copy" aria-label="Copy lyrics">Copy</button><button id="translate" aria-label="Translate lyrics" aria-pressed="false">Translate</button><button id="romanize" aria-label="Romanize lyrics" aria-pressed="false">Romanize</button><button id="refresh" aria-label="Refresh lyrics">↻</button></div>
+<div class="sync"><span id="offset">0 ms</span><button id="source-health" data-state="orange" aria-label="Sources loading" aria-expanded="false" aria-controls="connection"><span aria-hidden="true"></span></button><span id="status" role="status"></span></div>
+<section id="connection" role="status" aria-label="Source status" hidden><p id="source-summary"></p><span id="notice" hidden></span><button id="connect">Reconnect sources</button></section>
+</div></div>
+</section>
+
+<button id="configure" hidden></button><script src="renderer.js" defer></script></body></html>

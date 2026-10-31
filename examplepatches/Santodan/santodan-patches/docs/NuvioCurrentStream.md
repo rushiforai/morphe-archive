@@ -1,10 +1,10 @@
 # Current stream indicator
 
-Current target: **NuvioTV 1.1.0-beta.8 (1071)**. See [beta.8 contracts and verification](NuvioBeta8.md). The older DEX notes and artifact paths below record the beta.7 implementation; beta.8 replaces its native symbols.
+Current target: **NuvioTV 1.1.0-beta.9 (1072)**. See [beta.9 contracts and verification](NuvioBeta9.md). Version-specific DEX notes, commands and artifacts for earlier versions below are historical; use the beta.9 contract and `verifyNuvioLatest` for the current release.
 
 
 Select **NuvioTV - Indicate current stream** for `com.nuvio.tv`
-`1.1.0-beta.7` (version code `1070`). When opening Sources during playback,
+`1.1.0-beta.9` (version code `1072`). When opening Sources during playback,
 the current stream's title starts with **[Playing]**. The existing native
 border, focus, source filters and selection callbacks remain in use.
 Select the patch in Morphe, then control it under **Settings > Layout >

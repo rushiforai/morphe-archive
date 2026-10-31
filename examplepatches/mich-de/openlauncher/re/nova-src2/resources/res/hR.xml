@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <View
+        android:id="0x7f0b04cd"
+        android:background="0x7f06040b"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="0x7f070489"/>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ProgressBar
+            android:layout_gravity="center_vertical"
+            android:id="0x7f0b04d0"
+            android:padding="3dp"
+            android:layout_width="0x7f070487"
+            android:layout_height="0x7f070487"
+            android:indeterminate="true"
+            android:layout_marginStart="0x7f070486"
+            android:indeterminateTint="0x7f060408"
+            android:indeterminateTintMode="src_atop"
+            style="0x7f150418"/>
+        <ImageView
+            android:id="0x7f0b04cc"
+            android:layout_width="wrap_content"
+            android:layout_height="0x7f070482"
+            android:src="0x7f080536"
+            android:scaleType="center"
+            android:contentDescription="0x7f1407b2"
+            android:layout_marginStart="0x7f070489"/>
+    </FrameLayout>
+</merge>

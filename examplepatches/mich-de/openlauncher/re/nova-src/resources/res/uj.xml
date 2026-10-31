@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="0x7f0b0586"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+    <com.teslacoilsw.launcher.preferences.widget.MatchWrapLinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:text="0x7f140cce"
+            style="0x7f1501fa"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+            android:id="0x7f0b02f2"
+            android:text="0x7f140ccf"
+            android:fragment="com.teslacoilsw.launcher.preferences.FolderWindowSettings"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefView
+            android:id="0x7f0b036f"
+            android:text="0x7f140829"
+            app:searchKeywords="0x7f14082a"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefCardBorderView/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefIconView
+            android:id="0x7f0b02ec"
+            android:text="0x7f1402e7"
+            android:fragment="com.teslacoilsw.launcher.preferences.SettingsFolderIcon"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefCardBorderView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:minHeight="32dp"
+            app:shadowAtBottom="false"/>
+    </com.teslacoilsw.launcher.preferences.widget.MatchWrapLinearLayout>
+</ScrollView>

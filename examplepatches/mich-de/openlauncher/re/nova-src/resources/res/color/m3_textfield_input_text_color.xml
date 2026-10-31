@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:state_enabled="false"
+        android:color="?unknown_attr_ref: 7f04017a"
+        android:alpha="0x7f070252"/>
+    <item
+        android:state_focused="true"
+        android:color="?unknown_attr_ref: 7f04017a"/>
+    <item
+        android:color="?unknown_attr_ref: 7f04017a"
+        android:state_hovered="true"/>
+    <item android:color="?unknown_attr_ref: 7f04017a"/>
+</selector>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?unknown_attr_ref: 7f040540"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <com.teslacoilsw.notifier.widget.BadgeArtIconPreview
+        android:textSize="0sp"
+        android:layout_gravity="center"
+        android:id="0x7f0b050c"
+        android:paddingLeft="4dp"
+        android:paddingTop="8dp"
+        android:paddingRight="8dp"
+        android:paddingBottom="0dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:drawableTop="0x7f0803ea"
+        android:drawablePadding="8dp"
+        app:customShadows="false"/>
+    <LinearLayout
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.teslacoilsw.launcher.widget.CheckedFontFamilyTextView
+            android:textAppearance="?unknown_attr_ref: 7f040625"
+            android:textColor="0x7f0605b6"
+            android:ellipsize="marquee"
+            android:id="@android:id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:fontFamily="0x7f1402fc"/>
+        <TextView
+            android:textAppearance="?unknown_attr_ref: 7f0404f6"
+            android:textColor="?android:attr/textColorSecondary"
+            android:id="@android:id/summary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="10"/>
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,130 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patcher
+ *
+ * Original forked code:
+ * https://github.com/LisoUseInAIKyrios/revanced-patcher
+ */
+
+package app.morphe.patcher.util.proxy.mutableTypes
+
+import app.morphe.patcher.util.proxy.mutableTypes.MutableAnnotation.Companion.toMutable
+import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import com.android.tools.smali.dexlib2.base.reference.BaseTypeReference
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.util.FieldUtil
+import com.android.tools.smali.dexlib2.util.MethodUtil
+
+class MutableClass(classDef: ClassDef) :
+    BaseTypeReference(),
+    ClassDef {
+    // Class
+    private var type = classDef.type
+    private var sourceFile = classDef.sourceFile
+    private var accessFlags = classDef.accessFlags
+    private var superclass = classDef.superclass
+
+    private val _interfaces by lazy { classDef.interfaces.toMutableList() }
+    private val _annotations by lazy {
+        classDef.annotations.map { annotation -> annotation.toMutable() }.toMutableSet()
+    }
+
+    // Methods
+    private val methodsDelegate = lazy { MethodSet(this, classDef.methods.map { method -> method.toMutable() }) }
+    private val _methods: MutableSet<MutableMethod> by methodsDelegate
+    private val _directMethods by lazy { _methods.filter { method -> MethodUtil.isDirect(method) }.toMutableSet() }
+    private val _virtualMethods by lazy { _methods.filter { method -> !MethodUtil.isDirect(method) }.toMutableSet() }
+
+    // Fields
+    private val _fields by lazy { classDef.fields.map { field -> field.toMutable() }.toMutableSet() }
+    private val _staticFields by lazy { _fields.filter { field -> FieldUtil.isStatic(field) }.toMutableSet() }
+    private val _instanceFields by lazy { _fields.filter { field -> !FieldUtil.isStatic(field) }.toMutableSet() }
+
+    /**
+     * If the mutable methods were created. Until then, the methods
+     * are the same as the methods of the class this class was created from.
+     */
+    internal val areMethodsCreated: Boolean
+        get() = methodsDelegate.isInitialized()
+
+    /**
+     * The [ChangeStamps] stamp of the last method added to [getMethods] or of the last change of the
+     * instructions of a method of it, or 0 if none. Removing methods changes only the number of methods.
+     */
+    internal var methodsChangeStamp = 0L
+        private set
+
+    internal fun methodsChanged(stamp: Long) {
+        methodsChangeStamp = stamp
+    }
+
+    /**
+     * The methods of a mutable class, which tells the class when a method is added,
+     * and tells each added method about the class.
+     */
+    private class MethodSet(
+        private val owner: MutableClass,
+        methods: List<MutableMethod>,
+    ) : LinkedHashSet<MutableMethod>(methods.size * 2) {
+        init {
+            methods.forEach { method -> addWithoutChange(method) }
+        }
+
+        private fun addWithoutChange(method: MutableMethod): Boolean {
+            if (!super.add(method)) return false
+            method.addOwner(owner)
+            return true
+        }
+
+        override fun add(element: MutableMethod): Boolean {
+            if (!addWithoutChange(element)) return false
+            owner.methodsChanged(ChangeStamps.next())
+            return true
+        }
+    }
+
+    fun setType(type: String) {
+        this.type = type
+    }
+
+    fun setSourceFile(sourceFile: String?) {
+        this.sourceFile = sourceFile
+    }
+
+    fun setAccessFlags(accessFlags: Int) {
+        this.accessFlags = accessFlags
+    }
+
+    fun setSuperClass(superclass: String?) {
+        this.superclass = superclass
+    }
+
+    override fun getType(): String = type
+
+    override fun getAccessFlags(): Int = accessFlags
+
+    override fun getSourceFile(): String? = sourceFile
+
+    override fun getSuperclass(): String? = superclass
+
+    override fun getInterfaces(): MutableList<String> = _interfaces
+
+    override fun getAnnotations(): MutableSet<MutableAnnotation> = _annotations
+
+    override fun getStaticFields(): MutableSet<MutableField> = _staticFields
+
+    override fun getInstanceFields(): MutableSet<MutableField> = _instanceFields
+
+    override fun getFields(): MutableSet<MutableField> = _fields
+
+    override fun getDirectMethods(): MutableSet<MutableMethod> = _directMethods
+
+    override fun getVirtualMethods(): MutableSet<MutableMethod> = _virtualMethods
+
+    override fun getMethods(): MutableSet<MutableMethod> = _methods
+
+    companion object {
+        fun ClassDef.toMutable(): MutableClass = MutableClass(this)
+    }
+}

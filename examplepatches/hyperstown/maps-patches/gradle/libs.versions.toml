@@ -1,0 +1,15 @@
+# Keep at the oldest patcher that the supported Morphe Manager releases ship: Manager refuses
+# bundles built for a newer patcher than its own. 2.0.0 is in Manager 2.1.0 and newer.
+[versions]
+# Keep in step with MORPHE_PATCHER_VERSION in container/Containerfile.
+morphe-patcher = "2.0.0"
+# Morphe fork of smali used by morphe-patcher 2.0.0.
+#noinspection GradleDependency
+smali = "4220ae75f7"
+gson = "2.14.0"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+# Gradle plugins adds the dependency during build, this declaration is here only for dependabot to provide updates.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

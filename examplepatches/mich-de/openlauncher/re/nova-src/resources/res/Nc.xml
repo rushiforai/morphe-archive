@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.allapps.LauncherAllAppsContainerView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="?unknown_attr_ref: 7f040055"
+    android:id="0x7f0b00bb"
+    android:focusable="false"
+    android:saveEnabled="false"
+    android:clipChildren="true"
+    android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include
+        android:visibility="gone"
+        layout="0x7f0e0067"/>
+    <com.android.launcher3.allapps.FloatingHeaderView
+        android:orientation="vertical"
+        android:id="0x7f0b0097"
+        android:paddingTop="0x7f070062"
+        android:paddingBottom="0x7f07005b"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="0x7f0b00af">
+        <include layout="0x7f0e00d6"/>
+        <include layout="0x7f0e015c"/>
+    </com.android.launcher3.allapps.FloatingHeaderView>
+    <include
+        android:id="0x7f0b00af"
+        android:visibility="visible"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_below="0x7f0b0593"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        layout="0x7f0e006d"/>
+    <include layout="0x7f0e0197"/>
+    <include layout="0x7f0e0060"/>
+</com.android.launcher3.allapps.LauncherAllAppsContainerView>

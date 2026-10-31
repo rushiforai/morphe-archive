@@ -1,5 +1,7 @@
 # NuvioTV merged tracking progress
 
+Current target: **NuvioTV 1.1.0-beta.9 (1072)**. See [beta.9 contracts and verification](NuvioBeta9.md). Version-specific DEX notes, commands and artifacts for earlier versions below are historical; use the beta.9 contract and `verifyNuvioLatest` for the current release.
+
 ## Immediate local playback overlay (beta.8, 2026-10-25)
 
 This section supersedes the provider-observer/Home-reconciliation behavior described

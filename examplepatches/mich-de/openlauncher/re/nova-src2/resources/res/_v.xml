@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.AlphaDisableableButton xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="start|center_vertical"
+    android:id="0x7f0b05cd"
+    android:background="?unknown_attr_ref: 7f040540"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minHeight="?unknown_attr_ref: 7f040007"
+    android:text="0x7f140c6a"
+    android:drawablePadding="8dp"
+    android:drawableStart="0x7f0802cd"
+    android:paddingEnd="20dp"
+    style="0x7f150000"/>

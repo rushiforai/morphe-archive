@@ -203,7 +203,22 @@ public final class NativeRestore191 {
             if (context == null || !target.getCanonicalFile().equals(
                     context.getDatabasePath("roidon.sqlite").getCanonicalFile()))
                 throw new IOException("復元先データベースの場所が不正です");
-            NativeRestoreFiles.install(source, target, NativeRestore191::validateDatabase);
+            // The native lazy opener synchronizes on o.nh.a. Hold that same lock
+            // through the file switch so delayed background work cannot open the
+            // old database while a large restored database is being copied.
+            Class<?> manager = Class.forName("o.nh", false, context.getClassLoader());
+            Field monitorField = manager.getDeclaredField("a"), live = manager.getDeclaredField("b");
+            monitorField.setAccessible(true); live.setAccessible(true);
+            Object monitor = monitorField.get(null);
+            if (monitor == null) throw new IOException("データベースの復元ロックを取得できません");
+            synchronized (monitor) {
+                Object database = live.get(null);
+                if (database instanceof SQLiteDatabase && ((SQLiteDatabase) database).isOpen())
+                    throw new IOException("復元先データベースが使用中です。アプリを起動し直してください");
+                NativeRestoreDatabase.prepare(source, "復元元");
+                NativeRestoreDatabase.prepare(target, "復元先");
+                NativeRestoreFiles.install(source, target, NativeRestore191::validateDatabase);
+            }
             context.getSharedPreferences("boot_prefs", 0).edit().remove(ERROR).commit();
             return true;
         } catch (Exception error) {
@@ -217,7 +232,7 @@ public final class NativeRestore191 {
     }
 
     private static void validateDatabase(File file) throws IOException {
-        try (SQLiteDatabase db = SQLiteDatabase.openDatabase(file.getPath(), null, SQLiteDatabase.OPEN_READONLY)) {
+        try (SQLiteDatabase db = NativeRestoreDatabase.open(file, SQLiteDatabase.OPEN_READONLY)) {
             try (Cursor result = db.rawQuery("PRAGMA quick_check(1)", null)) {
                 if (!result.moveToFirst() || !"ok".equalsIgnoreCase(result.getString(0)))
                     throw new IOException("復元元データベースの整合性検査に失敗しました");

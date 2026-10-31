@@ -1,0 +1,10 @@
+rpc.exports={test(){return new Promise((resolve,reject)=>Java.perform(()=>{try{
+ const app=Java.use('android.app.ActivityThread').currentApplication(),R=Java.use('app.morphe.extension.chmate.SharedNgRules'),C=Java.use('app.morphe.extension.chmate.SharedNgBoardCatalog'),S=Java.use('app.morphe.extension.chmate.NativeNgStore'),E=Java.use('app.morphe.extension.chmate.NativeNgStore$Entry'),P=Java.use('app.morphe.extension.chmate.PersonalNgSubmissions');let checks=[],nativeGroups={};
+ function check(ok,label){if(!ok)throw Error(label);checks.push(label);}
+ const cases=[['bbs.eddibb.cc%2Fliveedge','edge/all'],['mercury.bbspink.com%2Ferobbs','pink/all'],['jbbs.shitaraba.net%2Fgame%2F123','jbbs.shitaraba.net/all'],['jbbs.livedoor.jp%2Fgame%2F123','jbbs.shitaraba.net/all'],['hayabusa.open2ch.net%2Flivejupiter','open2ch.net/all'],['talk.jp%2Fpoverty','talk.jp/all'],['anago.2ch.sc%2Fandroid','2ch.sc/all'],['bbs.punipuni.eu%2Flivepunipuni','bbs.punipuni.eu/all'],['custom.example%3A8443%2Fboard','custom.example:8443/all']];
+ for(const [scope,group] of cases)check(String(C.resolve(app,scope))===group,'native external scope '+group);
+ check(String(C.resolve(app,'bbs.eddibb.cc.evil.example%2Fliveedge'))!=='edge/all','suffix host cannot impersonate Edge');
+ check(String(C.resolve(app,'bbs.eddibb.cc%252Fliveedge'))==='unknown.invalid/unresolved','no double decoding');
+ for(const category of ['ID','NAME','WORD']){const entries=S.$new(app,category).entries();for(let i=0;i<entries.size();i++){const item=Java.cast(entries.get(i),E),c=P.condition(category,item);const group=String(c.getString('board'));nativeGroups[group]=(nativeGroups[group]||0)+1;check(String(c.getString('period'))===''&&!c.has('sourceScope'),'personal scope omits date and detailed board');if(String(item.board.value)==='bbs.eddibb.cc%2Fliveedge')check(group==='edge/all'&&String(c.getString('boardName'))==='エッヂ','real native Edge NG classified and named');}}
+ resolve({checks,nativeGroups,networkRequests:false,nativeNgChanged:false});
+ }catch(e){reject(new Error(String(e)));}}));}};

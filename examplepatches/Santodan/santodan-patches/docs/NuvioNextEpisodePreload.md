@@ -1,6 +1,8 @@
-# Next-episode source reuse on beta.6
+# Next-episode source reuse on beta.9
 
-NuvioTV patches support only `1.1.0-beta.6`. The next-episode patch fetches addon
+Current target: **NuvioTV 1.1.0-beta.9 (1072)**. See [beta.9 contracts and verification](NuvioBeta9.md). Version-specific DEX notes, commands and artifacts for earlier versions below are historical; use the beta.9 contract and `verifyNuvioLatest` for the current release.
+
+NuvioTV patches support only `1.1.0-beta.9`. The next-episode patch fetches addon
 source lists after 30 seconds of actual playback. Pauses and buffering do not
 advance this delay. With its setting enabled, the manual next-episode picker
 reuses the native search session and Nuvio's separate threshold preload is
@@ -10,7 +12,7 @@ empty sessions can require another fetch when opening the next episode.
 ## Proven target and hooks
 
 - Original: `../OriginalApps/NuvioTV-1.1.0-beta6.apk`; package `com.nuvio.tv`,
-  version `1.1.0-beta.6`, version code `1069`.
+  version `1.1.0-beta.9`, version code `1069`.
 - `Lsa/ec;->C(Lsa/p8;Lcom/nuvio/tv/domain/model/Video;Z)V` is static, has
   171 registers, and delegates to `sa.ec.p`. Its incoming force-refresh flag is
   register 170. All three original callers belong to `Lsa/wb;->invokeSuspend`.

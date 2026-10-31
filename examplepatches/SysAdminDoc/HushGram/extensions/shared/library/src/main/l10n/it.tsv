@@ -122,7 +122,7 @@ Set when you patched	Impostato durante la patch
 Settings couldn't open	Impossibile aprire le impostazioni
 Settings couldn't refresh completely. Reopen settings and try again.	Impossibile aggiornare del tutto le impostazioni. Riapri le impostazioni e riprova.
 Source code and issues	Codice sorgente e segnalazioni
-Hides sponsored posts, reels and stories. No empty gap is left where an ad would have been.	Nasconde post, reel e storie sponsorizzati. Non resta nessun vuoto dove ci sarebbe stato un annuncio.
+Hides sponsored posts, reels, stories and the ad in comments. No empty gap is left where an ad would have been.	Nasconde post, reel e storie sponsorizzati, e l'annuncio nei commenti. Non resta nessun vuoto dove ci sarebbe stato un annuncio.
 Stays in while paused	Resta attivo in pausa
 Removes tracking tags from links you copy or share, and opens bio links without Instagram's click tracker. The link still opens the same post, reel or profile.	Rimuove i tag di tracciamento dai link che copi o condividi e apre i link della bio senza il tracker dei clic di Instagram. Il link apre comunque lo stesso post, reel o profilo.
 Tap to hide this.	Tocca per nasconderlo.
@@ -379,7 +379,7 @@ Removes the empty gap under Instagram's tab bar that appears when your phone hid
 Only accounts you follow	Solo account che segui
 Removes For you from the choices at the top of Home, so it stays on Following or Favorites. Needs Start Home on Following. Restart Instagram to see the change.	Toglie Per te dalle scelte in alto nella Home, così resta su Seguiti o Preferiti. Richiede Apri la Home su Seguiti. Riavvia Instagram per vedere la modifica.
 Instagram logo on Home	Logo di Instagram nella Home
-Keeps Instagram's logo at the top of Home in place of the feed's name. Tap it to switch feeds. Needs Start Home on Following. Restart Instagram to see the change.	Mantiene il logo di Instagram in alto nella Home al posto del nome del feed. Toccalo per cambiare feed. Richiede Apri la Home su Seguiti. Riavvia Instagram per vedere la modifica.
+Keeps Instagram's logo at the top of Home in place of the feed's name. Tap it to switch feeds. Restart Instagram to see the change.	Mantiene il logo di Instagram in alto nella Home al posto del nome del feed. Toccalo per cambiare feed. Riavvia Instagram per vedere la modifica.
 Profiles	Profili
 Show if a profile follows you	Mostra se un profilo ti segue
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Aggiunge Ti segue o Non ti segue accanto al nome sul profilo di qualcuno, dopo i suoi pronomi se li ha impostati. Non compare nulla finché Instagram non ha controllato.
@@ -582,7 +582,7 @@ Stop after the chat's reels	Fermati dopo i reel della chat
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	I reel aperti da una chat finiscono dopo l'ultimo condiviso in quella chat, senza reel suggeriti dopo. Funziona con Scorri tra i reel di una chat attivo.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	Aggiunge Scarica la copertina sotto Scarica. Salva l'immagine fissa che un reel mostra prima di partire, alla dimensione massima.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	Aggiunge Scarica l'audio sotto Scarica. Salva il suono del reel come file audio.
-After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	Dopo 20 reel, lo scorrimento nei reel si ferma finché Instagram non resta in background per 15 minuti. Un reel che apri da un messaggio o da un post parte comunque.
+After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	Dopo i reel che scegli qui sotto, lo scorrimento nei reel si ferma finché Instagram non resta in background per il tempo che scegli. Un reel che apri da un messaggio o da un post parte comunque.
 Find the reel you came from	Trova il reel da cui arrivi
 Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	Apri il profilo di un creator da un reel, poi la sua scheda Reel, e scorre fino a quel reel e lo evidenzia per un momento. Un reel di foto viene trovato tra i suoi post. Smetti di cercare termina la ricerca dov'è.
 Wait for a tap to find it	Aspetta un tocco per trovarlo
@@ -613,7 +613,12 @@ Send downloads to another app	Invia i download a un'altra app
 Send to	Invia a
 Sent to another app. To save here instead, turn off Send downloads to another app under Downloads.	Inviato a un'altra app. Per salvare qui, disattiva Invia i download a un'altra app in Download.
 Spoof location	Simula la posizione
-Stop after 20 reels	Fermati dopo 20 reel
+Stop after a set number of reels	Fermati dopo un certo numero di reel
+# context: Reels settings: two sliders under Stop after a set number of reels (#405). The first picks how many reels play before swiping stops, %1$d is 5 to 100; the second how long Instagram stays in the background before swiping comes back, %1$d is 5 to 120 minutes
+Reels before swiping stops	Reel prima che lo scorrimento si fermi
+%1$d reels	%1$d reel
+Time away before swiping comes back	Pausa prima che torni lo scorrimento
+%1$d minutes in the background	%1$d minuti in background
 Take a scroll break	Fai una pausa dallo scroll
 # context: a choice in the scroll break list; %1$d is 10, 20, 30 or 60
 After %1$d minutes	Dopo %1$d minuti
@@ -1059,6 +1064,9 @@ Off. It can fade a reel's buttons while the screen sits untouched, so they don't
 Takes the Save button out of the column of buttons beside a reel, and the count under it. Posts in your feed keep theirs.	Toglie il pulsante Salva dalla colonna di pulsanti accanto a un reel, e il conteggio sotto. I post nel tuo feed mantengono il loro.
 Keep clear mode on	Mantieni attiva la modalità pulita
 Turn on Instagram's clear mode on a reel and the next reels open in it too. Leave clear mode yourself and the next reels show their buttons again.	Attiva la modalità pulita di Instagram su un reel e anche i reel successivi si aprono così. Esci tu dalla modalità pulita e i reel successivi mostrano di nuovo i loro pulsanti.
+# context: Reels settings: a switch under Keep clear mode on (#138). Clear mode is the name used for Instagram's own mode that hides a reel's buttons; Allow screenshots is HushGram's switch of that name
+Start every reel in clear mode	Avvia ogni reel in modalità pulita
+Reels open in clear mode from the first one, with no tap. Leave it yourself and the next reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow screenshots is on.	I reel si aprono in modalità pulita dal primo, senza tocchi. Se ne esci tu, i reel successivi mostrano di nuovo i loro pulsanti. Instagram blocca gli screenshot in modalità pulita a meno che Consenti gli screenshot sia attivo.
 Unlock with	Sblocca con
 Phone lock	Blocco del telefono
 HushGram PIN	PIN di HushGram
@@ -1221,6 +1229,11 @@ Hide the Create button	Nascondi il pulsante Crea
 Takes the plus for new posts off the top of your own profile. The other buttons stay where they were.	Toglie il più per i nuovi post dalla parte alta del tuo profilo. Gli altri pulsanti restano dove erano.
 Hide Share profile	Nascondi Condividi profilo
 Takes the Share profile button off your profile, and Edit profile stretches to fill the space.	Toglie il pulsante Condividi profilo dal tuo profilo, e Modifica profilo si allarga per riempire lo spazio.
+# context: Profiles: switches that hide Subscribe and the arrow at the end of the action buttons on someone's profile, which opens a menu of the buttons that didn't fit (#248). Subscribe is Instagram's own button label, as in the Feed switch that hides Follow and Subscribe.
+Hide Subscribe on profiles	Nascondi Iscriviti nei profili
+Takes the Subscribe button off creators' profiles, and the other buttons stretch to fill the space.	Toglie il pulsante Iscriviti dai profili dei creator, e gli altri pulsanti si allargano per riempire lo spazio.
+Hide the arrow at the end of the buttons	Nascondi la freccia alla fine dei pulsanti
+Takes the arrow off the end of a profile's row of buttons, along with the menu it opens, and the other buttons stretch to fill the space.	Toglie la freccia alla fine della fila di pulsanti di un profilo, insieme al menu che apre, e gli altri pulsanti si allargano per riempire lo spazio.
 # context: Layout: Glass tab bar's switch that stops the liquid pill shrinking as you scroll (#256)
 Keep the pill full size	Mantieni la pillola a grandezza piena
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	Scorrendo un elenco verso il basso la pillola liquid glass resta com'è, con ogni scheda al suo posto. Riavvia Instagram dopo averlo cambiato.
@@ -1383,6 +1396,9 @@ Hide captions	Nascondi le didascalie
 Takes the caption off posts in your feed and off reels. The post stays, and the comments sheet still shows it.	Toglie la didascalia dai post del feed e dai reel. Il post resta, e la schermata dei commenti la mostra ancora.
 Keep Home's top bar	Fissa la barra in alto della Home
 Keeps the Instagram logo and the buttons beside it at the top of Home while you scroll, instead of sliding them away.	Tiene il logo di Instagram e i pulsanti accanto in cima alla Home mentre scorri, invece di farli scorrere via.
+# context: Feed settings: the See-through top bar switch, right under Keep Home's top bar (#418). It blurs the posts that scroll under Home's header, the bar with the Instagram logo.
+See-through top bar	Barra in alto trasparente
+Shows your feed blurred under Home's top bar, like frosted glass.	Mostra il tuo feed sfocato sotto la barra in alto della Home, come un vetro smerigliato.
 Keep the Reels top bar	Fissa la barra in alto dei Reel
 Keeps the Reels title, the Friends tab and the buttons beside them at the top while you swipe through reels, instead of sliding them away.	Tiene in alto il titolo Reel, la scheda Amici e i pulsanti accanto mentre scorri i reel, invece di farli scorrere via.
 Keep a viewing history	Tieni una cronologia di ciò che guardi
@@ -1396,3 +1412,84 @@ Clear viewing history	Cancella la cronologia di ciò che guardi
 Forgets every post, reel, story and profile on the list, for all your accounts. The switch stays as it is.	Dimentica tutti i post, i reel, le storie e i profili nell'elenco, per tutti i tuoi account. L'interruttore resta com'è.
 Viewing history cleared.	Cronologia cancellata.
 Couldn't clear the viewing history. Try again.	Non è stato possibile cancellare la cronologia. Riprova.
+Mark one-time photos and videos	Segna foto e video visualizzabili una volta
+Puts a border and Instagram's view once icon on a one-time photo or video in a chat, so you can tell it from the rest before you open it. Only how the chat looks changes.	Mette un bordo e l'icona di visualizzazione singola di Instagram su una foto o un video a visualizzazione singola in una chat, così lo riconosci prima di aprirlo. Cambia solo l'aspetto della chat.
+Fall back to Following	Passa a Seguiti
+When For you brings an account only suggested posts, page after page, Home opens on Following for that account. A feed you pick at the top of Home stays picked. Restart Instagram to see the change.	Quando Per te mostra a un account solo post suggeriti, pagina dopo pagina, la Home si apre su Seguiti per quell'account. Il feed che scegli in cima alla Home resta scelto. Riavvia Instagram per vedere la modifica.
+Only suggestions in For you. Home will open on Following.	Solo suggerimenti in Per te. La Home aprirà Seguiti.
+Explore without personalization	Esplora senza personalizzazione
+Where Instagram offers it (in the EU), Explore opens with the grid that isn't personalized every time, and stays on it past ten minutes.	Dove Instagram lo offre (nell'UE), Esplora si apre ogni volta con la griglia non personalizzata e ci resta anche dopo dieci minuti.
+Hide Explore's personalized menu	Nascondi il menu di personalizzazione di Esplora
+Hides the top bar button that switches Explore's personalization, where Instagram shows it (in the EU).	Nasconde il pulsante nella barra in alto che cambia la personalizzazione di Esplora, dove Instagram lo mostra (nell'UE).
+# context: Feed settings: the Carousel arrows switch and the two arrow buttons' TalkBack labels (#417)
+Carousel arrows	Frecce del carosello
+Puts a back and a next arrow on a carousel post's photos and videos. Tap one to move a page without swiping.	Mette una freccia indietro e una avanti sulle foto e i video di un post a carosello. Toccane una per cambiare pagina senza scorrere.
+Previous page	Pagina precedente
+Next page	Pagina successiva
+# context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
+Page dots on a pill	Puntini di pagina su una pillola
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	Sposta i puntini di pagina di un post a carosello su una pillola arrotondata in fondo alla foto o al video, con la pagina in cui sei in blu.
+# context: Feed settings: the Ambient light switch and its Glow spread and Glow speed lists (#416)
+Ambient light	Luce ambientale
+Puts a soft glow in a post's own colors around its photo or video, and in the bands around a reel that doesn't fill the screen. The glow follows a video as it plays.	Mette un bagliore morbido nei colori del post intorno alla sua foto o al suo video, e nelle fasce intorno a un reel che non riempie lo schermo. Il bagliore segue il video mentre è in riproduzione.
+Glow spread	Ampiezza del bagliore
+Glow speed	Velocità del bagliore
+Narrow	Stretto
+Medium	Medio
+Wide	Ampio
+Slow	Lento
+Fast	Veloce
+# context: Reels settings: a switch for a Lens icon beside each reel that opens Google Lens on the reel to copy its text (#303)
+Copy text button on reels	Pulsante Copia testo sui reel
+Puts a Lens icon beside a reel. Tap it and Google Lens opens on what's showing, so you can select and copy its text.	Mette un'icona di Lens accanto a un reel. Toccala e Google Lens si apre su ciò che vedi, così puoi selezionare e copiare il testo.
+# context: Stories settings: the same Lens button, in the story header beside the three dots (#303)
+Copy text button on stories	Pulsante Copia testo nelle storie
+Puts a Lens icon at the top of a story, beside the three dots. Tap it and Google Lens opens on what's showing, so you can select and copy its text.	Mette un'icona di Lens in alto in una storia, accanto ai tre puntini. Toccala e Google Lens si apre su ciò che vedi, così puoi selezionare e copiare il testo.
+# context: the spoken label of that Lens icon, for screen readers
+Copy text	Copia testo
+# context: title of the share sheet offered when Google Lens isn't installed; the apps listed below it read the picture's text
+Copy text with	Copia testo con
+# context: toast, under two lines of about 28 characters: the screen picture for Lens couldn't be made
+Couldn't copy this screen	Impossibile copiare lo schermo
+# context: toast, under two lines of about 28 characters: no installed app takes a picture to read its text
+No app here can read text	Nessuna app qui legge testo
+# context: Ads and privacy settings: switch that sends only Instagram's traffic through a proxy server the person sets (#219)
+App-only proxy	Proxy solo per l'app
+# context: summary under that switch
+Sends Instagram through the HTTP proxy set below. Other apps and your phone's own settings aren't changed.	Fa passare Instagram dal proxy HTTP impostato qui sotto. Le altre app e le impostazioni del telefono non cambiano.
+# context: title of the row and its dialog where the proxy server is typed
+Proxy server	Server proxy
+# context: that dialog's message; keep the example address as it is
+An HTTP proxy's address and port, with a colon between them, like 192.168.1.10:8080. Proxies that need a password, and SOCKS proxies, don't work here. Instagram needs a restart to use it.	Indirizzo e porta di un proxy HTTP, separati da due punti, come 192.168.1.10:8080. I proxy con password e i proxy SOCKS qui non funzionano. Instagram deve riavviarsi per usarlo.
+# context: toast and field error, under two lines of about 28 characters: what was typed isn't host:port; keep the example address
+That isn't a proxy server. Try 10.0.0.2:8080.	Server proxy non valido. Prova 10.0.0.2:8080.
+# context: the server row's summary while it's blank
+No server set. Until there is one, Instagram goes out directly.	Nessun server impostato. Finché non ce n'è uno, Instagram si collega direttamente.
+# context: the server row's summary; %1$s is the server as host:port
+Instagram goes through %1$s.	Instagram passa da %1$s.
+# context: Stories settings: switch that slows the zoom a story opens with from the stories row and takes out its bounce (#409)
+Smooth story opening	Apertura morbida delle storie
+# context: summary under that switch
+A story you tap in the stories row opens with a slower zoom that doesn't bounce, and closes the same way.	Una storia che tocchi nella riga delle storie si apre con uno zoom più lento che non rimbalza, e si chiude allo stesso modo.
+Emoji pack	Pacchetto emoji
+Your phone's emoji	Emoji del tuo telefono
+An emoji font file	Un file di font emoji
+Your phone's emoji, or Google's with the switch above on. You can also download a free emoji pack or pick a color emoji font file.	Le emoji del tuo telefono, o quelle di Google con l'interruttore sopra attivo. Puoi anche scaricare un pacchetto di emoji gratuito o scegliere un file di font emoji a colori.
+Emoji draw as %1$s, downloaded from its maker. Restart Instagram to see a change.	Le emoji appaiono come %1$s, scaricate dal loro autore. Riavvia Instagram per vedere una modifica.
+Emoji draw from the emoji font file you picked. Pick it again to change the file. Restart Instagram to see a change.	Le emoji usano il file di font emoji che hai scelto. Sceglilo di nuovo per cambiare il file. Riavvia Instagram per vedere una modifica.
+Downloading the emoji...	Scaricamento delle emoji...
+Couldn't download the emoji. Try again.	Impossibile scaricare le emoji. Riprova.
+Emoji saved. Restart Instagram to see them.	Emoji salvate. Riavvia Instagram per vederle.
+No color emoji in that file. Nothing changed.	Nessuna emoji a colori nel file. Nulla è cambiato.
+Couldn't load your emoji, so the phone's show.	Emoji non caricate, restano quelle del telefono.
+# context: Stories settings: the Ambient light in stories switch (#420)
+Ambient light in stories	Luce ambientale nelle storie
+Fills the bands above and below a story that doesn't fill the screen with a soft glow in its own colors. Glow spread and Glow speed, under Feed, set it too.	Riempie le fasce sopra e sotto una storia che non occupa tutto lo schermo con un bagliore morbido dei suoi stessi colori. Anche Ampiezza del bagliore e Velocità del bagliore, in Feed, lo regolano.
+# context: Ads and privacy settings: switch that keeps Instagram's screens asking to sync contacts and to turn on location services from opening at each start (#295, #329, #421)
+Skip the contacts and location popups	Salta i popup di contatti e posizione
+# context: summary under that switch
+The screens asking you to sync your contacts and turn on location services stop opening each time Instagram starts. Nothing else is skipped.	Le schermate che ti chiedono di sincronizzare i contatti e di attivare i servizi di localizzazione smettono di aprirsi a ogni avvio di Instagram. Nient'altro viene saltato.
+# context: Playback settings: switch that stops feed videos and reels from playing again from the start when they end (#248, #175)
+Stop videos looping	Non ripetere i video
+# context: summary under that switch; auto scroll is Instagram's own Reels setting, worded as in Keep auto scroll on
+Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	I video del feed e i reel si fermano sull'ultimo fotogramma invece di ripartire. I reel continuano a ripetersi finché lo scorrimento automatico è attivo, così può passare al successivo.

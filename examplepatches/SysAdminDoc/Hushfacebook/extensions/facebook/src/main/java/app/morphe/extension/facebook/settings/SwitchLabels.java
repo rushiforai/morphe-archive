@@ -23,6 +23,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_PROMOTED_POSTS) return L10n.t("Hide promoted posts");
         if (setting == Settings.HIDE_SPONSORED_PROFILE_POSTS) return L10n.t("Hide sponsored profile posts");
         if (setting == Settings.HIDE_PROFILE_NOTES) return L10n.t("Hide profile notes");
+        if (setting == Settings.LOCAL_PROFILE_COUNTS) return L10n.t("Local profile counts");
         if (setting == Settings.POST_SAVE_BUTTON) return L10n.t("Save button under posts");
         if (setting == Settings.POST_DOWNLOAD_BUTTON) return L10n.t("Download button under posts");
         if (setting == Settings.HIDE_POST_LIKE_BUTTON) return L10n.t("Hide Like under posts");
@@ -57,10 +58,12 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_META_AI_QUESTIONS) return L10n.t("Hide Meta AI questions under posts");
         if (setting == Settings.KEEP_POST_DATES) return L10n.t("Keep post dates");
         if (setting == Settings.SHOW_FULL_POST_TEXT) return L10n.t("Show full post text");
+        if (setting == Settings.SEE_WHO_SHARED) return L10n.t("See who shared");
         if (setting == Settings.TURN_OFF_AUTO_TRANSLATION) return L10n.t("Turn off auto-translation");
         if (setting == Settings.HIDE_FEEDS_HEADER) return L10n.t("Hide the Feeds header");
         if (setting == Settings.BLOCK_RETURN_REFRESH) return L10n.t("Keep feed position on return");
         if (setting == Settings.RETURN_REFRESH_NO_LIMIT) return L10n.t("No time limit");
+        if (setting == Settings.BACK_KEEPS_HOME) return L10n.t("Back leaves Home where it is");
         if (setting == Settings.HIDE_AI_DETECTED_POSTS) return L10n.t("Hide AI-detected posts");
         if (setting == Settings.HIDE_AI_LABELLED_POSTS) return L10n.t("Also hide posts labeled as AI");
         if (setting == Settings.HIDE_META_AI_FEED_UNITS) return L10n.t("Hide Meta AI in the feed");
@@ -86,6 +89,7 @@ final class SwitchLabels {
         if (setting == Settings.MARK_STORIES_SEEN) return L10n.t("Mark as seen button");
         if (setting == Settings.UPLOAD_STORIES_IN_HD) return L10n.t("Upload Stories in HD");
         if (setting == Settings.LONGER_STORY_MUSIC) return L10n.t("Longer music on photo stories");
+        if (setting == Settings.STORIES_TRAY_CIRCLES) return L10n.t("Round stories tray");
         if (setting == Settings.PINCH_TO_ZOOM) return L10n.t("Pinch to zoom");
         if (setting == Settings.PINCH_TO_ZOOM_KEEP) return L10n.t("Stay zoomed");
         if (setting == Settings.PINCH_TO_ZOOM_DOUBLE_TAP) return L10n.t("Double tap to zoom");
@@ -102,6 +106,8 @@ final class SwitchLabels {
         if (setting == Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES) return L10n.t("Tap anywhere on View more replies");
         if (setting == Settings.HIDE_POST_COMMENT_PREVIEWS) return L10n.t("Hide comments under posts");
         if (setting == Settings.HIDE_COMMENT_DOWNVOTE_BUTTON) return L10n.t("Hide dislike on comments");
+        if (setting == Settings.HIDE_COMMENT_LIKE_BUTTON) return L10n.t("Hide Like on comments");
+        if (setting == Settings.COMMENT_BLOCK_BUTTON) return L10n.t("Block button on comments");
         if (setting == Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS) return L10n.t("Hide related groups");
         if (setting == Settings.HIDE_SHOP_LINK_COMMENTS) return L10n.t("Hide comments with shop links");
         if (setting == Settings.HIDE_COMMENTS_WITH_WORDS) return L10n.t("Hide comments with your words");
@@ -146,6 +152,8 @@ final class SwitchLabels {
         if (setting == Settings.PLAY_REELS_ONCE) return L10n.t("Play reels once");
         if (setting == Settings.ORIGINAL_AUDIO) return L10n.t("Keep the original audio");
         if (setting == Settings.HIDE_REEL_SEARCH_PILL) return L10n.t("Hide the search pill on reels");
+        if (setting == Settings.HIDE_VIEWER_TOP_BUTTONS) return L10n.t("Hide the top right buttons on opened videos");
+        if (setting == Settings.BURN_IN_STAY_DIM) return L10n.t("Stay dim when I tap");
         if (setting == Settings.HIDE_REEL_COUNTS) return L10n.t("Hide counts on reels");
         if (setting == Settings.HIDE_REEL_SAVE_BUTTON) return L10n.t("Hide Save on reels");
         if (setting == Settings.HIDE_REEL_WHATSAPP_BUTTON) return L10n.t("Hide WhatsApp on reels");
@@ -153,6 +161,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REEL_COMMENT_BUTTON) return L10n.t("Hide Comment on reels");
         if (setting == Settings.HIDE_REEL_SHARE_BUTTON) return L10n.t("Hide Share on reels");
         if (setting == Settings.SHOW_REEL_COMMENT_BUTTON) return L10n.t("Show Comment when comments are off");
+        if (setting == Settings.SHOW_REEL_POST_DATE) return L10n.t("Show the post date on reels");
         if (setting == Settings.HIDE_REEL_SOUND_BUTTON) return L10n.t("Hide the speaker button on reels");
         if (setting == Settings.HIDE_REEL_AUDIO_LINE) return L10n.t("Hide the audio line on reels");
         if (setting == Settings.HIDE_SLOW_CONNECTION_MESSAGE) return L10n.t("Hide the slow connection message");
@@ -160,6 +169,7 @@ final class SwitchLabels {
         if (setting == Settings.PLAY_FEED_REELS_WHOLE) return L10n.t("Play whole reels in the feed's Reels row");
         if (setting == Settings.DONT_SEND_REEL_WATCH_HISTORY) return L10n.t("Don't send reel watch history");
         if (setting == Settings.NEWEST_REELS_FIRST) return L10n.t("Sort loaded reels");
+        if (setting == Settings.PROFILE_REELS_MOST_VIEWED) return L10n.t("Most viewed on profile Reels");
         if (setting == Settings.HOLD_ANALYTICS_UPLOADS) return L10n.t("Hold back analytics uploads");
         if (setting == Settings.HOLD_CAMERA_ROLL_PROCESSING) return L10n.t("Hold back camera roll processing");
         if (setting == Settings.ALLOW_SCREENSHOTS) return L10n.t("Allow screenshots");
@@ -183,15 +193,18 @@ final class SwitchLabels {
         if (setting == Settings.KEEP_REEL_SPEED) return L10n.t("Keep the reel speed");
         if (setting == Settings.KEEP_VIDEO_SPEED) return L10n.t("Keep the video speed");
         if (setting == Settings.SLOWER_REEL_SPEEDS) return L10n.t("Slower speeds");
+        if (setting == Settings.SPEED_ON_REPLAYS) return L10n.t("Speed on finished live videos");
         if (setting == Settings.HOLD_REEL_FOR_2X) return L10n.t("Hold a reel for 2x");
         if (setting == Settings.HOLD_REEL_RIGHT_EDGE) return L10n.t("Only on the right edge");
         if (setting == Settings.HOLD_FEED_VIDEO_FOR_2X) return L10n.t("Hold a feed video for 2x");
         if (setting == Settings.HIDE_2X_LOCK_HINT) return L10n.t("Hide the pull down to lock hint");
         if (setting == Settings.DOWNLOAD_REELS) return L10n.t("Download");
         if (setting == Settings.SHOW_REEL_DOWNLOAD_BUTTON) return L10n.t("Download button on reels");
+        if (setting == Settings.REEL_CAST_BUTTON) return L10n.t("Cast button on reels");
         if (setting == Settings.COPY_REEL_CAPTION) return L10n.t("Copy reel captions");
         if (setting == Settings.TAP_TO_PLAY) return L10n.t("Tap to play");
         if (setting == Settings.TAP_TO_PLAY_REELS_AFTER_FIRST) return L10n.t("Only the first reel waits");
+        if (setting == Settings.TAP_TO_PLAY_STORIES) return L10n.t("Video stories wait for a tap");
         if (setting == Settings.INLINE_FEED_VIDEO_CONTROLS) return L10n.t("Inline feed video controls");
         if (setting == Settings.FEED_VIDEO_CAST_BUTTON) return L10n.t("Cast button on feed videos");
         if (setting == Settings.RESUME_LONG_VIDEOS) return L10n.t("Resume long videos");
@@ -206,6 +219,7 @@ final class SwitchLabels {
         if (setting == Settings.DRAW_VIDEOS_WITH_THE_SCREEN) return L10n.t("Fix washed-out video colors");
         if (setting == Settings.SKIP_SILENT_PARTS) return L10n.t("Skip silent parts");
         if (setting == Settings.KEEP_FEED_VIDEOS_MUTED) return L10n.t("Keep feed videos muted");
+        if (setting == Settings.MUTE_STORIES) return L10n.t("Mute stories");
         if (setting == Settings.KEEP_PROGRESS_BAR) return L10n.t("Keep the progress bar");
         if (setting == Settings.KEEP_PROGRESS_BAR_TIME) return L10n.t("Show a reel's time");
         if (setting == Settings.TAP_TO_SEEK) return L10n.t("Tap the bar to seek");
@@ -251,10 +265,12 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_META_AI_POST_BUTTONS) return L10n.t("Hide other Meta AI buttons under posts");
         if (setting == Settings.HIDE_META_AI_IN_SEARCH) return L10n.t("Hide Meta AI in search");
         if (setting == Settings.DONT_SAVE_SEARCH_HISTORY) return L10n.t("Don't save search history");
+        if (setting == Settings.SEARCH_DATE_RANGE) return L10n.t("Search date range");
         if (setting == Settings.HIDE_SPONSORED_SEARCH_RESULTS) return L10n.t("Hide sponsored search results");
         if (setting == Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS) return L10n.t("Hide sponsored Marketplace listings");
         if (setting == Settings.MARKETPLACE_ADVANCED_SEARCH) return L10n.t("Advanced Marketplace search");
         if (setting == Settings.MARKETPLACE_FILTERS_BUTTON) return L10n.t("Adv. Filters button");
+        if (setting == Settings.MARKETPLACE_LISTING_DATE) return L10n.t("Show when listings went up");
         if (setting == Settings.SHOW_SELLER_VIEW_PROFILE) return L10n.t("Show View profile on Marketplace sellers");
         if (setting == Settings.BLOCK_GAME_ADS) return L10n.t("Block Instant Games ads");
         if (setting == Settings.ANSWER_REWARDED_GAME_ADS) return L10n.t("Answer rewarded game ads as watched");
@@ -293,6 +309,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_FACEBOOK_LOGO) return L10n.t("Hide the Facebook logo");
         if (setting == Settings.HIDE_CREATE_BUTTON) return L10n.t("Hide the Create button");
         if (setting == Settings.HIDE_SEARCH_BUTTON) return L10n.t("Hide the search button");
+        if (setting == Settings.SEARCH_WITH_PICTURE) return L10n.t("Search with a picture");
         if (setting == Settings.FORCE_DARK_MODE) return L10n.t("Force dark mode");
         if (setting == Settings.AMOLED_FLAT_CARDS) return L10n.t("Black cards");
         if (setting == Settings.AMOLED_FEED_GAPS) return L10n.t("Lines between posts");

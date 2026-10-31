@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="0x7f0b03fb"
+    android:background="?unknown_attr_ref: 7f040541"
+    android:layout_width="48dp"
+    android:layout_height="match_parent"
+    android:src="0x7f0802c5"
+    android:scaleType="centerInside"
+    android:layout_weight="0"
+    android:contentDescription="0x7f14003d"/>

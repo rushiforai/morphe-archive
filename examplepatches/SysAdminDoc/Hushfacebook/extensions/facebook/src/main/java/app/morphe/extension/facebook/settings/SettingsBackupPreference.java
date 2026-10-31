@@ -46,6 +46,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.reels.BurnInMode;
+import app.morphe.extension.facebook.reels.BurnInWait;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.SaveTo;
@@ -407,6 +409,8 @@ public class SettingsBackupPreference extends Preference {
             if (snapshot.feedTypesChange() != null) parts.add(feedTypesSentence(snapshot.feedTypesChange()));
             if (snapshot.homeFeedChange() != null) parts.add(homeFeedSentence(snapshot.homeFeedChange()));
             if (snapshot.reelsOrderChange() != null) parts.add(reelsOrderSentence(snapshot.reelsOrderChange()));
+            if (snapshot.burnInChange() != null) parts.add(burnInSentence(snapshot.burnInChange()));
+            if (snapshot.burnInWaitChange() != null) parts.add(burnInWaitSentence(snapshot.burnInWaitChange()));
             if (snapshot.backgroundChange() != null) parts.add(backgroundSentence(snapshot.backgroundChange()));
             if (snapshot.lightBackgroundChange() != null) parts.add(lightBackgroundSentence(snapshot.lightBackgroundChange()));
             if (snapshot.badgeChange() != null) parts.add(markColorSentence(Mark.BADGE, snapshot.badgeChange()));
@@ -582,6 +586,17 @@ public class SettingsBackupPreference extends Preference {
     /** The sentence that says what Sort loaded reels sorts by after an import. */
     static String reelsOrderSentence(ReelsOrder order) {
         return L10n.f("Reels order will be set to %1$s.", HushfacebookPreferenceFragment.reelsOrderLabel(order));
+    }
+
+    /** The sentence that says what Burn-in guard does after an import (#288). */
+    static String burnInSentence(BurnInMode mode) {
+        return L10n.f("Burn-in guard will be set to %1$s.", HushfacebookPreferenceFragment.burnInLabel(mode));
+    }
+
+    /** The sentence that says how long Burn-in guard waits after an import (#288). */
+    static String burnInWaitSentence(BurnInWait wait) {
+        if (wait == BurnInWait.AT_ONCE) return L10n.t("Burn-in guard will dim the Reels screen as soon as you stop touching it.");
+        return L10n.f("Burn-in guard will dim the Reels screen after %1$d seconds without a touch.", (int) (wait.millis / 1000));
     }
 
     /** The sentence that says in what order comments open after an import. */
@@ -1007,6 +1022,8 @@ public class SettingsBackupPreference extends Preference {
                     + (snapshot.feedTypesChange() == null ? "" : " " + feedTypesSentence(snapshot.feedTypesChange()))
                     + (snapshot.homeFeedChange() == null ? "" : " " + homeFeedSentence(snapshot.homeFeedChange()))
                     + (snapshot.reelsOrderChange() == null ? "" : " " + reelsOrderSentence(snapshot.reelsOrderChange()))
+                    + (snapshot.burnInChange() == null ? "" : " " + burnInSentence(snapshot.burnInChange()))
+                    + (snapshot.burnInWaitChange() == null ? "" : " " + burnInWaitSentence(snapshot.burnInWaitChange()))
                     + (snapshot.backgroundChange() == null ? "" : " " + backgroundSentence(snapshot.backgroundChange()))
                     + (snapshot.lightBackgroundChange() == null ? "" : " " + lightBackgroundSentence(snapshot.lightBackgroundChange()))
                     + (snapshot.badgeChange() == null ? "" : " " + markColorSentence(Mark.BADGE, snapshot.badgeChange()))

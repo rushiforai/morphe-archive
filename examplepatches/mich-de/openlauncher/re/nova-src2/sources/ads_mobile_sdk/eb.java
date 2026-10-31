@@ -1,0 +1,56 @@
+package ads_mobile_sdk;
+
+import c80.d;
+import java.io.Closeable;
+import java.io.Serializable;
+import kotlin.coroutines.jvm.internal.ContinuationImpl;
+
+/* loaded from: classes2.dex */
+public final class eb extends ContinuationImpl {
+
+    /* renamed from: a, reason: collision with root package name */
+    public sb f2823a;
+
+    /* renamed from: b, reason: collision with root package name */
+    public pi.c f2824b;
+
+    /* renamed from: c, reason: collision with root package name */
+    public Object f2825c;
+
+    /* renamed from: d, reason: collision with root package name */
+    public Closeable f2826d;
+
+    /* renamed from: e, reason: collision with root package name */
+    public Object f2827e;
+
+    /* renamed from: f, reason: collision with root package name */
+    public Serializable f2828f;
+
+    /* renamed from: g, reason: collision with root package name */
+    public Object f2829g;
+
+    /* renamed from: h, reason: collision with root package name */
+    public d f2830h;
+
+    /* renamed from: k, reason: collision with root package name */
+    public /* synthetic */ Object f2831k;
+
+    /* renamed from: l, reason: collision with root package name */
+    public final /* synthetic */ sb f2832l;
+
+    /* renamed from: m, reason: collision with root package name */
+    public int f2833m;
+
+    /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
+    public eb(sb sbVar, ContinuationImpl continuationImpl) {
+        super(continuationImpl);
+        this.f2832l = sbVar;
+    }
+
+    @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+    public final Object invokeSuspend(Object obj) {
+        this.f2831k = obj;
+        this.f2833m |= Integer.MIN_VALUE;
+        return sb.a(this.f2832l, (pi.c) null, this);
+    }
+}

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">Prasukti pirmyn %d sekundę</item>
+        <item quantity="few">Prasukti pirmyn %d sekundes</item>
+        <item quantity="many">Prasukti pirmyn %d sekundės</item>
+        <item quantity="other">Prasukti pirmyn %d sekundžių</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">Atsukti atgal %d sekundę</item>
+        <item quantity="few">Atsukti atgal %d sekundes</item>
+        <item quantity="many">Atsukti atgal %d sekundės</item>
+        <item quantity="other">Atsukti atgal %d sekundžių</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d susitikimai</item>
+        <item quantity="one">%d susitikimas</item>
+        <item quantity="two">%d susitikimai</item>
+        <item quantity="few">%d susitikimai</item>
+        <item quantity="many">%d susitikimai</item>
+        <item quantity="other">%d susitikimai</item>
+    </plurals>
+</resources>

@@ -11,7 +11,7 @@ object EsetCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0094A0,
         targets = listOf(
-            AppTarget(version = "12.0.17.0")
+            AppTarget(version = "12.0.17.0", isExperimental = true)
         )
     )
 }

@@ -31,10 +31,17 @@ public final class SettingsProfiles {
         numberKey(VideoViewerSettings.INLINE_LIMIT,1,8);defaultValue(VideoViewerSettings.INLINE_LIMIT,2);
         numberKey(VideoViewerSettings.INLINE_MB,1,64);defaultValue(VideoViewerSettings.INLINE_MB,8);
         booleanKey(VideoViewerSettings.X_GIF_AUTOPLAY);defaultValue(VideoViewerSettings.X_GIF_AUTOPLAY,true);
+        booleanKey(VideoViewerSettings.INLINE_WIFI);defaultValue(VideoViewerSettings.INLINE_WIFI,false);
+        booleanKey(HomeSelectionBar.KEY);defaultValue(HomeSelectionBar.KEY,false);
         booleanKey(VideoViewerSettings.INLINE_GIF);defaultValue(VideoViewerSettings.INLINE_GIF,false);
         booleanKey(ImageViewerRotationButton.MENU_KEY);defaultValue(ImageViewerRotationButton.MENU_KEY,true);
         booleanKey(UpdateConnectionHeaders.KEY);defaultValue(UpdateConnectionHeaders.KEY,true);
-        numberKey(CachedSearchOrder.KEY,0,2);defaultValue(CachedSearchOrder.KEY,0);
+        numberKey(CachedSearchOrder.KEY,0,4);defaultValue(CachedSearchOrder.KEY,0);
+        for(String k:new String[]{EdgeLevelNg.OBSERVED}){booleanKey(k);defaultValue(k,false);}
+        booleanKey("edgeLevelAutoSync");defaultValue("edgeLevelAutoSync",true);
+        numberKey("edgeLevelThreshold",0,9999);defaultValue("edgeLevelThreshold",5);
+        numberKey("edgeLevelIntervalMinutes",15,1440);defaultValue("edgeLevelIntervalMinutes",30);
+
         booleanKey(GlobalTitleSearch.KEY);defaultValue(GlobalTitleSearch.KEY,false);
         RULES.put(GlobalTitleSearch.BOARDS,v->v instanceof String&&GlobalTitleSearch.validSelection((String)v));defaultValue(GlobalTitleSearch.BOARDS,"");
         for(String key:new String[]{VideoViewerSettings.GIF_NATIVE,VideoViewerSettings.VIDEO_NATIVE,VideoViewerSettings.THREAD_MEDIA}){
@@ -46,6 +53,7 @@ public final class SettingsProfiles {
         defaultValue(HaiagaruSettingsGestures.SENSITIVITY,100);
         defaultValue(ExpertSettings.KEY,false);
         for(String key:EXTRA_BOOLEAN)booleanKey(key);
+        for(String key:new String[]{ThreadSearchOptions.ID,ThreadSearchOptions.WACCHOI,ThreadSearchOptions.NAME}){booleanKey(key);defaultValue(key,true);}
         for(String key:new String[]{VideoViewerSettings.HOLD_SPEED,VideoViewerSettings.TAP_CONTROLS,VideoViewerSettings.CHMATE_GESTURES,
                 VideoViewerSettings.MEDIA_SWIPE,VideoViewerSettings.GIF_AUTOPLAY,VideoViewerSettings.LETTERBOX_TOUCH}){booleanKey(key);defaultValue(key,true);}
         numberKey("videoPreviewMinimumSeconds",0,86459);
@@ -99,7 +107,7 @@ public final class SettingsProfiles {
         defaultValue("imageVpnDomains",ImageVpnRequestPolicy.DEFAULT_DOMAINS);
     }
     private static final String[] EXTRA_BOOLEAN={
-        "hideNgWordIdReplies",
+        "hideNgWordIdReplies",ChainAboneVisibility.KEY,EdgeLevelNg.OBSERVED,
         "urlImageFetchEnabled","videoFrameThumbnailsEnabled","videoSwipeBrightness","videoSwipeVolume","videoDoubleTapSeek","videoYoutubeEnabled","videoAutoplay",
         "siteCardsEnabled","siteCardImages",XPostPreviewPosition.ENABLED,"patrolImagesEnabled","patrolImageFilterEnabled","responseArchiveEnabled","directBodySelection",
         "popularReplyPopup","popularReplyDirect","quickFilterCounts","quickFilterExtras","bottomQuickFilterPanel","persistentBottomQuickFilters","compactQuickFilters","wacchoiSearchEnabled","wacchoiBackgroundSearch",

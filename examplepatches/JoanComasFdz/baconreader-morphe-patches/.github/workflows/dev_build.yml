@@ -1,0 +1,57 @@
+name: Dev build
+
+# Builds the patches and uploads them as a workflow artifact, together with the latest
+# Morphe Desktop jar, so a build can be tested without creating a release.
+on:
+  push:
+    branches-ignore:
+      - main
+    # Skip pushes that only change files the build doesn't use.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - 'NOTICE'
+      - '.github/ISSUE_TEMPLATE/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build patches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew buildAndroid --no-daemon
+
+      - name: Download Morphe Desktop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release download --repo MorpheApp/morphe-desktop --pattern '*.jar' --dir morphe-desktop
+
+      - name: Upload patches
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches
+          path: patches/build/libs/patches-*.mpp
+          if-no-files-found: error
+
+      - name: Upload Morphe Desktop
+        uses: actions/upload-artifact@v4
+        with:
+          name: morphe-desktop
+          path: morphe-desktop/*.jar
+          if-no-files-found: error

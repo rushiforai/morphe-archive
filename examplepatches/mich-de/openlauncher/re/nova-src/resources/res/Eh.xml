@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <ImageView
+        android:layout_gravity="center_vertical"
+        android:id="0x7f0b05ce"
+        android:background="?unknown_attr_ref: 7f040541"
+        android:padding="8dp"
+        android:duplicateParentState="false"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="0x7f080434"
+        android:scaleType="centerInside"
+        android:tint="?android:attr/textColorHint"
+        android:contentDescription="0x7f14003d"/>
+    <android.widget.CheckBox
+        android:layout_gravity="end|center_vertical"
+        android:id="0x7f0b0152"
+        android:focusable="false"
+        android:clickable="false"
+        android:duplicateParentState="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="0"
+        app:layout_constraintEnd_toEndOf="0"
+        app:layout_constraintTop_toTopOf="0"/>
+</LinearLayout>

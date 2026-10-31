@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:gravity="center"
+        android:id="0x7f0b06a7"
+        android:paddingBottom="0dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toStartOf="0"
+        app:layout_constraintTop_toTopOf="0"
+        style="0x7f150171"/>
+    <com.teslacoilsw.launcher.widget.DumbRadioGrid
+        android:id="0x7f0b04a7"
+        android:paddingTop="64dp"
+        android:paddingBottom="12dp"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:columnCount="3"
+        app:layout_constraintEnd_toEndOf="0"
+        app:layout_constraintStart_toStartOf="0"
+        app:layout_constraintTop_toTopOf="0">
+        <com.teslacoilsw.launcher.preferences.fancyprefs.color.ColorSwatchRadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#303030"
+            android:color="#ff303030"
+            style="0x7f150143"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.color.ColorSwatchRadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#121212"
+            android:color="#ff121212"/>
+        <com.teslacoilsw.launcher.preferences.fancyprefs.color.ColorSwatchRadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#000000"
+            android:color="#ff000000"/>
+    </com.teslacoilsw.launcher.widget.DumbRadioGrid>
+</merge>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.afollestad.materialdialogs.internal.MDRootLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:md_reduce_padding_no_title_no_buttons="false">
+    <include layout="0x7f0e0125"/>
+    <ScrollView
+        android:id="0x7f0b01a9"
+        android:paddingTop="0x7f070351"
+        android:paddingBottom="0x7f070350"
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textSize="0x7f070352"
+            android:id="0x7f0b01a5"
+            android:paddingLeft="0x7f070353"
+            android:paddingRight="0x7f070353"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </ScrollView>
+    <include layout="0x7f0e0121"/>
+</com.afollestad.materialdialogs.internal.MDRootLayout>

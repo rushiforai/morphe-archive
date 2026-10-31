@@ -1,0 +1,73 @@
+/* Stage layout: lines absolutely placed by the engine, sized to their text. Only layout is set here;
+   colour, type and animation stay with lyrics.css and the theme. */
+.blyrics-container[data-layout="stage"] {
+	position: absolute !important;
+	inset: 0;
+	padding: 0 !important;
+	overflow: visible;
+	pointer-events: none;
+}
+
+.blyrics-container[data-layout="stage"] > :is(.blyrics--line, .blyrics-credits) {
+	position: absolute !important;
+	top: 0;
+	right: 0;
+	left: 0;
+	width: fit-content;
+	max-width: 100%;
+	margin: 0 auto !important;
+	padding: 0.1em 0.25em !important;
+}
+
+/* Layered, so these important declarations outrank any unlayered important one a theme writes,
+   whatever its specificity: the stage alone decides which lines are seen. */
+@layer braccato-stage {
+	.blyrics-container[data-layout="stage"] > :is(.blyrics--line, .blyrics-credits) {
+		opacity: var(--blyrics-stage-opacity, 0) !important;
+	}
+
+	.blyrics-container[data-layout="stage"] > :is(.blyrics--line, .blyrics-credits):not([data-stage-visible]) {
+		visibility: hidden !important;
+	}
+}
+
+.blyrics-container[data-layout="stage"] > :not(.blyrics--line, .blyrics-credits) {
+	display: none !important;
+}
+
+.blyrics-container[data-layout="stage"] > * {
+	text-align: center;
+	transform-origin: center center !important;
+}
+
+/* The romanization pill is a fit-content block, so text-align cannot place it. */
+.blyrics-container[data-layout="stage"] > .blyrics--line > .blyrics--romanized {
+	margin-right: auto;
+	margin-left: auto;
+}
+
+/* A duet puts each singer on their own side, mirrored for right-to-left lines; everyone together
+   stays centred. */
+.blyrics-container[data-layout="stage"][data-stage-duet] > .blyrics--line:not([data-agent="v2"], [data-agent="v3"], [data-agent="v1000"]):not([data-direction="rtl"]),
+.blyrics-container[data-layout="stage"][data-stage-duet] > .blyrics--line:is([data-agent="v2"], [data-agent="v3"])[data-direction="rtl"] {
+	margin: 0 auto 0 0 !important;
+	text-align: left;
+	transform-origin: left center !important;
+}
+
+.blyrics-container[data-layout="stage"][data-stage-duet] > .blyrics--line:not([data-agent="v2"], [data-agent="v3"], [data-agent="v1000"]):not([data-direction="rtl"]) > .blyrics--romanized,
+.blyrics-container[data-layout="stage"][data-stage-duet] > .blyrics--line:is([data-agent="v2"], [data-agent="v3"])[data-direction="rtl"] > .blyrics--romanized {
+	margin-left: 0;
+}
+
+.blyrics-container[data-layout="stage"][data-stage-duet] > .blyrics--line:is([data-agent="v2"], [data-agent="v3"]):not([data-direction="rtl"]),
+.blyrics-container[data-layout="stage"][data-stage-duet] > .blyrics--line:not([data-agent="v2"], [data-agent="v3"], [data-agent="v1000"])[data-direction="rtl"] {
+	margin: 0 0 0 auto !important;
+	text-align: right;
+	transform-origin: right center !important;
+}
+
+.blyrics-container[data-layout="stage"][data-stage-duet] > .blyrics--line:is([data-agent="v2"], [data-agent="v3"]):not([data-direction="rtl"]) > .blyrics--romanized,
+.blyrics-container[data-layout="stage"][data-stage-duet] > .blyrics--line:not([data-agent="v2"], [data-agent="v3"], [data-agent="v1000"])[data-direction="rtl"] > .blyrics--romanized {
+	margin-right: 0;
+}

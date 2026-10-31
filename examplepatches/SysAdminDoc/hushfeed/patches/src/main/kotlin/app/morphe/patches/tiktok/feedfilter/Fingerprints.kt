@@ -1211,6 +1211,39 @@ internal object DramaBlockingAdFingerprint : Fingerprint(
     parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;"),
 )
 
+/**
+ * The series player's check that an advert its ad server returned is usable. A false answer is the
+ * app's own "no advert came back", and it moves on without inserting one.
+ */
+internal object SeriesRealtimeAdValidFingerprint : Fingerprint(
+    definingClass = "/innerfeed/realtimead/ShortDramaRealtimeAdRequester;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Z",
+    parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;"),
+)
+internal const val SERIES_FEED_RESP_CLASS_DESCRIPTOR =
+    "Lcom/ss/android/ugc/aweme/minidrama/common/component/topfeed/common/arch/SeriesFeedResp;"
+
+/**
+ * The drama tab's feed answer (#294). PineDrama fetches that feed with requests of its own and
+ * converts the answer straight into this object, so the list never reaches FeedItemList.getItems.
+ * Every converter, the preload, the end-of-drama picks and the copy helper build it through this
+ * one constructor. Real-named class and field, the same shape on TikTok 47.5.3 and PineDrama.
+ */
+internal object SeriesFeedRespConstructorFingerprint : Fingerprint(
+    definingClass = SERIES_FEED_RESP_CLASS_DESCRIPTOR,
+    name = "<init>",
+    returnType = "V",
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IPUT_OBJECT,
+            definingClass = SERIES_FEED_RESP_CLASS_DESCRIPTOR,
+            name = "feedItemList",
+            type = "Ljava/util/List;",
+        ),
+    ),
+)
+
 /** Attaches the floating promotional event badge to the feed. */
 internal object SpecActTouchpointAttachFingerprint : Fingerprint(
     definingClass = "/specact/SpecActServiceImpl;",

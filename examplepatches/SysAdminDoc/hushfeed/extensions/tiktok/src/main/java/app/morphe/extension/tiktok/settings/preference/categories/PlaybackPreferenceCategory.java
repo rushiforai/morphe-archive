@@ -104,6 +104,10 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     "A LIVE in the feed can count down and take you into the room on its own. "
                             + "This keeps you in the feed until you tap it.",
                     Settings.STOP_LIVE_AUTO_ENTER));
+            addPreference(new TogglePreference(context, "Hide the Service+ row under LIVE previews",
+                    "A LIVE in the feed can show a Service+ line under the creator's name, such as "
+                            + "Ask me anything. This keeps it hidden.",
+                    Settings.HIDE_LIVE_SERVICE_PLUS));
             addPreference(new TogglePreference(context, "Show exact LIVE viewer counts",
                     "A LIVE room shows how many people are watching as a rounded number like 1.2K. "
                             + "This shows the exact count instead.",
@@ -269,6 +273,10 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "from another app keeps playing while it's on. DMs, stories and LIVE "
                             + "keep their sound.",
                     Settings.FEED_MUTED));
+            addPreference(new TogglePreference(context, "Let other apps play until a video starts",
+                    "Opening TikTok or your messages no longer pauses music from another app. "
+                            + "TikTok takes the sound once a video starts playing.",
+                    Settings.FOCUS_WAITS_FOR_VIDEO));
         }
         if (SettingsStatus.keepPulledSoundsEnabled) {
             addPreference(new TogglePreference(context, "Play sounds TikTok pulled",
@@ -337,7 +345,8 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     new String[]{"1.25", "1.5", "1.75", "2", "2.5", "3"}));
             if (SettingsStatus.holdSpeedSlideEnabled) {
                 addPreference(new TogglePreference(context, "Slide to change the hold speed",
-                        "While you hold a video, slide left or right to change its speed, and a bubble shows it. "
+                        "While you hold a video, slide left or right to step through the speed menu's speeds, "
+                                + "and a bubble shows the one you're on. Your next hold starts there. "
                                 + "Letting go goes back to normal. A pull-down lock keeps the speed you slid to.",
                         Settings.HOLD_SPEED_SLIDE));
             }

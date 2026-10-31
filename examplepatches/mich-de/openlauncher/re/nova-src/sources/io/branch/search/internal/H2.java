@@ -1,0 +1,21 @@
+package io.branch.search.internal;
+
+/* loaded from: classes4.dex */
+public enum H2 {
+    LOCAL_ZERO_STATE_LINK,
+    LOCAL_ZERO_STATE_AD,
+    LOCAL_SEARCH_LINK,
+    LOCAL_SEARCH_AD,
+    REMOTE_SEARCH,
+    APP_STORE_SEARCH,
+    GROUPS,
+    SUGGESTED_APPS,
+    SUGGESTED_INSTALL,
+    SUGGESTED_CONTENT,
+    LOCAL_ZERO_STATE_LINK_PRELOAD,
+    LOCAL_ZERO_STATE_AD_PRELOAD,
+    LOCAL_SEARCH_LINK_PRELOAD,
+    LOCAL_SEARCH_AD_PRELOAD,
+    /* JADX INFO: Fake field, exist only in values array */
+    LOCAL_REENGAGEMENT_AD
+}

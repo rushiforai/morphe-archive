@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_store">Toko Apl</string>
+    <string name="call_to_action_install">Instal</string>
+    <string name="call_to_action_open">Buka</string>
+    <string name="related_apps">Apl Terkait</string>
+    <string name="search_more">Cari \"%1$s\" di</string>
+    <string name="ssml_navigation_settingsAccessibility">Aksesibilitas</string>
+    <string name="ssml_navigation_settingsAirplaneMode">Mode pesawat</string>
+    <string name="ssml_navigation_settingsAllApps">Semua apl</string>
+    <string name="ssml_navigation_settingsBattery">Baterai</string>
+    <string name="ssml_navigation_settingsBatterySaver">Penghemat baterai</string>
+    <string name="ssml_navigation_settingsBluetooth">Bluetooth</string>
+    <string name="ssml_navigation_settingsCast">Proyeksi</string>
+    <string name="ssml_navigation_settingsDataUsage">Penggunaan data</string>
+    <string name="ssml_navigation_settingsDateAndTime">Tanggal dan waktu</string>
+    <string name="ssml_navigation_settingsDefaultApps">Apl default</string>
+    <string name="ssml_navigation_settingsDeviceInfo">Tentang ponsel</string>
+    <string name="ssml_navigation_settingsDisplay">Tampilan</string>
+    <string name="ssml_navigation_settingsInputMethod">Keyboard layar</string>
+    <string name="ssml_navigation_settingsInternalStorage">Penyimpanan</string>
+    <string name="ssml_navigation_settingsLocale">Bahasa</string>
+    <string name="ssml_navigation_settingsMemoryCard">Kartu memori</string>
+    <string name="ssml_navigation_settingsNetworkAndInternet">Jaringan dan internet</string>
+    <string name="ssml_navigation_settingsNfc">NFC</string>
+    <string name="ssml_navigation_settingsNfcPayment">Pembayaran nirkontak</string>
+    <string name="ssml_navigation_settingsNightDisplay">Tampilan Malam</string>
+    <string name="ssml_navigation_settingsNotifications">Pemberitahuan</string>
+    <string name="ssml_navigation_settingsOverlayPermission">Izin hamparan layar</string>
+    <string name="ssml_navigation_settingsPrivacy">Privasi</string>
+    <string name="ssml_navigation_settingsSecurity">Keamanan</string>
+    <string name="ssml_navigation_settingsSound">Suara</string>
+    <string name="ssml_navigation_settingsTetheringAndHotspot">Hotspot dan penambatan</string>
+    <string name="ssml_navigation_settingsUsageAccess">Akses penggunaan</string>
+    <string name="ssml_navigation_settingsVpn">VPN</string>
+    <string name="ssml_navigation_settingsWiFi">Wi-Fi</string>
+    <string name="stripe_3ds2_bzv_issuer_image_description">Gambar Penerbit</string>
+    <string name="stripe_3ds2_bzv_payment_system_image_description">Gambar Sistem Pembayaran</string>
+    <string name="stripe_3ds2_czv_whitelist_no_label">Tidak</string>
+    <string name="stripe_3ds2_czv_whitelist_yes_label">Ya</string>
+    <string name="stripe_3ds2_hzv_cancel_label">Batalkan</string>
+    <string name="stripe_3ds2_hzv_header_label">Checkout Aman</string>
+    <string name="stripe_3ds2_processing">Memproses…</string>
+</resources>

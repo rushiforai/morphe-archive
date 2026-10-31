@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:paddingTop="24dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <EditText
+        android:textSize="20sp"
+        android:gravity="center"
+        android:id="0x7f0b025f"
+        android:layout_width="128dp"
+        android:layout_height="wrap_content"
+        android:maxLength="3"
+        android:inputType="number"
+        android:imeOptions="actionDone"
+        android:importantForAutofill="no"
+        app:layout_constraintBottom_toBottomOf="0"
+        app:layout_constraintEnd_toEndOf="0"
+        app:layout_constraintStart_toStartOf="0"
+        app:layout_constraintTop_toTopOf="0"/>
+    <TextView
+        android:textSize="20sp"
+        android:id="0x7f0b02fb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:importantForAccessibility="no"
+        android:layout_marginStart="8dp"
+        app:layout_constraintBaseline_toBaselineOf="0x7f0b025f"
+        app:layout_constraintStart_toEndOf="0x7f0b025f"/>
+    <TextView
+        android:textSize="16sp"
+        android:id="0x7f0b0260"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:labelFor="0x7f0b025f"
+        app:layout_constraintBottom_toTopOf="0x7f0b025f"
+        app:layout_constraintEnd_toEndOf="0"
+        app:layout_constraintStart_toStartOf="0"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

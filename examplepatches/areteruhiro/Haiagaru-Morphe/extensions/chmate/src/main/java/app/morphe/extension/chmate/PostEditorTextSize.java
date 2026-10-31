@@ -15,10 +15,12 @@ public final class PostEditorTextSize {
     public static void apply(Activity activity) {
         View root = activity.findViewById(android.R.id.content);
         if (root == null) return;
+        PostMailInput.apply(root);
         update(root, Haiagaru.postEditorTextSizeSp());
         // Fragment views may be attached after the activity's onResume callback.
         root.post(() -> {
             if (!activity.isFinishing() && !activity.isDestroyed()) {
+                PostMailInput.apply(root);
                 update(root, Haiagaru.postEditorTextSizeSp());
             }
         });

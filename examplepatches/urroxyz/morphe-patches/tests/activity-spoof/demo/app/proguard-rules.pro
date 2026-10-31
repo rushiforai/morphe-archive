@@ -1,0 +1,11 @@
+# Keep the public API boundary; application code is still optimized/obfuscated.
+-keep class com.google.android.gms.location.ActivityRecognitionClient { *; }
+-keep class com.google.android.gms.location.ActivityRecognitionResult { *; }
+-keep class com.google.android.gms.location.ActivityTransitionResult { *; }
+-keep class com.google.android.gms.location.ActivityTransitionRequest { *; }
+-keepclassmembers class * implements com.google.android.gms.location.ActivityRecognitionClient { public *; }
+-keep class com.google.android.gms.location.ActivityTransition { *; }
+-keep class com.google.android.gms.location.ActivityTransitionEvent { *; }
+-keep class com.google.android.gms.location.DetectedActivity { *; }
+-keep class com.google.android.gms.tasks.Task { *; }
+-keep class com.google.android.gms.tasks.OnSuccessListener { *; }

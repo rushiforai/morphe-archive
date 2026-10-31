@@ -11,10 +11,8 @@ object Constants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xF5A623,
         targets = listOf(
-            // The version the patches were made from.
+            // The version the patches were made from and tested on.
             AppTarget(version = "4.4.48.15"),
-            // Later versions: fingerprints may still match, the redirect table may miss new calls.
-            AppTarget(version = null, isExperimental = true),
         ),
     )
 }

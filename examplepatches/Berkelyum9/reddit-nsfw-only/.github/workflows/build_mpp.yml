@@ -1,0 +1,72 @@
+name: Build mpp
+run-name: Build Reddit NSFW Only bundle
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Unit-test feed classification/filter policy
+        run: ./tests/run-tests.sh
+
+      - name: Setup Gradle 9.8
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.8.0'
+
+      - name: Build Morphe bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gradle clean :patches:buildAndroid
+
+      - name: Check mpp contains DEX
+        run: |
+          mpp=$(ls patches/build/libs/patches-*.mpp | grep -v -e '-javadoc' -e '-sources')
+          unzip -l "$mpp" | grep -q ' classes.dex$'
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reddit-nsfw-only-mpp
+          path: |
+            patches/build/libs/patches-*.mpp
+            !patches/build/libs/patches-*-javadoc.mpp
+            !patches/build/libs/patches-*-sources.mpp
+          if-no-files-found: error
+
+      - name: Publish new stable GitHub release (never overwrite an existing version)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[publish-release]')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION=$(sed -n 's/^version = //p' gradle.properties | tr -d '[:space:]')
+          TAG="v$VERSION"
+          SRC=$(ls patches/build/libs/patches-*.mpp | grep -v -e '-javadoc' -e '-sources' | head -n1)
+          ASSET="reddit-nsfw-only-$VERSION.mpp"
+          cp "$SRC" "$ASSET"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::notice::Release $TAG already exists. Keeping it unchanged; bump version in gradle.properties to publish a new release."
+            exit 0
+          fi
+
+          gh release create "$TAG" "$ASSET" --target "$GITHUB_SHA" \
+            --title "Reddit NSFW Only v$VERSION" \
+            --notes "Morphe patch bundle for Reddit NSFW Only v$VERSION."

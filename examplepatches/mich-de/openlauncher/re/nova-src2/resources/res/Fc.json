@@ -1,0 +1,180 @@
+{
+    "date": "2022-01-01",
+    "applicationId": "com.teslacoilsw.launcher",
+    "applicationVersion": 80300,
+    "installationId": "b02aba07-a8be-4050-89b0-b12a4eb18ef4",
+    "androidSdkInt": 33,
+    "deviceBrand": "Google",
+    "deviceModel": "Pixel 6",
+    "search_sessions": 4,
+    "search_windows": 5,
+    "search_windows_with_click": 5,
+    "search_opens": {
+        "PREVIOUSLY_OPENED": 1,
+        "SEARCH_BAR": 3,
+        "APP_DRAWER": 1,
+        "GESTURE_DOUBLE_TAP": 1
+    },
+    "search_clicks": {
+        "APP": 2,
+        "LINK_SHORTCUT_INFO": 1,
+        "CONTACT_ACTION_SMS": 2
+    },
+    "search_no_clicks_when_micro_shown": 1,
+    "micro_results_enabled": true,
+    "shortcut_search_enabled": true,
+    "card_view_enabled": true,
+    "web_suggestions": "GOOGLE",
+    "search_more_providers": [
+        "DDG",
+        "GOOGLE",
+        "PLAY",
+        "WIKI",
+        "MAPS",
+        "SPOTIFY",
+        "YOUTUBE"
+    ],
+    "click_records": [
+        {
+            "location": "FEED",
+            "link_type": "STATIC_SHORTCUT",
+            "overall_clicks": 2,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "FEED",
+            "link_type": "APP",
+            "overall_clicks": 7,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "FEED",
+            "link_type": "DYNAMIC_SHORTCUT",
+            "overall_clicks": 3,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "FEED",
+            "link_type": "STATIC_NAVIGATION",
+            "overall_clicks": 1,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "SEARCH",
+            "link_type": "APP",
+            "overall_clicks": 3,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "WORKSPACE",
+            "link_type": "APP",
+            "overall_clicks": 5,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "ZERO_STATE",
+            "link_type": "APP",
+            "overall_clicks": 3,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "ALL_APPS_CONTAINER",
+            "link_type": "SMART_FOLDER",
+            "overall_clicks": 1,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "SMART_FOLDER",
+            "link_type": "APP",
+            "overall_clicks": 1,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "FEED_SEARCH",
+            "link_type": "STATIC_NAVIGATION",
+            "overall_clicks": 2,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "FEED_SEARCH",
+            "link_type": "STATIC_SHORTCUT",
+            "overall_clicks": 1,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "FEED_SEARCH",
+            "link_type": "DYNAMIC_SHORTCUT",
+            "overall_clicks": 2,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "FEED",
+            "link_type": "CONDUIT_ITEM",
+            "catalog_type": "CONTINUE",
+            "content_type": "Audio:PodcastEpisode",
+            "card_template": "PODCAST_CONTINUE_EPISODE",
+            "overall_clicks": 1,
+            "clicks_when_first": 0
+        },
+        {
+            "location": "FEED",
+            "link_type": "CONDUIT_ITEM",
+            "catalog_type": "USAGE_HISTORY",
+            "content_type": "Audio:MusicalArtist",
+            "card_template": "AUDIO_MUSIC_GRID_CELL",
+            "item_rank": 2,
+            "overall_clicks": 2,
+            "clicks_when_first": 1
+        },
+        {
+            "location": "FEED",
+            "link_type": "CONDUIT_CATALOG",
+            "catalog_type": "CONTINUE",
+            "content_type": "Audio:MusicalTrack",
+            "card_template": "AUDIO_MUSIC_GRID_CELL",
+            "item_rank": 1,
+            "overall_clicks": 1,
+            "clicks_when_first": 0
+        }
+    ],
+    "impression_records": [
+      {
+        "location": "FEED",
+        "overall_impressions": 13,
+        "not_empty_impressions": 13
+      },
+      {
+        "location": "SEARCH",
+        "overall_impressions": 15,
+        "not_empty_impressions": 9
+      },
+      {
+        "location": "ALL_APPS_CONTAINER",
+        "overall_impressions": 5,
+        "not_empty_impressions": 5
+      },
+      {
+        "location": "WORKSPACE",
+        "overall_impressions": 3,
+        "not_empty_impressions": 3
+      },
+      {
+        "location": "FEED_SEARCH",
+        "overall_impressions": 5,
+        "not_empty_impressions": 5
+      }
+    ],
+    "smart_folders_enabled": true,
+    "smart_folder_types": [
+        "ENTERTAINMENT",
+        "SHOPPING",
+        "SOCIAL",
+        "UTILITIES"
+    ],
+    "smart_folders_edits": {
+        "SHOPPING": { "added": 1, "deleted":  0},
+        "ENTERTAINMENT": { "added": 2, "deleted":  0},
+        "UTILITIES": { "added": 9, "deleted":  2},
+        "SOCIAL": { "added": 2, "deleted":  0}
+    }
+}

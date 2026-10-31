@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:background="?unknown_attr_ref: 7f040540"
+    android:paddingLeft="12dp"
+    android:paddingRight="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="?android:attr/listPreferredItemHeight"
+    android:paddingStart="12dp"
+    android:paddingEnd="16dp">
+    <com.android.launcher3.BubbleTextView
+        android:layout_gravity="center_vertical"
+        android:id="0x7f0b036a"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="centerInside"
+        android:contentDescription="0x7f14035d"
+        app:iconDisplay="8"
+        app:iconSizeOverride="48dp"/>
+    <LinearLayout
+        android:gravity="center_vertical"
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical"
+        android:paddingLeft="60dp"
+        android:paddingRight="48dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="60dp"
+        android:paddingEnd="48dp">
+        <TextView
+            android:id="0x7f0b043c"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="2"
+            style="0x7f150284"/>
+        <TextView
+            android:id="0x7f0b0386"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="2"
+            style="0x7f150289"/>
+    </LinearLayout>
+    <android.widget.CheckBox
+        android:layout_gravity="center"
+        android:id="0x7f0b0153"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:clickable="false"
+        android:duplicateParentState="false"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="8dp"
+        android:layout_marginEnd="8dp"/>
+</FrameLayout>

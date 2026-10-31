@@ -128,8 +128,10 @@ class UpdateCheckTests(unittest.TestCase):
         actual = check.source_contracts()
         self.assertFalse(any(app in path for path in actual["source_hashes"]
                              for app in ("/emby/", "/remoteatv/")))
-        self.assertGreaterEqual(len(actual["fingerprints"]), 14)
-        self.assertTrue(any(s["name"] == "getTaskBySid" for s in actual["reflection"]))
+        self.assertTrue({"UserIsProFingerprint", "GetLimitsFingerprint", "ReminderPremiumConsistencyFingerprint",
+                         "FirebaseCertificateFingerprint"} <= {s["id"] for s in actual["fingerprints"]})
+        self.assertEqual(actual["reflection"], [])
+        self.assertNotIn("bridge_source", actual["config"])
         with self.assertRaises(ValueError): check.named('customFingerprint = true', {"definingClass"})
         with self.assertRaises(ValueError): check.string_list('computedParameters()')
         self.assertEqual(check.arguments('a, call("x,y", other()), "(z)"'), ['a', 'call("x,y", other())', '"(z)"'])

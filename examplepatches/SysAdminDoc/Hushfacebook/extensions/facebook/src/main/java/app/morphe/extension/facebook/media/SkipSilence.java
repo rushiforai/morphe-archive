@@ -39,6 +39,14 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * parts while it's the one started last, the start of another video ends that, and the setting
  * itself never changes. A pick seeks the playing video to where it is, since a sink asks again only
  * when its sound restarts, so the change is heard at once.
+ *
+ * <p>Each skip moves the clock on past frames the picture never shows, and Facebook's own dav1d
+ * decoder (meta.dav1d.av1.decoder) watches its drop rate at normal speed only. Over its limit it
+ * takes a reel down to its SD file a few seconds in, and the Quality row goes with it (#286). The
+ * health check already leaves sped-up playback alone, so while silent parts are skipped it's told
+ * the speed isn't normal ({@link #healthSpeed}). Facebook's other checks on dropped frames look at
+ * any speed, so their switches, thresholds and recovery read as off then ({@link #dropFallback},
+ * {@link #dropThreshold}, {@link #dropRecovery}). Decode errors still fall back as before.
  */
 public final class SkipSilence {
     /** Counted under the patch's name each time a sink's sound starts with silent parts skipped. */
@@ -49,6 +57,9 @@ public final class SkipSilence {
 
     /** Counted each time a video's menu gets the row. */
     static final String ROW_ADDED = "Menu with the Skip silent parts row";
+
+    /** Counted each time Facebook's decoder health check starts being left out while silence is skipped. */
+    static final String HEALTH_LEFT_OUT = "Decoder health check left out";
 
     private static final String FAMILY = FamilyNames.SKIP_SILENCE;
 
@@ -77,6 +88,9 @@ public final class SkipSilence {
     /** The video whose silent parts a row kept, until another video starts. */
     @Nullable
     private static volatile String keptWhole;
+
+    /** Facebook's decoder health check was last left out, so a change is logged once. */
+    private static volatile boolean healthLeftOut;
 
     private SkipSilence() {
     }
@@ -114,6 +128,94 @@ public final class SkipSilence {
     private static String playing() {
         Start start = last;
         return start == null ? null : start.videoId;
+    }
+
+    /** Whether the playing video's silent parts are skipped: the switch on and no row keeping them. */
+    private static boolean skipping() {
+        if (!on()) return false;
+        String whole = keptWhole;
+        return whole == null || !whole.equals(playing());
+    }
+
+    // ------------------------------------------------------------------ Facebook's decoder health check
+
+    /**
+     * Injection point, Facebook's Meta dav1d decoder health check, on the playback speed [speed] it
+     * reads before deciding whether to look at the dropped frames. It looks only at normal speed,
+     * so while silent parts are skipped a normal speed is answered as sped up, and the frames the
+     * skips drop never take the video down to its SD file (#286). Never throws.
+     */
+    public static float healthSpeed(float speed) {
+        try {
+            HookStatus.bound(FAMILY, "decoder health");
+            boolean skip = skipping();
+            noteHealth(skip);
+            return skip && Math.abs(speed - 1f) < 0.01f ? speed + 1f : speed;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "decoder health", failure);
+            return speed;
+        }
+    }
+
+    /**
+     * Injection point, each read of a server flag [enabled] that turns on one of Facebook's dav1d
+     * fallbacks on dropped frames at any speed: the drop-rate one it uses when the health check
+     * isn't set up, and the low render rate one, which slows the video down before it falls back.
+     * Off while silent parts are skipped, for the same reason as {@link #healthSpeed}. Never throws.
+     */
+    public static boolean dropFallback(boolean enabled) {
+        try {
+            HookStatus.bound(FAMILY, "drop fallback");
+            boolean skip = skipping();
+            noteHealth(skip);
+            return enabled && !skip;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "drop fallback", failure);
+            return enabled;
+        }
+    }
+
+    /**
+     * Injection point, each read of a dropped frame count [threshold] past which Facebook reports a
+     * video issue that plays the SD file. None is reached while silent parts are skipped, and a
+     * threshold that's off (0 or less) stays off. Never throws.
+     */
+    public static long dropThreshold(long threshold) {
+        try {
+            HookStatus.bound(FAMILY, "drop threshold");
+            boolean skip = skipping();
+            noteHealth(skip);
+            return threshold > 0 && skip ? Long.MAX_VALUE : threshold;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "drop threshold", failure);
+            return threshold;
+        }
+    }
+
+    /**
+     * Injection point, each read of what dav1d's own frame drop warnings make Facebook do
+     * [action]. Nothing (0) while silent parts are skipped. Never throws.
+     */
+    public static long dropRecovery(long action) {
+        try {
+            HookStatus.bound(FAMILY, "drop recovery");
+            boolean skip = skipping();
+            noteHealth(skip);
+            return skip ? 0 : action;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "drop recovery", failure);
+            return action;
+        }
+    }
+
+    /** Logs and counts the checks being left out while silent parts are skipped, or back, once per change. */
+    private static void noteHealth(boolean leftOut) {
+        if (healthLeftOut == leftOut) return;
+        healthLeftOut = leftOut;
+        if (leftOut) HookStatus.counted(FAMILY, HEALTH_LEFT_OUT);
+        Logger.printDebug(() -> leftOut
+                ? "Skip silent parts: Facebook's decoder health check left out while silent parts are skipped"
+                : "Skip silent parts: Facebook's decoder health check runs again");
     }
 
     // ------------------------------------------------------------------ the row
@@ -219,5 +321,6 @@ public final class SkipSilence {
     static void forget() {
         last = null;
         keptWhole = null;
+        healthLeftOut = false;
     }
 }

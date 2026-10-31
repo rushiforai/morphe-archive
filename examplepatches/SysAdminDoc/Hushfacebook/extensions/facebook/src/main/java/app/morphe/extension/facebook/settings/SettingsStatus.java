@@ -90,6 +90,14 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean storiesTrayCircles() {
+        return false;
+    }
+
+    public static boolean localProfileCounts() {
+        return false;
+    }
+
     public static boolean postActionButtons() {
         return false;
     }
@@ -378,6 +386,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean whoShared() {
+        return false;
+    }
+
     public static boolean autoTranslation() {
         return false;
     }
@@ -419,6 +431,10 @@ public final class SettingsStatus {
     }
 
     public static boolean searchHistory() {
+        return false;
+    }
+
+    public static boolean searchDateRange() {
         return false;
     }
 

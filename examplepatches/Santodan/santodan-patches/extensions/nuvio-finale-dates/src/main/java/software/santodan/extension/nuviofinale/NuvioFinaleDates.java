@@ -114,7 +114,7 @@ public final class NuvioFinaleDates {
         if (cardLambda == null) return;
         try {
             boolean library = cardLambda.getClass().getName().equals(NuvioNative.LIBRARY_CARD_NAME);
-            Object item = field(cardLambda, library ? "m" : "o").get(cardLambda);
+            Object item = field(cardLambda, library ? "g" : "h").get(cardLambda);
             String context = CARDS.get(cardLambda);
             if (context == null || !enabled(context)) return;
             if (!"series".equals(findMethod(item.getClass(), "getApiType", 0).invoke(item))) return;

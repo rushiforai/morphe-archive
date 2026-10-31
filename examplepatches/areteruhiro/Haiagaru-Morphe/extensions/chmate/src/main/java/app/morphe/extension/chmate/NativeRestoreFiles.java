@@ -42,9 +42,10 @@ public final class NativeRestoreFiles {
             throw new IOException("データベース保存先を作成できません");
         // A live/journaled database must not be replaced as a standalone file.
         for (String suffix : new String[]{"-wal", "-shm", "-journal"}) {
-            if (new File(source.getPath() + suffix).length() > 0
-                    || new File(target.getPath() + suffix).length() > 0)
-                throw new IOException("データベースの補助ファイルが残っています: " + suffix);
+            if (new File(source.getPath() + suffix).length() > 0)
+                throw new IOException("復元元データベースの補助ファイルが残っています: " + suffix);
+            if (new File(target.getPath() + suffix).length() > 0)
+                throw new IOException("復元先データベースの補助ファイルが残っています: " + suffix);
         }
         File staged = File.createTempFile("haiagaru-restore-", ".sqlite", parent);
         File previous = new File(parent, target.getName() + ".before-restore-" + UUID.randomUUID());

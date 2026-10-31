@@ -1,0 +1,58 @@
+# Build and cache artifacts
+.gradle/
+build/
+**/build/
+.kotlin/
+.mimocode/
+.vs/
+.xmake/
+*.obj
+*.pdb
+*.dll
+*.lib
+*.exe
+Release/
+Debug/
+
+# Android & Local configuration
+local.properties
+*.log
+*.hprof
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# Binaries, APKs & Packages
+*.apk
+*.apks
+*.xapk
+*.aab
+*.idsig
+*.so
+*.mpp
+
+# Deploy scripts
+deploy.ps1
+deploy*.ps1
+
+# Temporary reverse-engineering and scratch dumps
+out_*
+jadx/
+tools/
+scratch/
+tmp/
+tmp_*/
+
+# Scratch & helper scripts
+*.py
+manifest_*
+
+# Agent & generated files
+AGENTS.md
+AGENTS.MD
+patches-list.json

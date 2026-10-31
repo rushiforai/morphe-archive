@@ -38,7 +38,7 @@ import kotlin.Unit;
 public final class NuvioRemainingEpisodesPatch {
     public static final String NAME = "NuvioTV - Remaining episodes in Continue Watching";
     static final String PACKAGE = NuvioNative.PACKAGE_NAME;
-    static final String VERSION = NuvioLayout.BETA8;
+    static final String VERSION = NuvioLayout.LATEST;
     static final String EXTENSION = "Lsoftware/santodan/extension/nuvioremaining/NuvioRemainingEpisodes;";
 
     private NuvioRemainingEpisodesPatch() {}

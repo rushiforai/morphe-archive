@@ -63,8 +63,10 @@ final class KyodemoArchive {
     }
 
     static final class Row {
-        final String titleHtml, dateHtml, url;
-        Row(String title, String date, String url) { this.titleHtml = title; this.dateHtml = date; this.url = url; }
+        final String titleHtml, dateHtml, url, kyodemoUrl;
+        Row(String title, String date, String url, String kyodemoUrl) {
+            this.titleHtml = title; this.dateHtml = date; this.url = url; this.kyodemoUrl = kyodemoUrl;
+        }
     }
     static final class Page {
         final List<Row> rows;
@@ -91,7 +93,8 @@ final class KyodemoArchive {
                 if (!values.isEmpty()) dateHtml = String.join(" / ", values);
             }
             rows.add(new Row(title.group(1).replaceFirst("^\\s*[0-9]+[:：]\\s*", ""),
-                    dateHtml, "https://bbs.eddibb.cc/test/read.cgi/liveedge/" + link.group(2) + "/"));
+                    dateHtml, "https://bbs.eddibb.cc/test/read.cgi/liveedge/" + link.group(2) + "/",
+                    "https://www.kyodemo.net" + link.group(1)));
         }
         boolean next = false;
         Matcher navigation = NEXT.matcher(html);

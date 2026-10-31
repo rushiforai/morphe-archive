@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">තත්පර %dක් වේගයෙන් ඉදිරියට</item>
+        <item quantity="other">තත්පර %dක් වේගයෙන් ඉදිරියට</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">තත්පර %dක් ආපස්සට</item>
+        <item quantity="other">තත්පර %dක් ආපස්සට</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d රැස්වීම්</item>
+        <item quantity="one">රැස්වීම %dක්</item>
+        <item quantity="two">%d රැස්වීම්</item>
+        <item quantity="few">%d රැස්වීම්</item>
+        <item quantity="many">%d රැස්වීම්</item>
+        <item quantity="other">රැස්වීම් %dක්</item>
+    </plurals>
+</resources>

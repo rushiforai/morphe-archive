@@ -1,0 +1,28 @@
+Reddit NSFW Only NOTICE
+
+This is a modified derivative of Reddit NSFW Blocker:
+https://github.com/warleysr/reddit-nsfw-blocker
+
+Reddit NSFW Blocker is itself based on Morphe Patches:
+https://github.com/MorpheApp/morphe-patches
+
+The modern Reddit GraphQL NSFW-cell scanner and home-feed hook in v0.2 are
+adapted from GPLv3 work in:
+https://github.com/variablenine/morphe-patches
+
+This derivative is not affiliated with, endorsed by, or an official release of
+warleysr, variablenine, Morphe, or Reddit.
+
+The upstream NOTICE terms remain applicable.
+
+GPLv3 Section 7b: Preservation of User Notices
+All derivative works (source code and binaries) must include this NOTICE text
+and provide it to the software user.
+
+GPLv3 Section 7c: Prohibiting Misrepresentation of Origin
+Modified versions must be identified and marked in reasonable ways as different
+from the original version so as not to cause confusion regarding their origin.
+
+GPLv3 Section 7e: Declining Grant of Trademark Rights
+This license does not grant trademark rights in the names or marks of the
+upstream projects.

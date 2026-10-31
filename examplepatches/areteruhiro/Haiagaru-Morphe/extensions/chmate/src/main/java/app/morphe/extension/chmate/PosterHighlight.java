@@ -231,6 +231,7 @@ public final class PosterHighlight {
         else view.setText(styled(copyStyles(text),identities[0]),TextView.BufferType.SPANNABLE);
     }
     public static void append(Object menuObject,Object response,Object nativeBoard) {
+        RedIdAutoNg.appendMenu(menuObject,response);
         if(context==null || !(menuObject instanceof Menu) || response==null || nativeBoard==null)return;
         Menu menu=(Menu)menuObject;
         if(!ResponseMenuSettings.visible(ITEM) || menu.findItem(ITEM)!=null)return;
@@ -243,6 +244,7 @@ public final class PosterHighlight {
     }
     /** Native icon/Compose menus may bypass MenuItem's own listener. */
     public static boolean handle(Object object) {
+        if(RedIdAutoNg.handleMenu(object))return true;
         if(!(object instanceof MenuItem) || ((MenuItem)object).getItemId()!=ITEM)return false;
         Identity identity=MENU_TARGETS.get((MenuItem)object);
         Activity activity=Haiagaru.toolbarActivity(null);

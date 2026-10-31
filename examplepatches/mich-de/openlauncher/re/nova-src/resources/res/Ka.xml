@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <view
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:gravity="center"
+        android:id="0x7f0b0480"
+        android:background="@null"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        class="com.teslacoilsw.launcher.widget.NumberPicker$CustomEditText"/>
+</merge>

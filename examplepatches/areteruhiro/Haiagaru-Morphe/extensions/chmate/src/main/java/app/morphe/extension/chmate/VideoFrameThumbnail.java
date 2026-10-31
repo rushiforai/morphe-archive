@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 /** Bounded downloads, one worker, local decoder: never fetch or decode on the UI thread. */
 final class VideoFrameThumbnail {
     private static final java.util.concurrent.ExecutorService WORKER = Executors.newSingleThreadExecutor();
-    private static final Set<String> ATTEMPTED = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static final MediaAttemptGate ATTEMPTED = new MediaAttemptGate(128,60000);
     static boolean fourAllowed() {
         if (!Haiagaru.videoPreviewFourEnabled()) return false;
         if (!Haiagaru.videoPreviewWifiOnly()) return true;
@@ -36,8 +36,11 @@ final class VideoFrameThumbnail {
         int minimumSeconds = Haiagaru.videoPreviewMinimumSeconds(), count = Haiagaru.videoPreviewCount();
         String variant = variant(four, minimumSeconds, count);
         String attempt = variant + ":" + url;
-        if (ATTEMPTED.size() >= 128 || !ATTEMPTED.add(attempt)) return;
-        WORKER.execute(() -> generate(url, four, variant, attempt, minimumSeconds, count));
+        if(XMediaAttachments.hasFramePoster(url,variant))return;
+        if(!ATTEMPTED.begin(attempt,android.os.SystemClock.elapsedRealtime()))return;
+        try{WORKER.execute(() -> {try{generate(url, four, variant, attempt, minimumSeconds, count);}
+            finally{ATTEMPTED.finish(attempt,XMediaAttachments.hasFramePoster(url,variant),android.os.SystemClock.elapsedRealtime());}});}
+        catch(java.util.concurrent.RejectedExecutionException unavailable){ATTEMPTED.cancel(attempt);}
     }
     static String currentVariant() { return variant(fourAllowed(), Haiagaru.videoPreviewMinimumSeconds(), Haiagaru.videoPreviewCount()); }
     private static String variant(boolean four, int minimumSeconds, int count) {
@@ -73,7 +76,7 @@ final class VideoFrameThumbnail {
                 if (VideoFrameDecodeService.blocked(context)) return;
                 if (Haiagaru.mediaAutoFetchMode() == 3) return;
                 // Settings/network may have changed while this request was queued.
-                if (four && !fourAllowed()) { ATTEMPTED.remove(attempt); return; }
+                if (four && !fourAllowed()) { ATTEMPTED.cancel(attempt); return; }
                 video = File.createTempFile("frame-", ".mp4", directory);
                 long maxBytes = Haiagaru.videoThumbnailMaxMb() * 1024L * 1024L;
                 long timeoutMs = Haiagaru.videoThumbnailTimeoutSeconds() * 1000L;
@@ -94,7 +97,7 @@ final class VideoFrameThumbnail {
                         int bytesRead;
                     while (true) {
                         if(!FeatureSwitches.enabled("videoFrameThumbnailsEnabled",true))return;
-                        if (four && !fourAllowed()) { ATTEMPTED.remove(attempt); return; }
+                        if (four && !fourAllowed()) { ATTEMPTED.cancel(attempt); return; }
                         long remaining = timeoutMs - (android.os.SystemClock.elapsedRealtime() - started);
                         if (remaining <= 0) return;
                         connection.setReadTimeout((int) Math.min(8000L, remaining));

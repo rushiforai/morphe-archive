@@ -434,6 +434,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_keep_edit_history", FALSE);
 
     /**
+     * View-once and timed media someone sends you in an ordinary chat stays after you open it, with no
+     * timer, and the server isn't told it was opened (#9).
+     */
+    public static final BooleanSetting KEEP_TIMED_MEDIA =
+            new BooleanSetting("hushtelegram_keep_timed_media", FALSE);
+
+    /**
      * A sticker you tap asks Send or Cancel before it goes into the chat.
      */
     public static final BooleanSetting ASK_BEFORE_STICKER =

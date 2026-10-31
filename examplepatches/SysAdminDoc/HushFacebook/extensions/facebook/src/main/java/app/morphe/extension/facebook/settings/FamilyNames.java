@@ -33,6 +33,7 @@ public final class FamilyNames {
     public static final String META_AI_QUESTIONS = "Hide Meta AI questions under posts";
     public static final String POST_DATES = "Keep post dates";
     public static final String FULL_POST_TEXT = "Show full post text";
+    public static final String WHO_SHARED = "See who shared";
     public static final String AUTO_TRANSLATION = "Turn off auto-translation";
     public static final String FEEDS_HEADER = "Hide the Feeds header";
     public static final String STORIES_TRAY = "Hide Stories tray";
@@ -44,10 +45,12 @@ public final class FamilyNames {
     public static final String STORY_SEEN = "View stories anonymously";
     public static final String STORY_UPLOAD_HD = "Upload Stories in HD";
     public static final String STORY_MUSIC_LENGTH = "Longer music on photo stories";
+    public static final String STORIES_TRAY_CIRCLES = "Round stories tray";
     public static final String SPONSORED_REELS = "Hide sponsored reels";
     public static final String SPONSORED_SEARCH = "Hide sponsored search results";
     public static final String SPONSORED_PROFILE_POSTS = "Hide sponsored profile posts";
     public static final String PROFILE_NOTES = "Hide profile notes";
+    public static final String LOCAL_PROFILE_COUNTS = "Local profile counts";
     public static final String POST_ACTION_BUTTONS = "Post action buttons";
     public static final String SPONSORED_MARKETPLACE = "Hide sponsored Marketplace listings";
     public static final String AFFILIATE_LINKS = "Hide affiliate product links";
@@ -108,6 +111,7 @@ public final class FamilyNames {
     public static final String SHARE_SHEET_ITEMS = "Share sheet items";
     public static final String META_AI_SEARCH = "Hide Meta AI in search";
     public static final String SEARCH_HISTORY = "Don't save search history";
+    public static final String SEARCH_DATE_RANGE = "Search date range";
     public static final String PROMO_NOTIFICATIONS = "Block promotional notifications";
     public static final String AD_PREFETCH = "Block background ad prefetch";
     public static final String AD_TELEMETRY = "Block ad telemetry";

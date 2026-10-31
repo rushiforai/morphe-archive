@@ -321,6 +321,14 @@ public final class ExtraQuickFilters {
     private static boolean legacy(Object a) { return a.getClass().getName().equals("o.m9ExternalSyntheticLambda1"); }
     private static boolean middle(Object a) { return a.getClass().getName().equals("o.listener"); }
     private static Object model(Object a) throws Exception { return field(a,legacy(a)?"Y":middle(a)?"L":"k"); }
+    static Object visibleFragment(Activity activity) throws Exception {
+        for(WeakReference<Object> ref:new ArrayList<>(OWNERS)){
+            Object fragment=ref.get();if(fragment==null)continue;
+            View view=(View)call(fragment,"getView",new Class<?>[0]);
+            if(view!=null&&view.isShown()&&call(fragment,"getActivity",new Class<?>[0])==activity)return fragment;
+        }
+        return null;
+    }
     private static Object adapter(Object fragment) throws Exception {
         View root=(View)call(fragment,"getView",new Class<?>[0]);
         View list=FilterPosition.findList(root);
@@ -456,12 +464,13 @@ public final class ExtraQuickFilters {
             if(legacy(a)||middle(a))urls=(String[])call(r,"d",new Class<?>[0]);
             else urls=(String[])r.getClass().getClassLoader().loadClass("o.KeJ11$RemoteActionCompatParcelizer")
                     .getMethod("a",String.class).invoke(null,field(r,"h"));
+            if(legacy(a))urls=videoFilterUrls(r,urls);
             boolean[] kinds=new boolean[3];
             for(String url:urls) {
                 ClassLoader loader=r.getClass().getClassLoader();Object movie;
                 Class<?> movieType=loader.loadClass(legacy(a)?"o.r0ExternalSyntheticLambda3":middle(a)?"o.MK":"o.zzbuc");
                 movie=movieType.getMethod(legacy(a)?"b":middle(a)?"d":"d",String.class).invoke(null,url);
-                if(movie!=null)kinds[2]=true;
+                if(videoFilterMatch(url,movie))kinds[2]=true;
                 else if(legacy(a))kinds[(Boolean)loader.loadClass("o.r8lambdaeAQm29xfY6v7mMntOfLRXKh8x10").getMethod("c",CharSequence.class).invoke(null,url)?1:0]=true;
                 else if(!middle(a)) {
                     Object helper=loader.loadClass("o.ApiApiOptionsNotRequiredOptions").getField("IconCompatParcelizer").get(null);
@@ -477,6 +486,21 @@ public final class ExtraQuickFilters {
         }
         s.aa=aa;s.mine=mine;s.replies=replies;s.counts=counts;s.failure=null;
         s.popularSnapshot=PopularNativeRows.find(source);
+    }
+    /** Native 191 URL extraction can omit direct videos when automatic fetch is off. */
+    public static String[] videoFilterUrls(Object response,String[] original) {
+        if(!legacyResponse(response))return original;
+        try {
+            String body=(String)field(response,"c");
+            LinkedHashSet<String> urls=new LinkedHashSet<>();
+            if(original!=null)Collections.addAll(urls,original);
+            int initial=urls.size();
+            for(String url:ThreadMediaUrls.collect(body,null))if(DirectVideoUrls.supported(url))urls.add(url);
+            return urls.size()==initial?original:urls.toArray(new String[0]);
+        }catch(Exception unsupported){return original;}
+    }
+    public static boolean videoFilterMatch(String url,Object nativeVideo) {
+        return nativeVideo!=null || DirectVideoUrls.supported(url);
     }
     private static boolean isImage226(ClassLoader loader,String url) throws Exception {
         return (Boolean)loader.loadClass("o.getColorFilter").getMethod("d",CharSequence.class).invoke(null,url);
@@ -678,9 +702,15 @@ public final class ExtraQuickFilters {
                 if(++inspected>10000)break;
                 if(!response(response))continue;
                 if((((Number)flags.invoke(idx,number(response))).intValue()&0x1010)!=0)continue;
-                Method attachments=response.getClass().getDeclaredMethod(legacy(a)||middle(a)?"d":"haiagaruPatrolAttachments");
-                attachments.setAccessible(true);String[] values=(String[])attachments.invoke(response);
-                if(values!=null)for(String value:values){String url=PreviewUrls.normalize(value);
+                String[] values=null;
+                try{
+                    Method attachments=response.getClass().getDeclaredMethod(legacy(a)||middle(a)?"d":"haiagaruPatrolAttachments");
+                    attachments.setAccessible(true);values=(String[])attachments.invoke(response);
+                }catch(ReflectiveOperationException unavailable){/* Original body remains usable. */}
+                String text=(String)field(response,legacy(a)?"c":middle(a)?"d":"h");
+                for(String value:ThreadMediaUrls.collect(text,values)){
+                    String sourceVideo=XMediaAttachments.sourceVideo(value);
+                    String url=PreviewUrls.normalize(sourceVideo==null?value:sourceVideo);
                     if(MediaGallery.supported(url)&&!urls.contains(url)){if(characters+url.length()>96000)break;urls.add(url);characters+=url.length();}
                     if(urls.size()>=4096)break;}
                 if(urls.size()>=4096||characters>=96000)break;

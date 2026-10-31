@@ -221,7 +221,7 @@ public final class NuvioRemainingEpisodes {
         PREPARED_BADGE.remove();
         if (!enabled() || cardLambda == null) return;
         String title;
-        try { title = (String) field(cardLambda, "r").get(cardLambda); }
+        try { title = (String) field(cardLambda, "l").get(cardLambda); }
         catch (Throwable error) {
             Log.e(TAG, "card title read failed class=" + cardLambda.getClass().getName(), error);
             return;
@@ -290,7 +290,7 @@ public final class NuvioRemainingEpisodes {
         Object shape = staticField(Class.forName(NuvioNative.WIDE_CARD_NAME, false, loader), "a").get(null);
         modifier = findStatic(Class.forName("b2.j", false, loader), "b", 2)
             .invoke(null, modifier, shape);
-        Object rectangle = staticField(Class.forName("e2.g0", false, loader), "b").get(null);
+        Object rectangle = staticField(Class.forName("e2.i0", false, loader), "b").get(null);
         modifier = findStatic(Class.forName("y.m", false, loader), "g", 3)
             .invoke(null, modifier, Long.valueOf(background), rectangle);
         modifier = findStatic(Class.forName("e0.b", false, loader), "v", 3)

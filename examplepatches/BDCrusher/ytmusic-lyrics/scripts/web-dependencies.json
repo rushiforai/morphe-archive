@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "packages": [
+    {
+      "path": "anynum",
+      "name": "anynum",
+      "version": "1.0.1",
+      "url": "https://registry.npmjs.org/anynum/-/anynum-1.0.1.tgz",
+      "integrity": "sha512-N6//FLET/tXYNM/F6ABca1oH6fWB+KlTt909Le28WMDBk8oaT4vY17DCrwg2MvmuqUKt3Ni4N5dGJ/EoBgcO6A=="
+    },
+    {
+      "path": "fast-xml-builder",
+      "name": "fast-xml-builder",
+      "version": "1.2.0",
+      "url": "https://registry.npmjs.org/fast-xml-builder/-/fast-xml-builder-1.2.0.tgz",
+      "integrity": "sha512-00aAWieqff+ZJhsXA4g1g7M8k+7AYoMUUHF+/zFb5U6Uv/P0Vl4QZo84/IcufzYalLuEj9928bXN9PbbFzMF0Q=="
+    },
+    {
+      "path": "fast-xml-parser",
+      "name": "fast-xml-parser",
+      "version": "5.11.2",
+      "url": "https://registry.npmjs.org/fast-xml-parser/-/fast-xml-parser-5.11.2.tgz",
+      "integrity": "sha512-R9iDuNrQYeQut46cn2r2wHKn4HYzVDvDm5J1wW+koZewykv0yuO2HChTYeZtrULyHIDM9cj9TUXloCsueCQUog=="
+    },
+    {
+      "path": "is-unsafe",
+      "name": "is-unsafe",
+      "version": "2.0.0",
+      "url": "https://registry.npmjs.org/is-unsafe/-/is-unsafe-2.0.0.tgz",
+      "integrity": "sha512-2LdV822R+wmI86unXA93WCFpL6g+av8ynWk0nrHyJqGop5VoocYsSLFgN8jrfalT6iGeLNM4KXuVSsULP53kEA=="
+    },
+    {
+      "path": "path-expression-matcher",
+      "name": "path-expression-matcher",
+      "version": "1.6.2",
+      "url": "https://registry.npmjs.org/path-expression-matcher/-/path-expression-matcher-1.6.2.tgz",
+      "integrity": "sha512-enSlaiat05iasnzmgNxRj8reFdj3puY2QpNgP1aPIaVfT6nn9ICuPoFlKHk8EN22HcwewshO+mN2DGbkCEOtqQ=="
+    },
+    {
+      "path": "strnum",
+      "name": "strnum",
+      "version": "2.4.2",
+      "url": "https://registry.npmjs.org/strnum/-/strnum-2.4.2.tgz",
+      "integrity": "sha512-rDG3Ah4TV0k1hWvLSzkZtMmLN9+eS+h3knq4MP6A42Y3Yh5qGNnOUs1jJkoSr8FG5dsL28c7KgkIBzSEykqtuw=="
+    },
+    {
+      "path": "xml-naming",
+      "name": "xml-naming",
+      "version": "0.1.0",
+      "url": "https://registry.npmjs.org/xml-naming/-/xml-naming-0.1.0.tgz",
+      "integrity": "sha512-k8KO9hrMyNk6tUWqUfkTEZbezRRpONVOzUTnc97VnCvyj6Tf9lyUR9EDAIeiVLv56jsMcoXEwjW8Kv5yPY52lw=="
+    },
+    {
+      "path": "@braccato/core",
+      "name": "@braccato/core",
+      "version": "1.16.11",
+      "url": "https://registry.npmjs.org/@braccato/core/-/core-1.16.11.tgz",
+      "integrity": "sha512-FRT54hyfgIou9U+eNscdyhJMc+fDYmAIXW1Tm/Sa7OnIaMwmjLBDxi3QfbIq+lZ6ISAniJwb//Ba3nJDkR7FaQ=="
+    },
+    {
+      "path": "@braccato/parsers",
+      "name": "@braccato/parsers",
+      "version": "0.4.0",
+      "url": "https://registry.npmjs.org/@braccato/parsers/-/parsers-0.4.0.tgz",
+      "integrity": "sha512-SXOMgPRPEHGQJ7fA1gZQVxE2ZZ9VEXMX0w5CskeQgGLZRzDF7/b/kU9znR9fo2qXfe7DgoPzqPgV6858JDSTZA=="
+    },
+    {
+      "path": "@nodable/entities",
+      "name": "@nodable/entities",
+      "version": "3.1.0",
+      "url": "https://registry.npmjs.org/@nodable/entities/-/entities-3.1.0.tgz",
+      "integrity": "sha512-LsS/DjHr+uDM647Gru/cA8+J3a3HfhttwCKLyuoyN7yXTFCxKBtSgMQBvrW9yNPa2/zDRUNuGPaH5QUFoa4arQ=="
+    },
+    {
+      "path": "fast-xml-parser/node_modules/xml-naming",
+      "name": "xml-naming",
+      "version": "0.3.0",
+      "url": "https://registry.npmjs.org/xml-naming/-/xml-naming-0.3.0.tgz",
+      "integrity": "sha512-ghig2TBE/H11aOVgmahA3MhimvkBr6JIYknH/Dhdk10nXwdbIqBJsbfMxpvFPG8bAw77gN29aQWvKpmVoPlvPQ=="
+    },
+    {
+      "path": "__esbuild__",
+      "name": "@esbuild/win32-x64",
+      "version": "0.25.12",
+      "url": "https://registry.npmjs.org/@esbuild/win32-x64/-/win32-x64-0.25.12.tgz",
+      "integrity": "sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA=="
+    }
+  ]
+}

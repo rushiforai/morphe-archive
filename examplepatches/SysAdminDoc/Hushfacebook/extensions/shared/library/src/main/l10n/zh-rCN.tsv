@@ -287,6 +287,9 @@ Keep feed position on return	返回时保持动态消息位置
 Returning to Facebook within ten minutes, or switching back to Home, keeps your place. Pull to refresh still works.	十分钟内回到 Facebook，或切换回主页，都会保留你的位置。下拉刷新仍然有效。
 No time limit	无时间限制
 With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	开启上面的开关后，无论你离开多久都会保留位置。下拉刷新和重新启动仍会加载新帖子。
+Back leaves Home where it is	返回键不改变主页位置
+Pressing Back on a scrolled Home no longer jumps to the top and reloads the feed. Press Back again within two seconds to do that.	在已向下滚动的主页上按返回键，不会再跳到顶部并重新加载动态消息。两秒内再按一次返回键即可这样做。
+Press Back again to go to the top	再按一次返回键回到顶部
 A finished story stays on screen until you tap or swipe. Turn this off for Facebook's timing.	播放完的快拍会停留在屏幕上，直到你点按或滑动。关闭此项则采用 Facebook 的计时。
 View stories anonymously	匿名查看快拍
 Facebook isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you. Stories you watch to the end show as watched on this phone only, until that person posts a new one.	Facebook 不会得知你看了哪些快拍，因此你不会出现在对方的查看者名单中。回复或回应仍会暴露你。看完的快拍只会在这部手机上显示为已看过，直到对方发布新的快拍。
@@ -477,6 +480,8 @@ Hide comments under posts	隐藏帖子下方的评论
 Feed posts stop showing a few comments under their buttons. Tap Comment to read them all.	动态中的帖子不再在按钮下方显示评论。点按“评论”即可查看全部。
 Hide dislike on comments	隐藏评论的踩按钮
 Takes the thumbs-down off comments. Like and Reply stay.	去掉评论旁的踩按钮。赞和回复保留。
+Hide Like on comments	隐藏评论的赞按钮
+Takes Like off the row under comments. Reply and the reaction count stay.	去掉评论下方那一行的赞。回复和心情数量保留。
 # context: switch title under Comments; Like is the button under a post or a comment
 Like only	仅“赞”
 # context: summary of that switch; the reactions are the row of Love, Haha, Wow and the rest that a long press on Like opens
@@ -816,7 +821,7 @@ Saving... To cancel, open Downloads in Hushfacebook settings.	正在保存……
 # context: switch title under Reels and Watch; on, a double tap on a reel or a video doesn't like it
 Turn off double tap to like	关闭双击点赞
 # context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
-A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like button work as before.	双击 Reels 或视频不再点赞，也不会显示爱心。单击和“赞”按钮照常使用。
+A double tap on a reel, a video or a photo in the feed no longer likes it or shows a heart. A single tap and the Like button work as before.	双击 Reels、视频或动态中的照片不再点赞，也不会显示爱心。单击和“赞”按钮照常使用。
 # context: switch title under Reels and Watch; on, a double tap on the left or right edge of a reel or a video skips back or forward in it
 Double tap to skip	双击快进快退
 # context: summary of that switch; the edge is about a fifth of the player's width, and 30 seconds is the whole length of the reel or video
@@ -963,6 +968,11 @@ Keep post dates	保留帖子日期
 Shows the post's date under the poster's name instead of Facebook's rotating details, which can go blank on some phones.	在发布者姓名下方显示帖子日期，而不是 Facebook 轮换显示的详情（在某些手机上可能变成空白）。
 Show full post text	显示完整帖子文字
 Posts in the feed show all of their text, so there's no See more to tap.	动态中的帖子会显示全部文字，不用再点“展开”。
+# context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
+See who shared	查看谁分享了
+Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	在帖子菜单中添加“查看谁分享了”，打开 Facebook 上分享该帖子的用户列表。
+# context: message shown when tapping that row doesn't open the list
+Couldn't open the list of shares.	无法打开分享列表。
 # context: switch title under News feed; the Feeds header is the row at the top of the Feeds tab with Feeds, the menu and search, and the filters under it, All, Favorites, Friends, Groups and Pages
 Hide the Feeds header	隐藏“动态”页眉
 # context: description of that switch; the Feeds tab is where Facebook lists posts by those filters, and the title row is the one with the tab's name
@@ -1480,6 +1490,8 @@ Only the first reel waits	只有第一个 Reels 等待点按
 With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed, Watch and stories always wait.	开启上面的开关后，你播放一个 Reels 之后，滑动到的 Reels 会自动播放。动态消息、Watch 和快拍始终等待点按。
 Slower speeds	更慢的速度
 Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a fast moment.	在 Reels 以及动态消息和 Watch 视频的速度菜单中添加 0.1 倍和 0.25 倍，用于放慢精彩瞬间。
+Speed on finished live videos	已结束直播视频的播放速度
+A live video that has ended gets Playback speed in its gear menu, like other videos. Videos that are still live, and ads, keep Facebook's menu.	已结束的直播视频会像其他视频一样，在齿轮菜单中提供播放速度。仍在直播的视频和广告保留 Facebook 的菜单。
 Share now	立即分享
 Send in Messenger	在 Messenger 中发送
 Share to your story	分享到你的快拍
@@ -1700,6 +1712,8 @@ Hide who is typing in comments	隐藏评论中谁在输入
 Takes away the line that says someone is typing a comment. Your own typing is a separate switch under Privacy.	移除提示有人正在输入评论的那一行。你自己的输入状态由“隐私”下的另一个开关控制。
 Hide the search pill on reels	隐藏 Reels 上的搜索胶囊
 Hides the search suggestion under a reel's caption, the magnifier with a question to look up, the one at the top of its comments and the search bar over reels you open from a profile.	隐藏 Reels 说明文字下方的搜索建议（即带问题的放大镜，用于查找相关内容）、评论顶部的那一个，以及从个人主页打开的 Reels 顶部的搜索栏。
+Hide the top right buttons on opened videos	隐藏已打开视频右上角的按钮
+Takes Search and the button next to it off the top of a video or reel you open. Back stays, and so does More at the bottom of the side buttons, where Download is.	去掉你打开的视频或 Reels 顶部的搜索和旁边的按钮。返回按钮保留，侧边按钮最下方放着下载的更多按钮也保留。
 # context: switch title under Appearance; the button is Facebook's Messenger icon in the top bar of Home
 Hide the Messenger button	隐藏 Messenger 按钮
 # context: summary of that switch; the other top bar buttons move over to fill the space; Hushfacebook is the app's name
@@ -1716,6 +1730,9 @@ Hide the Create button	隐藏创建按钮
 Takes the + button for making a post, reel or story out of the top bar. Restart Facebook to see the change.	从顶栏移除用于创建帖子、Reels 和快拍的 + 按钮。重启 Facebook 后可看到更改。
 Hide the search button	隐藏搜索按钮
 Takes the search button out of the top bar. Restart Facebook to see the change.	从顶栏移除搜索按钮。重启 Facebook 后可看到更改。
+Search with a picture	用图片搜索
+Press and hold the search button to open Google Lens, then point the camera at something or pick a picture to find out what it is. The picture goes to Google, not Facebook. Restart Facebook to see the change.	长按搜索按钮打开 Google Lens，然后将相机对准某样东西或选择一张图片，即可知道它是什么。图片会发送给 Google，而不是 Facebook。重启 Facebook 后可看到更改。
+No app on this phone can open Google Lens	这部手机上没有可以打开 Google Lens 的应用
 # context: switch title under News feed; the counts are the numbers on the Like, Comment and Share buttons under a post
 Hide counts on posts	隐藏帖子上的数字
 # context: summary of that switch; Like, Comment and Share are Facebook's own button labels, so use Facebook's wording in your language
@@ -1874,6 +1891,10 @@ Hides the People you may know row Facebook shows when you open search. Your rece
 Don't save search history	不保存搜索记录
 # context: summary of that switch; searches already in the history are the user's own past searches, which stay until the user deletes them
 What you search for, and the pages and profiles you open from a search, aren't added to your Facebook search history. Searches already there stay until you delete them.	你搜索的内容，以及你从搜索中打开的主页和个人资料，都不会加入你的 Facebook 搜索记录。已有的搜索会保留，直到你删除。
+# context: switch title under Search; on, the Date posted filter in post search asks for a from and to month instead of a list of years; Date posted is Facebook's own filter name in search results
+Search date range	搜索日期范围
+# context: summary of that switch; Date posted is Facebook's own filter name in post search results, named here as Facebook shows it
+The Date posted filter in post search asks for a from and to month, in place of a list of years.	帖子搜索中的发布日期筛选会让你选择起止月份，而不是年份列表。
 # context: switch title under Reels and Watch; the audio line is the scrolling line at the bottom of a reel naming its sound, like "Name · Original audio" or a song title
 Hide the audio line on reels	隐藏 Reels 上的音频行
 # context: summary of that switch; "Original audio" is Facebook's own label, so use the wording Facebook shows in this language
@@ -2101,6 +2122,8 @@ If your patched Facebook includes Badge and logo colors, the selected tab will b
 Hide the emoji row on comments	隐藏评论的表情符号栏
 The row of emoji over the comment box goes away. You can still type emoji from your keyboard.	评论框上方的表情符号栏不再显示。你仍然可以用键盘输入表情符号。
 Show Comment when comments are off	评论关闭时仍显示“评论”
+Show the post date on reels	在 Reels 上显示发布日期
+Shows when a reel or a video you open full screen was posted, under the name of who posted it. A change shows from the next reel.	在发布者的名字下方显示 Reel 或全屏打开的视频是什么时候发布的。从下一个 Reel 开始生效。
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	在关闭了评论的 Reels 上保留“评论”按钮，让你仍能阅读已有的评论。从下一个 Reel 开始生效。
 Select part of a post's text	选择帖子文字的一部分
 Holding a post's text still copies all of it, and also opens the text in a box where you can select just the part you want and copy that.	长按帖子文字仍会复制全部内容，同时会在一个框中打开这段文字，你可以只选择想要的部分再复制。
@@ -2244,6 +2267,11 @@ Advanced Marketplace search	Marketplace 高级搜索
 Lets you type rules into Marketplace search. Put a word in quotes, like "word", to keep only titles with it, put a minus in front, like -word, to hide titles with it, and add in:place to keep listings in that place.	让你在 Marketplace 搜索中输入规则。给词语加上引号，例如 "词语"，只保留标题含有它的商品；在前面加减号，例如 -词语，隐藏标题含有它的商品；添加 in:地点，只保留位于该地点的商品。
 Adv. Filters button	高级筛选按钮
 Adds an Adv. Filters button under Marketplace's Filters on search results. It opens lists of words to keep, words to hide and places, and writes the rules into the search for you.	在搜索结果中 Marketplace 的“筛选”下方添加“高级筛选”按钮。它会打开要保留的词语、要隐藏的词语和地点的列表，并帮你把规则写进搜索。
+# context: switch title and summary under Marketplace; a listing is something for sale
+Show when listings went up	显示商品发布时间
+A listing's page says how long ago it was listed and the date, next to its place. Facebook only shows it for new listings.	商品页面会在位置旁显示发布了多久以及发布日期。Facebook 只对新商品显示这些。
+# context: added after a listing's place on its Marketplace page, like Moncton, NB; %1$s is how long ago in your language from the phone, like 3 weeks ago, %2$s is the date
+Listed %1$s (%2$s)	%1$s发布（%2$s）
 How Adv. Filters works	高级筛选的用法
 Type a word or a phrase and tap Add. A phrase of more than one word has to be in the title as written. A term matches anywhere in a title, so cat also matches cats. Put it in quotes with a space after it, like "cat ", to leave out cats. Go puts these into the search box and searches again.	输入一个词或短语，然后点按“添加”。由多个词组成的短语必须按原样出现在标题中。词语可匹配标题中的任意位置，所以 cat 也会匹配 cats。给它加上引号并在后面加一个空格，例如 "cat "，就能排除 cats。“搜索”会把这些放进搜索框并重新搜索。
 You can also type "word", -word or in:place straight into the search box.	你也可以直接在搜索框中输入 "词语"、-词语 或 in:地点。
@@ -2276,3 +2304,65 @@ The Subscribe button some authors get there instead, which subscribes with one t
 Fix washed-out video colors	修复视频颜色发白
 # context: summary under that switch; Disable HW overlays and developer options are Android's own setting names, use the names Android shows in this language
 Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery.	视频和 Reels 会与屏幕其余部分一起绘制，效果同开发者选项中的“停用 HW 叠加层”。如果 Reels 在被别的东西盖住之前一直显得发白，可以试试。会多耗一点电。
+# context: Reels and Watch: title of the list that fades a full-screen video's buttons while the screen sits untouched, so they don't burn into an OLED screen (#288)
+Burn-in guard	防烧屏保护
+Dim when idle	闲置时淡化
+Dim when idle and shift	闲置时淡化并位移
+On the Reels screen, the buttons, caption and bars fade when you leave them alone. Touching one of them brings them back.	在 Reels 画面中，未操作的按钮、说明文字和栏会淡化。触碰其中一项即可恢复显示。
+On the Reels screen, the buttons, caption and bars fade when you leave them alone, and the screen moves a step every 2 minutes. Touching one of them brings them back.	在 Reels 画面中，未操作的按钮、说明文字和栏会淡化，画面也会每 2 分钟位移一次。触碰其中一项即可恢复显示。
+Off. It can fade a reel's buttons while the screen sits untouched, so they don't burn into an OLED screen.	已关闭。可在未触碰屏幕时淡化 Reels 按钮，避免 OLED 屏幕烧屏。
+# context: Reels and Watch: title of the list that sets how long the screen goes untouched before Burn-in guard fades it
+Dim after	淡化延迟
+At once	立即
+# context: a choice in the Dim after list; %1$d is 2, 5 or 10
+After %1$d seconds	%1$d 秒后
+# context: summary under Dim after; %1$s is the chosen wait, At once or After 5 seconds
+%1$s. Tapping the video and double-tapping it to like don't count as a touch, so the buttons stay faded.	%1$s。点按视频和双击点赞不算触碰，因此按钮会保持淡化。
+# context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
+Stay dim when I tap	点按时保持淡化
+Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	防烧屏保护淡化按钮后，无论在 Reels 点按或滑动什么，按钮都会保持淡化，下一个 Reel 也一样。按钮仍可使用，离开 Reels 后会恢复显示。
+# context: settings import preview; %1$s is a Burn-in guard choice such as Dim when idle
+Burn-in guard will be set to %1$s.	防烧屏保护将设为 %1$s。
+Burn-in guard will dim the Reels screen as soon as you stop touching it.	停止触碰后，防烧屏保护会立即淡化 Reels 画面。
+# context: settings import preview; %1$d is 2, 5 or 10
+Burn-in guard will dim the Reels screen after %1$d seconds without a touch.	防烧屏保护会在 %1$d 秒未触碰后淡化 Reels 画面。
+Mute stories	快拍静音
+Video stories wait for a tap	视频快拍等待点按
+Stories start with the sound off every time you open Facebook. Tap a speaker or press volume up to hear them, and they stay on until you mute again.	每次打开 Facebook 时，快拍都会静音播放。点按扬声器或按音量加键即可听到声音，声音会一直开启，直到你再次静音。
+Video stories don't start by themselves. Touch and hold a story, then let go, to play it. Works with Tap to play on or off.	视频快拍不会自动开始播放。长按快拍然后松开即可播放。无论“点按播放”开启还是关闭都有效。
+# context: switch title under News feed; the numbers are the friends, followers and following counts at the top of your own profile
+Local profile counts	自定义个人主页数字
+# context: summary of that switch; 'below' means the three rows right under it
+Shows the friends, followers and following numbers you type below on your own profile, on this phone only. Other profiles and Facebook's real numbers aren't touched. Applies the next time you open your profile.	在你自己的个人主页上显示你在下方输入的好友、粉丝和关注数量，仅在这部手机上生效。其他人的主页和 Facebook 的真实数字不会改变。下次打开你的主页时生效。
+# context: row title; the number of friends your own profile shows on this phone
+Friends shown	显示的好友数
+# context: row title; the number of followers your own profile shows on this phone
+Followers shown	显示的粉丝数
+# context: row title; the number of people your own profile follows, shown on this phone
+Following shown	显示的关注数
+# context: message in that row's edit dialog
+Digits only, up to 10. Your own profile shows this number on this phone. Leave it blank for Facebook's real one.	只能输入数字，最多 10 位。你自己的主页会在这部手机上显示这个数字。留空则显示 Facebook 的真实数字。
+# context: summary of that row when it is blank
+Facebook's real number shows. Type digits to show your own.	显示 Facebook 的真实数字。输入数字即可显示你自己的数字。
+# context: summary of that row; %1$s is the number typed, already grouped for the language
+Your profile shows %1$s on this phone.	你的主页在这部手机上显示 %1$s。
+# context: switch title under Stories; the stories row at the top of Home shown as round pictures
+Round stories tray	圆形快拍栏
+# context: summary of that switch
+Draws the stories row on Home as round pictures, like Instagram. Applies the next time Home loads its stories.	把主页顶部的快拍栏显示为圆形图片，类似 Instagram。下次主页加载快拍时生效。
+# context: row title and dialog title; how wide each round story picture is
+Round picture size	圆形图片大小
+# context: message in that row's edit dialog; dp is the Android density-independent size unit; %1$s is the smallest, %2$s the largest, %3$s the default
+Width in dp, from %1$s to %2$s. Leave it blank for %3$s.	宽度，单位 dp，范围 %1$s 到 %2$s。留空则使用 %3$s。
+# context: summary of that row; %1$s is the width in dp
+Round pictures are %1$s dp wide.	圆形图片宽 %1$s dp。
+Block button on comments	评论上的屏蔽按钮
+The thumbs-down on a comment becomes Block. One tap opens Facebook's own block screen for that person.	评论上的踩按钮变成屏蔽。点一下就会为这个人打开 Facebook 自己的屏蔽页面。
+Block	屏蔽
+Couldn't open Block for this comment.	无法为这条评论打开屏蔽。
+this person	这个人
+Most viewed on profile Reels	主页 Reels 按观看次数排序
+A profile's Reels tab lists its most viewed reels first instead of the newest. Off keeps Facebook's order. Only the reels the tab has loaded are sorted, and a reel with no view count stays after the rest.	主页的 Reels 标签页先列出观看次数最多的 Reels，而不是最新的。关闭时保持 Facebook 的顺序。只会排序标签页已加载的 Reels，没有观看次数的 Reels 排在其余之后。
+Not in this build, so dark mode stays Facebook's dark gray. Morphe Manager doesn't pick it by default. Turn on Expert mode in Manager, choose the %1$s patch and patch again.	此版本中没有，所以深色模式仍是 Facebook 的深灰色。Morphe Manager 默认不选它。请在 Manager 中开启专家模式，选择 %1$s 修补项，然后重新修补。
+Cast button on reels	短视频上的投屏按钮
+Adds a cast button to reels, under Download. It hands the reel to a casting app you have, such as Web Video Caster, which sends it to your TV.	在短视频的“下载”按钮下方添加投屏按钮。它会把短视频交给你已安装的投屏应用（如 Web Video Caster），由它发送到电视。

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="app_icon_size">72dp</dimen>
+    <dimen name="fancy_settings_preview_size">228dp</dimen>
+    <dimen name="icon_layout_preview_size">304dp</dimen>
+</resources>

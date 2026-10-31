@@ -31,7 +31,7 @@ public final class NuvioPlaybackButtonsPatch {
             builder.execute(context -> {
                 if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
                     !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName()))
-                    throw new IllegalStateException("Playback buttons require NuvioTV 1.1.0-beta.8");
+                    throw new IllegalStateException("Playback buttons require NuvioTV 1.1.0-beta.9");
                 MutableClass main = context.mutableClassDefBy(NuvioNative.PLAYER_MAIN_ROW_TYPE), more = context.mutableClassDefBy(NuvioNative.PLAYER_MORE_ROW_TYPE);
                 validateRuntime(new MutableClass(context.classDefBy(NuvioNative.PLAYER_CONTROLS_TYPE)),
                     new MutableClass(context.classDefBy(NuvioNative.ANIMATED_VISIBILITY_TYPE)), new MutableClass(context.classDefBy(NuvioNative.ANIMATED_SCOPE_TYPE)));
@@ -68,7 +68,7 @@ public final class NuvioPlaybackButtonsPatch {
         NuvioNative.REF_ICON_MEDIA_Q, NuvioNative.REF_ICON_NEXT_R, NuvioNative.REF_ICON_AUDIO_L, NuvioNative.REF_RESOURCE_HELPER_U,
         NuvioNative.REF_ICON_PARTY_Q, NuvioNative.REF_ICON_SPEED_M, NuvioNative.REF_ICON_EXTERNAL_F, NuvioNative.REF_ICON_MEDIA_P, NuvioNative.REF_ICON_PARTY_O,
         NuvioNative.REF_VECTOR_BUILDER_INIT, NuvioNative.REF_VECTOR_BUILDER_A, NuvioNative.REF_VECTOR_BUILDER_B,
-        "Le2/y0;-><init>(J)V", "Lio/sentry/d2;-><init>(I)V", "Lio/sentry/d2;->o(FF)V", "Lio/sentry/d2;->m(FF)V", "Lio/sentry/d2;->e()V",
+        "Le2/a1;-><init>(J)V", "Lio/sentry/d2;-><init>(I)V", "Lio/sentry/d2;->o(FF)V", "Lio/sentry/d2;->m(FF)V", "Lio/sentry/d2;->e()V",
         NuvioNative.REF_SETTINGS_ROWS_D,
         NuvioNative.REF_SETTINGS_ROWS_E,
         NuvioNative.REF_SETTINGS_ROWS_J,
@@ -115,7 +115,7 @@ public final class NuvioPlaybackButtonsPatch {
             throw new IllegalStateException("Playback buttons already patched");
         // Fixed real-input register contracts; no speculative register allocation or parameter movement.
         if (invoke(main, 2).getImplementation().getRegisterCount() != 59 ||
-            invoke(more, 3).getImplementation().getRegisterCount() != 58)
+            invoke(more, 3).getImplementation().getRegisterCount() != 52)
             throw new IllegalStateException("Native playback register layout changed");
         // Exact latest-version bodies prove availability branches, register sources and group boundaries.
         if (!fingerprint(withoutIntroControl(invoke(main, 2))).equals(NuvioNative.HASH_PLAYER_MAIN_BODY) ||

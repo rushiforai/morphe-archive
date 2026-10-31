@@ -1,0 +1,24 @@
+changelog:
+  categories:
+    - title: "🚀 Features & UI"
+      labels:
+        - "feature"
+        - "enhancement"
+        - "ui"
+    - title: "🐛 Bug Fixes"
+      labels:
+        - "fix"
+        - "bug"
+    - title: "⚡ Performance & Sync"
+      labels:
+        - "performance"
+        - "sync"
+    - title: "📝 Documentation & Metadata"
+      labels:
+        - "documentation"
+        - "docs"
+    - title: "🔧 Build & Maintenance"
+      labels:
+        - "chore"
+        - "build"
+        - "ci"

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="exo_controls_playback_speeds">
+        <item>0.25 ಪಟ್ಟು</item>
+        <item>0.5 ಪಟ್ಟು</item>
+        <item>0.75 ಪಟ್ಟು</item>
+        <item>ಸಾಮಾನ್ಯ</item>
+        <item>1.25 ಪಟ್ಟು</item>
+        <item>1.5 ಪಟ್ಟು</item>
+        <item>2 ಪಟ್ಟು</item>
+    </array>
+    <array name="pref_screen_orientation">
+        <item>ಡೀಫಾಲ್ಟ್</item>
+        <item>ಸ್ವಯಂ-ತಿರುಗುವಿಕೆ</item>
+        <item>ಬಲವಂತ ಪೋಟ್ರೇಟ್</item>
+        <item>ಬಲವಂತ ಲ್ಯಾಂಡ್‍ಸ್ಕೇಪ್</item>
+    </array>
+</resources>

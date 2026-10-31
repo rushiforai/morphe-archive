@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="app.local.curve.screen.test"
+    android:versionCode="1"
+    android:versionName="1.0">
+    <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="36" />
+    <application android:label="Curve Patches Screen Test" android:allowBackup="false" />
+    <instrumentation
+        android:name="app.local.curve.screen.test.PatchesScreenTest"
+        android:targetPackage="com.imaginecurve.curve.prd"
+        android:functionalTest="true" />
+</manifest>

@@ -1,5 +1,6 @@
 package app.ckzombies.patches.intro
 
+import app.ckzombies.patches.compat.obbMessagePatch
 import app.ckzombies.patches.shared.Constants.COMPATIBILITY_CK_ZOMBIES
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
@@ -81,6 +82,8 @@ val playIntroOncePatch = bytecodePatch(
     description = "Plays the intro video on the first launch after installing, and skips it after that.",
 ) {
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)
+
+    dependsOn(obbMessagePatch)
 
     extendWith("extensions/extension.mpe")
 

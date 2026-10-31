@@ -35,6 +35,7 @@ import app.hushgram.extension.instagram.misc.GlassOpacity;
 import app.hushgram.extension.instagram.misc.NotificationGroups;
 import app.hushgram.extension.instagram.misc.SettingsRows;
 import app.hushgram.extension.instagram.misc.SpoofLocation;
+import app.hushgram.extension.instagram.misc.AppProxy;
 import app.hushgram.extension.instagram.reels.TabOrder;
 import app.hushgram.extension.instagram.share.ShareSheetActions;
 import app.hushgram.extension.instagram.share.SharingDomain;
@@ -114,9 +115,14 @@ public final class ConfigurationBackup {
             settings.put(Settings.STORY_RING_COLOR.key, Settings.STORY_RING_COLOR);
         }
         if (PatchFamily.ROUNDED_POST_CORNERS.inBuild()) settings.put(Settings.ROUNDED_CORNER_SIZE.key, Settings.ROUNDED_CORNER_SIZE);
+        if (PatchFamily.AMBIENT_LIGHT.inBuild()) {
+            settings.put(Settings.AMBIENT_LIGHT_SPREAD.key, Settings.AMBIENT_LIGHT_SPREAD);
+            settings.put(Settings.AMBIENT_LIGHT_SPEED.key, Settings.AMBIENT_LIGHT_SPEED);
+        }
         if (PatchFamily.STORY_PROGRESS_BAR.inBuild()) settings.put(Settings.STORY_BAR_THICKNESS.key, Settings.STORY_BAR_THICKNESS);
         if (PatchFamily.STORIES_TRAY.inBuild()) settings.put(Settings.TRAY_BADGE.key, Settings.TRAY_BADGE);
         if (PatchFamily.SPOOF_LOCATION.inBuild()) settings.put(Settings.SPOOF_LOCATION_PLACE.key, Settings.SPOOF_LOCATION_PLACE);
+        if (PatchFamily.APP_PROXY.inBuild()) settings.put(Settings.APP_PROXY_SERVER.key, Settings.APP_PROXY_SERVER);
         if (PatchFamily.CAPTION_WORD_REELS.inBuild()) settings.put(Settings.REELS_BLOCKED_WORDS.key, Settings.REELS_BLOCKED_WORDS);
         if (PatchFamily.SANITIZE_SHARING_LINKS.inBuild()) settings.put(Settings.SHARING_DOMAIN.key, Settings.SHARING_DOMAIN);
         if (PatchFamily.LIKE_ANIMATION.inBuild()) settings.put(Settings.LIKE_ANIMATION.key, Settings.LIKE_ANIMATION);
@@ -136,11 +142,16 @@ public final class ConfigurationBackup {
             settings.put(Settings.TAP_TO_PLAY_AUTO_SCROLL_WAITS.key, Settings.TAP_TO_PLAY_AUTO_SCROLL_WAITS);
         }
         if (PatchFamily.REEL_TAP_AND_VOLUME.inBuild()) settings.put(Settings.REEL_TAP_CHOICE.key, Settings.REEL_TAP_CHOICE);
-        if (PatchFamily.REEL_SCROLLING.inBuild()) settings.put(Settings.SCROLL_BREAK.key, Settings.SCROLL_BREAK);
+        if (PatchFamily.REEL_SCROLLING.inBuild()) {
+            settings.put(Settings.SCROLL_BREAK.key, Settings.SCROLL_BREAK);
+            settings.put(Settings.REEL_CAP_COUNT.key, Settings.REEL_CAP_COUNT);
+            settings.put(Settings.REEL_CAP_BREAK.key, Settings.REEL_CAP_BREAK);
+        }
         if (PatchFamily.REEL_DECLUTTER.inBuild()) {
             settings.put(Settings.BURN_IN_GUARD.key, Settings.BURN_IN_GUARD);
             settings.put(Settings.BURN_IN_WAIT.key, Settings.BURN_IN_WAIT);
             settings.put(Settings.BURN_IN_STAY_DIM.key, Settings.BURN_IN_STAY_DIM);
+            settings.put(Settings.START_REEL_CLEAR_MODE.key, Settings.START_REEL_CLEAR_MODE);
         }
         if (GhostMode.offered(GhostMode.switches(PatchFamily.inThisBuild()))) {
             settings.put(Settings.GHOST_MODE_PICKS.key, Settings.GHOST_MODE_PICKS);
@@ -173,6 +184,7 @@ public final class ConfigurationBackup {
         }
         if (PatchFamily.ACCENT_COLOR.inBuild()) settings.put(Settings.ACCENT_HUE.key, Settings.ACCENT_HUE);
         if (PatchFamily.FONT.inBuild()) settings.put(Settings.FONT.key, Settings.FONT);
+        if (PatchFamily.EMOJI_STYLE.inBuild()) settings.put(Settings.EMOJI_FONT.key, Settings.EMOJI_FONT);
         if (PatchFamily.APP_ICON.inBuild()) settings.put(Settings.APP_ICON.key, Settings.APP_ICON);
         if (PatchFamily.SETTINGS_ROWS.inBuild()) settings.put(Settings.HIDDEN_SETTINGS_ROWS.key, Settings.HIDDEN_SETTINGS_ROWS);
         if (PatchFamily.REEL_DOWNLOAD.inBuild()) {
@@ -182,6 +194,7 @@ public final class ConfigurationBackup {
             settings.put(Settings.REEL_NOT_INTERESTED_BUTTON.key, Settings.REEL_NOT_INTERESTED_BUTTON);
             settings.put(Settings.REEL_BLOCK_BUTTON.key, Settings.REEL_BLOCK_BUTTON);
             settings.put(Settings.HIDE_SOUND_REELS.key, Settings.HIDE_SOUND_REELS);
+            settings.put(Settings.TEXT_BUTTON_ON_REELS.key, Settings.TEXT_BUTTON_ON_REELS);
         }
         if (PatchFamily.REEL_POST_TIME.inBuild()) {
             settings.put(Settings.REEL_POST_TIME_SECONDS.key, Settings.REEL_POST_TIME_SECONDS);
@@ -425,6 +438,8 @@ public final class ConfigurationBackup {
         if (setting == Settings.SHARING_DOMAIN) return SharingDomain.normalize(text) != null;
         // The Place row keeps what was typed, spaces too, and takes blank as no place.
         if (setting == Settings.SPOOF_LOCATION_PLACE) return text.trim().isEmpty() || SpoofLocation.parse(text) != null;
+        // The row saves the server as host:port, so a file holds it that way or blank.
+        if (setting == Settings.APP_PROXY_SERVER) return text.equals(AppProxy.normalize(text));
         if (setting == Settings.TAB_ORDER) return text.equals(TabOrder.join(TabOrder.parse(text)));
         // The share sheet buttons to leave out, as Instagram's names for them with commas between.
         if (setting == Settings.HIDDEN_SHARE_SHEET_BUTTONS) {

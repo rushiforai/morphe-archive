@@ -14,7 +14,7 @@ https://github.com/Santodan/santodan-patches
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v0.16.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.16.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
+> **[v0.16.2](https://github.com/Santodan/santodan-patches/releases/tag/v0.16.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
 <details>
 <summary>📦 Car Scanner ELM OBD2&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -80,7 +80,7 @@ The optional **Monet - Unlimited displayed cards** patch removes the 20-card dis
 <summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
 
-These sixteen patches target NuvioTV beta.8 only. See [beta.8 verification](docs/NuvioBeta8.md). For future app updates, see the [shared contracts and maintenance workflow](docs/NuvioMaintenance.md).
+These sixteen patches target NuvioTV beta.9 only. See [beta.9 verification](docs/NuvioBeta9.md). For future app updates, see the [shared contracts and maintenance workflow](docs/NuvioMaintenance.md).
 
 - **GitHub APK updates**: Optional patch that checks APK releases from `Santodan/santodan-patches`, shares background download progress with the native banner, and opens Android's normal APK installer for foreground installation progress. The installed release version defaults to the bundle version. Includes installer fixes for patched APKs and side-by-side installations. See [GitHub release publishing instructions](docs/NuvioApkUpdates.md).
 
@@ -122,7 +122,7 @@ These sixteen patches target NuvioTV beta.8 only. See [beta.8 verification](docs
 
 - **Preload streams on detail page**: Searches sources for the current Play or Resume movie or episode, following changes to the next episode on the detail page.
 
-- **Preload streams for next episode**: Fetches the next episode's source list after 30 seconds of actual playback, giving the current episode time to buffer. Pauses and buffering do not count toward the delay. Nuvio reuses the results when you open the next episode; expired searches refresh in the background during longer episodes. On beta.8, enabling this switch also suppresses Nuvio's separate threshold preload and prevents the manual next-episode picker from forcing another search. Explicit source refresh remains available. This switch is disabled by default and independent of the other preload switches.
+- **Preload streams for next episode**: Fetches the next episode's source list after 30 seconds of actual playback, giving the current episode time to buffer. Pauses and buffering do not count toward the delay. Nuvio reuses the results when you open the next episode; expired searches refresh in the background during longer episodes. On beta.9, enabling this switch also suppresses Nuvio's separate threshold preload and prevents the manual next-episode picker from forcing another search. Explicit source refresh remains available. This switch is disabled by default and independent of the other preload switches.
 
 ### Playback
 
@@ -146,7 +146,7 @@ The patch settings are under **Layout > Santodan-Patches**, grouped under **Cont
 
 **🎯 Supported versions:**
 
-| 1.1.0-beta.8 |
+| 1.1.0-beta.9 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -195,7 +195,7 @@ Pillo's hybrid notification patch supports 0.6.27, with existing 0.6.19/0.6.20 s
 
 **Local backup and restore** supports Pillo 0.6.27 and 0.6.20. Open **Settings > Backup and restore > Local file** to export Pillo's database, settings and app-managed files to a `.pillo-backup.zip`, or restore a previously exported file without Google sign-in. Restore replaces current data, saves a recovery copy, and restarts Pillo. On 0.6.27, original 0.6.20 local backups are upgraded with the app's native database migrations before confirmation; no manual archive changes are required. The existing Google flow is available through **Google backup**. See [local backup details](docs/PilloLocalBackup.md) for included data, format limits and device-bound credential limitations.
 
-**Weight change summaries** supports Pillo 0.6.27 and 0.6.20. Adds **Total** beside **Latest** for signed weight change across the selected records, makes **All** the default filter, and replaces **Avg** with a tappable **Last since** date comparison. Choose a date to compare the first weight recorded on or after it with the latest weight; the selected date is saved locally. **Last 30 days / Last 15 days / Change** appear between **Last since / Min / Max** and the graph. Negative values mean weight lost, positive values mean weight gained, and insufficient data shows **—**. See [weight summary details](docs/PilloWeightSummary.md) for calculation periods and signs.
+**Weight change summaries** supports Pillo 0.6.27 and 0.6.20. Adds **Total** beside **Latest** for signed weight change across the selected records, makes **All** the default filter, and replaces **Avg** with a tappable **Since** date comparison (**Last since** on 0.6.20). Choose a date to compare the first weight recorded on or after it with the latest weight; the selected date is saved locally. **Last 30 days / Last 15 days / Change** appear between the comparison row and the graph. Negative values mean weight lost, positive values mean weight gained, and insufficient data shows **—**. See [weight summary details](docs/PilloWeightSummary.md) for calculation periods and signs.
 
 <img src="images/PilloWeightSummary.png" width="400" alt="Pillo weight chart with signed total, selectable comparison date, and 30-day and 15-day changes">
 
@@ -215,7 +215,7 @@ Pillo's hybrid notification patch supports 0.6.27, with existing 0.6.19/0.6.20 s
 | [Pillo - Import weight history from JSON](docs/PilloWeightImport.md) | Adds a native Import weights JSON button above Skip in Weight > Add record. Imports SWT backup weights with their dates into the selected profile, with kg/lb selection and duplicate skipping. |  |
 | [Pillo - Local backup and restore](docs/PilloLocalBackup.md) | Adds local-file export and restore of Pillo's database, settings and app-managed files, without Google sign-in. Restore replaces current data, keeps a recovery backup and restarts Pillo. |  |
 | [Pillo - Premium and ad-free](docs/Pillo627.md) | Enables premium and ad-free state through Pillo's native subscription setters. For 0.6.27; select instead of an external Unlock Premium patch. |  |
-| [Pillo - Weight change summaries](docs/PilloWeightSummary.md) | Adds signed Total weight change, an All default filter, a selectable Last since date, and Last 30 days / Last 15 days / Change summaries using full profile history. |  |
+| [Pillo - Weight change summaries](docs/PilloWeightSummary.md) | Adds signed Total weight change, an All default filter, a selectable comparison date, and Last 30 days / Last 15 days / Change summaries using full profile history. |  |
 | [Pillo - Weight in Progress](docs/PilloProgressWeight.md) | Shows the native weight graph, weight-change summaries and dated record list below the existing Progress calendar. Includes Weight change summaries. |  |
 
 </details>

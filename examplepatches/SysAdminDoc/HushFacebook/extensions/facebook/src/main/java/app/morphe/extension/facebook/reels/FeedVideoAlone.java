@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 
+import app.morphe.extension.facebook.media.TapToPlay;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.Logger;
@@ -232,6 +233,7 @@ public final class FeedVideoAlone {
     public static void feedVideoTapped() {
         try {
             HookStatus.invoked(FAMILY);
+            TapToPlay.feedVideoOpening();
             if (!on()) {
                 feedOpened(false);
                 return;
@@ -256,6 +258,7 @@ public final class FeedVideoAlone {
     public static void reelsViewerOpening(@Nullable Object origin) {
         try {
             HookStatus.invoked(FAMILY);
+            if (origin != null && fromFeed(origin.toString())) TapToPlay.feedVideoOpening();
             if (!on()) {
                 feedOpened(false);
                 return;

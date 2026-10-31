@@ -1,3 +1,18 @@
+# Online shared NG — in development
+
+オンライン共有NGは開発中です。アプリの現行仕様と検証範囲は
+[実装・検証記録](../../docs/shared-ng-review-implementation.md)を参照してください。
+
+個人NGは同意後に収集し、保存イベントから変更分を送信します。GASはInboxで審査し、
+承認済みの条件だけを直接配信します。細かな板名や有効期間は送らず、親掲示板の区分を利用します。
+NGワードは空白を除いて5文字以上とし、英字だけの条件は除外します。
+アプリ側では必要な報告数・掲示板・種類・個別除外を設定できます。
+
+管理用GASソース・配備情報・実データは今回のアプリReleaseへ追加しません。
+下記のCode.jsプロトタイプは過去の参照用で、現行の受付・審査・配信方式とは異なります。
+
+---
+
 # Online shared NG — isolated prototype
 
 Not deployed. Android standard NG hooks and UI are NOT connected yet. No automatic

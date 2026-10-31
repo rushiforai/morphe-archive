@@ -22,6 +22,9 @@ import java.util.Map;
  * hashes, after asking {@code isValidGraphServicesJNIModel}. Like Facebook's, a field the tree
  * doesn't hold reads as null, an empty list or 0. A photo's image sizes read through the kept
  * {@code getIntValue}, the same way.
+ *
+ * <p>Hide posts from groups you're not in reads a group a story's title names as a profile through
+ * the kept {@code reinterpret(Class, int)}.
  */
 public class TreeJNI {
     public final int mTypeTag;
@@ -132,7 +135,7 @@ public class TreeJNI {
     }
 
     public final boolean hasFieldValue(int key) {
-        return booleans.containsKey(key);
+        return booleans.containsKey(key) || numbers.containsKey(key);
     }
 
     public boolean isValidGraphServicesJNIModel() {
@@ -176,6 +179,26 @@ public class TreeJNI {
         nativeRead();
         Integer value = numbers.get(field);
         return value == null ? 0 : value;
+    }
+
+    /** What {@link #reinterpret} answers, set by a test. */
+    public TreeJNI reinterpreted;
+    /** How many times {@link #reinterpret} was called, and what the last call asked for. */
+    public int reinterprets;
+    public Class<?> reinterpretedAs;
+    public int reinterpretedTag;
+
+    /**
+     * Facebook's is public and native: the same tree read as another model class under another type
+     * tag, the call its TreeConverter makes. This one answers {@link #reinterpreted} and records the
+     * call, counted as a native read.
+     */
+    public TreeJNI reinterpret(Class<?> modelClass, int typeTag) {
+        nativeRead();
+        reinterprets++;
+        reinterpretedAs = modelClass;
+        reinterpretedTag = typeTag;
+        return reinterpreted;
     }
 
     /** The string field [field] as a model's own cache would answer it, with no native read. */

@@ -95,6 +95,102 @@ final class VideoDownloads {
     }
 
     /**
+     * The best file a story's Automatic save can be made from: the rendition TikTok's story player
+     * streams, or anything better that other players open. Every candidate the story carries is
+     * ranked together, so the result is never shorter than what the player shows when the player's
+     * pick is a codec other players open:
+     *
+     * <ul>
+     *   <li>each gear in the raw rendition list (H.264 or HEVC; ByteVC2 only TikTok decodes),</li>
+     *   <li>the Video's own H.264 and HEVC play addresses,</li>
+     *   <li>the clean download address.</li>
+     * </ul>
+     *
+     * Taller wins, then the larger file at that height (the same story at the same height, so more
+     * bytes are more bits), then the higher listed bitrate. On 47.5.3 the story player can stream
+     * a 1080p HEVC gear while the clean address is a 720p H.264 copy. Null for a DASH story, which
+     * has its own path, for a story with no duration (a photo story whose play address is its
+     * music), or when nothing usable is listed.
+     */
+    static Object storyBest(Object video) {
+        if (video == null) return null;
+        if (Boolean.TRUE.equals(Reflect.invoke(video, "hasDashBitrate"))) return null;
+        // A photo story carries its music as the Video's play address and lists no duration.
+        Object duration = Reflect.invoke(video, "getDuration");
+        if (duration instanceof Number && ((Number) duration).intValue() <= 0) return null;
+        List<Object> candidates = new ArrayList<>();
+        Object rates = QualitySelector.rawGears(video);
+        if (rates instanceof List<?>) {
+            for (Object gear : (List<?>) rates) {
+                if (QualitySelector.hasUsableAddress(gear) && QualitySelector.playable(gear)
+                        && videoAddress(gear)) candidates.add(gear);
+            }
+        }
+        for (QualitySelector.SourceGear source : QualitySelector.sources(video)) {
+            if (source.getPlayAddr() != null && QualitySelector.hasUsableAddress(source)
+                    && videoAddress(source)) candidates.add(source);
+        }
+        Object clean = Reflect.property(video, "getDownloadNoWatermarkAddr", "downloadNoWatermarkAddr");
+        if (clean != null) {
+            QualitySelector.SourceGear cleanGear = new QualitySelector.SourceGear("download_no_watermark", clean, 0);
+            if (QualitySelector.hasUsableAddress(cleanGear) && videoAddress(cleanGear)) candidates.add(cleanGear);
+        }
+        Object best = null;
+        for (Object candidate : candidates) {
+            if (best == null || storyBetter(candidate, best)) best = candidate;
+        }
+        if (best != null) {
+            Object chosen = best;
+            Logger.printInfo(() -> "[Story save] " + candidates.size() + " candidates, saving "
+                    + QualitySelector.describe(chosen) + " codec=" + QualitySelector.codec(chosen)
+                    + " size=" + QualitySelector.size(chosen));
+        }
+        return best;
+    }
+
+    /**
+     * Whether a candidate's address is a video file other players open: not an audio track, and
+     * not a ByteVC2 file filed under another name (its key names the codec it holds).
+     */
+    private static boolean videoAddress(Object gear) {
+        Object address = Reflect.property(gear, "getPlayAddr", "playAddr");
+        String key = Reflect.string(address, "getUrlKey", "urlKey");
+        if (key != null && key.contains("bytevc2")) return false;
+        List<String> list = urls(address);
+        String first = list.isEmpty() ? "" : list.get(0);
+        return !first.contains(".mp3") && !first.contains("mime_type=audio");
+    }
+
+    /**
+     * A story's save on Automatic at {@link #storyBest}, with the progress row, details, tags and
+     * the other switches the save honors. False when another quality is set (that save keeps
+     * {@link #start}'s choice), on a photo story, or when no rendition is usable, so the story's
+     * older paths run.
+     */
+    static boolean startStoryBest(Object aweme, Context context) {
+        if (!"auto".equals(Settings.DOWNLOAD_VIDEO_QUALITY.get())) return false;
+        if (Reflect.property(aweme, "getPhotoModeImageInfo", "photoModeImageInfo") != null) return false;
+        if (!OriginalPhotos.sources(aweme).isEmpty()) return false;
+        Object best = storyBest(Reflect.property(aweme, "getVideo", "video"));
+        if (best == null || urls(Reflect.property(best, "getPlayAddr", "playAddr")).isEmpty()) return false;
+        return start(aweme, context, false, best);
+    }
+
+    private static boolean storyBetter(Object candidate, Object current) {
+        int a = QualitySelector.heightOf(candidate), b = QualitySelector.heightOf(current);
+        if (a != b) return a > b;
+        long sizeA = QualitySelector.size(candidate), sizeB = QualitySelector.size(current);
+        if (sizeA != sizeB) return sizeA > sizeB;
+        return gearBitrate(candidate) > gearBitrate(current);
+    }
+
+    private static long gearBitrate(Object gear) {
+        if (gear instanceof QualitySelector.SourceGear) return 0;
+        Object rate = Reflect.property(gear, "getBitRate", "bitRate");
+        return rate instanceof Number ? ((Number) rate).longValue() : 0;
+    }
+
+    /**
      * A story's save at {@link #storyGear}. False, with nothing said, when that rendition can't
      * make a complete file, so the story's own save runs from its addresses instead.
      */
@@ -184,11 +280,11 @@ final class VideoDownloads {
             // progress row alone is no reason to refuse one TikTok could still have made. After a
             // pick there's no TikTok save left to run.
             if (withDetails || pick != null) {
-                Utils.showToastLong(L10n.t("This video isn't available as a complete file. Try again later."));
+                Utils.showToastLong(L10n.t("No full file for this video. Try again later."));
                 return true;
             }
             Utils.showToastShort(L10n.t(
-                    "This quality isn't available as a complete file, so TikTok's own save runs instead"));
+                    "No full file at this quality, so TikTok saves it"));
             return false;
         }
         String id = Reflect.string(aweme, "getAid", "aid");
@@ -207,7 +303,7 @@ final class VideoDownloads {
             // Working out the name is reflection over TikTok's model, so it can throw. Leaving
             // the id in ACTIVE here would refuse every later attempt on this video in silence.
             Logger.printException(() -> "Could not work out the download name", exception);
-            if (extras) Utils.showToastLong(L10n.t("The video couldn't be saved. Try again, or choose Automatic."));
+            if (extras) Utils.showToastLong(L10n.t("Couldn't save. Try again, or choose Automatic."));
             return extras;
         }
         String audioName = null;
@@ -242,7 +338,7 @@ final class VideoDownloads {
             // A source is needed for a new copy, but a remembered file can still be opened
             // after TikTok stops supplying a download address for this post.
             if (unavailable) {
-                Utils.showToastLong(L10n.t("This video isn't available as a complete file. Try again later."));
+                Utils.showToastLong(L10n.t("No full file for this video. Try again later."));
                 return;
             }
             Utils.showToastShort(L10n.f("Saving video to %1$s", path));
@@ -350,26 +446,26 @@ final class VideoDownloads {
                     Utils.showToastLong(outcome.stop == SaveProgress.Stop.SERVER_WAIT
                             ? SaveProgress.message(outcome, "")
                             : outcome.stop == SaveProgress.Stop.NETWORK
-                            ? L10n.t("The save stopped when you left Wi-Fi. Save it again on Wi-Fi.")
-                            : L10n.t("The video couldn't be saved. Try again, or choose Automatic."));
+                            ? L10n.t("Save stopped when Wi-Fi dropped. Retry on Wi-Fi.")
+                            : L10n.t("Couldn't save. Try again, or choose Automatic."));
                 } else {
                     // The video's own words when everything landed or only a track is missing,
                     // since they name the tracks that came; the count for anything else.
                     String own = subtitleResult(captionSnapshot.size(), subtitles[0], path);
                     if (details != null) own = L10n.f("Video and details saved to %1$s", path);
                     // Said over everything else, since it's not the file that was asked for.
-                    if (stamped[0]) own = L10n.f("The video without the watermark couldn't be fetched, so TikTok's watermarked copy was saved to %1$s. Try again later for the clean copy.", path);
+                    if (stamped[0]) own = L10n.f("No clean copy yet. Saved the watermarked one to %1$s", path);
                     boolean onlyTracks = details == null && outcome.cancelled == 0
                             && outcome.stop == SaveProgress.Stop.NONE && !soundSkipped[0];
                     String said = onlyTracks ? own : SaveProgress.message(outcome, own);
                     SaveNotice.saved(said, published[0]);
                     // A count took the banner, so the watermark is said on its own.
                     if (stamped[0] && !said.equals(own)) Utils.showToastLong(own);
-                    if (!remembered[0]) Utils.showToastLong(L10n.t("The video was saved, but its record couldn't be updated. A later save may make another copy."));
+                    if (!remembered[0]) Utils.showToastLong(L10n.t("Saved, but a later save may make a second copy"));
                 }
             } catch (RuntimeException exception) {
                 Logger.printException(() -> "Selected-quality download failed", exception);
-                Utils.showToastLong(L10n.t("The video couldn't be saved. Try again, or choose Automatic."));
+                Utils.showToastLong(L10n.t("Couldn't save. Try again, or choose Automatic."));
             } finally {
                 for (File file : temporary) if (!MediaCache.delete(file)) Logger.printInfo(() -> "Could not remove video temporary file");
             }
@@ -424,7 +520,7 @@ final class VideoDownloads {
         if (saved == wanted) {
             return L10n.f("Video saved with %1$s subtitles in %2$s", saved, path);
         }
-        return L10n.f("Video saved in %1$s, but only %2$s of %3$s subtitles came with it",
+        return L10n.f("Saved in %1$s with %2$s of %3$s subtitles",
                 path, saved, wanted);
     }
 

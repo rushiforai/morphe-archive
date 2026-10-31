@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 452 932" width="452" height="932">
+  <defs>
+    <clipPath id="screen-clip">
+      <rect x="20" y="20" width="412" height="892" rx="36" />
+    </clipPath>
+    <linearGradient id="body-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2c2d30" />
+      <stop offset="50%" stop-color="#18191b" />
+      <stop offset="100%" stop-color="#0d0e10" />
+    </linearGradient>
+    <linearGradient id="screen-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#121318" />
+      <stop offset="50%" stop-color="#1a1c24" />
+      <stop offset="100%" stop-color="#0b0c10" />
+    </linearGradient>
+    <filter id="phone-shadow" x="-8%" y="-8%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000000" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- Outer Phone Body -->
+  <rect x="6" y="6" width="440" height="920" rx="46" fill="url(#body-grad)" stroke="#3a3d45" stroke-width="2" filter="url(#phone-shadow)" />
+  <rect x="18" y="18" width="416" height="896" rx="38" fill="#000000" stroke="#25272c" stroke-width="1.5" />
+
+  <!-- Screen Content -->
+  <g clip-path="url(#screen-clip)">
+    
+    <!-- Background overlay blur -->
+    <rect x="20" y="20" width="412" height="892" fill="#0f1115" />
+    <circle cx="200" cy="180" r="180" fill="#3b82f6" opacity="0.1" filter="blur(60px)" />
+
+    <!-- Drawer Search Bar -->
+    <g transform="translate(44, 76)">
+      <rect width="364" height="48" rx="24" fill="#1b1e26" stroke="#2d3340" stroke-width="1.2" />
+      <g transform="translate(18, 14)">
+        <circle cx="8" cy="8" r="6" stroke="#94a3b8" stroke-width="1.5" fill="none" />
+        <path d="M13 13l4 4" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" />
+        <text x="28" y="14" fill="#64748b" font-family="-apple-system, sans-serif" font-size="14">Search 48 apps...</text>
+      </g>
+      <!-- Overflow 3-dots -->
+      <g transform="translate(330, 15)">
+        <circle cx="0" cy="4" r="1.8" fill="#94a3b8" />
+        <circle cx="0" cy="10" r="1.8" fill="#94a3b8" />
+        <circle cx="0" cy="16" r="1.8" fill="#94a3b8" />
+      </g>
+    </g>
+
+    <!-- Drawer Tabs -->
+    <g transform="translate(44, 140)">
+      <text x="12" y="16" fill="#f97316" font-family="-apple-system, sans-serif" font-size="13" font-weight="700">APPS</text>
+      <rect x="8" y="24" width="36" height="3" rx="1.5" fill="#f97316" />
+
+      <text x="80" y="16" fill="#64748b" font-family="-apple-system, sans-serif" font-size="13" font-weight="500">WORK</text>
+      <text x="156" y="16" fill="#64748b" font-family="-apple-system, sans-serif" font-size="13" font-weight="500">GAMES</text>
+      <text x="238" y="16" fill="#64748b" font-family="-apple-system, sans-serif" font-size="13" font-weight="500">SYSTEM</text>
+      <line x1="0" y1="26" x2="364" y2="26" stroke="#1f242e" stroke-width="1" />
+    </g>
+
+    <!-- Section A -->
+    <g transform="translate(48, 192)">
+      <text x="4" y="14" fill="#f97316" font-family="-apple-system, sans-serif" font-size="13" font-weight="700">A</text>
+      <line x1="22" y1="10" x2="340" y2="10" stroke="#1f242e" stroke-width="1" />
+      <g transform="translate(0, 26)">
+        
+    <g transform="translate(0, 0)">
+      <rect width="56" height="56" rx="16" fill="#ef4444" />
+      <svg x="14" y="14" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22a9 9 0 1 0 0-18a9 9 0 0 0 0 18zm0-14v5l3 3 M5 3L2 6 M19 3l3 3" />
+      </svg>
+      <text x="28" y="74" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Alarm</text>
+    </g>
+  
+        
+    <g transform="translate(90, 0)">
+      <rect width="56" height="56" rx="16" fill="#3b82f6" />
+      <svg x="14" y="14" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 17l6-6-6-6 M12 19h8" />
+      </svg>
+      <text x="28" y="74" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Android Dev</text>
+    </g>
+  
+        
+    <g transform="translate(180, 0)">
+      <rect width="56" height="56" rx="16" fill="#10b981" />
+      <svg x="14" y="14" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+      <text x="28" y="74" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Authenticator</text>
+    </g>
+  
+        
+    <g transform="translate(270, 0)">
+      <rect width="56" height="56" rx="16" fill="#8b5cf6" />
+      <svg x="14" y="14" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5z" />
+      </svg>
+      <text x="28" y="74" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Audiobook</text>
+    </g>
+  
+      </g>
+    </g>
+
+    <!-- Section B -->
+    <g transform="translate(48, 334)">
+      <text x="4" y="14" fill="#f97316" font-family="-apple-system, sans-serif" font-size="13" font-weight="700">B</text>
+      <line x1="22" y1="10" x2="340" y2="10" stroke="#1f242e" stroke-width="1" />
+      <g transform="translate(0, 26)">
+        
+    <g transform="translate(0, 0)">
+      <rect width="56" height="56" rx="16" fill="#06b6d4" />
+      <svg x="14" y="14" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20 M2 12h20" />
+      </svg>
+      <text x="28" y="74" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Browser</text>
+    </g>
+  
+        
+    <g transform="translate(90, 0)">
+      <rect width="56" height="56" rx="16" fill="#f59e0b" />
+      <svg x="14" y="14" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 11H5m14 0a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2m14 0V9a2 2 0 0 0-2-2M5 11V9a2 2 0 0 1 2-2m0 0V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2M7 7h10" />
+      </svg>
+      <text x="28" y="74" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Backup</text>
+    </g>
+  
+        
+    <g transform="translate(180, 0)">
+      <rect width="56" height="56" rx="16" fill="#ec4899" />
+      <svg x="14" y="14" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 7h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z M21 10v4" />
+      </svg>
+      <text x="28" y="74" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Battery Info</text>
+    </g>
+  
+        
+    <g transform="translate(270, 0)">
+      <rect width="56" height="56" rx="16" fill="#6366f1" />
+      <svg x="14" y="14" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+      </svg>
+      <text x="28" y="74" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Books</text>
+    </g>
+  
+      </g>
+    </g>
+
+    <!-- Section C -->
+    <g transform="translate(48, 476)">
+      <text x="4" y="14" fill="#f97316" font-family="-apple-system, sans-serif" font-size="13" font-weight="700">C</text>
+      <line x1="22" y1="10" x2="340" y2="10" stroke="#1f242e" stroke-width="1" />
+      <g transform="translate(0, 26)">
+        
+    <g transform="translate(0, 0)">
+      <rect width="56" height="56" rx="16" fill="#14b8a6" />
+      <svg x="14" y="14" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z M9 7H7 M17 7h-2 M17 11h-2 M17 15h-2 M9 15H7 M9 11H7" />
+      </svg>
+      <text x="28" y="74" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Calculator</text>
+    </g>
+  
+        
+    <g transform="translate(90, 0)">
+      <rect width="56" height="56" rx="16" fill="#a855f7" />
+      <svg x="14" y="14" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z M16 2v4 M8 2v4 M3 10h18" />
+      </svg>
+      <text x="28" y="74" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Calendar</text>
+    </g>
+  
+        
+    <g transform="translate(180, 0)">
+      <rect width="56" height="56" rx="16" fill="#f43f5e" />
+      <svg x="14" y="14" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+      </svg>
+      <text x="28" y="74" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Camera</text>
+    </g>
+  
+        
+    <g transform="translate(270, 0)">
+      <rect width="56" height="56" rx="16" fill="#38bdf8" />
+      <svg x="14" y="14" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+      </svg>
+      <text x="28" y="74" fill="#e2e8f0" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Contacts</text>
+    </g>
+  
+      </g>
+    </g>
+
+    <!-- Fast Scroll Index Bar Right -->
+    <g transform="translate(412, 180)">
+      <text x="0" y="0" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">#</text>
+<text x="0" y="22" fill="#f97316" font-family="-apple-system, monospace" font-size="10" font-weight="800" text-anchor="middle">A</text>
+<text x="0" y="44" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">B</text>
+<text x="0" y="66" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">C</text>
+<text x="0" y="88" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">D</text>
+<text x="0" y="110" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">E</text>
+<text x="0" y="132" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">F</text>
+<text x="0" y="154" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">G</text>
+<text x="0" y="176" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">H</text>
+<text x="0" y="198" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">I</text>
+<text x="0" y="220" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">J</text>
+<text x="0" y="242" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">K</text>
+<text x="0" y="264" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">L</text>
+<text x="0" y="286" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">M</text>
+<text x="0" y="308" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">N</text>
+<text x="0" y="330" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">O</text>
+<text x="0" y="352" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">P</text>
+<text x="0" y="374" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">Q</text>
+<text x="0" y="396" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">R</text>
+<text x="0" y="418" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">S</text>
+<text x="0" y="440" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">T</text>
+<text x="0" y="462" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">U</text>
+<text x="0" y="484" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">V</text>
+<text x="0" y="506" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">W</text>
+<text x="0" y="528" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">X</text>
+<text x="0" y="550" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">Y</text>
+<text x="0" y="572" fill="#475569" font-family="-apple-system, monospace" font-size="10" font-weight="500" text-anchor="middle">Z</text>
+    </g>
+  
+
+    <!-- Status Bar (Overlay) -->
+    <g id="status-bar" transform="translate(20, 20)">
+      <rect width="412" height="42" fill="transparent" />
+      <!-- Time -->
+      <text x="24" y="27" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif" font-size="14" font-weight="600" letter-spacing="-0.2">09:41</text>
+      <!-- Punch Hole Camera -->
+      <circle cx="206" cy="20" r="7.5" fill="#050505" stroke="#1f2228" stroke-width="1.2" />
+      <circle cx="204.5" cy="18.5" r="2.2" fill="#0d1b2a" opacity="0.8" />
+      <!-- Icons Right -->
+      <g transform="translate(340, 15)">
+        <!-- 5G / Signal -->
+        <rect x="0" y="8" width="2.5" height="4" rx="0.6" fill="#ffffff" />
+        <rect x="4" y="6" width="2.5" height="6" rx="0.6" fill="#ffffff" />
+        <rect x="8" y="3.5" width="2.5" height="8.5" rx="0.6" fill="#ffffff" />
+        <rect x="12" y="0" width="2.5" height="12" rx="0.6" fill="#ffffff" />
+        <!-- Battery -->
+        <g transform="translate(22, 0)">
+          <rect x="0" y="0.5" width="20" height="11" rx="3" fill="none" stroke="#ffffff" stroke-width="1.2" />
+          <rect x="2" y="2.5" width="13" height="7" rx="1.5" fill="#22c55e" />
+          <path d="M21 3.5 V8.5" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" />
+        </g>
+      </g>
+    </g>
+
+    <!-- Navigation Bar Pill -->
+    <rect x="159" y="898" width="134" height="4.5" rx="2.5" fill="#ffffff" opacity="0.6" />
+  </g>
+</svg>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nine-patch xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:src="0x7f0800eb"
+    android:tint="0x7f06053f"
+    android:tintMode="multiply"
+    app:tintMode="14"/>

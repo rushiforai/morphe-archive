@@ -17,12 +17,15 @@ Repository unico di patch indipendenti per piu applicazioni Android, compatibile
 | **Flowx** | `com.enzuredigital.weatherbomb` | 4.650 | Test stato Gold locale |
 | **Fonometro** | `com.ktwapps.soundmeter` | 11.5 | Rimozione annunci |
 | **Prezzi Benzina** | `org.vernazza.androidfuel` | 3.26.10.10 | Routing Maps tramite GmsCore F13, Remove Ads A1 |
+| **Yahoo Finance** | `com.yahoo.mobile.client.android.finance` | 26.21.2 (1360038759) | Remove Ads A2, GOLD diagnostico A3, accesso Google microG A5, diagnostica analisi A7 |
 
 ### Stato dei test
 
 - **Leghe FC:** le tre patch esistenti rimangono invariate; la patch per la formazione suggerita usa ancora dati dimostrativi. I nomi delle patch non garantiscono lo sblocco completo delle funzionalita.
 - **Twilight:** patch importata dal ramo `dev` del [repository originario](https://github.com/Edoardo9708/Twilight-Morphe-Patches). Il codice imposta a `false` il valore di ritorno di `isTrial()` (`const/4 v0, 0x0`) e registra il test in Logcat. Non e stato verificato il comportamento complessivo dell'app.
 **Prezzi Benzina:** F13 instrada il servizio del token Maps verso un GmsCore compatibile già installato; A1 interviene sui controlli per banner/interstitial. Il funzionamento è stato verificato dall'utente sulla versione 3.26.10.10; F13 richiede un ambiente GmsCore compatibile.
+
+- **Yahoo Finance:** Remove Ads A2 verificata su dispositivo; accesso Google via GmsCore A5 confermato. GOLD A3 simula solo il livello locale e non sblocca le funzioni server; A7 registra soltanto stati e risultati di accesso per la diagnostica. Tutte le patch sono disabilitate per default. [Resoconto prove](lab/yahoofinance/README.md).
 
 - **Outdooractive:** patch importata dal ramo `dev` del [repository originario](https://github.com/Edoardo9708/Outdooractive-Morphe-Patches). Il codice registra i valori originali ma **restituisce valori dimostrativi** (`1` per `isProUser`, `2` per `getLevel`). La pubblicazione sul canale stabile non certifica il corretto comportamento della patch nell'app.
 
@@ -44,7 +47,7 @@ Il codice delle diverse app e separato per package sotto `patches/src/main/kotli
 ## Elenco automatico delle patch pubblicate
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+> **[v1.8.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
 <details open>
 <summary>📦 DNS Changer&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -165,6 +168,24 @@ Il codice delle diverse app e separato per package sotto `patches/src/main/kotli
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Twilight - Test stato trial](#twilight-test-stato-trial) | Unlock Pro |  |
+
+</details>
+
+<details open>
+<summary>📦 Yahoo Finance&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 26.21.2 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Yahoo Finance - Analysis diagnostics A7](#yahoo-finance-analysis-diagnostics-a7) | Logs finance analysis response status and local subscription access outcomes without changing results. |  |
+| [Yahoo Finance - GOLD diagnostic A3](#yahoo-finance-gold-diagnostic-a3) | Experimental: simulates GOLD in local subscription state. Server feature maps remain original; does not establish premium content access. |  |
+| [Yahoo Finance - Remove ads A2](#yahoo-finance-remove-ads-a2) | Test: enables only the AdsFree UI check; leaves other subscription features and purchases unchanged. Logs YF-RemoveAds. |  |
+| [Yahoo Finance - microG login A5](#yahoo-finance-microg-login-a5) | Experimental: route Google identity sign-in/authorization to existing ReVanced GmsCore, using the bundled credential provider. |  |
 
 </details>
 

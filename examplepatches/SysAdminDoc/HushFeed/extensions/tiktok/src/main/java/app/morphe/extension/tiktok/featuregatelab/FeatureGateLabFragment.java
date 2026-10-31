@@ -65,9 +65,11 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.SettingsJson;
 import app.morphe.extension.tiktok.settings.SettingsOperationJournal;
 import app.morphe.extension.tiktok.settings.preference.DocumentOperation;
+import app.morphe.extension.tiktok.settings.preference.RestartPendingPreference;
 import app.morphe.extension.tiktok.settings.preference.SettingsActionBanner;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.preference.SettingsMenuPreference;
+import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 
 @SuppressWarnings({"deprecation", "SetTextI18n"})
 public final class FeatureGateLabFragment extends Fragment {
@@ -171,6 +173,8 @@ public final class FeatureGateLabFragment extends Fragment {
     private final View[] sourceTabIndicators = new View[SOURCE_LABELS.length];
     private TextView filterButton;
     private Switch master;
+    /** The settings pages' restart row, shown here while a Lab change waits on a restart. */
+    private TextView restartRow;
     private ListView list;
     private LinearLayout selectionBar;
     private TextView selectionCount;
@@ -269,6 +273,15 @@ public final class FeatureGateLabFragment extends Fragment {
                 FeatureGateLabUi.dp(context, 8)
         );
         root.addView(controls, FeatureGateLabUi.matchWrap());
+
+        // A change TikTok has already read only takes after a restart, and a toast saying so
+        // left nothing to press. This lands back on the Lab after the restart.
+        restartRow = RestartPendingPreference.button(context, view ->
+                RestartPendingPreference.restartTo(view.getContext(), TikTokPreferenceFragment.PAGE_LAB));
+        LinearLayout.LayoutParams restartParams = FeatureGateLabUi.matchWrap();
+        restartParams.bottomMargin = FeatureGateLabUi.dp(context, 8);
+        controls.addView(restartRow, restartParams);
+        refreshRestartRow();
 
         master = new Switch(context);
         master.setChecked(FeatureGateLabStore.masterEnabled());
@@ -593,8 +606,8 @@ public final class FeatureGateLabFragment extends Fragment {
         }
         // Both forms take (count, build); the one form leaves the count unused.
         Utils.showToastLong(L10n.quantity(Utils.getContext(), turnedOff,
-                "1 override was turned off because the Lab couldn't confirm its gate is unchanged in TikTok %2$s. Review it before turning it back on.",
-                "%1$d overrides were turned off because the Lab couldn't confirm their gates are unchanged in TikTok %2$s. Review them before turning them back on.",
+                "Turned off 1 override. Check it for TikTok %2$s.",
+                "Turned off %1$d overrides. Check them for TikTok %2$s.",
                 turnedOff, FeatureGateLabStore.targetVersion()));
     }
 
@@ -647,6 +660,7 @@ public final class FeatureGateLabFragment extends Fragment {
         viewTabs = null;
         filterButton = null;
         master = null;
+        restartRow = null;
         list = null;
         selectionBar = null;
         selectionCount = null;
@@ -1042,6 +1056,14 @@ public final class FeatureGateLabFragment extends Fragment {
         dialog.show();
     }
 
+    /** Shows the restart row while a restart is owed, counting every change waiting on one. */
+    private void refreshRestartRow() {
+        if (restartRow == null) return;
+        boolean owed = FeatureGateLabSession.restartNeeded();
+        restartRow.setVisibility(owed ? View.VISIBLE : View.GONE);
+        if (owed) restartRow.setText(RestartPendingPreference.label(restartRow.getContext()));
+    }
+
     /**
      * Puts the switch back where the store is, when the screen is still up.
      *
@@ -1069,8 +1091,8 @@ public final class FeatureGateLabFragment extends Fragment {
         // the main thread, and a settings restore holding the journal lock froze the screen
         // until it finished. runLabChange puts the switch back for us either way.
         runLabChange(() -> FeatureGateLabUndo.setMasterEnabled(checked),
-                checked ? L10n.t(getContext(), "Overrides enabled. Restart TikTok to apply this.")
-                        : L10n.t(getContext(), "Overrides disabled. Restart TikTok to apply this."));
+                checked ? L10n.t(getContext(), "Overrides enabled. Restart TikTok to apply.")
+                        : L10n.t(getContext(), "Overrides disabled. Restart TikTok to apply."));
     }
 
     /**
@@ -1174,7 +1196,7 @@ public final class FeatureGateLabFragment extends Fragment {
             int written = FeatureGateLabUndo.forceBoolean(gates, value);
             if (written == 0) {
                 throw new Refused(L10n.t(Utils.getContext(),
-                        "None of these gates takes a true or false value."));
+                        "None of these gates takes a true or false value"));
             }
             // The message says what happened rather than what was asked for. Reported as a
             // failure, which is what throwing here did, it said nothing went through on a run
@@ -1183,27 +1205,31 @@ public final class FeatureGateLabFragment extends Fragment {
             // Eight whole sentences rather than a verb, a count and two tails glued together.
             // A table row holds a sentence: assembled here, the plural rule of the language
             // never got a say and neither did the order the pieces go in.
+            //
+            // None of them says restart. With overrides off nothing waits on one, and with
+            // them on the restart row above the list says it and carries the button.
             android.content.Context context = Utils.getContext();
             if (written == total) {
                 if (value) {
                     return L10n.quantity(context, written,
-                            "Forced 1 gate. Restart TikTok to apply this.",
-                            "Forced %1$d gates. Restart TikTok to apply this.");
+                            "Forced 1 gate",
+                            "Forced %1$d gates");
                 }
                 return L10n.quantity(context, written,
-                        "Turned off 1 gate. Restart TikTok to apply this.",
-                        "Turned off %1$d gates. Restart TikTok to apply this.");
+                        "Turned off 1 gate",
+                        "Turned off %1$d gates");
             }
-            // Both forms take (written, total); the one form leaves the first unused.
+            // Both forms take (written, total); the one form leaves the first unused. Saying
+            // why the rest were skipped took a third line, which a toast cuts off.
             if (value) {
                 return L10n.quantity(context, written,
-                        "Forced 1 gate of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.",
-                        "Forced %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.",
+                        "Forced 1 of %2$d gates",
+                        "Forced %1$d of %2$d gates",
                         written, total);
             }
             return L10n.quantity(context, written,
-                    "Turned off 1 gate of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.",
-                    "Turned off %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.",
+                    "Turned off 1 of %2$d gates",
+                    "Turned off %1$d of %2$d gates",
                     written, total);
         });
         if (started) {
@@ -1219,7 +1245,7 @@ public final class FeatureGateLabFragment extends Fragment {
             int dropped = FeatureGateLabUndo.resetAll(gates);
             if (dropped == 0) {
                 throw new Refused(L10n.t(Utils.getContext(),
-                        "None of these gates had an override to reset."));
+                        "None of these gates had an override to reset"));
             }
             // Dropped, not selected: choosing five gates of which two had an override resets two.
             // One whole sentence per shape. Built from a count and three fragments it was four
@@ -1227,12 +1253,12 @@ public final class FeatureGateLabFragment extends Fragment {
             android.content.Context context = Utils.getContext();
             if (dropped == total) {
                 return L10n.quantity(context, dropped,
-                        "Reset 1 gate. Restart TikTok to apply this.",
-                        "Reset %1$d gates. Restart TikTok to apply this.");
+                        "Reset 1 gate",
+                        "Reset %1$d gates");
             }
             return L10n.quantity(context, dropped,
-                    "Reset 1 gate of %2$d. Restart TikTok to apply this.",
-                    "Reset %1$d gates of %2$d. Restart TikTok to apply this.",
+                    "Reset 1 of %2$d gates",
+                    "Reset %1$d of %2$d gates",
                     dropped, total);
         });
         if (started) {
@@ -1315,7 +1341,7 @@ public final class FeatureGateLabFragment extends Fragment {
                         case 5: showPresets(); break;
                         default:
                             runLabChange(FeatureGateLabUndo::undo, L10n.t(getContext(),
-                                    "Lab settings put back. Restart TikTok to apply this."));
+                                    "Lab settings put back"));
                             break;
                     }
                 })
@@ -1333,7 +1359,7 @@ public final class FeatureGateLabFragment extends Fragment {
             String build = app.morphe.extension.shared.BuildNames.runningBuild();
             JSONObject version = FeatureGateLabStore.reviewedPresets().optJSONObject(build);
             if (version == null || version.length() == 0) {
-                postToast(L10n.f(getContext(), "No presets have been reviewed for TikTok %1$s yet", build));
+                postToast(L10n.f(getContext(), "No reviewed presets for TikTok %1$s yet", build));
                 return;
             }
             List<String> ids = new ArrayList<>();
@@ -1362,7 +1388,7 @@ public final class FeatureGateLabFragment extends Fragment {
         // The first snapshot holds only the values TikTok has stored. A preset reviewed against
         // it found gates TikTok never sent missing and refused as not matching this build.
         if (snapshot == null || !snapshot.catalogComplete) {
-            postToast(L10n.t(getContext(), "Loaded values are still being read. Try again in a moment."));
+            postToast(L10n.t(getContext(), "Still reading loaded values. Try again soon."));
             return;
         }
         try {
@@ -1401,12 +1427,12 @@ public final class FeatureGateLabFragment extends Fragment {
             if (compatible) builder.setPositiveButton(L10n.t(getContext(), "Apply"), (ignored, which) ->
                     runLabChange(() -> FeatureGateLabUndo.applyPreset(build, id, snapshot.byIdentity),
                             L10n.t(getContext(), FeatureGateLabStore.masterEnabled()
-                                    ? "Preset applied. Restart TikTok to use it."
-                                    : "Preset saved. Turn on overrides in the Lab to use it.")));
+                                    ? "Preset applied"
+                                    : "Preset saved. Turn on overrides to use it.")));
             showStyled(builder.create());
         } catch (Exception error) {
             Logger.printException(() -> "Could not review a bundled Lab preset", error);
-            postToast(L10n.t(getContext(), "This preset doesn't match the installed gates. Nothing changed."));
+            postToast(L10n.t(getContext(), "Preset doesn't match the gates. Nothing changed."));
         }
     }
 
@@ -1419,7 +1445,7 @@ public final class FeatureGateLabFragment extends Fragment {
             if (fileSlotTaken()) return;
             if (snapshot == null) {
                 postToast(L10n.t(Utils.getContext(),
-                        "Loaded values are still being read. Try again in a moment."));
+                        "Still reading loaded values. Try again soon."));
                 return;
             }
             // The stamp every other export takes, UTC, so the Lab's file sorts beside them.
@@ -1464,7 +1490,7 @@ public final class FeatureGateLabFragment extends Fragment {
         Context context = activity == null ? null : activity.getApplicationContext();
         if (context == null) {
             postToast(L10n.t(Utils.getContext(),
-                    "The loaded-values file you chose couldn't be read. Try again."));
+                    "Couldn't read that file. Try again."));
             return;
         }
         startFileOperation(context, uri, false, file -> importFrom(context, uri, file));
@@ -1495,7 +1521,7 @@ public final class FeatureGateLabFragment extends Fragment {
         if (DocumentOperation.busy(DocumentOperation.Kind.LAB_FILE)) {
             tellFileOut();
         } else {
-            fileNotice(L10n.t(context, "Couldn't start the Lab change. Try again in a moment."));
+            fileNotice(L10n.t(context, "Couldn't start the Lab change. Try again."));
         }
     }
 
@@ -1529,7 +1555,7 @@ public final class FeatureGateLabFragment extends Fragment {
             }
             DocumentOperation.logFailure(file, () -> "Loaded-value file export failed", error);
             String message = file.stage() == DocumentOperation.Stage.STOPPED_WHILE_PUBLISHING
-                    ? L10n.t(context, "The export wasn't saved. Export again when the file app is ready.")
+                    ? L10n.t(context, "The export wasn't saved. Try again.")
                     : L10n.t(context, "Loaded-value file export failed");
             if (!DocumentOperation.removeUnsaved(resolver, uri, opened)) {
                 message += " " + L10n.t(context,
@@ -1667,13 +1693,13 @@ public final class FeatureGateLabFragment extends Fragment {
         if (context == null) context = Utils.getContext();
         if (currentSnapshot == null) {
             throw new Refused(L10n.t(context,
-                    "Loaded values are still being read. Try again in a moment."));
+                    "Still reading loaded values. Try again soon."));
         }
         if (!"loaded_values".equals(imported.optString("payload_kind"))) {
-            throw new Refused(L10n.t(context, "This file isn't a loaded-values export from the Feature Gate Lab."));
+            throw new Refused(L10n.t(context, "This file isn't a loaded-values export"));
         }
         if (!FeatureGateLabStore.targetVersion().equals(imported.optString("tiktok_version"))) {
-            throw new Refused(L10n.t(context, "These loaded values are for a different TikTok version."));
+            throw new Refused(L10n.t(context, "These loaded values are for a different TikTok version"));
         }
 
         Map<String, FeatureGateLabStore.Rule> existingRules = rulesByIdentity();
@@ -1682,7 +1708,7 @@ public final class FeatureGateLabFragment extends Fragment {
         int same = 0;
         int unavailable = 0;
         int malformed = 0;
-        if (sourceRules == null) throw new Refused(L10n.t(context, "This file has no loaded values in it."));
+        if (sourceRules == null) throw new Refused(L10n.t(context, "This file has no loaded values in it"));
         {
             for (int i = 0; i < sourceRules.length(); i++) {
                 JSONObject item = sourceRules.optJSONObject(i);
@@ -1726,28 +1752,15 @@ public final class FeatureGateLabFragment extends Fragment {
         FeatureGateLabStore.ImportReview review = FeatureGateLabStore.reviewProfile(
                 profile.toString(), currentSnapshot.byIdentity);
 
-        // An import that accepted nothing writes no undo copy, so a message offering Undo
-        // would point at whatever the previous Lab change was.
         int rejected = review.rejected.size() + malformed;
         String firstRejection = review.rejected.isEmpty()
                 ? null
                 : FeatureGateLabText.importRejection(
                         Utils.getContext(), review.rejected.get(0));
-        if (review.accepted.isEmpty()) {
-            // Nothing changed, so one line is enough and the toast stays.
-            String message = firstRejection == null
-                    ? L10n.f(Utils.getContext(),
-                            "Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected.",
-                            same, unavailable, rejected)
-                    : L10n.f(Utils.getContext(),
-                            "Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected. First rejection: %4$s",
-                            same, unavailable, rejected, firstRejection);
-            runLabChange(() -> FeatureGateLabUndo.importRules(review), message);
-            return;
-        }
         // Five clauses in a toast that lasts 3.5 seconds could not be read, and the rejection
         // text could not be copied out of it. A dialog holds each count on its own line, keeps
-        // the rejection selectable, and puts Undo beside Done.
+        // the rejection selectable, and puts Undo beside Done. An import that took nothing gets
+        // the same dialog: its counts and rejection were the same five clauses in a toast.
         int accepted = review.accepted.size();
         int matched = same;
         int notAvailable = unavailable;
@@ -1762,8 +1775,11 @@ public final class FeatureGateLabFragment extends Fragment {
         lines.setOrientation(LinearLayout.VERTICAL);
         int side = FeatureGateLabUi.dp(context, 20);
         lines.setPadding(side, FeatureGateLabUi.dp(context, 8), side, 0);
-        lines.addView(FeatureGateLabUi.body(context, L10n.f(context, "Imported %1$d values", accepted)),
-                FeatureGateLabUi.matchWrap());
+        // The title already says nothing came in.
+        if (accepted > 0) {
+            lines.addView(FeatureGateLabUi.body(context, L10n.f(context, "Imported %1$d values", accepted)),
+                    FeatureGateLabUi.matchWrap());
+        }
         lines.addView(FeatureGateLabUi.label(context, L10n.f(context, "%1$d already matched", matched)),
                 FeatureGateLabUi.matchWrap());
         lines.addView(FeatureGateLabUi.label(context, L10n.f(context, "%1$d unavailable", unavailable)),
@@ -1786,19 +1802,23 @@ public final class FeatureGateLabFragment extends Fragment {
         if (activity == null) {
             // The Lab was closed while the file was being read. There is nothing to hang a
             // dialog on, so the one line that matters goes out the way every other change is told.
-            Utils.showToastLong(L10n.f(Utils.getContext(),
-                    "Imported %1$d values. Undo last Lab change is in the menu.", accepted));
+            Utils.showToastLong(accepted == 0
+                    ? L10n.t(Utils.getContext(), "Nothing new was imported")
+                    : L10n.f(Utils.getContext(), "Imported %1$d values. The menu can undo it.", accepted));
             return;
         }
-        AlertDialog dialog = new AlertDialog.Builder(activity)
-                .setTitle(L10n.t(activity, "Import finished"))
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity)
+                .setTitle(L10n.t(activity, accepted == 0 ? "Nothing new was imported" : "Import finished"))
                 .setView(importResultView(activity, accepted, matched, unavailable, rejected, firstRejection))
-                .setPositiveButton(L10n.t(activity, "Done"), null)
-                .setNegativeButton(L10n.t(activity, "Undo"), (ignored, which) -> runLabChange(
-                        FeatureGateLabUndo::undo,
-                        L10n.t(activity, "Lab settings put back. Restart TikTok to apply this.")))
-                .create();
-        showStyled(dialog);
+                .setPositiveButton(L10n.t(activity, "Done"), null);
+        // An import that took nothing wrote no undo copy, so Undo here would put back
+        // whatever the Lab change before it was.
+        if (accepted > 0) {
+            builder.setNegativeButton(L10n.t(activity, "Undo"), (ignored, which) -> runLabChange(
+                    FeatureGateLabUndo::undo,
+                    L10n.t(activity, "Lab settings put back")));
+        }
+        showStyled(builder.create());
     }
 
     private static ExportPayload buildExportPayload(FeatureGateCatalog.Snapshot currentSnapshot)
@@ -1897,15 +1917,14 @@ public final class FeatureGateLabFragment extends Fragment {
     private void reset(boolean allData) {
         runLabChange(() -> {
             boolean undoAvailable = FeatureGateLabUndo.reset(allData);
+            // Over the rule limit there's no undo copy. The undo hint the other two carried took
+            // a third line, and the menu still lists Undo last Lab change.
             if (allData && !undoAvailable) {
-                return L10n.t(Utils.getContext(),
-                        "Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok to apply this.");
+                return L10n.t(Utils.getContext(), "Lab data reset with no undo");
             }
             return allData
-                    ? L10n.t(Utils.getContext(),
-                            "Lab data reset. Undo last Lab change is in the menu. Restart TikTok to apply this.")
-                    : L10n.t(Utils.getContext(),
-                            "Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok to apply this.");
+                    ? L10n.t(Utils.getContext(), "Lab data reset")
+                    : L10n.t(Utils.getContext(), "Lab overrides reset");
         });
     }
 
@@ -1951,7 +1970,22 @@ public final class FeatureGateLabFragment extends Fragment {
      *         for a change that never ran.
      */
     private boolean runLabChange(ReportingLabChange change) {
-        return runLabChange(change, Utils::showToastLong);
+        return runLabChange(change, FeatureGateLabFragment::toastNotice);
+    }
+
+    /** Runs {@code change} the way a Lab action does, told with the default toast. */
+    boolean runLabChangeForTests(java.util.concurrent.Callable<String> change) {
+        return runLabChange(change::call);
+    }
+
+    /**
+     * The default way a finished change is told. A change with nothing to say shows nothing:
+     * handed an empty string, a toast is a blank pill. The import's dialog still gets its call,
+     * since it shows counts rather than the notice.
+     */
+    private static void toastNotice(String notice) {
+        if (notice == null || notice.trim().isEmpty()) return;
+        Utils.showToastLong(notice);
     }
 
     private boolean runLabChange(ReportingLabChange change, NoticePresenter presenter) {
@@ -1975,11 +2009,13 @@ public final class FeatureGateLabFragment extends Fragment {
                 if (refused) Logger.printInfo(() -> "Lab change refused", error);
                 else Logger.printException(() -> "Lab change failed", error);
                 // A refusal already carries its reason in the reader's words. Swapped for the
-                // retry line, the reader was told to try again what would fail the same way.
-                result = refused
-                        ? error.getMessage()
+                // retry line, the reader was told to try again what would fail the same way. One
+                // built with no reason gets the retry line, which beats a toast with nothing in it.
+                String reason = refused ? error.getMessage() : null;
+                result = reason != null && !reason.trim().isEmpty()
+                        ? reason
                         : L10n.t(Utils.getContext(), "Couldn't change the Lab settings. Try again.");
-                tell = Utils::showToastLong;
+                tell = FeatureGateLabFragment::toastNotice;
             }
             String notice = result;
             NoticePresenter presenting = tell;
@@ -1989,6 +2025,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 // until TikTok was restarted.
                 CHANGING.set(false);
                 syncMasterSwitch();
+                refreshRestartRow();
                 rebuild();
                 if (notice != null) presenting.present(notice);
                 else presenting.present("");
@@ -2001,7 +2038,7 @@ public final class FeatureGateLabFragment extends Fragment {
             // the reader has to tap a third time before the requested change is submitted.
             syncMasterSwitch();
             postToast(L10n.t(Utils.getContext(),
-                    "Couldn't start the Lab change. Try again in a moment."));
+                    "Couldn't start the Lab change. Try again."));
             return false;
         }
         return true;

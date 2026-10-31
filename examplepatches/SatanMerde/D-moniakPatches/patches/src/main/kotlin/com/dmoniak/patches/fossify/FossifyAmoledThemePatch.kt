@@ -9,7 +9,7 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val fossifyAmoledThemePatch = bytecodePatch(
-    name = "Pure AMOLED Black Theme - Fossify Phone",
+    name = "Pure AMOLED Black Theme - Fossify Phone (Experimental)",
     description = "Applies a pure #000000 AMOLED dark theme across dialpad, in-call screen, contacts list, and call history for optimal OLED battery savings.",
 ) {
     compatibleWith(COMPATIBILITY_FOSSIFY_PHONE)

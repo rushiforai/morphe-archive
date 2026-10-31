@@ -24,6 +24,43 @@ fun main(args: Array<String>) {
     }
     val framework = URLClassLoader(arrayOf(File(args[2], "platforms/android-36/android.jar").toURI().toURL()),
         ClassLoader.getSystemClassLoader().parent)
+    // java.lang.Enum cannot be loaded from android.jar by a JVM ClassLoader (bootstrap wins).
+    // Read its SDK definitions rather than hiding inherited enum calls or trusting the host JDK API.
+    val bootMethods = mutableMapOf<String, Set<String>>()
+    fun sdkMethods(type: String): Set<String> = bootMethods.getOrPut(type) {
+        ZipFile(File(args[2], "platforms/android-36/android.jar")).use { sdk ->
+            val entry = sdk.getEntry(type.substring(1, type.length - 1) + ".class") ?: return@getOrPut emptySet()
+            java.io.DataInputStream(sdk.getInputStream(entry).buffered()).use { data ->
+                check(data.readInt() == 0xcafebabe.toInt())
+                data.readUnsignedShort(); data.readUnsignedShort()
+                val strings = arrayOfNulls<String>(data.readUnsignedShort())
+                var index = 1
+                while (index < strings.size) {
+                    when (val tag = data.readUnsignedByte()) {
+                        1 -> strings[index] = data.readUTF()
+                        3, 4, 9, 10, 11, 12, 17, 18 -> data.readInt()
+                        5, 6 -> { data.readLong(); index++ }
+                        7, 8, 16, 19, 20 -> data.readUnsignedShort()
+                        15 -> { data.readUnsignedByte(); data.readUnsignedShort() }
+                        else -> error("Unknown SDK constant pool tag $tag")
+                    }
+                    index++
+                }
+                fun attributes() { repeat(data.readUnsignedShort()) {
+                    data.readUnsignedShort(); val size = data.readInt()
+                    data.readFully(ByteArray(size))
+                } }
+                repeat(3) { data.readUnsignedShort() }
+                repeat(data.readUnsignedShort()) { data.readUnsignedShort() }
+                repeat(data.readUnsignedShort()) { repeat(3) { data.readUnsignedShort() }; attributes() }
+                buildSet { repeat(data.readUnsignedShort()) {
+                    data.readUnsignedShort()
+                    add(requireNotNull(strings[data.readUnsignedShort()]) + requireNotNull(strings[data.readUnsignedShort()]))
+                    attributes()
+                } }
+            }
+        }
+    }
     val results = args.take(2).mapIndexed { index, path ->
         val directory = File(args[3], if (index == 0) "original" else "rebuilt").apply { mkdirs() }
         val definitions = mutableSetOf<String>()
@@ -52,7 +89,7 @@ fun main(args: Array<String>) {
                                     body[4].opcode == com.android.tools.smali.dexlib2.Opcode.IGET_OBJECT)
                                 check((body[4] as ReferenceInstruction).reference.toString() == NuvioAccessPatch.FIELDS.getValue(method.name))
                             }
-                            if (index == 1 && extension == NuvioPlaybackButtonsPatch.EXTENSION && owner.type == "Lab/cj;" && method.name == "invoke") {
+                            if (index == 1 && extension == NuvioPlaybackButtonsPatch.EXTENSION && owner.type == "Lbb/ai;" && method.name == "invoke") {
                                 val code = method.implementation?.instructions?.toList() ?: emptyList()
                                 val intro = code.indexOfFirst { NuvioPlaybackButtonsPatch.reference(it) == NuvioIntroDbPatch.RENDER }
                                 if (intro >= 0) check(code.getOrNull(intro + 1)?.let { NuvioPlaybackButtonsPatch.reference(it) }
@@ -87,6 +124,7 @@ fun main(args: Array<String>) {
                 var parent = parents[call.substringBefore("->")]
                 while (parent != null) {
                     if ("$parent->$signature" in definitions) return true
+                    if (parent.startsWith("Ljava/")) return signature in sdkMethods(parent)
                     if (parent.startsWith("Landroid/")) {
                         // DEX may name the extension subclass for inherited View/Activity APIs.
                         // Resolve the exact signature against the SDK, rather than exempting a name.

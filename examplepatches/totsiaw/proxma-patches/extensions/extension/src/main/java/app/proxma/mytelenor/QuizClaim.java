@@ -82,6 +82,11 @@ public final class QuizClaim {
             sResult = StreakClaim.NOT_LOGGED_IN;
             return true;
         }
+        if (!AppSession.headersReady()) {
+            Log.i(TAG, "QUIZ_WAIT no-headers");
+            sResult = "waiting for account data, open the app once";
+            return false;
+        }
 
         String submitUrl = submitUrl();
         String stage = state.optString("stage", "");
@@ -315,13 +320,11 @@ public final class QuizClaim {
         Class<?> boClass;
         java.lang.reflect.Constructor<?> answerCtor;
         try {
-            Class<?> appClass = Class.forName("com.telenor.pakistan.mytelenor.BaseApp.DaggerApplication");
-            api = appClass.getMethod("h").invoke(appClass.getMethod("d").invoke(null));
+            api = AppSession.api();
             apiClass = Class.forName("com.telenor.pakistan.mytelenor.Interface.MyEndPointsInterface");
             boClass = Class.forName("com.telenor.pakistan.mytelenor.AnswerAndWin.models.SubmitQuestionBO");
             answerCtor = Class.forName("com.telenor.pakistan.mytelenor.AnswerAndWin.models.SubmitQuestionAnswerNWin")
                 .getConstructor(int.class, int.class);
-            if (api == null) throw new IllegalStateException("no api");
         } catch (Throwable t) {
             Log.i(TAG, "QUIZ_APP_CLIENT_UNAVAILABLE " + t);
             return null;
@@ -345,20 +348,9 @@ public final class QuizClaim {
         // message and data are read from the reply.
         try {
             Object call = apiClass.getMethod("submitQuestionAnswerNWin", String.class, boClass).invoke(api, url, bo);
-            Object resp = Class.forName("retrofit2.Call").getMethod("execute").invoke(call);
-            Class<?> respClass = Class.forName("retrofit2.Response");
-            int code = (Integer) respClass.getMethod("code").invoke(resp);
-            Object parsed = respClass.getMethod("body").invoke(resp);
-            String text;
-            if (parsed != null) {
-                Class<?> gson = Class.forName("com.google.gson.Gson");
-                text = (String) gson.getMethod("toJson", Object.class).invoke(gson.newInstance(), parsed);
-            } else {
-                Object err = respClass.getMethod("errorBody").invoke(resp);
-                text = err != null ? (String) err.getClass().getMethod("string").invoke(err) : "";
-            }
-            Log.i(TAG, "QUIZ_APP_CLIENT " + code);
-            return new StreakClaim.HttpResult(code, text);
+            StreakClaim.HttpResult r = AppSession.execute(call);
+            Log.i(TAG, "QUIZ_APP_CLIENT " + r.code);
+            return r;
         } catch (java.lang.reflect.InvocationTargetException e) {
             Throwable cause = e.getCause();
             if (cause instanceof java.io.IOException) throw (java.io.IOException) cause;

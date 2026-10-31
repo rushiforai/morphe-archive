@@ -1,0 +1,88 @@
+name: "✅ Validation d'un patch expérimental / Patch Validation Report"
+description: "Signaler qu'un patch classé expérimental fonctionne pour qu'il soit promu en 'Tested & Functional'."
+title: "validation: "
+labels: ["validation", "tested"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### ✅ Validation d'un patch expérimental / Experimental Patch Validation
+        Vous avez testé un patch classé comme `(Experimental)` sur votre appareil ou émulateur et vous confirmez qu'il fonctionne ?
+        Remplissez ce formulaire pour qu'il soit validé et déplacé dans la catégorie **Tested & Functional Patches** lors de la prochaine release !
+
+  - type: input
+    id: app-name
+    attributes:
+      label: "Nom du jeu ou de l'application / Target App or Game"
+      description: "Indiquez le nom complet de l'application testée."
+      placeholder: "ex: Spotify, Shazam, AllTrails, Subway Surfers, etc."
+    validations:
+      required: true
+
+  - type: input
+    id: patch-name
+    attributes:
+      label: "Nom exact du patch / Exact Patch Name"
+      description: "Le nom du patch tel qu'affiché dans Morphe Manager ou le README."
+      placeholder: "ex: Spicetify AMOLED Black Theme, Unlock Premium, etc."
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: "Version exacte de l'application / Tested App Version"
+      description: "Le numéro de version exact de l'application avec laquelle le patch a été testé."
+      placeholder: "ex: 8.9.12.500"
+    validations:
+      required: true
+
+  - type: input
+    id: device-os
+    attributes:
+      label: "Modèle de l'appareil et version d'Android / Device & Android OS"
+      description: "Appareil physique ou émulateur utilisé pour le test."
+      placeholder: "ex: Samsung Galaxy S23 (Android 14) ou Pixel 8 (Android 15) ou LDPlayer 9"
+    validations:
+      required: true
+
+  - type: input
+    id: morphe-version
+    attributes:
+      label: "Version de Morphe Manager / Morphe Manager Version"
+      description: "La version de Morphe Manager ou CLI utilisée pour appliquer le patch."
+      placeholder: "ex: 1.0.0"
+    validations:
+      required: false
+
+  - type: textarea
+    id: working-features
+    attributes:
+      label: "Détails des tests et fonctionnalités confirmées / Working Features Details"
+      description: "Décrivez ce qui fonctionne concrètement (les pubs sont bloquées, le thème s'applique, etc.)."
+      placeholder: "Le patch a été testé en naviguant dans l'application pendant 15 minutes. Les publicités ont disparu, la fonctionnalité VIP est active et aucune fermeture inopinée n'a été constatée..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proof
+    attributes:
+      label: "Captures d'écran ou preuves (optionnel) / Screenshots or Proof"
+      description: "Glissez-déposez ici des captures d'écran prouvant le bon fonctionnement du patch."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "Checklist de validation"
+      options:
+        - label: "J'ai testé ce patch sur un appareil réel ou un émulateur."
+          required: true
+        - label: "L'application fonctionne de manière stable sans crash au lancement ou en cours d'utilisation."
+          required: true
+        - label: "La fonctionnalité décrite par le patch est bien active et opérationnelle."
+          required: true
+        - label: "La version exacte de l'application et le modèle de l'appareil sont bien renseignés."
+          required: true
+

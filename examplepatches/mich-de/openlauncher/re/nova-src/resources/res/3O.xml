@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageButton
+        android:layout_gravity="center_vertical"
+        android:id="0x7f0b04c7"
+        android:background="?unknown_attr_ref: 7f040541"
+        android:padding="0x7f070488"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="0x7f080565"
+        android:contentDescription="0x7f1407b1"
+        android:layout_marginEnd="20dp"/>
+    <EditText
+        android:textSize="20sp"
+        android:textColor="0x7f06040a"
+        android:textColorHint="0x7f060409"
+        android:id="0x7f0b04d2"
+        android:background="@android:color/transparent"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:hint="0x7f1407b0"
+        android:maxLines="1"
+        android:lines="1"
+        android:singleLine="true"
+        android:layout_weight="1"
+        android:inputType="textNoSuggestions"
+        android:imeOptions="flagNoExtractUi|actionSearch"
+        android:textCursorDrawable="@null"/>
+    <ImageButton
+        android:layout_gravity="center_vertical"
+        android:id="0x7f0b04c8"
+        android:background="?unknown_attr_ref: 7f040541"
+        android:padding="0x7f070488"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="0x7f080566"
+        android:contentDescription="0x7f1407ad"/>
+</merge>

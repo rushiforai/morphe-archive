@@ -44,6 +44,10 @@ The 192 historical mask branches were removed from `pengusto/finamp` on
 and discontinue preservation of these old combinations. No replacement source
 repository or downloadable source backup is provided.
 
+During the 2026-10-31 review, an independent local Finamp work checkout still
+contained all 128 pinned commits. This is not a published source repository or
+a durable availability guarantee; verify the tree pins before using any copy.
+
 The commit/tree pins and historical `branch` fields in `native-sources.json`
 remain as provenance records. They do not guarantee that the source objects are
 still retrievable from GitHub. Exact source rebuilds of the old combinations

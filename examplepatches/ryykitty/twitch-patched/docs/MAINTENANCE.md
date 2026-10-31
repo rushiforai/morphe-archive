@@ -76,6 +76,9 @@ checkpoints, device recovery and overnight acceptance checks.
 The workflow uses semantic-release. With `PATCH_RELEASES_ENABLED=true`, pushes to
 `dev` publish prereleases and merges into `main` publish stable releases.
 
+`package.json` overrides the `npm` package with a small placeholder. semantic-release
+installs npm for its publishing plugin, which this project does not load, and the
+copies bundled inside it raise security alerts that cannot be fixed here.
 | Commit type | Version change |
 | --- | --- |
 | `fix:`, `perf:`, `bump:` | Patch |

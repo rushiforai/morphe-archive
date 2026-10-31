@@ -284,7 +284,7 @@
     },
     {
       "name": "Block background-return feed refresh",
-      "description": "Keeps your place in the feed when you come back to Facebook within ten minutes, or any time with No time limit on, so you don't lose what you were reading. Starts off. Turn it on in Hushfacebook settings > News feed.",
+      "description": "Keeps your place in the feed when you come back to Facebook within ten minutes, or any time with No time limit on, so you don't lose what you were reading. A second switch, Back leaves Home where it is, stops Back on a scrolled Home from jumping to the top and reloading. Both start off. Turn them on in Hushfacebook settings > News feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -433,7 +433,7 @@
     },
     {
       "name": "Clean up Reels",
-      "description": "Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template buttons and Threads cards between reels, so more of the video shows, and can play each reel once instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Share, Save or speaker button, or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, and hide the one-tap Subscribe button some authors get instead of Follow. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
+      "description": "Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template buttons and Threads cards between reels, so more of the video shows, and can play each reel once instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Share, Save or speaker button, or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, and hide the one-tap Subscribe button some authors get instead of Follow, or Search and the button beside it at the top of a video you open, and show when a reel or video was posted. Its Burn-in guard can fade a reel's buttons, caption and bars when you leave them alone, so they don't burn into the screen. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
       "category": "Reels",
       "use": true,
       "dependencies": [
@@ -471,7 +471,7 @@
     },
     {
       "name": "Comment sheet options",
-      "description": "Small fixes for comments. Stop a long press on Like from opening reactions, hide the GIF and sticker buttons, show every reply without tapping View replies, load a whole reply thread as you scroll, open more replies with a tap anywhere on their row, hide the comments under feed posts or the thumbs-down on comments, hide Related groups under group posts, hide comments with shop links or your words, hide who is typing and the new comments pop-up, hide the emoji row over the comment box, and hide the comment box under full-screen videos. Starts off. Turn on the parts you want in Hushfacebook settings > Comments and writing.",
+      "description": "Small fixes for comments. Stop a long press on Like from opening reactions, hide the GIF and sticker buttons, show every reply without tapping View replies, load a whole reply thread as you scroll, open more replies with a tap anywhere on their row, hide the comments under feed posts, hide the thumbs-down on comments or turn it into a Block button, hide Like on comments, hide Related groups under group posts, hide comments with shop links or your words, hide who is typing and the new comments pop-up, hide the emoji row over the comment box, and hide the comment box under full-screen videos. Starts off. Turn on the parts you want in Hushfacebook settings > Comments and writing.",
       "category": "Comments",
       "use": true,
       "dependencies": [
@@ -2572,8 +2572,46 @@
     },
     {
       "name": "Keep the reel speed",
-      "description": "A speed you pick in a reel's menu stays for the next reels, even after Facebook restarts, so you don't set it every time. Pick normal speed to go back. On by default. A second switch for feed and Watch videos starts off. Both are in Hushfacebook settings > Reels and Watch.",
+      "description": "A speed you pick in a reel's menu stays for the next reels, even after Facebook restarts, so you don't set it every time. Pick normal speed to go back. On by default. A second switch for feed and Watch videos starts off. Live videos that have ended get Playback speed in their gear menu too, also on by default. All of it is in Hushfacebook settings > Reels and Watch.",
       "category": "Playback",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "Hushfacebook settings"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "585.0.0.47.54"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "585.0.0.47.54",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 476015655,
+                "ARMEABI_V7A": 476015543
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Local profile counts",
+      "description": "Shows friends, followers and following counts you type yourself on your own profile, on this phone only. Other profiles and Facebook's real numbers aren't touched. Starts off. Turn it on in Hushfacebook settings > News feed.",
+      "category": "Interface",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -2727,10 +2765,11 @@
     },
     {
       "name": "Newest reels first",
-      "description": "Plays the newest posted of the reels Facebook has loaded for you first in the Reels tab, instead of Facebook's own pick. It can't fetch newer reels. Starts off. Turn it on in Hushfacebook settings > Reels and Watch.",
+      "description": "Plays the newest posted of the reels Facebook has loaded for you first in the Reels tab, instead of Facebook's own pick. It can't fetch newer reels. A second switch lists a profile's Reels tab with its most viewed reels first. Starts off. Turn it on in Hushfacebook settings > Reels and Watch.",
       "category": "Reels",
       "use": true,
       "dependencies": [
+        "BytecodePatch",
         "Hushfacebook settings"
       ],
       "compatiblePackages": {
@@ -3139,9 +3178,123 @@
       "options": []
     },
     {
+      "name": "Round stories tray",
+      "description": "Draws the stories row on Home as round pictures at a size you pick, like Instagram. Starts off. Turn it on in Hushfacebook settings > Stories.",
+      "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "Hushfacebook settings"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "585.0.0.47.54"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "585.0.0.47.54",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 476015655,
+                "ARMEABI_V7A": 476015543
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Sanitize sharing links",
       "description": "Takes Facebook's tracking tags off links you share or copy, so you share a clean link. A facebook.com/share/ link is made for one share, so Facebook can still trace that kind back to you, and a switch that starts off shares the post's own link in its place. On by default. Both are in Hushfacebook settings > Links and sharing.",
       "category": "Privacy",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "Hushfacebook settings"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "585.0.0.47.54"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "585.0.0.47.54",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 476015655,
+                "ARMEABI_V7A": 476015543
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Search date range",
+      "description": "Adds a from and to month picker to the Date posted filter in post search, in place of the list of years, so you can narrow results to a stretch of time. Starts off. Turn it on in Hushfacebook settings > Search.",
+      "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "Hushfacebook settings"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "585.0.0.47.54"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "585.0.0.47.54",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 476015655,
+                "ARMEABI_V7A": 476015543
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "See who shared",
+      "description": "Adds See who shared to a post's menu, which opens Facebook's list of the people who shared it. Starts off. Turn it on in Hushfacebook settings > News feed.",
+      "category": "Feed",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -3702,7 +3855,7 @@
     },
     {
       "name": "Turn off double tap to like",
-      "description": "Stops a double tap on a reel or video from liking it, so you don't like things by accident. A single tap still plays or pauses, and the Like button still works. Starts off. Turn it on in Hushfacebook settings > Reels and Watch.",
+      "description": "Stops a double tap on a reel, a video or a photo in the feed from liking it, so you don't like things by accident. A single tap still plays, pauses or opens the photo, and the Like button still works. Starts off. Turn it on in Hushfacebook settings > Reels and Watch.",
       "category": "Reels",
       "use": true,
       "dependencies": [

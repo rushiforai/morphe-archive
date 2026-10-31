@@ -20,21 +20,21 @@ fun main(args: Array<String>) {
         "h1.n" to "package h1; public class n {}",
         "h1.k0" to "package h1; public class k0 extends n {}",
         "h1.h" to """package h1; public class h {
-            public static Slot t(Object v){return new Slot(v);}
+            public static Slot s(Object v){return new Slot(v);}
             public static class Slot {Object v;public Slot(Object o){v=o;}public Object getValue(){return v;}public void setValue(Object o){v=o;}}
         }""",
         "kotlin.jvm.functions.Function0" to "package kotlin.jvm.functions; public interface Function0 {Object invoke();}",
         "kotlin.Unit" to "package kotlin; public class Unit {public static final Unit INSTANCE=new Unit();}",
         "r1.s" to "package r1; public class s {}",
-        "kb.l" to "package kb; public enum l {STABLE}",
-        "lb.a" to """package lb; public class a {
+        "lb.l" to "package lb; public enum l {STABLE}",
+        "mb.a" to """package mb; public class a {
             public String a,b,c,d,e,f;public Long g;
             public a(String a,String b,String c,String d,String e,String f,Long g){this.a=a;this.b=b;this.c=c;this.d=d;this.e=e;this.f=f;this.g=g;}
         }""",
-        "kb.k0" to """package kb; public class k0 {
-            public boolean a,c,d,g,h,k,m,n,o;public lb.a b,p;public Float e;public String f,i,j;public kb.l l;
-            public k0(boolean a,lb.a b,boolean c,boolean d,Float e,String f,boolean g,boolean h,String i,String j,
-                boolean k,kb.l l,boolean m,boolean n,boolean o,lb.a p){
+        "lb.k0" to """package lb; public class k0 {
+            public boolean a,c,d,g,h,k,m,n,o;public mb.a b,p;public Float e;public String f,i,j;public lb.l l;
+            public k0(boolean a,mb.a b,boolean c,boolean d,Float e,String f,boolean g,boolean h,String i,String j,
+                boolean k,lb.l l,boolean m,boolean n,boolean o,mb.a p){
                 this.a=a;this.b=b;this.c=c;this.d=d;this.e=e;this.f=f;this.g=g;this.h=h;this.i=i;this.j=j;
                 this.k=k;this.l=l;this.m=m;this.n=n;this.o=o;this.p=p;
             }
@@ -43,12 +43,12 @@ fun main(args: Array<String>) {
             public static String d0(int id,h1.n c){return "native-text";}
             public static String e0(int id,Object[] args,h1.n c){return "native-format";}
         }""",
-        "ma.r" to """package ma; public class r {public static int groups;
-            public static String h(h1.k0 first,int key,int id,h1.k0 second,boolean end){groups++;return "native-group";}
+        "m9.a5" to """package m9; public class a5 {public static int groups;
+            public static String i(h1.k0 first,int key,int id,h1.k0 second,boolean end){groups++;return "native-group";}
         }""",
-        "fb.uj" to """package fb; import kotlin.jvm.functions.Function0; public class uj {
-            public static kb.k0 state;public static Object dismiss,content;public static int flags,calls;
-            public static void i(kb.k0 s,Function0 a,Function0 b,Function0 c,Function0 d,Function0 e,Function0 f,r1.s x,h1.n n,int at){
+        "na.k1" to """package na; import kotlin.jvm.functions.Function0; public class k1 {
+            public static lb.k0 state;public static Object dismiss,content;public static int flags,calls;
+            public static void n(lb.k0 s,Function0 a,Function0 b,Function0 c,Function0 d,Function0 e,Function0 f,r1.s x,h1.n n,int at){
                 state=s;dismiss=a;content=x;flags=at;calls++;
             }
         }""",
@@ -59,19 +59,19 @@ fun main(args: Array<String>) {
                 static void check(boolean b){if(!b)throw new AssertionError();}
                 public static void run()throws Exception{
                     // updateBannerEnabled/autoInstallEnabled are preferences, not an active update.
-                    kb.k0 original=new kb.k0(false,null,false,false,null,null,false,false,null,null,true,kb.l.STABLE,true,true,true,null);
+                    lb.k0 original=new lb.k0(false,null,false,false,null,null,false,false,null,null,true,lb.l.STABLE,true,true,true,null);
                     Function0 action=()->"original";r1.s content=new r1.s();h1.k0 composer=new h1.k0();
                     NuvioSyncBanner.host(original,action,action,action,action,action,action,content,composer,123);
-                    check(fb.uj.state==original&&fb.uj.dismiss==action&&fb.uj.flags==123&&fb.uj.content==content);
+                    check(na.k1.state==original&&na.k1.dismiss==action&&na.k1.flags==123&&na.k1.content==content);
                     int[] cancelled={0};
                     NuvioSyncBanner.update(new android.app.Activity(),"Fetching progress",1,3,true,false,()->cancelled[0]++);
                     NuvioSyncBanner.host(original,action,action,action,action,action,action,content,composer,123);
-                    kb.k0 sync=fb.uj.state;
+                    lb.k0 sync=na.k1.state;
                     check(sync!=original&&sync.d&&sync.g&&sync.e>0.33f&&sync.e<0.34f);
                     check(sync.b.a.equals("Sync Progress  1/3")&&sync.b.d.equals("santodan-sync-progress"));
-                    check(fb.uj.dismiss!=action&&((Function0)fb.uj.dismiss).invoke()==kotlin.Unit.INSTANCE);
+                    check(na.k1.dismiss!=action&&((Function0)na.k1.dismiss).invoke()==kotlin.Unit.INSTANCE);
                     check(cancelled[0]==1);
-                    Object oldCancel=fb.uj.dismiss;
+                    Object oldCancel=na.k1.dismiss;
                     check(original.b==null&&!original.g&&original.k&&original.m);
                     NuvioSyncBanner.begin(sync);
                     check(!NuvioSyncBanner.hideClose(true));
@@ -79,7 +79,7 @@ fun main(args: Array<String>) {
                     check(NuvioSyncBanner.closeText(0,composer).equals("Cancel sync"));
                     check(NuvioSyncBanner.installed(false));
                     check(NuvioSyncBanner.groupText(composer,0,0x7f110d18,composer,false).equals("Fetching progress"));
-                    check(ma.r.groups==1); // Original grouped lookup still executes; Compose groups stay balanced.
+                    check(m9.a5.groups==1); // Original grouped lookup still executes; Compose groups stay balanced.
                     check(NuvioSyncBanner.formatted(0x7f110d12,new Object[]{33},composer).equals("Fetching progress"));
                     NuvioSyncBanner.end();
                     NuvioSyncBanner.begin(original);
@@ -91,23 +91,23 @@ fun main(args: Array<String>) {
                     check(NuvioSyncBanner.groupText(composer,0,0x7f110d18,composer,false).equals("native-group"));
                     check(NuvioSyncBanner.formatted(0x7f110d12,new Object[]{33},composer).equals("native-format"));
                     NuvioSyncBanner.end();
-                    original.b=new lb.a("v1","real update","notes","app.apk","url","",null);original.g=true;
+                    original.b=new mb.a("v1","real update","notes","app.apk","url","",null);original.g=true;
                     NuvioSyncBanner.host(original,action,action,action,action,action,action,content,composer,123);
-                    check(fb.uj.state==original&&fb.uj.dismiss==action&&fb.uj.flags==123);
+                    check(na.k1.state==original&&na.k1.dismiss==action&&na.k1.flags==123);
                     original.g=false;original.b=null;original.h=true;
                     NuvioSyncBanner.host(original,action,action,action,action,action,action,content,composer,123);
-                    check(fb.uj.state==original); // Native permission dialog has priority.
+                    check(na.k1.state==original); // Native permission dialog has priority.
                     original.h=false;
                     NuvioSyncBanner.update(new android.app.Activity(),"Provider failed",2,3,false,true);
                     ((Function0)oldCancel).invoke();check(cancelled[0]==1);
                     NuvioSyncBanner.host(original,action,action,action,action,action,action,content,composer,123);
-                    check(fb.uj.state.i.equals("Provider failed"));
-                    NuvioSyncBanner.begin(fb.uj.state);
+                    check(na.k1.state.i.equals("Provider failed"));
+                    NuvioSyncBanner.begin(na.k1.state);
                     check(NuvioSyncBanner.closeText(0,composer).equals("Close"));
                     NuvioSyncBanner.end();
                     NuvioSyncBanner.hide();
                     NuvioSyncBanner.host(original,action,action,action,action,action,action,content,composer,123);
-                    check(fb.uj.state==original&&fb.uj.content==content);
+                    check(na.k1.state==original&&na.k1.content==content);
                 }
             }"""
     )

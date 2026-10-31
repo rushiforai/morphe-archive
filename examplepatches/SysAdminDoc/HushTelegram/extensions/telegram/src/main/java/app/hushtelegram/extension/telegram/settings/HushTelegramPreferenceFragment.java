@@ -633,6 +633,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                 + " phone only. Message details in the message's menu shows it.")));
                 on(pages, PatchFamily.KEEP_DELETED_MESSAGES).addPreference(clearEditsRow(context));
             }
+            if (PatchFamily.Capability.TIMED_MEDIA.installed()) {
+                on(pages, PatchFamily.KEEP_DELETED_MESSAGES).addPreference(toggle(context, Settings.KEEP_TIMED_MEDIA,
+                        L10n.t("Keep view-once and timed media"), L10n.t("View-once and timed photos, videos and voice messages"
+                                + " someone sends you stay in the chat after you open them, with no timer. The sender doesn't"
+                                + " see them opened. Secret chats work as usual.")));
+            }
         }
         if (build.contains(PatchFamily.ASK_BEFORE_STICKER)) {
             on(pages, PatchFamily.ASK_BEFORE_STICKER).addPreference(toggle(context, Settings.ASK_BEFORE_STICKER, L10n.t("Ask before sending a sticker"),

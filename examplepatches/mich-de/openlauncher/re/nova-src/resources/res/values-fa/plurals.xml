@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">%d ثانیه سریع به‌جلو بردن</item>
+        <item quantity="other">%d ثانیه سریع به‌جلو بردن</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">%d ثانیه به‌عقب بردن</item>
+        <item quantity="other">%d ثانیه به‌عقب بردن</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d جلسه</item>
+        <item quantity="one">%d جلسه</item>
+        <item quantity="two">%d جلسه</item>
+        <item quantity="few">%d جلسه</item>
+        <item quantity="many">%d جلسه</item>
+        <item quantity="other">%d جلسه</item>
+    </plurals>
+</resources>

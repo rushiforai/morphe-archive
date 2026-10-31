@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="pref_night_mode">
+        <item>@string/wallpaper_mode_on</item>
+        <item>@string/wallpaper_mode_off</item>
+        <item>@string/pref_night_mode_auto</item>
+        <item>@string/pref_night_mode_custom</item>
+        <item>@string/pref_night_mode_system</item>
+    </array>
+    <array name="pref_night_mode_values">
+        <item>ALWAYS</item>
+        <item>NEVER</item>
+        <item>AUTO</item>
+        <item>CUSTOM</item>
+        <item>DEFAULT</item>
+    </array>
+</resources>

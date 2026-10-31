@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:textSize="14sp"
+    android:textColor="?android:attr/colorAccent"
+    android:gravity="center"
+    android:id="0x7f0b059a"
+    android:background="?android:attr/selectableItemBackground"
+    android:paddingLeft="0x7f070107"
+    android:paddingRight="0x7f070107"
+    android:focusable="true"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:text="0x7f14012a"
+    android:textAllCaps="true"
+    android:fontFamily="sans-serif-medium"/>

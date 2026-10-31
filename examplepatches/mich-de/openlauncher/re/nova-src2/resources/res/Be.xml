@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.AlertDialogLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="start|top"
+    android:orientation="vertical"
+    android:id="0x7f0b04aa"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include layout="0x7f0e000a"/>
+    <FrameLayout
+        android:id="0x7f0b01a8"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp">
+        <ImageView
+            android:layout_gravity="top"
+            android:id="0x7f0b0582"
+            android:background="#1f000000"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            app:backgroundTint="?android:attr/colorForeground"/>
+        <androidx.core.widget.NestedScrollView
+            android:id="0x7f0b0583"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <android.widget.Space
+                    android:id="0x7f0b068b"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="0x7f070025"/>
+                <TextView
+                    android:id="@android:id/message"
+                    android:paddingLeft="?unknown_attr_ref: 7f040208"
+                    android:paddingRight="?unknown_attr_ref: 7f040208"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    style="0x7f15028b"/>
+                <android.widget.Space
+                    android:id="0x7f0b068a"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="0x7f070025"/>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+        <ImageView
+            android:layout_gravity="bottom"
+            android:id="0x7f0b0581"
+            android:background="#1f000000"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            app:backgroundTint="?android:attr/colorForeground"/>
+    </FrameLayout>
+    <FrameLayout
+        android:id="0x7f0b01d9"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp">
+        <FrameLayout
+            android:id="0x7f0b01d6"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </FrameLayout>
+    <include
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        layout="0x7f0e0008"/>
+</androidx.appcompat.widget.AlertDialogLayout>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.DropTargetBar xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="0x7f150177"
+    android:layout_gravity="top|center_horizontal"
+    android:focusable="false"
+    android:visibility="invisible"
+    android:layout_width="match_parent"
+    android:layout_height="0x7f070106"
+    android:alpha="0">
+    <com.android.launcher3.DeleteDropTarget
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:id="0x7f0b0207"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0x7f1408bb"
+        style="0x7f150148"/>
+    <com.android.launcher3.SecondaryDropTarget
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:id="0x7f0b06e1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0x7f140c4d"
+        style="0x7f150148"/>
+</com.android.launcher3.DropTargetBar>

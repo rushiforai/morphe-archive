@@ -194,6 +194,44 @@ public class PreSearchSectionsTest {
     }
 
     @Test
+    public void theHeadAndTheQueryLeaveOutWhatTheListHides() {
+        // #285: every row of the reporter's search screen came from the head, which never reached the list's hook.
+        Tree other = new Tree(PreSearchSections.NULL_STATE_NODE, true, "RECENT_SEARCHES");
+        assertSame("off keeps the head's node", other, PreSearchSections.headNode(other));
+        Settings.HIDE_SEARCH_FOR_YOU.save(true);
+        Settings.HIDE_SEARCH_PEOPLE_YOU_MAY_KNOW.save(true);
+        assertNull(PreSearchSections.headNode(forYou()));
+        assertNull(PreSearchSections.queryNode(new Tree(PreSearchSections.NULL_STATE_NODE, true,
+                PreSearchSections.PEOPLE_YOU_MAY_KNOW_MODULE)));
+        assertSame(other, PreSearchSections.headNode(other));
+        assertSame(other, PreSearchSections.queryNode(other));
+        // The query may not carry module names at all, and then its row is Facebook's.
+        Tree unnamed = new Tree(PreSearchSections.NULL_STATE_NODE, true, null);
+        assertSame(unnamed, PreSearchSections.queryNode(unnamed));
+        assertNull(PreSearchSections.headNode(null));
+        assertNull(PreSearchSections.queryNode(null));
+        String line = statusLine();
+        assertTrue(line, line.contains(PreSearchSections.HIDDEN + " 1"));
+        assertTrue(line, line.contains(PreSearchSections.HIDDEN_PEOPLE + " 1"));
+    }
+
+    @Test
+    public void eachLineSaysWhichBuilderHandedTheNodeOver() {
+        PreSearchSections.node(new Tree(PreSearchSections.NULL_STATE_NODE, true, "RECENT_SEARCHES"));
+        PreSearchSections.headNode(new Tree(PreSearchSections.NULL_STATE_NODE, true, "RECENT_SEARCHES"));
+        PreSearchSections.queryNode(new Tree(PreSearchSections.NULL_STATE_NODE, true, null));
+        PreSearchSections.entry(new Tree("SearchNullStateUnit", true, "RECENT_SEARCHES"), null);
+        String log = log();
+        String node = PreSearchSections.PREFIX + "node=" + PreSearchSections.NULL_STATE_NODE;
+        assertTrue(log, log.contains(node + " rendered_modules=RECENT_SEARCHES from=" + PreSearchSections.FROM_LIST));
+        assertTrue(log, log.contains(node + " rendered_modules=RECENT_SEARCHES from=" + PreSearchSections.FROM_HEAD));
+        assertTrue(log, log.contains(node + " rendered_modules=none from=" + PreSearchSections.FROM_QUERY));
+        // 583's static reader names no builder.
+        assertTrue(log, log.contains("node=SearchNullStateUnit module=none rendered_modules=RECENT_SEARCHES"));
+        assertFalse(log, log.contains("node=SearchNullStateUnit module=none rendered_modules=RECENT_SEARCHES from="));
+    }
+
+    @Test
     public void pausedOrBeforeTheSettingsAreReadyDrawsTheNode() {
         Settings.HIDE_SEARCH_FOR_YOU.save(true);
         Tree node = forYou();

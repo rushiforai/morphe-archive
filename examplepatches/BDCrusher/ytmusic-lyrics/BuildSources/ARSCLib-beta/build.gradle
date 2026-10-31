@@ -1,0 +1,50 @@
+
+apply plugin: 'java'
+
+group 'com.reandroid'
+version '1.4.1'
+
+java {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.compileJava {
+            //options.addStringOption('-Xlint:unchecked', '-quiet')
+        }
+    }
+}
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+
+processResources {
+    filesMatching('arsclib.properties') {
+        expand('version': version)
+    }
+}
+
+javadoc {
+    exclude('com/reandroid/test/**')
+    exclude('zorg/**')
+    exclude('com/reandroid/unity/**')
+    //exclude('com/reandroid/dex/**')
+}
+
+jar {
+    exclude('com/reandroid/test/**')
+    exclude('zorg/**')
+    exclude('com/reandroid/unity/**')
+    //exclude('com/reandroid/dex/**')
+}
+
+
+

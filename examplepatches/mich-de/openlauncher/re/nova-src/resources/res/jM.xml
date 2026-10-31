@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.teslacoilsw.launcher.search.AppSearchResultsView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="0x7f0b00af"
+    android:clipChildren="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="0x7f0b01ae"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="0x7f0b01ac"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+</com.teslacoilsw.launcher.search.AppSearchResultsView>

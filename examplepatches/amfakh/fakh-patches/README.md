@@ -16,7 +16,13 @@ Each app has its own README with the full patch list.
 
 ## Use
 
-In Morphe Manager, add this URL as a patch source:
+Click the button on your phone to add this repo to Morphe Manager:
+
+<a href="https://morphe.software/add-source?github=amfakh/fakh-patches">
+  <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
+</a>
+
+Or add this URL as a patch source by hand:
 
 ```
 https://github.com/amfakh/fakh-patches

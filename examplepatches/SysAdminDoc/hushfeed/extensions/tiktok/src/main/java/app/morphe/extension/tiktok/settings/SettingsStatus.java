@@ -127,6 +127,7 @@ public class SettingsStatus {
     public static boolean firstLaunchSetupEnabled = false;
     public static boolean duetStitchEnabled = false;
     public static boolean notificationControlsEnabled = false;
+    public static boolean keepUnsentEnabled = false;
     public static boolean suggestedVideoPushBlockEnabled = false;
     public static boolean autoStreakEnabled = false;
     public static boolean hideSuggestedAccountsEnabled = false;
@@ -539,6 +540,10 @@ public class SettingsStatus {
         notificationControlsEnabled = true;
     }
 
+    public static void enableKeepUnsent() {
+        keepUnsentEnabled = true;
+    }
+
     public static void enableSuggestedVideoPushBlock() {
         suggestedVideoPushBlockEnabled = true;
     }
@@ -824,6 +829,10 @@ public class SettingsStatus {
     public static void enableCommentSendFix() { commentSendFixEnabled = true; }
     public static boolean savedStickersEnabled = false;
     public static void enableSavedStickers() { savedStickersEnabled = true; }
+    public static boolean stickerCreatorEnabled = false;
+    public static void enableStickerCreator() { stickerCreatorEnabled = true; }
+    public static boolean stickerRecentsEnabled = false;
+    public static void enableStickerRecents() { stickerRecentsEnabled = true; }
     public static boolean followDiagnosticsEnabled = false;
     public static void enableFollowDiagnostics() { followDiagnosticsEnabled = true; }
     public static boolean repostDiagnosticsEnabled = false;

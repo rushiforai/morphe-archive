@@ -114,14 +114,14 @@ tasks.register<JavaExec>("reportNuvioUpdate") {
 tasks.register("verifyNuvioLatest") {
     group = "verification"
     description = "Verify the currently reviewed Nuvio contract, runtime features and packaged patch combinations."
-    dependsOn("verifyNuvioMaintenance", "verifyNuvioBeta8", "verifyNuvioBeta8Launcher", "verifyNuvioBeta8Player",
+    dependsOn("verifyNuvioMaintenance", "verifyNuvioBeta9", "verifyNuvioBeta9Launcher", "verifyNuvioBeta9Player",
         "verifyNuvioCurrentStream", "verifyNuvioPreferredAddon", "verifyNuvioPlaybackButtons", "verifyNuvioIntroDb", "verifyNuvioApkUpdates", "verifyNuvioUpdateInstaller",
         "verifyNuvioUpdateFlow", "verifyNuvioUpdateProgressRuntime", "verifyNuvioUpdateUiRuntime",
-        "verifyNuvioBeta8DateStyleRuntime", "verifyNuvioBeta8SettingsMenuRuntime", "verifyNuvioBeta8TrackingDialogs",
+        "verifyNuvioBeta9DateStyleRuntime", "verifyNuvioBeta9SettingsMenuRuntime", "verifyNuvioBeta9TrackingDialogs",
         "verifyNuvioCurrentStreamRuntime", "verifyNuvioPreferredAddonRuntime", "verifyNuvioPlaybackButtonsRuntime",
         "verifyNuvioIntroDbRuntime", "verifyNuvioStreamPreloadRuntime", "verifyNuvioProviderRefreshRuntime", "verifyNuvioPlaybackOverlayRuntime", "verifyNuvioSyncBannerRuntime",
         "verifyNuvioSettingsStoreRuntime", "verifyNuvioWatchedSnapshotRuntime", "verifyNuvioPlayerStability",
-        "verifyNuvioNextEpisodeCooldown", "verifyNuvioBeta8Bundle")
+        "verifyNuvioNextEpisodeCooldown", "verifyNuvioBeta9Bundle")
 }
 
 dependencies {
@@ -258,7 +258,7 @@ tasks.register<JavaExec>("verifyNuvioPlaybackApk") {
     mainClass.set("santodan.patches.VerifyNuvioPlaybackApkKt")
     maxHeapSize = "3g"
     args(nuvioOriginal.absolutePath,
-        file(providers.gradleProperty("nuvioPlaybackApk").getOrElse("../../Apps/NuvioTV/NuvioTV-1.1.0-beta.7-playback-buttons-unsigned.apk")).absolutePath,
+        file(providers.gradleProperty("nuvioPlaybackApk").getOrElse("../../Apps/NuvioTV/NuvioTV-1.1.0-beta.9-patches-unsigned.apk")).absolutePath,
         file(androidSdkDirectory.get()).absolutePath,
         file("${layout.buildDirectory.get()}/verification/nuvio-playback-apk").absolutePath)
     if (providers.gradleProperty("nuvioRequireStability").getOrElse("false").toBoolean())
@@ -917,6 +917,68 @@ tasks.register<JavaExec>("verifyNuvioBeta8SettingsMenuRuntime") {
     args(file("../extensions/nuvio-settings-menu/src/main/java/software/santodan/extension/nuviomenu/NuvioSettingsMenu.java").absolutePath,
         file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioSourceContinuation.java").absolutePath,
         file("${layout.buildDirectory.get()}/verification/beta8-menu-runtime").absolutePath)
+}
+
+tasks.register<JavaExec>("verifyNuvioBeta9") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyNuvioBeta9")
+    maxHeapSize = "2g"
+    args(nuvioTargetVersion, file("../../.inspect-nuvio-beta9").absolutePath,
+        file("${layout.buildDirectory.get()}/verification/nuvio-beta9.dex").absolutePath)
+}
+
+
+tasks.register<JavaExec>("verifyNuvioBeta9Bundle") {
+    dependsOn("testClasses", "buildAndroid")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyNuvioBeta9BundleKt")
+    maxHeapSize = "3g"
+    args(nuvioOriginal.absolutePath,
+        file("${layout.buildDirectory.get()}/libs/patches-${project.version}.mpp").absolutePath,
+        file("${layout.buildDirectory.get()}/verification/nuvio-beta9-bundle").absolutePath,
+        file(androidSdkDirectory.get()).absolutePath)
+    providers.gradleProperty("nuvioBeta9Selections").orNull?.let { args(it) }
+}
+
+tasks.register<JavaExec>("verifyNuvioBeta9Launcher") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyNuvioBeta9LauncherKt")
+    args(file("../../.inspect-nuvio-beta9").absolutePath)
+}
+
+tasks.register<JavaExec>("verifyNuvioBeta9Player") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyNuvioBeta9PlayerKt")
+    args(file("${layout.buildDirectory.get()}/verification").absolutePath)
+}
+
+tasks.register<JavaExec>("verifyNuvioBeta9DateStyleRuntime") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyNuvioBeta9DateStyleRuntime")
+    args(file("../extensions/nuvio-settings-menu/src/main/java/software/santodan/extension/nuviomenu").absolutePath,
+        file("${layout.buildDirectory.get()}/verification").absolutePath)
+}
+
+
+tasks.register<JavaExec>("verifyNuvioBeta9TrackingDialogs") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyNuvioBeta9TrackingDialogs")
+    args(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioTrackingDialogs.java").absolutePath,
+        file("${layout.buildDirectory.get()}/verification").absolutePath)
+}
+
+tasks.register<JavaExec>("verifyNuvioBeta9SettingsMenuRuntime") {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("santodan.patches.VerifyNuvioBeta9SettingsMenuRuntime")
+    args(file("../extensions/nuvio-settings-menu/src/main/java/software/santodan/extension/nuviomenu/NuvioSettingsMenu.java").absolutePath,
+        file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioSourceContinuation.java").absolutePath,
+        file("${layout.buildDirectory.get()}/verification/beta9-menu-runtime").absolutePath)
 }
 
 tasks.register("verifyMonetCatalogRuntime") {

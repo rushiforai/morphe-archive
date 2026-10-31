@@ -212,7 +212,8 @@ final class AppPages {
     static void search(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
         if (build.contains(PatchFamily.META_AI_SEARCH) || build.contains(PatchFamily.SPONSORED_SEARCH)
-                || build.contains(PatchFamily.SUGGESTED_POSTS) || build.contains(PatchFamily.SEARCH_HISTORY)) {
+                || build.contains(PatchFamily.SUGGESTED_POSTS) || build.contains(PatchFamily.SEARCH_HISTORY)
+                || build.contains(PatchFamily.SEARCH_DATE_RANGE)) {
             PreferenceCategory search = category(screen, L10n.t("Search"));
             if (build.contains(PatchFamily.META_AI_SEARCH)) {
                 search.addPreference(toggle(context, Settings.HIDE_META_AI_IN_SEARCH,
@@ -236,6 +237,11 @@ final class AppPages {
                         L10n.t("What you search for, and the pages and profiles you open from a search, aren't added to "
                                 + "your Facebook search history. Searches already there stay until you delete them.")));
             }
+            if (build.contains(PatchFamily.SEARCH_DATE_RANGE)) {
+                search.addPreference(toggle(context, Settings.SEARCH_DATE_RANGE,
+                        L10n.t("The Date posted filter in post search asks for a from and to month, in place of a list of "
+                                + "years.")));
+            }
         }
     }
 
@@ -254,6 +260,9 @@ final class AppPages {
                     L10n.t("Adds an Adv. Filters button under Marketplace's Filters on search results. It opens lists of "
                             + "words to keep, words to hide and places, and writes the rules into the search for you."))
                     .needs(Settings.MARKETPLACE_ADVANCED_SEARCH));
+            marketplace.addPreference(toggle(context, Settings.MARKETPLACE_LISTING_DATE,
+                    L10n.t("A listing's page says how long ago it was listed and the date, next to its place. "
+                            + "Facebook only shows it for new listings.")));
         }
         if (build.contains(PatchFamily.SELLER_VIEW_PROFILE)) {
             // Read as a seller's page opens, so a change shows on the next one.

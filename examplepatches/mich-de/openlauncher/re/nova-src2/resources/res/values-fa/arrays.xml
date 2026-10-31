@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="exo_controls_playback_speeds">
+        <item>۰٫۲۵ برابر</item>
+        <item>۰٫۵ برابر</item>
+        <item>۰٫۷۵ برابر</item>
+        <item>عادی</item>
+        <item>۱٫۲۵ برابر</item>
+        <item>۱٫۵ برابر</item>
+        <item>۲ برابر</item>
+    </array>
+    <array name="pref_screen_orientation">
+        <item>پیش فرض</item>
+        <item>چرخش خودکار</item>
+        <item>حفظ نمای عمودی</item>
+        <item>حفظ نمای افقی</item>
+    </array>
+</resources>

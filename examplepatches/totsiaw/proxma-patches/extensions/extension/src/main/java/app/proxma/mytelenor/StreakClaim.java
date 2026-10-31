@@ -111,6 +111,14 @@ public final class StreakClaim {
             }
         }
 
+        // "No active streak found": the app only shows this too, and retrying can't change it today.
+        if (status == 413) {
+            AutoClaim.latch(context, "streak");
+            Log.i(TAG, "STREAK_NONE " + truncate(claimResult.body));
+            sResult = "no active streak today";
+            return true;
+        }
+
         Log.i(TAG, "STREAK_FAIL " + claimResult.code + " " + truncate(claimResult.body));
         sResult = "fail " + claimResult.code;
         return false;

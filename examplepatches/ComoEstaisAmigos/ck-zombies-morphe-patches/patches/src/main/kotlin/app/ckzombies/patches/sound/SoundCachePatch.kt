@@ -1,5 +1,6 @@
 package app.ckzombies.patches.sound
 
+import app.ckzombies.patches.compat.obbMessagePatch
 import app.ckzombies.patches.shared.Constants.COMPATIBILITY_CK_ZOMBIES
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -63,6 +64,8 @@ val soundCachePatch = bytecodePatch(
     description = "Removes the stutter while firing, caused by the game building a new audio player for every sound.",
 ) {
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)
+
+    dependsOn(obbMessagePatch)
 
     extendWith("extensions/extension.mpe")
 

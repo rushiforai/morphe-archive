@@ -269,8 +269,8 @@ class NewChatsBlockFixtureTest {
 
     /**
      * [patched] opens with one gate per hook in [asks], in the order they ask, each handing the
-     * request (p1) over, and the block its callback (p2) too, and returning when told to drop it, a
-     * false answer going on to the next gate and then to the stock send, which is whole below them.
+     * request and its callback (p1, p2) over and returning when told to drop it, a false answer
+     * going on to the next gate and then to the stock send, which is whole below them.
      */
     private fun assertGate(where: String, original: Method, patched: Method, asks: List<String>) {
         val after = patched.body()
@@ -279,8 +279,7 @@ class NewChatsBlockFixtureTest {
         for ((at, hook) in asks.withIndex()) {
             val top = at * SEND_REQUEST_GATE_SIZE
             assertEquals("$where: gate $at asks", hook, after[top].ref())
-            assertEquals("$where: gate $at hands it the request", if (hook == NEW_CHATS_BLOCK_DROP) listOf(p1, p1 + 1) else listOf(p1),
-                after[top].namedRegisters())
+            assertEquals("$where: gate $at hands it the request and its callback", listOf(p1, p1 + 1), after[top].namedRegisters())
             assertEquals("$where: gate $at", listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID),
                 after.subList(top + 1, top + 4).map { it.opcode })
             assertEquals("$where: gate $at goes on or returns", setOf(top + 3, top + SEND_REQUEST_GATE_SIZE), flow.normal[top + 2].toSet())

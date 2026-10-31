@@ -14,6 +14,11 @@ public class SortTest {
   check(CachedSearchOrder.created("https://bbs.eddibb.cc/test/read.cgi/liveedge/1700000000/")==1700000000L);
   check(CachedSearchOrder.created(null)==0);check(CachedSearchOrder.created("invalid")==0);
   check(CachedSearchOrder.sorted(Collections.emptyList(),1).isEmpty());
+  o.mg pink=new o.mg("https://mercury.bbspink.com/test/read.cgi/example/1600000000/"),edge=new o.mg("https://bbs.eddibb.cc/test/read.cgi/liveedge/1800000000/");
+  List<?> mixed=Arrays.asList(old,recent,pink,edge);
+  check(CachedSearchOrder.sorted(mixed,1).equals(Arrays.asList(edge,recent,pink,old)));
+  check(CachedSearchOrder.sorted(mixed,2).equals(Arrays.asList(old,pink,recent,edge)));
+  check(mixed.get(0)==old&&mixed.get(3)==edge);
   Random random=new Random(22);List<o.mg> many=new ArrayList<>();for(int i=0;i<1000;i++)many.add(new o.mg("https://example.org/test/read.cgi/a/"+(1500000000L+random.nextInt(10000))+"/"));
   for(int mode:new int[]{1,2}){List<?> result=CachedSearchOrder.sorted(many,mode);check(result.size()==many.size());check(new HashSet<>(result).size()==many.size());
    for(int i=1;i<result.size();i++){long a=CachedSearchOrder.created(((o.mg)result.get(i-1)).b),b=CachedSearchOrder.created(((o.mg)result.get(i)).b);check(mode==1?a>=b:a<=b);}}

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.chip.Chip xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0x7f070321"
+    android:layout_height="0x7f07031f"
+    style="?unknown_attr_ref: 7f04013d"/>

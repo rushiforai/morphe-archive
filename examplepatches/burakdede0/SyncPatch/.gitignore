@@ -1,0 +1,32 @@
+# Android target APK used for local validation — do not upload (72 MB proprietary app binary)
+sync.apk
+
+# Build outputs
+build/
+*/build/
+.gradle/
+.kotlin/
+.gradletaskdefinitioncache/
+
+# IDE / OS noise
+.idea/
+.vscode/
+.DS_Store
+*.iml
+
+# Local validator write-out
+validator/build/patched-dex/
+
+# Validator resource output (only written with -Dvalidate.resources) — test artifact,
+# derived from the proprietary sync.apk — do not upload
+patched-resources.apk
+
+# Bundle outputs — publish as GitHub release assets, never in git
+patches.mpp
+*.mpp
+
+# NOTE: the generated extension DEX resources are COMMITTED
+# (patches/src/main/resources/extensions/titlefont.mpe and predictiveback.mpe)
+# so that CI can bundle them into the patches release. Rebuild them locally
+# with ./build_ext.sh and commit the updated files.
+

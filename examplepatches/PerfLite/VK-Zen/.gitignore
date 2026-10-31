@@ -1,0 +1,49 @@
+# Gradle & Build artifacts
+.gradle/
+build/
+**/build/
+.kotlin/
+.mimocode/
+
+# Android & Local configuration
+local.properties
+*.log
+*.hprof
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# Binaries & APKs (releases uploaded via GitHub Releases)
+*.apk
+*.aab
+*.idsig
+*.so
+vkcore_arm64.so
+
+# Temporary reverse-engineering and scratch dumps
+out_*
+jadx-vk/
+tools/
+VKSOVA/
+install_on_phone/
+findcls/
+icon_gen/
+reports/
+scratch/
+
+# Scratch & helper scripts
+*.py
+FindClass.*
+manifest_*
+
+# Agent rules
+AGENTS.md
+AGENTS.MD
+
+# Generated lists
+patches-list.json

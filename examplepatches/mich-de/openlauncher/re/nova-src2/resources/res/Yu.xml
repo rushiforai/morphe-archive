@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.widget.WidgetCell xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:focusable="true"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:paddingHorizontal="0x7f07054f"
+    android:paddingVertical="0x7f070550">
+    <include layout="0x7f0e020d"/>
+</com.android.launcher3.widget.WidgetCell>

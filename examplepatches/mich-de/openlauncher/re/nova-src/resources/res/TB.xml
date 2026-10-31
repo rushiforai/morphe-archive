@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.pageindicators.WorkspacePageIndicator xmlns:android="http://schemas.android.com/apk/res/android" xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:theme="0x7f150177"
+    android:layout_gravity="bottom|center_horizontal"
+    android:id="0x7f0b04a4"
+    android:layout_width="match_parent"
+    android:layout_height="0x7f070574"/>

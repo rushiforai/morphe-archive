@@ -10,6 +10,8 @@ import android.content.Context;
 public final class PilloWeightSummary627 {
     public static final int ALL = Integer.MAX_VALUE;
     private static final String ROOT = "xyz.rtrvr.pillo.ui.report.tracker.components.";
+    /** Shared app modifier package: not a child of {@link #ROOT}. */
+    private static final String COMPOSE = "xyz.rtrvr.pillo.ui.compose.";
     private static final ThreadLocal<Object> rendering = new ThreadLocal<>();
     private PilloWeightSummary627() {}
 
@@ -106,6 +108,12 @@ public final class PilloWeightSummary627 {
         Calendar c = Calendar.getInstance();
         return c.get(Calendar.YEAR) * 10000L + (c.get(Calendar.MONTH) + 1) * 100L + c.get(Calendar.DAY_OF_MONTH);
     }
+    /** Render a yyyyMMdd key; labels never soft-wrap, so callers break the line themselves. */
+    private static String date(long key) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set((int) (key / 10000), (int) (key / 100 % 100) - 1, (int) (key % 100));
+        return new java.text.SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(calendar.getTime());
+    }
     public static Double since(List<Long> dates, List<Double> weights, long start, long today) {
         if (dates.size() != weights.size()) throw new IllegalArgumentException("Mismatched dates and weights");
         List<Double> selected = new ArrayList<>();
@@ -153,14 +161,11 @@ public final class PilloWeightSummary627 {
         long saved = context.getSharedPreferences("santodan.weight.summary", Context.MODE_PRIVATE).getLong("sinceDate", 0);
         Object dateState = invoke("xyz.rtrvr.pillo.ui.compose.EffectsKt", "rememberMutableStateOf", saved, composer, 0);
         long chosen = ((Number) call(dateState, "getValue")).longValue();
-        String sinceLabel = "Last since";
-        if (chosen != 0) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.set((int) (chosen / 10000), (int) (chosen / 100 % 100) - 1, (int) (chosen % 100));
-            sinceLabel += "\n" + new java.text.SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(calendar.getTime());
-        }
+        String sinceLabel = "Since\n" + (chosen == 0 ? "all time" : date(chosen));
         Object dateClick = function(0, args -> { chooseSince(context, dateState, chosen); return unit(); });
-        row(modifier, new String[]{sinceLabel, "Min", "Max"},
+        // The date needs a second label line, so its two neighbours get one empty line each:
+        // every cell then keeps the same height and all three values stay aligned.
+        row(modifier, new String[]{sinceLabel, "Min\n", "Max\n"},
             new String[]{format(since(all, weightUnit, chosen)), min, max}, unit, composer, false, dateClick);
         Double change = all.size() < 2 ? null : value(all.get(all.size() - 1), weightUnit)
             - value(all.get(all.size() - 2), weightUnit);
@@ -178,9 +183,11 @@ public final class PilloWeightSummary627 {
             for (int i = 0; i < labels.length; i++) {
                 Object cellModifier = null;
                 if (i == 0 && firstClick != null) {
-                    invoke(ROOT + "filter.FilterBtnKt", "FilterBtn", null,
-                        labels[i] + "\n" + values[i] + " " + unit, firstClick, args[0], 0, 1);
-                    continue;
+                    // ValueDisplay fills its parent width, so the date cell only keeps its share of
+                    // the row when the click is applied to that same modifier. A ClickableNoRipple
+                    // wrapper measured its content unbounded and pushed the text into "Min".
+                    cellModifier = invoke(COMPOSE + "ModifierExtensionKt", "clickableNoRipple",
+                        defaultModifier(), firstClick);
                 }
                 if (large) invoke(ROOT + "aggregate.LatestValueDisplayKt", "LatestValueDisplay",
                     null, labels[i], values[i], unit, args[0], 0, 1);
@@ -208,6 +215,10 @@ public final class PilloWeightSummary627 {
         });
     }
     static Object unit() throws Exception { return Class.forName("kotlin.Unit").getField("a").get(null); }
+    /** Empty Compose modifier: the companion instance of the obfuscated Modifier interface. */
+    static Object defaultModifier() throws Exception {
+        return Class.forName("s3.p").getField("a").get(null);
+    }
     static Object invoke(String owner, String name, Object... args) throws Exception {
         return method(Class.forName(owner), name, args).invoke(null, args);
     }

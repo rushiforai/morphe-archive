@@ -66,7 +66,7 @@ val unusedPermissionsPatch = resourcePatch(
     // Below Android 6 a permission the manifest leaves out makes getDeviceId() and
     // getAccountsByType() throw. The native library reaches both over JNI and never clears the
     // exception; these guards keep it from making the calls at all.
-    dependsOn(jniGuardsPatch)
+    dependsOn(jniGuardsPatch, obbMessagePatch)
 
     execute {
         document("AndroidManifest.xml").use { removeUnusedEntries(it) }

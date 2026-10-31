@@ -1,0 +1,54 @@
+# Build environment for these patches: JDK 21, Android SDK and the Morphe toolchain.
+#
+# Morphe publishes morphe-patcher and its Gradle plugin only to GitHub Packages, which requires a
+# GitHub token even for public packages. This image builds both from source into the local Maven
+# repository instead, so local builds need no token. The GitHub release workflow does not use this
+# image and resolves them from GitHub Packages with the workflow token.
+#
+# Build and run through container/gradlew.sh.
+FROM docker.io/library/eclipse-temurin:21-jdk-noble
+
+ARG ANDROID_CMDLINE_TOOLS_VERSION=13114758
+ARG ANDROID_PLATFORM=android-36
+ARG ANDROID_BUILD_TOOLS=36.0.0
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git unzip jq python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV ANDROID_HOME=/opt/android-sdk
+RUN mkdir -p "$ANDROID_HOME/cmdline-tools" \
+    && curl -fsSL -o /tmp/cmdline-tools.zip \
+        "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_CMDLINE_TOOLS_VERSION}_latest.zip" \
+    && unzip -q /tmp/cmdline-tools.zip -d "$ANDROID_HOME/cmdline-tools" \
+    && mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest" \
+    && rm /tmp/cmdline-tools.zip \
+    && yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null \
+    && "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+        "platform-tools" "platforms;${ANDROID_PLATFORM}" "build-tools;${ANDROID_BUILD_TOOLS}" > /dev/null
+
+# Reuse this repository's Gradle wrapper for the toolchain builds,
+# so only one Gradle distribution ends up in the image.
+COPY gradlew /opt/gradle-wrapper/gradlew
+COPY gradle/wrapper /opt/gradle-wrapper/gradle/wrapper
+
+# Declared here, so changing them rebuilds only the layers below. Keep in step with gradle/libs.versions.toml and the plugin version in settings.gradle.kts.
+ARG MORPHE_PATCHER_VERSION=2.0.0
+ARG MORPHE_GRADLE_PLUGIN_VERSION=2.0.0
+
+# Publishing is unsigned: the upstream builds sign with the Morphe maintainers' GPG key.
+# The GitHub Packages repository they declare is never reached, every dependency
+# resolves from Maven Central, Google or JitPack. It only needs non-empty credentials.
+RUN set -e; \
+    for spec in "morphe-patcher:${MORPHE_PATCHER_VERSION}" \
+                "morphe-patches-gradle-plugin:${MORPHE_GRADLE_PLUGIN_VERSION}"; do \
+        repo="${spec%%:*}"; version="${spec##*:}"; \
+        git clone -q --depth 1 -b "v$version" "https://github.com/MorpheApp/$repo" "/tmp/$repo"; \
+        sed -i '/^signing {/,/^}/d' "/tmp/$repo/build.gradle.kts"; \
+        GITHUB_ACTOR=unused GITHUB_TOKEN=unused /opt/gradle-wrapper/gradlew --no-daemon -q \
+            -p "/tmp/$repo" publishToMavenLocal -x test; \
+        rm -rf "/tmp/$repo"; \
+    done; \
+    rm -rf /root/.gradle/daemon /root/.gradle/.tmp
+
+WORKDIR /work

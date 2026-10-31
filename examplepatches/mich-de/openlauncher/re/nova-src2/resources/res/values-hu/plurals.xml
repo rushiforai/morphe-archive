@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">Előretekerés %d másodperccel</item>
+        <item quantity="other">Előretekerés %d másodperccel</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">Visszatekerés %d másodperccel</item>
+        <item quantity="other">Visszatekerés %d másodperccel</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d megbeszélés</item>
+        <item quantity="one">%d megbeszélés</item>
+        <item quantity="two">%d megbeszélés</item>
+        <item quantity="few">%d megbeszélés</item>
+        <item quantity="many">%d megbeszélés</item>
+        <item quantity="other">%d megbeszélés</item>
+    </plurals>
+</resources>

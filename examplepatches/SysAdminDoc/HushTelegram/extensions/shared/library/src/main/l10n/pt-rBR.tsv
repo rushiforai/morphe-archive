@@ -457,6 +457,12 @@ Keeps the text a message had before someone else edited it, on this phone only. 
 earlier text of edited messages	o texto anterior de mensagens editadas
 # context: an action row under Keep edit history; a tap forgets every earlier text that switch kept
 Clear edit history	Limpar histórico de edições
+# context: a fourth switch under Keep deleted messages (#9). Turned on, view-once and self-destructing (timed) media someone sends you stays in the chat after it's opened, with no timer. Secret chats stay excluded. Same terms as Also save view-once and timed media.
+Keep view-once and timed media	Manter mídias de visualização única e temporárias
+# context: that switch's summary. "The sender doesn't see them opened" means the sender's app never shows the media as opened or played.
+View-once and timed photos, videos and voice messages someone sends you stay in the chat after you open them, with no timer. The sender doesn't see them opened. Secret chats work as usual.	Fotos, vídeos e mensagens de voz de visualização única ou temporárias que alguém te envia ficam na conversa depois que você abre, sem cronômetro. Quem enviou não vê que você abriu. Chats secretos funcionam como sempre.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep deleted messages that keeps view-once and timed media.
+view-once and timed media	as mídias de visualização única e temporárias
 Forgets the earlier text this phone kept for edited messages, in every account.	Esquece o texto anterior que este celular manteve de mensagens editadas, em todas as contas.
 # context: the notice after that tap when nothing was kept. A toast: two short lines at most.
 There's no edit history to clear.	Não há histórico de edições para limpar.

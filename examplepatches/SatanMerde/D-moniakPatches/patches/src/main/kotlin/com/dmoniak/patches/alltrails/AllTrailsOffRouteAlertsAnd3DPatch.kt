@@ -9,7 +9,7 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val allTrailsOffRouteAlertsAnd3DPatch = bytecodePatch(
-    name = "Unlock 3D Maps & Off-Route Alerts - AllTrails",
+    name = "Unlock 3D Maps & Off-Route Alerts - AllTrails (Experimental)",
     description = "Unlocks 3D trail maps, real-time off-route audio and wrong-turn notifications, and environmental weather overlays in AllTrails.",
 ) {
     compatibleWith(COMPATIBILITY_ALLTRAILS)

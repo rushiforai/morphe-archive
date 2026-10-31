@@ -60,8 +60,10 @@ public final class ProgrammableNgController {
         if (supplied == null || context != null) return;
         Context application = supplied.getApplicationContext();
         context = application == null ? supplied : application;
+        SharedNg.initialize(context);
         try {
             reload();
+            F9NgUpdates.maybeUpdate(context);
         } catch (Exception error) {
             report("初期化", error);
         }
@@ -91,7 +93,7 @@ public final class ProgrammableNgController {
         return enabled;
     }
 
-    static void save(boolean newEnabled, List<ProgrammableNgRuleSet.Rule> newRules) {
+    static synchronized void save(boolean newEnabled, List<ProgrammableNgRuleSet.Rule> newRules) {
         Context current = context;
         if (current == null) throw new IllegalStateException("Haiagaruが初期化されていません");
         ProgrammableNgRuleSet checked = new ProgrammableNgRuleSet(newRules);
@@ -102,6 +104,7 @@ public final class ProgrammableNgController {
             throw new IllegalStateException("設定を保存できませんでした");
         }
         reload();
+        PersonalNgSubmissions.changed();
     }
 
     static ProgrammableNgRuleSet.Rule newRule() {
@@ -138,6 +141,9 @@ public final class ProgrammableNgController {
                         + "    samePoster: true,\n"
                         + "    chainReplies: true\n"
                         + "  };\n}");
+            case 5:
+                return new ProgrammableNgRuleSet.Rule(id, "F9スクリプトを対策する", "body",
+                        true, true, "", context==null?F9NgTemplate.SCRIPT:F9NgUpdates.currentScript(context));
             default:
                 return newRule();
         }
@@ -149,6 +155,9 @@ public final class ProgrammableNgController {
         button.setText("高度なNGルール（条件・スクリプト）");
         button.setOnClickListener(view -> ProgrammableNgDialog.show(activity));
         parent.addView(button);
+        F9NgUpdates.addSettings(parent,activity);
+        Button shared = new Button(activity);shared.setText("オンライン共有NG（開発中）");
+        shared.setOnClickListener(view -> SharedNg.settings(activity));parent.addView(shared);
     }
 
     /**
@@ -164,8 +173,8 @@ public final class ProgrammableNgController {
         ArrayList<ProgrammableNgScript.Input> inputs = new ArrayList<>(values.size());
         for (Object value : values) inputs.add(threadInput(value, board));
         lastTitles = inputs;
-        if (!enabled || values.isEmpty()) return result;
-        boolean[] matches = rules.evaluate(inputs);
+        if ((!enabled && !SharedNg.enabled()) || values.isEmpty()) return result;
+        boolean[] matches = evaluateBodies(inputs);
         try {
             for (int index = matches.length - 1; index >= 0; index--) {
                 if (matches[index]) ((List<?>) result).remove(index);
@@ -205,8 +214,8 @@ public final class ProgrammableNgController {
                 inputs.add(threadInput(data, board));
             }
             lastTitles = inputs;
-            if (!enabled) return candidates;
-            boolean[] matches = rules.evaluate(inputs);
+            if (!enabled && !SharedNg.enabled()) return candidates;
+            boolean[] matches = evaluateBodies(inputs);
             ArrayList kept = new ArrayList();
             ArrayList excluded = new ArrayList();
             for (int index = 0; index < candidates.size(); index++) {
@@ -230,6 +239,7 @@ public final class ProgrammableNgController {
 
     /** Index body-rule matches once per 191 adapter rebuild. */
     public static void prepareLegacyResponses(Object adapter) {
+        EdgeLevelNg.bindLegacy(adapter,false);
         HiddenNgUnread.begin(adapter);
         HiddenIdNg.prepare(adapter);
         try{previewSource=new java.lang.ref.WeakReference<>(field(adapter,"K"));previewBoard=boardUrl(field(field(adapter,"M"),"f"));}catch(Exception ignored){}
@@ -259,13 +269,13 @@ public final class ProgrammableNgController {
                 numbers.add(number);
             }
             lastBodies = inputs;
-            if (!enabled) return;
+            if (!enabled && !SharedNg.enabled()) return;
             ProgrammableNgRuleSet active = rules;
-            boolean[] matches = active.evaluate(inputs);
+            boolean[] matches = evaluateBodies(inputs);
             HashSet<Integer> matched = new HashSet<>();
             for (int index = 0; index < matches.length; index++) if (matches[index]) matched.add(numbers.get(index));
             synchronized (LEGACY_RESPONSE_MATCHES) {
-                if (enabled && active == rules) LEGACY_RESPONSE_MATCHES.put(adapter, matched);
+                if ((enabled || SharedNg.enabled()) && active == rules) LEGACY_RESPONSE_MATCHES.put(adapter, matched);
             }
         } catch (Exception error) {
             report("191レス一覧", error);
@@ -274,8 +284,8 @@ public final class ProgrammableNgController {
 
     /** Adds the standard NGWord bit while preserving every flag ChMate already produced. */
     public static int mergeLegacyResponseFlags(Object adapter, Object response, int original) {
-        original = HiddenIdNg.merge(adapter, response, original);
-        if (!enabled) return HiddenNgUnread.observe(adapter,response,original);
+        original = RedIdAutoNg.merge(response, HiddenIdNg.merge(adapter, response, original));
+        if (!enabled && !SharedNg.enabled()) return HiddenNgUnread.observe(adapter,response,original);
         try {
             if (!LEGACY_RESPONSE_MATCHES.containsKey(adapter)) prepareLegacyResponses(adapter);
             Set<Integer> matches = LEGACY_RESPONSE_MATCHES.get(adapter);
@@ -307,6 +317,7 @@ public final class ProgrammableNgController {
 
     /** 242's DAT result supplies the exact board; never borrow another open tab's board. */
     public static void bindModernResponses(Object result) {
+        try{EdgeLevelNg.bind(field(result,"a"),field(result,"d"));}catch(Exception ignored){}
         try {
             List<?> responses = originalResponses(field(result, "a"));
             if (responses.isEmpty()) return;
@@ -322,7 +333,7 @@ public final class ProgrammableNgController {
     public static Map applyPendingModernResponseFlags(Object flags) {
         Object pending = PENDING_RESPONSE_LIST.get();
         PENDING_RESPONSE_LIST.remove();
-        Map originalMap = flags instanceof Map ? (Map) flags : null;
+        Map originalMap = RedIdAutoNg.modernFlags(pending, flags instanceof Map ? (Map) flags : null);
         if (!(pending instanceof List) || originalMap == null || context == null || !bodyRulesEnabled()) return originalMap;
         try {
             List<?> responses = originalResponses(pending);
@@ -336,9 +347,9 @@ public final class ProgrammableNgController {
                 numbers.add(data.number);
             }
             lastBodies = inputs;
-            if (!enabled || inputs.isEmpty()) return originalMap;
+            if ((!enabled && !SharedNg.enabled()) || inputs.isEmpty()) return originalMap;
             ProgrammableNgRuleSet active = rules;
-            boolean[] matches = active.evaluate(inputs);
+            boolean[] matches = evaluateBodies(inputs);
             Map map = null;
             for (int index = 0; index < matches.length; index++) {
                 if (!matches[index]) continue;
@@ -348,7 +359,7 @@ public final class ProgrammableNgController {
                 int original = previous instanceof Number ? ((Number) previous).intValue() : 0;
                 map.put(number, original | 0x10);
             }
-            return !enabled || active != rules || map == null ? originalMap : map;
+            return (!enabled && !SharedNg.enabled()) || active != rules || map == null ? originalMap : map;
         } catch (Exception error) {
             report("レス一覧", error);
             return originalMap;
@@ -357,6 +368,7 @@ public final class ProgrammableNgController {
 
     /** 226 needs the whole source list to expand authors/replies and to refresh cached decisions. */
     public static void prepareModernResponses(Object owner) {
+        EdgeLevelNg.bindLegacy(owner,true);
         HiddenNgUnread.begin(owner);
         HiddenIdNg.prepare(owner);
         try{previewSource=new java.lang.ref.WeakReference<>(field(owner,"J"));previewBoard=boardUrl(field(field(owner,"E"),"j"));}catch(Exception ignored){}
@@ -373,21 +385,21 @@ public final class ProgrammableNgController {
                 inputs.add(data.input(board, "")); numbers.add(data.number);
             }
             lastBodies = inputs;
-            if (!enabled) return;
+            if (!enabled && !SharedNg.enabled()) return;
             ProgrammableNgRuleSet active = rules;
-            boolean[] matches = active.evaluate(inputs);
+            boolean[] matches = evaluateBodies(inputs);
             Set<Integer> matched = new HashSet<>();
             for (int i = 0; i < matches.length; i++) if (matches[i]) matched.add(numbers.get(i));
             synchronized (MODERN_RESPONSE_MATCHES) {
-                if (enabled && active == rules) MODERN_RESPONSE_MATCHES.put(owner, matched);
+                if ((enabled || SharedNg.enabled()) && active == rules) MODERN_RESPONSE_MATCHES.put(owner, matched);
             }
         } catch (Exception error) { report("226レス一覧", error); }
     }
 
     /** Adds the same NGWord bit at the per-response boundary used by 226 dev. */
     public static int mergeModernResponseFlags(Object owner, Object response, int original) {
-        original = HiddenIdNg.merge(owner, response, original);
-        if (!enabled || context == null || response == null) return HiddenNgUnread.observe(owner,response,original);
+        original = RedIdAutoNg.merge(response, HiddenIdNg.merge(owner, response, original));
+        if ((!enabled && !SharedNg.enabled()) || context == null || response == null) return HiddenNgUnread.observe(owner,response,original);
         try {
             if (!MODERN_RESPONSE_MATCHES.containsKey(owner)) prepareModernResponses(owner);
             Set<Integer> matches = MODERN_RESPONSE_MATCHES.get(owner);
@@ -562,17 +574,7 @@ public final class ProgrammableNgController {
     }
 
     private static Object field(Object owner, String name) throws ReflectiveOperationException {
-        Class<?> type = owner.getClass();
-        while (type != null) {
-            try {
-                Field field = type.getDeclaredField(name);
-                field.setAccessible(true);
-                return field.get(owner);
-            } catch (NoSuchFieldException ignored) {
-                type = type.getSuperclass();
-            }
-        }
-        throw new NoSuchFieldException(name);
+        return NativeFields.find(owner.getClass(),name).get(owner);
     }
 
     private static String stringField(Object owner, String name) throws ReflectiveOperationException {
@@ -581,16 +583,46 @@ public final class ProgrammableNgController {
     }
 
     private static List<Field> allFields(Class<?> type) {
-        ArrayList<Field> result = new ArrayList<>();
-        while (type != null && type != Object.class) {
-            Collections.addAll(result, type.getDeclaredFields());
-            type = type.getSuperclass();
-        }
-        return result;
+        return NativeFields.all(type);
     }
 
     @SuppressWarnings("deprecation")
-    private static boolean bodyRulesEnabled(){if(!enabled)return false;for(ProgrammableNgRuleSet.Rule rule:rules.rules)if(rule.enabled&&"body".equals(rule.target))return true;return false;}
+    static List<ProgrammableNgScript.Input> sharedReportInputs(){
+        return sharedReportInputs(previewSource.get(),previewBoard);
+    }
+    static Object[] captureSharedReportSource(Activity activity)throws Exception{
+        Object fragment=ExtraQuickFilters.visibleFragment(activity);if(fragment==null)throw new IllegalStateException("表示中のスレがありません");
+        String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
+        Object source,board;
+        if("0.8.10.191 dev".equals(version)){source=field(field(fragment,"c"),"K");board=field(fragment,"W");}
+        else{Object model=QuickFilterToolbar.findResponseViewModel(fragment);
+            if("0.8.10.226 dev".equals(version)){source=reportFlow(model,"y","c");board=reportFlow(model,"d","c");}
+            else{source=field(reportFlow(model,"l","d"),"c");board=reportFlow(model,"r","d");}}
+        String url=boardUrl(board);if(url==null||UNKNOWN_BOARD.equals(url))throw new IllegalStateException("板情報を取得できません");
+        return new Object[]{new ArrayList<>(originalResponses(source)),url};
+    }
+    private static Object reportFlow(Object model,String name,String getter)throws Exception{
+        Object value=field(model,name);java.lang.reflect.Method method=value.getClass().getMethod(getter);method.setAccessible(true);return method.invoke(value);
+    }
+    @SuppressWarnings("deprecation")
+    static List<ProgrammableNgScript.Input> sharedReportInputs(Object source,String board){
+        if(source==null||board==null||board.equals(UNKNOWN_BOARD))return Collections.emptyList();
+        ArrayList<ProgrammableNgScript.Input> inputs=new ArrayList<>();
+        try{for(Object response:originalResponses(source)){
+            if(response.getClass().getName().equals("o.processAdDisplayErrorPostbackForUserError")){
+                Map<String,Object> values=baseValues("body",board);
+                values.put("responseNumber",field(response,"o"));values.put("responseId",field(response,"h"));values.put("name",plain(stringField(response,"n")));values.put("mail",field(response,"j"));values.put("dateText",field(response,"q"));
+                inputs.add(new ProgrammableNgScript.Input(plain(stringField(response,"c")),values));
+            }else inputs.add(responseData(response).input(board,""));
+        }}catch(Exception error){report("共有NGの投稿選択",error);return Collections.emptyList();}
+        return inputs;
+    }
+    static void sharedNgChanged(){LEGACY_RESPONSE_MATCHES.clear();MODERN_RESPONSE_MATCHES.clear();}
+    private static boolean[] evaluateBodies(List<ProgrammableNgScript.Input> inputs){
+        boolean[] result=enabled?rules.evaluate(inputs):new boolean[inputs.size()];
+        boolean[] shared=SharedNg.match(inputs);for(int i=0;i<result.length;i++)result[i]|=shared[i];return result;
+    }
+    private static boolean bodyRulesEnabled(){if(SharedNg.enabled())return true;if(!enabled)return false;for(ProgrammableNgRuleSet.Rule rule:rules.rules)if(rule.enabled&&"body".equals(rule.target))return true;return false;}
     private static String plain(String html) {
         return html == null ? "" : Html.fromHtml(html).toString();
     }

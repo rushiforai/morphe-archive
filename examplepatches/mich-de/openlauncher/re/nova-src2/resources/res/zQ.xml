@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.teslacoilsw.launcher.appwidget.TapSelectWidgetsBottomSheet xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="?unknown_attr_ref: 7f0406e6"
+    android:layout_gravity="bottom"
+    android:orientation="vertical"
+    android:paddingTop="28dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="0x7f0b076b"
+        android:background="0x7f08064d"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="0x7f0700b5">
+        <TextView
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorTertiary"
+            android:gravity="center_horizontal"
+            android:id="0x7f0b06a7"
+            android:paddingTop="4dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0x7f1403be"
+            android:fontFamily="sans-serif"/>
+        <ScrollView
+            android:id="0x7f0b0773"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fadeScrollbars="false"
+            android:layout_marginVertical="16dp">
+            <include
+                android:layout_gravity="center_horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="0x7f070555"
+                layout="0x7f0e021b"/>
+        </ScrollView>
+    </LinearLayout>
+</com.teslacoilsw.launcher.appwidget.TapSelectWidgetsBottomSheet>

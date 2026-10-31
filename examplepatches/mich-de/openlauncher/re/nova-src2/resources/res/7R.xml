@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.AppWidgetResizeFrame xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="0dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:foregroundTint="?unknown_attr_ref: 7f0406fb">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ImageView
+            android:layout_gravity="center"
+            android:id="0x7f0b0765"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="0x7f0704a6"
+            android:src="0x7f0806c7"/>
+        <ImageView
+            android:layout_gravity="center"
+            android:id="0x7f0b0766"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0x7f070551"
+            android:src="0x7f080481"
+            android:tint="?unknown_attr_ref: 7f0406f6"/>
+        <ImageView
+            android:layout_gravity="top|center_horizontal"
+            android:id="0x7f0b0768"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0x7f070551"
+            android:src="0x7f080481"
+            android:tint="?unknown_attr_ref: 7f0406f6"/>
+        <ImageView
+            android:layout_gravity="center"
+            android:id="0x7f0b0767"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="0x7f070551"
+            android:src="0x7f080481"
+            android:tint="?unknown_attr_ref: 7f0406f6"/>
+        <ImageView
+            android:layout_gravity="bottom|center_horizontal"
+            android:id="0x7f0b0764"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0x7f070551"
+            android:src="0x7f080481"
+            android:tint="?unknown_attr_ref: 7f0406f6"/>
+        <ImageButton
+            android:layout_gravity="end|bottom"
+            android:id="0x7f0b0763"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="0x7f070561"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0x7f070560"
+            android:src="0x7f0806c6"
+            android:contentDescription="0x7f140cb6"
+            android:layout_marginEnd="0x7f070560"/>
+    </FrameLayout>
+</com.android.launcher3.AppWidgetResizeFrame>

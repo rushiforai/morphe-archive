@@ -152,7 +152,8 @@ class DefaultPlaybackQualityFixtureTest {
                 val labelClass = FixtureDex.classes(bundle, setOf(labelOf.definingClass)).values.single()
                 val infoClass = label?.let { FixtureDex.classes(bundle, setOf(it.definingClass)).values.single() }
                 val context = PatchContexts.of((listOfNotNull(holders.single(), evaluator, formatClass, labelClass, infoClass, configuration, preferencesClass) +
-                    tables.values).distinctBy { it.type } + listOf(ExtensionDex.classDef(QUALITY_CHOICE), ExtensionDex.classDef(SETTINGS_STATUS)))
+                    tables.values + FixtureDex.classesHolding(bundle, FORMAT_SUMMARY)).distinctBy { it.type } +
+                    listOf(ExtensionDex.classDef(QUALITY_CHOICE), ExtensionDex.classDef(QUALITY_LIST), ExtensionDex.classDef(SETTINGS_STATUS)))
                 defaultPlaybackQualityPatch.execute(context)
 
                 fun patched(method: Method): List<Instruction> = context.mutableClassDefBy(method.definingClass).methods.single {

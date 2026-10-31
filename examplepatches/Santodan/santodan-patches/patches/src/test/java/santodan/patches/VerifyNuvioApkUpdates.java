@@ -34,17 +34,17 @@ public final class VerifyNuvioApkUpdates {
         check(NuvioApkUpdates.validVersion("0.12.1") && NuvioApkUpdates.validVersion("0.13.0-beta.1"));
         check(!NuvioApkUpdates.validVersion("v0.12.1") && !NuvioApkUpdates.validVersion("1.2") && !NuvioApkUpdates.validVersion("0.12.1+ignored"));
         NuvioApkUpdates.validate(classes);
-        var missing = copy(classes); missing.remove("Lkb/q;");
+        var missing = copy(classes); missing.remove("Llb/q;");
         rejected(() -> NuvioApkUpdates.apply(missing, "Santodan", "santodan-patches", "0.12.0"));
-        NuvioApkUpdates.validate(Map.of("Lkb/j0;", missing.get("Lkb/j0;"), "Lkb/q0;", missing.get("Lkb/q0;"),
-            "Lkb/m0;", missing.get("Lkb/m0;"), "Lkb/k;", missing.get("Lkb/k;"), "Lkb/q;", classes.get("Lkb/q;"),
+        NuvioApkUpdates.validate(Map.of("Llb/j0;", missing.get("Llb/j0;"), "Llb/q0;", missing.get("Llb/q0;"),
+            "Llb/m0;", missing.get("Llb/m0;"), "Llb/k;", missing.get("Llb/k;"), "Llb/q;", classes.get("Llb/q;"),
             NuvioApkUpdates.JOB, classes.get(NuvioApkUpdates.JOB)));
         var changed = copy(classes);
         NuvioApkUpdates.validate(changed).get(6).getImplementation().replaceInstruction(0, new BuilderInstruction10x(Opcode.NOP));
         rejected(() -> NuvioApkUpdates.apply(changed, "Santodan", "santodan-patches", "0.12.0"));
         var ambiguous = copy(classes);
         var method = NuvioApkUpdates.validate(ambiguous).get(0);
-        ambiguous.get("Lkb/j0;").getMethods().add(new MutableMethod(new ImmutableMethod("Lkb/j0;", "a", List.of(),
+        ambiguous.get("Llb/j0;").getMethods().add(new MutableMethod(new ImmutableMethod("Llb/j0;", "a", List.of(),
             "V", 1, Set.of(), Set.of(), method.getImplementation())));
         rejected(() -> NuvioApkUpdates.apply(ambiguous, "Santodan", "santodan-patches", "0.12.0"));
         var patched = copy(classes);
@@ -64,7 +64,7 @@ public final class VerifyNuvioApkUpdates {
             check(rebuilt.size() == patched.size());
             for (var expected : published.values()) for (var before : expected.getMethods()) {
                 var actual = rebuilt.get(expected.getType()).getMethods().stream().filter(m -> m.toString().equals(before.toString())).findFirst().orElseThrow();
-                if (expected.getType().equals("Lkb/q;") && actual.getName().equals("b")) NuvioUpdateFlowPatch.removeDownloadHook(actual);
+                if (expected.getType().equals("Llb/q;") && actual.getName().equals("b")) NuvioUpdateFlowPatch.removeDownloadHook(actual);
                 check(NuvioPlaybackButtonsPatch.fingerprint(actual).equals(NuvioPlaybackButtonsPatch.fingerprint(before)));
             }
             System.out.println("PASS: final rebuilt APK contains all exact patched updater methods and preserved downloader/installer methods");

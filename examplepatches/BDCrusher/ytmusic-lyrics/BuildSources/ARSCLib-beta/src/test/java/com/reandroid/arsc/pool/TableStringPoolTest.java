@@ -1,0 +1,362 @@
+package com.reandroid.arsc.pool;
+
+import com.reandroid.arsc.chunk.TableBlock;
+import com.reandroid.arsc.item.ReferenceItem;
+import com.reandroid.arsc.item.TableString;
+import com.reandroid.utils.HexUtil;
+import com.reandroid.xml.StyleDocument;
+import org.junit.Assert;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+public class TableStringPoolTest {
+
+    @Test
+    public void stringPoolTest() {
+        createStringsTest();
+        encodingTest();
+        sortStringsTest();
+        duplicateStringsTest();
+        styledStringsTest();
+        unusedStringsTest();
+    }
+
+    @Test
+    public void keepStringOrderAppendsNewStrings() {
+        TableStringPool stringPool = newStringPool();
+        createStyledString(stringPool, 1);
+        createPlainString(stringPool, 5);
+        createPlainString(stringPool, 3);
+        stringPool.refresh();
+        List<TableString> before = listStrings(stringPool);
+
+        stringPool.setKeepStringOrder(true);
+        TableString added1 = createPlainString(stringPool, 9);
+        TableString added2 = createPlainString(stringPool, 0);
+        stringPool.refresh();
+
+        for (int i = 0; i < before.size(); i++) {
+            Assert.assertSame("Moved string " + i, before.get(i), stringPool.get(i));
+        }
+        Assert.assertSame(added1, stringPool.get(before.size()));
+        Assert.assertSame(added2, stringPool.get(before.size() + 1));
+        assertReferencesAndStyles(stringPool);
+    }
+
+    @Test
+    public void keepStringOrderMovesNewStyledStringsForward() {
+        TableStringPool stringPool = newStringPool();
+        createStyledString(stringPool, 1);
+        createPlainString(stringPool, 2);
+        createPlainString(stringPool, 3);
+        createPlainString(stringPool, 4);
+        stringPool.refresh();
+        List<TableString> before = listStrings(stringPool);
+        Assert.assertEquals(1, stringPool.countStyles());
+
+        stringPool.setKeepStringOrder(true);
+        TableString plain = createPlainString(stringPool, 5);
+        TableString styled = createStyledString(stringPool, 6);
+        String styledXml = styled.getXml();
+        stringPool.refresh();
+
+        // The new styled string takes the place of the first unstyled one, which goes where the
+        // styled one was, and nothing else moves
+        TableString displaced = before.get(1);
+        Assert.assertSame(styled, stringPool.get(1));
+        Assert.assertSame(displaced, stringPool.get(before.size() + 1));
+        Assert.assertSame(plain, stringPool.get(before.size()));
+        for (int i = 0; i < before.size(); i++) {
+            if (i != 1) {
+                Assert.assertSame("Moved string " + i, before.get(i), stringPool.get(i));
+            }
+        }
+        Assert.assertEquals(2, stringPool.countStyles());
+        Assert.assertEquals(styledXml, stringPool.get(1).getXml());
+        assertReferencesAndStyles(stringPool);
+    }
+
+    @Test
+    public void keepStringOrderStillSortsAPoolFlaggedSorted() {
+        TableStringPool stringPool = newStringPool();
+        stringPool.getHeaderBlock().setSorted(true);
+        stringPool.setKeepStringOrder(true);
+        TableString item3 = createPlainString(stringPool, 3);
+        TableString item1 = createPlainString(stringPool, 1);
+        TableString item2 = createPlainString(stringPool, 2);
+        stringPool.refresh();
+
+        Assert.assertSame(item1, stringPool.get(0));
+        Assert.assertSame(item2, stringPool.get(1));
+        Assert.assertSame(item3, stringPool.get(2));
+        assertReferencesAndStyles(stringPool);
+    }
+
+    private static List<TableString> listStrings(TableStringPool stringPool) {
+        List<TableString> strings = new ArrayList<>();
+        for (int i = 0; i < stringPool.size(); i++) {
+            strings.add(stringPool.get(i));
+        }
+        return strings;
+    }
+
+    private static void assertReferencesAndStyles(TableStringPool stringPool) {
+        int styles = stringPool.countStyles();
+        for (int i = 0; i < stringPool.size(); i++) {
+            TableString tableString = stringPool.get(i);
+            Assert.assertEquals("Index of " + tableString, i, tableString.getIndex());
+            Iterator<ReferenceItem> references = tableString.getReferences();
+            while (references.hasNext()) {
+                Assert.assertEquals("Reference to " + tableString, i, references.next().get());
+            }
+            if (i < styles) {
+                Assert.assertTrue("Unstyled among the styled: " + tableString, tableString.hasStyle());
+                Assert.assertSame(tableString.getStyle(), stringPool.getStyleArray().get(i));
+            } else {
+                Assert.assertFalse("Styled after the styles: " + tableString, tableString.hasStyle());
+            }
+        }
+    }
+
+    private void createStringsTest() {
+        TableStringPool stringPool = newStringPool();
+        Assert.assertNotNull("Null table string", stringPool);
+
+        TableString item_a = stringPool.getOrCreate("item-0");
+        item_a.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_b = stringPool.getOrCreate("item-1");
+        item_b.addReference(StringPoolTestUtil.newFakeReference());
+
+        Assert.assertEquals("Pool size", 2, stringPool.size());
+
+        TableString item_a_1 = stringPool.getOrCreate("item-0");
+        Assert.assertSame("Different pool string objects", item_a, item_a_1);
+    }
+    private void encodingTest() {
+        TableStringPool stringPool = newStringPool();
+
+        stringPool.setUtf8(true);
+
+        TableString item_a = stringPool.getOrCreate("item-0");
+        item_a.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_b = stringPool.getOrCreate("item-1");
+        item_b.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_c = stringPool.getOrCreate("item-2");
+        item_c.addReference(StringPoolTestUtil.newFakeReference());
+
+        Assert.assertEquals("item-0", item_a.get());
+
+        Assert.assertEquals("06066974656d2d3100", HexUtil.toHexString(item_b.getBytes()));
+
+        stringPool.setUtf8(false);
+
+        Assert.assertEquals("06006900740065006d002d0031000000", HexUtil.toHexString(item_b.getBytes()));
+    }
+    private void sortStringsTest() {
+        TableStringPool stringPool = newStringPool();
+
+        TableString item_2 = stringPool.getOrCreate("item-2");
+        item_2.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_1 = stringPool.getOrCreate("item-1");
+        item_1.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_0 = stringPool.getOrCreate("item-0");
+        item_0.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_3 = stringPool.getOrCreate("item-3");
+        item_3.addReference(StringPoolTestUtil.newFakeReference());
+
+        stringPool.sort();
+
+        Assert.assertSame("Out of order \"item-0\"", item_0, stringPool.get(0));
+        Assert.assertSame("Out of order \"item-1\"", item_1, stringPool.get(1));
+        Assert.assertSame("Out of order \"item-2\"", item_2, stringPool.get(2));
+        Assert.assertSame("Out of order \"item-3\"", item_3, stringPool.get(3));
+    }
+
+    private void duplicateStringsTest() {
+        TableStringPool stringPool = newStringPool();
+
+        TableString item_0 = stringPool.getOrCreate("item-0");
+        item_0.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_1 = stringPool.getOrCreate("item-1");
+        item_1.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_1_a = stringPool.getOrCreate("item-1-a");
+        item_1_a.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_1_b = stringPool.getOrCreate("item-1-b");
+        item_1_b.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_1_c = stringPool.getOrCreate("item-1-c");
+        item_1_c.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_2 = stringPool.getOrCreate("item-2");
+        item_2.addReference(StringPoolTestUtil.newFakeReference());
+
+
+        item_1.set("item-1");
+        item_1_a.set("item-1");
+        item_1_b.set("item-1");
+        item_1_c.set("item-1");
+
+
+        Assert.assertEquals("Pool size with duplicates", 6, stringPool.size());
+
+        TableString get_or_create = stringPool.getOrCreate("item-1");
+        Assert.assertNotNull(get_or_create);
+
+        Assert.assertEquals("Pool size after get or create", 6, stringPool.size());
+
+        Iterator<TableString> iterator = stringPool.getAll("item-1");
+        int count = 0;
+        while (iterator.hasNext()) {
+            iterator.next();
+            count ++;
+        }
+
+        Assert.assertEquals("Strings with value \"item-1\"", 4, count);
+
+        stringPool.compressDuplicates();
+
+        Assert.assertEquals("Unused items count", 3, stringPool.countUnused());
+        List<TableString> unusedList = stringPool.listUnused();
+        Assert.assertEquals("Unused items list size", 3, unusedList.size());
+        for (TableString unused : unusedList) {
+            Assert.assertEquals("Unused string value", "item-1", unused.get());
+            Assert.assertFalse("Unused has reference", unused.hasReference());
+        }
+
+        TableString used_item_1 = stringPool.getOrCreate("item-1");
+        Assert.assertNotNull(used_item_1);
+
+        Assert.assertEquals("References count for \"item-1\"", 4, used_item_1.getReferencesSize());
+
+        stringPool.removeUnusedStrings();
+
+        Assert.assertEquals("Pool size after remove unused strings", 3, stringPool.size());
+
+        Iterator<ReferenceItem> item_1_references = used_item_1.getReferences();
+        while (item_1_references.hasNext()) {
+            ReferenceItem referenceItem = item_1_references.next();
+            Assert.assertEquals("Reference index", used_item_1.getIndex(), referenceItem.get());
+        }
+    }
+
+    private void styledStringsTest() {
+        TableStringPool stringPool = newStringPool();
+
+        TableString item_2 = stringPool.getOrCreate("item-2");
+        item_2.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_1_plain = stringPool.getOrCreate("item-1");
+        item_1_plain.addReference(StringPoolTestUtil.newFakeReference());
+
+        String xml_1 = "<tag attr_0=\"value_0\">item_1</tag>";
+        StyleDocument styleDocument_1 = StyleDocument.create(xml_1);
+        Assert.assertNotNull("Failed to parse styled xml_1", styleDocument_1);
+        TableString item_1_styled = stringPool.getOrCreate(styleDocument_1);
+        item_1_styled.addReference(StringPoolTestUtil.newFakeReference());
+
+        Assert.assertEquals(xml_1, item_1_styled.getXml());
+
+        String xml_2 = "<br /><tag>item_2</tag>";
+        StyleDocument styleDocument_2 = StyleDocument.create(xml_2);
+        Assert.assertNotNull("Failed to parse styled xml_1", styleDocument_2);
+        TableString item_2_styled = stringPool.getOrCreate(styleDocument_2);
+        item_2_styled.addReference(StringPoolTestUtil.newFakeReference());
+
+        Assert.assertEquals(xml_2, item_2_styled.getXml());
+
+        TableString item_0 = stringPool.getOrCreate("item-0");
+        item_0.addReference(StringPoolTestUtil.newFakeReference());
+
+        TableString item_3 = stringPool.getOrCreate("item-3");
+        item_3.addReference(StringPoolTestUtil.newFakeReference());
+
+        stringPool.sort();
+
+        Assert.assertSame("Styled string out of order \"item-1\"", item_1_styled, stringPool.get(0));
+    }
+
+    private void unusedStringsTest() {
+        TableStringPool stringPool = newStringPool();
+
+        createPlainString(stringPool, 10);
+
+        createStyledString(stringPool, 7);
+        createPlainString(stringPool, 9);
+        createStyledString(stringPool, 5);
+        createPlainString(stringPool, 0);
+        createStyledString(stringPool, 6);
+
+        TableString tableString = createStyledString(stringPool, 4);
+        ReferenceItem reference = StringPoolTestUtil.getFirstFakeReference(tableString);
+
+        createStyledString(stringPool, 1);
+        createStyledString(stringPool, 2);
+        createStyledString(stringPool, 3);
+        createPlainString(stringPool, 8);
+
+        Assert.assertTrue(tableString.hasReference());
+
+        Assert.assertTrue(stringPool.getStringsArray().contains(tableString));
+
+
+        int stringsCount = stringPool.size();
+        int stylesCount = stringPool.countStyles();
+
+        tableString.removeReference(reference);
+
+        Assert.assertFalse(tableString.hasReference());
+
+        stringPool.removeUnusedStrings();
+
+        Assert.assertFalse(stringPool.getStringsArray().contains(tableString));
+
+        stringPool.getStyleArray().sort();
+
+        stringPool.sort();
+        stringPool.refresh();
+
+        Assert.assertTrue(stringPool.size() < stringsCount);
+        Assert.assertTrue(stringPool.countStyles() < stylesCount);
+    }
+
+    private TableString createStyledString(TableStringPool stringPool, int label) {
+        String labelString = StringPoolTestUtil.to4WidthString(label);
+        String xmlString = "<a attr=\"attr_value-" + "labelString" + "\">item_" + labelString + "</a>";
+        StyleDocument document = StyleDocument.create(xmlString);
+        Assert.assertNotNull("Failed to parse item_" + labelString, document);
+        TableString tableString = stringPool.getOrCreate(document);
+        ReferenceItem reference = StringPoolTestUtil.newFakeReference(labelString);
+        tableString.addReference(reference);
+        return tableString;
+    }
+    private TableString createPlainString(TableStringPool stringPool, int label) {
+        String labelString = StringPoolTestUtil.to4WidthString(label);
+        TableString tableString = stringPool.getOrCreate("item_" + labelString);
+        ReferenceItem reference = StringPoolTestUtil.newFakeReference(labelString);
+        tableString.addReference(reference);
+        return tableString;
+    }
+    public TableStringPool newStringPool() {
+        return newTableBlock().getStringPool();
+    }
+    public TableBlock newTableBlock() {
+        TableBlock tableBlock = new TableBlock();
+        tableBlock.getOrCreatePackage(0x7f, "com.test");
+        return tableBlock;
+    }
+}

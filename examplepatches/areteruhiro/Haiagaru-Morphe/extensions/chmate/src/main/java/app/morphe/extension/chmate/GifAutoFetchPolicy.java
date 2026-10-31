@@ -18,8 +18,14 @@ final class GifAutoFetchPolicy {
             URI uri = URI.create(value);
             return ("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))
                     && uri.getHost() != null && uri.getUserInfo() == null && uri.getPath() != null
+                    && !beIcon(uri)
                     && uri.getPath().toLowerCase(java.util.Locale.ROOT).endsWith(".gif");
         } catch (IllegalArgumentException invalid) { return false; }
+    }
+    private static boolean beIcon(URI uri) {
+        String host=uri.getHost().toLowerCase(java.util.Locale.ROOT),path=uri.getPath().toLowerCase(java.util.Locale.ROOT);
+        return (host.equals("img.5ch.io")||host.equals("img.5ch.net")||host.equals("img.2ch.net"))
+                && (path.startsWith("/ico/")||path.startsWith("/premium/"));
     }
     static String[] extract(String body) {
         LinkedHashSet<String> result = new LinkedHashSet<>();

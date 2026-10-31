@@ -1,0 +1,12 @@
+gradle.projectsEvaluated {
+    allprojects {
+        group = 'com.github.MorpheApp.smali'
+        version = System.getProperty('bdsmaliVersion', 'd92701d947')
+        if (plugins.hasPlugin('maven-publish')) {
+            publishing.publications.withType(MavenPublication).configureEach {
+                groupId = 'com.github.MorpheApp.smali'
+                version = System.getProperty('bdsmaliVersion', 'd92701d947')
+            }
+        }
+    }
+}

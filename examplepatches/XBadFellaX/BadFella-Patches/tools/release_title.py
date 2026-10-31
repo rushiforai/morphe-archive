@@ -18,6 +18,8 @@ APP_NAMES = {
     'remoteatv': 'Remote for Android TV',
     'remote-atv': 'Remote for Android TV',
     'wanderlog': 'Wanderlog',
+    'nikkei': 'Nikkei Asia',
+    'lrb': 'London Review of Books',
 }
 DISPLAY_NAMES = {
     'HBR': APP_NAMES['hbr'],
@@ -41,10 +43,20 @@ def release_apps(root, tag):
     if not match:
         raise ValueError('Expected a version tag, e.g. v1.4.0 or v1.4.0-dev.1')
     version = tuple(map(int, match.groups()))
-    stable = [t for t in git(root, 'tag').split()
+    tags = git(root, 'tag').split()
+    stable = [t for t in tags
               if re.fullmatch(r'v\d+\.\d+\.\d+', t)
               and tuple(map(int, t[1:].split('.'))) < version]
     previous_tag = max(stable, key=lambda t: tuple(map(int, t[1:].split('.')))) if stable else None
+    # Consecutive previews share a target version. Diff against the latest earlier prerelease of
+    # the same version line, otherwise every app shipped in the previous preview is listed again.
+    if '-' in tag:
+        base = tag.split('-')[0]
+        same_line = [t for t in tags
+                     if re.fullmatch(re.escape(base) + r'-dev\.\d+', t)
+                     and int(t.rsplit('-dev.', 1)[1]) < int(tag.rsplit('-dev.', 1)[1])]
+        if same_line:
+            previous_tag = max(same_line, key=lambda t: int(t.rsplit('-dev.', 1)[1]))
     previous = catalog(root, previous_tag) if previous_tag else {}
     apps = []
     for name, patch in catalog(root, tag).items():

@@ -1,0 +1,14 @@
+# 投稿メール欄の自動入力を抑止
+
+2026-11-01。レス投稿とスレ立てに共通のnative投稿画面だけで、メール欄を自動入力対象から除外する。名前・タイトル・本文・MEGA等のアカウントログイン欄は対象外。
+
+メール入力種別、メール欄のresource名、正確なE-mail/Email/メール/メール欄hintを判定に使う。191の実投稿レイアウトではinputType1かつ難読化resource名だったため、hintでも確認する。投稿画面の既存onViewCreated/onResume hookから呼び、root生成時・初期化後・resume後に適用する。
+
+Autofill hintsを除去しIMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTSを設定。メールアドレス入力variationを通常文字へ変え、NO_SUGGESTIONSとIME_FLAG_NO_PERSONALIZED_LEARNINGを設定する。setRawInputTypeで元のkey listener・draft text・選択位置・sage操作を保持する。
+
+個々のキーボードやパスワードマネージャーが独自に表示する候補を完全に制御するものではない。Android側の自動入力対象から外すことと、メール用の入力分類を除去することを確認する。実メールアドレスの登録や投稿送信は行わない。
+
+公式候補は通常LintVital/R8付きbuild/official117-mail-final-build.logで2m57s成功。認証日共有を削除したソースとメール欄hint対応を同時に含む。native hook追加はなく、ThreadCommands.attachとPostEditorTextSize.applyの既存接続から適用する。
+
+
+最終候補をemulator-5580の191/226/242へ更新し、各45項目成功。実投稿layoutをinflateしてメール欄のhint/属性を確認、sage・既存文字列・選択位置・key listener保持、他入力欄の非変更を確認。226/242の未接続Fragment生成はfixtureをnative layout inflateへ修正して再成功。投稿送信は実施していない。

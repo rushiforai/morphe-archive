@@ -197,8 +197,8 @@ object NuvioMergedProgress {
                 @Suppress("UNCHECKED_CAST")
                 val entries = field(controller, "F").get(controller) as Flow<Any>
                 entries.collect { entry ->
-                    val destination = field(entry, "e").get(entry)
-                    val route = field(destination, "o").get(destination) as? String
+                    val destination = field(entry, "d").get(entry)
+                    val route = field(destination, "i").get(destination) as? String
                     val previousRoute = navigation.revision()
                     val enteredHome = navigation.navigate(route)
                     if (navigation.revision() != previousRoute && activeDialog != null) dismissTrackingDialog()
@@ -530,7 +530,7 @@ object NuvioMergedProgress {
                 modifier = modifierType.getMethod("d", modifierType).invoke(modifier, layer)
                 modifier = findMethod(loader.loadClass("e0.b"), "u", 2).invoke(null, modifier, 6f)
                 modifier = findMethod(loader.loadClass("y.m"), "g", 3).invoke(null, modifier,
-                    0xcc10101000000000UL.toLong(), fieldStatic(loader.loadClass("e2.g0"), "b"))
+                    0xcc10101000000000UL.toLong(), fieldStatic(loader.loadClass("e2.i0"), "b"))
                 modifier = findMethod(loader.loadClass("e0.b"), "u", 2).invoke(null, modifier, 4f)
                 modifier = findMethod(loader.loadClass("androidx.compose.foundation.layout.b"), "n", 2)
                     .invoke(null, modifier, 24f)

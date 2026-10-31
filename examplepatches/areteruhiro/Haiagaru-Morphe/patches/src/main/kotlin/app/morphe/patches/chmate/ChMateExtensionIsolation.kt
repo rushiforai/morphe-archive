@@ -1,7 +1,6 @@
 package app.morphe.patches.chmate
 
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -34,7 +33,7 @@ internal object ChMateExtensionIsolation {
             shards += stream.use { it.readBytes() }
             index++
         }
-        val dexes = shards.map { DexBackedDexFile(null, java.nio.ByteBuffer.wrap(it)) }
+        val dexes = shards.map { CachedExtensionDex(it) }
         // References may cross shard boundaries, so every shard uses one map.
         val names = dexes.flatMap { dex -> dex.classes.map { it.type } }.filter {
             it.startsWith("Landroidx/") || it.startsWith("Lkotlin/") || it.startsWith("Lkotlinx/")

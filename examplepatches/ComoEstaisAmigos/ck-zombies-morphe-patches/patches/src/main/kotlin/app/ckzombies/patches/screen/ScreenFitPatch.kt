@@ -1,5 +1,6 @@
 package app.ckzombies.patches.screen
 
+import app.ckzombies.patches.compat.obbMessagePatch
 import app.ckzombies.patches.shared.Constants.COMPATIBILITY_CK_ZOMBIES
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
@@ -149,12 +150,14 @@ internal fun recordSurfaceFormat(surfaceChanged: MutableMethod) {
  */
 @Suppress("unused")
 val screenFitPatch = bytecodePatch(
-    name = "Render at 720p",
+    name = "Render menus at 720p",
     description = "Makes the menus, text and pictures full size on screens above 720p, where they are " +
         "otherwise small. Menus are drawn at 720p and stretched to the screen, so they look slightly blurry. " +
         "The 3D gameplay keeps the screen's own resolution and stays sharp.",
 ) {
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)
+
+    dependsOn(obbMessagePatch)
 
     extendWith("extensions/extension.mpe")
 

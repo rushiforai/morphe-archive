@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">%d 秒早送り</item>
+        <item quantity="other">%d 秒早送り</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">%d 秒巻き戻し</item>
+        <item quantity="other">%d 秒巻き戻し</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">会議 %d 件</item>
+        <item quantity="one">会議 %d 件</item>
+        <item quantity="two">会議 %d 件</item>
+        <item quantity="few">会議 %d 件</item>
+        <item quantity="many">会議 %d 件</item>
+        <item quantity="other">会議 %d 件</item>
+    </plurals>
+</resources>

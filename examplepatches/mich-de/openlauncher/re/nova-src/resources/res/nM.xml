@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:drawable="0x7f08003a">
+    <target
+        android:name="line_1_group"
+        android:animation="0x7f08003b"/>
+    <target
+        android:name="line_2_group"
+        android:animation="0x7f08003c"/>
+    <target
+        android:name="center"
+        android:animation="0x7f01005c"/>
+</animated-vector>

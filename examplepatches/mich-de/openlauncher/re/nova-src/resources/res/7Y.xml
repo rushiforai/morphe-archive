@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <cache-path
+        name="temp"
+        path="fileprovider_temp/"/>
+    <external-cache-path
+        name="external-temp"
+        path="fileprovider_temp/"/>
+    <external-path
+        name="backup"
+        path="data/com.teslacoilsw.launcher/backup"/>
+    <files-path
+        name="wallpapers"
+        path="wallpapers"/>
+    <root-path
+        name="apk"
+        path="/data/app"/>
+    <root-path
+        name="system-apk"
+        path="/system"/>
+    <root-path
+        name="product-priv-app"
+        path="/product/priv-app"/>
+</paths>

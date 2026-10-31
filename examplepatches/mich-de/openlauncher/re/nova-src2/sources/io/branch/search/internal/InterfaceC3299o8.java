@@ -1,0 +1,6 @@
+package io.branch.search.internal;
+
+/* renamed from: io.branch.search.internal.o8, reason: case insensitive filesystem */
+/* loaded from: classes4.dex */
+public interface InterfaceC3299o8 {
+}

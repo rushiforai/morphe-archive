@@ -16,7 +16,9 @@
               "Hide ads",
               "Sanitize sharing links",
               "Open links in external browser",
-              "Spoof location"
+              "Spoof location",
+              "App-only proxy",
+              "Skip the contacts and location popups"
             ]
           },
           {
@@ -88,6 +90,8 @@
           "Seek bar on feed videos",
           "Long press to zoom",
           "Rounded post corners",
+          "Carousel arrows",
+          "Ambient light",
           "Full screen Reels and Home",
           "Hide Follow on feed posts",
           "Hide captions",
@@ -110,6 +114,24 @@
             "op": "any",
             "patches": [
               "Hide suggested posts"
+            ]
+          }
+        },
+        {
+          "title": "Carousel arrows",
+          "when": {
+            "op": "any",
+            "patches": [
+              "Carousel arrows"
+            ]
+          }
+        },
+        {
+          "title": "Ambient light",
+          "when": {
+            "op": "any",
+            "patches": [
+              "Ambient light"
             ]
           }
         }
@@ -157,7 +179,8 @@
         "patches": [
           "Hide the Explore grid",
           "Don't save recent searches",
-          "Show all recent searches"
+          "Show all recent searches",
+          "Explore without personalization"
         ]
       },
       "anchors": [
@@ -176,6 +199,15 @@
             "op": "any",
             "patches": [
               "Don't save recent searches"
+            ]
+          }
+        },
+        {
+          "title": "Explore without personalization",
+          "when": {
+            "op": "any",
+            "patches": [
+              "Explore without personalization"
             ]
           }
         }
@@ -202,6 +234,7 @@
           "Don't report screenshots",
           "Allow screenshots",
           "Keep in chat",
+          "Mark one-time photos and videos",
           "Swipe through a chat's reels",
           "Chat history tools",
           "Ask before a call",
@@ -292,6 +325,7 @@
         "patches": [
           "Hide suggested stories",
           "Story ring size",
+          "Smooth story opening",
           "Thicker story progress bar",
           "Seek bar on stories",
           "Stop Story auto-advance",
@@ -343,7 +377,8 @@
           "Control taps and volume on Reels",
           "Start reels with sound",
           "Default playback quality",
-          "Data saver"
+          "Data saver",
+          "Stop videos looping"
         ]
       },
       "anchors": [

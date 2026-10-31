@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.teslacoilsw.launcher.launcher3.appprediction.PredictionRowView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="0x7f0b04fe"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:accessibilityPaneTitle="0x7f140ba3"/>

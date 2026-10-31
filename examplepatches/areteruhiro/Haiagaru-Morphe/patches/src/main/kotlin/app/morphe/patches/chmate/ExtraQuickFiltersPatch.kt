@@ -24,6 +24,37 @@ internal fun BytecodePatchContext.patchExtraQuickFilters(version: String) {
     }
     if(old || middle) {
         val rebuild = adapter.methods.single { it.name == (if(old) "c" else "b") && it.parameterTypes == listOf("Z") && it.returnType == "V" }
+        if(old) {
+            val code = rebuild.implementation!!.instructions.toList()
+            val match = code.withIndex().single {
+                val ref = (it.value as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.definingClass == "Lo/r0ExternalSyntheticLambda3;" && ref.name == "b" && ref.parameterTypes == listOf("Ljava/lang/String;")
+            }
+            val call = match.value as com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+            val result = code[match.index + 1] as OneRegisterInstruction
+            val branch = code[match.index + 2] as OneRegisterInstruction
+            check(code[match.index + 1].opcode == Opcode.MOVE_RESULT_OBJECT && code[match.index + 2].opcode == Opcode.IF_EQZ)
+            check(call.registerCount == 1 && result.registerA == call.startRegister + 1 && branch.registerA == result.registerA)
+            val urls = code.withIndex().single {
+                val ref = (it.value as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.definingClass == "Lo/processAdDisplayErrorPostbackForUserError;" && ref.name == "d" && ref.parameterTypes.isEmpty() && ref.returnType == "[Ljava/lang/String;"
+            }
+            val receiver = (urls.value as FiveRegisterInstruction).registerC
+            val array = (code[urls.index + 1] as OneRegisterInstruction).registerA
+            check(receiver == 7 && array == 2 && code[urls.index + 1].opcode == Opcode.MOVE_RESULT_OBJECT)
+            // These words are dead until each URL is loaded; retain native arguments,
+            // all URLs already extracted, and the existing loop/branch destinations.
+            rebuild.addInstructions(match.index + 2,"""
+                invoke-static/range {v${call.startRegister} .. v${result.registerA}}, $EXTRA_FILTERS->videoFilterMatch(Ljava/lang/String;Ljava/lang/Object;)Z
+                move-result v${result.registerA}
+            """.trimIndent())
+            rebuild.addInstructions(urls.index + 2,"""
+                move-object/from16 v25, v$receiver
+                move-object/from16 v26, v$array
+                invoke-static/range {v25 .. v26}, $EXTRA_FILTERS->videoFilterUrls(Ljava/lang/Object;[Ljava/lang/String;)[Ljava/lang/String;
+                move-result-object v$array
+            """.trimIndent())
+        }
         val sites = rebuild.implementation!!.instructions.withIndex().filter {
             val ref = (it.value as? ReferenceInstruction)?.reference as? MethodReference
             ref?.name == "notifyDataSetChanged" && ref.parameterTypes.isEmpty()

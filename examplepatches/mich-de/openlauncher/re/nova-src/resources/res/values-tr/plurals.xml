@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">%d saniye ileri sar</item>
+        <item quantity="other">%d saniye ileri sar</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">%d saniye geri sar</item>
+        <item quantity="other">%d saniye geri sar</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d toplantı</item>
+        <item quantity="one">%d toplantı</item>
+        <item quantity="two">%d toplantı</item>
+        <item quantity="few">%d toplantı</item>
+        <item quantity="many">%d toplantı</item>
+        <item quantity="other">%d toplantı</item>
+    </plurals>
+</resources>

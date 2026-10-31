@@ -208,7 +208,7 @@ final class NuvioStreamPreloadPatch {
             NuvioRemainingEpisodesPatch.calls(i, NuvioNative.PLAYER_ROUTES_TYPE, "q")).count();
         long triggeredReads = thresholdInstructions.stream().filter(i -> i.getOpcode() == Opcode.IGET_BOOLEAN
             && i instanceof ReferenceInstruction && ((ReferenceInstruction) i).getReference().toString()
-                .equals(NuvioNative.PLAYER_CONTROLLER_TYPE + ("->r2:Z"))).count();
+                .equals(NuvioNative.PLAYER_CONTROLLER_TYPE + ("->s2:Z"))).count();
         if (delegates != 1 || triggeredReads != 1 || threshold.getImplementation().getRegisterCount() != (13)
             || thresholdInstructions.isEmpty() || thresholdInstructions.get(0).getOpcode() != Opcode.CONST_STRING
             || ((OneRegisterInstruction) thresholdInstructions.get(0)).getRegisterA() != 0)

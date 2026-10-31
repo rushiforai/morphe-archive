@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:icon="0x7f08048d"
+        android:enabled="true"
+        android:shortcutId="set_default_launcher"
+        android:shortcutShortLabel="0x7f140167">
+        <intent
+            android:targetPackage="com.teslacoilsw.launcher"
+            android:action="com.teslacoilsw.launcher.ACTION"
+            android:targetClass="com.teslacoilsw.launcher.NovaShortcutHandler">
+            <extra
+                android:name="LAUNCHER_ACTION"
+                android:value="SET_DEFAULT_LAUNCHER"/>
+        </intent>
+    </shortcut>
+    <shortcut
+        android:icon="0x7f080490"
+        android:enabled="true"
+        android:shortcutId="nova_settings"
+        android:shortcutShortLabel="0x7f140744">
+        <intent
+            android:targetPackage="com.teslacoilsw.launcher"
+            android:action="android.intent.action.MAIN"
+            android:targetClass="com.teslacoilsw.launcher.preferences.SettingsActivity"/>
+    </shortcut>
+</shortcuts>

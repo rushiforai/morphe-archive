@@ -11,7 +11,7 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val shazamAlwaysOnAutoPatch = bytecodePatch(
-    name = "Always-On Auto Shazam - Shazam",
+    name = "Always-On Auto Shazam - Shazam (Experimental)",
     description = "Keeps Auto Shazam background listening continuously active without automatic timeout cancellation or sleep limits.",
 ) {
     compatibleWith(COMPATIBILITY_SHAZAM)

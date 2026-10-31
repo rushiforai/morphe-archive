@@ -3,7 +3,7 @@ group = "lab.leghefc"
 patches {
     about {
         name = "Edoardo9708 Patches"
-        description = "Patch indipendenti per Leghe FC, Twilight, Outdooractive, Flowx, Fonometro, DNS Changer e Prezzi Benzina"
+        description = "Patch indipendenti per Leghe FC, Twilight, Outdooractive, Flowx, Fonometro, DNS Changer e Prezzi Benzina e Yahoo Finance"
         source = "https://github.com/Edoardo9708/LegheFC-Morphe-Patches"
         author = "Edoardo9708"
         contact = "https://github.com/Edoardo9708/LegheFC-Morphe-Patches/issues"

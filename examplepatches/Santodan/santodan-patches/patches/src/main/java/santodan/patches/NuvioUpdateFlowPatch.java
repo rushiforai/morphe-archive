@@ -21,18 +21,18 @@ public final class NuvioUpdateFlowPatch {
     public static void install(MutableClass repository, MutableClass downloader, MutableClass installer, MutableClass bridge,
         MutableClass provider, MutableClass strategy, MutableClass update) {
         MutableMethod download = NuvioUpdateInstaller.unique(repository, "b");
-        if (!download.toString().equals("Lkb/q;->b(Llb/a;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/jvm/internal/ContinuationImpl;)Ljava/lang/Object;") ||
+        if (!download.toString().equals("Llb/q;->b(Lmb/a;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/jvm/internal/ContinuationImpl;)Ljava/lang/Object;") ||
             (download.getAccessFlags() & 8) != 0) throw new IllegalStateException("Download signature changed");
-        hash(download, "d39d223ebdf746cf55568ad1d233a965d04d2985a38bec5ca2b92adca7e40c72");
+        hash(download, "03fb2d18bee8a3ade75ad821e8ec82a80445b6aab0eff9ee1a6cfaf17642bb21");
         MutableMethod stream = NuvioUpdateInstaller.unique(downloader, "a");
-        if (!stream.toString().equals("Lkb/b;->a(Ljava/lang/String;Ljava/io/File;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;") ||
+        if (!stream.toString().equals("Llb/b;->a(Ljava/lang/String;Ljava/io/File;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;") ||
             (stream.getAccessFlags() & 8) != 0) throw new IllegalStateException("Transfer signature changed");
-        hash(stream, "993f04015a23a30417faffbcd7e700074fb8f07133146e9267f008353aa114e0");
+        hash(stream, "5883b9670f3d44e272385d7b49482e298eafbc723c1a9cde829df0a7a5197d0a");
         MutableMethod session = NuvioUpdateInstaller.unique(installer, "b");
         MutableMethod plain = new MutableMethod(session);
         if (!NuvioUpdateInstaller.isZero(plain.getImplementation().getInstructions().get(0), 15)) throw new IllegalStateException("Metadata suppression missing");
         plain.getImplementation().removeInstruction(0);
-        hash(plain, "1e29a58ab2c05823711d154852665e211d50fc42f5036aae7af3b395fa612e38");
+        hash(plain, "61ccf26f3106e55a9eb8fbe82a6592a3fa0b05d29cb1af3862451ac644f04454");
         MutableMethod uri = NuvioUpdateInstaller.unique(bridge, "contentUri");
         if (!uri.toString().equals(INSTALL_UI + "->contentUri(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;") ||
             (uri.getAccessFlags() & 8) == 0 || uri.getImplementation().getRegisterCount() != 3 ||
@@ -42,8 +42,8 @@ public final class NuvioUpdateFlowPatch {
         if (!factory.toString().equals("Landroidx/core/content/FileProvider;->c(Landroid/content/Context;Ljava/lang/String;)Lb4/a;") ||
             (factory.getAccessFlags() & 9) != 9 || !toUri.toString().equals("Lb4/a;->c(Ljava/io/File;)Landroid/net/Uri;") ||
             (toUri.getAccessFlags() & 9) != 1) throw new IllegalStateException("Native FileProvider API changed");
-        hash(factory, "ff9f80c791e96ae11b3b7d8251d55b184d8878dd9175ba3b466ed96514ad5eb6");
-        hash(toUri, "dfff2b614cc16c5436b036b05f9453417ece0b0a5c78266639b67bb38254e951");
+        hash(factory, "ec136f37c7e0af5a168841a59df4d9ac1753e0c1ef86eaa14418dc54a72b8288");
+        hash(toUri, "7418f31c17b10ec22fc27b21d496139d80c479d262b396bc6254ebcf79700d8f");
         for (String field : List.of("f", "g")) {
             String type = field.equals("f") ? "Ljava/lang/String;" : "Ljava/lang/Long;";
             if (update.getFields().stream().filter(f -> f.getName().equals(field) && f.getType().equals(type) && (f.getAccessFlags() & 9) == 1).count() != 1)

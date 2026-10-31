@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.teslacoilsw.launcher.appwidget.WidgetsPeekingSheet xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="?unknown_attr_ref: 7f0406e6"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.android.launcher3.views.SpringRelativeLayout
+        android:id="0x7f0b01a3"
+        android:background="0x7f0801be"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:textSize="20sp"
+            android:gravity="center"
+            android:id="0x7f0b045f"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFamily="sans-serif-medium"/>
+        <TextView
+            android:id="0x7f0b02cd"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="0x7f07013e"
+            android:layout_alignParentEnd="true"
+            style="0x7f150174"/>
+        <com.android.launcher3.views.RecyclerViewFastScroller
+            android:id="0x7f0b02cc"
+            android:layout_width="0x7f070147"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="0x7f07013a"
+            android:layout_alignParentEnd="true"/>
+        <com.android.launcher3.widget.picker.WidgetsRecyclerView
+            android:id="0x7f0b05a7"
+            android:paddingTop="32dp"
+            android:visibility="gone"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="64dp"
+            android:layout_below="0x7f0b0170"
+            android:paddingHorizontal="0x7f070555"/>
+    </com.android.launcher3.views.SpringRelativeLayout>
+</com.teslacoilsw.launcher.appwidget.WidgetsPeekingSheet>

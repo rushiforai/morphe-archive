@@ -26,6 +26,7 @@ import app.morphe.util.writersReaching
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -55,7 +56,10 @@ import java.io.File
  * the Related groups plugin, its check is another one than the button check, and it's hooked the
  * same way with its own extension method (#101). The thumbs-down under each comment has its own
  * plugin, a kept class found by name, whose one static builder asks the extension first and builds
- * nothing on a yes, so the row around it stays Facebook's (#241). The comment section is found by its name, its reply flag
+ * nothing on a yes, so the row around it stays Facebook's (#241). Like is written through one method
+ * the kept Like plugin's builder calls, and the plugin table, which names LikePlugin (the Like
+ * button beside the thumbs-down), calls it too; that method asks first and writes nothing on a yes
+ * (#241). The comment section is found by its name, its reply flag
  * through the expandReplySection update, and the flag goes through the extension, as a range
  * call, just before the initial state returns. The section's draw method asks about its comment
  * first, read off its props, and returns no children on a yes (#118). An open reply thread's section
@@ -69,6 +73,9 @@ import java.io.File
  * and its render asks first and returns nothing on a yes (#213). Reads the fixture bundles from
  * HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
+/** The plugin that draws Like as a button beside the thumbs-down, as the plugin table names it. */
+private const val LIKE_PLUGIN = "com.facebook.feedback.comments.plugins.commentufi.like.LikePlugin"
+
 class CommentSheetOptionsFixtureTest {
     private fun bundles(check: (File) -> Unit) {
         val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
@@ -228,14 +235,44 @@ class CommentSheetOptionsFixtureTest {
                 ((instruction as ReferenceInstruction).reference as TypeReference).type == builder.returnType
         })
 
-        val context = PatchContexts.of(listOf(plugin!!))
+        held(plugin!!, builder, HOLDS_COMMENT_DISLIKE, where)
+    }
+
+    private fun like(bundle: File) {
+        val name = bundle.name
+        val plugin = FixtureDex.classes(bundle, setOf(COMMENT_LIKE)).values.singleOrNull()
+        assertNotNull("$name: nothing is $COMMENT_LIKE", plugin)
+        val builder = likeBuilder(plugin)
+        val where = "$name: ${builder.descriptor()}"
+        assertEquals("$where: it takes the comment's context", 1, builder.parameterTypes.size)
+        val code = builder.implementation!!.instructions.toList()
+        assertTrue("$where: it already answers nothing for a comment it can't like", code.any { it.opcode == Opcode.CONST_4 } &&
+            code.count { it.opcode == Opcode.RETURN_OBJECT } == 1)
+
+        val text = likeText(builder)
+        val writer = FixtureDex.classes(bundle, setOf(text.definingClass)).values.singleOrNull()
+        assertNotNull("$name: nothing is ${text.definingClass}", writer)
+        val method = writer!!.methods.single { it.descriptor() == text.descriptor() }
+        // The Like button beside the thumbs-down comes from LikePlugin, folded into the plugin table.
+        val table = holders(bundle, LIKE_PLUGIN)
+        assertEquals("$name: one class names $LIKE_PLUGIN", 1, table.size)
+        val folded = table.single().methods.filter { candidate ->
+            candidate.implementation?.instructions?.any { it.reference() == text.descriptor() } == true
+        }
+        assertEquals("$name: the plugin table writes LikePlugin's Like through ${text.descriptor()}", 1, folded.size)
+        held(writer, method, HOLDS_COMMENT_LIKE, "$name: ${text.descriptor()}")
+    }
+
+    /** [builder] of [plugin] asks [call] first and returns nothing on a yes, its own code following. */
+    private fun held(plugin: ClassDef, builder: Method, call: String, where: String) {
+        val context = PatchContexts.of(listOf(plugin))
         val method = context.mutableClassDefBy(plugin.type).methods.single { it.descriptor() == builder.descriptor() }
         val original = method.implementation!!.instructions.toList()
-        method.holdDislike()
+        method.holdBuild(call)
         val patched = method.implementation!!.instructions.toList()
         assertEquals("$where gains five instructions", original.size + 5, patched.size)
         assertEquals("$where: the extension is asked first", Opcode.INVOKE_STATIC, patched[0].opcode)
-        assertEquals("$where: the extension is asked first", HOLDS_COMMENT_DISLIKE, patched[0].reference())
+        assertEquals("$where: the extension is asked first", call, patched[0].reference())
         assertEquals("$where: with nothing handed over", 0, (patched[0] as FiveRegisterInstruction).registerCount)
         assertEquals("$where: its answer is kept", Opcode.MOVE_RESULT, patched[1].opcode)
         val register = (patched[1] as OneRegisterInstruction).registerA
@@ -624,6 +661,11 @@ class CommentSheetOptionsFixtureTest {
     @Test
     fun `each declared build keeps the thumbs-down out from under a comment`() = bundles { bundle ->
         dislike(bundle)
+    }
+
+    @Test
+    fun `each declared build can keep Like out of the row under a comment`() = bundles { bundle ->
+        like(bundle)
     }
 
     @Test

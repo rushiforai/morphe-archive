@@ -23,7 +23,7 @@ final class IntroIcons {
         if (stage == 0) polygon(path, 9,7, 16,12, 9,17);
         else if (stage == 1) polygon(path, 9,8, 16,8, 16,16, 9,16);
         else polygon(path, 7,12, 9,10, 11,12, 15,8, 17,10, 11,16);
-        Object brush = loader.loadClass("e2.y0").getDeclaredConstructor(long.class).newInstance((Long)IntroUi.constant(loader, NuvioNative.COLOR_NAME, "b"));
+        Object brush = loader.loadClass("e2.a1").getDeclaredConstructor(long.class).newInstance((Long)IntroUi.constant(loader, NuvioNative.COLOR_NAME, "b"));
         IntroUi.method(loader.loadClass(NuvioNative.VECTOR_BUILDER_NAME), "a", 4).invoke(null, vector, IntroUi.field(path, "b"), 0, brush);
         cached[stage] = IntroUi.method(loader.loadClass(NuvioNative.VECTOR_BUILDER_NAME), "b", 0).invoke(vector);
         return cached[stage];

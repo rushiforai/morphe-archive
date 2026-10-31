@@ -42,13 +42,14 @@ public final class FeedItemsFilter {
     static final String FINAL_INSERT_SOURCE = "FinalInsert:";
 
     private static final AdsFilter ADS_FILTER = new AdsFilter();
+    private static final LiveFilter LIVE_FILTER = new LiveFilter();
     private static final LocationBadgeFilter LOCATION_FILTER = new LocationBadgeFilter();
     private static final SeenVideoFilter SEEN_FILTER = new SeenVideoFilter();
     private static final ContentMarkerFilters.SubscriberOnlyFilter SUBSCRIBER_ONLY_FILTER =
         new ContentMarkerFilters.SubscriberOnlyFilter();
     private static final List<IFilter> CONTENT_FILTERS = List.of(
         ADS_FILTER,
-        new LiveFilter(),
+        LIVE_FILTER,
         new StoryFilter(),
         new ImageVideoFilter(),
         new ShopFilter(),
@@ -992,6 +993,24 @@ public final class FeedItemsFilter {
         return filterAdOnlyAwemeList("FeedInsertion:" + insertionSource, items);
     }
 
+    /**
+     * The drama tab's feed answer, as SeriesFeedResp's constructor finishes (#294). PineDrama's
+     * own feed requests build it straight from the server's answer, so the list never passes
+     * {@link #filter(FeedItemList)} and its ads reached the page. Ads only: every item on that
+     * page is an episode, so the series and drama rules would empty it.
+     */
+    @SuppressWarnings("rawtypes")
+    public static List filterDramaFeed(List items) {
+        try {
+            HookStatus.bound("drama feed", "SeriesFeedResp.<init>");
+            return filterAdOnlyAwemeList("DramaFeed", items);
+        } catch (Throwable ex) {
+            HookStatus.threw("drama feed", "SeriesFeedResp.<init>", ex);
+            Logger.printException(() -> "Could not filter the drama feed", ex);
+            return items;
+        }
+    }
+
     @SuppressWarnings("rawtypes")
     private static List filterAdOnlyAwemeList(String source, List items) {
         return filterAwemeList(source, items, AD_ONLY_FILTERS);
@@ -1086,6 +1105,10 @@ public final class FeedItemsFilter {
 
         boolean cacheInsertion = "golden_house".equals(source)
             || "middle_insert_when_video_lagging".equals(source);
+        // A fresh insert is left to TikTok, except a LIVE it slots into a page already on screen
+        // (#277, after #175 and #210). A link's video arrives in the response, never here.
+        List<IFilter> freshInsertFilters = activeContentFilters.contains(LIVE_FILTER)
+            ? List.of(LIVE_FILTER) : List.of();
         FeedCapture.Batch capture = FeedCapture.batch(route, items.size());
         if (capture != null) capture.rules(activeContentFilters, activeRangeFilters);
         ArrayList kept = null;
@@ -1102,23 +1125,27 @@ public final class FeedItemsFilter {
 
             Aweme item = (Aweme) container;
             int cacheSourceType = AwemeBizExtKt.getCacheSourceType(item);
+            String reason;
             if (!cacheInsertion && !isKnownFeedCacheSource(cacheSourceType)) {
-                if (capture != null) capture.passed(item, "not-a-cached-insert");
-                if (kept != null) kept.add(container);
-                continue;
-            }
-            if (cacheSourceType == CACHE_SOURCE_OFFLINE_MODE && keepsOfflineVideos()) {
-                if (capture != null) capture.passed(item, "offline-video");
-                if (kept != null) kept.add(container);
-                continue;
-            }
-
-            String reason = getFilterReason(activeContentFilters, item);
-            if (reason == null) reason = getFilterReason(activeRangeFilters, item);
-            if (reason == null) {
-                if (capture != null) capture.kept(item);
-                if (kept != null) kept.add(container);
-                continue;
+                reason = getFilterReason(freshInsertFilters, item);
+                if (reason == null) {
+                    if (capture != null) capture.passed(item, "not-a-cached-insert");
+                    if (kept != null) kept.add(container);
+                    continue;
+                }
+            } else {
+                if (cacheSourceType == CACHE_SOURCE_OFFLINE_MODE && keepsOfflineVideos()) {
+                    if (capture != null) capture.passed(item, "offline-video");
+                    if (kept != null) kept.add(container);
+                    continue;
+                }
+                reason = getFilterReason(activeContentFilters, item);
+                if (reason == null) reason = getFilterReason(activeRangeFilters, item);
+                if (reason == null) {
+                    if (capture != null) capture.kept(item);
+                    if (kept != null) kept.add(container);
+                    continue;
+                }
             }
 
             if (kept == null) {

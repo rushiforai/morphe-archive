@@ -6,10 +6,12 @@ package app.morphe.patches.facebook.feed.suggested
 
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.facebook.feed.BASE_MODEL_WITH_TREE
 import app.morphe.patches.facebook.feed.GRAPHQL_STORY
+import app.morphe.patches.facebook.feed.TREE_JNI
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import app.morphe.patches.facebook.feed.aidetected.GRAPHQL_STORY_ATTACHMENT
 import app.morphe.patches.facebook.feed.aidetected.isModelListAccessor
@@ -22,6 +24,7 @@ import app.morphe.patches.facebook.feed.modelAccessors
 import app.morphe.patches.facebook.feed.storyModelAccessors
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.util.findMutableMethodOf
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -243,6 +246,60 @@ internal fun BytecodePatchContext.fillStoryShapeStubs() {
     fillStoryModelStub(GROUP_POSTS, TITLE_RANGES_STUB, found.ranges)
     fillStoryModelStub(GROUP_POSTS, RANGE_ENTITY_STUB, found.entity)
     fillStoryModelStub(GROUP_POSTS, ATTACHMENT_TARGET_STUB, found.target)
+}
+
+/*
+ * A group a story's title names (#195). A title range's entity is a GraphQLEntity, which answers its
+ * type name and nothing more, so one typed Group is read again as the class the story's `to` is read
+ * as, the one the join state stub casts to. Facebook turns one model class into another the same way:
+ * its TreeConverter (LX/02d3 on 585) and the group header's Join button call TreeJNI's public native
+ * `reinterpret(Class, int)` with the class and the type tag wanted. The patch hands the extension that
+ * class with a `const-class` in place of the stub's own load, and the extension makes the call by
+ * reflection.
+ */
+internal const val TARGET_CLASS_STUB = "storyTargetClass"
+internal const val TREE_REINTERPRET = "reinterpret"
+
+/** Whether [tree] has the public `reinterpret(Class, int)` answering a tree that the extension calls. */
+internal fun hasPublicReinterpret(tree: ClassDef): Boolean = tree.methods.any {
+    it.name == TREE_REINTERPRET && it.returnType == TREE_JNI &&
+        it.parameterTypes.map { type -> type.toString() } == listOf("Ljava/lang/Class;", "I") &&
+        AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags)
+}
+
+/**
+ * Fills in the extension's `storyTargetClass` stub on GroupPosts with the class GraphQLStory's one
+ * `to` accessor answers. Throws a [PatchException] when TreeJNI has no public reinterpret, the story
+ * has no single `to` accessor, its class isn't in the build or the stub is missing.
+ */
+internal fun BytecodePatchContext.fillStoryTargetClassStub() {
+    val tree = classDefByOrNull(TREE_JNI) ?: throw PatchException("$TREE_JNI isn't in this Facebook build")
+    if (!hasPublicReinterpret(tree)) throw PatchException("TreeJNI has no public $TREE_REINTERPRET(Class, int)")
+    val targets = storyTargetAccessors(classDefBy(GRAPHQL_STORY))
+    val target = targets.singleOrNull() ?: throw PatchException(
+        "GraphQLStory has ${targets.size} accessors of $STORY_TARGET_FIELD as $STORY_TARGET_TYPE, expected one: " +
+            targets.joinToString { it.name },
+    )
+    classDefByOrNull(target.returnType)
+        ?: throw PatchException("${target.returnType}, GraphQLStory's $STORY_TARGET_FIELD, isn't in this Facebook build")
+    val stub = mutableClassDefBy(GROUP_POSTS).methods.singleOrNull {
+        it.name == TARGET_CLASS_STUB && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.returnType == "Ljava/lang/Object;" &&
+            it.parameterTypes.map { type -> type.toString() } == listOf("Ljava/lang/Object;")
+    } ?: throw PatchException("$GROUP_POSTS has no static Object $TARGET_CLASS_STUB(Object)")
+    // The stub loads its NOT_PATCHED answer and returns it. The load becomes the class, in the
+    // register the stub's own return reads, so the frame and the return stay the stub's.
+    val register = notPatchedLoad(stub)
+        ?: throw PatchException("$GROUP_POSTS->$TARGET_CLASS_STUB isn't a load of its answer and its return")
+    stub.replaceInstruction(0, "const-class v$register, ${target.returnType}")
+}
+
+/** The register [stub]'s first instruction loads a static object into, when its second returns it. */
+internal fun notPatchedLoad(stub: Method): Int? {
+    val code = stub.implementation?.instructions?.toList() ?: return null
+    if (code.size != 2 || code[0].opcode != Opcode.SGET_OBJECT || code[1].opcode != Opcode.RETURN_OBJECT) return null
+    val register = (code[0] as OneRegisterInstruction).registerA
+    return if ((code[1] as OneRegisterInstruction).registerA == register && register < 256) register else null
 }
 
 /** The query parameter asking Home for each group's join state. */

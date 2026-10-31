@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.popup.PopupContainerWithArrow xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:id="0x7f0b04ec"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="0x7f0b0203"
+        android:tag="0x7f1407b8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="0x7f0700b5"/>
+    <com.android.launcher3.notification.NotificationContainer
+        android:id="0x7f0b046a"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</com.android.launcher3.popup.PopupContainerWithArrow>

@@ -61,15 +61,39 @@ public final class GhostMode {
     /** What a request is to Ghost mode. */
     enum Kind { READ, STORY, TYPING, ONLINE, OTHER }
 
+    /** What a kept-back typing status's callback is told. Telegram ignores the error itself. */
+    static final int ERROR_CODE = 400;
+    static final String ERROR_TEXT = "GHOST_MODE";
+
     /**
-     * Asked with every request just before Telegram sends it. True means drop it: the request never
-     * goes out and its callback never runs. Never throws.
+     * Asked with every request and its callback just before Telegram sends it. True means drop it:
+     * the request never goes out and its callback never runs, except a typing status's, which is
+     * answered with an error. Never throws.
      */
-    public static boolean drop(Object request) {
+    public static boolean drop(Object request, Object callback) {
         if (request == null) return false;
         Kind kind = kind(request.getClass().getName());
         if (kind == Kind.ONLINE && !goingOnline(request)) return false;
-        return keepBack(kind);
+        if (!keepBack(kind)) return false;
+        if (kind == Kind.TYPING && callback != null) answer(callback);
+        return true;
+    }
+
+    /**
+     * Telegram marks a chat as waiting on its typing status until the answer comes back, and sends no
+     * other typing there while it waits. A kept-back one never got an answer, so with Hide typing
+     * turned off again the chat stayed silent until Telegram restarted. An error answer clears the
+     * mark the way a refused request does.
+     */
+    private static void answer(Object callback) {
+        try {
+            if (!RequestAnswers.error(callback, ERROR_CODE, ERROR_TEXT)) {
+                HookStatus.missingMember(FamilyNames.DISABLE_ANALYTICS, "method", callback.getClass().getName(), "run");
+            }
+        } catch (Throwable t) {
+            // Typing stays hidden without the answer; it comes back when Telegram restarts.
+            HookStatus.threw(FamilyNames.DISABLE_ANALYTICS, "ghost mode typing answer", t);
+        }
     }
 
     /** Whether an update status request says online. Anything unreadable is treated as offline, so it goes out. */

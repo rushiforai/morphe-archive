@@ -32,6 +32,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.reels.BurnInMode;
+import app.morphe.extension.facebook.reels.BurnInWait;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
@@ -143,6 +145,7 @@ public final class SettingsBackup {
             Settings.HIDE_FEED_REELS,
             Settings.BLOCK_RETURN_REFRESH,
             Settings.RETURN_REFRESH_NO_LIMIT,
+            Settings.BACK_KEEPS_HOME,
             Settings.HIDE_AI_DETECTED_POSTS,
             Settings.HIDE_AI_LABELLED_POSTS,
             Settings.HIDE_META_AI_FEED_UNITS,
@@ -166,6 +169,7 @@ public final class SettingsBackup {
             Settings.HIDE_META_AI_QUESTIONS,
             Settings.KEEP_POST_DATES,
             Settings.SHOW_FULL_POST_TEXT,
+            Settings.SEE_WHO_SHARED,
             Settings.TURN_OFF_AUTO_TRANSLATION,
             Settings.HIDE_FEEDS_HEADER,
             Settings.HIDE_SPONSORED_STORIES,
@@ -180,6 +184,7 @@ public final class SettingsBackup {
             Settings.MARK_STORIES_SEEN,
             Settings.UPLOAD_STORIES_IN_HD,
             Settings.LONGER_STORY_MUSIC,
+            Settings.STORIES_TRAY_CIRCLES,
             Settings.PINCH_TO_ZOOM,
             Settings.PINCH_TO_ZOOM_KEEP,
             Settings.PINCH_TO_ZOOM_DOUBLE_TAP,
@@ -187,6 +192,7 @@ public final class SettingsBackup {
             Settings.HIDE_SPONSORED_SEARCH_RESULTS,
             Settings.HIDE_SPONSORED_PROFILE_POSTS,
             Settings.HIDE_PROFILE_NOTES,
+            Settings.LOCAL_PROFILE_COUNTS,
             Settings.POST_SAVE_BUTTON,
             Settings.POST_DOWNLOAD_BUTTON,
             Settings.HIDE_POST_LIKE_BUTTON,
@@ -196,6 +202,7 @@ public final class SettingsBackup {
             Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS,
             Settings.MARKETPLACE_ADVANCED_SEARCH,
             Settings.MARKETPLACE_FILTERS_BUTTON,
+            Settings.MARKETPLACE_LISTING_DATE,
             Settings.SHOW_SELLER_VIEW_PROFILE,
             Settings.BLOCK_GAME_ADS,
             Settings.ANSWER_REWARDED_GAME_ADS,
@@ -209,6 +216,8 @@ public final class SettingsBackup {
             Settings.PLAY_REELS_ONCE,
             Settings.ORIGINAL_AUDIO,
             Settings.HIDE_REEL_SEARCH_PILL,
+            Settings.HIDE_VIEWER_TOP_BUTTONS,
+            Settings.BURN_IN_STAY_DIM,
             Settings.HIDE_REEL_COUNTS,
             Settings.HIDE_REEL_SAVE_BUTTON,
             Settings.HIDE_REEL_WHATSAPP_BUTTON,
@@ -216,6 +225,7 @@ public final class SettingsBackup {
             Settings.HIDE_REEL_COMMENT_BUTTON,
             Settings.HIDE_REEL_SHARE_BUTTON,
             Settings.SHOW_REEL_COMMENT_BUTTON,
+            Settings.SHOW_REEL_POST_DATE,
             Settings.HIDE_REEL_SOUND_BUTTON,
             Settings.HIDE_REEL_AUDIO_LINE,
             Settings.HIDE_SLOW_CONNECTION_MESSAGE,
@@ -223,6 +233,7 @@ public final class SettingsBackup {
             Settings.PLAY_FEED_REELS_WHOLE,
             Settings.DONT_SEND_REEL_WATCH_HISTORY,
             Settings.NEWEST_REELS_FIRST,
+            Settings.PROFILE_REELS_MOST_VIEWED,
             Settings.HOLD_ANALYTICS_UPLOADS,
             Settings.HOLD_CAMERA_ROLL_PROCESSING,
             Settings.ALLOW_SCREENSHOTS,
@@ -246,6 +257,7 @@ public final class SettingsBackup {
             Settings.KEEP_REEL_SPEED,
             Settings.KEEP_VIDEO_SPEED,
             Settings.SLOWER_REEL_SPEEDS,
+            Settings.SPEED_ON_REPLAYS,
             Settings.HOLD_REEL_FOR_2X,
             Settings.HOLD_REEL_RIGHT_EDGE,
             Settings.HOLD_FEED_VIDEO_FOR_2X,
@@ -260,6 +272,8 @@ public final class SettingsBackup {
             Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES,
             Settings.HIDE_POST_COMMENT_PREVIEWS,
             Settings.HIDE_COMMENT_DOWNVOTE_BUTTON,
+            Settings.HIDE_COMMENT_LIKE_BUTTON,
+            Settings.COMMENT_BLOCK_BUTTON,
             Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS,
             Settings.HIDE_SHOP_LINK_COMMENTS,
             Settings.HIDE_COMMENTS_WITH_WORDS,
@@ -272,6 +286,7 @@ public final class SettingsBackup {
             Settings.TAG_SUGGESTIONS_ONLY_AFTER_AT,
             Settings.TAP_TO_PLAY,
             Settings.TAP_TO_PLAY_REELS_AFTER_FIRST,
+            Settings.TAP_TO_PLAY_STORIES,
             Settings.INLINE_FEED_VIDEO_CONTROLS,
             Settings.FEED_VIDEO_CAST_BUTTON,
             Settings.RESUME_LONG_VIDEOS,
@@ -286,6 +301,7 @@ public final class SettingsBackup {
             Settings.DRAW_VIDEOS_WITH_THE_SCREEN,
             Settings.SKIP_SILENT_PARTS,
             Settings.KEEP_FEED_VIDEOS_MUTED,
+            Settings.MUTE_STORIES,
             Settings.KEEP_PROGRESS_BAR,
             Settings.KEEP_PROGRESS_BAR_TIME,
             Settings.TAP_TO_SEEK,
@@ -302,6 +318,7 @@ public final class SettingsBackup {
             Settings.SAVE_STORY_PHOTOS,
             Settings.DOWNLOAD_REELS,
             Settings.SHOW_REEL_DOWNLOAD_BUTTON,
+            Settings.REEL_CAST_BUTTON,
             Settings.COPY_REEL_CAPTION,
             Settings.DOWNLOAD_VIDEOS,
             Settings.CLIPBOARD_DOWNLOAD,
@@ -365,6 +382,7 @@ public final class SettingsBackup {
             Settings.HIDE_FACEBOOK_LOGO,
             Settings.HIDE_CREATE_BUTTON,
             Settings.HIDE_SEARCH_BUTTON,
+            Settings.SEARCH_WITH_PICTURE,
             Settings.FORCE_DARK_MODE,
             Settings.AMOLED_FLAT_CARDS,
             Settings.AMOLED_FEED_GAPS,
@@ -391,6 +409,7 @@ public final class SettingsBackup {
             Settings.HIDE_META_AI_POST_BUTTONS,
             Settings.HIDE_META_AI_IN_SEARCH,
             Settings.DONT_SAVE_SEARCH_HISTORY,
+            Settings.SEARCH_DATE_RANGE,
             Settings.BLOCK_TRENDING_VIDEO_NOTIFICATIONS,
             Settings.BLOCK_MEMORY_NOTIFICATIONS,
             Settings.BLOCK_BIRTHDAY_NOTIFICATIONS,
@@ -545,6 +564,13 @@ public final class SettingsBackup {
     static final EnumSetting<ReelsOrder> REELS_ORDER = Settings.REELS_ORDER;
 
     /**
+     * Burn-in guard and its Dim after wait (#288), held in a file as their {@link BurnInMode#fileValue}
+     * and {@link BurnInWait#fileValue}. Anything else refuses the whole file, as a reels order does.
+     */
+    static final EnumSetting<BurnInMode> BURN_IN = Settings.BURN_IN_GUARD;
+    static final EnumSetting<BurnInWait> BURN_IN_WAIT = Settings.BURN_IN_WAIT;
+
+    /**
      * The hours notification quiet hours start and end, each held in a file as its
      * {@link QuietHour#fileValue}, a 24-hour time on the hour. Anything else refuses the whole file,
      * as a playback quality does.
@@ -629,7 +655,7 @@ public final class SettingsBackup {
 
     /** The settings a file carries that aren't switches, in the order Settings declares them. */
     static final List<Setting<?>> VALUES = Collections.unmodifiableList(
-            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, REELS_ORDER, WATCHED_KEEP, SHARE_ITEMS, MENU_TILES, HOME_FEED, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
+            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, BURN_IN, BURN_IN_WAIT, REELS_ORDER, WATCHED_KEEP, SHARE_ITEMS, MENU_TILES, HOME_FEED, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
                     FILE_NAME, PHOTO_NAME, ACTION, APP, START, SUBTAB, ORDER, PLAYBACK, REELS_QUALITY, STORIES_QUALITY,
                     QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, PAUSE_LENGTH, BREAK_AFTER, BREAK_LENGTH, TEXT_SIZE, ACCENT, BADGE,
                     LOGO, TAB));
@@ -752,6 +778,8 @@ public final class SettingsBackup {
         private static final String TAB_NAME = "tab_color";
         private static final String HEADER_TEXT_NAME = "header_text";
         private static final String REELS_ORDER_NAME = "reels_order";
+        private static final String BURN_IN_NAME = "burn_in_guard";
+        private static final String BURN_IN_WAIT_NAME = "burn_in_wait";
 
         /** In {@link #ALLOWLIST} order, and only the switches the file named. */
         final Map<BooleanSetting, Boolean> values;
@@ -875,6 +903,12 @@ public final class SettingsBackup {
         /** What the file says Sort loaded reels sorts by, or null when it names none. Set once, as it's read. */
         @Nullable
         ReelsOrder reelsOrder;
+        /** What the file says Burn-in guard does, or null when it names none. Set once, as it's read. */
+        @Nullable
+        BurnInMode burnIn;
+        /** The Dim after wait the file holds, the same way. */
+        @Nullable
+        BurnInWait burnInWait;
         /** Names the file holds that aren't settings this build knows. They're left out. */
         final int unknown;
 
@@ -1111,6 +1145,10 @@ public final class SettingsBackup {
             if (headerTextChange != null) changes.put(HEADER_TEXT, headerTextChange);
             ReelsOrder reelsOrderChange = reelsOrderChange();
             if (reelsOrderChange != null) changes.put(REELS_ORDER, reelsOrderChange);
+            BurnInMode burnInChange = burnInChange();
+            if (burnInChange != null) changes.put(BURN_IN, burnInChange);
+            BurnInWait burnInWaitChange = burnInWaitChange();
+            if (burnInWaitChange != null) changes.put(BURN_IN_WAIT, burnInWaitChange);
             SendLink.Action actionChange = actionChange();
             if (actionChange != null) changes.put(ACTION, actionChange);
             String appChange = appChange();
@@ -1372,6 +1410,18 @@ public final class SettingsBackup {
             return reelsOrder == null || reelsOrder == REELS_ORDER.savedValue() ? null : reelsOrder;
         }
 
+        /** What Burn-in guard does after this file, or null when it names none or the one already set. */
+        @Nullable
+        BurnInMode burnInChange() {
+            return burnIn == null || burnIn == BURN_IN.savedValue() ? null : burnIn;
+        }
+
+        /** The Dim after wait after this file, the same way. */
+        @Nullable
+        BurnInWait burnInWaitChange() {
+            return burnInWait == null || burnInWait == BURN_IN_WAIT.savedValue() ? null : burnInWait;
+        }
+
         @Nullable
         private static String listChange(@Nullable String list, StringSetting setting) {
             if (list == null) return null;
@@ -1426,6 +1476,8 @@ public final class SettingsBackup {
             if (tab != null) state.putString(TAB_NAME, tab);
             if (headerText != null) state.putString(HEADER_TEXT_NAME, headerText);
             if (reelsOrder != null) state.putString(REELS_ORDER_NAME, reelsOrder.fileValue);
+            if (burnIn != null) state.putString(BURN_IN_NAME, burnIn.fileValue);
+            if (burnInWait != null) state.putString(BURN_IN_WAIT_NAME, burnInWait.fileValue);
             state.putInt(UNKNOWN, unknown);
             return state;
         }
@@ -1494,6 +1546,8 @@ public final class SettingsBackup {
                     ? (String) feedTypes : null;
             read.homeFeed = FeedsSubtab.fromFile(state.get(HOME_FEED_NAME));
             read.reelsOrder = ReelsOrder.fromFile(state.get(REELS_ORDER_NAME));
+            read.burnIn = BurnInMode.fromFile(state.get(BURN_IN_NAME));
+            read.burnInWait = BurnInWait.fromFile(state.get(BURN_IN_WAIT_NAME));
             Object background = state.get(BACKGROUND_NAME);
             read.background = isBackground(background) ? (String) background : null;
             Object lightBackground = state.get(LIGHT_BACKGROUND_NAME);
@@ -1559,6 +1613,8 @@ public final class SettingsBackup {
             switches.put(REELS_QUALITY.key, of(REELS_QUALITY).fileValue);
             switches.put(STORIES_QUALITY.key, of(STORIES_QUALITY).fileValue);
             switches.put(REELS_ORDER.key, of(REELS_ORDER).fileValue);
+            switches.put(BURN_IN.key, of(BURN_IN).fileValue);
+            switches.put(BURN_IN_WAIT.key, of(BURN_IN_WAIT).fileValue);
             switches.put(QUIET_FROM.key, of(QUIET_FROM).fileValue());
             switches.put(QUIET_UNTIL.key, of(QUIET_UNTIL).fileValue());
             switches.put(LOCK_AFTER.key, of(LOCK_AFTER).fileValue);
@@ -1728,6 +1784,8 @@ public final class SettingsBackup {
         String tab = null;
         String headerText = null;
         ReelsOrder reelsOrder = null;
+        BurnInMode burnIn = null;
+        BurnInWait burnInWait = null;
         JSONObject values = (JSONObject) settings;
         for (Iterator<String> names = values.keys(); names.hasNext(); ) {
             String name = names.next();
@@ -1845,6 +1903,16 @@ public final class SettingsBackup {
             if (REELS_ORDER.key.equals(name)) {
                 reelsOrder = ReelsOrder.fromFile(values.opt(name));
                 if (reelsOrder == null) throw new Rejected(Reason.VALUE, "Not a reels order: " + name);
+                continue;
+            }
+            if (BURN_IN.key.equals(name)) {
+                burnIn = BurnInMode.fromFile(values.opt(name));
+                if (burnIn == null) throw new Rejected(Reason.VALUE, "Not a burn-in guard choice: " + name);
+                continue;
+            }
+            if (BURN_IN_WAIT.key.equals(name)) {
+                burnInWait = BurnInWait.fromFile(values.opt(name));
+                if (burnInWait == null) throw new Rejected(Reason.VALUE, "Not a dim after wait: " + name);
                 continue;
             }
             if (QUIET_FROM.key.equals(name) || QUIET_UNTIL.key.equals(name)) {
@@ -2010,6 +2078,8 @@ public final class SettingsBackup {
         read.tab = tab;
         read.headerText = headerText;
         read.reelsOrder = reelsOrder;
+        read.burnIn = burnIn;
+        read.burnInWait = burnInWait;
         return read;
     }
 

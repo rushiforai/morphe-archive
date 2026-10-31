@@ -31,12 +31,14 @@ public final class ThreadCommands {
         throw new IllegalStateException("Unknown posting model wrapper");
     }
     public static void attach(Object fragment, View root) {
+        PostMailInput.apply(root);
         root.post(() -> attachReady(fragment, root));
     }
     private static String postingUrl(Object target, boolean thread, String threadMethod, String boardMethod) throws Exception {
         return (String) target.getClass().getMethod(thread ? boardMethod : threadMethod).invoke(target);
     }
     private static void attachReady(Object fragment, View root) {
+        PostMailInput.apply(root);
         try {
             if (root.findViewWithTag(TAG) != null) return;
             Object binding, model;

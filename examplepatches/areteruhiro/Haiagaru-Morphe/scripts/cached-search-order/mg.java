@@ -1,2 +1,1 @@
-package o;
-public class mg {public String b;public mg(String url){b=url;}}
+package o; public class mg {public String b,e;public CharSequence d;public int c;public mg(String url){b=url;} public mg(String title,String url,CharSequence text,int flags){e=title;b=url;d=text;c=flags;}}

@@ -17,6 +17,10 @@ final class Pillo627Contracts {
         Pillo627.require(classes, "Lxyz/rtrvr/pillo/ui/report/tracker/components/aggregate/AvgMinMaxRowKt;->ValueDisplay(Ls3/s;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lg3/q;II)V");
         Pillo627.require(classes, "Lxyz/rtrvr/pillo/ui/report/tracker/components/aggregate/AvgMinMaxRowKt;->AvgMinMaxRow(Ls3/s;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lg3/q;II)V");
         Pillo627.require(classes, "Lxyz/rtrvr/pillo/ui/components/row/DividedRowKt;->DividedRow-Ou1YvPQ(Ls3/s;FJLe2/i1;Lkotlin/jvm/functions/Function2;Lg3/q;II)V");
+        Pillo627.require(classes, "Lxyz/rtrvr/pillo/ui/compose/ModifierExtensionKt;->clickableNoRipple(Ls3/s;Lkotlin/jvm/functions/Function0;)Ls3/s;");
+        // Obfuscated Compose Modifier.Companion instance: the empty modifier the date cell starts from.
+        Pillo627.requireField(classes, "Ls3/p;->a:Ls3/p;", true);
+
         Pillo627.require(classes, "Lxyz/rtrvr/pillo/ui/compose/EffectsKt;->rememberMutableStateOf(Ljava/lang/Object;Lg3/q;I)Lg3/n1;");
         Pillo627.require(classes, "Lg3/v;->k(Lg3/i2;)Ljava/lang/Object;");
         Pillo627.require(classes, "Ljv/e;->s1(ILjava/util/List;)Ljava/util/List;");

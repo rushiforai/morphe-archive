@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.CheckableFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="0x7f0806c1"
+    android:focusable="true"
+    android:clickable="true"
+    android:layout_width="0x7f07054c"
+    android:layout_height="0x7f07054b"
+    android:foreground="0x7f0806c1">
+    <ImageView
+        android:id="0x7f0b0735"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"/>
+</com.android.launcher3.CheckableFrameLayout>

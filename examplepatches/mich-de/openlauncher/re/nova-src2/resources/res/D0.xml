@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView
+        android:layout_gravity="end|center_vertical"
+        android:id="0x7f0b00c0"
+        android:visibility="invisible"
+        android:duplicateParentState="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0x7f140176"
+        android:textAllCaps="true"/>
+    <com.teslacoilsw.launcher.widget.GridPreviewView
+        android:layout_gravity="end|center_vertical"
+        android:id="0x7f0b031a"
+        android:duplicateParentState="true"
+        android:layout_width="48dp"
+        android:layout_height="48dp"/>
+</merge>

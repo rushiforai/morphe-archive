@@ -1,3 +1,36 @@
+## [1.3.1](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.3.0...v1.3.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **chesscom:** give the puzzle result empty stats and bonuses ([f4b465e](https://github.com/hyzor/hyzor-morphe-patches/commit/f4b465e96b4548b6af9185a59f77cc3865376a65))
+* **chesscom:** keep the Next hook out of chess.com puzzles ([fe6650d](https://github.com/hyzor/hyzor-morphe-patches/commit/fe6650d4cbdafba632703ec1d28fc5d3a5a32083))
+* **chesscom:** open the next Lichess puzzle from Next ([75af36e](https://github.com/hyzor/hyzor-morphe-patches/commit/75af36ea4f82e945fd86fa4f398a66927b172d0f))
+* **chesscom:** score Lichess puzzles on 4.10.23 ([88d9fbe](https://github.com/hyzor/hyzor-morphe-patches/commit/88d9fbea4177b0a6eceea5d34d205439db127cf1))
+
+## [1.3.1-dev.4](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.3.1-dev.3...v1.3.1-dev.4) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **chesscom:** keep the Next hook out of chess.com puzzles ([fe6650d](https://github.com/hyzor/hyzor-morphe-patches/commit/fe6650d4cbdafba632703ec1d28fc5d3a5a32083))
+
+## [1.3.1-dev.3](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.3.1-dev.2...v1.3.1-dev.3) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **chesscom:** open the next Lichess puzzle from Next ([75af36e](https://github.com/hyzor/hyzor-morphe-patches/commit/75af36ea4f82e945fd86fa4f398a66927b172d0f))
+
+## [1.3.1-dev.2](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.3.1-dev.1...v1.3.1-dev.2) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **chesscom:** give the puzzle result empty stats and bonuses ([f4b465e](https://github.com/hyzor/hyzor-morphe-patches/commit/f4b465e96b4548b6af9185a59f77cc3865376a65))
+
+## [1.3.1-dev.1](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.3.0...v1.3.1-dev.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **chesscom:** score Lichess puzzles on 4.10.23 ([88d9fbe](https://github.com/hyzor/hyzor-morphe-patches/commit/88d9fbea4177b0a6eceea5d34d205439db127cf1))
+
 ## [1.3.0](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.2.0...v1.3.0) (2026-10-29)
 
 ### 🐛 Bug Fixes

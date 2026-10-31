@@ -1,0 +1,153 @@
+name: Publish (reusable)
+
+# release.yml ve release-debug.yml tarafından çağrılır; tek başına çalıştırılmaz.
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      notes:
+        required: false
+        type: string
+        default: ''
+      prerelease:
+        description: 'true: debug derleme + prerelease (dev kanalı), false: kararlı release (main kanalı)'
+        required: true
+        type: boolean
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
+      USER_NOTES: ${{ inputs.notes }}
+      PRERELEASE: ${{ inputs.prerelease }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Sürümü doğrula
+        run: |
+          set -euo pipefail
+          if [ "$PRERELEASE" = "true" ]; then
+            RE='^[0-9]+\.[0-9]+\.[0-9]+-[0-9A-Za-z.-]+$'; HINT='1.2.0-dev.1'
+          else
+            RE='^[0-9]+\.[0-9]+\.[0-9]+$'; HINT='1.2.0'
+          fi
+          if ! [[ "$VERSION" =~ $RE ]]; then
+            echo "::error::Geçersiz sürüm '$VERSION' (örnek: $HINT, başında v olmadan)"; exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null || gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "::error::v$VERSION zaten var"; exit 1
+          fi
+
+      - name: Debug bayrağını ayarla
+        run: |
+          set -euo pipefail
+          F=patches/src/main/kotlin/dev/karmapatches/DebugLog.kt
+          grep -q 'DEBUG_LOGS: Boolean = false' "$F"
+          if [ "$PRERELEASE" = "true" ]; then
+            sed -i 's/DEBUG_LOGS: Boolean = false/DEBUG_LOGS: Boolean = true/' "$F"
+            grep -q 'DEBUG_LOGS: Boolean = true' "$F"
+          fi
+
+      - name: Build Morphe patches
+        run: ./gradlew buildAndroid --no-daemon -Pversion="$VERSION"
+
+      - name: Çıktıyı bul
+        run: |
+          set -euo pipefail
+          mapfile -t FILES < <(find patches/build/libs -maxdepth 1 -name '*.mpp' ! -name '*sources*' ! -name '*javadoc*')
+          if [ "${#FILES[@]}" -ne 1 ]; then
+            echo "::error::Tam olarak bir .mpp bekleniyordu, bulunan: ${#FILES[@]}"; exit 1
+          fi
+          echo "ASSET=${FILES[0]}" >> "$GITHUB_ENV"
+
+      - name: Sürüm notunu hazırla
+        run: |
+          set -euo pipefail
+          PREV="$(gh release list --exclude-drafts --limit 1 --json tagName --jq '.[0].tagName // empty')"
+          if [ -n "$PREV" ] && git rev-parse -q --verify "refs/tags/$PREV" >/dev/null; then
+            REV=("$PREV..HEAD")
+          else
+            REV=(-n 50)
+            PREV=""
+          fi
+          {
+            if [ "$PRERELEASE" = "true" ]; then
+              printf '> 🐞 **Debug derlemesi (prerelease).** Kararlı değildir; yama kancaları `KarmaPatches` etiketiyle logcat kaydı yazar.\n\n'
+            fi
+            if [ -n "$USER_NOTES" ]; then
+              # Tek satırlık girişte "\n" yazılarak satır sonu verilebilir.
+              printf '%s\n\n' "${USER_NOTES//\\n/$'\n'}"
+            fi
+            printf '## Son sürümden beri değişiklikler\n\n'
+            LOG="$(git log "${REV[@]}" --no-merges --pretty='* %s (%h) — %an')"
+            if [ -n "$LOG" ]; then printf '%s\n' "$LOG"; else printf 'Önceki sürümden beri değişiklik yok.\n'; fi
+            PRS="$(git log "${REV[@]}" --pretty='%s%n%b' | grep -oE '#[0-9]+' | sort -u | tr '\n' ' ' || true)"
+            if [ -n "$PRS" ]; then printf '\nİlgili PR ve issue numaraları: %s\n' "$PRS"; fi
+            if [ -n "$PREV" ]; then
+              printf '\n**Tam karşılaştırma:** https://github.com/%s/compare/%s...v%s\n' "$GITHUB_REPOSITORY" "$PREV" "$VERSION"
+            fi
+          } > notes.md
+
+      - name: GitHub Release oluştur
+        run: |
+          set -euo pipefail
+          if [ "$PRERELEASE" = "true" ]; then
+            TITLE="Karma Patches v$VERSION (debug)"; FLAG=(--prerelease)
+          else
+            TITLE="Karma Patches v$VERSION"; FLAG=(--latest)
+          fi
+          gh release create "v$VERSION" "$ASSET" \
+            --target "$GITHUB_SHA" --title "$TITLE" --notes-file notes.md "${FLAG[@]}"
+
+      - name: Manager metadata'sını (patches-bundle.json) güncelle
+        run: |
+          set -euo pipefail
+          # Manager kaynağı bu dosyadan okur: main = kararlı kanal, dev = prerelease kanalı.
+          if [ "$PRERELEASE" = "true" ]; then BRANCH=dev; else BRANCH=main; fi
+          jq -n \
+            --arg created "$(date -u +%Y-%m-%dT%H:%M:%S)" \
+            --rawfile desc notes.md \
+            --arg url "https://github.com/$GITHUB_REPOSITORY/releases/download/v$VERSION/$(basename "$ASSET")" \
+            --arg ver "$VERSION" \
+            '{created_at: $created, description: $desc, download_url: $url, signature_download_url: "", version: $ver}' \
+            > "$RUNNER_TEMP/patches-bundle.json"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            git fetch --no-tags origin "$BRANCH"
+            git worktree add --detach "$RUNNER_TEMP/meta" "origin/$BRANCH"
+          else
+            git worktree add --detach "$RUNNER_TEMP/meta" "$GITHUB_SHA"
+          fi
+          cp "$RUNNER_TEMP/patches-bundle.json" "$RUNNER_TEMP/meta/patches-bundle.json"
+          cd "$RUNNER_TEMP/meta"
+          git add patches-bundle.json
+          git commit -m "chore: v$VERSION metadata [skip ci]"
+          git push origin "HEAD:refs/heads/$BRANCH"
+
+      - name: Özet
+        run: |
+          {
+            echo "### v$VERSION yayınlandı"
+            echo "- Tür: $([ "$PRERELEASE" = "true" ] && echo 'debug prerelease (dev kanalı)' || echo 'kararlı release (main kanalı)')"
+            echo "- Dosya: \`$(basename "$ASSET")\`"
+          } >> "$GITHUB_STEP_SUMMARY"

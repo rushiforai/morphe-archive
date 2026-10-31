@@ -1,5 +1,6 @@
 import app.morphe.extension.chmate.VideoPlaybackMath;
 import app.morphe.extension.chmate.YouTubeUrls;
+import app.morphe.extension.chmate.VideoSeekState;
 
 public final class VerifyVideoInteractions {
     static int count;
@@ -28,6 +29,21 @@ public final class VerifyVideoInteractions {
         check(VideoPlaybackMath.seekTarget(123, 0, 10) == 123);
         check(VideoPlaybackMath.seekTarget(Integer.MAX_VALUE - 100, Integer.MAX_VALUE, 60) == Integer.MAX_VALUE - 1);
         check(VideoPlaybackMath.seekTarget(0, Integer.MAX_VALUE, Integer.MAX_VALUE) == Integer.MAX_VALUE - 1);
+        VideoSeekState seeks = new VideoSeekState();
+        check(seeks.position(1000) == 1000);
+        check(seeks.request(6000) == 6000);
+        check(seeks.request(VideoPlaybackMath.seekTarget(seeks.position(1000), 60000, 5)) == -1);
+        check(seeks.position(1000) == 11000);
+        check(seeks.completed() == 11000);
+        check(seeks.completed() == -1);
+        check(seeks.position(11200) == 11200);
+        check(seeks.completed() == -1);
+        check(seeks.request(20000) == 20000);
+        check(seeks.request(5000) == -1);
+        check(seeks.completed() == 5000);
+        seeks.reset();
+        check(seeks.completed() == -1);
+        check(seeks.position(0) == 0);
         System.out.println("PASS " + count + " video seeking and YouTube URL cases");
     }
 }

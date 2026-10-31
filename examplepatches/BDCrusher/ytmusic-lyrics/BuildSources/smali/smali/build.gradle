@@ -1,0 +1,178 @@
+/*
+ * Copyright 2012, Google LLC
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following disclaimer
+ * in the documentation and/or other materials provided with the
+ * distribution.
+ *     * Neither the name of Google LLC nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+apply plugin: 'antlr'
+apply plugin: 'org.xbib.gradle.plugin.jflex'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath depends.jflex_plugin
+        classpath depends.proguard_gradle
+    }
+}
+
+configurations {
+    // Remove the full antlr library that's added by the antlr plugin. We manually
+    // add the smaller antlr_runtime library instead
+    implementation.exclude group: 'org.antlr', module: 'antlr'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs "${project.rootDir}/third_party/smali/src/main/java"
+        }
+        resources {
+            // This adds the generated .tokens files to the jar
+            srcDir 'build/generated-src/antlr/main'
+        }
+    }
+    test {
+        java {
+            srcDirs "${project.rootDir}/third_party/smali/src/test/java"
+        }
+    }
+}
+
+idea {
+    module {
+        excludeDirs -= buildDir
+        if (buildDir.exists()) {
+            excludeDirs.addAll(buildDir.listFiles())
+        }
+        for (sourceDir in (sourceDirs + testSourceDirs)) {
+            excludeDirs.remove(sourceDir);
+            while ((sourceDir = sourceDir.getParentFile()) != null) {
+                excludeDirs.remove(sourceDir);
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation project(':util')
+    api project(':dexlib2')
+    implementation depends.antlr_runtime
+    implementation depends.jcommander
+    implementation depends.stringtemplate
+    implementation depends.guava
+
+    testImplementation depends.junit
+
+    antlr depends.antlr
+}
+
+processResources.inputs.property('version', version)
+processResources.expand('version': version)
+processResources.dependsOn('generateGrammarSource')
+
+// Build a separate jar that contains all dependencies
+task fatJar(type: Jar, dependsOn: jar) {
+    dependsOn ':dexlib2:jar'
+    dependsOn ':util:jar'
+    from sourceSets.main.output
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+
+    duplicatesStrategy = 'exclude'
+    archiveClassifier = 'fat'
+
+    manifest {
+        attributes('Main-Class': 'com.android.tools.smali.smali.Main')
+    }
+
+    doLast {
+        if (!System.getProperty('os.name').toLowerCase().contains('windows')) {
+            ant.symlink(link: file("${destinationDirectory.get()}/smali.jar"), resource: archivePath, overwrite: true)
+        }
+    }
+}
+tasks.getByPath('build').dependsOn(fatJar)
+
+generateTestGrammarSource {
+    outputDirectory = new File(outputDirectory, 'com/android/tools/smali/smali')
+}
+
+generateGrammarSource {
+    outputDirectory = new File(outputDirectory, 'com/android/tools/smali/smali')
+}
+
+jflex {
+    generateDir = new File(generateDir, 'com/android/tools/smali/smali')
+}
+
+publish {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                pom {
+                    description = 'smali is an assembler for dalvik bytecode'
+                    scm {
+                        url = 'https://github.com/google/smali/tree/master/smali'
+                    }
+                }
+            }
+        }
+    }
+}
+
+task proguard(type: proguard.gradle.ProGuardTask, dependsOn: fatJar) {
+    def outFile = fatJar.destinationDirectory.file(
+            "${fatJar.archiveBaseName.get()}-${fatJar.archiveVersion.get()}-small.${fatJar.archiveExtension.get()}")
+
+    injars fatJar
+    outjars outFile
+
+    if (JavaVersion.current().isJava9Compatible()) {
+        libraryjars(System.getProperty("java.home") + "/jmods")
+    } else {
+        libraryjars(System.getProperty("java.home") + "/lib/rt.jar")
+    }
+
+    dontobfuscate
+    dontoptimize
+
+    keep 'public class com.android.tools.smali.smali.Main { public static void main(java.lang.String[]); }'
+    keep 'class com.beust.jcommander.** { *; }'
+    keepclassmembers 'enum * { public static **[] values(); public static ** valueOf(java.lang.String); }'
+
+    dontwarn 'com.google.common.**'
+    dontnote 'com.google.common.**'
+}
+
+sourcesJar {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+sourcesJar.dependsOn('generateGrammarSource')
+sourcesJar.dependsOn('jflex')
+
+tasks.getByPath(':release').dependsOn(proguard)

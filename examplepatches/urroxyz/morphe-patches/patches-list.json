@@ -1,0 +1,327 @@
+{
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
+  "version": "0.0.4",
+  "patches": [
+    {
+      "name": "Better translate UX",
+      "description": "Changes translation languages with ISO/BCP language codes followed by whitespace. Adds an optional compact language-pair editor in Gboard settings.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.inputmethod.latin",
+          "name": "Gboard",
+          "description": "Structurally checked native API. Tested on ARM64 18.0.3 and 18.5.4.",
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Bike mode",
+      "description": "Bicycle-specific GO reminders (Get bike in N stops / SOON / NOW) with editable templates. Exact stock Transit 6.3.5 build.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.thetransitapp.droid",
+          "name": "Transit",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#00AA77",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.3.5",
+              "versionCodes": {
+                "ARM64_V8A": 5127740
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "ClipCascade sync",
+      "description": "Adds pooled remote clipboard history, images and Send to all devices. Supports ClipCascade P2S/P2P. Configure the required server/account patch options before patching.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.inputmethod.latin",
+          "name": "Gboard",
+          "description": "Structurally checked native API. Tested on ARM64 18.0.3 and 18.5.4.",
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "clipCascadeServer",
+          "title": "Server URL",
+          "description": "Required. ClipCascade server base URL, including https:// (or http:// on a trusted local network). No /login suffix.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
+          "key": "clipCascadeUsername",
+          "title": "Username",
+          "description": "Required. Your ClipCascade username.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
+          "key": "clipCascadePassword",
+          "title": "Password",
+          "description": "Required. Your original ClipCascade password. Credentials are stored in the patched APK; do not share it.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
+          "key": "clipCascadeMaxBytes",
+          "title": "Maximum clipboard size (bytes)",
+          "description": "Local limit for text/images, up to 16777216 bytes. The P2S server's limit also applies. Default: 8 MiB.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "8388608",
+          "values": null
+        },
+        {
+          "key": "clipCascadeEncryption",
+          "title": "End-to-end encryption",
+          "description": "Must match the other clients.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "clipCascadeSalt",
+          "title": "Encryption salt",
+          "description": "Must match the other clients; stock default is empty.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
+          "key": "clipCascadeIterations",
+          "title": "Key derivation iterations",
+          "description": "Must match the other clients. Stock default: 664937.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "664937",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Custom weather sources",
+      "description": "Native weather settings, ordered/aggregated providers and customizable JSON mappings. Exact 1.16.31 build.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "bitpit.launcher",
+          "name": "Niagara Launcher",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#333333",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.16.31",
+              "versionCodes": {
+                "ARM64_V8A": 2147483647
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Dark mode",
+      "description": "Force dark mode for Amazon Shopping.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.amazon.mShop.android.shopping",
+          "name": "Amazon Shopping",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FF9900",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "32.13.2.100",
+              "versionCodes": {
+                "ARM64_V8A": 1241320216,
+                "ARMEABI_V7A": 1241320216,
+                "X86_64": 1241320216,
+                "X86": 1241320216
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "in.amazon.mShop.android.shopping",
+          "name": "Amazon India",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FF9900",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "32.15.0.300",
+              "versionCodes": {
+                "ARM64_V8A": 1243210306,
+                "ARMEABI_V7A": 1243210306,
+                "X86_64": 1243210306,
+                "X86": 1243210306
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "amazonDarkMode",
+          "title": "Dark mode",
+          "description": "Off / Follow system / Always on.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "follow_system",
+          "values": {
+            "Off": "off",
+            "Follow system": "follow_system",
+            "Always on": "on"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Personal Maps API key",
+      "description": "Uses your own Maps SDK for Android key so the map renders in patched Transit. Enter the key in this patch's options.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.thetransitapp.droid",
+          "name": "Transit",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#00AA77",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.3.5",
+              "versionCodes": {
+                "ARM64_V8A": 5127740
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "transitMapsApiKey",
+          "title": "Maps SDK for Android key",
+          "description": "Required. Your Google Maps SDK for Android API key (starts with AIza, 39 characters).",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Physical Activity spoof [RECEIVER]",
+      "description": "Receives activity overrides from same-signer transmitters through standard Google Activity Recognition subscriptions. Supports sampling, transitions and legacy sampling; no app-specific hooks.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
+      "name": "Physical Activity spoof [TRANSMITTER]",
+      "description": "Publishes IN_VEHICLE immediately while GO confirms you are aboard a vehicle. Requires a same-signer app patched with Physical Activity spoof [RECEIVER].",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.thetransitapp.droid",
+          "name": "Transit",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#00AA77",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.3.5",
+              "versionCodes": {
+                "ARM64_V8A": 5127740
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    }
+  ]
+}

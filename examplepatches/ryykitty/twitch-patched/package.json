@@ -8,6 +8,9 @@
     "gradle-semantic-release-plugin": "^1.10.3",
     "semantic-release": "^25.0.9"
   },
+  "overrides": {
+    "npm": "npm:@semantic-release/error@4.0.0"
+  },
   "scripts": {
     "test": "node --test scripts/tests/*.test.cjs"
   }

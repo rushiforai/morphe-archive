@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.allapps.WorkPausedCard xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="0x7f07056e"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:textSize="18sp"
+        android:textColor="?unknown_attr_ref: 7f0406f4"
+        android:id="0x7f0b077d"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="0x7f140cd8"
+        android:textAlignment="center"
+        style="0x7f1501e3"/>
+    <TextView
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:id="0x7f0b077c"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="24dp"
+        android:text="0x7f140cd4"
+        android:textAlignment="center"/>
+    <Button
+        android:textSize="14sp"
+        android:textColor="?unknown_attr_ref: 7f0406f4"
+        android:id="0x7f0b0277"
+        android:background="0x7f08056d"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:text="0x7f140cd1"
+        android:textAlignment="center"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"/>
+</com.android.launcher3.allapps.WorkPausedCard>

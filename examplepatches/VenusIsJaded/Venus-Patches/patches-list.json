@@ -1003,6 +1003,40 @@
       "options": []
     },
     {
+      "name": "Listen along",
+      "description": "Play what a friend is listening to on Spotify, from their profile. Needs Spotify Premium.",
+      "default": true,
+      "category": "Features",
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.discord",
+          "name": "Discord",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5865F2",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "350.8 - Stable",
+              "versionCodes": {
+                "ARM64_V8A": 350008,
+                "ARMEABI_V7A": 350008,
+                "X86_64": 350008,
+                "X86": 350008
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Load full-quality images",
       "description": "Pictures in chat and full screen load as uploaded, not as Discord's smaller, compressed copy, and profile pictures stay sharp. Based on Uncompressed Discord Images by Knewest and HighResProfileImages by Kawtious.",
       "default": true,

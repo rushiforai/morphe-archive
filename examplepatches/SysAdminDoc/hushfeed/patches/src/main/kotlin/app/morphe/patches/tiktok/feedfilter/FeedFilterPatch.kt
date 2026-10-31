@@ -36,6 +36,7 @@ import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.implementationOrPatchException
 import app.morphe.util.indexOfFirstInstructionOrThrow
+import app.morphe.util.numberOfParameterRegisters
 import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -80,7 +81,8 @@ val feedFilterPatch = bytecodePatch(
         sharedExtensionPatch,
     )
 
-    compatibleWith(*AppCompatibilities.tiktok())
+    // PineDrama's feed is TikTok's, ads included (#294).
+    compatibleWith(*AppCompatibilities.tiktokAndPineDrama())
 
     execute {
         // Enables the feed filter extension after settings were loaded.
@@ -318,13 +320,16 @@ val feedFilterPatch = bytecodePatch(
         // holders, each as (this, fragment, patch), and the other lists' Lynx cell binds
         // (this cell, item). All three are required on a build the patch is declared for, where
         // a missing one would let the block back in without a word; a build the patch is forced
-        // onto keeps the rest of the feed filter without them.
+        // onto keeps the rest of the feed filter without them. PineDrama is never a declared
+        // build (its builds go by "PineDrama 47.5.3"), so every hook asked for this way is
+        // optional there too: PineDrama has no Friends tab, LIVE feed, Lemon8 card, play-lag
+        // cache insert or Tako entrances outside search, and its ads go through the rest (#294).
         val declaredBuild = packageMetadata.buildName in declaredVersions()
-        fun lynxBind(fingerprint: Fingerprint) = if (declaredBuild) fingerprint.method else fingerprint.methodOrNull
+        fun requiredWhenDeclared(fingerprint: Fingerprint) = if (declaredBuild) fingerprint.method else fingerprint.methodOrNull
         val holderBound = "invoke-static/range {p0 .. p2}, $SEARCH_LYNX_CARDS_CLASS_DESCRIPTOR->onHolderBound(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
-        lynxBind(SearchLynxHolderBindFingerprint)?.addInstructions(0, holderBound)
-        lynxBind(SearchDynamicHolderBindFingerprint)?.addInstructions(0, holderBound)
-        lynxBind(SearchLynxCardBindFingerprint)?.addInstructions(
+        requiredWhenDeclared(SearchLynxHolderBindFingerprint)?.addInstructions(0, holderBound)
+        requiredWhenDeclared(SearchDynamicHolderBindFingerprint)?.addInstructions(0, holderBound)
+        requiredWhenDeclared(SearchLynxCardBindFingerprint)?.addInstructions(
             0,
             "invoke-static/range {p0 .. p1}, $SEARCH_LYNX_CARDS_CLASS_DESCRIPTOR->onCardBound(Ljava/lang/Object;Ljava/lang/Object;)V",
         )
@@ -368,19 +373,19 @@ val feedFilterPatch = bytecodePatch(
         // The getter and the success callback carry a response whose fields are filled in;
         // the constructor only catches the ones the app builds itself, because gson writes
         // the fields after calling it.
-        FriendsFeedAwemeListFingerprint.method.addInstruction(
+        requiredWhenDeclared(FriendsFeedAwemeListFingerprint)?.addInstruction(
             0,
             "invoke-static/range {p0 .. p0}, " +
                 "$EXTENSION_CLASS_DESCRIPTOR->filterFriendsFeed(Ljava/lang/Object;)V",
         )
 
-        FriendsFeedSuccessFingerprint.method.addInstruction(
+        requiredWhenDeclared(FriendsFeedSuccessFingerprint)?.addInstruction(
             0,
             "invoke-static/range {p1 .. p1}, " +
                 "$EXTENSION_CLASS_DESCRIPTOR->filterFriendsFeed(Ljava/lang/Object;)V",
         )
 
-        FriendsFeedResponseFingerprint.method.apply {
+        requiredWhenDeclared(FriendsFeedResponseFingerprint)?.apply {
             val returns = implementation!!.instructions.withIndex()
                 .filter { it.value.opcode == Opcode.RETURN_VOID }
                 .map { it.index }
@@ -507,7 +512,7 @@ val feedFilterPatch = bytecodePatch(
             }
         }
 
-        InsertCacheWhenPlayLagFingerprint.method.filterPlayLagCacheInsertion()
+        requiredWhenDeclared(InsertCacheWhenPlayLagFingerprint)?.filterPlayLagCacheInsertion()
 
         ReachBottomCacheDeliveryFingerprint.method.let { method ->
             if (method.parameterTypes.single().toString() != cacheResultType) {
@@ -629,7 +634,7 @@ val feedFilterPatch = bytecodePatch(
         // The "Ask" strip under the caption is a slot component bound per video, and it is not
         // the floating button the two hooks above cover (issue #6). Asked at the top of its bind:
         // with the switch on the slot's view is hidden and the bind never fills it.
-        TakoAskBarBindFingerprint.method.guardAtEntry(
+        requiredWhenDeclared(TakoAskBarBindFingerprint)?.guardAtEntry(
             "Feed filter",
             "invoke-static {}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->shouldHideAskBar()Z",
             """
@@ -647,7 +652,7 @@ val feedFilterPatch = bytecodePatch(
         // Returning before any of that runs is enough: nothing fills the strip and nothing makes
         // it visible. The obfuscated view-getter name changes on every build, so calling it from
         // the guard would need a name that matches only one; returning early avoids that.
-        TakoAskBarTriggerBindFingerprint.method.guardAtEntry(
+        requiredWhenDeclared(TakoAskBarTriggerBindFingerprint)?.guardAtEntry(
             "Feed filter",
             "invoke-static {}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->shouldHideAskBar()Z",
             "return-void",
@@ -763,7 +768,7 @@ val feedFilterPatch = bytecodePatch(
                     "base whose canShow is guarded, so the comments Tako bar would be left standing.",
             )
         }
-        TakoCommentTopBarCanShowFingerprint.method.guardAtEntry(
+        requiredWhenDeclared(TakoCommentTopBarCanShowFingerprint)?.guardAtEntry(
             "Feed filter",
             "invoke-static {}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->shouldHideCommentTopBar()Z",
             """
@@ -888,7 +893,7 @@ val feedFilterPatch = bytecodePatch(
             TakoRightBottomFixedEntranceBindFingerprint,
             TakoRightBottomInCellEntranceBindFingerprint,
         ).forEach {
-            it.method.guardAtEntry(
+            requiredWhenDeclared(it)?.guardAtEntry(
                 "Feed filter",
                 "invoke-static {}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->shouldHideRightBottomEntrance()Z",
                 "return-void",
@@ -898,7 +903,7 @@ val feedFilterPatch = bytecodePatch(
             TakoRightBottomFixedEntranceCreatedFingerprint,
             TakoRightBottomInCellEntranceCreatedFingerprint,
         ).forEachIndexed { ordinal, fingerprint ->
-            fingerprint.method.apply {
+            requiredWhenDeclared(fingerprint)?.apply {
                 requireLocals("Feed filter", 1)
                 val superIndex = indexOfFirstInstructionOrThrow {
                     opcode == Opcode.INVOKE_SUPER &&
@@ -973,16 +978,18 @@ val feedFilterPatch = bytecodePatch(
         // An empty list is the app's own "no card to ask for", so the Lemon8 promo is never
         // requested and never arrives. Remove feed ads also drops it from the list if it came
         // another way.
-        Lemon8CardRequestFingerprint.method.requireLocals("Feed filter", 1)
-        Lemon8CardRequestFingerprint.method.guardAtEntry(
-            "Feed filter",
-            "invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldSkipLemon8PromoRequest()Z",
-            """
-                new-instance v0, Ljava/util/ArrayList;
-                invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V
-                return-object v0
-            """,
-        )
+        requiredWhenDeclared(Lemon8CardRequestFingerprint)?.apply {
+            requireLocals("Feed filter", 1)
+            guardAtEntry(
+                "Feed filter",
+                "invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldSkipLemon8PromoRequest()Z",
+                """
+                    new-instance v0, Ljava/util/ArrayList;
+                    invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V
+                    return-object v0
+                """,
+            )
+        }
 
         DramaBlockingAdFingerprint.method.apply {
             // Every return, not the first one. This fingerprint does not even name its method,
@@ -1000,6 +1007,18 @@ val feedFilterPatch = bytecodePatch(
             }
         }
 
+        // The series player's own ad slot, which Remove feed ads never reached because the ad
+        // comes from a request of its own and not from the feed list (#286).
+        SeriesRealtimeAdValidFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldRefuseSeriesRealtimeAd()Z",
+            """
+                const/4 v0, 0x0
+                return v0
+            """,
+        )
+        // The drama tab's own feed answer, which PineDrama builds without FeedItemList (#294).
+        SeriesFeedRespConstructorFingerprint.method.filterDramaFeedOnConstruct()
         SpecActTouchpointAttachFingerprint.method.requireLocals("Feed filter", 1)
         SpecActTouchpointAttachFingerprint.method.guardAtEntry(
             "Feed filter",
@@ -1183,6 +1202,41 @@ internal fun MutableMethod.hideSearchAnswerCardAtReturns(required: Boolean) {
         addInstructionsAtControlFlowLabel(
             returnIndex,
             "invoke-static {p1, p4}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->hideSearchAnswerCard(Landroid/view/View;Ljava/lang/Object;)V",
+        )
+    }
+}
+
+/**
+ * Hands the drama tab's feed list to the extension at every return of `SeriesFeedResp.<init>`
+ * and writes the answer back (#294). PineDrama's own feed requests convert their answer straight
+ * into this object, so the list never passes FeedItemList.getItems; the preload, the end-of-drama
+ * picks and the copy helper all come through this constructor too. The list parameter p1 carries
+ * the list at the return, where nothing reads it any more, so the hook needs no local. A build
+ * whose first parameter isn't the list, or whose p1 sits past v15 (the field instructions name
+ * four bits), fails the patch rather than writing over something else.
+ */
+internal fun MutableMethod.filterDramaFeedOnConstruct() {
+    val code = implementationOrPatchException("Feed filter drama feed")
+    if (parameterTypes.firstOrNull()?.toString() != "Ljava/util/List;") {
+        throw PatchException("Feed filter: SeriesFeedResp.<init> no longer takes the feed list first")
+    }
+    if (code.registerCount - numberOfParameterRegisters + 1 > 15) {
+        throw PatchException("Feed filter: SeriesFeedResp.<init> keeps its list parameter past v15")
+    }
+    val returnIndices = code.instructions.withIndex()
+        .filter { it.value.opcode == Opcode.RETURN_VOID }
+        .map { it.index }
+        .toList()
+    if (returnIndices.isEmpty()) throw PatchException("Feed filter: SeriesFeedResp.<init> has no return to hook")
+    returnIndices.asReversed().forEach { returnIndex ->
+        addInstructionsAtControlFlowLabel(
+            returnIndex,
+            """
+                iget-object p1, p0, $SERIES_FEED_RESP_CLASS_DESCRIPTOR->feedItemList:Ljava/util/List;
+                invoke-static/range {p1 .. p1}, $EXTENSION_CLASS_DESCRIPTOR->filterDramaFeed(Ljava/util/List;)Ljava/util/List;
+                move-result-object p1
+                iput-object p1, p0, $SERIES_FEED_RESP_CLASS_DESCRIPTOR->feedItemList:Ljava/util/List;
+            """,
         )
     }
 }

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="0x7f060023"/>
+    <foreground>
+        <inset android:inset="20%">
+            <adaptive-icon>
+                <background android:drawable="0x7f060022"/>
+                <foreground>
+                    <bitmap android:src="0x7f110001"/>
+                </foreground>
+            </adaptive-icon>
+        </inset>
+    </foreground>
+</adaptive-icon>

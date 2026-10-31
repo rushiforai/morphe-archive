@@ -95,6 +95,7 @@ The supported Discord version and bundle hash live in `DiscordPatches.kt` and `H
 | 5434 | `modules/messages/MessageRecordUtils.tsx` | createMessageRecord, updateServerMessage, updateMessageRecord | MessageRecordUtils |
 | 5632 | `modules/messages/isMessageMentioned.tsx` | isRawMessageMentioned, isMentioned, mention_roles | isMessageMentioned (Message highlights: role mentions) |
 | 5759 | `stores/SelfPresenceStore.tsx` | default | SelfPresenceStore (Badge Completer) |
+| 5761 | `stores/ConnectedAccountsStore.tsx` | default | ConnectedAccountsStore (Listen along) |
 | 5889 | `actions/SelectedChannelActionCreators.tsx` | default | SelectedChannelActionCreators (Voice channel options) |
 | 5930 | `actions/AuthenticationActionCreators.tsx` | default | AuthenticationActionCreators (Account switcher) |
 | 5932 | `stores/ConsentStore.tsx` | default | ConsentStore (Badge Completer) |
@@ -348,6 +349,7 @@ The supported Discord version and bundle hash live in `DiscordPatches.kt` and `H
 | 13092 | `modules/user_profile/native/UserProfileOverflowMenu.tsx` | default | UserProfileOverflowMenu (Remove anything: profile menu items) |
 | 13139 | `design/components/Icon/native/redesign/generated/NewUserIcon.tsx` | NewUserIcon | NewUserIcon (Create a new account) |
 | 13156 | `modules/user_profile/native/UserProfileActivityVoiceChannelUsers.tsx` | default | UserProfileActivityVoiceChannelUsers |
+| 13162 | `modules/user_profile/native/UserProfileActivityButtons.tsx` | PlayOnSpotifyButton | UserProfileActivityButtons (Listen along) |
 | 13181 | `modules/user_profile/native/UserProfileNote.tsx` | default | UserProfileNote |
 | 13262 | `design/components/Icon/native/redesign/generated/QuoteIcon.tsx` | QuoteIcon | QuoteIcon |
 | 13402 | `modules/user_profile/native/UserProfileConnections.tsx` | UserProfileAccountConnectionsCard | UserProfileConnections (Remove anything: Connections) |
@@ -366,6 +368,7 @@ The supported Discord version and bundle hash live in `DiscordPatches.kt` and `H
 | 14216 | `modules/guild_action_sheet/native/components/GuildActionSheetEmojiSection.tsx` | default | GuildActionSheetEmojiSection (Remove anything: Server Emoji) |
 | 14279 | `design/components/ContextMenu/native/ContextMenuItem.native.tsx` | ContextMenuItem | ContextMenuItem (Remove anything: marks profile menu items) |
 | 14281 | `design/components/ContextMenu/native/ContextMenuPopout.native.tsx` | ContextMenuPopout | ContextMenuPopout |
+| 14298 | `design/components/Slider/native/Slider.native.tsx` | Slider | Slider (Listen along) |
 | 14299 | `modules/premium/ProductCatalog.tsx` | ANIMATED_EMOJIS, EMOJIS_EVERYWHERE, STICKERS_EVERYWHERE, CLIENT_THEMES | EmojiPermissions |
 | 14419 | `design/void/Status/native/Status.tsx` | default, StatusWithTyping | Status |
 | 14827 | `components_native/AppContainer.tsx` | default | AppContainer (Remove anything: removal mode bar) |

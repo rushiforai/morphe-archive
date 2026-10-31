@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.teslacoilsw.launcher.launcher3.allapps.NovaSlidingTabStrip xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="center"
+    android:id="0x7f0b066d"
+    android:layout_width="match_parent"
+    android:layout_height="0x7f070061"
+    app:bottomBarHeight="1dp"
+    app:indicatorHeight="2dp"
+    app:indicatorMinWidth="20dp"
+    style="0x7f1502f2">
+    <HorizontalScrollView
+        android:id="0x7f0b0669"
+        android:scrollbars="none"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:layout_weight="1">
+        <com.teslacoilsw.launcher.launcher3.allapps.NovaSlidingTabStripTabs
+            android:layout_gravity="center"
+            android:id="@android:id/tabs"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"/>
+    </HorizontalScrollView>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="0x7f0b0667"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"/>
+</com.teslacoilsw.launcher.launcher3.allapps.NovaSlidingTabStrip>

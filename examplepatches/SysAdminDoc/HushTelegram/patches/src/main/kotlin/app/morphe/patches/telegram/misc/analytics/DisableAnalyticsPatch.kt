@@ -49,9 +49,12 @@ private const val PATCH = "Disable analytics"
 
 private const val ANALYTICS = "$EXTENSION_PACKAGE/misc/Analytics;"
 
-/** Ghost mode's answer to every request on its way out: true keeps a read receipt or story view back. */
+/**
+ * Ghost mode's answer to every request and its callback on the way out: true keeps a read receipt,
+ * story view, typing or online status back, and a typing status's callback gets an error answer.
+ */
 internal const val GHOST_MODE = "$EXTENSION_PACKAGE/misc/GhostMode;"
-internal const val GHOST_MODE_DROP = "$GHOST_MODE->drop(Ljava/lang/Object;)Z"
+internal const val GHOST_MODE_DROP = "$GHOST_MODE->drop(Ljava/lang/Object;Ljava/lang/Object;)Z"
 
 /** A channel's batch of read metrics: how long each post stayed on screen as you scrolled. */
 internal const val REPORT_READ_METRICS = "Lorg/telegram/tgnet/TLRPC\$TL_messages_reportReadMetrics;"
@@ -105,7 +108,7 @@ val disableAnalyticsPatch = bytecodePatch(
         requireStatusMethod("readMetrics")
         AppLogEvent.entries.forEach { requireStatusMethod(it.capability) }
         requireStatusMethod("ghostMode")
-        controlHook(GHOST_MODE, "drop", listOf("Ljava/lang/Object;"), "Z")
+        controlHook(GHOST_MODE, "drop", listOf("Ljava/lang/Object;", "Ljava/lang/Object;"), "Z")
 
         val metrics = SendReadMetricsFingerprint.methodOrNull
         val metricsMissing = metrics?.skipReadMetricsWhen("$ANALYTICS->skipReadMetrics(Ljava/util/List;)Z", dryRun = true)

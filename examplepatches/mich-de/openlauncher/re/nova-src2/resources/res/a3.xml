@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingLeft="0x7f070107"
+    android:paddingTop="0x7f070057"
+    android:paddingRight="0x7f070107"
+    android:paddingBottom="0x7f070057"
+    android:focusable="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:src="0x7f0801a7"
+    android:scaleType="fitXY"
+    android:importantForAccessibility="no"/>

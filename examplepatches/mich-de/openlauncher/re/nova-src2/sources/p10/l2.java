@@ -1,0 +1,32 @@
+package p10;
+
+import kotlin.coroutines.jvm.internal.ContinuationImpl;
+
+/* loaded from: classes4.dex */
+public final class l2 extends ContinuationImpl {
+
+    /* renamed from: t, reason: collision with root package name */
+    public m.w f81829t;
+
+    /* renamed from: u, reason: collision with root package name */
+    public /* synthetic */ Object f81830u;
+
+    /* renamed from: v, reason: collision with root package name */
+    public final /* synthetic */ m.w f81831v;
+
+    /* renamed from: w, reason: collision with root package name */
+    public int f81832w;
+
+    /* JADX WARN: 'super' call moved to the top of the method (can break code semantics) */
+    public l2(m.w wVar, ContinuationImpl continuationImpl) {
+        super(continuationImpl);
+        this.f81831v = wVar;
+    }
+
+    @Override // kotlin.coroutines.jvm.internal.BaseContinuationImpl
+    public final Object invokeSuspend(Object obj) {
+        this.f81830u = obj;
+        this.f81832w |= Integer.MIN_VALUE;
+        return this.f81831v.z(this);
+    }
+}

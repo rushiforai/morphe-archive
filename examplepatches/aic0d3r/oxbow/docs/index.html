@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- No analytics are loaded. Keep a local no-op so existing click handlers do not fail. -->
+    <script>
+        function gtag() { }
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Without Reels, Feed or Ads — Oxbow for Android</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Oxbow is a free, open-source Instagram for Android with no Reels, feed, Explore or ads — and downloads, ghost mode and clean links. DMs stay.">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="canonical" href="https://aic0d3r.github.io/oxbow/">
+    <link rel="alternate" hreflang="en" href="https://aic0d3r.github.io/oxbow/">
+    <link rel="alternate" hreflang="fr" href="https://aic0d3r.github.io/oxbow/fr/">
+    <link rel="alternate" hreflang="x-default" href="https://aic0d3r.github.io/oxbow/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Oxbow">
+    <meta property="og:url" content="https://aic0d3r.github.io/oxbow/">
+    <meta property="og:title" content="Oxbow: Instagram without Reels">
+    <meta property="og:description"
+        content="No Reels, no endless feed, no ads — plus downloads, ghost mode and clean links. Messages, stories and profiles stay. Free and open source for Android.">
+    <meta property="og:image" content="https://aic0d3r.github.io/oxbow/screenshots/download-row.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="fr_FR">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://aic0d3r.github.io/oxbow/">
+    <meta name="twitter:title" content="Oxbow: Instagram without Reels">
+    <meta name="twitter:description"
+        content="No Reels, no endless feed, no ads — plus downloads, ghost mode and clean links. Messages, stories and profiles stay. Free and open source for Android.">
+    <meta name="twitter:image" content="https://aic0d3r.github.io/oxbow/screenshots/download-row.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+    <link rel="icon" type="image/png" href="assets/img/icon-256.png">
+    <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+    <link rel="preload" as="image" href="assets/img/icon-256.webp" type="image/webp">
+
+    <script type="application/ld+json">
+    [{
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Oxbow",
+        "alternateName": "Instagram without Reels",
+        "operatingSystem": "Android",
+        "applicationCategory": "LifestyleApplication",
+        "description": "Free, open-source patch for the official Instagram Android app that removes Reels, the home feed, Explore, suggested accounts, ads and telemetry while keeping direct messages, stories, search, profiles and notifications, and adds downloads (a native Download row in Instagram's &#8943; menus), HD profile pictures, ghost mode and clean share links.",
+        "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "downloadUrl": "https://github.com/aic0d3r/oxbow/releases/latest",
+        "screenshot": "https://aic0d3r.github.io/oxbow/assets/img/after.png",
+        "author": { "@type": "Person", "name": "aic0d3r", "url": "https://github.com/aic0d3r" },
+        "sameAs": ["https://github.com/aic0d3r/oxbow"]
+    }, {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Oxbow",
+        "url": "https://aic0d3r.github.io/oxbow/",
+        "inLanguage": "en"
+    }, {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Oxbow",
+        "url": "https://aic0d3r.github.io/oxbow/",
+        "logo": "https://aic0d3r.github.io/oxbow/assets/img/icon-256.png",
+        "sameAs": ["https://github.com/aic0d3r/oxbow"]
+    }]
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-tertiary: #141414;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-tertiary: rgba(255, 255, 255, 0.5);
+            --accent: #10a37f;
+            --accent-hover: #1a7f64;
+            --border: rgba(255, 255, 255, 0.1);
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Subtle animated gradient background */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 50%, rgba(255, 99, 132, 0.08), transparent),
+                radial-gradient(ellipse 50% 30% at 20% 80%, rgba(16, 163, 127, 0.1), transparent);
+            pointer-events: none;
+            z-index: 0;
+            animation: gradientMove 20s ease-in-out infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientMove {
+
+            0%,
+            100% {
+                background-position: 0% 0%;
+                filter: hue-rotate(0deg);
+            }
+
+            25% {
+                background-position: 100% 50%;
+            }
+
+            50% {
+                background-position: 50% 100%;
+                filter: hue-rotate(30deg);
+            }
+
+            75% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 80px 24px;
+        }
+
+        .app-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 28px;
+            margin-bottom: 32px;
+            box-shadow:
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            will-change: transform;
+            user-select: none;
+            -webkit-user-drag: none;
+            pointer-events: none;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+
+        .hero h1 .vh {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+        }
+
+        .hero h1 .h1-sub {
+            display: block;
+            font-size: 0.42em;
+            letter-spacing: -0.01em;
+            margin-top: 8px;
+        }
+
+        .downloads-total {
+            margin-top: 18px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .downloads-total strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .guide-card {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .contact-line {
+            margin-top: 14px;
+            color: var(--text-tertiary);
+            font-size: 0.9rem;
+        }
+
+        .contact-line a {
+            color: var(--text-secondary);
+        }
+
+        .hero .tagline {
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-bottom: 48px;
+            font-weight: 400;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .discord-cta {
+            margin-top: 14px;
+        }
+
+        .btn-discord {
+            background: #5865F2;
+            color: #ffffff;
+            border: 1px solid #5865F2;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            border-radius: 10px;
+            gap: 8px;
+        }
+
+        .btn-discord:hover {
+            background: #4752c4;
+            border-color: #4752c4;
+            transform: translateY(-2px);
+        }
+
+        .btn-discord svg {
+            width: 18px;
+            height: 14px;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .updates-cta {
+            margin-top: 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-instagram {
+            background: transparent;
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 12px 28px rgba(214, 41, 118, 0.35);
+            padding: 12px 20px;
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-instagram::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, #feda75 0%, #fa7e1e 22%, #d62976 52%, #962fbf 78%, #4f5bd5 100%);
+            z-index: -1;
+        }
+
+        .btn-instagram:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px rgba(214, 41, 118, 0.4);
+        }
+
+        .btn-instagram:hover::before {
+            filter: brightness(1.06);
+        }
+
+        .btn-instagram svg {
+            width: 18px;
+            height: 18px;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .btn svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .btn-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 1.3;
+        }
+
+        .btn-main {
+            font-weight: 600;
+        }
+
+        .btn-meta {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            font-weight: 400;
+        }
+
+        .download-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 24px;
+            max-width: 760px;
+        }
+
+        .quick-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            font-size: 0.95rem;
+        }
+
+        .quick-links a:hover {
+            color: var(--text-primary);
+            border-color: var(--text-primary);
+        }
+
+        .btn-disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .developed-by {
+            margin-top: 24px;
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+        }
+
+        .developed-by a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .developed-by a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0 120px;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .section-header h2 {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .info-section {
+            padding: 0 0 80px;
+        }
+
+        .info-section .section-header {
+            margin-bottom: 32px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            will-change: transform;
+            cursor: default;
+        }
+
+        .feature-card:hover {
+            background: var(--bg-tertiary);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .feature-icon.blocked {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        .feature-icon.enabled {
+            background: rgba(16, 163, 127, 0.15);
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .status-badge.blocked {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        .status-badge.enabled {
+            background: rgba(16, 163, 127, 0.15);
+            color: #34d399;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 24px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+
+        footer p {
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+        }
+
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        footer a:hover {
+            color: var(--text-primary);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .hero {
+                padding: 60px 20px;
+            }
+
+            .app-icon {
+                width: 96px;
+                height: 96px;
+                border-radius: 22px;
+            }
+
+            .button-group {
+                flex-direction: column;
+                width: 100%;
+                max-width: 320px;
+            }
+
+            .btn {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .discord-cta .btn-discord {
+                width: auto;
+            }
+
+            .updates-cta .btn-instagram {
+                width: 100%;
+                max-width: 320px;
+                justify-content: center;
+            }
+
+            .download-controls {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .quick-links {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .feature-card {
+                padding: 24px;
+            }
+        }
+
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: rgba(16, 163, 127, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+
+    <main>
+        <section class="hero">
+            <img src="assets/img/icon-256.webp" alt="Oxbow icon" class="app-icon" width="120" height="120" draggable="false">
+            <h1>Oxbow<span class="vh">: </span><span class="h1-sub">Instagram without Reels or ads for Android, feed optional</span></h1>
+            <p class="tagline">Calm from the first launch: Reels, the endless feed, Explore and ads are off by default, each one a switch you can flip back. Add a permanent lock, downloads, ghost mode and clean share links. Messaging, stories and profiles stay.</p>
+
+            <div class="button-group">
+                <div class="download-controls">
+                    <a href="https://github.com/aic0d3r/oxbow/releases/latest" class="btn btn-primary"
+                        id="btn-download-standard" onclick="gtag('event', 'download_apk_standard'); return true;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 16l-6-6h4V4h4v6h4l-6 6zm-8 2h16v2H4v-2z" />
+                        </svg>
+                        <span class="btn-text">
+                            <span class="btn-main">Download APK</span>
+                            <span class="btn-meta" id="release-info-standard">Loading...</span>
+                        </span>
+                    </a>
+                    <a href="https://github.com/aic0d3r/oxbow/releases/latest" class="btn btn-secondary"
+                        id="btn-download-clone" onclick="gtag('event', 'download_apk_clone'); return true;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 16l-6-6h4V4h4v6h4l-6 6zm-8 2h16v2H4v-2z" />
+                        </svg>
+                        <span class="btn-text">
+                            <span class="btn-main">Download Clone APK</span>
+                            <span class="btn-meta" id="release-info-clone">Loading...</span>
+                        </span>
+                    </a>
+                </div>
+                <a href="https://github.com/aic0d3r/oxbow" class="btn btn-secondary" id="btn-source"
+                    target="_blank" rel="noopener" onclick="gtag('event', 'view_source_code');">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                    </svg>
+                    Source Code
+                </a>
+            </div>
+            <p class="downloads-total" data-downloads-wrap hidden><strong data-total-downloads></strong> downloads</p>
+            <nav class="quick-links" aria-label="Project links">
+                <a href="instagram-without-reels/">Instagram without Reels</a>
+                <a href="https://github.com/aic0d3r/oxbow/releases/latest">Latest release</a>
+                <a href="https://github.com/aic0d3r/oxbow/blob/main/docs/INSTALL.md">Installation guide</a>
+                <a href="https://github.com/aic0d3r/oxbow/blob/main/docs/BUILD_FROM_SOURCE.md">Build from source</a>
+                <a href="https://github.com/aic0d3r/oxbow/blob/main/docs/FAQ.md">FAQ</a>
+                <a href="https://github.com/aic0d3r/oxbow/issues">GitHub issues</a>
+                <a href="fr/" hreflang="fr" lang="fr">Français</a>
+            </nav>
+        </section>
+
+        <section class="features container">
+            <div class="section-header">
+                <h2>What changes?</h2>
+                <p>Keep what matters, remove what distracts</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon blocked">❌</div>
+                    <span class="status-badge blocked">Blocked</span>
+                    <h3>Feed Posts</h3>
+                    <p>The endless home feed is blocked at the network level. No more doomscrolling.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon blocked">❌</div>
+                    <span class="status-badge blocked">Hidden</span>
+                    <h3>Explore Tab</h3>
+                    <p>The suggested Explore content is hidden to prevent infinite browsing.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon blocked">❌</div>
+                    <span class="status-badge blocked">Hidden</span>
+                    <h3>Reels Tab</h3>
+                    <p>Reels are blocked at the network level and the tab icon itself is hidden from the bottom bar. No infinite video loops.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon blocked">❌</div>
+                    <span class="status-badge blocked">Hidden</span>
+                    <h3>Instants (+ in DMs)</h3>
+                    <p>The intrusive Instants "+" button at the bottom-right of the inbox is hidden. Toggleable.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon blocked">❌</div>
+                    <span class="status-badge blocked">Hidden</span>
+                    <h3>Notes (above DMs)</h3>
+                    <p>The row of friends' text-bubble Notes at the top of the inbox is hidden. Toggleable.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon enabled">⬇</div>
+                    <span class="status-badge enabled">Added</span>
+                    <h3>Downloads</h3>
+                    <p>Posts, Reels, stories and highlights download from a native Download row in Instagram's own &#8943; menus. Long-press an avatar for the HD profile picture.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon enabled">👻</div>
+                    <span class="status-badge enabled">Added</span>
+                    <h3>Ghost mode</h3>
+                    <p>Stories are not marked seen, DMs send no read receipts and no typing indicator. Off by default.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon enabled">🔗</div>
+                    <span class="status-badge enabled">Added</span>
+                    <h3>Clean share links</h3>
+                    <p>Copied and shared links drop tracking parameters such as igsh and utm_* automatically.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon enabled">✓</div>
+                    <span class="status-badge enabled">Works</span>
+                    <h3>Stories</h3>
+                    <p>View and post stories from the people you follow.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon enabled">✓</div>
+                    <span class="status-badge enabled">Works</span>
+                    <h3>Direct Messages</h3>
+                    <p>Full messaging functionality including shared reels and posts.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon enabled">✓</div>
+                    <span class="status-badge enabled">Works</span>
+                    <h3>Profile & Search</h3>
+                    <p>Access your profile, search for users, and get notifications.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section container">
+            <div class="section-header">
+                <h2>Why Oxbow?</h2>
+                <p>For people who need Instagram DMs, stories and profiles, but do not want Reels, Explore, ads or the endless feed.</p>
+            </div>
+
+            <div class="info-grid">
+                <div class="feature-card">
+                    <h3>Real Android app</h3>
+                    <p>Oxbow patches the real Instagram Android app instead of wrapping the mobile website in a WebView.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Open patches</h3>
+                    <p>Every patch is public, so you can inspect what is changed before installing anything.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Built for focus</h3>
+                    <p>It keeps the useful social features and removes the parts designed for endless scrolling.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section container">
+            <div class="section-header">
+                <h2>Classic APK vs Clone APK</h2>
+                <p>Choose the install type that matches how you want to use Instagram on your device.</p>
+            </div>
+
+            <div class="info-grid">
+                <div class="feature-card">
+                    <h3>oxbow.apk (classic)</h3>
+                    <p>Replaces the regular Instagram app by keeping Instagram's original package ID. Use this if you only want Oxbow installed.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>oxbow-clone.apk (clone)</h3>
+                    <p>Uses a different package ID so it can be installed alongside the official Instagram app. Use this if you want both apps on the same device.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section container">
+            <div class="section-header">
+                <h2>Safety and trust</h2>
+                <p>Oxbow does not collect, proxy, store, or transmit your Instagram credentials.</p>
+            </div>
+
+            <div class="info-grid">
+                <div class="feature-card">
+                    <h3>Build it yourself</h3>
+                    <p>You can patch the APK locally from source instead of trusting a prebuilt release artifact.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Unofficial project</h3>
+                    <p>Oxbow is not affiliated with Instagram or Meta. It is a modified APK, so use it at your own risk.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3>Documented behavior</h3>
+                    <p>The README documents the current blocked network paths for feed, Reels, Explore, ads, telemetry and related features.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="info-section container" aria-labelledby="guides-title">
+            <div class="section-header">
+                <h2 id="guides-title">Guides</h2>
+                <p>How to use Instagram without Reels, the feed or ads on Android.</p>
+            </div>
+
+            <div class="info-grid">
+                <a class="feature-card guide-card" href="instagram-without-reels/">
+                    <h3>Instagram without Reels</h3>
+                    <p>Instagram has no setting to turn off Reels. Five ways to use it without them, compared.</p>
+                </a>
+                <a class="feature-card guide-card" href="how-to-remove-reels-from-instagram-android/">
+                    <h3>How to remove Reels on Android</h3>
+                    <p>Every option, from Instagram's own settings to removing the Reels tab.</p>
+                </a>
+                <a class="feature-card guide-card" href="instagram-without-feed/">
+                    <h3>Instagram without the feed</h3>
+                    <p>Keep only direct messages and stories.</p>
+                </a>
+                <a class="feature-card guide-card" href="dfinstagram-alternative/">
+                    <h3>DFInstagram alternative</h3>
+                    <p>A maintained, open-source distraction-free Instagram.</p>
+                </a>
+                <a class="feature-card guide-card" href="oxbow-vs-scrollguard-vs-wallhabit/">
+                    <h3>Oxbow vs ScrollGuard vs WallHabit</h3>
+                    <p>Patched app or blocker app: which one fits you.</p>
+                </a>
+                <a class="feature-card guide-card" href="instagram-addictive-design-eu/">
+                    <h3>What the EU found</h3>
+                    <p>Instagram's addictive design under the Digital Services Act.</p>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>
+            Free and open-source (GPL-3.0). Not affiliated with Instagram or Meta.
+        </p>
+        <p>
+            <a href="https://github.com/aic0d3r/oxbow/issues" target="_blank" rel="noopener">Report an issue</a> •
+            <a href="fr/" hreflang="fr" lang="fr">Français</a>
+        </p>
+        <p>Fork of <a href="https://github.com/jean-voila/FeurStagram">Feurstagram</a> by Jean Herail</p>
+    </footer>
+
+
+    <script src="assets/site.js"></script>
+    <script>
+        const FALLBACK_RELEASE_URL = 'https://github.com/aic0d3r/oxbow/releases/latest';
+
+        // 3D Tilt Effect
+        function initTilt(element, intensity = 15) {
+            element.style.transformStyle = 'preserve-3d';
+            element.style.transition = 'transform 0.1s ease-out';
+
+            element.addEventListener('mousemove', (e) => {
+                const rect = element.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                const rotateX = ((y - centerY) / centerY) * -intensity;
+                const rotateY = ((x - centerX) / centerX) * intensity;
+
+                element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+
+            element.addEventListener('mouseleave', () => {
+                element.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+            });
+        }
+
+        // Apply to feature cards
+        document.querySelectorAll('.feature-card').forEach(card => {
+            initTilt(card, 8);
+        });
+
+        let latestApkAssets = [];
+
+        function getApkAssets(assets) {
+            if (!Array.isArray(assets)) {
+                return [];
+            }
+
+            return assets.filter((asset) => {
+                if (!asset || typeof asset.name !== 'string') {
+                    return false;
+                }
+
+                const lowerName = asset.name.toLowerCase();
+                return lowerName.endsWith('.apk') || lowerName.endsWith('.apkm');
+            });
+        }
+
+        function isCloneAsset(asset) {
+            if (!asset || typeof asset.name !== 'string') {
+                return false;
+            }
+
+            return /(^|[-_.])clone([-_.]|$)/i.test(asset.name);
+        }
+
+        function updateDownloadButtons() {
+            const standardBtn = document.getElementById('btn-download-standard');
+            const cloneBtn = document.getElementById('btn-download-clone');
+            const releaseInfoStandard = document.getElementById('release-info-standard');
+            const releaseInfoClone = document.getElementById('release-info-clone');
+            if (!standardBtn || !cloneBtn) {
+                return;
+            }
+
+            const cloneAsset = latestApkAssets.find((asset) => isCloneAsset(asset));
+            const standardAsset = latestApkAssets.find((asset) => !isCloneAsset(asset)) || null;
+
+            if (standardAsset) {
+                standardBtn.href = standardAsset.browser_download_url;
+                standardBtn.classList.remove('btn-disabled');
+                standardBtn.setAttribute('aria-disabled', 'false');
+            } else {
+                standardBtn.href = FALLBACK_RELEASE_URL;
+                standardBtn.classList.remove('btn-disabled');
+                standardBtn.setAttribute('aria-disabled', 'false');
+                if (releaseInfoStandard) {
+                    releaseInfoStandard.textContent = 'Latest release';
+                }
+            }
+
+            if (cloneAsset) {
+                cloneBtn.href = cloneAsset.browser_download_url;
+                cloneBtn.classList.remove('btn-disabled');
+                cloneBtn.setAttribute('aria-disabled', 'false');
+            } else {
+                cloneBtn.href = FALLBACK_RELEASE_URL;
+                cloneBtn.classList.remove('btn-disabled');
+                cloneBtn.setAttribute('aria-disabled', 'false');
+                if (releaseInfoClone) {
+                    releaseInfoClone.textContent = 'Check latest release';
+                }
+            }
+        }
+
+        // Latest release, from the release list assets/site.js loads once per session
+        // (the same request also gives the total download count).
+        async function fetchLatestRelease() {
+            try {
+                const summary = await window.oxbowReleases;
+                const data = summary && summary.latest;
+                if (!data) {
+                    throw new Error('No published release');
+                }
+
+                const version = data.tag;
+                const date = new Date(data.publishedAt);
+                const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                // Update button text
+                const releaseInfoStandard = document.getElementById('release-info-standard');
+                const releaseInfoClone = document.getElementById('release-info-clone');
+                if (releaseInfoStandard) {
+                    releaseInfoStandard.textContent = `${version} • ${formattedDate}`;
+                }
+                if (releaseInfoClone) {
+                    releaseInfoClone.textContent = `${version} • Clone build`;
+                }
+
+                // Update download link to direct APK
+                latestApkAssets = getApkAssets(data.assets.map((asset) => ({
+                    name: asset.name,
+                    browser_download_url: asset.url
+                })));
+                updateDownloadButtons();
+            } catch (error) {
+                const releaseInfoStandard = document.getElementById('release-info-standard');
+                const releaseInfoClone = document.getElementById('release-info-clone');
+                if (releaseInfoStandard) {
+                    releaseInfoStandard.textContent = 'Latest version';
+                }
+                if (releaseInfoClone) {
+                    releaseInfoClone.textContent = 'Clone build';
+                }
+                latestApkAssets = [];
+                updateDownloadButtons();
+            }
+        }
+
+        updateDownloadButtons();
+        fetchLatestRelease();
+    </script>
+</body>
+
+</html>

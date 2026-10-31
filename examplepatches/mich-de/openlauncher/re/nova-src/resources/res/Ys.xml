@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="0x7f0b0568"
+    android:fitsSystemWindows="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="0x7f0b06c3"
+        android:layout_width="match_parent"
+        android:layout_height="?unknown_attr_ref: 7f040007"
+        app:navigationIcon="?unknown_attr_ref: 7f0402ea"
+        app:title="0x7f140739"/>
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="0x7f0b065a"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <WebView
+                android:id="0x7f0b0749"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+            <ProgressBar
+                android:layout_gravity="top"
+                android:id="0x7f0b052d"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                style="@android:style/Widget.ProgressBar.Horizontal"/>
+        </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</LinearLayout>

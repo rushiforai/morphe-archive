@@ -68,8 +68,19 @@ ABI. Exact reflection contracts are in `Pillo627Contracts.java` and
   `WeightChartContent$lambda$7$0`. Wrap the static bridge to
   `WeightLineChart_TN_CM5M$lambda$12$0`, capturing its explicit unit/record state
   and restoring prior rendering context in `finally`. Redirect its native
-  Latest/Avg renderers. Last since uses the native filter button/date picker.
+  Latest/Avg renderers. The comparison cell (**Since** on 0.6.27, **Last since**
+  on 0.6.20) uses the native filter button/date picker.
   Date comparisons use native timestamps' ISO representation and device calendar.
+  The date cell must apply
+  `ui/compose/components/modifier/ModifierExtensionKt.clickableNoRipple(s3.s,
+  kotlin.jvm.functions.Function0):s3.s` to the default `Modifier.Companion`
+  singleton `s3.p.a` and pass it straight to `ValueDisplay`. Do not wrap the cell
+  in `ui/report/tracker/components/box/ClickableNoRipple`: that class no longer
+  exists, and a wrapper is measured with the full row width instead of the
+  one-third share `DividedRow` assigns, drawing the label over the next cell.
+  The native `TextLabel3` text does not soft-wrap, so keep the explicit line
+  breaks that make the **Since**/**Min**/**Max** row taller and align the three
+  values on a shared baseline.
 - **Progress:** replace the single 12-register `z0.l.c` call in
   `ProgressScreenKt.ProgressScreen$lambda$5`; append chart and dated entries to
   the same lazy list. Native retained viewModels factory/store/extras suppliers

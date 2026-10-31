@@ -10,15 +10,19 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 /** Replace only total immediately consumed as total-read; no register allocation or read-position mutation. */
 internal fun BytecodePatchContext.patchHiddenNgUnread(version:String){
     val fields=when(version){
-        "0.8.10.191 dev" -> setOf("Lo/onAdDisplayed\$setIcon;->k:I")
-        "0.8.10.226 dev" -> setOf("Lo/Yy2\$open;->m:I")
-        "0.8.10.242 dev" -> setOf("Lo/zzauw;->a:I", "Lo/getAvailabilityStatus\$r8lambdawJ5MHcSJed_CjC7r4OWD0UxyJsQ;->o:I")
+        "0.8.10.191 dev" -> mapOf("Lo/onAdDisplayed\$setIcon;" to "k")
+        "0.8.10.226 dev" -> mapOf("Lo/Yy2\$open;" to "m")
+        "0.8.10.242 dev" -> mapOf("Lo/zzauw;" to "a", "Lo/getAvailabilityStatus\$r8lambdawJ5MHcSJed_CjC7r4OWD0UxyJsQ;" to "o")
         else -> return
+    }
+    fun isTotal(instruction: Instruction): Boolean {
+        val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference ?: return false
+        return field.type == "I" && fields[field.definingClass] == field.name
     }
     var count=0
     classDefForEach { klass ->
         val targets=klass.methods.filter { method -> method.implementation?.instructions?.any {
-            (it as? ReferenceInstruction)?.reference?.toString() in fields
+            isTotal(it)
         }==true }
         if(targets.isEmpty())return@classDefForEach
         val mutable=mutableClassDefBy(klass.type)
@@ -27,7 +31,7 @@ internal fun BytecodePatchContext.patchHiddenNgUnread(version:String){
             val code=method.implementation!!.instructions.toList()
             for(i in code.size-2 downTo 0){
                 val load=code[i] as? TwoRegisterInstruction?:continue
-                if(code[i].opcode!=Opcode.IGET||(code[i] as? ReferenceInstruction)?.reference?.toString() !in fields)continue
+                if(code[i].opcode!=Opcode.IGET||!isTotal(code[i]))continue
                 val next=code[i+1] as? TwoRegisterInstruction?:continue
                 val nextField=(code[i+1] as? ReferenceInstruction)?.reference as? FieldReference
                 val totalField=(code[i] as ReferenceInstruction).reference as FieldReference

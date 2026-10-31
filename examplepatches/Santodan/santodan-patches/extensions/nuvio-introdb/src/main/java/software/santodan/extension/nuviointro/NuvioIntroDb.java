@@ -81,8 +81,8 @@ public final class NuvioIntroDb {
             Object controller = old.controller.get();
             if (foreground && old.review && controller != null) try {
                 Class<?> timers = controller.getClass().getClassLoader().loadClass(NuvioNative.PLAYER_TIMERS_NAME);
-                IntroUi.method(timers, "F", 1).invoke(null, controller);
-                IntroUi.method(timers, "H", 1).invoke(null, controller);
+                IntroUi.method(timers, NuvioNative.CONTROLS_TIMER_METHOD, 1).invoke(null, controller);
+                IntroUi.method(timers, NuvioNative.PAUSE_TIMER_METHOD, 1).invoke(null, controller);
             } catch (Exception error) { Log.e(TAG, "Native controls timer restart failed", error); }
         }
         changed();
@@ -120,7 +120,7 @@ public final class NuvioIntroDb {
             try {
                 observe(loader);
                 if (!enabled()) { if (draft != null) reset(); return; }
-                Object state = IntroUi.field(owner, "e");
+                Object state = IntroUi.field(owner, NuvioNative.MAIN_ROW_STATE_FIELD);
                 Object controller = IntroUi.field(IntroUi.field(owner, "c"), "Y");
                 String video = (String)NuvioAccess.currentVideo(state);
                 String media = video + "|" + NuvioAccess.currentSeason(state) + "|" + NuvioAccess.currentEpisode(state) + "|" + IntroUi.field(state, "i");
@@ -135,8 +135,8 @@ public final class NuvioIntroDb {
                     "Submit segment: mark end (start " + SegmentCapture.time(current.capture.start) + ")";
                 Object icon = IntroIcons.icon(loader, current == null ? 0 : current.review ? 2 : 1);
                 Object[] button = new Object[]{icon, null, label,
-                    IntroUi.click(loader, () -> mark(controller, media, target, loader)), null, IntroUi.field(owner, "o"),
-                    current == null || !current.busy, IntroUi.field(owner, "p"), IntroUi.field(owner, "q"), 0L, composer, 0, 530};
+                    IntroUi.click(loader, () -> mark(controller, media, target, loader)), null, IntroUi.field(owner, NuvioNative.MAIN_ROW_FOCUS_FIELD),
+                    current == null || !current.busy, IntroUi.field(owner, NuvioNative.MAIN_ROW_UP_FIELD), IntroUi.field(owner, NuvioNative.MAIN_ROW_FOCUSED_FIELD), 0L, composer, 0, 530};
                 boolean collected = false;
                 try {
                     Class<?> customization = loader.loadClass("software.santodan.extension.nuviobuttons.NuvioPlaybackButtons");
@@ -173,8 +173,8 @@ public final class NuvioIntroDb {
         if (controller == null) return;
         // The full-screen pause overlay owns a separate job from controls hiding.
         // Use its native cancellation route to clear both the job and visibility.
-        IntroUi.method(controller.getClass().getClassLoader().loadClass(NuvioNative.PLAYER_TIMERS_NAME), "i", 1).invoke(null, controller);
-        Object job = IntroUi.field(controller, "T0");
+        IntroUi.method(controller.getClass().getClassLoader().loadClass(NuvioNative.PLAYER_TIMERS_NAME), NuvioNative.CANCEL_PAUSE_METHOD, 1).invoke(null, controller);
+        Object job = IntroUi.field(controller, NuvioNative.CONTROLS_JOB_FIELD);
         if (job != null) try {
             ClassLoader loader = controller.getClass().getClassLoader();
             java.lang.reflect.Method cancel = loader.loadClass("kotlinx.coroutines.Job$DefaultImpls").getDeclaredMethod("cancel$default",

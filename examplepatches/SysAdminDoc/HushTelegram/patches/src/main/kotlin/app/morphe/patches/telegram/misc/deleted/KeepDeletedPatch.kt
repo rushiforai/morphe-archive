@@ -88,6 +88,7 @@ val keepDeletedPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.telegram())
     execute {
         val plan = resolveKeepDeleted()
+        val timed = resolveKeepTimedMedia()
         // Assembled on copies first, so a refusal leaves the app untouched.
         plan.applyTo(MutableMethod(ImmutableMethod.of(plan.updates)), MutableMethod(ImmutableMethod.of(plan.push)),
             MutableMethod(ImmutableMethod.of(plan.measure)))
@@ -101,6 +102,12 @@ val keepDeletedPatch = bytecodePatch(
             enableCapability("keepEditHistory")
         } else {
             patchLog.warning("Keep deleted messages: ${plan.editsMissing}. The patch goes on without Keep edit history.")
+        }
+        if (timed.missing == null) {
+            applyKeepTimedMedia(timed)
+            enableCapability("keepTimedMedia")
+        } else {
+            patchLog.warning("Keep deleted messages: ${timed.missing}. The patch goes on without Keep view-once and timed media.")
         }
         enableStatus("keepDeleted")
     }

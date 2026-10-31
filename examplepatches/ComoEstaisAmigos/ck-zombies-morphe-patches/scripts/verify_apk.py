@@ -25,7 +25,7 @@ What it proves, per ABI and for the whole archive:
     resources.arsc is the exception: a manifest edit makes the patcher re-encode it, so it is
     compared through aapt2 instead, and only the PUBLIC flag on id resources may differ
   * each bytecode edit of the patches found is present in the decoded smali, whichever dex
-    file holds it, the missing-OBB message of "Modern Android compatibility" among them;
+    file holds it, the missing-OBB message every patch carries among them;
     with "Stop requests to dead servers", every OpenFeint class is an empty
     shell, and exactly the ones whose superclasses reach Object through other shells keep a
     no-arg constructor that only calls super()
@@ -49,8 +49,8 @@ LIB = "libandroidplatformjni.so"
 WORD_EDIT = r"WordEdit\(0x([0-9A-F]+), 0x([0-9A-F]+)L, 0x([0-9A-F]+)L\)"
 COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO, FIT, DEAL, HIDDEN = (
     "Modern Android compatibility", "Unlimited currency", "Smooth sound", "Remove unused permissions",
-    "Stop requests to dead servers", "Play intro once", "Render at 720p", "Hide Daily Deal popup",
-    "Hidden weapons")
+    "Stop requests to dead servers", "Play intro once", "Render menus at 720p", "Hide Daily Deal popup",
+    "Show hidden weapons")
 ALL_PATCHES = (COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO, FIT, DEAL, HIDDEN)
 MOVIE = "Lcom/glu/platform/android/GluMovieActivity;"
 INTRO_ONCE = "Lapp/ckzombies/extension/IntroOnce;"
@@ -60,8 +60,8 @@ SCREEN_FIT = "Lapp/ckzombies/extension/ScreenFit;"
 TOUCH_EDGE = "Lapp/ckzombies/extension/TouchEdge;"
 ACTIVITY = "Lcom/glu/platform/android/GluPlatformActivity;"
 TOUCH_METHODS = ("touchBegan", "touchMoved", "touchEnded", "touchCancelled")
-# What a touch method starts with, per patch: "Render at 720p" scales x and y, "Modern Android
-# compatibility" clamps them to 0. The two patches insert at the same place, in either order.
+# What a touch method starts with, per patch: "Render menus at 720p" scales x and y, "Modern
+# Android compatibility" clamps them to 0. The two patches insert at the same place, in either order.
 SCALED = [f"invoke-static {{p1}}, {SCREEN_FIT}->x(I)I", "move-result p1",
           f"invoke-static {{p2}}, {SCREEN_FIT}->y(I)I", "move-result p2"]
 CLAMPED = [f"invoke-static {{p1}}, {TOUCH_EDGE}->clamp(I)I", "move-result p1",
@@ -154,7 +154,7 @@ def leading_blocks(lines):
 
 def screen_fit_parts(code):
     """
-    Which edits of "Render at 720p" GluPlatformActivity carries. code(name) gives a method's
+    Which edits of "Render menus at 720p" GluPlatformActivity carries. code(name) gives a method's
     stripped instruction lines. The view goes to ScreenFit.attach() right after it is stored in
     m_MainView, each touch method starts by scaling its x and y in place, and touchBegan passes
     the drag threshold through ScreenFit.threshold() between reading and storing it.
@@ -537,7 +537,8 @@ def main():
         check(bool(ext_dir) and not direct,
               "no other extension method calls getObbDir() itself" + (f": {', '.join(direct)}" if direct else ""))
         check(caught(method("app/ckzombies/extension/ScreenFit", "attach"), "->addOnLayoutChangeListener("),
-              "ScreenFit.attach catches the layout listener older Android lacks, so Render at 720p cannot stop the game there")
+              "ScreenFit.attach catches the layout listener older Android lacks, so Render menus at 720p "
+              "cannot stop the game there")
         check("Lapp/ckzombies/extension/ExternalStorage;->soundCache(" in prepare
               and "Ljava/io/File;->mkdirs()Z" in method("app/ckzombies/extension/ExternalStorage", "soundCache"),
               "ExternalStorage.prepare makes the sound cache folder, which the engine cannot always make itself")
@@ -610,7 +611,7 @@ def main():
             and getter[1:2] == ["return-object v0"]
         tapjoy = True if init and not connects and quiet else False if connects and not quiet else None
 
-        # The compatibility patch's missing-OBB message: ObbCheck.route() at the head of the
+        # The missing-OBB message every patch includes: ObbCheck.route() at the head of the
         # resource screen's state loop, and no File.delete() left in findGPKFileInDir.
         states = [l.strip() for l in method("com/glu/platform/android/resdl/ResFileDownloadView", "newState").splitlines()
                   if l.strip()]
@@ -626,7 +627,7 @@ def main():
         check(not deletes, "findGPKFileInDir no longer deletes wrong-size files")
 
         # The compatibility patch's touch clamp: every touch method starts by clamping x and y to 0,
-        # before or after the scaling of "Render at 720p".
+        # before or after the scaling of "Render menus at 720p".
         activity_code = lambda name: [l.strip() for l in method(ACTIVITY[1:-1], name).splitlines()[1:]
                                       if l.strip() and not l.strip().startswith(".")]
         unclamped = [name for name in TOUCH_METHODS if CLAMPED not in leading_blocks(activity_code(name))]
@@ -681,7 +682,7 @@ def main():
             check(True, "TapjoyInterface.initialize no longer connects, and the instance getter logs nothing")
             check("TapjoyInterface;->usedActivity" in init, "TapjoyInterface.initialize still stores the activity")
 
-        # "Render at 720p": all of its edits to GluPlatformActivity, or no trace of ScreenFit there.
+        # "Render menus at 720p": all of its edits to GluPlatformActivity, or no trace of ScreenFit there.
         activity = io.open(smali_file(ACTIVITY[1:-1]), encoding="utf-8").read()
         parts = screen_fit_parts(activity_code)
         if all(parts.values()):

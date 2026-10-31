@@ -65,7 +65,8 @@ public class LaunchCrashCleanupTest {
         assertArrayEquals("TikTok's own names moved or went", TIKTOK_KEEPS,
                 Arrays.copyOf(kept, TIKTOK_KEEPS.length));
         assertEquals(Arrays.asList("morphe_prefs", "morphe_feature_gate_lab",
-                        "hushfeed_release_notes", "hushfeed_device_identity"),
+                        "hushfeed_release_notes", "hushfeed_device_identity", "hushfeed_group_chats",
+                        "hushfeed_sticker_recents"),
                 Arrays.asList(kept).subList(TIKTOK_KEEPS.length, kept.length));
         assertArrayEquals(LaunchCrashCleanup.HUSHFEED_FILES, LaunchCrashCleanup.keepHushfeedFiles(null));
     }
@@ -74,10 +75,12 @@ public class LaunchCrashCleanupTest {
         // The first argument of every opening call: a kept constant, or the one field that a
         // kept constant is handed to. Anything else is a file TikTok's cleanup would delete.
         Map<String, List<String>> expected = new TreeMap<>();
+        expected.put("comment/StickerRecents.java", Arrays.asList("PREFS_NAME"));
         expected.put("diagnostics/JavaCrashCapture.java", Arrays.asList("PREFS_NAME"));
         expected.put("featuregatelab/FeatureGateLabStore.java", Arrays.asList("PREFS_NAME"));
         expected.put("settings/preference/ReleaseNotes.java", Arrays.asList(
                 "PREFS_NAME", "PREFS_NAME", "PREFS_NAME"));
+        expected.put("inbox/GroupChats.java", Arrays.asList("PREFS_NAME", "PREFS_NAME"));
         expected.put("privacy/DeviceIdentity.java", Arrays.asList("PREFERENCES", "PREFERENCES"));
         expected.put("translation/DmTranslationPreview.java", Arrays.asList("Setting.preferences.name"));
         expected.put("translation/ReceivedDmTranslationPreview.java", Arrays.asList("Setting.preferences.name"));
@@ -95,6 +98,8 @@ public class LaunchCrashCleanupTest {
         assertTrue(kept.contains(FeatureGateLabStore.PREFS_NAME));
         assertTrue(kept.contains(ReleaseNotes.PREFS_NAME));
         assertTrue(kept.contains(DeviceIdentity.PREFERENCES));
+        assertTrue(kept.contains(app.morphe.extension.tiktok.inbox.GroupChats.PREFS_NAME));
+        assertTrue(kept.contains(app.morphe.extension.tiktok.comment.StickerRecents.PREFS_NAME));
     }
 
     private static String constant(Class<?> owner, String name) throws ReflectiveOperationException {

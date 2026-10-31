@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<View xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_gravity="end|bottom"
+    android:id="0x7f0b022b"
+    android:background="?unknown_attr_ref: 7f0404e1"
+    android:visibility="gone"
+    android:layout_width="match_parent"
+    android:layout_height="0.5dp"
+    android:layout_marginStart="42dp"/>

@@ -13,16 +13,16 @@
     <img src="https://img.shields.io/github/stars/SatanMerde/D-moniakPatches?style=for-the-badge&logo=github&color=EAC54F" alt="GitHub Stars">
   </a>
   <a href="#-patches-list">
-    <img src="https://img.shields.io/badge/Patches-465-8A2BE2?style=for-the-badge&logo=android&logoColor=white" alt="Total Patches">
+    <img src="https://img.shields.io/badge/Patches-490-8A2BE2?style=for-the-badge&logo=android&logoColor=white" alt="Total Patches">
   </a>
   <a href="#-tested--functional-patches">
-    <img src="https://img.shields.io/badge/Functional-21-00C853?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Functional Patches">
+    <img src="https://img.shields.io/badge/Functional-10-00C853?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Functional Patches">
   </a>
   <a href="#-experimental-patches-vibe-coded">
-    <img src="https://img.shields.io/badge/Experimental-444-FFA000?style=for-the-badge&logo=probot&logoColor=white" alt="Experimental Patches">
+    <img src="https://img.shields.io/badge/Experimental-480-FFA000?style=for-the-badge&logo=probot&logoColor=white" alt="Experimental Patches">
   </a>
   <a href="#-patches-list">
-    <img src="https://img.shields.io/badge/Supported_Apps-98-3388FF?style=for-the-badge&logo=googleplay&logoColor=white" alt="Supported Apps">
+    <img src="https://img.shields.io/badge/Supported_Apps-126-3388FF?style=for-the-badge&logo=googleplay&logoColor=white" alt="Supported Apps">
   </a>
   <a href="https://github.com/SatanMerde/D-moniakPatches/releases/latest">
     <img src="https://img.shields.io/github/v/release/SatanMerde/D-moniakPatches?style=for-the-badge&logo=github&color=blueviolet" alt="Latest Release">
@@ -46,7 +46,7 @@
 
 ### 📖 Project Overview
 
-**D-moniak Patches** is a third-party patch library for the **[Morphe](https://github.com/morpheapp)** framework. This project brings together **465 patches** for **98 popular Android apps and games**, clearly separated into **tested & functional patches** (verified on real hardware / emulator: Hungry Shark World, Movix, Moises, FCTV33, BandLab, AllTrails, Fossify Phone) and **experimental patches** (currently under development, vibe-coded).
+**D-moniak Patches** is a third-party patch library for the **[Morphe](https://github.com/morpheapp)** framework. This project brings together **496 patches** for **127 popular Android apps and games**, clearly separated into **tested & functional patches** (verified on real hardware / emulator: Hungry Shark World, Movix, Moises, FCTV33) and **experimental patches** (currently under development, vibe-coded).
 
 ---
 
@@ -55,6 +55,7 @@
 >
 > - 🌊 **Vibe-Coded Project:** The source code, architecture, and bytecode patches in this repository are vibe-coded for rapid innovation and experimentation. Bugs or unexpected behaviors may occur on certain app versions.
 > - 🧪 **Experimental Status & Very High Failure Rate:** Most patches marked `(Experimental)` have **not been tested on real physical devices**. **The chances that they do not work (remain inactive or have no effect) are very high** due to code obfuscation (ProGuard/R8) and server-side subscription validation.
+> - ✅ **Tested an Experimental Patch and it Works?** If you tested an experimental patch and confirmed that it works on your device or emulator, **[submit a validation report on GitHub](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_validation.yml)**! It will be verified and promoted to the **Tested & Functional** table in the next release.
 > - 🙋‍♂️ **Request a Patch to Work in the Next Update:** If you want a specific experimental patch to actually work, you can **[submit a request on GitHub](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml)**! The APK will be thoroughly reverse-engineered to make the patch fully operational in the next release.
 > - ⚠️ **Ban Risk & Terms of Service:** Modifying third-party applications may violate terms of service and lead to account penalties, restrictions, or bans. Use strictly at your own risk.
 > - ⚖️ **No Liability & Educational Purpose:** This repository is provided **strictly for educational and software security research purposes**. The author and contributors accept no responsibility for misuse, data loss, or account sanctions.
@@ -75,11 +76,12 @@
 
 ---
 
-### 💬 Report a Bug or Request a Patch
+### 💬 Feedback, Validation & Requests
 
-Experiencing an issue or want an experimental patch to actually work in the next release?
+Experiencing an issue, want an experimental patch to work, or tested an experimental patch and confirmed it works?
 
 - 🐛 **[Report a Bug or Issue](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=bug_report.yml)**: if a patch crashes the application or throws errors.
+- ✅ **[Validate an Experimental Patch](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_validation.yml)**: Tested an experimental patch and it works? **Report it here** (device model, app version, confirmation) so we can promote it to **Tested & Functional**!
 - ✨ **[Request a Patch or Make it Functional](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml)**: Experimental patches have a very high chance of not working out of the box. **Submit a request here** so we can reverse-engineer the APK and make it 100% functional for the next update!
 
 ---
@@ -87,7 +89,7 @@ Experiencing an issue or want an experimental patch to actually work in the next
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.53.0](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.53.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**465 total patches** (21 tested & functional • 444 experimental)
+> **[v1.62.1](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.62.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**490 total patches** (10 tested & functional • 480 experimental)
 
 ---
 
@@ -95,27 +97,6 @@ Experiencing an issue or want an experimental patch to actually work in the next
 
 > [!TIP]
 > These patches have been thoroughly tested and confirmed fully functional on real hardware.
-
-<details open>
-<summary>📦 AllTrails&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [Unlock 3D Maps & Off-Route Alerts - AllTrails](#unlock-3d-maps-off-route-alerts-alltrails) | Unlocks 3D trail maps, real-time off-route audio and wrong-turn notifications, and environmental weather overlays in AllTrails. |
-
-</details>
-
-<details open>
-<summary>📦 BandLab&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [Block Ads & Declutter Feed - BandLab](#block-ads-declutter-feed-bandlab) | Removes in-app promotional banners, upgrade prompts, sponsored artist cards, and interstitial ads across the BandLab home feed and studio screens. |
-| [Unlock Creator Membership & Audio Tools - BandLab](#unlock-creator-membership-audio-tools-bandlab) | Hooks Google Play Billing Client and membership state models in BandLab to unlock client-side Creator Membership perks, audio presets, master presets, and removes membership upgrade paywalls. |
-
-</details>
 
 <details open>
 <summary>📦 FCTV33 (Mobile)&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
@@ -146,17 +127,6 @@ Experiencing an issue or want an experimental patch to actually work in the next
 |----------|----------------|
 | [Block Pre-Roll Video Ads & Interstitials - FCTV33 & RBTV+](#block-pre-roll-video-ads-interstitials-fctv33-rbtv) | Completely strips pre-roll video ads, loading countdown shades, direct link popups, and banner ads before live stream playback on FCTV33 & RBTV+ (Mobile & TV). |
 | [Unlock Permanent VIP & Activation - FCTV33 & RBTV+](#unlock-permanent-vip-activation-fctv33-rbtv) | Bypasses activation lock codes, unlocks free VIP status, and lifts channel access restrictions on FCTV33 & RBTV+. |
-
-</details>
-
-<details open>
-<summary>📦 Fossify Phone&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [Pure AMOLED Black Theme - Fossify Phone](#pure-amoled-black-theme-fossify-phone) | Applies a pure #000000 AMOLED dark theme across dialpad, in-call screen, contacts list, and call history for optimal OLED battery savings. |
-| [Silent & Unrestricted Call Recording - Fossify Phone](#silent-unrestricted-call-recording-fossify-phone) | Unlocks call recording across all regions/devices, suppresses carrier/recording warning beeps and disclosure alerts, and automatically enables two-way audio recording directly to local storage. |
 
 </details>
 
@@ -240,68 +210,24 @@ Experiencing an issue or want an experimental patch to actually work in the next
 
 </details>
 
-<details open>
-<summary>📦 Shazam&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 16.63.0-261008 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [Ad-Free & Clean Interface - Shazam](#ad-free-clean-interface-shazam) | Strips post-recognition promo cards, Apple Music targeted upsells, in-app survey banners, and announcement sheets in Shazam. |
-| [Always-On Auto Shazam - Shazam](#always-on-auto-shazam-shazam) | Keeps Auto Shazam background listening continuously active without automatic timeout cancellation or sleep limits. |
-
-</details>
-
-<details open>
-<summary>📦 Silt&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.0.10 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [Unlock Full Game - Silt](#unlock-full-game-silt) | Unlocks the full game, all oceanic abyss chapters, and in-app purchase verification in Silt (v1.0.10). Automatically neutralizes PairIP native DRM in Google Play installations. |
-| [Unlock Full Game Bytecode - Silt](#unlock-full-game-bytecode-silt) | Bytecode de-obfuscation and unlock engine for Silt |
-
-</details>
-
-<details open>
-<summary>📦 Spotify&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;9.1.84.2231 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [Spicetify AMOLED Black Theme Bytecode](#spicetify-amoled-black-theme-bytecode) | Bytecode engine for Spicetify AMOLED Black Theme |
-| [Spicetify Custom Accent Color Bytecode](#spicetify-custom-accent-color-bytecode) | Bytecode engine for Spicetify Custom Accent Color |
-
-</details>
-
 ---
 
 ### 🧪 Experimental Patches (Vibe-Coded)
 
 > [!WARNING]
-> **Experimental Notice:** These patches are vibe-coded prototypes and haven't been tested across all physical devices yet. If a patch needs fine-tuning, [submit a request on GitHub](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml) to prioritize full testing and refinement in the next release!
+> **Experimental Notice:** These patches are vibe-coded prototypes and haven't been tested across all physical devices yet.
+>
+> ✅ **Tested an experimental patch and it works?** [Submit a Validation Report](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_validation.yml) with your device details and app version so we can promote it to the **Tested & Functional** category in the next update!
+>
 > 💡 **Want a patch to work?** [Submit a request on GitHub](https://github.com/SatanMerde/D-moniakPatches/issues/new?template=patch_request.yml) to prioritize reverse-engineering and make it fully functional in the next update!
 
 <details open>
-<summary>📦 AllTrails&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 AllTrails&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
+| [Unlock 3D Maps & Off-Route Alerts - AllTrails (Experimental)](#unlock-3d-maps-off-route-alerts-alltrails-experimental) | Unlocks 3D trail maps, real-time off-route audio and wrong-turn notifications, and environmental weather overlays in AllTrails. |
 | [Unlock AllTrails+ & Offline Maps - AllTrails (Experimental)](#unlock-alltrails-offline-maps-alltrails-experimental) | ⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for AllTrails+ (offline topo map downloads, wrong-turn navigation alerts, and 3D trail previews). |
 
 </details>
@@ -332,6 +258,27 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
+<summary>📦 AutoZen&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlock Lifetime Premium & Ad-Free - AutoZen (Experimental)](#unlock-lifetime-premium-ad-free-autozen-experimental) | ⚠️ [Experimental / Untested] Removes in-car banner ads, unlocks lifetime premium car dashboard navigation, custom speed cameras alerts, and weather radar overlays in AutoZen. |
+
+</details>
+
+<details open>
+<summary>📦 BandLab&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Block Ads & Declutter Feed - BandLab (Experimental)](#block-ads-declutter-feed-bandlab-experimental) | Removes in-app promotional banners, upgrade prompts, sponsored artist cards, and interstitial ads across the BandLab home feed and studio screens. |
+| [Unlock Creator Membership & Audio Tools - BandLab (Experimental)](#unlock-creator-membership-audio-tools-bandlab-experimental) | Hooks Google Play Billing Client and membership state models in BandLab to unlock client-side Creator Membership perks, audio presets, master presets, and removes membership upgrade paywalls. |
+
+</details>
+
+<details open>
 <summary>📦 Beach Buggy Racing&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
@@ -358,6 +305,16 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
+<summary>📦 BlockerHero&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlock Premium Custom Blocklists - BlockerHero (Experimental)](#unlock-premium-custom-blocklists-blockerhero-experimental) | ⚠️ [Experimental / Untested] Hooks Google Play Billing to unlock client-side Premium features in BlockerHero, enabling custom URL keywords, strict uninstall protection, and unlimited app locks. |
+
+</details>
+
+<details open>
 <summary>📦 Brave Browser&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
@@ -367,6 +324,26 @@ Experiencing an issue or want an experimental patch to actually work in the next
 | [Disable Rewards & Crypto Wallet - Brave (Experimental)](#disable-rewards-crypto-wallet-brave-experimental) | ⚠️ [Experimental / Untested] Disables Brave Rewards (BAT), crypto wallet icon, Web3 onboarding prompts, and token badges for a cleaner UI. |
 | [Force Aggressive Shields & Anti-Adblock Bypass - Brave (Experimental)](#force-aggressive-shields-anti-adblock-bypass-brave-experimental) | ⚠️ [Experimental / Untested] Forces aggressive ad/tracker blocking mode by default, strips URL tracking query parameters, and bypasses anti-adblock detection scripts in Brave. |
 | [Unlock Brave Origin & Premium Features - Brave (Experimental)](#unlock-brave-origin-premium-features-brave-experimental) | ⚠️ [Experimental / Untested] Unlocks the official Brave Origin license ($59.99), enables bloatware-free minimalist mode, unlocks unlimited Brave Leo Premium AI assistant, and enables Brave VPN entitlements. |
+
+</details>
+
+<details open>
+<summary>📦 Bumble&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Clean Dating Interface - Bumble (Experimental)](#ad-free-clean-dating-interface-bumble-experimental) | ⚠️ [Experimental / Untested] Neutralizes sponsored swipe profiles, bottom banner ads, and suppresses repetitive Bumble Premium / Boost upgrade popups across swipe decks. |
+
+</details>
+
+<details open>
+<summary>📦 Busuu&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlock Premium Vocabulary & Grammar - Busuu (Experimental)](#unlock-premium-vocabulary-grammar-busuu-experimental) | ⚠️ [Experimental / Untested] Removes lesson banner ads, unlocks client-side Premium grammar units, Smart Review vocabulary practice, and offline lesson downloads in Busuu. |
 
 </details>
 
@@ -396,6 +373,30 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
+<summary>📦 CapCut&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Bypass Integrity & Update Dialog - CapCut (Experimental)](#bypass-integrity-update-dialog-capcut-experimental) | ⚠️ [Experimental / Untested] Bypasses CapCut tamper detection, security advisory notice, and force update popups. |
+| [Disable Ending Watermark & Ad Prompts - CapCut (Experimental)](#disable-ending-watermark-ad-prompts-capcut-experimental) | ⚠️ [Experimental / Untested] Disables default ending clip watermark insertion, strips in-app advertisements, upgrade subscription banners, and paywall popups in CapCut. |
+| [Unlock Pro & VIP Effects - CapCut (Experimental)](#unlock-pro-vip-effects-capcut-experimental) | ⚠️ [Experimental / Untested] Unlocks CapCut Pro filters, VIP transitions, premium audio effects, high-bitrate export settings, and removes default ending watermark prompts by hooking VIP user entitlements and Google Play Billing. |
+
+</details>
+
+<details open>
+<summary>📦 CapCut (Alt)&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Bypass Integrity & Update Dialog - CapCut (Experimental)](#bypass-integrity-update-dialog-capcut-experimental) | ⚠️ [Experimental / Untested] Bypasses CapCut tamper detection, security advisory notice, and force update popups. |
+| [Disable Ending Watermark & Ad Prompts - CapCut (Experimental)](#disable-ending-watermark-ad-prompts-capcut-experimental) | ⚠️ [Experimental / Untested] Disables default ending clip watermark insertion, strips in-app advertisements, upgrade subscription banners, and paywall popups in CapCut. |
+| [Unlock Pro & VIP Effects - CapCut (Experimental)](#unlock-pro-vip-effects-capcut-experimental) | ⚠️ [Experimental / Untested] Unlocks CapCut Pro filters, VIP transitions, premium audio effects, high-bitrate export settings, and removes default ending watermark prompts by hooking VIP user entitlements and Google Play Billing. |
+
+</details>
+
+<details open>
 <summary>📦 ChatGPT&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
@@ -404,6 +405,16 @@ Experiencing an issue or want an experimental patch to actually work in the next
 | [AMOLED Dark Theme & Declutter - ChatGPT (Experimental)](#amoled-dark-theme-declutter-chatgpt-experimental) | ⚠️ [Experimental / Untested] Injects pure pitch black (#000000) for OLED screens in ChatGPT conversations and hides 'Upgrade to ChatGPT Plus' marketing banners. |
 | [Allow Screenshots & Copy - ChatGPT (Experimental)](#allow-screenshots-copy-chatgpt-experimental) | ⚠️ [Experimental / Untested] Removes Android FLAG_SECURE window restrictions to allow screenshots and screen recording inside conversations and prevents copy restrictions. |
 | [Keep Screen On During Generation - ChatGPT (Experimental)](#keep-screen-on-during-generation-chatgpt-experimental) | ⚠️ [Experimental / Untested] Keeps the screen illuminated and active while ChatGPT is streaming responses and code snippets, preventing device sleep during long answers. |
+
+</details>
+
+<details open>
+<summary>📦 Chess.com&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Unlimited Bot Games - Chess.com (Experimental)](#ad-free-unlimited-bot-games-chess-com-experimental) | ⚠️ [Experimental / Untested] Removes interstitial popups after chess matches, banner ads, and hooks client-side bot game limits and custom board themes. |
 
 </details>
 
@@ -432,6 +443,16 @@ Experiencing an issue or want an experimental patch to actually work in the next
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | [Unlock VIP (Experimental)](#unlock-vip-experimental) | ⚠️ [Experimental / Untested] Unlocks CoinSnap VIP features including unlimited coin identifications, full grading and valuation, collection storage, and disables startup paywall prompts. (Experimental - Not yet tested on device). |
+
+</details>
+
+<details open>
+<summary>📦 Cronometer&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Gold Features - Cronometer (Experimental)](#ad-free-gold-features-cronometer-experimental) | ⚠️ [Experimental / Untested] Removes in-app banner ads, diary promotional banners, and hooks client-side Gold membership status for target scheduler and nutrition charts in Cronometer. |
 
 </details>
 
@@ -575,6 +596,17 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
+<summary>📦 Fossify Phone&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Pure AMOLED Black Theme - Fossify Phone (Experimental)](#pure-amoled-black-theme-fossify-phone-experimental) | Applies a pure #000000 AMOLED dark theme across dialpad, in-call screen, contacts list, and call history for optimal OLED battery savings. |
+| [Silent & Unrestricted Call Recording - Fossify Phone (Experimental)](#silent-unrestricted-call-recording-fossify-phone-experimental) | Unlocks call recording across all regions/devices, suppresses carrier/recording warning beeps and disclosure alerts, and automatically enables two-way audio recording directly to local storage. |
+
+</details>
+
+<details open>
 <summary>📦 Free Fire&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -606,6 +638,16 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
+<summary>📦 Genius&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free Lyrics & Clean Reader - Genius (Experimental)](#ad-free-lyrics-clean-reader-genius-experimental) | ⚠️ [Experimental / Untested] Strips persistent bottom banner ads, video player interstitials, and cleans up promotional merch cards across Genius song lyrics and annotation screens. |
+
+</details>
+
+<details open>
 <summary>📦 Geometry Dash&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
@@ -613,6 +655,16 @@ Experiencing an issue or want an experimental patch to actually work in the next
 |----------|----------------|
 | [Practice Music Hack & Bypass - Geometry Dash (Experimental)](#practice-music-hack-bypass-geometry-dash-experimental) | ⚠️ [Experimental / Untested] Plays the real level soundtrack instead of the default repetitive practice loop song when playing in Practice Mode. |
 | [Unlock All Levels & Icons - Geometry Dash (Experimental)](#unlock-all-levels-icons-geometry-dash-experimental) | ⚠️ [Experimental / Untested] Unlocks all official levels (including Demon stages), custom icons, ships, balls, UFOs, waves, trails, and colors in Geometry Dash. |
+
+</details>
+
+<details open>
+<summary>📦 Goodreads&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Pure AMOLED Dark Theme & Ad-Free - Goodreads (Experimental)](#pure-amoled-dark-theme-ad-free-goodreads-experimental) | ⚠️ [Experimental / Untested] Enforces a true pitch-black #000000 AMOLED dark theme across bookshelves, reader reviews, and book details, while stripping banner advertisements in Goodreads. |
 
 </details>
 
@@ -663,6 +715,16 @@ Experiencing an issue or want an experimental patch to actually work in the next
 | [Disable Storage Warnings - Google Photos (Experimental)](#disable-storage-warnings-google-photos-experimental) | ⚠️ [Experimental / Untested] Suppresses intrusive cloud storage full popups, Google One subscription reminders, and backup disabled warnings in Google Photos. |
 | [Pixel Spoof for Unlimited Backup - Google Photos (Experimental)](#pixel-spoof-for-unlimited-backup-google-photos-experimental) | ⚠️ [Experimental / Untested] Spoofs the device model as an original Google Pixel to activate unlimited original-quality photo and video cloud storage backup in Google Photos. |
 | [Unlock Editing Tools - Google Photos (Experimental)](#unlock-editing-tools-google-photos-experimental) | ⚠️ [Experimental / Untested] Enables Pixel-exclusive photo editing features, Magic Eraser UI toggles, and Portrait Blur enhancement tools in Google Photos. |
+
+</details>
+
+<details open>
+<summary>📦 Hevy&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlock Pro & Custom Routines - Hevy (Experimental)](#unlock-pro-custom-routines-hevy-experimental) | ⚠️ [Experimental / Untested] Hooks Google Play Billing and subscription status in Hevy to unlock client-side Pro perks, unlimited custom workout routines, and advanced graph analytics. |
 
 </details>
 
@@ -732,6 +794,16 @@ Experiencing an issue or want an experimental patch to actually work in the next
 |----------|----------------|
 | [Fast Gold Rush - Hungry Shark (Experimental)](#fast-gold-rush-hungry-shark-experimental) | ⚠️ [Experimental / Untested] Accelerates Gold Rush gauge filling in Hungry Shark World and Evolution, triggering frenzy coin multipliers and invulnerability much faster. (Experimental - Not yet tested on device). |
 | [Infinite Boost - Hungry Shark (Experimental)](#infinite-boost-hungry-shark-experimental) | ⚠️ [Experimental / Untested] Disables boost meter depletion in Hungry Shark World and Hungry Shark Evolution, granting unlimited turbo swimming and continuous dash attacks without waiting for recharge. (Experimental - Not yet tested on device). |
+
+</details>
+
+<details open>
+<summary>📦 IMDb&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Clean Interface - IMDb (Experimental)](#ad-free-clean-interface-imdb-experimental) | ⚠️ [Experimental / Untested] Strips banner ads, sponsored recommendation cards, interstitial popups, and video pre-roll advertisements before movie and TV show trailers in IMDb. |
 
 </details>
 
@@ -829,6 +901,27 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
+<summary>📦 Letterboxd&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Clean Interface - Letterboxd (Experimental)](#ad-free-clean-interface-letterboxd-experimental) | ⚠️ [Experimental / Untested] Removes in-app banner ads, sponsored film promo carousels, and recurring Pro/Patron subscription prompts across the Letterboxd home feed and film detail screens. |
+| [Pure AMOLED Dark Theme - Letterboxd (Experimental)](#pure-amoled-dark-theme-letterboxd-experimental) | ⚠️ [Experimental / Untested] Applies a pure pitch-black #000000 AMOLED dark theme across Letterboxd film lists, review feeds, diary entries, and member profiles for maximum OLED battery savings. |
+
+</details>
+
+<details open>
+<summary>📦 Mathway&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Step-by-Step Solver - Mathway (Experimental)](#ad-free-step-by-step-solver-mathway-experimental) | ⚠️ [Experimental / Untested] Removes interstitial ads after calculating solutions, strips bottom ad banners, and hooks client-side subscription verification for step-by-step problem explanations in Mathway. |
+
+</details>
+
+<details open>
 <summary>📦 MEGA&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
@@ -850,6 +943,47 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
+<summary>📦 Microsoft SwiftKey&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Disable Telemetry & Clean Onboarding - Microsoft SwiftKey (Experimental)](#disable-telemetry-clean-onboarding-microsoft-swiftkey-experimental) | ⚠️ [Experimental / Untested] Disables telemetry logging, user feedback surveys, and bypasses forced Microsoft cloud account sign-in prompts on initial keyboard setup in SwiftKey. |
+
+</details>
+
+<details open>
+<summary>📦 Money Manager&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlock Premium Features & Passcode - Money Manager (Experimental)](#unlock-premium-features-passcode-money-manager-experimental) | ⚠️ [Experimental / Untested] Removes in-app banner ads, unlocks unlimited sub-accounts/categories, biometric passcode protection, and PC manager sync in Money Manager. |
+
+</details>
+
+<details open>
+<summary>📦 Moovit&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free Transit & Clean Interface - Moovit (Experimental)](#ad-free-transit-clean-interface-moovit-experimental) | ⚠️ [Experimental / Untested] Neutralizes full-screen interstitial ads when viewing schedules, removes bottom banner ads, and declutters live transit map overlays in Moovit. |
+
+</details>
+
+<details open>
+<summary>📦 MT Manager&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Remove Ads & Update Prompts - MT Manager (Experimental)](#remove-ads-update-prompts-mt-manager-experimental) | ⚠️ [Experimental / Untested] Removes banner and interstitial advertisements, disables forced update dialogs and upgrade check nags in MT Manager. |
+| [Unlock VIP Features & Themes - MT Manager (Experimental)](#unlock-vip-features-themes-mt-manager-experimental) | ⚠️ [Experimental / Untested] Unlocks MT Manager VIP features (batch rename, DEX/Arsc editor++, syntax highlighting, XML/DEX search & replace, signature verification bypass, VIP theme customization) by hooking VIP privilege getters, expiration checks, and Google Play Billing. |
+
+</details>
+
+<details open>
 <summary>📦 MX Player&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
@@ -861,6 +995,16 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
+<summary>📦 MyFitnessPal&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Premium Nutrition - MyFitnessPal (Experimental)](#ad-free-premium-nutrition-myfitnesspal-experimental) | ⚠️ [Experimental / Untested] Removes sponsored food cards, bottom banner ads, and hooks client-side Premium subscription status for custom macronutrient goals in MyFitnessPal. |
+
+</details>
+
+<details open>
 <summary>📦 Nextcloud&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
@@ -868,6 +1012,16 @@ Experiencing an issue or want an experimental patch to actually work in the next
 |----------|----------------|
 | [AMOLED Dark Theme - Nextcloud (Experimental)](#amoled-dark-theme-nextcloud-experimental) | ⚠️ [Experimental / Untested] Replaces dark gray theme with pure pitch black (#000000) for OLED screens in Nextcloud file explorer, uploads monitor, and media gallery. |
 | [Allow Screenshots & Bypass Lockout - Nextcloud (Experimental)](#allow-screenshots-bypass-lockout-nextcloud-experimental) | ⚠️ [Experimental / Untested] Removes FLAG_SECURE window protections in Nextcloud to enable screenshots and screen recording even when app passcode lock is configured. |
+
+</details>
+
+<details open>
+<summary>📦 NokoPrint&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Unlimited Printing - NokoPrint (Experimental)](#ad-free-unlimited-printing-nokoprint-experimental) | ⚠️ [Experimental / Untested] Removes interstitial ads shown when generating print spools, strips bottom ad banners, and unlocks unlimited multi-page document printing in NokoPrint. |
 
 </details>
 
@@ -982,6 +1136,26 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
+<summary>📦 Pocket Casts&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Pure AMOLED Dark Theme & Plus Perks - Pocket Casts (Experimental)](#pure-amoled-dark-theme-plus-perks-pocket-casts-experimental) | ⚠️ [Experimental / Untested] Enforces a true #000000 AMOLED Extra Dark theme across podcast player, episode filters, and discovery feed, and unlocks client-side Plus icon customization in Pocket Casts. |
+
+</details>
+
+<details open>
+<summary>📦 Poweramp&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlock Full Version & Feature Pack - Poweramp (Experimental)](#unlock-full-version-feature-pack-poweramp-experimental) | ⚠️ [Experimental / Untested] Neutralizes trial expiration timers, unlocks the full version license state, and enables Hi-Res audio output plugins in Poweramp. |
+
+</details>
+
+<details open>
 <summary>📦 Proton Drive&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
@@ -1029,6 +1203,16 @@ Experiencing an issue or want an experimental patch to actually work in the next
 | [Enhanced Privacy & Telemetry Blocker - Proton VPN (Experimental)](#enhanced-privacy-telemetry-blocker-proton-vpn-experimental) | ⚠️ [Experimental / Untested] Blocks diagnostic telemetry, analytical event reporting (Firebase, Sentry, Mixpanel, Matomo), and crashlytics logging for zero metadata leakage. |
 | [Unlock Custom DNS Settings - Proton VPN (Experimental)](#unlock-custom-dns-settings-proton-vpn-experimental) | ⚠️ [Experimental / Untested] Unlocks custom upstream DNS resolver preferences (NextDNS, AdGuard DNS, Quad9) in Proton VPN settings without subscription restrictions. |
 | [Unlock NetShield DNS Blocker - Proton VPN (Experimental)](#unlock-netshield-dns-blocker-proton-vpn-experimental) | ⚠️ [Experimental / Untested] Unlocks the NetShield DNS ad & malware blocking toggle in Proton VPN preferences without requiring a Plus subscription. |
+
+</details>
+
+<details open>
+<summary>📦 Quizlet&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Plus Features - Quizlet (Experimental)](#ad-free-plus-features-quizlet-experimental) | ⚠️ [Experimental / Untested] Removes in-app banner ads, study interruption interstitials, and hooks client-side membership verification for Quizlet Plus study features. |
 
 </details>
 
@@ -1151,6 +1335,22 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
+<summary>📦 Shazam&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 16.63.0-261008 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Clean Interface - Shazam (Experimental)](#ad-free-clean-interface-shazam-experimental) | Strips post-recognition promo cards, Apple Music targeted upsells, in-app survey banners, and announcement sheets in Shazam. |
+| [Always-On Auto Shazam - Shazam (Experimental)](#always-on-auto-shazam-shazam-experimental) | Keeps Auto Shazam background listening continuously active without automatic timeout cancellation or sleep limits. |
+
+</details>
+
+<details open>
 <summary>📦 Signal&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
@@ -1160,6 +1360,22 @@ Experiencing an issue or want an experimental patch to actually work in the next
 | [Allow Screenshots & Screen Security Bypass - Signal (Experimental)](#allow-screenshots-screen-security-bypass-signal-experimental) | ⚠️ [Experimental / Untested] Bypasses Android FLAG_SECURE window restrictions in Signal, allowing users to take screenshots and record screens even when Screen Security is enforced. |
 | [Enhanced Privacy & Disable Typing - Signal (Experimental)](#enhanced-privacy-disable-typing-signal-experimental) | ⚠️ [Experimental / Untested] Prevents sending outgoing typing indicators and suppresses read receipt delivery confirmations for enhanced conversation privacy. |
 | [Unlock Supporter & Donor Badge - Signal (Experimental)](#unlock-supporter-donor-badge-signal-experimental) | ⚠️ [Experimental / Untested] Activates the client-side Signal Sustainer / Supporter profile badge and unlocks exclusive supporter avatar rings and custom app icons. |
+
+</details>
+
+<details open>
+<summary>📦 Silt&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.0.10 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlock Full Game - Silt (Experimental)](#unlock-full-game-silt-experimental) | Unlocks the full game, all oceanic abyss chapters, and in-app purchase verification in Silt (v1.0.10). Automatically neutralizes PairIP native DRM in Google Play installations. |
+| [Unlock Full Game Bytecode - Silt (Experimental)](#unlock-full-game-bytecode-silt-experimental) | Bytecode de-obfuscation and unlock engine for Silt |
 
 </details>
 
@@ -1212,25 +1428,6 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
-<summary>📦 Spotify&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;9.1.84.2231 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [Spicetify AMOLED Black Theme - Spotify (Experimental)](#spicetify-amoled-black-theme-spotify-experimental) | ⚠️ [Experimental / Untested] Implements an OLED True Black (#000000) theme for Spotify Mobile, replacing dark-grey backgrounds across Android resources (res/values/colors.xml), Jetpack Compose Encore design system (64-bit literals), obfuscated Dalvik bytecode (32-bit & 24-bit literals), semantic theme methods, and string tables for maximum contrast and battery savings. |
-| [Spicetify Community Addons & Settings - Spotify (Experimental)](#spicetify-community-addons-settings-spotify-experimental) | ⚠️ [Experimental / Untested] Attempts to expose developer lab flags. NOTE: Spicetify extensions are made for Desktop and cannot run natively on Android without an LSPosed/Xposed framework. |
-| [Spicetify Custom Accent Color - Spotify (Experimental)](#spicetify-custom-accent-color-spotify-experimental) | ⚠️ [Experimental / Untested] Replaces Spotify brand green (#1DB954 / #1ED760) with custom Cyberpunk Electric Purple (#8A2BE2) across Android resources (res/values/colors.xml), Jetpack Compose Encore design system (64-bit literals), obfuscated Dalvik bytecode (32-bit & 24-bit literals including Lottie float rounding variations and checkmarks), semantic theme methods, and string tables. |
-| [Spicetify Declutter UI - Spotify (Experimental)](#spicetify-declutter-ui-spotify-experimental) | ⚠️ [Experimental / Untested] Attempts to hide Premium upgrade prompts and promotional elements. NOTE: Spotify uses server-driven UI and code obfuscation; some banners are injected directly from Spotify backend. |
-| [Unlock Spotify Premium & Playback Restrictions - Spotify (Experimental)](#unlock-spotify-premium-playback-restrictions-spotify-experimental) | ⚠️ [Experimental / Untested] Unlocks Spotify Premium features: unlimited skips, on-demand playback without forced shuffle, seek/scrub bar support, track repeat, and removes audio/visual advertisements. |
-
-</details>
-
-<details open>
 <summary>📦 Stellarium Mobile&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -1274,6 +1471,16 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
+<summary>📦 Teach Me Anatomy&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlock Premium 3D Models & Quizzes - Teach Me Anatomy (Experimental)](#unlock-premium-3d-models-quizzes-teach-me-anatomy-experimental) | ⚠️ [Experimental / Untested] Removes in-app banner ads, unlocks full 3D bio-digital anatomy cross-sections, clinical articles, and question bank quizzes in Teach Me Anatomy. |
+
+</details>
+
+<details open>
 <summary>📦 Telegram&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
@@ -1312,6 +1519,26 @@ Experiencing an issue or want an experimental patch to actually work in the next
 </details>
 
 <details open>
+<summary>📦 Tidal&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Declutter Interface & Disable Upsells - Tidal (Experimental)](#declutter-interface-disable-upsells-tidal-experimental) | ⚠️ [Experimental / Untested] Strips recurring HiFi Plus subscription upgrade banners, trial extension dialogs, and declutters promotional artist spotlight carousels in Tidal. |
+
+</details>
+
+<details open>
+<summary>📦 Todoist&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlock Pro Features & Layouts - Todoist (Experimental)](#unlock-pro-features-layouts-todoist-experimental) | ⚠️ [Experimental / Untested] Hooks Google Play Billing and subscription status in Todoist to unlock client-side Pro features, custom theme palettes, unlimited task reminders, and full activity logs. |
+
+</details>
+
+<details open>
 <summary>📦 Truecaller&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
@@ -1324,6 +1551,16 @@ Experiencing an issue or want an experimental patch to actually work in the next
 |----------|----------------|
 | [Ad-Free & Clean Dialer - Truecaller (Experimental)](#ad-free-clean-dialer-truecaller-experimental) | ⚠️ [Experimental / Untested] Removes intrusive post-call ads, banner ads inside the call history and dialer tabs, and promotional Gold upsells by neutralizing ad SDK calls. |
 | [Unlock Premium & Gold Features - Truecaller (Experimental)](#unlock-premium-gold-features-truecaller-experimental) | ⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for Truecaller Premium and Gold caller ID themes and spam filtering features. |
+
+</details>
+
+<details open>
+<summary>📦 Tumblr&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Block Ads & Declutter Feed - Tumblr (Experimental)](#block-ads-declutter-feed-tumblr-experimental) | ⚠️ [Experimental / Untested] Neutralizes sponsored blog posts, promoted radar items, interstitial video ads, and declutters recommendation carousels in Tumblr dashboard feeds. |
 
 </details>
 
@@ -1388,6 +1625,28 @@ Experiencing an issue or want an experimental patch to actually work in the next
 | [Free Shopping - Vector 2 (Experimental)](#free-shopping-vector-2-experimental) | ⚠️ [Experimental / Untested] Hooks Google Play Billing in Vector 2 to obtain upgrade chips, research tokens, and accelerator packs for free. (Experimental - Not yet tested on device). |
 | [Infinite Battery & Shields - Vector 2 (Experimental)](#infinite-battery-shields-vector-2-experimental) | ⚠️ [Experimental / Untested] Prevents armor kit battery and shield depletion in Vector 2, keeping protective shields active against lasers, floor mines, and electric hazards. (Experimental - Not yet tested on device). |
 | [Unlock Gear Matrix - Vector 2 (Experimental)](#unlock-gear-matrix-vector-2-experimental) | ⚠️ [Experimental / Untested] Unlocks experimental equipment slots, booster upgrades, and datacore matrices in Vector 2 without research token gating. (Experimental - Not yet tested on device). |
+
+</details>
+
+<details open>
+<summary>📦 Virtual Master&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Clean Environment - Virtual Master (Experimental)](#ad-free-clean-environment-virtual-master-experimental) | ⚠️ [Experimental / Untested] Strips all boot interstitials, launcher advertisements, app clone promotion banners, and telemetry popups from Virtual Master by hooking internal AdMob wrappers and ad containers. |
+| [Unlock Pro & Multi-Instance - Virtual Master (Experimental)](#unlock-pro-multi-instance-virtual-master-experimental) | ⚠️ [Experimental / Untested] Unlocks Virtual Master Pro edition, allowing unlimited virtual Android instances, root permission toggles, customized device ID spoofing, and advanced backup/restore by hooking MemberStatusResponse, obfuscated BillingManager gatekeepers, and Google Play Billing. |
+
+</details>
+
+<details open>
+<summary>📦 Virtual Master (Alt)&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Clean Environment - Virtual Master (Experimental)](#ad-free-clean-environment-virtual-master-experimental) | ⚠️ [Experimental / Untested] Strips all boot interstitials, launcher advertisements, app clone promotion banners, and telemetry popups from Virtual Master by hooking internal AdMob wrappers and ad containers. |
+| [Unlock Pro & Multi-Instance - Virtual Master (Experimental)](#unlock-pro-multi-instance-virtual-master-experimental) | ⚠️ [Experimental / Untested] Unlocks Virtual Master Pro edition, allowing unlimited virtual Android instances, root permission toggles, customized device ID spoofing, and advanced backup/restore by hooking MemberStatusResponse, obfuscated BillingManager gatekeepers, and Google Play Billing. |
 
 </details>
 

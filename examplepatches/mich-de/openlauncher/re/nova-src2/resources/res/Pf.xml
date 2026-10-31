@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="0x7f060037"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.appcompat.widget.Toolbar
+        android:id="0x7f0b014e"
+        android:background="0x7f060036"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:elevation="4dp"/>
+    <com.instabridge.ai.chat.ui.AiChatView
+        android:id="0x7f0b014f"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</LinearLayout>

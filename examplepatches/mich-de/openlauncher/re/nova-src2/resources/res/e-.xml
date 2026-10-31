@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="0x7f0b036a"
+            android:visibility="visible"
+            android:layout_width="32dp"
+            android:layout_height="21dp"
+            android:src="0x7f080631"/>
+        <ImageView
+            android:layout_gravity="center"
+            android:id="0x7f0b0155"
+            android:visibility="gone"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:src="0x7f0805a2"/>
+    </LinearLayout>
+</merge>

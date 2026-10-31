@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.afollestad.materialdialogs.internal.MDRootLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <include layout="0x7f0e0126"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ScrollView
+            android:id="0x7f0b01a9"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:textSize="0x7f070352"
+                android:id="0x7f0b01a5"
+                android:paddingLeft="0x7f070353"
+                android:paddingTop="0x7f070351"
+                android:paddingRight="0x7f070353"
+                android:paddingBottom="0x7f070350"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </ScrollView>
+        <FrameLayout
+            android:id="0x7f0b01a7"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ListView
+                android:scrollbarStyle="outsideOverlay"
+                android:id="0x7f0b01a6"
+                android:paddingTop="0x7f070351"
+                android:paddingBottom="0x7f070350"
+                android:clipToPadding="false"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@null"
+                android:dividerHeight="0dp"/>
+        </FrameLayout>
+    </LinearLayout>
+    <include layout="0x7f0e0121"/>
+</com.afollestad.materialdialogs.internal.MDRootLayout>

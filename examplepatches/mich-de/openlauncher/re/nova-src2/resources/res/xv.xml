@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:background="0x7f080150"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp">
+    <ImageView
+        android:id="0x7f0b06bb"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:importantForAccessibility="no"
+        app:tint="0x7f06005d"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="12dp">
+        <TextView
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="0x7f06005d"
+            android:id="0x7f0b06bd"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:textSize="12sp"
+            android:textColor="0x7f060052"
+            android:id="0x7f0b06ba"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"/>
+    </LinearLayout>
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="0x7f0b06be"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:thumb="0x7f08018b"
+        app:track="0x7f08018c"/>
+</LinearLayout>

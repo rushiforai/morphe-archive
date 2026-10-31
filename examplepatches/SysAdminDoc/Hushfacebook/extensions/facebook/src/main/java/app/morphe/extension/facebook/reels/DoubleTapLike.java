@@ -4,6 +4,8 @@
  */
 package app.morphe.extension.facebook.reels;
 
+import android.view.MotionEvent;
+
 import androidx.annotation.Nullable;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
@@ -13,8 +15,8 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 
 /**
- * What the Turn off double tap to like patch asks before a double tap on a reel or a video likes
- * it.
+ * What the Turn off double tap to like patch asks before a double tap on a reel, a video or a photo
+ * on Home likes it.
  *
  * <p>Nearly every reel and video player in Facebook sits under one gesture view, which a double tap
  * reaches twice: first to play the heart where the finger landed, then to hand the tap to the
@@ -31,6 +33,12 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * with a double-tap listener of their own send it. A feed attachment that chains into Reels plays
  * its own heart after its double tap asks the helper, so {@link #holdBackTap} leaves that double
  * tap unhandled, the answer the attachment gives when its double-tap like is off.
+ *
+ * <p>Photos on Home like through a path of their own. Their components give each photo a
+ * double-tap detector whose listener says yes on the second tap's lift, and that yes plays the
+ * heart and sends the like through the feed's double-tap like helper. {@link #holdBackFeedTap}
+ * makes the listener say no, and {@link #holdBackFeedLike} stops the helper's like behind it. The
+ * single tap that opens a photo and the long press have detectors of their own.
  *
  * <p>The Like button's like has another source, so it goes through, and so does everything while
  * the switch is off, Hushfacebook is paused or settings aren't ready, or when anything in here
@@ -96,6 +104,39 @@ public final class DoubleTapLike {
     public static boolean holdBackTap() {
         HookStatus.invoked(FamilyNames.DOUBLE_TAP_LIKE);
         return noLike("attachment double tap", true);
+    }
+
+    /**
+     * Injection point, first thing in the onDoubleTapEvent of the listener Home's photo
+     * attachments share. True while the switch is on, so the listener answers every event of the
+     * second tap unhandled and the photo's double-tap detector never reports a double tap: no
+     * heart, no haptic, no like. Counted once a double tap, on the second tap's lift, where
+     * Facebook's listener answers that it took the double tap. Double tap opens comments doesn't
+     * reach Home's photos, so it isn't asked here.
+     */
+    public static boolean holdBackFeedTap(@Nullable MotionEvent event) {
+        HookStatus.invoked(FamilyNames.DOUBLE_TAP_LIKE);
+        return holdingBack("feed photo double tap", isLift(event));
+    }
+
+    /**
+     * Injection point, first thing in the like of the feed's double-tap like helper, which only a
+     * double tap's heart calls. True while the switch is on, so the helper returns without liking:
+     * the catch for a double tap on Home that reaches the helper past {@link #holdBackFeedTap}.
+     */
+    public static boolean holdBackFeedLike() {
+        HookStatus.invoked(FamilyNames.DOUBLE_TAP_LIKE);
+        return holdingBack("feed double tap like", true);
+    }
+
+    /** Whether [event] is a finger lifting, the second tap's end. Never throws. */
+    private static boolean isLift(@Nullable MotionEvent event) {
+        try {
+            return event != null && event.getActionMasked() == MotionEvent.ACTION_UP;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.DOUBLE_TAP_LIKE, "feed photo double tap", failure);
+            return false;
+        }
     }
 
     /**

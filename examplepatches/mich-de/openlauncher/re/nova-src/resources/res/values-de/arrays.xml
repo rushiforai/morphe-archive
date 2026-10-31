@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="exo_controls_playback_speeds">
+        <item>0,25-fach</item>
+        <item>0,5-fach</item>
+        <item>0,75-fach</item>
+        <item>Standard</item>
+        <item>1,25-fach</item>
+        <item>1,5-fach</item>
+        <item>2-fach</item>
+    </array>
+    <array name="pref_screen_orientation">
+        <item>Standard</item>
+        <item>Automatisch drehen</item>
+        <item>Hochformat erzwingen</item>
+        <item>Querformat erzwingen</item>
+    </array>
+</resources>

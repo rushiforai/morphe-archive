@@ -13,6 +13,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Field
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -173,6 +174,29 @@ class StorySeenMarkingShapesTest {
         assertEquals("A00", found.session.name)
         assertEquals("A0X", found.hasUnwatched.name)
         assertEquals(bucketType, found.hasUnwatched.definingClass)
+        assertEquals("A0X", found.override.name)
+        assertEquals(regularType, found.override.definingClass)
+        assertEquals("the tree a Highlights bucket's type is read from (#165)", "A01", found.tree.name)
+        assertEquals(regularType, found.tree.definingClass)
+    }
+
+    @Test
+    fun `a bucket's answer asks the extension first and goes on to Facebook's when it says no`() {
+        val answer = unwatched()
+        val code = answer.implementation!!.instructions.toList()
+        val asked = MutableMethod(answer).apply { answerWatchedFirst() }.implementation!!.instructions.toList()
+        assertEquals(code.size + 5, asked.size)
+        assertEquals(READS_WATCHED, ((asked[0] as ReferenceInstruction).reference as MethodReference).let {
+            "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}"
+        })
+        assertEquals("the hook reads this", 2, (asked[0] as RegisterRangeInstruction).startRegister)
+        assertEquals("the hook's answer lands in the free local", 0, (asked[1] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.RETURN, asked[4].opcode)
+        assertEquals("a no goes on to Facebook's first instruction", code[0].opcode, asked[5].opcode)
+
+        // Negative control: an answer with no local to spare isn't changed.
+        val bare = method(regularType, "A0X", emptyList(), "Z", 1, listOf(ImmutableInstruction11x(Opcode.RETURN, 0)))
+        assertThrows(PatchException::class.java) { MutableMethod(bare).answerWatchedFirst() }
     }
 
     @Test

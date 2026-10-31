@@ -60,6 +60,7 @@ public final class FeedSound {
         try {
             HookStatus.invoked(FAMILY);
             HookStatus.bound(FAMILY, "session start");
+            StorySound.newSession();
             if (!asked || !on()) return asked;
             HookStatus.counted(FAMILY, SESSION_MUTED);
             Logger.printDebug(() -> "Keep feed videos muted: a new session starts muted");
@@ -74,13 +75,19 @@ public final class FeedSound {
      * Injection point, in the sound manager's setter right after it reads the flag it holds,
      * [current], which it then sets to [asked] for [reason], one of Facebook's enum of reasons.
      * Answers the flag it sets: while the switch is on, a sound-on that isn't yours gets
-     * [current], which changes nothing. Everything else gets [asked].
+     * [current], which changes nothing. Everything else gets [asked]. While Mute stories is on, a
+     * sound change of yours also tells {@link StorySound} whether you want stories heard.
      */
     public static boolean soundChange(@Nullable Object reason, boolean asked, boolean current) {
         try {
             HookStatus.invoked(FAMILY);
             HookStatus.bound(FAMILY, "sound change");
-            if (!asked || current || !on() || yours(reason)) return asked;
+            boolean feed = asked && !current && on();
+            boolean stories = StorySound.on();
+            if (!feed && !stories) return asked;
+            boolean yours = yours(reason);
+            if (stories && yours) StorySound.yoursSound(asked);
+            if (!feed || yours) return asked;
             HookStatus.counted(FAMILY, KEPT_MUTED);
             Logger.printDebug(() -> "Keep feed videos muted: kept the sound off for " + name(reason));
             return current;

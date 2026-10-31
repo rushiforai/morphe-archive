@@ -1,0 +1,1275 @@
+# [2.0.0-dev.22](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.21...v2.0.0-dev.22) (2026-10-21)
+
+
+### Bug Fixes
+
+* Update ARSCLib dependency ([c2f3bc7](https://github.com/MorpheApp/morphe-patcher/commit/c2f3bc767c4e7bce4cda30be57fd3a805d2ce1af))
+
+# [2.0.0-dev.21](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.20...v2.0.0-dev.21) (2026-10-21)
+
+
+### Bug Fixes
+
+* Drop dex files left without classes in STRIP_FAST ([#260](https://github.com/MorpheApp/morphe-patcher/issues/260)) ([f79fae4](https://github.com/MorpheApp/morphe-patcher/commit/f79fae46860ddacd5c7eefb296f82ab1d2d8fbcc))
+
+# [2.0.0-dev.20](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.19...v2.0.0-dev.20) (2026-10-20)
+
+
+### Bug Fixes
+
+* Do not write duplicate attributes after setAttributeNS ([743859b](https://github.com/MorpheApp/morphe-patcher/commit/743859bfa192c0c29a786647223b0e982a65c5ca))
+
+# [2.0.0-dev.19](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.18...v2.0.0-dev.19) (2026-10-19)
+
+
+### Bug Fixes
+
+* Update ARSCLib dependency ([de9a1ea](https://github.com/MorpheApp/morphe-patcher/commit/de9a1ea6cbf4baad7890af410b0c7535d29ce105))
+
+# [2.0.0-dev.18](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.17...v2.0.0-dev.18) (2026-10-19)
+
+
+### Bug Fixes
+
+* Do not over count encoded resources ([50f389c](https://github.com/MorpheApp/morphe-patcher/commit/50f389c8a9d598236e3b9b767f34be77f34a63de))
+
+# [2.0.0-dev.17](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.16...v2.0.0-dev.17) (2026-10-19)
+
+
+### Performance Improvements
+
+* Match file names directly when decoding resources by pattern ([4554677](https://github.com/MorpheApp/morphe-patcher/commit/45546770e6c211a99b92f85e8775913a0d06a7c2))
+
+# [2.0.0-dev.16](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.15...v2.0.0-dev.16) (2026-10-19)
+
+
+### Bug Fixes
+
+* Update ARSCLib dependency, do not sort resource strings ([27c9afa](https://github.com/MorpheApp/morphe-patcher/commit/27c9afaa6077ee04e021e426d0e5543f8baa0ae6))
+
+# [2.0.0-dev.15](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.14...v2.0.0-dev.15) (2026-10-19)
+
+
+### Bug Fixes
+
+* Update ARSCLib dependency ([7b940ae](https://github.com/MorpheApp/morphe-patcher/commit/7b940ae9705274f8af8edbb14b00113b2272ea0c))
+
+# [2.0.0-dev.14](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.13...v2.0.0-dev.14) (2026-10-19)
+
+
+### Bug Fixes
+
+* Use regex to escape/unescape strings to avoid Android slow XML processing ([#256](https://github.com/MorpheApp/morphe-patcher/issues/256)) ([e0f99b8](https://github.com/MorpheApp/morphe-patcher/commit/e0f99b8f4756ffcd40ef01fcd4c4c409a7591dd9))
+
+# [2.0.0-dev.13](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.12...v2.0.0-dev.13) (2026-10-18)
+
+
+### Bug Fixes
+
+* Keep the description in the AppTarget binary compatibility constructor ([#255](https://github.com/MorpheApp/morphe-patcher/issues/255)) ([290d087](https://github.com/MorpheApp/morphe-patcher/commit/290d087aa3e426826a1245edee2475030a48b655))
+
+# [2.0.0-dev.12](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.11...v2.0.0-dev.12) (2026-10-17)
+
+
+### Features
+
+* Add validation flag to perform additional fingerprint checks and logging ([#253](https://github.com/MorpheApp/morphe-patcher/issues/253)) ([966da3f](https://github.com/MorpheApp/morphe-patcher/commit/966da3f8fbbff374d42c3e98818fed09d3c29db6))
+
+# [2.0.0-dev.11](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.10...v2.0.0-dev.11) (2026-10-16)
+
+
+### Performance Improvements
+
+* Leave replaced entries out of the resource APK ([446cd3b](https://github.com/MorpheApp/morphe-patcher/commit/446cd3b30db66de5255ce190a3045782004719a7))
+
+# [2.0.0-dev.10](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.9...v2.0.0-dev.10) (2026-10-16)
+
+
+### Performance Improvements
+
+* Speed up XML saving, path matching and JSON writing on Android, and assign new resource IDs in a stable order ([f13a39d](https://github.com/MorpheApp/morphe-patcher/commit/f13a39d5855f8382d5733d47de3a5505fe142f99))
+
+# [2.0.0-dev.9](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.8...v2.0.0-dev.9) (2026-10-16)
+
+
+### Bug Fixes
+
+* Change to forked Google smali ([c3e34ef](https://github.com/MorpheApp/morphe-patcher/commit/c3e34ef970db11f5570e996d67f969cf93cbbb1f))
+
+# [2.0.0-dev.8](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.7...v2.0.0-dev.8) (2026-10-16)
+
+
+### Performance Improvements
+
+* Copy unchanged extension DEX files, index instructions without decoding them, and skip unchanged mutable methods when matching fingerprints ([#251](https://github.com/MorpheApp/morphe-patcher/issues/251)) ([aa883a2](https://github.com/MorpheApp/morphe-patcher/commit/aa883a2e50f1439c9f07d62d00d63da89a19240c))
+
+# [2.0.0-dev.7](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.6...v2.0.0-dev.7) (2026-10-16)
+
+
+### Features
+
+* Retry matching certain instruction sequences if a partial match is encountered ([#250](https://github.com/MorpheApp/morphe-patcher/issues/250)) ([b413e80](https://github.com/MorpheApp/morphe-patcher/commit/b413e8068020a5ed2a19b7f438e849076c9eece4))
+
+# [2.0.0-dev.6](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.5...v2.0.0-dev.6) (2026-10-16)
+
+
+### Bug Fixes
+
+* Universal patches declared default true do not give enough feedback what patch is at fault. Change 2.0.0 behavior from logger warning to an exception ([5c2f42f](https://github.com/MorpheApp/morphe-patcher/commit/5c2f42fd126d2b8a5e2e9f85f148556dabdc0b55))
+
+# [2.0.0-dev.5](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.4...v2.0.0-dev.5) (2026-10-16)
+
+
+### Features
+
+* Add additional instruction location searching ([#249](https://github.com/MorpheApp/morphe-patcher/issues/249)) ([09bd529](https://github.com/MorpheApp/morphe-patcher/commit/09bd529ea521e5764dcf6934409fdb7782909161))
+
+# [2.0.0-dev.4](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.3...v2.0.0-dev.4) (2026-10-14)
+
+
+### Features
+
+* Add Fingerprint `superclass` and `interfaces` matching ([dd36ef3](https://github.com/MorpheApp/morphe-patcher/commit/dd36ef3340a97bf415f767f8ab247f51031a9161))
+
+# [2.0.0-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.2...v2.0.0-dev.3) (2026-10-14)
+
+
+### Bug Fixes
+
+* Change raw unordered string declarations to equals comparison ([#248](https://github.com/MorpheApp/morphe-patcher/issues/248)) ([d5e668a](https://github.com/MorpheApp/morphe-patcher/commit/d5e668afb184cbdd0d048cbb777295861aeeddcc))
+
+# [2.0.0-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v2.0.0-dev.1...v2.0.0-dev.2) (2026-10-14)
+
+
+### Bug Fixes
+
+* Allow static versus non-static access flag filtering ([#244](https://github.com/MorpheApp/morphe-patcher/issues/244)) ([a74bcf5](https://github.com/MorpheApp/morphe-patcher/commit/a74bcf53b44401ce67095813e1966df3c271fd85))
+
+# [2.0.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.16.0-dev.2...v2.0.0-dev.1) (2026-10-14)
+
+
+### Features
+
+* Use selective resource decoding ([#247](https://github.com/MorpheApp/morphe-patcher/issues/247)) ([9471442](https://github.com/MorpheApp/morphe-patcher/commit/9471442a11f87587beb6be4bcc9f2e2e8f6a3f05))
+
+
+### BREAKING CHANGES
+
+* Resources are now decoded on request instead of all up front. Patches compiled with previous patcher versions still retain old "decode everything" behavior
+
+# [1.16.0-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.16.0-dev.1...v1.16.0-dev.2) (2026-10-13)
+
+
+### Features
+
+* Add overloaded `strings` declaration with more precise matching ([21ea8a6](https://github.com/MorpheApp/morphe-patcher/commit/21ea8a68fc14e13078a8757132696d142b36664a))
+
+# [1.16.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.2-dev.1...v1.16.0-dev.1) (2026-10-13)
+
+
+### Features
+
+* Add FreeRegisterProvider and basic BytecodeUtils ([#246](https://github.com/MorpheApp/morphe-patcher/issues/246)) ([eae7c7d](https://github.com/MorpheApp/morphe-patcher/commit/eae7c7dc81fd6e7383341d47742545fb9001fd8a))
+
+## [1.15.2-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.1...v1.15.2-dev.1) (2026-10-11)
+
+
+### Bug Fixes
+
+* `MatchFirst()` doesn't always match first ([bc165cf](https://github.com/MorpheApp/morphe-patcher/commit/bc165cf6994285d882a10cad7329f0baa26acda6))
+
+## [1.15.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0...v1.15.1) (2026-10-05)
+
+
+### Bug Fixes
+
+* Do not use stale Match class and method objects if Fingerprint Match result is later reused ([5dcc801](https://github.com/MorpheApp/morphe-patcher/commit/5dcc8012afb423a34febd691b19064db41907c5b))
+* Validate DEX entry paths, write the keystore atomically, align libraries to 16 KiB ([#239](https://github.com/MorpheApp/morphe-patcher/issues/239)) ([f8d1a84](https://github.com/MorpheApp/morphe-patcher/commit/f8d1a84be720499d9e31ddcbad1131cfb7c6c8ec))
+
+
+### Performance Improvements
+
+* Do not escape non-ASCII characters in strings.xml and skip copying unchanged strings ([730f3b2](https://github.com/MorpheApp/morphe-patcher/commit/730f3b2cbbdaf5b1ed077b14041b5b7ea406e44e))
+* Faster signing, DEX output and fingerprint matching ([#240](https://github.com/MorpheApp/morphe-patcher/issues/240)) ([257dcf3](https://github.com/MorpheApp/morphe-patcher/commit/257dcf35eff1d33142683964be32093c5789d0bd))
+* Hash method signatures and field names in class merger ([#242](https://github.com/MorpheApp/morphe-patcher/issues/242)) ([5c62be4](https://github.com/MorpheApp/morphe-patcher/commit/5c62be4750524e8b50fe90ec5510eeba6d200b93))
+* Optimize class indexing and candidate lookups ([#237](https://github.com/MorpheApp/morphe-patcher/issues/237)) ([e3717a7](https://github.com/MorpheApp/morphe-patcher/commit/e3717a74b809282dee8bcb84d4a97f78ac372dc5))
+* Skip XML parsing in ResourceIdProcessor for files without ID or theme attribute declarations ([faaac98](https://github.com/MorpheApp/morphe-patcher/commit/faaac9876796340d7acaa6307760d4e891640c09))
+
+## [1.15.1-dev.7](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.1-dev.6...v1.15.1-dev.7) (2026-10-04)
+
+
+### Bug Fixes
+
+* Do not use stale Match class and method objects if Fingerprint Match result is later reused ([5dcc801](https://github.com/MorpheApp/morphe-patcher/commit/5dcc8012afb423a34febd691b19064db41907c5b))
+
+## [1.15.1-dev.6](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.1-dev.5...v1.15.1-dev.6) (2026-10-03)
+
+
+### Performance Improvements
+
+* Do not escape non-ASCII characters in strings.xml and skip copying unchanged strings ([730f3b2](https://github.com/MorpheApp/morphe-patcher/commit/730f3b2cbbdaf5b1ed077b14041b5b7ea406e44e))
+
+## [1.15.1-dev.5](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.1-dev.4...v1.15.1-dev.5) (2026-10-03)
+
+
+### Performance Improvements
+
+* Hash method signatures and field names in class merger ([#242](https://github.com/MorpheApp/morphe-patcher/issues/242)) ([5c62be4](https://github.com/MorpheApp/morphe-patcher/commit/5c62be4750524e8b50fe90ec5510eeba6d200b93))
+
+## [1.15.1-dev.4](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.1-dev.3...v1.15.1-dev.4) (2026-10-03)
+
+
+### Performance Improvements
+
+* Skip XML parsing in ResourceIdProcessor for files without ID or theme attribute declarations ([faaac98](https://github.com/MorpheApp/morphe-patcher/commit/faaac9876796340d7acaa6307760d4e891640c09))
+
+## [1.15.1-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.1-dev.2...v1.15.1-dev.3) (2026-10-03)
+
+
+### Bug Fixes
+
+* Validate DEX entry paths, write the keystore atomically, align libraries to 16 KiB ([#239](https://github.com/MorpheApp/morphe-patcher/issues/239)) ([f8d1a84](https://github.com/MorpheApp/morphe-patcher/commit/f8d1a84be720499d9e31ddcbad1131cfb7c6c8ec))
+
+## [1.15.1-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.1-dev.1...v1.15.1-dev.2) (2026-10-03)
+
+
+### Performance Improvements
+
+* Optimize class indexing and candidate lookups ([#237](https://github.com/MorpheApp/morphe-patcher/issues/237)) ([e3717a7](https://github.com/MorpheApp/morphe-patcher/commit/e3717a74b809282dee8bcb84d4a97f78ac372dc5))
+
+## [1.15.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0...v1.15.1-dev.1) (2026-10-03)
+
+
+### Performance Improvements
+
+* Faster signing, DEX output and fingerprint matching ([#240](https://github.com/MorpheApp/morphe-patcher/issues/240)) ([257dcf3](https://github.com/MorpheApp/morphe-patcher/commit/257dcf35eff1d33142683964be32093c5789d0bd))
+
+# [1.15.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.14.1...v1.15.0) (2026-09-30)
+
+
+### Bug Fixes
+
+* Add additional deprecated binary backwards compatibility ([528ddfa](https://github.com/MorpheApp/morphe-patcher/commit/528ddfacea953b0bf969395c71347dab47d99f4b))
+* Add binary backwards compatibility for now hidden fingerprint fields ([f214fa9](https://github.com/MorpheApp/morphe-patcher/commit/f214fa93c880225a4abd4d1a15897cce37310659))
+* Clear parent fingerprint ([2e9005e](https://github.com/MorpheApp/morphe-patcher/commit/2e9005e4883446afceabf92cdc2966da74c0160d))
+* Delete the DEX extracted to list a bundle's classes once they are read ([802875e](https://github.com/MorpheApp/morphe-patcher/commit/802875e6121f7efcb2b1bc57f487fb08b021d8c6))
+* Drop strings no resource uses any more from the table ([#233](https://github.com/MorpheApp/morphe-patcher/issues/233)) ([7fa2160](https://github.com/MorpheApp/morphe-patcher/commit/7fa2160b9c755452445aab7ac8af9d552596d670))
+* Hide partial match declarations that may be confused with the matched full type names ([#230](https://github.com/MorpheApp/morphe-patcher/issues/230)) ([bcc019e](https://github.com/MorpheApp/morphe-patcher/commit/bcc019eda7ba1f17be743eaf8f5c0b449e908253))
+* Index classes added while patches are executing ([#229](https://github.com/MorpheApp/morphe-patcher/issues/229)) ([87d26a1](https://github.com/MorpheApp/morphe-patcher/commit/87d26a18222beec198503f5eca2a147c16a685c9))
+* Keep archive names of shared resource files in edited values files ([#220](https://github.com/MorpheApp/morphe-patcher/issues/220)) ([03aee7a](https://github.com/MorpheApp/morphe-patcher/commit/03aee7abb3ed8a81f53d771110d0fa182222b5d4))
+* Keep the description in the AppTarget version code constructor ([#222](https://github.com/MorpheApp/morphe-patcher/issues/222)) ([e9998c5](https://github.com/MorpheApp/morphe-patcher/commit/e9998c5332046dca6e4e8bb703d5a4cd73d639cd))
+
+
+### Features
+
+* Describe fingerprints without a class name in toString() ([#218](https://github.com/MorpheApp/morphe-patcher/issues/218)) ([2f3f218](https://github.com/MorpheApp/morphe-patcher/commit/2f3f21817b7579fe1d9c6361f85bb74037303429))
+* Verify an APK's signature and return its certificates ([f10ce04](https://github.com/MorpheApp/morphe-patcher/commit/f10ce041612ad0f6dca2941680386c844f1ff14a))
+
+
+### Performance Improvements
+
+* Look up exact string matches directly instead of scanning the whole index ([#227](https://github.com/MorpheApp/morphe-patcher/issues/227)) ([67f6328](https://github.com/MorpheApp/morphe-patcher/commit/67f6328ad9646fdff5fab7a7cb034255b42457ad))
+* Memoize class hierarchy walks in the debug verifier ([#228](https://github.com/MorpheApp/morphe-patcher/issues/228)) ([23ceada](https://github.com/MorpheApp/morphe-patcher/commit/23ceada5bbd8a48897e7e7cb2510002b62727f69))
+* Stream root entry content hashing instead of loading the whole file into memory ([#226](https://github.com/MorpheApp/morphe-patcher/issues/226)) ([65cc108](https://github.com/MorpheApp/morphe-patcher/commit/65cc10893f85b9d5df69323f8a802496f1896a37))
+* Use the MorpheApp ARSCLib fork with faster, leaner split merging ([#231](https://github.com/MorpheApp/morphe-patcher/issues/231)) ([4a6e437](https://github.com/MorpheApp/morphe-patcher/commit/4a6e4370852ca85a89895da42ea34e7221973bcf))
+
+# [1.15.0-dev.15](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.14...v1.15.0-dev.15) (2026-09-30)
+
+
+### Bug Fixes
+
+* Add additional deprecated binary backwards compatibility ([528ddfa](https://github.com/MorpheApp/morphe-patcher/commit/528ddfacea953b0bf969395c71347dab47d99f4b))
+
+# [1.15.0-dev.14](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.13...v1.15.0-dev.14) (2026-09-30)
+
+
+### Bug Fixes
+
+* Drop strings no resource uses any more from the table ([#233](https://github.com/MorpheApp/morphe-patcher/issues/233)) ([7fa2160](https://github.com/MorpheApp/morphe-patcher/commit/7fa2160b9c755452445aab7ac8af9d552596d670))
+
+# [1.15.0-dev.13](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.12...v1.15.0-dev.13) (2026-09-30)
+
+
+### Features
+
+* Verify an APK's signature and return its certificates ([f10ce04](https://github.com/MorpheApp/morphe-patcher/commit/f10ce041612ad0f6dca2941680386c844f1ff14a))
+
+# [1.15.0-dev.12](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.11...v1.15.0-dev.12) (2026-09-29)
+
+
+### Bug Fixes
+
+* Add binary backwards compatibility for now hidden fingerprint fields ([f214fa9](https://github.com/MorpheApp/morphe-patcher/commit/f214fa93c880225a4abd4d1a15897cce37310659))
+
+# [1.15.0-dev.11](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.10...v1.15.0-dev.11) (2026-09-29)
+
+
+### Performance Improvements
+
+* Use the MorpheApp ARSCLib fork with faster, leaner split merging ([#231](https://github.com/MorpheApp/morphe-patcher/issues/231)) ([4a6e437](https://github.com/MorpheApp/morphe-patcher/commit/4a6e4370852ca85a89895da42ea34e7221973bcf))
+
+# [1.15.0-dev.10](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.9...v1.15.0-dev.10) (2026-09-29)
+
+
+### Bug Fixes
+
+* Hide partial match declarations that may be confused with the matched full type names ([#230](https://github.com/MorpheApp/morphe-patcher/issues/230)) ([bcc019e](https://github.com/MorpheApp/morphe-patcher/commit/bcc019eda7ba1f17be743eaf8f5c0b449e908253))
+
+# [1.15.0-dev.9](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.8...v1.15.0-dev.9) (2026-09-28)
+
+
+### Bug Fixes
+
+* Delete the DEX extracted to list a bundle's classes once they are read ([802875e](https://github.com/MorpheApp/morphe-patcher/commit/802875e6121f7efcb2b1bc57f487fb08b021d8c6))
+
+# [1.15.0-dev.8](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.7...v1.15.0-dev.8) (2026-09-28)
+
+
+### Performance Improvements
+
+* Memoize class hierarchy walks in the debug verifier ([#228](https://github.com/MorpheApp/morphe-patcher/issues/228)) ([23ceada](https://github.com/MorpheApp/morphe-patcher/commit/23ceada5bbd8a48897e7e7cb2510002b62727f69))
+
+# [1.15.0-dev.7](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.6...v1.15.0-dev.7) (2026-09-28)
+
+
+### Performance Improvements
+
+* Stream root entry content hashing instead of loading the whole file into memory ([#226](https://github.com/MorpheApp/morphe-patcher/issues/226)) ([65cc108](https://github.com/MorpheApp/morphe-patcher/commit/65cc10893f85b9d5df69323f8a802496f1896a37))
+
+# [1.15.0-dev.6](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.5...v1.15.0-dev.6) (2026-09-28)
+
+
+### Bug Fixes
+
+* Index classes added while patches are executing ([#229](https://github.com/MorpheApp/morphe-patcher/issues/229)) ([87d26a1](https://github.com/MorpheApp/morphe-patcher/commit/87d26a18222beec198503f5eca2a147c16a685c9))
+
+# [1.15.0-dev.5](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.4...v1.15.0-dev.5) (2026-09-28)
+
+
+### Performance Improvements
+
+* Look up exact string matches directly instead of scanning the whole index ([#227](https://github.com/MorpheApp/morphe-patcher/issues/227)) ([67f6328](https://github.com/MorpheApp/morphe-patcher/commit/67f6328ad9646fdff5fab7a7cb034255b42457ad))
+
+# [1.15.0-dev.4](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.3...v1.15.0-dev.4) (2026-09-25)
+
+
+### Bug Fixes
+
+* Keep the description in the AppTarget version code constructor ([#222](https://github.com/MorpheApp/morphe-patcher/issues/222)) ([e9998c5](https://github.com/MorpheApp/morphe-patcher/commit/e9998c5332046dca6e4e8bb703d5a4cd73d639cd))
+
+# [1.15.0-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.2...v1.15.0-dev.3) (2026-09-25)
+
+
+### Bug Fixes
+
+* Keep archive names of shared resource files in edited values files ([#220](https://github.com/MorpheApp/morphe-patcher/issues/220)) ([03aee7a](https://github.com/MorpheApp/morphe-patcher/commit/03aee7abb3ed8a81f53d771110d0fa182222b5d4))
+
+# [1.15.0-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.15.0-dev.1...v1.15.0-dev.2) (2026-09-24)
+
+
+### Bug Fixes
+
+* Clear parent fingerprint ([2e9005e](https://github.com/MorpheApp/morphe-patcher/commit/2e9005e4883446afceabf92cdc2966da74c0160d))
+
+# [1.15.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.14.1...v1.15.0-dev.1) (2026-09-24)
+
+
+### Features
+
+* Describe fingerprints without a class name in toString() ([#218](https://github.com/MorpheApp/morphe-patcher/issues/218)) ([2f3f218](https://github.com/MorpheApp/morphe-patcher/commit/2f3f21817b7579fe1d9c6361f85bb74037303429))
+
+## [1.14.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.14.0...v1.14.1) (2026-09-24)
+
+
+### Bug Fixes
+
+* Accept APKs without a framework version ([#214](https://github.com/MorpheApp/morphe-patcher/issues/214)) ([9ed8bcd](https://github.com/MorpheApp/morphe-patcher/commit/9ed8bcd10d1b62610055e9c074b3c710200d3c2b))
+* Rewrite data descriptor entries before editing the APK ([#215](https://github.com/MorpheApp/morphe-patcher/issues/215)) ([3b2c7cd](https://github.com/MorpheApp/morphe-patcher/commit/3b2c7cd2299b40ace868dd1667ae1150e54b29a4))
+* Take emptied entries out of sparse resource chunks ([#217](https://github.com/MorpheApp/morphe-patcher/issues/217)) ([40938b8](https://github.com/MorpheApp/morphe-patcher/commit/40938b80c07841e885710c9050788aa4e8071695))
+
+
+### Performance Improvements
+
+* Encode changed resources into the input APK's resource table ([#209](https://github.com/MorpheApp/morphe-patcher/issues/209)) ([06a0469](https://github.com/MorpheApp/morphe-patcher/commit/06a0469497b29abf16c98a344c1540719ae4c213))
+
+## [1.14.1-dev.4](https://github.com/MorpheApp/morphe-patcher/compare/v1.14.1-dev.3...v1.14.1-dev.4) (2026-09-23)
+
+
+### Bug Fixes
+
+* Take emptied entries out of sparse resource chunks ([#217](https://github.com/MorpheApp/morphe-patcher/issues/217)) ([40938b8](https://github.com/MorpheApp/morphe-patcher/commit/40938b80c07841e885710c9050788aa4e8071695))
+
+## [1.14.1-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.14.1-dev.2...v1.14.1-dev.3) (2026-09-20)
+
+
+### Bug Fixes
+
+* Accept APKs without a framework version ([#214](https://github.com/MorpheApp/morphe-patcher/issues/214)) ([9ed8bcd](https://github.com/MorpheApp/morphe-patcher/commit/9ed8bcd10d1b62610055e9c074b3c710200d3c2b))
+
+## [1.14.1-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.14.1-dev.1...v1.14.1-dev.2) (2026-09-20)
+
+
+### Bug Fixes
+
+* Rewrite data descriptor entries before editing the APK ([#215](https://github.com/MorpheApp/morphe-patcher/issues/215)) ([3b2c7cd](https://github.com/MorpheApp/morphe-patcher/commit/3b2c7cd2299b40ace868dd1667ae1150e54b29a4))
+
+## [1.14.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.14.0...v1.14.1-dev.1) (2026-09-17)
+
+
+### Performance Improvements
+
+* Encode changed resources into the input APK's resource table ([#209](https://github.com/MorpheApp/morphe-patcher/issues/209)) ([06a0469](https://github.com/MorpheApp/morphe-patcher/commit/06a0469497b29abf16c98a344c1540719ae4c213))
+
+# [1.14.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.13.0...v1.14.0) (2026-09-14)
+
+
+### Bug Fixes
+
+* Carry the input DEX files into the compiled resource APK ([#203](https://github.com/MorpheApp/morphe-patcher/issues/203)) ([9da07ed](https://github.com/MorpheApp/morphe-patcher/commit/9da07edd158ef8956c73f43187c131ddc0ab5be7))
+
+
+### Features
+
+* Add resource ids and `resourceLiteral` instruction filter ([#207](https://github.com/MorpheApp/morphe-patcher/issues/207)) ([5ab050b](https://github.com/MorpheApp/morphe-patcher/commit/5ab050b3a676c0c4226fcd15918226633bf60f9b))
+
+# [1.14.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.13.1-dev.1...v1.14.0-dev.1) (2026-09-12)
+
+
+### Features
+
+* Add resource ids and `resourceLiteral` instruction filter ([#207](https://github.com/MorpheApp/morphe-patcher/issues/207)) ([5ab050b](https://github.com/MorpheApp/morphe-patcher/commit/5ab050b3a676c0c4226fcd15918226633bf60f9b))
+
+## [1.13.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.13.0...v1.13.1-dev.1) (2026-09-11)
+
+
+### Bug Fixes
+
+* Carry the input DEX files into the compiled resource APK ([#203](https://github.com/MorpheApp/morphe-patcher/issues/203)) ([9da07ed](https://github.com/MorpheApp/morphe-patcher/commit/9da07edd158ef8956c73f43187c131ddc0ab5be7))
+
+# [1.13.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.12.0...v1.13.0) (2026-09-10)
+
+
+### Bug Fixes
+
+* Keep the input DEX files when no bytecode was patched ([#201](https://github.com/MorpheApp/morphe-patcher/issues/201)) ([90d9715](https://github.com/MorpheApp/morphe-patcher/commit/90d9715f23b5d866bb023f0de90d6cecf244cd79))
+
+
+### Features
+
+* Add an optional patch category ([#198](https://github.com/MorpheApp/morphe-patcher/issues/198)) ([fa2b47f](https://github.com/MorpheApp/morphe-patcher/commit/fa2b47f86669b62522aaada863d1c67d6b847f35))
+* Let delete() exclude unstaged archive entries from the patched APK ([#199](https://github.com/MorpheApp/morphe-patcher/issues/199)) ([cb2b7fd](https://github.com/MorpheApp/morphe-patcher/commit/cb2b7fdf2965749ef90a95405d3bc0d032b38d7b))
+
+
+### Performance Improvements
+
+* Avoid rebuilding unchanged APK resources ([#169](https://github.com/MorpheApp/morphe-patcher/issues/169)) ([883bd28](https://github.com/MorpheApp/morphe-patcher/commit/883bd289a4572f68822d0087c5fe4e942805e980))
+* Avoid redundant fingerprint and resource work ([#170](https://github.com/MorpheApp/morphe-patcher/issues/170)) ([5c7d2f6](https://github.com/MorpheApp/morphe-patcher/commit/5c7d2f6e8fe0372046a514983d2a03ffd131700e))
+
+# [1.13.0-dev.4](https://github.com/MorpheApp/morphe-patcher/compare/v1.13.0-dev.3...v1.13.0-dev.4) (2026-09-10)
+
+
+### Bug Fixes
+
+* Keep the input DEX files when no bytecode was patched ([#201](https://github.com/MorpheApp/morphe-patcher/issues/201)) ([90d9715](https://github.com/MorpheApp/morphe-patcher/commit/90d9715f23b5d866bb023f0de90d6cecf244cd79))
+
+# [1.13.0-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.13.0-dev.2...v1.13.0-dev.3) (2026-09-09)
+
+
+### Features
+
+* Add an optional patch category ([#198](https://github.com/MorpheApp/morphe-patcher/issues/198)) ([fa2b47f](https://github.com/MorpheApp/morphe-patcher/commit/fa2b47f86669b62522aaada863d1c67d6b847f35))
+
+# [1.13.0-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.13.0-dev.1...v1.13.0-dev.2) (2026-09-09)
+
+
+### Performance Improvements
+
+* Avoid redundant fingerprint and resource work ([#170](https://github.com/MorpheApp/morphe-patcher/issues/170)) ([5c7d2f6](https://github.com/MorpheApp/morphe-patcher/commit/5c7d2f6e8fe0372046a514983d2a03ffd131700e))
+
+# [1.13.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.12.1-dev.1...v1.13.0-dev.1) (2026-09-05)
+
+
+### Features
+
+* Let delete() exclude unstaged archive entries from the patched APK ([#199](https://github.com/MorpheApp/morphe-patcher/issues/199)) ([cb2b7fd](https://github.com/MorpheApp/morphe-patcher/commit/cb2b7fdf2965749ef90a95405d3bc0d032b38d7b))
+
+## [1.12.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.12.0...v1.12.1-dev.1) (2026-09-04)
+
+
+### Performance Improvements
+
+* Avoid rebuilding unchanged APK resources ([#169](https://github.com/MorpheApp/morphe-patcher/issues/169)) ([883bd28](https://github.com/MorpheApp/morphe-patcher/commit/883bd289a4572f68822d0087c5fe4e942805e980))
+
+# [1.12.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.11.0...v1.12.0) (2026-09-03)
+
+
+### Bug Fixes
+
+* Prevent STRIP_SAFE from crashing and stabilise its DEX file naming ([#185](https://github.com/MorpheApp/morphe-patcher/issues/185)) ([81bac92](https://github.com/MorpheApp/morphe-patcher/commit/81bac92fea5237766f4bf1fb32444e92b2b0c495))
+* Report a deleted root file when the working directory is relative ([#190](https://github.com/MorpheApp/morphe-patcher/issues/190)) ([57674e2](https://github.com/MorpheApp/morphe-patcher/commit/57674e2b917a249209686869fae6dfec7cc854ba))
+* Stage root entries other than native libraries ([#192](https://github.com/MorpheApp/morphe-patcher/issues/192)) ([b2e20fd](https://github.com/MorpheApp/morphe-patcher/commit/b2e20fd4a932f5d0ccade7dd28ec0fbeedb7accd))
+
+
+### Features
+
+* Add function to list the entries of the APK being patched ([#193](https://github.com/MorpheApp/morphe-patcher/issues/193)) ([37b9494](https://github.com/MorpheApp/morphe-patcher/commit/37b9494acba70bd6b780f9cc5ab48f4ed0988993))
+
+
+### Performance Improvements
+
+* Leave unchanged root entries in the input APK ([#188](https://github.com/MorpheApp/morphe-patcher/issues/188)) ([3263df5](https://github.com/MorpheApp/morphe-patcher/commit/3263df5857e1f091deeb76d7ffbca5277a627296))
+
+# [1.12.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.11.1-dev.4...v1.12.0-dev.1) (2026-09-02)
+
+
+### Features
+
+* Add function to list the entries of the APK being patched ([#193](https://github.com/MorpheApp/morphe-patcher/issues/193)) ([37b9494](https://github.com/MorpheApp/morphe-patcher/commit/37b9494acba70bd6b780f9cc5ab48f4ed0988993))
+
+## [1.11.1-dev.4](https://github.com/MorpheApp/morphe-patcher/compare/v1.11.1-dev.3...v1.11.1-dev.4) (2026-09-01)
+
+
+### Bug Fixes
+
+* Stage root entries other than native libraries ([#192](https://github.com/MorpheApp/morphe-patcher/issues/192)) ([b2e20fd](https://github.com/MorpheApp/morphe-patcher/commit/b2e20fd4a932f5d0ccade7dd28ec0fbeedb7accd))
+
+## [1.11.1-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.11.1-dev.2...v1.11.1-dev.3) (2026-08-29)
+
+
+### Bug Fixes
+
+* Report a deleted root file when the working directory is relative ([#190](https://github.com/MorpheApp/morphe-patcher/issues/190)) ([57674e2](https://github.com/MorpheApp/morphe-patcher/commit/57674e2b917a249209686869fae6dfec7cc854ba))
+
+## [1.11.1-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.11.1-dev.1...v1.11.1-dev.2) (2026-08-29)
+
+
+### Performance Improvements
+
+* Leave unchanged root entries in the input APK ([#188](https://github.com/MorpheApp/morphe-patcher/issues/188)) ([3263df5](https://github.com/MorpheApp/morphe-patcher/commit/3263df5857e1f091deeb76d7ffbca5277a627296))
+
+## [1.11.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.11.0...v1.11.1-dev.1) (2026-08-29)
+
+
+### Bug Fixes
+
+* Prevent STRIP_SAFE from crashing and stabilise its DEX file naming ([#185](https://github.com/MorpheApp/morphe-patcher/issues/185)) ([81bac92](https://github.com/MorpheApp/morphe-patcher/commit/81bac92fea5237766f4bf1fb32444e92b2b0c495))
+
+# [1.11.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.10.0...v1.11.0) (2026-08-25)
+
+
+### Bug Fixes
+
+* Build the resource configurations of patches without a dense entry table ([cd53b38](https://github.com/MorpheApp/morphe-patcher/commit/cd53b38ba629aca8a56c1aae3011cbfd96bbc1e1))
+* Recognize a patched resource configuration by a mobile code no device can report ([e87ed1f](https://github.com/MorpheApp/morphe-patcher/commit/e87ed1ffb8e2fc609acbc84ec81be2a4aa053c0d))
+
+
+### Features
+
+* Add patch context `fileWorkspace` ([#184](https://github.com/MorpheApp/morphe-patcher/issues/184)) ([a0cb775](https://github.com/MorpheApp/morphe-patcher/commit/a0cb775a913609b3e0457bbba728b1589c9fdcd6))
+
+# [1.11.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.10.1-dev.2...v1.11.0-dev.1) (2026-08-25)
+
+
+### Features
+
+* Add patch context `fileWorkspace` ([#184](https://github.com/MorpheApp/morphe-patcher/issues/184)) ([a0cb775](https://github.com/MorpheApp/morphe-patcher/commit/a0cb775a913609b3e0457bbba728b1589c9fdcd6))
+
+## [1.10.1-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.10.1-dev.1...v1.10.1-dev.2) (2026-08-24)
+
+
+### Bug Fixes
+
+* Build the resource configurations of patches without a dense entry table ([cd53b38](https://github.com/MorpheApp/morphe-patcher/commit/cd53b38ba629aca8a56c1aae3011cbfd96bbc1e1))
+
+## [1.10.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.10.0...v1.10.1-dev.1) (2026-08-23)
+
+
+### Bug Fixes
+
+* Recognize a patched resource configuration by a mobile code no device can report ([e87ed1f](https://github.com/MorpheApp/morphe-patcher/commit/e87ed1ffb8e2fc609acbc84ec81be2a4aa053c0d))
+
+# [1.10.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.9.0...v1.10.0) (2026-08-22)
+
+
+### Bug Fixes
+
+* Change from context receivers to context parameters, update patcher to Kotlin 2.4.10 ([#179](https://github.com/MorpheApp/morphe-patcher/issues/179)) ([9bb2951](https://github.com/MorpheApp/morphe-patcher/commit/9bb295176fc60e63d82b8c6833c08d47d50ddd6f))
+
+
+### Features
+
+* Store the resource configurations of patches with sparse entries ([#180](https://github.com/MorpheApp/morphe-patcher/issues/180)) ([0f8aca2](https://github.com/MorpheApp/morphe-patcher/commit/0f8aca2f1075eee0599af5677896d8854b001bdf))
+
+# [1.10.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.9.1-dev.1...v1.10.0-dev.1) (2026-08-21)
+
+
+### Features
+
+* Store the resource configurations of patches with sparse entries ([#180](https://github.com/MorpheApp/morphe-patcher/issues/180)) ([0f8aca2](https://github.com/MorpheApp/morphe-patcher/commit/0f8aca2f1075eee0599af5677896d8854b001bdf))
+
+## [1.9.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.9.0...v1.9.1-dev.1) (2026-08-21)
+
+
+### Bug Fixes
+
+* Change from context receivers to context parameters, update patcher to Kotlin 2.4.10 ([#179](https://github.com/MorpheApp/morphe-patcher/issues/179)) ([9bb2951](https://github.com/MorpheApp/morphe-patcher/commit/9bb295176fc60e63d82b8c6833c08d47d50ddd6f))
+
+# [1.9.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.8.0...v1.9.0) (2026-08-18)
+
+
+### Features
+
+* Add slider and range patch options ([#172](https://github.com/MorpheApp/morphe-patcher/issues/172)) ([2a326a5](https://github.com/MorpheApp/morphe-patcher/commit/2a326a527389b52d015cf3123a06dfac8f5663a0))
+
+# [1.9.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.8.0...v1.9.0-dev.1) (2026-08-16)
+
+
+### Features
+
+* Add slider and range patch options ([#172](https://github.com/MorpheApp/morphe-patcher/issues/172)) ([2a326a5](https://github.com/MorpheApp/morphe-patcher/commit/2a326a527389b52d015cf3123a06dfac8f5663a0))
+
+# [1.8.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.7.0...v1.8.0) (2026-08-06)
+
+
+### Bug Fixes
+
+* Fix backwards compatibility with patcher versions before 1.8.0 ([12a4d42](https://github.com/MorpheApp/morphe-patcher/commit/12a4d4266202f533c57145dc345421c221253d7f))
+* Validate Compatibility uses a valid Android package name ([0d8c3e7](https://github.com/MorpheApp/morphe-patcher/commit/0d8c3e7da34d79de6ab29bcd5010a07cefb2c084))
+
+
+### Features
+
+* Add ability to add multiple precompiled DEX files from input streams ([#157](https://github.com/MorpheApp/morphe-patcher/issues/157)) ([7bcb745](https://github.com/MorpheApp/morphe-patcher/commit/7bcb745741f69d428b53abd35d90d04b2ad25285))
+* Add extendWithAll() to handle dynamic number of extensions ([a668bf9](https://github.com/MorpheApp/morphe-patcher/commit/a668bf947dc804e0ae4a14561730820dd1d1cb5a))
+* Add patch availability ([#156](https://github.com/MorpheApp/morphe-patcher/issues/156)) ([fa6c52b](https://github.com/MorpheApp/morphe-patcher/commit/fa6c52bfb88b4dd64d4aaed46202f423598f63e1))
+
+# [1.8.0-dev.5](https://github.com/MorpheApp/morphe-patcher/compare/v1.8.0-dev.4...v1.8.0-dev.5) (2026-08-03)
+
+
+### Features
+
+* Add patch availability ([#156](https://github.com/MorpheApp/morphe-patcher/issues/156)) ([fa6c52b](https://github.com/MorpheApp/morphe-patcher/commit/fa6c52bfb88b4dd64d4aaed46202f423598f63e1))
+
+# [1.8.0-dev.4](https://github.com/MorpheApp/morphe-patcher/compare/v1.8.0-dev.3...v1.8.0-dev.4) (2026-08-01)
+
+
+### Bug Fixes
+
+* Validate Compatibility uses a valid Android package name ([0d8c3e7](https://github.com/MorpheApp/morphe-patcher/commit/0d8c3e7da34d79de6ab29bcd5010a07cefb2c084))
+
+# [1.8.0-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.8.0-dev.2...v1.8.0-dev.3) (2026-07-27)
+
+
+### Features
+
+* Add extendWithAll() to handle dynamic number of extensions ([a668bf9](https://github.com/MorpheApp/morphe-patcher/commit/a668bf947dc804e0ae4a14561730820dd1d1cb5a))
+
+# [1.8.0-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.8.0-dev.1...v1.8.0-dev.2) (2026-07-24)
+
+
+### Bug Fixes
+
+* Fix backwards compatibility with patcher versions before 1.8.0 ([12a4d42](https://github.com/MorpheApp/morphe-patcher/commit/12a4d4266202f533c57145dc345421c221253d7f))
+
+# [1.8.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.7.0...v1.8.0-dev.1) (2026-07-23)
+
+
+### Features
+
+* Add ability to add multiple precompiled DEX files from input streams ([#157](https://github.com/MorpheApp/morphe-patcher/issues/157)) ([7bcb745](https://github.com/MorpheApp/morphe-patcher/commit/7bcb745741f69d428b53abd35d90d04b2ad25285))
+
+# [1.7.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.6.0...v1.7.0) (2026-07-23)
+
+
+### Bug Fixes
+
+* Ignore and warn if universal patch is default on ([7298b31](https://github.com/MorpheApp/morphe-patcher/commit/7298b310e5f36e0fcab3c600f8edc3f8ae51fc03))
+
+
+### Features
+
+* Add typed patch options ([#152](https://github.com/MorpheApp/morphe-patcher/issues/152)) ([4000555](https://github.com/MorpheApp/morphe-patcher/commit/4000555b3b01d7a4dc14dd9976e9e4c33d4768d9))
+
+# [1.7.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.6.1-dev.1...v1.7.0-dev.1) (2026-07-18)
+
+
+### Features
+
+* Add typed patch options ([#152](https://github.com/MorpheApp/morphe-patcher/issues/152)) ([4000555](https://github.com/MorpheApp/morphe-patcher/commit/4000555b3b01d7a4dc14dd9976e9e4c33d4768d9))
+
+## [1.6.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.6.0...v1.6.1-dev.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* Ignore and warn if universal patch is default on ([7298b31](https://github.com/MorpheApp/morphe-patcher/commit/7298b310e5f36e0fcab3c600f8edc3f8ae51fc03))
+
+# [1.6.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.2...v1.6.0) (2026-07-11)
+
+
+### Bug Fixes
+
+* Don't use --file-per-class when calling D8 to prevent issues with reserved filenames on Windows ([424c041](https://github.com/MorpheApp/morphe-patcher/commit/424c041755ec28980d8f88dd220ae518db7ddd7f))
+* Ignore versioned classes from multi-release JARs ([ecb54a8](https://github.com/MorpheApp/morphe-patcher/commit/ecb54a834c7d7db162271c3f1c3de5ee71bf0168))
+* Memory map files using FFM on JDK22+ to fix file locking on Windows ([#143](https://github.com/MorpheApp/morphe-patcher/issues/143)) ([713d342](https://github.com/MorpheApp/morphe-patcher/commit/713d34220f6f78a9b77f5404dbf3bcbc8edc8253))
+* Reuse mapped files in fast mode ([f3f77e2](https://github.com/MorpheApp/morphe-patcher/commit/f3f77e2a5da12ee750ec3014bdc8ccaa511a38f2))
+* Show more verbose exception if an instruction from the immutable method is passed to mutable method in `addInstructionsWithLabels()`. Fix wrong label can be used if multiple labels are specified ([d955d8a](https://github.com/MorpheApp/morphe-patcher/commit/d955d8abda5b2624985dd3620a52a83baac10113))
+
+
+### Features
+
+* Expose APK signing certificates to patches ([#145](https://github.com/MorpheApp/morphe-patcher/issues/145)) ([2284e22](https://github.com/MorpheApp/morphe-patcher/commit/2284e220cea3a701b5dcdcb00ac0643a21fbee73))
+
+# [1.6.0-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.6.0-dev.1...v1.6.0-dev.2) (2026-07-09)
+
+
+### Bug Fixes
+
+* Ignore versioned classes from multi-release JARs ([ecb54a8](https://github.com/MorpheApp/morphe-patcher/commit/ecb54a834c7d7db162271c3f1c3de5ee71bf0168))
+* Reuse mapped files in fast mode ([f3f77e2](https://github.com/MorpheApp/morphe-patcher/commit/f3f77e2a5da12ee750ec3014bdc8ccaa511a38f2))
+
+# [1.6.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.3-dev.3...v1.6.0-dev.1) (2026-06-30)
+
+
+### Features
+
+* Expose APK signing certificates to patches ([#145](https://github.com/MorpheApp/morphe-patcher/issues/145)) ([2284e22](https://github.com/MorpheApp/morphe-patcher/commit/2284e220cea3a701b5dcdcb00ac0643a21fbee73))
+
+## [1.5.3-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.3-dev.2...v1.5.3-dev.3) (2026-06-29)
+
+
+### Bug Fixes
+
+* Don't use --file-per-class when calling D8 to prevent issues with reserved filenames on Windows ([424c041](https://github.com/MorpheApp/morphe-patcher/commit/424c041755ec28980d8f88dd220ae518db7ddd7f))
+
+## [1.5.3-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.3-dev.1...v1.5.3-dev.2) (2026-06-29)
+
+
+### Bug Fixes
+
+* Memory map files using FFM on JDK22+ to fix file locking on Windows ([#143](https://github.com/MorpheApp/morphe-patcher/issues/143)) ([713d342](https://github.com/MorpheApp/morphe-patcher/commit/713d34220f6f78a9b77f5404dbf3bcbc8edc8253))
+
+## [1.5.3-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.2...v1.5.3-dev.1) (2026-06-20)
+
+
+### Bug Fixes
+
+* Show more verbose exception if an instruction from the immutable method is passed to mutable method in `addInstructionsWithLabels()`. Fix wrong label can be used if multiple labels are specified ([d955d8a](https://github.com/MorpheApp/morphe-patcher/commit/d955d8abda5b2624985dd3620a52a83baac10113))
+
+## [1.5.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.1...v1.5.2) (2026-06-10)
+
+
+### Bug Fixes
+
+* Change Compatibility app name to required if package name is also declared ([f68e855](https://github.com/MorpheApp/morphe-patcher/commit/f68e855cbe83733fdf4d01c974b6f8c14e778939))
+* Deprecate `MatchAfterAtLeast` and `MatchAfterRange` ([172a8aa](https://github.com/MorpheApp/morphe-patcher/commit/172a8aa7882e69ab9ee288a0c10cac8f83dd9117))
+* Update to latest ARSCLib ([d30cf05](https://github.com/MorpheApp/morphe-patcher/commit/d30cf05e5b638608edb3e07a5f6e834a242cb26c))
+
+## [1.5.2-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.2-dev.2...v1.5.2-dev.3) (2026-06-10)
+
+
+### Bug Fixes
+
+* Change Compatibility app name to required if package name is also declared ([f68e855](https://github.com/MorpheApp/morphe-patcher/commit/f68e855cbe83733fdf4d01c974b6f8c14e778939))
+
+## [1.5.2-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.2-dev.1...v1.5.2-dev.2) (2026-06-07)
+
+
+### Bug Fixes
+
+* Deprecate `MatchAfterAtLeast` and `MatchAfterRange` ([172a8aa](https://github.com/MorpheApp/morphe-patcher/commit/172a8aa7882e69ab9ee288a0c10cac8f83dd9117))
+
+## [1.5.2-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.1...v1.5.2-dev.1) (2026-05-31)
+
+
+### Bug Fixes
+
+* Update to latest ARSCLib ([d30cf05](https://github.com/MorpheApp/morphe-patcher/commit/d30cf05e5b638608edb3e07a5f6e834a242cb26c))
+
+## [1.5.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.0...v1.5.1) (2026-05-11)
+
+
+### Bug Fixes
+
+* Change to fixed upstream ARSCLib ([4b3add9](https://github.com/MorpheApp/morphe-patcher/commit/4b3add92fc64d64ea369a4838cdb559fe0cc44ad))
+* Handle fingerprint matchAll() when a method contains multiple string matches ([46e06ac](https://github.com/MorpheApp/morphe-patcher/commit/46e06acc48babad478462e652781a8c0aef45c8c))
+* Restore backwards compatibility for previously compiled code ([c2536be](https://github.com/MorpheApp/morphe-patcher/commit/c2536be831f7a8542c4e9eb8eae49f3513e1e426))
+* Try all file extensions during dex verification ([16bcfdf](https://github.com/MorpheApp/morphe-patcher/commit/16bcfdf5394c371751ab942d1e0806814206af52))
+
+## [1.5.1-dev.4](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.1-dev.3...v1.5.1-dev.4) (2026-05-10)
+
+
+### Bug Fixes
+
+* Handle fingerprint matchAll() when a method contains multiple string matches ([46e06ac](https://github.com/MorpheApp/morphe-patcher/commit/46e06acc48babad478462e652781a8c0aef45c8c))
+
+## [1.5.1-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.1-dev.2...v1.5.1-dev.3) (2026-05-09)
+
+
+### Bug Fixes
+
+* Restore backwards compatibility for previously compiled code ([c2536be](https://github.com/MorpheApp/morphe-patcher/commit/c2536be831f7a8542c4e9eb8eae49f3513e1e426))
+
+## [1.5.1-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.1-dev.1...v1.5.1-dev.2) (2026-05-03)
+
+
+### Bug Fixes
+
+* Try all file extensions during dex verification ([16bcfdf](https://github.com/MorpheApp/morphe-patcher/commit/16bcfdf5394c371751ab942d1e0806814206af52))
+
+## [1.5.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.0...v1.5.1-dev.1) (2026-05-02)
+
+
+### Bug Fixes
+
+* Change to fixed upstream ARSCLib ([4b3add9](https://github.com/MorpheApp/morphe-patcher/commit/4b3add92fc64d64ea369a4838cdb559fe0cc44ad))
+
+# [1.5.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.2...v1.5.0) (2026-04-26)
+
+
+### Features
+
+* `AppTarget` `versionCodes` field to restrict patching to specific version code releases ([#120](https://github.com/MorpheApp/morphe-patcher/issues/120)) ([393fc8f](https://github.com/MorpheApp/morphe-patcher/commit/393fc8f81b9b1ce307bd68577f8b80d2ea9402c6))
+* `Compatibility` `including()` and `excluding()` methods ([#122](https://github.com/MorpheApp/morphe-patcher/issues/122)) ([1e0f468](https://github.com/MorpheApp/morphe-patcher/commit/1e0f468db2f834af87b3cfecb30f5ec7723e614b))
+* Instruction match helper methods to get a called method or accessed field ([#121](https://github.com/MorpheApp/morphe-patcher/issues/121)) ([4908e7b](https://github.com/MorpheApp/morphe-patcher/commit/4908e7bd97e7e4155f72cec749d0d16a76d554f7))
+
+# [1.5.0-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-04-24)
+
+
+### Features
+
+* `Compatibility` `including()` and `excluding()` methods ([#122](https://github.com/MorpheApp/morphe-patcher/issues/122)) ([1e0f468](https://github.com/MorpheApp/morphe-patcher/commit/1e0f468db2f834af87b3cfecb30f5ec7723e614b))
+
+# [1.5.0-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-04-23)
+
+
+### Features
+
+* Instruction match helper methods to get a called method or accessed field ([#121](https://github.com/MorpheApp/morphe-patcher/issues/121)) ([4908e7b](https://github.com/MorpheApp/morphe-patcher/commit/4908e7bd97e7e4155f72cec749d0d16a76d554f7))
+
+# [1.5.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.2...v1.5.0-dev.1) (2026-04-23)
+
+
+### Features
+
+* `AppTarget` `versionCodes` field to restrict patching to specific version code releases ([#120](https://github.com/MorpheApp/morphe-patcher/issues/120)) ([393fc8f](https://github.com/MorpheApp/morphe-patcher/commit/393fc8f81b9b1ce307bd68577f8b80d2ea9402c6))
+
+## [1.4.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.1...v1.4.2) (2026-04-20)
+
+
+### Bug Fixes
+
+* Do not allow universal patches to be default on ([12a4fc1](https://github.com/MorpheApp/morphe-patcher/commit/12a4fc125634face6fe1b571178456fd3552ff3e))
+* Return defensive copy from `ArsclibResourceCoder.getDeletedFiles` ([#119](https://github.com/MorpheApp/morphe-patcher/issues/119)) ([b0e2dc8](https://github.com/MorpheApp/morphe-patcher/commit/b0e2dc872cdb091db546ea8c450ddeb127badd7a))
+* Update to Android tools 9.1.1 ([9779d9b](https://github.com/MorpheApp/morphe-patcher/commit/9779d9bcee0fb01dfd7bc44594936026e54da04c))
+
+## [1.4.2-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.2-dev.2...v1.4.2-dev.3) (2026-04-20)
+
+
+### Bug Fixes
+
+* Return defensive copy from `ArsclibResourceCoder.getDeletedFiles` ([#119](https://github.com/MorpheApp/morphe-patcher/issues/119)) ([b0e2dc8](https://github.com/MorpheApp/morphe-patcher/commit/b0e2dc872cdb091db546ea8c450ddeb127badd7a))
+
+## [1.4.2-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.2-dev.1...v1.4.2-dev.2) (2026-04-19)
+
+
+### Bug Fixes
+
+* Update to Android tools 9.1.1 ([9779d9b](https://github.com/MorpheApp/morphe-patcher/commit/9779d9bcee0fb01dfd7bc44594936026e54da04c))
+
+## [1.4.2-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.1...v1.4.2-dev.1) (2026-04-19)
+
+
+### Bug Fixes
+
+* Do not allow universal patches to be default on ([12a4fc1](https://github.com/MorpheApp/morphe-patcher/commit/12a4fc125634face6fe1b571178456fd3552ff3e))
+
+## [1.4.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.0...v1.4.1) (2026-04-18)
+
+
+### Bug Fixes
+
+* Bump smali version ([7c82594](https://github.com/MorpheApp/morphe-patcher/commit/7c82594bec04426a85e4147f71f9f76cb19b8272))
+
+## [1.4.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.0...v1.4.1-dev.1) (2026-04-18)
+
+
+### Bug Fixes
+
+* Bump smali version ([7c82594](https://github.com/MorpheApp/morphe-patcher/commit/7c82594bec04426a85e4147f71f9f76cb19b8272))
+
+# [1.4.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.3...v1.4.0) (2026-04-17)
+
+
+### Bug Fixes
+
+* Separate out desugar libs into separate dex ([7fc7a9e](https://github.com/MorpheApp/morphe-patcher/commit/7fc7a9e8788e9167756edc596c4aeb85972e1fc3))
+* Track deleted files in detectFileChanges so getDeletedFiles reports them   ([#107](https://github.com/MorpheApp/morphe-patcher/issues/107)) ([6264104](https://github.com/MorpheApp/morphe-patcher/commit/6264104ba233101412cac4c801c4f64138b53763))
+* Write modified dex files to final APK when no resource patches are used ([#109](https://github.com/MorpheApp/morphe-patcher/issues/109)) ([0f401c6](https://github.com/MorpheApp/morphe-patcher/commit/0f401c6445655a5ee27f59c67d035c119f54446e))
+
+
+### Features
+
+* Add `matchAll(range)` to validate the number of matches ([#104](https://github.com/MorpheApp/morphe-patcher/issues/104)) ([b28d21a](https://github.com/MorpheApp/morphe-patcher/commit/b28d21aadd8f6f4505a19885acb2fb399b2f882c))
+* Add DEX/APK verification ([#110](https://github.com/MorpheApp/morphe-patcher/issues/110)) ([61b5de0](https://github.com/MorpheApp/morphe-patcher/commit/61b5de0dd073139bb8ad8999a6c16b85d411e009))
+* Map dex files in memory to reduce memory requirements ([#106](https://github.com/MorpheApp/morphe-patcher/issues/106)) ([85df75e](https://github.com/MorpheApp/morphe-patcher/commit/85df75ef8b4614f5cf89d8ba1700335559cb0c9b))
+* Optimize dex patching ([#105](https://github.com/MorpheApp/morphe-patcher/issues/105)) ([4e70edb](https://github.com/MorpheApp/morphe-patcher/commit/4e70edb7d3e0568dd32cddb10a55ddfbc13edb05))
+
+# [1.4.0-dev.7](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.0-dev.6...v1.4.0-dev.7) (2026-04-17)
+
+
+### Bug Fixes
+
+* Separate out desugar libs into separate dex ([7fc7a9e](https://github.com/MorpheApp/morphe-patcher/commit/7fc7a9e8788e9167756edc596c4aeb85972e1fc3))
+
+# [1.4.0-dev.6](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.0-dev.5...v1.4.0-dev.6) (2026-04-16)
+
+
+### Features
+
+* Add DEX/APK verification ([#110](https://github.com/MorpheApp/morphe-patcher/issues/110)) ([61b5de0](https://github.com/MorpheApp/morphe-patcher/commit/61b5de0dd073139bb8ad8999a6c16b85d411e009))
+
+# [1.4.0-dev.5](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.0-dev.4...v1.4.0-dev.5) (2026-04-14)
+
+
+### Bug Fixes
+
+* Track deleted files in detectFileChanges so getDeletedFiles reports them   ([#107](https://github.com/MorpheApp/morphe-patcher/issues/107)) ([6264104](https://github.com/MorpheApp/morphe-patcher/commit/6264104ba233101412cac4c801c4f64138b53763))
+
+# [1.4.0-dev.4](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.0-dev.3...v1.4.0-dev.4) (2026-04-13)
+
+
+### Bug Fixes
+
+* Write modified dex files to final APK when no resource patches are used ([#109](https://github.com/MorpheApp/morphe-patcher/issues/109)) ([0f401c6](https://github.com/MorpheApp/morphe-patcher/commit/0f401c6445655a5ee27f59c67d035c119f54446e))
+
+# [1.4.0-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.0-dev.2...v1.4.0-dev.3) (2026-04-07)
+
+
+### Features
+
+* Map dex files in memory to reduce memory requirements ([#106](https://github.com/MorpheApp/morphe-patcher/issues/106)) ([85df75e](https://github.com/MorpheApp/morphe-patcher/commit/85df75ef8b4614f5cf89d8ba1700335559cb0c9b))
+
+# [1.4.0-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.4.0-dev.1...v1.4.0-dev.2) (2026-04-06)
+
+
+### Features
+
+* Optimize dex patching ([#105](https://github.com/MorpheApp/morphe-patcher/issues/105)) ([4e70edb](https://github.com/MorpheApp/morphe-patcher/commit/4e70edb7d3e0568dd32cddb10a55ddfbc13edb05))
+
+# [1.4.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.3...v1.4.0-dev.1) (2026-04-05)
+
+
+### Features
+
+* Add `matchAll(range)` to validate the number of matches ([#104](https://github.com/MorpheApp/morphe-patcher/issues/104)) ([b28d21a](https://github.com/MorpheApp/morphe-patcher/commit/b28d21aadd8f6f4505a19885acb2fb399b2f882c))
+
+## [1.3.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.2...v1.3.3) (2026-03-28)
+
+
+### Bug Fixes
+
+* Add Compatibility convenience constructor for patches with 'any' app target ([5969af5](https://github.com/MorpheApp/morphe-patcher/commit/5969af542ea5a8ba9a47541dce51fa2ae03ac2e2))
+* Handle matchAll when a class fingerprint exists ([107f168](https://github.com/MorpheApp/morphe-patcher/commit/107f16825d61adb79c7f42206d4444d5929845a2))
+
+## [1.3.3-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.3-dev.1...v1.3.3-dev.2) (2026-03-24)
+
+
+### Bug Fixes
+
+* Handle matchAll when a class fingerprint exists ([107f168](https://github.com/MorpheApp/morphe-patcher/commit/107f16825d61adb79c7f42206d4444d5929845a2))
+
+## [1.3.3-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.2...v1.3.3-dev.1) (2026-03-23)
+
+
+### Bug Fixes
+
+* Add Compatibility convenience constructor for patches with 'any' app target ([5969af5](https://github.com/MorpheApp/morphe-patcher/commit/5969af542ea5a8ba9a47541dce51fa2ae03ac2e2))
+
+## [1.3.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.1...v1.3.2) (2026-03-22)
+
+
+### Bug Fixes
+
+* Restore binary backwards compatibility ([#91](https://github.com/MorpheApp/morphe-patcher/issues/91)) ([a556413](https://github.com/MorpheApp/morphe-patcher/commit/a556413455539d534f129430a5145d6c62756884))
+
+## [1.3.2-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.1...v1.3.2-dev.1) (2026-03-22)
+
+
+### Bug Fixes
+
+* Restore binary backwards compatibility ([#91](https://github.com/MorpheApp/morphe-patcher/issues/91)) ([a556413](https://github.com/MorpheApp/morphe-patcher/commit/a556413455539d534f129430a5145d6c62756884))
+
+## [1.3.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.0...v1.3.1) (2026-03-22)
+
+
+### Bug Fixes
+
+* Remove overloaded deprecated patch 'use' constructor ([#89](https://github.com/MorpheApp/morphe-patcher/issues/89)) ([c4db0ca](https://github.com/MorpheApp/morphe-patcher/commit/c4db0cac9ecbaced8b25e4443db6a19a61830e2f))
+
+## [1.3.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.0...v1.3.1-dev.1) (2026-03-22)
+
+
+### Bug Fixes
+
+* Remove overloaded deprecated patch 'use' constructor ([#89](https://github.com/MorpheApp/morphe-patcher/issues/89)) ([c4db0ca](https://github.com/MorpheApp/morphe-patcher/commit/c4db0cac9ecbaced8b25e4443db6a19a61830e2f))
+
+# [1.3.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0...v1.3.0) (2026-03-22)
+
+
+### Bug Fixes
+
+* Changes to resources in RAW_ONLY mode were not being picked up ([#78](https://github.com/MorpheApp/morphe-patcher/issues/78)) ([5dc1c48](https://github.com/MorpheApp/morphe-patcher/commit/5dc1c484c7d134fac7b95912dd842549c63149a7))
+* RAW_ONLY handling on Windows, uncompressed files ([#79](https://github.com/MorpheApp/morphe-patcher/issues/79)) ([c25e5f8](https://github.com/MorpheApp/morphe-patcher/commit/c25e5f832e24854805758168359a0ec9c432f9ae))
+* Set extractNativeLibs to value in manifest by default ([#88](https://github.com/MorpheApp/morphe-patcher/issues/88)) ([5944eef](https://github.com/MorpheApp/morphe-patcher/commit/5944eef0ad7d152f2286fff862ec456ded2bdaad))
+* Speed up slow resource decoding for APKs with duplicate spec strings ([#75](https://github.com/MorpheApp/morphe-patcher/issues/75)) ([6eff16e](https://github.com/MorpheApp/morphe-patcher/commit/6eff16eda5b247b6c3b5bf63f62489e4f1e89268))
+* Wire keepArchitectures to resource coders ([d3519f8](https://github.com/MorpheApp/morphe-patcher/commit/d3519f8c305fe9327044c4cd37bd4e80360a5356))
+
+
+### Features
+
+* Add `classFingerprint` field to Fingerprint ([#71](https://github.com/MorpheApp/morphe-patcher/issues/71)) ([c808b09](https://github.com/MorpheApp/morphe-patcher/commit/c808b0912e6d889bea8a315936b2ea62ff284ca6))
+* Add support for stripping native libraries ([#83](https://github.com/MorpheApp/morphe-patcher/issues/83)) ([bc629ed](https://github.com/MorpheApp/morphe-patcher/commit/bc629ed5159bf1d8b4c774870bf1103fe4f0996e))
+* Expand Compatibility declaration ([#73](https://github.com/MorpheApp/morphe-patcher/issues/73)) ([ed99716](https://github.com/MorpheApp/morphe-patcher/commit/ed99716309e96ceef1817411314a092601691560))
+* Fingerprint matchAll() functionality ([#87](https://github.com/MorpheApp/morphe-patcher/issues/87)) ([7660630](https://github.com/MorpheApp/morphe-patcher/commit/7660630964de43a0d2f590b9e4f98b347325e8be))
+
+# [1.3.0-dev.10](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.0-dev.9...v1.3.0-dev.10) (2026-03-21)
+
+
+### Bug Fixes
+
+* Set extractNativeLibs to value in manifest by default ([#88](https://github.com/MorpheApp/morphe-patcher/issues/88)) ([5944eef](https://github.com/MorpheApp/morphe-patcher/commit/5944eef0ad7d152f2286fff862ec456ded2bdaad))
+
+# [1.3.0-dev.9](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.0-dev.8...v1.3.0-dev.9) (2026-03-20)
+
+# [1.3.0-dev.8](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.0-dev.7...v1.3.0-dev.8) (2026-03-20)
+
+
+### Features
+
+* Fingerprint matchAll() functionality ([#87](https://github.com/MorpheApp/morphe-patcher/issues/87)) ([7660630](https://github.com/MorpheApp/morphe-patcher/commit/7660630964de43a0d2f590b9e4f98b347325e8be))
+
+# [1.3.0-dev.7](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.0-dev.6...v1.3.0-dev.7) (2026-03-19)
+
+
+### Bug Fixes
+
+* Wire keepArchitectures to resource coders ([d3519f8](https://github.com/MorpheApp/morphe-patcher/commit/d3519f8c305fe9327044c4cd37bd4e80360a5356))
+
+# [1.3.0-dev.6](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.0-dev.5...v1.3.0-dev.6) (2026-03-19)
+
+
+### Features
+
+* Add support for stripping native libraries ([#83](https://github.com/MorpheApp/morphe-patcher/issues/83)) ([bc629ed](https://github.com/MorpheApp/morphe-patcher/commit/bc629ed5159bf1d8b4c774870bf1103fe4f0996e))
+
+# [1.3.0-dev.5](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.0-dev.4...v1.3.0-dev.5) (2026-03-16)
+
+
+### Bug Fixes
+
+* RAW_ONLY handling on Windows, uncompressed files ([#79](https://github.com/MorpheApp/morphe-patcher/issues/79)) ([c25e5f8](https://github.com/MorpheApp/morphe-patcher/commit/c25e5f832e24854805758168359a0ec9c432f9ae))
+
+# [1.3.0-dev.4](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.0-dev.3...v1.3.0-dev.4) (2026-03-15)
+
+
+### Features
+
+* Expand Compatibility declaration ([#73](https://github.com/MorpheApp/morphe-patcher/issues/73)) ([ed99716](https://github.com/MorpheApp/morphe-patcher/commit/ed99716309e96ceef1817411314a092601691560))
+
+# [1.3.0-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.0-dev.2...v1.3.0-dev.3) (2026-03-15)
+
+
+### Bug Fixes
+
+* Changes to resources in RAW_ONLY mode were not being picked up ([#78](https://github.com/MorpheApp/morphe-patcher/issues/78)) ([5dc1c48](https://github.com/MorpheApp/morphe-patcher/commit/5dc1c484c7d134fac7b95912dd842549c63149a7))
+
+# [1.3.0-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.3.0-dev.1...v1.3.0-dev.2) (2026-03-13)
+
+
+### Bug Fixes
+
+* Speed up slow resource decoding for APKs with duplicate spec strings ([#75](https://github.com/MorpheApp/morphe-patcher/issues/75)) ([6eff16e](https://github.com/MorpheApp/morphe-patcher/commit/6eff16eda5b247b6c3b5bf63f62489e4f1e89268))
+
+# [1.3.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0...v1.3.0-dev.1) (2026-03-10)
+
+
+### Features
+
+* Add `classFingerprint` field to Fingerprint ([#71](https://github.com/MorpheApp/morphe-patcher/issues/71)) ([c808b09](https://github.com/MorpheApp/morphe-patcher/commit/c808b0912e6d889bea8a315936b2ea62ff284ca6))
+
+# [1.2.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.1.1...v1.2.0) (2026-03-07)
+
+
+### Bug Fixes
+
+* Add missing XML namespaces when renaming package ([#65](https://github.com/MorpheApp/morphe-patcher/issues/65)) ([6568009](https://github.com/MorpheApp/morphe-patcher/commit/6568009327c2d106ca8c194adbd473623abc03e4))
+* Add some extension methods from morphe-library ([c2b667b](https://github.com/MorpheApp/morphe-patcher/commit/c2b667b2eb249598260f721924e2bbd7ed20dca4))
+* additional use of streaming XML parser to speed up XML processing ([#66](https://github.com/MorpheApp/morphe-patcher/issues/66)) ([b2d45df](https://github.com/MorpheApp/morphe-patcher/commit/b2d45dffab5f903556e16179bdc63a381cd6d363))
+* Expand theme attribute references during XML processing ([#69](https://github.com/MorpheApp/morphe-patcher/issues/69)) ([9a2f1ff](https://github.com/MorpheApp/morphe-patcher/commit/9a2f1ffce7c0d34f701104f7227273ff28edf492))
+* process generic item XML tags, only process modified XMLs instead of all XMLs ([#67](https://github.com/MorpheApp/morphe-patcher/issues/67)) ([91e9624](https://github.com/MorpheApp/morphe-patcher/commit/91e962487dedf73104e23a71b82141d31c21d15d))
+* Sanitize invalid XML characters in unpatched apk ([#54](https://github.com/MorpheApp/morphe-patcher/issues/54)) ([86a4087](https://github.com/MorpheApp/morphe-patcher/commit/86a4087c6345b5150ffa43e3695eba9e96224070))
+* Sanitize strings.xml after decoding resources ([#55](https://github.com/MorpheApp/morphe-patcher/issues/55)) ([4155343](https://github.com/MorpheApp/morphe-patcher/commit/41553432f784dda34ddc3c2364279c6d2d87c3df))
+* Specify UTF-8 during XML processing to prevent encoding issues on Windows ([#58](https://github.com/MorpheApp/morphe-patcher/issues/58)) ([842604d](https://github.com/MorpheApp/morphe-patcher/commit/842604d0504c904ac2abd6f2b268c164388384fc))
+* Use streaming XML processing ([#56](https://github.com/MorpheApp/morphe-patcher/issues/56)) ([e9d56d0](https://github.com/MorpheApp/morphe-patcher/commit/e9d56d0a1f06e04a72ff031974c894bd113985f5))
+
+
+### Features
+
+* Add a version code field to `PackageMetadata` ([#47](https://github.com/MorpheApp/morphe-patcher/issues/47)) ([c8800fd](https://github.com/MorpheApp/morphe-patcher/commit/c8800fd725a32009542e45743dc533b73f97d747))
+* Add public packageMetadata to `ResourcePatchContext` ([b2e7df8](https://github.com/MorpheApp/morphe-patcher/commit/b2e7df87c5b40a73c654e9d618d84d6d6ede77ac))
+* Decouple morphe-library and morphe-patcher ([#60](https://github.com/MorpheApp/morphe-patcher/issues/60)) ([1785631](https://github.com/MorpheApp/morphe-patcher/commit/1785631d74e32475e6128713ab9c51d3a33645e1))
+* Use arsclib during resource encoding/decoding and fix memory leaks ([#48](https://github.com/MorpheApp/morphe-patcher/issues/48)) ([7d0f837](https://github.com/MorpheApp/morphe-patcher/commit/7d0f837c939df44b78d81fff6c4f100c6afada49))
+
+# [1.2.0-dev.13](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0-dev.12...v1.2.0-dev.13) (2026-03-05)
+
+
+### Bug Fixes
+
+* Expand theme attribute references during XML processing ([#69](https://github.com/MorpheApp/morphe-patcher/issues/69)) ([9a2f1ff](https://github.com/MorpheApp/morphe-patcher/commit/9a2f1ffce7c0d34f701104f7227273ff28edf492))
+
+# [1.2.0-dev.12](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0-dev.11...v1.2.0-dev.12) (2026-03-05)
+
+
+### Bug Fixes
+
+* process generic item XML tags, only process modified XMLs instead of all XMLs ([#67](https://github.com/MorpheApp/morphe-patcher/issues/67)) ([91e9624](https://github.com/MorpheApp/morphe-patcher/commit/91e962487dedf73104e23a71b82141d31c21d15d))
+
+# [1.2.0-dev.11](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0-dev.10...v1.2.0-dev.11) (2026-03-02)
+
+
+### Bug Fixes
+
+* additional use of streaming XML parser to speed up XML processing ([#66](https://github.com/MorpheApp/morphe-patcher/issues/66)) ([b2d45df](https://github.com/MorpheApp/morphe-patcher/commit/b2d45dffab5f903556e16179bdc63a381cd6d363))
+
+# [1.2.0-dev.10](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0-dev.9...v1.2.0-dev.10) (2026-03-02)
+
+
+### Bug Fixes
+
+* Add missing XML namespaces when renaming package ([#65](https://github.com/MorpheApp/morphe-patcher/issues/65)) ([6568009](https://github.com/MorpheApp/morphe-patcher/commit/6568009327c2d106ca8c194adbd473623abc03e4))
+
+# [1.2.0-dev.9](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0-dev.8...v1.2.0-dev.9) (2026-02-28)
+
+
+### Bug Fixes
+
+* Add some extension methods from morphe-library ([c2b667b](https://github.com/MorpheApp/morphe-patcher/commit/c2b667b2eb249598260f721924e2bbd7ed20dca4))
+
+# [1.2.0-dev.8](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0-dev.7...v1.2.0-dev.8) (2026-02-28)
+
+
+### Features
+
+* Decouple morphe-library and morphe-patcher ([#60](https://github.com/MorpheApp/morphe-patcher/issues/60)) ([1785631](https://github.com/MorpheApp/morphe-patcher/commit/1785631d74e32475e6128713ab9c51d3a33645e1))
+
+# [1.2.0-dev.7](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0-dev.6...v1.2.0-dev.7) (2026-02-28)
+
+
+### Bug Fixes
+
+* Specify UTF-8 during XML processing to prevent encoding issues on Windows ([#58](https://github.com/MorpheApp/morphe-patcher/issues/58)) ([842604d](https://github.com/MorpheApp/morphe-patcher/commit/842604d0504c904ac2abd6f2b268c164388384fc))
+
+# [1.2.0-dev.6](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0-dev.5...v1.2.0-dev.6) (2026-02-26)
+
+
+### Bug Fixes
+
+* Use streaming XML processing ([#56](https://github.com/MorpheApp/morphe-patcher/issues/56)) ([e9d56d0](https://github.com/MorpheApp/morphe-patcher/commit/e9d56d0a1f06e04a72ff031974c894bd113985f5))
+
+# [1.2.0-dev.5](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0-dev.4...v1.2.0-dev.5) (2026-02-25)
+
+
+### Bug Fixes
+
+* Sanitize strings.xml after decoding resources ([#55](https://github.com/MorpheApp/morphe-patcher/issues/55)) ([4155343](https://github.com/MorpheApp/morphe-patcher/commit/41553432f784dda34ddc3c2364279c6d2d87c3df))
+
+# [1.2.0-dev.4](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0-dev.3...v1.2.0-dev.4) (2026-02-24)
+
+
+### Bug Fixes
+
+* Sanitize invalid XML characters in unpatched apk ([#54](https://github.com/MorpheApp/morphe-patcher/issues/54)) ([86a4087](https://github.com/MorpheApp/morphe-patcher/commit/86a4087c6345b5150ffa43e3695eba9e96224070))
+
+# [1.2.0-dev.3](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0-dev.2...v1.2.0-dev.3) (2026-02-21)
+
+
+### Features
+
+* Add a version code field to `PackageMetadata` ([#47](https://github.com/MorpheApp/morphe-patcher/issues/47)) ([c8800fd](https://github.com/MorpheApp/morphe-patcher/commit/c8800fd725a32009542e45743dc533b73f97d747))
+
+# [1.2.0-dev.2](https://github.com/MorpheApp/morphe-patcher/compare/v1.2.0-dev.1...v1.2.0-dev.2) (2026-02-21)
+
+
+### Features
+
+* Use arsclib during resource encoding/decoding and fix memory leaks ([#48](https://github.com/MorpheApp/morphe-patcher/issues/48)) ([7d0f837](https://github.com/MorpheApp/morphe-patcher/commit/7d0f837c939df44b78d81fff6c4f100c6afada49))
+
+# [1.2.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.1.1...v1.2.0-dev.1) (2026-02-09)
+
+
+### Features
+
+* Add public packageMetadata to `ResourcePatchContext` ([b2e7df8](https://github.com/MorpheApp/morphe-patcher/commit/b2e7df87c5b40a73c654e9d618d84d6d6ede77ac))
+
+## [1.1.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.1.0...v1.1.1) (2026-02-04)
+
+
+### Bug Fixes
+
+* Resolve 'this' class type can match using 'contains' semantics ([#43](https://github.com/MorpheApp/morphe-patcher/issues/43)) ([8aff750](https://github.com/MorpheApp/morphe-patcher/commit/8aff7503fbee7752c48064fca5bd55030177143e))
+
+## [1.1.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.1.0...v1.1.1-dev.1) (2026-02-04)
+
+
+### Bug Fixes
+
+* Resolve 'this' class type can match using 'contains' semantics ([#43](https://github.com/MorpheApp/morphe-patcher/issues/43)) ([8aff750](https://github.com/MorpheApp/morphe-patcher/commit/8aff7503fbee7752c48064fca5bd55030177143e))
+
+# [1.1.0](https://github.com/MorpheApp/morphe-patcher/compare/v1.0.1...v1.1.0) (2026-02-02)
+
+
+### Features
+
+* Extend `methodCall` defining class/name to `Fingerprint`, add additional defining class comparison methods ([#38](https://github.com/MorpheApp/morphe-patcher/issues/38)) ([2a7b618](https://github.com/MorpheApp/morphe-patcher/commit/2a7b6185fb47a2f2d5ec1bfda2d03b8a17f75de7))
+
+
+### Performance Improvements
+
+* Add methods to find all classes by String ([dcb13f3](https://github.com/MorpheApp/morphe-patcher/commit/dcb13f37a02b23735cc8fa0116aea7a0ace61954))
+
+# [1.1.0-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.0.2-dev.1...v1.1.0-dev.1) (2026-02-01)
+
+
+### Features
+
+* Extend `methodCall` defining class/name to `Fingerprint`, add additional defining class comparison methods ([#38](https://github.com/MorpheApp/morphe-patcher/issues/38)) ([2a7b618](https://github.com/MorpheApp/morphe-patcher/commit/2a7b6185fb47a2f2d5ec1bfda2d03b8a17f75de7))
+
+## [1.0.2-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.0.1...v1.0.2-dev.1) (2026-01-22)
+
+
+### Performance Improvements
+
+* Add methods to find all classes by String ([dcb13f3](https://github.com/MorpheApp/morphe-patcher/commit/dcb13f37a02b23735cc8fa0116aea7a0ace61954))
+
+## [1.0.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.0.0...v1.0.1) (2026-01-10)
+
+
+### Bug Fixes
+
+* Allow `matchAfterWithin()` to be used on the first filter ([2fe26bc](https://github.com/MorpheApp/morphe-patcher/commit/2fe26bcea7a2b63cc9240c234744b2fd4cb5288a))
+
+## [1.0.1-dev.1](https://github.com/MorpheApp/morphe-patcher/compare/v1.0.0...v1.0.1-dev.1) (2026-01-08)
+
+
+### Bug Fixes
+
+* Allow `matchAfterWithin()` to be used on the first filter ([2fe26bc](https://github.com/MorpheApp/morphe-patcher/commit/2fe26bcea7a2b63cc9240c234744b2fd4cb5288a))
+
+# 1.0.0 (2025-12-11)
+
+
+### Features
+
+* Add methodCall and fieldAccess filters from Reference objects ([d7f6ac2](https://github.com/MorpheApp/morphe-patcher/commit/d7f6ac2039f9c11c10b49231448a80c3032478ed))
+* First release ([5fc0c46](https://github.com/MorpheApp/morphe-patcher/commit/5fc0c46599fc9e3365be574aef0cc7512285fb62))

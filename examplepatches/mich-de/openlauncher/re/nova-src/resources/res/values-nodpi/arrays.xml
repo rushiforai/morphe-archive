@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="wallpapers">
+        <item>wallpaper_chips</item>
+        <item>wallpaper_ice</item>
+        <item>wallpaper_fire</item>
+    </array>
+</resources>

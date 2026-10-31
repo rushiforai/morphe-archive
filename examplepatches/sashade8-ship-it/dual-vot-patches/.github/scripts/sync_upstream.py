@@ -147,6 +147,18 @@ STREAMING_DATA_REQUEST_STABLE200_CONFLICT_BLOBS = (
     "6891092a6c638c97e6958f5fdfde6ae15c6e1948",
 )
 
+# Morphe 2.1.0-dev.4 reuses in-flight playback requests; Dual requests stay uncached.
+STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS = (
+    "6891092a6c638c97e6958f5fdfde6ae15c6e1948",
+    "dd5831f51cf3698a73918c530fdbb40d240de4e3",
+    "68bd0a8c5c033b0f5fbc6d835612671429e0fffe",
+)
+DEV210_ARRAYS_CONFLICT_BLOBS = (
+    "9c228c35994fedf5a3d8b5b04f80e0a6b37b4355",
+    "a3614bdfaf1b5e6acd2d9cac08dfe9403e9d635e",
+    "acb4af73c980e13b6a17ab41d16adbc7118a35ee",
+)
+
 # One-time, fail-closed merge of Morphe 1.48.0-dev.8 Series Tracker with
 # Dual VoT's Yandex settings. Any different source versions require review.
 DEV148_SETTINGS_PATH = (
@@ -481,6 +493,7 @@ def resolve_dual_yandex_arrays_conflict() -> None:
         DEV16_ARRAYS_CONFLICT_BLOBS,
         DEV20_ARRAYS_CONFLICT_BLOBS,
         STABLE145_ARRAYS_CONFLICT_BLOBS,
+        DEV210_ARRAYS_CONFLICT_BLOBS,
     ):
         return
     base, ours, theirs = (
@@ -901,6 +914,31 @@ def merge_streaming_data_request_stable200(source: str) -> str:
     return merge_streaming_data_request_dev10(merged)
 
 
+def merge_streaming_data_request_dev210(source: str) -> str:
+    """Keep upstream in-flight reuse and the separate, uncached Dual audio path."""
+    pattern = r"(?m)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n"
+    conflicts = list(re.finditer(pattern, source, re.DOTALL | re.MULTILINE))
+    if len(conflicts) != 2:
+        raise SyncError("Unexpected dev 2.1.0 streaming conflict count")
+    ours, theirs = conflicts[0].group(1, 2)
+    direct_start = "    /**\n     * Starts an uncached player request"
+    constructor = "                    clientOrder, false));"
+    if (ours.count(direct_start) != 1 or theirs.count(constructor) != 1
+            or theirs.count("private boolean isFetchInProgress(") != 1
+            or conflicts[1].group(1) or "@param preferredClient" not in conflicts[1].group(2)):
+        raise SyncError("Unexpected dev 2.1.0 streaming conflict shape")
+    # The closing brace after the conflict belongs to isFetchInProgress. Close it
+    # here, then let that original brace close the appended Dual method instead.
+    direct = ours[ours.index(direct_start):]
+    playback = theirs.replace(constructor, "                    clientOrder, false, false));")
+    replacement = playback + "    }\n\n" + direct
+    replacements = iter((replacement, conflicts[1].group(2)))
+    merged = re.sub(pattern, lambda _: next(replacements), source, flags=re.DOTALL | re.MULTILINE)
+    if re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
+        raise SyncError("Unresolved dev 2.1.0 streaming conflict")
+    return merged
+
+
 def resolve_streaming_data_request_conflict() -> None:
     if STREAMING_DATA_REQUEST_PATH not in unresolved_paths():
         return
@@ -909,6 +947,12 @@ def resolve_streaming_data_request_conflict() -> None:
         output_of("git", "rev-parse", f":{stage}:{STREAMING_DATA_REQUEST_PATH}")
         for stage in (1, 2, 3)
     )
+    if stage_blobs == STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS:
+        destination = ROOT / STREAMING_DATA_REQUEST_PATH
+        merged = merge_streaming_data_request_dev210(destination.read_text(encoding="utf-8"))
+        destination.write_text(merged, encoding="utf-8", newline="")
+        run("git", "add", "--", STREAMING_DATA_REQUEST_PATH)
+        return
     if stage_blobs in (STREAMING_DATA_REQUEST_DEV10_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_STABLE200_CONFLICT_BLOBS):
         destination = ROOT / STREAMING_DATA_REQUEST_PATH
@@ -1132,6 +1176,29 @@ STABLE200_TEST_DEPENDENCY_BLOBS = (
     "1c48977a87c29654a927b6c39d305f56f15c94d8",
 )
 
+DEV210_TEST_DEPENDENCY_BLOBS = (
+    "1c48977a87c29654a927b6c39d305f56f15c94d8",
+    "f97f0743e252ec236d101459fa03bd04558e3b22",
+    "aa572e43fe407c0745bc3f1939056706ad991b8d",
+)
+
+
+def merge_dev210_test_dependencies(source: str) -> str:
+    """Use upstream's JSON alias while retaining the test-only legacy fixtures."""
+    pattern = (
+        r"(?m)^<<<<<<< [^\n]+\n"
+        r'    testImplementation\("org.json:json:20240303"\)\n'
+        r'(    // Legacy event fixtures only; never package Kotlin into the Java-only extension.\n'
+        r'    testImplementation\("org.jetbrains.kotlin:kotlin-stdlib:2.4.0"\)\n)'
+        r"=======\n"
+        r'    testImplementation\(libs.json\)\n'
+        r">>>>>>> [^\n]+\n"
+    )
+    merged, count = re.subn(pattern, lambda m: '    testImplementation(libs.json)\n' + m.group(1), source)
+    if count != 1 or re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
+        raise SyncError("Unexpected dev 2.1.0 test dependency conflict")
+    return merged
+
 
 def merge_stable200_test_dependencies(source: str) -> str:
     """Keep legacy event fixtures and the upstream test library, both test-only."""
@@ -1159,10 +1226,12 @@ def resolve_stable200_test_dependencies() -> None:
     if path not in unresolved_paths():
         return
     blobs = tuple(output_of("git", "rev-parse", f":{stage}:{path}") for stage in (1, 2, 3))
-    if blobs != STABLE200_TEST_DEPENDENCY_BLOBS:
+    if blobs not in (STABLE200_TEST_DEPENDENCY_BLOBS, DEV210_TEST_DEPENDENCY_BLOBS):
         return
     destination = ROOT / path
-    merged = merge_stable200_test_dependencies(destination.read_text(encoding="utf-8"))
+    merge_known = (merge_dev210_test_dependencies if blobs == DEV210_TEST_DEPENDENCY_BLOBS
+                   else merge_stable200_test_dependencies)
+    merged = merge_known(destination.read_text(encoding="utf-8"))
     destination.write_text(merged, encoding="utf-8", newline="")
     run("git", "add", "--", path)
 

@@ -1,7 +1,9 @@
 # NuvioTV GitHub APK updates
 
+Current target: **NuvioTV 1.1.0-beta.9 (1072)**. See [beta.9 contracts and verification](NuvioBeta9.md). Version-specific DEX notes, commands and artifacts for earlier versions below are historical; use the beta.9 contract and `verifyNuvioLatest` for the current release.
+
 Select **NuvioTV - GitHub APK updates** when patching the original
-`com.nuvio.tv` **1.1.0-beta.8** (`1071`). The patch is optional and unselected by
+`com.nuvio.tv` **1.1.0-beta.9** (`1072`). The patch is optional and unselected by
 default. It redirects the existing native updater to `Santodan/santodan-patches`.
 It retains native update settings, stable/beta channels, release notes, update
 prompts, download progress, cached downloads, errors, and the Android installation

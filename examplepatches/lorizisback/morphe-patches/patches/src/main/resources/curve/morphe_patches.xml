@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.curve.design.toolbar.CrvToolbar
+        android:id="@+id/morphe_patches_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:navigationContentDescription="@string/navigate_back"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:title="Patches" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="?attr/marginGutter"
+        android:clipToPadding="false"
+        android:paddingBottom="?attr/spaceX4">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        <com.curve.design.panel.Panel
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="?attr/marginGutter"
+            android:layout_marginEnd="?attr/marginGutter">
+            <com.curve.design.listItem.ListItem
+                android:id="@+id/morphe_patches_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:title="Hide Flex"
+                app:subtitle="Hide Flex cards, promotions and shortcuts. Existing borrowing and repayments are unaffected."
+                app:hideDivider="true">
+                <com.curve.design.listItem.ListItemToggle
+                    android:id="@+id/morphe_patches_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </com.curve.design.listItem.ListItem>
+        </com.curve.design.panel.Panel>
+            <com.curve.design.panel.Panel
+                android:id="@+id/morphe_cringe_panel"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="?attr/spaceX4"
+                android:layout_marginHorizontal="?attr/marginGutter">
+                <com.curve.design.listItem.ListItem
+                    android:id="@+id/morphe_cringe_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:title="Remove Cringe"
+                    app:hideDivider="true">
+                    <com.curve.design.listItem.ListItemToggle
+                        android:id="@+id/morphe_cringe_toggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </com.curve.design.listItem.ListItem>
+            </com.curve.design.panel.Panel>
+            <com.curve.design.panel.Panel
+                android:id="@+id/morphe_batch_panel"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="?attr/spaceX4"
+                android:layout_marginHorizontal="?attr/marginGutter">
+                <com.curve.design.listItem.ListItem
+                    android:id="@+id/morphe_batch_setting_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:title="Batch Go Back in Time"
+                    app:subtitle="Show Batch GBIT in Launchpad and allow new batches. Existing batches and results remain available from notifications."
+                    app:hideDivider="true">
+                    <com.curve.design.listItem.ListItemToggle
+                        android:id="@+id/morphe_batch_toggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </com.curve.design.listItem.ListItem>
+            </com.curve.design.panel.Panel>
+            <com.curve.design.panel.Panel
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="?attr/spaceX4"
+                android:layout_marginHorizontal="?attr/marginGutter">
+                <com.curve.design.listItem.ListItem
+                    android:id="@+id/morphe_launchpad_row"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:title="Hide selected Launchpad tiles"
+                    app:subtitle="Hide the checked tiles. Turn this off to show them without clearing your selection. Patches always stays visible."
+                    app:hideDivider="true">
+                    <com.curve.design.listItem.ListItemToggle
+                        android:id="@+id/morphe_launchpad_toggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </com.curve.design.listItem.ListItem>
+            </com.curve.design.panel.Panel>
+            <com.curve.design.buttons.CrvButton
+                android:id="@+id/morphe_launchpad_manage"
+                style="@style/Curve.Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:layout_marginHorizontal="?attr/marginGutter"
+                android:layout_marginTop="?attr/spaceX4"
+                android:text="Choose tiles to hide" />
+            <LinearLayout
+                android:id="@+id/morphe_launchpad_picker"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="?attr/spaceX2">
+            <com.curve.design.panel.Panel
+                android:id="@+id/morphe_launchpad_choices"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="?attr/marginGutter" />
+            <com.curve.design.text.CrvTextView
+                android:id="@+id/morphe_launchpad_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="?attr/marginGutter"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:visibility="gone"
+                android:text="Open Launchpad to load the list of tiles." />
+            <com.curve.design.buttons.CrvButton
+                android:id="@+id/morphe_launchpad_reset"
+                style="@style/Curve.Button.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:layout_marginHorizontal="?attr/marginGutter"
+                android:layout_marginTop="?attr/spaceX4"
+                android:text="Reset selection" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+    <com.curve.design.text.CrvTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="?attr/marginGutter"
+        android:layout_marginBottom="?attr/spaceX2"
+        android:textAppearance="?attr/textAppearanceBody2"
+        android:text="Save and reopen Curve to apply changes. Go back to discard unsaved changes." />
+    <com.curve.design.buttons.ButtonStack
+        android:id="@+id/morphe_patches_actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.curve.design.buttons.CrvButton
+            android:id="@+id/morphe_patches_apply"
+            style="@style/Curve.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save and reopen" />
+    </com.curve.design.buttons.ButtonStack>
+</LinearLayout>

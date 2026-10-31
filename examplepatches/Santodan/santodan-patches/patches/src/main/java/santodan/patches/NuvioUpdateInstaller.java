@@ -9,12 +9,12 @@ import java.util.*;
 
 /** Proven beta.8 installer contracts; preserves native permission/result/error flows. */
 public final class NuvioUpdateInstaller {
-    public static final String INSTALLER = "Lkb/c;";
+    public static final String INSTALLER = "Llb/c;";
     public static final String RECEIVER = "Lcom/nuvio/tv/updater/UpdateInstallResultReceiver;";
-    public static final String INSTALL_ACTION = "Lcom/nuvio/tv/data/local/gc;";
+    public static final String INSTALL_ACTION = "Lcom/nuvio/tv/data/local/jc;";
     static final String AUTHORITY = "com.nuvio.tv.fileprovider";
     static final String DM_KEY = "com.nuvio.tv.updater.WITH_DEX_METADATA";
-    static final String RECEIVER_HASH = "0d7f1df4e58fbe1d8138112e0100401e6b23638cca527ae2073f252ab55e1a39";
+    static final String RECEIVER_HASH = "b1a786864cb39d37ddde4b34a1b2cd864bde6540e5fe343d3b6cb703a096de7b";
     static MutableMethod unique(MutableClass owner, String name) {
         var matches = new ArrayList<MutableMethod>();
         for (var method : owner.getMethods()) if (method.getName().equals(name)) matches.add(method);
@@ -56,7 +56,7 @@ public final class NuvioUpdateInstaller {
     public static void disableMetadata(MutableClass installer, MutableClass receiver) {
         MutableMethod method = unique(installer, "b");
         if (!method.toString().equals(INSTALLER + "->b(Landroid/content/Context;Ljava/io/File;ZZ)V") ||
-            (method.getAccessFlags() & 8) == 0 || !NuvioPlaybackButtonsPatch.fingerprint(method).equals("1e29a58ab2c05823711d154852665e211d50fc42f5036aae7af3b395fa612e38"))
+            (method.getAccessFlags() & 8) == 0 || !NuvioPlaybackButtonsPatch.fingerprint(method).equals("61ccf26f3106e55a9eb8fbe82a6592a3fa0b05d29cb1af3862451ac644f04454"))
             throw new IllegalStateException("Changed or already patched installer");
         MutableMethod callback = receiver(receiver);
         int result = dmResult(callback);
@@ -75,7 +75,7 @@ public final class NuvioUpdateInstaller {
             throw new IllegalArgumentException("Invalid clone update authority");
         MutableMethod install = unique(action, "invokeSuspend");
         if (!install.toString().equals(INSTALL_ACTION + "->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;") ||
-            !NuvioPlaybackButtonsPatch.fingerprint(install).equals("72e91b9a9fbc6629acf63d2bd878decc4e8cd4d66eb16800b7b144e5fbabca97"))
+            !NuvioPlaybackButtonsPatch.fingerprint(install).equals("7d83a4bad50451b13863270569932e49924e4415082435c564e534a44e920733"))
             throw new IllegalStateException("Changed or already renamed install action");
         MutableMethod callback = receiver(receiver);
         for (var method : List.of(install, callback)) {

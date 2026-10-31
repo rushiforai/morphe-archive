@@ -28,7 +28,7 @@ public final class NuvioCurrentStreamPatch {
                 builder.execute(context -> {
                     if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
                         !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName()))
-                        throw new IllegalStateException("Current stream indicator requires NuvioTV 1.1.0-beta.8");
+                        throw new IllegalStateException("Current stream indicator requires NuvioTV 1.1.0-beta.9");
                     MutableClass card = context.mutableClassDefBy(NuvioNative.CURRENT_STREAM_CARD_TYPE);
                     NuvioPlaybackButtonsPatch.validateUiMethod(new MutableClass(context.classDefBy(NuvioNative.SETTINGS_ROWS_TYPE)),
                         NuvioNative.REF_SETTINGS_ROWS_M);

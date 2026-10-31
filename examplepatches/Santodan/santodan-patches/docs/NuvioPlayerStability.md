@@ -1,7 +1,9 @@
 # NuvioTV startup track reselection
 
+Current target: **NuvioTV 1.1.0-beta.9 (1072)**. See [beta.9 contracts and verification](NuvioBeta9.md). Version-specific DEX notes, commands and artifacts for earlier versions below are historical; use the beta.9 contract and `verifyNuvioLatest` for the current release.
+
 **NuvioTV - Fix startup track reselection** is an independent, disabled-by-default
-patch for `com.nuvio.tv` 1.1.0-beta.8 (version code 1071). Select it explicitly
+patch for `com.nuvio.tv` 1.1.0-beta.9 (version code 1072). Select it explicitly
 when patching. There is no runtime toggle or background worker.
 
 The original ExoPlayer track-reselection path can request a seek before a playing

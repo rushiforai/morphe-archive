@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_store">‏חנות אפליקציות</string>
+    <string name="call_to_action_install">התקנה</string>
+    <string name="call_to_action_open">פתיחה</string>
+    <string name="related_apps">‏אפליקציות קשורות</string>
+    <string name="search_more">‏חפש את \"%1$s\" בתוך</string>
+    <string name="ssml_navigation_settingsAccessibility">‏נגישות</string>
+    <string name="ssml_navigation_settingsAirplaneMode">‏מצב טיסה</string>
+    <string name="ssml_navigation_settingsAllApps">‏כל האפליקציות</string>
+    <string name="ssml_navigation_settingsBattery">‏סוללה</string>
+    <string name="ssml_navigation_settingsBatterySaver">‏חיסכון בסוללה</string>
+    <string name="ssml_navigation_settingsBluetooth">‏Bluetooth</string>
+    <string name="ssml_navigation_settingsCast">‏שדר</string>
+    <string name="ssml_navigation_settingsDataUsage">‏שימוש בנתונים</string>
+    <string name="ssml_navigation_settingsDateAndTime">‏תאריך ושעה</string>
+    <string name="ssml_navigation_settingsDefaultApps">‏אפליקציות ברירת מחדל</string>
+    <string name="ssml_navigation_settingsDeviceInfo">‏אודות הטלפון</string>
+    <string name="ssml_navigation_settingsDisplay">‏תצוגה</string>
+    <string name="ssml_navigation_settingsInputMethod">‏מקלדת על המסך</string>
+    <string name="ssml_navigation_settingsInternalStorage">‏אחסון</string>
+    <string name="ssml_navigation_settingsLocale">‏שפות</string>
+    <string name="ssml_navigation_settingsMemoryCard">‏כרטיס זיכרון</string>
+    <string name="ssml_navigation_settingsNetworkAndInternet">‏רשת ואינטרנט</string>
+    <string name="ssml_navigation_settingsNfc">‏NFC</string>
+    <string name="ssml_navigation_settingsNfcPayment">‏תשלומים ללא מגע</string>
+    <string name="ssml_navigation_settingsNightDisplay">‏תצוגה לילית</string>
+    <string name="ssml_navigation_settingsNotifications">‏הודעות</string>
+    <string name="ssml_navigation_settingsOverlayPermission">‏הרשאה לשכבת-על במסך</string>
+    <string name="ssml_navigation_settingsPrivacy">‏פרטיות</string>
+    <string name="ssml_navigation_settingsSecurity">‏אבטחה</string>
+    <string name="ssml_navigation_settingsSound">‏צליל</string>
+    <string name="ssml_navigation_settingsTetheringAndHotspot">‏נקודה חמה וקשירה</string>
+    <string name="ssml_navigation_settingsUsageAccess">‏גישה לנתוני שימוש</string>
+    <string name="ssml_navigation_settingsVpn">‏VPN</string>
+    <string name="ssml_navigation_settingsWiFi">‏Wi-Fi</string>
+</resources>

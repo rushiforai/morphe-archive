@@ -46,7 +46,7 @@ public final class VerifyNativeRestoreHooks {
                 "Lo/setFormat;:onCreate:stagingRoot", 1,
                 "Lo/setFormat$3;:run:clearUnpreparedDirectory", 1,
                 "Lo/setFormat$3;:run:reusePreview", 1,
-                "Lo/setFormat$3;:run:finishPreview", 2,
+                "Lo/setFormat$3;:run:finishPreview", 3,
                 "Lo/setFormat$3;:run:previewError", 1,
                 "Lo/setFormat$2;:run:isInterrupted", 3,
                 "Lo/setFormat$2;:run:beginRestore", 1).entrySet()) {

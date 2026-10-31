@@ -102,7 +102,7 @@ public class LiveRecordingSaverTest {
         ShadowToast.reset();
         LiveRecordingSaver.announce(result(LiveRecorder.Outcome.SAVED_PARTIAL, LiveRecorder.End.STORAGE, "handle"));
         shadowOf(Looper.getMainLooper()).idle();
-        assertTrue(ShadowToast.getTextOfLatestToast().startsWith("The phone is running out of room."));
+        assertTrue(ShadowToast.getTextOfLatestToast().startsWith("Storage almost full."));
     }
 
     @Test public void streamAndEnabledScreenAudioKeepTheOriginalCompletionMessage() {
@@ -111,7 +111,7 @@ public class LiveRecordingSaverTest {
         LiveRecordingSaver.announce(result);
         shadowOf(Looper.getMainLooper()).idle();
         String streamMessage = ShadowToast.getTextOfLatestToast();
-        assertFalse(streamMessage.contains("This screen recording has no sound."));
+        assertFalse(streamMessage.contains("This screen recording has no sound"));
 
         LiveRecordingSaver.announce(result.withScreenAudio(LiveRecorder.ScreenAudio.ENABLED));
         shadowOf(Looper.getMainLooper()).idle();
@@ -129,8 +129,8 @@ public class LiveRecordingSaverTest {
         assertEquals(original.outcome, result.outcome);
         LiveRecordingSaver.announce(result);
         shadowOf(Looper.getMainLooper()).idle();
-        assertTrue(ShadowToast.getTextOfLatestToast().startsWith("The phone is running out of room."));
-        assertTrue(ShadowToast.getTextOfLatestToast().endsWith("\nThis screen recording has no sound."));
+        assertTrue(ShadowToast.getTextOfLatestToast().startsWith("Storage almost full."));
+        assertTrue(ShadowToast.getTextOfLatestToast().endsWith("\nThis screen recording has no sound"));
     }
 
     @Test public void aVideoOnlyFullSaveDisclosesTheMissingSound() {
@@ -138,7 +138,7 @@ public class LiveRecordingSaverTest {
                 .withScreenAudio(LiveRecorder.ScreenAudio.VIDEO_ONLY));
         shadowOf(Looper.getMainLooper()).idle();
         assertTrue(ShadowToast.getTextOfLatestToast().startsWith("LIVE recording saved to "));
-        assertTrue(ShadowToast.getTextOfLatestToast().endsWith("\nThis screen recording has no sound."));
+        assertTrue(ShadowToast.getTextOfLatestToast().endsWith("\nThis screen recording has no sound"));
     }
 
     @Test public void videoOnlyStatusDoesNotTurnAFailedOrEmptyRecordingIntoASave() {

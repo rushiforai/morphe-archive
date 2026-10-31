@@ -833,9 +833,20 @@ $catalogText = Get-Content -LiteralPath $catalogPath -Raw
 $workingToolchain = Read-CatalogToolchain -Text $catalogText -Source 'gradle/libs.versions.toml'
 $pinnedPatcher = $workingToolchain.PatcherVersion
 $managerFloor = $workingToolchain.ManagerFloor
-$managerFloorPattern = "\bMorphe Manager\s+$([regex]::Escape($managerFloor))\s+or newer\b"
+# The README intro describes the published release, so after the patcher pin moves it keeps the
+# floor that release needs until the next release rewrites it. readme-manager-floor in the catalog
+# records that floor; a release run (-VerifyPublishedAsset) holds the README to manager-floor.
+$readmeFloor = $managerFloor
+$readmeFloorMatch = [regex]::Match($catalogText, '(?m)^\s*readme-manager-floor\s*=\s*"([^"]+)"')
+if ($readmeFloorMatch.Success -and -not $VerifyPublishedAsset) {
+    $readmeFloor = $readmeFloorMatch.Groups[1].Value
+    if ($readmeFloor -notmatch '^\d+\.\d+\.\d+$' -or [version]$readmeFloor -gt [version]$managerFloor) {
+        throw "gradle/libs.versions.toml has an invalid readme-manager-floor: $readmeFloor (manager-floor is $managerFloor)"
+    }
+}
+$managerFloorPattern = "\bMorphe Manager\s+$([regex]::Escape($readmeFloor))\s+or newer\b"
 Require-Match -Text $readme -Pattern $managerFloorPattern -Description 'README Manager floor'
-Write-Host "[release] README requires Morphe Manager $managerFloor or newer for patcher $pinnedPatcher"
+Write-Host "[release] README requires Morphe Manager $readmeFloor or newer (manager-floor $managerFloor for patcher $pinnedPatcher)"
 
 # The bug form's placeholders are what a reporter copies when unsure what to write, and they had
 # drifted a long way: TikTok 46.2.3, Manager 1.29.0 and Hushfeed 0.29.0 while the bundle targeted
@@ -853,9 +864,9 @@ $bugFormTarget = if ($indexLagsSource -and $publishedTargets.Count -gt 0) {
 $bugFormVersions = "Version $publishedVersion for TikTok $bugFormTarget"
 Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*$([regex]::Escape($bugFormVersions))\s*$" `
     -Description 'bug report form version placeholder'
-Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*Morphe Manager $([regex]::Escape($managerFloor))\s*$" `
+Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*Morphe Manager $([regex]::Escape($readmeFloor))\s*$" `
     -Description 'bug report form Manager placeholder'
-Write-Host "[release] the bug report form's placeholders say `"$bugFormVersions`" and Morphe Manager $managerFloor"
+Write-Host "[release] the bug report form's placeholders say `"$bugFormVersions`" and Morphe Manager $readmeFloor"
 
 function Test-ChangelogHere {
     <#
@@ -1054,6 +1065,19 @@ if ($stampMatch.Groups[1].Value -ne $pinnedPatcher) {
         "Morphe Manager $managerFloor, so the patcher pin or built bundle is now wrong.")
 }
 Write-Host "[release] the bundle stamps patcher $pinnedPatcher, as the catalog pins"
+
+# Manager pins the first signing key it sees for a source and holds later bundles to it, so a
+# release bundle has to carry the signature of the key morphe-signing.pub publishes.
+if ($VerifyPublishedAsset) {
+    $bundleSignature = Get-BundleSignature -Path $bundlePath
+    if ($null -eq $bundleSignature) {
+        throw "The bundle is unsigned: $bundlePath. Set HUSHFEED_BUNDLE_SIGNING_KEY and rebuild with :patches:buildAndroid."
+    }
+    if ($bundleSignature.PublicKey -ne (Get-BundlePublicKey -Root $rootPath)) {
+        throw "The bundle is signed by a key other than morphe-signing.pub: $bundlePath"
+    }
+    Write-Host "[release] the bundle carries the MorpheSig1 signature of morphe-signing.pub"
+}
 
 Test-ReleaseReceiptHere -BundleForComparison $(if ($VerifyPublishedAsset) { $bundlePath } else { $null })
 

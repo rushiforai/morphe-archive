@@ -54,6 +54,7 @@ Open **Discord Settings → Venus → Features** to turn things on or off at any
 | | User and server reviews | Read and write reviews, from ReviewDB |
 | | User activity notifications | Shows a notice when chosen friends or users change status, start typing or send a message. Nothing shows for the chat you have open, and typing is announced once a minute per person and chat |
 | | Account switcher | Switch between up to 50 Discord accounts from the profile bar or Venus settings. Create a new account from Discord's Add account screen or the Account switcher page, without logging out. Export your saved accounts to a file and import them on another phone or a fresh install, without signing in again |
+| | Listen along | A small button next to **Play on Spotify** on a friend's profile plays their song on your phone at the same spot, and follows them as they change songs. Needs Spotify Premium, Spotify linked in Discord and the Spotify app open on your phone. A slider on its page shifts your song up to 10 seconds. Starts off. By maayan080 |
 | **Servers** | Read all button | Marks servers, DMs or both as read in one tap |
 | | Show hidden channels | Channels you can't open appear with a lock. Only a tap opens their details menu, which you can turn off |
 | | Server info | Hold a server's icon to see live details: who's online, channels, roles, emojis, boost progress, the owner, your friends there, when it was made and when you joined |

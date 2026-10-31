@@ -1,3 +1,20 @@
+## 2.0.0 (2026-10-31)
+
+### ⚠ BREAKING CHANGES
+
+* **ticktick:** remove local lists and backups
+
+### 🐛 Bug Fixes
+
+* **nikkei:** badge the account subscribe row and disable the paywall overlay e4be15a
+* **nikkei:** disable the app's self-updating web bundle 812fb19
+
+### ✨ New Features
+
+* **lrb:** add premium reading patch for 4.6.0 a52fc0f
+* **nikkei:** add Nikkei Asia premium reading patch 4f78d8d
+* **ticktick:** remove local lists and backups 9b80437
+
 ## 1.5.1 (2026-10-31)
 
 ### 🐛 Bug Fixes

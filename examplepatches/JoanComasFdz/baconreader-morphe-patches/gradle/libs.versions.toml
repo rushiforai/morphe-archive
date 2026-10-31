@@ -1,0 +1,21 @@
+[versions]
+morphe-patcher = "2.0.0"
+morphe-patches-library = "2.0.0"
+#noinspection GradleDependency
+smali = "4220ae75f7"
+gson = "2.14.0"
+annotation = "1.10.0"
+okhttp = "4.12.0"
+
+[libraries]
+morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
+morphe-extensions-library = { module = "app.morphe:morphe-extensions-library", version.ref = "morphe-patches-library" }
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+# Gradle plugins adds the dependency during build, this declaration is here only for dependabot to provide updates.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
+
+[plugins]
+android-library = { id = "com.android.library" }

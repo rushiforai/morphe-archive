@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt">
+    <objectAnimator
+        android:interpolator="@android:anim/accelerate_decelerate_interpolator"
+        android:duration="1000"
+        android:repeatCount="infinite"
+        android:repeatMode="reverse"
+        android:valueFrom="M 2.552 9.603 L 58.544 9.603"
+        android:valueTo="M 5.456 9.603 L 61.448 9.603"
+        android:valueType="pathType"
+        android:propertyName="pathData"/>
+</set>

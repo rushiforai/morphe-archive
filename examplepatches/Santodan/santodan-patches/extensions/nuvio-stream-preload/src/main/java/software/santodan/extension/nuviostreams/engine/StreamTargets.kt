@@ -33,10 +33,10 @@ object StreamTargets {
     }
 
     fun continueWatching(card: Any): Media? {
-        val progress = field(card, "x")
+        val progress = field(card, "r")
         if (progress != null) return media(get(progress, "getContentType"), get(progress, "getVideoId"),
             get(progress, "getSeason"), get(progress, "getEpisode"))
-        val item = field(card, "y") ?: return null
+        val item = field(card, "s") ?: return null
         val info = field(item, "a") ?: return null
         if (field(info, "n") != true) return null // Upcoming titles cannot be played yet.
         return media(field(info, "b"), field(info, "g"), field(info, "h"), field(info, "i"))

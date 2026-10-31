@@ -1,0 +1,10 @@
+{
+  "package": "@braccato/core",
+  "version": "1.16.11",
+  "file": "dist/engine.js",
+  "upstreamSha256": "a3abca4640ef83edd4c5d2b34e7efb221e439365a24005051e34f92851c1f834",
+  "patchedSha256": "53340e91e9c842269444017e00792561ae59b7ab51e412ce20d8d107c6a159e1",
+  "rendererUpstreamSha256": "6c695c762dafcf6c66acc6dabf088f5f43f0b048eff0ae95516c7a3267170575",
+  "rendererPatchedSha256": "6935dbe2e0f89f706f9c124191cf2ba6f3f610e65b57e758082dce050f78f721",
+  "change": "Exact upstream per-line scroll transforms, duration, stagger and easing; only clamp/coalesce expected scroll events and distinguish explicit user input. No alternate viewport animation."
+}

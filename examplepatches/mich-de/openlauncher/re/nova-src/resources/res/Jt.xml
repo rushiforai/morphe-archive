@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.shortcuts.DeepShortcutView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:theme="0x7f1501c3"
+    android:background="0x7f0804ba"
+    android:layout_width="0x7f07007e"
+    android:layout_height="0x7f07007c"
+    android:elevation="0x7f0700b5">
+    <include layout="0x7f0e01f2"/>
+    <include layout="0x7f0e016f"/>
+</com.android.launcher3.shortcuts.DeepShortcutView>

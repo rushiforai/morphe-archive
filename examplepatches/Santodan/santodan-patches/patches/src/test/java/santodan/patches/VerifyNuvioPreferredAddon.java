@@ -25,15 +25,15 @@ public final class VerifyNuvioPreferredAddon {
                     for (var c : DexBackedDexFile.fromInputStream(null, input).getClasses()) check(classes.put(c.getType(), c) == null);
                 }
         }
-        MutableClass snapshot = new MutableClass(classes.get("Lba/j4;"));
+        MutableClass snapshot = new MutableClass(classes.get("Lba/o4;"));
         MutableClass selector = new MutableClass(classes.get("Ld9/v1;"));
-        MutableClass loader = new MutableClass(classes.get("Lgb/a1;"));
+        MutableClass loader = new MutableClass(classes.get("Lhb/w0;"));
         if (args.length > 2) {
             NuvioPreferredAddonPatch.methods(snapshot, selector).forEach((key, method) ->
                 System.out.println("HASH " + key + " " + NuvioPlaybackButtonsPatch.fingerprint(method)));
             NuvioPreferredAddonPatch.loaderMethods(loader, selector).forEach((key, method) ->
                 System.out.println("HASH " + key + " " + NuvioPlaybackButtonsPatch.fingerprint(method)));
-            for (var method : classes.get("Lfb/nd;").getMethods()) if (List.of("a", "j").contains(method.getName())) System.out.println(method);
+            for (var method : classes.get("Lgb/gd;").getMethods()) if (List.of("a", "j").contains(method.getName())) System.out.println(method);
             return;
         }
         NuvioPreferredAddonPatch.validateContracts(type -> new MutableClass(classes.get(type)));
@@ -89,8 +89,8 @@ public final class VerifyNuvioPreferredAddon {
         try (var input = new BufferedInputStream(new FileInputStream(output))) {
             for (var owner : DexBackedDexFile.fromInputStream(null, input).getClasses()) reloaded.put(owner.getType(), new MutableClass(owner));
         }
-        var mutated = new HashMap<>(NuvioPreferredAddonPatch.methods(reloaded.get("Lba/j4;"), reloaded.get("Ld9/v1;")));
-        mutated.putAll(NuvioPreferredAddonPatch.loaderMethods(reloaded.get("Lgb/a1;"), reloaded.get("Ld9/v1;")));
+        var mutated = new HashMap<>(NuvioPreferredAddonPatch.methods(reloaded.get("Lba/o4;"), reloaded.get("Ld9/v1;")));
+        mutated.putAll(NuvioPreferredAddonPatch.loaderMethods(reloaded.get("Lhb/w0;"), reloaded.get("Ld9/v1;")));
         for (var entry : mutated.entrySet()) {
             var method = entry.getValue();
             var code = method.getImplementation();

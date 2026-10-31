@@ -322,6 +322,10 @@ internal fun MutableMethod.fillCardId() {
  * ImmutableList, its session from its one FbUserSession field, and whether it has a story not
  * watched yet from the one method RegularStoryBucket answers by reading is_bucket_seen_by_viewer,
  * turned around. Read from both 582 builds on 2026-10-14.
+ *
+ * A Highlights tile's bucket isn't a DirectMessageThreadBucket (585 builds it from an
+ * XFBStoryHighlightDeliveryBucket), so the publish goes out a second time under the tree's own type,
+ * TreeJNI's getTypeName() off the RegularStoryBucket field [readsUnwatched]'s override reads (#165).
  */
 internal const val REGULAR_BUCKET = "Lcom/facebook/audience/snacks/model/RegularStoryBucket;"
 internal const val CONSISTENCY = "Lcom/facebook/graphservice/interfaces/GraphQLConsistency;"
@@ -414,6 +418,10 @@ internal class StoryBuckets(
     val session: Field,
     /** StoryBucket's method answering whether a story isn't watched yet, which RegularStoryBucket overrides. */
     val hasUnwatched: Method,
+    /** RegularStoryBucket's override of [hasUnwatched], reading is_bucket_seen_by_viewer. */
+    val override: Method,
+    /** RegularStoryBucket's tree, the field [override] reads the flag from (#165). */
+    val tree: FieldReference,
 )
 
 /** The instructions that load a 32-bit constant into a register. */
@@ -452,7 +460,10 @@ internal fun storyBuckets(bucket: ClassDef, regular: ClassDef): StoryBuckets? {
             !AccessFlags.STATIC.isSet(it.accessFlags) && !AccessFlags.FINAL.isSet(it.accessFlags)
     } ?: return null
     if (bucket.methods.none { it.name == "getId" && it.parameterTypes.isEmpty() && it.returnType == STRING }) return null
-    return StoryBuckets(cards, session, hasUnwatched)
+    val tree = override.implementation!!.instructions.filter { it.opcode == Opcode.IGET_OBJECT }
+        .map { (it as ReferenceInstruction).reference as FieldReference }
+        .singleOrNull { it.definingClass == regular.type } ?: return null
+    return StoryBuckets(cards, session, hasUnwatched, override, tree)
 }
 
 /**
@@ -479,6 +490,40 @@ internal fun MutableMethod.hearBucketMade() {
     requireThisIntact(PATCH, listOf(at))
     val self = localRegisterCount()
     addInstructions(at, "invoke-static/range { v$self .. v$self }, $BUCKET_MADE")
+}
+
+/*
+ * The ring from the first frame (#165, read from 585 arm64 on 2026-10-31).
+ *
+ * A publish only reaches the copies of a bucket that exist when it's made, and a cold start draws
+ * the tray first with LightweightLoadingBucket (built by LightNodeQueryBucketSource from the tray's
+ * light query), which never runs RegularStoryBucket's constructor. Its answer comes from
+ * StoryBucket's own method, which reads its tree's is_bucket_seen_by_viewer for it and answers yes
+ * outright for the end card, error and server-generated buckets; RegularStoryBucket overrides it
+ * and doesn't call it. A hook goes first in both, so the tray, the viewer and their logging all
+ * hear the same answer.
+ */
+internal const val READS_WATCHED = "$STORY_SEEN->readsWatched(${OBJECT})Z"
+
+/**
+ * First thing in a bucket's answer to whether it has a story not watched yet: a bucket the
+ * extension reads as watched answers no, and every other bucket goes on to Facebook's own answer.
+ * This is read before anything writes it, and the one local the answer needs is free there.
+ */
+internal fun MutableMethod.answerWatchedFirst() {
+    requireLocals(PATCH, 1)
+    val self = localRegisterCount()
+    addInstructionsWithLabels(
+        0,
+        """
+            invoke-static/range { v$self .. v$self }, $READS_WATCHED
+            move-result v0
+            if-eqz v0, :facebook
+            const/4 v0, 0x0
+            return v0
+        """,
+        ExternalLabel("facebook", getInstruction(0)),
+    )
 }
 
 /*
@@ -718,6 +763,17 @@ internal fun fillSeenStubs(
         """
             check-cast p0, $STORY_BUCKET
             iget-object p0, p0, $STORY_BUCKET->${buckets.session.name}:$FB_USER_SESSION
+            return-object p0
+        """,
+    )
+    stub("bucketTypeOf", OBJECT, listOf(OBJECT)).addInstructions(
+        0,
+        """
+            check-cast p0, ${buckets.tree.definingClass}
+            iget-object p0, p0, ${buckets.tree.definingClass}->${buckets.tree.name}:${buckets.tree.type}
+            check-cast p0, $TREE_JNI
+            invoke-virtual { p0 }, $TREE_JNI->getTypeName()$STRING
+            move-result-object p0
             return-object p0
         """,
     )

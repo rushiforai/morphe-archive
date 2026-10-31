@@ -142,6 +142,7 @@ public final class FollowDiagnostics {
 
     private static volatile FollowRequestContext recentDirectContext;
     private static final AtomicBoolean warnedAboutRefusedFollow = new AtomicBoolean();
+    private static final AtomicBoolean warnedAboutRefusedLike = new AtomicBoolean();
 
     public static void logCommonFollowRequest(
             int action,
@@ -328,6 +329,12 @@ public final class FollowDiagnostics {
             return;
         }
 
+        String likePath = likePath(request);
+        if (likePath != null) {
+            logLikeResponse(likePath, request, response);
+            return;
+        }
+
         String chatPath = liveChatPath(request);
         if (chatPath != null) {
             logLiveChatResponse(chatPath, request, response);
@@ -336,7 +343,7 @@ public final class FollowDiagnostics {
 
         String fullPath = requestPath(request);
         if (fullPath != null && fullPath.toLowerCase(Locale.ROOT).contains("/webcast/room/enter/")) {
-            logLiveEnterResponse(fullPath, request, response);
+            logLiveEnterResponse(requestUrl(request), request, response);
             return;
         }
 
@@ -353,6 +360,75 @@ public final class FollowDiagnostics {
     }
 
     /**
+     * A like TikTok turns down still fills the heart, and it is gone after a restart (#269), so
+     * the answer to every like is read whether or not logging is on. A refused like or comment
+     * like is named on screen once per process; the line records the server's code, whether a
+     * risk check was hidden just before, and like or unlike. The video and comment ids stay out.
+     */
+    private static void logLikeResponse(String path, Object request, Object response) {
+        try {
+            Object body = response == null ? null : readField(response, "LIZIZ");
+            FollowVerdict verdict = FollowVerdict.of(body);
+            String suppressed = CaptchaGate.recentlySuppressedCheckId();
+            String type = likeType(request);
+            boolean refused = FollowVerdict.isRefusalCode(verdict.statusCode);
+            if (refused && !"0".equals(type) && namesALikeOnScreen(path)) {
+                warnAboutRefusedLikeOnce(verdict);
+            }
+            if (!reserveNetworkEvent()) return;
+
+            String line = "[Morphe TikTok FollowProbe] like response"
+                    + " path=" + path
+                    + " type=" + type
+                    + " responseSuccess=" + (response == null ? "n/a" : invokeValue(response, "LIZJ"))
+                    + " responseCode=" + (response == null ? "n/a" : invokeValue(response, "LIZ"))
+                    + " status_code=" + verdict.statusCode
+                    + " status_msg=" + safeShort(verdict.statusMsg)
+                    + " riskCheck=" + (suppressed == null ? "none" : safeShort(suppressed))
+                    + " outcome=" + (refused ? "refused" : "server_accept");
+            Logger.printDebug(() -> line);
+        } catch (Throwable throwable) {
+            Logger.printDebug(() -> "[Morphe TikTok FollowProbe] like response read failed: " + throwable);
+        }
+    }
+
+    /** Video and comment likes; reposts and danmaku share the write family but aren't a heart. */
+    private static boolean namesALikeOnScreen(String path) {
+        String value = path.toLowerCase(Locale.ROOT);
+        return value.contains("/item/digg/") || value.contains("/comment/digg/");
+    }
+
+    /**
+     * TikTok's type (1 like, 0 unlike) or a comment's digg_type, from the query or the form body.
+     * Only digits are reported; "none" when neither names it.
+     */
+    private static String likeType(Object request) {
+        String fullPath = requestUrl(request);
+        String type = queryValue(fullPath, "type");
+        if (type == null) type = queryValue(fullPath, "digg_type");
+        if (type == null) {
+            try {
+                String form = encodedFormBody(requestPayloadRoot(request));
+                type = formValue(form, "type");
+                if (type == null) type = formValue(form, "digg_type");
+            } catch (Throwable ignored) {
+                // A body this read can't take apart only leaves the type unknown.
+            }
+        }
+        if (type == null) return "none";
+        return type.matches("\\d{1,3}") ? type : "set";
+    }
+
+    static void warnAboutRefusedLikeOnce(FollowVerdict verdict) {
+        if (!warnedAboutRefusedLike.compareAndSet(false, true)) return;
+        String message = FollowVerdict.UNKNOWN.equals(verdict.statusMsg)
+                ? L10n.f("TikTok refused the like with code %1$s", verdict.statusCode)
+                : L10n.f("TikTok refused the like: %1$s", verdict.statusMsg);
+        Utils.showToastLong(message);
+        Logger.printInfo(() -> "[Morphe TikTok FollowProbe] like refused status_code=" + verdict.statusCode);
+    }
+
+    /**
      * A LIVE comment that does not post leaves no trace on the app side, so the answer to the
      * send is recorded: the transport result, the server's status code and message, and whether
      * a risk check was hidden just before. Nothing the user typed and no account id is read.
@@ -361,8 +437,9 @@ public final class FollowDiagnostics {
         if (!reserveNetworkEvent()) return;
 
         try {
-            String room = liveRoomId(request, requestPath(request));
-            String fullPath = requestPath(request);            Object body = response == null ? null : readField(response, "LIZIZ");
+            String fullPath = requestUrl(request);
+            String room = liveRoomId(request, fullPath);
+            Object body = response == null ? null : readField(response, "LIZIZ");
             FollowVerdict verdict = FollowVerdict.of(body);
             String suppressed = CaptchaGate.recentlySuppressedCheckId();
             String line = "[Morphe TikTok FollowProbe] live comment response"
@@ -432,10 +509,15 @@ public final class FollowDiagnostics {
 
     /** The room_id in a form-encoded body, or null. */
     static String roomIdFromForm(String encodedBody) {
+        return formValue(encodedBody, "room_id");
+    }
+
+    /** One key's decoded value in a form-encoded body, or null. */
+    static String formValue(String encodedBody, String key) {
         if (encodedBody == null) return null;
         for (String part : encodedBody.split("&")) {
             int equals = part.indexOf('=');
-            if (equals > 0 && decodeUrlComponent(part.substring(0, equals)).equals("room_id")) {
+            if (equals > 0 && decodeUrlComponent(part.substring(0, equals)).equals(key)) {
                 String value = decodeUrlComponent(part.substring(equals + 1));
                 return value.isEmpty() ? null : value;
             }
@@ -568,6 +650,7 @@ public final class FollowDiagnostics {
         activeReadbackContext = null;
         recentDirectContext = null;
         warnedAboutRefusedFollow.set(false);
+        warnedAboutRefusedLike.set(false);
     }
 
     static int eventCountForTests() {
@@ -765,13 +848,14 @@ public final class FollowDiagnostics {
         String message;
         if (FollowVerdict.UNKNOWN.equals(context.statusMsg)) {
             message = captcha
-                    ? L10n.f("TikTok refused the follow with code %1$s. A hidden CAPTCHA may be the cause.",
+                    ? L10n.f("Follow refused, code %1$s. Maybe a hidden CAPTCHA.",
                             context.statusCode)
                     : L10n.f("TikTok refused the follow with code %1$s", context.statusCode);
         } else {
+            // TikTok's own reason usually ends in a stop, which reads wrong inside the brackets.
+            String reason = context.statusMsg.trim().replaceAll("[.!。]+$", "");
             message = captcha
-                    ? L10n.f("TikTok refused the follow: %1$s A hidden CAPTCHA may be the cause.",
-                            context.statusMsg)
+                    ? L10n.f("Follow refused (%1$s). Maybe a hidden CAPTCHA.", reason)
                     : L10n.f("TikTok refused the follow: %1$s", context.statusMsg);
         }
         Utils.showToastLong(message);
@@ -1350,6 +1434,14 @@ public final class FollowDiagnostics {
         return "follow".equals(CaptchaGate.writeActionFor(path)) ? safeShort(path) : null;
     }
 
+    private static String likePath(Object request) {
+        String path = requestPath(request);
+        if (!"like".equals(CaptchaGate.writeActionFor(path))) return null;
+        // The query names the video or comment, which a shared report has no use for.
+        int query = path.indexOf('?');
+        return safeShort(query < 0 ? path : path.substring(0, query));
+    }
+
     private static String followReadbackPath(Object request) {
         String path = requestPath(request);
         if (path == null) return null;
@@ -1381,6 +1473,18 @@ public final class FollowDiagnostics {
         if (!(value instanceof String)) return null;
 
         return (String) value;
+    }
+
+    /**
+     * The request's whole URL, for reading its query. TikTok's Request.getPath() is
+     * URI.getPath(), which leaves the query out, so every like read type=none and every LIVE
+     * enter route=none on a phone (#269). getUrl() keeps it. The path stands in where a
+     * request has no URL with a query.
+     */
+    private static String requestUrl(Object request) {
+        Object url = app.morphe.extension.tiktok.blockauthor.Reflect.invoke(request, "getUrl");
+        if (url instanceof String && ((String) url).indexOf('?') >= 0) return (String) url;
+        return requestPath(request);
     }
 
     private static String describeMapKeys(Map<?, ?> map) {

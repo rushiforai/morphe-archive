@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 JoanComasFdz
+# SPDX-License-Identifier: GPL-3.0-only
+
+# Fails when a shared file differs from the other BaconReader patches repo's (AGENTS.md, "Shared and
+# patcher-specific files"). Same file in both repos. A PR compares with the other repo's branch of the
+# same name when there is one, so the two PRs of one change pass together.
+name: Shared docs
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    name: Compare with the other repo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Compare
+        env:
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          case "$REPO" in
+            */baconreader-reseam-patches) other=JoanComasFdz/baconreader-morphe-patches base=dev ;;
+            */baconreader-morphe-patches) other=JoanComasFdz/baconreader-reseam-patches base=main ;;
+            *) echo "::error::unknown repo $REPO"; exit 1 ;;
+          esac
+          ref=$base
+          if [ -n "$HEAD_REF" ] && curl -fsSIL -o /dev/null "https://raw.githubusercontent.com/$other/$HEAD_REF/AGENTS.md"; then
+            ref=$HEAD_REF
+          fi
+          echo "Comparing with $other@$ref"
+          fail=0
+          for f in AGENTS.md CLAUDE.md STYLE.md docs/patches.md; do
+            if ! curl -fsSL "https://raw.githubusercontent.com/$other/$ref/$f" -o "$RUNNER_TEMP/other"; then
+              echo "::error file=$f::missing in $other@$ref"; fail=1; continue
+            fi
+            diff -u "$RUNNER_TEMP/other" "$f" || { echo "::error file=$f::differs from $other@$ref"; fail=1; }
+          done
+          exit $fail

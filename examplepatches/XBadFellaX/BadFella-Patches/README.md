@@ -25,9 +25,9 @@ Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.1](https://github.com/XBadFellaX/BadFella-Patches/releases/tag/v1.5.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v2.0.0](https://github.com/XBadFellaX/BadFella-Patches/releases/tag/v2.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
-<summary>📦 TickTick&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>📦 TickTick&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -38,7 +38,6 @@ Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Disable analytics collection](#disable-analytics-collection) | Disables declared analytics and crash collection and removes advertising permissions. Keeps Firebase Messaging and location permissions. Does not guarantee zero tracking. |  |
-| [Local lists and backups](#local-lists-and-backups) | Adds BadFella Settings with 299 or 900 local lists, local task assignments, and manual or scheduled local backups of organization and supported task snapshots. Cloud lists and task ownership stay in TickTick; attachment file contents are not included. |  |
 | [Restore notifications](#restore-notifications) | Restores Firebase certificate metadata on re-signed apps, with an Android 17 compatible token setup. Push delivery still requires device testing. |  |
 | [Restore reminder alarms](#restore-reminder-alarms) | Restores task/reminder alarm scheduling on re-signed apps. |  |
 | [TickTick Premium](#ticktick-premium) | Enables client-side premium features and limits. Does not grant server-side AI access or a subscription. |  |
@@ -77,6 +76,21 @@ Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX
 </details>
 
 <details open>
+<summary>📦 London Review of Books&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 🧪&nbsp;4.6.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [LRB premium reading](#lrb-premium-reading) | Unlocks locally paywalled LRB articles and issues by making the standard paywall manager report content as unlocked, and brands the settings version banner Patched by BadFella. Keeps account authentication and store billing; does not grant a server subscription. |  |
+
+</details>
+
+<details open>
 <summary>📦 MIT Technology Review&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -88,6 +102,21 @@ Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [MIT Tech Review reading meter](#mit-tech-review-reading-meter) | Removes local article gates and the remaining-views banner, and enables the app's ad-free flag for native and article ads. Keeps account authentication; does not grant a server subscription. |  |
+
+</details>
+
+<details open>
+<summary>📦 Nikkei Asia&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 🧪&nbsp;8a14774d3a9cb8f25eaae58f4c4e4f3e |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Nikkei Asia premium reading](#nikkei-asia-premium-reading) | Grants article access in the Nikkei Asia reader by making its local article-access check always succeed, removes the paywall overlay, stops the app's self-updating web bundle from replacing the patched assets, labels the Account screen "Premium Unlocked by BadFella" and its Subscribe row "Patched by BadFella". Keeps account sign-in and store billing; does not change server-side entitlements. |  |
 
 </details>
 
@@ -141,16 +170,17 @@ Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX
 
 **Limits:** these patches do not grant server-side AI access or increase the account's list-sync allowance. Custom AI keys are not supported yet.
 
-### Local lists and Emby
+### TickTick and Emby
 
-**Local lists and backups** is optional and off by default. Automatic backups
-also start off. The Emby patches support both ARM64 and ARMv7 stock APKs.
+TickTick's optional Local lists and backups feature and BadFella Settings entry
+are removed in 1.6.0-dev.6. Export any local organization you need using your
+existing build before updating. Tasks, cloud lists, on-device databases and
+exported backups are not deleted; this bundle has no local-list backup or restore
+controls.
 
-Local lists: open **Settings → General → BadFella Settings** for local organization,
-manual backups and optional scheduled backups. Open that screen once after an
-upgrade from the old extension namespace to reconnect any backup schedule.
-Emby: Firebase/DataTransport removal disables Firebase push. Client unlock does
-not grant server Premiere entitlements.
+The Emby patches support both ARM64 and ARMv7 stock APKs. Firebase/DataTransport
+removal disables Firebase push. Client unlock does not grant server Premiere
+entitlements.
 
 ### Remote for Android TV
 

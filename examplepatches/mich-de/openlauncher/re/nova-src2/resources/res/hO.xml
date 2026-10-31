@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:state_empty="true"
+        android:drawable="@android:color/transparent"/>
+    <item
+        android:state_expanded="true"
+        android:drawable="0x7f0802bf"/>
+    <item android:drawable="0x7f0802be"/>
+</selector>

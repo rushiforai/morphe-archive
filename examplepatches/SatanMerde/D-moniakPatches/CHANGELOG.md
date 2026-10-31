@@ -1,3 +1,74 @@
+## [1.62.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.62.0...v1.62.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **silt:** fix PAD asset pack resolution to eliminate infinite loading freeze ([bfc1693](https://github.com/SatanMerde/D-moniakPatches/commit/bfc169316dd65a9cc51c9746c3d78e8e6690a13b))
+
+## [1.62.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.61.0...v1.62.0) (2026-10-31)
+
+### ✨ New Features
+
+* **spotify:** remove Spicetify and Premium patches for Spotify ([50355d7](https://github.com/SatanMerde/D-moniakPatches/commit/50355d745a81f15eba2506d84a6ad2c894481187))
+
+## [1.61.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.60.0...v1.61.0) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **capcut:** fix API usage in CapCutBypassIntegrityPatch for Morphe DSL ([bfbe928](https://github.com/SatanMerde/D-moniakPatches/commit/bfbe928315c64069783a4dbd651f3f97aece13eb))
+* **capcut:** specify named parameter smaliCode in replaceMethod ([0da3cb4](https://github.com/SatanMerde/D-moniakPatches/commit/0da3cb43a0744b0c9ed47558840ebbddd703893a))
+
+### ✨ New Features
+
+* **capcut:** add integrity and update dialog bypass patch ([3dca6f6](https://github.com/SatanMerde/D-moniakPatches/commit/3dca6f61c873010d5d4ed493a86668516c70b04f))
+
+## [1.59.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.58.1...v1.59.0) (2026-10-31)
+
+### ✨ New Features
+
+* **patches:** add CapCut Pro and watermark removal patches ([f2a031f](https://github.com/SatanMerde/D-moniakPatches/commit/f2a031f45763eb39e6f541bec27596ace1340537))
+
+## [1.58.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.58.0...v1.58.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **virtualmaster:** reverse engineer APK v3.2.86, fix Pro entitlement and AdMob hooks ([8eacf9c](https://github.com/SatanMerde/D-moniakPatches/commit/8eacf9c3d7420d553ab2d5da450bf0fcd6e8e6ff))
+
+## [1.58.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.57.0...v1.58.0) (2026-10-31)
+
+### ✨ New Features
+
+* **patches:** add MT Manager and Virtual Master patches, verify and enhance CoinSnap, Stellarium, and World Map Quiz ([01a4dc4](https://github.com/SatanMerde/D-moniakPatches/commit/01a4dc4bf579fe046a552a4fbe2db5ac02dcb6bf))
+
+## [1.57.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.56.0...v1.57.0) (2026-10-31)
+
+### ✨ New Features
+
+* **patches:** add 15 community-requested patches for Todoist, Poweramp, SwiftKey, Goodreads, Pocket Casts, and more ([93cfc98](https://github.com/SatanMerde/D-moniakPatches/commit/93cfc98f15124a2e25fc9f0085127da77c7d462e))
+
+## [1.56.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.55.0...v1.56.0) (2026-10-31)
+
+### ✨ New Features
+
+* **patches:** add community-requested patches for Chess.com, Moovit, Hevy, MyFitnessPal, and Cronometer ([a880cc1](https://github.com/SatanMerde/D-moniakPatches/commit/a880cc1606cf557db5492841ae8f6fca1405492e))
+
+## [1.55.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.54.0...v1.55.0) (2026-10-31)
+
+### ✨ New Features
+
+* **patches:** add community-requested patches for Letterboxd, IMDb, Tumblr, and Quizlet ([ad39ae4](https://github.com/SatanMerde/D-moniakPatches/commit/ad39ae4f2592663abbb1bdea44799bab72019d5c))
+
+## [1.54.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.53.1...v1.54.0) (2026-10-31)
+
+### ✨ New Features
+
+* **docs:** add experimental patch validation template and report links ([633b09a](https://github.com/SatanMerde/D-moniakPatches/commit/633b09a7453c8ce5e2d5314093b3198a0a2affa8))
+
+## [1.53.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.53.0...v1.53.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **patches:** reclassify unverified patches to experimental (AllTrails, BandLab, Fossify Phone, Shazam, Silt, Spotify) ([263155c](https://github.com/SatanMerde/D-moniakPatches/commit/263155c6ec92e1facf1cdd981f8171c4769fe5a9))
+
 ## [1.53.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.52.21...v1.53.0) (2026-10-30)
 
 ### ✨ New Features

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="end|center_vertical"
+    android:orientation="horizontal"
+    android:id="0x7f0b0662"
+    android:tag="0x7f1407b8"
+    android:clipToPadding="true"
+    android:layout_width="match_parent"
+    android:layout_height="0x7f070530"
+    android:elevation="0x7f0700b5"/>

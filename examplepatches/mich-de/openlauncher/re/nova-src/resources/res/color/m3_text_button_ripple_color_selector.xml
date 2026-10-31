@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:state_checkable="false"
+        android:state_pressed="true"
+        android:color="?unknown_attr_ref: 7f04016d"
+        android:alpha="0x7f07029b"/>
+    <item
+        android:state_focused="true"
+        android:state_checkable="false"
+        android:color="?unknown_attr_ref: 7f04016d"
+        android:alpha="0x7f070299"/>
+    <item
+        android:state_checkable="false"
+        android:color="?unknown_attr_ref: 7f04016d"
+        android:alpha="0x7f07029a"
+        android:state_hovered="true"/>
+    <item
+        android:state_checkable="false"
+        android:color="?unknown_attr_ref: 7f04016d"
+        android:alpha="0x7f0702d2"/>
+    <item
+        android:state_checked="true"
+        android:state_pressed="true"
+        android:color="?unknown_attr_ref: 7f04017a"
+        android:alpha="0x7f07029b"/>
+    <item
+        android:state_focused="true"
+        android:state_checked="true"
+        android:color="?unknown_attr_ref: 7f040177"
+        android:alpha="0x7f070299"/>
+    <item
+        android:state_checked="true"
+        android:color="?unknown_attr_ref: 7f040177"
+        android:alpha="0x7f07029a"
+        android:state_hovered="true"/>
+    <item
+        android:state_checked="true"
+        android:color="?unknown_attr_ref: 7f040177"
+        android:alpha="0x7f0702d2"/>
+    <item
+        android:state_pressed="true"
+        android:color="?unknown_attr_ref: 7f040177"
+        android:alpha="0x7f07029b"/>
+    <item
+        android:state_focused="true"
+        android:color="?unknown_attr_ref: 7f04017a"
+        android:alpha="0x7f070299"/>
+    <item
+        android:color="?unknown_attr_ref: 7f04017a"
+        android:alpha="0x7f07029a"
+        android:state_hovered="true"/>
+    <item
+        android:color="?unknown_attr_ref: 7f04017a"
+        android:alpha="0x7f0702d2"/>
+</selector>

@@ -136,7 +136,8 @@ public class ReleaseNotesTest {
         java.util.regex.Matcher heading = java.util.regex.Pattern.compile("(?m)^## \\d+\\.\\d+\\.\\d+ ").matcher(summaries);
         assertTrue("release headings missing", heading.find());
         // Only the newest releases are bundled, so the text is whole sections from the top.
-        String all = summaries.substring(heading.start()).trim() + "\n";
+        // The generator leaves out the TikTok label the dialog drops anyway.
+        String all = summaries.substring(heading.start()).trim().replaceAll("(?m)^\\* \\*\\*TikTok:\\*\\* ", "* ") + "\n";
         String bundled = ReleaseNotesData.TEXT;
         assertTrue("run tools/gen-release-notes.py after summary edits",
                 bundled.startsWith("## ") && (all.equals(bundled) || all.startsWith(bundled.trim() + "\n\n## ")));
@@ -453,12 +454,12 @@ public class ReleaseNotesTest {
     @Test
     public void everyTableTranslatesTheSameReleases() throws Exception {
         java.util.Set<String> expected = null;
-        for (String tag : new String[]{"az", "de", "es", "in", "it", "pt-rbr", "ru", "tr"}) {
+        for (String tag : new String[]{"az", "de", "es", "in", "it", "pt-rbr", "ru", "tr", "zh-hans"}) {
             java.util.Set<String> versions = versions(ReleaseNotesData.translated(tag));
             if (expected == null) expected = versions;
             assertEquals(tag + " translates different releases", expected, versions);
         }
-        // Release prepare holds each release to all eight tables or none, so the newest can be
+        // Release prepare holds each release to all nine tables or none, so the newest can be
         // English only. The tables carry each bundled release the notes files translate.
         Path cursor = Path.of(System.getProperty("user.dir")).toAbsolutePath();
         while (!Files.isDirectory(cursor.resolve("extensions/tiktok/src/main/l10n/notes"))) {

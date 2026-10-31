@@ -1,0 +1,212 @@
+name: Build & Release Patch Bundle
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*", "[0-9]+.*" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+# Least privilege by default. A job that needs more asks for it.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x gradlew
+
+      - name: Check release metadata
+        run: ./scripts/check-release-metadata.sh
+
+      - name: Build Standalone Patch Bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION="$(grep -E '^version\s*=' gradle.properties | cut -d'=' -f2 | tr -d ' ')"
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          if [[ -z "$VERSION" ]]; then
+            echo "cannot read the version from gradle.properties" >&2
+            exit 1
+          fi
+          ./gradlew :patches:buildAndroid -Pversion="$VERSION" -Pgpr.user="$GITHUB_ACTOR"
+
+      - name: Upload MPP Artifact
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: GboardClipboardHistory.mpp
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error
+
+  apk:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install Android build tools
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          SDKMANAGER="$(ls -1d "$SDK_ROOT"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | tail -1)"
+          if [[ -z "$SDKMANAGER" ]]; then
+            SDKMANAGER="$(command -v sdkmanager)"
+          fi
+          if [[ -z "$SDKMANAGER" ]]; then
+            echo "no sdkmanager on this runner" >&2
+            exit 1
+          fi
+          yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
+          "$SDKMANAGER" "build-tools;35.0.0" "platforms;android-35"
+
+      - name: Download patch bundle
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: GboardClipboardHistory.mpp
+          path: patches
+
+      # The Gradle build names the bundle after the version. The build scripts
+      # look for one fixed name, so put the downloaded file where they expect it.
+      - name: Place the patch bundle where the build scripts look for it
+        run: |
+          set -euo pipefail
+          if [[ ! -f patches/GboardClipboardHistory.mpp ]]; then
+            bundle="$(ls -1 patches/*.mpp 2>/dev/null | head -1)"
+            if [[ -z "$bundle" ]]; then
+              echo "no patch bundle was downloaded" >&2
+              exit 1
+            fi
+            mv "$bundle" patches/GboardClipboardHistory.mpp
+          fi
+          echo "patch bundle: patches/GboardClipboardHistory.mpp"
+
+      - name: Restore release keystore
+        id: keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$KEYSTORE_BASE64" || -z "$KEYSTORE_PASSWORD" ]]; then
+            echo "The release secrets are not set, so no APK is built and no APK is published."
+            echo "Set RELEASE_KEYSTORE_BASE64 and KEYSTORE_PASSWORD to enable it."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          mkdir -p tools/patcher-data
+          echo "$KEYSTORE_BASE64" | base64 -d > tools/patcher-data/clipboard.keystore
+          printf '%s\n' "$KEYSTORE_PASSWORD" > tools/patcher-data/keystore-clipboard.password
+          chmod 600 tools/patcher-data/keystore-clipboard.password
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+
+      - name: Build patched APKs
+        if: steps.keystore.outputs.enabled == 'true'
+        env:
+          SIGNING_KEY: clipboard
+        run: |
+          ./scripts/build-gboard-clipboard.sh
+          ./scripts/build-gboard-clipboard-pixelboard.sh
+
+      - name: Upload APK Artifacts
+        if: steps.keystore.outputs.enabled == 'true'
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: release-apks
+          path: output/*Clipboard-History.apk
+          if-no-files-found: error
+
+  release:
+    needs: [ build, apk ]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      attestations: write
+      id-token: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Download MPP Artifact
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: GboardClipboardHistory.mpp
+          path: release
+
+      - name: Download APK Artifacts
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        continue-on-error: true
+        with:
+          name: release-apks
+          path: release
+
+      - name: Create Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          # The action splits this input on newlines and commas, one pattern per
+          # line. A space separated list is taken as a single pattern and
+          # matches nothing.
+          files: |
+            release/*.mpp
+            release/*.apk
+          generate_release_notes: true
+          prerelease: true
+
+      - name: Verify the release carries the bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          assets="$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name')"
+          echo "release assets:"
+          echo "$assets"
+          if ! grep -qE '^patches-.*\.mpp$' <<< "$assets"; then
+            echo "the release has no patch bundle, refusing to pass" >&2
+            exit 1
+          fi
+
+      - name: Attest patch bundle
+        if: hashFiles('release/*.mpp') != ''
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: release/*.mpp
+
+      - name: Attest patched APKs
+        if: hashFiles('release/*.apk') != ''
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: release/*.apk

@@ -10,9 +10,11 @@ import android.content.Intent;
 import android.net.Uri;
 
 import app.morphe.extension.shared.settings.PausedProcess;
+import app.morphe.extension.tiktok.SettingsContextRule;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -26,12 +28,16 @@ import org.robolectric.annotation.Config;
 public class LinkTaskGuardTest {
     private static final String LINK = "https://vm.tiktok.com/ZMabc/";
 
+    // PausedProcess reads Settings, which can't load without a context when this class runs alone.
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+
     @Before public void setUp() {
         PausedProcess.set(false);
     }
 
     @After public void tearDown() {
         PausedProcess.set(false);
+        LinkReturn.resetForTests();
     }
 
     private static Activity activityWith(Intent intent) {
@@ -44,6 +50,7 @@ public class LinkTaskGuardTest {
         return new Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(flags);
     }
 
+    /** CLEAR_TOP and SINGLE_TOP keep each relaunch from leaving a For You feed under the link (#276). */
     @Test public void foreignTaskRelaunchesWithNewTaskAndFinishes() {
         Intent original = view(LINK, 0).putExtra("k", "v");
         Activity activity = activityWith(original);
@@ -55,9 +62,14 @@ public class LinkTaskGuardTest {
         assertEquals("v", started.getStringExtra("k"));
         assertTrue((started.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) != 0);
         assertTrue(activity.isFinishing());
+        assertEquals(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP, started.getFlags()
+                & (Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP));
         assertEquals(Intent.ACTION_MAIN, activity.getIntent().getAction());
         assertNull(activity.getIntent().getData());
         assertEquals(activity.getPackageName(), activity.getIntent().getPackage());
+        assertTrue(LinkReturn.armed());
     }
 
     /** Remembers whether it was already finishing when it started the relaunch. */
@@ -86,6 +98,7 @@ public class LinkTaskGuardTest {
         assertFalse(LinkTaskGuard.redirectIfForeign(activity, false, Boolean.TRUE));
         assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
         assertFalse(activity.isFinishing());
+        assertFalse(LinkReturn.armed());
     }
 
     @Test public void taskRootIsLeftAlone() {

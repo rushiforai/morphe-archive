@@ -1,0 +1,16 @@
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
+import com.android.tools.smali.dexlib2.iface.*;
+import com.android.tools.smali.dexlib2.iface.instruction.*;
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
+import java.nio.ByteBuffer;import java.util.*;import java.util.zip.*;
+/** Compare against the prior patched APK: the only save-method addition is a void notification. */
+public class VerifyPersonalNgSaveHook {
+ static List<Method> saves(String path)throws Exception{List<Method> out=new ArrayList<>();try(var zip=new ZipFile(path)){for(var e:Collections.list(zip.entries()))if(e.getName().matches("classes[0-9]*\\.dex"))for(var c:new DexBackedDexFile(null,ByteBuffer.wrap(zip.getInputStream(e).readAllBytes())).getClasses())if(c.getType().equals("Ljp/syoboi/a2chMate/ng/NGWord;"))for(var m:c.getMethods())if(m.getReturnType().equals("V")&&m.getParameterTypes().toString().equals("[Ljava/util/ArrayList;]"))out.add(m);}return out;}
+ static boolean hook(Instruction i){return i instanceof ReferenceInstruction r&&r.getReference() instanceof MethodReference m&&m.getDefiningClass().equals("Lapp/morphe/extension/chmate/PersonalNgSubmissions;")&&m.getName().equals("changed");}
+ static List<String> body(Method m,boolean added){List<String> out=new ArrayList<>();var instructions=new ArrayList<Instruction>();m.getImplementation().getInstructions().forEach(instructions::add);int hooks=0,returns=0;
+ for(int n=0;n<instructions.size();n++){var i=instructions.get(n);if(hook(i)){hooks++;if(!(i instanceof FiveRegisterInstruction r)||r.getRegisterCount()!=0||n+1>=instructions.size()||!instructions.get(n+1).getOpcode().name().equals("RETURN_VOID"))throw new AssertionError("Invalid hook");continue;}
+ if(i.getOpcode().name().equals("RETURN_VOID")){returns++;if(added&&(n==0||!hook(instructions.get(n-1))))throw new AssertionError("Unobserved return");}
+ String s=i.getOpcode().name();if(i instanceof ReferenceInstruction r)s+=" ref="+r.getReference();if(i instanceof OneRegisterInstruction r)s+=" a="+r.getRegisterA();if(i instanceof TwoRegisterInstruction r)s+=" b="+r.getRegisterB();if(i instanceof ThreeRegisterInstruction r)s+=" c="+r.getRegisterC();if(i instanceof WideLiteralInstruction r)s+=" literal="+r.getWideLiteral();if(i instanceof RegisterRangeInstruction r)s+=" range="+r.getStartRegister()+":"+r.getRegisterCount();if(i instanceof FiveRegisterInstruction r)s+=" args="+r.getRegisterCount()+":"+r.getRegisterC()+":"+r.getRegisterD()+":"+r.getRegisterE()+":"+r.getRegisterF()+":"+r.getRegisterG();out.add(s);}
+ if(added&&(hooks==0||hooks!=returns))throw new AssertionError("Missing hook");return out;}
+ public static void main(String[] args)throws Exception{var before=saves(args[0]);var after=saves(args[1]);if(before.size()!=1||after.size()!=1)throw new AssertionError("Ambiguous save method");var a=before.get(0);var b=after.get(0);if(!a.getName().equals(b.getName())||a.getImplementation().getRegisterCount()!=b.getImplementation().getRegisterCount()||!body(a,false).equals(body(b,true)))throw new AssertionError("Native save instructions/registers changed");System.out.println("PASS original save instructions/registers and void hook before every return: "+args[1]);}
+}

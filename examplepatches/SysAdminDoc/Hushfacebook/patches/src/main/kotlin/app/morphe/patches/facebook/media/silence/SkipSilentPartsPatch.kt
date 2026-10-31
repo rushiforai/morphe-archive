@@ -32,7 +32,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-private const val PATCH = "Skip silent parts"
+internal const val PATCH = "Skip silent parts"
 internal const val SKIP_SILENCE = "$EXTENSION_PACKAGE/media/SkipSilence;"
 internal const val OWN_SKIP_SILENCE = "$SKIP_SILENCE->skipSilence(Z)Z"
 
@@ -58,6 +58,9 @@ internal const val SILENCE_CHANGED = "onSkipSilenceEnabledChanged"
  * A reel's More sheet gets a row that keeps the silent parts in that one reel ([addSkipSilenceRow]),
  * and Download any video's post menu hook adds the same row to a video post's menu. Both learn the
  * playing video from Resume long videos' player start hook, so without that patch neither shows.
+ *
+ * Facebook's checks on its dav1d decoder's dropped frames read the frames the skips leave out as a
+ * decoder that can't keep up, and play the SD file instead ([leaveDropChecksToSkipSilence], #286).
  *
  * In the default selection with its switch off: it changes how long a video takes to play, and
  * nobody expects that from Facebook.
@@ -88,6 +91,13 @@ val skipSilentPartsPatch = bytecodePatch(
         } catch (exception: PatchException) {
             patchLog.warning("${exception.message}, so reels get no Skip silent parts row in their More sheet.")
         }
+        // Facebook's checks on dropped frames, which took a reel down to its SD file while silence
+        // was skipped (#286). Silent parts are still skipped without this, so a miss is a warning.
+        try {
+            leaveDropChecksToSkipSilence()
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so a reel can drop to its SD file while silent parts are skipped.")
+        }
         enableStatus("skipSilentParts")
     }
 }
@@ -98,7 +108,7 @@ val skipSilentPartsPatch = bytecodePatch(
  */
 internal class SilenceApply(val method: Method, val index: Int, val chain: Int, val flag: Int, val scratch: Int)
 
-private fun same(a: Method, b: Method) = a.name == b.name && a.returnType == b.returnType &&
+internal fun same(a: Method, b: Method) = a.name == b.name && a.returnType == b.returnType &&
     a.parameterTypes.map(CharSequence::toString) == b.parameterTypes.map(CharSequence::toString)
 
 private fun interfaceCall(instruction: Instruction): MethodReference? {

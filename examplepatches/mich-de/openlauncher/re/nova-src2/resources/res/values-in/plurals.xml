@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">Maju cepat %d detik</item>
+        <item quantity="other">Maju cepat %d detik</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">Mundur %d detik</item>
+        <item quantity="other">Mundur %d detik</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d rapat</item>
+        <item quantity="one">%d rapat</item>
+        <item quantity="two">%d rapat</item>
+        <item quantity="few">%d rapat</item>
+        <item quantity="many">%d rapat</item>
+        <item quantity="other">%d rapat</item>
+    </plurals>
+</resources>

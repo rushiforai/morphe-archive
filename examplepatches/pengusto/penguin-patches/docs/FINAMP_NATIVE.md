@@ -26,9 +26,9 @@ selections together; an already patched snapshot is deliberately rejected.
 | **Fix section title validation** | Typing or clearing a custom section title refreshes validation and Save; cursor/IME state is retained | [PR #1830](https://github.com/finamp-app/finamp/pull/1830) **merged into `redesign` on 2026-10-29**; [issue #1798](https://github.com/finamp-app/finamp/issues/1798) |
 | **Song artist order** | Adds **Layout & Theme → Song artist order** with album artists first, metadata order, first credit first and alphabetical modes | [PR #1831](https://github.com/finamp-app/finamp/pull/1831), [issue #1833](https://github.com/finamp-app/finamp/issues/1833) |
 | **Load artist pages faster** | Uses bounded preview/count requests, stable loading/error counts and accurate guest-track download warnings; full enumeration stays on demand | [PR #1832](https://github.com/finamp-app/finamp/pull/1832), [issue #1732](https://github.com/finamp-app/finamp/issues/1732) |
-| **Fix offline artist tracks** | Excludes unrelated tracks from downloaded shared albums when browsing a performing artist | [PR #1834](https://github.com/finamp-app/finamp/pull/1834), [issue #1689](https://github.com/finamp-app/finamp/issues/1689) |
+| **Fix offline artist tracks** | Excludes unrelated tracks from downloaded shared albums when browsing a performing artist | [PR #1834](https://github.com/finamp-app/finamp/pull/1834) merged into `redesign` on 2026-10-31; [issue #1689](https://github.com/finamp-app/finamp/issues/1689) |
 | **Fix track alphabet navigation** | Uses consistent case when comparing Tracks titles with a selected alphabet letter; preserves existing paging | [PR #1835](https://github.com/finamp-app/finamp/pull/1835), [issue #1790](https://github.com/finamp-app/finamp/issues/1790) |
-| **Keep player output controls accessible** | Adds Output, Queue and Lyrics at the bottom of the player menu when bottom actions are hidden; respects the gesture setting and avoids duplicate actions | [PR #1836](https://github.com/finamp-app/finamp/pull/1836), [issue #1355](https://github.com/finamp-app/finamp/issues/1355) |
+| **Keep player output controls accessible** | Adds Output, Queue and Lyrics at the bottom of the player menu when bottom actions are hidden; respects the gesture setting and avoids duplicate actions | [PR #1836](https://github.com/finamp-app/finamp/pull/1836) merged into `redesign` on 2026-10-31; [issue #1355](https://github.com/finamp-app/finamp/issues/1355) |
 | **Fix quick settings banner contrast** | Uses the matching foreground color for banner text with custom accents | Existing [`hotfix-1.0.2` fix](https://github.com/finamp-app/finamp/commit/124edc8b94ea8fcba637a1dba31e7bd266644aa8); duplicate [PR #1837](https://github.com/finamp-app/finamp/pull/1837) **closed on 2026-10-29**; [issue #1756](https://github.com/finamp-app/finamp/issues/1756) |
 
 All seven are optional (`default=false`). Choose any subset of the seven in
@@ -37,12 +37,12 @@ credited on the song, then alphabetizes remaining credits. With no matching
 album artist, it retains song metadata order. It does not rewrite music tags or
 server metadata, or create a per-song lead role that Jellyfin does not provide.
 
-**Upstream status checked 2026-10-29:** the title fix is merged and the banner
-fix exists on the hotfix branch, while the latest official release remains
-[1.0.1](https://github.com/finamp-app/finamp/releases/tag/1.0.1). **Both backports
-and all seven selections remain available for the original 1.0.1 APK.** A source
-merge or unreleased hotfix does not update that APK or extend compatibility to
-future versions. [Exact upstream refs and release status](FINAMP.md#upstream-status-2026-10-29).
+**Upstream status checked 2026-10-31:** the title, offline-artist and player fixes
+are merged into `redesign`. The latest official release is
+[1.0.2](https://github.com/finamp-app/finamp/releases/tag/1.0.2). **All seven
+selections remain available for the original 1.0.1 APK only.** An upstream merge
+does not update that APK or establish compatibility with 1.0.2.
+[Exact upstream refs and release status](FINAMP.md#upstream-status-2026-10-31).
 
 The title patch retains the existing validity rule: an empty title is invalid;
 it does not introduce whitespace trimming or change which section types require
@@ -78,9 +78,9 @@ its own SHA-256 and size. Unsupported input fails before an APK is published.
 The original release source is
 [`65c1a78`](https://github.com/finamp-app/finamp/tree/65c1a78b1d04dd8525825ecdf2cf39c7442b51e9).
 The fixes are backported to that release rather than replacing it with current
-`redesign` or a debug app. Each complete selection tree is published in the
-[source matrix](../tests/finamp/native-sources.json), including
-[all seven fixes](https://github.com/pengusto/finamp/tree/9da1d0158adf7393c8447eda0a26490e2320833a).
+`redesign` or a debug app. The [source matrix](../tests/finamp/native-sources.json)
+records the historical selection tree pins. Their availability and rebuild
+limits are described in the [verification guide](../tests/finamp/README.md#rebuild-native-payloads).
 
 Build toolchain: Flutter **3.47.2**, Dart **3.13.2**, framework
 `d3b14c876900e553bc736ca19295fc09e3853e8e`, engine
@@ -111,18 +111,23 @@ read saved settings with the frozen original adapter **without adapter 128**.
 
 ### Reviewed Artist counts
 
-The Artist backport follows final PR1832 commit
+The released Artist backport follows PR1832 commit
 `3f463b0e697f11aeebc37e1a6b614cde391b7f7f`. One bounded `ArtistIds` query
 counts the union of album and track credits without adding overlapping totals.
 The music row displays the localized loading/error state instead of a false
 zero. Download status counts direct album and track links, while the size
 warning separately resolves the real union track count, including guest-only
 artists. A count error prevents Add rather than starting an unconfirmed download.
+The later [upstream review revision](https://github.com/pengusto/finamp/commit/e53f3cebb07d81b124289c4d5a404f979fe10b8e)
+passes the same async state through the widgets; it is not included in the released
+native source pins or payloads. The released loading/error behavior remains as tested.
 
 The historical source pins for all 64 combinations containing bit 4 remain in
-the matrix, but their branches and local backup were intentionally removed
-(see [source availability and rebuild limits](../tests/finamp/README.md#rebuild-native-payloads)); their published deltas are
-verified; the other 63 nonempty selections retain the published Player base.
+the matrix, but their public branches and the dedicated local backup were
+intentionally removed. A separate local checkout still held all pins during the
+2026-10-31 review; see [source availability and rebuild limits](../tests/finamp/README.md#rebuild-native-payloads).
+The published deltas were verified; the other 63 nonempty selections retain the
+published Player base.
 The [Artist acceptance](../tests/finamp/evidence/2026-10-30-artist-review/README.md)
 separates source runs (22 / 26 / 49 / 107 passing, with overlap), all 127 actual Desktop
 selections, all 127 native replays, four rejected inputs and seven actual

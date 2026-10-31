@@ -34,6 +34,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import org.w3c.dom.Element
 import org.w3c.dom.Document
 import java.net.URI
@@ -432,6 +434,9 @@ private fun BytecodePatchContext.patchNgRegistrationLimit() {
         "Unable to identify ChMate NGWord save routine (found ${candidates.size})"
     }
     val saveMethod = candidates.single()
+    saveMethod.addBeforeEveryReturn(
+        "invoke-static {}, Lapp/morphe/extension/chmate/PersonalNgSubmissions;->changed()V"
+    )
     val limitConstants = saveMethod.implementation!!.instructions.mapIndexedNotNull { index, instruction ->
         if (instruction.opcode == Opcode.CONST_16
             && (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 300) {
@@ -1550,12 +1555,16 @@ private val haiagaruBytecodePatch = bytecodePatch {
 
     execute {
         val profile = profileFor(packageMetadata.versionName)
-        check(!isAdsOnlyBuild()) { "Haiagaruと広告だけの超軽量構成は同時に選択できません" }
         patchNativeToolTabs(packageMetadata.versionName)
         patchReadingPosition(packageMetadata.versionName)
         patchUnreadToolbarCount(packageMetadata.versionName)
         patchHiddenNgUnread(packageMetadata.versionName)
         patchHomeBoardMultiSelect(packageMetadata.versionName, profile.homeFragmentClass)
+        if (packageMetadata.versionName == "0.8.10.242 dev") {
+            mutableClassDefBy(profile.homeFragmentClass).methods.single {
+                it.name == "onViewCreated" && it.parameterTypes == listOf("Landroid/view/View;", "Landroid/os/Bundle;")
+            }.addInstruction(0,"invoke-static {p0, p1}, Lapp/morphe/extension/chmate/HomeSelectionBar;->bind(Ljava/lang/Object;Landroid/view/View;)V")
+        }
 
         val readManager = when (packageMetadata.versionName) {
             "0.8.10.241" -> "Lo/hLn11;"
@@ -1960,11 +1969,13 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchWacchoiLongPressMenu(packageMetadata.versionName)
         patchImageListResolvedMedia(packageMetadata.versionName)
         patchThumbnailClickAttachments(packageMetadata.versionName)
+        patchNativeImageCloseLifecycle(packageMetadata.versionName)
         patchThumbnailRebind242(packageMetadata.versionName)
         if (packageMetadata.versionName in setOf("0.8.10.191 dev", "0.8.10.226 dev", "0.8.10.241", "0.8.10.242 dev")) {
             patchPostVersionInfo(profile.applicationClass)
         }
         patchImageViewerRotationButton(packageMetadata.versionName)
+        patchThreadSearchText(packageMetadata.versionName)
         patchLargeImageAlignment(packageMetadata.versionName)
         patchLegacyAutoReload(packageMetadata.versionName)
         patchAutoScrollControlColors(packageMetadata.versionName)
@@ -2812,6 +2823,20 @@ private fun BytecodePatchContext.patchThumbnailClickAttachments(version: String)
         invoke-static {p0, p1, v$result}, Lapp/morphe/extension/chmate/ThumbnailClickAttachments;->links(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/CharSequence;)[Ljava/lang/CharSequence;
         move-result-object v$result
     """.trimIndent())
+    val native=MutableMethod(ImmutableMethod(row.type,"haiagaruNativeThumbnailClick",click.parameters,click.returnType,
+        click.accessFlags,click.annotations,click.hiddenApiRestrictions,click.implementation))
+    val wrapper=MutableMethod(ImmutableMethod(row.type,click.name,click.parameters,click.returnType,
+        click.accessFlags,click.annotations,click.hiddenApiRestrictions,ImmutableMethodImplementation(3,emptyList(),emptyList(),emptyList())))
+    wrapper.addInstructionsWithLabels(0,"""
+        invoke-static {p1}, Lapp/morphe/extension/chmate/ThumbnailClickAttachments;->openThread(Ljava/lang/Object;)Z
+        move-result v0
+        if-eqz v0, :native
+        return-void
+        :native
+        invoke-virtual {p0, p1}, $native
+        return-void
+    """.trimIndent())
+    row.methods.remove(click);row.methods.add(native);row.methods.add(wrapper)
 }
 
 private fun BytecodePatchContext.patchImageListResolvedMedia(version: String) {
@@ -3468,6 +3493,29 @@ private fun BytecodePatchContext.patchLargeImageAlignment(version: String) {
         invoke-static {p1, v2, v4, p4, p2}, Lapp/morphe/extension/chmate/LargeImageAlignment;->correct(Landroid/graphics/Matrix;IIFF)V
     """.trimIndent())
     println("$version large-image draft centre correction ($type->$methodName)")
+}
+
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchThreadSearchText(version: String) {
+    val (owner,name,response,body)=when(version){
+        "0.8.10.191 dev"->listOf("Lo/m9ExternalSyntheticLambda1\$4;","performFiltering","Lo/processAdDisplayErrorPostbackForUserError;","c")
+        "0.8.10.226 dev"->listOf("Lo/listener;","b","Lo/BouncyCastleSocketAdapterCompanion;","d")
+        "0.8.10.242 dev"->listOf("Ljp/syoboi/a2chMate/ui/reslist/ResListFragmentViewModel\$menuHostHelperlambda0;","invokeSuspend","Lo/KeJ11;","h")
+        else->return
+    }
+    val method=mutableClassDefBy(owner).methods.single { it.name==name&&(version!="0.8.10.226 dev"||it.parameterTypes==listOf("Lo/listener;","Ljava/lang/CharSequence;"))&&it.implementation!!.instructions.any { instruction ->
+        val field=(instruction as? ReferenceInstruction)?.reference as? FieldReference
+        field?.definingClass==response&&field.name==body
+    } }
+    val code=method.implementation!!.instructions.toList()
+    val site=code.withIndex().single { (_,instruction)->val field=(instruction as? ReferenceInstruction)?.reference as? FieldReference
+        instruction.opcode==Opcode.IGET_OBJECT&&field?.definingClass==response&&field.name==body }
+    val field=site.value as TwoRegisterInstruction
+    val reset=(site.index+1..site.index+3).single { i->val ref=(code[i] as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass=="Ljava/util/regex/Matcher;"&&ref.name=="reset" }
+    val call=code[reset] as FiveRegisterInstruction
+    method.replaceInstruction(site.index,"move-object v${field.registerA}, v${field.registerB}")
+    if(reset>site.index+1)method.replaceInstruction(site.index+1,"nop")
+    method.replaceInstruction(reset,"invoke-static {v${call.registerC}, v${call.registerD}}, Lapp/morphe/extension/chmate/ThreadSearchText;->reset(Ljava/util/regex/Matcher;Ljava/lang/Object;)Ljava/util/regex/Matcher;")
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchImageViewerRotationButton(
@@ -4855,7 +4903,7 @@ val haiagaruPatch = resourcePatch(
             entry.textContent = "フィルタ"
             strings.documentElement.appendChild(entry)
         }
-        val responseLabels = listOf("投稿者を強調", "レスを保存", "保存済みレスを見る", "ﾜｯﾁｮｲで検索", "ﾜｯﾁｮｲ下4桁をNG登録", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "ﾜｯﾁｮｲ上4桁をNG登録")
+        val responseLabels = listOf("投稿者を強調", "レスを保存", "保存済みレスを見る", "ﾜｯﾁｮｲで検索", "ﾜｯﾁｮｲ下4桁をNG登録", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "ﾜｯﾁｮｲ上4桁をNG登録", "自動NGの除外IDに追加")
         val archiveIcons = mapOf(
             "haiagaru_response_history" to "M13,3c-4.97,0 -9,4.03 -9,9H1l3.89,3.89 .07,.14L9,12H6c0,-3.87 3.13,-7 7,-7s7,3.13 7,7 -3.13,7 -7,7c-1.93,0 -3.68,-.79 -4.94,-2.06l-1.42,1.42C8.27,19.99 10.51,21 13,21c4.97,0 9,-4.03 9,-9s-4.03,-9 -9,-9zM12,8v5l4.28,2.54 .72,-1.21 -3.5,-2.08V8H12z",
             "haiagaru_response_save" to "M17,3H5c-1.11,0 -2,.9 -2,2v14c0,1.1 .89,2 2,2h14c1.1,0 2,-.9 2,-2V7l-4,-4zM12,19c-1.66,0 -3,-1.34 -3,-3s1.34,-3 3,-3 3,1.34 3,3 -1.34,3 -3,3zM15,9H5V5h10v4z",
@@ -4918,6 +4966,7 @@ val haiagaruPatch = resourcePatch(
             "haiagaru_wacchoi_lower" to "ﾜｯﾁｮｲ下4桁で検索",
             "haiagaru_wacchoi_upper" to "ﾜｯﾁｮｲ上4桁で検索",
             "haiagaru_hissi_droid_plus" to "必死チェッカーDroid＋で開く",
+            "haiagaru_auto_ng_exclusions" to "自動NG除外ID",
         )) {
             for (values in listOf("values", "values-en")) {
                 document("res/$values/strings.xml").use { strings ->
@@ -4932,6 +4981,8 @@ val haiagaruPatch = resourcePatch(
                 it.createPublicId("drawable", name)
             }
             val iconPath = when (name) {
+                "haiagaru_auto_ng_exclusions" ->
+                    "M12,2L3,6v6c0,5 9,10 9,10s9,-5 9,-10V6zM12,5l6,2.7V12c0,3 -4,6.2 -6,7.6C10,18.2 6,15 6,12V7.7zM8,11h8v2H8z"
                 "haiagaru_hissi_droid_plus" ->
                     "M3,3h12v2H5v14h14v-10h2v12H3zM13,3h8v8h-2V6.41l-8.29,8.3 -1.42,-1.42L17.59,5H13z"
                 "haiagaru_wacchoi_search" ->
@@ -8355,175 +8406,4 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchEdgeReporterTitle
         invoke-static/range { p1 .. p1 }, Lapp/morphe/extension/chmate/EdgeReporterHistory;->copyTitle(Ljava/lang/String;)Ljava/lang/String;
         move-result-object p1
     """)
-}
-
-/** Isolated selection: includes no search/filter/preview/settings lifecycle hooks. */
-private fun BytecodePatchContext.isAdsOnlyBuild(): Boolean {
-    var present = false
-    classDefForEach { if (it.type == "Lapp/morphe/extension/chmate/AdsOnlyRuntime;") present = true }
-    return present
-}
-
-@Suppress("unused")
-val haiagaruAdsOnlyPatch = bytecodePatch(
-    name = "Haiagaru 広告だけの超軽量構成（検証用）",
-    description = "Haiagaru本体を外して選択してください。広告・広告枠除去、5ch.net→5ch.io変換、板一覧の初期URL、起動・投稿・画像アップロード・UPLIFTの再署名によるクラッシュ対策を適用します。検索・追加設定・フィルター等は組み込みません。検証中です。",
-    default = false,
-) {
-    compatibleWith(chMateCompatibility)
-    extendWith("extensions/chmate-ads-only.mpe")
-    execute {
-        var hasFullRuntime = false
-        classDefForEach { if (it.type == "Lapp/morphe/extension/chmate/NativeToolTabs;") hasFullRuntime = true }
-        check(!hasFullRuntime) { "Haiagaruと広告だけの超軽量構成は同時に選択できません" }
-        // Use only URL compatibility hooks; do not import the full settings/lifecycle runtime.
-        when (packageMetadata.versionName) {
-            "0.8.10.191 dev" -> {
-                patchBbsMenuUrl("a", "Lo/a7a\$read;")
-                patchPreIoDomainCompatibility("b")
-            }
-            "0.8.10.226 dev" -> {
-                patchBbsMenuUrl("a", "Lo/isInlineAdaptiveAdView\$read;")
-                patchPreIoDomainCompatibility("c")
-            }
-            "0.8.10.241" -> patchBbsMenuUrl("c", "Lo/TaskRunnerCompanion\$ComponentActivity;")
-            "0.8.10.242 dev" -> patchBbsMenuUrl("c", "Lo/getPlayProviderFactory\$ComponentActivity;")
-            "0.8.10.243 dev" -> patchBbsMenuUrl("b", "Lo/StandardAndroidSocketAdapterCompanion\$RemoteActionCompatParcelizer;")
-        }
-        val profile=profileFor(packageMetadata.versionName)
-        mutableClassDefBy(profile.providerClass).methods.single { it.name=="onCreate" && it.parameters.isEmpty() }
-            .addInstruction(0,"invoke-static {}, $EXTENSION->installSignatureSpoof()V")
-        profile.providerStartupTrapClass?.let { startupTrapClass ->
-            mutableClassDefBy(startupTrapClass).methods.single { method ->
-                method.returnType == "Ljava/lang/Object;"
-                    && method.parameters.isEmpty()
-            }.returnProviderStartupDelegate(profile)
-        }
-
-        if (profile.patchSignatureWrapper) {
-            val signatureMethod = mutableClassDefBy(profile.signatureClass).methods.single { method ->
-                method.name == profile.signatureMethod
-                    && method.returnType == "Ljava/lang/Object;"
-                    && method.parameters.isEmpty()
-            }
-            if (packageMetadata.versionName == "0.8.10.243 dev") {
-                signatureMethod.returnSignatureDelegate(profile)
-            } else {
-                signatureMethod.ignoreSignatureRejection(profile)
-            }
-            if (profile.signatureDirectWrapperBypass) {
-                mutableClassDefBy(profile.signatureSuperType).methods.single { method ->
-                    method.name == profile.signatureDelegateMethod
-                        && method.returnType == "Ljava/lang/Object;"
-                        && method.parameters.isEmpty()
-                }.bypassSignatureFailureBranches()
-            }
-        }
-
-        profile.viewModelFactoryClass?.let { viewModelFactoryClass ->
-            mutableClassDefBy(viewModelFactoryClass).methods.single { method ->
-                method.name == "get"
-                    && method.returnType == "Ljava/lang/Object;"
-                    && method.parameters.isEmpty()
-            }.bypassTamperTrap(profile)
-        }
-        profile.settingsViewModelClass?.let { viewModelClass ->
-            mutableClassDefBy(viewModelClass).methods.single { method ->
-                method.name == "<init>"
-                    && method.returnType == "V"
-                    && method.parameters.map(CharSequence::toString) ==
-                    listOf("Landroid/app/Application;")
-            }.bypassLegacyViewModelTamperTrap()
-        }
-        if (profile.viewModelTrapKind != ViewModelTrapKind.NONE
-            || profile.settingsViewModelClass != null
-        ) {
-            SettingsOnCreateFingerprint.method.bypassSettingsTamperTrap(profile)
-            if (profile.hasHiltSettings) {
-                HiltSettingsOnCreateFingerprint.method.bypassHiltSettingsTamperTrap(profile)
-            }
-        }
-        patchDistributedIntegrityComparisons(
-            includeAllObfuscatedClasses = packageMetadata.versionName == "0.8.10.191 dev"
-        )
-        // Small crash safeguards only. Do not pull settings, upload services,
-        // network workers, or full Haiagaru runtime into the lightweight build.
-        when(packageMetadata.versionName){
-            "0.8.10.191 dev" -> {
-                patchLegacyImageUploadTempName()
-                patchLegacyTalkAuthIntegrity(includeSessionRecovery = false)
-            }
-            "0.8.10.226 dev" -> {
-                patchPreIoTalkPostIntegrity()
-                patchPreIoImageUploadIntegrityTrap("Lo/fWG1;")
-                patchUpliftIntegrityComparison("Lo/OpenJSSEPlatformCompanion;","d","Lo/OpenJSSEPlatformCompanion\$IconCompatParcelizer;")
-                patchUpliftIntegrityComparison("Lo/OpenJSSEPlatformCompanion;","j","[Ljava/lang/Object;",returnType="Ljava/lang/Object;")
-                patchUpliftTokenExpiryArithmetic("Lo/OpenJSSEPlatformCompanion;","d","Lo/OpenJSSEPlatformCompanion\$IconCompatParcelizer;",653820)
-            }
-            "0.8.10.242 dev" -> {
-                patchTalk242AuthenticationAndTokenCalls()
-                patchModernTalkIntegrityPrimitives("Lo/GoogleApiSettingsBuilder;", "normalizeIntegrityState242")
-                patchUpliftPostingIntegrity242()
-                patchUpliftLoginIntegrity242()
-                patchImageUploadIntegrity242()
-            }
-
-        }
-        patchCommonAdSdkInitialization()
-
-        buildList {
-            add("Lcom/amazon/device/ads/DTBAdRequest;")
-            if (profile.hasLevelPlayBanner) {
-                add("Lcom/unity3d/mediation/banner/LevelPlayBannerAdView;")
-            }
-        }.forEach { classType ->
-            mutableClassDefBy(classType).methods
-                .filter { it.name == "loadAd" && it.returnType == "V" }
-                .forEach { it.addHideAdsGuard() }
-        }
-
-        if (profile.hasLevelPlayBanner) {
-            patchLevelPlayTrackerInitialization()
-
-            mutableClassDefBy("Lcom/unity3d/mediation/banner/LevelPlayBannerAdView;")
-                .methods
-                .filter { it.name == "<init>" }
-                .forEach {
-                    it.addBeforeEveryReturn(
-                        "invoke-static/range { p0 .. p0 }, $EXTENSION->hideAdView(Landroid/view/View;)V"
-                    )
-                }
-        }
-
-        // The exact class is version-specific, but each target was matched by the same
-        // FrameLayout/ad-placement/load-method structure instead of by its obfuscated name.
-        mutableClassDefBy(profile.homeAdClass).methods.forEach { method ->
-            when {
-                method.name == "<init>" -> method.addBeforeEveryReturn(
-                    "invoke-static/range { p0 .. p0 }, $EXTENSION->hideAdView(Landroid/view/View;)V"
-                )
-                profile.homeAdLoadMethod != null
-                    && method.name == profile.homeAdLoadMethod
-                    && method.returnType == "V"
-                    && method.parameters.isEmpty() ->
-                    method.addHideAdsViewGuard()
-            }
-        }
-
-
-        patchTabletThreadHeaderAdSpace(packageMetadata.versionName)
-        if(packageMetadata.versionName=="0.8.10.191 dev"){
-            patchLegacyFragmentBannerDiscovery()
-            patchLegacyThreadListAd("Lo/m9ExternalSyntheticLambda1;")
-        }else{
-            mutableClassDefBy(profile.homeFragmentClass).methods.single {
-                it.name=="onViewCreated" && it.parameterTypes.map(CharSequence::toString)==listOf("Landroid/view/View;","Landroid/os/Bundle;")
-            }.addInstruction(0,"invoke-static/range {p1 .. p1}, $EXTENSION->hideHomeBanner(Landroid/view/View;)V")
-            if(packageMetadata.versionName=="0.8.10.226 dev"){
-                patchThreadBannerAdWrapper("Lo/TTVideoLandingPageLink2Activity1;")
-                patchLegacyThreadListAd("Lo/listener;")
-            }
-            if(packageMetadata.versionName=="0.8.10.243 dev")patchModernThreadListAd()
-        }
-    }
 }

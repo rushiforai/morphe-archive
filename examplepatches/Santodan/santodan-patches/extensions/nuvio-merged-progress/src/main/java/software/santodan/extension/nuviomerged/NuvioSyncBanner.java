@@ -67,16 +67,16 @@ public final class NuvioSyncBanner {
         if(initialized)return;
         loader=state.getClass().getClassLoader();
         Class<?> callback=loader.loadClass("kotlin.jvm.functions.Function0");
-        nativeHost=loader.loadClass("fb.uj").getDeclaredMethod("i",loader.loadClass("kb.k0"),callback,callback,
+        nativeHost=loader.loadClass("na.k1").getDeclaredMethod("n",loader.loadClass("lb.k0"),callback,callback,
             callback,callback,callback,callback,loader.loadClass("r1.s"),loader.loadClass("h1.n"),int.class);
         nativeString=loader.loadClass("u6.g").getDeclaredMethod("d0",int.class,loader.loadClass("h1.n"));
         nativeFormat=loader.loadClass("u6.g").getDeclaredMethod("e0",int.class,Object[].class,loader.loadClass("h1.n"));
-        nativeGroupText=loader.loadClass("ma.r").getDeclaredMethod("h",loader.loadClass("h1.k0"),int.class,int.class,loader.loadClass("h1.k0"),boolean.class);
-        updateConstructor=loader.loadClass("lb.a").getDeclaredConstructor(String.class,String.class,String.class,
+        nativeGroupText=loader.loadClass("m9.a5").getDeclaredMethod("i",loader.loadClass("h1.k0"),int.class,int.class,loader.loadClass("h1.k0"),boolean.class);
+        updateConstructor=loader.loadClass("mb.a").getDeclaredConstructor(String.class,String.class,String.class,
             String.class,String.class,String.class,Long.class);
-        stateConstructor=loader.loadClass("kb.k0").getDeclaredConstructor(boolean.class,loader.loadClass("lb.a"),
+        stateConstructor=loader.loadClass("lb.k0").getDeclaredConstructor(boolean.class,loader.loadClass("mb.a"),
             boolean.class,boolean.class,Float.class,String.class,boolean.class,boolean.class,String.class,String.class,
-            boolean.class,loader.loadClass("kb.l"),boolean.class,boolean.class,boolean.class,loader.loadClass("lb.a"));
+            boolean.class,loader.loadClass("lb.l"),boolean.class,boolean.class,boolean.class,loader.loadClass("mb.a"));
         noOp=Proxy.newProxyInstance(loader,new Class<?>[]{loader.loadClass("kotlin.jvm.functions.Function0")},
             (proxy,method,args)->{
                 if(method.getName().equals("invoke"))return loader.loadClass("kotlin.Unit").getField("INSTANCE").get(null);
@@ -84,7 +84,7 @@ public final class NuvioSyncBanner {
                 if(method.getName().equals("equals"))return proxy==args[0];
                 return "SantodanSyncAction";
             });
-        revision=loader.loadClass("h1.h").getDeclaredMethod("t",Object.class).invoke(null,0);
+        revision=loader.loadClass("h1.h").getDeclaredMethod(software.santodan.nuvio.NuvioNative.STATE_FACTORY_METHOD,Object.class).invoke(null,0);
         initialized=true;
     }
 

@@ -123,7 +123,7 @@ Set when you patched	패치할 때 설정되는 기능
 Settings couldn't open	설정을 열 수 없습니다
 Settings couldn't refresh completely. Reopen settings and try again.	설정이 완전히 새로 고쳐지지 않았습니다. 설정을 다시 열고 다시 시도하세요
 Source code and issues	소스 코드 및 이슈
-Hides sponsored posts, reels and stories. No empty gap is left where an ad would have been.	스폰서 게시물, 릴스, 스토리를 숨깁니다. 광고가 있던 자리에 빈 공간이 남지 않습니다.
+Hides sponsored posts, reels, stories and the ad in comments. No empty gap is left where an ad would have been.	스폰서 게시물, 릴스, 스토리와 댓글 속 광고를 숨깁니다. 광고가 있던 자리에 빈 공간이 남지 않습니다.
 Stays in while paused	일시 정지 중에 유지되는 기능
 Removes tracking tags from links you copy or share, and opens bio links without Instagram's click tracker. The link still opens the same post, reel or profile.	복사하거나 공유하는 링크에서 추적 태그를 제거하고, 소개의 링크를 Instagram의 클릭 추적 없이 엽니다. 링크는 같은 게시물, 릴스, 프로필을 그대로 엽니다.
 Tap to hide this.	탭하여 이것을 숨기세요
@@ -380,7 +380,7 @@ Removes the empty gap under Instagram's tab bar that appears when your phone hid
 Only accounts you follow	나를 팔로우하는 계정만
 Removes For you from the choices at the top of Home, so it stays on Following or Favorites. Needs Start Home on Following. Restart Instagram to see the change.	홈 상단의 선택지에서 추천을 없애서 팔로잉이나 즐겨찾기에 머물게 합니다. Start Home on Following이 필요합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Instagram logo on Home	홈의 Instagram 로고
-Keeps Instagram's logo at the top of Home in place of the feed's name. Tap it to switch feeds. Needs Start Home on Following. Restart Instagram to see the change.	홈 상단에 피드 이름 대신 Instagram 로고를 유지합니다. 탭하면 피드를 바꿀 수 있습니다. 팔로잉에서 홈 시작이 필요합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+Keeps Instagram's logo at the top of Home in place of the feed's name. Tap it to switch feeds. Restart Instagram to see the change.	홈 상단에 피드 이름 대신 Instagram 로고를 유지합니다. 탭하면 피드를 바꿀 수 있습니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Profiles	프로필
 Show if a profile follows you	프로필이 나를 팔로우하는지 표시
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	상대방의 프로필에서 이름 옆에 ‘나를 팔로우하고 있음’ 또는 ‘나를 팔로우하지 않음’을 표시합니다. 대명사를 설정한 경우 대명사 뒤에 표시됩니다. Instagram이 확인을 완료하기 전에는 아무것도 표시되지 않습니다
@@ -581,7 +581,7 @@ Stop after the chat's reels	채팅의 릴스까지만 보기
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	채팅에서 연 릴스는 그 채팅에 공유된 마지막 릴스에서 끝나고, 그 뒤에 추천 릴스가 나오지 않습니다. 채팅의 릴스 넘겨보기가 켜져 있을 때 작동합니다.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	다운로드 아래에 커버 다운로드를 추가합니다. 릴스가 재생되기 전에 보여 주는 정지 이미지를 가장 큰 크기로 저장합니다.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	다운로드 아래에 오디오 다운로드를 추가합니다. 릴스의 소리를 오디오 파일로 저장합니다.
-After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	릴스 20개를 보면 Instagram이 15분 동안 백그라운드에 있을 때까지 릴스 스와이프가 멈춥니다. 메시지나 게시물에서 연 릴스는 계속 재생됩니다.
+After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	아래에서 고른 개수만큼 릴스를 보면 Instagram이 고른 시간 동안 백그라운드에 있을 때까지 릴스 스와이프가 멈춥니다. 메시지나 게시물에서 연 릴스는 계속 재생됩니다.
 Find the reel you came from	보던 릴스 찾기
 Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	릴스에서 크리에이터의 프로필을 연 다음 릴스 탭을 열면 그 릴스로 스크롤하고 잠깐 테두리를 표시합니다. 사진 릴스는 게시물에서 찾습니다. 찾기 중지를 누르면 그 자리에서 찾기를 멈춥니다.
 Wait for a tap to find it	탭할 때까지 기다렸다 찾기
@@ -612,7 +612,12 @@ Send downloads to another app	다운로드를 다른 앱으로 보내기
 Send to	보낼 앱
 Sent to another app. To save here instead, turn off Send downloads to another app under Downloads.	다른 앱으로 보냈습니다. 여기에 저장하려면 다운로드에서 다운로드를 다른 앱으로 보내기를 끄세요.
 Spoof location	위치 위장
-Stop after 20 reels	릴스 20개 후 멈추기
+Stop after a set number of reels	정한 개수의 릴스 후 멈추기
+# context: Reels settings: two sliders under Stop after a set number of reels (#405). The first picks how many reels play before swiping stops, %1$d is 5 to 100; the second how long Instagram stays in the background before swiping comes back, %1$d is 5 to 120 minutes
+Reels before swiping stops	스와이프가 멈추기 전 릴스 수
+%1$d reels	릴스 %1$d개
+Time away before swiping comes back	스와이프가 돌아오기까지 쉬는 시간
+%1$d minutes in the background	백그라운드에서 %1$d분
 Take a scroll break	스크롤 쉬는 시간 갖기
 # context: a choice in the scroll break list; %1$d is 10, 20, 30 or 60
 After %1$d minutes	%1$d분 후
@@ -1058,6 +1063,9 @@ Off. It can fade a reel's buttons while the screen sits untouched, so they don't
 Takes the Save button out of the column of buttons beside a reel, and the count under it. Posts in your feed keep theirs.	릴스 옆 버튼 열에서 저장 버튼과 그 아래 숫자를 없앱니다. 피드 게시물의 저장 버튼은 그대로 남습니다.
 Keep clear mode on	클리어 모드 유지
 Turn on Instagram's clear mode on a reel and the next reels open in it too. Leave clear mode yourself and the next reels show their buttons again.	릴스에서 Instagram의 클리어 모드를 켜면 다음 릴스도 클리어 모드로 열립니다. 클리어 모드를 직접 끄면 다음 릴스에는 버튼이 다시 표시됩니다.
+# context: Reels settings: a switch under Keep clear mode on (#138). Clear mode is the name used for Instagram's own mode that hides a reel's buttons; Allow screenshots is HushGram's switch of that name
+Start every reel in clear mode	모든 릴스를 클리어 모드로 시작
+Reels open in clear mode from the first one, with no tap. Leave it yourself and the next reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow screenshots is on.	첫 릴스부터 탭하지 않아도 클리어 모드로 열립니다. 직접 끄면 다음 릴스에는 버튼이 다시 표시됩니다. 스크린샷 허용이 켜져 있지 않으면 Instagram은 클리어 모드에서 스크린샷을 막습니다.
 Unlock with	잠금 해제 방법
 Phone lock	휴대폰 잠금
 HushGram PIN	HushGram PIN
@@ -1220,6 +1228,11 @@ Hide the Create button	만들기 버튼 숨기기
 Takes the plus for new posts off the top of your own profile. The other buttons stay where they were.	내 프로필 상단에서 새 게시물용 더하기 버튼을 숨깁니다. 다른 버튼은 원래 자리에 그대로 있습니다.
 Hide Share profile	프로필 공유 숨기기
 Takes the Share profile button off your profile, and Edit profile stretches to fill the space.	내 프로필에서 프로필 공유 버튼을 숨기고, 프로필 편집 버튼이 늘어나 빈 공간을 채웁니다.
+# context: Profiles: switches that hide Subscribe and the arrow at the end of the action buttons on someone's profile, which opens a menu of the buttons that didn't fit (#248). Subscribe is Instagram's own button label, as in the Feed switch that hides Follow and Subscribe.
+Hide Subscribe on profiles	프로필에서 구독 숨기기
+Takes the Subscribe button off creators' profiles, and the other buttons stretch to fill the space.	크리에이터 프로필에서 구독 버튼을 숨기고, 다른 버튼이 늘어나 빈 공간을 채웁니다.
+Hide the arrow at the end of the buttons	버튼 끝의 화살표 숨기기
+Takes the arrow off the end of a profile's row of buttons, along with the menu it opens, and the other buttons stretch to fill the space.	프로필 버튼 줄 끝의 화살표와 그 화살표가 여는 메뉴를 숨기고, 다른 버튼이 늘어나 빈 공간을 채웁니다.
 # context: Layout: Glass tab bar's switch that stops the liquid pill shrinking as you scroll (#256)
 Keep the pill full size	알약 크기 그대로 유지
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	목록을 아래로 스크롤해도 리퀴드 글래스 알약이 그대로 유지되고 모든 탭이 제자리에 있습니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
@@ -1382,6 +1395,9 @@ Hide captions	캡션 숨기기
 Takes the caption off posts in your feed and off reels. The post stays, and the comments sheet still shows it.	피드 게시물과 릴스에서 캡션을 없앱니다. 게시물은 그대로 두고, 댓글 창에는 캡션이 계속 보입니다.
 Keep Home's top bar	홈 상단 바 고정
 Keeps the Instagram logo and the buttons beside it at the top of Home while you scroll, instead of sliding them away.	스크롤할 때 Instagram 로고와 옆의 버튼을 밀어 올리지 않고 홈 맨 위에 그대로 둡니다.
+# context: Feed settings: the See-through top bar switch, right under Keep Home's top bar (#418). It blurs the posts that scroll under Home's header, the bar with the Instagram logo.
+See-through top bar	투명한 상단 바
+Shows your feed blurred under Home's top bar, like frosted glass.	홈 상단 바 아래로 피드가 젖빛 유리처럼 흐리게 보입니다.
 Keep the Reels top bar	릴스 상단 바 고정
 Keeps the Reels title, the Friends tab and the buttons beside them at the top while you swipe through reels, instead of sliding them away.	릴스를 넘길 때 릴스 제목, 친구 탭과 옆의 버튼을 밀어 올리지 않고 맨 위에 그대로 둡니다.
 Keep a viewing history	본 기록 남기기
@@ -1395,3 +1411,84 @@ Clear viewing history	본 기록 지우기
 Forgets every post, reel, story and profile on the list, for all your accounts. The switch stays as it is.	목록에 있는 모든 게시물, 릴스, 스토리, 프로필을 모든 계정에 대해 지웁니다. 스위치는 그대로 유지됩니다.
 Viewing history cleared.	본 기록을 지웠습니다.
 Couldn't clear the viewing history. Try again.	본 기록을 지우지 못했습니다. 다시 시도해 주세요.
+Mark one-time photos and videos	한 번만 볼 수 있는 사진과 동영상 표시
+Puts a border and Instagram's view once icon on a one-time photo or video in a chat, so you can tell it from the rest before you open it. Only how the chat looks changes.	채팅에서 한 번만 볼 수 있는 사진이나 동영상에 테두리와 Instagram의 한 번 보기 아이콘을 넣어, 열기 전에 다른 것과 구분할 수 있게 합니다. 채팅의 모양만 바뀝니다.
+Fall back to Following	팔로잉으로 대체
+When For you brings an account only suggested posts, page after page, Home opens on Following for that account. A feed you pick at the top of Home stays picked. Restart Instagram to see the change.	추천 피드가 한 계정에 페이지마다 추천 게시물만 보여 주면 그 계정은 홈이 팔로잉으로 열립니다. 홈 상단에서 직접 고른 피드는 그대로 유지됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+Only suggestions in For you. Home will open on Following.	추천 피드에 추천 게시물만 있습니다. 홈을 팔로잉으로 엽니다.
+Explore without personalization	개인화 없는 탐색
+Where Instagram offers it (in the EU), Explore opens with the grid that isn't personalized every time, and stays on it past ten minutes.	Instagram이 제공하는 곳(EU)에서는 탐색이 항상 개인화되지 않은 그리드로 열리고 10분이 지나도 그대로 유지됩니다.
+Hide Explore's personalized menu	탐색 개인화 메뉴 숨기기
+Hides the top bar button that switches Explore's personalization, where Instagram shows it (in the EU).	Instagram이 표시하는 곳(EU)에서 탐색의 개인화를 바꾸는 상단 바 버튼을 숨깁니다.
+# context: Feed settings: the Carousel arrows switch and the two arrow buttons' TalkBack labels (#417)
+Carousel arrows	캐러셀 화살표
+Puts a back and a next arrow on a carousel post's photos and videos. Tap one to move a page without swiping.	캐러셀 게시물의 사진과 동영상에 이전 화살표와 다음 화살표를 표시합니다. 화살표를 탭하면 스와이프하지 않고 페이지를 넘깁니다.
+Previous page	이전 페이지
+Next page	다음 페이지
+# context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
+Page dots on a pill	알약 모양 페이지 점
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	캐러셀 게시물의 페이지 점을 사진이나 동영상 아래쪽의 둥근 알약 모양 위로 옮깁니다. 지금 보고 있는 페이지는 파란색으로 표시됩니다.
+# context: Feed settings: the Ambient light switch and its Glow spread and Glow speed lists (#416)
+Ambient light	앰비언트 라이트
+Puts a soft glow in a post's own colors around its photo or video, and in the bands around a reel that doesn't fill the screen. The glow follows a video as it plays.	게시물의 사진이나 동영상 주위에 그 게시물의 색으로 은은한 빛을 비추고, 화면을 다 채우지 않는 릴스 주위의 빈 띠에도 비춥니다. 동영상이 재생되는 동안 빛이 따라 바뀝니다.
+Glow spread	빛 퍼짐
+Glow speed	빛 속도
+Narrow	좁게
+Medium	보통
+Wide	넓게
+Slow	느리게
+Fast	빠르게
+# context: Reels settings: a switch for a Lens icon beside each reel that opens Google Lens on the reel to copy its text (#303)
+Copy text button on reels	릴스 텍스트 복사 버튼
+Puts a Lens icon beside a reel. Tap it and Google Lens opens on what's showing, so you can select and copy its text.	릴스 옆에 렌즈 아이콘을 둡니다. 탭하면 지금 보이는 화면으로 Google 렌즈가 열려 텍스트를 선택하고 복사할 수 있습니다.
+# context: Stories settings: the same Lens button, in the story header beside the three dots (#303)
+Copy text button on stories	스토리의 텍스트 복사 버튼
+Puts a Lens icon at the top of a story, beside the three dots. Tap it and Google Lens opens on what's showing, so you can select and copy its text.	스토리 상단의 점 세 개 옆에 렌즈 아이콘을 추가합니다. 탭하면 지금 보이는 화면으로 Google 렌즈가 열려 텍스트를 선택하고 복사할 수 있습니다.
+# context: the spoken label of that Lens icon, for screen readers
+Copy text	텍스트 복사
+# context: title of the share sheet offered when Google Lens isn't installed; the apps listed below it read the picture's text
+Copy text with	텍스트 복사에 사용할 앱
+# context: toast, under two lines of about 28 characters: the screen picture for Lens couldn't be made
+Couldn't copy this screen	이 화면을 복사하지 못했어요
+# context: toast, under two lines of about 28 characters: no installed app takes a picture to read its text
+No app here can read text	텍스트를 읽을 앱이 없어요
+# context: Ads and privacy settings: switch that sends only Instagram's traffic through a proxy server the person sets (#219)
+App-only proxy	앱 전용 프록시
+# context: summary under that switch
+Sends Instagram through the HTTP proxy set below. Other apps and your phone's own settings aren't changed.	아래에 설정한 HTTP 프록시를 통해 Instagram을 연결합니다. 다른 앱과 휴대폰 자체 설정은 바뀌지 않습니다.
+# context: title of the row and its dialog where the proxy server is typed
+Proxy server	프록시 서버
+# context: that dialog's message; keep the example address as it is
+An HTTP proxy's address and port, with a colon between them, like 192.168.1.10:8080. Proxies that need a password, and SOCKS proxies, don't work here. Instagram needs a restart to use it.	HTTP 프록시의 주소와 포트를 콜론으로 구분해 입력하세요(예: 192.168.1.10:8080). 비밀번호가 필요한 프록시와 SOCKS 프록시는 여기서 작동하지 않습니다. 사용하려면 Instagram을 다시 시작해야 합니다.
+# context: toast and field error, under two lines of about 28 characters: what was typed isn't host:port; keep the example address
+That isn't a proxy server. Try 10.0.0.2:8080.	프록시 서버가 아닙니다. 예: 10.0.0.2:8080
+# context: the server row's summary while it's blank
+No server set. Until there is one, Instagram goes out directly.	설정된 서버가 없습니다. 서버를 정할 때까지 Instagram은 직접 연결됩니다.
+# context: the server row's summary; %1$s is the server as host:port
+Instagram goes through %1$s.	Instagram이 %1$s을(를) 통해 연결됩니다.
+# context: Stories settings: switch that slows the zoom a story opens with from the stories row and takes out its bounce (#409)
+Smooth story opening	스토리 부드럽게 열기
+# context: summary under that switch
+A story you tap in the stories row opens with a slower zoom that doesn't bounce, and closes the same way.	스토리 목록에서 누른 스토리가 튕기지 않는 더 느린 확대로 열리고, 닫힐 때도 같은 방식으로 닫힙니다.
+Emoji pack	이모지 팩
+Your phone's emoji	휴대폰 이모지
+An emoji font file	이모지 글꼴 파일
+Your phone's emoji, or Google's with the switch above on. You can also download a free emoji pack or pick a color emoji font file.	휴대폰 이모지를 사용하며, 위의 스위치를 켜면 Google 이모지를 사용합니다. 무료 이모지 팩을 다운로드하거나 컬러 이모지 글꼴 파일을 선택할 수도 있습니다.
+Emoji draw as %1$s, downloaded from its maker. Restart Instagram to see a change.	이모지를 제작자에게서 받은 %1$s 스타일로 표시합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+Emoji draw from the emoji font file you picked. Pick it again to change the file. Restart Instagram to see a change.	선택한 이모지 글꼴 파일로 이모지를 그립니다. 파일을 바꾸려면 다시 선택하세요. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+Downloading the emoji...	이모지를 다운로드하는 중...
+Couldn't download the emoji. Try again.	이모지를 다운로드하지 못했습니다. 다시 시도하세요.
+Emoji saved. Restart Instagram to see them.	이모지를 저장했습니다. Instagram을 다시 시작하세요.
+No color emoji in that file. Nothing changed.	그 파일에 컬러 이모지가 없습니다. 바뀐 것은 없습니다.
+Couldn't load your emoji, so the phone's show.	이모지를 불러오지 못해 휴대폰 이모지가 표시됩니다.
+# context: Stories settings: the Ambient light in stories switch (#420)
+Ambient light in stories	스토리 주변광
+Fills the bands above and below a story that doesn't fill the screen with a soft glow in its own colors. Glow spread and Glow speed, under Feed, set it too.	화면을 가득 채우지 않는 스토리의 위아래 빈 공간을 스토리 고유의 색으로 부드럽게 채웁니다. 피드의 빛 퍼짐과 빛 속도도 여기에 적용됩니다.
+# context: Ads and privacy settings: switch that keeps Instagram's screens asking to sync contacts and to turn on location services from opening at each start (#295, #329, #421)
+Skip the contacts and location popups	연락처 및 위치 팝업 건너뛰기
+# context: summary under that switch
+The screens asking you to sync your contacts and turn on location services stop opening each time Instagram starts. Nothing else is skipped.	연락처를 동기화하고 위치 서비스를 켜라고 요청하는 화면이 Instagram을 시작할 때마다 열리지 않습니다. 다른 화면은 건너뛰지 않습니다.
+# context: Playback settings: switch that stops feed videos and reels from playing again from the start when they end (#248, #175)
+Stop videos looping	동영상 반복 재생 중지
+# context: summary under that switch; auto scroll is Instagram's own Reels setting, worded as in Keep auto scroll on
+Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	피드 동영상과 릴스가 다시 재생되지 않고 마지막 장면에서 멈춥니다. 자동 스크롤이 켜져 있으면 다음 릴스로 넘어갈 수 있도록 릴스는 계속 반복됩니다.

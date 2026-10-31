@@ -103,6 +103,7 @@ final class ProgrammableNgDialog {
                 "正規表現で判定する",
                 "エッヂの記者IDで判定する",
                 "キーワードに一致した投稿者・返信を連鎖NG",
+                "F9スクリプトを対策する（開発中）",
                 "JavaScriptを最初から書く"
         };
         new HaiagaruDialog.Builder(activity)

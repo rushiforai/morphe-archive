@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-10-24T08:39:08",
+  "description": "Spoof client works again on Infinity+ 8.3.0 and newer, which failed to patch because Infinity moved its subscription prompt.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-123/patches-1.4.123.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-123/patches-1.4.123.mpp.asc",
+  "version": "1.4.123"
+}

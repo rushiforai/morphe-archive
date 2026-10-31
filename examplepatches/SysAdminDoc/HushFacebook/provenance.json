@@ -626,7 +626,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: Meta AI in Facebook's search. On Facebook 577 and 580 the patch finds three of Facebook's own decisions from kept names and literals. The results page's question of whether to add a Meta AI answer is the one boolean over FbUserSession and SearchResultsMutableContext that both callers of the meta_ai_answer_entities page builder ask first, and the patch answers no there. A page of results is built by one constructor from a list of result modules, whose role is a constant of the enum Facebook loads where it logs a failed GraphQLGraphSearchResultRole parse, and the extension leaves out Meta AI's answer and prompt roles (SEARCH_META_AI_ANSWER with its body, full body and loading state, HCM_SEARCH_META_AI_ANSWER, HCM_RELATED_META_AI_PROMPTS with its loading state, and HCM_SEARCH_AI_MODE) and keeps every other role. The page's name comes along, so the Meta AI tab's own page, the one its builder names search_meta_ai_answer_module, keeps its answer. A suggestion's flag to open Meta AI is the boolean the results router asks GraphSearchQuerySpec before it sends a search to META_AI_TAB, and the patch hands it to the extension where the suggestion parser stores it from the server's reply. The Meta AI button and the results page's Meta AI tab go around all three. The same folder holds the search screen before anything is typed: on 583 the section naming itself SearchTypeaheadPaginableSection draws each entry of null_state_results_paginating from a module tree it reads off the entry's node, and an empty row when that is null. The patch hands the node and the module to the extension right after the read and keeps its answer, which is null for the entry whose node type is SearchNullStateNativeTemplatesResult and whose rendered_modules string lists TRENDING_QUERY_SUGGESTION, the For you section, while that switch is on. With Debug logging on, the extension also logs each entry's type and module names."
+      "changes": "Written for Hushfacebook: Meta AI in Facebook's search. On Facebook 577 and 580 the patch finds three of Facebook's own decisions from kept names and literals. The results page's question of whether to add a Meta AI answer is the one boolean over FbUserSession and SearchResultsMutableContext that both callers of the meta_ai_answer_entities page builder ask first, and the patch answers no there. A page of results is built by one constructor from a list of result modules, whose role is a constant of the enum Facebook loads where it logs a failed GraphQLGraphSearchResultRole parse, and the extension leaves out Meta AI's answer and prompt roles (SEARCH_META_AI_ANSWER with its body, full body and loading state, HCM_SEARCH_META_AI_ANSWER, HCM_RELATED_META_AI_PROMPTS with its loading state, and HCM_SEARCH_AI_MODE) and keeps every other role. The page's name comes along, so the Meta AI tab's own page, the one its builder names search_meta_ai_answer_module, keeps its answer. A suggestion's flag to open Meta AI is the boolean the results router asks GraphSearchQuerySpec before it sends a search to META_AI_TAB, and the patch hands it to the extension where the suggestion parser stores it from the server's reply. The Meta AI button and the results page's Meta AI tab go around all three. The same folder holds the search screen before anything is typed: on 583 the section naming itself SearchTypeaheadPaginableSection draws each entry of null_state_results_paginating from a module tree it reads off the entry's node, and an empty row when that is null. The patch hands the node and the module to the extension right after the read and keeps its answer, which is null for the entry whose node type is SearchNullStateNativeTemplatesResult and whose rendered_modules string lists TRENDING_QUERY_SUGGESTION, the For you section, while that switch is on. With Debug logging on, the extension also logs each entry's type and module names. Search with a picture lives here too: the top bar hook hands the search button to the extension as the bar makes it, and with the switch on a long press starts the Google app's googleapp://lens link, then https://lens.google.com/ in a browser, then shows a toast when nothing answers."
     },
     {
       "paths": [
@@ -651,6 +651,26 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: the ads in search results and on profiles. In Facebook 577 and 580 every page of search results is built by one constructor from the two builders that take a GraphQLResult and the search's SearchResultsMutableContext, and its module list is the parameter they fill with the module class's own list converter. The module class is the one holding the search result role enum it reads from result_role, and its static initializer keeps the enum's SEARCH_ADS, DEPENDENT_SEARCH_ADS, LATE_DEPENDENT_SEARCH_ADS and TOP_POSITION_SEARCH_ADS as its ads. The extension leaves a module out of the page when its role is one of those or one of the five other roles the enum names after ads. On a profile, the one method holding sponsored_timeline_stories_test_key is the timeline story component's render, which asks GraphQLStory for its sponsored_data; the extension has it draw nothing for a story that carries it."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/profile/LocalProfileCounts.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/profile/LocalProfileCountsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: your own friends, followers and following numbers on your own profile, on this phone only. The design follows Hushfeed's local profile counts (digits only, blank keeps the real number) with no shared code. Facebook 585 lays the top of a profile out with Bloks, so the patch passes every string the Bloks node classes' getString returns to the extension, which swaps a number that sits before a friends, followers or following word. The profile screen is the class named com.facebook.timeline.fragment.ProfileFragment, whose onFragmentCreate hands the extension the screen so it can compare the profile id argument with the user id of the ViewerContext the screen holds."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StoriesTrayCircles.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/stories/tray/StoriesTrayCirclesPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Home's stories row drawn as round pictures at a chosen size. Facebook 585 builds the row as Litho tiles in a list with no round variant, so the patch finds the row's render method by its trace string, reads the list view id it stores, and hands every pull to refresh wrapper a list factory returns to the extension, which clips each tile of that list to a circle and scales it."
     },
     {
       "paths": [
@@ -811,6 +831,7 @@
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplaceSearchSyntax.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/navigation/MarketplaceFilterButton.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplacePathRemapper.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplaceListingAge.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/HideSponsoredMarketplaceListingsPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/MarketplaceRequestAnchors.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/MarketplaceResponseAnchors.kt",
@@ -819,7 +840,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the ads in Marketplace's feed. Facebook 577 and 580 draw Marketplace with React Native, and its Relay queries go out through Facebook's own Networking module, whose sendRequest is the one method holding FBNetworkingModule_React_Native. It reads a POST body from the request data's string entry into a StringEntity, and the query's tracking name (RelayFBNetwork_ and the query's name) from the same data. The patch hands the body and the data to the extension right after that read. For a Marketplace query whose form-encoded variables name shouldSkipAdRequest or shouldSkipBoostedListingAdRequest at their top level as false or null, the extension sets them to true and changes nothing else. For the four ads-only queries Facebook's own Tigon callbacks list (MarketplaceHomeFeedAdsQueryRendererQuery, MarketplaceHomeFeedAdsPaginationQuery, MarketplaceHomeFeedBoostedListingAdsQuery and MarketplaceHomeFeedBoostedListingAdsPaginationQuery) it answers no body, which the module reports to JavaScript as a request it couldn't make. Marketplace search's results query names neither variable and has no ads-only query, so its ads come back among the listings. The module's answers reach JavaScript through the kept FBTigonRequest$FBTigonCallbacks: onBody hands each piece of text, a toString() result, to React Native's didReceiveNetworkIncrementalData emitter and onEOM hands a whole one to didReceiveNetworkData, each with the request's state at hand, which sendRequest builds with the tracking name in one String field. The patch reads that field and hands the text, the name and the state to the extension right where the text lands. For a Marketplace query with Search in its name, other than the typeahead and mutations, the extension reads each whole JSON payload and takes out a result whose node's type ends in AdStory or that carries a sponsored_data object with an ad id, moving later streamed and deferred indices of its list down past the ads taken out. A streamed ad gives way to a payload with null data that keeps its extensions. A payload that fails to be read goes on as it came, and after it nothing more is taken out while later indices still move. Right before onEOM reports an answer complete through didCompleteNetworkResponse, the patch asks the extension for text still waiting for a payload to finish and hands it to the incremental emitter as one last piece. A video ad that reaches Marketplace's feed anyway isn't drawn, an idea De-Vanced also has, written here from Facebook 577, 580 and 581: the two Litho components that draw one, found by the strings only each holds (its layout spec's own name, and MarketplaceVideoAdQuery with MarketplaceVideoAdComponent_), ask the extension first and return null on a yes, before the ad's video is fetched."
+      "changes": "Written for Hushfacebook: the ads in Marketplace's feed. Facebook 577 and 580 draw Marketplace with React Native, and its Relay queries go out through Facebook's own Networking module, whose sendRequest is the one method holding FBNetworkingModule_React_Native. It reads a POST body from the request data's string entry into a StringEntity, and the query's tracking name (RelayFBNetwork_ and the query's name) from the same data. The patch hands the body and the data to the extension right after that read. For a Marketplace query whose form-encoded variables name shouldSkipAdRequest or shouldSkipBoostedListingAdRequest at their top level as false or null, the extension sets them to true and changes nothing else. For the four ads-only queries Facebook's own Tigon callbacks list (MarketplaceHomeFeedAdsQueryRendererQuery, MarketplaceHomeFeedAdsPaginationQuery, MarketplaceHomeFeedBoostedListingAdsQuery and MarketplaceHomeFeedBoostedListingAdsPaginationQuery) it answers no body, which the module reports to JavaScript as a request it couldn't make. Marketplace search's results query names neither variable and has no ads-only query, so its ads come back among the listings. The module's answers reach JavaScript through the kept FBTigonRequest$FBTigonCallbacks: onBody hands each piece of text, a toString() result, to React Native's didReceiveNetworkIncrementalData emitter and onEOM hands a whole one to didReceiveNetworkData, each with the request's state at hand, which sendRequest builds with the tracking name in one String field. The patch reads that field and hands the text, the name and the state to the extension right where the text lands. For a Marketplace query with Search in its name, other than the typeahead and mutations, the extension reads each whole JSON payload and takes out a result whose node's type ends in AdStory or that carries a sponsored_data object with an ad id, moving later streamed and deferred indices of its list down past the ads taken out. A streamed ad gives way to a payload with null data that keeps its extensions. A payload that fails to be read goes on as it came, and after it nothing more is taken out while later indices still move. Right before onEOM reports an answer complete through didCompleteNetworkResponse, the patch asks the extension for text still waiting for a payload to finish and hands it to the incremental emitter as one last piece. A video ad that reaches Marketplace's feed anyway isn't drawn, an idea De-Vanced also has, written here from Facebook 577, 580 and 581: the two Litho components that draw one, found by the strings only each holds (its layout spec's own name, and MarketplaceVideoAdQuery with MarketplaceVideoAdComponent_), ask the extension first and return null on a yes, before the ad's video is fetched. For issue #303 a listing page's answer (MarketplacePDPSurfaceQuery on 585) goes through the same response hooks: each listing in it that carries creation_time gets how long ago and the date written after the text of its location_text, and a second copy of the listing under the same id gets the same."
     },
     {
       "paths": [
@@ -871,6 +892,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: keeping the date on post headers. In Facebook 577 and 580 one method, the render of the post header subtitle that names itself FDSPostHeaderSubtitle, loads both in_cycling_experiment and subtitle_cycling_text_count. It works out whether the header rotates its subtitle, logs that boolean as in_cycling_experiment through String.valueOf right after the call that answers it, and then branches on it between a component that rotates the subtitle plugins' texts and the one line with the date. The patch finds that method by the two strings, checks the log's shape, and hands the answer to the extension at the log's own label, which answers no while the switch is on."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/whoshared/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: a See who shared row in a post's menu. In Facebook 584 the list of people who shared a post opens through one public static (Context, GraphQLStory, String) method holding the message Activity is required to launch reshares list, and only share count rows behind a server test call it. The patch finds that launcher by its shape and message, writes the call to it into the extension's openList stub, and adds the row through the same post menu hook Download any video uses, so the list and what it shows are Facebook's."
     },
     {
       "paths": [
@@ -1016,13 +1046,15 @@
     {
       "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/ReelSpeed.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/ReplaySpeed.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/media/reelspeed/KeepReelSpeedPatch.kt",
-        "patches/src/main/kotlin/app/morphe/patches/facebook/media/reelspeed/ReelSpeedAnchors.kt"
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/reelspeed/ReelSpeedAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/reelspeed/ReplaySpeedSite.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: keep the reel speed. The patch finds, in Facebook 577 and 580, FbGrootPlayer by its play trace, then its speed setter as the one instance (F)V method reading HeroPlayerSetting.enableLastPlaybackSpeedCacheUpdate, its PlayerOrigin getter as the one method answering a PlayerOrigin, its bind by its bindVideoSources trace and its kept-name maybeTrackVideoStart, and the Reels menu's speed toast as the one static (Context, float) method holding InlinePlaybackSpeedAttributeSelector. The setter, the bind, the start and the toast hand the extension their arguments first thing, and the extension's stubs are filled with the setter and the origin getter. The extension keeps a speed picked in the Reels menu, in memory only, with the origin of the player it was set on, and sets it on the first start after each bind of a player with that origin."
+      "changes": "Written for Hushfacebook: keep the reel speed. The patch finds, in Facebook 577 and 580, FbGrootPlayer by its play trace, then its speed setter as the one instance (F)V method reading HeroPlayerSetting.enableLastPlaybackSpeedCacheUpdate, its PlayerOrigin getter as the one method answering a PlayerOrigin, its bind by its bindVideoSources trace and its kept-name maybeTrackVideoStart, and the Reels menu's speed toast as the one static (Context, float) method holding InlinePlaybackSpeedAttributeSelector. The setter, the bind, the start and the toast hand the extension their arguments first thing, and the extension's stubs are filled with the setter and the origin getter. The extension keeps a speed picked in the Reels menu, in memory only, with the origin of the player it was set on, and sets it on the first start after each bind of a player with that origin. For issue #238, from Facebook 585, the gear menu builder (the one method holding UNIFIED_PLAYER_VDD_ENGAGEMENT_STATE that casts to the class holding video_player_control_gear_playback_speed_tap) asks the extension right before it leaves Playback speed out of a full-screen video that is not live, found as an if-nez, an if-eqz and a goto onto the speed row, and the extension says yes unless the video is an ad or its switch is off."
     },
     {
       "paths": [
@@ -1040,9 +1072,11 @@
       "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/PlaybackQuality.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/QualityChoice.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/QualityList.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/SurfaceQuality.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/media/quality/DefaultPlaybackQualityPatch.kt",
-        "patches/src/main/kotlin/app/morphe/patches/facebook/media/quality/QualityAnchors.kt"
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/quality/QualityAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/quality/QualityRow.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",

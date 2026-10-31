@@ -130,7 +130,7 @@ public final class NuvioAiringSeries {
         PREPARED_BADGE.remove();
         if (!enabled() || cardLambda == null) return;
         String title;
-        try { title = (String) field(cardLambda, "r").get(cardLambda); }
+        try { title = (String) field(cardLambda, "l").get(cardLambda); }
         catch (Throwable error) {
             Log.e(TAG, "card title read failed class=" + cardLambda.getClass().getName(), error);
             return;

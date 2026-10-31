@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">%d Sekunde vorspulen</item>
+        <item quantity="other">%d Sekunden vorspulen</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">%d Sekunde zurückspulen</item>
+        <item quantity="other">%d Sekunden zurückspulen</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d Besprechungen</item>
+        <item quantity="one">%d Besprechung</item>
+        <item quantity="two">%d Besprechungen</item>
+        <item quantity="few">%d Besprechungen</item>
+        <item quantity="many">%d Besprechungen</item>
+        <item quantity="other">%d Besprechungen</item>
+    </plurals>
+</resources>

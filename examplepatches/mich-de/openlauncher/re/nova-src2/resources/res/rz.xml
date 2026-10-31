@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_gravity="bottom"
+    android:id="0x7f0b0119"
+    android:padding="8dp"
+    android:layout_width="match_parent"
+    android:layout_height="64dp">
+    <androidx.appcompat.widget.AppCompatButton
+        android:textColor="@android:color/white"
+        android:id="0x7f0b0117"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:text="0x7f14021b"
+        android:layout_weight="1"
+        style="?android:attr/borderlessButtonStyle"/>
+    <androidx.appcompat.widget.AppCompatButton
+        android:textColor="@android:color/white"
+        android:id="0x7f0b0118"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:text="0x7f14004d"
+        android:layout_weight="1"
+        style="?android:attr/borderlessButtonStyle"/>
+</LinearLayout>

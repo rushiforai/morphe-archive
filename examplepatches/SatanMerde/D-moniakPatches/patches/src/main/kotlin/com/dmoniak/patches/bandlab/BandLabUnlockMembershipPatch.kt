@@ -10,7 +10,7 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val bandLabUnlockMembershipPatch = bytecodePatch(
-    name = "Unlock Creator Membership & Audio Tools - BandLab",
+    name = "Unlock Creator Membership & Audio Tools - BandLab (Experimental)",
     description = "Hooks Google Play Billing Client and membership state models in BandLab to unlock client-side Creator Membership perks, audio presets, master presets, and removes membership upgrade paywalls.",
 ) {
     compatibleWith(COMPATIBILITY_BANDLAB)

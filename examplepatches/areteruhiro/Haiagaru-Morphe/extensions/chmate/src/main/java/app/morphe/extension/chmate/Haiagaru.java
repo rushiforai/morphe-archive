@@ -248,9 +248,6 @@ public final class Haiagaru {
     private Haiagaru() {
     }
 
-    /** Build marker set only by the isolated ads-only patch. */
-    public static boolean adsOnlyBuild() { return false; }
-
     /** Makes ChMate's distributed integrity calculations see its original certificate. */
     @SuppressWarnings("deprecation")
     public static synchronized void installSignatureSpoof() {
@@ -504,8 +501,10 @@ public final class Haiagaru {
         try {
             String version = applicationContext.getPackageManager().getPackageInfo(applicationContext.getPackageName(), 0).versionName;
             if ("0.8.10.191 dev".equals(version) || "0.8.10.226 dev".equals(version)
-                    || "0.8.10.242 dev".equals(version))
+                    || "0.8.10.242 dev".equals(version)) {
                 result = addToolbarChoice(result, 0x7e000009, "haiagaru_hissi_droid_plus");
+                result = addToolbarChoice(result, ToolbarIcons.AUTO_NG_EXCLUSIONS, "haiagaru_auto_ng_exclusions");
+            }
             if ("0.8.10.191 dev".equals(version) || "0.8.10.226 dev".equals(version) || "0.8.10.242 dev".equals(version))
                 result = addToolbarChoice(result, DIRECT_COPY_TOOLBAR_ID, "haiagaru_direct_copy");
         } catch (Exception ignored) { }
@@ -643,6 +642,10 @@ public final class Haiagaru {
 
     /** Handles the custom toolbar item before ChMate dispatches its stock actions. */
     public static boolean handleEdgeArchiveToolbarClick(Object fragment, int itemId) {
+        if (itemId == ToolbarIcons.AUTO_NG_EXCLUSIONS) {
+            RedIdAutoNg.showExclusions(toolbarActivity(fragment));
+            return true;
+        }
         if (itemId == 0x7e000009) {
             Activity activity=toolbarActivity(fragment);
             if(activity!=null&&!activity.isFinishing())try{
@@ -1488,7 +1491,6 @@ public final class Haiagaru {
     }
 
     public static boolean shouldHideAds(Context context) {
-        if(adsOnlyBuild())return true;
         if (context != null) {
             Context resolvedContext = context.getApplicationContext();
             applicationContext = resolvedContext == null ? context : resolvedContext;
@@ -3085,7 +3087,7 @@ public final class Haiagaru {
         // This adapter hook runs for every bound response, including when ad
         // hiding is disabled. Keep emoji fallback independent of that setting.
         try {
-            if(!adsOnlyBuild())EmojiFontFallback.applyToRow(view);
+            EmojiFontFallback.applyToRow(view);
         } catch (Throwable error) {
             Log.w(LOG_TAG, "Unable to apply emoji font fallback", error);
         }
@@ -3630,6 +3632,7 @@ public final class Haiagaru {
     private static LinearLayout settingsDISPLAY(Activity activity) {
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
+        ThreadSearchOptions.add(layout,activity);
         SharedPreferences preferences = preferences(activity);
         SharedPreferences chMatePreferences = PreferenceManager.getDefaultSharedPreferences(activity);
         Switch automaticFold = addSwitch(layout, activity,
@@ -3696,6 +3699,7 @@ public final class Haiagaru {
         PopularReplies.addSettings(layout,activity);
         QuickFilterOptions.addSettings(layout,activity);
         QuickFilterOptions.addToolbarEntry(layout,activity);
+        HomeSelectionBar.addSettings(layout,activity);
         Switch compactFilters = null;
         if (QuickFilterToolbar.supported(activity)) {
             compactFilters = addSwitch(layout, activity,
@@ -4432,6 +4436,25 @@ public final class Haiagaru {
             decor.requestLayout(); decor.invalidate();
         });
         HiddenIdNg.addSettingsButton(layout, activity);
+        Switch autoNgRedIds = addSwitch(layout, activity, "全スレで赤いIDのレスを自動で非表示にする",
+                preferences.getBoolean(RedIdAutoNg.KEY, false));
+        TextView autoNgRedIdsDescription = new TextView(activity);
+        autoNgRedIdsDescription.setText("オンにすると、開くすべてのスレで動作します。投稿数は各スレ内で判定し、ChMateで赤色（8件以上）のIDのレスを非表示にします。あるスレで赤くなったIDも、別のスレで8件未満ならこの機能では隠しません。初期OFF。通常のNGIDには登録しません。除外IDは全スレ共通です。変更後はスレを開き直してください。");
+        autoNgRedIdsDescription.setTextSize(13);
+        layout.addView(autoNgRedIdsDescription, rowParams(activity));
+        live.toggle(autoNgRedIds, RedIdAutoNg.KEY);
+        RedIdAutoNg.addExclusionsButton(layout, activity);
+        EdgeLevelSettings.add(layout,activity);
+        Switch hideChainedAbone = addSwitch(layout, activity,
+                text("連鎖あぼーんを常に非表示", "Always hide chained aboon rows"),
+                preferences.getBoolean(ChainAboneVisibility.KEY, false));
+        TextView chainAboneDescription = new TextView(activity);
+        chainAboneDescription.setText(text(
+                "ChMateが「連鎖あぼーん」と判定した返信レスだけを、行ごと非表示にします。元のNG対象レスの表示方法やNG登録は変更しません。初期OFF。変更後はスレを開き直してください。標準の「非表示NGを表示」は引き続き使用できます。",
+                "Hides only rows ChMate identifies as chained aboon. Original NG targets and saved rules stay unchanged. Off by default. Reopen the thread to apply. The standard Show hidden NG action remains available."));
+        chainAboneDescription.setTextSize(13);
+        layout.addView(chainAboneDescription, rowParams(activity));
+        live.toggle(hideChainedAbone, ChainAboneVisibility.KEY);
         Switch hideNgWordIdReplies = addSwitch(layout, activity,
                 text("NGWord-IDへの返信も非表示", "Hide replies to NGWord-ID responses"),
                 preferences.getBoolean("hideNgWordIdReplies", false));
@@ -5504,6 +5527,11 @@ public final class Haiagaru {
     private static SharedPreferences preferencesOrNull() {
         Context context = applicationContext;
         return context == null ? null : preferences(context);
+    }
+
+    public static boolean hideChainedAbone() {
+        SharedPreferences prefs = preferencesOrNull();
+        return prefs != null && prefs.getBoolean(ChainAboneVisibility.KEY, false);
     }
 
     public static boolean hideNgWordIdReplies() {

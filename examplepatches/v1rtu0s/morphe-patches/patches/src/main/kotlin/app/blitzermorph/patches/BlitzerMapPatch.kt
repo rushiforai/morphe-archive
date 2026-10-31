@@ -5,7 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.blitzermorph.patches.shared.Constants.COMPATIBILITY_MICROG_MAPS
+import app.blitzermorph.patches.shared.Constants.COMPATIBILITY_GOOGLE_MAPS
 
 private const val EXTENSION_CLASS = "Lapp/blitzermorph/extension/BlitzerInjector;"
 
@@ -71,7 +71,7 @@ val blitzerMapPatch = bytecodePatch(
     description = "Shows live Blitzer.de speed cameras from Atudo on the map with a dedicated settings toggle.",
     default = true
 ) {
-    compatibleWith(COMPATIBILITY_MICROG_MAPS)
+    compatibleWith(COMPATIBILITY_GOOGLE_MAPS)
 
     extendWith("extensions/blitzermorph.mpe")
 
@@ -133,7 +133,7 @@ val blitzerPreferencePatch = resourcePatch(
     description = "Adds Blitzer.de cameras toggle to Speed Cameras settings",
     default = true
 ) {
-    compatibleWith(COMPATIBILITY_MICROG_MAPS)
+    compatibleWith(COMPATIBILITY_GOOGLE_MAPS)
 
     execute {
         // Read the preferences XML

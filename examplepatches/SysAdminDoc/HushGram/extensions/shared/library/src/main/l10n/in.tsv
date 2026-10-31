@@ -122,7 +122,7 @@ Set when you patched	Diatur saat Anda menambal
 Settings couldn't open	Pengaturan tidak dapat dibuka
 Settings couldn't refresh completely. Reopen settings and try again.	Pengaturan tidak dapat dimuat ulang sepenuhnya. Buka kembali pengaturan lalu coba lagi.
 Source code and issues	Kode sumber dan laporan masalah
-Hides sponsored posts, reels and stories. No empty gap is left where an ad would have been.	Menyembunyikan postingan, reel, dan cerita bersponsor. Tidak ada celah kosong di tempat iklan seharusnya muncul.
+Hides sponsored posts, reels, stories and the ad in comments. No empty gap is left where an ad would have been.	Menyembunyikan postingan, reel, dan cerita bersponsor, serta iklan di komentar. Tidak ada celah kosong di tempat iklan seharusnya muncul.
 Stays in while paused	Tetap aktif saat dijeda
 Removes tracking tags from links you copy or share, and opens bio links without Instagram's click tracker. The link still opens the same post, reel or profile.	Menghapus tag pelacak dari tautan yang kamu salin atau bagikan, dan membuka tautan di bio tanpa pelacak klik Instagram. Tautan tetap membuka postingan, reel, atau profil yang sama.
 Tap to hide this.	Ketuk untuk menyembunyikan ini.
@@ -379,7 +379,7 @@ Removes the empty gap under Instagram's tab bar that appears when your phone hid
 Only accounts you follow	Hanya akun yang kamu ikuti
 Removes For you from the choices at the top of Home, so it stays on Following or Favorites. Needs Start Home on Following. Restart Instagram to see the change.	Menghapus Untuk Anda dari pilihan di bagian atas Beranda, jadi Beranda tetap di Mengikuti atau Favorit. Perlu Start Home on Following. Mulai ulang Instagram untuk melihat perubahannya.
 Instagram logo on Home	Logo Instagram di Beranda
-Keeps Instagram's logo at the top of Home in place of the feed's name. Tap it to switch feeds. Needs Start Home on Following. Restart Instagram to see the change.	Menampilkan logo Instagram di bagian atas Beranda sebagai pengganti nama feed. Ketuk untuk berganti feed. Perlu Buka Beranda di Mengikuti. Mulai ulang Instagram untuk melihat perubahannya.
+Keeps Instagram's logo at the top of Home in place of the feed's name. Tap it to switch feeds. Restart Instagram to see the change.	Menampilkan logo Instagram di bagian atas Beranda sebagai pengganti nama feed. Ketuk untuk berganti feed. Mulai ulang Instagram untuk melihat perubahannya.
 Profiles	Profil
 Show if a profile follows you	Tampilkan apakah profil mengikuti kamu
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	Menambahkan Mengikuti kamu atau Tidak mengikuti kamu di samping nama di profil seseorang, setelah kata ganti mereka jika ada. Tidak ada yang muncul sampai Instagram memeriksanya.
@@ -582,7 +582,7 @@ Stop after the chat's reels	Berhenti setelah reel chat
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	Reel yang kamu buka dari chat berakhir setelah reel terakhir yang dibagikan di chat itu, tanpa reel yang disarankan setelahnya. Berfungsi saat Geser melalui reel di chat aktif.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	Menambahkan Unduh sampul di bawah Unduh. Ini menyimpan gambar diam yang ditampilkan reel sebelum diputar, dalam ukuran terbesarnya.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	Menambahkan Unduh audio di bawah Unduh. Ini menyimpan suara reel sebagai file audio.
-After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	Setelah 20 reel, menggeser di Reels berhenti sampai Instagram berada di latar belakang selama 15 menit. Reel yang Anda buka dari pesan atau postingan tetap diputar.
+After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	Setelah jumlah reel yang Anda pilih di bawah, menggeser di Reels berhenti sampai Instagram berada di latar belakang selama waktu yang Anda pilih. Reel yang Anda buka dari pesan atau postingan tetap diputar.
 Find the reel you came from	Temukan reel asal Anda
 Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	Buka profil kreator dari sebuah reel, lalu tab Reels-nya, dan tab itu bergulir ke reel tersebut dan menandainya sebentar. Reel foto ditemukan di postingannya. Berhenti mencari menghentikan pencarian di posisinya saat itu.
 Wait for a tap to find it	Tunggu ketukan untuk mencarinya
@@ -613,7 +613,12 @@ Send downloads to another app	Kirim unduhan ke aplikasi lain
 Send to	Kirim ke
 Sent to another app. To save here instead, turn off Send downloads to another app under Downloads.	Dikirim ke aplikasi lain. Untuk menyimpan di sini, nonaktifkan Kirim unduhan ke aplikasi lain di Unduhan.
 Spoof location	Palsukan lokasi
-Stop after 20 reels	Berhenti setelah 20 reel
+Stop after a set number of reels	Berhenti setelah sejumlah reel
+# context: Reels settings: two sliders under Stop after a set number of reels (#405). The first picks how many reels play before swiping stops, %1$d is 5 to 100; the second how long Instagram stays in the background before swiping comes back, %1$d is 5 to 120 minutes
+Reels before swiping stops	Reel sebelum geser berhenti
+%1$d reels	%1$d reel
+Time away before swiping comes back	Waktu jeda sebelum geser kembali
+%1$d minutes in the background	%1$d menit di latar belakang
 Take a scroll break	Istirahat dari scroll
 # context: a choice in the scroll break list; %1$d is 10, 20, 30 or 60
 After %1$d minutes	Setelah %1$d menit
@@ -1059,6 +1064,9 @@ Off. It can fade a reel's buttons while the screen sits untouched, so they don't
 Takes the Save button out of the column of buttons beside a reel, and the count under it. Posts in your feed keep theirs.	Menghapus tombol Simpan dari deretan tombol di samping reel, beserta angka di bawahnya. Postingan di feed-mu tetap punya tombolnya.
 Keep clear mode on	Tetap aktifkan mode bersih
 Turn on Instagram's clear mode on a reel and the next reels open in it too. Leave clear mode yourself and the next reels show their buttons again.	Aktifkan mode bersih Instagram di sebuah reel dan reels berikutnya juga terbuka dalam mode itu. Keluar sendiri dari mode bersih dan reels berikutnya menampilkan tombolnya lagi.
+# context: Reels settings: a switch under Keep clear mode on (#138). Clear mode is the name used for Instagram's own mode that hides a reel's buttons; Allow screenshots is HushGram's switch of that name
+Start every reel in clear mode	Mulai setiap reel dalam mode bersih
+Reels open in clear mode from the first one, with no tap. Leave it yourself and the next reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow screenshots is on.	Reels terbuka dalam mode bersih sejak yang pertama, tanpa ketukan. Keluar sendiri dan reels berikutnya menampilkan tombolnya lagi. Instagram memblokir tangkapan layar dalam mode bersih kecuali Izinkan tangkapan layar aktif.
 Unlock with	Buka kunci dengan
 Phone lock	Kunci ponsel
 HushGram PIN	PIN HushGram
@@ -1221,6 +1229,11 @@ Hide the Create button	Sembunyikan tombol Buat
 Takes the plus for new posts off the top of your own profile. The other buttons stay where they were.	Menghapus tanda plus untuk postingan baru dari bagian atas profilmu sendiri. Tombol lainnya tetap di tempatnya.
 Hide Share profile	Sembunyikan Bagikan profil
 Takes the Share profile button off your profile, and Edit profile stretches to fill the space.	Menghapus tombol Bagikan profil dari profilmu, dan Edit profil melebar mengisi ruangnya.
+# context: Profiles: switches that hide Subscribe and the arrow at the end of the action buttons on someone's profile, which opens a menu of the buttons that didn't fit (#248). Subscribe is Instagram's own button label, as in the Feed switch that hides Follow and Subscribe.
+Hide Subscribe on profiles	Sembunyikan Berlangganan di profil
+Takes the Subscribe button off creators' profiles, and the other buttons stretch to fill the space.	Menghapus tombol Berlangganan dari profil kreator, dan tombol lainnya melebar mengisi ruangnya.
+Hide the arrow at the end of the buttons	Sembunyikan panah di ujung tombol
+Takes the arrow off the end of a profile's row of buttons, along with the menu it opens, and the other buttons stretch to fill the space.	Menghapus panah di ujung deretan tombol profil, beserta menu yang dibukanya, dan tombol lainnya melebar mengisi ruangnya.
 # context: Layout: Glass tab bar's switch that stops the liquid pill shrinking as you scroll (#256)
 Keep the pill full size	Pertahankan pil dalam ukuran penuh
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	Menggulir daftar ke bawah membiarkan pil kaca cair apa adanya, setiap tab tetap di tempatnya. Mulai ulang Instagram setelah mengubahnya.
@@ -1383,6 +1396,9 @@ Hide captions	Sembunyikan keterangan
 Takes the caption off posts in your feed and off reels. The post stays, and the comments sheet still shows it.	Menghapus keterangan dari kiriman di beranda dan dari reel. Kiriman tetap ada, dan lembar komentar masih menampilkannya.
 Keep Home's top bar	Tetap tampilkan bilah atas Beranda
 Keeps the Instagram logo and the buttons beside it at the top of Home while you scroll, instead of sliding them away.	Menjaga logo Instagram dan tombol di sampingnya tetap di atas Beranda saat Anda menggulir, tidak digeser hilang.
+# context: Feed settings: the See-through top bar switch, right under Keep Home's top bar (#418). It blurs the posts that scroll under Home's header, the bar with the Instagram logo.
+See-through top bar	Bilah atas tembus pandang
+Shows your feed blurred under Home's top bar, like frosted glass.	Menampilkan feed Anda secara buram di bawah bilah atas Beranda, seperti kaca buram.
 Keep the Reels top bar	Tetap tampilkan bilah atas Reels
 Keeps the Reels title, the Friends tab and the buttons beside them at the top while you swipe through reels, instead of sliding them away.	Menjaga judul Reels, tab Teman, dan tombol di sampingnya tetap di atas saat Anda menggeser reel, tidak digeser hilang.
 Keep a viewing history	Simpan riwayat tontonan
@@ -1396,3 +1412,84 @@ Clear viewing history	Hapus riwayat tontonan
 Forgets every post, reel, story and profile on the list, for all your accounts. The switch stays as it is.	Melupakan semua kiriman, reel, cerita, dan profil di daftar, untuk semua akunmu. Pengaturan sakelar tidak berubah.
 Viewing history cleared.	Riwayat tontonan dihapus.
 Couldn't clear the viewing history. Try again.	Riwayat tontonan tidak bisa dihapus. Coba lagi.
+Mark one-time photos and videos	Tandai foto dan video sekali lihat
+Puts a border and Instagram's view once icon on a one-time photo or video in a chat, so you can tell it from the rest before you open it. Only how the chat looks changes.	Memberi bingkai dan ikon sekali lihat milik Instagram pada foto atau video sekali lihat di chat, supaya kamu bisa membedakannya sebelum membukanya. Hanya tampilan chat yang berubah.
+Fall back to Following	Beralih ke Mengikuti
+When For you brings an account only suggested posts, page after page, Home opens on Following for that account. A feed you pick at the top of Home stays picked. Restart Instagram to see the change.	Jika Untuk Anda hanya menampilkan postingan yang disarankan ke sebuah akun, halaman demi halaman, Beranda dibuka di Mengikuti untuk akun itu. Feed yang kamu pilih di bagian atas Beranda tetap terpilih. Mulai ulang Instagram untuk melihat perubahannya.
+Only suggestions in For you. Home will open on Following.	Hanya saran di Untuk Anda. Beranda dibuka di Mengikuti.
+Explore without personalization	Jelajahi tanpa personalisasi
+Where Instagram offers it (in the EU), Explore opens with the grid that isn't personalized every time, and stays on it past ten minutes.	Jika Instagram menawarkannya (di UE), Jelajahi selalu dibuka dengan kisi yang tidak dipersonalisasi, dan tetap begitu setelah sepuluh menit.
+Hide Explore's personalized menu	Sembunyikan menu personalisasi Jelajahi
+Hides the top bar button that switches Explore's personalization, where Instagram shows it (in the EU).	Menyembunyikan tombol di bilah atas yang mengubah personalisasi Jelajahi, jika Instagram menampilkannya (di UE).
+# context: Feed settings: the Carousel arrows switch and the two arrow buttons' TalkBack labels (#417)
+Carousel arrows	Panah carousel
+Puts a back and a next arrow on a carousel post's photos and videos. Tap one to move a page without swiping.	Menaruh panah mundur dan maju pada foto dan video kiriman carousel. Ketuk salah satunya untuk pindah halaman tanpa menggeser.
+Previous page	Halaman sebelumnya
+Next page	Halaman berikutnya
+# context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
+Page dots on a pill	Titik halaman di pil
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	Memindahkan titik halaman kiriman carousel ke pil bulat di bagian bawah foto atau videonya, dengan halaman yang sedang dibuka berwarna biru.
+# context: Feed settings: the Ambient light switch and its Glow spread and Glow speed lists (#416)
+Ambient light	Cahaya ambien
+Puts a soft glow in a post's own colors around its photo or video, and in the bands around a reel that doesn't fill the screen. The glow follows a video as it plays.	Menambahkan cahaya lembut dengan warna postingan di sekitar foto atau videonya, dan di pita sekitar reel yang tidak memenuhi layar. Cahayanya mengikuti video saat diputar.
+Glow spread	Sebaran cahaya
+Glow speed	Kecepatan cahaya
+Narrow	Sempit
+Medium	Sedang
+Wide	Lebar
+Slow	Lambat
+Fast	Cepat
+# context: Reels settings: a switch for a Lens icon beside each reel that opens Google Lens on the reel to copy its text (#303)
+Copy text button on reels	Tombol Salin teks di reel
+Puts a Lens icon beside a reel. Tap it and Google Lens opens on what's showing, so you can select and copy its text.	Menaruh ikon Lens di samping reel. Ketuk dan Google Lens terbuka pada yang sedang tampil, jadi kamu bisa memilih dan menyalin teksnya.
+# context: Stories settings: the same Lens button, in the story header beside the three dots (#303)
+Copy text button on stories	Tombol Salin teks di cerita
+Puts a Lens icon at the top of a story, beside the three dots. Tap it and Google Lens opens on what's showing, so you can select and copy its text.	Menaruh ikon Lens di bagian atas cerita, di samping tiga titik. Ketuk dan Google Lens terbuka pada yang sedang tampil, jadi kamu bisa memilih dan menyalin teksnya.
+# context: the spoken label of that Lens icon, for screen readers
+Copy text	Salin teks
+# context: title of the share sheet offered when Google Lens isn't installed; the apps listed below it read the picture's text
+Copy text with	Salin teks dengan
+# context: toast, under two lines of about 28 characters: the screen picture for Lens couldn't be made
+Couldn't copy this screen	Layar ini tidak dapat disalin
+# context: toast, under two lines of about 28 characters: no installed app takes a picture to read its text
+No app here can read text	Tak ada aplikasi pembaca teks
+# context: Ads and privacy settings: switch that sends only Instagram's traffic through a proxy server the person sets (#219)
+App-only proxy	Proxy khusus aplikasi
+# context: summary under that switch
+Sends Instagram through the HTTP proxy set below. Other apps and your phone's own settings aren't changed.	Mengirim Instagram lewat proxy HTTP yang diatur di bawah. Aplikasi lain dan pengaturan ponselmu tidak berubah.
+# context: title of the row and its dialog where the proxy server is typed
+Proxy server	Server proxy
+# context: that dialog's message; keep the example address as it is
+An HTTP proxy's address and port, with a colon between them, like 192.168.1.10:8080. Proxies that need a password, and SOCKS proxies, don't work here. Instagram needs a restart to use it.	Alamat dan port proxy HTTP, dipisahkan titik dua, seperti 192.168.1.10:8080. Proxy yang perlu kata sandi dan proxy SOCKS tidak bisa dipakai di sini. Instagram perlu dimulai ulang untuk memakainya.
+# context: toast and field error, under two lines of about 28 characters: what was typed isn't host:port; keep the example address
+That isn't a proxy server. Try 10.0.0.2:8080.	Bukan server proxy. Coba 10.0.0.2:8080.
+# context: the server row's summary while it's blank
+No server set. Until there is one, Instagram goes out directly.	Belum ada server. Sampai ada, Instagram terhubung langsung.
+# context: the server row's summary; %1$s is the server as host:port
+Instagram goes through %1$s.	Instagram terhubung lewat %1$s.
+# context: Stories settings: switch that slows the zoom a story opens with from the stories row and takes out its bounce (#409)
+Smooth story opening	Buka cerita dengan halus
+# context: summary under that switch
+A story you tap in the stories row opens with a slower zoom that doesn't bounce, and closes the same way.	Cerita yang Anda ketuk di baris cerita terbuka dengan zoom yang lebih lambat tanpa memantul, dan tertutup dengan cara yang sama.
+Emoji pack	Paket emoji
+Your phone's emoji	Emoji ponselmu
+An emoji font file	File font emoji
+Your phone's emoji, or Google's with the switch above on. You can also download a free emoji pack or pick a color emoji font file.	Emoji ponselmu, atau emoji Google jika sakelar di atas aktif. Kamu juga bisa mengunduh paket emoji gratis atau memilih file font emoji berwarna.
+Emoji draw as %1$s, downloaded from its maker. Restart Instagram to see a change.	Emoji tampil sebagai %1$s, diunduh dari pembuatnya. Mulai ulang Instagram untuk melihat perubahan.
+Emoji draw from the emoji font file you picked. Pick it again to change the file. Restart Instagram to see a change.	Emoji digambar dari file font emoji yang kamu pilih. Pilih lagi untuk mengganti file. Mulai ulang Instagram untuk melihat perubahan.
+Downloading the emoji...	Mengunduh emoji...
+Couldn't download the emoji. Try again.	Emoji gagal diunduh. Coba lagi.
+Emoji saved. Restart Instagram to see them.	Emoji disimpan. Mulai ulang Instagram untuk melihatnya.
+No color emoji in that file. Nothing changed.	Tak ada emoji berwarna di file itu. Tidak berubah.
+Couldn't load your emoji, so the phone's show.	Emojimu gagal dimuat, jadi emoji ponsel yang tampil.
+# context: Stories settings: the Ambient light in stories switch (#420)
+Ambient light in stories	Cahaya sekitar di cerita
+Fills the bands above and below a story that doesn't fill the screen with a soft glow in its own colors. Glow spread and Glow speed, under Feed, set it too.	Mengisi bidang di atas dan di bawah cerita yang tidak memenuhi layar dengan cahaya lembut berwarna sama dengan ceritanya. Sebaran cahaya dan Kecepatan cahaya, di Feed, juga mengaturnya.
+# context: Ads and privacy settings: switch that keeps Instagram's screens asking to sync contacts and to turn on location services from opening at each start (#295, #329, #421)
+Skip the contacts and location popups	Lewati pop-up kontak dan lokasi
+# context: summary under that switch
+The screens asking you to sync your contacts and turn on location services stop opening each time Instagram starts. Nothing else is skipped.	Layar yang memintamu menyinkronkan kontak dan menyalakan layanan lokasi tidak lagi terbuka setiap kali Instagram dimulai. Tidak ada hal lain yang dilewati.
+# context: Playback settings: switch that stops feed videos and reels from playing again from the start when they end (#248, #175)
+Stop videos looping	Jangan ulangi video
+# context: summary under that switch; auto scroll is Instagram's own Reels setting, worded as in Keep auto scroll on
+Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	Video di feed dan reel berhenti di bingkai terakhirnya, tidak diputar lagi. Reel tetap diulang selama gulir otomatis aktif, agar bisa lanjut ke berikutnya.

@@ -19,7 +19,16 @@ public final class ThreadArchiveOrder {
         return ThreadArchiveSort.compare(a,b,mode);
     }
     private static File file(Object row)throws Exception {
-        for(Field f:row.getClass().getDeclaredFields())if(f.getType()==File.class){f.setAccessible(true);return (File)f.get(row);}
+        File fallback=null;
+        for(Class<?> type=row.getClass();type!=null&&type!=Object.class;type=type.getSuperclass())
+            for(Field f:type.getDeclaredFields())if(f.getType()==File.class){
+                f.setAccessible(true);File candidate=(File)f.get(row);
+                if(candidate!=null){
+                    if(ThreadArchiveSort.created(candidate)>0)return candidate;
+                    if(fallback==null)fallback=candidate;
+                }
+            }
+        if(fallback!=null)return fallback;
         throw new IllegalArgumentException("Archive file field missing");
     }
     public static int compare(Object a,Object b){

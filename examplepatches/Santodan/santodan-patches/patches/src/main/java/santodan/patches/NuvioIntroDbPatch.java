@@ -26,18 +26,18 @@ public final class NuvioIntroDbPatch {
             builder.execute(context -> {
                 if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
                     !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName()))
-                    throw new IllegalStateException("IntroDB requires NuvioTV 1.1.0-beta.8");
+                    throw new IllegalStateException("IntroDB requires NuvioTV 1.1.0-beta.9");
                 validateState(new MutableClass(context.classDefBy(NuvioNative.PLAYER_STATE_TYPE)));
                 for (String signature : UI) require(new MutableClass(context.classDefBy(signature.substring(0, signature.indexOf("->")))), signature);
-                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MAIN_ROW_TYPE)), "c:Lab/qm;", "e:Lab/nm;", "o:Lc2/z;", "p:Lkotlin/jvm/functions/Function0;", "q:Lkotlin/jvm/functions/Function0;");
-                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MODEL_TYPE)), "Y:Lab/mc;");
-                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_CONTROLLER_TYPE)), "H0:Lkotlinx/coroutines/flow/StateFlow;", "T0:Lkotlinx/coroutines/Job;");
+                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MAIN_ROW_TYPE)), "c:Lbb/hl;", "d:Lbb/el;", "i:Lc2/z;", "j:Lkotlin/jvm/functions/Function0;", "k:Lkotlin/jvm/functions/Function0;");
+                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MODEL_TYPE)), "Y:Lbb/bc;");
+                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_CONTROLLER_TYPE)), "H0:Lkotlinx/coroutines/flow/StateFlow;", "U0:Lkotlinx/coroutines/Job;");
                 fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_SESSION_TYPE)), "d:Z");
                 fields(new MutableClass(context.classDefBy(NuvioNative.DROPDOWN_OPTION_TYPE)), "a:Ljava/lang/String;", "b:Ljava/lang/String;");
                 fields(new MutableClass(context.classDefBy(NuvioNative.NATIVE_COLORS_TYPE)), "b:J", "c:J", "l:J", "x:J");
                 fields(new MutableClass(context.classDefBy(NuvioNative.NATIVE_SPACING_TYPE)), "b:F", "c:F");
                 fields(new MutableClass(context.classDefBy("Lio/sentry/d2;")), "b:Ljava/util/ArrayList;");
-                staticFields(new MutableClass(context.classDefBy(NuvioNative.NATIVE_SPACING_LOCAL_TYPE)), "a:Lib/m0;");
+                staticFields(new MutableClass(context.classDefBy(NuvioNative.NATIVE_SPACING_LOCAL_TYPE)), "a:Ljb/m0;");
                 staticFields(new MutableClass(context.classDefBy("Ly2/l1;")), "q:Lh1/c3;");
                 staticFields(new MutableClass(context.classDefBy(NuvioNative.SETTINGS_BUTTON_LABELS_TYPE)), "a:Lr1/s;", "b:Lr1/s;");
                 staticFields(new MutableClass(context.classDefBy(NuvioNative.COLOR_TYPE)), "b:J");
@@ -60,11 +60,11 @@ public final class NuvioIntroDbPatch {
             return Unit.INSTANCE;
         });
     }
-    static final String TIMER_HASH = "2dc60c1b34d8d705d26439ae9023168efdf5202294677accaf81709243a903c2";
-    static final String PAUSE_TIMER = NuvioNative.PLAYER_TIMERS_TYPE + "->H(" + NuvioNative.PLAYER_CONTROLLER_TYPE + ")V";
-    static final String CANCEL_PAUSE = NuvioNative.PLAYER_TIMERS_TYPE + "->i(" + NuvioNative.PLAYER_CONTROLLER_TYPE + ")V";
-    static final String PAUSE_TIMER_HASH = "b76be6ae82fd93134117ec8e09c5ac29e8020dda8ca70baacbe1b8334e8de01f";
-    static final String CANCEL_PAUSE_HASH = "c21ca3a08b0d550e3b295603e846af508348d412ec40c859ac1a12b6a8c7c6bc";
+    static final String TIMER_HASH = "df22c44050aa01e07b296656e1317d6104b0ae403e8e97944b28060196b3f8df";
+    static final String PAUSE_TIMER = NuvioNative.PLAYER_TIMERS_TYPE + "->" + NuvioNative.PAUSE_TIMER_METHOD + "(" + NuvioNative.PLAYER_CONTROLLER_TYPE + ")V";
+    static final String CANCEL_PAUSE = NuvioNative.PLAYER_TIMERS_TYPE + "->" + NuvioNative.CANCEL_PAUSE_METHOD + "(" + NuvioNative.PLAYER_CONTROLLER_TYPE + ")V";
+    static final String PAUSE_TIMER_HASH = "3d9ae6dac44b03f11c170898981b5c6213eb598bc95d976f4c9e09d7e078d430";
+    static final String CANCEL_PAUSE_HASH = "1eaee7b7a413af021ae4f8a34814af6bba404379d1217cb99ef8a1e9ce9a4041";
     static final String HOLD_TIMER = EXT + "->holdControlsTimer(Ljava/lang/Object;)Z";
     static void validateTimer(MutableMethod method) {
         String hash = method.toString().equals(NuvioNative.REF_PLAYER_TIMERS_F) ? TIMER_HASH :
@@ -101,14 +101,14 @@ public final class NuvioIntroDbPatch {
         NuvioNative.REF_FOCUS_MODIFIERS_I,
         NuvioNative.REF_POSTER_IMAGE_Y, NuvioNative.REF_POSTER_IMAGE_A,
         "Ly/m;->a(JF)Ly/u;", NuvioNative.REF_NATIVE_FOCUS_STYLE_A,
-        "Ll0/g;->b(F)Ll0/f;", "Ly5/c;-><init>(Ly/u;Le2/w0;I)V",
+        "Ll0/g;->b(F)Ll0/f;", "Ly5/c;-><init>(Ly/u;Le2/y0;I)V",
         NuvioNative.REF_NATIVE_B_2, NuvioNative.REF_NATIVE_A_2,
-        "Ly5/m;->e(Le2/w0;I)Ly5/q;", "Ly5/m;->d(FI)Ly5/p;",
+        "Ly5/m;->e(Le2/y0;I)Ly5/q;", "Ly5/m;->d(FI)Ly5/p;",
         NuvioNative.REF_NATIVE_C,
         NuvioNative.REF_NATIVE_A,
         NuvioNative.REF_NATIVE_B,
         NuvioNative.REF_VECTOR_BUILDER_INIT, NuvioNative.REF_VECTOR_BUILDER_A, NuvioNative.REF_VECTOR_BUILDER_B,
-        "Le2/y0;-><init>(J)V", "Lio/sentry/d2;-><init>(I)V", "Lio/sentry/d2;->o(FF)V", "Lio/sentry/d2;->m(FF)V", "Lio/sentry/d2;->e()V",
+        "Le2/a1;-><init>(J)V", "Lio/sentry/d2;-><init>(I)V", "Lio/sentry/d2;->o(FF)V", "Lio/sentry/d2;->m(FF)V", "Lio/sentry/d2;->e()V",
         NuvioNative.REF_COMPOSABLE_LAMBDA_INIT,
         NuvioNative.REF_LIBRARY_CONTENT_Z,
         NuvioNative.REF_SETTINGS_ROWS_D,

@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import app.morphe.extension.facebook.search.PictureSearch;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.Logger;
@@ -34,7 +35,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  *   <li>{@link #createButton} runs right after the bar adds the Create button, and sets it GONE
  *       like the Messenger button.
  *   <li>{@link #searchButton} runs right after the bar adds the search button (#321), and on the
- *       newer bar right after the bar makes it, and sets it GONE the same way.
+ *       newer bar right after the bar makes it, and sets it GONE the same way. A kept button gets
+ *       the Google Lens long press of {@link PictureSearch} while that switch is on (#245).
  * </ul>
  *
  * <p>Some accounts get the newer bar instead, where every button is a glyph the bar makes from a
@@ -128,11 +130,18 @@ public final class TopBarButtons {
         Logger.printDebug(() -> "Top bar: hid the Create button");
     }
 
-    /** Injection point, after either bar makes or adds the search button. Never throws. */
+    /**
+     * Injection point, after either bar makes or adds the search button. Hides it, or with Search
+     * with a picture on gives it the long press that opens Google Lens (#245). Never throws.
+     */
     public static void searchButton(View button) {
         try {
             HookStatus.invoked(FAMILY);
-            if (button == null || !Utils.settingsReady() || !Settings.HIDE_SEARCH_BUTTON.get()) return;
+            if (button == null || !Utils.settingsReady()) return;
+            if (!Settings.HIDE_SEARCH_BUTTON.get()) {
+                if (Settings.SEARCH_WITH_PICTURE.get()) PictureSearch.attach(button);
+                return;
+            }
             button.setVisibility(View.GONE);
             HookStatus.bound(FAMILY, "Search button");
             HookStatus.counted(FAMILY, SEARCH_HIDDEN);

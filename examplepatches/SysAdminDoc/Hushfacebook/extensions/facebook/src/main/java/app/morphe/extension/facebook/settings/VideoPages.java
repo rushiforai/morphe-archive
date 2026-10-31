@@ -6,6 +6,8 @@
  */
 package app.morphe.extension.facebook.settings;
 
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.burnInGuardRow;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.burnInWaitRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.category;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.downloadActionRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.fileNameRow;
@@ -137,6 +139,16 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.HIDE_REEL_SEARCH_PILL,
                     L10n.t("Hides the search suggestion under a reel's caption, the magnifier with a question to look up, "
                             + "the one at the top of its comments and the search bar over reels you open from a profile.")));
+            // Asked after each layout of the full-screen player, so a change shows right away.
+            reels.addPreference(toggle(context, Settings.HIDE_VIEWER_TOP_BUTTONS,
+                    L10n.t("Takes Search and the button next to it off the top of a video or reel you open. Back "
+                            + "stays, and so does More at the bottom of the side buttons, where Download is.")));
+            // Burn-in guard (#288): read on each pass, so a change shows right away.
+            reels.addPreference(burnInGuardRow(context));
+            reels.addPreference(burnInWaitRow(context));
+            reels.addPreference(toggle(context, Settings.BURN_IN_STAY_DIM,
+                    L10n.t("Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, "
+                            + "the next reel too. They still work. Leaving Reels brings them back.")));
             // The sidebar buttons are built as each reel is, so a change shows from the next reel.
             reels.addPreference(toggle(context, Settings.HIDE_REEL_COUNTS,
                     L10n.t("Takes the numbers away from under a reel's Like, Comment and Share icons. "
@@ -156,6 +168,9 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.SHOW_REEL_COMMENT_BUTTON,
                     L10n.t("Keeps the Comment button on reels whose comments are turned off, so you can still read "
                             + "the ones already there. A change shows from the next reel.")));
+            reels.addPreference(toggle(context, Settings.SHOW_REEL_POST_DATE,
+                    L10n.t("Shows when a reel or a video you open full screen was posted, under the name of "
+                            + "who posted it. A change shows from the next reel.")));
             reels.addPreference(toggle(context, Settings.HIDE_REEL_SOUND_BUTTON,
                     L10n.t("Takes the speaker button off the bottom of the side of reels. "
                             + "A change shows from the next reel.")));
@@ -191,12 +206,16 @@ final class VideoPages {
             SettingsRows.alias(sort, L10n.t("Newest reels first"));
             reels.addPreference(sort);
             reels.addPreference(reelsOrderRow(context));
+            reels.addPreference(toggle(context, Settings.PROFILE_REELS_MOST_VIEWED,
+                    L10n.t("A profile's Reels tab lists its most viewed reels first instead of the newest. Off keeps "
+                            + "Facebook's order. Only the reels the tab has loaded are sorted, and a reel with no view count "
+                            + "stays after the rest.")));
         }
         subheading(reels, L10n.t("Video controls"));
         if (build.contains(PatchFamily.DOUBLE_TAP_LIKE)) {
             reels.addPreference(toggle(context, Settings.TURN_OFF_DOUBLE_TAP_LIKE,
-                    L10n.t("A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like "
-                            + "button work as before.")));
+                    L10n.t("A double tap on a reel, a video or a photo in the feed no longer likes it or shows a heart. "
+                            + "A single tap and the Like button work as before.")));
         }
         if (build.contains(PatchFamily.DOUBLE_TAP_SKIP)) {
             // Read as each player is set up, so a change shows on the next reel or video.
@@ -230,6 +249,9 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.SLOWER_REEL_SPEEDS,
                     L10n.t("Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a "
                             + "fast moment.")));
+            reels.addPreference(toggle(context, Settings.SPEED_ON_REPLAYS,
+                    L10n.t("A live video that has ended gets Playback speed in its gear menu, like other videos. "
+                            + "Videos that are still live, and ads, keep Facebook's menu.")));
         }
         if (build.contains(PatchFamily.REEL_HOLD)) {
             reels.addPreference(toggle(context, Settings.HOLD_REEL_FOR_2X,
@@ -251,6 +273,8 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.SHOW_REEL_DOWNLOAD_BUTTON,
                     L10n.t("Add a Download button to reels, using your download quality. Off or paused, Facebook's own buttons return."))
                     .needs(Settings.DOWNLOAD_REELS));
+            reels.addPreference(toggle(context, Settings.REEL_CAST_BUTTON,
+                    L10n.t("Adds a cast button to reels, under Download. It hands the reel to a casting app you have, such as Web Video Caster, which sends it to your TV.")));
             reels.addPreference(toggle(context, Settings.COPY_REEL_CAPTION,
                     L10n.t("A reel's More menu gets Copy caption, which copies the whole caption, even the part behind See more.")));
         }
@@ -273,6 +297,10 @@ final class VideoPages {
                 playback.addPreference(toggle(context, Settings.TAP_TO_PLAY_REELS_AFTER_FIRST,
                         L10n.t("With the switch above on, after you play one reel, the reels you swipe to play on their own. The "
                                 + "feed, Watch and stories always wait.")));
+                // Asked at each story video's start, so it applies to the next story you open.
+                playback.addPreference(toggle(context, Settings.TAP_TO_PLAY_STORIES,
+                        L10n.t("Video stories don't start by themselves. Touch and hold a story, then let go, to play it. "
+                                + "Works with Tap to play on or off.")));
                 playback.addPreference(toggle(context, Settings.INLINE_FEED_VIDEO_CONTROLS,
                         L10n.t("Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls. "
                                 + "With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.")));
@@ -330,6 +358,10 @@ final class VideoPages {
                 playback.addPreference(toggle(context, Settings.KEEP_FEED_VIDEOS_MUTED,
                         L10n.t("Videos in your feed start with the sound off every time you open Facebook, and only you "
                                 + "turn it on. Tap a video's speaker or press volume up to hear it.")));
+                // Asked at each story's volume, so the next story you open shows it.
+                playback.addPreference(toggle(context, Settings.MUTE_STORIES,
+                        L10n.t("Stories start with the sound off every time you open Facebook. Tap a speaker or press "
+                                + "volume up to hear them, and they stay on until you mute again.")));
             }
             subheading(playback, L10n.t("Controls and picture-in-picture"));
             if (build.contains(PatchFamily.FRAME_STEP)) {

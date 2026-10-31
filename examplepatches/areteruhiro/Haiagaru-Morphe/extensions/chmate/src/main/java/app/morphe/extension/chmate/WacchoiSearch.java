@@ -33,6 +33,7 @@ final class WacchoiSearch {
     static boolean validFilter(String token) {
         return token == null || token.isEmpty()
                 || token.matches("[A-Za-z0-9+/\\-]+")
+                || token.matches("(?i)ID:[A-Za-z0-9._+/-]{1,32}")
                 || token.matches("(?i)ID:/[A-Za-z0-9._+/-]{1,32}/?");
     }
 

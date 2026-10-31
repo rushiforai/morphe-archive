@@ -199,6 +199,9 @@ internal fun keepMismatchedFiles(findInDir: MutableMethod) {
  * resolves, for the file, and says "Download failed. Could not connect to server." Instead the
  * resource screen goes straight to its error page, with only an Exit button, and says what it
  * found in the OBB folder (see the extension's `ObbCheck` and `CenteredText`).
+ *
+ * It has no name, so it is not a patch of its own; every patch the player can pick depends on
+ * it, so the message is there whichever one is selected.
  */
 internal val obbMessagePatch = bytecodePatch {
     extendWith("extensions/extension.mpe")

@@ -9,7 +9,7 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val fossifyCallRecordingPatch = bytecodePatch(
-    name = "Silent & Unrestricted Call Recording - Fossify Phone",
+    name = "Silent & Unrestricted Call Recording - Fossify Phone (Experimental)",
     description = "Unlocks call recording across all regions/devices, suppresses carrier/recording warning beeps and disclosure alerts, and automatically enables two-way audio recording directly to local storage.",
 ) {
     compatibleWith(COMPATIBILITY_FOSSIFY_PHONE)

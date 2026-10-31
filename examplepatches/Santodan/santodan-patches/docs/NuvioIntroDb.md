@@ -1,10 +1,10 @@
 # NuvioTV IntroDB submissions
 
-Current target: **NuvioTV 1.1.0-beta.8 (1071)**. See [beta.8 contracts and verification](NuvioBeta8.md). The older DEX notes and artifact paths below record the beta.7 implementation; beta.8 replaces its native symbols.
+Current target: **NuvioTV 1.1.0-beta.9 (1072)**. See [beta.9 contracts and verification](NuvioBeta9.md). Version-specific DEX notes, commands and artifacts for earlier versions below are historical; use the beta.9 contract and `verifyNuvioLatest` for the current release.
 
 
 The optional **NuvioTV - Submit segments to IntroDB** patch targets only
-`com.nuvio.tv` **1.1.0-beta.8**. Select it when patching the original app.
+`com.nuvio.tv` **1.1.0-beta.9**. Select it when patching the original app.
 It works alone and with playback button customization.
 
 ## Setup and playback

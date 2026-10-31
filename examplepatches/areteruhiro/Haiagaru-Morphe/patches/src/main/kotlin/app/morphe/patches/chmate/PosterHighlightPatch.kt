@@ -10,6 +10,24 @@ private const val POSTER_HIGHLIGHT = "Lapp/morphe/extension/chmate/PosterHighlig
 
 /** Wrap the exact response renderer, retaining its parameter/return types and native spans. */
 internal fun BytecodePatchContext.patchPosterHighlight(version: String) {
+    if(version=="0.8.10.226 dev"||version=="0.8.10.242 dev"){
+        val menuOwner=mutableClassDefBy(if(version=="0.8.10.226 dev")"Lo/getImgAcceptedHeight;" else "Ljp/syoboi/a2chMate/ui/reslist/ResListFragmentViewModel;")
+        val menu=menuOwner.methods.single{
+            it.name==(if(version=="0.8.10.226 dev")"b" else "d")&&it.returnType=="V"&&
+                it.parameterTypes.size==4&&it.parameterTypes[2]=="Ljp/syoboi/a2chMate/client/BoardID;"&&it.parameterTypes[3]=="Ljava/lang/String;"
+        }
+        check(menu.accessFlags and 8!=0){"ID menu must be static"}
+        val delegate=MutableMethod(ImmutableMethod(menuOwner.type,"haiagaruNativeIdMenu",menu.parameters,menu.returnType,
+            menu.accessFlags,menu.annotations,menu.hiddenApiRestrictions,menu.implementation))
+        val wrapper=MutableMethod(ImmutableMethod(menuOwner.type,menu.name,menu.parameters,menu.returnType,
+            menu.accessFlags,menu.annotations,menu.hiddenApiRestrictions,ImmutableMethodImplementation(4,emptyList(),emptyList(),emptyList())))
+        wrapper.addInstructions(0,"""
+            invoke-static/range {p0 .. p3}, $delegate
+            invoke-static/range {p1 .. p3}, Lapp/morphe/extension/chmate/RedIdAutoNg;->appendIdSheet(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V
+            return-void
+        """.trimIndent())
+        menuOwner.methods.remove(menu);menuOwner.methods.add(delegate);menuOwner.methods.add(wrapper)
+    }
     val (owner, name, model) = when(version) {
         "0.8.10.191 dev" -> Triple("Lo/m9ExternalSyntheticLambda1;", "SC_", "Lo/processAdDisplayErrorPostbackForUserError;")
         "0.8.10.226 dev" -> Triple("Lo/listener;", "c", "Lo/BouncyCastleSocketAdapterCompanion;")

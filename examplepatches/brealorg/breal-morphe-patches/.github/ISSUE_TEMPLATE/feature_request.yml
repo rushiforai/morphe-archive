@@ -1,0 +1,57 @@
+name: ⭐ Feature request
+description: Suggest an improvement or a new Morphe patch.
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Morphe feature request
+
+        Before creating a new feature request:
+
+        - **Search for duplicates**: Check existing feature requests [here](https://github.com/brealorg/breal-morphe-patches/issues?q=label%3A%22enhancement%22).
+        - **Review the contribution guidelines**: Read them [here](https://github.com/brealorg/breal-morphe-patches/blob/main/CONTRIBUTING.md).
+        - Describe a concrete problem or use case. Requests are evaluated against project scope, maintenance cost, and available testing.
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Affected app or area
+      description: Where should the proposed change apply?
+      options:
+        - Boost for Reddit
+        - Imgur
+        - Another supported app
+        - Patch bundle or repository tooling
+    validations:
+      required: true
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature description
+      description: Describe the requested behavior. Add images, videos, links, examples, or references when useful.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation and use case
+      description: Explain the problem this solves, who benefits, and why the existing behavior is insufficient.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or workarounds
+      description: Describe any current workaround or alternative you have tried.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I have checked all open and closed feature requests and this is not a duplicate.
+          required: true
+        - label: I understand that requests are evaluated against project scope, maintenance cost, and available testing.
+          required: true
+        - label: All requested information has been provided properly.
+          required: true

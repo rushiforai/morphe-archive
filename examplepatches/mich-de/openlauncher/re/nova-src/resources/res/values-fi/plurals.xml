@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">Siirry eteenpäin %d sekunti</item>
+        <item quantity="other">Siirry eteenpäin %d sekuntia</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">Siirry taaksepäin %d sekunti</item>
+        <item quantity="other">Siirry taaksepäin %d sekuntia</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d kokousta</item>
+        <item quantity="one">%d kokous</item>
+        <item quantity="two">%d kokousta</item>
+        <item quantity="few">%d kokousta</item>
+        <item quantity="many">%d kokousta</item>
+        <item quantity="other">%d kokousta</item>
+    </plurals>
+</resources>

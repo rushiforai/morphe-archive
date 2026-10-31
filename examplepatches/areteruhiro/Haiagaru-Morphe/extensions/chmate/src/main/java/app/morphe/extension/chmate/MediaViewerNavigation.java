@@ -30,7 +30,12 @@ public final class MediaViewerNavigation {
         body=new WeakReference<>(view);touched=SystemClock.uptimeMillis();
     }
     static void prepare(Intent intent) {
-        if(intent.hasExtra(EXTRA)||intent.getData()==null)return;
+        if(intent.getData()==null||intent.getBooleanExtra(THREAD_EXTRA,false))return;
+        // Video thumbnails may dispatch ACTION_VIEW without touching a body TextView.
+        // Resolve only a focused source thread containing this exact URL.
+        android.content.Context context=Haiagaru.applicationContextForExtension();
+        if(context!=null&&prepareThread(intent,context,intent.getDataString()))return;
+        if(intent.hasExtra(EXTRA))return;
         TextView view=body.get();body.clear();
         if(view==null||!view.isShown()||!view.hasWindowFocus()||SystemClock.uptimeMillis()-touched>5000)return;
         if(prepareThread(intent,view.getContext(),intent.getDataString()))return;
@@ -42,11 +47,28 @@ public final class MediaViewerNavigation {
         if(intent==null||context==null||!Haiagaru.videoViewerEnabled())return;
         ArrayList<String> nativeLinks=intent.getStringArrayListExtra("links");int index=intent.getIntExtra("index",0);
         if(nativeLinks==null||index<0||index>=nativeLinks.size())return;
+        if(VideoViewerSettings.prefs(context).getBoolean(VideoViewerSettings.THREAD_MEDIA,false)){
+            String video=XMediaAttachments.sourceVideo(nativeLinks.get(index));
+            if(video!=null){nativeLinks=new ArrayList<>(nativeLinks);nativeLinks.set(index,video);intent.putStringArrayListExtra("links",nativeLinks);}
+        }
         if(context.getClass().getName().equals("jp.syoboi.a2chMate.activity.ImageListActivity")
                 &&VideoViewerSettings.prefs(context).getBoolean(VideoViewerSettings.THREAD_MEDIA,false)){
             intent.putStringArrayListExtra(EXTRA,MediaGallery.links(nativeLinks,nativeLinks.get(index),4096)).putExtra(THREAD_EXTRA,true);return;
         }
         prepareThread(intent,context,nativeLinks.get(index));
+    }
+    /** 242 normally opens an embedded image Fragment, bypassing the Activity Intent factory. */
+    static boolean openThreadThumbnail(android.content.Context context,String selected){
+        if(context==null||!Haiagaru.videoViewerEnabled()||!VideoViewerSettings.prefs(context).getBoolean(VideoViewerSettings.THREAD_MEDIA,false))return false;
+        String video=XMediaAttachments.sourceVideo(selected);if(video!=null)selected=video;
+        Intent source=new Intent().setData(Uri.parse(selected));if(!prepareThread(source,context,selected))return false;
+        android.content.Context base=context;
+        for(int depth=0;depth<16&&base instanceof android.content.ContextWrapper&&!(base instanceof Activity);depth++)base=((android.content.ContextWrapper)base).getBaseContext();
+        if(!(base instanceof Activity))return false;
+        Activity activity=(Activity)base;if(activity.isFinishing()||activity.isDestroyed())return false;
+        ArrayList<String> links=source.getStringArrayListExtra(EXTRA);int index=links.indexOf(PreviewUrls.normalize(selected));if(index<0)return false;
+        Intent destination=destination(activity,links,index).putExtra(THREAD_EXTRA,true).putExtra("forwardTabletHome",false);
+        activity.startActivity(destination);return true;
     }
     private static boolean prepareThread(Intent intent,android.content.Context context,String selected) {
         if(!VideoViewerSettings.prefs(context).getBoolean(VideoViewerSettings.THREAD_MEDIA,false))return false;
@@ -258,6 +280,14 @@ public final class MediaViewerNavigation {
     }
     private static boolean zoomed(View view) {
         if(!view.isShown())return false;
+        // 191 uses its own FrameLayout renderer, not an ImageView/getScale API.
+        if(view.getClass().getName().equals("o.qhbExternalSyntheticLambda0"))try{
+            java.lang.reflect.Field current=view.getClass().getDeclaredField("C"),minimum=view.getClass().getDeclaredField("B"),fit=view.getClass().getDeclaredField("aa");
+            current.setAccessible(true);minimum.setAccessible(true);fit.setAccessible(true);
+            // B is capped at 1 for small images, while native d() opens at aa
+            // (fit-to-window). That automatic enlargement is not a user zoom.
+            if(ImageZoomState.zoomed(current.getFloat(view),minimum.getFloat(view),fit.getFloat(view)))return true;
+        }catch(ReflectiveOperationException ignored){}
         if(view instanceof ImageView)try{
             java.lang.reflect.Method scale=view.getClass().getMethod("getScale");
             java.lang.reflect.Method minimum=view.getClass().getMethod("getMinimumScale");

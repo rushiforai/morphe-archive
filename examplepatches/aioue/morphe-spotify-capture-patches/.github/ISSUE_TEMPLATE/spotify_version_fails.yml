@@ -1,0 +1,44 @@
+name: Spotify version fails to patch
+description: Report a Spotify APK version where this capture patch does not apply or the app crashes
+title: "[Spotify] version …"
+labels: ["spotify", "fingerprint"]
+body:
+  - type: input
+    id: spotify_version
+    attributes:
+      label: Spotify version name
+      placeholder: e.g. 9.0.12.123
+    validations:
+      required: true
+  - type: input
+    id: version_code
+    attributes:
+      label: versionCode
+      placeholder: from apkmirror or aapt dump badging
+    validations:
+      required: true
+  - type: input
+    id: morphe_manager
+    attributes:
+      label: Morphe Manager version
+    validations:
+      required: true
+  - type: input
+    id: patch_bundle
+    attributes:
+      label: Patch bundle version (Git tag or .mpp filename)
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Patcher log or logcat excerpt
+      description: Include the Morphe patching error or crash stack trace
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: I used only the capture patch (no premium/ad patches)

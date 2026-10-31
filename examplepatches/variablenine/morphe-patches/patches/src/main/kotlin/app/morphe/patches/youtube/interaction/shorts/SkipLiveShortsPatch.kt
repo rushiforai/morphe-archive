@@ -9,12 +9,15 @@ package app.morphe.patches.youtube.interaction.shorts
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.findFreeRegister
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
+import app.morphe.patches.youtube.layout.shortsautoplay.ReelEnumConstructorFingerprint
 import app.morphe.patches.youtube.layout.shortsautoplay.ReelPlaybackFingerprint
 import app.morphe.patches.youtube.layout.shortsautoplay.ReelPlaybackLegacyFingerprint
-import app.morphe.patches.youtube.layout.shortsautoplay.ReelPlaybackRepeatFingerprint
 import app.morphe.patches.youtube.layout.shortsautoplay.getInstanceFieldGetFingerprint
+import app.morphe.patches.youtube.layout.shortsautoplay.reelPlaybackRepeatFingerprint
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_21_24_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_42_or_greater
@@ -23,8 +26,6 @@ import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.video.information.videoInformationPatch
-import app.morphe.util.findFreeRegister
-import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -112,11 +113,12 @@ val skipLiveShortsPatch = bytecodePatch(
         }
 
         // Hand the Shorts player to extension code.
+        val reelPlaybackRepeat = reelPlaybackRepeatFingerprint(ReelEnumConstructorFingerprint.originalClassDef.type)
         val reelPlayerField = getInstanceFieldGetFingerprint(reelPlaybackFingerprint.classDef.type)
-            .match(ReelPlaybackRepeatFingerprint.originalMethod)
+            .match(reelPlaybackRepeat.originalMethod)
             .instructionMatches.first().instruction.getReference<FieldReference>()!!
 
-        ReelPlaybackRepeatFingerprint.method.apply {
+        reelPlaybackRepeat.method.apply {
             val register = findFreeRegister(0)
 
             addInstructions(

@@ -51,6 +51,7 @@
     if (features.fullImages) selectModules([1415, 1496, 8388]);
     if (features.alwaysTrust) selectModules([8260, 8488]);
     if (features.noConfirmPin) selectModules([5300, 1126]);
+    if (features.listenAlong) selectModules([13162]);
     if (features.clickableMentions) selectModules([1390, 2065, 2116, 11953]);
     if (features.removedAlerts) selectModules([584, 1390, 6098, 7018, 8633, 9699, 13933, 13968]);
     if (features.bulkDelete) selectModules([584, 1085, 1390, 2065, 2116, 4750, 5432, 7174, 7742, 9675, 10368, 10694]);
@@ -78,7 +79,7 @@
         accountSwitcher:false, accountSwitcherYouBar:true, appIcons:false, nitroThemes:false, customThemes:false, customThemesBackground:true, materialYou:false, materialYouColor:"wallpaper", materialYouTint:"balanced",
         iconPacks:false, iconPacksTheme:true,
         messageHighlight:false, messageHighlightThickness:2, messageHighlightBrightness:50, messageHighlightPingColor:"default", serverInfo:false, serverInfoFriends:true, serverEdit:false,
-        fixEmbeds:false, fixEmbedsSites:"", fixEmbedsClean:true, fixEmbedsDark:true, fixEmbedsStyle:"full", fixEmbedsTranslate:"off", fixEmbedsLanguage:"en", tenorGifs:false, tenorGifsSource:"both", hideBlocked:false, hideBlockedBlocked:true, hideBlockedIgnored:true, hideBlockedReplies:false, hideBlockedCloseDms:false, bulkDelete:false, bulkDeleteConfirm:true, bulkDeleteIncludeCached:true, experiments:false, noHandsfree:false, voiceOptions:false, voiceOptionsVolume:false, voiceOptionsVolumeLevel:50, voiceOptionsOutput:"default", voiceOptionsJoinSound:true, voiceOptionsLeaveSound:true, voiceOptionsSoundVolume:100, voiceOptionsExit:false, voiceOptionsExitSound:"", cleanChannels:false, cleanChannelsEmoji:true, cleanChannelsSymbols:true, cleanChannelsFonts:true, cleanChannelsSpaces:false, anonFiles:false, staffTag:false, staffTagOwner:true, staffTagAdmin:true, staffTagManager:true, staffTagMod:true, staffTagCrown:true, removedAlerts:false, removedAlertsFriends:true, removedAlertsServers:true, removedAlertsClosed:true, removedAlertsPush:false, fullImages:false, fullImagesChat:true, fullImagesViewer:true, fullImagesGifs:false, fullImagesAvatars:true, alwaysTrust:false, alwaysTrustLinks:true, alwaysTrustFiles:true, noConfirmPin:false, clickableMentions:false, hideAnything:false, hideAnythingSpots:"", language:"auto", hiddenFeatures:"" };
+        fixEmbeds:false, fixEmbedsSites:"", fixEmbedsClean:true, fixEmbedsDark:true, fixEmbedsStyle:"full", fixEmbedsTranslate:"off", fixEmbedsLanguage:"en", tenorGifs:false, tenorGifsSource:"both", hideBlocked:false, hideBlockedBlocked:true, hideBlockedIgnored:true, hideBlockedReplies:false, hideBlockedCloseDms:false, bulkDelete:false, bulkDeleteConfirm:true, bulkDeleteIncludeCached:true, experiments:false, noHandsfree:false, voiceOptions:false, voiceOptionsVolume:false, voiceOptionsVolumeLevel:50, voiceOptionsOutput:"default", voiceOptionsJoinSound:true, voiceOptionsLeaveSound:true, voiceOptionsSoundVolume:100, voiceOptionsExit:false, voiceOptionsExitSound:"", cleanChannels:false, cleanChannelsEmoji:true, cleanChannelsSymbols:true, cleanChannelsFonts:true, cleanChannelsSpaces:false, anonFiles:false, staffTag:false, staffTagOwner:true, staffTagAdmin:true, staffTagManager:true, staffTagMod:true, staffTagCrown:true, removedAlerts:false, removedAlertsFriends:true, removedAlertsServers:true, removedAlertsClosed:true, removedAlertsPush:false, fullImages:false, fullImagesChat:true, fullImagesViewer:true, fullImagesGifs:false, fullImagesAvatars:true, alwaysTrust:false, alwaysTrustLinks:true, alwaysTrustFiles:true, noConfirmPin:false, clickableMentions:false, hideAnything:false, hideAnythingSpots:"", listenAlong:false, listenAlongOffset:0, language:"auto", hiddenFeatures:"" };
     // The settings every feature starts from, for Reset to defaults on the Backup page.
     let DEFAULT_SETTINGS = null;
     function defaultSettings() {
@@ -95,7 +96,7 @@
             accountSwitcher: false, accountSwitcherYouBar: true, appIcons: false, nitroThemes: false, customThemes: false, customThemesBackground: true, materialYou: false, materialYouColor: "wallpaper", materialYouTint: "balanced",
             iconPacks: false, iconPacksTheme: true,
             messageHighlight: false, messageHighlightThickness: 2, messageHighlightBrightness: 50, messageHighlightPingColor: "default", serverInfo: false, serverInfoFriends: true, serverEdit: false,
-            fixEmbeds: false, fixEmbedsSites: "", fixEmbedsClean: true, fixEmbedsDark: true, fixEmbedsStyle: "full", fixEmbedsTranslate: "off", fixEmbedsLanguage: "en", tenorGifs: false, tenorGifsSource: "both", hideBlocked: false, hideBlockedBlocked: true, hideBlockedIgnored: true, hideBlockedReplies: false, hideBlockedCloseDms: false, bulkDelete: false, bulkDeleteConfirm: true, bulkDeleteIncludeCached: true, experiments: false, noHandsfree: false, voiceOptions: false, voiceOptionsVolume: false, voiceOptionsVolumeLevel: 50, voiceOptionsOutput: "default", voiceOptionsJoinSound: true, voiceOptionsLeaveSound: true, voiceOptionsSoundVolume: 100, voiceOptionsExit: false, voiceOptionsExitSound: "", cleanChannels: false, cleanChannelsEmoji: true, cleanChannelsSymbols: true, cleanChannelsFonts: true, cleanChannelsSpaces: false, anonFiles: false, staffTag: false, staffTagOwner: true, staffTagAdmin: true, staffTagManager: true, staffTagMod: true, staffTagCrown: true, removedAlerts: false, removedAlertsFriends: true, removedAlertsServers: true, removedAlertsClosed: true, removedAlertsPush: false, fullImages: false, fullImagesChat: true, fullImagesViewer: true, fullImagesGifs: false, fullImagesAvatars: true, alwaysTrust: false, alwaysTrustLinks: true, alwaysTrustFiles: true, noConfirmPin: false, clickableMentions: false, hideAnything: false, hideAnythingSpots: "", language: "auto", hiddenFeatures: ""
+            fixEmbeds: false, fixEmbedsSites: "", fixEmbedsClean: true, fixEmbedsDark: true, fixEmbedsStyle: "full", fixEmbedsTranslate: "off", fixEmbedsLanguage: "en", tenorGifs: false, tenorGifsSource: "both", hideBlocked: false, hideBlockedBlocked: true, hideBlockedIgnored: true, hideBlockedReplies: false, hideBlockedCloseDms: false, bulkDelete: false, bulkDeleteConfirm: true, bulkDeleteIncludeCached: true, experiments: false, noHandsfree: false, voiceOptions: false, voiceOptionsVolume: false, voiceOptionsVolumeLevel: 50, voiceOptionsOutput: "default", voiceOptionsJoinSound: true, voiceOptionsLeaveSound: true, voiceOptionsSoundVolume: 100, voiceOptionsExit: false, voiceOptionsExitSound: "", cleanChannels: false, cleanChannelsEmoji: true, cleanChannelsSymbols: true, cleanChannelsFonts: true, cleanChannelsSpaces: false, anonFiles: false, staffTag: false, staffTagOwner: true, staffTagAdmin: true, staffTagManager: true, staffTagMod: true, staffTagCrown: true, removedAlerts: false, removedAlertsFriends: true, removedAlertsServers: true, removedAlertsClosed: true, removedAlertsPush: false, fullImages: false, fullImagesChat: true, fullImagesViewer: true, fullImagesGifs: false, fullImagesAvatars: true, alwaysTrust: false, alwaysTrustLinks: true, alwaysTrustFiles: true, noConfirmPin: false, clickableMentions: false, hideAnything: false, hideAnythingSpots: "", listenAlong: false, listenAlongOffset: 0, language: "auto", hiddenFeatures: ""
         }));
     }
     // Backup and restore (#68): when you last saved a backup, and whether a restore is being applied right now.
@@ -178,6 +179,7 @@
     const BADGE_AT_ONCE = [1, 2, 3];
     function badgeAtOnce(value) { const n = Math.floor(Number(value)); return BADGE_AT_ONCE.includes(n) ? n : 2; }
     function badgeCycleMinutes(value) { const n = Math.floor(Number(value)); return Number.isFinite(n) ? Math.max(BADGE_CYCLE_MIN, Math.min(BADGE_CYCLE_MAX, n)) : 30; }
+    function listenAlongOffsetValue(value) { const n = Math.round(Number(value)); return Number.isFinite(n) ? Math.max(-10, Math.min(10, n)) : 0; }
     function brightness(value) { const n = Math.round(Number(value)); return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 50; }
     function highlightAlpha(level) {
         const n = brightness(level), a = n <= 50 ? Math.round(n * 26 / 50) : Math.round(26 + (n - 50) * 76 / 50);
@@ -406,6 +408,7 @@
         if (key === "messageHighlightBrightness" || key === "noDeleteBrightness") return brightness(value);
         if (key === "noDeleteLimit") return deleteLimit(value);
         if (key === "voiceOptionsVolumeLevel" || key === "voiceOptionsSoundVolume") return brightness(value);
+        if (key === "listenAlongOffset") return listenAlongOffsetValue(value);
         if (key === "badgesCycleMinutes") return badgeCycleMinutes(value);
         if (key === "badgesGamesAtOnce") return badgeAtOnce(value);
         if (key === "fixEmbedsSites") return fixSitesText(value);
@@ -471,6 +474,12 @@
             if (!(value === "" || typeof value === "string" && VOICE_SOUND_ID.test(value))) return false;
             if (settings.voiceOptionsExitSound === value && status.storage !== "loading" && status.storage !== "waiting") return true;
             settings.voiceOptionsExitSound = value; dirty.add(key); save(); notify(key); return true;
+        }
+        if (key === "listenAlongOffset") {
+            if (typeof value !== "number" || !Number.isFinite(value)) return false;
+            const level = listenAlongOffsetValue(value);
+            if (settings[key] === level && status.storage !== "loading" && status.storage !== "waiting") return true;
+            settings[key] = level; dirty.add(key); save(); notify(key); return true;
         }
         if (key === "voiceOptionsVolumeLevel" || key === "voiceOptionsSoundVolume") {
             if (typeof value !== "number" || !Number.isFinite(value)) return false;
@@ -1051,7 +1060,7 @@
     const featureFor = key => {
         const cached = featureTable[key];
         if (cached !== undefined) return cached;
-        return featureTable[key] = key === "reviewWarning" ? "reviewDB" : key === "emojis" || key === "stickers" || key === "hyperlinks" ? "freeNitro" : key === "noDeleteSave" || key === "noDeleteLimit" || key === "noDeleteEdits" || key === "noDeleteColor" || key === "noDeleteBrightness" ? "noDelete" : /^pi[A-Z]/.test(key) ? "platformIndicators" : key === "pastelAll" || key === "pastelContent" ? "pastelize" : key === "readAllMode" ? "readAll" : /^quests[A-Z]/.test(key) ? "quests" : /^badges[A-Z]/.test(key) ? "badges" : /^gesture[A-Z]/.test(key) ? "gestures" : /^translate[A-Z]/.test(key) ? "translate" : /^removedAlerts[A-Z]/.test(key) ? "removedAlerts" : /^userNotif[A-Z]/.test(key) ? "userNotif" : /^accountSwitcher[A-Z]/.test(key) ? "accountSwitcher" : /^hiddenChannels[A-Z]/.test(key) ? "hiddenChannels" : /^customThemes[A-Z]/.test(key) ? "customThemes" : /^materialYou[A-Z]/.test(key) ? "materialYou" : /^iconPacks[A-Z]/.test(key) ? "iconPacks" : /^messageHighlight[A-Z]/.test(key) ? "messageHighlight" : /^serverInfo[A-Z]/.test(key) ? "serverInfo" : /^fixEmbeds[A-Z]/.test(key) ? "fixEmbeds" : /^tenorGifs[A-Z]/.test(key) ? "tenorGifs" : /^hideBlocked[A-Z]/.test(key) ? "hideBlocked" : /^bulkDelete[A-Z]/.test(key) ? "bulkDelete" : key === "systemFontSource" ? "systemFont" : key === "systemEmojiSource" ? "systemEmoji" : /^cleanChannels[A-Z]/.test(key) ? "cleanChannels" : /^voiceOptions[A-Z]/.test(key) ? "voiceOptions" : /^anonFiles[A-Z]/.test(key) ? "anonFiles" : /^staffTag[A-Z]/.test(key) ? "staffTag" : /^fullImages[A-Z]/.test(key) ? "fullImages" : /^alwaysTrust[A-Z]/.test(key) ? "alwaysTrust" : /^hideAnything[A-Z]/.test(key) ? "hideAnything" : key;
+        return featureTable[key] = key === "reviewWarning" ? "reviewDB" : key === "emojis" || key === "stickers" || key === "hyperlinks" ? "freeNitro" : key === "noDeleteSave" || key === "noDeleteLimit" || key === "noDeleteEdits" || key === "noDeleteColor" || key === "noDeleteBrightness" ? "noDelete" : /^pi[A-Z]/.test(key) ? "platformIndicators" : key === "pastelAll" || key === "pastelContent" ? "pastelize" : key === "readAllMode" ? "readAll" : /^quests[A-Z]/.test(key) ? "quests" : /^badges[A-Z]/.test(key) ? "badges" : /^gesture[A-Z]/.test(key) ? "gestures" : /^translate[A-Z]/.test(key) ? "translate" : /^removedAlerts[A-Z]/.test(key) ? "removedAlerts" : /^userNotif[A-Z]/.test(key) ? "userNotif" : /^accountSwitcher[A-Z]/.test(key) ? "accountSwitcher" : /^hiddenChannels[A-Z]/.test(key) ? "hiddenChannels" : /^customThemes[A-Z]/.test(key) ? "customThemes" : /^materialYou[A-Z]/.test(key) ? "materialYou" : /^iconPacks[A-Z]/.test(key) ? "iconPacks" : /^messageHighlight[A-Z]/.test(key) ? "messageHighlight" : /^serverInfo[A-Z]/.test(key) ? "serverInfo" : /^fixEmbeds[A-Z]/.test(key) ? "fixEmbeds" : /^tenorGifs[A-Z]/.test(key) ? "tenorGifs" : /^hideBlocked[A-Z]/.test(key) ? "hideBlocked" : /^bulkDelete[A-Z]/.test(key) ? "bulkDelete" : key === "systemFontSource" ? "systemFont" : key === "systemEmojiSource" ? "systemEmoji" : /^cleanChannels[A-Z]/.test(key) ? "cleanChannels" : /^voiceOptions[A-Z]/.test(key) ? "voiceOptions" : /^anonFiles[A-Z]/.test(key) ? "anonFiles" : /^staffTag[A-Z]/.test(key) ? "staffTag" : /^fullImages[A-Z]/.test(key) ? "fullImages" : /^alwaysTrust[A-Z]/.test(key) ? "alwaysTrust" : /^hideAnything[A-Z]/.test(key) ? "hideAnything" : /^listenAlong[A-Z]/.test(key) ? "listenAlong" : key;
     };
     // Section titles are read whenever Discord draws the list, so they follow the language too. "Venus" is a name.
     function section(label, keys) {
@@ -1086,7 +1095,7 @@
         hiddenChannels:[8218, "LockIcon"], systemFont:[15974, "LettersIcon"], systemEmoji:[12901, "ChatSmileIcon"],
         youBarSettings:[7092, "SettingsIcon"], quests:[13012, "QuestsIcon"],
         badges:[8921, "TrophyIcon"], userNotif:[8768, "BellIcon"], accountSwitcher:[8212, "GroupIcon"], appIcons:[8229, "AppsIcon"],
-        customThemes:[15652, "EyeDropperIcon"], iconPacks:[11063, "ImageSparkleIcon"], messageHighlight:[16947, "PaintbrushThinIcon"], serverInfo:[5046, "CircleInformationIcon"], serverEdit:[9720, "PencilIcon"], fixEmbeds:[12910, "EmbedIcon"], tenorGifs:[9748, "GifIcon"], nitroThemes:[17143, "SparklesIcon"], materialYou:[15560, "PaintPaletteIcon"], hideBlocked:[17072, "ChatShieldIcon"], bulkDelete:[6868, "CircleCheckIcon"], experiments:[15894, "BeakerIcon"], cleanChannels:[12605, "MagicWandIcon"], noHandsfree:[12271, "HeadphonesIcon"], voiceOptions:[8224, "VoiceNormalIcon"], staffTag:[10262, "CrownIcon"], removedAlerts:[5036, "UserMinusIcon"], hideAnything:[10260, "XLargeIcon"], fullImages:[11587, "ImagesIcon"], alwaysTrust:[10410, "ShieldIcon"], noConfirmPin:[10334, "PinIcon"], clickableMentions:[8213, "AtIcon"]};
+        customThemes:[15652, "EyeDropperIcon"], iconPacks:[11063, "ImageSparkleIcon"], messageHighlight:[16947, "PaintbrushThinIcon"], serverInfo:[5046, "CircleInformationIcon"], serverEdit:[9720, "PencilIcon"], fixEmbeds:[12910, "EmbedIcon"], tenorGifs:[9748, "GifIcon"], nitroThemes:[17143, "SparklesIcon"], materialYou:[15560, "PaintPaletteIcon"], hideBlocked:[17072, "ChatShieldIcon"], bulkDelete:[6868, "CircleCheckIcon"], experiments:[15894, "BeakerIcon"], cleanChannels:[12605, "MagicWandIcon"], noHandsfree:[12271, "HeadphonesIcon"], voiceOptions:[8224, "VoiceNormalIcon"], staffTag:[10262, "CrownIcon"], removedAlerts:[5036, "UserMinusIcon"], hideAnything:[10260, "XLargeIcon"], fullImages:[11587, "ImagesIcon"], alwaysTrust:[10410, "ShieldIcon"], noConfirmPin:[10334, "PinIcon"], clickableMentions:[8213, "AtIcon"], listenAlong:[12271, "HeadphonesIcon"]};
     const venusIcons = new Map();
     function venusIcon(id, name, fallback) {
         const slot = id + ":" + name;
@@ -1132,6 +1141,7 @@
         staffTag:["Owner", "Admin", "Manager", "Mod", "Crown", "Staff", "Moderator", "Tags", "Staff tags", "StaffTag", "Label", "Badge"],
         alwaysTrust:["AlwaysTrust", "Always Trust", "Leaving Discord", "Untrusted domain", "Suspicious file", "Dangerous download", "Links", "Downloads"],
         noConfirmPin:["NoConfirmPin", "Pin", "Unpin", "Pinned messages"],
+        listenAlong:["Listen along", "Spotify", "Music", "Friends", "Profile", "Sync"],
         clickableMentions:["ClickableMentions", "Mentions", "Profile", "Message bar"],
         fullImages:["High-res profile pictures", "HighResProfileImages", "Avatars", "Profile pictures", "Banners", "Uncompressed", "Uncompressed images", "Original", "Full quality", "Lossless", "Compression", "Blurry", "Thumbnail", "Resolution", "Pictures", "Photos"],
         removedAlerts:["Removed", "Unfriend", "Friend", "Kicked", "Banned", "Server", "Left", "Alert", "Notifier", "Relationship", "Connection", "Removed connection alerts", "Relationship notifier", "Notify"],
@@ -1526,7 +1536,7 @@
         // The features list: each row says what it does, grouped by where you'll notice it.
         const P = "VENUS_PLUGINS";
         const groups = {messages:[], sending:[], people:[], servers:[], appearance:[], quests:[], advanced:[]};
-        const iconFor = key => { const found = FEATURE_ICONS[key]; return found ? venusIcon(found[0], found[1], icon) : icon; };
+        const iconFor = key => { if (key === "listenAlong" && typeof ListenAlongRowIcon === "function") return ListenAlongRowIcon; const found = FEATURE_ICONS[key]; return found ? venusIcon(found[0], found[1], icon) : icon; };
         featureGroups = groups.keys = {messages:[], sending:[], people:[], servers:[], appearance:[], quests:[], advanced:[]};
         featureSearch.rows = []; featureSearch.cache = null;
         const groupLabel = group => (FEATURE_GROUPS.find(entry => entry[0] === group) || [])[1];
@@ -1581,6 +1591,7 @@
         withOptions("messages", "bulkDelete", "VENUS_BULKDELETE", "Bulk delete messages", "Select multiple messages in chat and delete them all at once.", "Bulk delete", BulkDeleteSettings);
         withOptions("people", "staffTag", "VENUS_STAFFTAG", "Show owner and mod tags", "Shows an Owner, Admin, Manager or Mod tag next to people's names in chat.", "Show owner and mod tags", StaffTagSettings);
         withOptions("messages", "fullImages", "VENUS_FULLIMAGES", "Load full-quality images", "Pictures in chat and full screen load as uploaded, not as Discord's smaller, compressed copy.", "Load full-quality images", FullImagesSettings);
+        withOptions("people", "listenAlong", "VENUS_LISTENALONG", "Listen along", "Play what a friend is listening to on Spotify, from their profile. Needs Spotify Premium.", "Listen along", ListenAlongSettings);
         withOptions("people", "removedAlerts", "VENUS_REMOVEDALERTS", "Alert when you're removed", "Get a heads-up when a friend unfriends you, or a server kicks or bans you.", "Alert when you're removed", RemovedAlertsSettings);
         withOptions("messages", "hideBlocked", "VENUS_HIDEBLOCKED", "Hide blocked or ignored messages", "Removes the \"blocked messages\" and \"ignored messages\" rows from chat.", "Blocked and ignored", HideBlockedSettings);
         withOptions("messages", "messageHighlight", "VENUS_MESSAGEHIGHLIGHT", "Message highlights", "Pick bar width and colors for replies, mentions and deleted messages.", "Message highlights", MessageHighlightSettings);
@@ -6712,6 +6723,207 @@
                 switchRow(Switch, "voiceOptionsExit", "Goodbye sound", "When you tap Disconnect, a soundboard sound plays for everyone in the channel. Needs Nitro.", rowIcon(12269, "SoundboardIcon"))),
             settings.voiceOptionsExit ? el(VoiceSoundPicker, {key:"exitSound", on}) : null,
             settings.voiceOptionsExit && !voiceNitro() ? footnote("exitNitro", "Your account doesn't have Nitro, so no sound is sent.") : null];
+        return settingsBody(ui, groups);
+    }
+    // Listen along: from a friend's Spotify activity on their profile, play the same song at the same spot on your own
+    // Spotify, and follow them as they change tracks. Discord's own Spotify connection already hands the app a token for
+    // your account (its Play on Spotify code uses it), and Spotify's web API starts the track. Spotify's phone app only
+    // starts a track when it is told an album or playlist to play it from, so the track's album is looked up from its
+    // id: a friend's activity carries the id and the start time, but not the album.
+    const LISTEN_ALONG_ICON = "data:image/png;base64,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";
+    const listenAlong = {userId:null, syncId:null, start:0, timer:null, missing:0, busy:false, token:null, tokenAt:0, albums:new Map(), syncedAt:0, checkedAt:0, wrong:0, buttonWidth:0, listeners:new Set()};
+    // The sync adjustment from the Listen along page, in milliseconds. Their status can be a few seconds off, so you can shift yours.
+    function listenAlongShift() {
+        const n = Number(settings.listenAlongOffset);
+        return Number.isFinite(n) ? Math.max(-10, Math.min(10, Math.round(n))) * 1000 : 0;
+    }
+    function listenAlongNotify() { listenAlong.listeners.forEach(fn => { try { fn(); } catch (_) {} }); }
+    function listenAlongActive() { return listenAlong.timer !== null; }
+    function listenAlongStop(message) {
+        if (listenAlong.timer !== null) { global.clearInterval(listenAlong.timer); listenAlong.timer = null; }
+        listenAlong.userId = null; listenAlong.syncId = null; listenAlong.busy = false;
+        listenAlongNotify();
+        if (message) try { reviewToast(reviewUI(), message); } catch (_) {}
+    }
+    // A token for your Spotify account from Discord's own connection. It lasts about an hour, so one is reused for 45 minutes.
+    function listenAlongToken(fresh) {
+        if (!fresh && listenAlong.token && Date.now() - listenAlong.tokenAt < 45 * 60000) return Promise.resolve(listenAlong.token);
+        const HTTP = inspectedExport(1295, "HTTP"), store = inspectedExport(5761, "default");
+        let accounts = [];
+        try { accounts = (store && typeof store.getAccounts === "function" && store.getAccounts()) || []; } catch (_) {}
+        const spotify = accounts.find(a => a && a.type === "spotify");
+        if (!HTTP || !spotify) return Promise.reject({code:"noAccount"});
+        return HTTP.get({url:"/users/@me/connections/spotify/" + spotify.id + "/access-token"}).then(res => {
+            const token = res && res.body && res.body.access_token;
+            if (!token) throw {code:"noToken"};
+            listenAlong.token = token; listenAlong.tokenAt = Date.now();
+            return token;
+        }, () => { throw {code:"noToken"}; });
+    }
+    function listenAlongApi(method, path, body, retried) {
+        return listenAlongToken(retried).then(token => fetch("https://api.spotify.com/v1" + path, {
+            method, headers:{Authorization:"Bearer " + token, "Content-Type":"application/json"}, body:body ? JSON.stringify(body) : undefined
+        })).then(r => r.status === 401 && !retried ? listenAlongApi(method, path, body, true) : r.text().then(text => ({status:r.status, text})));
+    }
+    function listenAlongJson(r) { try { return JSON.parse(r.text); } catch (_) { return null; } }
+    function listenAlongAlbum(id) {
+        const known = listenAlong.albums.get(id);
+        if (known) return Promise.resolve(known);
+        return listenAlongApi("GET", "/tracks/" + encodeURIComponent(id)).then(r => {
+            const json = listenAlongJson(r), uri = json && json.album && json.album.uri;
+            if (!uri) throw {code:"noTrack", status:r.status};
+            if (listenAlong.albums.size > 200) listenAlong.albums.clear();
+            listenAlong.albums.set(id, uri);
+            return uri;
+        });
+    }
+    // The device you are using now, or else your phone. Never another device.
+    function listenAlongDevice() {
+        return listenAlongApi("GET", "/me/player").then(r => {
+            const json = listenAlongJson(r);
+            if (json && json.device && json.device.id) return json.device.id;
+            return listenAlongApi("GET", "/me/player/devices").then(d => {
+                const phone = ((listenAlongJson(d) || {}).devices || []).find(x => x && x.type === "Smartphone");
+                if (!phone) throw {code:"noDevice"};
+                return phone.id;
+            });
+        });
+    }
+    function listenAlongPlay(activity) {
+        listenAlong.syncId = activity.sync_id; listenAlong.start = activity.timestamps.start;
+        return Promise.all([listenAlongAlbum(activity.sync_id), listenAlongDevice()]).then(([album, device]) =>
+            listenAlongApi("PUT", "/me/player/play?device_id=" + encodeURIComponent(device),
+                {context_uri:album, offset:{uri:"spotify:track:" + activity.sync_id}, position_ms:Math.max(0, Date.now() - activity.timestamps.start + listenAlongShift())})
+        ).then(r => {
+            listenAlong.syncedAt = Date.now(); listenAlong.wrong = 0;
+            if (r.status >= 300) throw {code:"play", status:r.status, text:r.text};
+        });
+    }
+    function listenAlongProblem(error) {
+        const body = error && error.text ? String(error.text) : "";
+        if (error && error.code === "noAccount") return tr("Link your Spotify account in Discord's settings first.");
+        if (/PREMIUM_REQUIRED/.test(body)) return tr("Listen along needs Spotify Premium.");
+        if (/NO_ACTIVE_DEVICE/.test(body) || (error && (error.code === "noDevice" || error.status === 404))) return tr("Open Spotify on your phone and play anything, then try again.");
+        return tr("Listen along couldn't reach Spotify. Try again.");
+    }
+    function listenAlongActivity() {
+        const presence = inspectedExport(5108, "default");
+        let list = [];
+        try { list = (presence && presence.getActivities(listenAlong.userId)) || []; } catch (_) {}
+        return list.find(a => a && a.sync_id && a.timestamps && a.timestamps.start) || null;
+    }
+    // About every eight seconds when nothing changed: you pausing or picking another song ends it, and a position that has drifted is corrected.
+    function listenAlongCheck(activity) {
+        const now = Date.now();
+        if (now - listenAlong.syncedAt < 8000 || now - listenAlong.checkedAt < 8000) return Promise.resolve();
+        listenAlong.checkedAt = now;
+        return listenAlongApi("GET", "/me/player").then(r => {
+            const json = listenAlongJson(r), item = json && json.item;
+            if (!item || !json.is_playing || (item.id !== activity.sync_id && item.name !== activity.details)) {
+                // Your song can end, and Spotify move on to the next one in the album, a moment before their status shows the new song.
+                // That is picked up as a change and starts over, so only a mismatch that lasts three checks in a row ends it.
+                if (++listenAlong.wrong >= 3) listenAlongStop(tr("Listen along stopped because you changed what's playing"));
+                return null;
+            }
+            listenAlong.wrong = 0;
+            const expected = Date.now() - activity.timestamps.start + listenAlongShift();
+            if (Math.abs(json.progress_ms - expected) <= 3000) return null;
+            return listenAlongApi("PUT", "/me/player/seek?position_ms=" + Math.max(0, Math.round(expected)) + "&device_id=" + encodeURIComponent(json.device.id))
+                .then(() => { listenAlong.syncedAt = Date.now(); });
+        });
+    }
+    function listenAlongTick() {
+        if (listenAlong.busy || !listenAlongActive()) return;
+        const activity = listenAlongActivity();
+        if (!activity) {
+            // A friend's presence can blink as the song changes, so it takes four checks in a row to count as ended.
+            if (++listenAlong.missing >= 4) listenAlongStop(tr("Listen along ended"));
+            return;
+        }
+        listenAlong.missing = 0;
+        listenAlong.busy = true;
+        const changed = activity.sync_id !== listenAlong.syncId || activity.timestamps.start !== listenAlong.start;
+        (changed ? listenAlongPlay(activity) : listenAlongCheck(activity))
+            .catch(error => { listenAlongStop(listenAlongProblem(error)); })
+            .then(() => { if (listenAlongActive()) listenAlong.busy = false; });
+    }
+    function listenAlongStart(activity, userId) {
+        listenAlongStop();
+        listenAlong.userId = userId; listenAlong.missing = 0; listenAlong.syncId = null; listenAlong.busy = true;
+        listenAlong.timer = global.setInterval(listenAlongTick, 2500);
+        listenAlongNotify();
+        listenAlongPlay(activity)
+            .catch(error => { listenAlongStop(listenAlongProblem(error)); })
+            .then(() => { if (listenAlongActive()) listenAlong.busy = false; });
+    }
+    // The feature's own icon in Venus's settings list, drawn through Discord's icon image so it takes the theme's icon color.
+    function ListenAlongRowIcon(props) {
+        const Base = inspectedExport(4817, "BaseIconImage");
+        if (!Base) return null;
+        const tokens = inspectedExport(587, "default");
+        const color = (props && props.color) || (tokens && tokens.colors && tokens.colors.INTERACTIVE_ICON_DEFAULT);
+        return el(Base, Object.assign({}, props, {source:{uri:LISTEN_ALONG_ICON, width:72, height:72}, color}));
+    }
+    // The Play on Spotify button on a friend's profile (UserProfileActivityButtons 13162). The Listen along button goes
+    // next to it, a small square one with the icon only, as on Discord's desktop app.
+    function listenAlongButton(orig, self, args) {
+        const [, redraw] = React.useState(0);
+        const [rowHeight, setRowHeight] = React.useState(0);
+        React.useEffect(() => {
+            const fn = () => redraw(n => n + 1);
+            listenAlong.listeners.add(fn);
+            return () => { listenAlong.listeners.delete(fn); };
+        }, []);
+        const row = orig.apply(self, args);
+        if (!enabled("listenAlong") || !row || typeof row !== "object" || !row.type || !row.props) return row;
+        const activity = args[0] && args[0].activity;
+        const match = /^spotify:(\d+)$/.exec((activity && activity.party && activity.party.id) || "");
+        let me = null;
+        try { me = inspectedExport(1390, "default").getCurrentUser(); } catch (_) {}
+        // Not your own profile, and only an activity that carries what the sync needs.
+        if (!match || !activity.sync_id || !activity.timestamps || (me && me.id === match[1])) return row;
+        const active = listenAlongActive() && listenAlong.userId === match[1];
+        const label = active ? tr("Stop listening along") : tr("Listen along");
+        const props = Object.assign({}, row.props, {key:"venus-listen-along", text:undefined, accessibilityLabel:label,
+            variant:active ? "primary" : row.props.variant,
+            onPress:() => { if (active) listenAlongStop(tr("Listen along ended")); else listenAlongStart(activity, match[1]); }});
+        // The Spotify logo's slot, with the Listen along icon in it. It takes the theme's icon color.
+        try { if (props.icon) props.icon = React.cloneElement(props.icon, {source:{uri:LISTEN_ALONG_ICON, width:72, height:72}, disableColor:false}); } catch (_) {}
+        const View = RN.View;
+        // While listening along the button is Spotify's green, so it is plain to see that it is on. It keeps the size of the
+        // other button: a square as tall as the row.
+        const control = active && RN.Pressable && RN.Image ?
+            el(RN.Pressable, {key:"venus-listen-along", onPress:props.onPress, accessibilityRole:"button", accessibilityLabel:label, accessibilityState:{selected:true},
+                style:{width:listenAlong.buttonWidth || rowHeight || 44, height:rowHeight || 44, borderRadius:8, backgroundColor:"#1DB954", alignItems:"center", justifyContent:"center"}},
+                el(RN.Image, {source:{uri:LISTEN_ALONG_ICON}, style:{width:20, height:20, tintColor:"#ffffff"}})) :
+            // Discord's button is wider than it is tall. Its width is kept while it is drawn, so the green one can be exactly as wide.
+            el(View, {key:"venus-listen-along-wrap", onLayout:event => {
+                const layout = event && event.nativeEvent && event.nativeEvent.layout, width = layout ? Math.round(layout.width) : 0;
+                if (width > 0) listenAlong.buttonWidth = width;
+            }}, el(row.type, props));
+        // The height of the Play on Spotify button is measured once it is drawn, and the green button takes it for its width and height.
+        const measure = event => {
+            const layout = event && event.nativeEvent && event.nativeEvent.layout, height = layout ? Math.round(layout.height) : 0;
+            if (height > 0 && height !== rowHeight) setRowHeight(height);
+        };
+        return el(View, {style:{flexDirection:"row", alignItems:"stretch", gap:8}}, el(View, {style:{flex:1}, onLayout:measure}, row), control);
+    }
+    // Listen along's page: how far to shift your song against theirs, since their status can be a few seconds off.
+    function ListenAlongSettings() {
+        useSettings("listenAlong");
+        const ui = reviewUI();
+        if (!React || !RN) return null;
+        const on = enabled("listenAlong"), Slider = inspectedExport(14298, "Slider"), Text = inspectedExport(5088, "Text");
+        const offset = typeof settings.listenAlongOffset === "number" ? settings.listenAlongOffset : 0;
+        const shown = offset === 0 ? tr("No change") : offset > 0 ? tr("{n} s forward", {n:offset}) : tr("{n} s back", {n:-offset});
+        const groups = [
+            on ? null : offCard("status", ListenAlongRowIcon, "listenAlong"),
+            groupTitle("title", tr("Sync adjustment")),
+            el(RN.View, {key:"slider", style:{paddingHorizontal:16, gap:8}},
+                Text ? el(Text, {variant:"text-md/semibold", color:"text-strong"}, shown) : el(RN.Text, {style:{color:"#dbdee1", fontSize:16, fontWeight:"600"}}, shown),
+                Slider ? el(Slider, {value:offset, minimumValue:-10, maximumValue:10, step:1, tapToSeek:true, disabled:!on,
+                    onValueChange:value => setSetting("listenAlongOffset", Math.round(value))}) : null),
+            footnote("how", tr("If your song is behind your friend's, move the slider right. If it is ahead, move it left."))];
         return settingsBody(ui, groups);
     }
     function TenorSettings() {
@@ -17839,6 +18051,7 @@
             case 2065: channelStore = exports.default; return exports;
             case 11668: return features.noTyping ? replaceValue(exports, "default", hookExport(hookExport(exports.default, "startTyping", typing), "stopTyping", typing)) : exports;
             case 1126: if (features.quickDelete || features.noConfirmPin) locale = exports; return exports;
+            case 13162: return features.listenAlong ? hookComponent(exports, listenAlongButton, "PlayOnSpotifyButton") : exports;
             case 5300: return features.quickDelete || features.noConfirmPin ? replaceValue(exports, "default", hookExport(exports.default, "show", quickConfirm)) : exports;
             case 5434: if (features.noDelete) { messageRecords = exports; restoreDeleted(); } return exports;
             case 1390:

@@ -25,7 +25,41 @@ This guide records the **existing v1.0.0 release workflow** and the checks maint
     └── MAINTAINING.md                This guide
 ```
 
-## Build prerequisites
+## Manager packaging fix (1.0.1)
+
+Issue #5 exposed that 1.0.0 was a Java-only ZIP: it had no DEX entries and its
+manifest contained no bundle name or version. Manager requires nonempty DEX
+before patch discovery. A successful HTTP download or ZIP CRC check does not
+prove Manager compatibility. The timestamp also must omit a timezone suffix
+because Manager deserializes `created_at` as `LocalDateTime` and treats it as UTC.
+
+The 1.0.1 build compiles the existing patch source, runs pinned D8, and packages
+both Java classes and `classes.dex`, plus `Name` and `Version` manifest attributes.
+Patch behavior and the supported Tracket version are unchanged.
+
+### Current build entry point
+
+Run `python build.py` with Python 3 and JDK 17+. `build.ps1` delegates to the same
+script. The script downloads checksum-pinned Morphe desktop 1.18.1 and D8 8.3.37.
+For offline builds, use `--morphe-jar` and `--r8-jar` with the exact pinned files.
+The output is `dist/patches-1.0.1.mpp` and its SHA-256 sidecar.
+
+The build verifies manifest name/version, decodes all DEX instructions, and uses
+the real desktop Morphe loader to discover exactly one patch targeting Tracket
+0.9.38. D8-generated synthetic access classes are expected; dependency classes
+must not be embedded in the DEX. ZIP headers are fixed for reproducible output.
+
+The release workflow additionally loads the DEX with Manager 2.3.0's own patcher
+on an Android 35 emulator. Publication requires that test to pass. This is a
+source-loading test, not a patched Tracket gameplay test. Review the workflow
+run before claiming Android verification. After publication, update the remote
+manifest to the release asset and verify its download and checksum. Retest the
+actual Manager Sources UI on a device; leave issue #5 open until confirmed.
+
+The older workflow below is retained as historical context, not the current
+build procedure.
+
+## Historical 1.0.0 build prerequisites
 
 The existing build script expects:
 
@@ -113,3 +147,6 @@ Tracket's developer can request removal or raise issues using [contactjayclatty@
 ---
 
 [Project overview](../README.md) · [Troubleshooting](TROUBLESHOOTING.md)
+## Published 1.0.1 validation
+
+[Verification record](verification/1.0.1.md): build, JVM discovery, DEX validation, and Android 35 loading with Manager 2.3.0 passed in CI. The remote manifest now references the published 1.0.1 release. Re-run the Sources UI check on a device before closing issue #5.

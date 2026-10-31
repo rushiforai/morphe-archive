@@ -39,10 +39,13 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * hears each card queued, and a fifth each story bucket Facebook builds, and the extension
  * publishes a bucket watched to its newest story as watched, with the same calls Facebook makes
  * when its servers answer (#61). The servers keep sending it as unwatched, so it's published again
- * each time it's built, until a newer story arrives.
+ * each time it's built, until a newer story arrives. A cold start draws the tray before any of that
+ * lands, from buckets the fifth hook never hears, so two more go first in the bucket's own answer
+ * to whether it has a story not watched yet, StoryBucket's and RegularStoryBucket's, and a bucket
+ * kept as watched answers no from the first time it's asked (#165).
  *
  * Facebook also opens a bucket at its first card not marked seen, and that mark is lost on a
- * restart for a view it never heard about, so a sixth hook, in the check that picks the card a
+ * restart for a view it never heard about, so one more hook, in the check that picks the card a
  * bucket opens at, passes over each card watched on this phone (#218).
  *
  * In the default selection with its switch and the button's both off, since it changes what other
@@ -160,6 +163,8 @@ val viewStoriesAnonymouslyPatch = bytecodePatch(
         mutableClassDefBy(later.listener.type).methods.single { it.sameAs(later.constructor) }.reportCardLater()
         for ((owner, update) in updates) mutableClassDefBy(owner.type).methods.single { it.sameAs(update) }.reportState()
         mutableClassDefBy(REGULAR_BUCKET).methods.single { it.sameAs(marking.constructor) }.hearBucketMade()
+        mutableClassDefBy(STORY_BUCKET).methods.single { it.sameAs(marking.buckets.hasUnwatched) }.answerWatchedFirst()
+        mutableClassDefBy(REGULAR_BUCKET).methods.single { it.sameAs(marking.buckets.override) }.answerWatchedFirst()
         mutableClassDefBy(opener.definingClass).methods.single { it.sameAs(opener) }.skipWatchedCards()
         sendStub.fillSend(sender)
         cardIdStub.fillCardId()

@@ -15,12 +15,21 @@ and adds the same graph, summaries and record list below the Progress calendar/c
 - **Total**, next to **Latest**, is the newest selected weight minus the oldest
   selected weight. Negative means weight lost; positive means weight gained.
   The five readings in the example (110.7 kg to 105 kg) show **-5.7 kg**.
-- **Last since** replaces **Avg**. Tap it to choose a date in the date picker.
+- **Since** replaces **Avg**. Tap the cell to choose a date in the date picker.
   It compares the first weight recorded on or after that date with the latest
   weight, using full profile history. The selected date is displayed and saved
   locally, so reopening the screen retains it. Before choosing a date, or when
   fewer than two records match, it shows **—**. Future dates cannot be selected.
-- A row between **Last since / Min / Max** and the graph shows **Last 30 days**,
+- On 0.6.27 the comparison, **Min** and **Max** cells reserve a second line
+  (the **Since** label carries its date or **all time** there, and **Min**/**Max**
+  keep an empty one) so the row grows in height and all three figures share a
+  baseline. The native label text does not wrap, so the line break is explicit;
+  without it the single-line label is drawn at its intrinsic width and runs into
+  the next cell. The date cell keeps the layout modifier that `ValueDisplay`
+  fills its parent with and applies the native `clickableNoRipple` to that same
+  modifier, so the whole cell responds and still receives its one-third share of
+  the row.
+- A row between that comparison row and the graph shows **Last 30 days**,
   **Last 15 days**, and **Change**. The periods compare the earliest and latest
   recorded weights within the rolling past 30/15 days, ending at the current
   local time. Change compares the latest two records in the profile.
@@ -36,3 +45,12 @@ Run `:patches:verifyPilloWeightSummaryBundle` to check calculations, history
 retention, application of all four Pillo patches, and hook signatures in the
 assembled DEX. The local emulator test APK reuses resources and native libraries
 from the existing merged Pillo APK; its DEX is freshly patched from the original.
+
+On 0.6.27 the packaged patch also requires
+`ModifierExtensionKt.clickableNoRipple(Modifier, Function0)` and the obfuscated
+`Modifier.Companion` singleton field `s3.p.a`, so a future app build fails at
+patch time instead of throwing `NoClassDefFoundError` at runtime. The 0.6.27
+contract list rejects the removed
+`ui/report/tracker/components/box/ClickableNoRippleKt` wrapper. The rebuilt
+bundle passed `:patches:verifyPillo627Bundle`; its packaged DEX contains
+`clickableNoRipple` and no reference to the wrapper.

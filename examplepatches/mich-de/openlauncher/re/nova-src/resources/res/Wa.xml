@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.allapps.AllAppsPagedView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:layout_gravity="top|center_horizontal"
+    android:id="0x7f0b0099"
+    android:paddingTop="0x7f070062"
+    android:clipChildren="true"
+    android:clipToPadding="false"
+    android:descendantFocusability="afterDescendants"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="0x7f07005e"
+    android:layout_below="0x7f0b00af"
+    launcher:pageIndicator="0x7f0b066d"/>

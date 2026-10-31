@@ -13,6 +13,7 @@ import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -37,8 +38,10 @@ import java.io.File
  * key; one GestureReactionComponent, whose view has one heart and a double-tap handler that nothing
  * outside the view, its gesture listener and the component's event subscriber reads, each read
  * checked for null straight away; the three players whose own onDoubleTap likes with the source
- * "DOUBLE_TAP"; and one feed attachment whose onDoubleTap asks the double-tap like and animates a
- * heart of its own. Reads the fixture bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
+ * "DOUBLE_TAP"; one feed attachment whose onDoubleTap asks the double-tap like and animates a
+ * heart of its own; and for Home's photos, the feed's double-tap like helper with its one like and
+ * the one double-tap listener its callers make. Reads the fixture bundles from
+ * HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class DoubleTapLikeFixtureTest {
     private val Instruction.call: MethodReference?
@@ -77,7 +80,78 @@ class DoubleTapLikeFixtureTest {
         val readerClasses: List<ClassDef>,
         val attachment: Method,
         val attachmentClass: ClassDef,
+        val feedHelper: ClassDef,
+        val feedLike: Method,
+        val feedListener: Method,
+        /** What the patch looks through for the listener, and what it must turn down. */
+        val feedClasses: List<ClassDef>,
     )
+
+    private class FeedPhoto(val helper: ClassDef, val like: Method, val listener: Method, val classes: List<ClassDef>)
+
+    /**
+     * Home's photos (#220): the feed's double-tap like helper, the only class with a method named
+     * getAnimationPosition, and its one like, which only a double tap's heart calls. Then the one
+     * gesture listener with nothing but onDoubleTapEvent among the types the helper's callers make.
+     * The negative control is every other SimpleOnGestureListener overriding onDoubleTapEvent in the
+     * build: none of them is made there.
+     */
+    private fun readFeedPhoto(bundle: File): FeedPhoto {
+        val name = bundle.name
+        val helpers = FixtureDex.classesHolding(bundle, FEED_LIKE_HAPTIC).filter(::isFeedLikeHelper)
+        assertEquals("$name: classes loading \"$FEED_LIKE_HAPTIC\" with $ANIMATION_POSITION", 1, helpers.size)
+        val helper = helpers.single()
+        val positions = FixtureDex.methodsWhere(bundle, dexFilter = { dex -> dex.stringSection.any { it == ANIMATION_POSITION } }) {
+            it.name == ANIMATION_POSITION
+        }
+        assertEquals("$name: classes with a method named $ANIMATION_POSITION", listOf(helper.type),
+            positions.map { it.definingClass }.distinct())
+        val likes = feedLikes(helper)
+        assertEquals("$name: the feed helper's static likes taking a GraphQLFeedback", 1, likes.size)
+        val like = likes.single()
+
+        // Every method calling the like asks where its heart goes too: it's a double tap's like and
+        // never the Like button's, which is why the like can be held back whole.
+        val inHelper = { dex: DexBackedDexFile ->
+            dex.methodSection.any { it.definingClass == helper.type }
+        }
+        val likeCallers = FixtureDex.methodsWhere(bundle, inHelper) { calls(it, like) }
+        assertTrue("$name: nothing calls the feed helper's like", likeCallers.isNotEmpty())
+        for (caller in likeCallers) {
+            assertTrue("$name: ${key(caller)} likes without asking where the heart goes", caller.code().any {
+                it.call?.let { call -> call.definingClass == helper.type && call.name == ANIMATION_POSITION } == true
+            })
+        }
+
+        val callers = FixtureDex.methodsWhere(bundle, inHelper) { method ->
+            method.definingClass != helper.type && method.implementation != null &&
+                method.code().any { it.call?.definingClass == helper.type }
+        }
+        val makers = FixtureDex.classes(bundle, callers.map { it.definingClass }.toSet()).values.toList()
+        assertTrue("$name: no class calling the feed helper makes anything", makers.isNotEmpty())
+        val made = makers.flatMap(::typesMadeBy).toSet()
+        val madeListeners = FixtureDex.classes(bundle, made).values.filter { it.superclass == GESTURE_LISTENER }
+        val listeners = madeListeners.mapNotNull(::feedDoubleTapEvent)
+        assertEquals("$name: listeners with only $DOUBLE_TAP_EVENT made by a class calling the feed helper", 1, listeners.size)
+        val listener = listeners.single()
+        // Facebook's own answer: true on the lift, the second tap's end.
+        val answer = listener.code()
+        assertTrue("$name: ${key(listener)} doesn't read the event's action",
+            answer.any { it.call?.let { call -> call.definingClass == MOTION_EVENT_TYPE && call.name == "getAction" } == true })
+        assertTrue("$name: ${key(listener)} has no local for the hook to borrow", listener.localRegisterCount() >= 1)
+        assertTrue("$name: the feed helper's like has no local for the hook to borrow", like.localRegisterCount() >= 1)
+
+        // The negative control: the build's other onDoubleTapEvent listeners, none made there.
+        val overriders = FixtureDex.methodsWhere(bundle, dexFilter = { dex -> dex.stringSection.any { it == DOUBLE_TAP_EVENT } }) {
+            it.name == DOUBLE_TAP_EVENT && it.parameterTypes.map(CharSequence::toString) == listOf(MOTION_EVENT_TYPE)
+        }
+        val others = FixtureDex.classes(bundle, overriders.map { it.definingClass }.toSet()).values
+            .filter { it.superclass == GESTURE_LISTENER && it.type != listener.definingClass }
+        assertTrue("$name: no other $DOUBLE_TAP_EVENT listener to tell the feed's from", others.isNotEmpty())
+        assertEquals("$name: another $DOUBLE_TAP_EVENT listener is made by a class calling the feed helper", emptyList<String>(),
+            others.map { it.type }.filter { it in made })
+        return FeedPhoto(helper, like, listener, (makers + madeListeners + others).distinctBy { it.type })
+    }
 
     /** Reads what the patch finds in [bundle], checking each anchor is the only one of its kind. */
     private fun read(bundle: File): Build {
@@ -132,8 +206,10 @@ class DoubleTapLikeFixtureTest {
                 holdsString(it, HEART_RISE)
         })
         val attachment = attachments.single()
+        val feed = readFeedPhoto(bundle)
         return Build(name, helper, like, doubleTapLike, component, view, heart, handler, everywhere, readerClasses,
-            attachment, attachmentClasses.single { it.type == attachment.definingClass })
+            attachment, attachmentClasses.single { it.type == attachment.definingClass },
+            feed.helper, feed.like, feed.listener, feed.classes)
     }
 
     private fun declaredBundles(): Map<String, List<File>> {
@@ -191,8 +267,8 @@ class DoubleTapLikeFixtureTest {
             for (bundle in bundles) {
                 val build = read(bundle)
                 val name = build.name
-                val classes = (listOf(build.helper, build.component, build.view, build.attachmentClass) + build.readerClasses)
-                    .distinctBy { it.type } + ExtensionDex.classDef(SETTINGS_STATUS)
+                val classes = (listOf(build.helper, build.component, build.view, build.attachmentClass) + build.readerClasses +
+                    build.feedHelper + build.feedClasses).distinctBy { it.type } + ExtensionDex.classDef(SETTINGS_STATUS)
                 val context = PatchContexts.of(classes)
                 turnOffDoubleTapLikePatch.execute(context)
 
@@ -249,6 +325,29 @@ class DoubleTapLikeFixtureTest {
                 assertEquals("$name: the attachment doesn't answer false", Opcode.CONST_4, attachment[3].opcode)
                 assertEquals("$name: the attachment doesn't return", Opcode.RETURN, attachment[4].opcode)
 
+                // Home's photo listener: hands over its event first, answers false while held back,
+                // then runs Facebook's own answer untouched.
+                val listener = patched(build.feedListener).code()
+                assertEquals("$name: the photo listener doesn't copy its event first", Opcode.MOVE_OBJECT_FROM16, listener[0].opcode)
+                assertEquals("$name: the event the photo listener hands over", build.feedListener.localRegisterCount() + 1,
+                    (listener[0] as TwoRegisterInstruction).registerB)
+                assertEquals("$name: the photo listener's first call", HOLD_BACK_FEED_TAP, listener[1].call.toString())
+                assertEquals("$name: the photo listener doesn't answer false", 0, (listener[4] as NarrowLiteralInstruction).narrowLiteral)
+                assertEquals("$name: the photo listener doesn't return", Opcode.RETURN, listener[5].opcode)
+                assertEquals("$name: the photo listener's own answer changed", build.feedListener.code().map { it.opcode },
+                    listener.drop(6).map { it.opcode })
+                // The feed helper's like: asks first, returns while held back, then likes as before.
+                val feedLike = patched(build.feedLike).code()
+                assertEquals("$name: the feed like's first call", HOLD_BACK_FEED_LIKE, feedLike[0].call.toString())
+                assertEquals("$name: the feed like doesn't return while held back", Opcode.RETURN_VOID, feedLike[3].opcode)
+                assertEquals("$name: the feed like changed", build.feedLike.code().map { it.opcode }, feedLike.drop(4).map { it.opcode })
+                // Nothing the patch turned down was changed.
+                for (other in build.feedClasses.filter { it.type != build.feedListener.definingClass }) {
+                    assertEquals("$name: ${other.type} was hooked", 0, context.mutableClassDefBy(other.type).methods.sumOf { method ->
+                        method.implementation?.instructions?.count { it.call.toString() == HOLD_BACK_FEED_TAP } ?: 0
+                    })
+                }
+
                 val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "doubleTapLike" }
                 assertEquals("$name: SettingsStatus.doubleTapLike() isn't switched on", 1,
                     (status.code()[0] as NarrowLiteralInstruction).narrowLiteral)
@@ -260,5 +359,26 @@ class DoubleTapLikeFixtureTest {
 
     private companion object {
         const val DOUBLE_TAP = "DOUBLE_TAP"
+        const val MOTION_EVENT_TYPE = "Landroid/view/MotionEvent;"
     }
+}
+
+/**
+ * What Turn off double tap to like looks through for Home's photos in [bundle]: the feed's
+ * double-tap like helper, the classes calling into it and the gesture listeners they make. Another
+ * fixture test running the patch on a slice of a build adds these, or the patch's feed photo find
+ * refuses. [DoubleTapLikeFixtureTest] checks the anchors themselves.
+ */
+internal fun feedPhotoFixtureClasses(bundle: File): List<ClassDef> {
+    val helper = FixtureDex.classesHolding(bundle, FEED_LIKE_HAPTIC).single(::isFeedLikeHelper)
+    val inHelper = { dex: DexBackedDexFile -> dex.methodSection.any { it.definingClass == helper.type } }
+    val callers = FixtureDex.methodsWhere(bundle, inHelper) { method ->
+        method.definingClass != helper.type && method.implementation?.instructions?.any { instruction ->
+            ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.definingClass == helper.type
+        } == true
+    }
+    val makers = FixtureDex.classes(bundle, callers.map { it.definingClass }.toSet()).values.toList()
+    val listeners = FixtureDex.classes(bundle, makers.flatMap(::typesMadeBy).toSet()).values
+        .filter { it.superclass == GESTURE_LISTENER }
+    return (listOf(helper) + makers + listeners).distinctBy { it.type }
 }

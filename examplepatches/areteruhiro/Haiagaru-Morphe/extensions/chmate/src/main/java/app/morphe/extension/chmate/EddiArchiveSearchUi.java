@@ -50,6 +50,8 @@ final class EddiArchiveSearchUi {
     static final int REFRESH_ACTION_TAG = 0x48690c07;
     static final int REFRESH_ENABLED_TAG = 0x48690c08;
     static final int SEARCH_BUSY_TAG = 0x48690c09;
+    static final int RESULTS_REVISION_TAG = 0x48690c0a;
+    private int resultsRevision;
     interface ThreadOpener {
         boolean open(String url);
     }
@@ -220,8 +222,8 @@ final class EddiArchiveSearchUi {
         advanced.addView(sort);
         startDate = input("開始日 YYYY-MM-DD", false);
         endDate = input("終了日 YYYY-MM-DD", false);
-        advanced.addView(startDate);
-        advanced.addView(endDate);
+        advanced.addView(dateControl(startDate,"開始日"));
+        advanced.addView(dateControl(endDate,"終了日"));
         advancedScroll = new ScrollView(activity);
         advancedScroll.addView(advanced);
         advancedScroll.setVisibility(View.GONE);
@@ -314,6 +316,7 @@ final class EddiArchiveSearchUi {
                 displayedPage = null;
                 displayedQuery = null;
                 results.removeAllViews();
+        results.setTag(RESULTS_REVISION_TAG,++resultsRevision);
                 resultTextSizes.clear();
                 previous.setEnabled(false);
                 next.setEnabled(false);
@@ -351,7 +354,8 @@ final class EddiArchiveSearchUi {
                 JSONArray threads = new JSONArray();
                 for (ThreadResult thread : displayedPage.threads) {
                     threads.put(new JSONObject().put("title", thread.title)
-                            .put("date", thread.date).put("url", thread.url));
+                            .put("date", thread.date).put("url", thread.url)
+                            .put("kyodemoUrl", thread.kyodemoUrl));
                 }
                 saved.put("threads", threads);
             }
@@ -404,7 +408,8 @@ final class EddiArchiveSearchUi {
                     JSONObject row = rows.getJSONObject(index);
                     String url = row.getString("url");
                     if (!HissiLinkRouting.isThreadUrl(url)) return false;
-                    threads.add(new ThreadResult(row.getString("title"), row.optString("date"), url));
+                    threads.add(new ThreadResult(row.getString("title"), row.optString("date"), url,
+                            row.optString("kyodemoUrl", kyodemoUrl(url))));
                 }
                 displayedQuery = saved.optString("resultQuery", query.toString());
                 display(Math.max(1, saved.optInt("page", page)),
@@ -560,7 +565,8 @@ final class EddiArchiveSearchUi {
                         java.nio.charset.Charset.forName("Windows-31J")), KyodemoArchive.page(uri.toString()));
                 List<ThreadResult> threads = new ArrayList<>();
                 for (KyodemoArchive.Row row : parsed.rows)
-                    threads.add(new ThreadResult(clean(row.titleHtml), clean(row.dateHtml), row.url));
+                    threads.add(new ThreadResult(clean(row.titleHtml), clean(row.dateHtml), row.url,
+                            row.kyodemoUrl));
                 return new SearchPage(threads, -1, parsed.hasNext);
             }
             return parse(new String(bytes.toByteArray(), StandardCharsets.UTF_8));
@@ -591,7 +597,7 @@ final class EddiArchiveSearchUi {
             if (!HissiLinkRouting.isThreadUrl(url)) continue;
             Matcher date = DATE.matcher(block);
             threads.add(new ThreadResult(clean(anchor.group(2)),
-                    date.find() ? clean(date.group(1)) : "", url));
+                    date.find() ? clean(date.group(1)) : "", url, kyodemoUrl(url)));
         }
         return new SearchPage(threads, count);
     }
@@ -602,6 +608,7 @@ final class EddiArchiveSearchUi {
         displayedPage = result;
         totalResults = result.total;
         results.removeAllViews();
+        results.setTag(RESULTS_REVISION_TAG,++resultsRevision);
         resultTextSizes.clear();
         status.setText(resultStatus());
         if (result.threads.isEmpty()) {
@@ -619,6 +626,12 @@ final class EddiArchiveSearchUi {
             TextView title = resultText(thread.title, 16, foreground);
             card.addView(title);
             card.addView(resultText(thread.date, 12, muted));
+            card.setOnLongClickListener(view -> { showResultCopy(thread); return true; });
+            if (!thread.kyodemoUrl.isEmpty()) {
+                TextView kyodemoLink = resultText(thread.kyodemoUrl, 12, muted);
+                kyodemoLink.setTextIsSelectable(true);
+                card.addView(kyodemoLink);
+            }
             card.setOnClickListener(view -> {
                 try {
                     saveState(null);
@@ -649,6 +662,24 @@ final class EddiArchiveSearchUi {
             restoreScrollY = -1;
             HaiagaruUi.scrollTo(scroll, position);
         }
+    }
+
+    private void showResultCopy(ThreadResult thread){
+        Uri uri=Uri.parse(thread.url);java.util.List<String> parts=uri.getPathSegments();
+        String board="liveedge",key=null;
+        if(parts.size()>=4&&parts.get(0).equals("sdemo")&&parts.get(1).equals("r")){board=parts.get(2).replaceFirst("^e_e_","");key=parts.get(3);}
+        else if(parts.size()>=4&&parts.get(0).equals("test")&&parts.get(1).equals("read.cgi")){board=parts.get(2);key=parts.get(3);}
+        if(key==null||!key.matches("[0-9]{9,12}"))return;
+        String nativeUrl="https://bbs.eddibb.cc/test/read.cgi/"+board+"/"+key+"/";
+        String kyodemo="https://www.kyodemo.net/sdemo/r/e_e_"+board+"/"+key+"/";
+        String label="liveedge".equals(board)?"エッヂ":board;
+        String[] values={kyodemo,nativeUrl,label+"\n"+nativeUrl,thread.title+"\n"+nativeUrl};
+        new HaiagaruDialog.Builder(activity).setTitle("検索結果をコピー")
+                .setItems(new String[]{"KyodemoのURL","スレのURL","板名とスレのURL","スレタイとURL"},(dialog,which)->{
+                    android.content.ClipboardManager clipboard=(android.content.ClipboardManager)activity.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("スレ",values[which]));
+                    android.widget.Toast.makeText(activity,"コピーしました",android.widget.Toast.LENGTH_SHORT).show();
+                }).setNegativeButton("キャンセル",null).show();
     }
 
     private String resultStatus() {
@@ -700,6 +731,19 @@ final class EddiArchiveSearchUi {
         view.setTextSize(scaledTextSize(size, controlScale));
         view.setTextColor(color);
         return view;
+    }
+
+    private View dateControl(EditText field,String label) {
+        LinearLayout row=new LinearLayout(activity);row.setGravity(Gravity.CENTER_VERTICAL);
+        Button choose=new Button(activity),clear=new Button(activity);clear.setText("解除");
+        Runnable update=()->{String value=field.getText().toString();choose.setText(label+"："+(value.isEmpty()?"未指定":value)+" ▦");clear.setEnabled(!value.isEmpty());};
+        field.addTextChangedListener(new android.text.TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){update.run();}public void afterTextChanged(android.text.Editable e){}});
+        choose.setOnClickListener(v->{java.util.Calendar initial=java.util.Calendar.getInstance();
+            try{java.text.SimpleDateFormat format=new java.text.SimpleDateFormat("yyyy-MM-dd",java.util.Locale.ROOT);format.setLenient(false);initial.setTime(format.parse(field.getText().toString()));}catch(Exception empty){}
+            HaiagaruDates.show(activity,initial,(year,month,day)->field.setText(String.format(java.util.Locale.ROOT,"%04d-%02d-%02d",year,month+1,day)));
+        });clear.setOnClickListener(v->field.setText(""));update.run();
+        controlTextSizes.put(choose,14f);controlTextSizes.put(clear,14f);
+        row.addView(choose,new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1));row.addView(clear);return row;
     }
 
     private EditText input(String hint, boolean numeric) {
@@ -758,6 +802,7 @@ final class EddiArchiveSearchUi {
     }
 
     private void applyAppearance() {
+        results.setTag(RESULTS_REVISION_TAG,++resultsRevision);
         root.setTag(CONTROL_SCALE_TAG, controlScale);
         root.setTag(RESULT_SCALE_TAG, resultScale);
         root.setTag(CONTROL_LAYOUT_TAG, controlLayoutScale);
@@ -918,11 +963,25 @@ final class EddiArchiveSearchUi {
         final String title;
         final String date;
         final String url;
-        ThreadResult(String title, String date, String url) {
+        final String kyodemoUrl;
+        ThreadResult(String title, String date, String url, String kyodemoUrl) {
             this.title = title;
             this.date = date;
             this.url = url;
+            this.kyodemoUrl = kyodemoUrl == null ? "" : kyodemoUrl;
         }
+    }
+
+    private static String kyodemoUrl(String sourceUrl) {
+        try {
+            java.net.URI uri = java.net.URI.create(sourceUrl);
+            String[] path = uri.getPath().split("/");
+            if (path.length >= 5 && "test".equals(path[1]) && "read.cgi".equals(path[2])
+                    && "liveedge".equals(path[3]) && path[4].matches("[0-9]{9,12}")) {
+                return "https://www.kyodemo.net/sdemo/r/e_e_liveedge/" + path[4] + "/";
+            }
+        } catch (RuntimeException ignored) { }
+        return "";
     }
 
     private static final class SearchPage {

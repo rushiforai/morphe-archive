@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:drawable="0x7f080055">
+    <target
+        android:name="cloud_2"
+        android:animation="0x7f080056"/>
+    <target
+        android:name="cloud_1_path"
+        android:animation="0x7f080057"/>
+    <target
+        android:name="cloud_1"
+        android:animation="0x7f080058"/>
+</animated-vector>

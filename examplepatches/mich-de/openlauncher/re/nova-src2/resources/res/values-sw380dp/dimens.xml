@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="media_lite_pause_button">52dp</dimen>
+    <dimen name="media_lite_recommendation_size">54dp</dimen>
+    <dimen name="media_lite_thumbnail_size">88dp</dimen>
+</resources>

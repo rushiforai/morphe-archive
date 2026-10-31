@@ -24,7 +24,7 @@ public final class VerifyNuvioCurrentStream {
                     for (var c : DexBackedDexFile.fromInputStream(null, input).getClasses()) check(classes.put(c.getType(), c) == null);
                 }
         }
-        MutableClass owner = new MutableClass(classes.get("Lab/bp;"));
+        MutableClass owner = new MutableClass(classes.get("Lbb/mn;"));
         var nativeMethod = new MutableMethod(NuvioRemainingEpisodesPatch.unique(owner, "h", 13));
         NuvioCurrentStreamPatch.validate(owner);
         MutableClass missing = new MutableClass(owner);

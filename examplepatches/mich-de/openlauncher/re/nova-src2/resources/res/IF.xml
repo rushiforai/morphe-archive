@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:id="0x7f0b03cf"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <FrameLayout
+        android:layout_gravity="top"
+        android:id="0x7f0b06c5"
+        android:background="?unknown_attr_ref: 7f040185"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="8dp">
+        <com.teslacoilsw.launcher.widget.FontFamilyToolbar
+            android:id="0x7f0b06c3"
+            android:layout_width="match_parent"
+            android:layout_height="0x7f0704b3"
+            style="?unknown_attr_ref: 7f040680"/>
+        <TextView
+            android:textSize="12dp"
+            android:textStyle="bold"
+            android:textColor="0x7f060011"
+            android:layout_gravity="bottom"
+            android:id="0x7f0b06c6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAllCaps="true"
+            android:fontFamily="0x7f1402fc"
+            android:layout_marginStart="72dp"/>
+    </FrameLayout>
+    <com.teslacoilsw.launcher.preferences.SettingsInsetFragmentContainer
+        android:id="0x7f0b02fc"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+    <com.android.launcher3.InsettableFrameLayout
+        android:layout_gravity="bottom"
+        android:id="0x7f0b06e8"
+        android:background="0x7f06064f"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="16dp">
+        <com.teslacoilsw.launcher.preferences.fancyprefs.FancyPrefIconView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="0x7f080433"
+            android:title="0x7f140745"
+            android:summary="0x7f140746"/>
+    </com.android.launcher3.InsettableFrameLayout>
+</FrameLayout>

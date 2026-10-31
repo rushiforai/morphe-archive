@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.teslacoilsw.launcher.search.TouchPositionLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:id="0x7f0b03ce"
+    android:background="@null"
+    android:focusable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="48dp">
+    <TextView
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:id="@android:id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp"
+        android:maxLines="2"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"/>
+    <HorizontalScrollView
+        android:clipToPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="8dp">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:id="0x7f0b0071"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"/>
+    </HorizontalScrollView>
+</com.teslacoilsw.launcher.search.TouchPositionLinearLayout>

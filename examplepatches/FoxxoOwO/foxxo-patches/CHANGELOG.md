@@ -1,3 +1,45 @@
+## [1.8.1](https://github.com/FoxxoOwO/foxxo-patches/compare/v1.8.0...v1.8.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **instagram:** stop the Stories tab crashing the tab bar ([7ad5597](https://github.com/FoxxoOwO/foxxo-patches/commit/7ad5597eabf5be508048d48c3ad462882834a651))
+
+## [1.8.0](https://github.com/FoxxoOwO/foxxo-patches/compare/v1.7.0...v1.8.0) (2026-10-31)
+
+### ✨ New Features
+
+* **instagram:** optional Stories tab in place of Home ([2f31c13](https://github.com/FoxxoOwO/foxxo-patches/commit/2f31c13f5e06d36660590d8630c2d03b305830b9))
+
+## [1.7.0](https://github.com/FoxxoOwO/foxxo-patches/compare/v1.6.0...v1.7.0) (2026-10-31)
+
+### ✨ New Features
+
+* **instagram:** trim the settings to what chat-only controls ([5560993](https://github.com/FoxxoOwO/foxxo-patches/commit/5560993c59e0de4703f99dfcb0b52acd110a9d2b))
+
+## [1.6.0](https://github.com/FoxxoOwO/foxxo-patches/compare/v1.5.0...v1.6.0) (2026-10-31)
+
+### ✨ New Features
+
+* **instagram:** keep the Stories tray visible in chat-only mode ([1e1dca6](https://github.com/FoxxoOwO/foxxo-patches/commit/1e1dca66d91516484cd20349b1ce9b7da69f5310)), closes [#int](https://github.com/FoxxoOwO/foxxo-patches/issues/int)
+
+## [1.5.0](https://github.com/FoxxoOwO/foxxo-patches/compare/v1.4.3...v1.5.0) (2026-10-31)
+
+### ✨ New Features
+
+* **instagram:** open the settings by holding any bottom tab ([d8395b7](https://github.com/FoxxoOwO/foxxo-patches/commit/d8395b7d87d196ceb72f592e6537c208f28df7e0))
+
+## [1.4.3](https://github.com/FoxxoOwO/foxxo-patches/compare/v1.4.2...v1.4.3) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **instagram:** restore settings shortcuts across inbox layouts ([0ee9473](https://github.com/FoxxoOwO/foxxo-patches/commit/0ee9473561212dc13ae074d0c99edccd26a38c84))
+
+## [1.4.3-dev.1](https://github.com/FoxxoOwO/foxxo-patches/compare/v1.4.2...v1.4.3-dev.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **instagram:** restore settings shortcuts across inbox layouts ([0ee9473](https://github.com/FoxxoOwO/foxxo-patches/commit/0ee9473561212dc13ae074d0c99edccd26a38c84))
+
 ## [1.4.2](https://github.com/FoxxoOwO/foxxo-patches/compare/v1.4.1...v1.4.2) (2026-10-22)
 
 ### 🐛 Bug Fixes

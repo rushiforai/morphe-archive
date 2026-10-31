@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="0x7f070481">
+        <LinearLayout
+            android:orientation="vertical"
+            android:paddingLeft="0x7f07048a"
+            android:paddingRight="0x7f07048a"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textDirection="locale"
+            android:layoutDirection="locale"
+            android:paddingStart="0x7f07048a"
+            android:paddingEnd="0x7f07048a">
+            <LinearLayout
+                android:orientation="horizontal"
+                android:id="0x7f0b04d3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <include layout="0x7f0e016c"/>
+            </LinearLayout>
+            <View
+                android:id="0x7f0b04d4"
+                android:background="0x7f06040b"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="1dp"/>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="0x7f0b04cb"
+                android:background="@android:color/white"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:cacheColorHint="@android:color/white"
+                android:layout_weight="1"
+                android:layout_marginStart="0x7f070489"/>
+            <include layout="0x7f0e0168"/>
+            <include layout="0x7f0e016b"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</FrameLayout>

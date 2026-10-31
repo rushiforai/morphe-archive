@@ -23,15 +23,15 @@ final class ButtonsIcons {
         } else {
             String owner, method;
             switch (id) {
-                case "play": owner = NuvioNative.ICON_MEDIA_NAME; method = "q"; break;
-                case "next": owner = NuvioNative.ICON_NEXT_NAME; method = "r"; break;
-                case "audio": owner = NuvioNative.ICON_AUDIO_NAME; method = "l"; break;
-                case "sources": case "engine": owner = NuvioNative.RESOURCE_HELPER_NAME; method = "U"; break;
-                case "party": owner = NuvioNative.ICON_PARTY_NAME; method = "q"; break;
-                case "speed": owner = NuvioNative.ICON_SPEED_NAME; method = "m"; break;
-                case "external": owner = NuvioNative.ICON_EXTERNAL_NAME; method = "f"; break;
-                case "info": owner = NuvioNative.ICON_MEDIA_NAME; method = "p"; break;
-                case "report": owner = NuvioNative.ICON_PARTY_NAME; method = "o"; break;
+                case "play": owner = NuvioNative.ICON_MEDIA_NAME; method = "u"; break;
+                case "next": owner = NuvioNative.ICON_NEXT_NAME; method = "v"; break;
+                case "audio": owner = NuvioNative.ICON_AUDIO_NAME; method = "e"; break;
+                case "sources": case "engine": owner = NuvioNative.RESOURCE_HELPER_NAME; method = "V"; break;
+                case "party": owner = NuvioNative.ICON_PARTY_ROUNDED_NAME; method = "o"; break;
+                case "speed": owner = NuvioNative.ICON_SPEED_NAME; method = "n"; break;
+                case "external": owner = NuvioNative.ICON_EXTERNAL_NAME; method = "h"; break;
+                case "info": owner = NuvioNative.ICON_MEDIA_NAME; method = "q"; break;
+                case "report": owner = NuvioNative.ICON_PARTY_NAME; method = "j"; break;
                 case "chapters": return inlineIcon(loader, "chapters");
                 default: throw new IllegalArgumentException(id);
             }
@@ -42,7 +42,7 @@ final class ButtonsIcons {
     }
     private static Object inlineIcon(ClassLoader loader, String id) throws Exception {
         String owner = id.equals("subtitles") ? NuvioNative.ICON_PARTY_NAME : id.equals("episodes") ? NuvioNative.ICON_EXTERNAL_NAME : id.equals("chapters") ? NuvioNative.ICON_CHAPTERS_NAME : NuvioNative.ICON_ASPECT_NAME;
-        String field = id.equals("subtitles") ? "d" : id.equals("chapters") ? "c" : "a";
+        String field = id.equals("subtitles") ? "d" : id.equals("chapters") ? "c" : id.equals("episodes") ? "b" : "a";
         java.lang.reflect.Field nativeCache = loader.loadClass(owner).getDeclaredField(field);
         nativeCache.setAccessible(true);
         Object existing = nativeCache.get(null);
@@ -74,7 +74,7 @@ final class ButtonsIcons {
                 x+2,14, x+4,14, x+4,16, x,16);
         }
         java.lang.reflect.Field black = loader.loadClass(NuvioNative.COLOR_NAME).getDeclaredField("b"); black.setAccessible(true);
-        Object brush = loader.loadClass("e2.y0").getDeclaredConstructor(long.class).newInstance(black.get(null));
+        Object brush = loader.loadClass("e2.a1").getDeclaredConstructor(long.class).newInstance(black.get(null));
         java.lang.reflect.Field nodes = path.getClass().getDeclaredField("b"); nodes.setAccessible(true);
         NuvioPlaybackButtons.method(loader.loadClass(NuvioNative.VECTOR_BUILDER_NAME), "a", 4).invoke(null, vector, nodes.get(path), 0, brush);
         return NuvioPlaybackButtons.method(loader.loadClass(NuvioNative.VECTOR_BUILDER_NAME), "b", 0).invoke(vector);

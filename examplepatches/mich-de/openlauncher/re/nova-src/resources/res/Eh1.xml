@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView
+        android:gravity="end|center_vertical"
+        android:layout_gravity="end|center_vertical"
+        android:id="0x7f0b0755"
+        android:duplicateParentState="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:textAllCaps="true"/>
+    <ImageView
+        android:layout_gravity="end|center_vertical"
+        android:id="0x7f0b0752"
+        android:duplicateParentState="true"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:tint="?unknown_attr_ref: 7f040166"
+        android:importantForAccessibility="no"/>
+</merge>

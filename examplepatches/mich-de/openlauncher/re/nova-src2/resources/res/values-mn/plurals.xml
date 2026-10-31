@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">%d секундээр хурдан урагшлуулах</item>
+        <item quantity="other">%d секундээр хурдан урагшлуулах</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">%d секунд ухраах</item>
+        <item quantity="other">%d секунд ухраах</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d уулзалт</item>
+        <item quantity="one">%d уулзалт</item>
+        <item quantity="two">%d уулзалт</item>
+        <item quantity="few">%d уулзалт</item>
+        <item quantity="many">%d уулзалт</item>
+        <item quantity="other">%d уулзалт</item>
+    </plurals>
+</resources>

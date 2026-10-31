@@ -30,6 +30,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.lang.reflect.Constructor;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 public final class NezumiSettings {
     private static final String PREFS = "nezumi_settings";
@@ -38,11 +43,22 @@ public final class NezumiSettings {
     private static final String HIDE_READ_RECEIPTS = "hide_read_receipts";
     private static final String HIDE_DELIVERY_RECEIPTS = "hide_delivery_receipts";
     private static final String HIDE_MEDIA_BOX = "hide_media_box";
+    private static final String HIDE_ONLINE_STATUS = "hide_online_status";
+    private static final String SAVED_ONLINE_SHARING = "saved_online_sharing";
     private static final String ENTRY_TAG = "nezumi-settings-entry";
     private static final int BLUE = 0xFF0068FF;
     private static final int HEADER_BLUE = 0xFF008DFA;
     private static final int DIVIDER = 0xFFE9EAEC;
     private static final int SECTION = 0xFFF2F3F5;
+    private static final Object ONLINE_LOCK = new Object();
+    private static final Set<String> ONLINE_USERS = new HashSet<>();
+    private static final WeakHashMap<TextView, ChatPresence> CHAT_SUBTITLES = new WeakHashMap<>();
+    private static final WeakHashMap<Object, String> CHAT_TARGETS = new WeakHashMap<>();
+    private static final ThreadLocal<Boolean> CHAT_REFRESH = new ThreadLocal<>();
+    private static long onlineObservedAt;
+    private static long lastChatRefresh;
+    private static long lastChatAttempt;
+    private static String onlineAccount;
     private static final String GEAR_ICON = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAQAAAD9CzEMAAADgklEQVR42u1Yv09UQRD+7viRozjACCZiYsRSQE2MgEQtjI2ggCgkiv+AdmDhj4LYKWo8FK7wB7HSKFFjY+dJCAhaaRQUC0iMCQGRAiGBxJPPgmFu99493oNgbNwt9u3szJuX2W++2X0B4u+2IP47WDMHQTSgB1OYQg/qV2BHfz2dT2i2Lqb5s/Tr4BqTW+taOsjlT4eDn8zxY5vuErn9aMAGxPECTzGPMwgDAEZwAEHEsBVAGKdxBSEcQxUyMI7H6PO7B1m8b3zpFAe4IM9NBMFmmS1wgD8MzU5m+QvRfaZuk1xPEMyzXkvLhQ8He12M53hIdao476JV4e2gXVQ/8AhbOC7B6OVuS6uUfaI3zhZWc1BmN70dPBfVKsF/EfdwY0qEFLCMJUwnCFaL1TNvFM3JuAsvAMQx5JqjYxjT551J1sugqFG+ZUK+zU/P4IRYnfQOUUgxUmLJi9nGIc5ylkOMsNha2644C/mB6RtR36OSTEYZt9ASZwczdb1CpAPeMM3hRUmrBd3aTMZSQjKmLgrU5kIygdiMeZ0zat6n8ijdWofq9BocddVk2sTrgxYhzynuizU4w6xlmGHWclgDVaR5MWeRecDpoMEihUTWtonsM3NVto5fRHpDZZUWgRx3OuiRpRE2Cecs9iGR11qxPSrSQUOWxyaOiLzb6WBKljYnbfvSroQtabZG3NYu1BiIJGhk3GILODJxJS3gXvQHZexGM/IMjW8yHrTslmZfDVk+mvFSnj86qaLe2KIfQnXmJg9z3bKbfFiDTJJ1qWDaZSjMszQFTI8ym9ms09cnYFpuVYhHqWAKprHVKO69PhKtXXVeq2yal1Mn2hI6zvumipdKFZvU5hyzvcnubQqy63CQ3S2D7JbKbL+fmpyga5uSixjhIGc4w4+8obFf7DtWQtentNaupOB8dys4zkNslYxRxH2n1y9E5akyeclZk7NkfAcAyMA2hDFqVN9EK8AWzOIT4gDeJ1kvU5PblcZqeImTWh1KLa0yrQATbGGNUmLEew/2uWB+npVG1rodvMr91OROj6NjvuvR8Y6/s2kW71mvfZ10+D0rs9/st1zddYLU/X5QwQi7+IAnGCJ4XotRIbdyVGbnCIbYyIfsYsRIy1VcQMKcXu0FxN9lbga3HbIoptfyEphmkTn5aK0vgWCAx/iKk5xkjHUJvvfqgf//Kv65gz/gmFMG8oKg/wAAAABJRU5ErkJggg==";
     private static final String CHAT_ICON = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAQAAAD9CzEMAAADI0lEQVR42u2YzWuVRxTGf29yb5SYkmLMImjAD2y7aItWDVUXJYJU8GNhay0trrppbf0bugkm1E2rLVZEELsRRPsVBRVEsN3YiAgtNBWKxi9oqtQmlCSV/rrI5HrN3Pe+N/e1dOPM5jJzzvPcmTnznDNvIv9ta+AJQUYr1GDTSBfdrOA5OmgBRrnNIJc4x0X+yfS2eu+0z5umtRv2uqA6QrXJdg84blYbd7/z6iF4y7slkDsecocv2WbRZjtd6bt+4W+l+d99c2YERQ+WnM+7ycaKVk1u90LJ7nOLtRI0eyo4XXWDWaf0uteD9UmbayEoluCP2JIJj9jiieDRH68iNp/anA9rAp/siT3Ba38Wwdt1wE/2PcFzezWC9hA5R2YMj4lHVR22LZ3gQDjaOXUQ4NPeUvWzNILOcK021AWPuEXVsfLbXT7dF+KeHP0HVXsrETQGzdmYi+ANVYdsiAlWB1Eo5CIoeE/VrqmRh/mgG4CTPJgmt71MpOJN0DvN+gFnAVgXy/VxVXdEKKNVtXQ0sn9H1WPxCp4F4KcoYexlIjWZ/M0n0djPZWiPrGDyirXlOgHEBeG6RStoAWAkdxK+C8BTcdL3MRUBs9OqivsAtD4mgpGYYBiA+ZFDpTAdpyeVYAkAd2KCHwFYHjnsohiNNbErleBFAAZjgisArKkpTCuF51R7GYCBOExXhPDKJxWz/UPVVbEWJd5QdXMugtdUvV5J7Ah59fsc8IkDqu6unA86QsJZl/P/jzk/LWX+qmp3nfBzHVJ1X1rKXBT0cVadBF+GMnJeGsFOVb+uE/6jIODb0suWb1TdWRd8X4D/NL3wanJE1SUzBm8NFZH2x7fo4c/uUBOVV6mvZEZU4tZwtPpt9eK3r2yJi33Pr/xT1YtuSynfZ7k1xP2kZ0UNSErv5MssAz6mwKssnaYv9zjLGQa5xn2KFHiGF1jL5pK4D/M+x7LeaH9VSOnXanhCjbnPubU8oc4/Uiv0+4FLxQ57SnsctyF3l9/a6lu0kMN0cZXTnOY7xssWmbCc9SzjedpppYFRbvILA5zjUvYzNnnyreJ/J/gXo3zphTXHOI0AAAAASUVORK5CYII=";
 
@@ -71,6 +87,277 @@ public final class NezumiSettings {
     public static boolean isMediaBoxHidden(Context context) {
         return context != null && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getBoolean(HIDE_MEDIA_BOX, false);
+    }
+
+    public static boolean shouldFetchOnlineStatus() {
+        return isOnlineHidden() || originalOnlineSharing();
+    }
+
+    public static void traceOnlineResponse(org.json.JSONObject data) {
+        try {
+            org.json.JSONArray onlines = data.optJSONArray("onlines");
+            android.util.Log.i("NezumiOnline", "onlineResponse sharing=" + originalOnlineSharing()
+                + " hidden=" + isOnlineHidden() + " hasOnlines=" + data.has("onlines")
+                + " arrayPresent=" + (onlines != null)
+                + " count=" + (onlines == null ? -1 : onlines.length()));
+        } catch (RuntimeException ignored) {
+            android.util.Log.w("NezumiOnline", "onlineResponse probe unavailable");
+        }
+    }
+
+    public static void traceLastSeenResponse(org.json.JSONObject data) {
+        try {
+            android.util.Log.i("NezumiOnline", "lastSeenResponse sharing=" + originalOnlineSharing()
+                + " hidden=" + isOnlineHidden() + " hasTimestamp=" + data.has("timestamp")
+                + " timestampPositive=" + (data.optLong("timestamp") > 0)
+                + " hasVisibility=" + data.has("settingOnlineStatus")
+                + " visibility=" + data.optInt("settingOnlineStatus", -1));
+        } catch (RuntimeException ignored) {
+            android.util.Log.w("NezumiOnline", "lastSeenResponse probe unavailable");
+        }
+    }
+
+    public static void traceFriendListResponse(org.json.JSONObject data) {
+        try {
+            org.json.JSONArray onlines = data.optJSONArray("onlines");
+            android.util.Log.i("NezumiOnline", "friendListResponse sharing=" + originalOnlineSharing()
+                + " hidden=" + isOnlineHidden() + " arrayPresent=" + (onlines != null)
+                + " count=" + (onlines == null ? -1 : onlines.length()));
+        } catch (RuntimeException ignored) {
+            android.util.Log.w("NezumiOnline", "friendListResponse probe unavailable");
+        }
+    }
+
+    public static void updateChatOnlineUsers(org.json.JSONObject data) {
+        Set<String> onlineUsers = new HashSet<>();
+        org.json.JSONArray onlines = data.optJSONArray("onlines");
+        if (onlines != null) {
+            for (int index = 0; index < onlines.length(); index++) {
+                org.json.JSONObject entry = onlines.optJSONObject(index);
+                if (entry == null) continue;
+                String userId = entry.optString("userId");
+                if (!android.text.TextUtils.isEmpty(userId)) onlineUsers.add(userId);
+            }
+        }
+        ArrayList<TextView> views;
+        synchronized (ONLINE_LOCK) {
+            ONLINE_USERS.clear();
+            ONLINE_USERS.addAll(onlineUsers);
+            onlineObservedAt = android.os.SystemClock.elapsedRealtime();
+            onlineAccount = currentOnlineAccount();
+            views = new ArrayList<>(CHAT_SUBTITLES.keySet());
+        }
+        for (TextView view : views) {
+            ChatPresence presence;
+            synchronized (ONLINE_LOCK) {
+                presence = CHAT_SUBTITLES.get(view);
+            }
+            if (presence != null) view.post(presence::render);
+        }
+    }
+
+    public static void setChatPresenceTarget(Object chatView, android.os.Bundle arguments) {
+        String userId = arguments == null ? null : arguments.getString("extra_chat_profile_uid");
+        synchronized (ONLINE_LOCK) {
+            if (android.text.TextUtils.isEmpty(userId)) CHAT_TARGETS.remove(chatView);
+            else CHAT_TARGETS.put(chatView, userId);
+        }
+    }
+
+    public static void bindChatSubtitle(Object chatView, TextView subtitle) {
+        if (subtitle == null) return;
+        synchronized (ONLINE_LOCK) {
+            String userId = CHAT_TARGETS.get(chatView);
+            ChatPresence presence = CHAT_SUBTITLES.get(subtitle);
+            if (presence == null) {
+                presence = new ChatPresence(subtitle);
+                CHAT_SUBTITLES.put(subtitle, presence);
+            }
+            presence.userId = userId;
+            presence.start();
+        }
+    }
+
+    public static boolean isChatOnlineRefresh() {
+        return Boolean.TRUE.equals(CHAT_REFRESH.get());
+    }
+
+    public static long onlineRefreshInterval() {
+        return isChatOnlineRefresh() ? 10000L : 60000L;
+    }
+
+    public static void traceChatOnlineDispatch() {
+        if (isChatOnlineRefresh()) {
+            lastChatRefresh = android.os.SystemClock.elapsedRealtime();
+            android.util.Log.i("NezumiOnline", "chatRefresh dispatched");
+        }
+    }
+
+    public static void traceChatOnlineGate(Object repository) {
+        if (!isChatOnlineRefresh()) return;
+        try {
+            boolean inFlight = repository.getClass().getField("n").getBoolean(repository);
+            long requestedAt = repository.getClass().getField("l").getLong(repository);
+            long remaining = Math.max(0, onlineRefreshInterval() - (System.currentTimeMillis() - requestedAt));
+            android.util.Log.i("NezumiOnline", "chatRefresh gate inFlight=" + inFlight
+                + " throttleRemainingMs=" + remaining);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            android.util.Log.w("NezumiOnline", "Chat refresh gate unavailable");
+        }
+    }
+
+    public static boolean retainChatOnlineSubtitle(TextView subtitle) {
+        ChatPresence presence;
+        synchronized (ONLINE_LOCK) {
+            presence = CHAT_SUBTITLES.get(subtitle);
+        }
+        return presence != null && presence.render(true);
+    }
+
+    public static void requestChatOnlineList() {
+        throw new IllegalStateException("Chat online request bridge was not patched");
+    }
+
+    private static String currentOnlineAccount() {
+        try {
+            Object account = Class.forName("com.zing.zalocore.CoreUtility").getField("i").get(null);
+            return account instanceof String ? (String) account : null;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    private static final class ChatPresence implements Runnable, View.OnAttachStateChangeListener {
+        private final WeakReference<TextView> view;
+        private final Object marker = new Object();
+        private String userId;
+        private boolean scheduled;
+
+        private ChatPresence(TextView subtitle) {
+            view = new WeakReference<>(subtitle);
+            subtitle.addOnAttachStateChangeListener(this);
+        }
+
+        private void start() {
+            TextView subtitle = view.get();
+            if (subtitle == null || scheduled || !subtitle.isAttachedToWindow()) return;
+            scheduled = true;
+            subtitle.post(this);
+        }
+
+        @Override
+        public void onViewAttachedToWindow(View attachedView) {
+            start();
+        }
+
+        @Override
+        public void onViewDetachedFromWindow(View detachedView) {
+            detachedView.removeCallbacks(this);
+            scheduled = false;
+        }
+
+        private void render() {
+            render(false);
+        }
+
+        private boolean render(boolean nativeClear) {
+            TextView subtitle = view.get();
+            if (subtitle == null) return false;
+            boolean online;
+            synchronized (ONLINE_LOCK) {
+                online = userId != null && ONLINE_USERS.contains(userId)
+                    && onlineObservedAt > 0
+                    && android.os.SystemClock.elapsedRealtime() - onlineObservedAt < 90000
+                    && onlineAccount != null && onlineAccount.equals(currentOnlineAccount());
+            }
+            CharSequence text = subtitle.getText();
+            boolean managed = text instanceof android.text.Spanned
+                && ((android.text.Spanned) text).getSpanStart(marker) >= 0;
+            if (isOnlineHidden() && online && (nativeClear || android.text.TextUtils.isEmpty(text) || managed)) {
+                android.text.SpannableString label = new android.text.SpannableString(
+                    isVietnamese(subtitle.getContext()) ? "Đang hoạt động" : "Online");
+                label.setSpan(marker, 0, label.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                if (!managed) subtitle.setText(label, TextView.BufferType.SPANNABLE);
+                subtitle.setVisibility(View.VISIBLE);
+                return true;
+            } else if (managed) {
+                subtitle.setText("");
+                subtitle.setVisibility(View.GONE);
+            }
+            return false;
+        }
+
+        @Override
+        public void run() {
+            TextView subtitle = view.get();
+            if (subtitle == null) return;
+            render();
+            if (!subtitle.isAttachedToWindow()) {
+                scheduled = false;
+                return;
+            }
+            if (!android.text.TextUtils.isEmpty(userId) && isOnlineHidden()
+                    && subtitle.getWindowVisibility() == View.VISIBLE && subtitle.hasWindowFocus()
+                    && subtitle.getRootView().isShown()) {
+                long now = android.os.SystemClock.elapsedRealtime();
+                if ((lastChatRefresh == 0 || now - lastChatRefresh > 10000)
+                        && (lastChatAttempt == 0 || now - lastChatAttempt > 5000)) {
+                    lastChatAttempt = now;
+                    CHAT_REFRESH.set(true);
+                    try {
+                        android.util.Log.i("NezumiOnline", "chatRefresh attempt");
+                        requestChatOnlineList();
+                    } catch (LinkageError | RuntimeException ignored) {
+                        android.util.Log.w("NezumiOnline", "Chat online refresh unavailable");
+                    } finally {
+                        CHAT_REFRESH.remove();
+                    }
+                }
+            }
+            scheduled = true;
+            subtitle.postDelayed(this, 2000);
+        }
+    }
+
+    private static Context onlineContext() {
+        try {
+            return (Context) Class.forName("com.zing.zalo.MainApplication")
+                .getMethod("getAppContext").invoke(null);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return null;
+        }
+    }
+
+    private static boolean isOnlineHidden() {
+        Context context = onlineContext();
+        return context != null && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(HIDE_ONLINE_STATUS, false);
+    }
+
+    public static int mapOnlineState(int state) {
+        Context context = onlineContext();
+        boolean hidden = context != null && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(HIDE_ONLINE_STATUS, false);
+        int mapped = state == 103 && hidden ? 102 : state;
+        android.util.Log.i("NezumiOnline", "socketState=" + state + " mapped=" + mapped
+            + " hidden=" + hidden + " contextAvailable=" + (context != null));
+        return mapped;
+    }
+
+    public static void publishOnlineState(int state) {
+        throw new IllegalStateException("Online state bridge was not patched");
+    }
+
+    public static boolean originalOnlineSharing() {
+        return false;
+    }
+
+    public static void applyOriginalOnlineSharing(boolean enabled) {
+        throw new IllegalStateException("Online sharing setter bridge was not patched");
+    }
+
+    public static boolean isOnlinePatchAvailable() {
+        return false;
     }
 
     public static void attach(View root, View anchor) {
@@ -288,10 +575,53 @@ public final class NezumiSettings {
         String readLabel = vietnamese ? "Ẩn trạng thái đã xem" : "Hide read receipts";
         String deliveryLabel = vietnamese ? "Ẩn trạng thái đã nhận" : "Hide delivery receipts";
         String mediaBoxLabel = vietnamese ? "Ẩn Media Box" : "Hide Media Box";
+        String onlineLabel = vietnamese ? "Ẩn trạng thái hoạt động" : "Hide activity status";
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         Dialog page = page(context, "Nezumi's Settings", darkMode);
         LinearLayout list = page.findViewById(android.R.id.content).findViewWithTag("nezumi-list");
         addGroup(list, context, vietnamese ? "Trò chuyện" : "Chat", darkMode);
+        LinearLayout onlineItem = new LinearLayout(context);
+        onlineItem.setGravity(Gravity.CENTER_VERTICAL);
+        onlineItem.setBackgroundColor(surfaceColor(context, darkMode));
+        onlineItem.setPadding(dp(context, 16), 0, dp(context, 16), 0);
+        onlineItem.addView(label(context, onlineLabel, darkMode),
+            new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
+        Switch onlineToggle = new Switch(context);
+        onlineToggle.setContentDescription(onlineLabel);
+        onlineToggle.setThumbTintList(ColorStateList.valueOf(0xFFFFFFFF));
+        onlineToggle.setTrackTintList(new ColorStateList(
+            new int[][] { new int[] { android.R.attr.state_checked }, new int[] {} },
+            new int[] { BLUE, 0xFFBDBDBD }));
+        onlineToggle.setChecked(prefs.getBoolean(HIDE_ONLINE_STATUS, false));
+        onlineToggle.setOnCheckedChangeListener((button, checked) -> {
+            if (prefs.getBoolean(HIDE_ONLINE_STATUS, false) == checked) return;
+            boolean originalSharing = originalOnlineSharing();
+            boolean hasSavedSharing = prefs.contains(SAVED_ONLINE_SHARING);
+            boolean savedSharing = hasSavedSharing ? prefs.getBoolean(SAVED_ONLINE_SHARING, true) : originalSharing;
+            prefs.edit().putBoolean(HIDE_ONLINE_STATUS, checked).apply();
+            try {
+                if (checked) {
+                    if (!hasSavedSharing) {
+                        prefs.edit().putBoolean(SAVED_ONLINE_SHARING, originalSharing).apply();
+                    }
+                    applyOriginalOnlineSharing(false);
+                } else {
+                    applyOriginalOnlineSharing(savedSharing);
+                    prefs.edit().remove(SAVED_ONLINE_SHARING).apply();
+                }
+                publishOnlineState(103);
+            } catch (LinkageError | RuntimeException failure) {
+                applyOriginalOnlineSharing(originalSharing);
+                prefs.edit().putBoolean(HIDE_ONLINE_STATUS, !checked).apply();
+                onlineToggle.setChecked(!checked);
+                Toast.makeText(context, vietnamese ? "Không thể cập nhật trạng thái kết nối" :
+                    "Unable to update connection status", Toast.LENGTH_SHORT).show();
+            }
+        });
+        onlineItem.addView(onlineToggle);
+        onlineItem.setOnClickListener(view -> onlineToggle.setChecked(!onlineToggle.isChecked()));
+        list.addView(onlineItem, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 56)));
+        onlineItem.setVisibility(isOnlinePatchAvailable() ? View.VISIBLE : View.GONE);
         LinearLayout item = new LinearLayout(context);
         item.setGravity(Gravity.CENTER_VERTICAL);
         item.setBackgroundColor(surfaceColor(context, darkMode));

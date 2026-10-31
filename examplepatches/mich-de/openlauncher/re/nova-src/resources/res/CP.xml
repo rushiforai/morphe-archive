@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.textfield.TextInputLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="0x7f0b0398"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    style="0x7f150255">
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="0x7f0b0691"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:inputType="text"
+        style="0x7f15024e"/>
+</com.google.android.material.textfield.TextInputLayout>

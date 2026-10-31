@@ -19,6 +19,8 @@ import app.morphe.extension.facebook.feed.SeenPosts;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.media.RecentlyWatched;
 import app.morphe.extension.facebook.media.SurfaceQuality;
+import app.morphe.extension.facebook.reels.BurnInMode;
+import app.morphe.extension.facebook.reels.BurnInWait;
 import app.morphe.extension.facebook.reels.FeedVideoControls;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.misc.AppLock;
@@ -182,6 +184,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting RETURN_REFRESH_NO_LIMIT =
             new BooleanSetting("hushfacebook_return_refresh_no_limit", FALSE, Setting.parent(BLOCK_RETURN_REFRESH));
+
+    /**
+     * Back on a scrolled-down Home leaves the feed where it is instead of scrolling to the top and
+     * refreshing, and a second Back within two seconds does that (#247). Independent of the switches above.
+     */
+    public static final BooleanSetting BACK_KEEPS_HOME =
+            new BooleanSetting("hushfacebook_back_keeps_home", FALSE);
 
     /**
      * Feed posts Facebook's own detection marked as made with AI. Off until one AI-labeled and one
@@ -404,6 +413,17 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting LONGER_STORY_MUSIC =
             new BooleanSetting("hushfacebook_longer_story_music", FALSE);
 
+    /**
+     * Home's stories row drawn as round pictures ({@link app.morphe.extension.facebook.stories.StoriesTrayCircles},
+     * #260). Starts off. Read as each tile appears.
+     */
+    public static final BooleanSetting STORIES_TRAY_CIRCLES =
+            new BooleanSetting("hushfacebook_stories_tray_circles", FALSE);
+
+    /** The diameter of those pictures in dp, digits only, blank for the default. Not a switch. */
+    public static final StringSetting STORIES_TRAY_SIZE =
+            new StringSetting("hushfacebook_stories_tray_size", "");
+
     /** The two page filters that take server-inlined ads out of Reels and Watch. */
     public static final BooleanSetting HIDE_SPONSORED_REELS =
             new BooleanSetting("hushfacebook_hide_sponsored_reels", TRUE);
@@ -423,6 +443,26 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_PROFILE_NOTES =
             new BooleanSetting("hushfacebook_hide_profile_notes", FALSE);
+
+    /**
+     * Friends, followers and following counts of your own profile that you type yourself, shown on this
+     * phone only ({@link app.morphe.extension.facebook.profile.LocalProfileCounts}, #280). Starts off.
+     * Read each time Facebook lays the profile out, so a change shows the next time a profile opens.
+     */
+    public static final BooleanSetting LOCAL_PROFILE_COUNTS =
+            new BooleanSetting("hushfacebook_local_profile_counts", FALSE);
+
+    /** The count shown for Friends on your own profile: digits only, blank keeps Facebook's own. Not a switch. */
+    public static final StringSetting LOCAL_FRIENDS =
+            new StringSetting("hushfacebook_local_friends", "");
+
+    /** The count shown for Followers on your own profile: digits only, blank keeps Facebook's own. Not a switch. */
+    public static final StringSetting LOCAL_FOLLOWERS =
+            new StringSetting("hushfacebook_local_followers", "");
+
+    /** The count shown for Following on your own profile: digits only, blank keeps Facebook's own. Not a switch. */
+    public static final StringSetting LOCAL_FOLLOWING =
+            new StringSetting("hushfacebook_local_following", "");
 
     /**
      * Facebook's own Save button in the row under a post, beside Like, Comment and Share (issue
@@ -478,6 +518,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting MARKETPLACE_FILTERS_BUTTON =
             new BooleanSetting("hushfacebook_marketplace_filters_button", FALSE, true,
                     Setting.parent(MARKETPLACE_ADVANCED_SEARCH));
+
+    /**
+     * A listing's own page says when it was listed, after its place
+     * ({@link app.morphe.extension.facebook.ads.MarketplaceListingAge}). Read as each listing page
+     * loads, so a change shows on the next one.
+     */
+    public static final BooleanSetting MARKETPLACE_LISTING_DATE =
+            new BooleanSetting("hushfacebook_marketplace_listing_date", TRUE);
 
     /**
      * A seller's Marketplace page always offers View profile, which opens the seller's regular
@@ -590,6 +638,39 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_reel_search_pill", FALSE);
 
     /**
+     * Search and the button beside it at the top of a video or reel opened full screen, the Reels
+     * profile button over a reel and More over a feed video ({@link
+     * app.morphe.extension.facebook.reels.ViewerTopBar}, #311). Back stays, and so does More at the
+     * foot of the side buttons, which holds Download. Asked after each layout of the screen.
+     */
+    public static final BooleanSetting HIDE_VIEWER_TOP_BUTTONS =
+            new BooleanSetting("hushfacebook_hide_viewer_top_buttons", FALSE);
+
+    /**
+     * Burn-in guard on the Reels screen ({@link app.morphe.extension.facebook.reels.BurnInGuard},
+     * #288): once the screen has gone {@link #BURN_IN_WAIT} without a touch, what shows beside the
+     * video fades, and with {@link BurnInMode#DIM_AND_SHIFT} the screen also moves a step every two
+     * minutes. Off by default. Read on each pass, so a change shows without a restart.
+     */
+    public static final EnumSetting<BurnInMode> BURN_IN_GUARD =
+            new EnumSetting<>("hushfacebook_burn_in_guard", BurnInMode.OFF);
+
+    /**
+     * Dim after: how long the Reels screen goes untouched before Burn-in guard dims it (#288). A tap
+     * on the video, or a double tap to like it, doesn't start it over. Five seconds by default.
+     */
+    public static final EnumSetting<BurnInWait> BURN_IN_WAIT =
+            new EnumSetting<>("hushfacebook_burn_in_wait", BurnInWait.FIVE_SECONDS);
+
+    /**
+     * Stay dim when I tap (#288): once Burn-in guard has dimmed the Reels screen, no tap or swipe on
+     * it brings the controls back, the next reel included, and they still work. Leaving Reels does.
+     * Off by default.
+     */
+    public static final BooleanSetting BURN_IN_STAY_DIM =
+            new BooleanSetting("hushfacebook_burn_in_stay_dim", FALSE);
+
+    /**
      * The numbers under a reel's Like, Comment and Share icons go, and the icons stay where they are
      * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#countText}, #180). Off by default.
      * A change shows on the buttons drawn after it.
@@ -629,6 +710,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SHOW_REEL_COMMENT_BUTTON =
             new BooleanSetting("hushfacebook_show_reel_comment_button", FALSE);
+
+    /**
+     * The date a reel or full-screen video was posted shows under its author, a line Facebook
+     * builds behind a server switch that's off for most accounts
+     * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#showsPostDate}, #296). Off by
+     * default. A change shows from the next reel.
+     */
+    public static final BooleanSetting SHOW_REEL_POST_DATE =
+            new BooleanSetting("hushfacebook_show_reel_post_date", FALSE);
 
     /**
      * The speaker button at the bottom of a reel's right side isn't built
@@ -698,6 +788,15 @@ public class Settings extends BaseSettings {
      */
     public static final EnumSetting<ReelsOrder> REELS_ORDER =
             new EnumSetting<>("hushfacebook_reels_order", ReelsOrder.NEWEST);
+
+    /**
+     * A profile's Reels tab lists its most viewed reels first
+     * ({@link app.morphe.extension.facebook.reels.ProfileReelsSort}, #232), by the play count
+     * Facebook reads for each tile. Off is Facebook's own order, newest first. Starts off. A
+     * profile opened after the change picks it up.
+     */
+    public static final BooleanSetting PROFILE_REELS_MOST_VIEWED =
+            new BooleanSetting("hushfacebook_profile_reels_most_viewed", FALSE);
 
     /**
      * Facebook's own analytics uploads ({@link app.morphe.extension.facebook.misc.AnalyticsUploads}):
@@ -801,8 +900,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_original_chat_media", FALSE);
 
     /**
-     * A double tap on a reel or a video left without Facebook's like: no heart, no like sent. A
-     * single tap and the Like button do what they always did. Starts off.
+     * A double tap on a reel, a video or a photo on Home left without Facebook's like: no heart, no
+     * like sent. A single tap and the Like button do what they always did. Starts off.
      */
     public static final BooleanSetting TURN_OFF_DOUBLE_TAP_LIKE =
             new BooleanSetting("hushfacebook_turn_off_double_tap_like", FALSE);
@@ -877,6 +976,16 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SLOWER_REEL_SPEEDS =
             new BooleanSetting("hushfacebook_slower_reel_speeds", FALSE);
+
+    /**
+     * The gear menu offers Playback speed on a full-screen video that isn't live, a finished live
+     * video among them, where Facebook's full-screen player leaves it out behind a server flag
+     * (#238). It rides on Keep the reel speed's patch
+     * ({@link app.morphe.extension.facebook.media.ReplaySpeed}). Ads and videos that are still
+     * live keep Facebook's menu, and so does everything while it's off or paused.
+     */
+    public static final BooleanSetting SPEED_ON_REPLAYS =
+            new BooleanSetting("hushfacebook_speed_on_replays", TRUE);
 
     /**
      * A reel you hold plays at double speed until you let go, through the speed-up Facebook's Reels
@@ -1014,6 +1123,23 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_comment_downvote_button", FALSE);
 
     /**
+     * Comments lose Like from the row under them
+     * ({@link app.morphe.extension.facebook.comments.CommentSheetOptions}, #241). Reply, the reaction
+     * icons and their count stay. Off by default. A change shows on comments drawn after it.
+     */
+    public static final BooleanSetting HIDE_COMMENT_LIKE_BUTTON =
+            new BooleanSetting("hushfacebook_hide_comment_like_button", FALSE);
+
+    /**
+     * The thumbs-down under a comment becomes a Block button that opens Facebook's own block
+     * sheet for the commenter, confirmation included
+     * ({@link app.morphe.extension.facebook.comments.CommentBlock}, #271). Off by default. A
+     * change shows on comments drawn after it.
+     */
+    public static final BooleanSetting COMMENT_BLOCK_BUTTON =
+            new BooleanSetting("hushfacebook_comment_block_button", FALSE);
+
+    /**
      * Comments whose words link to an online shop, like the Shopee links pasted under reels, are
      * left out with their replies ({@link app.morphe.extension.facebook.comments.CommentSheetOptions},
      * #118). Off by default. A change shows on the next comments drawn.
@@ -1104,6 +1230,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting TAP_TO_PLAY_REELS_AFTER_FIRST =
             new BooleanSetting("hushfacebook_tap_to_play_reels_after_first", FALSE);
+
+    /**
+     * A story's video waits for a touch on the story itself: one that ends after the story first
+     * tried to start, so the tap that opened the story doesn't count (#261). Works with
+     * {@link #TAP_TO_PLAY} on or off. Off, stories follow that switch as before.
+     */
+    public static final BooleanSetting TAP_TO_PLAY_STORIES =
+            new BooleanSetting("hushfacebook_tap_to_play_stories", FALSE);
 
     /**
      * A separate feed play/pause button. Native video taps still open fullscreen. Starts off. With
@@ -1279,6 +1413,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting KEEP_FEED_VIDEOS_MUTED =
             new BooleanSetting("hushfacebook_keep_feed_videos_muted", FALSE, true);
+
+    /**
+     * Stories play with their sound off until you turn the sound on with a speaker tap or the
+     * volume up key, and again from each new session
+     * ({@link app.morphe.extension.facebook.media.StorySound}, #261). Works with
+     * {@link #KEEP_FEED_VIDEOS_MUTED} on or off.
+     */
+    public static final BooleanSetting MUTE_STORIES =
+            new BooleanSetting("hushfacebook_mute_stories", FALSE);
 
     /**
      * A reel's progress bar stays full size, thumb and all, and a full-screen video's controls stay
@@ -1561,6 +1704,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_dont_save_search_history", FALSE);
 
     /**
+     * The Posted date filter in post search opens Facebook's own from and to month picker in place
+     * of the list of years ({@link app.morphe.extension.facebook.search.SearchDateRange}, #279).
+     * Off by default.
+     */
+    public static final BooleanSetting SEARCH_DATE_RANGE =
+            new BooleanSetting("hushfacebook_search_date_range", FALSE);
+
+    /**
      * The For you section of searches Facebook suggests, on the search screen before anything is
      * typed (#80), found by the module name Facebook gives its entry. Recent searches, the search box
      * and the suggestions while typing stay. Part of Hide suggested and promoted posts, off until picked.
@@ -1774,6 +1925,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SHOW_REEL_DOWNLOAD_BUTTON =
             new BooleanSetting("hushfacebook_show_reel_download_button", TRUE, Setting.parent(DOWNLOAD_REELS));
+
+    /**
+     * A Cast button on reels, under where Download goes (#182). Its tap hands the reel to a casting
+     * app the way {@link #FEED_VIDEO_CAST_BUTTON} does for feed videos. Starts off. It saves nothing,
+     * so it stands apart from DOWNLOAD_REELS.
+     */
+    public static final BooleanSetting REEL_CAST_BUTTON =
+            new BooleanSetting("hushfacebook_reel_cast_button", FALSE);
 
     /**
      * Copy caption in a reel's More sheet, which copies the reel's whole caption (#240). Starts on.
@@ -2075,6 +2234,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_search_button", FALSE, true);
 
     /**
+     * Pressing and holding the top bar's search button opens Google Lens (#245,
+     * {@link app.morphe.extension.facebook.search.PictureSearch}). The long press is set as the bar
+     * makes the button, so turning it on waits for a restart.
+     */
+    public static final BooleanSetting SEARCH_WITH_PICTURE =
+            new BooleanSetting("hushfacebook_search_with_picture", FALSE, true);
+
+    /**
      * Facebook's dark mode controller answers dark whatever its own setting says
      * ({@link app.morphe.extension.facebook.theme.ForceDarkMode}), for tablets whose Facebook
      * settings have no Dark mode row. Facebook asks as each screen applies its theme, so a change
@@ -2223,6 +2390,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SHOW_FULL_POST_TEXT =
             new BooleanSetting("hushfacebook_show_full_post_text", FALSE);
+
+    /**
+     * A post's three-dot menu gets See who shared, which opens Facebook's own list of the people
+     * who shared it ({@link app.morphe.extension.facebook.feed.WhoShared}). A change shows on the
+     * next menu opened.
+     */
+    public static final BooleanSetting SEE_WHO_SHARED =
+            new BooleanSetting("hushfacebook_see_who_shared", FALSE);
 
     /**
      * Posts and reel captions keep the language they were written in, with Facebook's See

@@ -56,7 +56,9 @@ import app.morphe.extension.shared.settings.HushfacebookPause;
  * query brings the ads back among the listings. So the answers of Marketplace's search queries are
  * read on their way back, where the module's Tigon callbacks hand the text to JavaScript ({@link
  * #responsePiece}, {@link #responseWhole}, and {@link #responseEnd} for what still waits when an
- * answer in pieces ends), and {@link MarketplaceSearchAds} takes the ads out.
+ * answer in pieces ends), and {@link MarketplaceSearchAds} takes the ads out. A listing page's
+ * answer goes through the same hooks to {@link MarketplaceListingAge}, which says when the listing
+ * went up.
  *
  * <p>It fails open: with the patch not in the build, the switch off, Hushfacebook paused, the
  * settings not ready yet, a body it can't read, or any failure in here, the request is Facebook's
@@ -133,8 +135,14 @@ public final class MarketplaceAdFilter {
     /** Where the response hooks report under the patch's family. */
     static final String SEARCH_ANSWER = "Marketplace search answer";
 
+    /** Where the listing date reports under the patch's family. */
+    static final String LISTING_DATE = "Marketplace listing date";
+
     /** Search answers being read, by the Networking module's record of their request. */
     private static final Map<Object, MarketplaceSearchAds.Answer> answers = new WeakHashMap<>();
+
+    /** Listing page answers being read, the same way; null for one that goes on unread. */
+    private static final Map<Object, MarketplaceListingAge.Answer> listingAnswers = new WeakHashMap<>();
 
     /** A body longer than this is sent as it is, unread. Relay's are a few kilobytes. */
     static final int MAX_BODY_CHARS = 512 * 1024;
@@ -264,6 +272,7 @@ public final class MarketplaceAdFilter {
         try {
             if (piece == null || request == null || !inBuild()) return piece;
             MarketplaceResponseDiagnostics.piece(piece, trackingName, request);
+            if (MarketplaceListingAge.listingPage(trackingName)) return listingPiece(piece, request);
             String query = searchQuery(trackingName);
             if (query == null) return piece;
             synchronized (answers) {
@@ -289,6 +298,14 @@ public final class MarketplaceAdFilter {
         try {
             if (text == null || !inBuild()) return text;
             MarketplaceResponseDiagnostics.whole(text, trackingName);
+            if (MarketplaceListingAge.listingPage(trackingName)) {
+                MarketplaceListingAge.Answer dated = newListingAnswer();
+                if (dated == null) return text;
+                Logger.printDebug(() -> "Listing date: reading a listing page's answer whole");
+                String read = dated.read(text);
+                String rest = dated.end();
+                return rest == null ? read : read + rest;
+            }
             String query = searchQuery(trackingName);
             if (query == null) return text;
             MarketplaceSearchAds.Answer answer = newAnswer(query);
@@ -297,6 +314,7 @@ public final class MarketplaceAdFilter {
             return rest.isEmpty() ? read : read + rest;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.SPONSORED_MARKETPLACE, SEARCH_ANSWER, failure);
+            Logger.printDebug(() -> "Marketplace answer: reading it threw " + failure.getClass().getName());
             return text;
         }
     }
@@ -312,6 +330,11 @@ public final class MarketplaceAdFilter {
         try {
             if (request == null) return null;
             MarketplaceResponseDiagnostics.end(request);
+            MarketplaceListingAge.Answer dated;
+            synchronized (listingAnswers) {
+                dated = listingAnswers.remove(request);
+            }
+            if (dated != null) return dated.end();
             MarketplaceSearchAds.Answer answer;
             synchronized (answers) {
                 answer = answers.remove(request);
@@ -320,6 +343,58 @@ public final class MarketplaceAdFilter {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.SPONSORED_MARKETPLACE, SEARCH_ANSWER, failure);
             return null;
+        }
+    }
+
+    /**
+     * [piece] of a listing page's answer, with its listings dated by the reading kept for [request].
+     * A failure passes on what waited and the piece as they came, and the rest of the answer unread.
+     */
+    private static String listingPiece(String piece, Object request) {
+        MarketplaceListingAge.Answer dated = null;
+        try {
+            synchronized (listingAnswers) {
+                if (listingAnswers.containsKey(request)) {
+                    dated = listingAnswers.get(request);
+                } else {
+                    dated = newListingAnswer();
+                    listingAnswers.put(request, dated);
+                    if (dated != null) Logger.printDebug(() -> "Listing date: reading a listing page's answer in pieces");
+                }
+            }
+            return dated == null ? piece : dated.read(piece);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.SPONSORED_MARKETPLACE, LISTING_DATE, failure);
+            Logger.printDebug(() -> "Listing date: reading the answer threw " + failure.getClass().getName());
+            synchronized (listingAnswers) {
+                listingAnswers.put(request, null);
+            }
+            String rest = dated == null ? null : dated.end();
+            return rest == null ? piece : rest + piece;
+        }
+    }
+
+    /** A listing page answer's reading, or null when the listing date is switched off. */
+    @Nullable
+    private static MarketplaceListingAge.Answer newListingAnswer() {
+        HookStatus.invoked(FamilyNames.SPONSORED_MARKETPLACE);
+        RuntimeException failure = failNextForTests;
+        if (failure != null) {
+            failNextForTests = null;
+            throw failure;
+        }
+        if (!listingDate()) return null;
+        HookStatus.bound(FamilyNames.SPONSORED_MARKETPLACE, LISTING_DATE);
+        return new MarketplaceListingAge.Answer(System.currentTimeMillis());
+    }
+
+    /** Whether a listing's page says when it was listed. Out while paused or before the settings are ready. */
+    private static boolean listingDate() {
+        try {
+            return Utils.settingsReady() && !HushfacebookPause.isPaused() && Settings.MARKETPLACE_LISTING_DATE.get();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.SPONSORED_MARKETPLACE, "listing date read", failure);
+            return false;
         }
     }
 
@@ -702,6 +777,9 @@ public final class MarketplaceAdFilter {
         MarketplaceResponseDiagnostics.forget();
         synchronized (answers) {
             answers.clear();
+        }
+        synchronized (listingAnswers) {
+            listingAnswers.clear();
         }
     }
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">กรอไปข้างหน้า %d วินาที</item>
+        <item quantity="other">กรอไปข้างหน้า %d วินาที</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">กรอกลับ %d วินาที</item>
+        <item quantity="other">กรอกลับ %d วินาที</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d การประชุม</item>
+        <item quantity="one">%d การประชุม</item>
+        <item quantity="two">%d การประชุม</item>
+        <item quantity="few">%d การประชุม</item>
+        <item quantity="many">%d การประชุม</item>
+        <item quantity="other">%d การประชุม</item>
+    </plurals>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:drawable="0x7f08002e">
+    <target
+        android:name="line_1_group"
+        android:animation="0x7f08002f"/>
+    <target
+        android:name="line_2_group"
+        android:animation="0x7f080030"/>
+    <target
+        android:name="path_3"
+        android:animation="0x7f080031"/>
+    <target
+        android:name="path_9"
+        android:animation="0x7f080032"/>
+    <target
+        android:name="rays"
+        android:animation="0x7f080033"/>
+</animated-vector>

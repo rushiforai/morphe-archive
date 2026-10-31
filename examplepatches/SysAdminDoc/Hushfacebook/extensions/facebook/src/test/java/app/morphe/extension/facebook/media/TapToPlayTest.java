@@ -31,6 +31,7 @@ import java.util.Collections;
 
 import app.morphe.extension.facebook.media.TapToPlayForTests.Autoplay;
 import app.morphe.extension.facebook.media.TapToPlayForTests.Trigger;
+import app.morphe.extension.facebook.reels.FeedVideoAlone;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.SettingsContextRule;
@@ -1016,6 +1017,97 @@ public class TapToPlayTest {
         assertFalse("a reel after a swipe", reelAt(new Object(), now + 40_500));
     }
 
+    /** A start on [player] at [now] that isn't a reel's: BY_AUTOPLAY on a plain video's player. */
+    private static boolean plainVideoAt(Object player, long now) {
+        return TapToPlay.decide(player, Trigger.BY_AUTOPLAY.name(), false, now, "");
+    }
+
+    /**
+     * #239: a plain video tapped in the feed opens Facebook's player, which starts it once the viewer
+     * has loaded, past the tap window, with BY_AUTOPLAY on a player that isn't a reel's. That start
+     * plays, through Facebook's own restarts, whether or not a screen of its own opened, and one
+     * video takes it.
+     */
+    @Test
+    public void aFeedVideoTapPlaysThePlainVideoItsPlayerOpens() {
+        long now = 100_000;
+        tapAt(now - 300);
+        TapToPlay.feedVideoOpened(now - 200);
+        Object video = new Object();
+        assertTrue("the plain video the tap opened", plainVideoAt(video, now + 1_500));
+        assertTrue("it plays through Facebook's own restarts", TapToPlay.armed(video));
+        assertFalse("another video after it with no tap of its own", plainVideoAt(new Object(), now + 1_600));
+
+        tapAt(now + 20_000);
+        TapToPlay.feedVideoOpened(now + 20_100);
+        Activity viewer = Robolectric.buildActivity(Activity.class).setup().get();
+        TapToPlay.screenCreated(viewer, now + 20_200);
+        TapToPlay.activityResumed(viewer);
+        assertTrue("a feed reel the tap opened in a screen of its own", reelAt(new Object(), now + 21_500));
+        assertFalse("which leaves nothing for a second video", plainVideoAt(new Object(), now + 21_600));
+    }
+
+    /**
+     * A player opening with no tap, or over two seconds after one, isn't a feed video someone tapped,
+     * and a start past ten seconds, a feed coming back into view and a swipe in between all leave the
+     * video waiting.
+     */
+    @Test
+    public void aFeedVideoPlayerWithNoTapOrALateStartStillWaits() {
+        long now = 100_000;
+        TapToPlay.feedVideoOpened(now);
+        assertFalse("a player opening with no tap", plainVideoAt(new Object(), now + 1_500));
+
+        tapAt(now + 10_000);
+        TapToPlay.feedVideoOpened(now + 10_000 + TapToPlay.SCREEN_AFTER_TAP_MS + 1);
+        assertFalse("a player opening over two seconds after the tap", plainVideoAt(new Object(), now + 13_000));
+
+        tapAt(now + 20_000);
+        TapToPlay.feedVideoOpened(now + 20_100);
+        assertFalse("a start past ten seconds",
+                plainVideoAt(new Object(), now + 20_100 + TapToPlay.TAPPED_SCREEN_WINDOW_MS + 1));
+        assertFalse("and it's gone after that", plainVideoAt(new Object(), now + 30_300));
+
+        tapAt(now + 40_000);
+        TapToPlay.feedVideoOpened(now + 40_100);
+        assertFalse("the feed coming back isn't the video", decide(new Object(), Trigger.BY_FRAGMENT_RESUME, now + 41_500));
+        assertTrue("the video's own start still has it", plainVideoAt(new Object(), now + 41_600));
+
+        tapAt(now + 50_000);
+        TapToPlay.feedVideoOpened(now + 50_100);
+        TapToPlay.nonTapGesture();
+        assertFalse("a start after a swipe", plainVideoAt(new Object(), now + 51_500));
+    }
+
+    /**
+     * Clean up Reels' hooks tell it a feed video opened its player whatever that patch's own switch
+     * says, and only for a video opened from a feed.
+     */
+    @Test
+    public void cleanUpReelsTellsItAFeedVideoOpened() {
+        TapToPlayForTests.tapEnded(300);
+        FeedVideoAlone.reelsViewerOpening("user_timeline::feed_story");
+        assertTrue("a page's video post opened from its timeline",
+                plainVideoAt(new Object(), SystemClock.uptimeMillis() + 1_500));
+
+        TapToPlayForTests.tapEnded(300);
+        FeedVideoAlone.reelsViewerOpening("fb_shorts_tab::reels_tab");
+        assertFalse("the reels viewer opened from the Reels tab",
+                plainVideoAt(new Object(), SystemClock.uptimeMillis() + 1_500));
+
+        TapToPlayForTests.tapEnded(300);
+        FeedVideoAlone.feedVideoTapped();
+        assertTrue("a video tapped in a feed, through the Warion step",
+                plainVideoAt(new Object(), SystemClock.uptimeMillis() + 1_500));
+
+        Settings.TAP_TO_PLAY.save(false);
+        TapToPlayForTests.tapEnded(300);
+        FeedVideoAlone.feedVideoTapped();
+        Settings.TAP_TO_PLAY.save(true);
+        assertFalse("nothing recorded while the switch was off",
+                plainVideoAt(new Object(), SystemClock.uptimeMillis() + 1_500));
+    }
+
     /** Only a fresh screen while the switch is on counts, through the activity watcher. */
     @Test
     public void onlyAFreshScreenWhileTheSwitchIsOnCountsAsTapped() {
@@ -1121,6 +1213,106 @@ public class TapToPlayTest {
         String report = LogBufferManager.buildExportText();
         assertFalse(report, report.contains("Tap to play: held"));
         assertFalse(report, report.contains("Tap to play: Facebook's Autoplay setting"));
+    }
+
+    /** Answers the story viewer's PlayerOrigin for [story] and a feed's for every other player. */
+    private static void storyPlayer(Object story) {
+        TapToPlay.origins = player -> player == story ? "fb_stories_video_view::fb_stories_tray" : "newsfeed";
+    }
+
+    /** #261: the tap that opened a story doesn't play it. A touch on the story itself does. */
+    @Test
+    public void aVideoStoryWaitsForATapOfItsOwn() {
+        Object story = new Object();
+        storyPlayer(story);
+        Settings.TAP_TO_PLAY_STORIES.save(true);
+        try {
+            TapToPlayForTests.tapEnded(100);
+            assertFalse("the tap that opened the story played it", TapToPlay.allowStart(story, Trigger.BY_AUTOPLAY));
+            assertFalse("the tap that opened it played it on the second ask", TapToPlay.allowStart(story, Trigger.BY_USER));
+            SystemClock.sleep(2_000);
+            TapToPlayForTests.tapEnded(10);
+            assertTrue("a touch on the story didn't play it", TapToPlay.allowStart(story, Trigger.BY_AUTOPLAY));
+            assertTrue(TapToPlay.armed(story));
+            TapClock.forget();
+            assertTrue("the story's own restart after you let go", TapToPlay.allowStart(story, Trigger.BY_AUTOPLAY));
+            TapToPlayForTests.tapEnded(10);
+            assertTrue("a feed video stopped following Tap to play", TapToPlay.allowStart(new Object(), Trigger.BY_USER));
+        } finally {
+            Settings.TAP_TO_PLAY_STORIES.resetToDefault();
+        }
+    }
+
+    @Test
+    public void videoStoriesWaitWithTapToPlayOff() {
+        Object story = new Object();
+        storyPlayer(story);
+        Settings.TAP_TO_PLAY.save(false);
+        Settings.TAP_TO_PLAY_STORIES.save(true);
+        try {
+            assertTrue("with Tap to play off a feed video waited", TapToPlay.allowStart(new Object(), Trigger.BY_AUTOPLAY));
+            assertFalse("a story played by itself", TapToPlay.allowStart(story, Trigger.BY_AUTOPLAY));
+            assertTrue("a media control was held", TapToPlay.allowStart(story, Trigger.BY_MEDIA_SESSION_CONTROLS));
+            Object next = new Object();
+            storyPlayer(next);
+            assertFalse(TapToPlay.allowStart(next, Trigger.BY_AUTOPLAY));
+            SystemClock.sleep(300);
+            TapToPlayForTests.tapEnded(5);
+            assertTrue("a touch on the story didn't play it", TapToPlay.allowStart(next, Trigger.BY_AUTOPLAY));
+        } finally {
+            Settings.TAP_TO_PLAY_STORIES.resetToDefault();
+        }
+    }
+
+    /** The story viewer binds the next story to the same player, and the tap that moved there doesn't count. */
+    @Test
+    public void theNextStoryOnTheSamePlayerWaitsAgain() {
+        Object story = new Object();
+        storyPlayer(story);
+        Settings.TAP_TO_PLAY_STORIES.save(true);
+        try {
+            assertFalse(TapToPlay.allowStart(story, Trigger.BY_AUTOPLAY));
+            SystemClock.sleep(TapToPlay.BIND_GRACE_MS + 500);
+            TapToPlayForTests.tapEnded(20);
+            TapToPlay.rebound(story);
+            assertFalse("the tap that moved to the next story played it", TapToPlay.allowStart(story, Trigger.BY_AUTOPLAY));
+
+            SystemClock.sleep(500);
+            TapToPlayForTests.tapEnded(5);
+            assertTrue(TapToPlay.allowStart(story, Trigger.BY_AUTOPLAY));
+            SystemClock.sleep(TapToPlay.BIND_GRACE_MS + 500);
+            TapToPlayForTests.tapEnded(20);
+            TapToPlay.rebound(story);
+            assertFalse("the story after one you played started by itself", TapToPlay.allowStart(story, Trigger.BY_AUTOPLAY));
+        } finally {
+            Settings.TAP_TO_PLAY_STORIES.resetToDefault();
+        }
+    }
+
+    @Test
+    public void offStoriesFollowTapToPlay() {
+        Object story = new Object();
+        storyPlayer(story);
+        assertFalse(Settings.TAP_TO_PLAY_STORIES.defaultValue);
+        TapToPlayForTests.tapEnded(100);
+        assertTrue("the tap that opened a story stopped playing it", TapToPlay.allowStart(story, Trigger.BY_USER));
+        Object other = new Object();
+        storyPlayer(other);
+        Settings.TAP_TO_PLAY.save(false);
+        TapClock.forget();
+        assertTrue("with both switches off a story waited", TapToPlay.allowStart(other, Trigger.BY_AUTOPLAY));
+    }
+
+    @Test
+    public void onlyTheStoryViewersOriginsAreStories() {
+        assertTrue(TapToPlay.isStoryOrigin("fb_stories_video_view"));
+        assertTrue(TapToPlay.isStoryOrigin("FB_STORIES_VIDEO_VIEW::fb_stories_tray"));
+        assertTrue("a story opened from the feed", TapToPlay.isStoryOrigin("newsfeed::fb_stories_video_view"));
+        assertFalse("a reel opened from a story", TapToPlay.isStoryOrigin("newsfeed::fb_shorts_viewer"));
+        assertFalse(TapToPlay.isStoryOrigin("fb_shorts_viewer::fb_stories_video_view"));
+        assertFalse(TapToPlay.isStoryOrigin("newsfeed"));
+        assertFalse(TapToPlay.isStoryOrigin(""));
+        assertFalse(TapToPlay.isStoryOrigin(null));
     }
 
     private static int occurrences(String text, String part) {

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_gravity="start|center_vertical"
+        android:id="0x7f0b0103"
+        android:layout_width="0x7f0704fa"
+        android:layout_height="0x7f0704f9"
+        app:srcCompat="0x7f080631"/>
+    <androidx.appcompat.widget.AppCompatTextView
+        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
+        android:layout_gravity="start|center_vertical"
+        android:id="0x7f0b0216"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="0x7f0704f7"/>
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_gravity="center"
+        android:id="0x7f0b0151"
+        android:visibility="invisible"
+        android:layout_width="0x7f0704fa"
+        android:layout_height="wrap_content"
+        app:srcCompat="0x7f0805a0"/>
+</merge>

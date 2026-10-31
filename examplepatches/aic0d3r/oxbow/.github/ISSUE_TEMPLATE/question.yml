@@ -1,0 +1,40 @@
+name: Question
+description: Ask a question about safety, privacy, behavior, releases, or project direction
+title: "[Question]: "
+labels: ["question", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for questions that are not clearly bugs or feature requests.
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Question topic
+      options:
+        - Safety / account risk / Terms of Service
+        - Privacy
+        - Releases / supported Instagram versions
+        - Build from source
+        - Clone APK vs Classic APK
+        - Project direction
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Ask the question clearly and include context if it matters.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Mention your device, APK type, Instagram version, or threat model if relevant.
+    validations:
+      required: false

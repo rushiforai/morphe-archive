@@ -9,7 +9,10 @@ import android.app.Application;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
+import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RecordingCanvas;
 import android.graphics.RenderEffect;
@@ -71,10 +74,13 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * blurs a view's own content, which is why the copy is needed. It costs one recording and one blur
  * of a bar sized area per bar per frame, and only while a frame draws anyway. The frost fades and
  * moves with the bar, so a bar sliding away takes its frost along. It stays inside the bar's rows,
- * so a holder taller than its tabs can't blur a band of the feed above them, and a page showing a
- * SurfaceView gets none: drawing one a second time moves or drops its video surface, and the reel
- * went black (#171). Only one on screen counts. Reels' page waiting beside Home with its video
- * kept every tab plain once Reels had been opened, which read as the frost coming and going (#188).
+ * so a holder taller than its tabs can't blur a band of the feed above them, and a SurfaceView is
+ * left out of the copy: drawing one a second time moves or drops its video surface, and the reel
+ * went black (#171). The copy is drawn around it and cleared where it is, so the video shows
+ * through the tint the way it shows through its own hole. A page showing one used to get no frost
+ * at all, and a feed video scrolling into view turned both bars from frost to a dark strip (#250).
+ * Only one on screen counts: Reels' page waiting beside Home with its video kept every tab plain
+ * once Reels had been opened, which read as the frost coming and going (#188).
  *
  * <p>Any failure gives every fill back and stops the bars of that screen, which then look stock.
  */
@@ -187,6 +193,57 @@ public final class TranslucentBars {
         if (host instanceof SurfaceView) return true;
         box.set(0, 0, host.getWidth(), host.getHeight());
         return surfaceInside(host, box);
+    }
+
+    /**
+     * Draws [host] on [canvas], which starts at its top left, for the frost: all of it but the
+     * SurfaceViews on screen in it. A branch holding one is drawn child by child around it, only
+     * the children reaching into [area], in [host]'s coordinates, and the copy is cleared where
+     * the video is. [box] is scratch space.
+     */
+    static void record(View host, Canvas canvas, Rect area, Rect box) {
+        if (host instanceof SurfaceView) {
+            canvas.drawRect(0, 0, host.getWidth(), host.getHeight(), CLEAR);
+        } else if (holdsSurface(host, box)) {
+            drawAround((ViewGroup) host, canvas, area, box);
+        } else {
+            canvas.translate(-host.getScrollX(), -host.getScrollY());
+            host.draw(canvas);
+        }
+    }
+
+    /** [group]'s background, then each of its children that reaches into [area], the way record does it. */
+    private static void drawAround(ViewGroup group, Canvas canvas, Rect area, Rect box) {
+        Drawable background = group.getBackground();
+        if (background != null) background.draw(canvas);
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child.getVisibility() != View.VISIBLE || child.getAlpha() <= 0f) continue;
+            int dx = child.getLeft() - group.getScrollX();
+            int dy = child.getTop() - group.getScrollY();
+            int left = dx + Math.round(child.getTranslationX());
+            int top = dy + Math.round(child.getTranslationY());
+            if (!area.intersects(left, top, left + child.getWidth(), top + child.getHeight())) continue;
+            int saved = canvas.save();
+            canvas.translate(dx, dy);
+            if (!child.getMatrix().isIdentity()) canvas.concat(child.getMatrix());
+            area.offset(-left, -top);
+            try {
+                record(child, canvas, area, box);
+            } finally {
+                area.offset(left, top);
+                canvas.restoreToCount(saved);
+            }
+        }
+    }
+
+    /** Clears what's drawn under it, where a video is left out of the frost. */
+    private static final Paint CLEAR = clear();
+
+    private static Paint clear() {
+        Paint paint = new Paint();
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+        return paint;
     }
 
     /** Whether a visible child of [view] is or holds a SurfaceView inside [box], in [view]'s coordinates. */
@@ -372,7 +429,6 @@ public final class TranslucentBars {
                     if (other.getGlobalVisibleRect(visible)) rows.union(visible);
                 }
                 View under = blurs ? under(bar) : null;
-                if (under != null && holdsSurface(under, visible)) under = null;
                 seen.setEmpty();
                 float shown = keep(bar, bar, row, under != null, 1f, 0);
                 if (under != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -595,6 +651,9 @@ public final class TranslucentBars {
         final RenderNode node = new RenderNode("Hushfacebook frost");
         final RenderNode blur = new RenderNode("Hushfacebook frost blur");
         private final int[] origin = new int[2];
+        /** The recorded part of the host, in its coordinates, and record's scratch box. */
+        private final Rect inside = new Rect();
+        private final Rect box = new Rect();
         private boolean recording;
         int frame;
 
@@ -624,8 +683,9 @@ public final class TranslucentBars {
             RecordingCanvas canvas = blur.beginRecording(width, height);
             recording = true;
             try {
-                canvas.translate(-left - host.getScrollX(), -top - host.getScrollY());
-                host.draw(canvas);
+                canvas.translate(-left, -top);
+                inside.set(left, top, left + width, top + height);
+                record(host, canvas, inside, box);
             } finally {
                 recording = false;
                 blur.endRecording();

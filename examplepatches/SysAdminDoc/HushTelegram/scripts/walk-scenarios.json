@@ -22,6 +22,7 @@
     { "id": "section:Privacy", "kind": "section", "page": "Privacy", "patches": ["HushTelegram settings"] },
     { "id": "section:Links", "kind": "section", "page": "Links", "patches": ["HushTelegram settings"] },
     { "id": "section:Updates", "kind": "section", "page": "Updates", "patches": ["HushTelegram settings"] },
+    { "id": "section:Ways in", "kind": "section", "page": "Ways in", "patches": ["HushTelegram settings"] },
     { "id": "section:Pause", "kind": "section", "page": "Pause", "patches": ["HushTelegram settings"] },
     { "id": "section:Settings backup", "kind": "section", "page": "Settings backup", "patches": ["HushTelegram settings"] },
     { "id": "section:Diagnostics", "kind": "section", "page": "Diagnostics", "patches": ["HushTelegram settings"] },

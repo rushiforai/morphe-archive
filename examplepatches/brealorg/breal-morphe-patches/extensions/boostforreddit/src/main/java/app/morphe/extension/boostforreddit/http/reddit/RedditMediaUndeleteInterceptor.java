@@ -1,0 +1,98 @@
+/*
+ * Copyright 2026 wchill.
+ * Modified for Breal undelete audit: live-first, fail-open recovery (2026-10-12).
+ * https://github.com/wchill/patcheddit
+ *
+ * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
+ */
+
+package app.morphe.extension.boostforreddit.http.reddit;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+
+import app.morphe.extension.boostforreddit.http.HttpUtils;
+import app.morphe.extension.boostforreddit.utils.BoostUndeleteSettings;
+import app.morphe.extension.boostforreddit.utils.LoggingUtils;
+import app.morphe.extension.boostforreddit.http.wayback.WaybackMachine;
+import app.morphe.extension.boostforreddit.http.wayback.WaybackResponse;
+import okhttp3.Interceptor;
+import okhttp3.Response;
+import okhttp3.Request;
+
+
+public class RedditMediaUndeleteInterceptor implements Interceptor {
+
+    private static final String FAIL_OPEN_MARKER = "morphe_boost_undelete_media_fail_open";
+
+    @NotNull
+    @Override
+    public Response intercept(Chain chain) throws IOException {
+        Request request = chain.request();
+        if (!BoostUndeleteSettings.isRedditUndeleteEnabled()) {
+            return chain.proceed(request);
+        }
+
+        String host = request.url().host();
+
+        String contentUrl;
+        if (host.contains("i.redd.it") || host.contains("preview.redd.it")) {
+            contentUrl = request.url().toString();
+        } else if (request.url().toString().contains("reddit.com/gallery/")) {
+            // TODO: Handle galleries
+            return chain.proceed(request);
+        } else {
+            return chain.proceed(request);
+        }
+
+        // Reddit stays authoritative: cached archive copies are only used after a live 404.
+        Response response = chain.proceed(request);
+        if (response.code() != HttpURLConnection.HTTP_NOT_FOUND) {
+            return response;
+        }
+        response.close();
+
+        try {
+            if (!hasFileExtension(contentUrl)) {
+                String modifiedUrl = contentUrl.split("\\?")[0] + ".jpeg";
+                Request modifiedRequest = new Request.Builder()
+                        .get()
+                        .url(modifiedUrl)
+                        .build();
+                response = chain.proceed(modifiedRequest);
+                if (response.code() != HttpURLConnection.HTTP_NOT_FOUND) {
+                    return response;
+                }
+                response.close();
+            }
+
+            WaybackResponse waybackResponse = WaybackMachine.getFromWayback(request, contentUrl);
+            if (waybackResponse.found()) {
+                return waybackResponse.getResponse();
+            } else if (!hasFileExtension(contentUrl)) {
+                String modifiedUrl = contentUrl.split("\\?")[0] + ".jpeg";
+                Request modifiedRequest = new Request.Builder()
+                        .get()
+                        .url(modifiedUrl)
+                        .build();
+                waybackResponse = WaybackMachine.getFromWayback(modifiedRequest, modifiedUrl);
+            }
+            return waybackResponse.getResponse();
+        } catch (Throwable failure) {
+            // The live answer was a 404; keep that rather than surfacing an archive failure.
+            LoggingUtils.logInfo(false, () -> FAIL_OPEN_MARKER + ": " + failure.getClass().getSimpleName());
+            return HttpUtils.create404(request);
+        }
+    }
+
+    private boolean hasFileExtension(String url) {
+        if (url == null || url.isBlank()) return false;
+        if (url.contains("?")) {
+            url = url.split("\\?")[0];
+        }
+        String lastSegment = url.substring(url.lastIndexOf('/') + 1);
+        return lastSegment.lastIndexOf('.') > 0;
+    }
+}

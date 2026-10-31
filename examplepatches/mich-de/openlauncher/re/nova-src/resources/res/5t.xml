@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0x7f0704f2"
+    android:layout_height="0x7f0704f2">
+    <ProgressBar
+        android:id="0x7f0b0131"
+        android:background="@android:color/transparent"
+        android:padding="1dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:indeterminateTint="0x7f0605d8"
+        android:indeterminateTintMode="src_in"/>
+</merge>

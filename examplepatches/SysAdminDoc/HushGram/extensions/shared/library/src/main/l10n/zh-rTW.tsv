@@ -127,7 +127,7 @@ Set when you patched	套用修補程式時設定
 Settings couldn't open	無法開啟設定
 Settings couldn't refresh completely. Reopen settings and try again.	設定未能完整重新整理，請重新開啟設定後再試一次。
 Source code and issues	原始碼與問題回報
-Hides sponsored posts, reels and stories. No empty gap is left where an ad would have been.	隱藏贊助貼文、Reels 和限時動態，原本顯示廣告的位置不會留下空白。
+Hides sponsored posts, reels, stories and the ad in comments. No empty gap is left where an ad would have been.	隱藏贊助貼文、Reels、限時動態和留言中的廣告，原本顯示廣告的位置不會留下空白。
 Stays in while paused	暫停時仍生效
 Removes tracking tags from links you copy or share, and opens bio links without Instagram's click tracker. The link still opens the same post, reel or profile.	移除複製或分享連結中的追蹤標記，並略過 Instagram 的點擊追蹤器開啟個人簡介連結。連結仍會開啟相同的貼文、Reel 或個人檔案。
 Tap to hide this.	點擊即可隱藏。
@@ -384,7 +384,7 @@ Removes the empty gap under Instagram's tab bar that appears when your phone hid
 Only accounts you follow	僅顯示已追蹤的帳號
 Removes For you from the choices at the top of Home, so it stays on Following or Favorites. Needs Start Home on Following. Restart Instagram to see the change.	移除首頁頂端的「為你推薦」選項，讓首頁維持「追蹤中」或「最愛」。需啟用「首頁預設顯示追蹤中」。請重新啟動 Instagram 以套用變更。
 Instagram logo on Home	首頁顯示 Instagram 標誌
-Keeps Instagram's logo at the top of Home in place of the feed's name. Tap it to switch feeds. Needs Start Home on Following. Restart Instagram to see the change.	在首頁頂端保留 Instagram 標誌，取代動態名稱。點擊即可切換動態。需啟用「首頁預設顯示追蹤中」。請重新啟動 Instagram 以套用變更。
+Keeps Instagram's logo at the top of Home in place of the feed's name. Tap it to switch feeds. Restart Instagram to see the change.	在首頁頂端保留 Instagram 標誌，取代動態名稱。點擊即可切換動態。請重新啟動 Instagram 以套用變更。
 Profiles	個人檔案
 Show if a profile follows you	顯示帳號是否已追蹤您
 Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. Nothing shows until Instagram has checked.	在他人個人檔案的名稱旁新增「已追蹤你」或「未追蹤你」；若有設定代名詞，會顯示在代名詞之後。Instagram 完成查詢前不會顯示。
@@ -587,7 +587,7 @@ Stop after the chat's reels	看完聊天室的 Reels 就停止
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	從聊天室開啟的 Reels 會在該聊天室分享的最後一則結束，之後不會出現推薦的 Reels。需開啟「在聊天室的 Reels 之間滑動」。
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	在「下載」下方新增「下載封面」，以最大尺寸儲存 Reel 播放前顯示的靜態圖片。
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	在「下載」下方新增「下載音訊」，將 Reel 的聲音儲存為音訊檔案。
-After 20 reels, swiping in Reels stops until Instagram has been in the background for 15 minutes. A reel you open from a message or a post still plays.	觀看 20 則 Reels 後會停用 Reels 滑動，直到 Instagram 在背景停留 15 分鐘。從訊息或貼文開啟的 Reel 仍會播放。
+After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	觀看下方選擇的 Reels 數量後會停用 Reels 滑動，直到 Instagram 在背景停留你選擇的時間。從訊息或貼文開啟的 Reel 仍會播放。
 Find the reel you came from	尋找剛才的 Reel
 Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	從 Reel 開啟創作者個人檔案，再開啟其 Reels 分頁時，會捲動至該 Reel 並短暫加框標示。照片 Reel 會在貼文中尋找。「停止尋找」會在目前位置結束搜尋。
 Wait for a tap to find it	點擊後才尋找
@@ -617,7 +617,12 @@ Send downloads to another app	將下載傳送至其他應用程式
 Send to	傳送至
 Sent to another app. To save here instead, turn off Send downloads to another app under Downloads.	已傳送至其他應用程式。若要改在此儲存，請關閉「下載」中的「將下載傳送至其他應用程式」。
 Spoof location	偽裝位置
-Stop after 20 reels	觀看 20 則 Reels 後停止
+Stop after a set number of reels	觀看設定數量的 Reels 後停止
+# context: Reels settings: two sliders under Stop after a set number of reels (#405). The first picks how many reels play before swiping stops, %1$d is 5 to 100; the second how long Instagram stays in the background before swiping comes back, %1$d is 5 to 120 minutes
+Reels before swiping stops	停用滑動前的 Reels 數量
+%1$d reels	%1$d 則 Reels
+Time away before swiping comes back	恢復滑動前的離開時間
+%1$d minutes in the background	在背景 %1$d 分鐘
 Take a scroll break	捲動休息時間
 # context: a choice in the scroll break list; %1$d is 10, 20, 30 or 60
 After %1$d minutes	%1$d 分鐘後
@@ -1053,6 +1058,9 @@ Off. It can fade a reel's buttons while the screen sits untouched, so they don't
 Takes the Save button out of the column of buttons beside a reel, and the count under it. Posts in your feed keep theirs.	移除 Reel 旁按鈕列中的儲存按鈕與下方數量。動態首頁貼文的儲存按鈕仍會保留。
 Keep clear mode on	保持清爽模式
 Turn on Instagram's clear mode on a reel and the next reels open in it too. Leave clear mode yourself and the next reels show their buttons again.	在 Reel 啟用 Instagram 的清爽模式後，後續 Reels 也會以此模式開啟。手動離開清爽模式後，後續 Reels 會重新顯示按鈕。
+# context: Reels settings: a switch under Keep clear mode on (#138). Clear mode is the name used for Instagram's own mode that hides a reel's buttons; Allow screenshots is HushGram's switch of that name
+Start every reel in clear mode	每個 Reel 都以清爽模式開始
+Reels open in clear mode from the first one, with no tap. Leave it yourself and the next reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow screenshots is on.	從第一個 Reel 起就以清爽模式開啟，不必點按。手動離開清爽模式後，後續 Reels 會重新顯示按鈕。除非開啟「允許截圖」，否則 Instagram 會在清爽模式中封鎖截圖。
 Unlock with	解鎖方式
 Phone lock	手機鎖定
 HushGram PIN	HushGram PIN 碼
@@ -1215,6 +1223,11 @@ Hide the Create button	隱藏建立按鈕
 Takes the plus for new posts off the top of your own profile. The other buttons stay where they were.	移除自己個人檔案頂端用來建立貼文的加號。其他按鈕仍留在原位。
 Hide Share profile	隱藏分享個人檔案
 Takes the Share profile button off your profile, and Edit profile stretches to fill the space.	移除個人檔案上的「分享個人檔案」按鈕，並將「編輯個人檔案」加寬以填滿空間。
+# context: Profiles: switches that hide Subscribe and the arrow at the end of the action buttons on someone's profile, which opens a menu of the buttons that didn't fit (#248). Subscribe is Instagram's own button label, as in the Feed switch that hides Follow and Subscribe.
+Hide Subscribe on profiles	隱藏個人檔案上的訂閱
+Takes the Subscribe button off creators' profiles, and the other buttons stretch to fill the space.	移除創作者個人檔案上的「訂閱」按鈕，並將其他按鈕加寬以填滿空間。
+Hide the arrow at the end of the buttons	隱藏按鈕列尾端的箭頭
+Takes the arrow off the end of a profile's row of buttons, along with the menu it opens, and the other buttons stretch to fill the space.	移除個人檔案按鈕列尾端的箭頭及其開啟的選單，並將其他按鈕加寬以填滿空間。
 # context: Layout: Glass tab bar's switch that stops the liquid pill shrinking as you scroll (#256)
 Keep the pill full size	保持膠囊完整大小
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	向下捲動清單時，液態膠囊會維持原樣，所有分頁皆保留在原位。變更後請重新啟動 Instagram。
@@ -1386,6 +1399,9 @@ Hide captions	隱藏說明文字
 Takes the caption off posts in your feed and off reels. The post stays, and the comments sheet still shows it.	移除動態貼文與 Reels 上的說明文字。貼文會保留，留言頁面頂端仍會顯示。
 Keep Home's top bar	固定首頁頂端列
 Keeps the Instagram logo and the buttons beside it at the top of Home while you scroll, instead of sliding them away.	捲動時讓 Instagram 標誌和旁邊的按鈕留在首頁頂端，不會滑走。
+# context: Feed settings: the See-through top bar switch, right under Keep Home's top bar (#418). It blurs the posts that scroll under Home's header, the bar with the Instagram logo.
+See-through top bar	透明頂端列
+Shows your feed blurred under Home's top bar, like frosted glass.	在首頁頂端列下方以霧面玻璃般的模糊效果顯示你的動態。
 Keep the Reels top bar	固定 Reels 頂端列
 Keeps the Reels title, the Friends tab and the buttons beside them at the top while you swipe through reels, instead of sliding them away.	滑動瀏覽 Reels 時讓 Reels 標題、好友分頁和旁邊的按鈕留在頂端，不會滑走。
 Keep a viewing history	保留瀏覽紀錄
@@ -1399,3 +1415,84 @@ Clear viewing history	清除瀏覽紀錄
 Forgets every post, reel, story and profile on the list, for all your accounts. The switch stays as it is.	清除清單中所有的貼文、Reels、限時動態和個人檔案，涵蓋你的所有帳號。開關維持原狀。
 Viewing history cleared.	已清除瀏覽紀錄。
 Couldn't clear the viewing history. Try again.	無法清除瀏覽紀錄，請再試一次。
+Mark one-time photos and videos	標示僅限檢視一次的相片和影片
+Puts a border and Instagram's view once icon on a one-time photo or video in a chat, so you can tell it from the rest before you open it. Only how the chat looks changes.	在聊天中僅限檢視一次的相片或影片上加上邊框和 Instagram 的檢視一次圖示，讓你在開啟前就能分辨。只有聊天的外觀會改變。
+Fall back to Following	改用「追蹤中」
+When For you brings an account only suggested posts, page after page, Home opens on Following for that account. A feed you pick at the top of Home stays picked. Restart Instagram to see the change.	若「為你推薦」對某個帳號一頁接一頁只顯示推薦貼文，該帳號的首頁會改為開啟「追蹤中」。你在首頁頂端選擇的動態會維持不變。請重新啟動 Instagram 以套用變更。
+Only suggestions in For you. Home will open on Following.	「為你推薦」只有推薦貼文，首頁將改開「追蹤中」。
+Explore without personalization	不個人化的探索
+Where Instagram offers it (in the EU), Explore opens with the grid that isn't personalized every time, and stays on it past ten minutes.	在 Instagram 提供此選項的地區（歐盟），探索每次都會以非個人化的網格開啟，十分鐘後也不會切換回去。
+Hide Explore's personalized menu	隱藏探索的個人化選單
+Hides the top bar button that switches Explore's personalization, where Instagram shows it (in the EU).	在 Instagram 顯示此按鈕的地區（歐盟），隱藏頂端列上切換探索個人化的按鈕。
+# context: Feed settings: the Carousel arrows switch and the two arrow buttons' TalkBack labels (#417)
+Carousel arrows	輪播箭頭
+Puts a back and a next arrow on a carousel post's photos and videos. Tap one to move a page without swiping.	在輪播貼文的相片和影片上加上上一頁和下一頁箭頭。點一下就能換頁，不用滑動。
+Previous page	上一頁
+Next page	下一頁
+# context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
+Page dots on a pill	膠囊頁面圓點
+Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	將輪播貼文的頁面圓點移到相片或影片底部的圓角膠囊上，目前的頁面以藍色顯示。
+# context: Feed settings: the Ambient light switch and its Glow spread and Glow speed lists (#416)
+Ambient light	環境光
+Puts a soft glow in a post's own colors around its photo or video, and in the bands around a reel that doesn't fill the screen. The glow follows a video as it plays.	在貼文的相片或影片周圍加上貼文本身色彩的柔和光暈，沒有填滿螢幕的 Reels 周圍空白處也會亮起。影片播放時光暈會跟著變化。
+Glow spread	光暈範圍
+Glow speed	光暈速度
+Narrow	窄
+Medium	中
+Wide	寬
+Slow	慢
+Fast	快
+# context: Reels settings: a switch for a Lens icon beside each reel that opens Google Lens on the reel to copy its text (#303)
+Copy text button on reels	Reels 的複製文字按鈕
+Puts a Lens icon beside a reel. Tap it and Google Lens opens on what's showing, so you can select and copy its text.	在 Reel 旁加入智慧鏡頭圖示。點擊後，Google 智慧鏡頭會開啟目前的畫面，讓你選取並複製其中的文字。
+# context: Stories settings: the same Lens button, in the story header beside the three dots (#303)
+Copy text button on stories	限時動態的複製文字按鈕
+Puts a Lens icon at the top of a story, beside the three dots. Tap it and Google Lens opens on what's showing, so you can select and copy its text.	在限時動態頂端的三個點旁加入智慧鏡頭圖示。點擊後，Google 智慧鏡頭會開啟目前的畫面，讓你選取並複製其中的文字。
+# context: the spoken label of that Lens icon, for screen readers
+Copy text	複製文字
+# context: title of the share sheet offered when Google Lens isn't installed; the apps listed below it read the picture's text
+Copy text with	選擇複製文字的應用程式
+# context: toast, under two lines of about 28 characters: the screen picture for Lens couldn't be made
+Couldn't copy this screen	無法複製這個畫面
+# context: toast, under two lines of about 28 characters: no installed app takes a picture to read its text
+No app here can read text	沒有可讀取文字的應用程式
+# context: Ads and privacy settings: switch that sends only Instagram's traffic through a proxy server the person sets (#219)
+App-only proxy	僅限此應用程式的 Proxy
+# context: summary under that switch
+Sends Instagram through the HTTP proxy set below. Other apps and your phone's own settings aren't changed.	讓 Instagram 透過下方設定的 HTTP Proxy 連線。其他應用程式和手機本身的設定都不會變更。
+# context: title of the row and its dialog where the proxy server is typed
+Proxy server	Proxy 伺服器
+# context: that dialog's message; keep the example address as it is
+An HTTP proxy's address and port, with a colon between them, like 192.168.1.10:8080. Proxies that need a password, and SOCKS proxies, don't work here. Instagram needs a restart to use it.	HTTP Proxy 的位址和連接埠，中間用冒號隔開，例如 192.168.1.10:8080。需要密碼的 Proxy 和 SOCKS Proxy 無法在這裡使用。Instagram 需要重新啟動才會使用。
+# context: toast and field error, under two lines of about 28 characters: what was typed isn't host:port; keep the example address
+That isn't a proxy server. Try 10.0.0.2:8080.	這不是 Proxy 伺服器。例如 10.0.0.2:8080
+# context: the server row's summary while it's blank
+No server set. Until there is one, Instagram goes out directly.	尚未設定伺服器。設定之前，Instagram 會直接連線。
+# context: the server row's summary; %1$s is the server as host:port
+Instagram goes through %1$s.	Instagram 透過 %1$s 連線。
+# context: Stories settings: switch that slows the zoom a story opens with from the stories row and takes out its bounce (#409)
+Smooth story opening	平順開啟限時動態
+# context: summary under that switch
+A story you tap in the stories row opens with a slower zoom that doesn't bounce, and closes the same way.	在限時動態橫列點選的限時動態會以較慢、不回彈的縮放開啟，關閉時也一樣。
+Emoji pack	表情符號套件
+Your phone's emoji	手機的表情符號
+An emoji font file	表情符號字型檔案
+Your phone's emoji, or Google's with the switch above on. You can also download a free emoji pack or pick a color emoji font file.	使用手機的表情符號，開啟上方開關時則使用 Google 的表情符號。你也可以下載免費的表情符號套件，或選擇彩色表情符號字型檔案。
+Emoji draw as %1$s, downloaded from its maker. Restart Instagram to see a change.	表情符號以 %1$s 顯示，從其製作者下載。請重新啟動 Instagram 以套用變更。
+Emoji draw from the emoji font file you picked. Pick it again to change the file. Restart Instagram to see a change.	表情符號使用所選的表情符號字型檔案。再次選擇即可變更檔案。請重新啟動 Instagram 以套用變更。
+Downloading the emoji...	正在下載表情符號...
+Couldn't download the emoji. Try again.	無法下載表情符號，請再試一次。
+Emoji saved. Restart Instagram to see them.	表情符號已儲存。請重新啟動 Instagram 以查看。
+No color emoji in that file. Nothing changed.	該檔案中沒有彩色表情符號，未做任何變更。
+Couldn't load your emoji, so the phone's show.	無法載入你的表情符號，因此顯示手機的表情符號。
+# context: Stories settings: the Ambient light in stories switch (#420)
+Ambient light in stories	限時動態環境光
+Fills the bands above and below a story that doesn't fill the screen with a soft glow in its own colors. Glow spread and Glow speed, under Feed, set it too.	用限時動態自己的顏色，以柔和光暈填滿未佔滿螢幕的限時動態上下方的空白。動態首頁裡的光暈範圍和光暈速度也會套用。
+# context: Ads and privacy settings: switch that keeps Instagram's screens asking to sync contacts and to turn on location services from opening at each start (#295, #329, #421)
+Skip the contacts and location popups	略過聯絡人和位置彈出視窗
+# context: summary under that switch
+The screens asking you to sync your contacts and turn on location services stop opening each time Instagram starts. Nothing else is skipped.	要求你同步聯絡人並開啟定位服務的畫面，不會再於每次啟動 Instagram 時開啟。其他畫面都不會略過。
+# context: Playback settings: switch that stops feed videos and reels from playing again from the start when they end (#248, #175)
+Stop videos looping	影片不重複播放
+# context: summary under that switch; auto scroll is Instagram's own Reels setting, worded as in Keep auto scroll on
+Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	動態中的影片和 Reels 會停在最後一格，不再重新播放。開啟自動捲動時，Reels 仍會重複播放，好讓它能切換到下一則。

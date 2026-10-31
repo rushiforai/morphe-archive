@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:height="24dp"
+    android:width="24dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <group
+        android:name="dashed_outline"
+        android:pivotX="32"
+        android:pivotY="32"
+        android:scaleX="-1">
+        <path
+            android:fillColor="?unknown_attr_ref: 7f0406db"
+            android:pathData="0x7f140c9d"/>
+    </group>
+    <group
+        android:name="center"
+        android:pivotX="32"
+        android:pivotY="32"
+        android:scaleX="-1">
+        <path
+            android:pathData="0x7f140c9f"
+            android:strokeColor="?unknown_attr_ref: 7f0406dd"
+            android:strokeWidth="5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"/>
+    </group>
+</vector>

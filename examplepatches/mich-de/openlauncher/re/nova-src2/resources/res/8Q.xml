@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:fitsSystemWindows="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:windowSoftInputMode="adjustResize">
+    <FrameLayout
+        android:id="0x7f0b0748"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="0x7f14016c">
+        <com.stripe.android.view.PaymentAuthWebView
+            android:id="0x7f0b0747"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:windowSoftInputMode="adjustResize"/>
+    </FrameLayout>
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="0x7f0b00aa"
+        android:fitsSystemWindows="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="0x7f070520">
+        <androidx.appcompat.widget.Toolbar
+            android:theme="0x7f15026d"
+            android:id="0x7f0b06c3"
+            android:background="?unknown_attr_ref: 7f040183"
+            android:layout_width="match_parent"
+            android:layout_height="?unknown_attr_ref: 7f040007"
+            app:title="0x7f140b27"/>
+    </com.google.android.material.appbar.AppBarLayout>
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:layout_gravity="center"
+        android:id="0x7f0b052d"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        style="0x7f150509"/>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -96,7 +96,7 @@ final class IntroUi {
         Object body = content(loader, 0x53494303, nested -> {
             animeInput(nested, text, focus, focused);
             method(loader.loadClass(NuvioNative.SETTINGS_ROWS_NAME), "e", 5).invoke(null, null, content(loader, 0x53494304, row -> {
-                Object colors = method(loader.loadClass(NuvioNative.POSTER_IMAGE_NAME), "y", 1).invoke(null, row);
+                Object colors = method(loader.loadClass(NuvioNative.POSTER_STYLE_NAME), NuvioNative.POSTER_COLORS_METHOD, 1).invoke(null, row);
                 long background = (Long)field(colors, "b"), card = (Long)field(colors, "c"), foreground = (Long)field(colors, "l");
                 nativeButton(row, dismiss, background, foreground, constant(loader, NuvioNative.SETTINGS_BUTTON_LABELS_NAME, "a"));
                 nativeButton(row, clear, background, foreground, constant(loader, NuvioNative.SETTINGS_BUTTON_LABELS_NAME, "b"));
@@ -122,12 +122,12 @@ final class IntroUi {
             .invoke(null, loader.loadClass(NuvioNative.EMPTY_MODIFIER_NAME).getField("b").get(null), 1f);
         Object changedFocus = loader.loadClass(NuvioNative.INPUT_FOCUS_NAME).getDeclaredConstructor(int.class, loader.loadClass(NuvioNative.COMPOSE_MUTABLE_STATE_NAME)).newInstance(2, focused);
         modifier = method(loader.loadClass(NuvioNative.FOCUS_MODIFIERS_NAME), "i", 2).invoke(null, modifier, changedFocus);
-        Object colors = method(loader.loadClass(NuvioNative.POSTER_IMAGE_NAME), "y", 1).invoke(null, composer);
+        Object colors = method(loader.loadClass(NuvioNative.POSTER_STYLE_NAME), NuvioNative.POSTER_COLORS_METHOD, 1).invoke(null, composer);
         long elevated = (Long)field(colors, "b");
         Object cardColors = method(loader.loadClass("y5.m"), "b", 5).invoke(null, elevated, elevated, composer, 0, 58);
         Object spacing = constant(loader, NuvioNative.NATIVE_SPACING_LOCAL_NAME, "a");
         Object stroke = method(loader.loadClass("y.m"), "a", 2).invoke(null, (Long)field(colors, "x"), (Float)field(spacing, "b"));
-        Object focusRing = method(loader.loadClass(NuvioNative.POSTER_IMAGE_NAME), "A", 1).invoke(null, composer);
+        Object focusRing = method(loader.loadClass(NuvioNative.POSTER_STYLE_NAME), NuvioNative.POSTER_FOCUS_METHOD, 1).invoke(null, composer);
         Object focusedStroke = method(focusRing.getClass(), "a", 2).invoke(focusRing, (Float)field(spacing, "c"), 1f);
         Object shape = method(loader.loadClass("l0.g"), "b", 1).invoke(null, 10f);
         Constructor<?> borderConstructor = loader.loadClass("y5.c").getDeclaredConstructor(loader.loadClass("y.u"), loader.loadClass("e2.w0"), int.class);

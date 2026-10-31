@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="exo_controls_fastforward_by_amount_description">
+        <item quantity="one">Превъртане с %d секунда напред</item>
+        <item quantity="other">Превъртане с(ъс) %d секунди напред</item>
+    </plurals>
+    <plurals name="exo_controls_rewind_by_amount_description">
+        <item quantity="one">Превъртане с %d секунда назад</item>
+        <item quantity="other">Превъртане с(ъс) %d секунди назад</item>
+    </plurals>
+    <plurals name="nova_ai_showcase_day_meetings">
+        <item quantity="zero">%d срещи</item>
+        <item quantity="one">%d среща</item>
+        <item quantity="two">%d срещи</item>
+        <item quantity="few">%d срещи</item>
+        <item quantity="many">%d срещи</item>
+        <item quantity="other">%d срещи</item>
+    </plurals>
+</resources>

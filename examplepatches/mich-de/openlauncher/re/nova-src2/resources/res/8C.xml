@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.android.launcher3.views.SpringRelativeLayout
+        android:id="0x7f0b01a3"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.android.launcher3.views.RecyclerViewFastScroller
+            android:id="0x7f0b02cc"
+            android:layout_width="0x7f070147"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="0x7f07013a"
+            android:layout_alignParentEnd="true"/>
+        <com.android.launcher3.SimpleFastScrollRecyclerView
+            android:id="0x7f0b054c"
+            android:clipToPadding="false"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+        <TextView
+            android:id="0x7f0b02cd"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="0x7f07013e"
+            android:layout_alignParentEnd="true"
+            style="0x7f150174"/>
+    </com.android.launcher3.views.SpringRelativeLayout>
+</FrameLayout>

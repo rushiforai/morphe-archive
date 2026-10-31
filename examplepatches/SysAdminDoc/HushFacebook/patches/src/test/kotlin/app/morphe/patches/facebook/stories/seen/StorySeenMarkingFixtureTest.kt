@@ -130,6 +130,30 @@ class StorySeenMarkingFixtureTest {
         assertEquals("$name: the patch's publisher", publisher, marking.publisher)
         assertEquals("$name: the patch's cards", buckets!!.cards.name, marking.buckets.cards.name)
         assertEquals("$name: the patch's answer", buckets.hasUnwatched.name, marking.buckets.hasUnwatched.name)
+        assertEquals("$name: the patch's override", buckets.override.name, marking.buckets.override.name)
+        assertEquals("$name: the patch's tree", buckets.tree, marking.buckets.tree)
+        assertTrue("$name: RegularStoryBucket declares no ${buckets.tree.name} tree (#165)",
+            classes.getValue(REGULAR_BUCKET).fields.any { it.name == buckets.tree.name && it.type == buckets.tree.type })
+
+        // Both answers, StoryBucket's and RegularStoryBucket's, ask the extension first (#165).
+        for (answer in listOf(buckets.hasUnwatched, buckets.override)) {
+            val before = answer.implementation!!.instructions.toList()
+            val asked = MutableMethod(answer).apply { answerWatchedFirst() }.implementation!!.instructions.toList()
+            assertEquals("$name: instructions added to ${answer.definingClass}'s answer", before.size + 5, asked.size)
+            val read = asked[0]
+            assertEquals("$name: the read hook's form", Opcode.INVOKE_STATIC_RANGE, read.opcode)
+            assertEquals("$name: the read hook", READS_WATCHED, read.call!!.smali())
+            val self = answer.implementation!!.registerCount - 1
+            assertEquals("$name: the read hook reads this", self, (read as RegisterRangeInstruction).startRegister)
+            assertEquals(
+                "$name: the read hook's answer",
+                listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4, Opcode.RETURN),
+                asked.subList(1, 5).map { it.opcode },
+            )
+            for (index in before.indices) {
+                assertEquals("$name: ${answer.definingClass}'s answer instruction $index changed", before[index].opcode, asked[index + 5].opcode)
+            }
+        }
         assertEquals("$name: the patch's session", buckets.session.name, marking.buckets.session.name)
 
         val constructor = classes.getValue(REGULAR_BUCKET).methods.single { it.name == "<init>" }
@@ -201,7 +225,8 @@ class StorySeenMarkingFixtureTest {
         assertTrue("StorySeen has no viewed hook", has("viewed", "V", obj, obj, obj, "Z"))
         assertTrue("StorySeen has no bucketMade hook", has("bucketMade", "V", obj))
         assertTrue("StorySeen has no watchedHere hook", has("watchedHere", "Z", obj))
-        for (stub in listOf("bucketIdOf", "cardsOf", "storyIdOf", "sessionOf")) assertTrue("StorySeen has no $stub", has(stub, obj, obj))
+        assertTrue("StorySeen has no readsWatched hook", has("readsWatched", "Z", obj))
+        for (stub in listOf("bucketIdOf", "cardsOf", "storyIdOf", "sessionOf", "bucketTypeOf")) assertTrue("StorySeen has no $stub", has(stub, obj, obj))
         assertTrue("StorySeen has no hasUnwatchedOf", has("hasUnwatchedOf", "Z", obj))
         assertTrue("StorySeen has no publishSeen", has("publishSeen", "V", obj, string, string, string, "Z"))
     }

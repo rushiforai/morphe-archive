@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:height="24dp"
+    android:width="24dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <path
+        android:pathData="0x7f140c89"
+        android:strokeColor="?unknown_attr_ref: 7f0406db"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+    <group
+        android:name="flake_1_group"
+        android:pivotX="21.66"
+        android:pivotY="47.45">
+        <path
+            android:name="flake_1_path"
+            android:fillColor="?unknown_attr_ref: 7f0406dd"
+            android:pathData="0x7f140ca2"/>
+    </group>
+    <group
+        android:name="flake_2_group"
+        android:pivotX="21.66"
+        android:pivotY="47.45">
+        <path
+            android:name="flake_2_path"
+            android:fillColor="?unknown_attr_ref: 7f0406dd"
+            android:pathData="0x7f140ca2"/>
+    </group>
+    <group
+        android:name="flake_3_group"
+        android:pivotX="21.66"
+        android:pivotY="47.45"
+        android:translateX="19"
+        android:translateY="-3">
+        <path
+            android:name="flake_3_path"
+            android:fillColor="?unknown_attr_ref: 7f0406dd"
+            android:pathData="0x7f140ca2"/>
+    </group>
+</vector>

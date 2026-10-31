@@ -1,0 +1,15 @@
+.gradle/
+build/
+bin/
+out/
+.idea/
+*.iml
+.DS_Store
+*.mpp
+*.apk
+*.rve
+
+# Local build output
+output/
+tools/
+input/

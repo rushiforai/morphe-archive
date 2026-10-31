@@ -1,0 +1,32 @@
+name: Release
+run-name: Release v${{ inputs.version }}
+
+# Elle tetiklenir. Debug'suz kararlı derleme yapar, release açar, main kanalının metadata'sını günceller.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Sürüm, başında v olmadan (örn. 1.2.0)'
+        required: true
+        type: string
+      notes:
+        description: 'Sürüm notu (isteğe bağlı; satır sonu için \n yaz)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+  packages: read
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publish.yml
+    with:
+      version: ${{ inputs.version }}
+      notes: ${{ inputs.notes }}
+      prerelease: false

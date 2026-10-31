@@ -1,0 +1,20 @@
+SyncPatch NOTICE
+================
+
+This project provides patches for use with Morphe (app.morphe.patcher).
+References to Morphe are made solely for descriptive compatibility purposes
+and do not suggest authorship by, or affiliation with, the Morphe project.
+
+The Morphe Patcher library (app.morphe:morphe-patcher) is licensed under the
+GNU General Public License v3.0; see LICENSE. It is not redistributed here;
+the build resolves it from the Morphe GitHub Packages registry. A legacy copy
+remains in libs/ for offline use by the validator development tool.
+
+The patch targets Sync for Reddit (Laurence Dawson). The patches modify the
+app at build time on the user's own device and are not affiliated with,
+endorsed by, or sponsored by the app's developer.
+
+The "Predictive back gesture (manifest)" sub-patch is derived from HK Morphe
+Patches (https://github.com/humzakh/HK-Morphe-Patches/), also licensed under
+GPLv3, with the MainActivity exclusion deliberately removed so predictive
+back covers app exit as well.

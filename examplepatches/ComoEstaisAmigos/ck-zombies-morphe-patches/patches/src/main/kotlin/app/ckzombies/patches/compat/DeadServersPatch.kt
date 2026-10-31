@@ -55,9 +55,8 @@ internal object TapjoyConnectInstanceFingerprint : Fingerprint(
  * brings up (see [deadServersNativePatch]).
  *
  * Without its OBB the game would ask Google Play and then Glu's `rpack.glu.com`, which no longer
- * resolves, for the file; [obbMessagePatch] shows what is wrong with the OBB instead. "Modern
- * Android compatibility" depends on it too and is the one that describes it, so the message is
- * there with either patch.
+ * resolves, for the file; [obbMessagePatch] shows what is wrong with the OBB instead. Every
+ * patch depends on it, so the message is there whichever patch the player applies.
  *
  * OpenFeint's servers closed in 2012, and [openFeintPatch] keeps the SDK from starting: every
  * call the game makes into it first checks a flag that only a finished `initialize()` sets. Its

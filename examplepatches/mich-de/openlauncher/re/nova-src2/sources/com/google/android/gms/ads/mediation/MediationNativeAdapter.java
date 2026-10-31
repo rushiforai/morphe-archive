@@ -1,0 +1,25 @@
+package com.google.android.gms.ads.mediation;
+
+import android.content.Context;
+import android.os.Bundle;
+import com.moloco.sdk.xenoss.sdkdevkit.android.core.b;
+import eg.h;
+import eg.t;
+import eg.y;
+import kotlin.Deprecated;
+import kotlin.Metadata;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+@Deprecated
+@Metadata(d1 = {"\u0000*\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u0002\n\u0002\b\u0003\bg\u0018\u00002\u00020\u0001J9\u0010\f\u001a\u00020\u000b2\u0006\u0010\u0003\u001a\u00020\u00022\u0006\u0010\u0005\u001a\u00020\u00042\u0006\u0010\u0007\u001a\u00020\u00062\u0006\u0010\t\u001a\u00020\b2\b\u0010\n\u001a\u0004\u0018\u00010\u0006H&¢\u0006\u0004\b\f\u0010\rø\u0001\u0000\u0082\u0002\u0006\n\u0004\b!0\u0001¨\u0006\u000eÀ\u0006\u0001"}, d2 = {"Lcom/google/android/gms/ads/mediation/MediationNativeAdapter;", "Leg/h;", "Landroid/content/Context;", "context", "Leg/t;", "listener", "Landroid/os/Bundle;", "serverParameters", "Leg/y;", "mediationAdRequest", "mediationExtras", b.f42142b, "requestNativeAd", "(Landroid/content/Context;Leg/t;Landroid/os/Bundle;Leg/y;Landroid/os/Bundle;)V", "ads-mobile-sdk_release"}, k = 1, mv = {1, 9, 0}, xi = 48)
+/* loaded from: classes3.dex */
+public interface MediationNativeAdapter extends h {
+    /* synthetic */ void onDestroy();
+
+    /* synthetic */ void onPause();
+
+    /* synthetic */ void onResume();
+
+    void requestNativeAd(@NotNull Context context, @NotNull t listener, @NotNull Bundle serverParameters, @NotNull y mediationAdRequest, @Nullable Bundle mediationExtras);
+}

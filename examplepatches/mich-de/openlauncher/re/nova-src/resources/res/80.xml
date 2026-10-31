@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.teslacoilsw.launcher.widget.RippleScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="0x7f0b00b0"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <androidx.compose.ui.platform.ComposeView
+            android:id="0x7f0b04fd"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <com.teslacoilsw.launcher.drawer.AppPageStandard
+            android:id="0x7f0b00ae"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:canSqueezeOneExtra="false"/>
+        <androidx.compose.ui.platform.ComposeView
+            android:id="0x7f0b04f7"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <androidx.compose.ui.platform.ComposeView
+            android:id="0x7f0b0598"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <androidx.compose.ui.platform.ComposeView
+            android:id="0x7f0b058a"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+</com.teslacoilsw.launcher.widget.RippleScrollView>

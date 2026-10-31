@@ -12,6 +12,12 @@ import static org.junit.Assert.assertTrue;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 
@@ -233,6 +239,91 @@ public class AccentThemeTest {
         AccentTheme.apply(bare, "igds_color_link");
         assertEquals(List.of(FamilyNames.ACCENT_COLOR + ": invoked 1, 0 found, 0 missing. Counted: " + AccentTheme.NO_BLUE + " 1, "
                 + AccentTheme.ICONS_MISSING + " 1"), HookStatus.report());
+    }
+
+    /**
+     * Home's newer header takes the icon color its theme holds for its heart and Create buttons with
+     * both switches on (#8), and keeps its own with either off, paused, or no icon attribute.
+     */
+    @Test
+    public void homesNewerHeaderTakesTheThemesIconColor() {
+        Context light = new ContextThemeWrapper(themed(THEMED + ".header", (name, type) ->
+                type.equals("attr") && name.equals(AccentTheme.ICON_ATTRIBUTE) ? android.R.attr.colorForeground : 0),
+                android.R.style.Theme_Material_Light);
+        TypedValue held = new TypedValue();
+        assertTrue(light.getTheme().resolveAttribute(android.R.attr.colorForeground, held, true));
+        int own = 0xfff5f5f5;
+        assertFalse("the theme's icon color differs from the header's own", held.data == own);
+
+        assertEquals("off", own, AccentTheme.headerIcons(light, own));
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        assertEquals("icons off", own, AccentTheme.headerIcons(light, own));
+        Settings.ACCENT_ICONS.save(true);
+        assertEquals(held.data, AccentTheme.headerIcons(light, own));
+        assertEquals("no context", own, AccentTheme.headerIcons(null, own));
+        Context bare = new ContextThemeWrapper(themed(THEMED + ".header.bare", (name, type) -> 0), android.R.style.Theme_Material_Light);
+        assertEquals("no icon attribute", own, AccentTheme.headerIcons(bare, own));
+        assertEquals("already the icon color, not counted", held.data, AccentTheme.headerIcons(light, held.data));
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertEquals("paused", own, AccentTheme.headerIcons(light, own));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AccentTheme.HEADER_ICONS + " 1"));
+    }
+
+    /**
+     * Home's older header bakes the primary text color into each icon, so each one gets the theme's
+     * icon color laid over it with both switches on (#8), and none with either off, paused, or no icon
+     * attribute.
+     */
+    @Test
+    public void homesOlderHeaderLaysTheThemesIconColorOverEachIcon() {
+        Context light = new ContextThemeWrapper(themed(THEMED + ".older", (name, type) ->
+                type.equals("attr") && name.equals(AccentTheme.ICON_ATTRIBUTE) ? android.R.attr.colorForeground : 0),
+                android.R.style.Theme_Material_Light);
+        TypedValue held = new TypedValue();
+        assertTrue(light.getTheme().resolveAttribute(android.R.attr.colorForeground, held, true));
+        Icon icon = new Icon();
+
+        AccentTheme.headerIcon(light, icon);
+        assertNull("off", icon.filter);
+        Settings.ACCENT_COLOR.save(true);
+        Settings.ACCENT_HUE.save(AccentHue.TEAL);
+        AccentTheme.headerIcon(light, icon);
+        assertNull("icons off", icon.filter);
+        Settings.ACCENT_ICONS.save(true);
+        AccentTheme.headerIcon(null, icon);
+        assertNull("no context", icon.filter);
+        AccentTheme.headerIcon(new ContextThemeWrapper(themed(THEMED + ".older.bare", (name, type) -> 0),
+                android.R.style.Theme_Material_Light), icon);
+        assertNull("no icon attribute", icon.filter);
+        AccentTheme.headerIcon(light, null);
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        AccentTheme.headerIcon(light, icon);
+        assertNull("paused", icon.filter);
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+
+        AccentTheme.headerIcon(light, icon);
+        assertEquals(new PorterDuffColorFilter(held.data, PorterDuff.Mode.SRC_IN), icon.filter);
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AccentTheme.HEADER_ICONS + " 1"));
+    }
+
+    /** A drawable that keeps the color filter it's given, as Instagram's header icon hands it to its glyph. */
+    private static final class Icon extends Drawable {
+        ColorFilter filter;
+
+        @Override public void setColorFilter(ColorFilter colorFilter) { filter = colorFilter; }
+        @Override public void draw(Canvas canvas) { }
+        @Override public void setAlpha(int alpha) { }
+        @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
     }
 
     /**

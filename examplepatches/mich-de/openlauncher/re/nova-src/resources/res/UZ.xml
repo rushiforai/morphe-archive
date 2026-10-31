@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:drawable="0x7f080067">
+    <target
+        android:name="flake_1_path"
+        android:animation="0x7f080068"/>
+    <target
+        android:name="flake_1_group"
+        android:animation="0x7f080069"/>
+    <target
+        android:name="flake_2_path"
+        android:animation="0x7f08006a"/>
+    <target
+        android:name="flake_2_group"
+        android:animation="0x7f08006b"/>
+    <target
+        android:name="flake_3_path"
+        android:animation="0x7f08006c"/>
+    <target
+        android:name="flake_3_group"
+        android:animation="0x7f08006d"/>
+</animated-vector>

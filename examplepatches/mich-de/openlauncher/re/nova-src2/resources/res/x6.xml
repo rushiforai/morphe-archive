@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="0x7f0b03ff"
+        android:title="0x7f14026b"/>
+    <item
+        android:id="0x7f0b03fd"
+        android:title="0x7f14091c"/>
+    <item
+        android:id="0x7f0b0400"
+        android:title="0x7f140249"/>
+    <item
+        android:id="0x7f0b03fe"
+        android:title="0x7f140236"/>
+</menu>

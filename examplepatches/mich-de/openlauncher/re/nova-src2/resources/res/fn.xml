@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.android.launcher3.views.DoubleShadowBubbleTextView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:launcher="http://schemas.android.com/apk/res-auto"
+    android:textColor="?unknown_attr_ref: 7f0402ab"
+    android:includeFontPadding="false"
+    android:hapticFeedbackEnabled="false"
+    launcher:centerVertically="true"
+    launcher:iconDisplay="2"
+    style="0x7f15012e"/>
