@@ -21,7 +21,7 @@ Environment:
     CUSTOM_FILE     = always-included repos (default: custom_repos.txt)
     IGNORE_FILE     = always-excluded repos (default: ignore_repos.txt)
     REJECTED_FILE   = rejected repos (default: rejected_repos.txt)
-    MAX_PAGES       = max star-list pages to fetch (default: 15)
+    MAX_PAGES       = safety limit on star-list pages (default: 60)
     WORKERS         = concurrent bundle validations (default: 8)
 """
 
@@ -41,7 +41,7 @@ OUTPUT_FILE = os.environ.get("OUTPUT_FILE", "repos.txt")
 CUSTOM_FILE = os.environ.get("CUSTOM_FILE", "custom_repos.txt")
 IGNORE_FILE = os.environ.get("IGNORE_FILE", "ignore_repos.txt")
 REJECTED_FILE = os.environ.get("REJECTED_FILE", "rejected_repos.txt")
-MAX_PAGES = int(os.environ.get("MAX_PAGES", "15"))
+MAX_PAGES = int(os.environ.get("MAX_PAGES", "60"))
 WORKERS = int(os.environ.get("WORKERS", "8"))
 
 HEADERS = {
@@ -86,7 +86,8 @@ def extract_repos(html_text):
 
 def collect_star_list():
     repos = set()
-    for page in range(1, MAX_PAGES + 1):
+    page = 1
+    while page <= MAX_PAGES:
         text = fetch_page(page)
         if text is None:
             break
@@ -94,8 +95,18 @@ def collect_star_list():
         new = found - repos
         repos |= found
         print(f"  Page {page}: {len(found)} repo links ({len(new)} new, total {len(repos)})")
+        # The list has no end marker: the page after the last one renders the
+        # pagination chrome but no repo cards, so an empty page means we are done.
+        # Never stop on a page count alone - the list grows, and a low cap then
+        # silently truncates it, which is how new repos were being missed.
         if not found:
             break
+        if page == MAX_PAGES:
+            print(
+                f"  WARNING: stopped at MAX_PAGES={MAX_PAGES} while page {page} still had "
+                f"repos; raise MAX_PAGES to import the rest."
+            )
+        page += 1
         time.sleep(0.5)
     if not repos:
         print(
