@@ -8,6 +8,7 @@
 6ixfalls/revanced-patches
 6jarjar6/morphe-patches
 ARHCOS/arhcos-patches
+AaronDeimos/revanced-patches
 Adiker/reddit-client-patches
 Adish08/morphe-patches
 AetherMagee/xposed-patches
@@ -59,6 +60,7 @@ Forsigh/waze-patches
 FoxxoOwO/foxxo-patches
 Freeman022026/rustore-privacy-patches
 Fripe070/PixivPatches
+Fuku856/morphe-patches
 Fuku856/smartlife-patches
 Gamer92000/pixelcamera-patches
 Gigahawk/morphe-patches
@@ -73,6 +75,7 @@ HelioFloxZ/HelioFloxZ-Patches
 HelioFloxZ/YouTube-Studio-Patches
 HellLord77/media-patches
 HellveticaStandard/HellveticaPatches
+Hexclyde/bitchord-morphe-patches
 Hiosdra/morphe-patches
 HvQ/eksi-morphe
 IMXEren/mix-patches
@@ -115,6 +118,7 @@ M4TH1EU/veloce-patches
 Manishrdy/honista-patches
 Manishrdy/piko
 MarcaDian/morphe-patches-yavot
+MatthewRiley05/Machu-Morphe-Patches
 MauroGamerVN/Morphe-Patches
 MiguelNinja19/miguel-morphe-patches
 MohamedElnaggar00/morphe-patches-tiktok-lite-only
@@ -146,6 +150,7 @@ PyFlat-JR/Morphe-Patches
 Quantro100/Morphe-patches
 R2bEEaton/walmart-morphe
 RabehX/rabehx-patches
+RashKash103/sync-up
 RealCyberwash/max-patches
 RikoDEV/morphed-pl
 Ripthulhu/morphe-google-patches
@@ -201,6 +206,7 @@ WZSE/morphe-patches
 WaggBR/Wagg13Patch_Morphe
 Wake-Old-Hyphen/hushfeed
 WalkTheEarth/morphe-ytvr-patches
+XBadFellaX/BadFella-Patches
 XTapped/morphe-patches
 Xhehab/Xhehab-Patches
 Xisrr1/Revancify-Xisr
@@ -247,6 +253,7 @@ babyhuehnchen/morphe-patches
 bakwudo/uyu
 balu100/GoogleDialerEnableCallRecording
 bartlomiejfornalczyk/morphe-patches
+bastlam/trax_patches
 bdgerszewski/morphe-patches-ihealth
 bearinmindcat/morphe-patches
 bennytsai1234/youtube-thread-ripper
@@ -294,6 +301,7 @@ dieroboter/morphe-patches
 docbt/patched-up
 dongmin8350/fmkorea-splash-patches
 dowjames/morphe-patches
+drappula/morphe-patches-instaprime
 drnhzn/supreme-patches
 drosoCode/morphe-patches
 dumb-software/T2C-App-Patch-Morphe
@@ -303,12 +311,15 @@ durgesh0505/chiggi_morphe_patches
 eZ4RK0/morphe-patches
 ekazrahul100-web/redgifs-audio-patch
 electiveDev/tiaruebar-patches-vip-fix
+emotionbug/EBPatcher-patches
+encarnian/gboard-enc-patches
 enccmp/mn-patches
 ethan-manny/spotify-tv-crossfade
 ethanm6/letterboxd-stremio-morphe-patch
 eweddwg/belkart-pay-patches
 eyalm2000/tidal-debug-menu
 fangkampanat/gmaps-patches
+fangkampanat/google-maps-automotive-patches
 feixiangdao/letterboxd-stremio-nuvio-morphe-patch
 franticg33k/morphe-patches
 furkngld/tiktok-lite-patches-for-morphe
@@ -343,6 +354,7 @@ hu-liberator/patches
 humzakh/HK-Morphe-Patches
 hxreborn/hxreborn-tiktok-patches
 hxreborn/morphe-patches
+hyzor/hyzor-morphe-patches
 iGridZ/morphe-tower-patches
 icysymmetra/tiktok-patches-for-morphe
 ihatenodejs/aidans-patches
@@ -359,6 +371,7 @@ jancerny2001/morphe-patches
 janowakps/morphe-patches-action
 jaredcat/morphe-patches
 jasonwu1994/Gboard-patches
+jibon-k/notes-morphe-patches
 jjjusf16-sys/3jPatch_Morphe
 jkennethcarino/adobo
 johnneerdael/dutch-applications-patches
@@ -405,6 +418,7 @@ markpaul099/gboard-extended-search
 markpaul099/gboard-gifs-extended
 matthewclso/chrome-morphe
 meridianfresco/morphe-meta-patches
+mian196/GPhotos-custom-branding
 mich111discord/MightyMichs-Patches
 miketweaver/friendsturner-patches
 mohamedamrnady/anghami-patches
@@ -463,6 +477,7 @@ sillyredsoup/reddit-morphe-patches
 sjshb57/Pairip-Patches
 skulldogged/cobalt-morphe
 snowyegret23/morphe-patches
+southstar21dev/southstar21-patches
 spicetify/morphe-patches
 spookyexe/morphe-patches
 sqzass/patches
@@ -474,6 +489,7 @@ testiwy268/morphe-patches
 theabhishekbhujang/morphe-patches
 thegibbonn/morphe-patches-anilili
 thejaustin/smartlauncher-morphe-patches
+theol-git/morphe-patches
 thrkingunknown/gboard-theme-patch
 tiaruebar1024/tiaruebar-patches
 timpra/a17
@@ -482,6 +498,7 @@ tkiethuynh/den-patch
 toidicakhia/morphe-app-patches
 totsiaw/proxma-patches
 trivisa-itihasa/uyu
+trulow/sync-reddit-fixes
 uta-a/linimal
 v1rtu0s/morphe-patches
 variablenine/morphe-patches
@@ -496,6 +513,7 @@ wchill/rvx-morphed
 wonjoonSeol-WS/morphe-patches
 wonjoonSeol/morphe-patches
 xob0t/morphe-patches
+xorwyrm/cobalt-morphe
 xxxR3Dxxx/R3D-PatchLab
 yann-soliman/morphe-patches
 ymshin-dev/edge-window-patches
