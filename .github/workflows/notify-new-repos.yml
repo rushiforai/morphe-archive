@@ -104,12 +104,20 @@ jobs:
 
           BODY="$(printf 'The published index gained %s repo(s) since the last notification:\n\n```\n%s\n```\n\nThe baseline is updated in this PR, so the next notification reports only repos added after it. Opened and merged so repository watchers get a single notification per batch.\n' "$COUNT" "$(cat new-repos.txt)")"
 
-          PR_URL="$(gh pr create --base main --head "$BRANCH" --title "$SUBJECT" --body "$BODY")"
-          echo "Opened $PR_URL"
+          # An earlier run may have left the PR open because merging was refused, in
+          # which case opening another one would fail with "already exists".
+          PR_URL="$(gh pr list --head "$BRANCH" --state open --json url --jq '.[0].url // empty')"
+          if [ -z "$PR_URL" ]; then
+            PR_URL="$(gh pr create --base main --head "$BRANCH" --title "$SUBJECT" --body "$BODY")"
+            echo "Opened $PR_URL"
+          else
+            echo "Reusing the open PR $PR_URL"
+          fi
 
           # If the token is not allowed to merge its own PR, leave it open: an open PR
           # still notifies, and a maintainer can merge it when convenient.
           gh pr merge "$PR_URL" --squash --delete-branch \
+            || echo "::warning::Opened the PR but could not merge it automatically; merge it by hand."
 
       # The baseline is a file in the repo, but it was only ever written inside the
       # PR step above, which runs when there is something new. With no baseline in
@@ -150,4 +158,3 @@ jobs:
           if [ "$pushed" -ne 1 ]; then
             echo "::warning::Could not push the baseline; the next run will report the same repos again."
           fi
-            || echo "::warning::Opened the PR but could not merge it automatically; merge it by hand."
