@@ -2939,14 +2939,6 @@
                 "updatedAt": 1791953442143
             },
             {
-                "name": "modo-patches",
-                "source": "https://raw.githubusercontent.com/latanvillegas/modo-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 406,
-                "createdAt": 1791953445945,
-                "updatedAt": 1791953445945
-            },
-            {
                 "name": "morphe-patches-zona",
                 "source": "https://raw.githubusercontent.com/PerfLite/morphe-patches-zona/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -3451,14 +3443,6 @@
                 "updatedAt": 1793335943634
             },
             {
-                "name": "revanced-patches",
-                "source": "https://raw.githubusercontent.com/AaronDeimos/revanced-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 481,
-                "createdAt": 1793420902943,
-                "updatedAt": 1793420902943
-            },
-            {
                 "name": "morphe-patches",
                 "source": "https://raw.githubusercontent.com/Fuku856/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -3937,6 +3921,78 @@
                 "sortOrder": 541,
                 "createdAt": 1793428178808,
                 "updatedAt": 1793428178808
+            },
+            {
+                "name": "Gboard-patches-jp",
+                "source": "https://raw.githubusercontent.com/c-ardinal/Gboard-patches-jp/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 542,
+                "createdAt": 1793508072992,
+                "updatedAt": 1793508072992
+            },
+            {
+                "name": "nl-morphe-patches",
+                "source": "https://raw.githubusercontent.com/johninnl/nl-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 543,
+                "createdAt": 1793508080045,
+                "updatedAt": 1793508080045
+            },
+            {
+                "name": "Gboard-patches",
+                "source": "https://raw.githubusercontent.com/junksidetm/Gboard-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 544,
+                "createdAt": 1793508080938,
+                "updatedAt": 1793508080938
+            },
+            {
+                "name": "Gboard-offline-morphe",
+                "source": "https://raw.githubusercontent.com/Kirkland-Pickles/Gboard-offline-morphe/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 545,
+                "createdAt": 1793508081557,
+                "updatedAt": 1793508081557
+            },
+            {
+                "name": "Cordly",
+                "source": "https://raw.githubusercontent.com/lildanlid1/Cordly/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 546,
+                "createdAt": 1793508082784,
+                "updatedAt": 1793508082784
+            },
+            {
+                "name": "Quwis-Patches",
+                "source": "https://raw.githubusercontent.com/quwi26/Quwis-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 547,
+                "createdAt": 1793508086387,
+                "updatedAt": 1793508086387
+            },
+            {
+                "name": "SARVO-Patches",
+                "source": "https://raw.githubusercontent.com/sarvottam99/SARVO-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 548,
+                "createdAt": 1793508087322,
+                "updatedAt": 1793508087322
+            },
+            {
+                "name": "mobile-morphe-patches",
+                "source": "https://raw.githubusercontent.com/semicoloncolonel/mobile-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 549,
+                "createdAt": 1793508087905,
+                "updatedAt": 1793508087905
+            },
+            {
+                "name": "Prathxm-Patches",
+                "source": "https://raw.githubusercontent.com/VenusIsJaded/Prathxm-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 550,
+                "createdAt": 1793508090387,
+                "updatedAt": 1793508090387
             }
         ]
     }

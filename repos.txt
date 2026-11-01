@@ -103,6 +103,7 @@ burakdede0/SyncPatch
 Burhanverse/test
 byehi98/okish-morphe-patches
 ByXuXy88/wallapop-oled-noads-patches
+c-ardinal/Gboard-patches-jp
 C4vla/cavla-patches
 callMeBeyonder/morphe-patches
 canh0chua/Morphe-patches
@@ -276,6 +277,7 @@ Jman-Github/Patch-Bundle-Registry
 Jman-Github/ReVanced-Patch-Bundles
 Jman-Github/Universal-ReVanced-Manager
 JoanComasFdz/baconreader-morphe-patches
+johninnl/nl-morphe-patches
 johnneerdael/dutch-applications-patches
 Joly0/joly0-patches
 jordanwoodson/lurk-morphe-patches
@@ -283,6 +285,7 @@ Joristdh/Platypatch
 Joussflls10/Jouss-Patches
 jrddupont/discord-patches
 Juankyyy/morphe-patches
+junksidetm/Gboard-patches
 JZ6/Flexboard
 jzl1/morphe-patches
 k2ej/standby
@@ -294,6 +297,7 @@ Kekimurus/GCamVBoost
 Kero309x/anghamiplus-patches
 kim20598/hakim-morphe-patches
 kiraio-moe/Lain-Patches
+Kirkland-Pickles/Gboard-offline-morphe
 kolaron/morphe-patches
 kondratjev/morphe-patches
 kontsevoye/emorphe-patches
@@ -311,6 +315,7 @@ latanvillegas/modo-patches
 lchanc3/morphe-patches
 LDP924/qqmusic-proxy
 legendsciber/morphe-patches
+lildanlid1/Cordly
 LimeLimes/cbc-patches
 liongalahad/liongalahad-nuviotv-morphe-patches
 liongalahad/liongalahad-stremio-morphe-patches
@@ -412,6 +417,7 @@ Psyquix/Morphe-patches
 PyFlat-JR/Morphe-Patches
 quantavil/edge-morphe-patches
 Quantro100/Morphe-patches
+quwi26/Quwis-Patches
 R2bEEaton/walmart-morphe
 RabehX/rabehx-patches
 rafag00/morphe-patches
@@ -445,11 +451,13 @@ saieshshirodkar/saiesh-morphe-patches
 SailHighSea/sailhighsea-patches
 Santodan/santodan-patches
 SapitoSucio/FroggoMorphePatches
+sarvottam99/SARVO-Patches
 sas-news/netease-ja
 sashade8-ship-it/dual-vot-patches
 SatanMerde/D-moniakPatches
 Satwik-Miyyapuram/morphe-patches
 Saurabh825/morphe-patches
+semicoloncolonel/mobile-morphe-patches
 Seobject/Seobject-patches
 serajr/x-twitter-patches
 Sfehhrths/ekispert-morphe-patches
@@ -482,8 +490,8 @@ sushruth/imgur-patches
 Sylonin/xposed-newx-patches
 SysAdminDoc/HushFacebook
 SysAdminDoc/Hushfacebook
-SysAdminDoc/hushfeed
 SysAdminDoc/HushFeed
+SysAdminDoc/hushfeed
 SysAdminDoc/HushGram
 SysAdminDoc/HushMessenger
 SysAdminDoc/HushPinterest
@@ -525,6 +533,7 @@ v1rtu0s/morphe-patches
 V4n1X/morphe-patches
 Vakarux12/raid-judu-patches
 variablenine/morphe-patches
+VenusIsJaded/Prathxm-Patches
 VenusIsJaded/Venus-Patches
 VipinVIP/railone-patches
 virzak/morphe-patches
