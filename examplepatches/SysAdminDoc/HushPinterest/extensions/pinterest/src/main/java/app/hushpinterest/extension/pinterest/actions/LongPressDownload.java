@@ -11,8 +11,12 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
@@ -40,6 +44,12 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
  * <p>The same relayout leaves out the Pinterest buttons whose hide switch is on: Save, Send and
  * Search image, told apart by the id Pinterest's builder gives each, never by their localized
  * labels. A pin whose menu would be left with no button at all keeps Pinterest's whole menu.
+ *
+ * <p>Accounts in Pinterest's android_longpress_menu_v2 test get a newer list instead, and the round
+ * menu's show method never runs for them. That list is built from option objects, so the same
+ * switches work on those: {@link #composeItems} adds an option of ours and drops the hidden ones
+ * before the list is shown, and {@link #composeClick} takes the tap on ours ahead of Pinterest's
+ * own actions.
  */
 public final class LongPressDownload {
     private LongPressDownload() {}
@@ -85,6 +95,15 @@ public final class LongPressDownload {
      */
     private static int buttonKind(Object button) { return OTHER; }
 
+    /** Rewritten to the newer native menu's two-method option interface. */
+    private static Class<?> composeOptionType() { return null; }
+
+    /** Rewritten to Pinterest's Pair of its Download icon and string resource. */
+    private static Object composeIconAndLabel() { return null; }
+
+    /** Rewritten to compare the native Save, Send and Search option constants. */
+    private static int composeKind(Object option) { return OTHER; }
+
     static boolean active() {
         try {
             return Utils.settingsReady() && PatchFamily.Capability.LONG_PRESS_MENU.installed()
@@ -108,11 +127,90 @@ public final class LongPressDownload {
     }
 
     private static boolean hidden(Object button) {
-        switch (buttonKind(button)) {
+        return hidden(buttonKind(button));
+    }
+
+    private static boolean hidden(int kind) {
+        switch (kind) {
             case SAVE: return Settings.LONG_PRESS_HIDE_SAVE.get();
             case SEND: return Settings.LONG_PRESS_HIDE_SEND.get();
             case SEARCH: return Settings.LONG_PRESS_HIDE_SEARCH.get();
             default: return false;
+        }
+    }
+
+    /** Extend the newer native menu's options. Its separate app shortcuts stay native. */
+    public static ArrayList<Object> composeItems(ArrayList<Object> nativeItems, Object event) {
+        HookStatus.invoked(FamilyNames.LONG_PRESS_DOWNLOAD);
+        boolean download = active(), choosing = choosing();
+        if (!(download || choosing) || nativeItems == null) return nativeItems;
+        try {
+            Object pin = eventPin(event);
+            if (pin == null) return nativeItems;
+            for (Object item : nativeItems) if (owned(item) != null) return nativeItems;
+            ArrayList<Object> items = new ArrayList<>();
+            for (Object item : nativeItems) if (!choosing || !hidden(composeKind(item))) items.add(item);
+            String id = modelId(pin);
+            if (download && id != null) {
+                Class<?> face = composeOptionType();
+                Object icon = composeIconAndLabel();
+                if (face == null || icon == null) return nativeItems;
+                items.add(Proxy.newProxyInstance(face.getClassLoader(), new Class<?>[]{face}, new DownloadOption(id, icon)));
+                HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "download added to newer long-press menu");
+            }
+            if (items.isEmpty() || items.equals(nativeItems)) return nativeItems;
+            if (choosing && items.size() < nativeItems.size() + (download && id != null ? 1 : 0)) {
+                HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "native options hidden in newer long-press menu");
+            }
+            return items;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.LONG_PRESS_DOWNLOAD, "change newer long-press menu", failure);
+            return nativeItems;
+        }
+    }
+
+    /** Consume only our own option. The native caller still handles the menu's dismissal. */
+    public static boolean composeClick(Object item, Object selectedPin) {
+        DownloadOption download = owned(item);
+        if (download == null) return false;
+        try {
+            if (!download.used.compareAndSet(false, true) || !active() || selectedPin == null
+                    || !download.id.equals(modelId(selectedPin))) {
+                HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "stale newer menu download refused");
+            } else if (PinDownloads.start(selectedPin, Utils.getContext())) {
+                HookStatus.counted(FamilyNames.LONG_PRESS_DOWNLOAD, "newer long-press download started");
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.LONG_PRESS_DOWNLOAD, "newer long-press download", failure);
+        }
+        return true;
+    }
+
+    private static DownloadOption owned(Object item) {
+        if (item == null || !Proxy.isProxyClass(item.getClass())) return null;
+        InvocationHandler handler = Proxy.getInvocationHandler(item);
+        return handler instanceof DownloadOption ? (DownloadOption) handler : null;
+    }
+
+    private static final class DownloadOption implements InvocationHandler {
+        final String id;
+        final Object icon;
+        final AtomicBoolean used = new AtomicBoolean();
+
+        DownloadOption(String id, Object icon) {
+            this.id = id;
+            this.icon = icon;
+        }
+
+        @Override public Object invoke(Object proxy, Method method, Object[] args) {
+            switch (method.getName()) {
+                case "iconAndLabel": return icon;
+                case "getAnalyticsName": return "download";
+                case "equals": return args != null && args.length == 1 && proxy == args[0];
+                case "hashCode": return System.identityHashCode(proxy);
+                case "toString": return "Download pin option";
+                default: throw new UnsupportedOperationException("Unknown menu option method");
+            }
         }
     }
 

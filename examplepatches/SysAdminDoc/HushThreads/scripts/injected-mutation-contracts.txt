@@ -11,7 +11,8 @@
 # A start-call, next-call, sole-call or once-call rule picks its method by every string it names
 # and its shape, and exactly one of Threads' methods may answer that; name as much as the patch
 # itself finds the method by. scripts/test-injected-registers.ps1 builds bad fixtures for every
-# rule here, and fails on a rule it has none for.
+# rule here, and fails on a rule it has none for. A * in the method a sole-call replaces stands for
+# any run, for the names each of the eleven variants makes up; it may match one call in the method.
 # Strings containing spaces are quoted and matched as one exact string.
 # The settings patch sends each of these ShortcutManager calls to SettingsEntry, which makes the
 # real call and puts the HushThreads shortcut back in front after it. One left in Threads' own code
@@ -27,7 +28,11 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 
 # The main-feed logo keeps all seven original clickable arguments in their original order.
 # A second hook, a leftover stock call or a hook on another argument bank is refused.
-sole-call Lapp/morphe/extension/hushthreads/settings/ThreadsLogo;->clickable(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;Z)Ljava/lang/Object; replacing LX/2dO;->A01(LX/9wj;LX/0mY;LX/9hi;LX/1Mz;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Z)LX/9hi; in instance (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; holding "com.instagram.barcelona.feed.ui.MainFeedScreen.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous> (MainFeedScreen.kt:2641)"
+sole-call Lapp/morphe/extension/hushthreads/settings/ThreadsLogo;->clickable(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;Z)Ljava/lang/Object; replacing *->*(*Ljava/lang/String;Lkotlin/jvm/functions/Function0;Z)* in instance (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; holding "com.instagram.barcelona.feed.ui.MainFeedScreen.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous> (MainFeedScreen.kt:2820)"
+
+# SoLoader's flags reach the extension before SoLoader reads them, in the one static init holding
+# both of its messages, so a merged build with compressed libraries can start.
+start-call Lapp/morphe/extension/hushthreads/misc/NativeLibraries;->soLoaderFlags(Landroid/content/Context;I)I in static (Landroid/content/Context;*I)V holding "SoLoader already initialized" "Initializing SoLoader: "
 
 # These compare the final host operations and branch graph against the stock fixture. A selected
 # feature's status must agree with the CLI selection when supplied. Omitted families must retain
@@ -63,7 +68,8 @@ sole-call Lapp/morphe/extension/hushthreads/settings/ThreadsLogo;->clickable(Lja
 # caller. showRow draws Threads' row from the calls and literals Copy link's is built with, media,
 # activity and dismiss read the menu's fields and close it with Copy link's call, the click is a
 # Function0, and every static InstagramMedia method is a bridge that calls the getter found by its
-# Pando hash or kept name. Left out, the menu and every one of those stubs stay as they shipped;
+# Pando hash, kept name, or for a post's linked and shared posts, by the fields their one serializer
+# reads. Left out, the menu and every one of those stubs stay as they shipped;
 # bundles from before Save had a status are read as leaving it out.
 # The settings row asks once, right before the goto ending the More settings case, on its composer,
 # and showRow calls the Accounts Center row. Copy text on long press comes with it: each override

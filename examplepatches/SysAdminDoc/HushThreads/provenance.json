@@ -151,6 +151,16 @@
     },
     {
       "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/coexist/ShareTiles.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Share sheet tiles: starts a tile's intent itself when Threads' launcher refused it, for the launches found by reading the tile method."
+    },
+    {
+      "paths": [
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/ads/FeedAds.java",
         "patches/src/main/kotlin/app/morphe/patches/threads/ads/**"
       ],
@@ -228,6 +238,16 @@
       "via": [],
       "license": "GPL-3.0-only",
       "changes": "Disable analytics: the event log addresses pointed at a dead local port."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/NativeLibraries.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Native library loading: SoLoader's direct read out of the APK stays off once a merge has compressed the libraries. Found by reading the crash on the 32-bit variants and SoLoader's init in 453, with no outside code."
     },
     {
       "paths": [

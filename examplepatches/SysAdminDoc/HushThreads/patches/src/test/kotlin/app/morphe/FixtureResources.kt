@@ -24,7 +24,7 @@ import javax.xml.transform.stream.StreamResult
  * comes back as a DOM parsed like the patcher's, with `android:` attributes as plain names.
  *
  * The coder is internal to the patcher, so it's reached by its JVM names, pinned to morphe-patcher
- * 2.0.0 as [PatchContexts] is: a bump that renames one fails here, naming it. Patcher 2.0 decodes on
+ * 2.1.0 as [PatchContexts] is: a bump that renames one fails here, naming it. Patcher 2.x decodes on
  * request, as Manager does, so a file is decoded the first time a test asks for it (getFile's last
  * argument, as a patch's own get passes it).
  */

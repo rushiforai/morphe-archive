@@ -71,10 +71,12 @@ import app.hushpinterest.extension.pinterest.actions.ExternalBrowser;
 import app.hushpinterest.extension.pinterest.actions.LongPressDownloadForTests;
 import app.hushpinterest.extension.pinterest.actions.LongPressDownloadTest;
 import app.hushpinterest.extension.pinterest.actions.PinDownloads;
+import app.hushpinterest.extension.pinterest.actions.SaveAndDownloadForTests;
 import app.hushpinterest.extension.pinterest.actions.SystemShare;
 import app.hushpinterest.extension.pinterest.ads.Ads;
 import app.hushpinterest.extension.pinterest.ads.FeedFilter;
 import app.hushpinterest.extension.pinterest.ads.HomeFeed;
+import app.hushpinterest.extension.pinterest.ads.SavedPins;
 import app.hushpinterest.extension.pinterest.privacy.Analytics;
 import app.hushpinterest.extension.pinterest.privacy.AdvertisingId;
 import app.hushpinterest.extension.pinterest.notifications.PushNotificationsTest;
@@ -279,6 +281,9 @@ public class PausedHooksTest {
             video.video = true;
             return filtersOut(video);
         }));
+        // Home's request asks whether each pin is saved, which is what its pages are judged by.
+        probes.put(Settings.HIDE_SAVED_PINS, Collections.singletonList(
+                () -> !"pin.{id}".equals(SavedPins.homeFields("pin.{id}"))));
         probes.put(Settings.KEEP_HOME_FEED, Arrays.asList(() -> HomeFeed.holdResumeRefresh(10 * 60 * 1000L),
                 () -> HomeFeed.holdHomeRefresh(null, 1)));
         probes.put(Settings.DISABLE_ANALYTICS, Arrays.asList(Analytics::blockUpload,
@@ -319,6 +324,8 @@ public class PausedHooksTest {
                 () -> queuesWithDownloadPins(request -> !request.getAllowedOverRoaming())));
         probes.put(Settings.COPY_IMAGE, Collections.singletonList(() -> offersImageRow("CopyImage")));
         probes.put(Settings.SHARE_IMAGE, Collections.singletonList(() -> offersImageRow("ShareImage")));
+        probes.put(Settings.SAVE_DOWNLOADED_PINS, Collections.singletonList(() -> withDownloadPins(() -> SaveAndDownloadForTests.savesADownload(PIN))));
+        probes.put(Settings.DOWNLOAD_SAVED_PINS, Collections.singletonList(() -> withDownloadPins(() -> SaveAndDownloadForTests.downloadsASave(PIN))));
         probes.put(Settings.DOWNLOAD_BOARD, Collections.singletonList(() -> BoardDownloads.record(Collections.singletonList(BOARD_PIN))));
         probes.put(Settings.LONG_PRESS_DOWNLOAD, Collections.singletonList(PausedHooksTest::addsLongPressDownload));
         probes.put(Settings.LONG_PRESS_HIDE_SAVE, Collections.singletonList(() -> LongPressDownloadForTests.hidesButton(LongPressDownloadForTests.SAVE)));
@@ -354,6 +361,7 @@ public class PausedHooksTest {
             return launched != null;
         })));
         probes.put(Settings.HIDE_SCREENSHOT_SHARE, Collections.singletonList(UiHooks::hideScreenshotShare));
+        probes.put(Settings.HIDE_ASSISTANT, Collections.singletonList(UiHooks::hideAssistant));
         probes.put(Settings.HIDE_SEARCH_HISTORY, Arrays.asList(
                 () -> UiHooks.searchHistoryVisibility(View.INVISIBLE) != View.INVISIBLE,
                 () -> UiHooks.searchHistoryMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC,
@@ -460,6 +468,17 @@ public class PausedHooksTest {
                 ShadowDownloadManager.ShadowRequest request = queuedDownload(activity);
                 return request != null && limited.apply(request);
             });
+        } finally {
+            if (!pins) Settings.DOWNLOAD_PINS.save(false);
+        }
+    }
+
+    /** Save pins you download and Download pins you save ride on Download pins, so their probe turns it on. */
+    private static boolean withDownloadPins(Probe probe) {
+        boolean pins = Settings.DOWNLOAD_PINS.savedValue();
+        if (!pins) Settings.DOWNLOAD_PINS.save(true);
+        try {
+            return probe.changedPinterest();
         } finally {
             if (!pins) Settings.DOWNLOAD_PINS.save(false);
         }

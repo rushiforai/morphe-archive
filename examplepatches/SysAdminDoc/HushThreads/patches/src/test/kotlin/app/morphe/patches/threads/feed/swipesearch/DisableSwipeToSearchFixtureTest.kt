@@ -8,17 +8,20 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PerBuild
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.threads.misc.extension.parameterRegister
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
+import app.morphe.util.argumentRegister
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -27,6 +30,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -56,11 +60,12 @@ class DisableSwipeToSearchFixtureTest {
             assertEquals("$where: methods holding the note", 1, holders.size)
             val screen = holders.single()
             val code = screen.body()
-            val guards = pagerChecks(code)
-            assertEquals("$where: pager checks", 1, guards.size)
-            val guard = guards.single()
+            val checks = pagerChecks(code)
+            assertEquals("$where: pager checks", 1, checks.size)
+            val (guard, array) = checks.single()
             val flag = code[guard - 1].getReference<FieldReference>()!!
             val page = code[guard + 1].getReference<FieldReference>()!!
+            assertEquals(where, Opcode.FILLED_NEW_ARRAY, code[array].opcode)
             val extra = FixtureDex.classes(build, setOf(flag.definingClass, page.type))
             // The page the check skips is the enum constant named SEARCH.
             val pageInit = extra.getValue(page.type).methods.single { it.name == "<clinit>" }.body()
@@ -78,7 +83,7 @@ class DisableSwipeToSearchFixtureTest {
             val register = (stock.body()[store] as TwoRegisterInstruction).registerA
             val parameter = stock.parameterTypes.indices.single { stock.parameterRegisterNumber(it) == register }
             assertEquals("$where: the flag", "Z", stock.parameterTypes[parameter].toString())
-            // The second of its two booleans, last of its seven parameters, on 452.
+            // The second of its two booleans, last of its seven parameters.
             assertEquals(where, 6, parameter)
 
             val context = context(build)
@@ -167,18 +172,32 @@ class DisableSwipeToSearchFixtureTest {
         val screen = screens.flatMap { it.methods }.single { method -> method.body().any { it.isTabsNote() } }
         val code = screen.body()
         // The state and the page enum, read off the screen's pager check.
-        val types = pagerChecks(code).flatMap { at ->
-            listOf(code[at - 1].getReference<FieldReference>()!!.definingClass, code[at + 1].getReference<FieldReference>()!!.type)
+        val types = pagerChecks(code).flatMap { (guard, _) ->
+            listOf(code[guard - 1].getReference<FieldReference>()!!.definingClass, code[guard + 1].getReference<FieldReference>()!!.type)
         }.toSet()
         return PatchContexts.of(ExtensionDex.classes() + screens + FixtureDex.classes(build, types).values)
     }
 
-    /** The shape of the home pager's check: a boolean field read, an if-eqz on it, a page read and the array of pages. */
-    private fun pagerChecks(code: List<Instruction>) = code.indices.filter { at ->
-        at in 1 until code.size - 2 && code[at].opcode == Opcode.IF_EQZ &&
-            code[at - 1].opcode == Opcode.IGET_BOOLEAN && code[at + 1].opcode == Opcode.SGET_OBJECT &&
-            code[at + 2].opcode == Opcode.FILLED_NEW_ARRAY
-    }
+    /**
+     * The shape of the home pager's check: a boolean field read, an if-eqz on it, the Search page
+     * read, and the array of pages the two paths meet at. 452 falls straight into the array; 453
+     * loads null on the branch and jumps back to it.
+     */
+    private fun pagerChecks(code: List<Instruction>): List<Pair<Int, Int>> =
+        (1 until code.size - 1).filter { at ->
+            code[at].opcode == Opcode.IF_EQZ && code[at - 1].opcode == Opcode.IGET_BOOLEAN &&
+                code[at + 1].opcode == Opcode.SGET_OBJECT
+        }.mapNotNull { at ->
+            val search = (code[at + 1] as OneRegisterInstruction).registerA
+            val array = code.indices.firstOrNull { index ->
+                index > at + 1 && code[index].opcode == Opcode.FILLED_NEW_ARRAY &&
+                    code[index].getReference<TypeReference>()?.type?.startsWith("[") == true &&
+                    (code[index] as FiveRegisterInstruction).let { pages ->
+                        (0 until pages.registerCount).any { pages.argumentRegister(it) == search }
+                    }
+            } ?: return@mapNotNull null
+            at to array
+        }
 
     private fun screens(build: File): List<ClassDef> = fixtures.getOrPut(build) {
         FixtureDex.classesWhere(build, { dex -> dex.stringSection.any { it.startsWith(TABS_NOTE) } }) { method ->
@@ -191,6 +210,6 @@ class DisableSwipeToSearchFixtureTest {
 
     private companion object {
         /** One read of each build serves every test; each test patches its own copy. */
-        val fixtures = mutableMapOf<File, List<ClassDef>>()
+        val fixtures = PerBuild<List<ClassDef>>()
     }
 }

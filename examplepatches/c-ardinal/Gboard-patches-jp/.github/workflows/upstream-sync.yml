@@ -1,0 +1,231 @@
+name: Upstream sync
+
+on:
+  schedule:
+    - cron: '0 21 * * *'
+  workflow_dispatch:
+    inputs:
+      upstream_tag:
+        description: 'Upstream tag to sync instead of the latest release (e.g. v3.14.0)'
+        required: false
+        type: string
+        default: ''
+      dry_run:
+        description: 'Merge, build and test only; do not push, open a PR or publish a pre-release'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: read
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync upstream release
+    if: github.repository == 'c-ardinal/Gboard-patches-jp'
+    runs-on: ubuntu-latest
+    env:
+      UPSTREAM_REPO: jasonwu1994/Gboard-patches
+      DRY_RUN: ${{ inputs.dry_run == true }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Detect upstream release
+        id: detect
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ inputs.upstream_tag }}
+        run: |
+          set -euo pipefail
+          tag="${INPUT_TAG:-}"
+          if [ -z "$tag" ]; then
+            tag="$(gh api "repos/$UPSTREAM_REPO/releases/latest" --jq .tag_name)"
+          fi
+          if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Unexpected upstream tag '$tag'." >&2
+            exit 1
+          fi
+          ver="${tag#v}"
+          git remote add upstream "https://github.com/$UPSTREAM_REPO.git"
+          git remote set-url --push upstream DISABLED
+          # Namespaced ref: never collides with fork tags and is never pushed.
+          git fetch --no-tags upstream "refs/tags/$tag:refs/upstream-sync/$tag"
+          # gh prefers a remote named upstream as its base repo; drop it so nothing can target upstream.
+          git remote remove upstream
+          echo "SYNC_OUT=$RUNNER_TEMP/upstream-sync" >> "$GITHUB_ENV"
+          commit="$(git rev-parse "refs/upstream-sync/$tag^{commit}")"
+          branch="release/$ver-jp.1"
+
+          skip=""
+          if git merge-base --is-ancestor "$commit" HEAD; then
+            skip="upstream $tag is already merged into main"
+          elif git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
+            skip="branch $branch already exists"
+          elif git ls-remote --tags origin | grep -qF "refs/tags/v$ver-jp."; then
+            skip="a v$ver-jp.* tag already exists"
+          fi
+          if [ -n "$skip" ]; then
+            echo "## Upstream sync skipped" >> "$GITHUB_STEP_SUMMARY"
+            echo "Skipped $tag: $skip." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          {
+            echo "tag=$tag"
+            echo "ver=$ver"
+            echo "version=$ver-jp.1"
+            echo "commit=$commit"
+            echo "branch=$branch"
+            echo "skip=$skip"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Merge and resolve
+        if: steps.detect.outputs.skip == ''
+        env:
+          TAG: ${{ steps.detect.outputs.tag }}
+          COMMIT: ${{ steps.detect.outputs.commit }}
+          BRANCH: ${{ steps.detect.outputs.branch }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$BRANCH"
+          git merge --no-ff --no-commit "$COMMIT" || true
+          if ! python3 -I tools/upstream-sync/resolve.py --upstream-tag "$TAG" --repo-slug "$GITHUB_REPOSITORY" --out "$SYNC_OUT"; then
+            {
+              echo "## Upstream sync of $TAG failed"
+              echo "The merge needs manual resolution. Unresolvable conflicts:"
+              echo
+              if [ -s "$SYNC_OUT/conflicts.txt" ]; then
+                sed 's/^/- `/; s/$/`/' "$SYNC_OUT/conflicts.txt"
+              else
+                echo "- (none listed; see the resolver log)"
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Setup Java
+        if: steps.detect.outputs.skip == ''
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        if: steps.detect.outputs.skip == ''
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Make Gradle wrapper executable
+        if: steps.detect.outputs.skip == ''
+        run: chmod +x ./gradlew
+
+      - name: Build and test
+        id: build
+        if: steps.detect.outputs.skip == ''
+        continue-on-error: true
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN }}
+        run: ./gradlew generatePatchesList :extensions:extension:testDebugUnitTest :extensions:calculator:testDebugUnitTest :patches:test :patches:buildAndroid --continue
+
+      - name: Commit merge
+        if: steps.detect.outputs.skip == ''
+        env:
+          TAG: ${{ steps.detect.outputs.tag }}
+          VERSION: ${{ steps.detect.outputs.version }}
+          BUILD: ${{ steps.build.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          # Merge and resolver output is already staged; Gradle only regenerates these two.
+          git add patches-list.json patches-bundle.json
+          unexpected="$(git status --porcelain --untracked-files=all | grep -v '^[MADRC] ' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected working-tree changes:" >&2
+            echo "$unexpected" >&2
+            exit 1
+          fi
+          git commit -m "chore: merge upstream $TAG and stage fork release $VERSION"
+          {
+            echo
+            echo "## Build and tests"
+            echo
+            if [ "$BUILD" = success ]; then
+              echo "- Build and all unit tests passed. A pre-release with the built \`.mpp\` is published from this branch."
+            else
+              echo "- Build or tests failed, so this PR is a draft and no pre-release was published. Log: $RUN_URL"
+            fi
+          } >> "$SYNC_OUT/pr-body.md"
+
+      - name: Push branch and open PR
+        id: pr
+        if: steps.detect.outputs.skip == '' && env.DRY_RUN != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.detect.outputs.tag }}
+          VERSION: ${{ steps.detect.outputs.version }}
+          BRANCH: ${{ steps.detect.outputs.branch }}
+          BUILD: ${{ steps.build.outcome }}
+        run: |
+          set -euo pipefail
+          git push --no-follow-tags origin "HEAD:refs/heads/$BRANCH"
+          draft=()
+          if [ "$BUILD" != success ]; then
+            draft=(--draft)
+          fi
+          url="$(gh pr create -R "$GITHUB_REPOSITORY" --base main --head "$BRANCH" "${draft[@]}" \
+            --title "chore: merge upstream $TAG and stage fork release $VERSION" \
+            --body-file "$SYNC_OUT/pr-body.md")"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Publish pre-release
+        if: steps.detect.outputs.skip == '' && env.DRY_RUN != 'true' && steps.build.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.detect.outputs.tag }}
+          VER: ${{ steps.detect.outputs.ver }}
+          VERSION: ${{ steps.detect.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh release create -R "$GITHUB_REPOSITORY" "v$VER-jp.0" --prerelease --target "$(git rev-parse HEAD)" \
+            --title "v$VER-jp.0 (upstream $TAG sync, pre-release)" \
+            --notes-file "$SYNC_OUT/release-notes.md" \
+            "patches/build/libs/patches-$VERSION.mpp"
+
+      - name: Summary
+        if: steps.detect.outputs.skip == ''
+        env:
+          TAG: ${{ steps.detect.outputs.tag }}
+          VER: ${{ steps.detect.outputs.ver }}
+          BUILD: ${{ steps.build.outcome }}
+          PR_URL: ${{ steps.pr.outputs.url }}
+        run: |
+          set -euo pipefail
+          {
+            echo "## Upstream sync of $TAG"
+            echo "- Build and tests: $BUILD"
+            if [ "$DRY_RUN" = true ]; then
+              echo "- Dry run: nothing was pushed, no PR or pre-release was created."
+            else
+              echo "- Opened PR: $PR_URL"
+              if [ "$BUILD" = success ]; then
+                echo "- Pre-release: v$VER-jp.0"
+              fi
+            fi
+            if [ -s "$SYNC_OUT/placeholders.txt" ]; then
+              echo "- Japanese placeholders to translate: $(wc -l < "$SYNC_OUT/placeholders.txt")"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$BUILD" != success ]; then
+            echo "Build or tests failed." >&2
+            exit 1
+          fi

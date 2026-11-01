@@ -1,0 +1,1 @@
+rootProject.name = "cordly-patches"

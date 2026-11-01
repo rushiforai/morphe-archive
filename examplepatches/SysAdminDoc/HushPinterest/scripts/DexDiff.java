@@ -276,7 +276,7 @@ public class DexDiff {
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2), Map.entry("drawWash", 4), Map.entry("builtView", 3),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
-            Map.entry("longPress", 2), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2),
+            Map.entry("longPress", 4), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2), Map.entry("signInFailure", 1), Map.entry("saveAndDownload", 3), Map.entry("homePage", 3),
             Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1), Map.entry("postedDate", 1),
             Map.entry("longPressChoices", 1));
 
@@ -2884,6 +2884,9 @@ public class DexDiff {
                 for (Method m : clean.holding("sg_android_new_screenshot_api_14")) if (!AccessFlags.STATIC.isSet(m.getAccessFlags())
                         && m.getReturnType().equals("V") && m.getParameterTypes().size() == 2
                         && m.getParameterTypes().get(1).toString().equals("Landroidx/fragment/app/FragmentActivity;")) targets.add(m);
+            } else if (selector.equals("assistant")) {
+                for (Method m : clean.holding("ai_fwd_android_assistant_ask_mode")) if (!AccessFlags.STATIC.isSet(m.getAccessFlags())
+                        && m.getReturnType().equals("Z") && m.getParameterTypes().isEmpty()) targets.add(m);
             } else if (selector.equals("update")) {
                 targets.addAll(updateTargets());
                 if (targets.isEmpty()) {
@@ -2922,19 +2925,28 @@ public class DexDiff {
                 }
                 if (targets.size() == 1) whole = saveToastStub(targets.get(0).getParameterTypes().get(0).toString());
             } else if (selector.equals("homeResume") || selector.equals("homeRefresh")) {
-                // The Home return check: the (J)V that compares time away with five minutes and
-                // calls the static refresh with a map and a default-argument mask. Its refresh is
-                // the second guarded method.
+                // The Home return check: the fragment's (J)V that hands the time away to the
+                // presenter's (JZ)V, which compares it with five minutes and calls the static
+                // refresh with a map and a default-argument mask. Its refresh is the second
+                // guarded method.
                 List<Method> resumes = new ArrayList<>();
+                Set<Method> checks = new HashSet<>();
                 ClassDef home = clean.classes.get(HOME_FEED_FRAGMENT);
                 if (home != null) for (Method m : home.getMethods()) {
                     if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !descriptor(m).equals("(J)V")) continue;
-                    if (instructions(m).stream().anyMatch(i -> i instanceof WideLiteralInstruction
-                            && ((WideLiteralInstruction) i).getWideLiteral() == HOME_AWAY_MS) && !homeRefreshCalls(m).isEmpty()) resumes.add(m);
+                    for (Instruction i : instructions(m)) if (reference(i) instanceof MethodReference r && descriptor(r).equals("(JZ)V")
+                            && i.getOpcode().name.startsWith("invoke-virtual") && clean.methods.get(r.toString()) != null) {
+                        Method check = clean.methods.get(r.toString());
+                        if (instructions(check).stream().anyMatch(a -> a instanceof WideLiteralInstruction
+                                && ((WideLiteralInstruction) a).getWideLiteral() == HOME_AWAY_MS) && !homeRefreshCalls(check).isEmpty()) {
+                            resumes.add(m);
+                            checks.add(check);
+                        }
+                    }
                 }
                 if (selector.equals("homeResume")) targets.addAll(resumes);
-                else if (resumes.size() == 1) {
-                    Set<String> calls = homeRefreshCalls(resumes.get(0));
+                else if (resumes.size() == 1 && checks.size() == 1) {
+                    Set<String> calls = homeRefreshCalls(checks.iterator().next());
                     Method refresh = calls.size() == 1 ? clean.methods.get(calls.iterator().next()) : null;
                     if (refresh == null) fail("Home return check no longer calls one refresh in this build");
                     else targets.add(refresh);
@@ -2960,6 +2972,10 @@ public class DexDiff {
                     sendableStubs();
                     return original != null;
                 }
+                if (selector.equals("assistant")) {
+                    falseGuard(m, hook);
+                    return original != null;
+                }
                 if (selector.equals("update")) {
                     before = -1;
                     List<Instruction> body = instructions(m);
@@ -2969,6 +2985,27 @@ public class DexDiff {
                 guard(m, hook, before, args, prep, selector.equals("email"), selector.equals("update"));
             }
             return original != null && whole;
+        }
+
+        /** A guard on a host method that answers a question: when the hook says so it answers false, and nothing else runs. */
+        void falseGuard(Method m, String hook) {
+            List<Integer> sites = calls(m, hook, 1);
+            if (sites.size() != 1) return;
+            List<Instruction> body = instructions(m);
+            Layout layout = new Layout(m.getImplementation());
+            if (sites.get(0) != 0 || body.size() < 6 || !arguments(body.get(0)).isEmpty()) {
+                fail(hook + " has the wrong guarded placement or arguments in " + m);
+                return;
+            }
+            Instruction answer = body.get(1), branch = body.get(2), zero = body.get(3), done = body.get(4);
+            if (answer.getOpcode() != Opcode.MOVE_RESULT || branch.getOpcode() != Opcode.IF_EQZ || firstRegister(answer) != firstRegister(branch)
+                    || !(branch instanceof OffsetInstruction)
+                    || layout.addresses.get(2) + ((OffsetInstruction) branch).getCodeOffset() != layout.addresses.get(5))
+                fail(hook + " has no false branch to its original body in " + m);
+            if (zero.getOpcode() != Opcode.CONST_4 || done.getOpcode() != Opcode.RETURN || firstRegister(zero) != firstRegister(done)
+                    || ((NarrowLiteralInstruction) zero).getNarrowLiteral() != 0)
+                fail(hook + " does not answer false only in its enabled branch in " + m);
+            remove(m, 0, 5);
         }
 
         /** The static Home refresh calls in [m]: the fragment's owner, a pin map and a default-argument mask. */
@@ -3659,7 +3696,7 @@ public class DexDiff {
          * the menu and its event, nothing borrowed, and seven stubs bound to the members the clean APK
          * has for them: the event's pin, the menu's shown id, the pin's id getter, the menu's button
          * list and layout method, a button's detached mark and spring driver, and Pinterest's own
-         * button model, icon, string, factory and styler.
+         * button model, icon, string, factory and styler. The newer menu is claimed with them.
          */
         void longPress(Contract c) {
             String menuType = c.strings.get(1);
@@ -3799,8 +3836,141 @@ public class DexDiff {
                             fail("long-press springs reset doesn't clear the button's own mark and driver from a zero");
                     }
                 }
+                if (!longPressCompose(c.strings.get(2), c.strings.get(3), event, faceType, pin, icon, stringsClass.getType())) resolved = false;
             }
             capability(c.callee, resolved);
+        }
+
+        /**
+         * The newer long-press menu accounts in android_longpress_menu_v2 get in place of the round
+         * one (#16, #18): one call replacing the option list the dispatcher builds, a pin read and one
+         * call ahead of the tap effect's first action that skips them all when it answers true, and
+         * three stubs naming the option interface, Pinterest's Download icon and label, and the enum.
+         */
+        boolean longPressCompose(String itemsHook, String clickHook, String event, String model, String pin, String icon, String strings) {
+            String own = BASE + "actions/LongPressDownload;->", pair = "Lkotlin/Pair;";
+            List<ClassDef> faces = new ArrayList<>();
+            for (ClassDef owner : clean.classes.values()) {
+                if (owner.getType().startsWith(OWN) || !AccessFlags.INTERFACE.isSet(owner.getAccessFlags())
+                        || !AccessFlags.PUBLIC.isSet(owner.getAccessFlags())) continue;
+                Set<String> shapes = new TreeSet<>();
+                int count = 0;
+                for (Method method : owner.getMethods()) {
+                    count++;
+                    if (AccessFlags.ABSTRACT.isSet(method.getAccessFlags())) shapes.add(method.getName() + descriptor(method));
+                }
+                if (count == 2 && shapes.equals(Set.of("iconAndLabel()Lkotlin/Pair;", "getAnalyticsName()Ljava/lang/String;"))) faces.add(owner);
+            }
+            ClassDef face = uniqueClass(faces, "newer long-press menu option interface");
+            List<ClassDef> enums = new ArrayList<>();
+            if (face != null) for (ClassDef owner : clean.classes.values()) {
+                if (!owner.getInterfaces().contains(face.getType()) || !AccessFlags.ENUM.isSet(owner.getAccessFlags())) continue;
+                Set<String> names = new HashSet<>();
+                for (Field field : owner.getStaticFields()) if (field.getType().equals(owner.getType())) names.add(field.getName());
+                if (names.containsAll(List.of("REPIN", "SEND", "VISUAL_SEARCH"))) enums.add(owner);
+            }
+            ClassDef kinds = uniqueClass(enums, "newer long-press menu options");
+            if (kinds == null) return false;
+            String type = kinds.getType();
+            String repin = type + "->REPIN:" + type, send = type + "->SEND:" + type, search = type + "->VISUAL_SEARCH:" + type;
+
+            List<Method> dispatchers = new ArrayList<>();
+            for (Method method : clean.holding("android_longpress_menu_v2")) {
+                if (AccessFlags.STATIC.isSet(method.getAccessFlags()) || !method.getReturnType().equals("V") || method.getParameterTypes().size() != 1) continue;
+                ClassDef parameter = clean.classes.get(method.getParameterTypes().get(0).toString());
+                if (parameter == null || !event.equals(parameter.getSuperclass())) continue;
+                List<Instruction> body = instructions(method);
+                if (body.stream().anyMatch(i -> reference(i) instanceof MethodReference call && call.getDefiningClass().equals(event)
+                                && call.getReturnType().equals(model) && call.getParameterTypes().isEmpty())
+                        && body.stream().anyMatch(i -> i.getOpcode() == Opcode.CHECK_CAST && String.valueOf(reference(i)).equals(pin))
+                        && body.stream().anyMatch(i -> String.valueOf(reference(i)).startsWith("Landroidx/compose/ui/platform/ComposeView;"))) dispatchers.add(method);
+            }
+            Method dispatcher = unique(dispatchers, "newer long-press menu dispatcher");
+            Method shown = actual(dispatcher);
+            List<Integer> sites = calls(shown, itemsHook, 1);
+            if (shown != null && sites.size() == 1) {
+                List<Instruction> body = instructions(shown);
+                int at = sites.get(0);
+                Instruction first = body.get(0), built = at < 2 ? null : body.get(at - 1), builder = at < 2 ? null : body.get(at - 2);
+                Method building = builder == null ? null : clean.methods.get(String.valueOf(reference(builder)));
+                if (building == null || instructions(building).stream().noneMatch(i -> i.getOpcode() == Opcode.CHECK_CAST && String.valueOf(reference(i)).equals(type))
+                        || !callSites(body, String.valueOf(reference(builder))).equals(List.of(at - 2)))
+                    fail(itemsHook + " doesn't follow the dispatcher's one option list");
+                else if (first.getOpcode() != Opcode.MOVE_OBJECT_FROM16 || ((TwoRegisterInstruction) first).getRegisterB() != parameter(shown, 0)
+                        || !isMoveResult(built.getOpcode()) || !arguments(body.get(at)).equals(List.of(firstRegister(built), firstRegister(first)))
+                        || !isMoveResult(body.get(at + 1).getOpcode()) || firstRegister(body.get(at + 1)) != firstRegister(built))
+                    fail(itemsHook + " doesn't replace the option list from the list and the event in " + shown);
+                remove(shown, at, at + 2);
+            }
+
+            List<Method> effects = new ArrayList<>();
+            for (Method method : clean.methods.values()) {
+                if (!method.getName().equals("invokeSuspend") || method.getImplementation() == null
+                        || !descriptor(method).equals("(Ljava/lang/Object;)Ljava/lang/Object;") || method.getDefiningClass().startsWith(OWN)) continue;
+                List<Instruction> body = instructions(method);
+                if (body.stream().anyMatch(i -> String.valueOf(reference(i)).equals(repin))
+                        && body.stream().anyMatch(i -> reference(i) instanceof FieldReference field && field.getType().equals(pin))) effects.add(method);
+            }
+            Method effect = unique(effects, "newer long-press menu tap effect");
+            Method tap = actual(effect);
+            List<Integer> clicks = calls(tap, clickHook, 1);
+            if (tap != null && clicks.size() == 1) {
+                List<Instruction> body = instructions(tap);
+                Layout layout = new Layout(tap.getImplementation());
+                int at = clicks.get(0), option = -1, holder = -1;
+                String pinHolder = null;
+                for (Instruction instruction : body) if (reference(instruction) instanceof FieldReference field && field.getType().equals(pin)) pinHolder = field.getDefiningClass();
+                for (int k = 0; k < at - 1; k++) if (body.get(k).getOpcode() == Opcode.IGET_OBJECT && reference(body.get(k)) instanceof FieldReference field) {
+                    if (field.getType().equals(face.getType())) option = firstRegister(body.get(k));
+                    if (field.getType().equals(pinHolder)) holder = firstRegister(body.get(k));
+                }
+                Instruction held = body.get(at - 1), answer = body.get(at + 1), branch = body.get(at + 2), next = body.get(at + 3);
+                if (held.getOpcode() != Opcode.IGET_OBJECT || !(reference(held) instanceof FieldReference pinField) || !pinField.getType().equals(pin)
+                        || !pinField.getDefiningClass().equals(pinHolder) || ((TwoRegisterInstruction) held).getRegisterB() != holder
+                        || !arguments(body.get(at)).equals(List.of(option, firstRegister(held)))) fail(clickHook + " doesn't get the tapped option and its pin in " + tap);
+                if (answer.getOpcode() != Opcode.MOVE_RESULT || firstRegister(held) != firstRegister(answer) || branch.getOpcode() != Opcode.IF_NEZ || firstRegister(answer) != firstRegister(branch)
+                        || !String.valueOf(reference(next)).equals(repin) || firstRegister(next) != firstRegister(answer)) {
+                    fail(clickHook + " doesn't borrow only the first action's own register in " + tap);
+                } else {
+                    Instruction target = layout.byAddress.get(layout.addresses.get(at + 2) + ((OffsetInstruction) branch).getCodeOffset());
+                    if (target == null || target.getOpcode() != Opcode.SGET_OBJECT || !(reference(target) instanceof FieldReference unit)
+                            || !unit.getDefiningClass().equals("Lkotlin/Unit;")) fail(clickHook + " doesn't finish on Kotlin Unit in " + tap);
+                }
+                remove(tap, at - 1, at + 3);
+            }
+
+            stub(own + "composeOptionType()Ljava/lang/Class;", List.of(Opcode.CONST_CLASS, Opcode.RETURN_OBJECT), Arrays.asList(face.getType(), null));
+            Method label = stub(own + "composeIconAndLabel()Ljava/lang/Object;", List.of(Opcode.NEW_INSTANCE, Opcode.SGET_OBJECT, Opcode.SGET, Opcode.INVOKE_STATIC,
+                    Opcode.MOVE_RESULT_OBJECT, Opcode.INVOKE_DIRECT, Opcode.RETURN_OBJECT), Arrays.asList(pair, icon + "->DOWNLOAD:" + icon, strings + "->download:I",
+                    "Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;", null, pair + "-><init>(Ljava/lang/Object;Ljava/lang/Object;)V", null));
+            if (label != null) {
+                List<Instruction> body = instructions(label);
+                int made = firstRegister(body.get(0)), boxed = firstRegister(body.get(4));
+                if (!arguments(body.get(3)).equals(List.of(firstRegister(body.get(2))))
+                        || !arguments(body.get(5)).equals(List.of(made, firstRegister(body.get(1)), boxed)) || firstRegister(body.get(6)) != made)
+                    fail("newer long-press menu label stub pairs the wrong registers");
+            }
+            Method kind = stub(own + "composeKind(Ljava/lang/Object;)I", List.of(Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.SGET_OBJECT, Opcode.IF_EQ, Opcode.SGET_OBJECT,
+                    Opcode.IF_EQ, Opcode.SGET_OBJECT, Opcode.IF_EQ, Opcode.CONST_4, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN,
+                    Opcode.CONST_4, Opcode.RETURN), Arrays.asList(type, null, repin, null, send, null, search, null, null, null, null, null, null, null, null, null));
+            if (kind != null) {
+                List<Instruction> body = instructions(kind);
+                Layout layout = new Layout(kind.getImplementation());
+                // Each branch lands on its own answer: other 0, Save 1, Send 2, Search image 3.
+                int[][] branches = {{1, 8}, {3, 10}, {5, 12}, {7, 14}};
+                for (int[] pairing : branches) {
+                    if (layout.addresses.get(pairing[0]) + ((OffsetInstruction) body.get(pairing[0])).getCodeOffset() != layout.addresses.get(pairing[1]))
+                        fail("newer long-press menu kind stub sends a branch to the wrong answer");
+                }
+                for (int answer = 0; answer < 4; answer++) {
+                    if (((NarrowLiteralInstruction) body.get(8 + answer * 2)).getNarrowLiteral() != answer
+                            || firstRegister(body.get(9 + answer * 2)) != firstRegister(body.get(8 + answer * 2)))
+                        fail("newer long-press menu kind stub answers the wrong kind");
+                }
+                if (((TwoRegisterInstruction) body.get(0)).getRegisterB() != parameter(kind, 0))
+                    fail("newer long-press menu kind stub checks something other than its input");
+            }
+            return dispatcher != null && effect != null && label != null && kind != null;
         }
 
         /**
@@ -5598,6 +5768,201 @@ public class DexDiff {
         }
 
         /**
+         * androidx's failure listener for the Sign in with Google request: the extension gets the
+         * exception ahead of the listener's own first instruction. A build with no listener has nothing to claim.
+         */
+        void signInFailure(Contract c) {
+            String hook = c.strings.get(0);
+            List<Method> listeners = new ArrayList<>();
+            for (Method m : clean.holding("During get sign-in intent, failure response from one tap: "))
+                if (m.getDefiningClass().equals("Landroidx/credentials/playservices/HiddenActivity;") && m.getReturnType().equals("V")
+                        && AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getParameterTypes().size() == 2
+                        && m.getParameterTypes().get(0).toString().equals(m.getDefiningClass())
+                        && m.getParameterTypes().get(1).toString().equals("Ljava/lang/Exception;")) listeners.add(m);
+            if (listeners.isEmpty()) { capability(c.callee, false); return; }
+            Method m = actual(unique(listeners, "Google sign-in failure listener"));
+            List<Integer> sites = calls(m, hook, 1);
+            boolean found = false;
+            if (m != null && sites.size() == 1) {
+                found = sites.get(0) == 0 && arguments(instructions(m).get(0)).equals(List.of(parameter(m, 1)));
+                if (found) remove(m, 0, 1);
+                else fail(hook + " doesn't get the exception ahead of " + m);
+            }
+            capability(c.callee, found);
+        }
+
+        /**
+         * Save pins you download and Download pins you save: the extension gets the pin ahead of the
+         * method every save goes through and each new quick-save helper in front of its constructor's
+         * return, and two stubs make the quick save and read the pin's saved state. The closeup
+         * presenter names those classes, so a build without it has nothing to claim.
+         */
+        void saveAndDownload(Contract c) {
+            ClassDef presenter = clean.classes.get(c.strings.get(2));
+            if (presenter == null) { capability(c.callee, false); return; }
+            homeFields();
+            String helperType = null, actionType = null, pin = null;
+            for (Field f : presenter.getFields()) {
+                if (f.getName().equals("repinUtils")) helperType = f.getType();
+                if (f.getName().equals("pinAction")) actionType = f.getType();
+            }
+            ClassDef menu = clean.classes.get(PIN_MENU);
+            if (menu != null) for (Field f : menu.getFields()) if (f.getName().equals("pin")) pin = f.getType();
+            ClassDef helper = helperType == null ? null : clean.classes.get(helperType);
+            ClassDef action = actionType == null ? null : clean.classes.get(actionType);
+            if (helper == null || action == null || pin == null) { fail("the save route's classes aren't in the clean APK"); return; }
+
+            List<Method> saves = new ArrayList<>();
+            for (Method m : presenter.getMethods()) if (m.getName().equals("repinToBoard"))
+                for (Instruction i : instructions(m)) if (reference(i) instanceof MethodReference called && called.getDefiningClass().equals(actionType)
+                        && !called.getParameterTypes().isEmpty() && called.getParameterTypes().get(0).toString().equals(pin))
+                    for (Method candidate : action.getMethods()) if (candidate.toString().equals(called.toString()) && !saves.contains(candidate)) saves.add(candidate);
+            Method save = actual(unique(saves, "method every save goes through"));
+            List<Integer> sites = calls(save, c.strings.get(0), 1);
+            boolean saving = false;
+            if (save != null && sites.size() == 1) {
+                saving = sites.get(0) == 0 && arguments(instructions(save).get(0)).equals(List.of(parameter(save, 0)));
+                if (saving) remove(save, 0, 1);
+                else fail(c.strings.get(0) + " doesn't get the pin ahead of " + save);
+            }
+
+            List<Method> constructors = new ArrayList<>();
+            for (Method m : helper.getMethods()) if (m.getName().equals("<init>") && m.getImplementation() != null) constructors.add(m);
+            Method built = unique(constructors, "quick save constructor");
+            Method init = actual(built);
+            boolean kept = false;
+            if (built != null && init != null) {
+                int returns = 0;
+                for (Instruction i : instructions(built)) if (i.getOpcode() == Opcode.RETURN_VOID) returns++;
+                List<Instruction> body = instructions(init);
+                List<Integer> hands = calls(init, c.strings.get(1), returns);
+                kept = returns > 0 && hands.size() == returns;
+                for (int at : hands) {
+                    if (at + 1 >= body.size() || body.get(at + 1).getOpcode() != Opcode.RETURN_VOID || !arguments(body.get(at)).equals(List.of(parameter(init, -1)))) {
+                        fail(c.strings.get(1) + " at " + at + " is not the helper itself in front of a return");
+                        kept = false;
+                    }
+                    remove(init, at, at + 1);
+                }
+            }
+
+            List<String> shape = List.of(pin, "Z", "Ljava/lang/String;", "Z", "Z", "Lkotlin/jvm/functions/Function1;", "Ljava/lang/String;");
+            List<Method> quickSaves = new ArrayList<>();
+            for (Method m : helper.getMethods()) if (m.getReturnType().equals("V") && m.getParameterTypes().size() == 8 && AccessFlags.PUBLIC.isSet(m.getAccessFlags())
+                    && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getParameterTypes().subList(0, 7).stream().map(Object::toString).toList().equals(shape)) quickSaves.add(m);
+            Method quickSave = unique(quickSaves, "quick save");
+            List<Method> writers = new ArrayList<>();
+            for (Method m : clean.holding("pinned_to_profile")) if (m.getReturnType().equals("V") && m.getParameterTypes().size() > 1
+                    && m.getParameterTypes().get(1).toString().equals(pin)) writers.add(m);
+            Method writer = unique(writers, "pin writer");
+            String board = pinAccessor(writer, "pinned_to_board", pin);
+            String profile = pinAccessor(writer, "pinned_to_profile", pin);
+            if (quickSave == null || board == null || profile == null) return;
+            String reason = quickSave.getParameterTypes().get(7).toString();
+            Method saved = stub(BASE + "actions/SaveAndDownload;->savePin(Ljava/lang/Object;Ljava/lang/Object;)V",
+                    List.of(Opcode.CHECK_CAST, Opcode.CHECK_CAST, Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT, Opcode.CONST_4, Opcode.CONST_4, Opcode.CONST_4,
+                            Opcode.CONST_4, Opcode.CONST_4, Opcode.CONST_4, Opcode.SGET_OBJECT, Opcode.INVOKE_VIRTUAL_RANGE, Opcode.RETURN_VOID),
+                    Arrays.asList(helperType, pin, null, null, null, null, null, null, null, null, reason + "->UNKNOWN:" + reason, quickSave.toString(), null));
+            Method read = stub(BASE + "actions/SaveAndDownload;->alreadySaved(Ljava/lang/Object;)Z",
+                    List.of(Opcode.CHECK_CAST, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.IF_NEZ, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.IF_EQZ,
+                            Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN),
+                    Arrays.asList(pin, board, null, null, profile, null, null, "Ljava/lang/Boolean;->booleanValue()Z", null, null, null, null, null, null));
+            capability(c.callee, saving && kept && saved != null && read != null);
+        }
+
+        /** Home's request, or nothing in a build without one. */
+        List<Method> homeRequests() {
+            List<Method> requests = new ArrayList<>();
+            for (Method m : clean.holding("android_hf_api_request_get_to_post")) if (m.getDefiningClass().startsWith("Lcom/pinterest/feature/home/model/")
+                    && clean.texts.get(m.toString()).contains("compressed_fields")) requests.add(m);
+            return requests;
+        }
+
+        /**
+         * Home's request hands the field list it has just read to the extension and keeps what comes
+         * back. Hide pins you've already saved and Save pins you download share that one call, so both
+         * of their rules claim it here. A build without the request has nothing to claim.
+         */
+        boolean homeFields() {
+            String hook = BASE + "ads/SavedPins;->homeFields(Ljava/lang/String;)Ljava/lang/String;";
+            List<Method> requests = homeRequests();
+            if (requests.isEmpty()) return false;
+            Method request = unique(requests, "Home's request");
+            Method after = actual(request);
+            String set = null;
+            if (request != null) for (Instruction i : instructions(request))
+                if (reference(i) instanceof FieldReference named && named.getName().equals("DYNAMIC_GRID_FEED_WITH_BOARD_FIELDS")) set = named.getType();
+            List<Integer> sites = calls(after, hook, 1);
+            if (after == null || set == null || sites.size() != 1) return false;
+            List<Instruction> body = instructions(after);
+            int at = sites.get(0);
+            int kept = at > 1 && body.get(at - 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT ? firstRegister(body.get(at - 1)) : -1;
+            boolean hooked = kept >= 0 && at + 1 < body.size()
+                    && reference(body.get(at - 2)) instanceof MethodReference list && list.getReturnType().equals("Ljava/lang/String;")
+                    && list.getParameterTypes().size() == 1 && list.getParameterTypes().get(0).toString().equals(set)
+                    && arguments(body.get(at)).equals(List.of(kept))
+                    && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && firstRegister(body.get(at + 1)) == kept;
+            if (hooked) remove(after, at, at + 2);
+            else fail(hook + " doesn't get Home's field list as it's read");
+            return hooked;
+        }
+
+        /**
+         * Each page of Home goes through the extension as soon as the callback holds it as the feed's own
+         * type, and a stub reads the page's items. A build without the callback has nothing to claim.
+         */
+        void homePage(Contract c) {
+            String feed = c.strings.get(2);
+            List<Method> callbacks = new ArrayList<>();
+            for (ClassDef owner : clean.classes.values()) if (owner.getType().startsWith(c.strings.get(1)))
+                for (Method m : owner.getMethods()) if (m.getName().equals("invoke") && m.getImplementation() != null && handsBack(m, feed)) callbacks.add(m);
+            if (callbacks.isEmpty() || homeRequests().isEmpty()) { capability(c.callee, false); return; }
+            boolean asked = homeFields();
+            Method after = actual(unique(callbacks, "Home's page callback"));
+            List<Integer> sites = calls(after, c.strings.get(0), 1);
+            boolean hooked = false;
+            if (after != null && sites.size() == 1) {
+                List<Instruction> body = instructions(after);
+                int at = sites.get(0);
+                hooked = at > 0 && body.get(at - 1).getOpcode() == Opcode.CHECK_CAST && feed.equals(String.valueOf(reference(body.get(at - 1))))
+                        && arguments(body.get(at)).equals(List.of(firstRegister(body.get(at - 1))));
+                if (hooked) remove(after, at, at + 1);
+                else fail(c.strings.get(0) + " doesn't get Home's page right after its cast");
+            }
+            ClassDef page = clean.classes.get(feed);
+            List<Method> lists = new ArrayList<>();
+            if (page != null) for (Method m : page.getMethods()) if (m.getReturnType().equals("Ljava/util/List;") && m.getParameterTypes().isEmpty()
+                    && AccessFlags.PUBLIC.isSet(m.getAccessFlags()) && !AccessFlags.STATIC.isSet(m.getAccessFlags())) lists.add(m);
+            Method items = unique(lists, "Home's page items");
+            if (items == null) return;
+            Method read = stub(BASE + "ads/SavedPins;->pageItems(Ljava/lang/Object;)Ljava/util/List;",
+                    List.of(Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT),
+                    Arrays.asList(feed, items.toString(), null, null));
+            capability(c.callee, asked && hooked && read != null);
+        }
+
+        /** Whether [m] casts something to [type] and returns that register, unlike a callback that only logs it. */
+        private boolean handsBack(Method m, String type) {
+            Set<Integer> returned = new HashSet<>();
+            for (Instruction i : instructions(m)) if (i.getOpcode() == Opcode.RETURN_OBJECT) returned.add(firstRegister(i));
+            for (Instruction i : instructions(m)) if (i.getOpcode() == Opcode.CHECK_CAST && type.equals(String.valueOf(reference(i))) && returned.contains(firstRegister(i))) return true;
+            return false;
+        }
+
+        /** The pin's own static accessor that a pin writer reads right after naming [label]. */
+        private String pinAccessor(Method writer, String label, String pin) {
+            if (writer == null) return null;
+            boolean named = false;
+            for (Instruction i : instructions(writer)) {
+                if (!named) { named = reference(i) instanceof StringReference text && text.getString().equals(label); continue; }
+                if (i.getOpcode() == Opcode.INVOKE_STATIC && reference(i) instanceof MethodReference accessor && accessor.getDefiningClass().equals(pin)
+                        && accessor.getParameterTypes().size() == 1 && accessor.getParameterTypes().get(0).toString().equals(pin)) return accessor.toString();
+            }
+            fail("the pin writer has no accessor for " + label);
+            return null;
+        }
+
+        /**
          * Pinterest's browser ID in Block Store: the read answers no record when its hook says so and
          * the save returns what its hook hands back unless that's null, both ahead of the method's own
          * first instruction, and the extension's delete stub calls the wrapper's own delete.
@@ -6025,6 +6390,9 @@ public class DexDiff {
                     case "analytics": analytics(c); break;
                     case "answers": answers(c); break;
                     case "browserId": browserId(c); break;
+                    case "signInFailure": signInFailure(c); break;
+                    case "saveAndDownload": saveAndDownload(c); break;
+                    case "homePage": homePage(c); break;
                     case "firebaseCertificate": firebaseCertificate(c); break;
                     case "imageOrder": imageOrder(c); break;
                     case "closeupImage": closeupImage(c); break;

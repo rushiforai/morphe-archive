@@ -246,6 +246,22 @@ Hide blog notification reminders	Sembunyikan pengingat notifikasi blog
 Hides the pop-up suggesting you turn on notifications for a blog. Your subscriptions and notification settings stay as they are.	Menyembunyikan pop-up yang menyarankan untuk mengaktifkan notifikasi blog. Langganan dan pengaturan notifikasi Anda tidak berubah.
 Hide gift purchase popups	Sembunyikan pop-up pembelian hadiah
 Hides the pop-up suggesting you buy a gift for a blog. You can still open gifting yourself.	Menyembunyikan pop-up yang menyarankan untuk membeli hadiah bagi sebuah blog. Anda tetap dapat membuka fitur hadiah sendiri.
+Line between posts	Garis antar postingan
+Draws a thin line in the gap between posts, so it's easier to see where one ends and the next begins.	Menggambar garis tipis di celah antar postingan, sehingga lebih mudah melihat di mana satu postingan berakhir dan berikutnya dimulai.
+App font	Font aplikasi
+Replaces Tumblr's own font with your phone's font, or a font file you choose below. Fonts a post's author picked stay as they are.	Mengganti font bawaan Tumblr dengan font ponselmu atau file font yang kamu pilih di bawah. Font yang dipilih penulis postingan tetap seperti aslinya.
+Choose a font file	Pilih file font
+Uses your phone's font. Tap to pick a .ttf or .otf file.	Memakai font ponselmu. Ketuk untuk memilih file .ttf atau .otf.
+Using %1$s. Tap to pick another.	Memakai %1$s. Ketuk untuk memilih yang lain.
+Use the phone's font	Pakai font ponsel
+Forgets the chosen font file.	Melupakan file font yang dipilih.
+Font file saved.	File font disimpan.
+Font file saved. Turn on App font to use it.	Disimpan. Aktifkan Font aplikasi untuk memakainya.
+Back to the phone's font.	Kembali ke font ponsel.
+Couldn't change the font. Try again.	Font tidak bisa diubah. Coba lagi.
+Couldn't read that file. Try again.	File itu tidak bisa dibaca. Coba lagi.
+That isn't a font file. Nothing changed.	Itu bukan file font. Tidak ada yang berubah.
+That file is too big to be a font.	File itu terlalu besar untuk sebuah font.
 Blog notification reminder	Pengingat notifikasi blog
 Gift purchase popup	Pop-up pembelian hadiah
 Stops the pop-up that asks what you think of the Tumblr app and then asks for a rating or feedback.	Menghentikan pop-up yang menanyakan pendapatmu tentang aplikasi Tumblr lalu meminta rating atau masukan.
@@ -319,6 +335,8 @@ Looks for: %1$s	Mencari: %1$s
 # context: Dark background color turns the background of Tumblr's Dark Mode palette (Settings > Appearance) black, or a dark color chosen when the app was patched. Use Tumblr's own name for the Dark Mode palette in your language.
 Dark background color	Warna latar gelap
 Makes newly opened Dark Mode screens black, or the dark color picked when patching. Open screens keep their colors until Tumblr restarts.	Membuat layar Mode Gelap yang baru dibuka berwarna hitam, atau warna gelap yang dipilih saat memasang patch. Layar yang terbuka mempertahankan warnanya sampai Tumblr dimulai ulang.
+Match my wallpaper	Sesuaikan dengan wallpaper saya
+Takes the dark background from your wallpaper's colors in place of the one picked when patching. Needs Android 12 or newer and Dark background color on. A new wallpaper shows after Tumblr restarts.	Mengambil latar gelap dari warna wallpaper Anda, bukan warna yang dipilih saat patch. Perlu Android 12 atau lebih baru dan Warna latar gelap aktif. Wallpaper baru tampil setelah Tumblr dimulai ulang.
 # context: the bottom bar's tabs. Hide the Explore tab and Hide the Notifications tab take one tab's button off the bar; Reorder the bottom bar puts the tabs in an order chosen in a list where a tap moves a tab one place up. Use Tumblr's own names for the tabs in your language.
 Hide the Explore tab	Sembunyikan tab Jelajahi
 Takes the Explore and search button off the bottom bar.	Menghapus tombol Jelajahi dan pencarian dari bilah bawah.

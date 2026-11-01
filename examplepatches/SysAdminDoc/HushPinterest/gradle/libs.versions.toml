@@ -1,29 +1,36 @@
 [versions]
 # Align with morphe-patches-template (Compatibility / Manager display names). A Manager that
 # bundles an older patcher than this pin refuses the bundle at its Patcher-Version gate. Patcher
-# 2.0.0 went stable on 2026-10-22 with Manager 2.0.0 and desktop 1.19.0, and every Hush repo
-# tracks the newest stable patcher. It matches a fingerprint string against the whole literal,
-# decodes only the resources a patch asks for, and hides compatiblePackages behind compatibility
-# (PatchListGenerator rebuilds the old field). It pulls in MorpheApp's ARSCLib 10d0708212.
-# Manager 1.x refuses a 2.0 bundle with its update prompt.
-morphe-patcher = "2.0.0"
+# 2.1.0 went stable on 2026-10-30 with Manager 2.3.0 and desktop 1.20.0, and every Hush repo
+# tracks the newest stable patcher. It adds bundle signing and refuses classes newer than Java 17.
+# Since 2.0 it matches a fingerprint string against the whole literal, decodes only the resources
+# a patch asks for, and hides compatiblePackages behind compatibility (PatchListGenerator rebuilds
+# the old field). It pulls in MorpheApp's ARSCLib 4695b583ef. Manager 1.x refuses a 2.0 bundle
+# with its update prompt.
+morphe-patcher = "2.1.0"
 # First stable Manager release that bundled the patcher above. The release fact check holds the
-# README's stated floor to this value.
-manager-floor = "2.0.0"
+# README's stated floor to this value on a release run.
+manager-floor = "2.3.0"
+# The Manager floor the README names between releases: the README describes the published release,
+# so it keeps the floor that release needs until the next release moves it. Delete this line once
+# the README names manager-floor. Between releases the fact check holds the README and the bug form
+# to this value; a release run (validate-release-facts.ps1 -VerifyPublishedAsset) holds them to
+# manager-floor.
+readme-manager-floor = "2.0.0"
 # Read by the app.morphe.patches settings plugin, not by anything in this repo: remove it and
 # configuration fails with "Version with alias smali not found in version catalog". The commit
 # resolves as com.github.MorpheApp.smali through JitPack. It is not waiting on an official
 # release, which google/smali 3.0.10 delivered on 2026-08-20: the pin has to be the commit the
-# patcher above requests (2.0.0 asks for 4220ae75f7; 1.14.1 to 1.15.1 asked for d856bad65f).
+# patcher above requests (2.1.0 asks for ac700e1942; 2.0.0 asked for 4220ae75f7).
 # Gradle keeps whichever version sorts higher, not the newer commit, and another group's smali
 # would put two copies of dexlib2 on the R8 classpath (buildAndroid fails with "Classpath type
 # already present").
 #noinspection GradleDependency
-smali = "4220ae75f7"
+smali = "ac700e1942"
 # The ARSCLib the patcher above brings at run time. The fixture tests read manifests and
 # resource tables with it, so they compile against this same build rather than a second fork;
 # verifyArscLibTestGraph stops the tests when a patcher bump moves it away from this commit.
-arsclib = "10d0708212"
+arsclib = "4695b583ef"
 # The Android Gradle plugin and Kotlin come from the app.morphe.patches settings plugin
 # (1.3.4 brings AGP 9.1.0 and Kotlin 2.4.10); nothing here pins them.
 annotation = "1.11.0"

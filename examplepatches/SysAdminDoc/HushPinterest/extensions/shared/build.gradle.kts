@@ -11,7 +11,7 @@ android {
     namespace = "app.hushpinterest.extension.shared"
 
     defaultConfig {
-        // The library it carries runs only inside Pinterest 14.41.0, which declares API 32, above this floor.
+        // The library it carries runs only inside Pinterest 14.42.0, which declares this same API 29.
         minSdk = 29
     }
 }

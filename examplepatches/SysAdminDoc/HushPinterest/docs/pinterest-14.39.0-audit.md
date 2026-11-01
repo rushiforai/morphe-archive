@@ -26,7 +26,7 @@ No patch behavior was changed for this audit. The reference distinguishes a code
 | Pinterest package | `com.pinterest` |
 | Surveyed APK | 14.38.0, version code 14388010, SHA-256 `af6b383adb445cebee1ca43f14ac409f91475c1d62e0e11ef52ef52e29fb0553` |
 | Audited APK | 14.39.0, version code 14398020, SHA-256 `4ecc7f9a34c89fd98d0e2133c294517772857b935969847bfd92b3e25b13e78d`. Static checks on October 10, signed-in survey and counter study on October 12. It was the supported build then |
-| Supported build now | The one `patches-list.json` declares: 14.41.0, version code 14418010, on main as of October 18 (v0.0.11 targets 14.40.0). Nothing on this page was measured again on 14.40.0 or 14.41.0, so its rows are 14.38.0 and 14.39.0 evidence |
+| Supported build now | The one `patches-list.json` declares: 14.42.0, version code 14428010, on main as of October 31 (v0.0.13 targets 14.41.0). Nothing on this page was measured again on 14.40.0, 14.41.0 or 14.42.0, so its rows are 14.38.0 and 14.39.0 evidence |
 | Original signing certificate SHA-256 | `341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa` |
 | Hush source reviewed | `932f0c5` for the survey, with 23 catalog entries. The references were refreshed at `6383001`, which had 26. The patch reference covers the 27 that ship in 0.0.7 |
 | Published bundle at inspection | v0.0.5. v0.0.6 followed on October 10 and still targets 14.38.0. v0.0.7 followed on October 11 and targets 14.39.0 only. Later source changes are not assumed to be in any of them |

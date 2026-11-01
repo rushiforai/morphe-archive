@@ -91,7 +91,7 @@ public final class BetterLyricsPanelView extends FrameLayout implements LyricsMa
         LyricsConfig.preferences(getContext()).unregisterOnSharedPreferenceChangeListener(listener);
         LyricsManager.getInstance().removeListener(this);if(catalogSink!=null){LyricsRepository.unsubscribe(catalogSink);catalogSink=null;}
         if(enrichmentNetwork!=null)enrichmentNetwork.close();if(enrichmentExecutor!=null)enrichmentExecutor.shutdownNow();
-        if(web!=null){frameRate.release(web);web.removeJavascriptInterface("BDNative");web.stopLoading();removeView(web);web.destroy();web=null;}
+        if(web!=null){frameRate.release(web);web.removeJavascriptInterface("BDNative");web.stopLoading();app.bdcrusher.ytmusic.common.ViewDisposal.dispose(web,web::destroy);web=null;}
         ready=false;identity="";lastSettings="";lastInsets="";pending.clear();super.onDetachedFromWindow();
     }
     private void createWebView(){
@@ -121,7 +121,7 @@ public final class BetterLyricsPanelView extends FrameLayout implements LyricsMa
                     return new WebResourceResponse("text/plain","UTF-8",403,"Blocked",java.util.Collections.emptyMap(),new ByteArrayInputStream(new byte[0]));
                 }
                 @Override public boolean onRenderProcessGone(WebView view,RenderProcessGoneDetail detail){
-                    LyricsDiagnostics.record("Renderer","WebView render process exited; crashed="+detail.didCrash());ready=false;hasDisplay=false;restoreNativeContent();setVisibility(View.INVISIBLE);frameRate.release(view);removeView(view);view.destroy();web=null;identity="";if(++rendererRecoveries<=2)handler.postDelayed(()->{if(attached&&NativeLyricsHost.isOpen()&&web==null)createWebView();},500);return true;
+                    LyricsDiagnostics.record("Renderer","WebView render process exited; crashed="+detail.didCrash());ready=false;hasDisplay=false;restoreNativeContent();setVisibility(View.INVISIBLE);frameRate.release(view);app.bdcrusher.ytmusic.common.ViewDisposal.dispose(view,view::destroy);web=null;identity="";if(++rendererRecoveries<=2)handler.postDelayed(()->{if(attached&&NativeLyricsHost.isOpen()&&web==null)createWebView();},500);return true;
                 }
             });
             addView(web,new FrameLayout.LayoutParams(-1,-1));web.loadUrl(ROOT+"index.html");

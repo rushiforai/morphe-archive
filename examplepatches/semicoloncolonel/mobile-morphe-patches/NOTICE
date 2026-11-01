@@ -1,0 +1,40 @@
+This project is derived from open-source work.
+
+Credits:
+
+- morphe-androidtv-patches (ajstrick81/morphe-androidtv-patches), GPL-3.0
+  Author: ajstrick81 (github.com/ajstrick81)
+  Some of the patches in this project are ports of ajstrick81's Android TV
+  patches to the phone versions of the same apps. For those, the hook
+  design, the Fox IMA
+  fingerprints, the Rainmaker error-result technique, the analytics
+  blocklist (TrackerBlocker), the Pluto TV ad-period detection, resume
+  mapping and live ad-break mask, the Paramount+ shouldPlayAd gate and live
+  slate rewrite, the HBO Max ad-origin filter, the
+  Disable auto-updates version bump, the Peacock Sky SDK
+  SSAI switches, the Prime Video Minerva metrics hook, the ESPN
+  isAdDisabled hook, the Fox One IMA/DAI
+  and Yospace hooks (from ajstrick81's unreleased, in-development Fox One
+  patch), and the build setup are ajstrick81's work. This
+  project re-targets them at the phone apps.
+  Source: https://github.com/ajstrick81/morphe-androidtv-patches
+
+- RookieEnough
+  Disney+ ad-insertion fingerprint logic, which ajstrick81's Disney+ patch
+  was forked from and which this project's Disney+ patch carries forward.
+  Source:
+  https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/disneyplus/ads/Fingerprints.kt
+
+- ReVanced Project
+  https://github.com/ReVanced
+
+- Morphe (MorpheApp/morphe-patches)
+  The patcher and the patch framework these patches are built on.
+  Source: https://github.com/MorpheApp/morphe-patches
+
+- hoo-dles (hoo-dles/morphe-patches), GPL-3.0
+  The approach of this project's "Disable Pairip license check" patch for
+  Fox One comes from hoo-dles' universal patch of the same name.
+  Source: https://github.com/hoo-dles/morphe-patches
+
+All original authors retain credit for their contributions.

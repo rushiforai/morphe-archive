@@ -1,0 +1,31 @@
+# Omroep Brabant
+
+Version-specific source/SDK/configuration evidence is not a packet capture showing that every listed host received data. [All app guides](../../site/en/apps/index.md).
+
+Version **11.1.0 / 7331764**, original Play **APKS**, Android 12L+. The maintainer approved stable publication on 29 October 2026. This promotes the existing dev implementation and its recorded verification; it adds no new phone test or network capture.
+
+| Patch | Effect |
+| --- | --- |
+| Hide ads | Removes native feed/article placements and their reserved space, skips Outbrain/Start.io startup/widgets, omits vertical-video ad rows and suppresses audited regular/renderer/late video-ad paths. |
+| Disable tracking | Includes ad removal; suppresses audited analytics, optional IDs, video statistics and four known persisted measurement transports while retaining local history, initialized services, media and push. |
+| Skip consent screens | Includes both controls; prevents automatic notification permission requests, removes Cookie instellingen before display and stops the shared cookie dialog before creation. Stored choices, native player completion, manual notification settings, push services and user-selected embed gates remain. |
+
+Content/configuration, genuine accounts, media authorization and purchase state retain their original behavior. No native paywall was established in this build. Remote embeds, creatives and server-inserted media remain separate boundaries.
+
+<details>
+<summary>Tracking destinations, collected data and patch effects</summary>
+
+| Destination | Purpose and data in the inspected path | Patch effect / remaining exposure |
+| --- | --- | --- |
+| `ingestion.contentinsights.com/p`, `/a` | **Traced ContentInsights/Smartocto integration:** article metadata, session/user/language parameters and timed reading/activity events. These contexts can associate reading with a session or identifier. | Article activation and the independent SDK sender stop. Local read state and native cleanup remain. Exact network payloads were not captured. |
+| `nmorpoendpoint.2cnt.net` | **Traced independent NMO client:** cached/reused random UUID, vendor and `cs_fpid`; Piano also consumes this identifier. | Registration returns the native failure; cached lookup returns the original nullable absence, preventing downstream forwarding. Existing stored values are not represented as newly generated or deleted. |
+| `api.omroepbrabant.nl/api/event/readarticle` | **Traced POST contract, not executed in research:** article `externalId` and `udid` taken from Android ID. Local Room read-history writes occur before this upload. | The read-history coroutine retains its DB write/resume, then skips Android-ID lookup and the upload. The same host's news, weather, configuration, search and other functional services stay accessible. |
+| Piano — exact upload hosts not pinned | **Traced app/SDK integration:** article ID/title/prior-page context, screen/social and audio/video interaction events; optional Google/Huawei advertising IDs and NMO linkage. | App Boolean.FALSE gate and SDK send/queued/crash-report leaves stop; the previous crash handler still runs. Optional fresh/cached identifiers return native absence. Initialized services and native seven-day expiry/2,000 pending-row cleanup remain; old unsent Piano work is not marked delivered. |
+| Firebase / Google measurement — exact upload hosts not pinned | **Traced SDK paths:** app events, crash diagnostics, sessions, notification receipt/open and optional delivery export, advertising IDs and identifier association. | Collection decisions, optional sends and restored HTTP measurement uploads stop. HTTP work queues a real failure callback, preserving retry/busy/waiter cleanup. CCT filters exactly `FIREBASE_CRASHLYTICS_REPORT`, `FIREBASE_APPQUALITY_SESSION`, `FCM_CLIENT_EVENT_LOGGING`, `GDT_CLIENT_METRICS`; unknown names remain. An all-filtered batch takes native fatal/local deletion, without a delivered-success response. Necessary installation/configuration/push remain. |
+| `cdn.optoutadvertising.com`, `prebid.optinadserving.com` | **Traced Pinch creative/request construction:** placement, device/form-factor and article URL/category/keyword context; bundled OMID and remote creative capabilities. Exact emitted payload/vendor set is unknown. | Native model/render/load paths stop before requests, completing real failure and zero-space callbacks. OM session/script methods use native failure results. Bundled assets remain; a complete remote-script audit is not claimed. |
+| `widgets.outbrain.com`, `widgetmonitor.outbrain.com` | **Traced widget bridge/error sender:** article permalink, widget/installation context, SDK/version and widget diagnostics; optional GAID association. | App initializer, article widget models, cached widget render entry and independent error sender stop; the selected merged ID arm clears cached association. |
+| Start.io / StartApp — exact upload hosts not pinned | **Traced Outbrain MREC integration and SDK capability:** advertising, optional App Set ID/cache association. | Initialization/three ad-only background jobs and widget entry are suppressed. The audited App Set block skips acquisition and clears its cached request field. Other SDK capabilities do not establish observed traffic. |
+| `omroepbrabant.bbvms.com` and runtime-selected Blue Billywig endpoints | **Traced mixed content/player infrastructure:** playout/clip/media configuration; separate statistics code carries player/session and event context. Exact statistics receiver and emitted payloads were not captured. | Keeps content/CDNs/radio/live/cast. Forces both no-statistics options after TCF overrides and fences the independent network sink while retaining the native player event bus. Remote HTML, overlays and server-side ad insertion remain unverified. |
+| Bundled LiveRamp consent configuration; Facebook/Comscore/Adjust names in publisher configuration | **Configuration/asset evidence only:** available consent/vendor settings do not establish an active app-owned collector or a transfer. | Assets and manual consent remain. Automatic presentation is skipped separately from tracking; no vendor acceptance/rejection is fabricated. |
+
+</details>

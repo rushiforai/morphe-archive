@@ -107,14 +107,23 @@ foreach ($patch in @($catalog.patches)) {
 # 475019344) as an unforced run of the declared one.
 foreach ($version in @($target.PackageVersions)) {
     $pinned = @($catalog.patches[0].compatibility | Where-Object { $_.packageName -eq 'com.instagram.barcelona' } |
-        ForEach-Object { @($_.targets) } | Where-Object { $_.version -eq $version } |
+        ForEach-Object { @($_.targets) } | Where-Object { $_.version -eq $version -and $null -ne $_.versionCodes } |
         ForEach-Object { $_.versionCodes.PSObject.Properties } | ForEach-Object { [string]$_.Value })
-    Assert-True ($pinned.Count -gt 0 -and (@($target.PackageVersionCodes[$version]) -join ',') -eq (($pinned | Sort-Object -Unique) -join ',')) `
+    Assert-True (((@($target.PackageVersionCodes[$version] | Where-Object { $_ }) | Sort-Object -Unique) -join ',') -eq
+        (($pinned | Sort-Object -Unique) -join ',')) `
         "The version codes the catalog pins to Threads $version were not read: $(@($target.PackageVersionCodes[$version]) -join ', ')"
-    Assert-True (Test-DeclaredBuild -Target $target -VersionName $version -VersionCode $pinned[0]) `
-        "Threads $version at its pinned code $($pinned[0]) was not taken for a declared build."
-    Assert-True (-not (Test-DeclaredBuild -Target $target -VersionName $version -VersionCode "$([long]$pinned[0] - 61)")) `
-        "Another build of Threads $version, version code $([long]$pinned[0] - 61), was taken for the declared one."
+    if ($pinned.Count -gt 0) {
+        Assert-True (Test-DeclaredBuild -Target $target -VersionName $version -VersionCode $pinned[0]) `
+            "Threads $version at its pinned code $($pinned[0]) was not taken for a declared build."
+        Assert-True (-not (Test-DeclaredBuild -Target $target -VersionName $version -VersionCode "$([long]$pinned[0] - 61)")) `
+            "Another build of Threads $version, version code $([long]$pinned[0] - 61), was taken for the declared one."
+    } else {
+        # A version the catalog doesn't pin accepts every APKMirror variant of that version.
+        Assert-True (Test-DeclaredBuild -Target $target -VersionName $version -VersionCode '1') `
+            "Threads $version at an unpinned code was not taken for a declared build."
+        Assert-True (Test-DeclaredBuild -Target $target -VersionName $version -VersionCode '999999999') `
+            "Threads $version at another unpinned code was not taken for a declared build."
+    }
 }
 Assert-True (-not (Test-DeclaredBuild -Target $target -VersionName '1.0.0' -VersionCode '1')) 'An undeclared version was taken for a declared build.'
 
@@ -2812,13 +2821,15 @@ try {
     # every "Threads <build>" one build. The lag check read the first of each and the equality
     # check any, so a description quoting the catalog's count once and a stale one elsewhere, or
     # naming another build beside the target, passed the equality check. On both paths now.
-    $indexCount = [regex]::Match([string](Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw |
-        ConvertFrom-Json).description, '(?<![\d.])(\d+) patches\b').Groups[1].Value
-    $indexCounts = [regex]::Matches((Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw), '(?<!\d)\d+ patches\b').Count
+    $factsDescription = [string](Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw |
+        ConvertFrom-Json).description
+    $factsHeader = ($factsDescription -split '(?m)^### ', 2)[0]
+    $indexCount = [regex]::Match($factsHeader, '(?<![\d.])(\d+) patches\b').Groups[1].Value
+    $indexCounts = [regex]::Matches($factsHeader, '(?<!\d)\d+ patches\b').Count
     Assert-True ($indexCounts -ge 2) "The copied description names its patch count once, so the stale-count case would prove nothing."
     $factsTarget = (Get-PatchTarget -PatchList (Get-Content -LiteralPath (Join-Path $factsRoot 'patches-list.json') -Raw |
         ConvertFrom-Json)).PackageVersion
-    Assert-True ([regex]::Matches((Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw),
+    Assert-True ([regex]::Matches($factsHeader,
             "Threads $([regex]::Escape($factsTarget))(?!\d)").Count -ge 2) `
         "The copied description names Threads $factsTarget once, so the other-build case would prove nothing."
     foreach ($case in @(
@@ -2827,7 +2838,16 @@ try {
             @{ Name = 'another build beside the target'; Pattern = "*names Threads $factsTarget and Threads 9.9.9.9.9, and it has to name one build*"
                 Edit = { param($text) $at = $text.LastIndexOf("Threads $factsTarget")
                     $text.Substring(0, $at) + 'Threads 9.9.9.9.9' + $text.Substring($at + "Threads $factsTarget".Length) } })) {
-        Set-FactsFile 'patches-bundle.json' $case.Edit
+        # Published descriptions also contain historical CHANGELOG bullets. Mutate the facts
+        # before the first heading, or a later mention can leave the intended contradiction absent.
+        Set-FactsFile 'patches-bundle.json' {
+            param($text)
+            $document = $text | ConvertFrom-Json
+            $parts = ([regex]'(?m)(?=^### )').Split([string]$document.description, 2)
+            $parts[0] = & $case.Edit $parts[0]
+            $document.description = $parts -join ''
+            $document | ConvertTo-Json -Depth 100
+        }
         try {
             Assert-Throws { Invoke-Facts } $case.Pattern "An index description naming $($case.Name) was accepted."
             Assert-Throws { & $factsScript -Root $factsRoot -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipUrlCheck 6> $null } `
@@ -5304,6 +5324,7 @@ try {
     $stubJar = Join-Path $tools 'morphe-desktop.jar'
     $javaLog = Join-Path $tools 'java.log'
     $mergeLog = Join-Path $tools 'merge.log'
+    $identityLog = Join-Path $tools 'identity.log'
     $resourceStock = Join-Path $tools 'resource-stock.txt'
     [System.IO.File]::WriteAllText($stubJava, ((@(
         '@echo off',
@@ -5318,6 +5339,7 @@ try {
         'if /i "%~nx1"=="NativePageCheck.java" goto native',
         'if /i "%~nx3"=="SignAlignedApk.java" goto sign',
         'if /i "%~nx3"=="IdentityApkCheck.java" goto identity',
+        'if /i "%~nx4"=="IdentityApkCheck.java" goto expectedidentity',
         'if /i "%~nx4"=="MergeSplits.java" goto merge',
         'if /i "%~nx4"=="ResourceTableCheck.java" goto resources',
         'if /i "%~nx4"=="DexDiff.java" goto dexdiff',
@@ -5393,6 +5415,15 @@ try {
         'exit /b 0',
         ':identity',
         'echo verify-all.apk: exact verified identity preserved in About, recovery and reports',
+        'exit /b 0',
+        ':expectedidentity',
+        'if not "%~5"=="--expected" exit /b 15',
+        'if not exist "%~7" exit /b 16',
+        'set "EXPECTED="',
+        'set /p EXPECTED=<"!HERE!expected-identity.txt"',
+        'if not "%~6"=="!EXPECTED!" (echo wrong expected bundle identity & exit /b 17)',
+        '>>"!HERE!identity.log" echo expected %~7',
+        'echo exact verified identity preserved in About, recovery and reports',
         'exit /b 0',
         ':dexdiff',
         'echo [diff] structural findings: 0',
@@ -5495,11 +5526,24 @@ try {
         'base.apk' = Get-FixtureManifest -Build $variantBuild -Code "$variantCode" })
     $releaseBundle = Get-ReleaseBundlePath -Root $releaseRepo
     New-Item -ItemType Directory -Path (Split-Path -Parent $releaseBundle) -Force | Out-Null
+    $releaseTree = "$(Invoke-FixtureGit -Root $releaseRepo -Arguments @('rev-parse', ($releaseCommit + '^{tree}')) | Select-Object -First 1)".Trim()
     New-TestBundleArchive -Path $releaseBundle -Entries ([ordered]@{
         'META-INF/MANIFEST.MF' = ("Manifest-Version: 1.0`nVersion: $releaseVersionHere`nTimestamp: $($releaseSeconds * 1000)`n" +
-            "Patcher-Version: $($releaseToolchain.PatcherVersion)`n`n")
+            "Patcher-Version: $($releaseToolchain.PatcherVersion)`nHushThreads-Source-State: clean`n" +
+            "HushThreads-Source-Commit: $releaseCommit`nHushThreads-Source-Tree: $releaseTree`n" +
+            "HushThreads-Input-SHA256: $('b' * 64)`n`n")
         'classes.dex' = "dex`n035" + ('patches' * 8)
         'extensions/threads.mpe' = "dex`n035" + ('payload' * 8) })
+    $identityArchive = [IO.Compression.ZipFile]::OpenRead($releaseBundle)
+    try { $releasePayload = Get-BundlePayloadSha256 -Archive $identityArchive } finally { $identityArchive.Dispose() }
+    $identityArchive = [IO.Compression.ZipFile]::Open($releaseBundle, [IO.Compression.ZipArchiveMode]::Update)
+    try {
+        $writer = [IO.StreamWriter]::new($identityArchive.CreateEntry('META-INF/hushthreads-build.identity').Open())
+        try { $writer.Write("hushthreads-bundle-1`n$releasePayload`n") } finally { $writer.Dispose() }
+    } finally { $identityArchive.Dispose() }
+    Assert-True (Get-BundleIdentityFacts -BundlePath $releaseBundle).Valid 'The device-build fixture has invalid bundle identity.'
+    [IO.File]::WriteAllText((Join-Path $tools 'expected-identity.txt'), (
+        'sha256={0}; source=clean:{1}; tree={2}; inputs={3}' -f $releasePayload, $releaseCommit, $releaseTree, ('b' * 64)))
     # And the SBOM buildAndroid writes beside it, listing a library OSV has nothing against.
     $releaseSbom = [System.IO.Path]::ChangeExtension($releaseBundle, '.cdx.json')
     New-TestSbom -Path $releaseSbom -Bundle $releaseBundle
@@ -5941,7 +5985,7 @@ try {
     # refused before the CLI starts. No -Serial, so nothing goes near adb.
     $deviceOut = Join-Path $releaseRoot 'device'
     function Invoke-DeviceBuild([string]$Apk, [string]$OutDir = $deviceOut, [string]$DesktopJar = $stubJar) {
-        Remove-Item -LiteralPath $javaLog, $mergeLog -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $javaLog, $mergeLog, $identityLog -Force -ErrorAction SilentlyContinue
         $arguments = @{ Root = $releaseRepo; DesktopJar = $DesktopJar; Java = $stubJava; Aapt2 = $stubAapt2; OutDir = $OutDir }
         if ($Apk) { $arguments['Apk'] = $Apk }
         & (Join-Path $PSScriptRoot 'patch-for-device.ps1') @arguments 6> $null
@@ -5966,6 +6010,14 @@ try {
             "patch-for-device.ps1 left the base APK it read for $build behind."
         Assert-True ((@(Get-Content -LiteralPath $mergeLog) -join '') -ceq "merge $($fixturePaths[$build])" -and
             -not (Test-Path -LiteralPath (Join-Path $deviceOut 'stock-merged.apk'))) 'The device build did not merge once and clean its generated merge.'
+        $deviceReceipt = Read-WalkJson -Path (Join-Path $deviceOut 'patch-receipt.json')
+        Assert-True ($deviceReceipt.schema -eq 1 -and $deviceReceipt.kind -ceq 'hushthreads-patch' -and
+            $deviceReceipt.bundlePayloadSha256 -ceq $releasePayload -and
+            $deviceReceipt.input.versionName -ceq $build -and $deviceReceipt.apk.versionCode -ceq (Get-PatchedFixtureCode $deviceReceipt.input.versionCode) -and
+            $deviceReceipt.apk.sha256 -ceq (Get-FileHash -LiteralPath $deviceApk -Algorithm SHA256).Hash.ToLowerInvariant()) `
+            'The device build did not bind its signed APK and declared build to verified bundle identity.'
+        Assert-True ((@(Get-Content -LiteralPath $identityLog) -join '') -ceq "expected $deviceApk") `
+            'The device build skipped the independent final APK identity check.'
     }
     $signingFailure = Join-Path $tools 'sign-fails.txt'
     $previousSigningPassword = $env:HUSHTHREADS_SIDELOAD_KEYSTORE_PASSWORD
@@ -6694,20 +6746,32 @@ try {
     $flowHead = Join-Path $releaseFlow 'head.txt'
     $flowHosted = Join-Path $releaseFlow 'hosted'
     $flowDescription = Join-Path $releaseFlow 'description.txt'
+    $flowJar = Join-Path $releaseFlow 'morphe-desktop-1.0.0.jar'
+    $flowJava = Join-Path $releaseFlow 'java.ps1'
+    $flowAapt2 = Join-Path $releaseFlow 'aapt2.ps1'
+    $flowWalkTools = Join-Path $releaseFlow 'walk-tools.log'
     foreach ($folder in (Join-Path $flowRepo 'scripts/release'), (Join-Path $flowRepo '.github/ISSUE_TEMPLATE'), $flowHooks, $flowFixtures) {
         New-Item -ItemType Directory -Path $folder -Force | Out-Null
     }
-    foreach ($name in 'common.ps1', 'patch-target.ps1', 'walk-receipt.ps1', 'release/release.ps1') {
+    foreach ($name in 'common.ps1', 'patch-target.ps1', 'patch-report.ps1', 'release-receipt.ps1',
+            'native-page-alignment.ps1', 'walk-app-core.ps1', 'walk-receipt.ps1', 'Resolve-Java.ps1',
+            'IdentityApkCheck.java', 'release/release.ps1') {
         Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination (Join-Path $flowRepo "scripts/$name")
     }
+    $flowSettings = 'extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsNavigation.java'
+    New-Item -ItemType Directory -Path (Split-Path -Parent (Join-Path $flowRepo $flowSettings)) -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $Root $flowSettings) -Destination (Join-Path $flowRepo $flowSettings)
+    $flowCompatibility = ('"compatiblePackages":{"com.instagram.barcelona":["450.0.0.51.78"]},' +
+        '"compatibility":[{"packageName":"com.instagram.barcelona","targets":[' +
+        '{"version":"450.0.0.51.78","versionCodes":{"arm64-v8a":512008342}}]}]')
     $flowFiles = [ordered]@{
         '.gitignore' = "build/`nrelease-receipt-*.json`n"
         'gradle.properties' = "version = 1.2.2`n"
         'CHANGELOG.md' = "# Changelog`n`n## Unreleased`n`n* **Threads:** A fixture change.`n`n## 1.2.2 (2026-10-01)`n`n* **Threads:** The release before.`n"
         'README.md' = "The latest release is [v1.2.2](https://github.com/Owner/Repo/releases/tag/v1.2.2), with 2 patches.`n"
         'patches-list.json' = ('{"patches":[' +
-            '{"name":"Hide ads","compatiblePackages":{"com.instagram.barcelona":["450.0.0.51.78"]}},' +
-            '{"name":"Hide suggestions","compatiblePackages":{"com.instagram.barcelona":["450.0.0.51.78"]}}]}' + "`n")
+            '{"name":"Hide ads",' + $flowCompatibility + '},' +
+            '{"name":"Hide suggestions",' + $flowCompatibility + '}]}' + "`n")
         'patches-bundle.json' = ('{"created_at":"2026-10-01T12:00:00","description":"HushThreads v1.2.2 has 2 patches.",' +
             '"download_url":"https://github.com/Owner/Repo/releases/download/v1.2.2/patches-1.2.2.mpp",' +
             '"signature_download_url":null,"version":"1.2.2"}' + "`n")
@@ -6716,11 +6780,41 @@ try {
     foreach ($name in $flowFiles.Keys) { [IO.File]::WriteAllText((Join-Path $flowRepo $name), $flowFiles[$name]) }
 
     # The stand-ins name their files through these placeholders, each written as a quoted literal.
-    $flowLiterals = [ordered]@{ FLOW_LOG = $flowLog; FLOW_FAIL = $flowFails; FLOW_REPO = $flowRepo; FLOW_BUNDLE = $flowBundle; FLOW_HEAD = $flowHead }
+    $flowLiterals = [ordered]@{ FLOW_LOG = $flowLog; FLOW_FAIL = $flowFails; FLOW_REPO = $flowRepo
+        FLOW_BUNDLE = $flowBundle; FLOW_HEAD = $flowHead; FLOW_JAR = $flowJar; FLOW_WALK_TOOLS = $flowWalkTools }
     function Write-FlowStub([string]$Path, [string]$Text) {
         foreach ($key in $flowLiterals.Keys) { $Text = $Text.Replace($key, "'" + $flowLiterals[$key].Replace("'", "''") + "'") }
         [IO.File]::WriteAllText($Path, $Text, (New-Object Text.UTF8Encoding($true)))
     }
+    # The orchestration fixtures answer Java/aapt2 from sidecars. Actual manifest and DEX readers
+    # are tested separately; these stand-ins still require the exact artifact and expected identity.
+    Write-FlowStub $flowJava @'
+if ($args.Count -eq 1 -and $args[0] -ceq '-version') {
+    'openjdk version "21.0.5"'
+    exit 0
+}
+if ($args.Count -ne 7 -or $args[0] -cne '-Xmx1g' -or $args[1] -cne '-cp' -or
+    $args[2] -cne FLOW_JAR -or (Split-Path -Leaf $args[3]) -cne 'IdentityApkCheck.java' -or
+    $args[4] -cne '--expected' -or -not (Test-Path -LiteralPath $args[6] -PathType Leaf)) { exit 2 }
+Add-Content -LiteralPath FLOW_WALK_TOOLS -Value ('identity ' + (Split-Path -Leaf $args[6]))
+$identityFile = "$($args[6]).identity"
+if (-not (Test-Path -LiteralPath $identityFile -PathType Leaf) -or
+    $args[5] -cne [IO.File]::ReadAllText($identityFile)) {
+    'Final APK getter does not carry the defining bundle identity'
+    exit 3
+}
+'exact verified identity preserved in About, recovery and reports'
+exit 0
+'@
+    Write-FlowStub $flowAapt2 @'
+if ($args.Count -ne 5 -or $args[0] -cne 'dump' -or $args[1] -cne 'xmltree' -or
+    $args[2] -cne '--file' -or $args[3] -cne 'AndroidManifest.xml') { exit 2 }
+Add-Content -LiteralPath FLOW_WALK_TOOLS -Value ('manifest ' + (Split-Path -Leaf $args[4]))
+$manifestFile = "$($args[4]).xmltree"
+if (-not (Test-Path -LiteralPath $manifestFile -PathType Leaf)) { exit 3 }
+Get-Content -LiteralPath $manifestFile
+exit 0
+'@
     # Each stand-in fails when fail.txt names its step, so a case can stop a stage at any step. The
     # wrapper names its step from the tasks: the comparator, the patch list, the bundle, the release
     # test run (--rerun) or the quick run. 'stale' has the patch list come out changed.
@@ -6876,8 +6970,12 @@ exit 0
         Invoke-FixtureGit -Root $flowRepo -Arguments @('clean', '-fdq') | Out-Null
     }
     function New-FlowBundle([string]$Stamp, [switch]$NoDex) {
-        # The bundle the wrapper's buildAndroid hands over: a manifest stamp and, unless -NoDex, a dex.
-        $entries = [ordered]@{ 'META-INF/MANIFEST.MF' = "Manifest-Version: 1.0`r`nTimestamp: $Stamp`r`n" }
+        # buildAndroid's stand-in carries source identity as well as the stamp and optional dex.
+        $tree = "$(Invoke-FixtureGit -Root $flowRepo -Arguments @('rev-parse', ($flowPrep + '^{tree}')) | Select-Object -First 1)".Trim()
+        $manifest = @('Manifest-Version: 1.0', "Timestamp: $Stamp", 'HushThreads-Source-State: clean',
+            "HushThreads-Source-Commit: $flowPrep", "HushThreads-Source-Tree: $tree",
+            ('HushThreads-Input-SHA256: ' + ('b' * 64)), '') -join "`r`n"
+        $entries = [ordered]@{ 'META-INF/MANIFEST.MF' = $manifest }
         if (-not $NoDex) { $entries['classes.dex'] = 'dex' }
         if (Test-Path -LiteralPath $flowBundle) { Remove-Item -LiteralPath $flowBundle -Force }
         Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
@@ -6890,8 +6988,16 @@ exit 0
         } finally {
             $zip.Dispose()
         }
+        $zip = [IO.Compression.ZipFile]::OpenRead($flowBundle)
+        try { $payload = Get-BundlePayloadSha256 -Archive $zip } finally { $zip.Dispose() }
+        $zip = [IO.Compression.ZipFile]::Open($flowBundle, [IO.Compression.ZipArchiveMode]::Update)
+        try {
+            $writer = [IO.StreamWriter]::new($zip.CreateEntry('META-INF/hushthreads-build.identity').Open())
+            try { $writer.Write("hushthreads-bundle-1`n$payload`n") } finally { $writer.Dispose() }
+        } finally { $zip.Dispose() }
+        Assert-True (Get-BundleIdentityFacts -BundlePath $flowBundle).Valid 'The release-flow bundle has invalid payload identity.'
     }
-    function Invoke-FlowStage { & $flowScript @args 6> $null 3> $null }
+    function Invoke-FlowStage { & $flowScript -Java $flowJava -DesktopJar $flowJar -Aapt2 $flowAapt2 @args 6> $null 3> $null }
 
     # The fixture and its origin, with git's environment cleared (Invoke-FixtureGit) and the git
     # directory checked before anything is committed.
@@ -6913,7 +7019,6 @@ exit 0
 
     $flowScript = Join-Path $flowRepo 'scripts/release/release.ps1'
     [IO.File]::WriteAllText((Join-Path $flowFixtures 'threads-450.0.0.51.78-arm64.apkm'), 'fixture')
-    $flowJar = Join-Path $releaseFlow 'morphe-desktop-1.0.0.jar'
     [IO.File]::WriteAllText($flowJar, 'jar')
     [IO.File]::WriteAllText($flowDescription, 'HushThreads v1.2.2: 2 patches for Threads 450.0.0.51.78.')
     $env:HUSHTHREADS_BUILD_WRAPPER = $flowWrapper
@@ -7043,18 +7148,18 @@ exit 0
     Assert-Throws { Invoke-FlowStage -Stage index -Version 1.2.3 } '*Run -Stage publish first*' '-Stage index ran before the release was published.'
     Assert-True ((Get-FlowSteps @(Read-FlowLog)) -eq 'gh release view') 'A stage refused before build still ran a step.'
 
-    # build wants the folder of Threads fixtures, and one fixture of each declared build in it.
+    # build wants the folder of Threads fixtures, and at least one fixture of each declared build in it.
     $flowStamp = "$(Invoke-FixtureGit -Root $flowRepo -Arguments @('log', '-1', '--format=%ct', 'HEAD') | Select-Object -First 1)".Trim() + '000'
     [IO.File]::WriteAllText($flowHead, $flowPrep)
     New-FlowBundle -Stamp $flowStamp
     $env:HUSHTHREADS_FIXTURE_DIR = Join-Path $releaseFlow 'no-fixtures'
     Assert-Throws { Invoke-FlowStage -Stage build -Version 1.2.3 } '*HUSHTHREADS_FIXTURE_DIR has to name*' 'Build ran with no fixture folder.'
+    $emptyFixtures = Join-Path $releaseFlow 'empty-fixtures'
+    New-Item -ItemType Directory -Force -Path $emptyFixtures | Out-Null
+    $env:HUSHTHREADS_FIXTURE_DIR = $emptyFixtures
+    Assert-Throws { Invoke-FlowStage -Stage build -Version 1.2.3 } '*Expected at least one threads-450.0.0.51.78-* fixture in*' `
+        'Build ran with no fixture of a declared build.'
     $env:HUSHTHREADS_FIXTURE_DIR = $flowFixtures
-    $secondFixture = Join-Path $flowFixtures 'threads-450.0.0.51.78-other.xapk'
-    [IO.File]::WriteAllText($secondFixture, 'fixture')
-    Assert-Throws { Invoke-FlowStage -Stage build -Version 1.2.3 } '*Expected one threads-450.0.0.51.78-* fixture in*' `
-        'Build picked one of two fixtures of the same build.'
-    Remove-Item -LiteralPath $secondFixture -Force
     Assert-True (@(Read-FlowLog).Count -eq 0) 'A refused build still ran a step.'
 
     # A failing step stops build there, before any tag: the tests, a stale patch list, the bundle,
@@ -7080,6 +7185,26 @@ exit 0
     }
     Set-FlowFail ''
     Read-QueueLog | Out-Null
+
+    # Every variant of a build gets its own run and the receipt reads them all. The receipt fails on
+    # purpose, so this run leaves no tag behind for the one below.
+    $secondFixture = Join-Path $flowFixtures 'threads-450.0.0.51.78-x86_64.apkm'
+    [IO.File]::WriteAllText($secondFixture, 'fixture')
+    Set-FlowFail 'receipt'
+    Assert-Throws { Invoke-FlowStage -Stage build -Version 1.2.3 } '*build-release-receipt.ps1 did not pass*' `
+        'Build carried on past a failing receipt on two variants.'
+    $flow = @(Read-FlowLog)
+    Assert-True ((Get-FlowSteps $flow) -eq 'gradle tests | gradle list | gradle bundle | verify | verify | receipt') `
+        "Build did not patch both variants of a build: $($flow -join ' | ')"
+    Assert-True ($flow[3] -like 'verify apk=threads-450.0.0.51.78-arm64.apkm *' -and $flow[4] -like 'verify apk=threads-450.0.0.51.78-x86_64.apkm *') `
+        "Build did not patch each variant by name: $($flow -join ' | ')"
+    Assert-True ($flow[5] -like 'receipt fixtures=threads-450.0.0.51.78-arm64.apkm,threads-450.0.0.51.78-x86_64.apkm applied=*') `
+        "Build's receipt did not read both variants: $($flow[5])"
+    Remove-Item -LiteralPath $secondFixture -Force
+    Set-FlowFail ''
+    Read-QueueLog | Out-Null
+    New-FlowBundle -Stamp $flowStamp
+    Reset-FlowTree
 
     # The release folder starts empty, the tests rerun, the list comes out unchanged, the fixture
     # is patched once in a queue slot and kept, the receipt reads it in a slot, the four assets and
@@ -7122,17 +7247,57 @@ exit 0
     Assert-True ([IO.File]::ReadAllText((Join-Path $flowAssets 'SHA256SUMS.txt')) -eq $flowSums) 'Build run again made other assets.'
     Assert-Throws { Invoke-FlowStage -Stage prepare -Version 1.2.3 } '*already exists*' 'Prepare ran again after v1.2.3 was tagged.'
 
-    # publish wants a whole-app walk of the built bundle before it asks GitHub anything: a full
-    # PASS with no crash, on a release phone or an emulator, of these exact bytes.
+    # publish wants a whole-app walk before it asks GitHub anything. Schema 1's PASS/full/count
+    # claims could describe a stale installed app. These fixtures bind the bundle payload, patch
+    # selection, input/output artifacts and installed bytes to every canonical screen.
     Assert-Throws { Invoke-FlowStage -Stage publish -Version 1.2.3 } '*-Walk names the walk-receipt.json*' 'Publish ran without a walk receipt.'
     Assert-True (@(Read-FlowLog).Count -eq 0) 'Publish ran a step before asking for the walk receipt.'
     $flowWalk = Join-Path $releaseFlow 'walk-receipt.json'
+    $flowExpectedScreens = @(Get-WalkExpectedScreens -Root $Root)
     function Write-FlowWalk([hashtable]$Change = @{}) {
-        $walk = New-WalkReceipt -Result PASS -Full $true -Serial 'TESTPHONE01' -Device 'SM-S908U1' -AppVersion '450.0.0.51.78' `
-            -BundleSha256 (Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $flowAssets 'patches-1.2.3.mpp')).Hash `
-            -InstalledApkSha256 ('4' * 64) -Started '2026-10-21T16:00:00Z' -Finished '2026-10-21T16:30:00Z' -Screens 40 -Crashes 0
+        $bundle = Join-Path $flowAssets 'patches-1.2.3.mpp'
+        $artifacts = @{}
+        foreach ($kind in 'input', 'apk') {
+            $path = Join-Path $releaseFlow "walk-$kind.apk"
+            if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Force }
+            $zip = [IO.Compression.ZipFile]::Open($path, [IO.Compression.ZipArchiveMode]::Create)
+            try {
+                foreach ($name in 'AndroidManifest.xml', 'classes.dex') {
+                    $writer = [IO.StreamWriter]::new($zip.CreateEntry($name).Open())
+                    try { $writer.Write("$kind fixture $name") } finally { $writer.Dispose() }
+                }
+            } finally { $zip.Dispose() }
+            $artifacts[$kind] = [ordered]@{
+                file = $path; sha256 = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
+                package = 'com.instagram.barcelona'; versionName = '450.0.0.51.78'; versionCode = '512008342'
+            }
+            [IO.File]::WriteAllText("$path.xmltree", (@(
+                'E: manifest (line=1)', '  A: package="com.instagram.barcelona"',
+                '  A: http://schemas.android.com/apk/res/android:versionName="450.0.0.51.78"',
+                '  A: http://schemas.android.com/apk/res/android:versionCode=512008342') -join "`n"))
+        }
+        $catalog = Join-Path $flowRepo 'patches-list.json'
+        $identity = Get-BundleIdentityFacts -BundlePath $bundle
+        [IO.File]::WriteAllText("$($artifacts.apk.file).identity", (
+            'sha256={0}; source=clean:{1}; tree={2}; inputs={3}' -f $identity.PayloadSha256,
+                $identity.SourceCommit, $identity.SourceTree, $identity.InputSha256))
+        $patch = [ordered]@{
+            schema = 1; kind = 'hushthreads-patch'
+            bundleSha256 = (Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
+            bundlePayloadSha256 = $identity.PayloadSha256
+            input = $artifacts.input; apk = $artifacts.apk
+            catalog = @{ file = $catalog; sha256 = (Get-FileHash -LiteralPath $catalog -Algorithm SHA256).Hash.ToLowerInvariant() }
+            requestedPatches = @('Hide ads', 'Hide suggestions'); appliedPatches = @('Hide ads', 'Hide suggestions')
+            options = 'defaults'
+        }
+        Assert-True ($patch.bundleSha256 -cne $patch.bundlePayloadSha256) 'The release-flow fixture conflated ZIP and payload hashes.'
+        $walk = New-WalkReceipt -Result PASS -Full $true -Serial 'TESTPHONE01' -Device 'SM-S908U1' `
+            -AppVersion $patch.apk.versionName -AppVersionCode $patch.apk.versionCode -BundleSha256 $patch.bundleSha256 `
+            -InstalledApkSha256 $patch.apk.sha256 -InstalledBeforeSha256 $patch.apk.sha256 -Patch $patch `
+            -PlannedScreens $flowExpectedScreens -ReachedScreens $flowExpectedScreens -Screens $flowExpectedScreens.Count `
+            -Started '2026-10-21T16:00:00Z' -Finished '2026-10-21T16:30:00Z' -Crashes 0
         foreach ($key in $Change.Keys) { $walk[$key] = $Change[$key] }
-        [IO.File]::WriteAllText($flowWalk, ($walk | ConvertTo-Json -Depth 4))
+        [IO.File]::WriteAllText($flowWalk, ($walk | ConvertTo-Json -Depth 8))
     }
     foreach ($badWalk in @(
             @(@{ result = 'FAIL' }, '*the walk ended FAIL, not PASS*'),
@@ -7143,19 +7308,71 @@ exit 0
             @(@{ device = 'Pixel 9' }, "*Pixel 9 isn't one of the release walk phones*"),
             @(@{ device = 'Pixel 9'; emulator = $true }, "*Pixel 9 isn't one of the release walk phones*"),
             @(@{ bundleSha256 = ('5' * 64) }, '*patched with bundle*and this one is*'),
-            @(@{ schema = 2 }, "*isn't schema 1*"))) {
+            @(@{ schema = 1 }, "*isn't schema 2*"),
+            @(@{ patch = $null }, '*missing patch provenance*'),
+            @(@{ installedBeforeSha256 = ('5' * 64) }, '*installed APK does not match*before and after*'),
+            @(@{ installedApkSha256 = ('5' * 64) }, '*installed APK does not match*before and after*'),
+            @(@{ installedApkSha256 = '' }, '*installed APK does not match*before and after*'),
+            @(@{ appVersion = '449.0.0.51.78' }, '*installed app build contradicts its patch provenance*'),
+            @(@{ appVersionCode = '512008343' }, '*installed app build contradicts its patch provenance*'),
+            @(@{ plannedScreens = @($flowExpectedScreens | Select-Object -Skip 1) }, '*incomplete named screen coverage*'),
+            @(@{ reachedScreens = @($flowExpectedScreens | Select-Object -Skip 1) }, '*incomplete named screen coverage*'),
+            @(@{ reachedScreens = @($flowExpectedScreens[0]) + @($flowExpectedScreens | Select-Object -SkipLast 1) }, '*repeats or misnames a screen*'),
+            @(@{ screens = ($flowExpectedScreens.Count - 1) }, '*screen count contradicts its coverage*'),
+            @(@{ started = 'not a timestamp' }, '*invalid UTC timestamp*'),
+            @(@{ finished = '2026-10-21T15:59:59Z' }, '*timestamps are out of order*'),
+            @(@{ finished = '2026-10-21T12:30:00-04:00' }, '*invalid UTC timestamp*'),
+            @(@{ problems = @('Search did not open') }, '*recorded problems*'))) {
         Write-FlowWalk $badWalk[0]
         Assert-Throws { Invoke-FlowStage -Stage publish -Version 1.2.3 -Walk $flowWalk } $badWalk[1] "Publish took a walk it should refuse ($($badWalk[1]))."
         Assert-True (@(Read-FlowLog).Count -eq 0) "Publish ran a step past a walk it refused ($($badWalk[1]))."
     }
+    # Rehashing a copied catalog must not let it claim builds absent from the bundle's source.
+    Write-FlowWalk
+    $catalogWalk = Read-WalkJson -Path $flowWalk
+    $copiedCatalog = Join-Path $releaseFlow 'copied-patches-list.json'
+    $changedCatalog = Read-WalkJson -Path $catalogWalk.patch.catalog.file
+    foreach ($patch in $changedCatalog.patches) {
+        $patch.compatibility[0].targets[0].versionCodes | Add-Member -NotePropertyName 'armeabi-v7a' -NotePropertyValue 512008343
+    }
+    [IO.File]::WriteAllText($copiedCatalog, ($changedCatalog | ConvertTo-Json -Depth 12))
+    $catalogWalk.patch.catalog.file = $copiedCatalog
+    $catalogWalk.patch.catalog.sha256 = (Get-FileHash -LiteralPath $copiedCatalog -Algorithm SHA256).Hash.ToLowerInvariant()
+    [IO.File]::WriteAllText($flowWalk, ($catalogWalk | ConvertTo-Json -Depth 12))
+    Assert-Throws { Invoke-FlowStage -Stage publish -Version 1.2.3 -Walk $flowWalk } '*catalog is not the declaration from the bundle source commit*' `
+        'Publish trusted a copied, altered catalog because its self-reported hash matched.'
+    Assert-True (@(Read-FlowLog).Count -eq 0) 'Publish contacted GitHub after a catalog substitution.'
+    # A self-consistent receipt still fails when an independent manifest read or DEX identity
+    # check contradicts it. Changing these sidecars changes tool answers, not the receipt hashes.
+    foreach ($kind in 'input', 'apk') {
+        foreach ($replacement in @(@('com.instagram.barcelona', 'com.example.other'),
+                @('450.0.0.51.78', '449.0.0.51.78'), @('512008342', '512008343'))) {
+            Write-FlowWalk
+            $manifestFile = Join-Path $releaseFlow "walk-$kind.apk.xmltree"
+            [IO.File]::WriteAllText($manifestFile, [IO.File]::ReadAllText($manifestFile).Replace($replacement[0], $replacement[1]))
+            Assert-Throws { Invoke-FlowStage -Stage publish -Version 1.2.3 -Walk $flowWalk } '*APK manifest contradicts its patch provenance*' `
+                "Publish trusted the receipt over the $kind APK manifest ($($replacement[0]))."
+            Assert-True (@(Read-FlowLog).Count -eq 0) 'Publish contacted GitHub after an APK manifest mismatch.'
+        }
+    }
+    Write-FlowWalk
+    $identityFile = Join-Path $releaseFlow 'walk-apk.apk.identity'
+    [IO.File]::WriteAllText($identityFile, ([IO.File]::ReadAllText($identityFile) -replace 'sha256=[0-9a-f]{64}', ('sha256=' + ('5' * 64))))
+    Assert-Throws { Invoke-FlowStage -Stage publish -Version 1.2.3 -Walk $flowWalk } '*signed APK does not carry the bundle payload identity*' `
+        'Publish accepted an APK carrying another bundle payload identity.'
+    Assert-True (@(Read-FlowLog).Count -eq 0) 'Publish contacted GitHub after an embedded identity mismatch.'
     [IO.File]::WriteAllText($flowWalk, 'not json')
     Assert-Throws { Invoke-FlowStage -Stage publish -Version 1.2.3 -Walk $flowWalk } "*walk receipt doesn't read as JSON*" 'Publish read a walk receipt that is not JSON.'
     # An emulator walks for a release as well as either phone.
     Write-FlowWalk @{ serial = 'emulator-5554'; device = 'sdk_gphone64_x86_64'; emulator = $true }
+    Remove-Item -LiteralPath $flowWalkTools -Force -ErrorAction SilentlyContinue
 
     # publish wants the notes' opening paragraphs and Update steps the first time.
     Assert-Throws { Invoke-FlowStage -Stage publish -Version 1.2.3 -Walk $flowWalk } '*-Intro and -Update*' `
         'Publish made a release without its opening paragraphs and Update steps.'
+    Assert-True ((@(Get-Content -LiteralPath $flowWalkTools) -join ' | ') -ceq
+        'manifest walk-input.apk | manifest walk-apk.apk | identity walk-apk.apk') `
+        'Publish skipped an independent manifest or embedded-identity check.'
     Assert-True ((Get-FlowSteps @(Read-FlowLog)) -eq 'gh release view') 'Publish went past its missing notes.'
     $flowIntro = Join-Path $releaseFlow 'intro.md'
     $flowUpdate = Join-Path $releaseFlow 'update.md'

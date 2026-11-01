@@ -1,3 +1,15 @@
+## [2.5.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.5.0...v2.5.1) (2026-10-31)
+
+### 🚀 Updated App Support
+
+* **cricfy:** support CRICFy TV 7.4 ([fa73617](https://github.com/ginDoki19/GinArena-patch/commit/fa73617cc93b555dc374a301baa812aa9bb197c8))
+
+## [2.5.1-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.5.0...v2.5.1-dev.1) (2026-10-31)
+
+### 🚀 Updated App Support
+
+* **cricfy:** support CRICFy TV 7.4 ([fa73617](https://github.com/ginDoki19/GinArena-patch/commit/fa73617cc93b555dc374a301baa812aa9bb197c8))
+
 ## [2.5.0](https://github.com/ginDoki19/GinArena-patch/compare/v2.4.2...v2.5.0) (2026-10-28)
 
 ### 🐛 Bug Fixes

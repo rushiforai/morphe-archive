@@ -130,15 +130,15 @@ class SaveToastsFixtureTest {
                 androidToasts() > 0 || handsOver() > 0
 
             val readers = counted.keys.associateWith { name -> methods.filter { method -> method.fields().any { it.type == "I" && it.name == name } } }
-            if ("-14.41.0-" in build.name) {
+            if ("-14.42.0-" in build.name) {
                 for ((name, expected) in counted) {
                     val found = readers.getValue(name)
                     assertEquals("${build.name}: methods that read $name: ${found.map { it.key() }}", expected.first, found.size)
                     assertEquals("${build.name}: methods that read $name and show it: ${found.filter { it.shows() }.map { it.key() }}",
                         expected.second, found.count { it.shows() })
                 }
-                // 14.39.0 showed one save as an Android toast through a helper; 14.40.0 makes that toast in the screen itself.
-                assertEquals("${build.name}: helpers that show an Android toast $helpers", 0, helpers.size)
+                // 14.40.0 made its save toast in the screen itself; 14.42.0 hands it to one helper again, shared with a sign-in toast.
+                assertEquals("${build.name}: helpers that show an Android toast $helpers", 1, helpers.size)
             }
 
             val saveToasts = checked(context, "isSaveToast").toSet()
@@ -170,13 +170,13 @@ class SaveToastsFixtureTest {
                 .strings().filter { Regex("[a-z_]+").matches(it) }.toSet()
             assertEquals("the names the extension looks up", SAVE_TEXT_NAMES, runtime)
 
-            if ("-14.41.0-" in build.name) {
+            if ("-14.42.0-" in build.name) {
                 assertEquals("${build.name}: toasts handed their text $messageToasts", 2, messageToasts.size)
                 val taken = (showing + methods.filter { it.key() in calledHelpers }).distinctBy { it.key() }.map { method ->
                     context.mutableClassDefBy(method.definingClass).methods.single { it.key() == method.key() }
                 }.flatMap { it.calls() }.filter { it.definingClass == UI_HOOKS && it.name == "androidToast" }
-                // 14.40.0 makes the helper's toast in each screen that called it, and each of those is taken over.
-                assertEquals("${build.name}: Android toasts taken over", listOf("I") + List(10) { "Ljava/lang/CharSequence;" },
+                // The helper's one toast and the three the screens still make themselves, each taken over.
+                assertEquals("${build.name}: Android toasts taken over", listOf("I") + List(3) { "Ljava/lang/CharSequence;" },
                     taken.map { it.parameters()[1] }.sorted())
             }
         }

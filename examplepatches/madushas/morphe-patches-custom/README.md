@@ -9,6 +9,10 @@ Verified target: **2.134.6** (versionCode **2694**).
 
 **[morphe.software/add-source?github=madushas/pdb_patch](https://morphe.software/add-source?github=madushas/pdb_patch)**
 
+> **Requires Morphe Manager 2.2.0+** (stable 2026-10-25, bundles patcher 2.0.1).
+> The bundle pin tracks the Manager's bundled patcher exactly: a newer pin trips
+> the Manager's Patcher-Version gate, and Manager 1.x refuses 2.0 bundles outright.
+
 Morphe Manager resolves the repository's **latest release**, so a version only
 appears here once it has been released with its `patches-<version>.mpp` asset.
 Bumping `gradle.properties`, `patches-bundle.json` and `patches-list.json` alone

@@ -246,6 +246,22 @@ Hide blog notification reminders	Erinnerungen an Blog-Benachrichtigungen ausblen
 Hides the pop-up suggesting you turn on notifications for a blog. Your subscriptions and notification settings stay as they are.	Blendet das Pop-up aus, das Benachrichtigungen für einen Blog vorschlägt. Deine Abonnements und Benachrichtigungseinstellungen bleiben unverändert.
 Hide gift purchase popups	Geschenkkauf-Popups ausblenden
 Hides the pop-up suggesting you buy a gift for a blog. You can still open gifting yourself.	Blendet das Pop-up aus, das den Kauf eines Geschenks für einen Blog vorschlägt. Du kannst die Geschenkfunktion weiterhin selbst öffnen.
+Line between posts	Linie zwischen Beiträgen
+Draws a thin line in the gap between posts, so it's easier to see where one ends and the next begins.	Zeichnet eine dünne Linie in die Lücke zwischen Beiträgen, damit besser zu sehen ist, wo einer endet und der nächste beginnt.
+App font	App-Schriftart
+Replaces Tumblr's own font with your phone's font, or a font file you choose below. Fonts a post's author picked stay as they are.	Ersetzt Tumblrs eigene Schriftart durch die deines Telefons oder durch eine Schriftdatei, die du unten auswählst. Schriftarten, die der Autor eines Beitrags gewählt hat, bleiben unverändert.
+Choose a font file	Schriftdatei auswählen
+Uses your phone's font. Tap to pick a .ttf or .otf file.	Nutzt die Schriftart deines Telefons. Tippe, um eine .ttf- oder .otf-Datei auszuwählen.
+Using %1$s. Tap to pick another.	%1$s wird verwendet. Tippe, um eine andere auszuwählen.
+Use the phone's font	Schriftart des Telefons nutzen
+Forgets the chosen font file.	Vergisst die gewählte Schriftdatei.
+Font file saved.	Schriftdatei gespeichert.
+Font file saved. Turn on App font to use it.	Gespeichert. Zum Nutzen App-Schriftart einschalten.
+Back to the phone's font.	Wieder die Schriftart des Telefons.
+Couldn't change the font. Try again.	Schriftart nicht geändert. Versuche es erneut.
+Couldn't read that file. Try again.	Datei nicht lesbar. Versuche es erneut.
+That isn't a font file. Nothing changed.	Das ist keine Schriftdatei. Nichts wurde geändert.
+That file is too big to be a font.	Diese Datei ist zu groß für eine Schriftart.
 Blog notification reminder	Erinnerung an Blog-Benachrichtigungen
 Gift purchase popup	Geschenkkauf-Popup
 Stops the pop-up that asks what you think of the Tumblr app and then asks for a rating or feedback.	Verhindert das Pop-up, das fragt, was du von der Tumblr-App hältst, und dann um eine Bewertung oder Feedback bittet.
@@ -319,6 +335,8 @@ Looks for: %1$s	Sucht nach: %1$s
 # context: Dark background color turns the background of Tumblr's Dark Mode palette (Settings > Appearance) black, or a dark color chosen when the app was patched. Use Tumblr's own name for the Dark Mode palette in your language.
 Dark background color	Dunkle Hintergrundfarbe
 Makes newly opened Dark Mode screens black, or the dark color picked when patching. Open screens keep their colors until Tumblr restarts.	Färbt neu geöffnete Dunkelmodus-Bildschirme schwarz oder in der beim Patchen gewählten dunklen Farbe. Offene Bildschirme behalten ihre Farben bis zum Neustart von Tumblr.
+Match my wallpaper	An mein Hintergrundbild anpassen
+Takes the dark background from your wallpaper's colors in place of the one picked when patching. Needs Android 12 or newer and Dark background color on. A new wallpaper shows after Tumblr restarts.	Nimmt den dunklen Hintergrund aus den Farben deines Hintergrundbilds statt der beim Patchen gewählten Farbe. Braucht Android 12 oder neuer und eingeschaltete Dunkle Hintergrundfarbe. Ein neues Hintergrundbild erscheint, wenn Tumblr neu startet.
 # context: the bottom bar's tabs. Hide the Explore tab and Hide the Notifications tab take one tab's button off the bar; Reorder the bottom bar puts the tabs in an order chosen in a list where a tap moves a tab one place up. Use Tumblr's own names for the tabs in your language.
 Hide the Explore tab	Entdecken-Tab ausblenden
 Takes the Explore and search button off the bottom bar.	Entfernt die Schaltfläche für Entdecken und Suche aus der unteren Leiste.

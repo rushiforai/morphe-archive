@@ -1,0 +1,395 @@
+{
+  "description": "Sanitized actual NB/DS neutral-theme singleton footer-shop HtmlBlock shape, 2026-10-30; public widget ID values replaced, no article text or credentials.",
+  "cases": [
+    {
+      "case": "captured-nieuwsblad-footer-shape",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": true
+    },
+    {
+      "case": "captured-ds-footer-shape",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.standaard.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": true
+    },
+    {
+      "case": "different-public-widget-id",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=another-public-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": true
+    },
+    {
+      "case": "ordinary-section",
+      "group": {
+        "type": "regular",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "native-editorial-leaf",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "newsArticle",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "multiple-children",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          },
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "missing-children",
+      "group": {
+        "type": "html",
+        "teasers": null
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "empty-children",
+      "group": {
+        "type": "html",
+        "teasers": []
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "different-component-name",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "Editorial live ticker",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "marker-only-in-html",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "Editorial HTML",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>HTML | Webshop feed large"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "component-name-case-change",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "html | webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "null-component-name",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": null,
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "empty-html",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": ""
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "null-html",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": null
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "null-group",
+      "group": null,
+      "expected_hidden": false
+    },
+    {
+      "case": "missing-resize-contract",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\"  data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "manual-shop-anchor",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<a href=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture\">Shop</a>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "lookalike-host",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be.example.invalid/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "different-interactief-path",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/editorial/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "target-in-query-only",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://example.invalid/?next=https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "wrong-scheme",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"http://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "userinfo",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://user@interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "explicit-port",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be:443/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "missing-id",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "empty-id",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "blank-id",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=%20%20\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "wrong-query-key",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?id=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "first-src-is-editorial-image",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<img src=\"https://example.invalid/editorial.jpg\"><style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src=\"https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget\" data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "single-quotes-not-accepted-by-shipped-parser",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "name": "HTML | Webshop feed large",
+            "html": "<style>.feed-shop iframe {height:100%}</style><iframe class=\"feed-shop\" src='https://interactief.nieuwsblad.be/optiext/optiextension.dll?ID=fixture-widget' data-allow-resize data-color-mode-placeholder></iframe>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    }
+  ]
+}

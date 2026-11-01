@@ -18,7 +18,7 @@ github.com/ginDoki19/GinArena-patch
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v2.5.0](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v2.5.1](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.5.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
 <summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -80,9 +80,9 @@ github.com/ginDoki19/GinArena-patch
 
 **🎯 Supported versions:**
 
-| 7.3 |
-| :---: |
-| Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 7.0+), build 53 |
+| 7.3 | 7.4 |
+| :---: | :---: |
+| Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 7.0+), build 53 | Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 7.0+), build 54 |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -287,7 +287,7 @@ short readable build labels and validate the package name, file type, version, `
 
 ---
 
-## 📦 CRICFy TV (7.3, build 53)
+## 📦 CRICFy TV (7.4 build 54 · 7.3 build 53)
 
 <details>
 <summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
@@ -295,12 +295,13 @@ short readable build labels and validate the package name, file type, version, `
 ### What it does
 
 The **Remove ads, proxy & restrictions** patch (enabled by default) delivers a clean, safe,
-privacy-respecting experience on **CRICFy TV 7.3** across phones, tablets, and Android TV:
+privacy-respecting experience on **CRICFy TV 7.4** (7.3 also supported) across phones, tablets,
+and Android TV:
 
-- **Removes CashRaven background residential proxy:** Strips `CashRaven.createManaged` / forced
-  `CashRaven.optIn()` from `App.onCreate`, disables `CashRavenService`, `AppExitGuardService`, and
-  `CrBootReceiver`, and removes the dead **Bandwidth Sharing** drawer item so tapping it can never
-  crash the app.
+- **Removes CashRaven background residential proxy:** Neutralizes the CashRaven bootstrap
+  (`createManaged` / forced `optIn()`) so the SDK instance is never created, disables
+  `CashRavenService` and `CrBootReceiver` (plus `AppExitGuardService` on 7.3), and removes the
+  dead **Bandwidth Sharing** drawer item so tapping it can never crash the app.
 - **Native signature-tamper bypass (`ResourceMode.RAW`):** Dynamically parses ELF32/ELF64 `.dynsym`
   and `PT_LOAD` headers across all four ABIs (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) in
   `libnative-lib.so` and patches `AntiTamper::isTampered` to return `false`, allowing `Baker.merge`
@@ -337,12 +338,14 @@ privacy-respecting experience on **CRICFy TV 7.3** across phones, tablets, and A
 | Field | Value |
 | --- | --- |
 | Package | `com.cricfytv.sports` |
-| Version | **7.3** (versionCode 53), universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
+| Version | **7.4** (versionCode 54) — recommended; **7.3** (versionCode 53) also supported. Universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
 | Stock download | Official [cricfyapk.io/download/](https://cricfyapk.io/download/) page or the developer's official Telegram channel |
 | Signing certificate SHA-256 | `f2cd86fcbc92461a3300cec47b6f74d20f0c89dd7162ecc333b3dd2c16e79841` |
-| APK SHA-256 | `d5b7a8cf16a9966a58d25841b1a108b7dba445fcd409ee932933b98f81d2de0d` |
+| APK SHA-256 (7.4) | `d37c0c70200981a9558d32abd16ffb7966ae83a2fc84157b82e6869c4e16ae6f` |
+| APK SHA-256 (7.3) | `d5b7a8cf16a9966a58d25841b1a108b7dba445fcd409ee932933b98f81d2de0d` |
 
-> **Version safety:** only **7.3 (53)** is supported. The patch validates every fingerprint and
+> **Version safety:** only **7.4 (54)** and **7.3 (53)** are supported. The patch validates
+> every fingerprint and
 > the native `AntiTamper` symbol before writing anything, and **aborts with an error instead of
 > producing a broken APK** if the app internals have changed. Future CRICFy versions are refused
 > by design until they receive a fresh audit — do not force-patch other versions in Expert Mode.
@@ -525,7 +528,7 @@ server-compatible experience on [**SK Tech TV 2.7**](https://sktech.site/) acros
 ## Usage (Morphe Manager)
 
 1. Add this repository as a remote patch source using the link at the top of this README.
-2. Download the official stock **1DM 20.0 APKM**, **CRICFy TV 7.3 APK**, **CricZ TV 7.3 APK**,
+2. Download the official stock **1DM 20.0 APKM**, **CRICFy TV 7.4 APK**, **CricZ TV 7.3 APK**,
    **PlayZ TV 2.3.1 APK**, or
    **MX Player 3.4.1 standalone APK** above onto your device.
 3. Uninstall the stock app first if it is already installed (re-signing changes the APK signature).

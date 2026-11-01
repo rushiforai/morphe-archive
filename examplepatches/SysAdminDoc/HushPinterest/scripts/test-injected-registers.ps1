@@ -627,11 +627,10 @@ try {
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
     $families = @(Get-Content -LiteralPath $featureContracts | Where-Object { $_.StartsWith('family|') } |
         ForEach-Object { $values = $_ -split '\|'; [pscustomobject]@{ Flag = $values[1]; Name = $values[2]; Caps = @($values[3] -split ',' | Where-Object { $_ }) } })
-    Assert-True ($families.Count -eq 32) 'Every one of the 32 installed families needs a compiled contract.'
-    # A family with no switch declares no capability and is the only kind that may: two change only
-    # the manifest, and GmsCore support's renamed strings call nothing of the extension's.
+    Assert-True ($families.Count -eq 33) 'Every one of the 33 installed families needs a compiled contract.'
+    # A family with no capability changes only the manifest, and only these two may.
     $manifestOnly = @($families | Where-Object { $_.Caps.Count -eq 0 } | ForEach-Object { $_.Flag })
-    Assert-True (($manifestOnly -join ',') -ceq 'removeAdTrackingPermissions,spoofSignature,gmsCoreSupport') "Only Remove ad tracking permissions, Spoof signature for Google sign-in and GmsCore support have no switch, not: $($manifestOnly -join ', ')"
+    Assert-True (($manifestOnly -join ',') -ceq 'removeAdTrackingPermissions,spoofSignature') "Only Remove ad tracking permissions and Spoof signature for Google sign-in have no capability, not: $($manifestOnly -join ', ')"
     $declaredFlags = @($families | ForEach-Object { $_.Flag; $_.Caps } | Sort-Object)
     $statusSource = Join-Path $Root 'extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsStatus.java'
     $sourceFlags = @([regex]::Matches([IO.File]::ReadAllText($statusSource), 'public static boolean ([A-Za-z0-9]+)\(\)') |
@@ -693,6 +692,11 @@ try {
         'feature-browser-id-gmscore-renamed' = $true
         'feature-browser-id-gmscore-unselected' = $false
         'feature-browser-id-gmscore-other-package' = $false
+        'feature-sign-in-failure-good' = $true
+        'feature-sign-in-failure-missing' = $false
+        'feature-sign-in-failure-late' = $false
+        'feature-sign-in-failure-wrong-argument' = $false
+        'feature-sign-in-failure-false-capability' = $false
         'feature-feed-ads' = $true
         'feature-feed-ai' = $true
         'feature-feed-shopping' = $true
@@ -763,6 +767,7 @@ try {
             elseif ($name -like 'feature-profile-*') { 'feature-profile-clean' }
             elseif ($name -like 'feature-native-settings-*') { 'feature-native-settings-clean' }
             elseif ($name -like 'feature-browser-id-*') { 'feature-browser-id-clean' }
+            elseif ($name -like 'feature-sign-in-failure-*') { 'feature-sign-in-failure-clean' }
             elseif ($name -like 'feature-guard-interior-*') { 'feature-guard-interior-clean' }
             elseif ($name -like 'feature-save-toasts-no-text*') { 'feature-save-toasts-no-text-clean' }
             elseif ($name -like 'feature-save-toasts-*') { 'feature-save-toasts-clean' }
@@ -809,6 +814,15 @@ try {
         }
         if ($shortBuildReason) {
             Assert-True ($text.Contains($shortBuildReason)) "The fixture $name wasn't refused for its own fault ($shortBuildReason).`n$text"
+        }
+        $signInReason = switch ($name) {
+            'feature-sign-in-failure-missing' { 'requestFailed(Ljava/lang/Exception;)V has 0 calls' }
+            'feature-sign-in-failure-late' { "doesn't get the exception ahead of" }
+            'feature-sign-in-failure-wrong-argument' { "doesn't get the exception ahead of" }
+            'feature-sign-in-failure-false-capability' { 'signInFailure flag is false, clean target requires true' }
+        }
+        if ($signInReason) {
+            Assert-True ($text.Contains($signInReason)) "The sign-in fixture $name wasn't refused for its own fault ($signInReason).`n$text"
         }
         $browserIdReason = switch ($name) {
             'feature-browser-id-missing' { 'skipBrowserId(Ljava/lang/String;)Z has 0 calls' }

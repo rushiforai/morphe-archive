@@ -1,0 +1,246 @@
+{
+  "description": "Sanitized single HtmlBlock parent/anchor shape from anonymous DS HOME, 2026-10-30; no article text, identifiers or credentials.",
+  "cases": [
+    {
+      "case": "captured-single-image-nyt-shape",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"https://standaard.be/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          }
+        ]
+      },
+      "expected_hidden": true
+    },
+    {
+      "case": "www-and-query",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"https://www.standaard.be/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          }
+        ]
+      },
+      "expected_hidden": true
+    },
+    {
+      "case": "ordinary-midterms-html",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"https://standaard.be/extra/redactie/amerikaanse-midterms-2026/?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "editorial-teaser",
+      "group": {
+        "type": "regular",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"https://standaard.be/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "non-html-teaser",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "newsArticle",
+            "html": "<div><a href=\"https://standaard.be/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "multiple-main-teasers",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"https://standaard.be/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          },
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"https://standaard.be/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "missing-main-teasers",
+      "group": {
+        "type": "html",
+        "teasers": null
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "empty-main-teasers",
+      "group": {
+        "type": "html",
+        "teasers": []
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "empty-html",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": ""
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "null-html",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": null
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "plaintext-url",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "https://standaard.be/thenewyorktimes"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "commented-anchor",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<!--<div><a href=\"https://standaard.be/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>-->"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "lookalike-host",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"https://standaard.be.example.invalid/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "url-in-query",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"https://example.invalid/?next=https://standaard.be/thenewyorktimes\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "different-scheme",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"http://standaard.be/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "different-path",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"https://standaard.be/nieuws/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "multiple-anchors",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"https://standaard.be/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div><a href=\"https://example.invalid/editorial\">more</a>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "userinfo-url",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"https://user@standaard.be/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    },
+    {
+      "case": "custom-port",
+      "group": {
+        "type": "html",
+        "teasers": [
+          {
+            "type": "htmlBlock",
+            "html": "<div><a href=\"https://standaard.be:8443/thenewyorktimes?campaign=fixture\"><img src=\"https://example.invalid/banner.jpg\"></a></div>"
+          }
+        ]
+      },
+      "expected_hidden": false
+    }
+  ]
+}

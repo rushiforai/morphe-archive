@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  {% set social_image = config.extra.social_image %}
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Dutch App Patches">
+  <meta property="og:title" content="{{ ((page.title ~ ' · ' ~ config.site_name) if page and page.title else config.site_name) | e }}">
+  <meta property="og:description" content="{{ (page.meta.description if page and page.meta.description else config.site_description) | e }}">
+  <meta property="og:image" content="{{ social_image | e }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Dutch App Patches. Dutch apps. Your choices.">
+  {% if page and page.canonical_url %}<meta property="og:url" content="{{ page.canonical_url | e }}">{% endif %}
+  <meta name="twitter:card" content="summary_large_image">
+{% endblock %}

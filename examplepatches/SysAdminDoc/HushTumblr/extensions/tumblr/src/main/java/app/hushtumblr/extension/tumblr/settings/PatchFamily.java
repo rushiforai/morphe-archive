@@ -69,6 +69,8 @@ public enum PatchFamily {
     HIDE_BLOG_NOTIFICATION_REMINDERS(FamilyNames.HIDE_BLOG_NOTIFICATION_REMINDERS, "hideBlogNotificationReminders", null,
             Settings.HIDE_BLOG_NOTIFICATION_REMINDERS),
     HIDE_GIFT_MESSAGE_POPUPS(FamilyNames.HIDE_GIFT_MESSAGE_POPUPS, "hideGiftMessagePopups", null, Settings.HIDE_GIFT_MESSAGE_POPUPS),
+    LINE_BETWEEN_POSTS(FamilyNames.LINE_BETWEEN_POSTS, "lineBetweenPosts", null, Settings.LINE_BETWEEN_POSTS),
+    APP_FONT(FamilyNames.APP_FONT, "appFont", null, Settings.APP_FONT),
     TURN_OFF_SCREENSHOT_SHARING(FamilyNames.TURN_OFF_SCREENSHOT_SHARING, "turnOffScreenshotSharing", null,
             Settings.TURN_OFF_SCREENSHOT_SHARING),
     DISABLE_UPDATE_PROMPTS(FamilyNames.DISABLE_UPDATE_PROMPTS, "disableUpdatePrompts", null, Settings.DISABLE_UPDATE_PROMPTS),
@@ -97,7 +99,7 @@ public enum PatchFamily {
     HIDE_POSTS_WITH_WORDS(FamilyNames.HIDE_POSTS_WITH_WORDS, "hidePostsWithWords", null, Settings.HIDE_POSTS_WITH_WORDS,
             Settings.WORDS_CURRENT_TEXT, Settings.WORDS_REBLOG_TRAIL, Settings.WORDS_TAGS, Settings.WORDS_SUMMARY),
     HIDE_FILTERED_POSTS(FamilyNames.HIDE_FILTERED_POSTS, "hideFilteredPosts", null, Settings.HIDE_FILTERED_POSTS),
-    DARK_BACKGROUND(FamilyNames.DARK_BACKGROUND, "darkBackground", null, Settings.DARK_BACKGROUND),
+    DARK_BACKGROUND(FamilyNames.DARK_BACKGROUND, "darkBackground", null, Settings.DARK_BACKGROUND, Settings.DARK_BACKGROUND_WALLPAPER),
     HIDE_EXPLORE_TAB(FamilyNames.HIDE_EXPLORE_TAB, "hideExploreTab", null, Settings.HIDE_EXPLORE_TAB),
     HIDE_NOTIFICATIONS_TAB(FamilyNames.HIDE_NOTIFICATIONS_TAB, "hideNotificationsTab", null, Settings.HIDE_NOTIFICATIONS_TAB),
     REORDER_TABS(FamilyNames.REORDER_TABS, "reorderTabs", null, Settings.REORDER_TABS),
@@ -166,7 +168,7 @@ public enum PatchFamily {
     static final Set<PatchFamily> INTERFACE_PAGE = Collections.unmodifiableSet(EnumSet.of(REORDER_TABS,
             HIDE_NOTIFICATIONS_TAB, HIDE_EXPLORE_TAB, DARK_BACKGROUND, HIDE_UNREAD_DOTS, HIDE_TUMBLRMART,
             TURN_OFF_SCREENSHOT_SHARING, SKIP_REVIEW_PROMPTS, HIDE_BLOG_NOTIFICATION_REMINDERS,
-            HIDE_GIFT_MESSAGE_POPUPS, HIDE_BLAZE_PROMPTS, HIDE_COMMUNITIES_TAB, HIDE_TUMBLR_TV));
+            HIDE_GIFT_MESSAGE_POPUPS, HIDE_BLAZE_PROMPTS, HIDE_COMMUNITIES_TAB, HIDE_TUMBLR_TV, LINE_BETWEEN_POSTS, APP_FONT));
 
     /** The families the Posts page holds. The page and its home row both read this. */
     static final Set<PatchFamily> POSTS_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_SAVE_BUTTON,
@@ -198,6 +200,8 @@ public enum PatchFamily {
         REVIEW_PROMPT(SKIP_REVIEW_PROMPTS, "reviewPrompt", "Skip review prompts"),
         BLOG_NOTIFICATION_REMINDER(HIDE_BLOG_NOTIFICATION_REMINDERS, "blogNotificationReminder", "Blog notification reminder"),
         GIFT_MESSAGE_POPUP(HIDE_GIFT_MESSAGE_POPUPS, "giftMessagePopup", "Gift purchase popup"),
+        POST_LINE(LINE_BETWEEN_POSTS, "postLine", "Line between posts"),
+        FONT_CHOICE(APP_FONT, "fontChoice", "App font"),
         SCREENSHOT_SHARING_FLAGS(TURN_OFF_SCREENSHOT_SHARING, "screenshotSharingFlags", "Turn off screenshot sharing"),
         UPDATE_PROMPT_FLAGS(DISABLE_UPDATE_PROMPTS, "updatePromptFlags", "Disable update prompts"),
         SUGGESTED_BLOG_CARDS(HIDE_SUGGESTED_BLOGS, "suggestedBlogCards", "Hide suggested blogs"),

@@ -60,6 +60,16 @@ class FixtureParseMemoTest {
         assertEquals("the dex files parsed", 2, counted.parses)
     }
 
+    @Test fun whatATestWorksOutFromABuildIsWorkedOutOnce() {
+        val held = PerBuild<String>()
+        val first = temporary.newFile("first.apkm")
+        val second = temporary.newFile("second.apkm")
+        var loads = 0
+        repeat(2) { assertEquals("first", held.getOrPut(first) { loads++; "first" }) }
+        assertEquals("second", held.getOrPut(second) { loads++; "second" })
+        assertEquals("a load for each build", 2, loads)
+    }
+
     @Test fun onlyTheDexFilesOfTheBaseApkAreRead() {
         val file = bundle(
             temporary.newFile("threads-test.apkm"),

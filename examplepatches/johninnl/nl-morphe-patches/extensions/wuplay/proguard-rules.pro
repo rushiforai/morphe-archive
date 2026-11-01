@@ -1,0 +1,4 @@
+-keep class nl.johninnl.wuplay.** { *; }
+-dontobfuscate
+-dontoptimize
+-dontwarn kotlin.**

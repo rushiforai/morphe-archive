@@ -46,8 +46,8 @@ class RestoreTrustFbnsFixtureTest {
     @Test
     fun `each declared build's FBNS check hashes the signers the extension answers`() {
         val builds = Fixtures.declaredBuilds()
-        val declaredVersions = AppCompatibilities.threads().single().targets.mapNotNull { it.version }.distinct().size
-        assertEquals("one build of each declared version", declaredVersions, builds.size)
+        val declaredBuilds = AppCompatibilities.THREADS_TARGET_VERSION_CODES.size
+        assertEquals("one build of each declared version and ABI", declaredBuilds, builds.size)
         for (build in builds) {
             FbnsPackageCheckFingerprint.clearMatch()
             val classes = FixtureDex.classesWhere(build, { marker in it.stringSection }) { method ->

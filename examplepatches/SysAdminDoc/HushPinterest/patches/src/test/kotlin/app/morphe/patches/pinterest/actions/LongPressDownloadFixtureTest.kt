@@ -14,8 +14,10 @@ import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.pinterest.ui.mutable
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -47,6 +49,7 @@ class LongPressDownloadFixtureTest {
             val classes = read(build)
             val context = PatchContexts.of(ExtensionDex.classes() + classes)
             val found = context.longPressMenu()
+            val compose = context.longPressCompose(found)
             val ids = context.menuButtonIds()
             assertNotNull("${build.name} button ids", ids)
             val original = found.show.implementation!!
@@ -68,7 +71,8 @@ class LongPressDownloadFixtureTest {
             val hosts = classes.flatMap { context.mutableClassDefBy(it.type).methods }.filter { method ->
                 references(method).any { it.startsWith(LONG_PRESS) }
             }
-            assertEquals("${build.name} host methods calling the extension", listOf(found.show.signature()), hosts.map { it.signature() })
+            assertEquals("${build.name} host methods calling the extension",
+                setOf(found.show.signature(), compose.dispatcher.signature(), compose.effect.signature()), hosts.map { it.signature() }.toSet())
 
             val extension = context.mutableClassDefBy(LONG_PRESS)
             fun stub(name: String) = references(extension.methods.single { it.name == name })
@@ -84,9 +88,9 @@ class LongPressDownloadFixtureTest {
             assertEquals(build.name, "Z", found.springsDetached.type)
             // Pinned by hand, so a search that drifts to another boolean and object pair fails here
             // instead of agreeing with itself (DexDiff repeats the same search).
-            if (build.name.startsWith("pinterest-14.41.0-")) {
+            if (build.name.startsWith("pinterest-14.42.0-")) {
                 assertEquals(build.name, "Lcom/pinterest/ui/menu/SpringLinearLayout;->d:Z", "${found.springsDetached}")
-                assertEquals(build.name, "Lcom/pinterest/ui/menu/KotSpringLinearLayout;->g:Lca3/b2;", "${found.springDriver}")
+                assertEquals(build.name, "Lcom/pinterest/ui/menu/KotSpringLinearLayout;->g:Lqa3/y1;", "${found.springDriver}")
             }
             assertEquals(build.name, listOf(CONTEXT_MENU_ITEM, "${found.springsDetached}", "${found.springDriver}"), stub("springsReattached"))
             assertEquals(build.name, listOf(Opcode.CHECK_CAST, Opcode.CONST_4, Opcode.IPUT_BOOLEAN, Opcode.IPUT_OBJECT, Opcode.RETURN_VOID),
@@ -97,10 +101,10 @@ class LongPressDownloadFixtureTest {
             assertTrue(build.name, "${found.strings}->download:I" in item)
             assertTrue(build.name, item.any { it.startsWith("${found.factory.definingClass}->${found.factory.name}(") })
             assertTrue(build.name, item.any { it.startsWith("${found.styler.definingClass}->${found.styler.name}(") })
-            // The button's id field and the three ids it's compared with, pinned by hand on 14.41.0
+            // The button's id field and the three ids it's compared with, pinned by hand on 14.42.0
             // so a search that drifts to another int field fails here.
-            if (build.name.startsWith("pinterest-14.41.0-")) {
-                assertEquals(build.name, "Lrn0/e;", ids!!.owner)
+            if (build.name.startsWith("pinterest-14.42.0-")) {
+                assertEquals(build.name, "Lvn0/e;", ids!!.owner)
                 assertEquals(build.name, "j", ids.field)
                 assertTrue(build.name, ids.closeup)
             }
@@ -113,7 +117,7 @@ class LongPressDownloadFixtureTest {
                 references(kinds))
             println("${build.name}: button ids ${ids.owner}, id field $idField")
             // Every member a stub names is declared where it says, so none of them fails to link at run time.
-            for (name in LONG_PRESS_STUBS) {
+            for (name in LONG_PRESS_STUBS + COMPOSE_STUBS) {
                 for (target in extension.methods.single { it.name == name }.implementation!!.instructions.mapNotNull {
                     (it as? ReferenceInstruction)?.reference
                 }) {
@@ -157,6 +161,84 @@ class LongPressDownloadFixtureTest {
                     "styler ${found.styler.definingClass}->${found.styler.name}, strings ${found.strings}, touch ${touch.definingClass}",
             )
         }
+    }
+
+    /**
+     * Accounts in android_longpress_menu_v2 get a Compose list and never reach the round menu's show
+     * method (#16, #18). The list gets its options from a builder and hands each tap to an effect.
+     */
+    @Test
+    fun `the newer menu's list and tap hooks and stubs resolve once in each declared build`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            val menu = context.longPressMenu()
+            val found = context.longPressCompose(menu)
+            val listBefore = found.dispatcher.implementation!!.instructions.toList()
+            val effectBefore = found.effect.implementation!!.instructions.toList()
+            longPressDownloadPatch.execute(context)
+
+            val list = context.mutable(found.dispatcher).implementation!!.instructions.toList()
+            assertEquals("${build.name} list hook", COMPOSE_ITEMS_HOOK, (list[found.listAt] as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name} list hook's answer", Opcode.MOVE_RESULT_OBJECT, list[found.listAt + 1].opcode)
+            assertEquals("${build.name} the rest of the dispatcher", render(listBefore),
+                render(list.filterIndexed { at, _ -> at != found.listAt && at != found.listAt + 1 }))
+
+            val effect = context.mutable(found.effect).implementation!!.instructions.toList()
+            assertEquals("${build.name} tap reads the pin", "${found.pinRead}", (effect[found.clickAt] as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name} the pin's type", menu.pin, found.pinRead.type)
+            assertEquals("${build.name} tap hook", COMPOSE_CLICK_HOOK, (effect[found.clickAt + 1] as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name} tap answer", Opcode.MOVE_RESULT, effect[found.clickAt + 2].opcode)
+            assertEquals("${build.name} tap branch", Opcode.IF_NEZ, effect[found.clickAt + 3].opcode)
+            assertEquals("${build.name} the rest of the effect", render(effectBefore),
+                render(effect.filterIndexed { at, _ -> at !in found.clickAt..found.clickAt + 3 }))
+            // A tap on ours goes to the same Kotlin Unit the last native action finishes on.
+            val finish = (effect[found.clickAt + 3] as BuilderOffsetInstruction).target.location.instruction
+            assertEquals("${build.name} tap finishes on Unit", "Lkotlin/Unit;",
+                ((finish as ReferenceInstruction).reference as FieldReference).definingClass)
+
+            val extension = context.mutableClassDefBy(LONG_PRESS)
+            fun stub(name: String) = references(extension.methods.single { it.name == name })
+            // Pinned by hand on 14.42.0, so a search that drifts to another interface or enum fails here.
+            if (build.name.startsWith("pinterest-14.42.0-")) {
+                assertEquals(build.name, "Lv13/a0;", found.face.type)
+                assertEquals(build.name, "Lv13/r0;", found.kinds.type)
+            }
+            assertEquals(build.name, listOf(found.face.type), stub("composeOptionType"))
+            assertTrue(build.name, "${menu.icon}->DOWNLOAD:${menu.icon}" in stub("composeIconAndLabel"))
+            assertTrue(build.name, "${menu.strings}->download:I" in stub("composeIconAndLabel"))
+            val kinds = found.kinds.type
+            assertEquals(build.name, listOf(kinds, "$kinds->REPIN:$kinds", "$kinds->SEND:$kinds", "$kinds->VISUAL_SEARCH:$kinds"), stub("composeKind"))
+            println("${build.name}: newer menu ${found.face.type} ${found.kinds.type} list ${found.dispatcher.definingClass}->${found.dispatcher.name}@${found.listAt} " +
+                "tap ${found.effect.definingClass}@${found.clickAt} done ${found.done}")
+        }
+    }
+
+    @Test
+    fun `a newer menu with no Save option refuses before any edit`() {
+        refuses(message = "newer pin menu options") { classes ->
+            classes.map { owner ->
+                if (owner.staticFields.none { it.name == "VISUAL_SEARCH" } || owner.staticFields.none { it.name == "REPIN" }) owner
+                else ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile, owner.annotations,
+                    owner.fields.filterNot { it.name == "REPIN" }, owner.methods)
+            }
+        }
+    }
+
+    @Test
+    fun `a missing newer menu dispatcher refuses before any edit`() {
+        refuses(message = "newer pin menu dispatcher") { classes ->
+            classes.map { owner ->
+                owner.withMethods(owner.methods.filterNot { it.strings().contains(LONG_PRESS_V2_FLAG) })
+            }
+        }
+    }
+
+    @Test
+    fun `a missing newer menu stub refuses before any edit`() {
+        refuses(message = "missing extension stub composeKind", extension = { classes ->
+            classes.map { owner -> if (owner.type != LONG_PRESS) owner else owner.withMethods(owner.methods.filterNot { it.name == "composeKind" }) }
+        }) { it }
     }
 
     @Test
@@ -274,7 +356,7 @@ class LongPressDownloadFixtureTest {
             FixtureDex.forEach(build) { dex ->
                 for (owner in dex.classes) {
                     if (owner.type == CONTEXT_MENU || owner.type == PIN_MENU || owner.type == CONTEXT_MENU_ITEM ||
-                        owner.isStrings() || owner.methods.any { it.isCandidate() }) {
+                        owner.isStrings() || owner.methods.any { it.isCandidate() || it.isComposeCandidate() }) {
                         wanted[owner.type] = ImmutableClassDef.of(owner)
                     }
                 }
@@ -291,6 +373,15 @@ class LongPressDownloadFixtureTest {
                 .map { (it as ReferenceInstruction).reference as FieldReference }.filter { it.name == SEARCH_ID }.map { it.definingClass }
             wanted += FixtureDex.classes(build, (events + icons + pin + ids).toSet() - wanted.keys)
             wanted += FixtureDex.classes(build, wanted.getValue(pin).interfaces.toSet() - wanted.keys)
+            // What the newer menu's dispatcher takes and the classes of the list builders it calls.
+            val dispatchers = wanted.values.flatMap { it.methods }.filter { LONG_PRESS_V2_FLAG in it.strings() }
+            wanted += FixtureDex.classes(build, dispatchers.flatMap { method ->
+                method.parameterTypes.map(CharSequence::toString) + method.implementation!!.instructions.mapNotNull {
+                    ((it as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf { call -> call.returnType == "Ljava/util/ArrayList;" }?.definingClass
+                }
+            }.filter { it.startsWith("L") }.toSet() - wanted.keys)
+            // The pair the newer menu's option answers with its icon and label.
+            wanted += FixtureDex.classes(build, setOf("Lkotlin/Pair;") - wanted.keys)
             // The button's own superclasses, where its detached mark and spring driver live.
             var parent = wanted.getValue(CONTEXT_MENU_ITEM).superclass
             while (parent != null && parent !in wanted && !parent.startsWith("Landroid/") && !parent.startsWith("Ljava/")) {
@@ -311,6 +402,10 @@ class LongPressDownloadFixtureTest {
                 else -> false
             }
         }
+
+        /** The newer menu's option types, its dispatcher and the effect that reads which option was tapped. */
+        private fun Method.isComposeCandidate() = name == "iconAndLabel" || LONG_PRESS_V2_FLAG in strings() ||
+            name == "invokeSuspend" && implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name == "REPIN" } == true
 
         private fun ClassDef.isStrings(): Boolean {
             val names = staticFields.filter { it.type == "I" }.map { it.name }

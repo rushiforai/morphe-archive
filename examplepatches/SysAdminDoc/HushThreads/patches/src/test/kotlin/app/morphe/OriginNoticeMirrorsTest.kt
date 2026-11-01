@@ -36,13 +36,30 @@ class OriginNoticeMirrorsTest {
         assertTrue("no source notice cites a mirror, so the block has nothing beside it", mirrors.isNotEmpty())
 
         val failures = mirrors.mapNotNull { mirror ->
-            val status = runCatching { status(mirror) }.getOrElse { error -> "no answer: ${error.message}" }
+            val status = runCatching { settled(mirror) }.getOrElse { error -> "no answer: ${error.message}" }
             if (status == "200") null else "$status  $mirror"
         }
         assertTrue("mirrors that do not answer 200:\n" + failures.joinToString("\n"), failures.isEmpty())
     }
 
-    private fun status(url: String): String {
+    /**
+     * The mirror's answer once GitLab stops limiting this address. A 429 says nothing about the
+     * file, and other repositories run this same check from the same machine, so it gets waited
+     * out. One that lasts past the tries still fails by name, as a machine with no network does.
+     */
+    private fun settled(url: String): String {
+        var answer = status(url)
+        var tries = 1
+        while (answer.first == RATE_LIMITED && tries < RATE_LIMIT_TRIES) {
+            Thread.sleep(answer.second.coerceIn(5L, RATE_LIMIT_MAX_WAIT_SECONDS) * 1000)
+            answer = status(url)
+            tries++
+        }
+        return answer.first
+    }
+
+    /** The status code and the seconds Retry-After asks for, or 0 when it asks for none. */
+    private fun status(url: String): Pair<String, Long> {
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.requestMethod = "HEAD"
         connection.instanceFollowRedirects = true
@@ -50,7 +67,7 @@ class OriginNoticeMirrorsTest {
         connection.readTimeout = 20_000
         connection.setRequestProperty("User-Agent", "hushthreads-origin-notice-check")
         return try {
-            connection.responseCode.toString()
+            connection.responseCode.toString() to (connection.getHeaderField("Retry-After")?.toLongOrNull() ?: 0L)
         } finally {
             connection.disconnect()
         }
@@ -58,5 +75,8 @@ class OriginNoticeMirrorsTest {
 
     private companion object {
         val MIRROR = Regex("""https://gitlab\.com/ReVanced/revanced-patches/[^\s"]+""")
+        const val RATE_LIMITED = "429"
+        const val RATE_LIMIT_TRIES = 4
+        const val RATE_LIMIT_MAX_WAIT_SECONDS = 60L
     }
 }

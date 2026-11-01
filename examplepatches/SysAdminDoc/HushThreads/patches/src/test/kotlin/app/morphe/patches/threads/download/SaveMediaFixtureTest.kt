@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PerBuild
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -78,8 +79,10 @@ class SaveMediaFixtureTest {
     fun `each declared build asks for the row just after Copy link and the stubs draw it with Copy link's calls`() {
         for (build in Fixtures.declaredBuilds()) {
             val where = build.name
-            val expected = EXPECTED.entries.single { build.name.startsWith("threads-${it.key}-") }.value
             val fixture = fixture(build)
+            val expected = EXPECTED.entries.single {
+                build.name.startsWith("threads-${it.key}.") || build.name.startsWith("threads-${it.key}-")
+            }.value
             assertEquals("$where: the menu lambda", expected.menu, fixture.menu.definingClass)
             val stock = fixture.menu.body()
             val rowAt = copyLinkRow(fixture.copyLink, stock)
@@ -146,6 +149,55 @@ class SaveMediaFixtureTest {
                 .filter { it.name in BRIDGES && it.body().first().opcode != Opcode.CHECK_CAST }.map { it.name }
             assertEquals("$where: every bridge is written", emptyList<String>(), unwritten)
         }
+    }
+
+    /**
+     * A post with no media of its own saves the post it shows, and these read it. Read off 512308675
+     * by hand: the serializer's fields and the getters answering them. On every build the three
+     * shared posts are three different getters of one interface, answering a post.
+     */
+    @Test
+    fun `each declared build reads a post's linked and shared posts through their own getters`() {
+        val readByHand = mapOf(
+            "linkedInlineMedia" to "C6x", "shareInfo" to "CkV",
+            "quotedAttachmentPost" to "CYd", "quotedPost" to "CYh", "repostedPost" to "Cca",
+        )
+        for (build in Fixtures.declaredBuilds()) {
+            val where = build.name
+            val fixture = fixture(build)
+            val context = context(fixture)
+            saveMediaPatch.execute(context)
+            val bridge = context.mutableClassDefBy(INSTAGRAM_MEDIA).methods.associateBy { it.name }
+            fun call(name: String) = bridge.getValue(name).body().mapNotNull { it.method() }.single()
+
+            val info = call("textPostInfo")
+            assertEquals("$where: read from the post", MEDIA, info.definingClass)
+            val linked = call("linkedInlineMedia")
+            val share = call("shareInfo")
+            assertEquals("$where: the linked post comes from the post's info", info.returnType, linked.definingClass)
+            assertEquals("$where: the share info comes from the post's info", info.returnType, share.definingClass)
+            assertEquals("$where: the linked post is a post", MEDIA, linked.returnType)
+            val shared = listOf("quotedAttachmentPost", "repostedPost", "quotedPost").map { call(it) }
+            assertEquals("$where: three different getters", 3, shared.map { it.name }.toSet().size)
+            for (post in shared) {
+                assertEquals("$where: ${post.name} comes from the share info", share.returnType, post.definingClass)
+                assertEquals("$where: ${post.name} is a post", MEDIA, post.returnType)
+            }
+            if ("512308675" in build.name) {
+                for ((name, getter) in readByHand) assertEquals("$where: $name", getter, call(name).name)
+            }
+        }
+    }
+
+    @Test
+    fun `a build whose post writer is gone is refused before anything changes`() {
+        val fixture = fixture(Fixtures.declaredBuilds().first())
+        val writer = fixture.classes.single { classDef -> classDef.methods.any { it.writesLinkedPosts() } }
+        val context = PatchContexts.of(ExtensionDex.classes() + fixture.classes.filter { it.type != writer.type })
+        val refused = runCatching { saveMediaPatch.execute(context) }.exceptionOrNull()
+        assertTrue("${refused?.message}", refused is PatchException && "writes" in refused.message!!)
+        assertEquals("the status stays off", 0,
+            (context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "saveMedia" }.body().first() as NarrowLiteralInstruction).narrowLiteral)
     }
 
     /**
@@ -268,7 +320,7 @@ class SaveMediaFixtureTest {
 
     private fun fixture(build: File): Fixture = fixtures.getOrPut(build) {
         val found = FixtureDex.classesWhere(build, { true }) { method ->
-            method.holdsNote(MENU_NOTE) ||
+            method.holdsNote(MENU_NOTE) || method.writesLinkedPosts() ||
                 method.name == "toString" && method.body().any { it.getReference<StringReference>()?.string == COPY_LINK }
         }
         val copyLink = found.single { classDef ->
@@ -277,12 +329,15 @@ class SaveMediaFixtureTest {
         val menu = found.flatMap { it.methods }.single { method ->
             method.holdsNote(MENU_NOTE) && method.body().any { it.opcode == Opcode.INSTANCE_OF && it.getReference<TypeReference>()?.type == copyLink }
         }
-        val read = FixtureDex.classes(build, menu.body().flatMap { it.types() }.toSet() + FUNCTION0 + MODEL)
+        val writer = found.flatMap { it.methods }.single { it.writesLinkedPosts() }
+        val linkedPosts = writer.linkedPostFields().map { it.definingClass }.toSet()
+        val read = FixtureDex.classes(build, menu.body().flatMap { it.types() }.toSet() + FUNCTION0 + MODEL + linkedPosts)
         // Copy link's click is the first object its case makes.
         val check = menu.body().indexOfFirst { it.isCopyLinkCheck(copyLink) }
         val click = menu.body().drop(check).first { it.opcode == Opcode.NEW_INSTANCE }.getReference<TypeReference>()!!.type
         val clickTypes = read.getValue(click).methods.flatMap { m -> m.body().flatMap { it.types() } }.toSet() - read.keys
-        val more = FixtureDex.classes(build, clickTypes)
+        val interfaces = linkedPosts.flatMap { read.getValue(it).interfaces }.toSet() - read.keys
+        val more = FixtureDex.classes(build, clickTypes + interfaces)
         Fixture((found + read.values + more.values).distinctBy { it.type }, menu, copyLink, click)
     }
 
@@ -331,7 +386,7 @@ class SaveMediaFixtureTest {
     private fun List<Instruction>.code() = filter { it.opcode != Opcode.NOP }
 
     private companion object {
-        val fixtures = HashMap<File, Fixture>()
+        val fixtures = PerBuild<Fixture>()
 
         val MODEL = setOf(MEDIA, USER, VIDEO_VERSION, PANDO_VIDEO_VERSION, IMAGE_INFO, PANDO_IMAGE_INFO, IMAGE_URL)
 
@@ -339,13 +394,22 @@ class SaveMediaFixtureTest {
             "videoVersions", "dashManifest", "mediaId", "owner", "takenAt", "carouselMedia", "username",
             "versionUrl", "versionWidth", "versionHeight",
             "imageVersions", "imageCandidates", "candidateUrl", "candidateWidth", "candidateHeight",
+            "textPostInfo", "linkedInlineMedia", "shareInfo", "quotedAttachmentPost", "repostedPost", "quotedPost",
         )
 
         /** Read off each build by hand: the menu lambda, its post and controller, and how Copy link's click closes the menu. */
         val EXPECTED = mapOf(
-            "450.0.0.51.78" to Expected("LX/Slj;", "LX/Slj;->A0G:$MEDIA", "LX/Slj;->A0D:LX/At4;", "LX/At4;->A0u()V"),
-            "451.0.0.51.80" to Expected("LX/0Wif;", "LX/0Wif;->A0G:$MEDIA", "LX/0Wif;->A0D:LX/0BUR;", "LX/0BUR;->A0x()V"),
-            "452.0.0.50.64" to Expected("LX/Lve;", "LX/Lve;->A0G:$MEDIA", "LX/Lve;->A0D:LX/39o;", "LX/39o;->A0x()V"),
+            "453.0.0.56.79-512308671" to Expected("LX/WA9;", "LX/WA9;->A0G:$MEDIA", "LX/WA9;->A0D:LX/76t;", "LX/76t;->A1A()V"),
+            "453.0.0.56.79-512308673" to Expected("LX/WA9;", "LX/WA9;->A0G:$MEDIA", "LX/WA9;->A0D:LX/76t;", "LX/76t;->A1A()V"),
+            "453.0.0.56.79-512308675" to Expected("LX/WA9;", "LX/WA9;->A0G:$MEDIA", "LX/WA9;->A0D:LX/76t;", "LX/76t;->A1A()V"),
+            "453.0.0.56.79-512308676" to Expected("LX/0WAM;", "LX/0WAM;->A0G:$MEDIA", "LX/0WAM;->A0D:LX/047s;", "LX/047s;->A1A()V"),
+            "453.0.0.56.79-512308685" to Expected("LX/0amk;", "LX/0amk;->A0G:$MEDIA", "LX/0amk;->A0D:LX/095U;", "LX/095U;->A19()V"),
+            "453.0.0.56.79-512308686" to Expected("LX/lmK;", "LX/lmK;->A0G:$MEDIA", "LX/lmK;->A0D:LX/BLa;", "LX/BLa;->A18()V"),
+            "453.0.0.56.79-512308688" to Expected("LX/lmK;", "LX/lmK;->A0G:$MEDIA", "LX/lmK;->A0D:LX/BLa;", "LX/BLa;->A18()V"),
+            "453.0.0.56.79-512308695" to Expected("LX/0XA6;", "LX/0XA6;->A0G:$MEDIA", "LX/0XA6;->A0D:LX/071n;", "LX/071n;->A1B()V"),
+            "453.0.0.56.79-512308696" to Expected("LX/WA8;", "LX/WA8;->A0G:$MEDIA", "LX/WA8;->A0D:LX/76s;", "LX/76s;->A1A()V"),
+            "453.0.0.56.79-512308697" to Expected("LX/0WAM;", "LX/0WAM;->A0G:$MEDIA", "LX/0WAM;->A0D:LX/047s;", "LX/047s;->A1A()V"),
+            "453.0.0.56.79-512308698" to Expected("LX/WA8;", "LX/WA8;->A0G:$MEDIA", "LX/WA8;->A0D:LX/76s;", "LX/76s;->A1A()V"),
         )
     }
 }

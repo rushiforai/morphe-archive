@@ -1,0 +1,370 @@
+<h1 align="center">Gboard Patches</h1>
+
+<p align="center">
+  <a href="https://github.com/junksidetm/Gboard-patches"><img src="https://img.shields.io/badge/GitHub-Main-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub Main" /></a>
+  <a href="https://codeberg.org/mrdarksidetm/Gboard-patches"><img src="https://img.shields.io/badge/Codeberg-Mirror-2185d0?style=flat-square&logo=codeberg&logoColor=white" alt="Codeberg Mirror" /></a>
+  <a href="https://gitlab.com/mrdarksidetm/Gboard-patches"><img src="https://img.shields.io/badge/GitLab-Mirror-fc6d26?style=flat-square&logo=gitlab&logoColor=white" alt="GitLab Mirror" /></a>
+  <a href="https://github.com/jasonwu1994/Gboard-patches"><img src="https://img.shields.io/badge/Upstream-jasonwu1994%2FGboard--patches-blue?style=flat-square&logo=github" alt="Upstream Source" /></a>
+</p>
+
+<p align="center">
+  Morphe patches for Gboard with Custom Emoji TTF font support, global usability improvements, and Taiwan-focused enhancements.
+</p>
+
+<p align="center">
+  <a href="https://morphe.software/add-source?github=junksidetm/Gboard-patches"><img alt="Latest release" src="assests/images/Morphe_Badge.svg" height="100"></a>
+</p>
+
+## Overview
+
+Gboard Patches is a public Morphe source for a curated set of Gboard enhancements, including both global usability improvements and Taiwan-focused features for local input habits and day-to-day use.
+
+## Included Patches
+
+### Project-Built Features
+
+Features designed and built by this project rather than simply unlocking an existing Gboard flag.
+
+<details>
+  <summary><code>Custom Emoji Font (.ttf)</code></summary>
+
+  Import and use any custom TrueType or OpenType emoji font file (<code>.ttf</code> / <code>.otf</code>) directly within Gboard (e.g. Google Emoji 3D, iOS Emojis, Fluent, Twemoji, JoyPixels) without needing root, Magisk, or system partition modification. Includes an in-app file picker, real-time emoji preview card, and instant reset.
+</details>
+
+<details>
+  <summary><code>Clipboard Enhancements</code></summary>
+
+  Lets you enhance clipboard retention time, item count limits, preview lines, countdown and creation-time labels, order index, grid columns, and optionally render only the first 1,000 characters on each clipboard card.
+</details>
+
+<details>
+  <summary><code>Web Clipboard</code></summary>
+
+  Hosts a phone-powered Web Clipboard portal that lets desktop browsers sync with Gboard over the same LAN, with a pairing code gate and an optional Quick Settings Tile.
+
+  Preview:
+
+  <img alt="Web Clipboard pairing gate" src="assets/features/web-clipboard/01-pairing-gate.png" width="720">
+
+  <img alt="Web Clipboard conversation view" src="assets/features/web-clipboard/02-conversation-view.png" width="720">
+
+</details>
+
+<details>
+  <summary><code>Floating Web Search</code></summary>
+
+  Open a floating web page directly from Gboard to quickly search for the information you need.
+</details>
+
+<details>
+  <summary><code>Custom Theme</code></summary>
+
+Import custom ZIP themes and beautiful themes from the official Rboard repository.
+</details>
+
+<details>
+  <summary><code>Frosted Glass</code></summary>
+
+  Adds live background blur and custom-theme transparency to the keyboard. Available on Android 12+ devices that support cross-window blur, with custom themes such as Animal Black.
+</details>
+
+<details>
+  <summary><code>FTP Server</code></summary>
+
+  Hosts an FTP server on your phone so desktop FTP clients can browse, upload, download, and resume file transfers over the same LAN. It supports anonymous or password-protected access, a configurable control and passive port range, read-only mode, <code>/sdcard</code> or a user-selected folder as the root, live transfer progress, retained partial uploads, and an optional Quick Settings Tile.
+</details>
+
+<details>
+  <summary><code>Long-Press Editing Shortcuts</code></summary>
+
+  Add Select all, Undo, Copy, Cut, Paste, and Redo long-press shortcuts to English QWERTY and Zhuyin, with an optional globe-key drag gesture that follows the same physical key positions across supported alphabet layouts.
+</details>
+
+<details>
+  <summary><code>Toolbar Editing Buttons</code></summary>
+
+  Add Select All, Copy, Cut and Paste to the menu. Drag them to the top toolbar and
+  use them with different keyboard languages in supported editors.
+</details>
+
+<details>
+  <summary><code>Swipeable Custom Top Row</code></summary>
+
+  Lets you swipe the keyboard top row horizontally to open customizable text and JavaScript slots.
+</details>
+
+<details>
+  <summary><code>Incognito Mode Toggle</code></summary>
+
+  Add an Incognito toggle to the Access Point toolbar and configure clipboard and voice typing availability while Incognito mode is active.
+</details>
+
+<details>
+  <summary><code>Custom Symbols</code></summary>
+
+  Adds a dedicated symbols tab and a quick access entry from the comma long-press popup.
+</details>
+
+<details>
+  <summary><code>Simple Calculator</code></summary>
+
+  Adds an optional inline calculator for arithmetic expressions typed in any text field. The result appears in Gboard's suggestion row; tap it to replace the expression, or long-press it to copy the result.
+</details>
+
+<details>
+  <summary><code>Swipe Down to Dismiss Keyboard</code></summary>
+
+  Swipe down from the suggestions or toolbar to close the keyboard.
+</details>
+
+<details>
+  <summary><code>G Logo on Spacebar</code></summary>
+
+  Show the G Logo on the spacebar and hide the language label.
+</details>
+
+<details>
+  <summary><code>Rounded Keyboard Panel</code></summary>
+
+  Customize which corners of the keyboard panel are rounded, and set the top and bottom radii separately.
+</details>
+
+<details>
+  <summary><code>Latin Globe Key Ignore Interval</code></summary>
+
+  Add an independent English globe key ignore interval override for post-typing language-switch delay.
+</details>
+
+<details>
+  <summary><code>Emojis, stickers & GIFs Tab Order</code></summary>
+
+Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with drag-and-drop reordering.
+</details>
+
+<details>
+  <summary><code>Backup &amp; Restore</code></summary>
+
+  Exports all Gboard Patches settings to a portable JSON backup and restores only the modules you select, with per-module and per-key results. It also exports, compares, and restores Gboard's raw PB/XML flag-store files.
+</details>
+
+
+### Gboard Feature Unlocks
+
+Features already present in Gboard that are exposed by enabling hidden settings, rollout gates, or built-in behavior.
+
+<details>
+  <summary><code>AI Writing Tools (Persistent &amp; Universal)</code></summary>
+
+  Enables the <code>Text correction &gt; Writing tools</code> setting with proofreading, tone stylization, and universal language support including English (US), English (India), and all system languages. Includes anti-suppression overrides preventing Phenotype experiments from hiding toolbar icons or candidate bar chips.
+</details>
+
+<details>
+  <summary><code>Advanced Voice Typing &amp; Rambler Dictation (English US &amp; India Focused)</code></summary>
+
+  Enables Advanced Voice Typing and Agentic Dictation (Rambler mode) by default with floating toolbar at cursor position. Optimized specifically for **English (US)** and **English (India)** with automatic punctuation and native split readiness. Features hardened flag persistence that prevents background Phenotype sync from resetting or silently disabling dictation settings.
+</details>
+
+<details>
+  <summary><code>Autonomous Upstream Synchronization Engine</code></summary>
+
+  Automated CI/CD workflow running daily on GitHub Actions to fetch updates from upstream (<code>jasonwu1994/Gboard-patches</code>), verify custom feature invariants (Custom Emoji TTF, English US/India Rambler, AI Writing Tools persistence, credits), execute test suites remotely, and auto-merge safely into <code>main</code> without manual intervention.
+</details>
+
+<details>
+  <summary><code>Enable OCR / Scan Text</code></summary>
+
+  Enable the OCR / Scan Text feature with Latin, Chinese, Japanese, Korean, and Devanagari recognition backends.
+</details>
+
+<details>
+  <summary><code>English QWERTY Up-Flick Uppercase</code></summary>
+
+  Flick up on the English QWERTY keyboard to toggle uppercase and lowercase.
+</details>
+
+<details>
+  <summary><code>Enable Inline Autofill Suggestions</code></summary>
+
+  Enables inline autofill suggestions in supported contexts.
+</details>
+
+<details>
+  <summary><code>Grammar Checker</code></summary>
+
+  Enables the <code>Text correction &gt; Grammar check</code> setting and its related rollout gate.
+</details>
+
+<details>
+  <summary><code>Inline Suggestions</code></summary>
+
+  Enables the <code>Text correction &gt; Smart Compose</code> setting and its related rollout gate.
+</details>
+
+<details>
+  <summary><code>Key Shape Selection</code></summary>
+
+  Enables the <code>Key shape</code> option inside theme details without forcing rounded keys by default.
+</details>
+
+<details>
+  <summary><code>Use Bluetooth Microphone</code></summary>
+
+  Enables the <code>Voice typing &gt; Use Bluetooth microphone</code> setting and its related rollout gate.
+</details>
+
+<details>
+  <summary><code>Change emoji size</code></summary>
+
+  Enables Gboard's emoji size setting.
+</details>
+
+<details>
+  <summary><code>Enable cursor trackpad mode</code></summary>
+
+  Enables the long-press-spacebar trackpad, cursor lock mode, and the required scrub-move preference.
+</details>
+
+<details>
+  <summary><code>Enable split keyboard</code></summary>
+
+  Enables Gboard's split keyboard layout.
+</details>
+
+<details>
+  <summary><code>Enable accessibility layout</code></summary>
+
+  Enables accessibility layout.
+</details>
+
+<details>
+  <summary><code>Quick Insert</code></summary>
+
+Enables the Quick Insert panel and toolbar access point.
+</details>
+
+<details>
+  <summary><code>Close Proactive Suggestions</code></summary>
+
+Shows a dismiss button in the proactive suggestions bar.
+</details>
+
+<details>
+  <summary><code>Clipboard Custom Character Limit</code></summary>
+
+  Lets you set the maximum number of characters stored for each text clipboard item, with Gboard's stock 20,000-character limit as the default.
+</details>
+
+<details>
+  <summary><code>Access Points menu style</code></summary>
+
+  Lets you switch between the new and legacy Access Points menu styles.
+</details>
+
+<details>
+  <summary><code>Top Toolbar Item Count</code></summary>
+
+  Lets you customize the top toolbar item count.
+</details>
+
+<details>
+  <summary><code>Settings Homepage Override</code></summary>
+
+  Lets you switch between the new and legacy Gboard settings homepage styles.
+</details>
+
+<details>
+  <summary><code>Developer options</code></summary>
+
+  Enable Developer options and the Flag Editor, allowing you to modify flag values.
+</details>
+
+<details>
+  <summary><code>Package Rename</code></summary>
+
+  Renames the patched package so it can be installed alongside the official Gboard app.
+</details>
+
+### Taiwan-focused Features
+
+Features tailored to Traditional Chinese and Zhuyin input workflows.
+
+<details>
+  <summary><code>Zhuyin Slide Input</code></summary>
+
+  On the Zhuyin keyboard, swipe up or down to enter English letters without switching to another keyboard layout.
+</details>
+
+<details>
+  <summary><code>Zhuyin Quick Traditional/Simplified Toggle</code></summary>
+
+  Swipe up on the Zhuyin <code>ㄥ</code> key to quickly toggle between Traditional and Simplified Chinese.
+</details>
+
+<details>
+  <summary><code>Zhuyin Bottom Row Key Sizes</code></summary>
+
+  Adjusts the seven bottom-row slot sizes on the Zhuyin keyboard, including <code>?123</code>, <code>，</code>, the globe key, space, <code>ㄦ</code>, backspace, and the IME action key.
+</details>
+
+## Install
+
+Add this repository as a Morphe source:
+
+- [Open in Morphe](https://morphe.software/add-source?github=junksidetm/Gboard-patches)
+- Or manually add `https://github.com/junksidetm/Gboard-patches`
+
+## Build
+
+Before running Gradle locally, authenticate to Morphe's GitHub Packages registry with either:
+
+- `gpr.user` and `gpr.key` in `~/.gradle/gradle.properties`
+- `GITHUB_ACTOR` and `GITHUB_TOKEN` as environment variables
+
+Build the Android patch bundle:
+
+```powershell
+.\gradlew.bat :patches:buildAndroid
+```
+
+Regenerate patch metadata:
+
+```powershell
+.\gradlew.bat generatePatchesList
+```
+
+Generated outputs:
+
+- `patches/build/libs/*.mpp`
+- `patches-list.json`
+- `patches-bundle.json`
+
+## Credits & Attribution
+
+- **Fork Maintainer & Feature Developer:** [@junksidetm](https://github.com/junksidetm) — Custom Emoji TTF font engine, English US/India Rambler & Voice persistence, AI Writing tools hardening, Autonomous Upstream Sync Engine, live emoji preview, and fork maintenance.
+- **Original Author & Upstream Base:** [@jasonwu1994](https://github.com/jasonwu1994) — Creator of the original [Gboard-patches](https://github.com/jasonwu1994/Gboard-patches) project.
+- **Patcher Ecosystem:** [Morphe](https://morphe.software) — Modern bytecode patching framework for Android apps.
+
+## 🌐 Source Mirrors
+
+- **Main (GitHub)**: [github.com/junksidetm/Gboard-patches](https://github.com/junksidetm/Gboard-patches)
+- **Mirror (Codeberg)**: [codeberg.org/mrdarksidetm/Gboard-patches](https://codeberg.org/mrdarksidetm/Gboard-patches)
+- **Mirror (GitLab)**: [gitlab.com/mrdarksidetm/Gboard-patches](https://gitlab.com/mrdarksidetm/Gboard-patches)
+- **Upstream Source**: [github.com/jasonwu1994/Gboard-patches](https://github.com/jasonwu1994/Gboard-patches)
+
+---
+
+## License
+
+Released under the [GNU General Public License v3.0](LICENSE).
+
+---
+
+<div align="center">
+<a href="https://github.com/junksidetm/junksidetm.github.io">
+  <img src="https://raw.githubusercontent.com/junksidetm/assests/981a029b9f59b8ed581bbee9be318c86da52dcca/Images/Codium/Codium%20Banner/SVG/Codium%20-%20Banner%20Black.svg" width="360"></a>
+<br><br>
+<sub>
+<p>This repository is a part of `"Codeium"`. A part of Darkside Studio.
+</p>
+</sub>
+<p><b><sub>© 2026 Abhijeet Yadav.  All rights reserved. All logos are Copyright Law </sub></b></p>

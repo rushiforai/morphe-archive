@@ -384,6 +384,7 @@ public final class TimelineFilter {
         /** The patch name of the first switch that takes [item] out, or null to keep it. */
         @Nullable
         String removes(Object item) {
+            if (DirectPosts.answers(item)) return null;
             if (ads && isAd(item)) return FamilyNames.HIDE_ADS;
             String card = cardOwner();
             String byCard = card == null ? null : cardFamily(item, this, card);
@@ -564,7 +565,7 @@ public final class TimelineFilter {
             unreadable = type;
             HookStatus.missingMember(family, "method", TIMELINE_OBJECT,
                     "getData, isShowSponsoredLabel, getDisplay, getDisplayType, Display.getSponsored"
-                            + " or Timelineable.getTimelineObjectType");
+                            + ", Timelineable.getTimelineObjectType or Timelineable.getId");
             return null;
         }
         model = found;
@@ -580,9 +581,10 @@ public final class TimelineFilter {
         final Method displayType;
         final Method sponsoredState;
         final Method kind;
+        final Method id;
 
         private Model(Class<?> objectType, Method data, Method sponsored, Method display, Method displayType,
-                Method sponsoredState, Method kind) {
+                Method sponsoredState, Method kind, Method id) {
             this.objectType = objectType;
             this.data = data;
             this.sponsored = sponsored;
@@ -590,6 +592,7 @@ public final class TimelineFilter {
             this.displayType = displayType;
             this.sponsoredState = sponsoredState;
             this.kind = kind;
+            this.id = id;
         }
 
         static Model of(Class<?> objectType) throws ReflectiveOperationException {
@@ -600,7 +603,8 @@ public final class TimelineFilter {
             Method sponsoredState = display.getReturnType().getMethod("getSponsored");
             Class<?> timelineable = Class.forName(TIMELINEABLE, false, objectType.getClassLoader());
             Method kind = timelineable.getMethod("getTimelineObjectType");
-            return new Model(objectType, data, sponsored, display, displayType, sponsoredState, kind);
+            Method id = timelineable.getMethod("getId");
+            return new Model(objectType, data, sponsored, display, displayType, sponsoredState, kind, id);
         }
 
         /**

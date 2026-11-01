@@ -16,6 +16,8 @@ import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.extension.HOOK_TARGETS
 import app.morphe.patches.pinterest.misc.extension.PatchLogCapture
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.pinterest.ui.calls
+import app.morphe.patches.pinterest.ui.mutable
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -60,7 +62,13 @@ class FeedFixtureTest {
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             assertEquals(build.name, 3, feedListHoldersHooked)
             for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping",
-                    "filterFeed", "feedVideoPins", "feedMutedWords")) assertFlag(context, flag)
+                    "filterFeed", "feedVideoPins", "feedMutedWords", "feedSavedPins")) assertFlag(context, flag)
+            // Home's request and page each carry one hook, and Download pins asking for the first adds no second.
+            val homeFields = context.homeFieldsOrNull()!!
+            context.installHomeFields(homeFields)
+            assertEquals(build.name, 1, context.mutable(homeFields.request).calls().count { it.name == "homeFields" })
+            val homePage = context.homePageOrNull()!!
+            assertEquals(build.name, 1, context.mutable(homePage.callback).calls().count { it.name == "homePage" })
             // Full coverage by target, not only by flag: both feed constructors, each holder and both methods of every view.
             assertEquals(build.name, "feedList=2/2;pagedResponse=1/1;modelList=1/1", recorded(context, "feedLists"))
             assertEquals(build.name, "TextAdView=2/2;LegacyPromotedCloseupActionButtonModule=2/2;" +
@@ -127,7 +135,8 @@ class FeedFixtureTest {
                 matched.forEach { holders.getOrPut(it) { mutableListOf() } += classDef.type }
                 val googleAds = classDef.methods.any { method -> method.implementation?.instructions?.any {
                     ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name == GOOGLE_MOBILE_ADS } == true }
-                if (matched.isNotEmpty() || classDef.type in AD_ONLY_VIEWS || googleAds) wanted[classDef.type] = ImmutableClassDef.of(classDef)
+                val home = classDef.type.startsWith("Lcom/pinterest/feature/home/model/") || classDef.type == "Lcom/pinterest/legacy/feeds/DynamicFeed;"
+                if (matched.isNotEmpty() || classDef.type in AD_ONLY_VIEWS || googleAds || home) wanted[classDef.type] = ImmutableClassDef.of(classDef)
             }
         }
         var above = wanted.values.mapNotNull { it.superclass }.toSet() - wanted.keys

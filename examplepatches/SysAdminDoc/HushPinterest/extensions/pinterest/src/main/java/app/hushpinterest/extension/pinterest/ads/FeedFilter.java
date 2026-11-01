@@ -99,7 +99,7 @@ public final class FeedFilter {
      * can't be read stays, and the rest of the page is still filtered, so one odd model never lets
      * every ad on it through.
      */
-    private static String judge(Object item, ModuleItems.Verdict verdict, String owner, boolean debug, List<String[]> removed) {
+    static String judge(Object item, ModuleItems.Verdict verdict, String owner, boolean debug, List<String[]> removed) {
         try {
             String family = verdict.family(item);
             String count = null;
@@ -111,7 +111,7 @@ public final class FeedFilter {
                 count = removal(family);
             }
             // A kept item with commercial fields set is what a report of an ad that got through needs (#6),
-            // and its saved fields are what Hide pins you've already saved has to be built on.
+            // and its saved fields say why Hide pins you've already saved left it in.
             if (family == null && debug) {
                 String marks = ModuleItems.markers(item);
                 if (!marks.isEmpty()) Logger.printDebug(() -> "Kept " + item.getClass().getSimpleName() + marks);
@@ -125,7 +125,7 @@ public final class FeedFilter {
     }
 
     /** Whether Debug logging is on, read once a page; never throws. */
-    private static boolean debugLogging() {
+    static boolean debugLogging() {
         try {
             return Utils.settingsReady() && BaseSettings.DEBUG.get();
         } catch (Throwable t) {
@@ -151,7 +151,7 @@ public final class FeedFilter {
     /** The family whose report counts a removal [family] names. */
     static String owner(String family) {
         return AiPins.SELF_DESCRIBED.equals(family) ? FamilyNames.HIDE_AI_PINS
-                : MutedWords.MUTED.equals(family) ? FamilyNames.FILTER_FEED : family;
+                : MutedWords.MUTED.equals(family) || SavedPins.SAVED.equals(family) ? FamilyNames.FILTER_FEED : family;
     }
 
     /** What a removal by [family] is counted as. English, for the report. */
@@ -160,6 +160,7 @@ public final class FeedFilter {
                 : family.equals(FamilyNames.HIDE_AI_PINS) ? "AI-labeled pin removed"
                 : family.equals(AiPins.SELF_DESCRIBED) ? "self-described AI pin removed"
                 : family.equals(FamilyNames.FILTER_FEED) ? "video pin removed"
-                : family.equals(MutedWords.MUTED) ? "muted word pin removed" : "shopping placement removed";
+                : family.equals(MutedWords.MUTED) ? "muted word pin removed"
+                : family.equals(SavedPins.SAVED) ? "saved pin removed" : "shopping placement removed";
     }
 }

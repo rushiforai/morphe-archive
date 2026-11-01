@@ -1,0 +1,209 @@
+site_name: Dutch App Patches
+site_description: Kies patches voor Nederlandse en Belgische Android-apps en lees wat ze veranderen.
+site_url: https://johninnl.github.io/nl-morphe-patches/
+repo_url: https://github.com/johninnl/nl-morphe-patches
+repo_name: johninnl/nl-morphe-patches
+edit_uri: ''
+docs_dir: docs/site
+site_dir: build/docs-site
+exclude_docs: |
+  _meta/
+  overrides/
+  assets/brand/SOURCES.md
+copyright: Community patches voor Morphe · Onafhankelijk van Morphe en de app-uitgevers.
+
+theme:
+  name: material
+  custom_dir: docs/site/overrides
+  language: nl
+  font: false
+  logo: assets/brand/mark-on-dark.svg
+  favicon: assets/brand/favicon.png
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Donker / Dark
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Licht / Light
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+extra_css:
+  - assets/stylesheets/dutch-app-patches.css
+extra_javascript:
+  - assets/javascripts/app-catalogue.js
+extra:
+  social_image: https://johninnl.github.io/nl-morphe-patches/assets/brand/social-card.png
+
+plugins:
+  - i18n:
+      docs_structure: folder
+      # Shared assets fall back; check_docs_site.py requires every Markdown
+      # page to have a real translation, so missing prose never passes CI.
+      fallback_to_default: true
+      languages:
+        - locale: nl
+          default: true
+          name: Nederlands
+          build: true
+          nav_translations:
+            Home: Start
+            Guides: Handleidingen
+            Apps: Apps
+            Weather: Weer
+            News and reading: Nieuws en lezen
+            Traffic and navigation: Verkeer en navigatie
+            Entertainment: Amusement
+            Other apps: Overige apps
+            Learn about tracking: Tracking begrijpen
+            Trackers and services: Trackers en diensten
+            Behaviour and marketing: Gedrag en marketing
+            Audience and video: Publiek en video
+            Consent and subscriptions: Toestemming en abonnementen
+            Diagnostics and app services: Diagnose en app-diensten
+            Reference: Naslag
+        - locale: en
+          name: English
+          build: true
+          site_description: Choose patches for Dutch and Belgian Android apps and see what they change.
+          copyright: Community patches for Morphe · Independent of Morphe and the app publishers.
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+    absolute_links: warn
+  links:
+    not_found: warn
+    anchors: warn
+    absolute_links: warn
+    unrecognized_links: warn
+
+nav:
+  - Home: index.md
+  - Guides:
+      - guides/index.md
+      - guides/install.md
+      - guides/downloads.md
+      - guides/choose-patches.md
+      - guides/shizuku.md
+      - guides/shizuku-tv.md
+      - guides/android-auto.md
+      - guides/troubleshooting.md
+  - Apps:
+      - apps/index.md
+      - Weather:
+          - apps/weather/index.md
+          - apps/buienalarm.md
+          - apps/buienradar.md
+          - apps/weeronline.md
+          - apps/weerplaza.md
+      - News and reading:
+          - apps/news/index.md
+          - apps/bright.md
+          - apps/medium.md
+          - apps/demorgen.md
+          - apps/detijd.md
+          - apps/dsnieuws.md
+          - apps/hbvl.md
+          - apps/gva.md
+          - apps/ed.md
+          - apps/hln.md
+          - apps/humo.md
+          - apps/nieuwsblad.md
+          - apps/tubantia.md
+          - apps/omroep-west.md
+          - apps/nunl.md
+          - apps/volkskrant.md
+          - apps/trouw.md
+          - apps/ftm.md
+          - apps/ad.md
+          - apps/nrc.md
+          - apps/parool.md
+          - apps/rtl-nieuws.md
+          - apps/omroep-brabant.md
+          - apps/voetbal-international.md
+          - apps/nos-teletekst.md
+      - Traffic and navigation:
+          - apps/mobility/index.md
+          - apps/9292.md
+          - apps/flitsmeister.md
+          - apps/rollerbank.md
+      - Entertainment:
+          - apps/entertainment/index.md
+          - apps/podimo.md
+          - apps/kijk.md
+          - apps/npo-start.md
+          - apps/videoland.md
+          - apps/dumpert.md
+          - apps/kijk-android-tv.md
+          - apps/npo-start-android-tv.md
+          - apps/tvgids-nl.md
+          - apps/videoland-android-tv.md
+          - apps/wuplay.md
+      - Other apps:
+          - apps/other/index.md
+          - apps/monet.md
+          - apps/marktplaats.md
+          - apps/projectivy.md
+          - apps/at4k.md
+  - Learn about tracking:
+      - learn/index.md
+      - learn/how-tracking-works.md
+      - learn/identifiers.md
+      - learn/location.md
+      - learn/consent.md
+  - Trackers and services:
+      - trackers/index.md
+      - Behaviour and marketing:
+          - trackers/snowplow.md
+          - trackers/contentsquare-heap.md
+          - trackers/meta.md
+          - trackers/swrve.md
+          - trackers/insider.md
+          - trackers/usabilla.md
+      - Audience and video:
+          - trackers/kantar-nmo.md
+          - trackers/bitmovin.md
+          - trackers/additional-services.md
+      - Consent and subscriptions:
+          - trackers/onetrust.md
+          - trackers/didomi.md
+          - trackers/revenuecat.md
+      - Diagnostics and app services:
+          - trackers/firebase.md
+  - Reference:
+      - reference/methodology.md
+      - reference/glossary.md
+      - reference/sources.md
+      - reference/catalogue.md

@@ -185,8 +185,7 @@ android {
     namespace = "app.hushpinterest.extension.pinterest"
 
     defaultConfig {
-        // Pinterest 14.41.0 declares API 32, above the 29 the builds before it declared, and the settings manifest patch
-        // holds the patched APK to at least this floor.
+        // Pinterest 14.42.0 declares API 29, and the settings manifest patch holds the patched APK to at least this floor.
         minSdk = 29
     }
 

@@ -113,6 +113,20 @@ internal object FixtureDex {
 }
 
 /**
+ * What a test class works out from each build, kept softly like the parsed dex. Eleven declared
+ * builds' worth of these, held for the whole run in the test classes' statics, used up the fixture
+ * task's heap, so a heap that runs short drops them and the next ask works them out again.
+ */
+internal class PerBuild<T : Any> {
+    private val kept = ConcurrentHashMap<File, SoftReference<T>>()
+
+    fun getOrPut(build: File, load: () -> T): T {
+        kept[build]?.get()?.let { return it }
+        return load().also { kept[build] = SoftReference(it) }
+    }
+}
+
+/**
  * Each build's dex files, read and parsed once per test JVM and kept softly. [read] hands over a
  * build's dex bytes in order (fixtureDexBytes), and [parse] turns each into what the callers walk.
  *

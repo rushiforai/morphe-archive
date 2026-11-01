@@ -79,8 +79,8 @@ The original release source is
 [`65c1a78`](https://github.com/finamp-app/finamp/tree/65c1a78b1d04dd8525825ecdf2cf39c7442b51e9).
 The fixes are backported to that release rather than replacing it with current
 `redesign` or a debug app. The [source matrix](../tests/finamp/native-sources.json)
-records the historical selection tree pins. Their availability and rebuild
-limits are described in the [verification guide](../tests/finamp/README.md#rebuild-native-payloads).
+pins each complete selection tree. A single public aggregate ref retains the
+128 source commits; verify it using the [rebuild guide](../tests/finamp/README.md#rebuild-native-payloads).
 
 Build toolchain: Flutter **3.47.2**, Dart **3.13.2**, framework
 `d3b14c876900e553bc736ca19295fc09e3853e8e`, engine
@@ -111,24 +111,20 @@ read saved settings with the frozen original adapter **without adapter 128**.
 
 ### Reviewed Artist counts
 
-The released Artist backport follows PR1832 commit
-`3f463b0e697f11aeebc37e1a6b614cde391b7f7f`. One bounded `ArtistIds` query
+The subsequent [AsyncValue bundle verification](../tests/finamp/evidence/2026-10-31-asyncvalue/README.md)
+records the rebuilt source variants, full selection matrix and Android Manager
+acceptance for the current candidate.
+
+The Artist backport incorporates PR1832's review revision
+[`e53f3ceb`](https://github.com/pengusto/finamp/commit/e53f3cebb07d81b124289c4d5a404f979fe10b8e),
+which passes the `AsyncValue` through to the information widget. One bounded `ArtistIds` query
 counts the union of album and track credits without adding overlapping totals.
 The music row displays the localized loading/error state instead of a false
 zero. Download status counts direct album and track links, while the size
 warning separately resolves the real union track count, including guest-only
 artists. A count error prevents Add rather than starting an unconfirmed download.
-The later [upstream review revision](https://github.com/pengusto/finamp/commit/e53f3cebb07d81b124289c4d5a404f979fe10b8e)
-passes the same async state through the widgets; it is not included in the released
-native source pins or payloads. The released loading/error behavior remains as tested.
 
-The historical source pins for all 64 combinations containing bit 4 remain in
-the matrix, but their public branches and the dedicated local backup were
-intentionally removed. A separate local checkout still held all pins during the
-2026-10-31 review; see [source availability and rebuild limits](../tests/finamp/README.md#rebuild-native-payloads).
-The published deltas were verified; the other 63 nonempty selections retain the
-published Player base.
-The [Artist acceptance](../tests/finamp/evidence/2026-10-30-artist-review/README.md)
+The [earlier Artist acceptance](../tests/finamp/evidence/2026-10-30-artist-review/README.md)
 separates source runs (22 / 26 / 49 / 107 passing, with overlap), all 127 actual Desktop
 selections, all 127 native replays, four rejected inputs and seven actual
 Manager JVM/ART exports of the complete private candidate. Its same-key

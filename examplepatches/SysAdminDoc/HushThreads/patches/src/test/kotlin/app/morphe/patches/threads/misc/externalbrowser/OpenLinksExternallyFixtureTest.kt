@@ -22,6 +22,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.junit.Assert.assertEquals
@@ -54,43 +55,73 @@ class OpenLinksExternallyFixtureTest {
             val launcher = launchers.single()
             val stock = launcher.instructions()
 
-            // Read apart from the patch: the string the launcher parses as a URI, back to its parameter.
+            // Read apart from the patch: the String field the launcher parses as a URI.
             val parse = stock.indexOfFirst { it.method()?.let { m -> m.definingClass == "Ljava/net/URI;" && m.name == "<init>" } == true }
             var parsed = (stock[parse] as FiveRegisterInstruction).registerD
-            for (at in parse - 1 downTo 0) {
-                val move = stock[at] as? TwoRegisterInstruction ?: continue
-                if (stock[at].opcode.name.startsWith("move-object") && move.registerA == parsed) parsed = move.registerB
+            val linkRead = (parse - 1 downTo 0).first { at ->
+                val read = stock[at] as? TwoRegisterInstruction
+                stock[at].opcode == Opcode.IGET_OBJECT && read?.registerA == parsed
             }
+            val linkField = (stock[linkRead] as ReferenceInstruction).reference as FieldReference
+            assertEquals("$where: the link field", "Ljava/lang/String;", linkField.type)
+            val launcherClass = classes.single { it.type == launcher.definingClass }
+            val contextField = launcherClass.fields.single { it.type == "Landroid/content/Context;" }
             val registers = launcher.implementation!!.registerCount
-            val first = registers - launcher.parameterTypes.size
-            assertEquals("$where: the link is the eighth parameter", first + 7, parsed)
-            assertEquals("Ljava/lang/String;", launcher.parameterTypes[7].toString())
-            assertEquals("Landroid/content/Context;", launcher.parameterTypes[0].toString())
 
+            val isStatic = AccessFlags.STATIC.isSet(launcher.accessFlags)
             val context = PatchContexts.of(ExtensionDex.classes() + classes)
             openLinksExternallyPatch.execute(context)
 
             val mutable = context.mutableClassDefBy(launcher.definingClass).methods.single { it.isLauncher() }
             val patched = mutable.instructions()
-            assertEquals("$where: six instructions added", stock.size + 6, patched.size)
-            assertEquals("$where: no new registers", registers, mutable.implementation!!.registerCount)
-            assertEquals(
-                "$where: hook shape",
-                listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT,
-                    Opcode.IF_EQZ, Opcode.RETURN_VOID),
-                patched.take(6).map { it.opcode },
-            )
-            assertEquals("$where: the context into v0", listOf(0, first), (patched[0] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
-            assertEquals("$where: the link into v1", listOf(1, parsed), (patched[1] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
-            val call = patched[2] as FiveRegisterInstruction
-            assertEquals(OPEN_LINK, (call as ReferenceInstruction).reference.toString())
-            assertEquals(listOf(0, 1), listOf(call.registerC, call.registerD).take(call.registerCount))
-            assertEquals(2, call.registerCount)
-            assertEquals(0, (patched[3] as OneRegisterInstruction).registerA)
-            assertEquals(0, (patched[4] as OneRegisterInstruction).registerA)
-            assertEquals("$where: a link that stays goes on to the launcher's own first instruction", 6, patched.target(4))
-            assertEquals("$where: the launcher after the hook is the stock one",
-                stock.map { it.opcode }, patched.drop(6).map { it.opcode })
+            if (isStatic) {
+                assertEquals("$where: six instructions added", stock.size + 6, patched.size)
+                assertEquals("$where: no new registers", registers, mutable.implementation!!.registerCount)
+                assertEquals(
+                    "$where: hook shape",
+                    listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC,
+                        Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID),
+                    patched.take(6).map { it.opcode },
+                )
+                val call = patched[2] as FiveRegisterInstruction
+                assertEquals(OPEN_LINK, (call as ReferenceInstruction).reference.toString())
+                assertEquals(listOf(0, 1), listOf(call.registerC, call.registerD).take(call.registerCount))
+                assertEquals(2, call.registerCount)
+                assertEquals(0, (patched[3] as OneRegisterInstruction).registerA)
+                assertEquals(0, (patched[4] as OneRegisterInstruction).registerA)
+                assertEquals("$where: a link that stays goes on to the launcher's own first instruction", 6, patched.target(4))
+                assertEquals("$where: the launcher after the hook is the stock one",
+                    stock.map { it.opcode }, patched.drop(6).map { it.opcode })
+            } else {
+                assertEquals("$where: seven instructions added", stock.size + 7, patched.size)
+                assertEquals("$where: no new registers", registers, mutable.implementation!!.registerCount)
+                assertEquals(
+                    "$where: hook shape",
+                    listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC,
+                        Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID),
+                    patched.take(7).map { it.opcode },
+                )
+                val self = patched[0] as TwoRegisterInstruction
+                assertEquals(where, 2, self.registerA)
+                assertEquals(where, registers - 1, self.registerB)
+                val contextRead = patched[1] as TwoRegisterInstruction
+                assertEquals(where, 0, contextRead.registerA)
+                assertEquals(where, 2, contextRead.registerB)
+                assertEquals(where, contextField.toString(), (contextRead as ReferenceInstruction).reference.toString())
+                val linkReadPatched = patched[2] as TwoRegisterInstruction
+                assertEquals(where, 1, linkReadPatched.registerA)
+                assertEquals(where, 2, linkReadPatched.registerB)
+                assertEquals(where, linkField.toString(), (linkReadPatched as ReferenceInstruction).reference.toString())
+                val call = patched[3] as FiveRegisterInstruction
+                assertEquals(OPEN_LINK, (call as ReferenceInstruction).reference.toString())
+                assertEquals(listOf(0, 1), listOf(call.registerC, call.registerD).take(call.registerCount))
+                assertEquals(2, call.registerCount)
+                assertEquals(0, (patched[4] as OneRegisterInstruction).registerA)
+                assertEquals(0, (patched[5] as OneRegisterInstruction).registerA)
+                assertEquals("$where: a link that stays goes on to the launcher's own first instruction", 7, patched.target(5))
+                assertEquals("$where: the launcher after the hook is the stock one",
+                    stock.map { it.opcode }, patched.drop(7).map { it.opcode })
+            }
             assertEquals("$where: one call in the launcher", 1, patched.count { it.method()?.toString() == OPEN_LINK })
 
             val status = context.mutableClassDefBy(SETTINGS_STATUS).methods
@@ -113,13 +144,12 @@ class OpenLinksExternallyFixtureTest {
             val stock = launcher.instructions()
             val parse = stock.indexOfFirst { it.method()?.let { m -> m.definingClass == "Ljava/net/URI;" && m.name == "<init>" } == true }
             val parsed = (stock[parse] as FiveRegisterInstruction).registerD
-            val first = launcher.implementation!!.registerCount - launcher.parameterTypes.size
-            val moveAt = (0 until parse).single { (stock[it] as? TwoRegisterInstruction)?.registerA == parsed }
+            val linkRead = (parse - 1 downTo 0).first { at ->
+                val read = stock[at] as? TwoRegisterInstruction
+                stock[at].opcode == Opcode.IGET_OBJECT && read?.registerA == parsed
+            }
             val cases = listOf(
-                // The session parameter in place of the link.
-                "session" to "parses parameter 2, a Lcom/instagram/common/session/UserSession;",
-                // A local that holds the context, followed back through the launcher's own copy of it.
-                "context copy" to "parses parameter 0, a Landroid/content/Context;",
+                "another field" to "parses a String that isn't one of its fields",
                 "made string" to "runs const-string",
                 "no parse" to "never parses a link",
             )
@@ -128,12 +158,11 @@ class OpenLinksExternallyFixtureTest {
                 val context = PatchContexts.of(ExtensionDex.classes() + classes)
                 val mutable = context.mutableClassDefBy(launcher.definingClass).methods.single { it.isLauncher() }
                 when (label) {
-                    "session" -> mutable.replaceInstruction(moveAt, "move-object/from16 v$parsed, v${first + 2}")
-                    "context copy" -> {
-                        val copy = (0 until moveAt).single { stock[it].opcode == Opcode.MOVE_OBJECT && (stock[it] as TwoRegisterInstruction).registerB == first }
-                        mutable.replaceInstruction(moveAt, "move-object/from16 v$parsed, v${(stock[copy] as TwoRegisterInstruction).registerA}")
+                    "another field" -> {
+                        val read = stock[linkRead] as TwoRegisterInstruction
+                        mutable.replaceInstruction(linkRead, "iget-object v${read.registerA}, v${read.registerB}, ${launcher.definingClass}->A02:Lcom/instagram/common/session/UserSession;")
                     }
-                    "made string" -> mutable.addInstructions(parse, "const-string v$parsed, \"https://example.org/\"")
+                    "made string" -> mutable.addInstructions(linkRead + 1, "const-string v$parsed, \"https://example.org/\"")
                     "no parse" -> mutable.replaceInstruction(parse, "invoke-direct { v${(stock[parse] as FiveRegisterInstruction).registerC}, v$parsed }, Ljava/net/URL;-><init>(Ljava/lang/String;)V")
                 }
                 val error = assertThrows("$label: refused", PatchException::class.java) { openLinksExternallyPatch.execute(context) }

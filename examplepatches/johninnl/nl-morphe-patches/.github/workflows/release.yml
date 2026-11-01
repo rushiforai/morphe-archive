@@ -1,0 +1,111 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, dev]
+
+jobs:
+  release:
+    name: Release
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.JOHNINNL_RELEASE_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.JOHNINNL_RELEASE_TOKEN }}
+      GIT_AUTHOR_NAME: johninnl
+      GIT_AUTHOR_EMAIL: 349981574+johninnl@users.noreply.github.com
+      GIT_COMMITTER_NAME: johninnl
+      GIT_COMMITTER_EMAIL: 349981574+johninnl@users.noreply.github.com
+    steps:
+      - name: Verify release publisher before checkout
+        shell: bash
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo 'JOHNINNL_RELEASE_TOKEN is required' >&2
+            exit 1
+          fi
+          login="$(gh api --hostname github.com user --jq .login)"
+          if [ "$login" != johninnl ]; then
+            echo 'JOHNINNL_RELEASE_TOKEN must belong to johninnl' >&2
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.JOHNINNL_RELEASE_TOKEN }}
+
+      - name: Verify release identity and history
+        run: node .github/scripts/verify_identity.cjs --release
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Python regression tests
+        run: python3 -m unittest discover -s tests
+
+      - name: Verify release integration tests
+        run: node --test tests/test_release_branding.cjs tests/test_preview_release.cjs tests/test_identity.cjs tests/test_release_discovery.cjs
+
+      - name: Verify Medium reader and private ABI
+        env:
+          SHARED_MAPS_API_KEY: ${{ secrets.SHARED_MAPS_API_KEY }}
+          BRIGHT_ARTICLE_SIGNING_KEY: ${{ secrets.BRIGHT_ARTICLE_SIGNING_KEY }}
+        run: |
+          ./gradlew :patches:buildAndroid :extensions:medium-reader:testDebugUnitTest :extensions:medium-privacy:testDebugUnitTest --no-daemon
+          python3 scripts/medium/check_bundle.py
+          python3 -m unittest discover -s scripts/medium/tests
+          # The release version is assigned later; never upload preflight bundles.
+          python3 -c 'from pathlib import Path; [p.unlink() for p in Path("patches/build/libs").glob("*.mpp")]'
+
+      # Semantic release runs its own Gradle build command.
+      # Only main publishes releases, as specified by .releaserc.
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v8
+        id: release
+        env:
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+          SHARED_MAPS_API_KEY: ${{ secrets.SHARED_MAPS_API_KEY }}
+          BRIGHT_ARTICLE_SIGNING_KEY: ${{ secrets.BRIGHT_ARTICLE_SIGNING_KEY }}
+
+      - name: Verify published Morphe discovery metadata
+        if: steps.release.outputs.new_release_published == 'true'
+        env:
+          EXPECTED_VERSION: ${{ steps.release.outputs.new_release_version }}
+          SOURCE_BRANCH: ${{ github.ref_name }}
+        run: node .github/scripts/verify_release_discovery.cjs --branch "$SOURCE_BRANCH" --version "$EXPECTED_VERSION"
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # Always verify compilation when semantic-release did not publish a release.
+      # This covers chore and documentation commits without a version change.
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        env:
+          SHARED_MAPS_API_KEY: ${{ secrets.SHARED_MAPS_API_KEY }}
+          BRIGHT_ARTICLE_SIGNING_KEY: ${{ secrets.BRIGHT_ARTICLE_SIGNING_KEY }}
+        run: ./gradlew :patches:buildAndroid clean --no-daemon

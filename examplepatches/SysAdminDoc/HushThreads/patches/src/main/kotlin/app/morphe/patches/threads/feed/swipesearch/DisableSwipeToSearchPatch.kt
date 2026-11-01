@@ -24,6 +24,7 @@ import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.threads.misc.settings.settingsPatch
 import app.morphe.util.ControlFlow
+import app.morphe.util.argumentRegister
 import app.morphe.util.getReference
 import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -119,9 +120,9 @@ internal fun BytecodePatchContext.swipePage(): SwipePage {
         .flatMap { it.methods }
         .distinctBy { it.signature() }
         .filter { method -> method.implementation?.instructions?.any { it.isTabsNote() } == true }
-        .flatMap { method -> method.searchPageChecks().map { method to it } }
-    val (screen, guard) = sites.singleOrPatchException("$PATCH: the home pager's check on its Search page")
-    requirePages(screen, guard)
+        .flatMap { method -> method.searchPageChecks().map { (guard, array) -> Triple(method, guard, array) } }
+    val (screen, guard, array) = sites.singleOrPatchException("$PATCH: the home pager's check on its Search page")
+    requirePages(screen, guard, array)
     val flag = screen.implementation!!.instructions.elementAt(guard - 1).getReference<FieldReference>()!!
     val (constructor, store) = flagStore(flag)
     return SwipePage(screen, guard, flag, constructor, constructor.storedParameter(store), store)
@@ -131,19 +132,30 @@ internal fun Instruction.isTabsNote(): Boolean =
     opcode == Opcode.CONST_STRING && getReference<StringReference>()?.string?.startsWith(TABS_NOTE) == true
 
 /**
- * The `if-eqz` instructions in this method that test a boolean just read from a field and skip only
- * the next instruction, a static read, landing on a `filled-new-array`: the shape of the home
- * pager's check. [requirePages] says whether what they build is the pager's pages.
+ * The `if-eqz` instructions in this method that test a boolean just read from a field and skip the
+ * static read of the Search page, with the index of the `filled-new-array` the two paths meet
+ * again at: the shape of the home pager's check. 452 falls straight from the read into the array,
+ * while 453 loads null on the branch and jumps back to it. [requirePages] says whether what they
+ * build is the pager's pages.
  */
-private fun Method.searchPageChecks(): List<Int> {
+private fun Method.searchPageChecks(): List<Pair<Int, Int>> {
     val code = implementation?.instructions?.toList() ?: return emptyList()
-    return (1 until code.size - 2).filter { at -> code[at].opcode == Opcode.IF_EQZ && code[at - 1].opcode == Opcode.IGET_BOOLEAN }
-        .filter { at -> code[at + 1].opcode == Opcode.SGET_OBJECT && code[at + 2].opcode == Opcode.FILLED_NEW_ARRAY }
-        .filter { at ->
-            val read = code[at - 1] as TwoRegisterInstruction
-            (code[at] as OneRegisterInstruction).registerA == read.registerA &&
-                ControlFlow.of(this).normal[at].toSet() == setOf(at + 1, at + 2)
-        }
+    return (1 until code.size - 1).filter { at ->
+        code[at].opcode == Opcode.IF_EQZ && code[at - 1].opcode == Opcode.IGET_BOOLEAN &&
+            code[at + 1].opcode == Opcode.SGET_OBJECT
+    }.mapNotNull { at ->
+        val read = code[at - 1] as TwoRegisterInstruction
+        if ((code[at] as OneRegisterInstruction).registerA != read.registerA) return@mapNotNull null
+        val search = (code[at + 1] as OneRegisterInstruction).registerA
+        val array = code.indices.firstOrNull { index ->
+            index > at + 1 && code[index].opcode == Opcode.FILLED_NEW_ARRAY &&
+                code[index].getReference<TypeReference>()?.type?.startsWith("[") == true &&
+                (code[index] as FiveRegisterInstruction).let { pages ->
+                    (0 until pages.registerCount).any { pages.argumentRegister(it) == search }
+                }
+        } ?: return@mapNotNull null
+        at to array
+    }
 }
 
 /**
@@ -167,26 +179,26 @@ private fun BytecodePatchContext.pageNames(type: String): Map<String, String>? {
 }
 
 /** Throws unless the check at [guard] in [screen] is the home pager's: an array of FEED and SEARCH from the page enum. */
-private fun BytecodePatchContext.requirePages(screen: Method, guard: Int) {
+private fun BytecodePatchContext.requirePages(screen: Method, guard: Int, array: Int) {
     val code = screen.implementation!!.instructions.toList()
     val search = code[guard + 1].getReference<FieldReference>()!!
-    val pages = code[guard + 2] as FiveRegisterInstruction
-    val where = "${screen.signature()} at $guard"
-    if (code[guard + 2].getReference<TypeReference>()?.type != "[${search.type}" || pages.registerCount != 2 ||
+    val pages = code[array] as FiveRegisterInstruction
+    val whenRead = "${screen.signature()} at $guard"
+    if (code[array].getReference<TypeReference>()?.type != "[${search.type}" || pages.registerCount != 2 ||
         pages.registerD != (code[guard + 1] as OneRegisterInstruction).registerA
     ) {
-        throw PatchException("$PATCH: the check in $where doesn't skip the second page of an array of its pages")
+        throw PatchException("$PATCH: the check in $whenRead doesn't skip the second page of an array of its pages")
     }
     val names = pageNames(search.type)
     if (names == null || names.values.toSet() != setOf(FEED_PAGE, SEARCH_PAGE) || names.size != 2) {
-        throw PatchException("$PATCH: the pages in $where come from ${search.type}, not an enum of $FEED_PAGE and $SEARCH_PAGE")
+        throw PatchException("$PATCH: the pages in $whenRead come from ${search.type}, not an enum of $FEED_PAGE and $SEARCH_PAGE")
     }
-    val feed = screen.sourceOrNull(guard + 2, pages.registerC)?.takeIf { it.at >= 0 }?.let { code[it.at] }
+    val feed = screen.sourceOrNull(array, pages.registerC)?.takeIf { it.at >= 0 }?.let { code[it.at] }
     val feedField = feed?.getReference<FieldReference>()
     if (names[search.name] != SEARCH_PAGE || feed?.opcode != Opcode.SGET_OBJECT || feedField?.definingClass != search.type ||
         names[feedField.name] != FEED_PAGE
     ) {
-        throw PatchException("$PATCH: the pages in $where aren't $FEED_PAGE and then $SEARCH_PAGE")
+        throw PatchException("$PATCH: the pages in $whenRead aren't $FEED_PAGE and then $SEARCH_PAGE")
     }
 }
 

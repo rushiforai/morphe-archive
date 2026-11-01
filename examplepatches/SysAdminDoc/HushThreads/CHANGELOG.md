@@ -2,6 +2,19 @@
 
 Changes in the source build, then released versions.
 
+## Unreleased
+
+* **Tooling:** Release walks now bind the installed APK to its original patching inputs and bundle. Publication rechecks its manifest and embedded identity, complete screen coverage and a clean result. A retained install needs its patch receipt, and stale or incomplete receipts are refused.
+* **Tests:** Corrected the release-description fixtures so conflicting build claims are tested in the current facts, ahead of historical notes.
+* **Threads:** HushThreads now patches Threads 453.0.0.56.79 only, for all eleven APKMirror variants across arm64-v8a, armeabi-v7a, x86_64 and x86. The build is matched by version name, not pinned to one code, so a reupload of the same version works too. Update Threads to 453 before you patch, and use Morphe Manager 2.3.0 or newer. v0.0.16 is the last release for 452.0.0.50.64.
+* **Threads:** Save photos and videos now works on text posts that show a video from somewhere else. When a post has no media of its own, the Save row finds the post it links, quotes or reposts, and saves that post's video or carousel under that post's details. A post's own media still comes first.
+* **Threads:** The share sheet's Messenger tile opens a re-signed Messenger now, same as More > Messenger always did. Threads' launcher only accepts Meta's own signature and the tile ignored the refusal, so nothing happened. Every tile in that sheet falls back the same way. It's part of `Restore screens on re-signed builds`, with no switch.
+* **Threads:** Patched 32-bit Threads starts normally on the ARMv7 and x86 variants whose manifest asks for extracted native libraries. Merging the bundle compresses those libraries, and Threads tried to read them straight out of the APK. It loads them from the folder Android unpacked them to now.
+* **Tooling:** Fixture tests keep what they work out per build in soft references, with a 3 GB heap, so all eleven variants fit in one run.
+* **Tooling:** The whole-app walk waits for each screen and scrolls to the row it wants, so a slow phone no longer reads as a failed walk.
+* **Tooling:** The signed-app contracts find their sites by strings and shape instead of naming one build's classes, since a release checks all eleven variants. They'd fallen behind on the 453 move and caught up here.
+* **Tooling:** A release build patches every variant of the Threads version it declares and stops if it finds none. Before this it picked one of two variants of the same version without saying so.
+
 ## 0.0.16 (2026-10-23)
 
 * **Threads:** HushThreads now patches Threads 452.0.0.50.64 only, the newest stable version, and drops 451.0.0.51.80. Update Threads to 452 before you patch. The bundle is built with Morphe's 2.0 patcher, so you'll need Morphe Manager 2.0.0 or newer.

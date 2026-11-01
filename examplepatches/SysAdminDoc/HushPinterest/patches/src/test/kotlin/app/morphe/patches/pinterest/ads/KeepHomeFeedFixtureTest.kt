@@ -28,7 +28,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -53,8 +52,12 @@ class KeepHomeFeedFixtureTest {
     private class Build(val name: String, val fragment: ClassDef, val presenter: ClassDef, val masks: Map<Int, Int>) {
         val classes get() = listOf(fragment, presenter)
         val resume get() = fragment.methods.single { it.isReturnCheck() }
+        val check: Method get() {
+            val away = homeAwayCalls(resume).single()
+            return presenter.methods.single { it.name == away.name && it.parameterTypes == away.parameterTypes }
+        }
         val refresh: Method get() {
-            val call = homeRefreshCalls(resume).single()
+            val call = homeRefreshCalls(check).single()
             return presenter.methods.single {
                 AccessFlags.STATIC.isSet(it.accessFlags) && it.name == call.name &&
                     it.parameterTypes.map(CharSequence::toString) == call.parameterTypes.map(CharSequence::toString)
@@ -69,6 +72,7 @@ class KeepHomeFeedFixtureTest {
             // 3 every other caller. Only mask 1 can reach the refresh without a 0x2 bit.
             assertEquals("${build.name}: the refresh's callers by mask", setOf(1, 2, 3), build.masks.keys)
             assertEquals("${build.name}: the sticky event's two callers", 2, build.masks[1])
+            assertTrue("${build.name}: the presenter compares the time away with five minutes", isHomeAwayCheck(build.check))
             requireMaskShape(build.refresh)
 
             val context = PatchContexts.of(ExtensionDex.classes() + build.classes)
@@ -124,9 +128,12 @@ class KeepHomeFeedFixtureTest {
                         else ImmutableInstruction22b(Opcode.AND_INT_LIT8, (it as TwoRegisterInstruction).registerA, it.registerB, 4)
                     }, method.implementation!!.tryBlocks, method.implementation!!.debugItems))
             })
+        val noAwayCheck = ImmutableClassDef(presenter.type, presenter.accessFlags, presenter.superclass, presenter.interfaces,
+            presenter.sourceFile, presenter.annotations, presenter.fields, presenter.methods.filterNot { it == build.check })
         // Each case and the refusal it has to give, so none passes on another check's account.
         val cases = linkedMapOf(
             "no return check" to (extension + noReturnCheck + presenter to "Home return check: expected one exact target, found 0"),
+            "no presenter check" to (extension + fragment + noAwayCheck to "presenter check of the time away: expected one exact target, found 0"),
             "mask bit moved" to (extension + fragment + movedBit to "no longer drops its map on mask bit 0x2"),
             "missing status stub" to (build.classes + extension.map { owner -> if (owner.type != SETTINGS_STATUS) owner else
                 ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile,
@@ -192,9 +199,12 @@ class KeepHomeFeedFixtureTest {
             ?: error("${build.name}: no $HOME_FEED_FRAGMENT")
         val resume = fragment.methods.filter { it.isReturnCheck() }.singleOrNull()
             ?: error("${build.name}: no single Home return check")
-        val call = homeRefreshCalls(resume).singleOrNull() ?: error("${build.name}: the return check calls no single refresh")
-        val presenter = FixtureDex.classes(build, setOf(call.definingClass))[call.definingClass]
-            ?: error("${build.name}: no ${call.definingClass}")
+        val away = homeAwayCalls(resume).singleOrNull() ?: error("${build.name}: the return check calls no single presenter check")
+        val presenter = FixtureDex.classes(build, setOf(away.definingClass))[away.definingClass]
+            ?: error("${build.name}: no ${away.definingClass}")
+        val check = presenter.methods.singleOrNull { it.name == away.name && it.parameterTypes == away.parameterTypes }
+            ?: error("${build.name}: no $away")
+        val call = homeRefreshCalls(check).singleOrNull() ?: error("${build.name}: the presenter check calls no single refresh")
         val target = call.toString()
         val masks = mutableMapOf<Int, Int>()
         FixtureDex.forEach(build) { dex ->
@@ -233,8 +243,8 @@ class KeepHomeFeedFixtureTest {
     }
 }
 
-/** The Home fragment's `(J)V` that compares time away with five minutes and refreshes. */
+/** The Home fragment's `(J)V` that reads the scroll offset and hands the time away to the presenter. */
 private fun Method.isReturnCheck() = !AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" &&
     parameterTypes.map(CharSequence::toString) == listOf("J") &&
-    instructions().any { (it as? WideLiteralInstruction)?.wideLiteral == HOME_AWAY_MS } &&
-    homeRefreshCalls(this).isNotEmpty()
+    instructions().any { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "computeVerticalScrollOffset" } &&
+    homeAwayCalls(this).isNotEmpty()

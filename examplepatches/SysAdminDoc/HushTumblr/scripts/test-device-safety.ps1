@@ -140,7 +140,7 @@ try {
             param($Path, $Aapt2)
             $installed = $Path -like '*installed*'
             [pscustomobject]@{ package = if ($case -eq 'wrong-package') { 'other.package' } else { 'com.tumblr' };
-                versionName = '46.8.1.100'; versionCode = if ($installed -and $case -eq 'downgrade') { '200' } else { '100' } }
+                versionName = '46.9.1.100'; versionCode = if ($installed -and $case -eq 'downgrade') { '200' } else { '100' } }
         }.GetNewClosure()
         $signers = {
             param($Path, $Aapt2)
@@ -152,7 +152,7 @@ try {
         if ($case -in @('verified', 'wrong-output', 'install-swapped')) {
             $expectedArguments.ExpectedIdentity = [pscustomobject]@{
                 sha256 = if ($case -eq 'wrong-output') { 'f' * 64 } else { (Get-FileHash -LiteralPath $apk -Algorithm SHA256).Hash.ToLowerInvariant() }
-                package = 'com.tumblr'; versionName = '46.8.1.100'; versionCode = '100'; signers = @('a' * 64)
+                package = 'com.tumblr'; versionName = '46.9.1.100'; versionCode = '100'; signers = @('a' * 64)
             }
         }
         $install = { Install-HushAndroidApk -Adb fake -Serial emulator-5998 -Apk $apk `
@@ -182,7 +182,7 @@ try {
             -ChatIdentity safety-test -LeaseDirectory $work -AdbInvoker $fake.Invoker
         $read = { Get-HushInstalledApkIdentity -Adb fake -Lease $lease -PackageName com.tumblr -Aapt2 fake `
             -AdbInvoker $fake.Invoker -ManifestReader { param($Path, $Tool)
-                [pscustomobject]@{ package = 'com.tumblr'; versionName = '46.8.1.100'; versionCode = '1460801100' }
+                [pscustomobject]@{ package = 'com.tumblr'; versionName = '46.9.1.100'; versionCode = '1460901100' }
             } -SignerReader { param($Path, $Tool) 'a' * 64 } }
         try {
             if ($fault) { Assert-Refusal $read '*' }

@@ -1,0 +1,32 @@
+[
+  {
+    "owner": "Lcom/bedrockstreaming/component/navigation/domain/NavigationMapper;",
+    "signature": "a(Lcom/bedrockstreaming/component/navigation/domain/NavigationMapper;Lcom/bedrockstreaming/component/layout/domain/core/model/Target;Ljava/lang/String;Ljava/util/List;Lcom/bedrockstreaming/component/layout/domain/core/model/Item;I)Lcom/bedrockstreaming/component/navigation/domain/usecase/a;",
+    "flags": 9,
+    "registers": 17,
+    "count": 377,
+    "dex_sha256": "15c7c906c38a83f62f3cd49fef7155603429db7465773587863b48cf73817fa7",
+    "graph_sha256": "532bae594df92d0fc361c16acca43c391c6a69a1e5efa06014209718b3f96c9e",
+    "insertion": 0
+  },
+  {
+    "owner": "Lcom/bedrockstreaming/feature/player/domain/mediaplayer/usecase/HandleActionUseCase;",
+    "signature": "a(LZe/c;Lmf/d;LR7/g;Lcom/bedrockstreaming/component/layout/domain/core/model/MediaItem;Lcom/bedrockstreaming/component/layout/domain/core/model/Action;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lbv/c;)Ljava/lang/Object;",
+    "flags": 17,
+    "registers": 48,
+    "count": 656,
+    "dex_sha256": "5f1257af67ca08054ddd83d3150441d76e61173575380936a9c20eb20f84379b",
+    "graph_sha256": "2e69c9f733926430f14e5dd945862923d49c9da0ad9a1700a3d7f6e1745997d8",
+    "insertion": 113
+  },
+  {
+    "owner": "Lcom/bedrockstreaming/component/layout/domain/core/model/Target$Lock$RequireSubscriptionLock;",
+    "signature": "b()Lcom/bedrockstreaming/component/layout/domain/core/model/Target;",
+    "flags": 17,
+    "registers": 2,
+    "count": 2,
+    "dex_sha256": "5ab6d34b79ad5460a6102b144adf7ebe65b445dfee8974f2b51df62fde1970de",
+    "graph_sha256": "8830a8863d40b40a185ab3b978e3c84a4261e3085788c37ea3c49dc48d9f8eab",
+    "insertion": null
+  }
+]

@@ -19,8 +19,11 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import java.io.ByteArrayInputStream
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
@@ -79,7 +82,7 @@ class GmsCoreSupportTest {
                 for (method in original.methods) {
                     val before = method.texts()
                     val after = patched.methods.single { it.same(method) }.texts()
-                    if (method.isAvailabilityCheck() || method.isFrameworkProviderCheck(original)) continue
+                    if (method.isAvailabilityCheck() || method.isFrameworkProviderCheck(original) || method.isSignInFailureListener()) continue
                     assertEquals("${build.name}: ${method.definingClass}->${method.name} kept its shape", before.size, after.size)
                     before.zip(after).forEach { (old, new) ->
                         val expected = old?.let { gmsCoreText(it) ?: it }
@@ -98,6 +101,17 @@ class GmsCoreSupportTest {
                 assertEquals("${build.name}: ${check.name} returns at once", Opcode.RETURN, body[1].opcode)
             }
 
+            val listener = fixture.flatMap { it.methods }.single { it.isSignInFailureListener() }
+            val stock = listener.implementation!!.instructions.toList()
+            val hooked = context.mutableClassDefBy(HIDDEN_ACTIVITY).methods.single { it.same(listener) }.implementation!!.instructions.toList()
+            val hook = hooked.first()
+            assertEquals("${build.name}: the listener starts with the hook", Opcode.INVOKE_STATIC_RANGE, hook.opcode)
+            assertEquals("${build.name}: the hook", SIGN_IN_FAILURE_HOOK, (hook as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name}: one argument", 1, (hook as RegisterRangeInstruction).registerCount)
+            assertEquals("${build.name}: the exception, the last parameter", listener.implementation!!.registerCount - 1, hook.startRegister)
+            assertEquals("${build.name}: the rest stays", stock.map { it.opcode }, hooked.drop(1).map { it.opcode })
+            assertEquals("${build.name}: the listener's flag", 1, status.flag("signInFailure"))
+
             val extension = context.classDefByOrNull("Lapp/hushpinterest/extension/pinterest/settings/PushReadiness;")!!
             assertTrue("the extension's own names stay", extension.methods.any { "com.google.android.c2dm.intent.RECEIVE" in it.texts() })
         }
@@ -115,7 +129,7 @@ class GmsCoreSupportTest {
                     if (names) held += owner.type
                 }
             }
-            // 14.41.0 keeps Firebase messaging's receive action in one. A build with none can drop this.
+            // 14.42.0 keeps Firebase messaging's receive action in one. A build with none can drop this.
             assertTrue("${build.name}: no static field to prove the rewrite on", held.isNotEmpty())
             val fixture = rerouted(build)
             val classes = fixture + FixtureDex.classes(build, held - fixture.map { it.type }.toSet()).values
@@ -134,17 +148,38 @@ class GmsCoreSupportTest {
     }
 
     @Test
-    fun `a build missing either check refuses before any edit`() {
+    fun `a build missing a check or the listener refuses before any edit`() {
         for (build in Fixtures.declaredBuilds()) {
             val fixture = rerouted(build)
-            for (left in listOf("availability check", "framework provider")) {
+            for (left in listOf("availability check", "framework provider", "sign-in failure listener")) {
                 val kept = fixture.filterNot { owner -> owner.methods.any {
-                    if (left == "availability check") it.isAvailabilityCheck() else it.isFrameworkProviderCheck(owner) } }
+                    when (left) {
+                        "availability check" -> it.isAvailabilityCheck()
+                        "framework provider" -> it.isFrameworkProviderCheck(owner)
+                        else -> it.isSignInFailureListener()
+                    }
+                } }
                 val context = PatchContexts.of(ExtensionDex.classes() + kept)
                 val refusal = assertThrows(left, PatchException::class.java) { gmsCorePreflightPatch.execute(context) }
                 assertTrue(refusal.message, refusal.message.orEmpty().contains("refuses before any edit"))
                 assertEquals("${build.name}: the flag stayed off", 0, context.mutableClassDefBy(SETTINGS_STATUS).methods.flag("gmsCoreSupport"))
             }
+        }
+    }
+
+    @Test
+    fun `a second sign-in failure listener refuses before any edit`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val doubled = rerouted(build).map { owner ->
+                val listener = owner.methods.singleOrNull { it.isSignInFailureListener() } ?: return@map owner
+                val copy = ImmutableMethod(owner.type, "${listener.name}Again", listener.parameters, listener.returnType,
+                    listener.accessFlags, listener.annotations, listener.hiddenApiRestrictions, listener.implementation)
+                ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile,
+                    owner.annotations, owner.fields, owner.methods + copy)
+            }
+            val context = PatchContexts.of(ExtensionDex.classes() + doubled)
+            val refusal = assertThrows(PatchException::class.java) { gmsCorePreflightPatch.execute(context) }
+            assertTrue(refusal.message, refusal.message.orEmpty().contains("sign-in failure listener has 2 matches"))
         }
     }
 
@@ -220,10 +255,11 @@ class GmsCoreSupportTest {
         assertEquals("GmsCore support", gmsCoreSupportPatch.name)
     }
 
-    /** The classes the patch reads in [build]: every method naming a rewritten text, and both checks. */
+    /** The classes the patch reads in [build]: every method naming a rewritten text, both checks and the listener. */
     private fun rerouted(build: File): List<ClassDef> = FixtureDex.classesWhere(build, { true }) { method ->
         !method.definingClass.startsWith(EXTENSION_ROOT) && (method.texts().any { it != null && gmsCoreText(it) != null } ||
-            method.isAvailabilityCheck() || (method.name == "isAvailableOnDevice" && method.returnType == "Z"))
+            method.isAvailabilityCheck() || (method.name == "isAvailableOnDevice" && method.returnType == "Z") ||
+            method.isSignInFailureListener())
     }
 
     private fun Method.isAvailabilityCheck() = returnType == "I" &&
@@ -232,6 +268,9 @@ class GmsCoreSupportTest {
 
     private fun Method.isFrameworkProviderCheck(owner: ClassDef) = name == "isAvailableOnDevice" && returnType == "Z" &&
         parameterTypes.isEmpty() && owner.instanceFields.any { it.type == "Landroid/credentials/CredentialManager;" }
+
+    private fun Method.isSignInFailureListener() = definingClass == HIDDEN_ACTIVITY && returnType == "V" &&
+        parameterTypes.map(CharSequence::toString) == listOf(HIDDEN_ACTIVITY, "Ljava/lang/Exception;") && SIGN_IN_FAILURE_TEXT in texts()
 
     private fun Method.texts(): List<String?> = implementation?.instructions?.map {
         ((it as? ReferenceInstruction)?.reference as? StringReference)?.string

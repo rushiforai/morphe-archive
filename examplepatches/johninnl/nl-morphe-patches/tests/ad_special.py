@@ -1,0 +1,28 @@
+"""Original startup, collector and constructor hashes; no proprietary bodies."""
+SPECIAL = [('com/kubusapp/MainApplication', 'onCreate()V', 'd4dac1215daffbbf5eed42b843699afa285f73e5bac240e39d9033a9a1edf61d'),
+ ('com/kubusapp/MainActivity', 'onCreate(Landroid/os/Bundle;)V', '8b0a26d2d68acc9a64979dc1c91681cd4f50ca9709e3265bd8e07f18c8ed7ac9'),
+ ('fwh', 'b(Lzs3;)Ljava/lang/Object;', 'e330ed9002165ac7f432e7fe2d87b53985b57ab41b2a6b4a3898e58ffe7cdc7f'),
+ ('cfi', 'a(Lzs3;)Ljava/lang/Object;', 'd618ff364dc273924fb788784e64794a19ca0b8154d9be045925152f6271e2c4'),
+ ('gn0', '<init>(Landroid/content/Context;)V', '553f72b88174fe6224ecd2c81f88a0fe32f39c50466437c8d7f4803671af2495'),
+ ('gk',
+  '<init>(Landroid/content/Context;Ljava/util/concurrent/ScheduledExecutorService;)V',
+  '53d85b72d0ea239197521938637c6c7db3a5ed6859f433c1ccfa04add1aea77f'),
+ ('l37',
+  '<init>(Lcom/google/ads/interactivemedia/v3/api/AdsLoader;Lcom/google/ads/interactivemedia/v3/api/AdsRequest;Lcom/google/ads/interactivemedia/v3/api/AdsRenderingSettings;Lza7;)V',
+  '36124c83d5cb98ffffc507cc3dc6119a00b9459c49e1c1fc2d64c5048bd81f2e')]
+FLAGS = [('nl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction',
+  '<init>(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lqk8;ZZZJJLnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction$Resource;Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction$Resource;Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction$Resource;Lnl/dpgmedia/publishingservices/videosdk/internal/player/core/model/VideoClickout;Lnl/dpgmedia/publishingservices/videosdk/internal/player/core/model/VideoLiveEvent;Ljava/util/List;Lnl/dpgmedia/publishingservices/videosdk/core/player/VideoSdkPlaybackOptions;Ljava/util/List;)V',
+  '01b05a7917e855c09834a26f5eb38ea5b5703f2fb5ee9344f7304a7f5c14cc2e'),
+ ('nl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction',
+  '<init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lqk8;ZZZJJLnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction$Resource;Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction$Resource;Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction$Resource;Lnl/dpgmedia/publishingservices/videosdk/internal/player/core/model/VideoClickout;Lnl/dpgmedia/publishingservices/videosdk/internal/player/core/model/VideoLiveEvent;Ljava/util/List;Lnl/dpgmedia/publishingservices/videosdk/core/player/VideoSdkPlaybackOptions;Ljava/util/List;)V',
+  'df86e645dcc1062ce9d6b7f6091ce6dad6c46f19d76bd74eb4a03fbc1841af04'),
+ ('xi7',
+  '<init>(Ljava/lang/String;Lti7;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;ZLwi7;Lvi7;Lui7;Lsi7;Lri7;)V',
+  '3d46f8e890bf7661b3cc768f27760cfca48301cf148e093a4c83175959afb6fd'),
+ ('cwg',
+  '<init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lt5h;Lkotlinx/serialization/json/JsonObject;Lbwg;ZLjava/lang/String;ZZLawg;ZZ)V',
+  '2c06eb272971dabe20b1fe4423bd867aa7f747486b1963bf9fe3b68f03071367')]
+SINGLES = [('com/kubus/module/network/model/MediaTopComponent$Properties',
+  '<init>(Lcom/kubus/module/network/model/ArticleComponent;Lcom/kubus/module/network/model/ArticleComponent;)V',
+  [2],
+  'b64b6e423425ec5f2c1a4001b00269e690e50aef1e668ce6df845056b92908b2')]

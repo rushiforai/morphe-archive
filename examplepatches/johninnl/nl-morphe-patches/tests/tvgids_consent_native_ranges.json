@@ -1,0 +1,122 @@
+{
+  "arm64-v8a": {
+    "closure": {
+      "name": "checkConsentClosure",
+      "address": 8147584,
+      "size": 1052,
+      "sha256": "0cd3e68329f0e5e06097be5732a1120806213f838d08bbacb1d8b20729c9ca3a"
+    },
+    "allocate": {
+      "address": 10936180,
+      "size": 296,
+      "sha256": "fef2a99105d94cf10e796422ec7628302c609de778e611f92d73faaa82e8c133"
+    },
+    "init": {
+      "address": 4704672,
+      "size": 40,
+      "sha256": "9e9f182fc3abc9a2487118553b305dac3b9c223586e95bf56c1e45c7941ffad0"
+    },
+    "return": {
+      "address": 4704340,
+      "size": 44,
+      "sha256": "8acc3451b725803f44a9ada7ec2067de248ee913b0a6e761faa9f13e0067f875"
+    },
+    "url": {
+      "address": 8149756,
+      "size": 276,
+      "sha256": "a33e870169f583191a474777c01ffacadf80bd68ed7fd5982f014482bf346fc9"
+    },
+    "openCmp": {
+      "address": 8148980,
+      "size": 320,
+      "sha256": "f1bd85a6cd5231d9d834ade64dc4a2303ebde21567a70cba88938e45e61f18c3"
+    },
+    "hook": 8147688,
+    "cave": 8148180,
+    "caveSize": 16,
+    "tail": 8148620,
+    "resume": 8147692,
+    "originalCaveIngress": 8148132,
+    "manualBranch": 8148124
+  },
+  "x86_64": {
+    "closure": {
+      "name": "checkConsentClosure",
+      "address": 7376908,
+      "size": 1336,
+      "sha256": "caa658b4fa54966ed4605b5be5948ef00d64747da09a1ec491c42f49c636a5bf"
+    },
+    "allocate": {
+      "address": 11166408,
+      "size": 232,
+      "sha256": "74fae74aa4d4905424e097acbaaa2ace6961c2719840920a81b49a42e29f8856"
+    },
+    "init": {
+      "address": 4479236,
+      "size": 28,
+      "sha256": "cd017d7c12fdb409e306edff0a596af46505e1b4540fdcda680ae556d60c6290"
+    },
+    "return": {
+      "address": 4477988,
+      "size": 28,
+      "sha256": "65b8b7215ee712192cdb53568337c5efd34f2f5ab53234041bdc2cdc10059afe"
+    },
+    "url": {
+      "address": 7381804,
+      "size": 320,
+      "sha256": "1e618972b69a4ccf3082c7e9cb367c7c40e9e546a3c01adc5f4484844188234a"
+    },
+    "openCmp": {
+      "address": 7378972,
+      "size": 416,
+      "sha256": "a23418a6c32eeb9ed32cb3aa5826826be02dae559bbf4b45e755bfd84f2b6120"
+    },
+    "hook": 7377032,
+    "cave": 7377670,
+    "caveSize": 24,
+    "tail": 7378220,
+    "resume": 7377039,
+    "originalCaveIngress": 7377606,
+    "manualBranch": 7377596
+  },
+  "armeabi-v7a": {
+    "closure": {
+      "name": "checkConsentClosure",
+      "address": 8253184,
+      "size": 1024,
+      "sha256": "bae7bfb0a7270ca7fe5e116da0ef0760bd94d72bf31574c0d0a4e960dcb245eb"
+    },
+    "allocate": {
+      "address": 12088028,
+      "size": 240,
+      "sha256": "288248c9c388b3c3d2fb7b810380d169a82fd3f022b4119f8d155b89db503825"
+    },
+    "init": {
+      "address": 5257336,
+      "size": 40,
+      "sha256": "67441e55da58c2a1841ddff174a1f18476ec8501a90ac8238b239090c7fbc9ce"
+    },
+    "return": {
+      "address": 5256048,
+      "size": 44,
+      "sha256": "4c0df13bd8f6e6cffb84260720ffc9b44463237f50f3dfc58b566a8d2bc879e5"
+    },
+    "url": {
+      "address": 8257496,
+      "size": 284,
+      "sha256": "d6bfb0149457c7fb0af53b7c2667d88a7ed965eef8f9122fe779c4e6812d1416"
+    },
+    "openCmp": {
+      "address": 8254840,
+      "size": 316,
+      "sha256": "c52aab03eee125549fd6476d4d7cb83d49c4fd30cff3085f4fe6442a29e7389c"
+    },
+    "hook": 8253288,
+    "cave": 8253784,
+    "caveSize": 24,
+    "tail": 8254200,
+    "resume": 8253292,
+    "originalCaveIngress": 8253744,
+    "manualBranch": 8253736
+  }
+}

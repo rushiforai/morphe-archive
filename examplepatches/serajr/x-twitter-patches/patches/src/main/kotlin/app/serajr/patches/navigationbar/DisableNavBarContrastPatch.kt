@@ -5,81 +5,78 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.serajr.patches.Constants
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+
+private const val MAIN_ACTIVITY =
+    "Lcom/x/android/main/MainActivity;"
+
+private const val ON_START_SUPER =
+    "Landroidx/appcompat/app/n;->onStart()V"
 
 @Suppress("unused")
 val disableNavBarContrastPatch = bytecodePatch(
     name = "Disable Navigation Bar Contrast",
-    description = "Disables automatic navigation bar contrast in AndroidX and X.",
+    description = "Disables navigation bar contrast directly in X's main activity.",
     default = false
 ) {
     compatibleWith(Constants.COMPATIBILITY_X)
 
     execute {
-        val targets = mapOf(
-            "Landroidx/activity/x;" to "b",
-            "Landroidx/activity/z;" to "b",
-            "Lcom/x/ui/common/ports/z;" to "d"
-        )
-
-        val methods = mutableListOf<Method>()
+        var targetMethod: Method? = null
 
         classDefForEach { classDef ->
-            val name = targets[classDef.type.toString()] ?: return@classDefForEach
+            if (classDef.type.toString() != MAIN_ACTIVITY) {
+                return@classDefForEach
+            }
 
-            methods += classDef.methods.filter { method ->
-                method.name == name &&
+            targetMethod = classDef.methods.firstOrNull { method ->
+                method.name == "onStart" &&
                     method.returnType == "V" &&
-                    method.parameterTypes.map { it.toString() } ==
-                    if (name == "d") {
-                        listOf("Landroid/view/Window;")
-                    } else {
-                        listOf(
-                            "Landroidx/activity/m0;",
-                            "Landroidx/activity/m0;",
-                            "Landroid/view/Window;",
-                            "Landroid/view/View;",
-                            "Z", "Z"
-                        )
-                    }
+                    method.parameterTypes.isEmpty()
             }
         }
 
-        require(methods.size == 3) {
-            "DisableNavBarContrast: expected three target methods."
+        val original = requireNotNull(targetMethod) {
+            "DisableNavBarContrast: MainActivity.onStart() not found."
         }
 
-        methods.forEach { original ->
-            val method = mutableClassDefBy(original.definingClass)
-                .methods.first { it.toString() == original.toString() }
+        val method = mutableClassDefBy(original.definingClass)
+            .methods.first { it.toString() == original.toString() }
 
-            val instructions = method.implementation!!.instructions.toList()
-
-            val matches = instructions.indices.filter { index ->
-                val instruction = instructions[index]
-                instruction.opcode == Opcode.INVOKE_VIRTUAL &&
-                    (instruction as? ReferenceInstruction)?.reference?.toString() ==
-                    "Landroid/view/Window;->setNavigationBarContrastEnforced(Z)V"
-            }
-
-            require(matches.size == 1)
-
-            val index = matches.single()
-            val call = instructions[index] as FiveRegisterInstruction
-            val booleanRegister = call.registerD
-
-            require(booleanRegister <= 15)
-
-            method.addInstructions(
-                index + 1,
-                "const/4 v$booleanRegister, 0x1"
-            )
-
-            method.addInstructions(
-                index,
-                "const/4 v$booleanRegister, 0x0"
-            )
+        val implementation = requireNotNull(method.implementation) {
+            "DisableNavBarContrast: onStart() has no implementation."
         }
+
+        require(implementation.registerCount == 4) {
+            "DisableNavBarContrast: unexpected onStart() register count."
+        }
+
+        val instructions = implementation.instructions.toList()
+
+        val superCalls = instructions.indices.filter { index ->
+            val instruction = instructions[index]
+
+            instruction.opcode == Opcode.INVOKE_SUPER &&
+                (instruction as? ReferenceInstruction)
+                    ?.reference?.toString() == ON_START_SUPER
+        }
+
+        require(superCalls.size == 1) {
+            "DisableNavBarContrast: expected one super.onStart() call."
+        }
+
+        method.addInstructions(
+            superCalls.single() + 1,
+            """
+                invoke-virtual {p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
+                move-result-object v0
+
+                const/4 v1, 0x0
+
+                invoke-virtual {v0, v1}, Landroid/view/Window;->setNavigationBarColor(I)V
+
+                invoke-virtual {v0, v1}, Landroid/view/Window;->setNavigationBarContrastEnforced(Z)V
+            """.trimIndent()
+        )
     }
 }

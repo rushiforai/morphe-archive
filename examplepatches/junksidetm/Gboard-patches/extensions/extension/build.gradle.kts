@@ -1,0 +1,615 @@
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import java.util.Base64
+import java.util.Properties
+import java.util.zip.ZipFile
+import javax.xml.parsers.DocumentBuilderFactory
+import groovy.json.JsonSlurper
+import org.w3c.dom.Element
+import org.w3c.dom.Node
+
+private data class LocalizedSettingsText(
+    val type: String,
+    val name: String,
+    val formatted: Boolean,
+    val translations: Map<String, String>,
+    val quantities: List<Pair<String, Map<String, String>>>,
+)
+
+private fun Element.childElements(name: String? = null): List<Element> =
+    (0 until childNodes.length)
+        .map { childNodes.item(it) }
+        .filter { node ->
+            node.nodeType == Node.ELEMENT_NODE && (name == null || node.nodeName == name)
+        }
+        .map { it as Element }
+
+private fun Element.requiredTranslations(
+    entryName: String,
+    requiredLocales: Set<String>,
+): Map<String, String> {
+    val translations = childElements("translation").associate { translation ->
+        translation.getAttribute("locale") to translation.textContent
+    }
+    require(translations.keys == requiredLocales) {
+        "$entryName must define exactly ${requiredLocales.joinToString()}"
+    }
+    return translations
+}
+
+private fun escapeXmlText(value: String): String = value
+    .replace("&", "&amp;")
+    .replace("<", "&lt;")
+    .replace(">", "&gt;")
+
+private fun decodeAndroidEscapes(value: String): String = value
+    .replace("\\n", "\n")
+    .replace("\\'", "'")
+    .replace("\\?", "?")
+
+private fun escapeJavaString(value: String): String = decodeAndroidEscapes(value)
+    .replace("\\", "\\\\")
+    .replace("\"", "\\\"")
+    .replace("\r", "\\r")
+    .replace("\n", "\\n")
+
+extension {
+    name = "extensions/gboard-patches.rve"
+}
+
+val quickJsPayloadSourceDir = layout.projectDirectory.dir("native-payload/arm64-v8a")
+val generatedQuickJsPayloadDir = layout.buildDirectory.dir(
+    "generated/source/quickJsPayload/java"
+)
+val settingsTextAuthority = layout.projectDirectory.file(
+    "src/main/settings-text/gboard_settings_text.xml"
+)
+val generatedSettingsTextResDir = layout.buildDirectory.dir(
+    "generated/settingsText/res"
+)
+val generatedSettingsTextJavaDir = layout.buildDirectory.dir(
+    "generated/source/settingsText/java"
+)
+val generatedLanFtpMessagesJavaDir = layout.buildDirectory.dir(
+    "generated/source/lanFtpMessages/java"
+)
+val generatedCustomThemeBindingsJavaDir = layout.buildDirectory.dir(
+    "generated/source/customThemeBindings/java"
+)
+val customThemeBindingsOverride = providers.gradleProperty("gboardReviewedBindingsFile")
+val customThemeBindingsAuthority = objects.fileProperty().apply {
+    set(rootProject.layout.projectDirectory.file(
+        "patches/src/main/resources/gboard/gboard-version-bindings.json"
+    ))
+    if (customThemeBindingsOverride.isPresent) {
+        set(layout.file(customThemeBindingsOverride.map { path -> file(path) }))
+    }
+}
+
+android {
+    namespace = "dev.jason.gboardpatches.extension"
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    defaultConfig {
+        buildConfigField("String", "PATCH_AUTHOR", "\"jasonwu1994\"")
+        buildConfigField("String", "PATCH_AUTHOR_URL", "\"https://github.com/jasonwu1994\"")
+        buildConfigField(
+            "String",
+            "PATCH_REPOSITORY_URL",
+            "\"https://github.com/jasonwu1994/Gboard-patches\""
+        )
+        buildConfigField("String", "PATCH_VERSION", "\"${project.version}\"")
+    }
+
+    sourceSets.named("main") {
+        java.directories.add(generatedQuickJsPayloadDir.get().asFile.absolutePath)
+        java.directories.add(generatedSettingsTextJavaDir.get().asFile.absolutePath)
+        java.directories.add(generatedLanFtpMessagesJavaDir.get().asFile.absolutePath)
+        java.directories.add(generatedCustomThemeBindingsJavaDir.get().asFile.absolutePath)
+        res.directories.add(generatedSettingsTextResDir.get().asFile.absolutePath)
+    }
+}
+
+dependencies {
+    implementation(libs.apache.ftpserver.core)
+    implementation(libs.apache.mina.core)
+    implementation(libs.hidden.api.bypass)
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
+}
+
+val generateQuickJsNativePayload = tasks.register("generateQuickJsNativePayload") {
+    val payloadFile = quickJsPayloadSourceDir.file("libgboardpatches_quickjs.so")
+    val outputFile = generatedQuickJsPayloadDir.map { directory ->
+        directory.file(
+            "dev/jason/gboardpatches/extension/toprowswipe/quickjs/QuickJsNgNativePayload.java"
+        )
+    }
+
+    inputs.file(payloadFile)
+    outputs.file(outputFile)
+
+    doLast {
+        val sourceFile = payloadFile.asFile
+        if (!sourceFile.exists()) {
+            throw GradleException("QuickJS payload not found: $sourceFile")
+        }
+
+        val bytes = sourceFile.readBytes()
+        val sha256 = MessageDigest.getInstance("SHA-256")
+            .digest(bytes)
+            .joinToString("") { value -> "%02x".format(value) }
+        val base64 = Base64.getEncoder().encodeToString(bytes)
+        val chunkSize = 8192
+        val chunks = buildList {
+            var index = 0
+            while (index < base64.length) {
+                add(base64.substring(index, minOf(index + chunkSize, base64.length)))
+                index += chunkSize
+            }
+        }
+
+        val renderedChunks = chunks.joinToString(",\n") { chunk ->
+            "            \"$chunk\""
+        }
+        val output = outputFile.get().asFile
+        output.parentFile.mkdirs()
+        output.writeText(
+            """
+            package dev.jason.gboardpatches.extension.toprowswipe.quickjs;
+
+            public final class QuickJsNgNativePayload {
+                private static final String ABI = "arm64-v8a";
+                private static final String LIBRARY_NAME = "libgboardpatches_quickjs.so";
+                private static final String SHA256 = "$sha256";
+                private static final String[] BASE64_CHUNKS = new String[] {
+$renderedChunks
+                };
+
+                private QuickJsNgNativePayload() {
+                }
+
+                public static String abi() {
+                    return ABI;
+                }
+
+                public static String libraryName() {
+                    return LIBRARY_NAME;
+                }
+
+                public static String sha256() {
+                    return SHA256;
+                }
+
+                public static String base64() {
+                    StringBuilder builder = new StringBuilder();
+                    for (String chunk : BASE64_CHUNKS) {
+                        builder.append(chunk);
+                    }
+                    return builder.toString();
+                }
+            }
+            """.trimIndent()
+        )
+    }
+}
+
+val generateSettingsText = tasks.register("generateSettingsText") {
+    inputs.file(settingsTextAuthority)
+    outputs.dir(generatedSettingsTextResDir)
+    outputs.dir(generatedSettingsTextJavaDir)
+
+    doLast {
+        val requiredLocales = linkedSetOf("en", "zh-Hant")
+        val documentBuilderFactory = DocumentBuilderFactory.newInstance().apply {
+            setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+            setFeature("http://xml.org/sax/features/external-general-entities", false)
+            setFeature("http://xml.org/sax/features/external-parameter-entities", false)
+            isExpandEntityReferences = false
+        }
+        val document = documentBuilderFactory.newDocumentBuilder()
+            .parse(settingsTextAuthority.asFile)
+        val root = document.documentElement
+        require(root.nodeName == "settings-text") {
+            "Settings text authority must use a <settings-text> root"
+        }
+        require(root.getAttribute("locales").split(Regex("\\s+")).toSet() == requiredLocales) {
+            "Settings text authority must declare exactly ${requiredLocales.joinToString()}"
+        }
+
+        val seenNames = linkedSetOf<String>()
+        val entries = root.childElements().map { entry ->
+            val type = entry.nodeName
+            require(type == "string" || type == "plurals") {
+                "Unsupported settings text type: $type"
+            }
+            val name = entry.getAttribute("name")
+            require(name.isNotBlank() && seenNames.add(name)) {
+                "Settings text names must be non-blank and unique: $name"
+            }
+            if (type == "string") {
+                LocalizedSettingsText(
+                    type = type,
+                    name = name,
+                    formatted = entry.getAttribute("formatted") != "false",
+                    translations = entry.requiredTranslations(name, requiredLocales),
+                    quantities = emptyList(),
+                )
+            } else {
+                val quantities = entry.childElements("item").map { item ->
+                    val quantity = item.getAttribute("quantity")
+                    require(quantity.isNotBlank()) { "$name has a plural item without quantity" }
+                    quantity to item.requiredTranslations("$name[$quantity]", requiredLocales)
+                }
+                require(quantities.isNotEmpty() && quantities.map { it.first }.distinct().size == quantities.size) {
+                    "$name must define unique plural quantities"
+                }
+                LocalizedSettingsText(
+                    type = type,
+                    name = name,
+                    formatted = true,
+                    translations = emptyMap(),
+                    quantities = quantities,
+                )
+            }
+        }
+        require(entries.isNotEmpty()) { "Settings text authority must not be empty" }
+
+        val resRoot = generatedSettingsTextResDir.get().asFile
+        mapOf("en" to "values", "zh-Hant" to "values-b+zh+Hant").forEach { (locale, qualifier) ->
+            val output = resRoot.resolve("$qualifier/gboard_settings_strings.xml")
+            output.parentFile.mkdirs()
+            output.writeText(buildString {
+                appendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
+                appendLine("<resources>")
+                entries.forEach { entry ->
+                    if (entry.type == "string") {
+                        append("    <string name=\"")
+                        append(entry.name)
+                        if (!entry.formatted) {
+                            append("\" formatted=\"false")
+                        }
+                        append("\">")
+                        append(escapeXmlText(entry.translations.getValue(locale)))
+                        appendLine("</string>")
+                    } else {
+                        append("    <plurals name=\"")
+                        append(entry.name)
+                        appendLine("\">")
+                        entry.quantities.forEach { (quantity, translations) ->
+                            append("        <item quantity=\"")
+                            append(quantity)
+                            append("\">")
+                            append(escapeXmlText(translations.getValue(locale)))
+                            appendLine("</item>")
+                        }
+                        appendLine("    </plurals>")
+                    }
+                }
+                appendLine("</resources>")
+            })
+        }
+
+        val stringEntries = entries.filter { it.type == "string" }
+        val pluralEntries = entries.filter { it.type == "plurals" }
+        val javaOutput = generatedSettingsTextJavaDir.get().asFile.resolve(
+            "dev/jason/gboardpatches/extension/settings/GboardSettingsTextCatalog.java"
+        )
+        javaOutput.parentFile.mkdirs()
+        javaOutput.writeText(buildString {
+            appendLine("package dev.jason.gboardpatches.extension.settings;")
+            appendLine()
+            appendLine("import java.util.HashMap;")
+            appendLine("import java.util.Map;")
+            appendLine()
+            appendLine("import dev.jason.gboardpatches.extension.R;")
+            appendLine()
+            appendLine("final class GboardSettingsTextCatalog {")
+            appendLine("    private static final Map<Integer, String> ENGLISH = createEnglish();")
+            appendLine("    private static final Map<Integer, String> TRADITIONAL_CHINESE =")
+            appendLine("            createTraditionalChinese();")
+            appendLine()
+            appendLine("    private GboardSettingsTextCatalog() {")
+            appendLine("    }")
+            appendLine()
+            appendLine("    static String template(int resId, String languageTag) {")
+            appendLine("        return \"zh-Hant\".equals(languageTag)")
+            appendLine("                ? TRADITIONAL_CHINESE.get(resId)")
+            appendLine("                : ENGLISH.get(resId);")
+            appendLine("    }")
+            appendLine()
+            appendLine("    static String quantityTemplate(int resId, String languageTag, int quantity) {")
+            pluralEntries.forEach { entry ->
+                val one = entry.quantities.firstOrNull { it.first == "one" }?.second
+                    ?: entry.quantities.first().second
+                val other = entry.quantities.firstOrNull { it.first == "other" }?.second
+                    ?: entry.quantities.last().second
+                append("        if (resId == R.plurals.")
+                append(entry.name)
+                appendLine(") {")
+                append("            return \"zh-Hant\".equals(languageTag) ? \"")
+                append(escapeJavaString(other.getValue("zh-Hant")))
+                append("\" : quantity == 1 ? \"")
+                append(escapeJavaString(one.getValue("en")))
+                append("\" : \"")
+                append(escapeJavaString(other.getValue("en")))
+                appendLine("\";")
+                appendLine("        }")
+            }
+            appendLine("        return null;")
+            appendLine("    }")
+            listOf(
+                "English" to "en",
+                "TraditionalChinese" to "zh-Hant",
+            ).forEach { (methodSuffix, locale) ->
+                appendLine()
+                append("    private static Map<Integer, String> create")
+                append(methodSuffix)
+                appendLine("() {")
+                appendLine("        Map<Integer, String> templates = new HashMap<Integer, String>();")
+                stringEntries.forEach { entry ->
+                    append("        templates.put(R.string.")
+                    append(entry.name)
+                    append(", \"")
+                    append(escapeJavaString(entry.translations.getValue(locale)))
+                    appendLine("\");")
+                }
+                appendLine("        return templates;")
+                appendLine("    }")
+            }
+            appendLine("}")
+        })
+    }
+}
+
+val generateLanFtpMessageResource = tasks.register("generateLanFtpMessageResource") {
+    val runtimeClasspath = configurations.named("releaseRuntimeClasspath")
+    val outputFile = generatedLanFtpMessagesJavaDir.map { directory ->
+        directory.file(
+            "dev/jason/gboardpatches/extension/lanftp/runtime/LanFtpMessageResource.java"
+        )
+    }
+    inputs.files(runtimeClasspath)
+    outputs.file(outputFile)
+
+    doLast {
+        val ftpServerJar = runtimeClasspath.get().files.singleOrNull { file ->
+            file.name.startsWith("ftpserver-core-") && file.extension == "jar"
+        } ?: throw GradleException("Apache FTPServer core dependency was not resolved exactly once")
+        val messages = Properties()
+        ZipFile(ftpServerJar).use { archive ->
+            val entry = archive.getEntry("org/apache/ftpserver/message/FtpStatus.properties")
+                ?: throw GradleException("Apache FTPServer status messages are missing")
+            archive.getInputStream(entry).use(messages::load)
+        }
+        val renderedMessages = messages.stringPropertyNames().sorted().joinToString("\n") { key ->
+            val value = messages.getProperty(key)
+            "        messages.put(\"${escapeJavaString(key)}\", " +
+                "\"${escapeJavaString(value)}\");"
+        }
+        val output = outputFile.get().asFile
+        output.parentFile.mkdirs()
+        output.writeText(
+            """
+            package dev.jason.gboardpatches.extension.lanftp.runtime;
+
+            import java.util.Collections;
+            import java.util.HashMap;
+            import java.util.List;
+            import java.util.Map;
+
+            import org.apache.ftpserver.message.MessageResource;
+
+            /** Message table embedded in dex because Morphe extensions carry classes, not JAR resources. */
+            public final class LanFtpMessageResource implements MessageResource {
+                private static final Map<String, String> MESSAGES = createMessages();
+
+                private LanFtpMessageResource() {
+                }
+
+                public static MessageResource create() {
+                    return new LanFtpMessageResource();
+                }
+
+                @Override
+                public List<String> getAvailableLanguages() {
+                    return Collections.emptyList();
+                }
+
+                @Override
+                public String getMessage(int code, String subId, String language) {
+                    String key = Integer.toString(code);
+                    if (subId != null) {
+                        String specific = MESSAGES.get(key + "." + subId);
+                        if (specific != null) {
+                            return specific;
+                        }
+                    }
+                    return MESSAGES.get(key);
+                }
+
+                @Override
+                public Map<String, String> getMessages(String language) {
+                    return MESSAGES;
+                }
+
+                private static Map<String, String> createMessages() {
+                    Map<String, String> messages = new HashMap<String, String>();
+$renderedMessages
+                    return Collections.unmodifiableMap(messages);
+                }
+            }
+            """.trimIndent()
+        )
+    }
+}
+
+val generateCustomThemeVersionBindings = tasks.register("generateCustomThemeVersionBindings") {
+    val outputFile = generatedCustomThemeBindingsJavaDir.map { directory ->
+        directory.file(
+            "dev/jason/gboardpatches/extension/customtheme/" +
+                "GboardCustomThemeVersionBindings.java"
+        )
+    }
+    inputs.file(customThemeBindingsAuthority)
+    outputs.file(outputFile)
+
+    doLast {
+        val authority = customThemeBindingsAuthority.get().asFile
+        @Suppress("UNCHECKED_CAST")
+        val profile = JsonSlurper().parse(authority) as Map<String, Any>
+        @Suppress("UNCHECKED_CAST")
+        val bindings = profile.getValue("bindings") as Map<String, Map<String, Any>>
+
+        fun binding(name: String, kind: String): Map<String, Any> =
+            bindings[name]?.also { value ->
+                require(value["kind"] == kind) { "$name must be a $kind binding" }
+            } ?: throw GradleException("Missing Custom Theme binding: $name")
+
+        fun binaryClass(binding: Map<String, Any>): String {
+            val descriptor = binding.getValue("class_type") as String
+            require(descriptor.startsWith("L") && descriptor.endsWith(";")) {
+                "Invalid Custom Theme class descriptor: $descriptor"
+            }
+            return descriptor.substring(1, descriptor.length - 1).replace('/', '.')
+        }
+
+        fun javaString(value: String): String = value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+
+        val plus = binding("custom_theme_plus_handler", "method")
+        @Suppress("UNCHECKED_CAST")
+        val plusParameters = plus.getValue("parameter_types") as List<String>
+        fun binaryDescriptor(descriptor: String): String {
+            require(descriptor.startsWith("L") && descriptor.endsWith(";")) {
+                "Invalid Custom Theme type descriptor: $descriptor"
+            }
+            return descriptor.substring(1, descriptor.length - 1).replace('/', '.')
+        }
+        val result = binding("custom_theme_result_handler", "method")
+        val fragmentPeer = binding("custom_theme_fragment_peer_field", "field")
+        val peerContext = binding("custom_theme_peer_context_field", "field")
+        val peerLauncher = binding("custom_theme_peer_launcher_field", "field")
+        val peerResult = binding("custom_theme_peer_result_handler", "method")
+        val launcherLaunch = binding("custom_theme_launcher_launch", "method")
+        val validator = binding("custom_theme_validator", "method")
+        fun parameters(binding: Map<String, Any>): List<String> {
+            @Suppress("UNCHECKED_CAST")
+            return binding.getValue("parameter_types") as List<String>
+        }
+        require(plusParameters.size == 3 && plusParameters[2] == "I" &&
+            plus["return_type"] == "V") {
+            "Custom Theme plus binding has an unexpected method shape"
+        }
+        val peerDescriptor = plusParameters[0]
+        require(fragmentPeer["class_type"] == result["class_type"] &&
+            fragmentPeer["field_type"] == peerDescriptor) {
+            "Custom Theme fragment peer binding is inconsistent with the patched handlers"
+        }
+        require(listOf(peerContext, peerLauncher, peerResult).all {
+            it["class_type"] == peerDescriptor
+        }) {
+            "Custom Theme peer bindings must share the plus-handler peer type"
+        }
+        require(peerContext["field_type"] == "Landroid/content/Context;" &&
+            peerLauncher["field_type"] == launcherLaunch["class_type"] &&
+            parameters(peerResult) == listOf("Landroid/content/Intent;") &&
+            peerResult["return_type"] == "V") {
+            "Custom Theme peer runtime binding shape is inconsistent"
+        }
+        require(parameters(result) == listOf("I", "I", "Landroid/content/Intent;") &&
+            result["return_type"] == "V" &&
+            parameters(launcherLaunch) == listOf(
+                "Landroid/content/Intent;", "I", "Landroid/os/Bundle;"
+            ) && launcherLaunch["return_type"] == "V") {
+            "Custom Theme result or launcher binding has an unexpected method shape"
+        }
+        require(parameters(validator) == listOf("Ljava/io/File;") &&
+            validator["return_type"] == "Z") {
+            "Custom Theme validator binding has an unexpected method shape"
+        }
+        val output = outputFile.get().asFile
+        output.parentFile.mkdirs()
+        output.writeText(
+            """
+            package dev.jason.gboardpatches.extension.customtheme;
+
+            /** Generated from the reviewed Gboard target binding profile. */
+            final class GboardCustomThemeVersionBindings {
+                static final String TARGET_VERSION = "${javaString(profile.getValue("target_version") as String)}";
+                static final String PLUS_CLASS = "${javaString(binaryClass(plus))}";
+                static final String PLUS_METHOD = "${javaString(plus.getValue("method_name") as String)}";
+                static final String ADAPTER_CLASS = "${javaString(binaryDescriptor(plusParameters[1]))}";
+                static final String RESULT_CLASS = "${javaString(binaryClass(result))}";
+                static final String RESULT_METHOD = "${javaString(result.getValue("method_name") as String)}";
+                static final String FRAGMENT_PEER_FIELD = "${javaString(fragmentPeer.getValue("field_name") as String)}";
+                static final String PEER_CLASS = "${javaString(binaryClass(peerContext))}";
+                static final String PEER_CONTEXT_FIELD = "${javaString(peerContext.getValue("field_name") as String)}";
+                static final String PEER_LAUNCHER_FIELD = "${javaString(peerLauncher.getValue("field_name") as String)}";
+                static final String PEER_RESULT_METHOD = "${javaString(peerResult.getValue("method_name") as String)}";
+                static final String LAUNCHER_CLASS = "${javaString(binaryClass(launcherLaunch))}";
+                static final String LAUNCHER_METHOD = "${javaString(launcherLaunch.getValue("method_name") as String)}";
+                static final String VALIDATOR_CLASS = "${javaString(binaryClass(validator))}";
+                static final String VALIDATOR_METHOD = "${javaString(validator.getValue("method_name") as String)}";
+
+                private GboardCustomThemeVersionBindings() {
+                }
+            }
+            """.trimIndent()
+        )
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn(generateQuickJsNativePayload)
+    dependsOn(generateSettingsText)
+    dependsOn(generateLanFtpMessageResource)
+    dependsOn(generateCustomThemeVersionBindings)
+}
+
+tasks.named("syncExtension") {
+    doLast {
+        val extensionDex = layout.buildDirectory.file(
+            "morphe/extensions/gboard-patches.rve"
+        ).get().asFile
+        check(extensionDex.isFile) {
+            "Morphe extension dex was not generated: $extensionDex"
+        }
+        val dexText = String(extensionDex.readBytes(), StandardCharsets.ISO_8859_1)
+        val requiredLanFtpTypes = listOf(
+            "Ldev/jason/gboardpatches/extension/lanftp/android/LanFtpServerConfigSnapshot;",
+            "Ldev/jason/gboardpatches/extension/lanftp/android/LanFtpServerState;",
+            "Ldev/jason/gboardpatches/extension/lanftp/runtime/LanFtpServerConfig;",
+            "Ldev/jason/gboardpatches/extension/lanftp/runtime/LanFtpSessionInfo;",
+        )
+        requiredLanFtpTypes.forEach { descriptor ->
+            check(dexText.contains(descriptor)) {
+                "Morphe extension dex is missing required LAN FTP type: $descriptor"
+            }
+        }
+        check(!dexText.contains("Lcom/android/tools/r8/RecordTag;")) {
+            "Morphe extension dex contains record classes without the required D8 global synthetic"
+        }
+        val ftpServerJar = configurations.getByName("releaseRuntimeClasspath").files
+            .singleOrNull { file ->
+                file.name.startsWith("ftpserver-core-") && file.extension == "jar"
+            } ?: throw GradleException(
+                "Apache FTPServer core dependency was not resolved exactly once"
+            )
+        val messageOutput = layout.buildDirectory.file(
+            "morphe/lan-ftp-res/FtpStatus.properties"
+        ).get().asFile
+        messageOutput.parentFile.mkdirs()
+        ZipFile(ftpServerJar).use { archive ->
+            val entry = archive.getEntry("org/apache/ftpserver/message/FtpStatus.properties")
+                ?: throw GradleException("Apache FTPServer status messages are missing")
+            archive.getInputStream(entry).use { input ->
+                messageOutput.outputStream().use(input::copyTo)
+            }
+        }
+    }
+}

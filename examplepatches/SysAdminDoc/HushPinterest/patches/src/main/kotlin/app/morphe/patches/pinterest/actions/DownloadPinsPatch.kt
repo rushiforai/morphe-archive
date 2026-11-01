@@ -105,6 +105,8 @@ val downloadPinsPatch = bytecodePatch(
         "download folder to choose any folder inside Pictures, DCIM, Download or Documents. Starts off. " +
         "Copy image puts an image pin's full-size picture on the clipboard, and Share image sends it through " +
         "Android's share menu. Each has its own switch, also off. " +
+        "Save pins you download also saves a pin you download to your profile, and Download pins you save " +
+        "also downloads a pin you save. Those two start off as well. " +
         "Turn them on in HushPinterest settings > Pin actions.",
 ) {
     category("Downloads")
@@ -115,6 +117,7 @@ val downloadPinsPatch = bytecodePatch(
         requireStatusMethod("pinDownloads")
         requireStatusMethod("copyImage")
         requireStatusMethod("shareImage")
+        requireStatusMethod("saveAndDownload")
         val menu = pinMenu()
         val pin = pinType()
         val viewField = menu.fields.singleOrNull { it.name == "modalView" }
@@ -198,6 +201,7 @@ val downloadPinsPatch = bytecodePatch(
             throw PatchException("$PATCH: missing extension hook nativeRow")
         }
         val sheet = pinSheet(pin)?.let { sheetHooks(it, icon) }
+        val saves = saveRoute(pin)
         val bridgeNames = listOf("hushDownloadPin", "hushDownloadMenu", "hushDownloadOrigin", "hushDownloadCloseup", "hushDismissDownload")
         if (menu.methods.any { it.name in bridgeNames }) throw PatchException("$PATCH: download bridges already exist")
         // Resolve every host dependency and verify all stubs before changing host code.
@@ -292,6 +296,10 @@ val downloadPinsPatch = bytecodePatch(
         create.addInstructions(assignment + 1, "invoke-static/range { p0 .. p0 }, $DOWNLOADS->attach(Ljava/lang/Object;)V")
         sheet?.let { installSheet(it) }
         enableCapability("pinDownloads")
+        saves?.let {
+            installSaveRoute(it)
+            enableCapability("saveAndDownload")
+        }
         // Copy image and Share image are the extension's own rows in the menu Download pins hooks, so they
         // come in with that hook.
         enableCapability("copyImage")

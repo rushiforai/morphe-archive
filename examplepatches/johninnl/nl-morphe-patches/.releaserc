@@ -1,0 +1,122 @@
+{
+  "branches": [
+    "main",
+    {
+      "name": "dev",
+      "prerelease": "dev",
+      "channel": "dev"
+    }
+  ],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "releaseRules": [
+          {
+            "type": "fix",
+            "release": "patch"
+          },
+          {
+            "type": "feat",
+            "release": "minor"
+          },
+          {
+            "type": "bump",
+            "release": "patch"
+          },
+          {
+            "type": "perf",
+            "release": "patch"
+          },
+          {
+            "type": "build",
+            "scope": "Needs bump",
+            "release": "patch"
+          }
+        ]
+      }
+    ],
+    [
+      "./.github/scripts/branded_release_notes.cjs",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "types": [
+            {
+              "type": "fix",
+              "section": "\ud83d\udc1b Bug Fixes",
+              "hidden": false
+            },
+            {
+              "type": "feat",
+              "section": "\u2728 New Features",
+              "hidden": false
+            },
+            {
+              "type": "bump",
+              "section": "\ud83d\ude80 Updated App Support",
+              "hidden": false
+            },
+            {
+              "type": "perf",
+              "section": "\ud83d\udd27 Improvements",
+              "hidden": false
+            },
+            {
+              "type": "build",
+              "hidden": true
+            }
+          ]
+        }
+      }
+    ],
+    [
+      "./.github/scripts/public_changelog.cjs",
+      {
+        "releaseJson": {
+          "path": "patches-bundle.json",
+          "downloadUrlTemplate": "https://github.com/${owner}/${repo}/releases/download/v${version}/patches-${version}.mpp",
+          "signatureUrlTemplate": "",
+          "publicKeyPath": "morphe-signing.pub"
+        }
+      }
+    ],
+    "./.github/scripts/verify_release_notes.cjs",
+    "gradle-semantic-release-plugin",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "./gradlew generatePatchesList && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY patches-list.json README.md && python3 scripts/generate_docs_catalog.py"
+      }
+    ],
+    "./.github/scripts/verify_identity.cjs",
+    [
+      "./.github/scripts/public_git.cjs",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "gradle.properties",
+          "patches-bundle.json",
+          "patches-list.json",
+          "README.md",
+          "docs/site/en/index.md",
+          "docs/site/nl/index.md",
+          "docs/site/en/reference/catalogue.md",
+          "docs/site/nl/reference/catalogue.md"
+        ],
+        "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    [
+      "./.github/scripts/public_github.cjs",
+      {
+        "assets": [
+          {
+            "path": "patches/build/libs/patches-!(*sources*|*javadoc*).mpp?(.asc)"
+          }
+        ],
+        "successComment": false
+      }
+    ]
+  ]
+}

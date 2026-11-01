@@ -93,26 +93,63 @@ public final class PdbTools {
      *     deliberately do not fake from injected code).</li>
      * </ol>
      */
+    /**
+     * Opens the conversation with {@code userId}, off the main thread.
+     *
+     * <p>Blocking lesson (live ANR on the ZTE): the IM store is written by the
+     * app's Messenger sync; a synchronous lookup on the UI thread stalls while
+     * that sync holds the DB, and the deep-linked activity then never gains a
+     * window — blank screen, "input dispatching timed out" ANR, dead feel.
+     * Everything here runs on a worker with a hard timeout, and only the final
+     * {@code startActivity} hops back to the main looper.
+     *
+     * <p>Fallback ladder: existing channel → the real chat
+     * ({@code pdb://pdb.app/chat/{type}:{id}} — the router reads the first PATH
+     * segment, so the host form is mandatory); user IM-cached but no channel →
+     * the profile ({@code pdb://pdb.app/u/{id}}); neither → stay put with a
+     * toast. Linking to a profile the app has never cached opens the blank
+     * hang above, so we never do that.
+     */
     public static void openChat(Context ctx, String userId) {
-        try {
-            if (userId == null || userId.trim().isEmpty()) {
-                toast(ctx, "No profile id");
-                return;
-            }
-            String[] ch = PdbDatabase.channelForUser(ctx, userId.trim());
-            // The app's router (u8c.R) reads the FIRST PATH SEGMENT, so the
-            // link needs a host: pdb://pdb.app/chat/{type}:{id}. Host-less
-            // forms (pdb://chat/...) put the route in the URI authority and
-            // fall through to the router's blank fallback — the "dead button".
-            // Verified on device: pdb://pdb.app/u/{id} opens the profile.
-            String link = (ch != null)
-                ? "pdb://pdb.app/chat/" + ch[0] + ":" + ch[1]
-                : "pdb://pdb.app/u/" + userId.trim();
-            PdbNav.openLink(ctx, link);
-        } catch (Throwable t) {
-            toast(ctx, "Chat failed: " + t);
+        final String id = userId == null ? null : userId.trim();
+        if (id == null || id.isEmpty()) {
+            toast(ctx, "No profile id");
+            return;
         }
+        final Context app = ctx.getApplicationContext();
+        EXECUTOR.execute(new Runnable() {
+            @Override public void run() {
+                String link = null;
+                try {
+                    java.util.concurrent.Future<String> f = EXECUTOR.submit(() -> {
+                        String[] ch = PdbDatabase.channelForUser(app, id);
+                        if (ch != null) return "pdb://pdb.app/chat/" + ch[0] + ":" + ch[1];
+                        if (PdbDatabase.userExists(app, id)) return "pdb://pdb.app/u/" + id;
+                        return null;
+                    });
+                    link = f.get(800, java.util.concurrent.TimeUnit.MILLISECONDS);
+                } catch (Throwable t) {
+                    link = null; // timeout/DB error → treat as "no conversation"
+                }
+                final String deepLink = link;
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    if (deepLink != null) {
+                        PdbNav.openLink(app, deepLink);
+                    } else {
+                        toast(app, "No conversation yet");
+                    }
+                });
+            }
+        });
     }
+
+    /** One worker for every DB-touching extension action; never the UI thread. */
+    private static final java.util.concurrent.ExecutorService EXECUTOR =
+        java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "morphe-pdb-worker");
+            t.setDaemon(true);
+            return t;
+        });
 
     public static void copyToClipboard(Context ctx, String text) {
         try {

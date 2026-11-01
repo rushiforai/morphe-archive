@@ -546,6 +546,8 @@ public final class FeatureDexFixture {
 
     private static final String INFO = "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;";
     private static final String ADVERTISING = BASE + "privacy/AdvertisingId;";
+    private static final String HIDDEN_ACTIVITY = "Landroidx/credentials/playservices/HiddenActivity;";
+    private static final String SIGN_IN_READINESS = BASE + "settings/GoogleSignInReadiness;";
     private static final String STORE = "Lfixture/BlockStore;";
     private static final String CONTINUATION = "Lfixture/Continuation;";
 
@@ -554,6 +556,22 @@ public final class FeatureDexFixture {
         return List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
                 new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference("Lcom/google/android/gms/auth/blockstore/" + request)),
                 new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+    }
+
+    /** androidx's failure listener for the Sign in with Google request, with GmsCore support's hook unless clean. */
+    private static void signInFailure(Map<String, List<Method>> classes, String variant) {
+        Instruction hook = invoke(Opcode.INVOKE_STATIC, ref(SIGN_IN_READINESS, "requestFailed", VOID, "Ljava/lang/Exception;"),
+                variant.equals("wrong-argument") ? 1 : 2);
+        List<Instruction> body = new ArrayList<>();
+        if (variant.equals("good") || variant.equals("wrong-argument") || variant.equals("false-capability")) body.add(hook);
+        body.add(literal("During get sign-in intent, failure response from one tap: ", 0));
+        if (variant.equals("late")) body.add(hook);
+        body.add(end());
+        classes.put(HIDDEN_ACTIVITY, List.of(method(HIDDEN_ACTIVITY, "handleGetSignInIntent$lambda$6$lambda$5", VOID, true, 3, body,
+                HIDDEN_ACTIVITY, "Ljava/lang/Exception;")));
+        if (variant.equals("clean")) return;
+        classes.put(SIGN_IN_READINESS, List.of(method(SIGN_IN_READINESS, "requestFailed", VOID, true, 2,
+                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()), "Ljava/lang/Exception;")));
     }
 
     /** Google's advertising ID getters and a Block Store wrapper, with Hide advertising ID's hooks unless clean. */
@@ -864,11 +882,22 @@ public final class FeatureDexFixture {
             reset(); enable("hideAdvertisingId");
             if (variant.equals("false-capability")) FLAGS.put("browserId", false);
             boolean gmsCore = variant.equals("gmscore-renamed") || variant.equals("gmscore-other-package");
-            if (gmsCore) enable("gmsCoreSupport");
+            // This fixture has no sign-in listener, so that capability has nothing to claim here.
+            if (gmsCore) { enable("gmsCoreSupport"); FLAGS.put("signInFailure", false); }
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             browserId(classes, variant);
             write(root, "feature-browser-id-" + variant, classes, true,
                     gmsCore ? new String[]{"hideAdvertisingId", "gmsCoreSupport"} : new String[]{"hideAdvertisingId"});
+        }
+        Map<String, List<Method>> signInClean = new LinkedHashMap<>(clean);
+        signInFailure(signInClean, "clean");
+        write(root, "feature-sign-in-failure-clean", signInClean, false);
+        for (String variant : List.of("good", "missing", "late", "wrong-argument", "false-capability")) {
+            reset(); enable("gmsCoreSupport");
+            if (variant.equals("false-capability")) FLAGS.put("signInFailure", false);
+            Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
+            signInFailure(classes, variant);
+            write(root, "feature-sign-in-failure-" + variant, classes, true, "gmsCoreSupport");
         }
         reset();
         write(root, "feature-status-copy", new LinkedHashMap<>(Map.of(STATUS, settings.get(STATUS))), false);
@@ -919,6 +948,8 @@ public final class FeatureDexFixture {
             for (String family : selected) enable(family);
             FLAGS.put("adViews", false);
             FLAGS.put("googleAds", false);
+            // These synthetic targets have no Home request, so Hide pins you've already saved stays out.
+            FLAGS.put("feedSavedPins", false);
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             feed(classes, variant);
             write(root, "feature-feed-" + variant, classes, true, selected);

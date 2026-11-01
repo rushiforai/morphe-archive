@@ -24,22 +24,6 @@ private val myspotiStable = Compatibility(
     targets = listOf(AppTarget(version = null)),
 )
 
-private val myspotiDev = Compatibility(
-    name = "MySpoti dev",
-    packageName = "app.myspoti.dev",
-    apkFileType = ApkFileType.APK,
-    appIconColor = 0x1ED760,
-    targets = listOf(AppTarget(version = null)),
-)
-
-private val myspotiStableDev = Compatibility(
-    name = "MySpoti stable dev",
-    packageName = "app.myspoti.stable.dev",
-    apkFileType = ApkFileType.APK,
-    appIconColor = 0x1ED760,
-    targets = listOf(AppTarget(version = null)),
-)
-
 private const val SPOTIFY_MARK_PATH = """M70.563,50.822C61.537,45.462 46.65,44.97 38.034,47.585C36.65,48.005 35.187,47.223 34.768,45.84C34.348,44.455 35.129,42.993 36.513,42.573C46.404,39.57 62.846,40.15 73.236,46.318C74.481,47.057 74.889,48.664 74.151,49.907C73.413,51.151 71.804,51.561 70.563,50.822ZM70.267,58.761C69.634,59.789 68.29,60.111 67.264,59.48C59.74,54.855 48.266,53.515 39.363,56.217C38.209,56.566 36.99,55.915 36.639,54.763C36.291,53.609 36.942,52.391 38.095,52.041C48.264,48.954 60.907,50.449 69.549,55.76C70.575,56.392 70.898,57.736 70.267,58.761ZM66.841,66.386C66.338,67.211 65.264,67.469 64.441,66.966C57.866,62.948 49.59,62.04 39.844,64.267C38.905,64.482 37.969,63.893 37.755,62.955C37.539,62.015 38.126,61.079 39.067,60.865C49.733,58.427 58.882,59.476 66.262,63.986C67.085,64.488 67.344,65.563 66.841,66.386ZM54,26C38.536,26 26,38.536 26,53.999C26,69.465 38.536,82 54,82C69.464,82 82,69.465 82,53.999C82,38.536 69.464,26 54,26L54,26Z"""
 
 private val spotifyForeground = """
@@ -102,7 +86,7 @@ val spotifyBrandingPatch = resourcePatch(
     description = "Renames MySpoti to Spotify and replaces every launcher, themed, supporter-preview, splash, widget, and notification mark with Spotify branding.",
     default = true,
 ) {
-    compatibleWith(myspotiBeta, myspotiStable, myspotiDev, myspotiStableDev)
+    compatibleWith(myspotiBeta, myspotiStable)
 
     execute {
         document("AndroidManifest.xml").use { manifest ->

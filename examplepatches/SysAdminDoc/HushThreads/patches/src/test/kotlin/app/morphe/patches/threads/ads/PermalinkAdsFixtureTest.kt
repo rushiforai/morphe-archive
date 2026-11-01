@@ -42,6 +42,20 @@ import java.io.File
 class PermalinkAdsFixtureTest {
     private val feedAds = "$EXTENSION_PACKAGE/ads/FeedAds;"
     private val useCase = "Lcom/instagram/barcelona/permalink/adsusecase/PermalinkAdsUseCase;"
+    /** The result type each 453 build makes, by version code. */
+    private val adResults = mapOf(
+        "512308671" to "LX/4y1;",
+        "512308673" to "LX/4y1;",
+        "512308675" to "LX/4y1;",
+        "512308676" to "LX/05Br;",
+        "512308685" to "LX/04ZY;",
+        "512308686" to "LX/4Zv;",
+        "512308688" to "LX/4Zv;",
+        "512308695" to "LX/05Cv;",
+        "512308696" to "LX/4y1;",
+        "512308697" to "LX/05Br;",
+        "512308698" to "LX/4y1;",
+    )
 
     @Test
     fun `each declared build builds the opened post's ad result once and the patch filters its list`() {
@@ -54,11 +68,12 @@ class PermalinkAdsFixtureTest {
             val body = stock.single().instructions()
             val at = stock.single().permalinkAdResult()
 
-            // Read off 452 apart from the patch: the loop adds each ad it reads to v4, the size of what
-            // the server sent is read at 108 and 109, and 6Mi is made from both at 110 and 111.
-            assertEquals(where, 110, at.index)
-            assertEquals(where, 4, at.list)
-            assertEquals(where, "LX/6Mi;", at.result)
+            // Read off each 453 build apart from the patch: the loop adds each ad it reads to v6, the
+            // size of what the server sent is read at 115 and 116, and the result is made at 117 and 118.
+            val expectedResult = adResults.entries.single { build.name.contains("-${it.key}.") }.value
+            assertEquals(where, 117, at.index)
+            assertEquals(where, 6, at.list)
+            assertEquals(where, expectedResult, at.result)
             assertTrue("$where: the loop adds each ad to v${at.list}", body.any {
                 it.opcode == Opcode.INVOKE_VIRTUAL && it.referenceText() == "Ljava/util/AbstractCollection;->add(Ljava/lang/Object;)Z" &&
                     (it as FiveRegisterInstruction).registerC == at.list

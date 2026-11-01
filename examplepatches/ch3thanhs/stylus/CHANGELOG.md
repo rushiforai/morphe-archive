@@ -1,3 +1,15 @@
+## [1.8.3](https://github.com/ch3thanhs/stylus/compare/v1.8.2...v1.8.3) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **font:** decode resources before listing them for patcher 2.x ([ab344d0](https://github.com/ch3thanhs/stylus/commit/ab344d04a152d9f43cbedb7f542e39486d31fb36))
+
+## [1.8.3-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.8.2...v1.8.3-dev.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **font:** decode resources before listing them for patcher 2.x ([ab344d0](https://github.com/ch3thanhs/stylus/commit/ab344d04a152d9f43cbedb7f542e39486d31fb36))
+
 ## [1.8.2](https://github.com/ch3thanhs/stylus/compare/v1.8.1...v1.8.2) (2026-10-30)
 
 ### 🚀 Updated App Support

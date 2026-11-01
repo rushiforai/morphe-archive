@@ -185,7 +185,7 @@ android {
     namespace = "app.hushtumblr.extension.tumblr"
 
     defaultConfig {
-        // Tumblr 46.8.1.100 declares API 26, and the settings manifest patch holds the patched
+        // Tumblr 46.9.1.100 declares API 26, and the settings manifest patch holds the patched
         // APK to at least this floor.
         minSdk = 26
     }

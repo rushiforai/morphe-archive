@@ -14,24 +14,37 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.extension.enableStatus
 import app.morphe.patches.threads.misc.extension.requireLocals
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.threads.misc.settings.settingsPatch
+import app.morphe.util.getFreeRegisterProvider
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val PACKAGE_INFO = "Landroid/content/pm/PackageInfo;"
 
 private const val ORIGINAL_SIGNERS = "Lapp/morphe/extension/hushthreads/misc/ThreadsSignature;->" +
     "originalSigners(Landroid/content/pm/PackageInfo;)Ljava/util/List;"
 
+private const val OPEN_REFUSED_TILE = "Lapp/morphe/extension/hushthreads/coexist/ShareTiles;->" +
+    "openRefused(ZLandroid/content/Context;Landroid/content/Intent;)V"
+
 @Suppress("unused")
 val restoreTrustPatch = bytecodePatch(
     name = "Restore screens on re-signed builds",
     description = "Fixes Threads screens that fail on a patched app because they check who signed it. Also lets " +
-        "Threads share sign-in with an Instagram signed with this build's key. Works as soon as you patch" +
-        " it in, with no switch.",
+        "Threads share sign-in with an Instagram signed with this build's key, and makes the share sheet's tiles " +
+        "open patched Meta apps. Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Fixes")
@@ -61,9 +74,49 @@ val restoreTrustPatch = bytecodePatch(
 
         // FBNS's own check (#6) is fbnsSignersPatch, which every build carries through the settings patch.
         method.answerOriginalSigners(packageInfo, signers)
+        ShareTileLaunchFingerprint.method.openRefusedShareTiles()
 
         enableStatus("restoreTrust")
     }
+}
+
+/**
+ * Threads' launcher starts an app only if it carries Meta's signature and answers false otherwise,
+ * and every tile drops that answer, so a tap on a patched Messenger does nothing (#16). Each launch
+ * hands its answer to the extension along with the context and intent it was given, using a register
+ * nothing reads again. The launcher's check itself stays, since the rest of Threads relies on it.
+ */
+internal fun MutableMethod.openRefusedShareTiles() {
+    val body = instructions.toList()
+    val launches = body.indices.filter { body[it].isTileLaunch() }
+    val composer = body.indexOfFirst {
+        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == SHARE_TILE_COMPOSER_EXTRA
+    }
+    if (launches.none { it > composer }) {
+        throw PatchException("Restore screens on re-signed builds: no launch after Messenger's tile sets up its intent")
+    }
+    for (at in launches.asReversed()) {
+        val call = body[at] as FiveRegisterInstruction
+        if (body[at + 1].opcode == Opcode.MOVE_RESULT) {
+            throw PatchException("Restore screens on re-signed builds: the launch at $at already reads its answer")
+        }
+        val free = getFreeRegisterProvider(at + 1, 1, call.registerD, call.registerE).getFreeRegister4Bit()
+        addInstructions(
+            at + 1,
+            """
+                move-result v$free
+                invoke-static { v$free, v${call.registerD}, v${call.registerE} }, $OPEN_REFUSED_TILE
+            """,
+        )
+    }
+}
+
+/** A launcher call: an instance method taking a context and an intent and answering whether it started anything. */
+private fun Instruction.isTileLaunch(): Boolean {
+    if (opcode != Opcode.INVOKE_VIRTUAL) return false
+    val called = (this as ReferenceInstruction).reference as MethodReference
+    return called.returnType == "Z" &&
+        called.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;", "Landroid/content/Intent;")
 }
 
 /**

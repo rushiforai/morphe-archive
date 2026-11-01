@@ -37,7 +37,7 @@ final class PushReadiness implements LogBufferManager.ReportSection {
     static final PushReadiness REPORT = new PushReadiness();
     private static final String MESSAGING = "com.google.firebase.MESSAGING_EVENT";
     private static final String RECEIVE = "com.google.android.c2dm.intent.RECEIVE";
-    private static final String GMS_CORE = "app.revanced.android.gms";
+    static final String GMS_CORE = "app.revanced.android.gms";
     private static final String GMS_CORE_RECEIVE = "app.revanced.android.c2dm.intent.RECEIVE";
 
     /** Overrides the GmsCore support flag for tests. Null reads the flag injected when patching. */

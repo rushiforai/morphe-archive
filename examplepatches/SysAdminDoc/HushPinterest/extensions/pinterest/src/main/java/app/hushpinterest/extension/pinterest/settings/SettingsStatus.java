@@ -43,6 +43,7 @@ public final class SettingsStatus {
     public static boolean filterFeed() { return false; }
     public static boolean feedVideoPins() { return false; }
     public static boolean feedMutedWords() { return false; }
+    public static boolean feedSavedPins() { return false; }
     public static boolean keepHomeFeed() { return false; }
     public static boolean homeFeed() { return false; }
     public static boolean disableAnalytics() { return false; }
@@ -57,10 +58,12 @@ public final class SettingsStatus {
     public static boolean removeAdTrackingPermissions() { return false; }
     public static boolean spoofSignature() { return false; }
     public static boolean gmsCoreSupport() { return false; }
+    public static boolean signInFailure() { return false; }
     public static boolean downloadPins() { return false; }
     public static boolean pinDownloads() { return false; }
     public static boolean copyImage() { return false; }
     public static boolean shareImage() { return false; }
+    public static boolean saveAndDownload() { return false; }
     public static boolean downloadBoard() { return false; }
     public static boolean boardMenu() { return false; }
     public static boolean boardPins() { return false; }
@@ -72,6 +75,8 @@ public final class SettingsStatus {
     public static boolean systemShare() { return false; }
     public static boolean pinShare() { return false; }
     public static boolean hideScreenshotShare() { return false; }
+    public static boolean hideAssistant() { return false; }
+    public static boolean assistantEntries() { return false; }
     public static boolean screenshotShare() { return false; }
     public static boolean hideSearchHistory() { return false; }
     public static boolean searchHistory() { return false; }

@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PerBuild
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -497,6 +498,6 @@ class ThreadsLogoFixtureTest {
     private companion object {
         const val STRING = "Ljava/lang/String;"
         const val SINGLETON_LIST = "Ljava/util/Collections;->singletonList(Ljava/lang/Object;)Ljava/util/List;"
-        val fixtures = HashMap<File, Fixture>()
+        val fixtures = PerBuild<Fixture>()
     }
 }

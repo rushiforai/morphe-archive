@@ -42,8 +42,8 @@ class TrustUserCertificatesFixtureTest {
             assertEquals("${build.name}: a second run adds nothing", 1, trustUserCertificates(config))
             assertEquals(patched, FixtureResources.elements(config))
         }
-        val declaredVersions = AppCompatibilities.threads().single().targets.mapNotNull { it.version }.distinct().size
-        assertEquals("one build of each declared version", declaredVersions, builds.size)
+        val declaredBuilds = AppCompatibilities.THREADS_TARGET_VERSION_CODES.size
+        assertEquals("one build of each declared version and ABI", declaredBuilds, builds.size)
 
         val other = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse("<shortcuts/>".byteInputStream())
         val refused = runCatching { trustUserCertificates(other) }.exceptionOrNull()

@@ -481,6 +481,8 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushtumblr_skip_review_prompts": return L10n.t("Skip review prompts");
             case "hushtumblr_hide_blog_notification_reminders": return L10n.t("Hide blog notification reminders");
             case "hushtumblr_hide_gift_message_popups": return L10n.t("Hide gift purchase popups");
+            case "hushtumblr_line_between_posts": return L10n.t("Line between posts");
+            case "hushtumblr_app_font": return L10n.t("App font");
             case "hushtumblr_turn_off_screenshot_sharing": return L10n.t("Turn off screenshot sharing");
             case "hushtumblr_disable_update_prompts": return L10n.t("Disable update prompts");
             case "hushtumblr_hide_suggested_blogs": return L10n.t("Hide suggested blogs");
@@ -524,6 +526,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushtumblr_hide_posts_with_words": return L10n.t("Hide posts with these words");
             case "hushtumblr_hide_filtered_posts": return L10n.t("Hide filtered posts");
             case "hushtumblr_dark_background": return L10n.t("Dark background color");
+            case "hushtumblr_dark_background_wallpaper": return L10n.t("Match my wallpaper");
             case "hushtumblr_hide_explore_tab": return L10n.t("Hide the Explore tab");
             case "hushtumblr_hide_notifications_tab": return L10n.t("Hide the Notifications tab");
             case "hushtumblr_reorder_tabs": return L10n.t("Reorder the bottom bar");

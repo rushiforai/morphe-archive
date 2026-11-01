@@ -45,6 +45,10 @@ public final class UiHooks {
         return enabled(FamilyNames.HIDE_SCREENSHOT_SHARE, Settings.HIDE_SCREENSHOT_SHARE);
     }
 
+    public static boolean hideAssistant() {
+        return enabled(FamilyNames.HIDE_ASSISTANT, Settings.HIDE_ASSISTANT);
+    }
+
     public static boolean quietEmailReminder() {
         return enabled(FamilyNames.QUIET_EMAIL_REMINDER, Settings.QUIET_EMAIL_REMINDER);
     }

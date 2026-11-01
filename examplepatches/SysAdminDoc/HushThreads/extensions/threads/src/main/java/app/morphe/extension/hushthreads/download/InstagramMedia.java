@@ -98,4 +98,34 @@ public final class InstagramMedia {
     public static int candidateHeight(Object candidate) {
         return 0;
     }
+
+    /** A Media's {@code text_post_app_info}: what a Threads post carries besides its own media. */
+    public static Object textPostInfo(Object media) {
+        return null;
+    }
+
+    /** That info's {@code linked_inline_media}: the Instagram post the Threads post plays in its body. */
+    public static Object linkedInlineMedia(Object info) {
+        return null;
+    }
+
+    /** That info's {@code share_info}: the post this one attaches, reposts or quotes. */
+    public static Object shareInfo(Object info) {
+        return null;
+    }
+
+    /** A share info's {@code quoted_attachment_post}: the post whose media this one shows as its own. */
+    public static Object quotedAttachmentPost(Object share) {
+        return null;
+    }
+
+    /** A share info's {@code reposted_post}: the post this one reposts. */
+    public static Object repostedPost(Object share) {
+        return null;
+    }
+
+    /** A share info's {@code quoted_post}: the post this one quotes. */
+    public static Object quotedPost(Object share) {
+        return null;
+    }
 }

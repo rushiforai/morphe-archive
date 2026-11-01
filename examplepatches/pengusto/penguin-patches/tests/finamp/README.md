@@ -39,27 +39,25 @@ or included in the MPP.
 Use Flutter 3.47.2 framework `d3b14c876900e553bc736ca19295fc09e3853e8e`,
 engine `a804b261645ef8c13eb3d5c44a5c2fb0340c5539`, Dart 3.13.2, Android
 NDK `llvm-strip`, and a Python environment with `bsdiff4==1.2.6`.
-The 192 historical mask branches were removed from `pengusto/finamp` on
-2026-10-30. The maintainer subsequently chose to delete the local Git backup
-and discontinue preservation of these old combinations. No replacement source
-repository or downloadable source backup is provided.
+The 192 historical per-mask branches and a dedicated local backup were removed
+on 2026-10-30. For this update, a remaining local checkout supplied the exact
+recorded source trees. Their new public
+[aggregate source ref](https://github.com/pengusto/finamp/tree/penguin/finamp-1.0.1-asyncvalue-bundle)
+has 128 parents, one complete source commit per selection in mask order. This
+uses one reference rather than recreating the removed per-mask branches.
 
-During the 2026-10-31 review, an independent local Finamp work checkout still
-contained all 128 pinned commits. This is not a published source repository or
-a durable availability guarantee; verify the tree pins before using any copy.
+Clone the ref into `FINAMP_SOURCE`, then verify its graph and every tree pin:
 
-The commit/tree pins and historical `branch` fields in `native-sources.json`
-remain as provenance records. They do not guarantee that the source objects are
-still retrievable from GitHub. Exact source rebuilds of the old combinations
-are no longer supported from the maintained repository alone. Do not request
-the deleted backup from the maintainer.
+```sh
+git clone --branch penguin/finamp-1.0.1-asyncvalue-bundle https://github.com/pengusto/finamp.git "$FINAMP_SOURCE"
+python3 -B tests/finamp/verify_source_graph.py --repo "$FINAMP_SOURCE" \
+  --source-matrix tests/finamp/native-sources.json \
+  --source-diff docs/patches/finamp-1.0.1-artist-asyncvalue.patch
+```
 
-The following command is only usable if you independently retained a complete
-source repository containing every required pinned commit and tree. Set
-`FINAMP_SOURCE` to that repository and use the matrix/scripts from the release
-being reproduced. The builder checks the pinned tree before compiling.
-Already published patch bundles do not require the old source repository to
-apply; bundle verification and patch application are separate from rebuilding.
+Use the matrix and scripts from the release being reproduced. The builder also
+checks each pinned tree before compiling. Applying an existing bundle and
+rebuilding its source are separate operations.
 
 Run from the Penguin repository root:
 

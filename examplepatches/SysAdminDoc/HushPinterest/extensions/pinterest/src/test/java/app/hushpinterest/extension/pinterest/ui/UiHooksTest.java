@@ -66,7 +66,7 @@ public class UiHooksTest {
 
     // SettingsContextRule must install the context before the registry is first read.
     private static BooleanSetting[] switches() { return new BooleanSetting[] {
-            Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_SEARCH_HISTORY,
+            Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_ASSISTANT, Settings.HIDE_SEARCH_HISTORY,
             Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
             Settings.BLACK_BOTTOM_BAR, Settings.BLACK_COMMENTS, Settings.BLACK_PIN_MENU,
             Settings.HIDE_CLOSEUP_BACK, Settings.HIDE_CLOSEUP_LENS, Settings.HIDE_CLOSEUP_SEARCH_LABEL,
@@ -85,6 +85,7 @@ public class UiHooksTest {
     @Test public void everyOptionalControlStartsOffAndLeavesHostValuesAlone() {
         for (BooleanSetting setting : switches()) assertFalse(setting.key, setting.defaultValue);
         assertFalse(UiHooks.hideScreenshotShare());
+        assertFalse(UiHooks.hideAssistant());
         assertFalse(UiHooks.quietEmailReminder());
         assertFalse(UiHooks.hideSurveyPrompts());
         assertFalse(UiHooks.hideSponsoredPolls());
@@ -105,6 +106,17 @@ public class UiHooksTest {
         assertTrue(UiHooks.commentsVisible(true));
         assertEquals(View.INVISIBLE, UiHooks.suggestedRepliesVisibility(View.INVISIBLE));
         assertEquals(312, UiHooks.suggestedRepliesMeasureSpec(312));
+    }
+
+    @Test public void assistantStaysUntilItsSwitchIsOnAndComesBackWhenPaused() {
+        assertFalse(UiHooks.hideAssistant());
+        Settings.HIDE_ASSISTANT.save(true);
+        assertTrue(UiHooks.hideAssistant());
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse(UiHooks.hideAssistant());
+        assertTrue(Settings.HIDE_ASSISTANT.savedValue());
+        PauseForTests.resume();
+        assertTrue(UiHooks.hideAssistant());
     }
 
     @Test public void screenshotAndOptionalRemindersRestoreWhenPaused() {

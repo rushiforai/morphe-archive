@@ -18,7 +18,7 @@ import android.widget.FrameLayout;
  * whenever Instagram has overwritten them.
  * <p>
  * Like iOS, content runs under the system navigation bar and a blur fades in behind the pill
- * towards the bottom edge. On Reels the video fills the whole screen ({@link ReelsFullBleed}).
+ * towards the bottom edge. Reels keeps its own layout and stops above the pill.
  */
 final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener {
     /** Gap between the pill and the bottom of the screen / nav bar. */
@@ -37,7 +37,6 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
     private final boolean extendContent;
     private final LiquidGlassDrawable glass;
     private final LiquidGlassLens lens;
-    private final HeaderGlassController headers;
     private final int reelsTabId;
     /** Siblings whose bottom margin reserves room for the tab bar, and which we now manage. */
     private final java.util.WeakHashMap<View, Boolean> managedContent = new java.util.WeakHashMap<>();
@@ -46,7 +45,6 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
     private final float density;
     /** Progressive blur behind the pill. Null if it can't be added. */
     private EdgeBlurView bottomBlur;
-    private final ReelsFullBleed reels;
     private final int[] location = new int[2];
     /** How far the bar's container stops short of the screen bottom for the navigation bar. */
     private int bottomInset;
@@ -66,12 +64,8 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
         this.density = bar.getResources().getDisplayMetrics().density;
         this.glass = new LiquidGlassDrawable(bar, density, blurRadiusDp, refractionPercent);
         this.lens = new LiquidGlassLens(bar.getContext(), bar, glass, density);
-        this.headers = LiquidGlassNavBarPatch.HEADER_GLASS.get()
-                ? new HeaderGlassController(bar.getRootView(), density)
-                : null;
         this.reelsTabId = bar.getResources().getIdentifier("clips_tab", "id", "com.instagram.android");
         this.sampler = new BackdropSampler(bar, glass::setBackdropLuminance);
-        this.reels = new ReelsFullBleed((ViewGroup) bar.getParent());
     }
 
     void install() {
@@ -87,7 +81,7 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
         ViewGroup parent = (ViewGroup) bar.getParent();
         parent.addView(lens, parent.indexOfChild(bar) + 1, overlayLayoutParams(lens.extraTop));
         if (parent instanceof FrameLayout) {
-            bottomBlur = new EdgeBlurView(bar.getContext(), density, false);
+            bottomBlur = new EdgeBlurView(bar.getContext(), density);
             parent.addView(bottomBlur, parent.indexOfChild(bar),
                     new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, android.view.Gravity.BOTTOM));
         }
@@ -155,10 +149,6 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
                 glass.invalidateSelf();
             }
             lens.sync();
-            if (headers != null) {
-                headers.setDark(glassDarkForHeaders());
-                headers.onPreDraw();
-            }
             if (bar.getVisibility() == View.VISIBLE) {
                 glass.getPill().round(sampleRect);
                 sampler.maybeSample(sampleRect, dp(20));
@@ -184,7 +174,6 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
         enforceGeometry();
         enforceContentMargins();
         enforceEdgeBlurs();
-        reels.update(bar.getVisibility() == View.VISIBLE && isReelsSelected());
     }
 
     /**
@@ -247,12 +236,6 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
         Drawable bg = bar.getBackground();
         if (bg == null || bg == glass) return;
         glass.setHostColorHint(bg instanceof ColorDrawable ? ((ColorDrawable) bg).getColor() : null);
-    }
-
-    /** Headers follow the app theme; the Reels color hint only applies to the tab bar. */
-    private boolean glassDarkForHeaders() {
-        int mode = bar.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        return mode == Configuration.UI_MODE_NIGHT_YES;
     }
 
     private boolean isDark() {

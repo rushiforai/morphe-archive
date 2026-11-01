@@ -8,7 +8,7 @@
     the walk reads.
 #>
 [CmdletBinding()]
-param([string]$Root)
+param([string]$Root, [string]$Java, [string]$DesktopJar, [string]$Aapt2)
 $ErrorActionPreference = 'Stop'
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 . (Join-Path $PSScriptRoot 'walk-receipt.ps1')
@@ -144,6 +144,18 @@ foreach ($screen in $WalkScreens) {
     Assert-WalkContract ([bool]$screen.ExpectId) "The $($screen.Name) screen has no screen id to check it opened."
 }
 
+# A screen still drawing, or a video holding uiautomator off, is no fault until the wait runs out.
+$feedTest = { param($dump) Test-WalkScreenShown -Nodes $dump -Screen $screenByName['Home feed'] }
+$script:walkReads = 0
+$slowDrawing = @(@(), $ownProfile, $feedScreen)
+$drawn = Wait-WalkScreen -Seconds 30 -PauseMilliseconds 1 -Test $feedTest -Read { $slowDrawing[$script:walkReads++] }
+Assert-WalkContract ($drawn.Found -and $script:walkReads -eq 3 -and $drawn.Nodes.Count -eq $feedScreen.Count -and -not $drawn.Unread) "A screen that drew on the third read wasn't found there: $script:walkReads reads."
+$script:walkReads = 0
+$neverThere = Wait-WalkScreen -Seconds 0 -PauseMilliseconds 1 -Test $feedTest -Read { $script:walkReads++; $ownProfile }
+Assert-WalkContract (-not $neverThere.Found -and $script:walkReads -eq 1 -and -not $neverThere.Unread -and $neverThere.Nodes.Count -gt 0) "A screen read without the thing in it didn't answer as read and missing."
+$unreadable = Wait-WalkScreen -Seconds 0 -PauseMilliseconds 1 -Test { throw 'An empty read was tested.' } -Read { }
+Assert-WalkContract (-not $unreadable.Found -and $unreadable.Unread -and $unreadable.Nodes.Count -eq 0) "A screen that couldn't be read didn't answer as unread."
+
 # The way into Threads' settings: each step on its own screen, and nowhere else.
 $profileTab = Find-WalkPathNode -Nodes $feedScreen -Step $WalkSettingsPath[0]
 Assert-WalkContract ($profileTab -and $profileTab.X -eq 938 -and $profileTab.Y -eq 2263) "The Profile tab was found at $($profileTab.X),$($profileTab.Y), not 938,2263."
@@ -152,6 +164,24 @@ Assert-WalkContract ($settingsButton -and $settingsButton.X -eq 1007 -and $setti
 $hushRow = Find-WalkPathNode -Nodes $threadsSettingsNodes -Step $WalkSettingsPath[2]
 Assert-WalkContract ($hushRow -and $hushRow.X -eq 291 -and $hushRow.Y -eq 1967) "The HushThreads row was found at $($hushRow.X),$($hushRow.Y), not 291,1967."
 Assert-WalkContract ($WalkSettingsPath[2].Shows -ceq "Threads' settings") "Finding the HushThreads row doesn't count Threads' settings as reached."
+# A screen too short for the HushThreads row swipes Threads' settings to it, and nothing else gets swiped.
+$hushStep = $WalkSettingsPath[2]
+$shortSettings = @($threadsSettingsNodes | Where-Object Text -cne 'HushThreads')
+$script:walkSwipes = 0
+$scrolled = Wait-WalkStep -Step $hushStep -Seconds 0 -Swipe { $script:walkSwipes++ } -Read { if ($script:walkSwipes -gt 0) { $threadsSettingsNodes } else { $shortSettings } }
+Assert-WalkContract ($scrolled.Found -and $script:walkSwipes -eq 1 -and (Find-WalkPathNode -Nodes $scrolled.Nodes -Step $hushStep)) "The HushThreads row below the fold wasn't found by one swipe: $script:walkSwipes swipes."
+$script:walkSwipes = 0
+$listEnd = Wait-WalkStep -Step $hushStep -Seconds 0 -Swipe { $script:walkSwipes++ } -Read { $shortSettings }
+Assert-WalkContract (-not $listEnd.Found -and -not $listEnd.Unread -and $script:walkSwipes -eq 1) "A list that stopped moving didn't end the swiping as read and missing: $script:walkSwipes swipes."
+$script:walkSwipes = 0
+$offSettings = Wait-WalkStep -Step $hushStep -Seconds 0 -Swipe { $script:walkSwipes++ } -Read { $feedScreen }
+Assert-WalkContract (-not $offSettings.Found -and $script:walkSwipes -eq 0) "The walk swiped a screen that isn't Threads' settings."
+$script:walkSwipes = 0
+$unscrolled = Wait-WalkStep -Step $WalkSettingsPath[1] -Seconds 0 -Swipe { $script:walkSwipes++ } -Read { $theirProfileNodes }
+Assert-WalkContract (-not $unscrolled.Found -and $script:walkSwipes -eq 0) "A step that doesn't scroll swiped its screen."
+$script:walkSwipes = 0
+$unreadSettings = Wait-WalkStep -Step $hushStep -Seconds 0 -Swipe { $script:walkSwipes++ } -Read { }
+Assert-WalkContract (-not $unreadSettings.Found -and $unreadSettings.Unread -and $script:walkSwipes -eq 0) "A screen that couldn't be read didn't answer as unread, or got swiped."
 Assert-WalkContract ($null -eq (Find-WalkPathNode -Nodes $theirProfileNodes -Step $WalkSettingsPath[1])) "The walk would open someone else's profile menu."
 $theirAsSettings = @(ConvertFrom-UiDump -Xml $theirProfile.Replace('content-desc="Profile menu"', 'content-desc="Settings"'))
 Assert-WalkContract ($null -eq (Find-WalkPathNode -Nodes $theirAsSettings -Step $WalkSettingsPath[1])) "The walk would tap a profile's settings button away from the own profile's Edit profile."
@@ -219,25 +249,204 @@ Assert-WalkContract ($fault.Result -ceq 'FAIL') "A screen that wouldn't open cam
 Assert-WalkContract ((Get-WalkVerdict -Planned $planned -Reached @()).Result -ceq 'FAIL') 'A walk that reached nothing was not a FAIL.'
 Assert-WalkContract ((Get-WalkVerdict -Planned @() -Reached @()).Result -ceq 'FAIL') 'A walk with nothing planned was not a FAIL.'
 
-# What publish makes of each verdict, through the receipt the walk writes.
+# Publication checks every field independently against a complete, coherent artifact chain.
 $scratch = Join-Path ([IO.Path]::GetTempPath()) ('hushthreads-walk-test-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $scratch | Out-Null
 try {
     $bundle = Join-Path $scratch 'patches-1.2.3.mpp'
-    [IO.File]::WriteAllBytes($bundle, [byte[]](1, 2, 3))
-    $bundleSha = (Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash
-    foreach ($case in @(
-            @{ Verdict = $pass; Crashes = 0; Valid = $true },
-            @{ Verdict = $skipped; Crashes = 0; Valid = $false },
-            @{ Verdict = $crashed; Crashes = 1; Valid = $false })) {
-        $receipt = New-WalkReceipt -Result $case.Verdict.Result -Full $case.Verdict.Full -Serial 'emulator-5580' -Device 'sdk_gphone64_x86_64' `
-            -AppVersion '452.0.0.50.64' -BundleSha256 $bundleSha -InstalledApkSha256 'ab' -Started ([DateTimeOffset]::UtcNow) `
-            -Finished ([DateTimeOffset]::UtcNow) -Screens 4 -Crashes $case.Crashes -Problems ([string[]]$case.Verdict.Problems)
-        $path = Join-Path $scratch 'walk-receipt.json'
-        [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $receipt -Depth 4))
-        $checked = Test-WalkReceipt -Path $path -BundlePath $bundle
-        Assert-WalkContract ($checked.Valid -eq $case.Valid) "Publish read a $($case.Verdict.Result) walk as valid $($checked.Valid): $($checked.Reason)"
+    $sourceCommit = (@(Invoke-RepoGit -Root $Root -Arguments @('rev-parse', 'HEAD')) -join '').Trim()
+    $sourceTree = (@(Invoke-RepoGit -Root $Root -Arguments @('rev-parse', 'HEAD^{tree}')) -join '').Trim()
+    $manifest = "Manifest-Version: 1.0`nVersion: 1.2.3`nPatcher-Version: 2.0.0`nTimestamp: 1761190000`n" +
+        "HushThreads-Source-State: clean`nHushThreads-Source-Commit: $sourceCommit`nHushThreads-Source-Tree: $sourceTree`nHushThreads-Input-SHA256: $('3' * 64)`n`n"
+    $zip = [IO.Compression.ZipFile]::Open($bundle, [IO.Compression.ZipArchiveMode]::Create)
+    try {
+        $writer = [IO.StreamWriter]::new($zip.CreateEntry('META-INF/MANIFEST.MF').Open())
+        try { $writer.Write($manifest) } finally { $writer.Dispose() }
+    } finally { $zip.Dispose() }
+    $zip = [IO.Compression.ZipFile]::OpenRead($bundle)
+    try { $payload = Get-BundlePayloadSha256 -Archive $zip } finally { $zip.Dispose() }
+    $zip = [IO.Compression.ZipFile]::Open($bundle, [IO.Compression.ZipArchiveMode]::Update)
+    try {
+        $writer = [IO.StreamWriter]::new($zip.CreateEntry('META-INF/hushthreads-build.identity').Open())
+        try { $writer.Write("hushthreads-bundle-1`n$payload`n") } finally { $writer.Dispose() }
+    } finally { $zip.Dispose() }
+    $bundleSha = (Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
+    $inputFile = Join-Path $scratch 'vendor.apk'
+    $outputFile = Join-Path $scratch 'patched.apk'
+    $catalogPath = Join-Path $scratch 'patches-list.json'
+    $sourceCatalogJson = @(Invoke-RepoGit -Root $Root -Arguments @('show', ($sourceCommit + ':patches-list.json'))) -join "`n"
+    [IO.File]::WriteAllText($catalogPath, $sourceCatalogJson)
+    $catalog = Read-WalkJson -Path $catalogPath
+    $target = Get-PatchTarget -PatchList $catalog
+    $selected = [string]$catalog.patches[0].name
+    $dependencies = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames @($selected))
+    $Java = Resolve-Java -Explicit $Java
+    $DesktopJar = Resolve-DesktopCli -Explicit $DesktopJar -Root $Root -Required
+    $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $Root
+    $sdk = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $Aapt2))
+    $androidJar = @(Get-ChildItem -LiteralPath (Join-Path $sdk 'platforms') -Directory |
+        Sort-Object Name -Descending | ForEach-Object { Join-Path $_.FullName 'android.jar' } |
+        Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })[0]
+    if (-not $androidJar) { throw 'The walk fixture needs an installed Android SDK platform.' }
+    $manifestPath = Join-Path $scratch 'AndroidManifest.xml'
+    # The catalog names 453 without pinning a code, so a stand-in fills in when no code is pinned.
+    $vendorCode = [string]@(@($target.PackageVersionCodes[$target.PackageVersion]) + '512308675' | Where-Object { $_ })[0]
+    [IO.File]::WriteAllText($manifestPath, ('<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="{0}" android:versionName="{1}" android:versionCode="{2}"><application/></manifest>' -f
+        $target.PackageName, $target.PackageVersion, $vendorCode))
+    & $Aapt2 link -o $outputFile --manifest $manifestPath -I $androidJar
+    Assert-WalkContract ($LASTEXITCODE -eq 0) 'aapt2 could not make the binary manifest fixture.'
+    Copy-Item -LiteralPath $outputFile -Destination $inputFile
+    $expectedIdentity = "sha256=$payload; source=clean:$sourceCommit; tree=$sourceTree; inputs=$('3' * 64)"
+    $dexFile = Join-Path $scratch 'classes.dex'
+    function Write-WalkFixtureDex([string]$Identity, [string]$Fault) {
+        $fixtureArguments = @($dexFile, $Identity)
+        if ($Fault) { $fixtureArguments += $Fault }
+        & $Java -Xmx256m -cp $DesktopJar (Join-Path $PSScriptRoot 'WalkApkFixture.java') @fixtureArguments
+        Assert-WalkContract ($LASTEXITCODE -eq 0) 'The walk fixture DEX could not be generated.'
+        $archive = [IO.Compression.ZipFile]::Open($outputFile, [IO.Compression.ZipArchiveMode]::Update)
+        try {
+            $oldDex = $archive.GetEntry('classes.dex')
+            if ($oldDex) { $oldDex.Delete() }
+            [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $dexFile, 'classes.dex')
+        } finally { $archive.Dispose() }
     }
+    Write-WalkFixtureDex -Identity $expectedIdentity
+    $validatorTools = @{ Java = $Java; DesktopJar = $DesktopJar; Aapt2 = $Aapt2 }
+    $patch = [ordered]@{
+        schema = 1; kind = 'hushthreads-patch'; bundleSha256 = $bundleSha; bundlePayloadSha256 = $payload
+        input = [ordered]@{ file = $inputFile; sha256 = (Get-FileHash $inputFile).Hash.ToLowerInvariant()
+            package = $target.PackageName; versionName = $target.PackageVersion; versionCode = $vendorCode }
+        apk = [ordered]@{ file = $outputFile; sha256 = (Get-FileHash $outputFile).Hash.ToLowerInvariant()
+            package = $target.PackageName; versionName = $target.PackageVersion; versionCode = $vendorCode }
+        catalog = [ordered]@{ file = $catalogPath; sha256 = (Get-FileHash $catalogPath).Hash.ToLowerInvariant() }
+        requestedPatches = @($selected); appliedPatches = @($selected) + $dependencies; options = 'defaults'
+    }
+    $wholePlan = @(Get-WalkExpectedScreens -Root $Root)
+    $path = Join-Path $scratch 'walk-receipt.json'
+    $good = New-WalkReceipt -Result PASS -Full $true -Serial 'emulator-5580' -Device 'sdk_gphone64_x86_64' `
+        -AppVersion $patch.apk.versionName -AppVersionCode $patch.apk.versionCode -BundleSha256 $bundleSha `
+        -InstalledApkSha256 $patch.apk.sha256 -InstalledBeforeSha256 $patch.apk.sha256 -Started ([DateTimeOffset]::UtcNow.AddMinutes(-1)) `
+        -Finished ([DateTimeOffset]::UtcNow) -Screens $wholePlan.Count -Crashes 0 -PlannedScreens $wholePlan -ReachedScreens $wholePlan -Patch $patch
+    $goodJson = ConvertTo-Json -InputObject $good -Depth 12
+    [IO.File]::WriteAllText($path, $goodJson)
+    $checked = Test-WalkReceipt -Path $path -BundlePath $bundle @validatorTools
+    Assert-WalkContract $checked.Valid "A complete matching walk failed: $($checked.Reason)"
+    # Exercise the retained-install producer itself. All ADB calls are intercepted in this scope.
+    & {
+        . (Join-Path $PSScriptRoot 'walk-app.ps1')
+        function Get-BundleVersion { param($Root) '1.2.3' }
+        function Get-ReleaseBundlePath { param($Root, $Version) $bundle }
+        function Assert-HushThreadsDeviceLease { }
+        $seenCommands = [Collections.Generic.List[string]]::new()
+        function Invoke-HushThreadsAdbCommand {
+            param($Adb, [switch]$RequireLease, [string[]]$Arguments)
+            $seenCommands.Add($Arguments -join ' ')
+            switch ($Arguments[3]) {
+                'pm' { return [pscustomobject]@{ ExitCode = 0; Output = @('package:/fixture/base.apk') } }
+                'dumpsys' { return [pscustomobject]@{ ExitCode = 0; Output = @("versionName=$($patch.apk.versionName)", "versionCode=$($patch.apk.versionCode)") } }
+                'sha256sum' { return [pscustomobject]@{ ExitCode = 0; Output = @(('0' * 64) + '  /fixture/base.apk') } }
+                default { throw "Unexpected device command in refusal test: $($Arguments -join ' ')" }
+            }
+        }
+        $producerArguments = @{
+            Serial = 'emulator-5580'; SkipPatch = $true; SkipSettings = $false; SettleSeconds = 0
+            OutDir = $scratch; Root = $Root; PatchArgs = $validatorTools
+            PatchReceipt = (Join-Path $scratch 'missing-patch-receipt.json')
+        }
+        $refusal = ''
+        try { [void](Invoke-WalkApp @producerArguments) } catch { $refusal = $_.Exception.Message }
+        Assert-WalkContract ($refusal -like '*No patch provenance*' -and $seenCommands.Count -eq 0) 'An unknown retained install reached a device command.'
+        $producerArguments.PatchReceipt = Join-Path $scratch 'patch-receipt.json'
+        [IO.File]::WriteAllText($producerArguments.PatchReceipt, (ConvertTo-Json -InputObject $patch -Depth 12))
+        $refusal = ''
+        try { [void](Invoke-WalkApp @producerArguments) } catch { $refusal = $_.Exception.Message }
+        Assert-WalkContract ($refusal -like '*retained installed APK does not match*') "A stale retained install was not refused: $refusal"
+        Assert-WalkContract (@($seenCommands | Where-Object { $_ -match ' install | force-stop | am | input ' }).Count -eq 0) 'A stale retained install was changed before refusal.'
+    }
+    foreach ($case in @(
+            @{ Name = 'old schema'; Change = { param($r) $r.schema = 1 } },
+            @{ Name = 'stale app'; Change = { param($r) $r.appVersion = '451.0.0.51.80' } },
+            @{ Name = 'wrong version code'; Change = { param($r) $r.appVersionCode = '1' } },
+            @{ Name = 'empty installed hash'; Change = { param($r) $r.installedApkSha256 = '' } },
+            @{ Name = 'changed installed bytes'; Change = { param($r) $r.installedBeforeSha256 = '0' * 64 } },
+            @{ Name = 'missing before hash'; Change = { param($r) $r.installedBeforeSha256 = '' } },
+            @{ Name = 'one screen'; Change = { param($r) $r.screens = 1 } },
+            @{ Name = 'missing reached page'; Change = { param($r) $r.reachedScreens = @($r.reachedScreens | Select-Object -Skip 1) } },
+            @{ Name = 'missing planned page'; Change = { param($r) $r.plannedScreens = @($r.plannedScreens | Select-Object -Skip 1) } },
+            @{ Name = 'duplicate page'; Change = { param($r) $r.reachedScreens[-1] = $r.reachedScreens[0] } },
+            @{ Name = 'invented page'; Change = { param($r) $r.plannedScreens[-1] = 'Not a screen' } },
+            @{ Name = 'missing problems'; Change = { param($r) $r.problems = $null } },
+            @{ Name = 'recorded problem'; Change = { param($r) $r.problems = @('missing page') } },
+            @{ Name = 'invalid timestamp'; Change = { param($r) $r.started = 'not a time' } },
+            @{ Name = 'reversed timestamps'; Change = { param($r) $r.started = ([DateTimeOffset]::UtcNow.AddHours(1)).UtcDateTime.ToString('o') } },
+            @{ Name = 'future timestamps'; Change = { param($r) $r.finished = ([DateTimeOffset]::UtcNow.AddDays(1)).UtcDateTime.ToString('o') } },
+            @{ Name = 'missing provenance'; Change = { param($r) $r.patch = $null } },
+            @{ Name = 'another bundle'; Change = { param($r) $r.patch.bundleSha256 = '0' * 64 } },
+            @{ Name = 'ZIP digest as payload'; Change = { param($r) $r.patch.bundlePayloadSha256 = $r.bundleSha256 } },
+            @{ Name = 'changed input'; Change = { param($r) $r.patch.input.sha256 = '0' * 64 } },
+            @{ Name = 'changed output'; Change = { param($r) $r.patch.apk.sha256 = '0' * 64 } },
+            @{ Name = 'changed catalog'; Change = { param($r) $r.patch.catalog.sha256 = '0' * 64 } },
+            @{ Name = 'undeclared input'; Change = { param($r) $r.patch.input.versionCode = '1' } },
+            @{ Name = 'missing selected patch'; Change = { param($r) $r.patch.appliedPatches = @('unrelated patch') } },
+            @{ Name = 'duplicated selected patch'; Change = { param($r) $r.patch.requestedPatches = @($r.patch.requestedPatches[0], $r.patch.requestedPatches[0]) } },
+            @{ Name = 'unrecorded options'; Change = { param($r) $r.patch.options = 'custom' } },
+            @{ Name = 'crash'; Change = { param($r) $r.crashes = 1 } },
+            @{ Name = 'partial'; Change = { param($r) $r.full = $false } })) {
+        [IO.File]::WriteAllText($path, $goodJson)
+        $bad = Read-WalkJson -Path $path
+        & $case.Change $bad
+        [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $bad -Depth 12))
+        $checked = Test-WalkReceipt -Path $path -BundlePath $bundle @validatorTools
+        Assert-WalkContract (-not $checked.Valid) "Publish accepted $($case.Name)."
+    }
+    foreach ($phone in @('SM-S908U1', 'SM-S938B')) {
+        $good.device = $phone; $good.serial = 'LEASED_PHONE'; $good.emulator = $false
+        [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $good -Depth 12))
+        $checked = Test-WalkReceipt -Path $path -BundlePath $bundle @validatorTools
+        Assert-WalkContract $checked.Valid "A matching release phone failed: $($checked.Reason)"
+    }
+    # A substituted catalog cannot redefine what the bundle declares, even with its own hash.
+    $foreignCatalog = Read-WalkJson -Path $catalogPath
+    foreach ($listed in $foreignCatalog.patches) {
+        $listed.compatiblePackages.PSObject.Properties[$target.PackageName].Value =
+            @($target.PackageVersion, '999.0.0.0.0')
+    }
+    [IO.File]::WriteAllText($catalogPath, (ConvertTo-Json -InputObject $foreignCatalog -Depth 40))
+    $good.patch.catalog.sha256 = (Get-FileHash -LiteralPath $catalogPath).Hash.ToLowerInvariant()
+    [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $good -Depth 12))
+    $checked = Test-WalkReceipt -Path $path -BundlePath $bundle @validatorTools
+    Assert-WalkContract (-not $checked.Valid -and $checked.Reason -like '*catalog*not*declaration*bundle source commit*') 'Publish accepted a substituted catalog with its matching hash.'
+    [IO.File]::WriteAllText($catalogPath, $sourceCatalogJson)
+    $good.patch.catalog.sha256 = (Get-FileHash -LiteralPath $catalogPath).Hash.ToLowerInvariant()
+
+    # Coherent receipt hashes must not disguise an APK that carries an older bundle identity.
+    $goodBytes = [IO.File]::ReadAllBytes($outputFile)
+    Write-WalkFixtureDex -Identity $expectedIdentity.Replace($payload, ('0' * 64))
+    $good.patch.apk.sha256 = (Get-FileHash -LiteralPath $outputFile).Hash.ToLowerInvariant()
+    $good.installedBeforeSha256 = $good.patch.apk.sha256; $good.installedApkSha256 = $good.patch.apk.sha256
+    [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $good -Depth 12))
+    $checked = Test-WalkReceipt -Path $path -BundlePath $bundle @validatorTools
+    Assert-WalkContract (-not $checked.Valid -and $checked.Reason -like '*payload identity*') 'Publish accepted stale APK identity with coherently changed hashes.'
+    [IO.File]::WriteAllBytes($outputFile, $goodBytes)
+    Write-WalkFixtureDex -Identity $expectedIdentity -Fault clobber
+    $good.patch.apk.sha256 = (Get-FileHash -LiteralPath $outputFile).Hash.ToLowerInvariant()
+    $good.installedBeforeSha256 = $good.patch.apk.sha256; $good.installedApkSha256 = $good.patch.apk.sha256
+    [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $good -Depth 12))
+    $checked = Test-WalkReceipt -Path $path -BundlePath $bundle @validatorTools
+    Assert-WalkContract (-not $checked.Valid -and $checked.Reason -like '*payload identity*') 'Publish accepted a getter that overwrites the expected identity before returning.'
+    [IO.File]::WriteAllBytes($outputFile, $goodBytes)
+    $good.patch.apk.sha256 = (Get-FileHash -LiteralPath $outputFile).Hash.ToLowerInvariant()
+    $good.installedBeforeSha256 = $good.patch.apk.sha256; $good.installedApkSha256 = $good.patch.apk.sha256
+    Remove-Item -LiteralPath $outputFile
+    [IO.File]::WriteAllText($manifestPath, [IO.File]::ReadAllText($manifestPath).Replace($target.PackageVersion, '1.0.0.0.0'))
+    & $Aapt2 link -o $outputFile --manifest $manifestPath -I $androidJar
+    Assert-WalkContract ($LASTEXITCODE -eq 0) 'aapt2 could not make the stale binary manifest fixture.'
+    Write-WalkFixtureDex -Identity $expectedIdentity
+    $good.patch.apk.sha256 = (Get-FileHash -LiteralPath $outputFile).Hash.ToLowerInvariant()
+    $good.installedBeforeSha256 = $good.patch.apk.sha256; $good.installedApkSha256 = $good.patch.apk.sha256
+    [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $good -Depth 12))
+    $checked = Test-WalkReceipt -Path $path -BundlePath $bundle @validatorTools
+    Assert-WalkContract (-not $checked.Valid -and $checked.Reason -like '*manifest contradicts*') 'Publish accepted a contradictory APK manifest.'
 } finally {
     Remove-Item -LiteralPath $scratch -Recurse -Force -ErrorAction SilentlyContinue
 }

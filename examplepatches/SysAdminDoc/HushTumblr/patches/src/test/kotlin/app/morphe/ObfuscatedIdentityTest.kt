@@ -26,8 +26,8 @@ import org.junit.Test
  * Every name Tumblr's R8 build made up for one release, written into this repository as though
  * it were the name of something.
  *
- * <p>R8 moves most of Tumblr's code into short classes with no package at all (`Lhy7;` builds
- * Firebase's request headers in 46.5.0.109, `Lrek;` and `Lx0a;` are what it answers), into short
+ * <p>R8 moves most of Tumblr's code into short classes with no package at all (`Lxy7;` builds
+ * Firebase's request headers in 46.5.0.109, `Lngk;` and `Lr1a;` are what it answers), into short
  * top-level packages, and renames some classes it leaves in a package down to one, two or three
  * letters (`Lcom/google/android/engage/service/c;`). Views a layout names, activities,
  * services and a few deserializers keep their names. A patch that writes one of these short,
@@ -55,9 +55,9 @@ class ObfuscatedIdentityTest {
 
     @Test
     fun `a short class with no package is inventoried`() {
-        assertEquals(setOf("Lhy7;"), identitiesIn("""definingClass = "Lhy7;""""))
-        assertEquals(setOf("Lrek;"), identitiesIn("""returnType("Lrek;")"""))
-        assertEquals(setOf("Lx0a;"), identitiesIn("""val call = "Lx0a;->a()V""""))
+        assertEquals(setOf("Lxy7;"), identitiesIn("""definingClass = "Lxy7;""""))
+        assertEquals(setOf("Lngk;"), identitiesIn("""returnType("Lngk;")"""))
+        assertEquals(setOf("Lr1a;"), identitiesIn("""val call = "Lr1a;->a()V""""))
     }
 
     @Test
@@ -143,7 +143,7 @@ class ObfuscatedIdentityTest {
 
         /**
          * A class R8 left in no package under a made-up name of two to four characters, such as
-         * `Lhy7;` or `Lrek;`. The L has to start the descriptor, so a longer name ending in one
+         * `Lxy7;` or `Lngk;`. The L has to start the descriptor, so a longer name ending in one
          * (`Ljava/util/List;`, `import java.util.List;`) doesn't count.
          */
         val NO_PACKAGE_SHORT_CLASS = Regex("""(?<![A-Za-z0-9_/$.])L[a-z][a-z0-9]{1,3};""")

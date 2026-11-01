@@ -643,3 +643,21 @@ Home keeps the pins you were looking at when you come back to Pinterest or to th
 Show posted date	Tampilkan tanggal posting
 Shows the day a pin was posted under its title. It shows on the next pin you open.	Menampilkan tanggal pin diposting di bawah judulnya. Tanggal muncul di pin berikutnya yang Anda buka.
 Posted %1$s	Diposting %1$s
+Install microG-RE to use Google sign-in.	Instal microG-RE untuk masuk dengan Google.
+Turn on microG-RE to use Google sign-in.	Aktifkan microG-RE untuk masuk dengan Google.
+microG-RE didn't answer. Open it, then try again.	microG-RE tidak merespons. Buka lalu coba lagi.
+This build sends Google sign-in to microG-RE. Add your Google account in microG-RE first. If your phone limits background apps, let microG-RE start on its own.	Versi ini meneruskan proses masuk dengan Google ke microG-RE. Tambahkan dulu akun Google kamu di microG-RE. Jika ponselmu membatasi aplikasi latar belakang, izinkan microG-RE berjalan sendiri.
+Google sign-in failure message	Pesan gagal masuk dengan Google
+# context: Download pins switches that tie a pin's download to its save
+Save pins you download	Simpan pin yang diunduh
+Downloading a pin from its menu also saves it to your profile, unless it's saved already. Grid and board downloads aren't saved. Needs Download pins on.	Mengunduh pin dari menunya juga menyimpannya ke profil Anda, kecuali sudah disimpan. Unduhan dari kisi dan papan tidak disimpan. Unduh Pin harus aktif.
+Download pins you save	Unduh pin yang disimpan
+Saving a pin also downloads it, from any screen. Needs Download pins on.	Menyimpan pin juga mengunduhnya, dari layar mana pun. Unduh Pin harus aktif.
+Couldn't save this pin. Open it once, then try again.	Tidak dapat menyimpan pin ini. Buka sekali, lalu coba lagi.
+Save and download	Simpan dan unduh
+# context: an Interface switch that removes Pinterest's AI Assistant from the search page, boards and pins; "Assistant" is that feature's name
+Hide Assistant	Sembunyikan Asisten
+Takes Pinterest's AI Assistant out of search, boards and pins. Search works as usual. The change shows the next time the screen updates.	Menghapus Asisten AI Pinterest dari pencarian, papan, dan pin. Pencarian tetap berfungsi seperti biasa. Perubahan terlihat saat layar diperbarui berikutnya.
+# context: a Feed switch from the Filter feed patch. It takes pins the person has already saved to a board out of their home feed only; boards and search still show them. The title is also the name of that part of the patch in the build report.
+Hide pins you've already saved	Sembunyikan pin yang sudah disimpan
+Takes pins you've saved out of your home feed. Your boards and search still show them.	Menghapus pin yang sudah Anda simpan dari beranda. Papan dan pencarian Anda tetap menampilkannya.

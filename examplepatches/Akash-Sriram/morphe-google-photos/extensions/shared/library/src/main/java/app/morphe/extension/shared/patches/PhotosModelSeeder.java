@@ -73,13 +73,95 @@ public final class PhotosModelSeeder {
     // 3 parallel download threads: fast enough to complete quickly, low enough not to starve photo sync
     private static final int DOWNLOAD_PARALLELISM = 3;
 
+    private static volatile boolean sCrashGuardInstalled = false;
+
+    public static void installMddCrashGuard() {
+        if (sCrashGuardInstalled) return;
+        synchronized (LOCK) {
+            if (sCrashGuardInstalled) return;
+            try {
+                final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
+                Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+                    if (isMddOrModelException(thread, throwable)) {
+                        Logger.printInfo(() -> "MddCrashGuard: Safely intercepted and suppressed fatal MDD exception on thread [" +
+                                (thread != null ? thread.getName() : "unknown") + "]: " + throwable);
+                        return;
+                    }
+                    if (defaultHandler != null) {
+                        defaultHandler.uncaughtException(thread, throwable);
+                    }
+                });
+                sCrashGuardInstalled = true;
+                Logger.printInfo(() -> "PhotosModelSeeder: MDD thread crash guard successfully installed");
+            } catch (Throwable t) {
+                Logger.printInfo(() -> "PhotosModelSeeder: Failed to install MDD crash guard: " + t.getMessage());
+            }
+        }
+    }
+
+    private static boolean isMddOrModelException(Thread thread, Throwable t) {
+        if (t == null) return false;
+        String threadName = thread != null ? thread.getName() : "";
+        if (threadName != null && (threadName.contains("MDD") || threadName.contains("ptz-rcs"))) {
+            return true;
+        }
+        for (Throwable cur = t; cur != null; cur = cur.getCause()) {
+            String clsName = cur.getClass().getName();
+            if ("bvrh".equals(clsName) || clsName.endsWith(".bvrh") || clsName.contains("bvrh")) {
+                return true;
+            }
+            StackTraceElement[] trace = cur.getStackTrace();
+            if (trace != null) {
+                for (StackTraceElement ste : trace) {
+                    String cName = ste.getClassName();
+                    if ("bvra".equals(cName) || "bvru".equals(cName) || "bvrl".equals(cName) || "bvrh".equals(cName)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public static void ensureManifestsFast(Context context) {
+        if (context == null) return;
+        String pkg = context.getPackageName();
+        if (pkg == null || !pkg.contains("photos")) return;
+
+        try {
+            File dataDir = new File(context.getApplicationInfo().dataDir);
+            File prefsDir = new File(dataDir, SHARED_PREFS_DIR_NAME);
+            File groupsXml = new File(prefsDir, MDD_GROUPS_XML);
+            File sharedFilesXml = new File(prefsDir, MDD_FILES_XML);
+            File migrationsXml = new File(prefsDir, "gms_icing_mdd_migrations.xml");
+
+            boolean groupsOk = isManifestConfiguredForPackage(groupsXml, pkg);
+            boolean sharedFilesOk = sharedFilesXml.exists() && sharedFilesXml.length() > 1000;
+            boolean migrationsOk = migrationsXml.exists() && migrationsXml.length() > 20;
+
+            if (!groupsOk || !sharedFilesOk || !migrationsOk) {
+                Logger.printInfo(() -> "PhotosModelSeeder: ensureManifestsFast: Incomplete manifests (groups=" + groupsOk +
+                        ", files=" + sharedFilesOk + ", mig=" + migrationsOk + ") for " + pkg + ". Injecting immediately...");
+                CdnAssetDownloader.unlockDirectory(prefsDir);
+                injectManifests(prefsDir, pkg);
+            }
+        } catch (Throwable t) {
+            Logger.printInfo(() -> "PhotosModelSeeder: ensureManifestsFast failed: " + t.getMessage());
+        }
+    }
+
     public static void enableAndEnsureSeeded(Context context) {
         isModelPatchEnabled = true;
         if (context == null) return;
         final Context appContext = context.getApplicationContext() != null ? context.getApplicationContext() : context;
 
-        // Start immediately on a low-priority background thread.
-        // Photo sync and ML model downloads run fully in parallel — no blocking of each other.
+        // 1. Install crash guard to intercept fatal MDD thread exceptions
+        installMddCrashGuard();
+
+        // 2. Fast synchronous manifest check & injection so shared prefs exist before background threads run
+        ensureManifestsFast(appContext);
+
+        // 3. Start dynamic asset download & full seeding on a low-priority background thread
         Thread worker = new Thread(() -> {
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
             ensureSeeded(appContext);
@@ -110,19 +192,27 @@ public final class PhotosModelSeeder {
                 int expected = getExpectedModelCount();
                 int modelCount = countModelsInDir(targetModelsDir);
                 File groupsXml = new File(prefsDir, MDD_GROUPS_XML);
-                boolean manifestReady = isManifestConfiguredForPackage(groupsXml, pkg);
+                File sharedFilesXml = new File(prefsDir, MDD_FILES_XML);
+                File migrationsXml = new File(prefsDir, "gms_icing_mdd_migrations.xml");
+
+                boolean groupsOk = isManifestConfiguredForPackage(groupsXml, pkg);
+                boolean sharedFilesOk = sharedFilesXml.exists() && sharedFilesXml.length() > 1000;
+                boolean migrationsOk = migrationsXml.exists() && migrationsXml.length() > 20;
+                boolean manifestsComplete = groupsOk && sharedFilesOk && migrationsOk;
                 boolean hasZeroBytes = hasZeroByteFiles(targetModelsDir);
 
-                Logger.printInfo(() -> "PhotosModelSeeder: ensureSeeded() called for " + pkg + ". Current models count=" + modelCount + ", expected=" + expected + ", manifestReady=" + manifestReady + ", hasZeroBytes=" + hasZeroBytes);
+                Logger.printInfo(() -> "PhotosModelSeeder: ensureSeeded() called for " + pkg + ". Current models count=" + modelCount +
+                        ", expected=" + expected + ", manifestsComplete=" + manifestsComplete +
+                        " (groups=" + groupsOk + ", files=" + sharedFilesOk + ", mig=" + migrationsOk + "), hasZeroBytes=" + hasZeroBytes);
 
-                if (expected > 0 && modelCount >= expected && manifestReady && !hasZeroBytes) {
+                if (expected > 0 && modelCount >= expected && manifestsComplete && !hasZeroBytes) {
                     isSeeded = true;
                     return;
                 }
 
-                // Inject manifest registry immediately so app knows all groups
-                if (!manifestReady) {
-                    Logger.printInfo(() -> "PhotosModelSeeder: Injecting/patching MDD manifests into shared_prefs for " + pkg);
+                // Inject manifest registry immediately if any manifest is missing or incomplete
+                if (!manifestsComplete) {
+                    Logger.printInfo(() -> "PhotosModelSeeder: Injecting/patching complete MDD manifests into shared_prefs for " + pkg);
                     CdnAssetDownloader.unlockDirectory(prefsDir);
                     injectManifests(prefsDir, pkg);
                 }

@@ -64,7 +64,8 @@ public final class FeatureDexFixture {
     private static final String TIMELINE_RESPONSE = "Lcom/tumblr/rumblr/response/timeline/TimelineResponse;";
     private static final String POSTS_RESPONSE = "Lcom/tumblr/rumblr/response/timeline/PostsResponse;";
     private static final Map<String, String> SUPERCLASSES = Map.of(APP, CORE_APP, ACTIVITY, COMPONENT_ACTIVITY,
-            CORE_APP, "Landroid/app/Application;", COMPONENT_ACTIVITY, "Landroid/app/Activity;", POSTS_RESPONSE, TIMELINE_RESPONSE);
+            CORE_APP, "Landroid/app/Application;", COMPONENT_ACTIVITY, "Landroid/app/Activity;", POSTS_RESPONSE, TIMELINE_RESPONSE,
+            "Lfixture/PostSpacing;", "Landroidx/recyclerview/widget/RecyclerView$o;");
     private static final String VOID = "V";
     private static final String OBJECT = "Ljava/lang/Object;";
     private static final String LIST = "Ljava/util/List;";
@@ -89,7 +90,7 @@ public final class FeatureDexFixture {
     private static final String PAGINATION_FRAGMENT = "Lcom/tumblr/ui/fragment/PaginationFragment;";
     private static final String PAGE_LINKS = "Lcom/tumblr/timeline/model/link/TimelinePaginationLink;";
     private static final String PAGE_LINK = "Lcom/tumblr/timeline/model/link/Link;";
-    private static final String LOAD_TYPE = "Lbql;";
+    private static final String LOAD_TYPE = "Lxrl;";
     private static final String FEATURE = "Lfixture/Feature;";
     private static final String FEATURE_CHECK = "Lfixture/FeatureCheck;";
     private static final String FEATURE_SWITCHES = BASE + "flags/FeatureSwitches;";
@@ -113,9 +114,9 @@ public final class FeatureDexFixture {
     private static final String PHOTO_CONTAINER = "Lcom/tumblr/ui/widget/graywater/viewholder/PhotoContainer;";
     private static final String PHOTO_HOLDER = "Lcom/tumblr/ui/widget/graywater/viewholder/PhotoViewHolder;";
     private static final String PHOTO_ROW_ITEM = "Lcom/tumblr/ui/widget/graywater/viewholder/PhotosetRowItem;";
-    private static final String PHOTO_BINDER = "Leka$a;";
-    private static final String GALLERY_BINDER = "Lg0f;";
-    private static final String GALLERY_ROW = "Ld0f;";
+    private static final String PHOTO_BINDER = "Lzka$a;";
+    private static final String GALLERY_BINDER = "Lx1f;";
+    private static final String GALLERY_ROW = "Lu1f;";
     private static final String ALT_TEXT = BASE + "ui/AltTextCaptions;";
     private static final String IMAGE_DESCRIPTION = BASE + "ui/HushImageDescription;";
     private static final String IMAGE_CONTAINER = BASE + "ui/HushImageContainer;";
@@ -426,8 +427,27 @@ public final class FeatureDexFixture {
                 List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1)), LIST),
                 method(TIMELINE_FILTER, "filterKept", LIST, true, 2,
                         List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1)), LIST)));
+        directPost(classes, variant);
         // The filter can empty a page, so the fragment's question about an empty page comes with it.
         paging(classes, hooked ? "good" : "clean");
+    }
+
+    /** The query that opens one post by itself, telling the extension the id right before it asks. */
+    private static void directPost(Map<String, List<Method>> classes, String variant) {
+        String service = "Lcom/tumblr/rumblr/TumblrService;";
+        String directPosts = BASE + "timeline/DirectPosts;";
+        Instruction told = invoke(Opcode.INVOKE_STATIC, ref(directPosts, "opening", VOID, STRING), variant.equals("direct-wrong-id") ? 0 : 1);
+        boolean before = !variant.equals("clean") && !variant.equals("direct-missing") && !variant.equals("direct-late");
+        List<Instruction> body = new ArrayList<>(List.of(literal("blog", 0), literal("55", 1)));
+        if (before) body.add(told);
+        body.addAll(List.of(invoke(Opcode.INVOKE_INTERFACE, ref(service, "postPermalink", "Lretrofit2/Call;", STRING, STRING), 2, 0, 1),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0)));
+        if (variant.equals("direct-late")) body.add(told);
+        body.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+        String query = "Lfixture/PostQuery;";
+        classes.put(query, List.of(method(query, "b", "Lretrofit2/Call;", false, 3, body, service)));
+        if (!variant.equals("clean")) classes.put(directPosts, List.of(method(directPosts, "opening", VOID, true, 2,
+                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()), STRING)));
     }
 
     private static Instruction member(Opcode opcode, int value, int receiver, String owner, String name, String type) {
@@ -767,7 +787,7 @@ public final class FeatureDexFixture {
                         new ImmutableFieldReference(PHOTO_BINDER, variant.equals("wrong-photo-field") ? "d" : "c", IMAGE_BLOCK)),
                 invoke(Opcode.INVOKE_STATIC, ref(ALT_TEXT, "photo", VOID, OBJECT, OBJECT), variant.equals("wrong-photo-holder") ? 3 : 2, 0)));
         photo.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0)); photo.add(end());
-        classes.put(PHOTO_BINDER, List.of(method(PHOTO_BINDER, "i", VOID, false, 5, photo, PHOTO_HOLDER, "Lmuj;", STRING)));
+        classes.put(PHOTO_BINDER, List.of(method(PHOTO_BINDER, "i", VOID, false, 5, photo, PHOTO_HOLDER, "Liwj;", STRING)));
         List<Instruction> gallery = new ArrayList<>(), full = new ArrayList<>();
         if (hooked && !variant.equals("missing-gallery")) gallery.add(invoke(Opcode.INVOKE_STATIC, ref(ALT_TEXT, "gallery", VOID, OBJECT, OBJECT),
                 2, variant.equals("wrong-gallery-image") ? 1 : 3));
@@ -775,7 +795,7 @@ public final class FeatureDexFixture {
                 variant.equals("wrong-clear-row") ? 5 : 6));
         gallery.add(end()); full.add(end());
         classes.put(GALLERY_BINDER, List.of(method(GALLERY_BINDER, "r", VOID, false, 4, gallery, CONTEXT, PHOTO_ROW_ITEM, IMAGE_BLOCK),
-                method(GALLERY_BINDER, "n", VOID, false, 9, full, CONTEXT, "Lcom/tumblr/analytics/ScreenType;", "Lppn;", "Lqv7;", "Lq8e;", GALLERY_ROW, "Lmuj;", "Lkh2;")));
+                method(GALLERY_BINDER, "n", VOID, false, 9, full, CONTEXT, "Lcom/tumblr/analytics/ScreenType;", "Lmrn;", "Lgw7;", "Lhae;", GALLERY_ROW, "Liwj;", "Lxh2;")));
     }
 
     private static void smallCase(File root, String name, Map<String, List<Method>> classes, String family, String reason) throws Exception {
@@ -785,12 +805,12 @@ public final class FeatureDexFixture {
 
     private static void smallSelectors(File root, Map<String, List<Method>> settings) throws Exception {
         SMALL_CASES.clear();
-        for (String variant : List.of("good", "missing", "copy-missing", "wrong-list", "late")) {
+        for (String variant : List.of("good", "missing", "copy-missing", "wrong-list", "late", "direct-missing", "direct-wrong-id", "direct-late")) {
             reset(); enable("hideReblogs");
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             timeline(classes, variant); postBridge(classes, "good");
             smallCase(root, "feature-small-timeline-" + variant, classes, "hideReblogs", variant.equals("good") ? ""
-                    : variant.contains("missing") ? "has 0 calls" : variant.equals("late") ? "is not where its rule puts it" : "doesn't take what its rule hands it");
+                    : variant.contains("missing") ? "has 0 calls" : variant.endsWith("late") ? "is not where its rule puts it" : "doesn't take what its rule hands it");
         }
         for (String variant : List.of("good", "missing", "wrong-next", "wrong-flag", "wrong-load", "late", "uncontrolled")) {
             reset(); enable("hideReblogs");
@@ -979,7 +999,7 @@ public final class FeatureDexFixture {
 
     private static void postJsonPresence(Map<String, List<Method>> classes, boolean patched, String fault) {
         String adapter = POST.substring(0, POST.length() - 1) + "JsonAdapter;";
-        String[] parameters = new String[155]; Arrays.fill(parameters, "I"); parameters[154] = "Lr17;";
+        String[] parameters = new String[155]; Arrays.fill(parameters, "I"); parameters[154] = "Lh27;";
         List<Method> model = new ArrayList<>(classes.get(POST));
         model.removeIf(m -> m.getName().equals("<init>") && m.getParameterTypes().size() == 155);
         model.add(new ImmutableMethod(POST, "<init>", Arrays.stream(parameters).map(p -> new ImmutableMethodParameter(p, Set.of(), null)).toList(),
@@ -1016,7 +1036,7 @@ public final class FeatureDexFixture {
         reader.set(2070, new ImmutableInstruction22x(Opcode.MOVE_FROM16, 158, 7));
         reader.set(2166, new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 4, 156, ref(POST, "<init>", VOID, parameters)));
         reader.set(2167, new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 4));
-        reader.set(2180, invoke(Opcode.INVOKE_STATIC, ref("Ld6b;", "a", VOID, STRING), 0));
+        reader.set(2180, invoke(Opcode.INVOKE_STATIC, ref("Lf7b;", "a", VOID, STRING), 0));
         reader.set(2181, new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 157));
         int error = 2168;
         if (patched && !fault.equals("missing-presence-hook")) {
@@ -1029,7 +1049,7 @@ public final class FeatureDexFixture {
         reader.set(2069, new ImmutableInstruction21t(Opcode.IF_NEZ, 0, codeOffset(reader, 2069, error)));
         if (patched && fault.equals("missing-error-return")) reader.set(error + 13, new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
         List<Method> adapterMethods = new ArrayList<>(classes.get(adapter)); adapterMethods.removeIf(m -> m.getName().equals("fromJson"));
-        adapterMethods.add(method(adapter, "fromJson", OBJECT, false, 178, reader, "Lc8b;")); classes.put(adapter, adapterMethods);
+        adapterMethods.add(method(adapter, "fromJson", OBJECT, false, 178, reader, "Le9b;")); classes.put(adapter, adapterMethods);
     }
 
     private static String postKey(String name) {
@@ -1129,6 +1149,77 @@ public final class FeatureDexFixture {
                         new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN, 0)), STRING)));
     }
 
+    private static void postLine(Map<String, List<Method>> classes, String variant) {
+        String helper = BASE + "ui/PostLines;", owner = "Lfixture/PostSpacing;", canvas = "Landroid/graphics/Canvas;",
+                paint = "Landroid/graphics/Paint;", list = "Landroidx/recyclerview/widget/RecyclerView;";
+        boolean hooked = !variant.equals("clean") && !variant.equals("missing");
+        List<Instruction> draw = new ArrayList<>(List.of(invoke(Opcode.INVOKE_DIRECT, ref(owner, "debug", "Z"), 9),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)));
+        if (hooked) draw.addAll(List.of(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, variant.equals("wrong-register") ? 1 : 0, 1,
+                        ref(helper, "paintsGaps", "I", "I")),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0)));
+        draw.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 5));
+        draw.add(hooked && !variant.equals("wrong-paint")
+                ? new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 3, 6, ref(helper, "paintGap", VOID, canvas, "F", "F", "F", "F", paint))
+                : new ImmutableInstruction3rc(Opcode.INVOKE_VIRTUAL_RANGE, 3, 6, ref(canvas, "drawRect", VOID, "F", "F", "F", "F", paint)));
+        draw.add(end());
+        classes.put(owner, List.of(
+                method(owner, "debug", "Z", false, 2, List.of(literal("debug_timeline_object_spacing", 0), new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                        new ImmutableInstruction11x(Opcode.RETURN, 0))),
+                method(owner, "draw", VOID, false, 13, draw, canvas, list, "Landroidx/recyclerview/widget/RecyclerView$a0;")));
+        if (!variant.equals("clean")) classes.put(helper, List.of(
+                method(helper, "paintsGaps", "I", true, 2, List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                        new ImmutableInstruction11x(Opcode.RETURN, 0)), "I"),
+                method(helper, "paintGap", VOID, true, 7, List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()),
+                        canvas, "F", "F", "F", "F", paint)));
+    }
+
+    private static void fontChoice(Map<String, List<Method>> classes, String variant) {
+        String helper = BASE + "ui/AppFont;", owner = "Lfixture/FontResources;", callback = "Lfixture/FontResources$Callback;",
+                picker = "Lfixture/FontPicker;", face = "Landroid/graphics/Typeface;", context = "Landroid/content/Context;",
+                handler = "Landroid/os/Handler;";
+        boolean hooked = !variant.equals("clean") && !variant.equals("missing");
+        List<Instruction> load = new ArrayList<>();
+        if (hooked) load.addAll(List.of(
+                variant.equals("wrong-register") ? invoke(Opcode.INVOKE_STATIC, ref(helper, "replacement", face, context, "I"), 9, 12)
+                        : invoke(Opcode.INVOKE_STATIC, ref(helper, "replacement", face, context, "I"), 9, 10),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 8),
+                new ImmutableInstruction21t(Opcode.IF_EQZ, 13, 5),
+                invoke(Opcode.INVOKE_VIRTUAL, ref(callback, "d", VOID, face, handler), 13, 0, 14),
+                new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)));
+        load.addAll(List.of(literal("Font resource ID #0x", 1), new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)));
+        classes.put(owner, List.of(method(owner, "load", face, true, 17, load,
+                context, "I", "Landroid/util/TypedValue;", "I", callback, handler, "Z", "Z")));
+        Instruction provide = new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 3, 1, ref(helper, "provided", face, face));
+        List<Instruction> pick = new ArrayList<>(List.of(new ImmutableInstruction21t(Opcode.IF_EQZ, 4, hooked ? 14 : 10),
+                literal("sans-serif-medium", 3), new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                invoke(Opcode.INVOKE_STATIC, ref(face, "create", face, STRING, "I"), 3, 0),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 3)));
+        if (hooked) pick.addAll(List.of(provide, new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, variant.equals("wrong-return") ? 0 : 3)));
+        pick.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 3));
+        pick.add(new ImmutableInstruction21c(Opcode.SGET_OBJECT, 3, new ImmutableFieldReference(face, "SANS_SERIF", face)));
+        if (hooked) pick.addAll(List.of(provide, new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 3)));
+        pick.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 3));
+        classes.put(picker, List.of(method(picker, "pick", face, true, 5, pick, context, "Lcom/tumblr/font/a;")));
+        String provider = "Lfixture/RowProvider;", view = "Landroid/view/View;", group = "Landroid/view/ViewGroup;";
+        ImmutableMethodReference child = ref(group, "getChildAt", view, "I");
+        List<Instruction> handover = new ArrayList<>(List.of(literal("Returning pre-inflated View for resId: ", 0),
+                invoke(Opcode.INVOKE_VIRTUAL, child, 4, 3), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                invoke(Opcode.INVOKE_VIRTUAL, child, 4, 3), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1)));
+        if (hooked && !variant.equals("missing-row")) handover.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE,
+                variant.equals("wrong-row") ? 1 : 0, 1, ref(helper, "preinflated", VOID, view)));
+        handover.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+        classes.put(provider, List.of(method(provider, "handOver", view, false, 5, handover, "I", group)));
+        if (!variant.equals("clean")) classes.put(helper, List.of(
+                method(helper, "replacement", face, true, 3, List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                        new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)), context, "I"),
+                method(helper, "provided", face, true, 2, List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                        new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1)), face),
+                method(helper, "preinflated", VOID, true, 2, List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()), view)));
+    }
+
     private static void activityNotifications(Map<String, List<Method>> classes, String variant) {
         boolean hooked = !variant.equals("clean");
         String pagination = "Lcom/tumblr/rumblr/model/PaginationLink;";
@@ -1173,6 +1264,8 @@ public final class FeatureDexFixture {
         reviewPrompt(clean, "clean");
         optionalNudges(clean, "reminder", "clean");
         optionalNudges(clean, "gift", "clean");
+        postLine(clean, "clean");
+        fontChoice(clean, "clean");
         activityNotifications(clean, "clean");
         carousel(clean, "clean");
         followButton(clean, "clean");
@@ -1272,6 +1365,18 @@ public final class FeatureDexFixture {
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             optionalNudges(classes, "gift", variant);
             write(root, "feature-gift-popup-" + variant, classes, true, "hideGiftMessagePopups");
+        }
+        for (String variant : List.of("good", "missing", "wrong-register", "wrong-paint")) {
+            reset(); enable("lineBetweenPosts");
+            Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
+            postLine(classes, variant);
+            write(root, "feature-post-line-" + variant, classes, true, "lineBetweenPosts");
+        }
+        for (String variant : List.of("good", "missing", "wrong-register", "wrong-return", "missing-row", "wrong-row")) {
+            reset(); enable("appFont");
+            Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
+            fontChoice(classes, variant);
+            write(root, "feature-font-choice-" + variant, classes, true, "appFont");
         }
         if (FAMILIES.containsKey("filterActivityNotifications")) for (String variant : List.of("good", "missing-hook", "wrong-list", "push-hook",
                 "missing-bridge", "wrong-getter", "wrong-null-target")) {

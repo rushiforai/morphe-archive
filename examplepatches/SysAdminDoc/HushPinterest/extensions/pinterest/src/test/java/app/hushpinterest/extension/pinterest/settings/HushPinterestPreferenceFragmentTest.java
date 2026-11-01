@@ -104,6 +104,7 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.EXTERNAL_BROWSER, "Open links in your browser");
         ROW_TITLES.put(PatchFamily.SYSTEM_SHARE, "System share sheet");
         ROW_TITLES.put(PatchFamily.HIDE_SCREENSHOT_SHARE, "No screenshot share menu");
+        ROW_TITLES.put(PatchFamily.HIDE_ASSISTANT, "Hide Assistant");
         ROW_TITLES.put(PatchFamily.HIDE_SEARCH_HISTORY, "Hide search history");
         ROW_TITLES.put(PatchFamily.HIDE_NAVIGATION_BUTTONS, "Hide Create button");
         ROW_TITLES.put(PatchFamily.HIDE_HEADER_BUTTONS, "Hide header buttons");
@@ -289,6 +290,8 @@ public class HushPinterestPreferenceFragmentTest {
                     }
                     continue;
                 }
+                // GmsCore support has no switch, so there's no row to say what it's missing.
+                if (missing.family.switches.isEmpty()) continue;
                 String summary = String.valueOf(page.findPreference(missing.family.switches.get(0).key).getSummary());
                 if (missing.family.expectedCapabilities().size() == 1) {
                     assertEquals("This build doesn't include the parts that handle " + missing.label + ".", summary);
@@ -478,6 +481,34 @@ public class HushPinterestPreferenceFragmentTest {
             List<Preference> rows = new ArrayList<>();
             collect(page.getPreferenceScreen(), rows);
             assertEquals(indexOfKey(rows, Settings.COPY_IMAGE.key) + 1, indexOfKey(rows, Settings.SHARE_IMAGE.key));
+        }
+    }
+
+    @Test
+    public void saveAndDownloadSwitchesFollowShareImageOnlyWhereTheirHooksWentIn() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Set<PatchFamily.Capability> withoutThem = EnumSet.allOf(PatchFamily.Capability.class);
+        withoutThem.remove(PatchFamily.Capability.SAVE_AND_DOWNLOAD);
+        PatchFamily.capabilitiesForTests = withoutThem;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            assertNull(page.findPreference(Settings.SAVE_DOWNLOADED_PINS.key));
+            assertNull(page.findPreference(Settings.DOWNLOAD_SAVED_PINS.key));
+            assertNotNull(page.findPreference(Settings.SHARE_IMAGE.key));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            SwitchPreference save = (SwitchPreference) page.findPreference(Settings.SAVE_DOWNLOADED_PINS.key);
+            SwitchPreference download = (SwitchPreference) page.findPreference(Settings.DOWNLOAD_SAVED_PINS.key);
+            assertEquals("Save pins you download", String.valueOf(save.getTitle()));
+            assertEquals("Download pins you save", String.valueOf(download.getTitle()));
+            assertFalse("Save pins you download starts off", save.isChecked());
+            assertFalse("Download pins you save starts off", download.isChecked());
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            assertEquals(indexOfKey(rows, Settings.SHARE_IMAGE.key) + 1, indexOfKey(rows, Settings.SAVE_DOWNLOADED_PINS.key));
+            assertEquals(indexOfKey(rows, Settings.SHARE_IMAGE.key) + 2, indexOfKey(rows, Settings.DOWNLOAD_SAVED_PINS.key));
         }
     }
 

@@ -1,0 +1,120 @@
+name: Release Gboard Patches
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: false
+        default: ''
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+    paths:
+      - 'patches/**'
+      - 'extensions/**'
+      - 'gradle.properties'
+      - 'patches-bundle.json'
+  repository_dispatch:
+    types: [new-patch, release]
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid generatePatchesList
+
+      - name: Validate synced release metadata
+        id: metadata
+        shell: pwsh
+        env:
+          REPO_SLUG: ${{ github.repository }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          $gradleText = Get-Content -LiteralPath "gradle.properties" -Raw
+          $match = [regex]::Match($gradleText, '(?m)^\s*version\s*=\s*([^\r\n#]+?)\s*$')
+          if (-not $match.Success) {
+              throw "Unable to resolve version from gradle.properties."
+          }
+          $actualVersion = $match.Groups[1].Value.Trim()
+
+          $tag = if (-not [string]::IsNullOrWhiteSpace($env:INPUT_TAG)) {
+              $env:INPUT_TAG
+          } elseif ($env:GITHUB_REF_NAME -and $env:GITHUB_REF_NAME.StartsWith("v")) {
+              $env:GITHUB_REF_NAME
+          } else {
+              "v$actualVersion"
+          }
+          if (-not $tag.StartsWith("v")) {
+              $tag = "v$tag"
+          }
+
+          $expectedVersion = $tag.Substring(1)
+          if ($actualVersion -ne $expectedVersion) {
+              throw "Tag version '$expectedVersion' does not match gradle.properties version '$actualVersion'."
+          }
+
+          $bundle = Get-Content -LiteralPath "patches-bundle.json" -Raw | ConvertFrom-Json
+          if ([string]$bundle.version -ne $actualVersion) {
+              throw "patches-bundle.json version '$($bundle.version)' does not match '$actualVersion'."
+          }
+
+          $expectedDownloadUrl = "https://github.com/$($env:REPO_SLUG)/releases/download/$tag/patches-$actualVersion.mpp"
+
+          if ([string]$bundle.download_url -ne $expectedDownloadUrl) {
+              throw "patches-bundle.json download_url does not match expected public release URL."
+          }
+          if (-not [string]::IsNullOrEmpty([string]$bundle.signature_download_url)) {
+              throw "patches-bundle.json signature_download_url must be empty for the public repo."
+          }
+
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$actualVersion" >> $env:GITHUB_OUTPUT
+
+      - name: Prepare release notes
+        shell: pwsh
+        run: |
+          $bundle = Get-Content -LiteralPath "patches-bundle.json" -Raw | ConvertFrom-Json
+          $notes = [string]$bundle.description
+          if ([string]::IsNullOrWhiteSpace($notes)) {
+              $notes = "Public mirror release for $env:GITHUB_REF_NAME."
+          }
+          Set-Content -LiteralPath "release-notes.md" -Value $notes -Encoding utf8
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.metadata.outputs.tag }}
+          name: ${{ steps.metadata.outputs.tag }}
+          body_path: release-notes.md
+          prerelease: ${{ contains(steps.metadata.outputs.tag, '-dev.') }}
+          make_latest: true
+          files: |
+            patches/build/libs/patches-${{ steps.metadata.outputs.version }}.mpp

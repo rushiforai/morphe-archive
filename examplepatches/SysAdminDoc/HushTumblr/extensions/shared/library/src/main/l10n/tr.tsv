@@ -246,6 +246,22 @@ Hide blog notification reminders	Blog bildirim hatırlatmalarını gizle
 Hides the pop-up suggesting you turn on notifications for a blog. Your subscriptions and notification settings stay as they are.	Bir blogun bildirimlerini açmanızı öneren pencereyi gizler. Abonelikleriniz ve bildirim ayarlarınız değişmez.
 Hide gift purchase popups	Hediye satın alma pencerelerini gizle
 Hides the pop-up suggesting you buy a gift for a blog. You can still open gifting yourself.	Bir blog için hediye satın almanızı öneren pencereyi gizler. Hediye özelliğini kendiniz açabilirsiniz.
+Line between posts	Gönderiler arasında çizgi
+Draws a thin line in the gap between posts, so it's easier to see where one ends and the next begins.	Gönderiler arasındaki boşluğa ince bir çizgi çizer, böylece birinin nerede bitip diğerinin nerede başladığı daha kolay görülür.
+App font	Uygulama yazı tipi
+Replaces Tumblr's own font with your phone's font, or a font file you choose below. Fonts a post's author picked stay as they are.	Tumblr'ın kendi yazı tipini telefonunun yazı tipiyle veya aşağıdan seçtiğin bir yazı tipi dosyasıyla değiştirir. Gönderi yazarının seçtiği yazı tipleri olduğu gibi kalır.
+Choose a font file	Yazı tipi dosyası seç
+Uses your phone's font. Tap to pick a .ttf or .otf file.	Telefonunun yazı tipini kullanır. Bir .ttf veya .otf dosyası seçmek için dokun.
+Using %1$s. Tap to pick another.	%1$s kullanılıyor. Başka birini seçmek için dokun.
+Use the phone's font	Telefonun yazı tipini kullan
+Forgets the chosen font file.	Seçilen yazı tipi dosyasını unutur.
+Font file saved.	Yazı tipi dosyası kaydedildi.
+Font file saved. Turn on App font to use it.	Kaydedildi. Kullanmak için Uygulama yazı tipini aç.
+Back to the phone's font.	Telefonun yazı tipine dönüldü.
+Couldn't change the font. Try again.	Yazı tipi değiştirilemedi. Yeniden dene.
+Couldn't read that file. Try again.	Dosya okunamadı. Yeniden dene.
+That isn't a font file. Nothing changed.	Bu bir yazı tipi dosyası değil. Hiçbir şey değişmedi.
+That file is too big to be a font.	Bu dosya yazı tipi olamayacak kadar büyük.
 Blog notification reminder	Blog bildirim hatırlatması
 Gift purchase popup	Hediye satın alma penceresi
 Stops the pop-up that asks what you think of the Tumblr app and then asks for a rating or feedback.	Tumblr uygulaması hakkında ne düşündüğünü soran ve ardından puan ya da geri bildirim isteyen açılır pencereyi durdurur.
@@ -319,6 +335,8 @@ Looks for: %1$s	Aranan: %1$s
 # context: Dark background color turns the background of Tumblr's Dark Mode palette (Settings > Appearance) black, or a dark color chosen when the app was patched. Use Tumblr's own name for the Dark Mode palette in your language.
 Dark background color	Koyu arka plan rengi
 Makes newly opened Dark Mode screens black, or the dark color picked when patching. Open screens keep their colors until Tumblr restarts.	Yeni açılan Karanlık Mod ekranlarını siyah veya yama sırasında seçilen koyu renkte gösterir. Açık ekranlar Tumblr yeniden başlatılana kadar renklerini korur.
+Match my wallpaper	Duvar kağıdıma uydur
+Takes the dark background from your wallpaper's colors in place of the one picked when patching. Needs Android 12 or newer and Dark background color on. A new wallpaper shows after Tumblr restarts.	Koyu arka planı, yama sırasında seçilen renk yerine duvar kağıdınızın renklerinden alır. Android 12 veya üstü ve Koyu arka plan renginin açık olması gerekir. Yeni bir duvar kağıdı Tumblr yeniden başlayınca görünür.
 # context: the bottom bar's tabs. Hide the Explore tab and Hide the Notifications tab take one tab's button off the bar; Reorder the bottom bar puts the tabs in an order chosen in a list where a tap moves a tab one place up. Use Tumblr's own names for the tabs in your language.
 Hide the Explore tab	Keşfet sekmesini gizle
 Takes the Explore and search button off the bottom bar.	Keşfet ve arama düğmesini alt çubuktan kaldırır.

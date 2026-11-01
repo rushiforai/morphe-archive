@@ -58,6 +58,12 @@ object Constants {
                 versionCode = 53,
                 minSdk = 24,
                 description = "Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 7.0+), build 53"
+            ),
+            AppTarget(
+                version = "7.4",
+                versionCode = 54,
+                minSdk = 24,
+                description = "Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 7.0+), build 54"
             )
         )
     )

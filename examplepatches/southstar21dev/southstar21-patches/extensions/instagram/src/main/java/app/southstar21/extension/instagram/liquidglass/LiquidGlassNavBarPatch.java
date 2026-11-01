@@ -33,16 +33,14 @@ public final class LiquidGlassNavBarPatch {
             LiquidGlassNavBarPatch::extendContentBehindBar);
     static final BooleanSetting SHRINK_ON_SCROLL = new BooleanSetting("liquid_glass_shrink_on_scroll",
             "Shrink while scrolling", "Scrolling down shrinks the bar, scrolling up restores it.", false, true);
-    static final BooleanSetting HEADER_GLASS = new BooleanSetting("liquid_glass_header",
-            "Glass header", "Glass buttons and blur in the feed and Explore headers, and a glass search field.", true, true);
     static final BooleanSetting HAPTICS = new BooleanSetting("liquid_glass_haptics",
             "Haptics", "A tick when the selection glides over a tab.", false, true);
 
     public static final PatchSettings SETTINGS = new PatchSettings("liquid_glass",
             "Liquid Glass",
-            "iOS 26 style glass tab bar and header. Defaults come from the patch options in Morphe Manager.",
+            "iOS 26 style glass tab bar. Defaults come from the patch options in Morphe Manager.",
             LiquidGlassNavBarPatch::isIncluded,
-            BLUR_RADIUS, REFRACTION, EXTEND_CONTENT, SHRINK_ON_SCROLL, HEADER_GLASS, HAPTICS);
+            BLUR_RADIUS, REFRACTION, EXTEND_CONTENT, SHRINK_ON_SCROLL, HAPTICS);
 
     /** The patch makes this return true, so the menu only shows patches that were applied. */
     public static boolean isIncluded() {
@@ -62,15 +60,6 @@ public final class LiquidGlassNavBarPatch {
 
     public static boolean extendContentBehindBar() {
         return true;
-    }
-
-    /**
-     * Called from Instagram's video layout, which plays Reels through a SurfaceView on some
-     * phones. A SurfaceView's picture can't be zoomed full screen or blurred behind the tab bar,
-     * so while Liquid Glass is on, Reels always use a TextureView.
-     */
-    public static boolean enforceTextureView(boolean enforce) {
-        return enforce || SETTINGS.isActive();
     }
 
     /** Called by {@link InstagramHooks} when this patch is included and switched on. */

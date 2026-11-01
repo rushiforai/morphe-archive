@@ -22,9 +22,11 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
@@ -36,6 +38,7 @@ import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.preference.TwoStatePreference;
+import android.provider.OpenableColumns;
 import android.text.InputType;
 import android.text.Layout;
 import android.text.SpannableStringBuilder;
@@ -66,6 +69,8 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -90,6 +95,7 @@ import app.hushtumblr.extension.shared.settings.preference.LogBufferManager;
 import app.hushtumblr.extension.shared.settings.preference.QuickSetups;
 import app.hushtumblr.extension.tumblr.rootmute.RootPostMutePreference;
 import app.hushtumblr.extension.tumblr.timeline.PostRules;
+import app.hushtumblr.extension.tumblr.ui.AppFont;
 import app.hushtumblr.extension.tumblr.ui.BottomBarTabs;
 import app.hushtumblr.extension.shared.settings.StringSetting;
 
@@ -127,6 +133,11 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
     static final String HIDDEN_WORDS_ROW = "action_hidden_words";
     static final String ALLOWED_WORDS_ROW = "action_allowed_words";
     static final String TAB_ORDER_ROW = "action_tab_order";
+    /** The Choose a font file row's key. What it chose is {@link TextSettings#APP_FONT_FILE}. */
+    static final String FONT_FILE_ROW = "action_font_file";
+    static final String PHONE_FONT_ROW = "action_phone_font";
+    /** The font picker's request. The settings file's two are in {@link SettingsBackupPreference}. */
+    static final int FONT_FILE = 7313;
 
     /** Thrown by the next initialize() and then cleared: how a test reaches the recovery page. */
     static volatile RuntimeException failNextInitialization;
@@ -363,6 +374,10 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == FONT_FILE) {
+            onFontFilePicked(resultCode, data);
+            return;
+        }
         SettingsBackupPreference.onResult(this, requestCode, resultCode, data);
     }
 
@@ -375,6 +390,11 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
         if (allowed != null) allowed.setSummary(wordsSummary(TextSettings.ALLOWED_WORDS.savedValue()));
         Preference tabs = findPreference(TAB_ORDER_ROW);
         if (tabs != null) tabs.setSummary(tabOrderSummary(TextSettings.TAB_ORDER.savedValue()));
+        String font = TextSettings.APP_FONT_FILE.savedValue();
+        Preference fontFile = findPreference(FONT_FILE_ROW);
+        if (fontFile != null) fontFile.setSummary(fontFileSummary(font));
+        Preference phoneFont = findPreference(PHONE_FONT_ROW);
+        if (phoneFont != null) phoneFont.setEnabled(!font.isEmpty());
         onRestartPendingChanged();
     }
 
@@ -579,10 +599,25 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
                     Settings.HIDE_GIFT_MESSAGE_POPUPS, L10n.t("Hide gift purchase popups"),
                     L10n.t("Hides the pop-up suggesting you buy a gift for a blog. You can still open gifting yourself."),
                     SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.LINE_BETWEEN_POSTS,
+                    Settings.LINE_BETWEEN_POSTS, L10n.t("Line between posts"),
+                    L10n.t("Draws a thin line in the gap between posts, so it's easier to see where one ends and the next begins."),
+                    SettingsIcons.INTERFACE);
+            patchToggle(ui, context, build, PatchFamily.APP_FONT, Settings.APP_FONT, L10n.t("App font"),
+                    L10n.t("Replaces Tumblr's own font with your phone's font, or a font file you choose below. Fonts a post's author picked stay as they are."),
+                    SettingsIcons.INTERFACE);
+            if (build.contains(PatchFamily.APP_FONT)) {
+                ui.addPreference(mark(fontFileRow(context), SettingsIcons.INTERFACE));
+                ui.addPreference(mark(phoneFontRow(context), SettingsIcons.INTERFACE));
+            }
             // Read when a screen's theme is made (DarkBackground), so screens already open keep their colors.
             patchToggle(ui, context, build, PatchFamily.DARK_BACKGROUND, Settings.DARK_BACKGROUND,
                     L10n.t("Dark background color"), L10n.t("Makes newly opened Dark Mode screens black, or the dark "
                         + "color picked when patching. Open screens keep their colors until Tumblr restarts."), SettingsIcons.INTERFACE);
+            patchToggle(ui, context, build, PatchFamily.DARK_BACKGROUND, Settings.DARK_BACKGROUND_WALLPAPER,
+                    L10n.t("Match my wallpaper"), L10n.t("Takes the dark background from your wallpaper's colors in place of "
+                        + "the one picked when patching. Needs Android 12 or newer and Dark background color on. "
+                        + "A new wallpaper shows after Tumblr restarts."), SettingsIcons.INTERFACE);
         }
 
         if (!Collections.disjoint(build, PatchFamily.PRIVACY_PAGE)) {
@@ -1186,6 +1221,127 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
     private void clearWordsDraft() {
         wordsDraft = null;
         restoreWordsEditor = false;
+    }
+
+    /** The row that opens the file picker for a font. Its summary names the file in use. */
+    private Preference fontFileRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(FONT_FILE_ROW);
+        row.setTitle(L10n.t("Choose a font file"));
+        row.setPersistent(false);
+        row.setSummary(fontFileSummary(TextSettings.APP_FONT_FILE.savedValue()));
+        row.setOnPreferenceClickListener(p -> {
+            pickFontFile();
+            return true;
+        });
+        return row;
+    }
+
+    private static String fontFileSummary(String saved) {
+        return saved.isEmpty() ? L10n.t("Uses your phone's font. Tap to pick a .ttf or .otf file.")
+                : L10n.f("Using %1$s. Tap to pick another.", AppFont.shownName(saved));
+    }
+
+    /** The row that goes back to the phone's font, with nothing to do until a file is chosen. */
+    private Preference phoneFontRow(Context context) {
+        Row row = new Row(context);
+        row.actsAtOnce = true;
+        row.setKey(PHONE_FONT_ROW);
+        row.setTitle(L10n.t("Use the phone's font"));
+        row.setSummary(L10n.t("Forgets the chosen font file."));
+        row.setPersistent(false);
+        row.setEnabled(!TextSettings.APP_FONT_FILE.savedValue().isEmpty());
+        row.setOnPreferenceClickListener(p -> {
+            forgetFontFile();
+            return true;
+        });
+        return row;
+    }
+
+    /** Every file is offered, as a font's type depends on the app holding it. The file itself gets checked. */
+    private void pickFontFile() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*");
+        try {
+            startActivityForResult(intent, FONT_FILE);
+        } catch (ActivityNotFoundException missing) {
+            Logger.printInfo(() -> "No file picker for the font file");
+            Utils.showToastLong(L10n.t("This phone has no file picker, so there's no way to choose a file here."));
+        } catch (RuntimeException error) {
+            Logger.printInfo(() -> "Could not open the file picker: " + error.getClass().getSimpleName());
+            Utils.showToastLong(L10n.t("Couldn't open the file picker. Try again."));
+        }
+    }
+
+    private void onFontFilePicked(int resultCode, Intent data) {
+        Uri uri = resultCode == Activity.RESULT_OK && data != null ? data.getData() : null;
+        if (uri == null) return; // Cancelled.
+        Context app = getContext().getApplicationContext();
+        String[] outcome = new String[1];
+        if (!submitEdit(() -> outcome[0] = installFontFile(app, uri), () -> showFontOutcome(outcome[0]))) {
+            Utils.showToastLong(L10n.t("Couldn't start that. Try again in a moment."));
+        }
+    }
+
+    /** Takes the picked file and answers the toast. A failure logs its class alone, as its message can name the file. */
+    private static String installFontFile(Context context, Uri uri) {
+        ContentResolver resolver = context.getContentResolver();
+        try (InputStream source = resolver.openInputStream(uri)) {
+            if (source == null) throw new IOException("no stream");
+            saveFontFile(AppFont.install(context, source, fontFileName(resolver, uri)));
+            return Settings.APP_FONT.savedValue() ? L10n.t("Font file saved.") : L10n.t("Font file saved. Turn on App font to use it.");
+        } catch (AppFont.Refused refused) {
+            return refused.getMessage();
+        } catch (IOException | RuntimeException failure) {
+            Logger.printInfo(() -> "Could not take the font file: " + failure.getClass().getSimpleName());
+            return L10n.t("Couldn't read that file. Try again.");
+        }
+    }
+
+    /** What the picked file is called, or null when the app holding it won't say. */
+    @Nullable
+    private static String fontFileName(ContentResolver resolver, Uri uri) {
+        try (Cursor cursor = resolver.query(uri, new String[] {OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            return cursor != null && cursor.moveToFirst() && !cursor.isNull(0) ? cursor.getString(0) : null;
+        } catch (RuntimeException unsupported) {
+            return null;
+        }
+    }
+
+    private void forgetFontFile() {
+        Context app = getContext().getApplicationContext();
+        String[] outcome = new String[1];
+        if (!submitEdit(() -> {
+            try {
+                // An empty value stops the file being read, so a delete that fails does no harm.
+                saveFontFile("");
+                AppFont.forget(app);
+                outcome[0] = L10n.t("Back to the phone's font.");
+            } catch (IOException | RuntimeException failure) {
+                Logger.printInfo(() -> "Could not forget the font file: " + failure.getClass().getSimpleName());
+                outcome[0] = L10n.t("Couldn't change the font. Try again.");
+            }
+        }, () -> showFontOutcome(outcome[0]))) {
+            Utils.showToastLong(L10n.t("Couldn't start that. Try again in a moment."));
+        }
+    }
+
+    /** A new file only needs a restart while the switch is on. With it off, Tumblr isn't reading one. */
+    private static void saveFontFile(String value) throws IOException {
+        synchronized (app.hushtumblr.extension.shared.settings.Setting.class) {
+            String before = TextSettings.APP_FONT_FILE.persistedValue();
+            if (!TextSettings.APP_FONT_FILE.save(value)) throw new IOException("not saved");
+            if (Settings.APP_FONT.savedValue()) {
+                recordRestartPendingChanges(Collections.singletonMap(TextSettings.APP_FONT_FILE, before));
+            }
+        }
+    }
+
+    private void showFontOutcome(@Nullable String message) {
+        if (message != null) Utils.showToastLong(message);
+        if (!isAdded()) return;
+        refreshSwitches();
+        onRestartPendingChanged();
+        if (restartPending.contains(TextSettings.APP_FONT_FILE.key)) showRestartDialog(getContext());
     }
 
     /** The row that opens the tab order list. Its summary names the order chosen. */

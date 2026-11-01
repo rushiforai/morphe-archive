@@ -123,8 +123,7 @@ final class SourceVerification {
             if(stopped)return;stopped=true;main.removeCallbacks(poll);main.removeCallbacks(retry);
             LyricsDiagnostics.record("Source connection",message);
             if(dialog!=null){dialog.setOnDismissListener(null);dialog.dismiss();if(usable(activity))Toast.makeText(activity,message,Toast.LENGTH_LONG).show();}
-            if(web.getParent() instanceof ViewGroup parent)parent.removeView(web);
-            web.stopLoading();web.destroy();if(active==this)active=null;
+            web.stopLoading();app.bdcrusher.ytmusic.common.ViewDisposal.dispose(web,web::destroy);if(active==this)active=null;
         }
     }
 }

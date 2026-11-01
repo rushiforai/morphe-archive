@@ -156,7 +156,7 @@ public final class ShaderRuntime {
                 background.update(state,options,null);
             }catch(Exception invalid){surface.setVisibility(View.INVISIBLE);}
         }
-        public void close(){if(closed)return;closed=true;active=false;anchor.removeOnAttachStateChangeListener(attachment);if(anchor.getViewTreeObserver().isAlive()){anchor.getViewTreeObserver().removeOnGlobalLayoutListener(layout);anchor.getViewTreeObserver().removeOnWindowFocusChangeListener(focus);}parent.removeView(surface);if(surface instanceof ShaderSurface background)background.closeSurface();else ((AnimatedCoverSurface)surface).closeSurface();}
+        public void close(){if(closed)return;closed=true;active=false;anchor.removeOnAttachStateChangeListener(attachment);if(anchor.getViewTreeObserver().isAlive()){anchor.getViewTreeObserver().removeOnGlobalLayoutListener(layout);anchor.getViewTreeObserver().removeOnWindowFocusChangeListener(focus);}if(surface instanceof ShaderSurface background)background.closeSurface();else {((AnimatedCoverSurface)surface).closeSurface();app.bdcrusher.ytmusic.common.ViewDisposal.dispose(surface,()->{});}}
     }
     private static final class SettingsMotion {static boolean reduced(Context c){try{return android.provider.Settings.Global.getFloat(c.getContentResolver(),android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,1)==0;}catch(Exception unavailable){return false;}}}
 }

@@ -38,7 +38,7 @@ private const val COMMUNITIES_BUTTON = "communities_button_wrapper"
 /** The flag Tumblr lists the Communities tab by, a constant of its feature enum. */
 private const val COMMUNITIES_TAB_FLAG = "COMMUNITIES_TAB_BAR_ITEM"
 
-/** The bar's layout, and the Communities and Tumblr TV buttons' ids in it (Tumblr 46.8.1.100). */
+/** The bar's layout, and the Communities and Tumblr TV buttons' ids in it (Tumblr 46.9.1.100). */
 private const val BAR_LAYOUT = "res/layout/root_activity_nav_bar.xml"
 private const val COMMUNITIES_BUTTON_ID = 0x7f0b0334
 private const val TUMBLR_TV_BUTTON_ID = 0x7f0b0d91

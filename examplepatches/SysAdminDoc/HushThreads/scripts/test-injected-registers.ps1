@@ -450,7 +450,7 @@ try {
 
 # The verifier run end to end, with stand-ins for the tools it starts: a java that answers the
 # version probe and plays DexDiff with the given exit code, an aapt2 that describes Threads
-# 452.0.0.50.64, and an apksigner that reports a Threads signer from patches-list.json. With
+# 453.0.0.56.79, and an apksigner that reports a Threads signer from patches-list.json. With
 # -JavaGone the apksigner also deletes that java, which leaves it unable to start by the time
 # DexDiff runs, as a JDK replaced mid-run would. A Continue preference around the DexDiff call
 # once turned exactly that into '[registers] success.'.
@@ -471,7 +471,7 @@ function Write-StandIn {
 
 function Invoke-VerifierWithStandIns {
     param([string]$Name, [int]$DexDiffExit, [switch]$JavaGone, [string[]]$SelectedPatches,
-        [string]$PatchedVersionCode = '512207626')
+        [string]$PatchedVersionCode = '512308675')
     $case = Join-Path $standIns $Name
     New-Item -ItemType Directory -Path $case -Force | Out-Null
     $javaStandIn = Join-Path $case 'java.cmd'
@@ -505,11 +505,11 @@ exit /b $DexDiffExit
     # The patched APK can report a version code of its own, as Change version code makes it.
     Write-StandIn (Join-Path $case 'aapt2.cmd') @"
 @echo off
-set "standInCode=512207626"
+set "standInCode=512308675"
 echo %* | findstr /c:"patched.apk" >nul && set "standInCode=$PatchedVersionCode"
 echo   E: manifest (line=2)
 echo     A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=%standInCode%
-echo     A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="452.0.0.50.64" (Raw: "452.0.0.50.64")
+echo     A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="453.0.0.56.79" (Raw: "453.0.0.56.79")
 echo     A: package="$standInPackage" (Raw: "$standInPackage")
 exit /b 0
 "@
@@ -668,20 +668,23 @@ try {
     $logoRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^sole-call\s' })
     Assert-True ($logoRules.Count -eq 1 -and $logoRules[0] -like 'sole-call Lapp/morphe/extension/hushthreads/settings/ThreadsLogo;->clickable*') `
         'The logo fixtures must cover exactly the declared logo stand-in rule.'
-    foreach ($fault in @('logo-missing', 'logo-register', 'logo-duplicate', 'logo-stock-left')) {
+    $soLoaderRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^start-call\s' })
+    Assert-True ($soLoaderRules.Count -eq 1 -and $soLoaderRules[0] -like 'start-call Lapp/morphe/extension/hushthreads/misc/NativeLibraries;->soLoaderFlags*') `
+        'The SoLoader fixtures must cover exactly the declared SoLoader flags rule.'
+    foreach ($fault in @('logo-missing', 'logo-register', 'logo-duplicate', 'logo-stock-left', 'soloader-missing', 'soloader-late', 'soloader-elsewhere')) {
         $case = "bad-$fault"
         $apk = New-DexApk -Name $case -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case) })
         $checked = Invoke-DexDiff -Clean $cleanApk -Patched $apk -Allowlist $emptyAllowlist -Name $case -Contracts $contracts
         $findings = Get-Findings $checked
         Assert-True ($checked.ExitCode -ne 0 -and $findings.Fails.Count -eq 1 -and
             @($findings.Categories | Where-Object { $_ -cne 'contract' }).Count -eq 0) `
-            "$fault was not rejected solely by the logo call contract."
+            "$fault was not rejected solely by its call contract."
         $structural = Invoke-DexDiff -Clean $cleanApk -Patched $apk -Allowlist $emptyAllowlist -Name "$case-structural"
         Assert-True ($structural.ExitCode -eq 0 -and (Get-Findings $structural).Fails.Count -eq 0) "$fault was not structurally valid."
     }
     # Every rule must have bad builds of its own. The feature fixtures below cover eleven families.
     $otherRules = @(Get-Content -LiteralPath $contracts | ForEach-Object { $_.Trim() } |
-        Where-Object { $_ -and -not $_.StartsWith('#') -and $_ -notmatch '^(no-call|sole-call)\s' })
+        Where-Object { $_ -and -not $_.StartsWith('#') -and $_ -notmatch '^(no-call|sole-call|start-call)\s' })
     Assert-True ((($otherRules | Sort-Object) -join ',') -ceq 'threads-feature disableAnalytics,threads-feature disableVideoAutoplay,threads-feature hideAds,threads-feature hideSuggestedUsers,threads-feature openLinksExternally,threads-feature pureBlack,threads-feature restoreTrust,threads-feature returnRefresh,threads-feature sanitizeSharingLinks,threads-feature saveMedia,threads-feature settingsRow') `
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
 
@@ -735,6 +738,7 @@ try {
         'browser-missing', 'browser-register', 'browser-bypass', 'browser-clobber',
         'pigeon-missing', 'pigeon-replaced', 'pigeon-bypass',
         'default-missing', 'mqtt-missing', 'trust-missing', 'trust-replaced', 'trust-fallback',
+        'tile-missing', 'tile-swapped', 'tile-answer', 'tile-live',
         'status-missing', 'status-false', 'zero-mask', 'unknown-mask')
     foreach ($fault in $featureFaults) {
         $case = "features-bad-$fault"
@@ -743,21 +747,21 @@ try {
         $checked = Invoke-DexDiff -Clean $stock -Patched $apk -Allowlist $emptyAllowlist -Name $case -Contracts $contracts -Features $featureCases['features-good']
         $findings = Get-Findings $checked
         Assert-True ($checked.ExitCode -ne 0 -and $findings.Fails.Count -gt 0 -and
-            @($findings.Categories | Where-Object { $_ -cne 'contract' }).Count -eq 0) "$fault was not rejected solely by a semantic contract."
+            @($findings.Categories | Where-Object { $_ -cne 'contract' }).Count -eq 0) "$fault was not rejected solely by a semantic contract: $($findings.Fails -join '; ')"
         $structural = Invoke-DexDiff -Clean $stock -Patched $apk -Allowlist $emptyAllowlist -Name "$case-structural"
-        Assert-True ($structural.ExitCode -eq 0 -and (Get-Findings $structural).Fails.Count -eq 0) "$fault was not structurally valid."
+        Assert-True ($structural.ExitCode -eq 0 -and (Get-Findings $structural).Fails.Count -eq 0) "$fault was not structurally valid: $((Get-Findings $structural).Fails -join '; ')"
     }
     # Direct ad, media and lead/policy handoffs share the cleaner, while the factory and immersive
     # browser retain their stock code. Every corruption below remains structurally valid.
-    $browserDirectFaults = @('lead-missing', 'lead-url', 'lead-double-open', 'lead-parameter', 'ad-missing', 'ad-url', 'ad-context', 'ad-double-open', 'ad-return', 'ad-bypass', 'ad-live',
+    $browserDirectFaults = @('lead-missing', 'lead-url', 'lead-double-open', 'lead-parameter', 'lead-live', 'ad-missing', 'ad-url', 'ad-context', 'ad-double-open', 'ad-return', 'ad-bypass',
         'media-missing', 'media-url', 'media-context', 'media-double-open', 'media-false', 'media-uninitialized', 'media-live', 'media-bypass', 'factory-hook', 'immersive-hook', 'omitted-body')
     # Each scratch fault reaches one part of the liveness check, and the check names the first edge it
     # hits, in the order the locals bound, the hook site, then the completion: the lead one the locals
-    # bound only, the ad one the hook site only, the media one both of the read edges and so the hook
+    # bound only, the other lead one the hook site only, the media one both of the read edges and so the hook
     # site's, which comes first. The completion edge alone takes a stock shape of its own, checked after these.
     $browserScratchFaults = @{
         'lead-parameter' = "past the method's locals"
-        'ad-live' = 'read at the hook site'
+        'lead-live' = 'read at the hook site'
         'media-live' = 'read at the hook site'
     }
     foreach ($fault in $browserDirectFaults) {
@@ -1093,7 +1097,7 @@ try {
         $structural = Invoke-DexDiff -Clean $featureClean -Patched $apk -Allowlist $emptyAllowlist -Name "$case-structural"
         Assert-True ($structural.ExitCode -eq 0 -and (Get-Findings $structural).Fails.Count -eq 0) "$fault was not structurally valid."
     }
-    # 451 uses a field copy into its inherited palette. The original literal-layout controls
+    # Threads copies its dark backgrounds into its inherited palette by field. The original literal-layout controls
     # above stay independent, while these prove both selected and omitted field layouts.
     $fieldPaletteClean = New-DexApk -Name 'features-pure-black-fields-clean' -Entries ([ordered]@{
         'classes.dex' = (Get-Dex 'features-pure-black-fields-clean') })
@@ -1246,6 +1250,7 @@ try {
         'click' = 'SaveMediaRow$Click; implements [], not Lkotlin/jvm/functions/Function0;'
         'click-static' = "SaveMediaRow`$Click;'s invoke() isn't a public instance method"
         'bridge-getter' = 'videoVersions(Ljava/lang/Object;)Ljava/util/List; calls invoke-virtual Lcom/instagram/feed/media/Media;->items()Ljava/util/List;, not invoke-virtual Lcom/instagram/feed/media/Media;->videos()Ljava/util/List;'
+        'bridge-shared-getter' = 'repostedPost(Ljava/lang/Object;)Ljava/lang/Object; calls invoke-interface Lfixture/ShareInfo;->quoted()Lcom/instagram/feed/media/Media;, not invoke-interface Lfixture/ShareInfo;->reposted()Lcom/instagram/feed/media/Media;'
         'bridge-call' = 'versionUrl(Ljava/lang/Object;)Ljava/lang/String; calls invoke-virtual Lcom/instagram/api/schemas/VideoVersionIntf;->A00()Ljava/lang/String;, not invoke-interface'
         'bridge-cast' = 'username(Ljava/lang/Object;)Ljava/lang/String; casts its argument to Lcom/instagram/feed/media/Media;, not Lcom/instagram/user/model/User;'
         'bridge-result' = "takenAt(Ljava/lang/Object;)Ljava/lang/Long; doesn't return what Lcom/instagram/feed/media/Media;->takenAt()Ljava/lang/Long; answers"

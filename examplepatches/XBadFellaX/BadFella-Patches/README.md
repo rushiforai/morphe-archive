@@ -14,8 +14,8 @@
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager/releases/latest) **2.2.0 or later**.
 2. On your phone, tap **Add to Morphe** above and add the source.
-3. Open **TickTick**, **Emby**, **Remote for Android TV**, **MIT Technology Review**, **Pep Talk** or **Wanderlog** in Manager. Refresh Sources if it is missing; enable **Settings → Expert settings → Expert Mode** if needed for custom app selection.
-4. Select the unmodified **TickTick 8.2.4.0 APKM**, **Emby 3.5.72 APK**, **Remote for Android TV 6.1.0 APKM** or **MIT Technology Review 3.0 APKM** or **Pep Talk 2.31.0 XAPK** or **Wanderlog 2.227 APKM**, choose the patches below, then patch and install.
+3. Open **TickTick**, **Emby**, **Remote for Android TV**, **Pep Talk** or **Wanderlog** in Manager. Refresh Sources if it is missing; enable **Settings → Expert settings → Expert Mode** if needed for custom app selection.
+4. Select the unmodified **TickTick 8.2.4.0 APKM**, **Emby 3.5.72 APK**, **Remote for Android TV 6.1.0 APKM** or **Pep Talk 2.31.0 XAPK** or **Wanderlog 2.227 APKM**, choose the patches below, then patch and install.
 5. For updates, refresh this source and patch again using the **same Manager signing key** to preserve app data.
 
 Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX/BadFella-Patches/releases/latest) and add it in Manager's **Sources** screen.
@@ -25,7 +25,7 @@ Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.0.0](https://github.com/XBadFellaX/BadFella-Patches/releases/tag/v2.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.0.0](https://github.com/XBadFellaX/BadFella-Patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
 <summary>📦 TickTick&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -57,66 +57,6 @@ Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX
 |----------|----------------|-----------|
 | [Emby client unlock](#emby-client-unlock) | Enables local in-app feature gates using Kirlif's observed approach. Does not grant server Premiere entitlements. |  |
 | [Emby remove Firebase and DataTransport](#emby-remove-firebase-and-datatransport) | Removes Firebase/DataTransport SDK classes and manifest components. Disables Firebase push messaging; keeps Cast and billing libraries. |  |
-
-</details>
-
-<details open>
-<summary>📦 HBR&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;39.4.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [HBR extended free reading](#hbr-extended-free-reading) | Raises the free-article meter to 1500 per 30-day window for signed-out and signed-in readers, effectively unlimited within a month, and hides the recurring free-views banner so reading stays clean. Does not grant a subscription, unlock subscriber-only content or change server-run entitlements. |  |
-
-</details>
-
-<details open>
-<summary>📦 London Review of Books&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;4.6.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [LRB premium reading](#lrb-premium-reading) | Unlocks locally paywalled LRB articles and issues by making the standard paywall manager report content as unlocked, and brands the settings version banner Patched by BadFella. Keeps account authentication and store billing; does not grant a server subscription. |  |
-
-</details>
-
-<details open>
-<summary>📦 MIT Technology Review&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 3.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [MIT Tech Review reading meter](#mit-tech-review-reading-meter) | Removes local article gates and the remaining-views banner, and enables the app's ad-free flag for native and article ads. Keeps account authentication; does not grant a server subscription. |  |
-
-</details>
-
-<details open>
-<summary>📦 Nikkei Asia&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;8a14774d3a9cb8f25eaae58f4c4e4f3e |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Nikkei Asia premium reading](#nikkei-asia-premium-reading) | Grants article access in the Nikkei Asia reader by making its local article-access check always succeed, removes the paywall overlay, stops the app's self-updating web bundle from replacing the patched assets, labels the Account screen "Premium Unlocked by BadFella" and its Subscribe row "Patched by BadFella". Keeps account sign-in and store billing; does not change server-side entitlements. |  |
 
 </details>
 

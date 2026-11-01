@@ -145,6 +145,73 @@ public class PostSaveTest {
         assertEquals(0, fetched());
     }
 
+    @Test public void aPostWithNoMediaOfItsOwnOffersThePostItShows() {
+        assertTrue("a linked Instagram video", PostSave.canSave(text("3201_7").linking(video("3202_7", "/linked.mp4"))));
+        assertTrue("an attached post's video", PostSave.canSave(text("3203_7").sharing(video("3204_7", "/attached.mp4"), null, null)));
+        assertTrue("a reposted post's video", PostSave.canSave(text("3205_7").sharing(null, video("3206_7", "/reposted.mp4"), null)));
+        assertTrue("a quoted post's video", PostSave.canSave(text("3207_7").sharing(null, null, video("3208_7", "/quoted.mp4"))));
+        assertTrue("a linked video that's streamed only as DASH", PostSave.canSave(text("3209_7").linking(dashOnly("3210_7"))));
+        assertTrue("a repost of a quote of a linked video", PostSave.canSave(text("3211_7").sharing(null,
+                text("3212_7").sharing(null, null, text("3213_7").linking(video("3214_7", "/deep.mp4"))), null)));
+
+        assertFalse("a post that links nothing", PostSave.canSave(text("3215_7").linking(null)));
+        assertFalse("a post that shares only text", PostSave.canSave(text("3216_7").sharing(text("3217_7"), text("3218_7"), text("3219_7"))));
+        Post loop = text("3220_7");
+        loop.linking(loop);
+        assertFalse("a post that somehow links itself ends", PostSave.canSave(loop));
+
+        assertEquals("Save video", PostSave.label(text("3221_7").linking(video("3222_7", "/label.mp4"))));
+        assertEquals("Save all", PostSave.label(text("3223_7").sharing(null, null,
+                carousel("3224_7", photo("3225_7", "/g.jpg"), video("3226_7", "/h.mp4")))));
+        assertEquals("nothing was fetched to decide", 0, fetched());
+    }
+
+    @Test public void aPostsOwnMediaComesBeforeAnythingItShows() {
+        Post post = photo("3301_7", "/own.jpg").sharing(null, null, video("3302_7", "/quoted.mp4"));
+        assertEquals("Save photo", PostSave.label(post));
+        assertEquals("the post's own photo", "3301_7", ((Post) PostSave.saved(FAKE, post)).id);
+        Post first = text("3303_7").linking(video("3304_7", "/first.mp4")).sharing(video("3305_7", "/second.mp4"), null, null);
+        assertEquals("the linked post comes first", "3304_7", ((Post) PostSave.saved(FAKE, first)).id);
+        Post attached = text("3306_7").sharing(video("3307_7", "/a.mp4"), video("3308_7", "/b.mp4"), video("3309_7", "/c.mp4"));
+        assertEquals("the attached post comes before a repost and a quote", "3307_7", ((Post) PostSave.saved(FAKE, attached)).id);
+        Post reposted = text("3310_7").sharing(text("3311_7"), video("3312_7", "/d.mp4"), video("3313_7", "/e.mp4"));
+        assertEquals("a post with nothing to save is passed over", "3312_7", ((Post) PostSave.saved(FAKE, reposted)).id);
+        Post nothing = text("3314_7");
+        assertEquals("nothing to find answers the post itself", "3314_7", ((Post) PostSave.saved(FAKE, nothing)).id);
+    }
+
+    @Test public void aTapSavesTheVideoOfThePostItShowsUnderThatPostsDetails() throws Exception {
+        Post linked = video("3401_9", "/linked-save.mp4");
+        linked.owner = "instagram_poster";
+        Post post = text("3402_7").linking(linked);
+        post.owner = "threads_poster";
+        List<String> saved = Collections.synchronizedList(new ArrayList<>());
+        MediaSave.detailsForTests = details -> saved.add(details.videoId + " " + details.owner);
+
+        PostSave.save(context, post);
+        waitForSaves();
+
+        assertEquals(Collections.singletonList("3401 instagram_poster"), saved);
+        assertEquals(1, server.hits("/linked-save.mp4"));
+        assertEquals(1, gallery.rows.size());
+        assertTrue(name(gallery.rows.get(1L)), name(gallery.rows.get(1L)).matches("TH_VID_\\d{8}_\\d{6}\\.mp4"));
+        assertArrayEquals(body(true, "/linked-save.mp4"), files.get(1L).toByteArray());
+    }
+
+    @Test public void aTapOnAPostThatSharesACarouselSavesEveryPage() throws Exception {
+        Post shared = carousel("3501_9", photo("3502_9", "/shared-a.jpg"), video("3503_9", "/shared-b.mp4"));
+        Post post = text("3504_7").sharing(shared, null, null);
+
+        PostSave.save(context, post);
+        waitForSaves();
+
+        assertEquals(1, server.hits("/shared-a.jpg"));
+        assertEquals(1, server.hits("/shared-b.mp4"));
+        assertEquals(2, gallery.rows.size());
+        assertTrue(name(gallery.rows.get(1L)), name(gallery.rows.get(1L)).endsWith("_3501_01.jpg"));
+        assertEquals("Saved 2. Failed 0. Skipped 0.", ShadowToast.getTextOfLatestToast());
+    }
+
     @Test @Config(qualifiers = "de")
     public void theLabelIsInThePhonesLanguage() {
         Map<String, String> german = L10nTablesForTests.of("de");
@@ -396,9 +463,32 @@ public class PostSaveTest {
         List<MediaSave.Rendition> videos;
         String manifest;
         List<MediaSave.Rendition> pictures;
+        boolean hasInfo;
+        Post linked;
+        boolean hasShare;
+        Post attached;
+        Post reposted;
+        Post quoted;
 
         Post(String id) {
             this.id = id;
+        }
+
+        /** This post with [post] as its linked Instagram post. */
+        Post linking(Post post) {
+            hasInfo = true;
+            linked = post;
+            return this;
+        }
+
+        /** This post sharing others: attached, reposted and quoted, any of them null. */
+        Post sharing(Post attached, Post reposted, Post quoted) {
+            hasInfo = true;
+            hasShare = true;
+            this.attached = attached;
+            this.reposted = reposted;
+            this.quoted = quoted;
+            return this;
         }
     }
 
@@ -419,6 +509,12 @@ public class PostSaveTest {
         @Override public Object owner(Object media) { return ((Post) media).owner; }
         @Override public Long takenAt(Object media) { return ((Post) media).takenAt; }
         @Override public String username(Object user) { return (String) user; }
+        @Override public Object textPostInfo(Object media) { return ((Post) media).hasInfo ? media : null; }
+        @Override public Object linkedInlineMedia(Object info) { return ((Post) info).linked; }
+        @Override public Object shareInfo(Object info) { return ((Post) info).hasShare ? info : null; }
+        @Override public Object quotedAttachmentPost(Object share) { return ((Post) share).attached; }
+        @Override public Object repostedPost(Object share) { return ((Post) share).reposted; }
+        @Override public Object quotedPost(Object share) { return ((Post) share).quoted; }
     };
 
     /** A reader whose every read throws, the way a bridge does when Threads changes its model. */

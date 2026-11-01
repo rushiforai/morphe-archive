@@ -1,0 +1,338 @@
+[
+  {
+    "filename": "kijk-9-8-0.apk",
+    "package": "nl.sbs.kijk",
+    "version": "9.8.0",
+    "version_code": 2026101500,
+    "min_sdk": 26,
+    "base_member": "kijk-9-8-0.apk",
+    "base_sha256": "695ec882393b98385046423da5b8d8ca8126e4a5c175e7731cb209ef43452d63",
+    "members": {
+      "kijk-9-8-0.apk": "695ec882393b98385046423da5b8d8ca8126e4a5c175e7731cb209ef43452d63"
+    },
+    "dex_sha256": {
+      "classes.dex": "dd113f1c38680217298d5659fab023e2275c281c7e5d6c5c31a0a5e904839493",
+      "classes2.dex": "4c2f698a8fe8656ab564ce337c0c976499c26c7ec035758abcfcce87bf0c5e2d",
+      "classes3.dex": "9b9abd1a3f10df265f94d549c2bd6f7f08184f59e474e2e7910fd2f07d827de7",
+      "classes4.dex": "26ae5c2ab073d8697a755b27dbda8743283932b7c0ce279f27fe14ca8ff90fac",
+      "classes5.dex": "e6f8dc029c1054096d1ee53fd4f688106d816f80c3cbba7927aa162b4f5a5ea6",
+      "classes6.dex": "8ea77a5ce0b454120d2ee34774e8b137ab59b0ac5f5207012b5a6db22bcb6806",
+      "classes7.dex": "f328e807bde3123b8ef95e76a32f4100fd8c291a351a82cd7b3c5e7ad9c08f7b"
+    },
+    "resource_api_floor": 0
+  },
+  {
+    "filename": "medium-4-5-1784911033 (1).xapk",
+    "package": "com.medium.reader",
+    "version": "4.5.1784911033",
+    "version_code": 1784911033,
+    "min_sdk": 32,
+    "base_member": "com.medium.reader.apk",
+    "base_sha256": "f48ec17f4e7b7770805e098f58df27e145134f0f447fb3166b6a9fa64e9535df",
+    "members": {
+      "config.arm64_v8a.apk": "229cd2c6f4d42edbb26070d90395bffc41629dc6bf752edd8c65b6dbed2dcf25",
+      "com.medium.reader.apk": "f48ec17f4e7b7770805e098f58df27e145134f0f447fb3166b6a9fa64e9535df",
+      "config.xxhdpi.apk": "6470eef68189fa16b3b640a5ec326e8224b09fe735f7a62a6a23b7fa57df7af0",
+      "config.xxxhdpi.apk": "84ce27d45306a9179dbf67337f3fcd56b6f95b4bdb73b0565816706c5890624d"
+    },
+    "dex_sha256": {
+      "classes.dex": "011034d0c4c97bf9b2ce0f75284e1093bdc5be3daef34852d85ada7c309c5bfa",
+      "classes2.dex": "062e43df363d276ed6fdae7909f57db784bced292f4d8223c867d32d0d2c0473",
+      "classes3.dex": "7a066b031756f5c788acffa133c83cb7a6afccf960715e3074ec46621c4c0b86",
+      "classes4.dex": "72bcd98625ad81794870911df76a3a16b778f032fe2f7112168709c6942ac5ae"
+    },
+    "resource_api_floor": 24
+  },
+  {
+    "filename": "medium-4-5-1784911033.xapk",
+    "package": "com.medium.reader",
+    "version": "4.5.1784911033",
+    "version_code": 1784911033,
+    "min_sdk": 32,
+    "base_member": "com.medium.reader.apk",
+    "base_sha256": "f48ec17f4e7b7770805e098f58df27e145134f0f447fb3166b6a9fa64e9535df",
+    "members": {
+      "com.medium.reader.apk": "f48ec17f4e7b7770805e098f58df27e145134f0f447fb3166b6a9fa64e9535df",
+      "config.arm64_v8a.apk": "229cd2c6f4d42edbb26070d90395bffc41629dc6bf752edd8c65b6dbed2dcf25",
+      "config.xxxhdpi.apk": "84ce27d45306a9179dbf67337f3fcd56b6f95b4bdb73b0565816706c5890624d",
+      "config.xxhdpi.apk": "6470eef68189fa16b3b640a5ec326e8224b09fe735f7a62a6a23b7fa57df7af0",
+      "config.armeabi_v7a.apk": "82f881d17a3e19abad9d00b8fda211f0820038fd004c7ee5ae3d30c8bcb77da0",
+      "config.xhdpi.apk": "23910c4cc90d55d8366c0ed46d7bc9741d363ff6ebba775fefb7af88a0466aa3",
+      "config.in.apk": "8c5b41ade2fb026d0618145c1fda35e506be8621d40ef61782f4f9473e222035",
+      "config.hdpi.apk": "88464acf96fb39c255de8b75a99a071acd1a77c9a5a31c688c4f03de66154a68"
+    },
+    "dex_sha256": {
+      "classes.dex": "011034d0c4c97bf9b2ce0f75284e1093bdc5be3daef34852d85ada7c309c5bfa",
+      "classes2.dex": "062e43df363d276ed6fdae7909f57db784bced292f4d8223c867d32d0d2c0473",
+      "classes3.dex": "7a066b031756f5c788acffa133c83cb7a6afccf960715e3074ec46621c4c0b86",
+      "classes4.dex": "72bcd98625ad81794870911df76a3a16b778f032fe2f7112168709c6942ac5ae"
+    },
+    "resource_api_floor": 24
+  },
+  {
+    "filename": "nl.rtl.videoland.v2_1.116.4-1627_4arch_7dpi_e0bef315a0c6ae1135f006a01dac0589_apkmirror.com.apkm",
+    "package": "nl.rtl.videoland.v2",
+    "version": "1.116.4",
+    "version_code": 1627,
+    "min_sdk": 24,
+    "base_member": "base.apk",
+    "base_sha256": "c990c0339ac1b8c79031aabccba0046f63ca005266031a18c35051c8b7a73810",
+    "members": {
+      "base.apk": "c990c0339ac1b8c79031aabccba0046f63ca005266031a18c35051c8b7a73810",
+      "split_config.arm64_v8a.apk": "13327599a206b5282d659385f0669dc6c2f14efe00bb12558b16436c15a3afed",
+      "split_config.xxhdpi.apk": "ab151eab7b998d54f99c6be68b6d8d732d0516fd3c3549e3acdd8d21dbfa22e4",
+      "split_config.ldpi.apk": "b55ee09d914a5b67b8a8519edd0d767fee53aea07636dd516a0534795f2a0f11",
+      "split_config.x86_64.apk": "6697fdeebcb6c36937ac4efc86eed9b99bbce29dd21e8360933a215678c12ea3",
+      "split_config.tvdpi.apk": "aba1d7016ae98edf238e8296e435f43f79d9677fe09323146f55a52696c201c1",
+      "split_config.xhdpi.apk": "8f0551fff9cab293342f50b29c440b847e764f7b9c15645c22df201a9e78bc6d",
+      "split_config.armeabi_v7a.apk": "5fe5a219f417fb97b9042d714b8517081a8b3f9bdbb4db3dd252bb2bb95f60dc",
+      "split_config.hdpi.apk": "15e27f5f10d47c0269c993a6fb38170729d2515959317431826edd7569afbdc5",
+      "split_config.x86.apk": "09ae5dc5f620ea21e8a7be29e90437243f008d4087f7c30442d14637566b3b45",
+      "split_config.xxxhdpi.apk": "5d3450488c5a9161726e2e4a913a2148eae0a4518cd599901dda3b27ef022333",
+      "split_config.mdpi.apk": "91e4400a43dbd88db0796e2344fea0a3fad2b333ef6cd6cd5c0ec0dfdfb644a0"
+    },
+    "dex_sha256": {
+      "classes.dex": "bf966057c459a63c291ea6d5b99c91693eedc1e4a38a2d53dfc56c818299a3f3",
+      "classes2.dex": "bdc4ae7c850c7246104c0be60bc126d73a03620d349a0357bd506e6696460b78",
+      "classes3.dex": "97927b5ac759d4445f6a887797887b4957d59b35e9c1e28ce7db9d903183a89d",
+      "classes4.dex": "044eb2c552a0a6522487d661f3fa18fb7afde096eeb5dbf417921b78a27f9b91"
+    },
+    "resource_api_floor": 24
+  },
+  {
+    "filename": "nl.rtl.videoland.v2_1.117.0-1622_2arch_1dpi_cbddd37bac4d7aaf9dd1e27f225c6515_apkmirror.com.apkm",
+    "package": "nl.rtl.videoland.v2",
+    "version": "1.117.0",
+    "version_code": 1622,
+    "min_sdk": 24,
+    "base_member": "base.apk",
+    "base_sha256": "c728291017b8490892274481013a1ec5923681fc4202666599ddc91b5bae32ab",
+    "members": {
+      "base.apk": "c728291017b8490892274481013a1ec5923681fc4202666599ddc91b5bae32ab",
+      "split_config.armeabi_v7a.apk": "7b55d7a652fd478eba22a67feda58cabf8d3c956d442ed2f062640c19fda3123",
+      "split_config.arm64_v8a.apk": "1ccddbc7b18e00d216ac3c7d4620659b9a851ca630a7f908b0e1702e04b28d6d",
+      "split_config.xhdpi.apk": "13e18d473b2230fb7e6b97e7a6bd7dacae0dd36cdc2087b9021051c843a2b5e9"
+    },
+    "dex_sha256": {
+      "classes.dex": "aad99ae93abc4db6a5968cb8538eea0a1c41727f88b9b1f5d0d21f99862b3cbc",
+      "classes2.dex": "c87e76ae0277477f3df5caec8976f8891e700c7e972d3fefc6df9b84318b02de",
+      "classes3.dex": "1fa1a96ec78dedd6ad52e241ddf94c9af8e946cfbcc5b45fe41283aadb7c8252",
+      "classes4.dex": "b124e2c12a0abca045b49e5d7c7bccd979e95894070b67f07955849de4c182e9"
+    },
+    "resource_api_floor": 24
+  },
+  {
+    "filename": "nl.uitzendinggemist_1.48.2-2405-240497937_1arch_2dpi_24lang_7f9c7f0a8392139794cbac35fd2cb429_apkmirror.com.apkm",
+    "package": "nl.uitzendinggemist",
+    "version": "1.48.2-2405",
+    "version_code": 240497937,
+    "min_sdk": 29,
+    "base_member": "base.apk",
+    "base_sha256": "097b4cbaaf7da61858981f5c6806b6f5cfc4005467151c465174276451dac3a8",
+    "members": {
+      "base.apk": "097b4cbaaf7da61858981f5c6806b6f5cfc4005467151c465174276451dac3a8",
+      "split_config.xxxhdpi.apk": "cfc214ce2c5d7e57ae77ef7ba68080d79b2691e084682e65da733d74e8a5a826",
+      "split_config.ar.apk": "33fa1045b3935bfca02fa362c9c74aad6450541c230631667b75abafe00336ce",
+      "split_config.arm64_v8a.apk": "ffe0f31dd8c9c029b6f29bdeb29af12720af0b9d0183005637cf73585df06260",
+      "split_config.de.apk": "fcc3505918655129bc23af4597f8bfce6042290749694ccca09281c9078a0573",
+      "split_config.en.apk": "ca88337bbab245e5f59d66c9736e130f998bd3be9fead412c72fff65f19ef294",
+      "split_config.es.apk": "9ed44addaa61963a410a8ca14af2e8b8309e1f1f24c4c39473a9b193d0009c5e",
+      "split_config.et.apk": "53556d81ee7d92ecd8b38e202b6905901a74e0e14386fafe00222323a9de8161",
+      "split_config.fi.apk": "251abb36b6e0551151a6b57118e0651deafed867b86ac9d5ced44b4fa15bb890",
+      "split_config.fr.apk": "8933734ada9869b94c31363f165d91a393b31e5dd592252e5171ad470673f7f3",
+      "split_config.hi.apk": "d6ffee7a566981f25702ff2729a65aa41df85d978ff2dfa4a3d7902aac3ee6b9",
+      "split_config.hu.apk": "949096b9b6f6be4dcfedad060e50c49c4908395f2fec6124564e37eeb41e88bf",
+      "split_config.in.apk": "f08028a328aa5c33cde8c8970cc6e7733af50d3838dcec22d9c1424d58dbfefb",
+      "split_config.it.apk": "967420dd4300993da57a630a29b23a298b795c75f73c91e28689215482f8b323",
+      "split_config.ja.apk": "c5283e658408086bfde3d07efb820e90d2f60fb9590d06b3ffdb56ccbe305e7e",
+      "split_config.ko.apk": "2625aa34443c921d6e2ce600210a3587c42a35e44a18e65b4d54a82b3b9cd7bc",
+      "split_config.ms.apk": "b9fd7a3aaf78767a608e142718e78d8cf5214227d3de78f8f14935fdbaae508e",
+      "split_config.nl.apk": "54194d37cb94c6be4a81cfb85cbefd944dc462399145f615a3beac24036e517f",
+      "split_config.pl.apk": "e2a03701414197cc74548d9d2543755bc1479ffb8dfb89bef7ac2589fbc4a09d",
+      "split_config.pt.apk": "e32f5f6f920d17bddc1920a8c646a9c3cbd24db98ffa2945e4c0d9683edfdb61",
+      "split_config.ru.apk": "7ae75c427fbacca33b3b4768ee9b56d1ce4d9bd448d8c1289bc5534a2924fdcd",
+      "split_config.sv.apk": "32eccf42aa41afc45f6fe10324afae69f1749c50b40ca0cf49aa9133e55b2c9a",
+      "split_config.th.apk": "1a722477756a8b5a0a2f0f9ea0ee8264049607dbbe7fa0ad6299b834acc14268",
+      "split_config.tr.apk": "56ef18124a0bf09c108abdb0b4e2d4239e7082af06f149d2923104aaf79336bb",
+      "split_config.uk.apk": "e0ca150eb2aea874a7f214303fbd76f36648571a361c59ba03cd20179c4431cb",
+      "split_config.vi.apk": "0ccae0136bef1f4983d84ea507d26d4a2ef30932ba43920d3b75f2a140c6cf20",
+      "split_config.xxhdpi.apk": "e008f6f8a6b8482c57d829882843fe0181bb59d8256782730ac5f7f5c61ae0bd",
+      "split_config.zh.apk": "6a930a3b97298ed0e08dfa98df179c6295e970df5e02bbfe12da6a5f536d192f"
+    },
+    "dex_sha256": {
+      "classes.dex": "4b85ec997cae73b19e2a7f70b7760066d916ca7c149c6360c4b700cb1f515ba1",
+      "classes2.dex": "ead0a1dac8918ec9aa40ac693dec78aa8c4f6c2d7134f04776a7c61bccdc1f84",
+      "classes3.dex": "614c447b35e2e248be28154e7f14094c1d47a581b9206f8d4101ed648a95fadb",
+      "classes4.dex": "a07c743107ceb57a19405f204453fbb30ec990c922e843fad723d6f114ccad45"
+    },
+    "resource_api_floor": 24
+  },
+  {
+    "filename": "nl.uitzendinggemist_1.48.2-2405-240497937_3arch_2dpi_24lang_c542e12032114e8924b95fd086d44583_apkmirror.com.apkm",
+    "package": "nl.uitzendinggemist",
+    "version": "1.48.2-2405",
+    "version_code": 240497937,
+    "min_sdk": 24,
+    "base_member": "base.apk",
+    "base_sha256": "234c0e225cda09d7d7d00ff03a5e2fd59dcca2f454572ec097e9e8e3b671c9da",
+    "members": {
+      "base.apk": "234c0e225cda09d7d7d00ff03a5e2fd59dcca2f454572ec097e9e8e3b671c9da",
+      "split_config.x86.apk": "507b20d20de19ec9e7b20859122e0bcdc7620121c176164931f613bcdb9c072f",
+      "split_config.ar.apk": "381330384a2657c04503c3df922431de8bce646ddbc776711873b97bc958e022",
+      "split_config.xxxhdpi.apk": "cf6e30bfc56bfe444905a545088fdc01d3c9ab9ceed53dfe745f457860f0a0b1",
+      "split_config.arm64_v8a.apk": "88d883bd23ef6aa803d792fcbbfa56e47beeed26fad3bdcbab6b9f5c34fcd846",
+      "split_config.de.apk": "83ce0bc0258cf00e74ab2837e866ce0f80218e952da00bf0650747ee97862d50",
+      "split_config.en.apk": "5f27487225cceb10cbbc8fb290da9134b31381053d8490bf7959557d2c6dfa48",
+      "split_config.es.apk": "a637c9757a495e2ee7afa27ed5c83e64158679c0bf72f73351f06da9de72fdf1",
+      "split_config.et.apk": "78e1562d236eeff8425e7f86f867190c5b7482ae9195d9400aebe194363ebd8e",
+      "split_config.fi.apk": "ac305872abeb947fcba44ed968d2e5c6c41c83219078f0bfb865b69463d92f1d",
+      "split_config.fr.apk": "812fe6ee69a747a752fdeefeed59a17782402d71589ee31ab5903c303a613844",
+      "split_config.hi.apk": "078897448960b8a8b994c0e8be2476dc43585b5a9ff1faa0cc43ff3a7ce4aba4",
+      "split_config.hu.apk": "cec34dc1b630fe925b299f71e6d1e91fc9e6ae218aad3a5c1c035622bd326792",
+      "split_config.in.apk": "cc87ba90954276338ac16b9c43c66a3915ecf4f76b662df6a663bb39b87d1b3f",
+      "split_config.it.apk": "f33ad7db0395dfcfb9cfd9c7a940002d12954078e5e18f1413e751c10c4fe490",
+      "split_config.ja.apk": "4a012479be7d2e5cc60f5ecccebfad3a4aebc72d32b31c4108a8daedc66645e8",
+      "split_config.ko.apk": "8918e3e6859b16dfdb330327b910569ebc6a087602138cafcf9204f7f58c02c8",
+      "split_config.x86_64.apk": "6586625e431a0f7e0243f7d85502bea4d7f5386b77d22e8ac3c237a60a467c9b",
+      "split_config.ms.apk": "fe61f779ce940fc61e2a21068eca05eb58cc0de95f2095872b3eaf9e7264c58b",
+      "split_config.nl.apk": "e17aae2c30446bd5e0f46904d3694d6edfe03f5e8c4d6e4bef5ed337f9b1440c",
+      "split_config.pl.apk": "e099eac4fdb2852231f653893833eb164e0693759039cbb7d2eb2eecdf481cc5",
+      "split_config.pt.apk": "be222fb673eb2dd6e2a89435f90140a794b240ba6725593ff05e632b1ffc8875",
+      "split_config.ru.apk": "aafb8c1e4e2afd8e4bc01ceb00dba626064e128be8933ddd462027a04f32907a",
+      "split_config.sv.apk": "bd621045862a14819ddb68bd929e66b8c6d206dbd39de196c6fc993cef4e6575",
+      "split_config.th.apk": "6380d02fc2d666ac82fc803431a25066a1b8f047c9b1bce17a120f056244f959",
+      "split_config.tr.apk": "d6c1b45b3cbe9491425703f9c6c9fe0773c3254c57d3404e847b3c857e1f9b7c",
+      "split_config.uk.apk": "03aa6a03ac65b7feca4faaae75726776ba2bd4d60289226dc944338587ff9ed1",
+      "split_config.vi.apk": "618c92fc417d7e0bc54164c7ee3bf1340f3fbe68499dd8f054b1956a2788b084",
+      "split_config.xxhdpi.apk": "4875daeaeda65bb494b50d6cd0e4e75f9e3568f3aebca4bf2db690ed0b188183",
+      "split_config.zh.apk": "01598e625235eb792d275a577ec153f2631e083bea8c3842c649bc66a58f3de4"
+    },
+    "dex_sha256": {
+      "classes.dex": "4b85ec997cae73b19e2a7f70b7760066d916ca7c149c6360c4b700cb1f515ba1",
+      "classes2.dex": "ead0a1dac8918ec9aa40ac693dec78aa8c4f6c2d7134f04776a7c61bccdc1f84",
+      "classes3.dex": "614c447b35e2e248be28154e7f14094c1d47a581b9206f8d4101ed648a95fadb",
+      "classes4.dex": "a07c743107ceb57a19405f204453fbb30ec990c922e843fad723d6f114ccad45"
+    },
+    "resource_api_floor": 24
+  },
+  {
+    "filename": "nl.uitzendinggemist_1.48.2-2405-240497937_4arch_6dpi_24lang_21678444dd2ab6036713d1597f7c57f0_apkmirror.com.apkm",
+    "package": "nl.uitzendinggemist",
+    "version": "1.48.2-2405",
+    "version_code": 240497937,
+    "min_sdk": 32,
+    "base_member": "base.apk",
+    "base_sha256": "f9ccd19a758c6ce20939b50f6d3f8cdef1d680cf1538a37e557eadef5740bcb7",
+    "members": {
+      "base.apk": "f9ccd19a758c6ce20939b50f6d3f8cdef1d680cf1538a37e557eadef5740bcb7",
+      "split_config.x86.apk": "23827d3a163930358586530ac88ca776bb89cf97f64e47dd3b96ad375115a152",
+      "split_config.ldpi.apk": "88318c0cac23f40cf3824e10a0f6876dd7b9aa4e1659f067ad4228424426d803",
+      "split_config.armeabi_v7a.apk": "a3ca37ace4297129a3c7cce7aec5deb28aa1ad93f3dcbd6e915beac827eca26f",
+      "split_config.ar.apk": "e74ed6b60814e25a1888176d22a6f695249e8cdbf55a170bc0c784771f26aa22",
+      "split_config.x86_64.apk": "8d484e6c42438e674dced92c48ba16d4608117e3ec89cd9cd5a673744fc2d46e",
+      "split_config.xhdpi.apk": "3fc42e78f8c4c2c12febcffbbb16acb782145d1a30d3328fa0a7fca39de97580",
+      "split_config.arm64_v8a.apk": "117d88fe63a6d9a0e3cc3a78d595fc85dd70bd4e331095724c1b7b306fcc082d",
+      "split_config.de.apk": "94b9811f53e39cf05e53730c7c6e3d88b9bd37c6afeba6f220804d4d50459003",
+      "split_config.en.apk": "460305bf492102e46e149166d3b3f2873b6c00b515e7b6363c1dc5f6a34b6b6f",
+      "split_config.es.apk": "9a13a8be07a360f2c770c64bd479c3893e481ec0f78ac5a9b64b0b680019b8ce",
+      "split_config.et.apk": "a6db1b4fd1d5a734ed2a5addd29374e00495ea309133e8ef0dd9081a916b87eb",
+      "split_config.fi.apk": "5548529c8beac6e7f2b11784e27ed2a81ee289003a78b8435fac57c4bc006c65",
+      "split_config.mdpi.apk": "ed2c3e237a3d3c383ee5846e32a92e310d8d9d855d54d6da3889fadd7d4b6950",
+      "split_config.fr.apk": "3483ca6df8662b1dc11a7d1149dd5d97c412cc25578f75e0f4c86f59e69f21d7",
+      "split_config.hi.apk": "cc8d768a043f72e22df24f866a668bb66cbdcf21b21a9db377853b4eae7e212f",
+      "split_config.hdpi.apk": "44e57db98a4b95a452bb46dd97bbad155b7b9f0d15800c07cd1fe3af07757f86",
+      "split_config.hu.apk": "0d109d4f8b5247a7215e07096a0a887ebff494d5b59a623f4d2c94239e8c5193",
+      "split_config.in.apk": "174968b316715e1053f5b224419bfce3b0c35c46dff974476b5a815098541be6",
+      "split_config.it.apk": "e74b0cc37f47f605b94e98847cecd2fd5f9511bc07b8a440b39a09893d09e6a1",
+      "split_config.ja.apk": "08f584f142d4d1d38898725cd3aefbee2827df3382ff1a5e2abaacf02880eecc",
+      "split_config.tvdpi.apk": "9da44ccceb9126548db6467747402f21fdf3b0e03c2826ffb2206d6783847a20",
+      "split_config.ko.apk": "73352d8c26427492907d7209c4c65cd688845704589c91fd58dc088963cc76f8",
+      "split_config.ms.apk": "e5157dcef18ba865bf9132c030c62123ad7f5c3237485fc0f3f62ccc7efa5475",
+      "split_config.nl.apk": "0711722419c25c65b6272800aa13d313a7085788efa0f22b49e8ee614acaa609",
+      "split_config.pl.apk": "45054fd3dc73322906a39805b303ae76f784d95e7bc39e097cf5803268819750",
+      "split_config.pt.apk": "8bc8c8eed2e57bfc675b504981ef239bf1dd8ef71193cfbe5423e5de82a3fec4",
+      "split_config.ru.apk": "d85e5aba8f11a2cb2d8d5413bbb5eee3b73668e8863ac2ac830cd4f07034fc8e",
+      "split_config.sv.apk": "17d97c994ea5570061430dd205ee62c84a0580b3a5ad879be3f0fe3219584e18",
+      "split_config.th.apk": "8e89d63474b116282d2e53951f2bca3e5adb861b0e32e02482524d9f1162b5ea",
+      "split_config.tr.apk": "7621a808fb4896cea93a17be18708c7b0802f1b7d543ce0fddaf2d68662c2b14",
+      "split_config.uk.apk": "b870d236de1689420f43668df4bc593a9b832b190010ff951b63860afe7458b4",
+      "split_config.vi.apk": "f0c6258a09ab174779d28dcbeb416190edb440c649790a8b456fab1698da729a",
+      "split_config.xxhdpi.apk": "f37e8bca77ba657a29dc5a5b19899c620db0d1f3d964162011b5df5f037aeb21",
+      "split_config.zh.apk": "646eab0d892b02177e629d7ddde105d317b2bab8a65ce9d1a48592996ca50db8"
+    },
+    "dex_sha256": {
+      "classes.dex": "4b85ec997cae73b19e2a7f70b7760066d916ca7c149c6360c4b700cb1f515ba1",
+      "classes2.dex": "ead0a1dac8918ec9aa40ac693dec78aa8c4f6c2d7134f04776a7c61bccdc1f84",
+      "classes3.dex": "614c447b35e2e248be28154e7f14094c1d47a581b9206f8d4101ed648a95fadb",
+      "classes4.dex": "a07c743107ceb57a19405f204453fbb30ec990c922e843fad723d6f114ccad45"
+    },
+    "resource_api_floor": 24
+  },
+  {
+    "filename": "nl.uitzendinggemist_1.48.2-2405-245497937_1arch_1dpi_1lang_06cde1885f5b1f84d1f86eb7a81159ce_apkmirror.com.apkm",
+    "package": "nl.uitzendinggemist",
+    "version": "1.48.2-2405",
+    "version_code": 245497937,
+    "min_sdk": 29,
+    "base_member": "base.apk",
+    "base_sha256": "f5388a92fb6fd2ff5de21be9560c1176a2a84b3f61999a80d03e791bec98c5dc",
+    "members": {
+      "base.apk": "f5388a92fb6fd2ff5de21be9560c1176a2a84b3f61999a80d03e791bec98c5dc",
+      "split_config.arm64_v8a.apk": "7a84f8d65a2f1282e37ed51cfade9298d12c0ebf56b63fe3db2a51466a93a654",
+      "split_config.nl.apk": "4626bb918fef4b15100cfc3f884eb6a79ef4b55d8e1dce12f55bb3cacc825779",
+      "split_config.xhdpi.apk": "1e7373fd3b2d2d1e749e99bf5b57ddfcce912515e0404b7f6e4d89679793e476"
+    },
+    "dex_sha256": {
+      "classes.dex": "ebad50e25f71fd9c1605c528f6043d273ef61289e51848a7a66c7cb8ea39a5e7",
+      "classes2.dex": "03894df2c3363966ee9b665891627118a32017a666f005d39a6835c7f3536622",
+      "classes3.dex": "b9458f0dc9713bf255eab8a33f97310b000d124114919324aa5b49a2d9c1fddf",
+      "classes4.dex": "166e72756c3546b160722a2f547b9cda99ab03f3590b4369a0d96341821975d3"
+    },
+    "resource_api_floor": 24
+  },
+  {
+    "filename": "nl.uitzendinggemist_1.48.2-2405-245497937_1arch_1dpi_1lang_825eb75bee1964bc1d54541cfe30d745_apkmirror.com.apkm",
+    "package": "nl.uitzendinggemist",
+    "version": "1.48.2-2405",
+    "version_code": 245497937,
+    "min_sdk": 32,
+    "base_member": "base.apk",
+    "base_sha256": "53f47470071dcf114cfaf5d44d9bce92b665083ab623880bd78ab1182d7be565",
+    "members": {
+      "base.apk": "53f47470071dcf114cfaf5d44d9bce92b665083ab623880bd78ab1182d7be565",
+      "split_config.armeabi_v7a.apk": "e13ed366988ceebc4f710b48c681f20e29d2f3ea79512b1c00cc0d9b95c9dabf",
+      "split_config.nl.apk": "34e99da96679d7882767bbbea8eeb662c62b462ec42a777b7aad2876b3587dda",
+      "split_config.xhdpi.apk": "429499b965e235ff0f457b7d7ecbb79d89bdb0f2e5efdd29e32bf2f063c2d112"
+    },
+    "dex_sha256": {
+      "classes.dex": "ebad50e25f71fd9c1605c528f6043d273ef61289e51848a7a66c7cb8ea39a5e7",
+      "classes2.dex": "03894df2c3363966ee9b665891627118a32017a666f005d39a6835c7f3536622",
+      "classes3.dex": "b9458f0dc9713bf255eab8a33f97310b000d124114919324aa5b49a2d9c1fddf",
+      "classes4.dex": "166e72756c3546b160722a2f547b9cda99ab03f3590b4369a0d96341821975d3"
+    },
+    "resource_api_floor": 24
+  },
+  {
+    "filename": "nl.uitzendinggemist_1.48.2-2405-245497937_2arch_1dpi_1lang_bda49db07003acb5a6b0a22655d41a0f_apkmirror.com.apkm",
+    "package": "nl.uitzendinggemist",
+    "version": "1.48.2-2405",
+    "version_code": 245497937,
+    "min_sdk": 24,
+    "base_member": "base.apk",
+    "base_sha256": "e0fa9f908d9a768c21baba988b290f6433327474067ec256911afee2cdf32671",
+    "members": {
+      "base.apk": "e0fa9f908d9a768c21baba988b290f6433327474067ec256911afee2cdf32671",
+      "split_config.arm64_v8a.apk": "2946ad63427e5d0ea74bc7df76ced26b962623440d2e9e4035ae770629ff53b2",
+      "split_config.nl.apk": "8af5294adb27a061ea7dca63f08db791c48a470dd561a14f8be2125c5839507e",
+      "split_config.xhdpi.apk": "6c247abf6e42e90f78072192d8b26452c5a485039d4c6c97c2bb09a4de5d10ec",
+      "split_config.armeabi_v7a.apk": "e47421db3c46044ec9dab547d666cef4adf382d86f2a0318e8bb6e3b782df482"
+    },
+    "dex_sha256": {
+      "classes.dex": "ebad50e25f71fd9c1605c528f6043d273ef61289e51848a7a66c7cb8ea39a5e7",
+      "classes2.dex": "03894df2c3363966ee9b665891627118a32017a666f005d39a6835c7f3536622",
+      "classes3.dex": "b9458f0dc9713bf255eab8a33f97310b000d124114919324aa5b49a2d9c1fddf",
+      "classes4.dex": "166e72756c3546b160722a2f547b9cda99ab03f3590b4369a0d96341821975d3"
+    },
+    "resource_api_floor": 24
+  }
+]

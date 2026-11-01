@@ -904,6 +904,8 @@ public class SettingsNavigationTest {
                 .contains("the next time Tumblr starts"));
         summaryContains(Settings.DARK_BACKGROUND.key, "newly opened Dark Mode screens",
                 "Open screens keep their colors until Tumblr restarts.");
+        summaryContains(Settings.DARK_BACKGROUND_WALLPAPER.key, "wallpaper's colors",
+                "A new wallpaper shows after Tumblr restarts.");
         summaryContains(Settings.HIDE_TUMBLRMART.key, "when you return to them",
                 "Open screens keep their TumblrMart button until Tumblr restarts.");
         summaryContains(Settings.CHECK_FOR_RELEASES.key, "Once a day", "Nothing is downloaded");

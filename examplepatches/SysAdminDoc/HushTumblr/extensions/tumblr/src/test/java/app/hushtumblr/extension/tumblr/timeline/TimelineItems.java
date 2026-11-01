@@ -168,6 +168,21 @@ public final class TimelineItems {
         return new TimelineObject(new Post(Arrays.asList(added), trail, null, null, "100"), false);
     }
 
+    /** A reblog as {@link #reblogOf} makes, whose id is [id]. */
+    public static TimelineObject reblogWithId(String id, List<?> original, Object... added) {
+        List<HushTrail> trail = Collections.singletonList(() -> original);
+        return new TimelineObject(new Post(Arrays.asList(added), trail, null, null, "100") {
+            @Override public String getId() { return id; }
+        }, false);
+    }
+
+    /** A post made of [blocks], whose id is [id]. */
+    public static TimelineObject postWithId(String id, Object... blocks) {
+        return new TimelineObject(new Post(Arrays.asList(blocks), null, null, null, null) {
+            @Override public String getId() { return id; }
+        }, false);
+    }
+
     /** A post with nothing but [tags] and a [summary]. */
     public static TimelineObject postTagged(String summary, String... tags) {
         return new TimelineObject(new Post(Collections.emptyList(), null, Arrays.asList(tags), summary, null), false);

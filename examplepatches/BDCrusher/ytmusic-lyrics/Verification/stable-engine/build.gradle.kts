@@ -64,3 +64,5 @@ tasks.register<JavaExec>("inspectLyricsPresentation") { dependsOn("classes");cla
 tasks.register<JavaExec>("inspectLyricsBackground") { dependsOn("classes");classpath=sourceSets["main"].runtimeClasspath;mainClass.set("app.bdcrusher.lyrics.InspectLyricsBackgroundKt");workingDir=rootDir }
 tasks.register<JavaExec>("inspectShaderVideo") { dependsOn("classes");classpath=sourceSets["main"].runtimeClasspath;mainClass.set("app.bdcrusher.lyrics.InspectShaderVideoKt");workingDir=rootDir;maxHeapSize="4g" }
 tasks.register<JavaExec>("inspectLifecycle") { dependsOn("classes");classpath=sourceSets["main"].runtimeClasspath;mainClass.set("app.bdcrusher.lyrics.InspectLifecycleKt");workingDir=rootDir;maxHeapSize="4g" }
+
+tasks.register<JavaExec>("auditInvokeAccess"){dependsOn("classes");classpath=sourceSets["main"].runtimeClasspath;mainClass.set("app.bdcrusher.lyrics.AuditInvokeAccessKt");workingDir=rootDir;maxHeapSize="4g";doFirst{setArgs(listOf(providers.gradleProperty("accessApk").get(),providers.gradleProperty("accessExpected").getOrElse("expect-pass")))}}

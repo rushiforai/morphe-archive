@@ -16,9 +16,10 @@ import com.android.tools.smali.dexlib2.Opcode
 // ============================================================================
 
 /**
- * Matches stock `App.onCreate()V`, isolating the CashRaven bootstrap block (`android_id` read,
- * `CashRaven.Companion.createManaged`, forced `CashRaven.optIn()`, `CashRavenService.configure`,
- * and `registerActivityLifecycleCallbacks`) ahead of Koin and Firebase RemoteConfig (`cric_api2`).
+ * Matches stock `App.onCreate()V` (7.3 layout, where the bootstrap is inlined into onCreate),
+ * isolating the CashRaven bootstrap block (`android_id` read, `CashRaven.Companion.createManaged`,
+ * forced `CashRaven.optIn()`, `CashRavenService.configure`, and `registerActivityLifecycleCallbacks`)
+ * ahead of Koin and Firebase RemoteConfig (`cric_api2`).
  */
 internal object AppOnCreateFingerprint : Fingerprint(
     definingClass = "/App;",
@@ -62,7 +63,41 @@ internal object AppOnCreateBaseFingerprint : Fingerprint(
 )
 
 /**
- * Matches `App.c(Context)V` — helper that starts `CashRavenService` and `AppExitGuardService`.
+ * Matches the extracted CashRaven bootstrap helper (`App.a()V` in v7.4). In 7.4 the developer
+ * moved the whole bootstrap out of onCreate into this no-arg helper guarded by the
+ * `cashraven_enabled` preference: it reads `android_id`, builds the SDK instance via
+ * `CashRaven.Companion.createManaged`, force-opts-in and configures the foreground service.
+ * Stubbing this one method disables CashRaven completely; every consumer of the stored instance
+ * null-checks the lateinit backing field first (verified in 7.4), so nothing can crash on the
+ * missing instance.
+ */
+internal object AppCashRavenBootstrapFingerprint : Fingerprint(
+    definingClass = "/App;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        string("cashraven_enabled"),
+        string("android_id"),
+        methodCall(
+            definingClass = "Lio/cashraven/sdk/CashRaven\$Companion;",
+            name = "createManaged\$default",
+        ),
+        methodCall(
+            definingClass = "Lio/cashraven/sdk/CashRaven;",
+            name = "optIn",
+        ),
+        methodCall(
+            definingClass = "Lio/cashraven/sdk/CashRavenService\$Companion;",
+            name = "configure",
+        ),
+    ),
+)
+
+/**
+ * Matches `App.c(Context)V` — helper that starts `CashRavenService` and `AppExitGuardService`
+ * (7.3 layout). In 7.4 this helper no longer exists (the service start is lifecycle-driven and
+ * inert once the bootstrap is stubbed), so a miss is verified clean instead.
  */
 internal object AppStartServicesFingerprint : Fingerprint(
     definingClass = "/App;",
@@ -276,8 +311,8 @@ internal object MainActivityOnCreateFingerprint : Fingerprint(
             definingClass = "Lcom/google/android/material/navigation/NavigationView;",
             name = "setNavigationItemSelectedListener",
         ),
+        // Owner is ComponentActivity in 7.3 but renamed by obfuscation in 7.4; match by name.
         methodCall(
-            definingClass = "Landroidx/activity/ComponentActivity;",
             name = "getOnBackPressedDispatcher",
         ),
         string("dialog_alert"),
@@ -308,13 +343,17 @@ internal object PromoMarqueeFingerprint : Fingerprint(
 // ============================================================================
 
 /**
- * Matches `bh2.d(AppCompatActivity)Z` — scans installed packages for Base64-encoded
+ * Matches the packet-sniffer package scan (`bh2.d(AppCompatActivity)Z` in v7.3,
+ * `l23.g(baseActivity)Z` in v7.4) — scans installed packages for Base64-encoded
  * HTTP/packet capture tools (`UmVxYWJsZQ==` = Reqable, `SHR0cCBDYW5hcnk=` = Http Canary).
+ * The activity parameter type differs per build (AppCompatActivity in 7.3, the app's own
+ * base activity in 7.4), so it is matched as any single reference parameter; the two unique
+ * Base64 markers keep the fingerprint precise.
  */
 internal object PacketSnifferCheckFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "Z",
-    parameters = listOf("Landroidx/appcompat/app/AppCompatActivity;"),
+    parameters = listOf("L"),
     filters = listOf(
         string("UmVxYWJsZQ=="),
         string("SHR0cCBDYW5hcnk="),

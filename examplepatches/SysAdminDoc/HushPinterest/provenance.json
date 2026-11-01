@@ -143,6 +143,7 @@
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/DownloadFolderPreference.java",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SetupGuidancePreference.java",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/PushReadiness.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/GoogleSignInReadiness.java",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/NativeControls.java",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/NativeSettingsItem.java",
         "patches/src/main/kotlin/app/morphe/patches/pinterest/misc/settings/NativeSettingsEntry.kt",

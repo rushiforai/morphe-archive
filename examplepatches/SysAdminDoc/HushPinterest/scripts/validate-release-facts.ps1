@@ -826,22 +826,33 @@ $catalogText = Get-Content -LiteralPath $catalogPath -Raw
 $workingToolchain = Read-CatalogToolchain -Text $catalogText -Source 'gradle/libs.versions.toml'
 $pinnedPatcher = $workingToolchain.PatcherVersion
 $managerFloor = $workingToolchain.ManagerFloor
+# The README describes the published release, so after the patcher pin moves it keeps the floor
+# that release needs until the next release rewrites it. readme-manager-floor in the catalog
+# records that floor; a release run (-VerifyPublishedAsset) holds the README to manager-floor.
+$readmeFloor = $managerFloor
+$readmeFloorMatch = [regex]::Match($catalogText, '(?m)^\s*readme-manager-floor\s*=\s*"([^"]+)"')
+if ($readmeFloorMatch.Success -and -not $VerifyPublishedAsset) {
+    $readmeFloor = $readmeFloorMatch.Groups[1].Value
+    if ($readmeFloor -notmatch '^\d+\.\d+\.\d+$' -or [version]$readmeFloor -gt [version]$managerFloor) {
+        throw "gradle/libs.versions.toml has an invalid readme-manager-floor: $readmeFloor (manager-floor is $managerFloor)"
+    }
+}
 # The README names the floor three times: the badge's picture, its alt text, and the install step,
 # where a link sits between "Morphe Manager" and the version. A pattern over the words alone was
 # satisfied by the alt text, so an install step still naming the old floor passed. Every copy has
 # to name this floor, and none of the three may go missing.
-$floorText = [regex]::Escape($managerFloor)
+$floorText = [regex]::Escape($readmeFloor)
 $staleFloors = @([regex]::Matches($readme, '\bMorphe Manager(?:\]\([^)\s]*\))?\s+(\d+(?:\.\d+)+)\s+or newer\b') |
-    ForEach-Object { $_.Groups[1].Value } | Where-Object { $_ -ne $managerFloor } | Select-Object -Unique)
+    ForEach-Object { $_.Groups[1].Value } | Where-Object { $_ -ne $readmeFloor } | Select-Object -Unique)
 if ($staleFloors.Count -gt 0) {
     throw ("README names Morphe Manager $($staleFloors -join ', ') or newer, but patcher $pinnedPatcher " +
-        "needs $managerFloor, which the catalog pins.")
+        "needs $readmeFloor, which the catalog pins.")
 }
 Require-Match -Text $readme -Pattern "alt=`"For Morphe Manager $floorText or newer`"" -Description 'README badge alt Manager floor'
 Require-Match -Text $readme -Pattern "Morphe%20Manager%20$floorText%2B" -Description 'README badge Manager floor'
 Require-Match -Text $readme -Pattern "(?m)^\d+\.\s+Install \[Morphe Manager\]\([^)\s]+\)\s+$floorText\s+or newer\b" `
     -Description 'README install step Manager floor'
-Write-Host "[release] README requires Morphe Manager $managerFloor or newer for patcher $pinnedPatcher"
+Write-Host "[release] README requires Morphe Manager $readmeFloor or newer (manager-floor $managerFloor for patcher $pinnedPatcher)"
 
 # The index description names a floor too, and it's what Manager users read before they install.
 # It describes the published release, which needs the floor that release's own commit pinned, not
@@ -889,9 +900,9 @@ $bugFormTarget = if ($indexLagsSource -and $publishedFacts.TargetVersion) { $pub
 $bugFormVersions = "HushPinterest $publishedVersion on Pinterest $bugFormTarget"
 Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*$([regex]::Escape($bugFormVersions))\s*$" `
     -Description 'bug report form version placeholder'
-Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*Morphe Manager $([regex]::Escape($managerFloor))\s*$" `
+Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*Morphe Manager $([regex]::Escape($readmeFloor))\s*$" `
     -Description 'bug report form Manager placeholder'
-Write-Host "[release] the bug report form's placeholders say `"$bugFormVersions`" and Morphe Manager $managerFloor"
+Write-Host "[release] the bug report form's placeholders say `"$bugFormVersions`" and Morphe Manager $readmeFloor"
 # Its patch list is what a reporter ticks, so it names the catalog's patches, every one of them
 # once and nothing else. A patch added or renamed without it would leave reporters no way to say
 # they had it.

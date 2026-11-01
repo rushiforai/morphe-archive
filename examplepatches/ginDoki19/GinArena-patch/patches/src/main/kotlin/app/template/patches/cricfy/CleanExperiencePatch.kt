@@ -68,8 +68,12 @@ val removeAdsProxyAndRestrictionsPatch = bytecodePatch(
         // 1. Remove CashRaven Bandwidth-Sharing Proxy & Guard Drawer UI
         // ====================================================================
 
-        // 1a. Strip CashRaven init + forced optIn() + lifecycle hook from App.onCreate()
-        // while keeping Koin DI, Firebase Messaging, and Firebase RemoteConfig ("cric_api2") intact.
+        // 1a. Neutralize the CashRaven bootstrap.
+        // 7.3 layout: strip the inline bootstrap span (init + forced optIn() + lifecycle hook)
+        // from App.onCreate() while keeping Koin DI, Firebase Messaging, and Firebase
+        // RemoteConfig ("cric_api2") intact.
+        // 7.4 layout: the bootstrap lives in its own no-arg App helper — stub it wholesale so
+        // the SDK instance is never created (all consumers null-check it before use).
         // Also supports idempotent re-patching if the input APK already had CashRaven removed.
         run {
             if (AppOnCreateFingerprint.matchOrNull() != null) {
@@ -106,6 +110,14 @@ val removeAdsProxyAndRestrictionsPatch = bytecodePatch(
                         const/4 v$oneReg, 0x1
                     """,
                 )
+            } else if (AppCashRavenBootstrapFingerprint.matchOrNull() != null) {
+                replaceMethodBody(AppCashRavenBootstrapFingerprint.repairedMethod, "return-void")
+
+                // On this layout onCreate itself must not initialize CashRaven.
+                val baseMethod = AppOnCreateBaseFingerprint.originalMethod
+                if (baseMethod.referencesDescriptor("Lio/cashraven/sdk/")) {
+                    throw AppCashRavenBootstrapFingerprint.patchException()
+                }
             } else {
                 // Verify App.onCreate exists AND truly has no CashRaven references (already patched or CR-free build).
                 val baseMethod = AppOnCreateBaseFingerprint.originalMethod
@@ -115,13 +127,19 @@ val removeAdsProxyAndRestrictionsPatch = bytecodePatch(
             }
         }
 
-        // 1b. Cleanly replace App.c(Context), AppExitGuardService.onTaskRemoved,
-        // CashRavenService.onStartCommand, and CrBootReceiver.onReceive bodies.
+        // 1b. Cleanly replace the start-services helper (7.3), AppExitGuardService.onTaskRemoved
+        // (7.3 only; removed by the developer in 7.4), CashRavenService.onStartCommand, and
+        // CrBootReceiver.onReceive bodies.
         if (AppStartServicesFingerprint.matchOrNull() != null) {
             replaceMethodBody(AppStartServicesFingerprint.repairedMethod, "return-void")
         } else {
+            // 7.4 layout: no start-services helper exists. The service start is driven by an
+            // activity-lifecycle callback that first checks the (now never-created) SDK instance
+            // exists and is opted in, so it stays inert; the CashRavenService.onStartCommand
+            // stub below kills any direct start regardless. Fail loudly if some future build
+            // reintroduces a service start inside the App class itself.
             val appClass = AppOnCreateBaseFingerprint.originalClassDef
-            if (appClass.methods.any { it.referencesDescriptor("Lio/cashraven/sdk/CashRavenService") }) {
+            if (appClass.methods.any { it.referencesDescriptor("CashRavenService\$Companion;->start(") }) {
                 throw AppStartServicesFingerprint.patchException()
             }
         }
@@ -153,7 +171,7 @@ val removeAdsProxyAndRestrictionsPatch = bytecodePatch(
         }
 
         // 1c. Extract the "Bandwidth Sharing" menu item ID dynamically and bypass its drawer click branch
-        // so App.a() can never throw UninitializedPropertyAccessException("cashRaven").
+        // so the lateinit SDK getter can never throw UninitializedPropertyAccessException("cashRaven").
         val bandwidthMenuItemId: Int? = if (DrawerMenuClickHandlerFingerprint.matchOrNull() != null) {
             val drawerClickMethod = DrawerMenuClickHandlerFingerprint.repairedMethod
             val matches = DrawerMenuClickHandlerFingerprint.instructionMatches
@@ -178,7 +196,7 @@ val removeAdsProxyAndRestrictionsPatch = bytecodePatch(
         // 2. Complete Ad, Sponsor-Gate, Redirect & Telegram Popup Removal
         // ====================================================================
 
-        // 2a–2c. Disable Unity Ads startup initializer and replace all AdsManager (`Lm7;`)
+        // 2a–2c. Disable Unity Ads startup initializer and replace all ad-manager
         // ad/banner/redirect/gate methods after resolving all fingerprints against the original class.
         if (AdsSdkInitializerFingerprint.matchOrNull() != null) {
             replaceMethodBody(AdsSdkInitializerFingerprint.repairedMethod, "return-void")

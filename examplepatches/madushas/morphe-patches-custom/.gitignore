@@ -113,8 +113,12 @@ gradle-app.setting
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
 # gradle/wrapper/gradle-wrapper.properties
 
-# Potentially copyrighted test APK
+# Potentially copyrighted test APK / multi-APK packages (large local binaries)
 *.apk
+*.apkm
+*.xapk
+*.apks
+*.aab
 
 # Ignore vscode config
 .vscode/
@@ -129,6 +133,9 @@ local.properties
 # Local build/test scratch space
 work/
 docs/*.local.md
+
+# Kotlin compiler session data (local only)
+.kotlin/
 
 # Ignore IDEA files
 .idea/

@@ -256,5 +256,17 @@
     "externalFiles": "Persisted user-granted read-only SAF folder; exact known recording ID matching, not title inference.",
     "debugging": "Existing Enable debug logging / Export debug logs; no capture timer; reproduce line stutter without screen recording.",
     "phoneVerified": false
+  },
+  "crashCorrectionsRevision": {
+    "version": "0.6.1-beta.1",
+    "date": "2026-10-31",
+    "report": "Research/CRASH-FIXES-0.6.1-BETA.1-2026-10-31.md",
+    "baselinePublicSource": "728eca82bff5c98d343d67ef8fa887198e76d05f",
+    "scope": [
+      "Legal direct invocation for private native row presenters",
+      "Injected-native-bridge invocation access audit",
+      "Deferred idempotent effect/browser disposal after detach traversal"
+    ],
+    "phoneVerified": false
   }
 }

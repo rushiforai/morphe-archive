@@ -810,3 +810,174 @@ Release: v0.5.4 published + GitHub asset verified (dexed, contains both new patc
 - Release-notes standardization (same day): pdbrelease generates semantic-release
   changelogs into patches-bundle.json description + --notes-file for GitHub;
   v0.5.6 re-released with proper notes (asset dex-verified).
+
+## 2026-10-28 (late) — missing CHANGELOG.md suppressed the Manager update badge
+- User: after 0.5.5→0.5.6 the Pdb app entry in Manager shows no "update available".
+- Manager 2.1.0 source traced (morphe-manager): the badge compares the bundle version
+  stored AT PATCH TIME (AppliedPatch.bundleVersion / SelectionPayload) vs the source's
+  current version, then REFINES via the repo's CHANGELOG.md:
+  RemotePatchBundle.fetchChangelogEntries() fetches
+  raw.../<owner>/<repo>/<branch>/CHANGELOG.md (derived from the bundle endpoint);
+  parseChangelog() maps a 404 to EMPTY LIST (not an error!); empty entries pass the
+  null-check and hasChangesFor(empty)=false → badge suppressed. The intended
+  "no changelog → show badge" fallback never fires on 404.
+- Changelog subject matching (ChangelogParser.SubjectMatcher): scoped bullets
+  `**Scope:**` match the app's displayName ("Pdb") or its sub-scope before " - "
+  ("Pdb - Soul history"), or distinctive package segments; unscoped bullets match
+  whole-word app names or `patch name` in backticks. otherAppNames guard (Pdb vs
+  MyDialog in one bundle).
+- Fix: CHANGELOG.md added at repo root (full 0.5.1→0.5.6 history, official format);
+  pdbrelease --prepare now prepends/replaces the version section automatically.
+  Verified with a Python port of the parser: Pdb badge=True for 0.5.5→0.5.6,
+  MyDialog=False (correct — 0.5.6 has no MyDialog changes). Commit 16ffa6c; fetched
+  from the branch, so no re-release needed. User must refresh the source in Manager.
+- Skill updated: build-release.md now documents the CHANGELOG.md requirement.
+
+## 2026-10-29/30 — bisection saga: chat→profile blank ANR (what went wrong and what we learned)
+Bug: on the ZTE and the x86 emulator (both, 2.135.1 full patch set), chat-header →
+UserProfileActivity renders BLANK, then "no focused window" ANR. Also reproduced via
+a plain `pdb://pdb.app/u/{id}` VIEW intent — so openChat's link was not the cause.
+
+What was tried and what it taught:
+
+1. **Bisect builds were silently invalid (biggest waste).** Manual morphe-desktop CLI
+   runs without `MORPHE_DATA_DIR=$HOME/.morphe-data` picked up the JAR-adjacent
+   keystore (d31ad05f… cert) instead of the project keystore (eb443131…, CN=Morphe).
+   Every `adb install -r` then failed with INSTALL_FAILED_UPDATE_INCOMPATIBLE while
+   the script's `| tail -1` hid the error — so the "minimal" builds I tested were
+   actually the OLD install. LESSON: always export MORPHE_DATA_DIR before manual CLI
+   runs; after install, verify `dumpsys package | lastUpdateTime` CHANGED, or verify
+   the cert SHA-1 matches. (Now pinned in memory #25.)
+
+2. **Emulator boot prerequisites for Pdb 2.135.1.** A truly-minimal patch set cannot
+   boot on the x86 emulator:
+   - without "Disable trackers": Crashlytics dlopens arm64 `libcrashlytics.so`
+     through the native bridge → not found → process dies at launch.
+   - without "Bypass PairIP license check": the app itself calls `System.exit(0)`
+     after LicenseActivity (logcat: "System.exit called, status: 0").
+   Minimal WORKING bisect base = standalone-install + relocate-MMKV + trackers +
+   PairIP (4 patches). With exactly that, chat→profile RENDERS FINE on the emulator.
+   → The blank-profile bug lives in one of the other 10 patches. Prime suspects:
+   Show profile IDs on names (wraps name getters), Floating power button,
+   Pdb Extras, Soul history. NOT yet bisected further — test env degraded first.
+
+3. **Cross-app screenshot contamination (fake evidence).** vision-check kept
+   reporting "blank black screen" — some of those screenshots were of OTHER apps
+   (Strava was foreground at one point; its login page read as "blank"). My taps at
+   Pdb tab coordinates landed in whatever app was foreground. LESSON: before any
+   screencap-based verdict, check `dumpsys activity activities | topResumedActivity`
+   and only trust screenshots taken while pdb.app is top. uiautomator dumps and
+   screencaps can also disagree with each other (stale cache) — cross-check.
+
+4. **Emulator data state degraded mid-debug.** After repeated reinstalls, list
+   screens (Soul feed, Chats) render EMPTY with the app otherwise functional —
+   looks like "no internet" but sockets to styx/personality-database are ESTABLISHED
+   and the host can reach the API (403s are for host-side probes without app
+   headers, not proof of a problem). Hypotheses: test-account session expired or
+   server stopped serving this heavily-reinstalled test account; OR a bisect build
+   (missing feature patches) hit a server-side config path we haven't mapped.
+   NOT attributed to a patch. Next clean step: fresh login on the emulator with the
+   full patch set, then re-test chat→profile; only then continue patch-level
+   bisection on a stable, logged-in environment.
+
+5. **Fixes that ARE solid regardless of the bisect outcome** (already built):
+   - openChat is now async (worker thread, 800 ms timeout) — the original blocking
+     DB read on the UI thread could ANR by itself; and it never deep-links to a
+     user the app hasn't IM-cached (userExists() guard) because that provably
+     opens the blank ANR screen. No-channel users get a toast instead.
+   - "Relocate runtime MMKV copy" (default=false, expert) immunizes against the
+     stale-arm64-.so boot crash on emulators.
+   Both ship in the next release; the release will be cut from the STABLE set once
+   the profile-blank culprit patch is found or the suspects are fixed.
+
+### Correction (2026-10-30) — the "cross-app screenshot contamination"
+Not an app-switch bug of ours: the user runs MULTIPLE agents on the same emulator
+(another one was patching Strava at the same time). The lesson stands, sharper:
+emulator-5554 is a SHARED device — verify topResumedActivity + install state before
+trusting any UI evidence, and expect unexplained state changes (they may be the
+other agent). The "empty data" state may also be co-agent interference — retest on
+a quiet emulator before blaming patches or the account.
+
+## 2026-10-31 — blank-profile repro matrix + new AVD facts (non-linear notes)
+- [FACT] After server restart, emulator-5554 = DIFFERENT AVD (Pixel_9_Pro, API 36,
+  ndk_translation present; abilist x86_64,arm64-v8a; app procs run NATIVE x86_64).
+  The pre-restart AVD (sdk_gphone64_x86_64) refused arm64 .so (EM_AARCH64 crash);
+  the NEW AVD runs the same installed build FINE — MMKV arm64 asset loads.
+  => All "cannot boot" conclusions were AVD-specific. Re-verify on this AVD.
+- [FACT] OLD full build (lastUpdateTime 10-30 04:13, pre-async-openChat, 14 patches)
+  boots, session kept, chat list renders. chat→profile → UserProfileActivity
+  resumes + main thread S (idle) + NO ANR + screen BLACK forever (VRI never
+  visible for UserProfile; Home/Chat VRIs log normally). Same symptom as before,
+  now on a quiet, logged-in emulator => REAL bug, not environment.
+- [KEY] Window never becomes focusable/drawable for UserProfileActivity only;
+  process healthy (FirebaseRemoteConfig heartbeats every 60s). Not PairIP
+  (would kill), not MMKV (boot fine), not ANR (main idle). => something in the
+  profile UI's first frame path — our injected hooks that run during profile
+  content layout: IdsEverywhere decorateName (bind-time, every name TextView!),
+  ProfileChatEntry menu build, bubble (all screens OK though), SoulLike (feed only).
+  PRIME SUSPECT: decorateName loop/reflection blowup per-name → but would busy-loop
+  main, not idle... OR first-frame never scheduled (surface attach fails) =
+  Compose/View flag issue? NEXT: bisect = disable IDs patch only (full build minus
+  IDs) → test. Then minus ChatEntry. Two builds decide.
+- [NOISE] WhatsApp on this emulator crash-loops on its own SendReadReceiptJob NPE
+  (12 crash entries) — stock app bug/co-agent, unrelated to pdb.app. Ignore.
+- [ENV] Emulator reboots lose `su` (Pixel_9_Pro AVD has no root; RootEmu AVD did).
+  files/ not readable without root; rely on app-side logs instead.
+- [HYPOTHESIS-SHOT] ChatActivity → profile transition: profile opens INSIDE same
+  task with a shared-element/animation; if our ID decoration changes the title
+  TextView mid-transition, Compose may abort first frame. Test with IDs off.
+
+## 2026-11-01 — bisect round: IDs-off build → SAME blank+ANR
+- x86 input v2: rebuilt libmmkv x86_64 FROM SOURCE (MMKV v1.3.14 tag, cmake+NDK r27,
+  short-JNI names match the stock arm64 lib 1:1; the 2.1.0 AAR lib was rejected:
+  "Bad JNI version -4" — 2.x natives ≠ 1.3.14 Java). pdb_x86_rebuilt2a.apk.
+- Build A (12 patches, NO "Show profile IDs on names", openChat-async ext included):
+  boots, session kept, chat→profile → **STILL blank + ANR (no focused window)**.
+  => IDs patch ELIMINATED as the culprit.
+- Remaining suspects: Floating power button / Chat button on profiles / Soul
+  history+like / Extras+resources / Mock Pro / visitor limit / Remove ads /
+  Fix icon / PairIP / trackers. Next: -d "Chat button on profiles" (build B);
+  if still blank → -d "Floating power button" (build C).
+- Also noted: ANR dump on THIS avd lacks dropbox access (no root); use am_anr
+  events + topResumedActivity + VRI logs only. WhatsApp on this AVD crash-loops
+  (stock bug) and occasionally steals foreground — ignore.
+
+## 2026-11-01 — CULPRIT FOUND: "Chat button on profiles"
+- Build B (11 patches: IDs AND Chat-entry both disabled): chat→profile RENDERS
+  (vision PASS, photo/tabs/content). Build A (IDs off, chat-entry ON): blank+ANR.
+  => **ProfileChatEntryPatch's m9f.onClick / scf.onClick injection is the bug.**
+- Root cause candidates in that patch: (a) injects into scf.onClick BEFORE the
+  existing switch, assuming v13 (ArrayList) + b0() registers live at that index;
+  (b) m9f dispatch: reads pswitch via z0 sget + assumes v15 = faf profile object.
+  On 2.135.1 those register assumptions are stale → VerifyError/dead window at
+  profile-menu init (scf constructed during profile content inflation).
+- FIX: rebuild chat-entry against 2.135.1 bytecode (fresh register analysis), or
+  drop it from the stable release (Soul-history rows already offer Chat).
+- [NOTE] WhatsApp on this AVD steals foreground constantly (crash-loop relaunch);
+  force-stop it before UI tests.
+
+## 2026-11-01 — Root cause nailed (ProfileChatEntryPatch)
+- The patch anchors on `new-instance Ldra;` in scf.onClick. In 2.135.1 that
+  instruction exists but is a DIFFERENT menu (a divider/drag item, ctor
+  (Context) only, built at :1934 AFTER the real cra menu list) — NOT the
+  2.134.6 menu-item builder. The injected 12-instruction cra-builder block was
+  inserted at that wrong site with garbage register state (v13 not an ArrayList
+  there, v14/v22 not live) → VerifyError when scf.onClick first class-loads →
+  profile window never draws → blank + "no focused window" ANR. In 2.134.6 the
+  same anchor happened to be correct; the string class names never survive R8.
+- LESSON (add to skill): never anchor instruction INJECTION on a bare class-type
+  literal alone — pair it with the constructor signature (or a string literal
+  inside the ctor args) and assert the surrounding register context (what holds
+  the ArrayList, what holds `this`). Class letters reshuffle every build.
+- Fix for stable release: drop "Chat button on profiles" from the default set
+  (Soul-history rows already carry Chat); rebuild it later against cra-ctor
+  (II 7-arg) + v13/v14 context.
+
+## 2026-11-01 — FIXED & VERIFIED on emulator (v0.5.7 stable set)
+- Full stable build (12 patches, chat-entry demoted to expert/default-off):
+  chat→profile RENDERS (vision PASS). The multi-day blank+ANR is CLOSED.
+- v0.5.7 bundle: 41 patches listed (Strava agent's 4 included in the catalog
+  via stash-restore later — release must NOT ship their WIP: keep bundle at
+  the committed state before strava stash; verify patches-list on release).
+- Remaining: rebuild chat-entry properly (anchor cra-ctor + context asserts),
+  then re-enable. Release 0.5.7 after user's OK.

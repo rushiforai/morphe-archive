@@ -94,6 +94,8 @@ import app.hushtumblr.extension.tumblr.ui.PostParts;
 import app.hushtumblr.extension.tumblr.ui.PostTimestamps;
 import app.hushtumblr.extension.tumblr.ui.ReviewPrompts;
 import app.hushtumblr.extension.tumblr.ui.OptionalNudges;
+import app.hushtumblr.extension.tumblr.ui.AppFontForTests;
+import app.hushtumblr.extension.tumblr.ui.PostLines;
 import app.hushtumblr.extension.tumblr.ui.StoreButtons;
 import app.hushtumblr.extension.tumblr.ui.HushImageContainer;
 import app.hushtumblr.extension.tumblr.ui.HushImageDescription;
@@ -194,6 +196,8 @@ public class PausedHooksTest {
                 Collections.singletonList(OptionalNudges::hideBlogNotificationReminder));
         probes.put(Settings.HIDE_GIFT_MESSAGE_POPUPS, Collections.singletonList(
                 () -> OptionalNudges.hideGiftMessage("key_has_seen_ad_free_browsing_gift_popup")));
+        probes.put(Settings.LINE_BETWEEN_POSTS, Collections.singletonList(() -> PostLines.paintsGaps(0) == 1));
+        probes.put(Settings.APP_FONT, Collections.singletonList(AppFontForTests::swapsAFont));
         // Tumblr's screenshot watcher answers off.
         probes.put(Settings.TURN_OFF_SCREENSHOT_SHARING, Collections.singletonList(
                 () -> !FeatureSwitches.isEnabled(FeatureSwitchesTest.flag("SCREENSHOT_INTERCEPTION"), true)));
@@ -254,6 +258,7 @@ public class PausedHooksTest {
         // page gray comes back as the style's color.
         probes.put(Settings.DARK_BACKGROUND, Arrays.asList(
                 DarkBackgroundForTests::paintsATheme, DarkBackgroundForTests::paintsTheDesignColors));
+        probes.put(Settings.DARK_BACKGROUND_WALLPAPER, Collections.singletonList(DarkBackgroundForTests::choosesTheWallpaper));
         // The Explore tab's button goes when the bar is built.
         probes.put(Settings.HIDE_EXPLORE_TAB, Collections.singletonList(BottomBarTabsForTests::hidesTheExploreTab));
         // The Notifications tab's button goes when the bar is built.

@@ -283,6 +283,12 @@ private val customFontResourcesWimtPatch = resourcePatch(
         }
 
         val resDir = get("res")
+
+        // Morphe Patcher 2.0.0 and newer decode resources on request instead of
+        // up front, so a directory only holds what has been decoded so far.
+        // Decode the font directories before listing them.
+        decode("res/font*")
+
         val fontResDirs = resDir.listFiles()
             ?.filter { it.isDirectory && (it.name == "font" || it.name.startsWith("font-")) }
             ?.sortedBy { it.name }
@@ -323,8 +329,10 @@ private val customFontResourcesWimtPatch = resourcePatch(
         targets.forEach { target ->
             val resourceName = target.nameWithoutExtension
 
-            if (target.extension.lowercase() in allowedFontExtensions && !target.delete()) {
-                throw PatchException("Failed to delete font resource: ${target.absolutePath}")
+            if (target.extension.lowercase() in allowedFontExtensions) {
+                // Mark the old font for removal from the rebuilt APK. Deleting the
+                // staged file alone leaves the original entry in the output.
+                delete("res/${target.parentFile.name}/${target.name}")
             }
 
             val xmlFile = target.parentFile.resolve("$resourceName.xml")
@@ -343,6 +351,9 @@ private val customFontResourcesWimtPatch = resourcePatch(
 
         val featureSettings = normalizeFontFeatureSettings(fontFeatureSettingsOption.value)
         if (featureSettings != null) {
+            // The values files are decoded on request too, so decode them before
+            // walking res/values* for the Material 3 feature string and styles.
+            decode("res/values*/strings.xml", "res/values*/styles.xml")
             updateFontFeatureResources(resDir, featureSettings)
         }
     }

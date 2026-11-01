@@ -51,8 +51,8 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 
 private const val PATCH = "Mute posts locally"
-internal const val ROOT_POST_WRAPPER = "Lrc1;"
-internal const val ROOT_MENU_OWNER = "Lleh;"
+internal const val ROOT_POST_WRAPPER = "Led1;"
+internal const val ROOT_MENU_OWNER = "Lcgh;"
 internal const val ROOT_HEADER = "Lcom/tumblr/ui/widget/PostCardHeader;"
 internal const val ROOT_MENU_CALLBACK = "Lcom/tumblr/ui/fragment/TimelineFragment\$a;"
 internal const val ROOT_MENU = "$EXTENSION_PACKAGE/rootmute/RootPostMenu;"
@@ -69,9 +69,9 @@ internal const val ROOT_JSON_SET = "$POST->hushSetJsonPresence(II)V"
 internal const val WRAPPED_CANONICAL_ROOT = "$ROOT_POST_WRAPPER->hushCanonicalRoot:Ljava/lang/String;"
 private const val STRING = "Ljava/lang/String;"
 private const val LIST = "Ljava/util/List;"
-private const val MODE = "Lbql;"
-private const val CALLBACK = "Lkf9;"
-private const val UNIT = "Ljlm;"
+private const val MODE = "Lxrl;"
+private const val CALLBACK = "Lag9;"
+private const val UNIT = "Lfnm;"
 private const val MENU_BUILDER = "Lcom/tumblr/components/bottomsheet/b\$b;"
 private const val MENU_CONCRETE = "Lcom/tumblr/components/bottomsheet/b\$a;"
 private const val TIMELINEABLE = "Lcom/tumblr/rumblr/model/Timelineable;"
@@ -136,12 +136,12 @@ internal fun BytecodePatchContext.resolveRootPostMutes(): RootPostMutesPlan {
     requireLocalTimeline()
     val data = rootMethod(ROOT_TIMELINE_OBJECT, "getData", emptyList(), TIMELINEABLE)
     requireShape(PATCH, !data.isStatic() && AccessFlags.PUBLIC.isSet(data.accessFlags), "the timeline payload getter changed")
-    rootMethod("Lmuj;", "l", emptyList(), TIMELINEABLE).also {
+    rootMethod("Liwj;", "l", emptyList(), TIMELINEABLE).also {
         requireShape(PATCH, !it.isStatic() && AccessFlags.PUBLIC.isSet(it.accessFlags), "the post card payload getter changed")
     }
     val callback = classDefByOrNull(CALLBACK)
     requireShape(PATCH, callback != null && AccessFlags.PUBLIC.isSet(callback.accessFlags) && AccessFlags.INTERFACE.isSet(callback.accessFlags)
-        && callback.interfaces.toList() == listOf("Lmf9;") && callback.methods.count() == 1
+        && callback.interfaces.toList() == listOf("Lcg9;") && callback.methods.count() == 1
         && callback.methods.single().let { it.name == "invoke" && it.hasShape(emptyList(), "Ljava/lang/Object;")
             && AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.ABSTRACT.isSet(it.accessFlags) },
         "the native menu callback is not Function0")
@@ -159,8 +159,8 @@ internal fun BytecodePatchContext.resolveRootPostMutes(): RootPostMutesPlan {
         val method = rootMethod(MENU_BUILDER, name, parameters, result)
         requireShape(PATCH, !method.isStatic() && AccessFlags.PUBLIC.isSet(method.accessFlags), "the native menu builder changed")
     }
-    val parameters = listOf("Lcom/tumblr/ui/fragment/c;", "Lcom/tumblr/rumblr/TumblrPostNotesService;", "Lleh\$a;", "Lpeh;",
-        STRING, STRING, STRING, "Lhyf;", "Lavb;", "Lcom/tumblr/analytics/ScreenType;", "Lzz1;")
+    val parameters = listOf("Lcom/tumblr/ui/fragment/c;", "Lcom/tumblr/rumblr/TumblrPostNotesService;", "Lcgh\$a;", "Lggh;",
+        STRING, STRING, STRING, "Lyzf;", "Lcwb;", "Lcom/tumblr/analytics/ScreenType;", "Lm02;")
     val menu = rootMethod(ROOT_MENU_OWNER, "y", parameters, "V")
     val body = menu.instructionList()
     val at = 225
@@ -228,7 +228,7 @@ internal fun BytecodePatchContext.applyRootPostMutes(plan: RootPostMutesPlan) {
         com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(LIST, null, null)), "V", AccessFlags.PUBLIC.value,
         null, null, MutableMethodImplementation(3)).toMutable().apply {
         addInstructions(0, "sget-object v0, $MODE->FROM_CACHE:$MODE\n" +
-            "invoke-virtual { p0, v0, p1 }, $LOCAL_TIMELINE->k6($MODE$LIST)V\nreturn-void")
+            "invoke-virtual { p0, v0, p1 }, $LOCAL_TIMELINE->l6($MODE$LIST)V\nreturn-void")
     })
     val menuHost = mutableClassDefBy(ROOT_MENU_CALLBACK)
     menuHost.interfaces.add(HUSH_ROOT_MENU_HOST)
@@ -241,10 +241,10 @@ internal fun BytecodePatchContext.applyRootPostMutes(plan: RootPostMutesPlan) {
         "invoke-virtual { p0, p1, p2 }, $MENU_BUILDER->c($STRING$CALLBACK)$MENU_BUILDER\nreturn-void")
     writeStub(ROOT_MENU, "unit", 1, "sget-object v0, $UNIT->a:$UNIT\nreturn-object v0")
     writeStub(ROOT_MENU, "cardRoot", 3, """
-        instance-of v0, p0, Lhyf;
+        instance-of v0, p0, Lyzf;
         if-eqz v0, :timeline
-        check-cast p0, Lhyf;
-        invoke-virtual { p0 }, Lmuj;->l()$TIMELINEABLE
+        check-cast p0, Lyzf;
+        invoke-virtual { p0 }, Liwj;->l()$TIMELINEABLE
         move-result-object v0
         goto :payload
         :timeline
@@ -288,7 +288,7 @@ private fun BytecodePatchContext.requireRootMenuHost() {
             && AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.ABSTRACT.isSet(it.accessFlags) },
         "the native menu owner interface changed")
     val owner = classDefByOrNull(ROOT_MENU_CALLBACK)
-    requireShape(PATCH, owner != null && "Lghe;" in owner.interfaces && HUSH_ROOT_MENU_HOST !in owner.interfaces
+    requireShape(PATCH, owner != null && "Lxie;" in owner.interfaces && HUSH_ROOT_MENU_HOST !in owner.interfaces
         && owner.methods.none { it.name == "hushTimelineOwner" }
         && owner.fields.any { it.name == "a" && it.type == LOCAL_TIMELINE && AccessFlags.FINAL.isSet(it.accessFlags)
             && !AccessFlags.STATIC.isSet(it.accessFlags) }, "the native menu callback no longer retains its immutable timeline owner")
@@ -307,7 +307,7 @@ private fun BytecodePatchContext.requireRootMenuHost() {
 }
 
 private fun BytecodePatchContext.rootHeaderMenu(): RootMenuPlan {
-    val method = rootMethod(ROOT_HEADER, "H2", listOf("Lpqm;", "Lhyf;", "Lhll;", "Lghe;", "Lyt2;", "Ljql;", "Lavb;", "Lzz1;"), "V")
+    val method = rootMethod(ROOT_HEADER, "H2", listOf("Llsm;", "Lyzf;", "Ldnl;", "Lxie;", "Llu2;", "Lfsl;", "Lcwb;", "Lm02;"), "V")
     val body = method.instructionList()
     requireShape(PATCH, !method.isStatic() && AccessFlags.PRIVATE.isSet(method.accessFlags)
         && method.implementation!!.registerCount == 29 && body.size == 210
@@ -333,7 +333,7 @@ private fun BytecodePatchContext.rootHeaderMenu(): RootMenuPlan {
 }
 
 private fun BytecodePatchContext.rootOwnedMenu(): RootMenuPlan {
-    val method = rootMethod(ROOT_MENU_CALLBACK, "a", listOf("Lhyf;", "Z", "Z", "Z", STRING), "V")
+    val method = rootMethod(ROOT_MENU_CALLBACK, "a", listOf("Lyzf;", "Z", "Z", "Z", STRING), "V")
     val body = method.instructionList()
     val flow = ControlFlow.of(method)
     requireShape(PATCH, !method.isStatic() && AccessFlags.PUBLIC.isSet(method.accessFlags)
@@ -379,7 +379,7 @@ private fun requireMenuSources(method: MutableMethod, at: Int, sources: List<Int
 private fun BytecodePatchContext.rootGetter(key: String, result: String): String {
     val adapterType = POST.removeSuffix(";") + "JsonAdapter;"
     val adapter = classDefByOrNull(adapterType)?.methods?.filter {
-        it.name == "toJson" && it.hasShape(listOf("Lb9b;", "Ljava/lang/Object;"), "V")
+        it.name == "toJson" && it.hasShape(listOf("Ldab;", "Ljava/lang/Object;"), "V")
     }.orEmpty().only(PATCH, "Moshi Post writer").instructionList()
     val at = adapter.indices.filter { adapter[it].stringRef() == key }.only(PATCH, "Moshi $key binding")
     val call = adapter.drop(at + 1).takeWhile { it.stringRef() == null }.firstNotNullOfOrNull {
@@ -416,7 +416,7 @@ private fun BytecodePatchContext.requireLocalTimeline() {
         && owner.methods.none { it.name in setOf("hushTimelineItems", "hushApplyTimelineItems") }
         && owner.fields.any { it.name == "z" && it.type == LIST && AccessFlags.PROTECTED.isSet(it.accessFlags) },
         "the displayed timeline backing list changed")
-    val apply = rootMethod(LOCAL_TIMELINE, "k6", listOf(MODE, LIST), "V")
+    val apply = rootMethod(LOCAL_TIMELINE, "l6", listOf(MODE, LIST), "V")
     val body = apply.instructionList()
     requireShape(PATCH, !apply.isStatic() && AccessFlags.PROTECTED.isSet(apply.accessFlags)
         && apply.implementation!!.registerCount == 6 && body.size == 60
@@ -432,7 +432,7 @@ private fun BytecodePatchContext.requireLocalTimeline() {
         && (body[55] as FiveRegisterInstruction).let { it.registerCount == 1 && it.registerC == 0 }
         && body[57].methodRef().toString() == "$LIST->addAll(Ljava/util/Collection;)Z"
         && (body[57] as FiveRegisterInstruction).let { it.registerCount == 2 && it.registerC == 0 && it.registerD == 5 }
-        && body[58].methodRef().toString() == "$LOCAL_TIMELINE->Z6($MODE$LIST)V"
+        && body[58].methodRef().toString() == "$LOCAL_TIMELINE->a7($MODE$LIST)V"
         && (body[58] as FiveRegisterInstruction).let { it.registerCount == 3 && it.registerC == 3 && it.registerD == 4 && it.registerE == 5 },
         "the local cache rebind no longer replaces its own displayed list")
     val mode = rootMethod(MODE, "g", emptyList(), "Z")
@@ -452,9 +452,9 @@ private fun BytecodePatchContext.requireLocalTimeline() {
             && group[3].methodRef().toString() == "$MODE-><init>($STRING" + "I)V"
             && group[4].opcode == Opcode.SPUT_OBJECT && group[4].fieldRef().toString() == "$MODE->$name:$MODE"
     } == 1, "the cache and pagination enum values are no longer independently constructed")
-    val render = rootMethod(LOCAL_TIMELINE, "Z6", listOf(MODE, LIST), "V").instructionList()
-    requireShape(PATCH, render.size == 46 && render.any { it.methodRef().toString() == "$LOCAL_TIMELINE->a7($LIST$MODE$LIST${LIST}II)V" }
-        && render.any { it.methodRef().toString() == "$LOCAL_TIMELINE->g6()V" }
+    val render = rootMethod(LOCAL_TIMELINE, "a7", listOf(MODE, LIST), "V").instructionList()
+    requireShape(PATCH, render.size == 46 && render.any { it.methodRef().toString() == "$LOCAL_TIMELINE->b7($LIST$MODE$LIST${LIST}II)V" }
+        && render.any { it.methodRef().toString() == "$LOCAL_TIMELINE->h6()V" }
         && render.mapNotNull { it.methodRef()?.definingClass }.all { it in setOf(LOCAL_TIMELINE, "Ljava/util/Collection;",
             "Ljava/util/Queue;", "Ljava/lang/Integer;", "Lcom/google/common/collect/ImmutableList;") },
         "the local rebind enters an unknown loader or renderer")

@@ -41,12 +41,28 @@ fi
 echo "==> Bundle: $MPP"
 
 echo "==> Patching $IN"
+ENABLE_ARGS=()
+if [[ -n "${PDB_ENABLE_PATCHES:-}" ]]; then
+  # e.g. PDB_ENABLE_PATCHES="Relocate runtime MMKV copy,Inspect HTTPS traffic (adb reverse proxy)"
+  while IFS= read -r PNAME; do
+    ENABLE_ARGS+=(-e "$PNAME")
+    echo "  (+ enabling non-default patch: $PNAME)"
+  done < <(tr ',' '\n' <<<"$PDB_ENABLE_PATCHES" | sed 's/^ *//;s/ *$//' | grep -v '^$')
+fi
+if [[ -n "${PDB_DISABLE_PATCHES:-}" ]]; then
+  # e.g. PDB_DISABLE_PATCHES="Show profile IDs on names" (excludes it from --exclusive build)
+  while IFS= read -r PNAME; do
+    ENABLE_ARGS+=(-d "$PNAME")
+    echo "  (- disabling patch: $PNAME)"
+  done < <(tr ',' '\n' <<<"$PDB_DISABLE_PATCHES" | sed 's/^ *//;s/ *$//' | grep -v '^$')
+fi
 java -jar "$HOME/tools/opt/morphe-desktop.jar" patch \
   --patches="$MPP" \
   --bytecode-mode FULL \
   -o "$OUT" \
   -r "$WORK/patch-result.json" \
   -f \
+  "${ENABLE_ARGS[@]}" \
   "$IN"
 
 echo "==> Output: $OUT"

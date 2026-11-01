@@ -1,0 +1,147 @@
+name: Publish patch bundle
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-main
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Determine next revision
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          current_version="$(sed -n 's/^version = //p' gradle.properties)"
+          release_tags="$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --exclude-pre-releases --limit 1000 --json tagName --jq '.[].tagName')"
+          latest_tag="$(printf '%s\n' "$release_tags" | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)"
+
+          if [ -z "$latest_tag" ]; then
+            version="$current_version"
+          else
+            IFS=. read -r major minor patch <<< "${latest_tag#v}"
+            version="${major}.${minor}.$((patch + 1))"
+          fi
+
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid bundle version: $version" >&2
+            exit 1
+          fi
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Set bundle version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          grep -q '^version = ' gradle.properties
+          sed -i "s/^version = .*/version = $VERSION/" gradle.properties
+          test "$(sed -n 's/^version = //p' gradle.properties)" = "$VERSION"
+      - name: Build Morphe bundle
+        run: ./gradlew buildAndroid :patches:generatePatchesList --no-daemon
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+      - name: Validate bundle catalog
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          test "$(jq -r '.version' patches-list.json)" = "$VERSION"
+          jq -e '(.patches | type == "array") and (.patches | length > 0)' patches-list.json >/dev/null
+          mkdir -p "$RUNNER_TEMP/patch-bundle"
+          cp "patches/build/libs/patches-$VERSION.mpp" "$RUNNER_TEMP/patch-bundle/"
+          cp patches-list.json "$RUNNER_TEMP/patch-bundle/"
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: patch-bundle
+          path: ${{ runner.temp }}/patch-bundle/*
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: patch-bundle
+          path: ${{ runner.temp }}/patch-bundle
+      - name: Commit release metadata
+        id: metadata
+        run: |
+          sed -i "s/^version = .*/version = $VERSION/" gradle.properties
+          cp "$RUNNER_TEMP/patch-bundle/patches-list.json" patches-list.json
+
+          download_url="https://github.com/$GITHUB_REPOSITORY/releases/download/v$VERSION/patches-$VERSION.mpp"
+          created_at="$(jq -r --arg version "$VERSION" 'if .version == $version then .created_at // empty else empty end' patches-bundle.json)"
+          if [ -z "$created_at" ]; then
+            created_at="$(date -u '+%Y-%m-%dT%H:%M:%S')"
+          fi
+          jq --arg version "$VERSION" --arg download_url "$download_url" --arg created_at "$created_at" \
+            '.version = $version | .download_url = $download_url | .created_at = $created_at' \
+            patches-bundle.json > "$RUNNER_TEMP/patches-bundle.json"
+          mv "$RUNNER_TEMP/patches-bundle.json" patches-bundle.json
+
+          git add gradle.properties patches-list.json patches-bundle.json
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "chore: release v$VERSION [skip ci]"
+          fi
+
+          echo "target=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Publish bundle release
+        env:
+          RELEASE_TARGET: ${{ steps.metadata.outputs.target }}
+        run: |
+          asset="$RUNNER_TEMP/patch-bundle/patches-$VERSION.mpp"
+          test -f "$asset"
+          tag="v$VERSION"
+
+          remote_head="$(git ls-remote origin refs/heads/main | cut -f1)"
+          test "$remote_head" = "$GITHUB_SHA" || {
+            echo "main advanced during the build; publish the newer commit instead" >&2
+            exit 1
+          }
+          # Publish the exact source tree through an immutable tag first.
+          git tag "$tag" "$RELEASE_TARGET"
+          git push origin "refs/tags/$tag"
+          gh release create "$tag" "$asset" --draft --verify-tag \
+            --title "offline-gboard $VERSION" --notes "Morphe patch bundle." \
+            --repo "$GITHUB_REPOSITORY"
+          gh release edit "$tag" --draft=false --repo "$GITHUB_REPOSITORY"
+          # Advertise the version to Morphe only after its download is public.
+          git push origin HEAD:main

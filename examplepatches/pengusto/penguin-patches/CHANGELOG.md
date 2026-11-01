@@ -1,3 +1,9 @@
+## [1.6.3](https://github.com/pengusto/penguin-patches/compare/v1.6.2...v1.6.3) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **Finamp:** sync artist count AsyncValue backport ([d3f0589](https://github.com/pengusto/penguin-patches/commit/d3f0589f1d01155e0a3cfe9eb37b7038f5a81e39))
+
 ## [1.6.2](https://github.com/pengusto/penguin-patches/compare/v1.6.1...v1.6.2) (2026-10-30)
 
 ### 🐛 Bug Fixes

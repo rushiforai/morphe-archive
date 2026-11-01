@@ -1,0 +1,8 @@
+{
+  "created_at": "2026-10-31T04:05:10",
+  "description": "### \u2728 New Features\n\n* **Discord - Server info:** Save or copy server layout blueprints containing roles, categories, channels, permissions and artwork references\n* **Discord - Inspect message JSON:** View, copy and save cached embed and Components V2 message payloads from the hold menu\n* **Discord - Server blueprints:** Restore a layout into an authorized destination server with a bot-driven dry-run importer\n\n### \ud83d\udd27 Improvements\n\n* **Discord - Cordly settings:** Keep original Discord package, launcher name and app icon without changing Android branding\n* **Discord - Server blueprints:** Skip member overwrites and dangerous admin permissions by default; require explicit import approval\n",
+  "download_url": "https://github.com/lildanlid1/Cordly/releases/download/v1.23.0/patches-1.23.0.mpp",
+  "page_url": "https://github.com/lildanlid1/Cordly/releases/tag/v1.23.0",
+  "signature_download_url": "",
+  "version": "1.23.0"
+}

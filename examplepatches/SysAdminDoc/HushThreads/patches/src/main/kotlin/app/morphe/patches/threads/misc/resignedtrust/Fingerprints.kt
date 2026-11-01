@@ -16,6 +16,22 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
 
 /**
+ * The share sheet's tile launches. One suspend lambda holds them, Messenger's among them: the only
+ * method naming both Messenger and the extra that opens Instagram's message composer.
+ */
+internal object ShareTileLaunchFingerprint : Fingerprint(
+    name = "invokeSuspend",
+    parameters = listOf("Ljava/lang/Object;"),
+    returnType = "Ljava/lang/Object;",
+    filters = listOf(
+        string("com.facebook.orca"),
+        string(SHARE_TILE_COMPOSER_EXTRA),
+    ),
+)
+
+internal const val SHARE_TILE_COMPOSER_EXTRA = "DirectPrivateStoryRecipientFragment.DIRECT_SHOULD_SHOW_MESSAGE_COMPOSER"
+
+/**
  * The method that gives Threads' security code the signers of a package.
  *
  * Threads' trust checks read the signers through this method. It prefers the

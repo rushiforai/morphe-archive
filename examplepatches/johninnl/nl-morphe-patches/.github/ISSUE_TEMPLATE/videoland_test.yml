@@ -1,0 +1,76 @@
+name: Videoland Android TV test or problem
+description: Share a successful account test or a playback, ad or catalogue problem.
+title: "test(videoland-tv): "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing the stable Videoland Android TV patches. Successful
+        Premium and free-account tests are welcome, along with catalogue issues.
+        Premium playback alone cannot establish ad removal on that tier.
+        Do not share credentials, pairing codes, tokens or personal logs.
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Subscription tier
+      options:
+        - Free / TV Gemist account
+        - Paid ad-supported tier
+        - Premium / ad-free tier
+        - Other / not sure
+    validations:
+      required: true
+  - type: input
+    id: bundle
+    attributes:
+      label: Patch bundle version
+      description: Find Version on the Dutch App Patches source card in Morphe.
+      placeholder: "1.x.x"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: TV model and Android version
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: Videoland app version and build
+      placeholder: "1.117.0 / 1622"
+    validations:
+      required: true
+  - type: dropdown
+    id: controls
+    attributes:
+      label: Selected controls
+      options:
+        - All three default controls
+        - Ads and tracking only
+        - Hide unavailable content only
+        - Hide ads only
+        - Disable tracking only
+        - Other / not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Result
+      options:
+        - Works as expected
+        - Playback works but ads still play
+        - Playback or sign-in fails
+        - Unavailable cards or empty season headings remain
+        - Available episodes are missing
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: playback
+    attributes:
+      label: Programme/channel and observed behaviour
+      description: Include VOD/live, preroll/midroll or pause ads, seeking, next episode and whether content continues. For a problem, include the visible error and reproducible steps. For catalogue issues, name the season/episode and whether the same account can play it in the original app.
+    validations:
+      required: true

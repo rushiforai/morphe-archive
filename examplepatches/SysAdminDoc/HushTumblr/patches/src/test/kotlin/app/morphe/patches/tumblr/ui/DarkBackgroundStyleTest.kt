@@ -124,6 +124,26 @@ class DarkBackgroundStyleTest {
         assertThrows(PatchException::class.java) { styles.addDarkBackgroundStyle(0xFF000000.toInt()) }
     }
 
+    /** The wallpaper's style sets exactly what the picked color's does, in Android's own tones. */
+    @Test
+    fun `the wallpaper style sets the same surfaces to the wallpaper's two tones`() {
+        val styles = styles(
+            "themePrimaryColor", "themePrimaryColorDark", "themeMainContentBackgroundColor",
+            "themeSecondaryMainContentBackgroundColor", "themeHighlightedContentBackgroundColor",
+            "themeNavigationBarColor", "android:colorBackground", "st_chrome", "st_chrome_panel",
+        )
+        styles.addDarkBackgroundStyle(0xFF121212.toInt())
+
+        val picked = itemsOf(styles)
+        val wallpaper = itemsOf(styles, DARK_WALLPAPER_STYLE)
+        assertEquals(picked.keys, wallpaper.keys)
+        for (attribute in DARK_BACKGROUND_ATTRIBUTES) assertEquals(attribute, WALLPAPER_PAGE_COLOR, wallpaper[attribute])
+        assertEquals(WALLPAPER_PAGE_COLOR, wallpaper[WINDOW_BACKGROUND_ATTRIBUTE])
+        assertEquals(WALLPAPER_PAGE_COLOR, wallpaper["st_chrome"])
+        assertEquals("a highlighted surface stays apart", WALLPAPER_RAISED_COLOR, wallpaper[HIGHLIGHTED_ATTRIBUTE])
+        assertEquals(WALLPAPER_RAISED_COLOR, wallpaper["st_chrome_panel"])
+    }
+
     /** A styles file with one style, BaseTumblrTheme.Dark, setting each of [items] to a dark gray. */
     private fun styles(vararg items: String): Document {
         val body = items.joinToString("") { "<item name=\"$it\">#ff222222</item>" }
@@ -132,10 +152,10 @@ class DarkBackgroundStyleTest {
     }
 
     /** The added style's items, by name. */
-    private fun itemsOf(document: Document): Map<String, String> {
+    private fun itemsOf(document: Document, style: String = DARK_BACKGROUND_STYLE): Map<String, String> {
         val styles = document.getElementsByTagName("style")
         val added = (0 until styles.length).map { styles.item(it) as Element }
-            .single { it.getAttribute("name") == DARK_BACKGROUND_STYLE }
+            .single { it.getAttribute("name") == style }
         assertEquals("no parent: it goes over a whole theme", "", added.getAttribute("parent"))
         val items = added.getElementsByTagName("item")
         return (0 until items.length).map { items.item(it) as Element }.associate { it.getAttribute("name") to it.textContent }

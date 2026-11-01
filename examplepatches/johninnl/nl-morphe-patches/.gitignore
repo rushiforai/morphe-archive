@@ -1,0 +1,23 @@
+.DS_Store
+.gradle/
+.kotlin/
+.tools/
+**/build/
+node_modules/
+__pycache__/
+*.py[cod]
+.venv/
+.pat
+.community-maps-api-key
+.bright-article-signing-key
+morphe-signing.key
+local.properties
+*.jks
+*.keystore
+# Local investigation inputs and comparison checkouts.
+*.apk
+*.apks
+*.apkm
+*.xapk
+/maps/
+/yt/

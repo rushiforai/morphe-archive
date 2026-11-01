@@ -1,13 +1,13 @@
-group = "app.myspoti"
+group = "app.myspoti.patches"
 
 patches {
     about {
-        name = "MySpoti Branding Patches"
-        description = "Morphe resource patches for the MySpoti Android app."
-        source = "local"
-        author = "Local build"
-        contact = "Not provided"
-        website = "Not provided"
+        name = "MySpoti Morphe Patches"
+        description = "Community patches for MySpoti: Spotify branding, offline audio export, embedded metadata and lyrics, playlist/album manifests, native Downloads restore, and offline storage migration."
+        source = "https://github.com/amit-0i/myspoti-morphe-patches"
+        author = "MySpoti Morphe Patches contributors"
+        contact = "https://github.com/amit-0i/myspoti-morphe-patches/issues"
+        website = "https://github.com/amit-0i/myspoti-morphe-patches"
         license = "GPLv3"
     }
 }
@@ -24,9 +24,7 @@ dependencies {
 tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
-
         dependsOn(build)
-
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
     }

@@ -62,7 +62,7 @@ final class ShaderSurface extends WebView {
         if(!next.equals(lastState)){lastState=next;evaluateJavascript("BDS.state("+next+")",null);}
     }
     boolean solve(int id,JSONObject challenge){if(!ready||closed)return false;evaluateJavascript("BDS.solve("+id+","+challenge+")",null);return true;}
-    void closeSurface(){if(closed)return;closed=true;if(ready)evaluateJavascript("BDS.close()",null);removeJavascriptInterface("BDShader");stopLoading();image=null;media=null;lastBitmap=null;destroy();}
+    void closeSurface(){if(closed)return;closed=true;if(ready)evaluateJavascript("BDS.close()",null);removeJavascriptInterface("BDShader");stopLoading();image=null;media=null;lastBitmap=null;app.bdcrusher.ytmusic.common.ViewDisposal.dispose(this,this::destroy);}
     private final class Bridge {
         @JavascriptInterface public void ready(){post(()->{if(closed)return;ready=true;lastState="";lastSettings="";if(state!=null)update(state,settings,media);ArtworkToken.ensure(getContext());});}
         @JavascriptInterface public void proof(int id,String solution){ArtworkToken.proof(getContext(),id,solution);}

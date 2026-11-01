@@ -104,11 +104,15 @@ public class BadDexFixture {
     private static final String SETTINGS_ENTRY = "Lapp/morphe/extension/hushthreads/settings/SettingsEntry;";
     private static final String LOGO_HEADER = "Lfixture/LogoHeader;";
     private static final String LOGO = "Lapp/morphe/extension/hushthreads/settings/ThreadsLogo;";
-    private static final String LOGO_NOTE = "com.instagram.barcelona.feed.ui.MainFeedScreen.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous> (MainFeedScreen.kt:2641)";
-    private static final ImmutableMethodReference LOGO_CLICKABLE = method("LX/2dO;", "A01", "LX/9hi;",
-            "LX/9wj;", "LX/0mY;", "LX/9hi;", "LX/1Mz;", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function0;", "Z");
+    private static final String LOGO_NOTE = "com.instagram.barcelona.feed.ui.MainFeedScreen.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous> (MainFeedScreen.kt:2820)";
+    private static final ImmutableMethodReference LOGO_CLICKABLE = method("LX/2hQ;", "A01", "LX/9hm;",
+            "LX/01C;", "LX/0tZ;", "LX/9hm;", "LX/1gN;", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function0;", "Z");
     private static final ImmutableMethodReference LOGO_STAND_IN = method(LOGO, "clickable", OBJECT,
             OBJECT, OBJECT, OBJECT, OBJECT, "Ljava/lang/String;", OBJECT, "Z");
+    private static final String SO_LOADER = "Lfixture/SoLoader;";
+    private static final ImmutableMethodReference SO_LOADER_FLAGS = method("Lapp/morphe/extension/hushthreads/misc/NativeLibraries;",
+            "soLoaderFlags", "I", "Landroid/content/Context;", "I");
+    private static final ImmutableMethodReference SO_LOADER_NOTE = method("Lfixture/SoLoaderLog;", "note", "V");
 
     /**
      * One of the ShortcutManager calls the settings patch sends to SettingsEntry: its name, what it
@@ -627,12 +631,51 @@ public class BadDexFixture {
     /** A patched build: [host] and the bundle's own classes, every shortcut call sent to its stand-in. */
     private static List<ClassDef> bundle(ClassDef host) {
         return Arrays.asList(host, filter(), shortcuts(Collections.<String>emptySet()), settingsEntry(),
-                logoHeader(true, ""), logoStandIn());
+                logoHeader(true, ""), logoStandIn(), soLoader(true, ""));
     }
 
     /** The clean build, the app's classes as they ship: [host] and every shortcut call made as the app makes it. */
     private static List<ClassDef> clean(ClassDef host) {
-        return Arrays.asList(host, shortcuts(allShortcutCalls()), logoHeader(false, ""));
+        return Arrays.asList(host, shortcuts(allShortcutCalls()), logoHeader(false, ""), soLoader(false, ""));
+    }
+
+    /**
+     * SoLoader's init, and an instance method beside it holding the same two messages, which the
+     * rule's static shape has to tell apart. Hooked, the flags reach the extension before anything else runs.
+     */
+    private static ClassDef soLoader(boolean hooked, String fault) {
+        boolean late = fault.equals("soloader-late");
+        boolean useHook = hooked && !fault.equals("soloader-missing");
+        List<Instruction> hook = List.of(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 0, 2),
+                new ImmutableInstruction22x(Opcode.MOVE_FROM16, 1, 5), invoke(SO_LOADER_FLAGS, 0, 1),
+                op(Opcode.MOVE_RESULT, 1), new ImmutableInstruction22x(Opcode.MOVE_FROM16, 5, 1));
+        List<Instruction> init = new ArrayList<>();
+        if (useHook && !late) init.addAll(hook);
+        init.add(string(0, "SoLoader already initialized"));
+        init.add(string(0, "Initializing SoLoader: "));
+        init.add(invoke(SO_LOADER_NOTE));
+        if (useHook && late) init.addAll(hook);
+        init.add(op(Opcode.RETURN_VOID));
+        List<Instruction> bystander = new ArrayList<>();
+        if (fault.equals("soloader-elsewhere")) {
+            bystander.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
+            bystander.add(new ImmutableInstruction11n(Opcode.CONST_4, 1, 0));
+            bystander.add(invoke(SO_LOADER_FLAGS, 0, 1));
+        }
+        bystander.add(string(0, "SoLoader already initialized"));
+        bystander.add(string(0, "Initializing SoLoader: "));
+        bystander.add(op(Opcode.RETURN_VOID));
+        return new ImmutableClassDef(SO_LOADER, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                List.of(define(SO_LOADER, "init", "V", true, body(6, init.toArray(new Instruction[0])),
+                                "Landroid/content/Context;", OBJECT, OBJECT, "I"),
+                        define(SO_LOADER, "bystander", "V", false, body(3, bystander.toArray(new Instruction[0])))));
+    }
+
+    private static List<ClassDef> soLoaderFault(String fault) {
+        List<ClassDef> classes = new ArrayList<>(good());
+        classes.removeIf(c -> c.getType().equals(SO_LOADER));
+        classes.add(soLoader(true, fault));
+        return classes;
     }
 
     /** Both argument banks are valid, so the wrong-bank fault fails the contract alone. */
@@ -1888,16 +1931,18 @@ public class BadDexFixture {
                 define(FEATURE_SCHEME, "<init>", "V", false, body(1 + 2 * SCHEME_COLORS, stores.toArray(new Instruction[0])),
                         Collections.nCopies(SCHEME_COLORS, "J").toArray(new String[0]))));
 
-        ImmutableMethodReference paletteInit = method(FEATURE_THEME_COLORS, "<init>", "V",
-                Collections.nCopies(SCHEME_COLORS, "J").toArray(new String[0]));
+        // 453's inherited palette takes an object ahead of its colors.
+        List<String> paletteParameters = new ArrayList<>(List.of(OBJECT));
+        paletteParameters.addAll(Collections.nCopies(SCHEME_COLORS, "J"));
+        ImmutableMethodReference paletteInit = method(FEATURE_THEME_COLORS, "<init>", "V", paletteParameters.toArray(new String[0]));
         classes.add(featureClass(FEATURE_THEME_COLORS, OBJECT, List.of(featureField(FEATURE_THEME_COLORS, "background", "J")),
                 define(FEATURE_THEME_COLORS, "dark", FEATURE_THEME_COLORS, true, body(2,
                         string(0, fault.endsWith("getter-note") ? "unrelated palette" :
                                 "com.instagram.compose.core.theme.IgTheme.<get-colors> (IgTheme.kt:22)"),
                         new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN_OBJECT, 0)), OBJECT),
-                define(FEATURE_THEME_COLORS, "<init>", "V", false, body(1 + 2 * SCHEME_COLORS,
+                define(FEATURE_THEME_COLORS, "<init>", "V", false, body(2 + 2 * SCHEME_COLORS,
                         direct(method(OBJECT, "<init>", "V"), 0),
-                        objectField(Opcode.IPUT_WIDE, 1, 0, FEATURE_THEME_COLORS, "background", "J"), op(Opcode.RETURN_VOID)),
+                        objectField(Opcode.IPUT_WIDE, 2, 0, FEATURE_THEME_COLORS, "background", "J"), op(Opcode.RETURN_VOID)),
                         paletteInit.getParameterTypes().toArray(new String[0]))));
 
         List<Instruction> theme = new ArrayList<>(List.of(
@@ -1913,13 +1958,14 @@ public class BadDexFixture {
         theme.add(fault.endsWith("copy-missing") ? constWide(6, 0) :
                 objectField(Opcode.IGET_WIDE, 6, 1, FEATURE_SCHEME, "background", "J"));
         theme.add(objectField(Opcode.IGET_WIDE, 4, 1, FEATURE_SCHEME, "canvas", "J"));
+        theme.add(new ImmutableInstruction11n(Opcode.CONST_4, 11, 0));
         for (int p = 0; p < SCHEME_COLORS; p++) {
-            theme.add(new ImmutableInstruction22x(Opcode.MOVE_WIDE_FROM16, 11 + 2 * p, p == 0 ? 6 : p == 1 ? 4 : 8));
+            theme.add(new ImmutableInstruction22x(Opcode.MOVE_WIDE_FROM16, 12 + 2 * p, p == 0 ? 6 : p == 1 ? 4 : 8));
         }
-        theme.add(new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 10, 1 + 2 * SCHEME_COLORS, paletteInit));
+        theme.add(new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 10, 2 + 2 * SCHEME_COLORS, paletteInit));
         theme.add(op(Opcode.RETURN_OBJECT, 10));
         classes.add(featureClass(FEATURE_THEME, OBJECT, List.of(),
-                define(FEATURE_THEME, "invoke", OBJECT, false, body(54, theme.toArray(new Instruction[0])), OBJECT, OBJECT)));
+                define(FEATURE_THEME, "invoke", OBJECT, false, body(55, theme.toArray(new Instruction[0])), OBJECT, OBJECT)));
         return classes;
     }
 
@@ -2231,13 +2277,19 @@ public class BadDexFixture {
         return skip;
     }
 
-    /** Three direct 451 browser boundaries, plus the shared factory and already-routed immersive screen. */
+    private static final String BROWSER_TEXT = "Ljava/lang/String;", BROWSER_INTENT = "Landroid/content/Intent;", BROWSER_STATE = "Landroidx/compose/runtime/MutableState;";
+    private static final String BROWSER_LAUNCHER = "Lfixture/BrowserLauncher;", BROWSER_CTA = "Lfixture/BrowserCTA;", BROWSER_DESTINATION = "Lfixture/BrowserDestination;";
+    private static final String[] BROWSER_FACTORY_PARAMETERS = {CONTEXT, OBJECT, FEATURE_MEDIA, "Lcom/instagram/common/session/UserSession;", OBJECT,
+            BROWSER_TEXT, BROWSER_TEXT, BROWSER_TEXT, BROWSER_TEXT, BROWSER_TEXT};
+    private static final ImmutableMethodReference BROWSER_FACTORY = method("Lfixture/BrowserIntent;", "make", BROWSER_INTENT, BROWSER_FACTORY_PARAMETERS);
+    private static final ImmutableMethodReference BROWSER_SHOW = method("Lfixture/BrowserView;", "show", "V", BROWSER_INTENT);
+
+    /**
+     * Threads 453's browser: the launcher asks first, the factory makes the Intent, and five places
+     * call the factory. The launcher's own helper and the immersive screen, already routed, stay as
+     * shipped, while the lead form, the ad and the media viewer each take a hook of their own.
+     */
     private static void directBrowserClasses(List<ClassDef> classes, boolean enabled, String fault) {
-        String text = "Ljava/lang/String;", intent = "Landroid/content/Intent;", uri = "Landroid/net/Uri;";
-        String session = "Lcom/instagram/common/session/UserSession;", state = "Landroidx/compose/runtime/MutableState;";
-        String cta = "Lfixture/BrowserCTA;", destination = "Lfixture/BrowserDestination;", factoryOwner = "Lfixture/BrowserIntent;";
-        ImmutableMethodReference factory = method(factoryOwner, "make", intent, CONTEXT, OBJECT, FEATURE_MEDIA, session, OBJECT, text, text, text, text);
-        ImmutableMethodReference launcher = method("Lfixture/BrowserLauncher;", "launch", "V", CONTEXT, OBJECT, OBJECT, OBJECT, text, text, text, text, OBJECT);
         for (int n = 0; n < classes.size(); n++) if (classes.get(n).getType().equals(FEATURE_MEDIA)) {
             ClassDef original = classes.get(n);
             List<ImmutableField> fields = new ArrayList<>(); original.getFields().forEach(f -> fields.add(ImmutableField.of(f)));
@@ -2245,117 +2297,218 @@ public class BadDexFixture {
             classes.set(n, new ImmutableClassDef(original.getType(), original.getAccessFlags(), original.getSuperclass(), original.getInterfaces(),
                     original.getSourceFile(), original.getAnnotations(), fields, original.getMethods()));
         }
-        // Keep the original launcher parser/hook controls. Both stock browser modes call the factory.
-        for (int n = 0; n < classes.size(); n++) if (classes.get(n).getType().equals(launcher.getDefiningClass())) {
-            Method original = classes.get(n).getMethods().iterator().next();
-            List<Instruction> code = new ArrayList<>(); original.getImplementation().getInstructions().forEach(code::add);
-            code.add(code.size() - 1, new ImmutableInstruction11n(Opcode.CONST_4, 4, 0));
-            code.add(code.size() - 1, new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 3, 9, factory));
-            code.add(code.size() - 1, new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 3, 9, factory));
-            classes.set(n, featureClass(launcher.getDefiningClass(), OBJECT, List.of(), define(launcher.getDefiningClass(), "launch", "V", true,
-                    body(12, code.toArray(new Instruction[0])), CONTEXT, OBJECT, OBJECT, OBJECT, text, text, text, text, OBJECT)));
-        }
-        List<Instruction> factoryCode = new ArrayList<>(List.of(string(0, "TrackingInfo.ARG_MODULE_NAME"), string(1, "BrowserLiteIntent.OPEN_WITH_URL"),
-                invoke(method(uri, "parse", uri, text), 12), op(Opcode.MOVE_RESULT_OBJECT, 0), type(Opcode.NEW_INSTANCE, 1, intent),
-                direct(method(intent, "<init>", "V"), 1), virtual(method(intent, "setData", intent, uri), 1, 0), op(Opcode.RETURN_OBJECT, 1)));
-        if (enabled && fault.equals("browser-direct-factory-hook")) factoryCode.add(0, invoke(LINK_OPENER, 7, 12));
-        classes.add(featureClass(factoryOwner, OBJECT, List.of(), define(factoryOwner, "make", intent, true,
-                body(16, factoryCode.toArray(new Instruction[0])), CONTEXT, OBJECT, FEATURE_MEDIA, session, OBJECT, text, text, text, text)));
-        classes.add(featureClass(cta, OBJECT, List.of(featureField(cta, "webUrl", text)), define(cta, "kind", destination, false,
-                body(2, staticField(Opcode.SGET_OBJECT, 0, destination, "web", destination), op(Opcode.RETURN_OBJECT, 0)))));
-        classes.add(featureClass(destination, OBJECT, List.of(new ImmutableField(destination, "web", destination,
+        String uri = "Landroid/net/Uri;", requestOwner = "Lfixture/BrowserAdRequest;";
+        List<Instruction> factory = new ArrayList<>(List.of(string(0, "TrackingInfo.ARG_MODULE_NAME"), string(1, "BrowserLiteIntent.OPEN_WITH_URL"),
+                invoke(method(uri, "parse", uri, BROWSER_TEXT), 12), op(Opcode.MOVE_RESULT_OBJECT, 0), type(Opcode.NEW_INSTANCE, 1, BROWSER_INTENT),
+                direct(method(BROWSER_INTENT, "<init>", "V"), 1), virtual(method(BROWSER_INTENT, "setData", BROWSER_INTENT, uri), 1, 0), op(Opcode.RETURN_OBJECT, 1)));
+        if (enabled && fault.equals("browser-direct-factory-hook")) factory.add(0, invoke(LINK_OPENER, 7, 12));
+        classes.add(featureClass(BROWSER_FACTORY.getDefiningClass(), OBJECT, List.of(), define(BROWSER_FACTORY.getDefiningClass(), "make", BROWSER_INTENT, true,
+                body(17, factory.toArray(new Instruction[0])), BROWSER_FACTORY_PARAMETERS)));
+        classes.add(featureClass(BROWSER_CTA, OBJECT, List.of(featureField(BROWSER_CTA, "webUrl", BROWSER_TEXT)), define(BROWSER_CTA, "kind", BROWSER_DESTINATION, false,
+                body(2, staticField(Opcode.SGET_OBJECT, 0, BROWSER_DESTINATION, "web", BROWSER_DESTINATION), op(Opcode.RETURN_OBJECT, 0)))));
+        classes.add(featureClass(BROWSER_DESTINATION, OBJECT, List.of(new ImmutableField(BROWSER_DESTINATION, "web", BROWSER_DESTINATION,
                 AccessFlags.PUBLIC.getValue() | AccessFlags.STATIC.getValue(), null, null, null))));
-        String requestOwner = "Lfixture/BrowserAdRequest;";
-        List<Instruction> request = new ArrayList<>(List.of(string(10, "AdClickHandler.openWebLink missing webUri for AD_DESTINATION_WEB"),
-                objectField(Opcode.IGET_OBJECT, 1, 11, requestOwner, "cta", cta), objectField(Opcode.IGET_OBJECT, 7, 1, cta, "webUrl", text)));
-        for (int r = 0; r < 9; r++) if (r != 7) request.add(new ImmutableInstruction11n(Opcode.CONST_4, r, 0));
-        request.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 0, 9, launcher)); request.add(op(Opcode.RETURN_VOID));
-        classes.add(featureClass(requestOwner, OBJECT, List.of(featureField(requestOwner, "cta", cta)), define(requestOwner, "request", "V", false,
-                body(14, request.toArray(new Instruction[0])), FEATURE_MEDIA, OBJECT)));
-        for (String kind : List.of("lead", "ad", "media", "immersive")) {
-            String owner = "Lfixture/Browser" + Character.toUpperCase(kind.charAt(0)) + kind.substring(1) + ";";
-            BrowserCode code = new BrowserCode();
-            boolean lead = kind.equals("lead"), media = kind.equals("media"), immersive = kind.equals("immersive");
-            int[] hook = null;
-            if (lead && enabled && !fault.equals("browser-direct-lead-missing")) hook = code.hook(9,
-                    fault.equals("browser-direct-lead-url") ? 11 : 12, true, fault);
-            int guard = -1, noUrl = -1, factoryAt, opened = -1, failed, done;
-            if (lead) {
-                code.add(string(2, "android.intent.action.VIEW"));
-                for (int r = 0; r < 9; r++) code.add(r == 0 || r == 5 ? new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, r, r == 0 ? 9 : 12)
-                        : new ImmutableInstruction11n(Opcode.CONST_4, r, 0));
-            } else if (immersive) {
-                code.add(string(10, "com.instagram.barcelona.inappbrowser.compose.ImmersiveBrowserScreen (ImmersiveBrowserScreen.kt:97)"));
-                for (int r = 0; r < 9; r++) code.add(r == 0 || r == 5 ? new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, r, r == 0 ? 12 : 16)
-                        : new ImmutableInstruction11n(Opcode.CONST_4, r, 0));
-                if (enabled && fault.equals("browser-direct-immersive-hook")) code.add(invoke(LINK_OPENER, 0, 5));
-            } else {
-                if (media) {
-                    code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 0, 22));
-                    code.add(objectField(Opcode.IGET_OBJECT, 13, 0, owner, "context", CONTEXT));
-                    code.add(objectField(Opcode.IGET_OBJECT, 14, 0, owner, "opened", state));
-                    code.add(objectField(Opcode.IGET_OBJECT, 1, 0, owner, "post", FEATURE_MEDIA));
-                    code.add(string(10, "AD_DESTINATION_WEB"));
-                } else {
-                    code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 1, 18));
-                    code.add(type(Opcode.NEW_INSTANCE, 13, "Lcom/facebook/browser/common/viewmode/IABViewModeLaunchConfig$FullScreen;"));
-                    code.add(staticField(Opcode.SGET_OBJECT, 14, "Lcom/facebook/browser/common/viewmode/IABViewModeLaunchConfig$HalfSheet;", "INSTANCE",
-                            "Lcom/facebook/browser/common/viewmode/IABViewModeLaunchConfig$HalfSheet;"));
-                }
-                code.add(objectField(Opcode.IGET_OBJECT, 2, 1, FEATURE_MEDIA, "ctas", "Ljava/util/List;"));
-                code.add(invoke(method("Lfixture/Lists;", "first", OBJECT, "Ljava/util/List;"), 2)); code.add(op(Opcode.MOVE_RESULT_OBJECT, 2));
-                code.add(type(Opcode.CHECK_CAST, 2, cta)); code.add(virtual(method(cta, "kind", destination), 2)); code.add(op(Opcode.MOVE_RESULT_OBJECT, 3));
-                code.add(staticField(Opcode.SGET_OBJECT, 0, destination, "web", destination));
-                guard = code.branch(new ImmutableInstruction22t(Opcode.IF_NE, 3, 0, 1));
-                code.add(objectField(Opcode.IGET_OBJECT, 3, 2, cta, "webUrl", text));
-                noUrl = code.branch(ifEqz(3, 1));
-                for (int r = 4; r <= 12; r++) {
-                    int source = r == 4 ? media ? 13 : 16 : r == 6 ? 1 : r == 9 ? 3 : -1;
-                    code.add(source >= 0 ? new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, r, source) : new ImmutableInstruction11n(Opcode.CONST_4, r, 0));
-                }
-                if (enabled && !fault.equals("browser-direct-" + kind + "-missing")) hook = code.hook(
-                        fault.equals("browser-direct-" + kind + "-context") ? 5 : 4,
-                        fault.equals("browser-direct-" + kind + "-url") ? 10 : 9, false, fault.startsWith("browser-direct-" + kind + "-") ? fault : "");
-            }
-            factoryAt = code.size();
-            code.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, lead || immersive ? 0 : 4, 9, factory));
-            code.add(op(Opcode.MOVE_RESULT_OBJECT, 2));
-            if (lead) code.add(virtual(method(CONTEXT, "startActivity", "V", intent), 9, 2));
-            else code.add(invoke(method("Lfixture/BrowserView;", "show", "V", intent), 2));
-            if (media) {
-                opened = code.size(); code.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 1));
-                code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 1, 14));
-                code.add(invoke(method("Lfixture/State;", "set", "V", state, "Z"), 1, 0));
-                // completion-live's stock completion logs the Intent it opened and answers it, so v2,
-                // which the factory's answer writes after the hook site, is live past the completion.
-                code.add(fault.equals("browser-direct-media-completion-live") ? invoke(method("Lfixture/BrowserView;", "opened", "V", intent), 2)
-                        : staticField(Opcode.SGET_OBJECT, 2, "Lfixture/Unit;", "INSTANCE", "Lfixture/Unit;"));
-                code.add(op(Opcode.RETURN_OBJECT, 2));
-                failed = code.size(); code.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
-                int back = code.branch(new com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction20t(Opcode.GOTO_16, 1)); code.to(back, opened + 1);
-                done = opened;
-            } else {
-                if (kind.equals("ad")) { code.add(op(Opcode.RETURN_VOID)); code.add(op(Opcode.RETURN_VOID)); }
-                done = code.size(); code.add(op(Opcode.RETURN_VOID)); failed = done;
-            }
-            if (guard >= 0) { code.to(guard, failed); code.to(noUrl, failed); }
-            if (hook != null) {
-                code.to(hook[1], hook[0] + 6);
-                if (!lead) code.to(hook[2], fault.equals("browser-direct-" + kind + "-double-open") ? factoryAt
-                        : fault.equals("browser-direct-ad-return") && kind.equals("ad") ? done - 1
-                        : fault.equals("browser-direct-media-false") && media ? failed
-                        : fault.equals("browser-direct-media-uninitialized") && media ? factoryAt + 2 : done);
-                else if (fault.equals("browser-direct-lead-double-open")) code.to(hook[2], hook[0] + 6);
-                if (fault.equals("browser-direct-" + kind + "-bypass")) code.to(hook[1], done);
-            }
-            if (fault.equals("browser-direct-omitted-body") && kind.equals("ad")) code.code.add(done, op(Opcode.NOP));
-            String[] parameters = lead ? new String[]{CONTEXT, session, OBJECT, text} : media ? new String[]{OBJECT}
-                    : immersive ? new String[]{CONTEXT, OBJECT, OBJECT, OBJECT, text, text, text, "Lkotlin/jvm/functions/Function0;", "I", "I", "I", "Z"}
-                    : new String[]{CONTEXT, OBJECT, FEATURE_MEDIA, OBJECT, session, OBJECT, "Z", "Z"};
-            List<ImmutableField> fields = media ? List.of(featureField(owner, "context", CONTEXT), featureField(owner, "opened", state), featureField(owner, "post", FEATURE_MEDIA)) : List.of();
-            classes.add(featureClass(owner, OBJECT, fields, define(owner, media ? "invokeSuspend" : "open", media ? OBJECT : "V", lead || immersive,
-                    body(lead ? 13 : 24, code.finish()), parameters)));
+        // The ad request builds the launcher from the web link of its call to action, the link being
+        // the third of the constructor's arguments.
+        classes.add(featureClass(requestOwner, OBJECT, List.of(featureField(requestOwner, "cta", BROWSER_CTA)), define(requestOwner, "request", "V", false,
+                body(14, string(10, "AdClickHandler.openWebLink missing webUri for AD_DESTINATION_WEB"),
+                        objectField(Opcode.IGET_OBJECT, 1, 11, requestOwner, "cta", BROWSER_CTA), objectField(Opcode.IGET_OBJECT, 5, 1, BROWSER_CTA, "webUrl", BROWSER_TEXT),
+                        type(Opcode.NEW_INSTANCE, 2, BROWSER_LAUNCHER), new ImmutableInstruction11n(Opcode.CONST_4, 3, 0),
+                        new ImmutableInstruction11n(Opcode.CONST_4, 4, 0), new ImmutableInstruction11n(Opcode.CONST_4, 6, 0),
+                        new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 2, 5, method(BROWSER_LAUNCHER, "<init>", "V", CONTEXT, OBJECT, BROWSER_TEXT, BROWSER_TEXT)),
+                        virtual(method(BROWSER_LAUNCHER, "launch", "V"), 2), op(Opcode.RETURN_VOID)), FEATURE_MEDIA, OBJECT)));
+        classes.add(browserLauncher(enabled, fault));
+        classes.add(browserLead(enabled, fault));
+        classes.add(browserAd(enabled, fault));
+        classes.add(browserMedia(enabled, fault));
+        classes.add(browserImmersive(enabled, fault));
+    }
+
+    private static Instruction browserFactoryCall(int first) {
+        return new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, first, 10, BROWSER_FACTORY);
+    }
+
+    /** Null into every register of the factory's range from [first] but those the site fills itself. */
+    private static void browserNulls(List<Instruction> code, int first, int... filled) {
+        for (int r = first; r < first + 10; r++) {
+            int register = r;
+            if (Arrays.stream(filled).noneMatch(f -> f == register)) code.add(new ImmutableInstruction11n(Opcode.CONST_4, r, 0));
         }
+    }
+
+    /** The launcher, its constructor, and the helper making its Intent, which the patch leaves alone. */
+    private static ClassDef browserLauncher(boolean enabled, String fault) {
+        String owner = BROWSER_LAUNCHER;
+        List<Instruction> launch = new ArrayList<>();
+        if (enabled && !fault.equals("browser-missing")) {
+            launch.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 2, 5));
+            launch.add(objectField(Opcode.IGET_OBJECT, 0, 2, owner, "context", CONTEXT));
+            launch.add(objectField(Opcode.IGET_OBJECT, 1, 2, owner, fault.equals("browser-register") ? "other" : "link", BROWSER_TEXT));
+            launch.add(invoke(LINK_OPENER, 0, 1));
+            int result = fault.equals("browser-clobber") ? 5 : 0;
+            launch.add(op(Opcode.MOVE_RESULT, result));
+            // Past the hook's return-void to the stock's first instruction, or straight to its return.
+            launch.add(ifEqz(result, fault.equals("browser-bypass") ? 16 : 3));
+            launch.add(op(Opcode.RETURN_VOID));
+        }
+        // The clobbering hook takes this's own register for its answer. Stock code reading the hook's copy
+        // instead leaves the build valid, so that write is the contract's to see.
+        launch.addAll(List.of(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 4, fault.equals("browser-clobber") ? 2 : 5), objectField(Opcode.IGET_OBJECT, 3, 4, owner, "link", BROWSER_TEXT),
+                type(Opcode.NEW_INSTANCE, 1, "Ljava/net/URI;"), direct(method("Ljava/net/URI;", "<init>", "V", BROWSER_TEXT), 1, 3), string(0, LAUNCHER_MESSAGE),
+                objectField(Opcode.IGET_OBJECT, 0, 4, owner, "context", CONTEXT), op(Opcode.RETURN_VOID)));
+        List<Instruction> helper = new ArrayList<>(List.of(objectField(Opcode.IGET_OBJECT, 0, 10, owner, "context", CONTEXT), objectField(Opcode.IGET_OBJECT, 5, 10, owner, "link", BROWSER_TEXT)));
+        browserNulls(helper, 0, 0, 5);
+        helper.addAll(List.of(browserFactoryCall(0), op(Opcode.MOVE_RESULT_OBJECT, 0), op(Opcode.RETURN_OBJECT, 0)));
+        return featureClass(owner, OBJECT, List.of(featureField(owner, "context", CONTEXT), featureField(owner, "link", BROWSER_TEXT), featureField(owner, "other", BROWSER_TEXT)),
+                define(owner, "launch", "V", false, body(6, launch.toArray(new Instruction[0]))),
+                define(owner, "<init>", "V", false, body(6, direct(method(OBJECT, "<init>", "V"), 1), objectField(Opcode.IPUT_OBJECT, 2, 1, owner, "context", CONTEXT),
+                        objectField(Opcode.IPUT_OBJECT, 4, 1, owner, "link", BROWSER_TEXT), objectField(Opcode.IPUT_OBJECT, 5, 1, owner, "other", BROWSER_TEXT), op(Opcode.RETURN_VOID)),
+                        CONTEXT, OBJECT, BROWSER_TEXT, BROWSER_TEXT),
+                define(owner, "helper", BROWSER_INTENT, true, body(11, helper.toArray(new Instruction[0])), owner));
+    }
+
+    /** The lead form and privacy policy helper, an empty link standing in for a null one, leaving past its goto. */
+    private static ClassDef browserLead(boolean enabled, String fault) {
+        String owner = "Lfixture/BrowserLead;";
+        BrowserCode code = new BrowserCode();
+        code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 12, 13));
+        code.add(objectField(Opcode.IGET_OBJECT, 2, 12, owner, "context", CONTEXT));
+        code.add(objectField(Opcode.IGET_OBJECT, 7, 12, owner, "link", BROWSER_TEXT));
+        int present = code.branch(new ImmutableInstruction21t(Opcode.IF_NEZ, 7, 1));
+        code.add(string(7, ""));
+        code.to(present, code.size());
+        code.add(string(1, "android.intent.action.VIEW"));
+        browserNulls(code.code, 2, 2, 7);
+        // lead-parameter takes v13, this, which nothing reads past the start, so only the locals bound
+        // sees it. lead-live takes v3, an argument of the factory's range and nothing else, so only the
+        // hook-site check does.
+        int[] hook = !enabled || fault.equals("browser-direct-lead-missing") ? null : code.hook(2, fault.equals("browser-direct-lead-url") ? 8 : 7, 0,
+                fault.equals("browser-direct-lead-parameter") ? 13 : fault.equals("browser-direct-lead-live") ? 3 : 1);
+        code.add(browserFactoryCall(2));
+        code.add(op(Opcode.MOVE_RESULT_OBJECT, 0));
+        code.add(virtual(method(CONTEXT, "startActivity", "V", BROWSER_INTENT), 2, 0));
+        int opened = code.jump();
+        int done = code.size();
+        code.to(opened, done);
+        code.add(staticField(Opcode.SGET_OBJECT, 0, "Lfixture/Unit;", "INSTANCE", "Lfixture/Unit;"));
+        code.add(op(Opcode.RETURN_OBJECT, 0));
+        if (hook != null) {
+            code.to(hook[1], hook[0] + 6);
+            code.to(hook[2], fault.equals("browser-direct-lead-double-open") ? hook[0] + 6 : done);
+        }
+        return featureClass(owner, OBJECT, List.of(featureField(owner, "context", CONTEXT), featureField(owner, "link", BROWSER_TEXT)),
+                define(owner, "invoke", OBJECT, false, body(14, code.finish())));
+    }
+
+    /** The ad: a builder making the Intent from the ad's own link, and the opener whose first act the hook is. */
+    private static ClassDef browserAd(boolean enabled, String fault) {
+        String owner = "Lfixture/BrowserAd;";
+        ImmutableMethodReference build = method(owner, "build", BROWSER_INTENT, ACTIVITY);
+        List<Instruction> builder = new ArrayList<>(List.of(objectField(Opcode.IGET_OBJECT, 5, 10, owner, "link", BROWSER_TEXT), new ImmutableInstruction12x(Opcode.MOVE_OBJECT, 0, 11)));
+        browserNulls(builder, 0, 0, 5);
+        builder.addAll(List.of(browserFactoryCall(0), op(Opcode.MOVE_RESULT_OBJECT, 0), op(Opcode.RETURN_OBJECT, 0)));
+        BrowserCode code = new BrowserCode();
+        int declined = -1, success = -1;
+        if (enabled && !fault.equals("browser-direct-ad-missing")) {
+            code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 1, 4));
+            code.add(objectField(Opcode.IGET_OBJECT, 1, 1, owner, fault.equals("browser-direct-ad-url") ? "other" : "link", BROWSER_TEXT));
+            code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 0, fault.equals("browser-direct-ad-context") ? 6 : 5));
+            code.add(invoke(LINK_OPENER, 0, 1));
+            code.add(op(Opcode.MOVE_RESULT, 0));
+            declined = code.branch(ifEqz(0, 1));
+            code.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, fault.equals("browser-direct-ad-return") ? 0 : 1));
+            if (fault.equals("browser-direct-ad-double-open")) success = code.jump();
+            else code.add(op(Opcode.RETURN, 0));
+        }
+        int stock = code.size();
+        code.add(virtual(build, 4, 5));
+        code.add(op(Opcode.MOVE_RESULT_OBJECT, 0));
+        code.add(invoke(BROWSER_SHOW, 0));
+        int answer = code.size();
+        code.add(new ImmutableInstruction11n(Opcode.CONST_4, 1, 1));
+        if (fault.equals("browser-direct-omitted-body")) code.add(op(Opcode.NOP));
+        code.add(op(Opcode.RETURN, 1));
+        if (declined >= 0) code.to(declined, fault.equals("browser-direct-ad-bypass") ? answer : stock);
+        if (success >= 0) code.to(success, stock);
+        return featureClass(owner, OBJECT, List.of(featureField(owner, "link", BROWSER_TEXT), featureField(owner, "other", BROWSER_TEXT)),
+                define(owner, "build", BROWSER_INTENT, false, body(12, builder.toArray(new Instruction[0])), ACTIVITY),
+                define(owner, "open", "Z", false, body(8, code.finish()), ACTIVITY, CONTEXT, OBJECT));
+    }
+
+    /**
+     * The media viewer's swipe up: its ending, setting its state from the path's flag, comes ahead of
+     * the call as it does on 453, and an ad with no web link clears the flag and goes there too.
+     */
+    private static ClassDef browserMedia(boolean enabled, String fault) {
+        String owner = "Lfixture/BrowserMedia;";
+        boolean completionLive = fault.equals("browser-direct-media-completion-live");
+        BrowserCode code = new BrowserCode();
+        code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 0, 22));
+        code.add(objectField(Opcode.IGET_OBJECT, 13, 0, owner, "context", CONTEXT));
+        code.add(objectField(Opcode.IGET_OBJECT, 14, 0, owner, "opened", BROWSER_STATE));
+        code.add(objectField(Opcode.IGET_OBJECT, 1, 0, owner, "post", FEATURE_MEDIA));
+        code.add(string(10, "AD_DESTINATION_WEB"));
+        code.add(invoke(method("Lfixture/BrowserView;", "same", "Z", OBJECT, OBJECT), 1, 1));
+        code.add(op(Opcode.MOVE_RESULT, 15));
+        int enter = code.jump();
+        int done = code.size();
+        code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 1, 14));
+        code.add(invoke(method("Lfixture/State;", "set", "V", BROWSER_STATE, "Z"), 1, 15));
+        // completion-live's stock ending answers what v2 holds there, the factory's answer on the way
+        // from the call: v2 is written past the hook site and live where the hook's success goes.
+        code.add(staticField(Opcode.SGET_OBJECT, completionLive ? 0 : 2, "Lfixture/Unit;", "INSTANCE", "Lfixture/Unit;"));
+        code.add(op(Opcode.RETURN_OBJECT, 2));
+        code.to(enter, code.size());
+        code.add(objectField(Opcode.IGET_OBJECT, 2, 1, FEATURE_MEDIA, "ctas", "Ljava/util/List;"));
+        code.add(invoke(method("Lfixture/Lists;", "first", OBJECT, "Ljava/util/List;"), 2));
+        code.add(op(Opcode.MOVE_RESULT_OBJECT, 2));
+        code.add(type(Opcode.CHECK_CAST, 2, BROWSER_CTA));
+        code.add(virtual(method(BROWSER_CTA, "kind", BROWSER_DESTINATION), 2));
+        code.add(op(Opcode.MOVE_RESULT_OBJECT, 3));
+        code.add(staticField(Opcode.SGET_OBJECT, 0, BROWSER_DESTINATION, "web", BROWSER_DESTINATION));
+        int guard = code.branch(new ImmutableInstruction22t(Opcode.IF_NE, 3, 0, 1));
+        code.add(objectField(Opcode.IGET_OBJECT, 3, 2, BROWSER_CTA, "webUrl", BROWSER_TEXT));
+        int noUrl = code.branch(ifEqz(3, 1));
+        for (int r = 4; r <= 13; r++) {
+            int source = r == 4 ? 13 : r == 6 ? 1 : r == 9 ? 3 : -1;
+            code.add(source >= 0 ? new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, r, source) : new ImmutableInstruction11n(Opcode.CONST_4, r, 0));
+        }
+        // media-live takes v14, which the ending reads on every way there, so the hook site sees it
+        // first. completion-live takes v2, which only that build's ending reads.
+        int[] hook = !enabled || fault.equals("browser-direct-media-missing") ? null : code.hook(fault.equals("browser-direct-media-context") ? 5 : 4,
+                fault.equals("browser-direct-media-url") ? 10 : 9, 0, fault.equals("browser-direct-media-live") ? 14 : completionLive ? 2 : 3);
+        int factoryAt = code.size();
+        code.add(browserFactoryCall(4));
+        code.add(op(Opcode.MOVE_RESULT_OBJECT, 2));
+        code.add(invoke(BROWSER_SHOW, 2));
+        code.to(code.jump(), done);
+        int failed = code.size();
+        code.add(new ImmutableInstruction11n(Opcode.CONST_4, 15, 0));
+        code.to(code.jump(), done);
+        code.to(guard, failed);
+        code.to(noUrl, failed);
+        if (hook != null) {
+            code.to(hook[1], fault.equals("browser-direct-media-bypass") ? done : hook[0] + 6);
+            code.to(hook[2], fault.equals("browser-direct-media-double-open") ? factoryAt : fault.equals("browser-direct-media-false") ? failed
+                    : fault.equals("browser-direct-media-uninitialized") ? factoryAt + 2 : done);
+        }
+        return featureClass(owner, OBJECT, List.of(featureField(owner, "context", CONTEXT), featureField(owner, "opened", BROWSER_STATE), featureField(owner, "post", FEATURE_MEDIA)),
+                define(owner, "invokeSuspend", OBJECT, false, body(24, code.finish()), OBJECT));
+    }
+
+    private static ClassDef browserImmersive(boolean enabled, String fault) {
+        String owner = "Lfixture/BrowserImmersive;";
+        BrowserCode code = new BrowserCode();
+        code.add(string(10, "com.instagram.barcelona.inappbrowser.compose.ImmersiveBrowserScreen (ImmersiveBrowserScreen.kt:97)"));
+        for (int r = 0; r < 10; r++) code.add(r == 0 || r == 5 ? new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, r, r == 0 ? 12 : 16)
+                : new ImmutableInstruction11n(Opcode.CONST_4, r, 0));
+        if (enabled && fault.equals("browser-direct-immersive-hook")) code.add(invoke(LINK_OPENER, 0, 5));
+        code.add(browserFactoryCall(0));
+        code.add(op(Opcode.MOVE_RESULT_OBJECT, 2));
+        code.add(invoke(BROWSER_SHOW, 2));
+        code.add(op(Opcode.RETURN_VOID));
+        return featureClass(owner, OBJECT, List.of(), define(owner, "open", "V", true, body(24, code.finish()),
+                CONTEXT, OBJECT, OBJECT, OBJECT, BROWSER_TEXT, BROWSER_TEXT, BROWSER_TEXT, "Lkotlin/jvm/functions/Function0;", "I", "I", "I", "Z"));
     }
 
     /** Branch addresses are calculated after hooks have been placed, independently of the verifier. */
@@ -2366,22 +2519,16 @@ public class BadDexFixture {
         void add(Instruction instruction) { code.add(instruction); }
         int branch(Instruction instruction) { int at = size(); add(instruction); return at; }
         void to(int from, int target) { jumps.put(from, target); }
-        int[] hook(int context, int url, boolean entry, String fault) {
-            // media-live reuses v14, read on both edges. ad-live reuses v5, which the factory's range
-            // call reads and the ad's return-void completion doesn't, so only the hook-site check sees
-            // it. lead-parameter takes v10, a parameter nothing reads, so only the locals bound does.
-            // media-completion-live takes v2, which the factory's answer writes before anything reads
-            // it, and which its own stock build's completion reads, so only the completion edge does.
-            int start = size(), scratch = 0, link = fault.equals("browser-direct-media-live") && !entry ? 14
-                    : fault.equals("browser-direct-ad-live") && !entry ? 5 : fault.equals("browser-direct-lead-parameter") && entry ? 10
-                    : fault.equals("browser-direct-media-completion-live") && !entry ? 2 : entry ? 1 : 3;
-            add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, scratch, context));
-            add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, link, url)); add(invoke(LINK_OPENER, scratch, link)); add(op(Opcode.MOVE_RESULT, scratch));
-            int declined = branch(ifEqz(scratch, 1));
-            int success = size();
-            add(entry && !fault.equals("browser-direct-lead-double-open") ? op(Opcode.RETURN_VOID)
-                    : new com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction20t(Opcode.GOTO_16, 1));
-            return new int[]{start, declined, success};
+        int jump() { return branch(new com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction20t(Opcode.GOTO_16, 1)); }
+        /** Six instructions, the link copied first: the if-eqz a declined link takes, then the goto an opened one does. */
+        int[] hook(int context, int url, int answer, int link) {
+            int start = size();
+            add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, link, url));
+            add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, answer, context));
+            add(invoke(LINK_OPENER, answer, link));
+            add(op(Opcode.MOVE_RESULT, answer));
+            int declined = branch(ifEqz(answer, 1));
+            return new int[]{start, declined, jump()};
         }
         Instruction[] finish() {
             int[] address = new int[size()];
@@ -2637,6 +2784,11 @@ public class BadDexFixture {
     private static final String PANDO_VIDEO_VERSION = "Lcom/instagram/api/schemas/ImmutablePandoVideoVersion;";
     private static final String IMAGE_INFO = "Lcom/instagram/model/mediasize/ImageInfo;";
     private static final String PANDO_IMAGE_INFO = "Lcom/instagram/model/mediasize/ImmutablePandoImageInfo;";
+    private static final String TEXT_POST_INFO = "Lfixture/TextPostInfo;";
+    private static final String TEXT_POST_DATA = "Lfixture/TextPostData;";
+    private static final String SHARE_INFO = "Lfixture/ShareInfo;";
+    private static final String SHARE_DATA = "Lfixture/ShareData;";
+    private static final String POST_WRITER = "Lfixture/PostWriter;";
     private static final String IMAGE_URL = "Lcom/instagram/common/typedurl/ImageUrl;";
     private static final String INTEGER = "Ljava/lang/Integer;";
     private static final ImmutableMethodReference MENU_ROW = method(MENU_ROWS, "row", "V", MENU_COMPOSER, MENU_MODIFIER, MENU_STYLE, MENU_ICON, "Ljava/lang/String;");
@@ -2671,7 +2823,75 @@ public class BadDexFixture {
             new SaveBridgeShape("imageCandidates", SHORTCUT_LIST, IMAGE_INFO, Opcode.INVOKE_INTERFACE, method(IMAGE_INFO, "A03", SHORTCUT_LIST)),
             new SaveBridgeShape("candidateUrl", "Ljava/lang/String;", IMAGE_URL, Opcode.INVOKE_INTERFACE, method(IMAGE_URL, "getUrl", "Ljava/lang/String;")),
             new SaveBridgeShape("candidateWidth", "I", IMAGE_URL, Opcode.INVOKE_INTERFACE, method(IMAGE_URL, "getWidth", "I")),
-            new SaveBridgeShape("candidateHeight", "I", IMAGE_URL, Opcode.INVOKE_INTERFACE, method(IMAGE_URL, "getHeight", "I")));
+            new SaveBridgeShape("candidateHeight", "I", IMAGE_URL, Opcode.INVOKE_INTERFACE, method(IMAGE_URL, "getHeight", "I")),
+            new SaveBridgeShape("textPostInfo", OBJECT, FEATURE_MEDIA, Opcode.INVOKE_VIRTUAL, method(FEATURE_MEDIA, "textInfo", TEXT_POST_INFO)),
+            new SaveBridgeShape("linkedInlineMedia", OBJECT, TEXT_POST_INFO, Opcode.INVOKE_INTERFACE, method(TEXT_POST_INFO, "linked", FEATURE_MEDIA)),
+            new SaveBridgeShape("shareInfo", OBJECT, TEXT_POST_INFO, Opcode.INVOKE_INTERFACE, method(TEXT_POST_INFO, "share", SHARE_INFO)),
+            new SaveBridgeShape("quotedAttachmentPost", OBJECT, SHARE_INFO, Opcode.INVOKE_INTERFACE, method(SHARE_INFO, "attached", FEATURE_MEDIA)),
+            new SaveBridgeShape("repostedPost", OBJECT, SHARE_INFO, Opcode.INVOKE_INTERFACE, method(SHARE_INFO, "reposted", FEATURE_MEDIA)),
+            new SaveBridgeShape("quotedPost", OBJECT, SHARE_INFO, Opcode.INVOKE_INTERFACE, method(SHARE_INFO, "quoted", FEATURE_MEDIA)));
+
+    private static final String TILE_HOST = "Lfixture/ShareTileLaunch;";
+    private static final ImmutableMethodReference TILE_LAUNCH = method("LX/Launcher;", "A04", "Z", "Landroid/content/Context;", "Landroid/content/Intent;");
+    private static final ImmutableMethodReference OPEN_REFUSED_TILE = method("Lapp/morphe/extension/hushthreads/coexist/ShareTiles;", "openRefused", "V",
+            "Z", "Landroid/content/Context;", "Landroid/content/Intent;");
+
+    /**
+     * Threads' share tiles, shaped like 453's: one lambda that launches the intent it built. Hooked,
+     * the launch's answer goes to the extension with the context and intent. Faults: no hook, the
+     * arguments swapped, another register passed as the answer, and an answer in a register read after.
+     */
+    private static ClassDef shareTileClass(boolean hooked, String fault) {
+        List<Instruction> code = new ArrayList<>(List.of(string(0, "com.facebook.orca"), string(0, "DirectPrivateStoryRecipientFragment.DIRECT_SHOULD_SHOW_MESSAGE_COMPOSER"),
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction11n(Opcode.CONST_4, 1, 0),
+                new ImmutableInstruction11n(Opcode.CONST_4, 2, 0), new ImmutableInstruction11n(Opcode.CONST_4, 3, 0),
+                virtual(TILE_LAUNCH, 0, 1, 2)));
+        if (hooked && !fault.equals("tile-missing")) {
+            int answer = fault.equals("tile-live") ? 3 : 0;
+            code.add(op(Opcode.MOVE_RESULT, answer));
+            code.add(fault.equals("tile-swapped") ? invoke(OPEN_REFUSED_TILE, answer, 2, 1)
+                    : fault.equals("tile-answer") ? invoke(OPEN_REFUSED_TILE, 1, 1, 2)
+                    : invoke(OPEN_REFUSED_TILE, answer, 1, 2));
+        }
+        // The stock code reads v3 after the launch and rewrites v0 first, so only v3 stays live. The
+        // read is a plain move, which an int in v3 still passes, so that fault fails the contract alone.
+        code.addAll(List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction12x(Opcode.MOVE, 2, 3), op(Opcode.RETURN_OBJECT, 0)));
+        return featureClass(TILE_HOST, OBJECT, List.of(), define(TILE_HOST, "invokeSuspend", OBJECT, false, body(6, code.toArray(new Instruction[0])), OBJECT));
+    }
+
+    /** A data class's plain getter for its own field. */
+    private static Method plainGetter(String owner, String name, String field, String returns) {
+        return define(owner, name, returns, false, body(2, objectField(Opcode.IGET_OBJECT, 0, 1, owner, field, returns), op(Opcode.RETURN_OBJECT, 0)));
+    }
+
+    /** Threads' text post model and the serializer that names its linked posts' keys, under names that aren't the bridges'. */
+    private static List<ClassDef> linkedPostClasses(int publicInterface, int publicFinal) {
+        List<Instruction> writer = new ArrayList<>();
+        for (String[] key : List.of(new String[]{"linked_inline_media", TEXT_POST_DATA, "a", FEATURE_MEDIA}, new String[]{"share_info", TEXT_POST_DATA, "b", SHARE_INFO},
+                new String[]{"quoted_attachment_post", SHARE_DATA, "c", FEATURE_MEDIA}, new String[]{"reposted_post", SHARE_DATA, "d", FEATURE_MEDIA},
+                new String[]{"quoted_post", SHARE_DATA, "e", FEATURE_MEDIA})) {
+            writer.add(objectField(Opcode.IGET_OBJECT, 0, 1, key[1], key[2], key[3]));
+            writer.add(new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 4));
+            writer.add(string(0, key[0]));
+            writer.add(new ImmutableInstruction10x(Opcode.NOP));
+        }
+        writer.add(op(Opcode.RETURN_VOID));
+        return List.of(
+                new ImmutableClassDef(TEXT_POST_INFO, publicInterface, OBJECT, List.of(), null, null, List.of(),
+                        List.of(abstractGetter(TEXT_POST_INFO, "linked", FEATURE_MEDIA), abstractGetter(TEXT_POST_INFO, "share", SHARE_INFO))),
+                new ImmutableClassDef(SHARE_INFO, publicInterface, OBJECT, List.of(), null, null, List.of(),
+                        List.of(abstractGetter(SHARE_INFO, "attached", FEATURE_MEDIA), abstractGetter(SHARE_INFO, "reposted", FEATURE_MEDIA), abstractGetter(SHARE_INFO, "quoted", FEATURE_MEDIA))),
+                new ImmutableClassDef(TEXT_POST_DATA, publicFinal, OBJECT, List.of(TEXT_POST_INFO), null, null,
+                        List.of(new ImmutableField(TEXT_POST_DATA, "a", FEATURE_MEDIA, AccessFlags.PUBLIC.getValue(), null, null, null),
+                                new ImmutableField(TEXT_POST_DATA, "b", SHARE_INFO, AccessFlags.PUBLIC.getValue(), null, null, null)),
+                        List.of(plainGetter(TEXT_POST_DATA, "linked", "a", FEATURE_MEDIA), plainGetter(TEXT_POST_DATA, "share", "b", SHARE_INFO))),
+                new ImmutableClassDef(SHARE_DATA, publicFinal, OBJECT, List.of(SHARE_INFO), null, null,
+                        List.of(new ImmutableField(SHARE_DATA, "c", FEATURE_MEDIA, AccessFlags.PUBLIC.getValue(), null, null, null),
+                                new ImmutableField(SHARE_DATA, "d", FEATURE_MEDIA, AccessFlags.PUBLIC.getValue(), null, null, null),
+                                new ImmutableField(SHARE_DATA, "e", FEATURE_MEDIA, AccessFlags.PUBLIC.getValue(), null, null, null)),
+                        List.of(plainGetter(SHARE_DATA, "attached", "c", FEATURE_MEDIA), plainGetter(SHARE_DATA, "reposted", "d", FEATURE_MEDIA), plainGetter(SHARE_DATA, "quoted", "e", FEATURE_MEDIA))),
+                featureClass(POST_WRITER, OBJECT, List.of(), define(POST_WRITER, "write", "V", true, body(2, writer.toArray(new Instruction[0])), OBJECT)));
+    }
 
     /** An interface's getter, with no body. */
     private static Method abstractGetter(String owner, String name, String returns) {
@@ -2826,6 +3046,7 @@ public class BadDexFixture {
                 List.of(abstractGetter(IMAGE_INFO, "A03", SHORTCUT_LIST))));
         classes.add(new ImmutableClassDef(PANDO_IMAGE_INFO, publicFinal, OBJECT, List.of(IMAGE_INFO), null, null, List.of(),
                 List.of(pandoGetter(PANDO_IMAGE_INFO, "A03", SHORTCUT_LIST, "candidates"))));
+        classes.addAll(linkedPostClasses(publicInterface, publicFinal));
         classes.add(new ImmutableClassDef(IMAGE_URL, publicInterface, OBJECT, List.of(), null, null, List.of(),
                 List.of(abstractGetter(IMAGE_URL, "getUrl", "Ljava/lang/String;"), abstractGetter(IMAGE_URL, "getWidth", "I"),
                         abstractGetter(IMAGE_URL, "getHeight", "I"))));
@@ -2883,7 +3104,9 @@ public class BadDexFixture {
                 String receiver = fault.equals("save-bridge-cast") && bridge.name().equals("username") ? FEATURE_MEDIA : bridge.receiver();
                 Opcode call = fault.equals("save-bridge-call") && bridge.name().equals("versionUrl") ? Opcode.INVOKE_VIRTUAL : bridge.call();
                 ImmutableMethodReference getter = fault.equals("save-bridge-getter") && bridge.name().equals("videoVersions")
-                        ? method(FEATURE_MEDIA, "items", SHORTCUT_LIST) : bridge.getter();
+                        ? method(FEATURE_MEDIA, "items", SHORTCUT_LIST)
+                        : fault.equals("save-bridge-shared-getter") && bridge.name().equals("repostedPost")
+                        ? method(SHARE_INFO, "quoted", FEATURE_MEDIA) : bridge.getter();
                 code.add(type(Opcode.CHECK_CAST, 0, receiver));
                 code.add(new ImmutableInstruction35c(call, 1, 0, 0, 0, 0, 0, getter));
                 code.add(fault.equals("save-bridge-result") && bridge.name().equals("takenAt") ? none
@@ -3006,6 +3229,7 @@ public class BadDexFixture {
                 pandoGetter(FEATURE_MEDIA, "takenAt", "Ljava/lang/Long;", "taken_at"),
                 pandoGetter(FEATURE_MEDIA, "items", SHORTCUT_LIST, "carousel_media"),
                 pandoGetter(FEATURE_MEDIA, "images", IMAGE_INFO, "image_versions2"),
+                pandoGetter(FEATURE_MEDIA, "textInfo", TEXT_POST_INFO, "text_post_app_info"),
                 define(FEATURE_MEDIA, "getId", "Ljava/lang/String;", false, body(2, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN_OBJECT, 0)))));
 
         List<Instruction> parser = new ArrayList<>(List.of(string(2, "permalink"), string(0, "XDTPermalinkResponse"),
@@ -3094,22 +3318,6 @@ public class BadDexFixture {
         classes.add(featureClass(FEATURE_PARENT, OBJECT, List.of(), define(FEATURE_PARENT, "<init>", "V", false,
                 body(2, direct(method(OBJECT, "<init>", "V"), 0), op(Opcode.RETURN_VOID)), "Ljava/lang/String;")));
 
-        List<Instruction> launcher = new ArrayList<>();
-        if (browser && !fault.equals("browser-missing")) {
-            launcher.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 0, 3));
-            launcher.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 1, fault.equals("browser-register") ? 9 : 10));
-            launcher.add(invoke(LINK_OPENER, 0, 1));
-            int result = fault.equals("browser-clobber") ? 4 : 0;
-            launcher.add(op(Opcode.MOVE_RESULT, result));
-            // Past the hook's return-void to the stock's first instruction, or straight to its return.
-            launcher.add(ifEqz(result, fault.equals("browser-bypass") ? 12 : 3));
-            launcher.add(op(Opcode.RETURN_VOID));
-        }
-        launcher.addAll(List.of(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 2, 10), type(Opcode.NEW_INSTANCE, 1, "Ljava/net/URI;"),
-                direct(method("Ljava/net/URI;", "<init>", "V", "Ljava/lang/String;"), 1, 2), string(0, LAUNCHER_MESSAGE), op(Opcode.RETURN_VOID)));
-        classes.add(featureClass("Lfixture/BrowserLauncher;", OBJECT, List.of(), define("Lfixture/BrowserLauncher;", "launch", "V", true,
-                body(12, launcher.toArray(new Instruction[0])), CONTEXT, OBJECT, OBJECT, OBJECT,
-                "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", OBJECT)));
         directBrowserClasses(classes, browser, fault);
         classes.addAll(searchCarouselClasses(suggestions || fault.equals("search-carousel-omitted-hook"), fault));
         classes.addAll(profileClasses(suggestions || fault.equals("profile-carousel-omitted-hook"), suggestions || fault.equals("profile-row-omitted-hook"), fault));
@@ -3179,6 +3387,7 @@ public class BadDexFixture {
                 define(SIGNER_HOST, "read", SIGNER_RESULT, false, body(signerSelf + 1, signers.toArray(new Instruction[0])))));
         classes.add(featureClass(SIGNER_RESULT, OBJECT, List.of(), define(SIGNER_RESULT, "<init>", "V", false,
                 body(4, direct(method(OBJECT, "<init>", "V"), 0), op(Opcode.RETURN_VOID)), SHORTCUT_LIST, "Z", "Z")));
+        classes.add(shareTileClass(trust, fault));
         classes.addAll(returnRefreshClasses(patched && selected.contains("returnRefresh"), fault));
         classes.addAll(videoAutoplayClasses(patched && selected.contains("disableVideoAutoplay"), fault));
         classes.addAll(prefetchClasses(patched && selected.contains("disableVideoAutoplay"), patched ? fault : ""));
@@ -3445,10 +3654,11 @@ public class BadDexFixture {
                 "resume-post-link-bypass", "quick-remember-missing", "quick-remember-post", "quick-recall-key", "quick-post-link-bypass",
                 "browser-missing", "browser-register", "browser-bypass", "browser-clobber",
                 "pigeon-missing", "pigeon-replaced", "pigeon-bypass",
-                "default-missing", "mqtt-missing", "trust-missing", "trust-replaced", "trust-fallback", "status-missing", "status-false")) {
+                "default-missing", "mqtt-missing", "trust-missing", "trust-replaced", "trust-fallback",
+                "tile-missing", "tile-swapped", "tile-answer", "tile-live", "status-missing", "status-false")) {
             dexes.put("features-bad-" + fault, featureBuild(true, allFeatures, 7, fault));
         }
-        for (String fault : List.of("lead-missing", "lead-url", "lead-double-open", "lead-parameter", "ad-missing", "ad-url", "ad-context", "ad-double-open", "ad-return", "ad-bypass", "ad-live",
+        for (String fault : List.of("lead-missing", "lead-url", "lead-double-open", "lead-parameter", "lead-live", "ad-missing", "ad-url", "ad-context", "ad-double-open", "ad-return", "ad-bypass",
                 "media-missing", "media-url", "media-context", "media-double-open", "media-false", "media-uninitialized", "media-live", "media-bypass", "factory-hook", "immersive-hook")) {
             dexes.put("features-bad-browser-direct-" + fault, featureBuild(true, Set.of("openLinksExternally"), 0, "browser-direct-" + fault));
         }
@@ -3534,7 +3744,7 @@ public class BadDexFixture {
         // out. The branch straight to Copy link's row call is Threads' own, so it has a clean build too.
         for (String fault : List.of("missing", "copy", "capture", "goto", "twice", "duplicate", "other-item", "show-stub", "show-row",
                 "show-composer", "show-role", "show-style", "show-icon", "show-label", "media-field", "media-cast", "activity-field",
-                "activity-cast", "dismiss-cast", "dismiss-field", "dismiss-call", "click", "click-static", "bridge-getter", "bridge-call",
+                "activity-cast", "dismiss-cast", "dismiss-field", "dismiss-call", "click", "click-static", "bridge-getter", "bridge-shared-getter", "bridge-call",
                 "bridge-cast", "bridge-result", "bridge-stub", "bridge-extra", "status-false", "bypass")) {
             dexes.put("features-bad-save-" + fault, featureBuild(true, Set.of("saveMedia"), 0, "save-" + fault));
         }
@@ -3678,6 +3888,9 @@ public class BadDexFixture {
         dexes.put("good", good());
         for (String fault : List.of("logo-missing", "logo-register", "logo-duplicate", "logo-stock-left")) {
             dexes.put("bad-" + fault, logoFault(fault));
+        }
+        for (String fault : List.of("soloader-missing", "soloader-late", "soloader-elsewhere")) {
+            dexes.put("bad-" + fault, soLoaderFault(fault));
         }
         List<ClassDef> goodWithSecondary = new ArrayList<>(good());
         goodWithSecondary.add(secondary());

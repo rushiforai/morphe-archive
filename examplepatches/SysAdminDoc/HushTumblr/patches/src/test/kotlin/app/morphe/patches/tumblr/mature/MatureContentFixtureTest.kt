@@ -34,9 +34,9 @@ import org.junit.experimental.categories.Category
 @Category(FixtureTests::class)
 class MatureContentFixtureTest {
     private val types = setOf(MATURE_USER, "Lcom/tumblr/rumblr/model/UserInfo;", MATURE_AGE,
-        MATURE_AGE.removeSuffix(";") + "JsonAdapter;", MATURE_GATE, "Lw5n;", MATURE_REPOSITORY,
+        MATURE_AGE.removeSuffix(";") + "JsonAdapter;", MATURE_GATE, "Ls7n;", MATURE_REPOSITORY,
         MATURE_NATIVE_SERVICE, MATURE_PERMISSION, MATURE_PERMISSION.removeSuffix(";") + "JsonAdapter;",
-        MATURE_API_RESPONSE, MATURE_METADATA, "Lbx5;", "Ly58;", "Ls2b;", "Lu2b;")
+        MATURE_API_RESPONSE, MATURE_METADATA, "Lox5;", "Lo68;", "Lu3b;", "Lw3b;")
 
     @Test
     fun `only native cover returns change and every branch reaches the account gate`() {
@@ -96,18 +96,18 @@ class MatureContentFixtureTest {
             assertEquals(listOf(Opcode.IGET_OBJECT, Opcode.CHECK_CAST, Opcode.NEW_INSTANCE, Opcode.INVOKE_DIRECT,
                 Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT,
                 Opcode.IF_EQ, Opcode.INVOKE_STATIC, Opcode.RETURN_VOID), body.map { it.opcode })
-            assertEquals("$MATURE_NATIVE_SERVICE->getCommunityLabelUserConfig(Lbx5;)Ljava/lang/Object;", body[4].methodRef().toString())
+            assertEquals("$MATURE_NATIVE_SERVICE->getCommunityLabelUserConfig(Lox5;)Ljava/lang/Object;", body[4].methodRef().toString())
             assertEquals(listOf(0, 1), body[4].namedRegisters())
-            assertEquals("Ls2b;->g()Ljava/lang/Object;", body[6].methodRef().toString())
+            assertEquals("Lu3b;->g()Ljava/lang/Object;", body[6].methodRef().toString())
             assertEquals(10, target(body, 8))
             assertEquals(MATURE_RECEIVED, body[9].methodRef().toString())
             assertEquals(listOf(5, 2), body[9].namedRegisters())
             assertFalse(body.any { it.methodRef()?.name == "setCommunityLabelUserConfig" })
             val continuation = context.mutableClassDefBy(MATURE_CONTINUATION)
-            assertTrue("Lbx5;" in continuation.interfaces)
+            assertTrue("Lox5;" in continuation.interfaces)
             val coroutineContext = continuation.methods.single { it.name == "getContext" }
-            assertEquals("Ly76;", coroutineContext.returnType)
-            assertEquals("Ly58;->a:Ly58;", coroutineContext.instructionList().first().fieldRef().toString())
+            assertEquals("Ll86;", coroutineContext.returnType)
+            assertEquals("Lo68;->a:Lo68;", coroutineContext.instructionList().first().fieldRef().toString())
         }
     }
 
@@ -130,7 +130,7 @@ class MatureContentFixtureTest {
                     val owner = context.mutableClassDefBy(MATURE_NATIVE_SERVICE)
                     owner.methods.removeAll { it.name == "getCommunityLabelUserConfig" }
                 },
-                { context -> context.mutableClassDefBy("Lw5n;").methods.single { it.name == "b" }
+                { context -> context.mutableClassDefBy("Ls7n;").methods.single { it.name == "b" }
                     .replaceInstruction(5, "const/4 v0, 0x0") },
                 { context -> context.mutableClassDefBy("Lcom/tumblr/rumblr/model/UserInfo;").methods.single {
                     it.name == "<init>" && it.parameterTypes.size == 46
@@ -144,7 +144,7 @@ class MatureContentFixtureTest {
                 fault(context)
                 assertThrows(PatchException::class.java) { revealAllowedMatureContentPatch.execute(context) }
                 assertFalse("Lapp/hushtumblr/extension/tumblr/mature/HushMatureAccount;" in context.mutableClassDefBy(MATURE_USER).interfaces)
-                assertFalse("Lbx5;" in context.mutableClassDefBy(MATURE_CONTINUATION).interfaces)
+                assertFalse("Lox5;" in context.mutableClassDefBy(MATURE_CONTINUATION).interfaces)
                 assertFalse(context.mutableClassDefBy(MATURE_GATE).methods.single { it.name == "k" }.instructionList()
                     .any { it.methodRef()?.toString() == MATURE_COVER })
                 status(context, 0)

@@ -39,16 +39,10 @@ private const val URI = "Landroid/net/Uri;"
 private const val SESSION = "Lcom/instagram/common/session/UserSession;"
 private const val STATE = "Landroidx/compose/runtime/MutableState;"
 private const val VIEW_MODE = "Lcom/facebook/browser/common/viewmode/IABViewModeLaunchConfig;"
-private const val FULL_SCREEN = "Lcom/facebook/browser/common/viewmode/IABViewModeLaunchConfig\$FullScreen;"
-private const val HALF_SHEET = "Lcom/facebook/browser/common/viewmode/IABViewModeLaunchConfig\$HalfSheet;"
-private const val START_ACTIVITY = "$CONTEXT->startActivity($INTENT)V"
 
 /** Two of the strings Threads' browser Intent factory puts in the Intent it makes. Only the factory has both. */
 internal const val FACTORY_MODULE = "TrackingInfo.ARG_MODULE_NAME"
 internal const val FACTORY_OPEN = "BrowserLiteIntent.OPEN_WITH_URL"
-
-/** What the ad click handler logs when a web ad has no link. Its web branch hands the ad's link to the launcher. */
-internal const val AD_WEB_MISSING = "AdClickHandler.openWebLink missing webUri for AD_DESTINATION_WEB"
 
 /** The name of the ad destination a web call to action has. */
 internal const val WEB_DESTINATION = "AD_DESTINATION_WEB"
@@ -68,22 +62,44 @@ internal class DirectBrowserSite(
     val done: Int?,
     val context: Int,
     val url: Int,
+    /** A String field the link is read from, for a site that keeps it in one rather than in a register. */
+    val urlField: FieldReference? = null,
+    /** Answer true and return, for a site whose method returns a boolean rather than void. */
+    val returnsTrue: Boolean = false,
 ) {
     // Picked before anything changes: free where the hook goes in and, past a jump, where it lands.
     private val scratch = method.freeLocalsAt(PATCH, at, 2, listOfNotNull(done))
 
     fun inject() {
         val (answer, link) = scratch
-        val success = if (done == null) "return-void" else "goto/16 :done"
+        if (urlField != null && link > 0xF) {
+            throw PatchException("$PATCH: ${method.name}'s free locals start at v$link, past the four-bit field read")
+        }
+        val success = when {
+            returnsTrue -> "const/4 v$answer, 0x1\n                return v$answer"
+            done == null -> "return-void"
+            else -> "goto/16 :done"
+        }
         val labels = listOfNotNull(
             ExternalLabel("stock", method.getInstruction(at)),
             done?.let { ExternalLabel("done", method.getInstruction(it)) },
         )
+        val loadLink = if (urlField != null) {
+            // iget-object only reaches four-bit registers, so keep `this` in the scratch link
+            // register and read the field through it before loading the context over the other.
+            """
+                move-object/from16 v$link, p0
+                iget-object v$link, v$link, $urlField
+            """
+        } else {
+            """
+                move-object/from16 v$link, v$url
+            """
+        }
         method.addInstructionsWithLabels(
             at,
-            """
+            loadLink + """
                 move-object/from16 v$answer, v$context
-                move-object/from16 v$link, v$url
                 invoke-static { v$answer, v$link }, $OPEN_LINK
                 move-result v$answer
                 if-eqz v$answer, :stock
@@ -95,75 +111,99 @@ internal class DirectBrowserSite(
 }
 
 /**
- * The three places on 451 and 452 that make Threads' browser Intent themselves rather than through the
+ * The three places on 451 through 453 that make Threads' browser Intent themselves rather than through the
  * launcher: the lead form and privacy policy helper, the ad browser opened from a call to action,
  * and the media viewer's swipe up on an ad. Everything is read and proven before anything changes.
  *
- * Read from 451 (2026-10-13) and 452 (2026-10-22): the factory that builds the browser Intent has
+ * Read from 451 (2026-10-13), 452 (2026-10-22) and 453 (2026-10-26): the factory that builds the browser Intent has
  * five callers. The launcher calls it twice, once for each way it shows the browser. The immersive
  * browser screen calls it after the launcher already asked, so it's left alone, and so is the
  * factory. A sixth caller, or one of these gone, stops the patch.
  */
-internal fun BytecodePatchContext.directBrowserSites(launcher: Method, launcherLink: Int): List<DirectBrowserSite> {
+internal fun BytecodePatchContext.directBrowserSites(launcher: Method): List<DirectBrowserSite> {
     val factory = browserFactory()
-    val callers = mutableListOf<Pair<Method, Int>>()
-    val requests = mutableListOf<Method>()
+    val reference = factory.toString()
+    val callers = mutableListOf<Method>()
     classDefForEach { classDef ->
         if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
         for (method in classDef.methods) {
-            var calls = 0
-            var request = false
-            for (instruction in method.implementation?.instructions ?: continue) {
-                when (instruction.opcode) {
-                    Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE ->
-                        if (instruction.getReference<MethodReference>()?.sameAs(factory) == true) calls++
-                    Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO ->
-                        if (instruction.getReference<StringReference>()?.string == AD_WEB_MISSING) request = true
-                    else -> {}
-                }
-            }
-            if (calls > 0) callers += method to calls
-            if (request) requests += method
+            if (method.implementation?.instructions?.any { it.method()?.sameAs(factory) == true } == true) callers += method
         }
     }
+    fun one(what: String, pick: (Method) -> Boolean): Method =
+        callers.singleOrNull(pick) ?: refuse("$PATCH: $what is ${callers.count(pick)} of the ${callers.size} callers of Threads' browser Intent")
 
-    val clickSource = factory.parameterTypes[4].toString()
-    val post = factory.parameterTypes[2].toString()
-    fun Method.isLead() = AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" &&
-        parameterTypes.map(CharSequence::toString) == listOf(CONTEXT, SESSION, clickSource, TEXT)
-    fun Method.isAd() = !AccessFlags.STATIC.isSet(accessFlags) && returnType == "V" &&
-        parameterTypes.map(CharSequence::toString).let {
-            it.size == 8 && it[0] == CONTEXT && it[2] == post && it[4] == SESSION && it[6] == "Z" && it[7] == "Z"
-        }
-    fun Method.isMedia() = name == "invokeSuspend" && returnType == "Ljava/lang/Object;" &&
-        parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;") && strings().any { it == WEB_DESTINATION }
-    fun Method.isImmersive() = strings().any { it.startsWith(IMMERSIVE_SCREEN) }
-    val kinds = mapOf<String, (Method) -> Boolean>(
-        "the launcher" to { it.sameAs(launcher) },
-        "the lead form helper" to { it.isLead() },
-        "the ad browser" to { it.isAd() },
-        "the media viewer's swipe up" to { it.isMedia() },
-        "the immersive browser screen" to { it.isImmersive() },
-    )
-    for ((method, calls) in callers) {
-        val matched = kinds.filterValues { it(method) }.keys
-        if (matched.size != 1) {
-            throw PatchException("$PATCH: ${method.describe()} makes Threads' browser Intent and is ${
-                if (matched.isEmpty()) "none of the callers Threads has" else matched.joinToString(" and ")
-            }")
-        }
-        val expected = if (matched.single() == "the launcher") 2 else 1
-        ensure(calls == expected, "${matched.single()} makes Threads' browser Intent $calls time(s), not $expected")
+    val launcherHelper = one("the launcher's Intent helper") { it.definingClass == launcher.definingClass }
+    val adBuilder = one("the ad browser's Intent builder") { method ->
+        method !== launcherHelper && method.returnType == INTENT && !AccessFlags.STATIC.isSet(method.accessFlags)
     }
-    val found = kinds.mapValues { (_, kind) -> callers.map { it.first }.filter(kind) }
-    for ((kind, methods) in found) ensure(methods.size == 1, "$kind is one of ${methods.size} callers of Threads' browser Intent factory")
+    val immersive = one("the immersive browser screen") { method ->
+        method !== launcherHelper && method !== adBuilder && method.strings().any { it.startsWith(IMMERSIVE_SCREEN) }
+    }
+    val media = one("the media viewer's swipe up") { method ->
+        method !== launcherHelper && method !== adBuilder && method !== immersive &&
+            method.name == "invokeSuspend" && method.strings().any { it == WEB_DESTINATION }
+    }
+    val lead = one("the lead form helper") { method ->
+        method !== launcherHelper && method !== adBuilder && method !== immersive && method !== media &&
+            method.name == "invoke" && method.returnType == "Ljava/lang/Object;"
+    }
+    ensure(callers.size == 5, "Threads' browser Intent has ${callers.size} callers, not five")
+    ensure(launcherHelper.body().count { it.method()?.sameAs(factory) == true } == 1,
+        "the launcher's Intent helper makes Threads' browser Intent more than once")
 
-    val webUrl = adWebUrl(requests, launcher, launcherLink)
+    val leadCall = lead.soleFactoryCall(factory, "the lead form helper")
+    val leadArgs = lead.body()[leadCall].namedRegisters()
+    val leadUrl = lead.origins(leadCall, leadArgs[5]).mapNotNull { (index, _) -> lead.body().getOrNull(index) }
+        .firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.field()?.type == TEXT && it.field()?.definingClass == lead.definingClass }
+        ?: refuse("the lead form helper's browser gets a link other than one of its own String fields")
+    val leadDone = lead.body().indices.firstOrNull { index ->
+        index > leadCall && lead.body()[index].opcode in setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32) &&
+            lead.body().target(index) > index
+    }?.let { lead.body().target(it) } ?: refuse("the lead form helper's browser has no successful ending")
+
+    val mediaCall = media.soleFactoryCall(factory, "the media viewer's swipe up")
+    val mediaArgs = media.body()[mediaCall].namedRegisters()
+    val webUrl = media.origins(mediaCall, mediaArgs[5]).mapNotNull { (index, _) -> media.body().getOrNull(index) }
+        .firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.field()?.type == TEXT }?.field()
+        ?: refuse("the media viewer's browser gets a link other than a call to action's String field")
+
     return listOf(
-        leadSite(mutable(found.getValue("the lead form helper").single()), factory),
-        adSite(mutable(found.getValue("the ad browser").single()), factory, webUrl),
-        mediaSite(mutable(found.getValue("the media viewer's swipe up").single()), factory, webUrl),
+        DirectBrowserSite(mutable(lead), leadCall, leadDone, leadArgs[0], leadArgs[5]),
+        adBrowserSite(adBuilder, factory),
+        mediaSite(mutable(media), factory, webUrl),
     )
+}
+
+/** The one factory call in [this] method, at the index its own body calls it. */
+private fun Method.soleFactoryCall(factory: Method, what: String): Int {
+    val body = body()
+    return body.indices.filter { body[it].method()?.sameAs(factory) == true }.singleOrNull()
+        ?: refuse("$what makes Threads' browser Intent a number of times other than one")
+}
+
+/**
+ * The ad browser: 453 builds its Intent in [builder] and opens it from the method of the same class
+ * that takes the Activity and calls the builder. The hook goes at the start of the opener, before
+ * the Intent is made, and answers true when the link went out.
+ */
+private fun BytecodePatchContext.adBrowserSite(builder: Method, factory: Method): DirectBrowserSite {
+    val body = builder.body()
+    val calls = body.indices.filter { body[it].method()?.sameAs(factory) == true }
+    if (calls.size != 1) refuse("the ad browser makes Threads' browser Intent ${calls.size} time(s), not 1")
+    val call = calls.single()
+    val args = body[call].namedRegisters()
+    val url = builder.origins(call, args[5]).mapNotNull { (index, _) -> body.getOrNull(index) }
+        .firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.field()?.type == TEXT && it.field()?.definingClass == builder.definingClass }
+        ?.field() ?: refuse("the ad browser's browser gets a link other than one of its own String fields")
+    val opener = classDefByOrNull(builder.definingClass)?.methods?.singleOrNull { method ->
+        method !== builder && method.returnType == "Z" && method.parameterTypes.firstOrNull()?.toString() == "Landroid/app/Activity;" &&
+            method.body().any { it.method()?.sameAs(builder) == true }
+    } ?: refuse("the ad browser's opener is gone from ${builder.definingClass}")
+    // Code put in front of a try block's first instruction would land in the block.
+    ensure(opener.implementation!!.tryBlocks.none { it.startCodeAddress == 0 }, "the ad browser's opener starts inside a try block")
+    val context = opener.implementation!!.registerCount - opener.parameterTypes.size
+    return DirectBrowserSite(mutableClassDefBy(opener.definingClass).methods.single { it.name == opener.name && it.parameterTypes == opener.parameterTypes }, 0, null, context, 0, url, returnsTrue = true)
 }
 
 /**
@@ -174,7 +214,7 @@ internal fun BytecodePatchContext.directBrowserSites(launcher: Method, launcherL
 private fun BytecodePatchContext.browserFactory(): Method {
     val matched = Fingerprint(
         returnType = INTENT,
-        parameters = listOf(CONTEXT, "L", "L", SESSION, "L", TEXT, TEXT, TEXT, TEXT),
+        parameters = listOf(CONTEXT, "L", "L", SESSION, "L", TEXT, TEXT, TEXT, TEXT, TEXT),
         filters = listOf(string(FACTORY_MODULE), string(FACTORY_OPEN)),
         custom = { method, _ -> AccessFlags.STATIC.isSet(method.accessFlags) },
     ).matchAllOrNull().orEmpty().map { it.originalMethod }.one("Threads' browser Intent factory")
@@ -209,70 +249,6 @@ private fun BytecodePatchContext.browserFactory(): Method {
     return factory
 }
 
-/** The String field of a call to action that holds its web link: what the ad click handler hands the launcher. */
-private fun adWebUrl(requests: List<Method>, launcher: Method, launcherLink: Int): FieldReference {
-    val request = requests.one("the ad click handler's web branch")
-    val code = request.body()
-    val call = code.indices.filter { code[it].method()?.sameAs(launcher) == true }.one("the ad click handler's launcher call")
-    val link = code[call].namedRegisters()[launcherLink]
-    val (read, _) = request.origins(call, link).singleOrNull() ?: refuse("the ad click handler's link has more than one source")
-    val field = code.getOrNull(read)?.takeIf { it.opcode == Opcode.IGET_OBJECT }?.field()?.takeIf { it.type == TEXT }
-        ?: refuse("the ad click handler's link isn't a call to action's String field")
-    return field
-}
-
-/**
- * The lead form and privacy policy helper, a static method taking the context, the session, where
- * the tap came from and the link. It tries a plain ACTION_VIEW first, then makes the browser Intent
- * from the same context and link and starts it. The hook goes in at its start, before the plain
- * view, so a link that goes out is cleaned the same way the launcher's are.
- */
-private fun leadSite(lead: MutableMethod, factory: Method): DirectBrowserSite {
-    val code = lead.body()
-    ensure(lead.strings().any { it == "android.intent.action.VIEW" }, "the lead form helper no longer tries a plain view first")
-    val at = code.indices.filter { code[it].method()?.sameAs(factory) == true }.one("the lead form helper's browser Intent")
-    val args = code[at].namedRegisters()
-    val context = lead.entry(0)
-    val url = lead.entry(3)
-    ensure(lead.origins(at, args[0]) == setOf(ENTRY to context), "the lead form helper's browser gets a context other than its own")
-    ensure(lead.origins(at, args[5]) == setOf(ENTRY to url), "the lead form helper's browser gets a link other than its own")
-    ensure(code.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT, "the lead form helper drops its browser Intent")
-    val made = (code[at + 1] as OneRegisterInstruction).registerA
-    val start = code.indices.filter { code[it].method()?.toString() == START_ACTIVITY }.one("the lead form helper's startActivity")
-    val started = code[start].namedRegisters()
-    ensure(
-        lead.origins(start, started[0]) == setOf(ENTRY to context) && lead.origins(start, started[1]) == setOf(at + 1 to made),
-        "the lead form helper starts something other than its browser Intent",
-    )
-    // Code put in front of a try block's first instruction would land in the block.
-    ensure(lead.implementation!!.tryBlocks.none { it.startCodeAddress == 0 }, "the lead form helper starts inside a try block")
-    return DirectBrowserSite(lead, 0, null, context, url)
-}
-
-/**
- * The ad browser: an instance method taking the context, the browser's callbacks, the post, the
- * session and two flags. It opens the web link of the post's first call to action, full screen or
- * in a sheet. The hook goes in front of its factory call, after its pre-open callback and after
- * both view modes are picked, and a link that went out ends the method the way an ad with no web
- * link does.
- */
-private fun BytecodePatchContext.adSite(ad: MutableMethod, factory: Method, webUrl: FieldReference): DirectBrowserSite {
-    val code = ad.body()
-    val at = ad.soleEntry(factory, "the ad browser")
-    val args = code[at].namedRegisters()
-    ensure(ad.origins(at, args[0]) == setOf(ENTRY to ad.entry(0)), "the ad browser's browser gets a context other than its own")
-    val guard = callToAction(ad, at, args, factory, webUrl, "the ad browser")
-    val done = code.target(guard)
-    ensure(code[done].opcode == Opcode.RETURN_VOID, "the ad browser's ending for an ad with no web link isn't a plain return")
-    val modes = ad.viewModes(at, "the ad browser")
-    ensure(
-        modes.any { code[it].opcode == Opcode.NEW_INSTANCE && code[it].getReference<TypeReference>()?.type == FULL_SCREEN } &&
-            modes.any { code[it].opcode == Opcode.SGET_OBJECT && code[it].field()?.type == HALF_SHEET },
-        "the ad browser no longer picks between full screen and a sheet",
-    )
-    return DirectBrowserSite(ad, at, done, args[0], args[5])
-}
-
 /**
  * The media viewer's swipe up on an ad, a coroutine whose captured context, post and state it reads
  * from its own fields. It opens the web link of the post's first call to action in a sheet, then
@@ -292,27 +268,29 @@ private fun BytecodePatchContext.mediaSite(media: MutableMethod, factory: Method
     val failed = code.target(guard)
     media.viewModes(at, "the media viewer's swipe up")
 
-    // const/4 vB, 1; move-object/from16 vS, vState; invoke (MutableState, Z)V; sget-object Unit; return-object
-    val done = code.indices.filter { n ->
-        n + 4 < code.size && code[n].opcode == Opcode.CONST_4 && (code[n] as NarrowLiteralInstruction).narrowLiteral == 1 &&
-            code[n + 1].opcode == Opcode.MOVE_OBJECT_FROM16 &&
-            code[n + 2].method()?.parameterTypes?.map(CharSequence::toString) == listOf(STATE, "Z") &&
-            code[n + 3].opcode == Opcode.SGET_OBJECT && code[n + 4].opcode == Opcode.RETURN_OBJECT
+    // The true ending joins the false one at a state setter: move-object vState; invoke
+    // (MutableState, Z)V; sget-object Unit; return-object. Jumping to the move runs it with the
+    // true flag the browser path computed, while the no-web branch jumps there with false.
+    val setter = code.indices.filter { n ->
+        n > 0 && n + 2 < code.size && code[n - 1].opcode == Opcode.MOVE_OBJECT_FROM16 &&
+            code[n].method()?.parameterTypes?.map(CharSequence::toString) == listOf(STATE, "Z") &&
+            code[n + 1].opcode == Opcode.SGET_OBJECT && code[n + 2].opcode == Opcode.RETURN_OBJECT
     }.one("the media viewer's ending for an opened browser")
-    val flag = (code[done] as OneRegisterInstruction).registerA
-    val copy = code[done + 1] as TwoRegisterInstruction
-    ensure(code[done + 2].namedRegisters() == listOf(copy.registerA, flag), "the media viewer sets its state from other registers")
-    val state = media.origins(done + 1, copy.registerB).singleOrNull()?.first ?: refuse("the media viewer's state has more than one source")
+    val done = setter - 1
+    val copy = code[done] as TwoRegisterInstruction
+    val flag = code[setter].namedRegisters()[1]
+    ensure(code[setter].namedRegisters() == listOf(copy.registerA, flag), "the media viewer sets its state from other registers")
+    val state = media.origins(done, copy.registerB).singleOrNull()?.first ?: refuse("the media viewer's state has more than one source")
     ensure(
         state >= 0 && code[state].field()?.type == STATE && media.captured(state) &&
-            media.origins(at, copy.registerB) == media.origins(done + 1, copy.registerB),
+            media.origins(at, copy.registerB) == media.origins(done, copy.registerB),
         "the media viewer's state isn't its captured state before the browser opens",
     )
     ensure(
         code[failed].opcode == Opcode.CONST_4 && (code[failed] as NarrowLiteralInstruction).narrowLiteral == 0 &&
             (code[failed] as OneRegisterInstruction).registerA == flag &&
             code.getOrNull(failed + 1)?.let { it.opcode == Opcode.GOTO || it.opcode == Opcode.GOTO_16 || it.opcode == Opcode.GOTO_32 } == true &&
-            code.target(failed + 1) == done + 1,
+            code.target(failed + 1) == done,
         "the media viewer's ending for an ad with no web link no longer sets its state to false",
     )
     return DirectBrowserSite(media, at, done, args[0], args[5])
@@ -412,8 +390,7 @@ private fun Method.viewModes(at: Int, what: String): Set<Int> {
 /** The index of the one factory call in this method, reached only from the instruction before it. */
 private fun Method.soleEntry(factory: Method, what: String): Int {
     val code = body()
-    val at = code.indices.filter { code[it].method()?.sameAs(factory) == true }.one("$what's browser Intent")
-    ensure(implementation!!.tryBlocks.isEmpty(), "$what has a try block the hook would have to be proven against")
+    val at = soleFactoryCall(factory, what)
     val flow = ControlFlow.of(this)
     ensure(
         at > 0 && code[at - 1] !is OffsetInstruction && code[at - 1].opcode.canContinue() &&

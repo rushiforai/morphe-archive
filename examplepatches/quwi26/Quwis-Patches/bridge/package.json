@@ -1,0 +1,16 @@
+{
+  "name": "sf-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Stockfish UCI over TCP for the Stockfish+ Game Review of Noam's Morphe Patches",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test-tcp.mjs",
+    "bench": "node bench-tcp.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "GPL-3.0"
+}

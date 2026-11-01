@@ -111,6 +111,55 @@ public class LocalCreationDownloader {
                 }
             }
         } catch (Throwable ignored) {}
+
+        // Reset active MfyMixin state flow
+        if (sCurrentMfyMixin != null && sCurrentMfyMixin.get() != null) {
+            try {
+                Object mfyMixin = sCurrentMfyMixin.get();
+                for (Field f : mfyMixin.getClass().getDeclaredFields()) {
+                    String typeName = f.getType().getName();
+                    if (typeName.contains("crny") || typeName.contains("StateFlow") || typeName.contains("ctcj") || typeName.contains("ctzv")) {
+                        f.setAccessible(true);
+                        Object flow = f.get(mfyMixin);
+                        if (flow != null) {
+                            Method setVal = null;
+                            try {
+                                setVal = flow.getClass().getMethod("f", Object.class);
+                            } catch (NoSuchMethodException e) {
+                                try {
+                                    setVal = flow.getClass().getMethod("setValue", Object.class);
+                                } catch (NoSuchMethodException ignored) {}
+                            }
+                            if (setVal != null) {
+                                setVal.invoke(flow, new HashMap<>());
+                                Log.i(TAG, "Cleared MFY state flow in clearSavedRegistry");
+                            }
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+                Log.w(TAG, "Failed clearing MfyMixin state flow", t);
+            }
+        }
+
+        // Reset active Presenter state and sets
+        if (sCurrentPresenter != null && sCurrentPresenter.get() != null) {
+            try {
+                Object pres = sCurrentPresenter.get();
+                MAIN_HANDLER.post(() -> {
+                    try {
+                        updatePresenterSets(pres, null, null, false);
+                        updatePresenterStateFlow(pres, null, null, false);
+                        Method lMethod = pres.getClass().getMethod("l", boolean.class);
+                        lMethod.invoke(pres, false);
+                    } catch (Throwable ignored) {}
+                });
+                Log.i(TAG, "Cleared presenter saved sets and triggered refresh in clearSavedRegistry");
+            } catch (Throwable t) {
+                Log.w(TAG, "Failed clearing presenter in clearSavedRegistry", t);
+            }
+        }
+
         Log.i(TAG, "Cleared saved memories registry and cleaned local test creations.");
     }
 
@@ -282,9 +331,9 @@ public class LocalCreationDownloader {
             File targetAnim = (animFileName != null) ? new File(getGooglePhotosDir(), animFileName) : null;
             boolean fileOnDisk = (targetCollage != null && targetCollage.exists()) || (targetAnim != null && targetAnim.exists());
 
-            // If already saved AND the file is physically present on disk, suppress duplicate download
-            if (fileOnDisk && (isCreationSaved(mediaItem) || isCardSaved(id))) {
-                Log.i(TAG, "MFY creation " + id + " file exists and is already saved locally. Suppressing duplicate download.");
+            // If already saved in registry, suppress duplicate download
+            if (isCreationSaved(mediaItem) || isCardSaved(id)) {
+                Log.i(TAG, "MFY creation " + id + " is already saved locally. Suppressing duplicate download.");
                 recordCardSaved(id);
                 updateMfySaveStatus(mfyMixin, id, true);
                 return true;
@@ -670,18 +719,14 @@ public class LocalCreationDownloader {
                 sWsfCardMap.put(wsf, cardId);
             }
 
-            CreationTime time = extractCreationTime(mediaItem);
-            String collageFileName = (time != null && time.utcMs > 0) ? getOfficialCollageFileName(time) : null;
-            String animFileName = (time != null && time.utcMs > 0) ? ("IMG_" + time.formatLocalFileName() + "-ANIMATION.mp4") : null;
-            File targetCollage = (collageFileName != null) ? new File(getGooglePhotosDir(), collageFileName) : null;
-            File targetAnim = (animFileName != null) ? new File(getGooglePhotosDir(), animFileName) : null;
-            boolean fileOnDisk = (targetCollage != null && targetCollage.exists()) || (targetAnim != null && targetAnim.exists());
-
-            boolean saved = (fileOnDisk && isCreationSaved(mediaItem)) || isCardSaved(cardId);
+            boolean saved = isCreationSaved(mediaItem) || isCardSaved(cardId);
             if (saved) {
                 recordCardSaved(cardId);
                 updatePresenterSets(presenter, cardId, wsf, true);
                 Log.i(TAG, "Marked hero card " + cardId + " as saved in Create Tab presenter");
+            } else {
+                updatePresenterSets(presenter, cardId, wsf, false);
+                updatePresenterStateFlow(presenter, cardId, wsf, false);
             }
         } catch (Throwable t) {
             Log.w(TAG, "Error in onCheckHeroCardSaved", t);
@@ -721,10 +766,13 @@ public class LocalCreationDownloader {
                         } else {
                             if (cardId != null) set.remove(cardId);
                             if (wsf != null) set.remove(wsf);
+                            if (cardId == null && wsf == null) set.clear();
                         }
                     } else if (saved) {
                         if (cardId != null) set.add(cardId);
                         if (wsf != null) set.add(wsf);
+                    } else if (cardId == null && wsf == null) {
+                        set.clear();
                     }
                 } else {
                     // Reflection for desugared ConcurrentHashMap$KeySetView
@@ -747,9 +795,17 @@ public class LocalCreationDownloader {
                             if (saved && addMethod != null) {
                                 if (cardId != null) addMethod.invoke(setObj, cardId);
                                 if (wsf != null) addMethod.invoke(setObj, wsf);
-                            } else if (!saved && removeMethod != null) {
-                                if (cardId != null) removeMethod.invoke(setObj, cardId);
-                                if (wsf != null) removeMethod.invoke(setObj, wsf);
+                            } else if (!saved) {
+                                if (removeMethod != null) {
+                                    if (cardId != null) removeMethod.invoke(setObj, cardId);
+                                    if (wsf != null) removeMethod.invoke(setObj, wsf);
+                                }
+                                if (cardId == null && wsf == null) {
+                                    try {
+                                        Method clearMethod = setObj.getClass().getMethod("clear");
+                                        clearMethod.invoke(setObj);
+                                    } catch (Throwable ignored) {}
+                                }
                             }
                         }
                     } catch (Throwable ignored) {}
@@ -798,11 +854,15 @@ public class LocalCreationDownloader {
                                             for (Object card : list) {
                                                 if (card != null) {
                                                     boolean match = false;
-                                                    for (Field cf : card.getClass().getDeclaredFields()) {
-                                                        cf.setAccessible(true);
-                                                        Object cv = cf.get(card);
-                                                        if (wsf != null && wsf.equals(cv)) match = true;
-                                                        if (cardId != null && cardId.equals(cv)) match = true;
+                                                    if (cardId == null && wsf == null && !saved) {
+                                                        match = true;
+                                                    } else {
+                                                        for (Field cf : card.getClass().getDeclaredFields()) {
+                                                            cf.setAccessible(true);
+                                                            Object cv = cf.get(card);
+                                                            if (wsf != null && wsf.equals(cv)) match = true;
+                                                            if (cardId != null && cardId.equals(cv)) match = true;
+                                                        }
                                                     }
                                                     if (match) {
                                                         for (Field cf : card.getClass().getDeclaredFields()) {
@@ -1061,11 +1121,6 @@ public class LocalCreationDownloader {
             CreationTime time = extractCreationTime(mediaItem);
             String fileName = (time != null && time.utcMs > 0) ? getOfficialCollageFileName(time) : null;
             String animFileName = (time != null && time.utcMs > 0) ? ("IMG_" + time.formatLocalFileName() + "-ANIMATION.mp4") : null;
-            File targetCollage = (fileName != null) ? new File(getGooglePhotosDir(), fileName) : null;
-            File targetAnim = (animFileName != null) ? new File(getGooglePhotosDir(), animFileName) : null;
-            if ((targetCollage != null && targetCollage.exists()) || (targetAnim != null && targetAnim.exists())) {
-                return true;
-            }
             long utcMs = time != null ? time.utcMs : 0;
 
             if (key != null && sSavedKeys.contains(key)) return true;

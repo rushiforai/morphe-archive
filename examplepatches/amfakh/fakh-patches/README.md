@@ -13,6 +13,8 @@ Each app has its own README with the full patch list.
 | Smart Life | `com.tuya.smartlife` | `7.12.3` | XAPK from APKPure | [apps/smartlife](apps/smartlife/README.md) |
 | Tuya Smart | `com.tuya.smart` | `7.12.3-870` | APKM from APKMirror | [apps/smartlife](apps/smartlife/README.md) |
 | BARDI Smart Home | `com.bardi.smart.home` | `1.5.3` | XAPK from APKPure | [apps/smartlife](apps/smartlife/README.md) |
+| IDN | `com.idntimes.idntimes` | `6.69.0` | XAPK from APKPure | [apps/idn](apps/idn/README.md) |
+| KOMPAS.com | `com.ertanto.kompas.official` | `9.8.4` | XAPK from APKPure | [apps/kompas](apps/kompas/README.md) |
 
 ## Use
 

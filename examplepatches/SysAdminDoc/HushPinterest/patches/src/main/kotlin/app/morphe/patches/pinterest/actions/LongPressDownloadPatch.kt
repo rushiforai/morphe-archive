@@ -353,8 +353,8 @@ private fun Instruction.namedRegistersOf(): List<Int> = when (this) {
 @Suppress("unused")
 val longPressDownloadPatch = bytecodePatch(
     name = PATCH,
-    description = "Adds a Download button to the round menu you get when you long-press a pin in a grid, so you can " +
-        "save a pin without opening it. Slide onto the button and let go. Needs Download pins on too. Three more " +
+    description = "Adds a Download button to the menu you get when you long-press a pin in a grid, the round one " +
+        "and the newer list, so you can save a pin without opening it. Needs Download pins on too. Three more " +
         "switches take Pinterest's Save, Send or Search image button out of that menu. All start off. " +
         "Turn them on in HushPinterest settings > Pin actions.",
 ) {
@@ -367,8 +367,11 @@ val longPressDownloadPatch = bytecodePatch(
         requireStatusMethod("longPressMenu")
         requireStatusMethod("longPressChoices")
         val found = longPressMenu()
+        // Accounts in android_longpress_menu_v2 get a Compose list instead of the round menu, and
+        // the round menu's show method never runs for them (#16, #18), so both have to be found.
+        val compose = longPressCompose(found)
         val extension = mutableClassDefBy(LONG_PRESS)
-        for (name in LONG_PRESS_STUBS + "show") {
+        for (name in LONG_PRESS_STUBS + COMPOSE_STUBS + listOf("show", "composeItems", "composeClick")) {
             if (extension.methods.count { it.name == name && AccessFlags.STATIC.isSet(it.accessFlags) } != 1) {
                 throw PatchException("$PATCH: missing extension stub $name")
             }
@@ -474,6 +477,7 @@ val longPressDownloadPatch = bytecodePatch(
         }
         // The menu and its event, both untouched at the method's first instruction.
         show.addInstructions(0, "invoke-static/range { p0 .. p1 }, $LONG_PRESS_HOOK")
+        applyLongPressCompose(found, compose)
         enableCapability("longPressMenu")
         if (ids != null) enableCapability("longPressChoices")
         enableStatus("longPressDownload")

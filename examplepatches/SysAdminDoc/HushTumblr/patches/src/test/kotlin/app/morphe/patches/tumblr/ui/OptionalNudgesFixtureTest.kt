@@ -54,8 +54,8 @@ class OptionalNudgesFixtureTest {
             val before = classes.flatMap { it.methods }.associate { it.toString() to it.instructionList().map(::fingerprint) }
             val reminderBefore = reminder.instructionList().map(::fingerprint)
             val giftBefore = gift.renderer.instructionList().map(::fingerprint)
-            assertEquals("the exact reminder target", "Les2;->l()Z", reminder.toString())
-            assertEquals("the exact shared renderer", "Lpq9;->h(Landroid/app/Activity;Landroid/view/View;FLandroid/view/View\$OnClickListener;)V", gift.renderer.toString())
+            assertEquals("the exact reminder target", "Lrs2;->l()Z", reminder.toString())
+            assertEquals("the exact shared renderer", "Lfr9;->h(Landroid/app/Activity;Landroid/view/View;FLandroid/view/View\$OnClickListener;)V", gift.renderer.toString())
             val schedules = classes.flatMap { it.methods }.filter { method -> method.instructionList().any {
                 it.fieldRef()?.let { f -> f.definingClass == "Lcom/tumblr/R\$string;" && f.name == "ad_free_browsing_gift_message" } == true
             } }

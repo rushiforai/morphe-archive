@@ -2042,9 +2042,11 @@ try {
     # went in unchanged, the check passed as it should have, and this case failed with "No error
     # was raised" while the gate it covers was working perfectly. A version literal in a test
     # goes stale on the next bump, and does it silently until something reads the message.
-    $fixtureFloor = ([regex]::Match(
-        (Get-Content -LiteralPath (Join-Path $factsRoot 'gradle/libs.versions.toml') -Raw),
-        '(?m)^\s*manager-floor\s*=\s*"([^"]+)"')).Groups[1].Value
+    $fixtureCatalog = Get-Content -LiteralPath (Join-Path $factsRoot 'gradle/libs.versions.toml') -Raw
+    $catalogFloor = ([regex]::Match($fixtureCatalog, '(?m)^\s*manager-floor\s*=\s*"([^"]+)"')).Groups[1].Value
+    # Between releases the README names readme-manager-floor, when the catalog carries one.
+    $fixtureFloor = ([regex]::Match($fixtureCatalog, '(?m)^\s*readme-manager-floor\s*=\s*"([^"]+)"')).Groups[1].Value
+    if (-not $fixtureFloor) { $fixtureFloor = $catalogFloor }
     Assert-True ($fixtureFloor -match '^\d+\.\d+\.\d+$') `
         "The fixture catalog does not pin a Manager floor, so this case would prove nothing: $fixtureFloor"
     Set-FactsFile 'README.md' {
@@ -4393,6 +4395,12 @@ try {
     $releasePatchCountForIndex = @($releaseCatalogForIndex.patches).Count
     $releaseFloor = (Read-CatalogToolchain -Source 'the copied catalog' `
         -Text (Get-Content -LiteralPath (Join-Path $releaseRepo 'gradle/libs.versions.toml') -Raw)).ManagerFloor
+    # A release names manager-floor everywhere, so readme-manager-floor, which holds the README back
+    # between releases, isn't in this tree. The README and the bug form move to the floor below.
+    $releaseTomlPath = Join-Path $releaseRepo 'gradle/libs.versions.toml'
+    [System.IO.File]::WriteAllText($releaseTomlPath,
+        ([System.IO.File]::ReadAllText($releaseTomlPath) -replace '(?m)^\s*readme-manager-floor\s*=.*\r?\n', ''),
+        (New-Object System.Text.UTF8Encoding($false)))
     $releaseIndexPath = Join-Path $releaseRepo 'patches-bundle.json'
     $releaseIndexText = Get-Content -LiteralPath $releaseIndexPath -Raw
     $releaseIndex = $releaseIndexText | ConvertFrom-Json
@@ -4419,6 +4427,8 @@ try {
     $releaseBugFormText = $releaseBugFormText -replace
         '(placeholder:\s*HushPinterest \S+ on Pinterest )\d+(?:\.\d+)+',
         "`${1}$($releaseTargetForIndex.PackageVersion)"
+    $releaseBugFormText = $releaseBugFormText -replace
+        '(placeholder:\s*Morphe Manager )\d+(?:\.\d+)+', "`${1}$releaseFloor"
     Set-Content -LiteralPath $releaseBugFormPath -Encoding UTF8 -NoNewline -Value $releaseBugFormText
     # And the README's version badge and the sentence naming the latest release, which the release
     # moves with the index.
@@ -4428,7 +4438,9 @@ try {
         'alt="Version \d+(?:\.\d+)+"', "alt=`"Version $releaseVersionForIndex`"" -replace
         '(latest (?:published )?release is (?:still )?\[?v)\d+(?:\.\d+)+', "`${1}$releaseVersionForIndex" -replace
         '(latest release is \[v[^\]]*\]\([^)\s]*/tag/v)\d+(?:\.\d+)+', "`${1}$releaseVersionForIndex" -replace
-        '(latest release is \[v[^\]]*\]\([^)\s]*\), with )\d+( patches)', "`${1}$releasePatchCountForIndex`${2}"
+        '(latest release is \[v[^\]]*\]\([^)\s]*\), with )\d+( patches)', "`${1}$releasePatchCountForIndex`${2}" -replace
+        '(\bMorphe Manager(?:\]\([^)\s]*\))?\s+)\d+(?:\.\d+)+(\s+or newer\b)', "`${1}$releaseFloor`${2}" -replace
+        'Morphe%20Manager%20\d+(?:\.\d+)+%2B', "Morphe%20Manager%20$releaseFloor%2B"
     Set-Content -LiteralPath $releaseReadmePath -Encoding UTF8 -NoNewline -Value $releaseReadmeText
     # Through Invoke-FixtureGit, with the git directory proved before anything is written, for
     # the reason the toolchain fixture above gives.
@@ -5966,6 +5978,30 @@ try {
         Assert-Throws { Invoke-IndexPushCheck @{ SkipDescriptionTestCount = $true } } '*Morphe Manager 1.20.0 or newer*' `
             'An index push from a clone without the release tag named a Manager floor the tag does not pin, and went through.'
         Set-Content -LiteralPath $releaseIndexPath -Encoding UTF8 -NoNewline -Value $releaseIndexText
+
+        # With readme-manager-floor in the catalog the README and the bug form keep the floor the
+        # published release needs, and a release run still holds them to manager-floor.
+        $heldFloor = '1.20.0'
+        $releaseHeldFiles = @{}
+        foreach ($heldFile in @($releaseTomlPath, $releaseReadmePath, $releaseBugFormPath)) {
+            $releaseHeldFiles[$heldFile] = [System.IO.File]::ReadAllBytes($heldFile)
+        }
+        try {
+            $plainUtf8 = New-Object System.Text.UTF8Encoding($false)
+            [System.IO.File]::WriteAllText($releaseTomlPath, ([System.IO.File]::ReadAllText($releaseTomlPath) -replace
+                    '(?m)^(\s*manager-floor\s*=.*\r?\n)', "`${1}readme-manager-floor = `"$heldFloor`"`n"), $plainUtf8)
+            [System.IO.File]::WriteAllText($releaseReadmePath,
+                [System.IO.File]::ReadAllText($releaseReadmePath).Replace($releaseFloor, $heldFloor), $plainUtf8)
+            [System.IO.File]::WriteAllText($releaseBugFormPath,
+                [System.IO.File]::ReadAllText($releaseBugFormPath).Replace("Morphe Manager $releaseFloor", "Morphe Manager $heldFloor"), $plainUtf8)
+            $said = Invoke-IndexPushCheck @{ SkipDescriptionTestCount = $true }
+            Assert-True ($said -like "*README requires Morphe Manager $heldFloor or newer*") `
+                "Between releases the README was not held to readme-manager-floor: $said"
+            Assert-Throws { Invoke-IndexPushCheck $publishedRun } "*README names Morphe Manager $heldFloor or newer*" `
+                'A release run accepted a README that still names the previous Manager floor.'
+        } finally {
+            foreach ($heldFile in $releaseHeldFiles.Keys) { [System.IO.File]::WriteAllBytes($heldFile, $releaseHeldFiles[$heldFile]) }
+        }
 
         # The index push through the hook, which decides what the hosted asset is held to. A bundle
         # built here is compared with it byte for byte when there's one for the version the index

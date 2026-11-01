@@ -355,7 +355,7 @@ try {
     # A real Tumblr build, named by its version the way a maintainer names it, against itself. The
     # Application's onCreate keeps its class and name on every build, and every patch starts there.
     $fixtures = if ($env:HUSHTUMBLR_FIXTURE_DIR) { $env:HUSHTUMBLR_FIXTURE_DIR } else { Join-Path $Root 'fixtures' }
-    $tumblrVersion = '46.8.1.100'
+    $tumblrVersion = '46.9.1.100'
     Assert-True (@(Get-ChildItem -LiteralPath $fixtures -File -ErrorAction SilentlyContinue |
         Where-Object { $_.Name.Contains($tumblrVersion) -and $_.Extension -eq '.apk' }).Count -eq 1) `
         ("The real-build case needs Tumblr $tumblrVersion in $fixtures, the folder HUSHTUMBLR_FIXTURE_DIR names. " +

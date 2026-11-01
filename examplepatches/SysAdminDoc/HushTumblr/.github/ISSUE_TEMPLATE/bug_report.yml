@@ -41,7 +41,7 @@ body:
     attributes:
       label: Its version
       description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
-      placeholder: Morphe Manager 2.0.0
+      placeholder: Morphe Manager 2.3.0
     validations:
       required: true
   - type: dropdown
@@ -80,6 +80,8 @@ body:
         - Hide blog notification reminders
         - Hide filtered posts
         - Hide gift purchase popups
+        - Line between posts
+        - App font
         - Hide hashtags
         - Hide note counts
         - Hide photo posts

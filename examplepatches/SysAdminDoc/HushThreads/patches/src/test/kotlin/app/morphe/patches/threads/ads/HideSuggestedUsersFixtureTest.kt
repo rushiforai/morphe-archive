@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PerBuild
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -91,7 +92,8 @@ class HideSuggestedUsersFixtureTest {
             return Vendor(build.name, classes, parser.type)
         }
 
-        private val vendors by lazy { Fixtures.declaredBuilds().map(::load) }
+        private val loaded = PerBuild<Vendor>()
+        private val vendors get() = Fixtures.declaredBuilds().asSequence().map { build -> loaded.getOrPut(build) { load(build) } }
     }
 
     private fun context(vendor: Vendor): BytecodePatchContext {
@@ -161,7 +163,7 @@ class HideSuggestedUsersFixtureTest {
             .single { it.name == name }.instructions()[0] as NarrowLiteralInstruction).narrowLiteral
         fun stubSize(context: BytecodePatchContext, name: String) =
             context.mutableClassDefBy(FEED_ADS).methods.single { it.name == name }.instructions().size
-        for ((build, cards) in Fixtures.declaredBuilds().zip(vendors)) {
+        for ((build, cards) in Fixtures.declaredBuilds().asSequence().zip(vendors)) {
             // Hide ads also needs Media and the injected check, which the card fixture leaves out.
             val adClasses = FixtureDex.classesWhere(build, { true }) { method ->
                 AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" && method.parameterTypes.size == 1 &&

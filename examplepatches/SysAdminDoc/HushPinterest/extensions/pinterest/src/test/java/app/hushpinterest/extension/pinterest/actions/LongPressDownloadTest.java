@@ -253,6 +253,130 @@ public class LongPressDownloadTest {
         assertTrue(new DownloadLedger(activity).reconcile().isEmpty());
     }
 
+    /** The list accounts in android_longpress_menu_v2 get in place of the round menu (#16, #18). */
+    @Test public void theNewerListGetsDownloadAfterPinterestsOptionsAndTappingItSavesThePin() throws Exception {
+        ArrayList<Object> pinterest = options();
+        ArrayList<Object> shown = LongPressDownload.composeItems(pinterest, new Event(pin("7")));
+        assertEquals(4, shown.size());
+        assertEquals(pinterest, shown.subList(0, 3));
+        ComposeOption download = (ComposeOption) shown.get(3);
+        assertSame(NativeMenu.ICON, download.iconAndLabel());
+        assertEquals("download", download.getAnalyticsName());
+        assertEquals(download, shown.get(3));
+        assertNotEquals(download, shown.get(0));
+
+        assertTrue(LongPressDownload.composeClick(download, pin("7")));
+        settle();
+        ShadowDownloadManager downloads = Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE));
+        assertEquals(1, downloads.getRequestCount());
+        assertEquals("https://i.pinimg.com/originals/7.jpg",
+                Shadow.<ShadowDownloadManager.ShadowRequest>extract(downloads.getRequest(0)).getUri().toString());
+        assertEquals("7", new DownloadLedger(activity).reconcile().get(0).pinId);
+    }
+
+    @Test public void pinterestsOwnOptionsInTheNewerListStayWithPinterest() throws Exception {
+        for (Object option : LongPressDownload.composeItems(options(), new Event(pin("7")))) {
+            if (option instanceof NativeOption) assertFalse(LongPressDownload.composeClick(option, pin("7")));
+        }
+        settle();
+        assertEquals(0, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
+    }
+
+    /** Another pin, no pin or a switch turned off in between: the tap is ours and nothing saves. */
+    @Test public void aStaleTapInTheNewerListSavesNothing() throws Exception {
+        Object otherPin = LongPressDownload.composeItems(options(), new Event(pin("7"))).get(3);
+        assertTrue(LongPressDownload.composeClick(otherPin, pin("8")));
+        Object noPin = LongPressDownload.composeItems(options(), new Event(pin("7"))).get(3);
+        assertTrue(LongPressDownload.composeClick(noPin, null));
+        Object off = LongPressDownload.composeItems(options(), new Event(pin("7"))).get(3);
+        Settings.LONG_PRESS_DOWNLOAD.save(false);
+        assertTrue(LongPressDownload.composeClick(off, pin("7")));
+        settle();
+        assertEquals(0, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
+        assertTrue(new DownloadLedger(activity).reconcile().isEmpty());
+    }
+
+    @Test public void oneDownloadOptionSavesOnceHoweverOftenItIsTapped() throws Exception {
+        Object download = LongPressDownload.composeItems(options(), new Event(pin("7"))).get(3);
+        assertTrue(LongPressDownload.composeClick(download, pin("7")));
+        assertTrue(LongPressDownload.composeClick(download, pin("7")));
+        settle();
+        assertEquals(1, Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE)).getRequestCount());
+    }
+
+    @Test public void eachHideSwitchTakesItsOwnOptionOutOfTheNewerList() {
+        for (int hidden = 0; hidden < hides().length; hidden++) {
+            hides()[hidden].save(true);
+            ArrayList<Object> pinterest = options();
+            ArrayList<Object> shown = LongPressDownload.composeItems(pinterest, new Event(pin("7")));
+            assertEquals(hides()[hidden].key, 3, shown.size());
+            assertFalse(hides()[hidden].key, shown.contains(pinterest.get(hidden)));
+            assertTrue(hides()[hidden].key, shown.get(2) instanceof ComposeOption && !(shown.get(2) instanceof NativeOption));
+            reset();
+            prepare();
+        }
+    }
+
+    /** With Download off the hide switches still work, and a list they'd empty keeps Pinterest's options. */
+    @Test public void theNewerListHidesWithDownloadOffAndIsNeverLeftEmpty() {
+        Settings.LONG_PRESS_DOWNLOAD.save(false);
+        Settings.LONG_PRESS_HIDE_SEND.save(true);
+        ArrayList<Object> pinterest = options();
+        assertEquals(List.of(pinterest.get(0), pinterest.get(2)), LongPressDownload.composeItems(pinterest, new Event(pin("7"))));
+
+        for (BooleanSetting hide : hides()) hide.save(true);
+        pinterest = options();
+        assertSame(pinterest, LongPressDownload.composeItems(pinterest, new Event(pin("7"))));
+
+        Settings.LONG_PRESS_DOWNLOAD.save(true);
+        ArrayList<Object> alone = LongPressDownload.composeItems(options(), new Event(pin("7")));
+        assertEquals(1, alone.size());
+        assertFalse(alone.get(0) instanceof NativeOption);
+    }
+
+    /** A board, nothing at all, a list that already has ours, a switch off or a pause: the list as it came. */
+    @Test public void anythingElseKeepsTheNewerListAsItCame() {
+        for (Object event : new Object[]{new Event(new Board()), new Event(null), null}) {
+            ArrayList<Object> pinterest = options();
+            assertSame(pinterest, LongPressDownload.composeItems(pinterest, event));
+        }
+        ArrayList<Object> already = LongPressDownload.composeItems(options(), new Event(pin("7")));
+        assertSame(already, LongPressDownload.composeItems(already, new Event(pin("7"))));
+        assertNull(LongPressDownload.composeItems(null, new Event(pin("7"))));
+
+        Runnable[] offs = {
+                () -> Settings.LONG_PRESS_DOWNLOAD.save(false),
+                () -> Settings.DOWNLOAD_PINS.save(false),
+                () -> PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.PIN_DOWNLOADS)),
+                () -> PauseForTests.pause(HushPinterestPause.Reason.SWITCH),
+        };
+        for (Runnable off : offs) {
+            off.run();
+            ArrayList<Object> pinterest = options();
+            assertSame(pinterest, LongPressDownload.composeItems(pinterest, new Event(pin("7"))));
+            reset();
+            prepare();
+        }
+    }
+
+    /** Pinterest's own options in the newer list, in the order its builder adds them. */
+    private static ArrayList<Object> options() {
+        return new ArrayList<>(List.of(NativeOption.SAVE, NativeOption.SEND, NativeOption.SEARCH));
+    }
+
+    /** The newer menu's two-method option interface. */
+    interface ComposeOption {
+        Object iconAndLabel();
+        String getAnalyticsName();
+    }
+
+    /** The enum of Pinterest's options that interface comes with. */
+    enum NativeOption implements ComposeOption {
+        SAVE, SEND, SEARCH;
+        @Override public Object iconAndLabel() { return this; }
+        @Override public String getAnalyticsName() { return name(); }
+    }
+
     private static void assertUntouched(Menu menu, List<Object> before) {
         assertEquals(before, menu.items);
         assertEquals(before.size(), menu.getChildCount());
@@ -363,6 +487,12 @@ public class LongPressDownloadTest {
         @Implementation protected static View downloadItem(Context context) { return new View(context); }
         @Implementation protected static int buttonKind(Object button) {
             return button instanceof Button ? ((Button) button).kind : LongPressDownload.OTHER;
+        }
+        static final Object ICON = new Object();
+        @Implementation protected static Class<?> composeOptionType() { return ComposeOption.class; }
+        @Implementation protected static Object composeIconAndLabel() { return ICON; }
+        @Implementation protected static int composeKind(Object option) {
+            return option instanceof NativeOption ? LongPressDownload.SAVE + ((NativeOption) option).ordinal() : LongPressDownload.OTHER;
         }
     }
 }

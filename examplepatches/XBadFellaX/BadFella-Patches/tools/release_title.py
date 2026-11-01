@@ -10,20 +10,12 @@ from pathlib import Path
 APP_NAMES = {
     'ticktick': 'TickTick',
     'emby': 'Emby',
-    'hbr': 'Harvard Business Review (HBR)',
-    'mitreview': 'MIT Technology Review',
-    'mit-review': 'MIT Technology Review',
-    'mit-tech-review': 'MIT Technology Review',
     'peptalk': 'Pep Talk',
     'remoteatv': 'Remote for Android TV',
     'remote-atv': 'Remote for Android TV',
     'wanderlog': 'Wanderlog',
-    'nikkei': 'Nikkei Asia',
-    'lrb': 'London Review of Books',
 }
 DISPLAY_NAMES = {
-    'HBR': APP_NAMES['hbr'],
-    'MIT Tech Review': APP_NAMES['mitreview'],
     'Remote ATV': APP_NAMES['remoteatv'],
 }
 

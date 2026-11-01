@@ -35,10 +35,10 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 private const val PATCH = "Verified account identity"
 internal const val ACCOUNT_USER_INFO = "Lcom/tumblr/UserInfo;"
-internal const val ACCOUNT_REQUEST = "Liu5;"
-internal const val ACCOUNT_SERVICE = "Lbu5;"
-internal const val ACCOUNT_CREDENTIALS = "Law0;"
-internal const val ACCOUNT_LOGOUT = "Lm3c;"
+internal const val ACCOUNT_REQUEST = "Lvu5;"
+internal const val ACCOUNT_SERVICE = "Lou5;"
+internal const val ACCOUNT_CREDENTIALS = "Lnw0;"
+internal const val ACCOUNT_LOGOUT = "Lo4c;"
 internal const val ACCOUNT_RESPONSE = "Lcom/tumblr/rumblr/response/UserInfoResponse;"
 internal const val HUSH_ACCOUNT = "$EXTENSION_PACKAGE/rootmute/HushAccountIdentity;"
 internal const val ROOT_MUTES = "$EXTENSION_PACKAGE/rootmute/RootPostMutes;"
@@ -130,10 +130,10 @@ internal fun BytecodePatchContext.resolveAccountIdentity(): AccountIdentityPlan 
             && triple[2].methodRef()?.toString() == "$ACCOUNT_USER_INFO->M()V"
             && (triple[1] as FiveRegisterInstruction).registerC == (triple[2] as FiveRegisterInstruction).registerC
     }, "the authenticated parser no longer persists its new account object")
-    val fetch = accountMethod(ACCOUNT_SERVICE, "f", emptyList(), "Lfm4;").instructionList()
+    val fetch = accountMethod(ACCOUNT_SERVICE, "f", emptyList(), "Lsm4;").instructionList()
     val createdAt = fetch.indexOfFirst { it.methodRef()?.toString() == "$ACCOUNT_REQUEST-><init>($ACCOUNT_SERVICE)V" }
     requireShape(PATCH, createdAt >= 0 && fetch.drop(createdAt + 1).any {
-        it.methodRef()?.toString() == "Llmj;->u()Lfm4;"
+        it.methodRef()?.toString() == "Lhoj;->u()Lsm4;"
     }, "the request callback is no longer constructed before subscription")
 
     val replace = accountMethod(ACCOUNT_CREDENTIALS, "r", listOf(STRING, STRING), "V")
@@ -144,11 +144,11 @@ internal fun BytecodePatchContext.resolveAccountIdentity(): AccountIdentityPlan 
         && replacement.any { it.stringRef() == "AuthToken2" } && replacement.any { it.stringRef() == "AuthTokenSecret2" }
         && replacement.count { it.methodRef()?.toString() == "$REMEMBER->o($STRING$STRING)$REMEMBER" } == 2,
         "the credential replacement transaction changed")
-    val reset = accountMethod(ACCOUNT_CREDENTIALS, "p", listOf("Lpqm;"), "V")
+    val reset = accountMethod(ACCOUNT_CREDENTIALS, "p", listOf("Llsm;"), "V")
     requireShape(PATCH, reset.instructionList().first().opcode == Opcode.MONITOR_ENTER
         && reset.instructionList().any { it.methodRef()?.toString() == "$ACCOUNT_CREDENTIALS->a()V" },
         "the synchronous credential reset changed")
-    val logout = accountMethod(ACCOUNT_LOGOUT, "i", listOf("Landroid/content/Context;", "Z", "Lbx5;"), "Ljava/lang/Object;")
+    val logout = accountMethod(ACCOUNT_LOGOUT, "i", listOf("Landroid/content/Context;", "Z", "Lox5;"), "Ljava/lang/Object;")
     requireShape(PATCH, logout.instructionList().count { it.methodRef()?.toString() == "$REMEMBER->b()V" } == 1,
         "the native logout no longer clears Remember")
     return AccountIdentityPlan(persist, replace, reset, logout, requestConstructor, accept, uuid.toString(), end - 1)

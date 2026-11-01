@@ -74,7 +74,7 @@ class PinActionsFixtureTest {
             downloadPinsPatch.execute(context)
             externalBrowserPatch.execute(context)
             systemSharePatch.execute(context)
-            for (name in listOf("downloadPins", "pinDownloads", "copyImage", "shareImage", "externalBrowser", "visitLinks", "systemShare", "pinShare")) {
+            for (name in listOf("downloadPins", "pinDownloads", "copyImage", "shareImage", "saveAndDownload", "externalBrowser", "visitLinks", "systemShare", "pinShare")) {
                 assertFlag(context, name, 1)
             }
             val menu = context.mutableClassDefBy(PIN_MENU)
@@ -235,7 +235,7 @@ class PinActionsFixtureTest {
             }.let { (it as ReferenceInstruction).reference.toString() }
             val id = stored(Opcode.IPUT_OBJECT, registers - 2)
             val kind = stored(Opcode.IPUT, registers - 1)
-            if (build.name.startsWith("pinterest-14.41.0-")) {
+            if (build.name.startsWith("pinterest-14.42.0-")) {
                 assertEquals("$SENDABLE_TYPE->a:Ljava/lang/String;", id)
                 assertEquals("$SENDABLE_TYPE->c:I", kind)
             }
@@ -253,7 +253,7 @@ class PinActionsFixtureTest {
             // The extension makes a pin link only for kind 0, and the patch applied, so the
             // sendable's model constructor gives the overflow menu's pin model that kind.
             val pin = classes.single { it.type == PIN_MENU }.fields.single { it.name == "pin" }.type
-            if (build.name.startsWith("pinterest-14.41.0-")) assertEquals("${build.name} pin model", "Lcom/pinterest/api/model/pe;", pin)
+            if (build.name.startsWith("pinterest-14.42.0-")) assertEquals("${build.name} pin model", "Lcom/pinterest/api/model/pe;", pin)
             println("${build.name}: a pin ($pin) is sendable kind 0")
         }
     }
@@ -386,6 +386,90 @@ class PinActionsFixtureTest {
         assertFlag(context, "pinDownloads", 0)
         assertFlag(context, "copyImage", 0)
         assertFlag(context, "shareImage", 0)
+        assertFlag(context, "saveAndDownload", 0)
+    }
+
+    // #17: every save goes through one method, and a download needs a quick-save helper to save with.
+    @Test
+    fun `save and download hooks the one save and hands over each quick save helper in each declared build`() {
+        val saving = "$EXTENSION_PACKAGE/actions/SaveAndDownload;->saving(Ljava/lang/Object;)V"
+        val saver = "$EXTENSION_PACKAGE/actions/SaveAndDownload;->saver(Ljava/lang/Object;)V"
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            downloadPinsPatch.execute(context)
+            assertFlag(context, "saveAndDownload", 1)
+            val pin = classes.single { it.type == PIN_MENU }.fields.single { it.name == "pin" }.type
+            val presenter = classes.single { it.type == PIN_CLOSEUP_PRESENTER }
+            val helper = presenter.fields.single { it.name == "repinUtils" }.type
+            val action = presenter.fields.single { it.name == "pinAction" }.type
+
+            val hooked = context.mutableClassDefBy(action).methods.filter { method ->
+                method.implementation?.instructions?.any { (it as? ReferenceInstruction)?.reference?.toString() == saving } == true
+            }
+            val save = hooked.single()
+            assertEquals("${build.name} the pin comes first", pin, save.parameterTypes.first().toString())
+            val first = save.implementation!!.instructions.first() as RegisterRangeInstruction
+            assertEquals("${build.name} hook is the save's first instruction", saving, first.let { (it as ReferenceInstruction).reference.toString() })
+            assertEquals("${build.name} hook takes one register", 1, first.registerCount)
+            assertEquals("${build.name} hook reads the pin", save.implementation!!.registerCount - save.parameterTypes.size, first.startRegister)
+
+            val init = context.mutableClassDefBy(helper).methods.single { it.name == "<init>" && it.implementation != null }
+            val body = init.implementation!!.instructions.toList()
+            val hand = body.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == saver }
+            assertTrue("${build.name} the helper is handed over", hand > 0)
+            assertEquals("${build.name} right before the constructor returns", Opcode.RETURN_VOID, body[hand + 1].opcode)
+            assertEquals("${build.name} hand-over takes this", init.implementation!!.registerCount - init.parameterTypes.size - 1,
+                (body[hand] as RegisterRangeInstruction).startRegister)
+
+            val stubs = context.mutableClassDefBy("$EXTENSION_PACKAGE/actions/SaveAndDownload;")
+            val quick = references(stubs.methods.single { it.name == "savePin" }.implementation!!.instructions.toList())
+            assertTrue("${build.name} savePin makes the quick save", quick.any { it.startsWith("$helper->") && it.endsWith(")V") })
+            assertTrue("${build.name} savePin passes UNKNOWN", quick.any { "->UNKNOWN:" in it })
+            val saved = references(stubs.methods.single { it.name == "alreadySaved" }.implementation!!.instructions.toList())
+            assertEquals("${build.name} alreadySaved reads two pin accessors", 2, saved.count { it.startsWith("$pin->") })
+        }
+    }
+
+    @Test
+    fun `a missing quick save class refuses Download pins before host changes`() {
+        val build = Fixtures.declaredBuilds().first()
+        val classes = read(build)
+        val helper = classes.single { it.type == PIN_CLOSEUP_PRESENTER }.fields.single { it.name == "repinUtils" }.type
+        val context = PatchContexts.of(ExtensionDex.classes() + classes.filterNot { it.type == helper })
+        assertThrows(PatchException::class.java) { downloadPinsPatch.execute(context) }
+        assertFalse(context.mutableClassDefBy(PIN_MENU).methods.any { it.name.startsWith("hushDownload") })
+        assertFlag(context, "downloadPins", 0)
+        assertFlag(context, "saveAndDownload", 0)
+    }
+
+    @Test
+    fun `a missing pin writer refuses Download pins before host changes`() {
+        val build = Fixtures.declaredBuilds().first()
+        val classes = read(build)
+        val context = PatchContexts.of(ExtensionDex.classes() + classes.filterNot { owner ->
+            owner.methods.any { it.returnType == "V" && "pinned_to_profile" in it.strings() }
+        })
+        assertThrows(PatchException::class.java) { downloadPinsPatch.execute(context) }
+        assertFalse(context.mutableClassDefBy(PIN_MENU).methods.any { it.name.startsWith("hushDownload") })
+        assertFlag(context, "saveAndDownload", 0)
+    }
+
+    @Test
+    fun `a build with no closeup presenter keeps its downloads without the two switches`() {
+        val build = Fixtures.declaredBuilds().first()
+        val classes = read(build).filterNot { it.type == PIN_CLOSEUP_PRESENTER }
+        val context = PatchContexts.of(ExtensionDex.classes() + classes)
+        downloadPinsPatch.execute(context)
+        assertFlag(context, "pinDownloads", 1)
+        assertFlag(context, "saveAndDownload", 0)
+        assertFalse(classes.any { original ->
+            context.mutableClassDefBy(original.type).methods.any { method ->
+                method.implementation?.instructions?.any {
+                    (it as? ReferenceInstruction)?.reference?.toString()?.startsWith("$EXTENSION_PACKAGE/actions/SaveAndDownload;") == true
+                } == true
+            }
+        })
     }
 
     private fun references(instructions: List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>): List<String> =
@@ -444,7 +528,8 @@ class PinActionsFixtureTest {
                 if (shareFragment) potentialShareFragments += owner
                 val grid = com.android.tools.smali.dexlib2.AccessFlags.INTERFACE.isSet(owner.accessFlags) &&
                     owner.methods.any { it.name == "getInternalCell" || it.name == "getPin" && it.returnType.startsWith("Lcom/pinterest/api/model/") }
-                if (owner.type == PIN_MENU || visit || share || profile || grid) wanted[owner.type] = ImmutableClassDef.of(owner)
+                val saveRoute = owner.type == PIN_CLOSEUP_PRESENTER || owner.methods.any { it.returnType == "V" && "pinned_to_profile" in it.strings() }
+                if (owner.type == PIN_MENU || visit || share || profile || grid || saveRoute) wanted[owner.type] = ImmutableClassDef.of(owner)
             }
         }
         potentialShareFragments.filter { owner ->
@@ -467,6 +552,13 @@ class PinActionsFixtureTest {
         val icons = dependencies.values.flatMap { owner -> owner.methods.filter { it.returnType == "Landroid/widget/RelativeLayout;" }
             .flatMap { it.parameterTypes }.map { it.toString() }.filter { it.startsWith('L') && it != "Ljava/lang/String;" } }.toSet()
         wanted += FixtureDex.classes(build, icons)
+        val saves = FixtureDex.classes(build, wanted.getValue(PIN_CLOSEUP_PRESENTER).fields
+            .filter { it.name in setOf("repinUtils", "pinAction") }.map { it.type }.toSet())
+        wanted += saves
+        val reasons = saves.values.flatMap { owner -> owner.methods.filter { method ->
+            method.returnType == "V" && method.parameterTypes.size == 8 && method.parameterTypes[5].toString() == "Lkotlin/jvm/functions/Function1;"
+        } }.map { it.parameterTypes.last().toString() }.toSet()
+        wanted += FixtureDex.classes(build, reasons + menu.fields.single { it.name == "pin" }.type)
         return wanted.values.toList()
     }
 

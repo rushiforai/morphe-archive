@@ -357,7 +357,10 @@ class SanitizeSharingLinksFixtureTest {
             val cast = (0 until read).last { quickBody[it].opcode == Opcode.CHECK_CAST && quickBody[it].type() == MEDIA }
             val self = (quickBody[cast - 1] as TwoRegisterInstruction).registerB
             val owner = quick.implementation!!.registerCount - 2
-            val entryCopy = quickBody.indices.first { quickBody[it].isObjectMoveTo(self) && (quickBody[it] as TwoRegisterInstruction).registerB == owner }
+            // Some builds read the post straight off `this`; others copy it to a local first.
+            val entryCopy = quickBody.indices.firstOrNull {
+                quickBody[it].isObjectMoveTo(self) && (quickBody[it] as TwoRegisterInstruction).registerB == owner
+            } ?: (cast - 1)
             val result = quick.implementation!!.registerCount - 1
             // The recall reads this, which the next test overwrites, so only the load is mutated here.
             for ((label, at, code) in listOf(
@@ -369,7 +372,8 @@ class SanitizeSharingLinksFixtureTest {
                 val mutable = context.mutableClassDefBy(quick.definingClass).methods.single { it.name == quick.name }
                 if (label == "foreign field receiver") mutable.replaceInstruction(at, code) else mutable.addInstructionsWithLabels(at, code)
                 val error = assertThrows(label, PatchException::class.java) { sanitizeSharingLinksPatch.execute(context) }.message.orEmpty()
-                assertTrue("$label: $error", error.contains("without one cast of its own post field"))
+                assertTrue("$label: $error", error.contains("without one cast of its own post field") ||
+                    error.contains("writes over this"))
             }
         }
     }

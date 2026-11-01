@@ -362,16 +362,15 @@ val dcimAndBackupControlPatch = bytecodePatch(
                     mutableSaveCreationsMethod.addInstructions(
                         0,
                         """
-                        if-nez p1, :cond_check_empty
-                        :cond_empty
-                        sget-object v0, $fieldStr
-                        return-object v0
-                        :cond_check_empty
+                        if-eqz p1, :cond_empty
                         move-object/16 v0, p1
                         invoke-interface { v0 }, Ljava/util/List;->isEmpty()Z
                         move-result v0
-                        if-nez v0, :cond_proceed
-                        goto :cond_empty
+                        if-nez v0, :cond_empty
+                        goto :cond_proceed
+                        :cond_empty
+                        sget-object v0, $fieldStr
+                        return-object v0
                         :cond_proceed
                         """.trimIndent(),
                     )

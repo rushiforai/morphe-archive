@@ -314,8 +314,50 @@ public final class SelectorDexFixture {
         if (patched) colors.add(5, staticCall(hooks, "onComposeTheme", "V", new String[]{THEME}, fault.equals("theme-wrong-compose") ? 0 : 1));
         put(classes, COLORS, List.of(method(COLORS, "<init>", "V", false, 6, colors, CONTEXT, "I")));
         designColors(classes, hooks, patched, fault);
+        pageColors(classes, hooks, patched, fault);
         if (patched) put(classes, hooks, List.of(hook(hooks, "onActivityTheme", "V", -1, "Landroid/app/Activity;"), hook(hooks, "onComposeTheme", "V", -1, THEME),
-                wideHook(hooks, "designPage"), wideHook(hooks, "designPanel"), wideHook(hooks, "designFooter")));
+                wideHook(hooks, "designPage"), wideHook(hooks, "designPanel"), wideHook(hooks, "designFooter"),
+                hook(hooks, "pageColor", "I", 0, "I"), hook(hooks, "pageTextColor", "I", 0, "I"), hook(hooks, "hubColor", STRING, 0, STRING)));
+    }
+
+    /**
+     * A blog's theme, the class that compares two of them and answers a page's, a title's and a link's
+     * color from one, and a tag page reading its header's color, with the header's JSON adapter reading
+     * it too. Patched, each color's function hands its answer over right before it returns it and the
+     * page hands over what it read. The adapter stays as Tumblr wrote it.
+     */
+    private static void pageColors(Map<String, ClassDef> classes, String hooks, boolean patched, String fault) {
+        String theme = "Lcom/tumblr/bloginfo/BlogTheme;", blogColors = FIXTURE + "BlogColors;", parse = FIXTURE + "ParseColor;";
+        String header = "Lcom/tumblr/rumblr/response/CommunityHubHeaderResponse$CommunityHubHeader;";
+        String page = FIXTURE + "TagPage;", adapter = FIXTURE + "HeaderJsonAdapter;";
+        put(classes, theme, List.of(method(theme, "a", STRING, false, 2, body(literal(0, "#00B8FF"), returned(0, true))),
+                method(theme, "d", STRING, false, 2, body(literal(0, "#F5EBD7"), returned(0, true))),
+                method(theme, "u", STRING, false, 2, body(literal(0, "#0B1A3D"), returned(0, true)))));
+        put(classes, parse, List.of(method(parse, "parse", "I", true, 2, body(constant(0, 0), returned(0, false)), STRING)));
+        List<Instruction> compare = body(literal(1, "link_color"), invoke(Opcode.INVOKE_VIRTUAL, ref(theme, "a", STRING), 3), moved(1, true),
+                literal(1, "background_color"), invoke(Opcode.INVOKE_VIRTUAL, ref(theme, "d", STRING), 3), moved(1, true),
+                literal(1, "title_color"), invoke(Opcode.INVOKE_VIRTUAL, ref(theme, "u", STRING), 3), moved(1, true), end());
+        put(classes, blogColors, List.of(method(blogColors, "compare", "V", true, 4, compare, theme, theme),
+                blogColor(blogColors, theme, parse, "color", "d", hooks, "pageColor", "theme-page", patched, fault),
+                blogColor(blogColors, theme, parse, "title", "u", hooks, "pageTextColor", "theme-title", patched, fault),
+                blogColor(blogColors, theme, parse, "link", "a", hooks, "pageTextColor", "theme-link", patched, fault)));
+        put(classes, header, List.of(method(header, "getBackgroundColor", STRING, false, 2, body(literal(0, "#2DBFA0"), returned(0, true)))));
+        List<Instruction> paint = body(invoke(Opcode.INVOKE_VIRTUAL, ref(header, "getBackgroundColor", STRING), 2), moved(0, true), end());
+        if (patched && !fault.equals("theme-tag-missing")) paint.addAll(2, body(
+                staticCall(hooks, "hubColor", STRING, new String[]{STRING}, 0), moved(fault.equals("theme-tag-wrong-register") ? 1 : 0, true)));
+        put(classes, page, List.of(method(page, "paint", "V", true, 3, paint, header)));
+        List<Instruction> write = body(invoke(Opcode.INVOKE_VIRTUAL, ref(header, "getBackgroundColor", STRING), 1), moved(0, true), end());
+        if (patched && fault.equals("theme-tag-adapter")) write.addAll(2, body(staticCall(hooks, "hubColor", STRING, new String[]{STRING}, 0), moved(0, true)));
+        put(classes, adapter, List.of(method(adapter, "toJson", "V", true, 2, write, header)));
+    }
+
+    /** One of a blog's colors: read with [getter], parsed and returned, handing [hook] the answer when patched. */
+    private static Method blogColor(String owner, String theme, String parse, String name, String getter, String hooks, String hook, String faults, boolean patched, String fault) {
+        List<Instruction> read = body(invoke(Opcode.INVOKE_VIRTUAL, ref(theme, getter, STRING), 1), moved(0, true),
+                staticCall(parse, "parse", "I", new String[]{STRING}, 0), moved(0, false), returned(0, false));
+        if (patched && !fault.equals(faults + "-missing")) read.addAll(4, body(
+                staticCall(hooks, hook, "I", new String[]{"I"}, 0), moved(fault.equals(faults + "-wrong-register") ? 1 : 0, false)));
+        return method(owner, name, "I", true, 2, read, theme);
     }
 
     /** A hook that takes a long and hands one back, asking whether the settings are ready as every hook does. */
@@ -496,6 +538,15 @@ public final class SelectorDexFixture {
         fixture(root, "theme-design-other-palette", "misrouted call Lapp/hushtumblr/extension/tumblr/ui/DarkBackground;->designPage(J)J", "darkBackground");
         fixture(root, "theme-footer-wrong-register", "designFooter(J)J doesn't take the post footer's color and put its answer back where it was", "darkBackground");
         fixture(root, "theme-footer-missing", "designFooter(J)J has 0 calls", "darkBackground");
+        fixture(root, "theme-page-wrong-register", "pageColor(I)I doesn't take the blog's color and put its answer back where it was", "darkBackground");
+        fixture(root, "theme-page-missing", "pageColor(I)I has 0 calls", "darkBackground");
+        fixture(root, "theme-title-wrong-register", "pageTextColor(I)I doesn't take the blog's color and put its answer back where it was", "darkBackground");
+        fixture(root, "theme-title-missing", "pageTextColor(I)I has 0 calls", "darkBackground");
+        fixture(root, "theme-link-wrong-register", "pageTextColor(I)I doesn't take the blog's color and put its answer back where it was", "darkBackground");
+        fixture(root, "theme-link-missing", "pageTextColor(I)I has 0 calls", "darkBackground");
+        fixture(root, "theme-tag-wrong-register", "hubColor(Ljava/lang/String;)Ljava/lang/String; doesn't take the tag page's color and put its answer back where it was", "darkBackground");
+        fixture(root, "theme-tag-missing", "hubColor(Ljava/lang/String;)Ljava/lang/String; has 0 calls", "darkBackground");
+        fixture(root, "theme-tag-adapter", "misrouted call Lapp/hushtumblr/extension/tumblr/ui/DarkBackground;->hubColor(Ljava/lang/String;)Ljava/lang/String;", "darkBackground");
         fixture(root, "store-good", "", "hideTumblrMart");
         fixture(root, "store-swapped-diamond", "hideDiamond(Landroid/view/View;Landroid/view/View;)Z isn't asked first thing", "hideTumblrMart");
         fixture(root, "store-missing-second-button", "hideTumblrMart(Landroid/view/View;)V has 1 calls", "hideTumblrMart");

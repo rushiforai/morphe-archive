@@ -640,3 +640,21 @@ Home keeps the pins you were looking at when you come back to Pinterest or to th
 Show posted date	Mostrar data de publicação
 Shows the day a pin was posted under its title. It shows on the next pin you open.	Mostra abaixo do título de um pin o dia em que ele foi publicado. Aparece no próximo pin que você abrir.
 Posted %1$s	Publicado em %1$s
+Install microG-RE to use Google sign-in.	Instale o microG-RE para entrar com o Google.
+Turn on microG-RE to use Google sign-in.	Ative o microG-RE para entrar com o Google.
+microG-RE didn't answer. Open it, then try again.	O microG-RE não respondeu. Abra-o e tente de novo.
+This build sends Google sign-in to microG-RE. Add your Google account in microG-RE first. If your phone limits background apps, let microG-RE start on its own.	Esta versão envia o login com o Google para o microG-RE. Adicione primeiro sua conta do Google no microG-RE. Se o seu celular limita apps em segundo plano, permita que o microG-RE inicie sozinho.
+Google sign-in failure message	Mensagem de falha no login com o Google
+# context: Download pins switches that tie a pin's download to its save
+Save pins you download	Salvar os pins que você baixar
+Downloading a pin from its menu also saves it to your profile, unless it's saved already. Grid and board downloads aren't saved. Needs Download pins on.	Baixar um pin pelo menu dele também o salva no seu perfil, a menos que já esteja salvo. Downloads de grades e pastas não são salvos. Baixar Pins precisa estar ativado.
+Download pins you save	Baixar os pins que você salvar
+Saving a pin also downloads it, from any screen. Needs Download pins on.	Salvar um pin também o baixa, em qualquer tela. Baixar Pins precisa estar ativado.
+Couldn't save this pin. Open it once, then try again.	Não foi possível salvar este pin. Abra-o uma vez e tente de novo.
+Save and download	Salvar e baixar
+# context: an Interface switch that removes Pinterest's AI Assistant from the search page, boards and pins; "Assistant" is that feature's name
+Hide Assistant	Ocultar Assistente
+Takes Pinterest's AI Assistant out of search, boards and pins. Search works as usual. The change shows the next time the screen updates.	Tira o Assistente de IA do Pinterest da busca, das pastas e dos Pins. A busca funciona normalmente. A mudança aparece na próxima vez que a tela atualizar.
+# context: a Feed switch from the Filter feed patch. It takes pins the person has already saved to a board out of their home feed only; boards and search still show them. The title is also the name of that part of the patch in the build report.
+Hide pins you've already saved	Ocultar pins que você já salvou
+Takes pins you've saved out of your home feed. Your boards and search still show them.	Remove do seu feed inicial os pins que você salvou. Suas pastas e a busca continuam mostrando.

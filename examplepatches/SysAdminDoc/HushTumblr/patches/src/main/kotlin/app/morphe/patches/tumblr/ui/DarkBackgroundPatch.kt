@@ -24,6 +24,7 @@ import app.morphe.patches.tumblr.lookup.only
 import app.morphe.patches.tumblr.lookup.requireExtensionHook
 import app.morphe.patches.tumblr.lookup.requireShape
 import app.morphe.patches.tumblr.lookup.sameAs
+import app.morphe.patches.tumblr.lookup.stringRef
 import app.morphe.patches.tumblr.lookup.strings
 import app.morphe.patches.tumblr.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.tumblr.misc.extension.enableCapability
@@ -34,6 +35,7 @@ import app.morphe.patches.tumblr.misc.extension.requireStatusMethod
 import app.morphe.patches.tumblr.misc.extension.tumblrExtensionPatch
 import app.morphe.patches.tumblr.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.tumblr.misc.settings.settingsPatch
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.extendsClass
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -57,12 +59,33 @@ internal const val COMPOSE_THEME_HOOK = "$DARK_BACKGROUND->onComposeTheme(Landro
 internal const val DESIGN_PAGE_HOOK = "$DARK_BACKGROUND->designPage(J)J"
 internal const val DESIGN_PANEL_HOOK = "$DARK_BACKGROUND->designPanel(J)J"
 internal const val DESIGN_FOOTER_HOOK = "$DARK_BACKGROUND->designFooter(J)J"
+internal const val PAGE_COLOR_HOOK = "$DARK_BACKGROUND->pageColor(I)I"
+internal const val PAGE_TEXT_COLOR_HOOK = "$DARK_BACKGROUND->pageTextColor(I)I"
+internal const val HUB_COLOR_HOOK = "$DARK_BACKGROUND->hubColor(Ljava/lang/String;)Ljava/lang/String;"
+
+/** A blog's theme, the keys its colors are saved under, and a tag page's header. All these names are kept. */
+internal const val BLOG_THEME = "Lcom/tumblr/bloginfo/BlogTheme;"
+internal const val BLOG_BACKGROUND_KEY = "background_color"
+internal const val BLOG_TITLE_KEY = "title_color"
+internal const val BLOG_LINK_KEY = "link_color"
+internal const val HUB_HEADER = "Lcom/tumblr/rumblr/response/CommunityHubHeaderResponse\$CommunityHubHeader;"
 
 /** The Compose note of the footer under a post, the function that paints its background. */
 internal const val POST_FOOTER_NOTE = "${FOOTER_CONTROLS}PostFooterSplitNotesCountContent ("
 
 /** The style the patch adds. The extension's `DarkBackground.STYLE` looks it up by this name. */
 internal const val DARK_BACKGROUND_STYLE = "HushTumblrDarkBackground"
+
+/** The same surfaces in the dark tones Android makes from the wallpaper. `DarkBackground.WALLPAPER_STYLE` looks it up. */
+internal const val DARK_WALLPAPER_STYLE = "HushTumblrDarkBackgroundWallpaper"
+
+/**
+ * Android 12's second accent tones are dark and tinted by the wallpaper, where its first neutral's
+ * darkest is plain black. Those colors only exist on Android 12 and newer, and the extension only
+ * reaches for this style there.
+ */
+internal const val WALLPAPER_PAGE_COLOR = "@android:color/system_accent2_900"
+internal const val WALLPAPER_RAISED_COLOR = "@android:color/system_accent2_800"
 
 /** Where the style goes. ARSCLib takes a resource's type from its file's name. */
 internal const val DARK_BACKGROUND_STYLES = "res/values/styles.xml"
@@ -191,7 +214,8 @@ private fun NodeList.elements(): List<Element> = (0 until length).mapNotNull { i
  * no style in the file sets is left out. Each attribute is written the way the file's own styles
  * write it, so an app attribute keeps whatever package prefix the decoder gave it. The style has no
  * parent: it only goes over a theme that already has the rest. Refuses a file that already has the
- * style, or whose styles never set a required attribute.
+ * style, or whose styles never set a required attribute. [DARK_WALLPAPER_STYLE] goes in beside it,
+ * setting the same surfaces to [WALLPAPER_PAGE_COLOR] and [WALLPAPER_RAISED_COLOR].
  */
 internal fun Document.addDarkBackgroundStyle(color: Int) {
     val resources = documentElement
@@ -205,7 +229,8 @@ internal fun Document.addDarkBackgroundStyle(color: Int) {
         name == attribute || (!name.startsWith("android:") && name.substringAfter(':') == attribute)
     }
 
-    val values = linkedMapOf<String, Int>()
+    // Each surface the styles set, and whether it takes the lighter of the two colors.
+    val surfaces = linkedMapOf<String, Boolean>()
     for (attribute in DARK_BACKGROUND_ATTRIBUTES) {
         val name = nameOf(attribute)
         if (name == null) {
@@ -214,23 +239,26 @@ internal fun Document.addDarkBackgroundStyle(color: Int) {
             }
             continue
         }
-        values[name] = color
+        surfaces[name] = false
     }
-    val raised = raisedColor(color, HIGHLIGHT_STEP)
-    nameOf(HIGHLIGHTED_ATTRIBUTE)?.let { values[it] = raised }
-    for (surface in DARK_FLAT_SURFACES) nameOf(surface)?.let { values[it] = color }
-    for (surface in DARK_RAISED_SURFACES) nameOf(surface)?.let { values[it] = raised }
-    if (WINDOW_BACKGROUND_ATTRIBUTE in written) values[WINDOW_BACKGROUND_ATTRIBUTE] = color
+    nameOf(HIGHLIGHTED_ATTRIBUTE)?.let { surfaces[it] = true }
+    for (surface in DARK_FLAT_SURFACES) nameOf(surface)?.let { surfaces[it] = false }
+    for (surface in DARK_RAISED_SURFACES) nameOf(surface)?.let { surfaces[it] = true }
+    if (WINDOW_BACKGROUND_ATTRIBUTE in written) surfaces[WINDOW_BACKGROUND_ATTRIBUTE] = false
 
-    resources.appendChild(createElement("style").apply {
-        setAttribute("name", DARK_BACKGROUND_STYLE)
-        values.forEach { (name, value) ->
-            appendChild(createElement("item").apply {
-                setAttribute("name", name)
-                textContent = "#%08x".format(value)
-            })
-        }
-    })
+    fun appendStyle(style: String, page: String, raised: String) {
+        resources.appendChild(createElement("style").apply {
+            setAttribute("name", style)
+            surfaces.forEach { (name, lifted) ->
+                appendChild(createElement("item").apply {
+                    setAttribute("name", name)
+                    textContent = if (lifted) raised else page
+                })
+            }
+        })
+    }
+    appendStyle(DARK_BACKGROUND_STYLE, "#%08x".format(color), "#%08x".format(raisedColor(color, HIGHLIGHT_STEP)))
+    appendStyle(DARK_WALLPAPER_STYLE, WALLPAPER_PAGE_COLOR, WALLPAPER_RAISED_COLOR)
 }
 
 /** The style the extension puts over a Dark Mode theme, in the color [background] answers. */
@@ -254,14 +282,17 @@ private fun darkBackgroundStylePatch(background: () -> Int) = resourcePatch {
  *
  * Tumblr's design system keeps its colors in code, one set per palette, so the Dark palette's set
  * also hands its two surface grays to `DarkBackground` as it's built (see [resolveDesignColors]).
- * A build that keeps them some other way gets a warning and the rest of the patch.
+ * A build that keeps them some other way gets a warning and the rest of the patch. A blog's page and
+ * a tag's page paint their owner's color instead of a theme's, so those two colors go through
+ * `DarkBackground` too (see [resolveBlogColors] and [resolveTagPageColors]), with the same warning.
  */
 @Suppress("unused")
 val darkBackgroundPatch = bytecodePatch(
     name = PATCH,
     description = "Makes the background of Tumblr's Dark Mode palette black, which can save battery on OLED screens, or" +
-        " another dark color you pick when patching. Other palettes stay as they are. Starts off. Turn it on in" +
-        " Tumblr settings > HushTumblr > Interface.",
+        " another dark color you pick when patching. On Android 12 or newer it can follow your wallpaper's colors instead." +
+        " Blog and tag pages take it too, in place of their own colors." +
+        " Other palettes stay as they are. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface.",
     default = true,
 ) {
     category("Interface")
@@ -294,6 +325,8 @@ val darkBackgroundPatch = bytecodePatch(
         val designColors = resolveDesignColors()
         // Only with the design colors hooked: the footer's hook only swaps the gray they hand out.
         val footer = designColors?.let { resolvePostFooterColor() }
+        val blogColors = resolveBlogColors()
+        val tagPages = resolveTagPageColors()
         hooks.activity.addInstructions(
             hooks.activityIndex,
             "invoke-static/range { v${hooks.activityRegister} .. v${hooks.activityRegister} }, $ACTIVITY_THEME_HOOK",
@@ -318,6 +351,21 @@ val darkBackgroundPatch = bytecodePatch(
                 read.index,
                 "invoke-static/range { v${read.register} .. v${read.register + 1} }, ${read.hook}\n" +
                     "move-result-wide v${read.register}",
+            )
+        }
+        for ((method, read) in blogColors) {
+            mutableOf(method).addInstructionsAtControlFlowLabel(
+                read.index,
+                "invoke-static/range { v${read.register} .. v${read.register} }, ${read.hook}\n" +
+                    "move-result v${read.register}",
+            )
+        }
+        // Last first, so a method's earlier read keeps its index if it ever has two.
+        for ((method, read) in tagPages.sortedByDescending { it.second.index }) {
+            mutableOf(method).addInstructions(
+                read.index,
+                "invoke-static/range { v${read.register} .. v${read.register} }, ${read.hook}\n" +
+                    "move-result-object v${read.register}",
             )
         }
         enableCapability("themeBackground")
@@ -528,6 +576,100 @@ internal fun BytecodePatchContext.resolvePostFooterColor(): Pair<Method, DesignC
         ?: return without("the post footer hands ${reads.size} design colors straight to a background instead of one")
     requireExtensionHook(PATCH, DESIGN_FOOTER_HOOK)
     return footer to read
+}
+
+/**
+ * Finds where a blog's page, title and link colors are worked out, or answers an empty list with a
+ * warning, which leaves blog pages their owners' colors and changes nothing else. All three or none:
+ * a page painted without its title and link colors hooked can leave a dark title invisible on it.
+ *
+ * Saving a theme compares two [BLOG_THEME]s and writes each changed value under its key, so the
+ * getter read right after a key is that color's. The function that turns it into the color screens
+ * use is the one static `(BlogTheme)int` beside the comparison that calls the getter. Every screen
+ * reads those functions, so each hook goes right before the return. The theme itself stays real: the
+ * customize screens and that comparison read the getters straight. In 46.9.1.100 those are `ey2.s`,
+ * `ey2.z` and `ey2.n`, found from `ey2.l` (2026-10-31).
+ */
+internal fun BytecodePatchContext.resolveBlogColors(): List<Pair<Method, DesignColorRead>> {
+    val colors = listOf(
+        BLOG_BACKGROUND_KEY to PAGE_COLOR_HOOK,
+        BLOG_TITLE_KEY to PAGE_TEXT_COLOR_HOOK,
+        BLOG_LINK_KEY to PAGE_TEXT_COLOR_HOOK,
+    )
+    val reads = colors.map { (key, hook) -> resolveBlogColor(key, hook) ?: return emptyList() }
+    colors.forEach { (_, hook) -> requireExtensionHook(PATCH, hook) }
+    return reads
+}
+
+/** The function that answers the blog color saved under [key], and where [hook] goes in it, or null with a warning. */
+private fun BytecodePatchContext.resolveBlogColor(key: String, hook: String): Pair<Method, DesignColorRead>? {
+    fun without(why: String): Pair<Method, DesignColorRead>? {
+        patchLog.warning("$PATCH: $why, so a blog's page keeps the color its owner chose")
+        return null
+    }
+    val twoThemes = listOf(BLOG_THEME, BLOG_THEME)
+    val comparisons = classDefByStrings(key)
+        .filter { !it.type.startsWith(EXTENSION_ROOT) }
+        .distinctBy { it.type }
+        .flatMap { owner ->
+            owner.methods.filter { method ->
+                method.isStatic() && method.parameterTypes.map(CharSequence::toString) == twoThemes &&
+                    key in method.strings()
+            }
+        }
+    val comparison = comparisons.singleOrNull()
+        ?: return without("${comparisons.size} functions compare two blog themes' $key instead of one")
+    val steps = comparison.instructionList()
+    val getter = steps.getOrNull(steps.indexOfFirst { it.stringRef() == key } + 1)?.methodRef()
+        ?.takeIf { it.definingClass == BLOG_THEME && it.hasShape(emptyList(), "Ljava/lang/String;") }
+        ?: return without("a blog theme's $key isn't read right after its key")
+    val readers = classDefByOrNull(comparison.definingClass)?.methods?.filter { method ->
+        method.isStatic() && method.hasShape(listOf(BLOG_THEME), "I") &&
+            method.instructionList().any { it.methodRef()?.sameAs(getter) == true }
+    } ?: emptyList()
+    val reader = readers.singleOrNull()
+        ?: return without("${readers.size} functions answer a blog's $key instead of one")
+    val body = reader.instructionList()
+    val kept = body.getOrNull(body.lastIndex - 1)?.takeIf { it.opcode == Opcode.MOVE_RESULT } as? OneRegisterInstruction
+    val returned = body.last().takeIf { it.opcode == Opcode.RETURN } as? OneRegisterInstruction
+    if (kept == null || returned == null || kept.registerA != returned.registerA) {
+        return without("the function that answers a blog's $key doesn't end by returning a call's answer")
+    }
+    return reader to DesignColorRead(body.lastIndex, kept.registerA, hook)
+}
+
+/**
+ * Finds where a tag page reads its background from its header, or answers an empty list with a
+ * warning, which leaves tag pages their own colors and changes nothing else.
+ *
+ * Every read of [HUB_HEADER]'s color is kept in a register and parsed later, so the hook goes right
+ * after the `move-result-object` and writes its answer back there. The JSON adapter's read stays
+ * real, so a header Tumblr writes out keeps its color. In 46.9.1.100 those are
+ * `HubContainerFragment.L5`, which paints the page's bars, and `HubTimelineFragment`'s `m9` and
+ * `getBackgroundColor` (2026-10-31).
+ */
+internal fun BytecodePatchContext.resolveTagPageColors(): List<Pair<Method, DesignColorRead>> {
+    val reads = mutableListOf<Pair<Method, DesignColorRead>>()
+    classDefForEach { owner ->
+        if (owner.type.startsWith(EXTENSION_ROOT) || owner.type.endsWith("JsonAdapter;")) return@classDefForEach
+        owner.methods.forEach { method ->
+            val body = method.instructionList()
+            body.indices.forEach { at ->
+                val call = body[at].methodRef()
+                if (call?.definingClass == HUB_HEADER && call.name == "getBackgroundColor" && call.hasShape(emptyList(), "Ljava/lang/String;")) {
+                    (body.getOrNull(at + 1)?.takeIf { it.opcode == Opcode.MOVE_RESULT_OBJECT } as? OneRegisterInstruction)?.let { kept ->
+                        reads += method to DesignColorRead(at + 2, kept.registerA, HUB_COLOR_HOOK)
+                    }
+                }
+            }
+        }
+    }
+    if (reads.isEmpty()) {
+        patchLog.warning("$PATCH: nothing reads a tag page header's color, so a tag's page keeps its own color")
+    } else {
+        requireExtensionHook(PATCH, HUB_COLOR_HOOK)
+    }
+    return reads
 }
 
 /** A static `(modifier, long, shape)` call answering the modifier's type, with the long in [register] and the one after. */

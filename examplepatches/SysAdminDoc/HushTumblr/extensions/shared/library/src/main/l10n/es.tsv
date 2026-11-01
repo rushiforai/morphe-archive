@@ -246,6 +246,22 @@ Hide blog notification reminders	Ocultar recordatorios de notificaciones de blog
 Hides the pop-up suggesting you turn on notifications for a blog. Your subscriptions and notification settings stay as they are.	Oculta la ventana que sugiere activar las notificaciones de un blog. Tus suscripciones y ajustes de notificaciones no cambian.
 Hide gift purchase popups	Ocultar ventanas de compra de regalos
 Hides the pop-up suggesting you buy a gift for a blog. You can still open gifting yourself.	Oculta la ventana que sugiere comprar un regalo para un blog. Puedes abrir la opción de regalos por tu cuenta.
+Line between posts	Línea entre publicaciones
+Draws a thin line in the gap between posts, so it's easier to see where one ends and the next begins.	Dibuja una línea fina en el espacio entre publicaciones, para ver mejor dónde termina una y empieza la siguiente.
+App font	Fuente de la app
+Replaces Tumblr's own font with your phone's font, or a font file you choose below. Fonts a post's author picked stay as they are.	Cambia la fuente de Tumblr por la de tu teléfono o por un archivo de fuente que elijas abajo. Las fuentes que eligió el autor de una publicación se quedan como están.
+Choose a font file	Elegir un archivo de fuente
+Uses your phone's font. Tap to pick a .ttf or .otf file.	Usa la fuente de tu teléfono. Toca para elegir un archivo .ttf u .otf.
+Using %1$s. Tap to pick another.	Usando %1$s. Toca para elegir otro.
+Use the phone's font	Usar la fuente del teléfono
+Forgets the chosen font file.	Olvida el archivo de fuente elegido.
+Font file saved.	Archivo de fuente guardado.
+Font file saved. Turn on App font to use it.	Guardado. Activa Fuente de la app para usarlo.
+Back to the phone's font.	De vuelta a la fuente del teléfono.
+Couldn't change the font. Try again.	No se pudo cambiar la fuente. Inténtalo de nuevo.
+Couldn't read that file. Try again.	No se pudo leer ese archivo. Inténtalo de nuevo.
+That isn't a font file. Nothing changed.	Eso no es un archivo de fuente. No cambió nada.
+That file is too big to be a font.	Ese archivo es demasiado grande para ser una fuente.
 Blog notification reminder	Recordatorio de notificaciones de un blog
 Gift purchase popup	Ventana de compra de regalos
 Stops the pop-up that asks what you think of the Tumblr app and then asks for a rating or feedback.	Evita la ventana emergente que pregunta qué opinas de la app de Tumblr y luego pide una valoración o comentarios.
@@ -319,6 +335,8 @@ Looks for: %1$s	Busca: %1$s
 # context: Dark background color turns the background of Tumblr's Dark Mode palette (Settings > Appearance) black, or a dark color chosen when the app was patched. Use Tumblr's own name for the Dark Mode palette in your language.
 Dark background color	Color de fondo oscuro
 Makes newly opened Dark Mode screens black, or the dark color picked when patching. Open screens keep their colors until Tumblr restarts.	Pone en negro las nuevas pantallas del modo oscuro, o usa el color oscuro elegido al aplicar los parches. Las pantallas abiertas conservan sus colores hasta que reinicies Tumblr.
+Match my wallpaper	Combinar con mi fondo de pantalla
+Takes the dark background from your wallpaper's colors in place of the one picked when patching. Needs Android 12 or newer and Dark background color on. A new wallpaper shows after Tumblr restarts.	Toma el fondo oscuro de los colores de tu fondo de pantalla en lugar del elegido al parchear. Necesita Android 12 o posterior y Color de fondo oscuro activado. Un fondo de pantalla nuevo se ve cuando Tumblr se reinicia.
 # context: the bottom bar's tabs. Hide the Explore tab and Hide the Notifications tab take one tab's button off the bar; Reorder the bottom bar puts the tabs in an order chosen in a list where a tap moves a tab one place up. Use Tumblr's own names for the tabs in your language.
 Hide the Explore tab	Ocultar la pestaña Explorar
 Takes the Explore and search button off the bottom bar.	Quita el botón de Explorar y búsqueda de la barra inferior.

@@ -37,7 +37,7 @@ import org.junit.experimental.categories.Category
 @Category(FixtureTests::class)
 class RootPostMutesFixtureTest {
     private val owners = setOf(POST, POST.removeSuffix(";") + "JsonAdapter;", ROOT_POST_WRAPPER, ROOT_MENU_OWNER,
-        LOCAL_TIMELINE, ROOT_TIMELINE_OBJECT, "Lbql;", "Lmuj;", "Lkf9;", "Ljlm;",
+        LOCAL_TIMELINE, ROOT_TIMELINE_OBJECT, "Lxrl;", "Liwj;", "Lag9;", "Lfnm;",
         "Lcom/tumblr/ui/widget/PostCardHeader;", "Lcom/tumblr/ui/fragment/TimelineFragment\$a;",
         "Lcom/tumblr/components/bottomsheet/b\$a;", "Lcom/tumblr/components/bottomsheet/b\$b;")
 
@@ -88,13 +88,13 @@ class RootPostMutesFixtureTest {
             assertEquals("$LOCAL_TIMELINE->z:Ljava/util/List;", snapshot[1].fieldRef().toString())
             assertEquals("Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V", snapshot[2].methodRef().toString())
             val local = timeline.methods.single { it.name == "hushApplyTimelineItems" }.instructionList()
-            assertEquals("Lbql;->FROM_CACHE:Lbql;", local[0].fieldRef().toString())
-            assertEquals("$LOCAL_TIMELINE->k6(Lbql;Ljava/util/List;)V", local[1].methodRef().toString())
-            assertTrue("Lkf9;" in context.mutableClassDefBy(ROOT_ACTION).interfaces)
+            assertEquals("Lxrl;->FROM_CACHE:Lxrl;", local[0].fieldRef().toString())
+            assertEquals("$LOCAL_TIMELINE->l6(Lxrl;Ljava/util/List;)V", local[1].methodRef().toString())
+            assertTrue("Lag9;" in context.mutableClassDefBy(ROOT_ACTION).interfaces)
             val add = context.mutableClassDefBy(ROOT_MENU).methods.single { it.name == "addNative" }.instructionList()
-            assertEquals("Lcom/tumblr/components/bottomsheet/b\$b;->c(Ljava/lang/String;Lkf9;)Lcom/tumblr/components/bottomsheet/b\$b;", add[1].methodRef().toString())
+            assertEquals("Lcom/tumblr/components/bottomsheet/b\$b;->c(Ljava/lang/String;Lag9;)Lcom/tumblr/components/bottomsheet/b\$b;", add[1].methodRef().toString())
             val unit = context.mutableClassDefBy(ROOT_MENU).methods.single { it.name == "unit" }.instructionList()
-            assertEquals("Ljlm;->a:Ljlm;", unit[0].fieldRef().toString())
+            assertEquals("Lfnm;->a:Lfnm;", unit[0].fieldRef().toString())
             for (name in listOf("muteRootPosts", "rootPostMutes")) assertEquals(1,
                 (context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }.instructionList().first() as NarrowLiteralInstruction).narrowLiteral)
         }
@@ -246,7 +246,7 @@ class RootPostMutesFixtureTest {
     fun `an append cache mode refuses before installing a local action`() {
         for (build in Fixtures.declaredBuilds()) {
             val context = PatchContexts.of(ExtensionDex.classes() + FixtureDex.classes(build, owners).values)
-            val mode = context.mutableClassDefBy("Lbql;").methods.single { it.name == "g" }
+            val mode = context.mutableClassDefBy("Lxrl;").methods.single { it.name == "g" }
             mode.replaceInstruction(4, "const/4 p0, 0x1")
             assertThrows(PatchException::class.java) { postJsonPresencePatch.execute(context); muteRootPostsPatch.execute(context) }
             assertUnchanged(context)
@@ -319,7 +319,7 @@ class RootPostMutesFixtureTest {
     private fun assertUnchanged(context: app.morphe.patcher.patch.BytecodePatchContext) {
         assertFalse(HUSH_ROOT_POST in context.mutableClassDefBy(POST).interfaces)
         assertFalse(HUSH_LOCAL_TIMELINE in context.mutableClassDefBy(LOCAL_TIMELINE).interfaces)
-        assertFalse("Lkf9;" in context.mutableClassDefBy(ROOT_ACTION).interfaces)
+        assertFalse("Lag9;" in context.mutableClassDefBy(ROOT_ACTION).interfaces)
         assertFalse(HUSH_ROOT_MENU_HOST in context.mutableClassDefBy(ROOT_MENU_CALLBACK).interfaces)
         assertFalse(context.mutableClassDefBy(ROOT_HEADER).methods.single { it.name == "H2" }.instructionList()
             .any { it.methodRef()?.toString() == ROOT_MENU_HOOK })

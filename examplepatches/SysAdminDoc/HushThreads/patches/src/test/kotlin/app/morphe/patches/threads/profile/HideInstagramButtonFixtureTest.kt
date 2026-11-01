@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PerBuild
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -64,8 +65,8 @@ class HideInstagramButtonFixtureTest {
             val register = (stockBody[guard] as OneRegisterInstruction).registerA
             val parameter = stock.parameterTypes.indices.single { stock.parameterRegisterNumber(it) == register }
             assertEquals("$where: the flag", "Z", stock.parameterTypes[parameter].toString())
-            // The sixth of its nine booleans on 450.
-            assertEquals(where, 24, parameter)
+            // The flag moved from parameter 24 on 452 to 20 on 453.
+            assertEquals(where, 20, parameter)
 
             val context = context(build)
             assertEquals(where, 0, status(context))
@@ -157,6 +158,6 @@ class HideInstagramButtonFixtureTest {
 
     private companion object {
         /** One read of each build serves every test; each test patches its own copy. */
-        val fixtures = mutableMapOf<File, List<ClassDef>>()
+        val fixtures = PerBuild<List<ClassDef>>()
     }
 }

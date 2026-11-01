@@ -1,0 +1,38 @@
+name: Release safety
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-notes:
+    name: Release notes guards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          # Audit the actual candidate, not GitHub's generated merge commit.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify commit authors and committers
+        run: node .github/scripts/verify_identity.cjs --history
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Test release notes and Morphe app scopes
+        run: node --test tests/test_release_branding.cjs tests/test_preview_release.cjs tests/test_identity.cjs tests/test_release_discovery.cjs
+      - name: Validate candidate release notes against source changes
+        run: node .github/scripts/preview_release_notes.cjs
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: release-notes-preview
+          path: build/release-safety/notes-preview.md

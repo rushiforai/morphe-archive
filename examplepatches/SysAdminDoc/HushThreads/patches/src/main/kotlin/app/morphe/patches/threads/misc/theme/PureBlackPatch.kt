@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.threads.ads.wordOffset
 import app.morphe.patches.threads.feed.reaching
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.extension.enableStatus
@@ -209,13 +210,21 @@ private fun BytecodePatchContext.schemeOnlyTheme(theme: Method, helpers: List<Me
 
     val body = theme.implementation!!.instructions.toList()
     val colorTypes = body.filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.getReference<TypeReference>()?.type }
-        .filter { isScheme(it) }.toSet()
+        .filter { type -> classDefByOrNull(type)?.methods?.any { method ->
+            method.name == "<init>" && method.parameterTypes.count { it.toString() == "J" } >= SCHEME_COLORS
+        } == true }
+        .toSet()
     for ((index, instruction) in body.withIndex()) {
         if (instruction.opcode != Opcode.INVOKE_DIRECT_RANGE) continue
         val method = instruction.getReference<MethodReference>()!!
         val call = instruction as RegisterRangeInstruction
-        if (method.definingClass !in colorTypes || method.name != "<init>" || method.parameterTypes.any { it.toString() != "J" }) continue
-        val forwarded = method.parameterTypes.indices.mapNotNull { theme.wideFieldOrigin(index, call.startRegister + 1 + 2 * it) }.toSet()
+        if (method.definingClass !in colorTypes || method.name != "<init>") continue
+        // 453 hands the colours to a palette constructor that takes a leading object, so an
+        // argument's register is its word offset, not twice its index.
+        val forwarded = method.parameterTypes.indices.mapNotNull { parameter ->
+            if (method.parameterTypes[parameter].toString() != "J") return@mapNotNull null
+            theme.wideFieldOrigin(index, call.startRegister + 1 + method.wordOffset(parameter))
+        }.toSet()
         if (forwarded.containsAll(backgrounds)) return true
     }
     return false

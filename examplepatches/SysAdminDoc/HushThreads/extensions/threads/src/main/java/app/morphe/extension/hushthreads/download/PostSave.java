@@ -7,6 +7,7 @@ package app.morphe.extension.hushthreads.download;
 import android.content.Context;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -28,7 +29,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * manifest and what names the file. A post with one photo or video saves it as a single file. A
  * post with more saves all of them as one batch on one worker, in page order, with one Cancel
  * ({@link MediaSave#saveBatch}), and each file's name ends with the post's number and the page's
- * place, so two posts saved at once never mix their files or their names.
+ * place, so two posts saved at once never mix their files or their names. A post with no media of
+ * its own saves the post it shows in its body: a linked Instagram post, or an attached, reposted
+ * or quoted one.
  *
  * <p>Every entry point fails closed: until the settings are ready, while HushThreads is paused,
  * with the switch off, or when something throws, the menu has no row and a tap saves nothing.
@@ -74,6 +77,18 @@ public final class PostSave {
         Long takenAt(Object media);
 
         String username(Object user);
+
+        Object textPostInfo(Object media);
+
+        Object linkedInlineMedia(Object info);
+
+        Object shareInfo(Object info);
+
+        Object quotedAttachmentPost(Object share);
+
+        Object repostedPost(Object share);
+
+        Object quotedPost(Object share);
     }
 
     /** The patch's bridges, as built: null and 0 until the patch writes their bodies. */
@@ -93,28 +108,33 @@ public final class PostSave {
         @Override public Object owner(Object media) { return InstagramMedia.owner(media); }
         @Override public Long takenAt(Object media) { return InstagramMedia.takenAt(media); }
         @Override public String username(Object user) { return InstagramMedia.username(user); }
+        @Override public Object textPostInfo(Object media) { return InstagramMedia.textPostInfo(media); }
+        @Override public Object linkedInlineMedia(Object info) { return InstagramMedia.linkedInlineMedia(info); }
+        @Override public Object shareInfo(Object info) { return InstagramMedia.shareInfo(info); }
+        @Override public Object quotedAttachmentPost(Object share) { return InstagramMedia.quotedAttachmentPost(share); }
+        @Override public Object repostedPost(Object share) { return InstagramMedia.repostedPost(share); }
+        @Override public Object quotedPost(Object share) { return InstagramMedia.quotedPost(share); }
     };
 
     /** The reader every entry point uses. A test sets its own and puts this back. */
     static volatile Reader reader = BRIDGES;
+
+    /** How far a post's linked posts are followed: a repost of a quote of a linked video is as deep as Threads goes. */
+    private static final int LINK_DEPTH = 3;
 
     /** What a page of a post saves: its video, its picture, or nothing the bridges can read. */
     enum Kind { VIDEO, PHOTO, NONE }
 
     /**
      * Whether the post menu shows the row: {@link Settings#SAVE_MEDIA} is on and the post, or a
-     * page of it, has a photo or video the bridges can read. Called while Compose draws, on the main
-     * thread: cheap, never throws, false on anything odd.
+     * page of it, or a post it shows in its body, has a photo or video the bridges can read. Called
+     * while Compose draws, on the main thread: cheap, never throws, false on anything odd.
      */
     public static boolean canSave(Object media) {
         try {
             HookStatus.invoked(FamilyNames.SAVE_MEDIA);
             if (media == null || !on()) return false;
-            Reader read = reader;
-            for (Object page : pages(read, media)) {
-                if (kind(read, page) != Kind.NONE) return true;
-            }
-            return false;
+            return withMedia(reader, media, LINK_DEPTH) != null;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.SAVE_MEDIA, "post menu", failure);
             return false;
@@ -128,7 +148,7 @@ public final class PostSave {
     public static String label(Object media) {
         try {
             Reader read = reader;
-            List<?> pages = media == null ? Collections.emptyList() : pages(read, media);
+            List<?> pages = media == null ? Collections.emptyList() : pages(read, saved(read, media));
             if (pages.size() > 1) return L10n.t("Save all");
             return !pages.isEmpty() && kind(read, pages.get(0)) == Kind.VIDEO
                     ? L10n.t("Save video") : L10n.t("Save photo");
@@ -155,7 +175,8 @@ public final class PostSave {
                 return;
             }
             Reader read = reader;
-            List<?> pages = new ArrayList<>(pages(read, media));
+            Object post = saved(read, media);
+            List<?> pages = new ArrayList<>(pages(read, post));
             if (pages.size() > MediaSave.MAX_BATCH_PAGES) {
                 Feedback.show(shown, L10n.f(shown, "Not saved: a carousel can have at most %1$d pages",
                         MediaSave.MAX_BATCH_PAGES), true);
@@ -163,13 +184,13 @@ public final class PostSave {
             }
             boolean started;
             if (pages.size() == 1) {
-                started = saveOne(read, shown, pages.get(0), media);
+                started = saveOne(read, shown, pages.get(0), post);
             } else {
                 List<MediaSave.Item> items = new ArrayList<>(pages.size());
-                for (Object page : pages) items.add(item(read, page, media));
+                for (Object page : pages) items.add(item(read, page, post));
                 final int count = items.size();
                 Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "post save tapped: " + count + " pages");
-                started = MediaSave.saveBatch(shown, items, read.mediaId(media), null);
+                started = MediaSave.saveBatch(shown, items, read.mediaId(post), null);
             }
             if (!started) failed(shown);
         } catch (Throwable failure) {
@@ -237,6 +258,48 @@ public final class PostSave {
     static List<?> pages(Reader read, Object media) {
         List<?> carousel = read.carouselMedia(media);
         return carousel == null || carousel.isEmpty() ? Collections.singletonList(media) : carousel;
+    }
+
+    /**
+     * The post a save of [media] reads: [media] when it has media of its own or nothing shows in
+     * its place, or the post that does. A file saved this way is named for that post and its poster.
+     */
+    static Object saved(Reader read, Object media) {
+        Object post = withMedia(read, media, LINK_DEPTH);
+        return post != null ? post : media;
+    }
+
+    /**
+     * [post] if a page of it has a photo or video, or else the first post it shows in its body
+     * that does, or null. A post's own media always comes first: a post that quotes a video and has
+     * a photo of its own saves the photo.
+     */
+    private static Object withMedia(Reader read, Object post, int depth) {
+        if (post == null) return null;
+        for (Object page : pages(read, post)) {
+            if (kind(read, page) != Kind.NONE) return post;
+        }
+        if (depth == 0) return null;
+        for (Object linked : linked(read, post)) {
+            Object found = withMedia(read, linked, depth - 1);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    /**
+     * The posts [post] shows in its body, in the order a save tries them: the Instagram post it
+     * links, then the post it attaches, reposts or quotes. Each may be null. A Threads post with a
+     * video from any of these has no {@code video_versions} of its own.
+     */
+    private static List<Object> linked(Reader read, Object post) {
+        Object info = read.textPostInfo(post);
+        if (info == null) return Collections.emptyList();
+        Object share = read.shareInfo(info);
+        return share == null
+                ? Collections.singletonList(read.linkedInlineMedia(info))
+                : Arrays.asList(read.linkedInlineMedia(info), read.quotedAttachmentPost(share),
+                        read.repostedPost(share), read.quotedPost(share));
     }
 
     /**

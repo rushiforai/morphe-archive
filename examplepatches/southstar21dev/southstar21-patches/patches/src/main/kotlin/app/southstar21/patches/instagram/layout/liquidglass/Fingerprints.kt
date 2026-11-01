@@ -22,10 +22,3 @@ internal object ExtendContentFingerprint : Fingerprint(
     name = "extendContentBehindBar",
     returnType = "Z",
 )
-
-internal object EnforceTextureViewFingerprint : Fingerprint(
-    definingClass = "Lcom/instagram/ui/simplevideolayout/SimpleVideoLayout;",
-    name = "getEnforceTextureView",
-    returnType = "Z",
-    parameters = listOf(),
-)

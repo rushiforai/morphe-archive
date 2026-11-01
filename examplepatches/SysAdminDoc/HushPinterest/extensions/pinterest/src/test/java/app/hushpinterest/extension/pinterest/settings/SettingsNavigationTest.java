@@ -1236,6 +1236,7 @@ public class SettingsNavigationTest {
 
     @Test public void interfaceRowsNameTheirOwnSurfaceAndRefreshBoundary() {
         summaryContains(Settings.HIDE_SCREENSHOT_SHARE.key, "share a screenshot", "Restart Pinterest", "Screenshots still work");
+        summaryContains(Settings.HIDE_ASSISTANT.key, "AI Assistant", "next time the screen updates", "Search works as usual");
         summaryContains(Settings.HIDE_SEARCH_HISTORY.key, "recent searches", "next time the screen updates", "doesn't delete your account's search history");
         summaryContains(Settings.HIDE_NAV_CREATE.key, "Create in the bottom bar", "next time the bar updates");
         summaryContains(Settings.HIDE_NAV_NOTIFICATIONS.key, "Notifications in the bottom bar", "next time the bar updates");
@@ -1252,6 +1253,8 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_PIN_MENU_PIN_BOOST.key, "Promote pin", "pin menus you open from now on", "already open won't change");
         summaryContains(Settings.COPY_IMAGE.key, "full-size picture on the clipboard", "Needs Download pins on", "Videos don't get the row");
         summaryContains(Settings.SHARE_IMAGE.key, "full-size picture itself, not a link", "Android's share menu", "Needs Download pins on", "Videos don't get the row");
+        summaryContains(Settings.SAVE_DOWNLOADED_PINS.key, "also saves it to your profile", "Grid and board downloads", "Needs Download pins on");
+        summaryContains(Settings.DOWNLOAD_SAVED_PINS.key, "also downloads it", "from any screen", "Needs Download pins on");
         summaryContains(Settings.LONG_PRESS_HIDE_SAVE.key, "Pinterest's Save button", "long-press menu", "Saving from the pin itself still works");
         summaryContains(Settings.LONG_PRESS_HIDE_SEND.key, "Pinterest's Send button", "long-press menu", "Sharing from the pin itself still works");
         summaryContains(Settings.LONG_PRESS_HIDE_SEARCH.key, "Pinterest's Search image button", "long-press menu", "The lens on a pin you open still searches");

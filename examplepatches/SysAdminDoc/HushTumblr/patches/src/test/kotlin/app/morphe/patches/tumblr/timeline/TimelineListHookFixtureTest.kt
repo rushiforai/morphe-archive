@@ -10,6 +10,7 @@ import app.morphe.FixtureDex
 import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.tumblr.ads.hideAdsPatch
 import app.morphe.patches.tumblr.lookup.instructionList
 import app.morphe.patches.tumblr.lookup.methodRef
@@ -26,6 +27,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -40,9 +42,9 @@ class TimelineListHookFixtureTest {
     @Test
     fun `each declared build filters both timeline pages' items first thing and Hide ads turns on`() {
         for (build in Fixtures.declaredBuilds()) {
-            val types = TIMELINE_LISTS.map { it.substringBefore("->") }.toSet()
+            val types = TIMELINE_LISTS.map { it.substringBefore("->") }.toSet() + DIRECT_POST_QUERY
             val classes = FixtureDex.classes(build, types)
-            assertEquals("${build.name}: both timeline classes", types, classes.keys)
+            assertEquals("${build.name}: both timeline classes and the one post query", types, classes.keys)
             val originals = TIMELINE_LISTS.associateWith { constructor ->
                 classes.getValue(constructor.substringBefore("->")).methods.single { it.identity() == constructor }
             }
@@ -90,7 +92,7 @@ class TimelineListHookFixtureTest {
             }
             assertEquals("${build.name}: the subclasses", setOf("PostsResponse", "LikesResponse", "BlogSearchResponse"),
                 subclasses.map { it.type.substringAfterLast('/').removeSuffix(";") }.toSet())
-            val types = TIMELINE_LISTS.map { it.substringBefore("->") }.toSet()
+            val types = TIMELINE_LISTS.map { it.substringBefore("->") }.toSet() + DIRECT_POST_QUERY
             val context = PatchContexts.of(ExtensionDex.classes() + FixtureDex.classes(build, types).values + subclasses)
             timelineListHookPatch.execute(context)
 
@@ -112,6 +114,47 @@ class TimelineListHookFixtureTest {
                 assertEquals("${subclass.type}: back into the items", items, (body[1] as OneRegisterInstruction).registerA)
                 assertEquals("${subclass.type}: what follows is Tumblr's own code", before.map { it.opcode },
                     body.drop(2).map { it.opcode })
+            }
+        }
+    }
+
+    /**
+     * A link or a notification opens one post through one query. Right before it asks, the id it's
+     * asking for goes to the extension, and nothing else in it moves.
+     */
+    @Test
+    fun `each declared build tells the filter which post a link or notification opens`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val types = TIMELINE_LISTS.map { it.substringBefore("->") }.toSet() + DIRECT_POST_QUERY
+            val context = PatchContexts.of(ExtensionDex.classes() + FixtureDex.classes(build, types).values)
+            val plan = context.resolveDirectPost()
+            assertEquals(build.name, DIRECT_POST_QUERY, plan.query.definingClass)
+            val before = plan.query.instructionList().toList()
+            val asked = before[plan.ask] as FiveRegisterInstruction
+            assertEquals("${build.name}: the id is the call's last argument", plan.id, asked.registerE)
+
+            timelineListHookPatch.execute(context)
+
+            val after = plan.query.instructionList()
+            assertEquals(build.name, DIRECT_POST_HOOK, after[plan.ask].methodRef()?.let {
+                "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" })
+            val told = after[plan.ask] as RegisterRangeInstruction
+            assertEquals("${build.name}: on the id", listOf(asked.registerE, 1), listOf(told.startRegister, told.registerCount))
+            assertEquals("${build.name}: Tumblr's own code", before.map { it.opcode },
+                after.filterIndexed { at, _ -> at != plan.ask }.map { it.opcode })
+        }
+    }
+
+    @Test
+    fun `a build without the one post query refuses before any edit`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val types = TIMELINE_LISTS.map { it.substringBefore("->") }.toSet()
+            val context = PatchContexts.of(ExtensionDex.classes() + FixtureDex.classes(build, types).values)
+            assertThrows(PatchException::class.java) { timelineListHookPatch.execute(context) }
+            for (constructor in TIMELINE_LISTS) {
+                val body = context.mutableClassDefBy(constructor.substringBefore("->")).methods
+                    .single { it.identity() == constructor }.instructionList()
+                assertTrue("${build.name}: $constructor stays as it was", body.none { it.methodRef()?.name == "filter" })
             }
         }
     }
@@ -174,6 +217,7 @@ class TimelineListHookFixtureTest {
 
 private val CONSTANT_NAME = Regex("[A-Z][A-Z0-9_]+")
 
+private const val DIRECT_POST_QUERY = "Lcom/tumblr/ui/fragment/PostPermalinkTimelineFragment\$a;"
 private const val MODEL = "Lcom/tumblr/rumblr/model"
 private const val SPONSORED = "SPONSORED"
 private const val OBJECT_TYPE = "$MODEL/TimelineObjectType;"
@@ -186,7 +230,7 @@ private val FILTER_READS = mapOf(
         "getDisplay()$MODEL/Display;",
         "getDisplayType()$MODEL/post/DisplayType;",
     ),
-    "$MODEL/Timelineable;" to listOf("getTimelineObjectType()$MODEL/TimelineObjectType;"),
+    "$MODEL/Timelineable;" to listOf("getTimelineObjectType()$MODEL/TimelineObjectType;", "getId()Ljava/lang/String;"),
     "$MODEL/Display;" to listOf("getSponsored()$MODEL/SponsoredState;"),
     "$MODEL/GenericButton;" to listOf("getButton()$MODEL/GenericButton\$Button;"),
     "$MODEL/GenericButton\$Button;" to listOf("getLinks()$MODEL/GenericButton\$Button\$Links;"),

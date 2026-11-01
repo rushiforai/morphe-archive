@@ -45,7 +45,7 @@ internal object AppCompatibilities {
     const val TUMBLR_SIGNER_SHA256 = "39ac9c821ad2d605e4849f066e8aad3cca27d5e13eb03ad8755be234a2985dfd"
 
     /** The newest Tumblr build every patch here was applied to and read against. */
-    const val TUMBLR_TARGET_VERSION = "46.8.1.100"
+    const val TUMBLR_TARGET_VERSION = "46.9.1.100"
 
     /**
      * The version code of the [TUMBLR_TARGET_VERSION] bundle. Tumblr ships one split bundle for
@@ -53,7 +53,7 @@ internal object AppCompatibilities {
      * arm64-v8a, armeabi-v7a, x86 and x86_64, so the one code stands for all four ABIs. Unlike
      * Facebook's per-ABI builds, the DEX is the same on each.
      */
-    const val TUMBLR_TARGET_VERSION_CODE = 1460801100
+    const val TUMBLR_TARGET_VERSION_CODE = 1460901100
 
     /**
      * Tumblr's own floor on this build, Android 8.0. Manager offers the patches only where the

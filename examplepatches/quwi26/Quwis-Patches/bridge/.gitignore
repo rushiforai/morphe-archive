@@ -1,0 +1,4 @@
+# Everything personal or big stays on your own machine.
+node_modules/
+token.txt
+stockfish*.exe

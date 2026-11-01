@@ -30,7 +30,7 @@ public final class RootMuteDexFixture {
     private static final String LOCAL_BRIDGE = BASE + "rootmute/HushLocalTimeline;", LOCAL = "Lcom/tumblr/ui/fragment/TimelineFragment;";
     private static final String MENU_HOST = BASE + "rootmute/HushRootMenuHost;", MENU_OWNER = "Lcom/tumblr/ui/fragment/TimelineFragment$a;";
     private static final String HEADER = "Lcom/tumblr/ui/widget/PostCardHeader;";
-    private static final String ITEM = "Lcom/tumblr/rumblr/model/TimelineObject;", MODE = "Lbql;", CALLBACK = "Lkf9;", UNIT = "Ljlm;";
+    private static final String ITEM = "Lcom/tumblr/rumblr/model/TimelineObject;", MODE = "Lxrl;", CALLBACK = "Lag9;", UNIT = "Lfnm;";
     private static final String BUILDER = "Lcom/tumblr/components/bottomsheet/b$b;", CONCRETE = "Lcom/tumblr/components/bottomsheet/b$a;";
     private static final String SHEET = "Lcom/tumblr/components/bottomsheet/b;", UTILS = "Lapp/hushtumblr/extension/shared/Utils;";
     private static final int PUBLIC = AccessFlags.PUBLIC.getValue(), STATIC = AccessFlags.STATIC.getValue();
@@ -118,25 +118,25 @@ public final class RootMuteDexFixture {
                 call(Opcode.INVOKE_VIRTUAL, POST, names[i], i == 3 ? LIST : STRING, new int[]{3})));
         writer.add(end());
         classes.put(ADAPTER, clazz(ADAPTER, List.of(), List.of(), List.of(
-                method(ADAPTER, "toJson", "V", PUBLIC, 4, writer, "Lb9b;", OBJECT))));
+                method(ADAPTER, "toJson", "V", PUBLIC, 4, writer, "Ldab;", OBJECT))));
         List<Instruction> constructor = code(call(Opcode.INVOKE_DIRECT, OBJECT, "<init>", "V", new int[]{7}), end());
         List<Method> wrapped = new ArrayList<>();
         if (patched) {
             constructor.addAll(1, code(new ImmutableInstruction3rc(fault.equals("wrapper-current-id") ? Opcode.INVOKE_VIRTUAL_RANGE : Opcode.INVOKE_INTERFACE_RANGE,
                             8, 1, AccountDexFixture.ref(fault.equals("wrapper-current-id") ? POST : ROOT_BRIDGE,
                             fault.equals("wrapper-current-id") ? "z0" : "hushRootId", STRING)), result(0),
-                    field(Opcode.IPUT_OBJECT, 0, fault.equals("wrapper-wrong-receiver") ? 8 : 7, "Lrc1;", "hushCanonicalRoot", STRING)));
-            wrapped.add(method("Lrc1;", "hushRootId", STRING, PUBLIC, 2,
-                    code(field(Opcode.IGET_OBJECT, 0, 1, "Lrc1;", "hushCanonicalRoot", STRING), returns(0))));
+                    field(Opcode.IPUT_OBJECT, 0, fault.equals("wrapper-wrong-receiver") ? 8 : 7, "Led1;", "hushCanonicalRoot", STRING)));
+            wrapped.add(method("Led1;", "hushRootId", STRING, PUBLIC, 2,
+                    code(field(Opcode.IGET_OBJECT, 0, 1, "Led1;", "hushCanonicalRoot", STRING), returns(0))));
         }
-        wrapped.add(method("Lrc1;", "<init>", "V", PUBLIC | AccessFlags.CONSTRUCTOR.getValue(), 9, constructor, POST));
-        classes.put("Lrc1;", clazz("Lrc1;", patched ? List.of(TIMELINEABLE, ROOT_BRIDGE) : List.of(TIMELINEABLE), patched
-                ? List.of(member("Lrc1;", "hushCanonicalRoot", STRING, AccessFlags.PRIVATE.getValue() | AccessFlags.FINAL.getValue())) : List.of(), wrapped));
+        wrapped.add(method("Led1;", "<init>", "V", PUBLIC | AccessFlags.CONSTRUCTOR.getValue(), 9, constructor, POST));
+        classes.put("Led1;", clazz("Led1;", patched ? List.of(TIMELINEABLE, ROOT_BRIDGE) : List.of(TIMELINEABLE), patched
+                ? List.of(member("Led1;", "hushCanonicalRoot", STRING, AccessFlags.PRIVATE.getValue() | AccessFlags.FINAL.getValue())) : List.of(), wrapped));
         classes.put(ITEM, clazz(ITEM, List.of(), List.of(), List.of(method(ITEM, "getData", TIMELINEABLE, PUBLIC, 2,
                 code(integer(0, 0), returns(0))), method(ITEM, "getName", STRING, PUBLIC, 2, code(integer(0, 0), returns(0))))));
-        classes.put("Lmuj;", clazz("Lmuj;", List.of(), List.of(), List.of(method("Lmuj;", "l", TIMELINEABLE, PUBLIC, 2,
+        classes.put("Liwj;", clazz("Liwj;", List.of(), List.of(), List.of(method("Liwj;", "l", TIMELINEABLE, PUBLIC, 2,
                 code(integer(0, 0), returns(0))))));
-        classes.put("Lhyf;", clazz("Lhyf;", "Lmuj;", List.of(), List.of(), List.of()));
+        classes.put("Lyzf;", clazz("Lyzf;", "Liwj;", List.of(), List.of(), List.of()));
     }
 
     private static void local(Map<String, ClassDef> classes, boolean patched, String fault) {
@@ -147,17 +147,17 @@ public final class RootMuteDexFixture {
         body.set(55, call(Opcode.INVOKE_INTERFACE, LIST, "clear", "V", new int[]{0}));
         body.set(56, field(Opcode.IGET_OBJECT, 0, 3, LOCAL, "z", LIST));
         body.set(57, call(Opcode.INVOKE_INTERFACE, LIST, "addAll", "Z", new int[]{0, 5}, "Ljava/util/Collection;"));
-        body.set(58, call(Opcode.INVOKE_DIRECT, LOCAL, "Z6", "V", new int[]{3, 4, 5}, MODE, LIST)); body.set(59, end());
+        body.set(58, call(Opcode.INVOKE_DIRECT, LOCAL, "a7", "V", new int[]{3, 4, 5}, MODE, LIST)); body.set(59, end());
         List<Instruction> render = AccountDexFixture.nops(46);
-        render.set(0, call(Opcode.INVOKE_VIRTUAL, LOCAL, "g6", "V", new int[]{9}));
+        render.set(0, call(Opcode.INVOKE_VIRTUAL, LOCAL, "h6", "V", new int[]{9}));
         render.set(1, move(5, 9)); render.set(2, move(6, 11)); render.set(3, move(7, 10)); render.set(4, move(8, 11));
         render.set(5, move(9, 11)); render.set(6, integer(10, 0)); render.set(7, integer(11, 0));
         render.set(8, new ImmutableInstruction3rc(Opcode.INVOKE_VIRTUAL_RANGE, 5, 7,
-                AccountDexFixture.ref(LOCAL, "a7", "V", LIST, MODE, LIST, LIST, "I", "I"))); render.set(45, end());
-        List<Method> methods = new ArrayList<>(List.of(method(LOCAL, "k6", "V", AccessFlags.PROTECTED.getValue(), 6, body, MODE, LIST),
-                method(LOCAL, "Z6", "V", AccessFlags.PRIVATE.getValue(), 12, render, MODE, LIST),
-                method(LOCAL, "g6", "V", AccessFlags.PROTECTED.getValue(), 1, code(end())),
-                method(LOCAL, "a7", "V", AccessFlags.PROTECTED.getValue(), 7, code(end()), LIST, MODE, LIST, LIST, "I", "I")));
+                AccountDexFixture.ref(LOCAL, "b7", "V", LIST, MODE, LIST, LIST, "I", "I"))); render.set(45, end());
+        List<Method> methods = new ArrayList<>(List.of(method(LOCAL, "l6", "V", AccessFlags.PROTECTED.getValue(), 6, body, MODE, LIST),
+                method(LOCAL, "a7", "V", AccessFlags.PRIVATE.getValue(), 12, render, MODE, LIST),
+                method(LOCAL, "h6", "V", AccessFlags.PROTECTED.getValue(), 1, code(end())),
+                method(LOCAL, "b7", "V", AccessFlags.PROTECTED.getValue(), 7, code(end()), LIST, MODE, LIST, LIST, "I", "I")));
         // Muting a root can empty a page, so this fragment carries the page delivery and its paging question too.
         methods.addAll(FeatureDexFixture.pagingMethods(patched ? "good" : "clean"));
         if (patched) {
@@ -167,7 +167,7 @@ public final class RootMuteDexFixture {
                             call(Opcode.INVOKE_DIRECT, "Ljava/util/ArrayList;", "<init>", "V", new int[]{0, 1}, "Ljava/util/Collection;"), returns(0))));
             methods.add(method(LOCAL, "hushApplyTimelineItems", "V", PUBLIC, 3,
                     code(staticField(0, MODE, fault.equals("append-local-rebind") ? "PAGINATION" : "FROM_CACHE", MODE),
-                            call(Opcode.INVOKE_VIRTUAL, LOCAL, "k6", "V", new int[]{1, 0, 2}, MODE, LIST), end()), LIST));
+                            call(Opcode.INVOKE_VIRTUAL, LOCAL, "l6", "V", new int[]{1, 0, 2}, MODE, LIST), end()), LIST));
         }
         classes.put(LOCAL, clazz(LOCAL, patched ? List.of(LOCAL_BRIDGE) : List.of(),
                 List.of(member(LOCAL, "z", LIST, AccessFlags.PROTECTED.getValue()), member(LOCAL, "other", LIST, AccessFlags.PROTECTED.getValue())), methods));
@@ -196,18 +196,18 @@ public final class RootMuteDexFixture {
         if (patched) menu.addAll(fault.equals("late-menu-hook") ? 227 : 225,
                 code(move(0, fault.equals("wrong-menu-card") ? 25 : 24), move(1, 17),
                         call(Opcode.INVOKE_STATIC, MENU, "add", "V", new int[]{fault.equals("wrong-menu-builder") ? 10 : 11, 0, 10, 1}, OBJECT, OBJECT, CONTEXT, OBJECT)));
-        classes.put("Lleh;", clazz("Lleh;", List.of(), List.of(), List.of(method("Lleh;", "y", "V", PUBLIC | STATIC, 28, menu,
-                "Lcom/tumblr/ui/fragment/c;", "Lcom/tumblr/rumblr/TumblrPostNotesService;", "Lleh$a;", "Lpeh;", STRING, STRING, STRING,
-                "Lhyf;", "Lavb;", "Lcom/tumblr/analytics/ScreenType;", "Lzz1;"))));
+        classes.put("Lcgh;", clazz("Lcgh;", List.of(), List.of(), List.of(method("Lcgh;", "y", "V", PUBLIC | STATIC, 28, menu,
+                "Lcom/tumblr/ui/fragment/c;", "Lcom/tumblr/rumblr/TumblrPostNotesService;", "Lcgh$a;", "Lggh;", STRING, STRING, STRING,
+                "Lyzf;", "Lcwb;", "Lcom/tumblr/analytics/ScreenType;", "Lm02;"))));
         classes.put(BUILDER, clazz(BUILDER, List.of(), List.of(), List.of(
                 method(BUILDER, "c", BUILDER, PUBLIC, 3, code(returns(0)), STRING, CALLBACK),
                 method(BUILDER, "h", SHEET, PUBLIC, 2, code(integer(0, 0), returns(0))))));
         classes.put(CONCRETE, clazz(CONCRETE, BUILDER, List.of(), List.of(), List.of(method(CONCRETE, "<init>", "V",
                 PUBLIC | AccessFlags.CONSTRUCTOR.getValue(), 2, code(call(Opcode.INVOKE_DIRECT, OBJECT, "<init>", "V", new int[]{0}), end()), CONTEXT))));
         if (!patched) return;
-        List<Instruction> card = code(new ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 2, new ImmutableTypeReference("Lhyf;")),
-                new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 1), type(Opcode.CHECK_CAST, 2, "Lhyf;"),
-                call(Opcode.INVOKE_VIRTUAL, "Lmuj;", "l", TIMELINEABLE, new int[]{2}), result(0), new ImmutableInstruction10t(Opcode.GOTO, 1),
+        List<Instruction> card = code(new ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 2, new ImmutableTypeReference("Lyzf;")),
+                new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 1), type(Opcode.CHECK_CAST, 2, "Lyzf;"),
+                call(Opcode.INVOKE_VIRTUAL, "Liwj;", "l", TIMELINEABLE, new int[]{2}), result(0), new ImmutableInstruction10t(Opcode.GOTO, 1),
                 new ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 2, new ImmutableTypeReference(ITEM)),
                 new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 1), type(Opcode.CHECK_CAST, 2, ITEM),
                 call(Opcode.INVOKE_VIRTUAL, ITEM, fault.equals("wrong-card-payload") ? "getName" : "getData",
@@ -252,7 +252,7 @@ public final class RootMuteDexFixture {
         header.set(160, new ImmutableInstruction21t(Opcode.IF_EQZ, 8,
                 offset(header, 160, headerHook && fault.equals("bypassed-redesigned-hook") ? 166 : 164)));
         classes.put(HEADER, clazz(HEADER, "Landroid/view/View;", List.of(), List.of(), List.of(method(HEADER, "H2", "V",
-                AccessFlags.PRIVATE.getValue(), 29, header, "Lpqm;", "Lhyf;", "Lhll;", "Lghe;", "Lyt2;", "Ljql;", "Lavb;", "Lzz1;"))));
+                AccessFlags.PRIVATE.getValue(), 29, header, "Llsm;", "Lyzf;", "Ldnl;", "Lxie;", "Llu2;", "Lfsl;", "Lcwb;", "Lm02;"))));
 
         List<Instruction> owned = AccountDexFixture.nops(321);
         owned.set(0, move(0, 20)); owned.set(1, move(2, 21));
@@ -281,10 +281,10 @@ public final class RootMuteDexFixture {
         List<Method> methods = new ArrayList<>(List.of(method(MENU_OWNER, "<init>", "V", AccessFlags.CONSTRUCTOR.getValue(), 2,
                 code(field(Opcode.IPUT_OBJECT, patched && fault.equals("wrong-menu-owner-constructor") ? 0 : 1, 0, MENU_OWNER, "a", LOCAL),
                         call(Opcode.INVOKE_DIRECT, OBJECT, "<init>", "V", new int[]{0}), end()), LOCAL),
-                method(MENU_OWNER, "a", "V", PUBLIC, 26, owned, "Lhyf;", "Z", "Z", "Z", STRING)));
+                method(MENU_OWNER, "a", "V", PUBLIC, 26, owned, "Lyzf;", "Z", "Z", "Z", STRING)));
         if (patched && !fault.equals("missing-menu-owner-getter")) methods.add(method(MENU_OWNER, "hushTimelineOwner", LOCAL_BRIDGE, PUBLIC, 2,
                 code(field(Opcode.IGET_OBJECT, 0, 1, MENU_OWNER, fault.equals("wrong-menu-owner-field") ? "other" : "a", LOCAL), returns(0))));
-        classes.put(MENU_OWNER, clazz(MENU_OWNER, patched && !fault.equals("missing-menu-owner-interface") ? List.of("Lghe;", MENU_HOST) : List.of("Lghe;"),
+        classes.put(MENU_OWNER, clazz(MENU_OWNER, patched && !fault.equals("missing-menu-owner-interface") ? List.of("Lxie;", MENU_HOST) : List.of("Lxie;"),
                 List.of(member(MENU_OWNER, "a", LOCAL, patched && fault.equals("mutable-menu-owner") ? 0 : AccessFlags.FINAL.getValue()),
                         member(MENU_OWNER, "other", LOCAL, AccessFlags.FINAL.getValue())), methods));
         if (patched) classes.put(MENU_HOST, contract(MENU_HOST, new String[]{"hushTimelineOwner"}, new String[]{LOCAL_BRIDGE}, new String[][]{new String[0]}));
@@ -296,7 +296,7 @@ public final class RootMuteDexFixture {
         models(classes, patched, fault); FeatureDexFixture.addPostJsonPresence(classes, patched, fault);
         local(classes, patched, fault); menus(classes, patched, fault);
         ClassDef callback = contract(CALLBACK, new String[]{"invoke"}, new String[]{OBJECT}, new String[][]{new String[0]});
-        classes.put(CALLBACK, new ImmutableClassDef(CALLBACK, callback.getAccessFlags(), OBJECT, List.of("Lmf9;"), null, Set.of(), List.of(), callback.getMethods()));
+        classes.put(CALLBACK, new ImmutableClassDef(CALLBACK, callback.getAccessFlags(), OBJECT, List.of("Lcg9;"), null, Set.of(), List.of(), callback.getMethods()));
         classes.put(UNIT, clazz(UNIT, List.of(), List.of(member(UNIT, "a", UNIT, PUBLIC | STATIC | AccessFlags.FINAL.getValue()),
                 member(UNIT, "other", UNIT, PUBLIC | STATIC | AccessFlags.FINAL.getValue())), List.of()));
         if (!patched) return classes;
@@ -309,7 +309,7 @@ public final class RootMuteDexFixture {
         if (fault.equals("wrong-account-uuid")) edit(classes, AccountDexFixture.USER, "hushAccountId", body -> {
             body.set(0, field(Opcode.IGET_OBJECT, 0, 1, AccountDexFixture.USER, "E", STRING)); return body;
         });
-        if (fault.equals("missing-account-cleanup")) edit(classes, "Liu5;", "accept", body -> {
+        if (fault.equals("missing-account-cleanup")) edit(classes, "Lvu5;", "accept", body -> {
             body.set(7, AccountDexFixture.hook("commitAccount")); return body;
         });
         return classes;

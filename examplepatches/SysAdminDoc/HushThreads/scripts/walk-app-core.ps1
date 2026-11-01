@@ -13,7 +13,7 @@ $WalkPackage = 'com.instagram.barcelona'
 $WalkMainActivity = 'com.instagram.barcelona.mainactivity.BarcelonaActivity'
 $WalkOpenSettingsExtra = 'app.morphe.extension.hushthreads.OPEN_SETTINGS'
 
-# The Threads screens the walk opens by link, in order. Each link was read from Threads 452's
+# The Threads screens the walk opens by link, in order. Each link was read from Threads 453's
 # manifest (BarcelonaUrlHandlerActivity and the threads.com app links). The post is a public one
 # on a public account, so opening it reaches nobody. A screen counts as open only when the dump
 # holds its screen's id (ExpectId) and, when given, a node whose text matches Expect: a link
@@ -28,15 +28,16 @@ $WalkScreens = @(
 )
 
 # Threads' own buttons from the feed to the HushThreads row in Threads' settings, the way a user
-# gets in. No link opens Threads' settings in 452: barcelona://settings and settings_2 land on the
-# feed. These and the HushThreads settings page rows are the only nodes the walk taps, each only
+# gets in. No link opens Threads' settings in 453: barcelona://settings doesn't resolve and
+# settings_2 lands on the feed. These and the HushThreads settings page rows are the only nodes the
+# walk taps, each only
 # on the screen its Beside id marks. On someone else's profile the same settings id is their menu
 # (block, report), so the profile's button is tapped only beside the own profile's Edit profile.
 # Finding a step's node shows the screen named by Shows was reached.
 $WalkSettingsPath = @(
-    [pscustomobject]@{ Name = 'the Profile tab'; Id = 'barcelona_tab_profile'; Text = ''; Desc = ''; Beside = 'tabs_screen'; Shows = $null }
-    [pscustomobject]@{ Name = "the profile's Settings button"; Id = 'profile_screen_profile_settings'; Text = ''; Desc = 'Settings'; Beside = 'profile_screen_edit_profile_button'; Shows = $null }
-    [pscustomobject]@{ Name = "the HushThreads row in Threads' settings"; Id = 'ig_text'; Text = 'HushThreads'; Desc = ''; Beside = 'SettingsScreen'; Shows = "Threads' settings" }
+    [pscustomobject]@{ Name = 'the Profile tab'; Id = 'barcelona_tab_profile'; Text = ''; Desc = ''; Beside = 'tabs_screen'; Shows = $null; Scrolls = $false }
+    [pscustomobject]@{ Name = "the profile's Settings button"; Id = 'profile_screen_profile_settings'; Text = ''; Desc = 'Settings'; Beside = 'profile_screen_edit_profile_button'; Shows = $null; Scrolls = $false }
+    [pscustomobject]@{ Name = "the HushThreads row in Threads' settings"; Id = 'ig_text'; Text = 'HushThreads'; Desc = ''; Beside = 'SettingsScreen'; Shows = "Threads' settings"; Scrolls = $true }
 )
 
 function Get-WalkSections {
@@ -52,6 +53,12 @@ function Get-WalkSections {
     $names = @([regex]::Matches($source, '(?m)^\s*section\(\s*"((?:[^"\\]|\\.)+)"\s*,') | ForEach-Object { [regex]::Unescape($_.Groups[1].Value) })
     if ($names.Count -eq 0) { throw "SettingsNavigation.java names no settings pages: $path" }
     $names
+}
+
+function Get-WalkExpectedScreens {
+    param([Parameter(Mandatory = $true)][string]$Root)
+    @($WalkScreens | ForEach-Object { $_.Name }) + @("Threads' settings", 'Settings: home') +
+        @(Get-WalkSections -Root $Root | ForEach-Object { "Settings: $_" })
 }
 
 function ConvertFrom-UiDump {
@@ -134,6 +141,36 @@ function Find-WalkPathNode {
     @($Nodes | Where-Object { $_.Id -ceq $Step.Id -and (Test-WalkTapAllowed -Node $_ -Sections @() -Nodes $Nodes) }) | Select-Object -First 1
 }
 
+function Wait-WalkStep {
+    <#
+    .SYNOPSIS
+        Waits for a step of $WalkSettingsPath, answering as Wait-WalkScreen does.
+    .DESCRIPTION
+        A step that scrolls may sit below the fold of a short screen, so once its own screen is up
+        the list gets swiped until the row shows or a swipe changes nothing. No other screen is
+        swiped: the swipe is only ever on the screen the step names.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]$Step, [Parameter(Mandatory = $true)][scriptblock]$Read, [Parameter(Mandatory = $true)][scriptblock]$Swipe,
+        [int]$Seconds = 20, [int]$PauseMilliseconds = 2000, [int]$MaxSwipes = 8
+    )
+    $seen = Wait-WalkScreen -Read $Read -Seconds $Seconds -PauseMilliseconds $PauseMilliseconds -Test {
+        param($dump)
+        (Find-WalkPathNode -Nodes $dump -Step $Step) -or
+            ($Step.Scrolls -and @($dump | Where-Object { $_.Id -ceq $Step.Beside -and $_.Package -ceq $WalkPackage }).Count -gt 0)
+    }
+    $current = @($seen.Nodes)
+    $found = $seen.Found -and [bool](Find-WalkPathNode -Nodes $current -Step $Step)
+    for ($swipes = 0; $seen.Found -and -not $found -and $swipes -lt $MaxSwipes; $swipes++) {
+        $before = Get-UiFingerprint -Nodes $current
+        & $Swipe
+        $current = @(& $Read)
+        $found = [bool](Find-WalkPathNode -Nodes $current -Step $Step)
+        if ((Get-UiFingerprint -Nodes $current) -ceq $before) { break }
+    }
+    [pscustomobject]@{ Found = $found; Nodes = $current; Unread = $current.Count -eq 0 }
+}
+
 function Test-WalkScreenShown {
     <#
     .SYNOPSIS
@@ -143,6 +180,31 @@ function Test-WalkScreenShown {
     $ours = @($Nodes | Where-Object { $_.Package -ceq $WalkPackage })
     @($ours | Where-Object { $_.Id -ceq $Screen.ExpectId }).Count -gt 0 -and
         (-not $Screen.Expect -or @(Find-UiNode -Nodes $ours -Label $Screen.Expect).Count -gt 0)
+}
+
+function Wait-WalkScreen {
+    <#
+    .SYNOPSIS
+        Reads the screen until -Test passes on what -Read returns, or -Seconds run out.
+    .DESCRIPTION
+        A screen still drawing reads as the one before it, and a playing video keeps uiautomator from
+        reading anything, so one read after a fixed wait fails a screen that opened fine. Answers
+        Found, the Nodes of the last read, and Unread when that read got nothing at all, which isn't
+        the same as reading a screen without the thing in it.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][scriptblock]$Read, [Parameter(Mandatory = $true)][scriptblock]$Test,
+        [int]$Seconds = 20, [int]$PauseMilliseconds = 2000
+    )
+    $deadline = [DateTimeOffset]::UtcNow.AddSeconds($Seconds)
+    while ($true) {
+        $seen = @(& $Read)
+        $found = $seen.Count -gt 0 -and [bool](& $Test $seen)
+        if ($found -or [DateTimeOffset]::UtcNow -ge $deadline) {
+            return [pscustomobject]@{ Found = $found; Nodes = $seen; Unread = $seen.Count -eq 0 }
+        }
+        Start-Sleep -Milliseconds $PauseMilliseconds
+    }
 }
 
 function Get-WalkSettingsPage {

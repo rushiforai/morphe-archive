@@ -1530,7 +1530,7 @@ public class DexDiff {
             } else {
                 System.out.println("[diff] " + rule + ": right after it on v" + register + " in " + only.method);
             }
-        } else if (!callSites(body, contract.replaced).isEmpty()) {
+        } else if (!callSitesMatching(body, contract.replaced).isEmpty()) {
             System.out.println("[diff] " + rule + ": " + only.method + " still calls " + contract.replaced);
             findings.add("contract: " + only.method + " still calls " + contract.replaced + ", which "
                     + contract.callee + " stands in for");
@@ -1565,6 +1565,22 @@ public class DexDiff {
             Instruction i = body.get(k);
             if (i.getOpcode().name.startsWith("invoke") && i instanceof ReferenceInstruction
                     && ((ReferenceInstruction) i).getReference().toString().equals(callee)) sites.add(k);
+        }
+        return sites;
+    }
+
+    /** The index in [body] of each invoke whose reference [pattern] matches, a * standing for any run. */
+    private static List<Integer> callSitesMatching(List<Instruction> body, String pattern) {
+        if (pattern.indexOf('*') < 0) return callSites(body, pattern);
+        StringBuilder regex = new StringBuilder();
+        String[] literals = pattern.split("\\*", -1);
+        for (int n = 0; n < literals.length; n++) regex.append(n == 0 ? "" : ".*").append(java.util.regex.Pattern.quote(literals[n]));
+        java.util.regex.Pattern shape = java.util.regex.Pattern.compile(regex.toString());
+        List<Integer> sites = new ArrayList<>();
+        for (int k = 0; k < body.size(); k++) {
+            Instruction i = body.get(k);
+            if (i.getOpcode().name.startsWith("invoke") && i instanceof ReferenceInstruction
+                    && shape.matcher(((ReferenceInstruction) i).getReference().toString()).matches()) sites.add(k);
         }
         return sites;
     }
@@ -1607,7 +1623,7 @@ public class DexDiff {
                 for (Method m : cd.getMethods()) {
                     if (!sig(cd, m).equals(method)) continue;
                     List<Instruction> body = instructions(m);
-                    for (int at : callSites(body, callee)) calls.add(callRegisters(body.get(at)));
+                    for (int at : callSitesMatching(body, callee)) calls.add(callRegisters(body.get(at)));
                 }
             }
         }
@@ -1971,6 +1987,8 @@ public class DexDiff {
     private static final Map<String, List<String>> POST_FIELDS = new HashMap<>();
     private static final String ENDPOINT = "Lapp/morphe/extension/hushthreads/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String;";
     private static final String SIGNERS = "Lapp/morphe/extension/hushthreads/misc/ThreadsSignature;->originalSigners(Landroid/content/pm/PackageInfo;)Ljava/util/List;";
+    private static final String OPEN_REFUSED_TILE = "Lapp/morphe/extension/hushthreads/coexist/ShareTiles;->openRefused(ZLandroid/content/Context;Landroid/content/Intent;)V";
+    private static final String TILE_COMPOSER_EXTRA = "DirectPrivateStoryRecipientFragment.DIRECT_SHOULD_SHOW_MESSAGE_COMPOSER";
     private static final String LOGGING_URL = "https://graph.facebook.com/logging_client_events";
     private static final String RETURN_REFRESH = "Lapp/morphe/extension/hushthreads/feed/ReturnRefresh;->";
     private static final String HOLD_HOT_START = RETURN_REFRESH + "holdHotStart()Z";
@@ -4092,54 +4110,97 @@ public class DexDiff {
                 "null signers do not fall back to the original body");
         featureBody(stock, actual, 9, Map.of(), SIGNERS);
         featureHostCalls(patched, SIGNERS, Map.of(featureSig(stock), 1));
+        featureShareTiles(clean, patched);
+    }
+
+    private static boolean featureIsShareTiles(Method m) {
+        return m.getName().equals("invokeSuspend") && holds(m, "com.facebook.orca", TILE_COMPOSER_EXTRA);
     }
 
     /**
-     * Open links in browser: Threads' browser launcher asks the extension first. Its first six
-     * instructions copy the context and the link into two locals, call the extension, and return
-     * when the link went out. A kept link falls through to the stock launcher, unchanged.
+     * Share tiles on a re-signed build: each launch in the tiles' lambda hands the launcher's answer
+     * and the same context and intent to the extension, the answer in a register nothing reads after
+     * it, and nothing else in the lambda changes. Nothing else in Threads calls the extension.
+     */
+    private static void featureShareTiles(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
+        Method stock = featureTarget(clean, DexDiff::featureIsShareTiles, "share tile launches");
+        FeatureFlow flow = new FeatureFlow(stock);
+        List<Instruction> code = instructions(stock);
+        Map<Integer, FeatureBlock> hooks = new HashMap<>();
+        for (int k = 0; k < code.size(); k++) {
+            if (code.get(k).getOpcode() != Opcode.INVOKE_VIRTUAL) continue;
+            MethodReference called = (MethodReference) ((ReferenceInstruction) code.get(k)).getReference();
+            if (!called.getReturnType().equals("Z") || !called.getDefiningClass().startsWith("LX/")
+                    || !called.getParameterTypes().stream().map(CharSequence::toString).toList().equals(List.of("Landroid/content/Context;", "Landroid/content/Intent;"))) continue;
+            int[] launch = invokeRegisters(code.get(k));
+            int next = k + 1;
+            hooks.put(next, (body, at) -> {
+                requireFeature(at + 1 < body.size() && body.get(at).getOpcode() == Opcode.MOVE_RESULT,
+                        "the share tile launch before original instruction " + next + " drops its answer");
+                int answer = registerA(body.get(at));
+                requireFeature(isStaticInvoke(body.get(at + 1).getOpcode()) && reference(body.get(at + 1)).equals(OPEN_REFUSED_TILE)
+                        && Arrays.equals(invokeRegisters(body.get(at + 1)), new int[]{answer, launch[1], launch[2]}),
+                        "the share tile launch before original instruction " + next + " doesn't hand its answer, context and intent to " + OPEN_REFUSED_TILE);
+                requireFeature(flow.readsFrom(next, answer).isEmpty(), "the share tile hook clobbers v" + answer + ", which is read after it");
+                return 2;
+            });
+        }
+        requireFeature(!hooks.isEmpty(), featureSig(stock) + " has no share tile launch");
+        featureBody(stock, featureMethod(patched, featureSig(stock)), 0, Map.of(), OPEN_REFUSED_TILE, null, hooks);
+        featureHostCalls(patched, OPEN_REFUSED_TILE, Map.of(featureSig(stock), hooks.size()));
+    }
+
+    /**
+     * Open links in browser: Threads' browser launcher asks the extension first. Its first seven
+     * instructions copy this into a local, read the context and the link from the launcher's fields,
+     * call the extension, and return when the link went out. A kept link falls through to the stock
+     * launcher, unchanged.
      */
     private static void featureBrowser(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
-        Method stock = featureTarget(clean, m -> AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getReturnType().equals("V")
-                && holds(m, LAUNCHER_MESSAGE), "browser launcher");
-        requireFeature(stock.getParameterTypes().size() > 0 && stock.getParameterTypes().get(0).equals("Landroid/content/Context;")
-                && stock.getParameterTypes().stream().noneMatch(p -> p.equals("J") || p.equals("D")),
-                "browser launcher takes no context first");
-        int locals = stock.getImplementation().getRegisterCount() - stock.getParameterTypes().size();
-        int link = featureLauncherLink(stock, locals);
+        Method stock = featureTarget(clean, m -> !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getReturnType().equals("V")
+                && m.getParameterTypes().isEmpty() && holds(m, LAUNCHER_MESSAGE), "browser launcher");
+        int locals = stock.getImplementation().getRegisterCount() - 1;
+        String linkField = featureLauncherLink(stock);
+        String contextField = featureOne(instructions(stock).stream().filter(i -> i instanceof ReferenceInstruction r
+                && r.getReference() instanceof FieldReference f && f.getType().equals("Landroid/content/Context;")).map(DexDiff::reference).distinct().toList(),
+                "browser launcher's context field");
         Method actual = featureMethod(patched, featureSig(stock));
         List<Instruction> body = instructions(actual);
-        requireFeature(body.size() >= 6 && body.get(0).getOpcode() == Opcode.MOVE_OBJECT_FROM16
-                && body.get(1).getOpcode() == Opcode.MOVE_OBJECT_FROM16 && isStaticInvoke(body.get(2).getOpcode())
-                && reference(body.get(2)).equals(OPEN_LINK) && body.get(3).getOpcode() == Opcode.MOVE_RESULT
-                && body.get(4).getOpcode() == Opcode.IF_EQZ && body.get(5).getOpcode() == Opcode.RETURN_VOID,
-                "browser launcher hook is missing");
-        TwoRegisterInstruction context = (TwoRegisterInstruction) body.get(0), url = (TwoRegisterInstruction) body.get(1);
-        int result = ((OneRegisterInstruction) body.get(3)).getRegisterA();
-        requireFeature(context.getRegisterB() == locals && url.getRegisterB() == link
-                && Arrays.equals(invokeRegisters(body.get(2)), new int[]{context.getRegisterA(), url.getRegisterA()})
+        requireFeature(body.size() >= 7 && body.subList(0, 7).stream().map(Instruction::getOpcode).toList().equals(List.of(
+                Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID))
+                && reference(body.get(3)).equals(OPEN_LINK), "browser launcher hook is missing");
+        TwoRegisterInstruction self = (TwoRegisterInstruction) body.get(0), context = (TwoRegisterInstruction) body.get(1), url = (TwoRegisterInstruction) body.get(2);
+        int result = registerA(body.get(4));
+        requireFeature(self.getRegisterB() == locals && self.getRegisterA() < locals
+                && context.getRegisterB() == self.getRegisterA() && url.getRegisterB() == self.getRegisterA()
+                && reference(body.get(1)).equals(contextField) && reference(body.get(2)).equals(linkField)
+                && Arrays.equals(invokeRegisters(body.get(3)), new int[]{context.getRegisterA(), url.getRegisterA()})
                 && context.getRegisterA() != url.getRegisterA() && context.getRegisterA() < locals && url.getRegisterA() < locals
-                && result < locals && ((OneRegisterInstruction) body.get(4)).getRegisterA() == result,
+                && result < locals && registerA(body.get(5)) == result,
                 "browser launcher hook passes the wrong context or link");
         Layout layout = new Layout(actual.getImplementation());
-        requireFeature(layout.addresses.get(4) + ((OffsetInstruction) body.get(4)).getCodeOffset() == layout.addresses.get(6),
-                "a link that stays doesn't fall through to the launcher");
-        featureBody(stock, actual, 6, Map.of(), OPEN_LINK);
+        requireFeature(browserDestination(layout, 5) == 7, "a link that stays doesn't fall through to the launcher");
+        featureBody(stock, actual, 7, Map.of(), OPEN_LINK);
         Map<String, Integer> expected = new HashMap<>(Map.of(featureSig(stock), 1));
         BrowserSites direct = featureBrowserSites(clean, stock);
         for (BrowserSite site : direct.hooks()) {
             Method changed = featureMethod(patched, featureSig(site.stock()));
-            List<Instruction> now = instructions(changed);
-            featureBrowserGuard(site, changed, now);
-            if (site.entry()) featureBody(site.stock(), changed, 6, Map.of(), OPEN_LINK);
-            else featureBody(site.stock(), changed, 0, Map.of(), OPEN_LINK, null, Map.of(site.at(), (b, n) -> 6));
+            int size = featureBrowserGuard(site, changed, instructions(changed));
+            if (site.at() == 0) featureBody(site.stock(), changed, size, Map.of(), OPEN_LINK);
+            else featureBody(site.stock(), changed, 0, Map.of(), OPEN_LINK, null, Map.of(site.at(), (b, n) -> size));
             expected.put(featureSig(site.stock()), 1);
         }
         for (Method kept : direct.kept()) featureBody(kept, featureMethod(patched, featureSig(kept)), 0, Map.of(), "");
         featureHostCalls(patched, OPEN_LINK, expected);
     }
 
-    private record BrowserSite(Method stock, int at, int done, int context, int url, boolean entry) {}
+    /**
+     * A place that makes the browser's Intent without the launcher asking first. [field] names the
+     * String field a site reads its link from, at the start of a method that answers true when the
+     * link went out; such a site has no [url] or [done], -1 for both. Any other site has its link in
+     * [url] and goes on to [done], its own ending for an opened browser.
+     */
+    private record BrowserSite(Method stock, int at, int done, int context, int url, String field) {}
     private record BrowserSites(List<BrowserSite> hooks, List<Method> kept) {}
     private static final String BROWSER_FACTORY_NOTE = "BrowserLiteIntent.OPEN_WITH_URL";
     private static final String BROWSER_AD_NOTE = "AdClickHandler.openWebLink missing webUri for AD_DESTINATION_WEB";
@@ -4149,7 +4210,7 @@ public class DexDiff {
     /** Independently identify the current direct callers and their success exits from the clean APK. */
     private static BrowserSites featureBrowserSites(Map<String, List<Method>> clean, Method launcher) {
         Method factory = featureTarget(clean, m -> AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getReturnType().equals("Landroid/content/Intent;")
-                && m.getParameterTypes().size() == 9 && holds(m, "TrackingInfo.ARG_MODULE_NAME", BROWSER_FACTORY_NOTE), "browser Intent factory");
+                && m.getParameterTypes().size() == 10 && holds(m, "TrackingInfo.ARG_MODULE_NAME", BROWSER_FACTORY_NOTE), "browser Intent factory");
         String target = featureSig(factory);
         FeatureFlow factoryFlow = new FeatureFlow(factory);
         List<Instruction> made = instructions(factory);
@@ -4158,105 +4219,168 @@ public class DexDiff {
             return p.getReturnType().equals("Landroid/net/Uri;") && p.getParameterTypes().equals(List.of("Ljava/lang/String;"));
         }).toList(), "browser factory URI parser");
         requireFeature(factoryFlow.parameterOnEveryPath(parser, invokeRegisters(made.get(parser))[0], browserParameter(factory, 5)), "browser factory parses the wrong URL parameter");
-        List<Method> callers = clean.values().stream().flatMap(List::stream).filter(m -> !callSites(instructions(m), target).isEmpty()).toList();
-        requireFeature(callers.size() == 5 && callers.stream().mapToInt(m -> callSites(instructions(m), target).size()).sum() == 6,
+        List<Method> everything = clean.values().stream().flatMap(List::stream).toList();
+        List<Method> callers = everything.stream().filter(m -> !callSites(instructions(m), target).isEmpty()).toList();
+        requireFeature(callers.size() == 5 && callers.stream().mapToInt(m -> callSites(instructions(m), target).size()).sum() == 5,
                 "browser factory caller census changed");
-        requireFeature(callSites(instructions(launcher), target).size() == 2, "launcher no longer owns both browser modes");
-        Method lead = featureOne(callers.stream().filter(m -> AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getParameterTypes().size() == 4
-                && m.getReturnType().equals("V") && holds(m, "android.intent.action.VIEW")).toList(), "lead/policy browser");
-        Method ad = featureOne(callers.stream().filter(m -> !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getReturnType().equals("V")
-                && m.getParameterTypes().size() == 8).toList(), "ad browser");
+        String launcherClass = launcher.getDefiningClass();
+        Method helper = featureOne(callers.stream().filter(m -> m.getDefiningClass().equals(launcherClass)).toList(), "launcher's browser Intent helper");
+        Method builder = featureOne(callers.stream().filter(m -> m != helper && !AccessFlags.STATIC.isSet(m.getAccessFlags())
+                && m.getReturnType().equals("Landroid/content/Intent;")).toList(), "ad browser Intent builder");
         Method media = featureOne(callers.stream().filter(m -> m.getName().equals("invokeSuspend") && m.getReturnType().equals("Ljava/lang/Object;")
                 && holds(m, "AD_DESTINATION_WEB")).toList(), "media ad browser");
         Method immersive = featureOne(callers.stream().filter(m -> holdsNote(m, BROWSER_IMMERSIVE_NOTE)).toList(), "immersive browser");
-        requireFeature(new HashSet<>(callers).equals(Set.of(launcher, lead, ad, media, immersive)), "unexpected direct browser caller");
+        Method lead = featureOne(callers.stream().filter(m -> m.getName().equals("invoke") && m.getReturnType().equals("Ljava/lang/Object;")
+                && holds(m, "android.intent.action.VIEW")).toList(), "lead/policy browser");
+        requireFeature(new HashSet<>(callers).equals(new HashSet<>(List.of(helper, builder, media, immersive, lead))), "unexpected direct browser caller");
+
+        // The web link an ad request gives the launcher, by the constructor argument the link field gets.
         Method request = featureTarget(clean, m -> holds(m, BROWSER_AD_NOTE), "ad web request");
         List<Instruction> requested = instructions(request);
-        int requestAt = featureOne(callSites(requested, featureSig(launcher)), "ad web launcher request");
-        int requestUrl = invokeRegisters(requested.get(requestAt))[featureLauncherLink(launcher, browserParameter(launcher, 0)) - browserParameter(launcher, 0)];
+        Method constructor = featureOne(everything.stream().filter(m -> m.getDefiningClass().equals(launcherClass) && m.getName().equals("<init>")).toList(),
+                "browser launcher's constructor");
+        featureOne(callSites(requested, featureSig(launcher)), "ad web launcher request");
+        int requestAt = featureOne(callSites(requested, featureSig(constructor)), "ad web launcher construction");
+        List<Instruction> building = instructions(constructor);
+        String linkField = featureLauncherLink(launcher);
+        int stored = featureOne(java.util.stream.IntStream.range(0, building.size()).boxed().filter(n -> building.get(n).getOpcode() == Opcode.IPUT_OBJECT
+                && reference(building.get(n)).equals(linkField)).toList(), "browser launcher's link store");
+        int requestUrl = invokeRegisters(requested.get(requestAt))[registerA(building.get(stored)) - browserParameter(constructor, 0) + 1];
         int webRead = browserOrigin(new FeatureFlow(request), requestAt, requestUrl);
         requireFeature(webRead >= 0 && requested.get(webRead).getOpcode() == Opcode.IGET_OBJECT, "ad web request no longer reads a CTA field");
         String webField = reference(requested.get(webRead));
+
         List<BrowserSite> hooks = new ArrayList<>();
-        int leadAt = featureOne(callSites(instructions(lead), target), "lead/policy factory call");
-        int[] leadArgs = invokeRegisters(instructions(lead).get(leadAt));
-        FeatureFlow leadFlow = new FeatureFlow(lead);
-        requireFeature(leadFlow.parameterOnEveryPath(leadAt, leadArgs[0], browserParameter(lead, 0))
-                && leadFlow.parameterOnEveryPath(leadAt, leadArgs[5], browserParameter(lead, 3))
-                && !callSites(instructions(lead), "Landroid/content/Context;->startActivity(Landroid/content/Intent;)V").isEmpty(), "lead/policy URL or fallback changed");
-        hooks.add(new BrowserSite(lead, 0, featureOne(java.util.stream.IntStream.range(0, instructions(lead).size()).boxed()
-                .filter(n -> instructions(lead).get(n).getOpcode() == Opcode.RETURN_VOID).toList(), "lead/policy return"), browserParameter(lead, 0), browserParameter(lead, 3), true));
-        for (Method m : List.of(ad, media)) {
-            List<Instruction> body = instructions(m);
-            FeatureFlow flow = new FeatureFlow(m);
-            int at = featureOne(callSites(body, target), "CTA factory call");
-            int[] args = invokeRegisters(body.get(at));
-            int url = browserOrigin(flow, at, args[5]);
-            requireFeature(url >= 0 && body.get(url).getOpcode() == Opcode.IGET_OBJECT && reference(body.get(url)).equals(webField), "browser CTA uses the wrong web field");
-            FieldReference field = (FieldReference) ((ReferenceInstruction) body.get(url)).getReference();
-            requireFeature(field.getType().equals("Ljava/lang/String;"), "browser CTA URL is not a string");
-            // The destination check reads the same call to action the link comes from.
-            int cta = browserOrigin(flow, url, ((TwoRegisterInstruction) body.get(url)).getRegisterB());
-            int guard = featureOne(java.util.stream.IntStream.range(3, at).boxed().filter(n -> body.get(n).getOpcode() == Opcode.IF_NE
-                    && body.get(n - 1).getOpcode() == Opcode.SGET_OBJECT && body.get(n - 2).getOpcode() == Opcode.MOVE_RESULT_OBJECT
-                    && body.get(n - 3) instanceof ReferenceInstruction r && r.getReference() instanceof MethodReference getter
-                    && getter.getDefiningClass().equals(field.getDefiningClass()) && getter.getParameterTypes().isEmpty()
-                    && ((FieldReference) ((ReferenceInstruction) body.get(n - 1)).getReference()).getType().equals(getter.getReturnType())
-                    && browserOrigin(flow, n - 3, invokeRegisters(body.get(n - 3))[0]) == cta).toList(), "browser web CTA guard");
-            requireFeature(browserDominates(flow, guard, at), "browser skips the web CTA guard");
-            int failed = browserDestination(flow.layout, guard), done;
-            requireFeature(m.getImplementation().getTryBlocks().isEmpty(), "CTA hook has an unproved handler");
-            if (m == ad) {
-                requireFeature(flow.parameterOnEveryPath(at, args[0], browserParameter(m, 0)), "ad browser uses the wrong Context");
-                // A link that went out ends the way an ad with no web link does, at that branch's return.
-                done = failed;
-                requireFeature(body.get(done).getOpcode() == Opcode.RETURN_VOID, "ad browser's no-web completion is not a plain return");
-            } else {
-                int self = browserParameter(m, 0) - 1;
-                int context = browserOrigin(flow, at, args[0]);
-                requireFeature(context >= 0 && body.get(context).getOpcode() == Opcode.IGET_OBJECT
-                        && ((FieldReference) ((ReferenceInstruction) body.get(context)).getReference()).getType().equals("Landroid/content/Context;")
-                        && flow.parameterOnEveryPath(context, ((TwoRegisterInstruction) body.get(context)).getRegisterB(), self), "media browser uses the wrong Context");
-                done = featureOne(java.util.stream.IntStream.range(0, body.size() - 4).boxed().filter(n -> body.get(n).getOpcode() == Opcode.CONST_4
-                        && ((WideLiteralInstruction) body.get(n)).getWideLiteral() == 1 && body.get(n + 1).getOpcode() == Opcode.MOVE_OBJECT_FROM16
-                        && body.get(n + 2) instanceof ReferenceInstruction r && r.getReference() instanceof MethodReference setter
-                        && setter.getParameterTypes().equals(List.of(BROWSER_STATE, "Z")) && body.get(n + 4).getOpcode() == Opcode.RETURN_OBJECT).toList(), "media opened=true completion");
-                int saved = ((TwoRegisterInstruction) body.get(done + 1)).getRegisterB();
-                int state = browserOrigin(flow, at, saved);
-                requireFeature(state >= 0 && state == browserOrigin(flow, done + 1, saved)
-                        && body.get(state).getOpcode() == Opcode.IGET_OBJECT
-                        && ((FieldReference) ((ReferenceInstruction) body.get(state)).getReference()).getType().equals(BROWSER_STATE)
-                        && flow.parameterOnEveryPath(state, ((TwoRegisterInstruction) body.get(state)).getRegisterB(), self), "media completion state is not initialized before the handoff");
-                requireFeature(body.get(failed).getOpcode() == Opcode.CONST_4 && ((WideLiteralInstruction) body.get(failed)).getWideLiteral() == 0
-                        && registerA(body.get(failed)) == registerA(body.get(done)) && browserDestination(flow.layout, failed + 1) == done + 1, "media no-open tail changed");
-            }
-            hooks.add(new BrowserSite(m, at, done, args[0], args[5], false));
-        }
-        return new BrowserSites(hooks, List.of(factory, immersive, request));
+        hooks.add(featureBrowserLead(lead, target));
+        hooks.add(featureBrowserAd(everything, builder, target));
+        hooks.add(featureBrowserMedia(media, target, webField));
+        return new BrowserSites(hooks, List.of(factory, immersive, request, helper, builder));
     }
 
-    private static void featureBrowserGuard(BrowserSite site, Method changed, List<Instruction> body) {
+    /**
+     * The lead form and privacy policy helper, one case of a merged lambda: it reads the link from its
+     * own String field, an empty string standing in on the way there when the field is null.
+     */
+    private static BrowserSite featureBrowserLead(Method lead, String target) {
+        List<Instruction> body = instructions(lead);
+        FeatureFlow flow = new FeatureFlow(lead);
+        int at = featureOne(callSites(body, target), "lead/policy factory call");
+        int[] args = invokeRegisters(body.get(at));
+        Set<Integer> links = browserOrigins(flow, at, args[5], new HashSet<>());
+        java.util.function.IntPredicate own = n -> n >= 0 && body.get(n).getOpcode() == Opcode.IGET_OBJECT
+                && ((ReferenceInstruction) body.get(n)).getReference() instanceof FieldReference f
+                && f.getType().equals("Ljava/lang/String;") && f.getDefiningClass().equals(lead.getDefiningClass());
+        requireFeature(links.stream().anyMatch(own::test) && links.stream().allMatch(n -> own.test(n) || n >= 0
+                && (body.get(n).getOpcode() == Opcode.CONST_STRING || body.get(n).getOpcode() == Opcode.CONST_STRING_JUMBO)), "lead/policy URL or fallback changed");
+        int ending = java.util.stream.IntStream.range(at + 1, body.size()).filter(n -> (body.get(n).getOpcode() == Opcode.GOTO
+                || body.get(n).getOpcode() == Opcode.GOTO_16 || body.get(n).getOpcode() == Opcode.GOTO_32) && browserDestination(flow.layout, n) > n).findFirst().orElse(-1);
+        requireFeature(ending >= 0 && callSites(body, "Landroid/content/Context;->startActivity(Landroid/content/Intent;)V").stream().anyMatch(n -> n > at && n < ending),
+                "lead/policy browser has no successful ending");
+        return new BrowserSite(lead, at, browserDestination(flow.layout, ending), args[0], args[5], null);
+    }
+
+    /**
+     * The ad browser: [builder] makes the Intent from its class's own String field, and the method
+     * of that class taking the Activity and calling the builder opens it, so the hook goes first
+     * thing in there.
+     */
+    private static BrowserSite featureBrowserAd(List<Method> everything, Method builder, String target) {
+        List<Instruction> body = instructions(builder);
+        int at = featureOne(callSites(body, target), "ad browser factory call");
+        int url = browserOrigin(new FeatureFlow(builder), at, invokeRegisters(body.get(at))[5]);
+        requireFeature(url >= 0 && body.get(url).getOpcode() == Opcode.IGET_OBJECT, "ad browser gets a link other than a field");
+        FieldReference field = (FieldReference) ((ReferenceInstruction) body.get(url)).getReference();
+        requireFeature(field.getType().equals("Ljava/lang/String;") && field.getDefiningClass().equals(builder.getDefiningClass()), "ad browser gets a link other than its own String field");
+        Method opener = featureOne(everything.stream().filter(m -> m != builder && m.getDefiningClass().equals(builder.getDefiningClass()) && m.getReturnType().equals("Z")
+                && !m.getParameterTypes().isEmpty() && m.getParameterTypes().get(0).equals(ANDROID_ACTIVITY)
+                && !callSites(instructions(m), featureSig(builder)).isEmpty()).toList(), "ad browser's opener");
+        requireFeature(opener.getImplementation().getTryBlocks().stream().noneMatch(t -> t.getStartCodeAddress() == 0), "ad browser's opener starts inside a try block");
+        return new BrowserSite(opener, 0, -1, browserParameter(opener, 0), -1, reference(body.get(url)));
+    }
+
+    /**
+     * The media viewer's swipe up on an ad, a coroutine reading its context and state from its own
+     * fields. It opens the web link of a call to action past the check that its destination is the
+     * web, then sets its state from the flag the path made. An ad with no web link clears the flag and
+     * joins it there.
+     */
+    private static BrowserSite featureBrowserMedia(Method media, String target, String webField) {
+        List<Instruction> body = instructions(media);
+        FeatureFlow flow = new FeatureFlow(media);
+        int at = featureOne(callSites(body, target), "CTA factory call");
+        int[] args = invokeRegisters(body.get(at));
+        int url = browserOrigin(flow, at, args[5]);
+        requireFeature(url >= 0 && body.get(url).getOpcode() == Opcode.IGET_OBJECT && reference(body.get(url)).equals(webField), "browser CTA uses the wrong web field");
+        FieldReference field = (FieldReference) ((ReferenceInstruction) body.get(url)).getReference();
+        requireFeature(field.getType().equals("Ljava/lang/String;"), "browser CTA URL is not a string");
+        // The destination check reads the same call to action the link comes from.
+        int cta = browserOrigin(flow, url, ((TwoRegisterInstruction) body.get(url)).getRegisterB());
+        int guard = featureOne(java.util.stream.IntStream.range(3, at).boxed().filter(n -> body.get(n).getOpcode() == Opcode.IF_NE
+                && body.get(n - 1).getOpcode() == Opcode.SGET_OBJECT && body.get(n - 2).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                && body.get(n - 3) instanceof ReferenceInstruction r && r.getReference() instanceof MethodReference getter
+                && getter.getDefiningClass().equals(field.getDefiningClass()) && getter.getParameterTypes().isEmpty()
+                && ((FieldReference) ((ReferenceInstruction) body.get(n - 1)).getReference()).getType().equals(getter.getReturnType())
+                && browserOrigin(flow, n - 3, invokeRegisters(body.get(n - 3))[0]) == cta).toList(), "browser web CTA guard");
+        requireFeature(browserDominates(flow, guard, at), "browser skips the web CTA guard");
+        int failed = browserDestination(flow.layout, guard);
+        int self = browserParameter(media, 0) - 1;
+        int context = browserOrigin(flow, at, args[0]);
+        requireFeature(context >= 0 && body.get(context).getOpcode() == Opcode.IGET_OBJECT
+                && ((FieldReference) ((ReferenceInstruction) body.get(context)).getReference()).getType().equals("Landroid/content/Context;")
+                && flow.parameterOnEveryPath(context, ((TwoRegisterInstruction) body.get(context)).getRegisterB(), self), "media browser uses the wrong Context");
+        int setter = featureOne(java.util.stream.IntStream.range(1, body.size() - 2).boxed().filter(n -> body.get(n - 1).getOpcode() == Opcode.MOVE_OBJECT_FROM16
+                && body.get(n) instanceof ReferenceInstruction r && r.getReference() instanceof MethodReference set
+                && set.getParameterTypes().equals(List.of(BROWSER_STATE, "Z"))
+                && body.get(n + 1).getOpcode() == Opcode.SGET_OBJECT && body.get(n + 2).getOpcode() == Opcode.RETURN_OBJECT).toList(), "media opened state completion");
+        int done = setter - 1;
+        int saved = ((TwoRegisterInstruction) body.get(done)).getRegisterB();
+        int state = browserOrigin(flow, at, saved);
+        requireFeature(state >= 0 && state == browserOrigin(flow, done, saved)
+                && body.get(state).getOpcode() == Opcode.IGET_OBJECT
+                && ((FieldReference) ((ReferenceInstruction) body.get(state)).getReference()).getType().equals(BROWSER_STATE)
+                && flow.parameterOnEveryPath(state, ((TwoRegisterInstruction) body.get(state)).getRegisterB(), self), "media completion state is not initialized before the handoff");
+        requireFeature(body.get(failed).getOpcode() == Opcode.CONST_4 && ((WideLiteralInstruction) body.get(failed)).getWideLiteral() == 0
+                && registerA(body.get(failed)) == invokeRegisters(body.get(setter))[1] && browserDestination(flow.layout, failed + 1) == done, "media no-open tail changed");
+        return new BrowserSite(media, at, done, args[0], args[5], null);
+    }
+
+    /** Checks the hook in front of [site]'s stock instruction and answers how many instructions it takes. */
+    private static int featureBrowserGuard(BrowserSite site, Method changed, List<Instruction> body) {
         int at = site.at();
-        requireFeature(body.size() > at + 6 && body.subList(at, at + 6).stream().map(Instruction::getOpcode).toList().equals(List.of(
-                Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT,
-                Opcode.IF_EQZ, site.entry() ? Opcode.RETURN_VOID : Opcode.GOTO_16)), "direct browser hook is missing");
-        TwoRegisterInstruction context = (TwoRegisterInstruction) body.get(at), url = (TwoRegisterInstruction) body.get(at + 1);
-        int result = registerA(body.get(at + 3));
-        requireFeature(context.getRegisterB() == site.context() && url.getRegisterB() == site.url()
-                && context.getRegisterA() != url.getRegisterA() && result == context.getRegisterA()
-                && registerA(body.get(at + 4)) == result && reference(body.get(at + 2)).equals(OPEN_LINK)
-                && Arrays.equals(invokeRegisters(body.get(at + 2)), new int[]{context.getRegisterA(), url.getRegisterA()}), "direct browser arguments or answer are wrong");
+        boolean reads = site.field() != null;
+        List<Opcode> shape = reads
+                ? List.of(Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4, Opcode.RETURN)
+                : List.of(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.GOTO_16);
+        int size = shape.size(), load = reads ? 2 : 1;
+        requireFeature(body.size() > at + size && body.subList(at, at + size).stream().map(Instruction::getOpcode).toList().equals(shape), "direct browser hook is missing");
+        TwoRegisterInstruction link = (TwoRegisterInstruction) body.get(at), context = (TwoRegisterInstruction) body.get(at + load);
+        Instruction call = body.get(at + load + 1);
+        int result = registerA(body.get(at + load + 2));
+        requireFeature(context.getRegisterB() == site.context() && context.getRegisterA() != link.getRegisterA() && result == context.getRegisterA()
+                && registerA(body.get(at + load + 3)) == result && reference(call).equals(OPEN_LINK)
+                && Arrays.equals(invokeRegisters(call), new int[]{context.getRegisterA(), link.getRegisterA()}), "direct browser arguments or answer are wrong");
+        if (reads) {
+            TwoRegisterInstruction read = (TwoRegisterInstruction) body.get(at + 1);
+            requireFeature(link.getRegisterB() == browserParameter(site.stock(), 0) - 1 && read.getRegisterA() == link.getRegisterA()
+                    && read.getRegisterB() == link.getRegisterA() && reference(body.get(at + 1)).equals(site.field()), "direct browser arguments or answer are wrong");
+            requireFeature(((WideLiteralInstruction) body.get(at + 6)).getWideLiteral() == 1 && registerA(body.get(at + 6)) == result
+                    && registerA(body.get(at + 7)) == result, "direct browser hook doesn't answer true for a link that went out");
+        } else {
+            requireFeature(link.getRegisterB() == site.url(), "direct browser arguments or answer are wrong");
+        }
         FeatureFlow old = new FeatureFlow(site.stock());
         int locals = browserParameter(site.stock(), 0) - (AccessFlags.STATIC.isSet(site.stock().getAccessFlags()) ? 0 : 1);
         String clobbers = "direct browser hook clobbers a live local";
-        for (int scratch : new int[]{context.getRegisterA(), url.getRegisterA()}) {
+        for (int scratch : new int[]{context.getRegisterA(), link.getRegisterA()}) {
             requireFeature(scratch < locals, clobbers + ": past the method's locals");
             requireFeature(old.readsFrom(at, scratch).isEmpty(), clobbers + ": read at the hook site");
-            requireFeature(old.readsFrom(site.done(), scratch).isEmpty(), clobbers + ": read where it succeeds");
+            if (site.done() >= 0) requireFeature(old.readsFrom(site.done(), scratch).isEmpty(), clobbers + ": read where it succeeds");
         }
         Layout layout = new Layout(changed.getImplementation());
-        requireFeature(browserDestination(layout, at + 4) == at + 6, "declined browser handoff bypasses stock code");
-        if (!site.entry()) requireFeature(browserDestination(layout, at + 5) == site.done() + 6, "successful browser handoff opens twice or uses the wrong completion");
+        requireFeature(browserDestination(layout, at + load + 3) == at + size, "declined browser handoff bypasses stock code");
+        if (site.done() >= 0) requireFeature(browserDestination(layout, at + load + 4) == (site.done() < at ? site.done() : site.done() + size),
+                "successful browser handoff opens twice or uses the wrong completion");
+        return size;
     }
 
     private static int browserParameter(Method method, int parameter) {
@@ -4304,8 +4428,8 @@ public class DexDiff {
         return true;
     }
 
-    /** The parameter register of the string the launcher parses with java.net.URI, through the moves in front of it. */
-    private static int featureLauncherLink(Method stock, int locals) {
+    /** The String field of its own class the launcher parses with java.net.URI, through the moves in front of it. */
+    private static String featureLauncherLink(Method stock) {
         List<Instruction> body = instructions(stock);
         int parse = featureOne(java.util.stream.IntStream.range(0, body.size()).boxed()
                 .filter(k -> body.get(k).getOpcode() == Opcode.INVOKE_DIRECT
@@ -4315,14 +4439,17 @@ public class DexDiff {
             Instruction i = body.get(k);
             if (i.getOpcode() == Opcode.MOVE_OBJECT || i.getOpcode() == Opcode.MOVE_OBJECT_FROM16 || i.getOpcode() == Opcode.MOVE_OBJECT_16) {
                 if (((TwoRegisterInstruction) i).getRegisterA() == register) register = ((TwoRegisterInstruction) i).getRegisterB();
+            } else if (i.getOpcode() == Opcode.IGET_OBJECT && ((TwoRegisterInstruction) i).getRegisterA() == register) {
+                FieldReference field = (FieldReference) ((ReferenceInstruction) i).getReference();
+                requireFeature(field.getType().equals("Ljava/lang/String;") && field.getDefiningClass().equals(stock.getDefiningClass()),
+                        "browser launcher parses a field other than its own String");
+                return reference(i);
             } else {
-                requireFeature(i.getOpcode() == Opcode.NEW_INSTANCE && ((OneRegisterInstruction) i).getRegisterA() != register,
+                requireFeature(i.getOpcode() == Opcode.IGET_OBJECT || i.getOpcode() == Opcode.NEW_INSTANCE && ((OneRegisterInstruction) i).getRegisterA() != register,
                         "browser launcher runs " + i.getOpcode().name + " before it parses the link");
             }
         }
-        requireFeature(register >= locals && stock.getParameterTypes().get(register - locals).equals("Ljava/lang/String;"),
-                "browser launcher parses no string parameter");
-        return register;
+        throw new AssertionError("browser launcher parses no field of its own");
     }
 
     /** Where one of Threads' return checks makes its boolean answer: the stock method, the instruction the hook goes in front of, and the answer's register. */
@@ -4915,7 +5042,7 @@ public class DexDiff {
         }
         requireFeature(!backgrounds.isEmpty(), "Threads' dark color scheme has no #101010 where its light one has white");
         if (builders.values().stream().allMatch(List::isEmpty)) {
-            Method constructor = featureSchemeOnlyTheme(clean, theme, builders.keySet(), type, schemes, backgroundParameters);
+            Method constructor = featureSchemeOnlyTheme(clean, theme, builders.keySet(), type, backgroundParameters);
             // This constructor supplies the field-copy proof and must remain unchanged too.
             builders.put(constructor, List.of());
         }
@@ -4934,7 +5061,7 @@ public class DexDiff {
      * This follows each wide half through the verifier's independent control-flow analysis.
      */
     private static Method featureSchemeOnlyTheme(Map<String, List<Method>> clean, Method theme, Set<Method> builders,
-            String type, Set<String> schemes, List<Integer> backgroundParameters) {
+            String type, List<Integer> backgroundParameters) {
         List<Method> getters = builders.stream().filter(m -> m != theme).toList();
         requireFeature(getters.size() == 1 && holdsNote(getters.get(0), IG_PALETTE_NOTE),
                 "Threads' theme no longer loads #101010 or reads its inherited Instagram palette");
@@ -4969,11 +5096,14 @@ public class DexDiff {
             Instruction i = copied.layout.instructions.get(n);
             if (i.getOpcode() != Opcode.INVOKE_DIRECT_RANGE) continue;
             MethodReference call = (MethodReference) ((ReferenceInstruction) i).getReference();
-            if (!call.getName().equals("<init>") || !built.contains(call.getDefiningClass()) || !schemes.contains(call.getDefiningClass())
-                    || !call.getParameterTypes().stream().allMatch(p -> p.toString().equals("J"))) continue;
+            // 453 hands the colors to a palette constructor that takes an object first, so a color's
+            // register is its word offset rather than twice its index.
+            if (!call.getName().equals("<init>") || !built.contains(call.getDefiningClass())
+                    || call.getParameterTypes().stream().filter(p -> p.toString().equals("J")).count() < SCHEME_COLORS) continue;
             Set<String> forwarded = new HashSet<>();
             for (int p = 0; p < call.getParameterTypes().size(); p++) {
-                int[] origin = featureWideOrigin(copied, n, ((RegisterRangeInstruction) i).getStartRegister() + 1 + 2 * p);
+                if (!call.getParameterTypes().get(p).toString().equals("J")) continue;
+                int[] origin = featureWideOrigin(copied, n, ((RegisterRangeInstruction) i).getStartRegister() + 1 + featureWord(call, p));
                 if (origin == null || origin[0] < 0) continue;
                 Instruction load = copied.layout.instructions.get(origin[0]);
                 if (load.getOpcode() == Opcode.IGET_WIDE && backgrounds.contains(reference(load))) forwarded.add(reference(load));
@@ -6098,7 +6228,8 @@ public class DexDiff {
         int key = field.hashCode();
         List<Method> getters = new ArrayList<>();
         for (Method m : featureSaveClass(classes, type).getMethods()) {
-            if (!m.getParameterTypes().isEmpty() || !m.getReturnType().equals(returns) || AccessFlags.STATIC.isSet(m.getAccessFlags())) continue;
+            if (!m.getParameterTypes().isEmpty() || AccessFlags.STATIC.isSet(m.getAccessFlags())) continue;
+            if (returns == null ? !m.getReturnType().startsWith("L") : !m.getReturnType().equals(returns)) continue;
             if (instructions(m).stream().anyMatch(i -> java.util.Objects.equals(featureSaveConstant(i), key))) getters.add(m);
         }
         requireFeature(getters.size() == 1, "expected one getter on " + type + " answering " + returns + " for " + field + ", found "
@@ -6138,7 +6269,8 @@ public class DexDiff {
             requireFeature(featureDeclares(featureSaveInterface(classes, IMAGE_URL), name, returns), IMAGE_URL + " has no " + name + "()" + returns);
             return IMAGE_URL + "->" + name + "()" + returns;
         };
-        return List.of(
+        List<SaveBridge> bridges = new ArrayList<>(featureLinkedPostBridges(classes));
+        bridges.addAll(List.of(
                 new SaveBridge("videoVersions", MEDIA, Opcode.INVOKE_VIRTUAL, media.apply("video_versions", "Ljava/util/List;")),
                 new SaveBridge("dashManifest", MEDIA, Opcode.INVOKE_VIRTUAL, media.apply("video_dash_manifest", "Ljava/lang/String;")),
                 new SaveBridge("mediaId", MEDIA, Opcode.INVOKE_VIRTUAL, featureSig(ids.get(0))),
@@ -6153,7 +6285,65 @@ public class DexDiff {
                 new SaveBridge("imageCandidates", IMAGE_INFO, Opcode.INVOKE_INTERFACE, featureSaveThrough(classes, IMAGE_INFO, PANDO_IMAGE_INFO, "candidates", "Ljava/util/List;")),
                 new SaveBridge("candidateUrl", IMAGE_URL, Opcode.INVOKE_INTERFACE, kept.apply("getUrl", "Ljava/lang/String;")),
                 new SaveBridge("candidateWidth", IMAGE_URL, Opcode.INVOKE_INTERFACE, kept.apply("getWidth", "I")),
-                new SaveBridge("candidateHeight", IMAGE_URL, Opcode.INVOKE_INTERFACE, kept.apply("getHeight", "I")));
+                new SaveBridge("candidateHeight", IMAGE_URL, Opcode.INVOKE_INTERFACE, kept.apply("getHeight", "I"))));
+        return bridges;
+    }
+
+    private static final List<String> LINKED_POST_KEYS = List.of("linked_inline_media", "share_info", "quoted_attachment_post", "reposted_post", "quoted_post");
+
+    /**
+     * What reads a post with no media of its own through to the post it shows, found as the Save
+     * patch finds it: the text post info by Pando hash, and the rest by the one method writing all
+     * their keys, the fields it reads for them and the interface getters answering those fields.
+     */
+    private static List<SaveBridge> featureLinkedPostBridges(Map<String, List<ClassDef>> classes) {
+        List<Method> writers = new ArrayList<>();
+        for (List<ClassDef> found : classes.values()) for (ClassDef def : found) for (Method m : def.getMethods()) {
+            List<Instruction> body = instructions(m);
+            if (LINKED_POST_KEYS.stream().allMatch(key -> body.stream().filter(i -> featureIsString(i, key)).count() == 1)) writers.add(m);
+        }
+        requireFeature(writers.size() == 1, "expected one method writing " + LINKED_POST_KEYS + ", found " + writers.size());
+        Method writer = writers.get(0);
+        String info = featurePandoGetter(classes, MEDIA, "text_post_app_info", null).getReturnType();
+        Method share = featureLinkedGetter(classes, writer, "share_info", info);
+        java.util.function.BiFunction<String, String, SaveBridge> post = (name, key) -> {
+            String owner = key.equals("linked_inline_media") ? info : share.getReturnType();
+            Method getter = featureLinkedGetter(classes, writer, key, owner);
+            requireFeature(getter.getReturnType().equals(MEDIA), "the getter for " + key + " answers " + getter.getReturnType() + ", not " + MEDIA);
+            return new SaveBridge(name, owner, Opcode.INVOKE_INTERFACE, owner + "->" + getter.getName() + "()" + MEDIA);
+        };
+        return List.of(
+                new SaveBridge("textPostInfo", MEDIA, Opcode.INVOKE_VIRTUAL, featureSig(featurePandoGetter(classes, MEDIA, "text_post_app_info", null))),
+                post.apply("linkedInlineMedia", "linked_inline_media"),
+                new SaveBridge("shareInfo", info, Opcode.INVOKE_INTERFACE, info + "->" + share.getName() + "()" + share.getReturnType()),
+                post.apply("quotedAttachmentPost", "quoted_attachment_post"),
+                post.apply("repostedPost", "reposted_post"),
+                post.apply("quotedPost", "quoted_post"));
+    }
+
+    private static boolean featureIsString(Instruction i, String value) {
+        return (i.getOpcode() == Opcode.CONST_STRING || i.getOpcode() == Opcode.CONST_STRING_JUMBO) && reference(i).equals(value);
+    }
+
+    /** The getter [owner] declares for [key]: the field [writer] loads and tests just before naming it, read back through that field's class. */
+    private static Method featureLinkedGetter(Map<String, List<ClassDef>> classes, Method writer, String key, String owner) {
+        List<Instruction> code = instructions(writer);
+        int named = 0;
+        while (named < code.size() && !featureIsString(code.get(named), key)) named++;
+        requireFeature(named >= 2 && named < code.size() && code.get(named - 2).getOpcode() == Opcode.IGET_OBJECT && code.get(named - 1).getOpcode() == Opcode.IF_EQZ,
+                featureSig(writer) + " doesn't read a field and test it just before writing " + key);
+        FieldReference field = (FieldReference) ((ReferenceInstruction) code.get(named - 2)).getReference();
+        List<Method> getters = new ArrayList<>();
+        for (Method m : featureSaveClass(classes, field.getDefiningClass()).getMethods()) {
+            List<Instruction> body = instructions(m);
+            if (m.getParameterTypes().isEmpty() && body.size() == 2 && body.get(0).getOpcode() == Opcode.IGET_OBJECT && body.get(1).getOpcode() == Opcode.RETURN_OBJECT
+                    && ((FieldReference) ((ReferenceInstruction) body.get(0)).getReference()).getName().equals(field.getName())) getters.add(m);
+        }
+        requireFeature(getters.size() == 1, "expected one getter on " + field.getDefiningClass() + " for " + key + ", found " + getters.size());
+        Method getter = getters.get(0);
+        requireFeature(featureDeclares(featureSaveInterface(classes, owner), getter.getName(), getter.getReturnType()),
+                owner + " doesn't declare " + getter.getName() + ", the getter for " + key);
+        return getter;
     }
 
     /** The extension's stub for the bridge [name], whatever it answers. */
@@ -6366,8 +6556,10 @@ public class DexDiff {
                 break;
             case "restoreTrust":
                 featureHostCalls(patched, SIGNERS, Map.of());
+                featureHostCalls(patched, OPEN_REFUSED_TILE, Map.of());
                 featurePreserveTargets(clean, patched, m -> !callSites(instructions(m), "Landroid/content/pm/SigningInfo;->getApkContentsSigners()[Landroid/content/pm/Signature;").isEmpty()
                         && !callSites(instructions(m), "Landroid/content/pm/SigningInfo;->getSigningCertificateHistory()[Landroid/content/pm/Signature;").isEmpty());
+                featurePreserveTargets(clean, patched, DexDiff::featureIsShareTiles);
                 break;
             case "returnRefresh": featureOmittedReturnRefresh(clean, patched); break;
             case "disableVideoAutoplay": featureOmittedVideoAutoplay(clean, patched); break;

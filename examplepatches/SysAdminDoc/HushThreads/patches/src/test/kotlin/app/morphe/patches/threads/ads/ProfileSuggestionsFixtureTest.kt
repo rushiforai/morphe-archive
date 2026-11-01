@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PerBuild
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -47,7 +48,7 @@ import org.junit.Test
  * build; each test patches its own copy.
  */
 internal object ProfileSuggestionsFixture {
-    private val loaded = mutableMapOf<File, List<ClassDef>>()
+    private val loaded = PerBuild<List<ClassDef>>()
 
     fun classes(build: File): List<ClassDef> = loaded.getOrPut(build) {
         val noted = FixtureDex.classesWhere(build, { true }) { method ->
@@ -76,6 +77,20 @@ internal object ProfileSuggestionsFixture {
  * changes.
  */
 class ProfileSuggestionsFixtureTest {
+    private val carouselOffsets = mapOf(
+        "512308671" to intArrayOf(557, 558, 1026),
+        "512308673" to intArrayOf(557, 558, 1026),
+        "512308675" to intArrayOf(557, 558, 1026),
+        "512308676" to intArrayOf(555, 556, 1024),
+        "512308685" to intArrayOf(556, 557, 1025),
+        "512308686" to intArrayOf(556, 557, 1025),
+        "512308688" to intArrayOf(556, 557, 1025),
+        "512308695" to intArrayOf(554, 555, 1021),
+        "512308696" to intArrayOf(557, 558, 1026),
+        "512308697" to intArrayOf(555, 556, 1024),
+        "512308698" to intArrayOf(557, 558, 1026),
+    )
+
     @Test
     fun `each declared build keeps suggested accounts off profiles and changes nothing else`() {
         val extension = ExtensionDex.classDef(PROFILE_SUGGESTIONS).methods
@@ -96,31 +111,33 @@ class ProfileSuggestionsFixtureTest {
             assertTrue(where, targets.screen.note.orEmpty().contains("($PROFILE_SCREEN_FILE:"))
             assertTrue(where, targets.infoRows.note.orEmpty().contains("($PROFILE_INFO_ROWS_FILE:"))
             assertEquals(where, targets.screen.callee.toString(), targets.infoRows.callee.toString())
-            assertTrue(where, targets.calls.any { it.note.orEmpty().endsWith("(DiscoveryContent.kt:357)") })
-            assertTrue(where, targets.calls.any { it.note.orEmpty().endsWith("(ActivityFeedContent.kt:915)") })
+            assertTrue(where, targets.calls.any { it.note.orEmpty().endsWith("(DiscoveryContent.kt:375)") })
+            assertTrue(where, targets.calls.any { it.note.orEmpty().endsWith("(ActivityFeedContent.kt:945)") })
 
-            // Read off 452 apart from the patch: the profile screen reads the profile's carousel
-            // list at 554, the only read of that field outside its own class, checks it at 555,
-            // and builds the carousel from 1021 on.
+            // Read off each 452 build apart from the patch: the profile screen reads the profile's
+            // carousel list at the read below, the only read of that field outside its own class,
+            // checks it just after, and builds the carousel from the landing below.
             val carousel = targets.carousel
             val screenStock = classes.original(carousel.method)
-            assertEquals(where, 554, carousel.read)
-            assertEquals(where, 555, carousel.guard)
+            val landing = screenStock.jumpTarget(carousel.guard)
+            val row = targets.headerRow
+            val rowStock = classes.original(row.method)
+            val offsets = carouselOffsets.entries.single { where.contains("-${it.key}.") }.value
+            assertEquals(where, offsets[0], carousel.read)
+            assertEquals(where, offsets[1], carousel.guard)
             assertEquals(where, Opcode.IGET_OBJECT, screenStock[carousel.read].opcode)
             assertEquals(where, carousel.register, (screenStock[carousel.read] as OneRegisterInstruction).registerA)
             assertEquals(where, Opcode.IF_NEZ, screenStock[carousel.guard].opcode)
             assertEquals(where, carousel.register, (screenStock[carousel.guard] as OneRegisterInstruction).registerA)
-            val landing = screenStock.jumpTarget(carousel.guard)
-            assertEquals(where, 1021, landing)
+            assertEquals(where, offsets[2], landing)
             assertTrue(where, screenStock[landing + 2].isNewInstanceOf(targets.screen.method.definingClass))
 
             // The view model checks for Threads' suggestions at 213, makes the row from 214 on, and
             // goes to 225 without them. What the check compared, and the hook's register, are dead there.
-            val row = targets.headerRow
-            val rowStock = classes.original(row.method)
-            assertEquals(where, 213, row.guard)
-            assertEquals(where, 214, row.start)
-            assertEquals(where, 225, row.away)
+            val rowAt = if (where.contains("-512308697.") || where.contains("-512308676.")) 266 else 268
+            assertEquals(where, rowAt, row.guard)
+            assertEquals(where, rowAt + 1, row.start)
+            assertEquals(where, rowAt + 12, row.away)
             assertEquals(where, Opcode.IF_NE, rowStock[row.guard].opcode)
             assertEquals(where, row.away, rowStock.jumpTarget(row.guard))
             val live = RegisterLiveness.of(row.method)

@@ -42,6 +42,7 @@ public final class FamilyNames {
     public static final String EXTERNAL_BROWSER = "Open links in your browser";
     public static final String SYSTEM_SHARE = "System share sheet";
     public static final String HIDE_SCREENSHOT_SHARE = "No screenshot share menu";
+    public static final String HIDE_ASSISTANT = "Hide Assistant";
     public static final String HIDE_SEARCH_HISTORY = "Hide search history";
     public static final String HIDE_NAVIGATION_BUTTONS = "Hide navigation buttons";
     public static final String HIDE_HEADER_BUTTONS = "Hide header buttons";

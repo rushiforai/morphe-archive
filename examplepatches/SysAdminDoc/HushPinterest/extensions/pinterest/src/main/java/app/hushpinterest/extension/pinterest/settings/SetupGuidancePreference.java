@@ -144,6 +144,9 @@ public final class SetupGuidancePreference extends DialogPreference {
                 + "Google sign-in doesn't work with stock Google Play services, because this patched app is "
                 + "signed with a different key. Pinterest no longer offers Facebook login. The Fix push "
                 + "notifications patch, on by default, lets this app sign up for push notifications."));
+            if (PushReadiness.gmsCore()) {
+                paragraph(L10n.t(getContext(), "This build sends Google sign-in to microG-RE. Add your Google account in microG-RE first. If your phone limits background apps, let microG-RE start on its own."));
+            }
             paragraph(L10n.t(getContext(), "If you joined through Google or don't know your Pinterest password, choose Forgot your password on Pinterest's login page. Enter the email already linked to that account, then use the reset link sent to your email to set a Pinterest password. It's separate from your Google password. You don't need to unlink Google."));
             action(L10n.t(getContext(), "Pinterest password help"), () -> openHelp(PASSWORD_HELP));
 

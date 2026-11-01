@@ -1,1 +1,1 @@
-// Root build configuration for MySpoti Spotify branding patch
+// Root build configuration for the combined MySpoti Morphe patch repository.

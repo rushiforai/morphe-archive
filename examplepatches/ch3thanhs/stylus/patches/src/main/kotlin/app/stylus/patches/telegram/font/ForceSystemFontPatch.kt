@@ -36,6 +36,10 @@ private val forceSystemFontTelegramXmlPatch = resourcePatch(
     execute {
         val resDir = get("res")
 
+        // Morphe Patcher 2.0.0 and newer decode resources on request instead of
+        // up front, so decode res before walking it for XML files.
+        decode("res")
+
         if (!resDir.exists()) {
             throw PatchException("Telegram res directory was not found.")
         }

@@ -20,6 +20,7 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CancellationSignal;
@@ -146,7 +147,16 @@ public final class SettingsFileProvider extends ContentProvider {
     }
 
     @Override public boolean onCreate() { return true; }
-    @Override public Cursor query(Uri uri, String[] projection, String selection, String[] args, String order) { return null; }
+    /** What a file answers to when an app asks its name, or null to answer nothing. */
+    static volatile String displayName;
+
+    @Override public Cursor query(Uri uri, String[] projection, String selection, String[] args, String order) {
+        String name = displayName;
+        if (name == null) return null;
+        MatrixCursor cursor = new MatrixCursor(projection);
+        cursor.addRow(new Object[] {name});
+        return cursor;
+    }
     @Override public String getType(Uri uri) { return "application/json"; }
     @Override public Uri insert(Uri uri, ContentValues values) { return null; }
     @Override public int delete(Uri uri, String selection, String[] args) { return 0; }

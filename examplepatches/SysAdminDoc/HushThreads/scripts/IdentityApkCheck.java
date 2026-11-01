@@ -1,10 +1,12 @@
 import com.android.tools.smali.dexlib2.DexFileFactory;
 import com.android.tools.smali.dexlib2.Opcodes;
+import com.android.tools.smali.dexlib2.Opcode;
 import com.android.tools.smali.dexlib2.iface.ClassDef;
 import com.android.tools.smali.dexlib2.iface.DexFile;
 import com.android.tools.smali.dexlib2.iface.Method;
 import com.android.tools.smali.dexlib2.iface.MultiDexContainer;
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction;
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 import com.android.tools.smali.dexlib2.iface.reference.StringReference;
 import java.io.File;
@@ -20,19 +22,29 @@ class IdentityApkCheck {
         if (args.length < 2) {
             throw new IllegalArgumentException("usage: IdentityApkCheck.java <bundle.mpp> <patched.apk>...");
         }
-        File bundle = new File(args[0]);
         String expected;
-        try (URLClassLoader loader = new URLClassLoader(
+        int firstApk;
+        if (args[0].equals("--expected")) {
+            if (args.length < 3) {
+                throw new IllegalArgumentException("usage: IdentityApkCheck.java --expected <verified identity> <patched.apk>...");
+            }
+            expected = args[1];
+            firstApk = 2;
+        } else {
+            File bundle = new File(args[0]);
+            try (URLClassLoader loader = new URLClassLoader(
                 new java.net.URL[]{bundle.toURI().toURL()}, IdentityApkCheck.class.getClassLoader());
                 JarFile jar = new JarFile(bundle)) {
-            Class<?> identity = Class.forName("app.morphe.util.BundleIdentity", true, loader);
-            Object reader = identity.getField("INSTANCE").get(null);
-            expected = (String) identity.getMethod("fromJar", JarFile.class).invoke(reader, jar);
+                Class<?> identity = Class.forName("app.morphe.util.BundleIdentity", true, loader);
+                Object reader = identity.getField("INSTANCE").get(null);
+                expected = (String) identity.getMethod("fromJar", JarFile.class).invoke(reader, jar);
+            }
+            firstApk = 1;
         }
         if (!expected.startsWith("sha256=")) {
             throw new AssertionError("The defining bundle identity is not verified: " + expected);
         }
-        for (int index = 1; index < args.length; index++) {
+        for (int index = firstApk; index < args.length; index++) {
             checkApk(new File(args[index]), expected);
         }
     }
@@ -48,11 +60,17 @@ class IdentityApkCheck {
                 for (Method method : clazz.getMethods()) {
                     if (clazz.getType().equals(utils) && method.getName().equals("getPatchesBuildIdentity")) {
                         definitions++;
-                        Object first = method.getImplementation().getInstructions().iterator().next();
-                        if (!(first instanceof ReferenceInstruction instruction) ||
+                        var body = method.getImplementation().getInstructions().iterator();
+                        Object first = body.next();
+                        Object second = body.hasNext() ? body.next() : null;
+                        if (!method.getReturnType().equals("Ljava/lang/String;") || !method.getParameterTypes().isEmpty() ||
+                                !(first instanceof ReferenceInstruction instruction) ||
+                                !(first instanceof OneRegisterInstruction loaded) ||
                                 !(instruction.getReference() instanceof StringReference value) ||
-                                !expected.equals(value.getString())) {
-                            throw new AssertionError("Final APK getter does not carry the defining bundle identity");
+                                !expected.equals(value.getString()) ||
+                                !(second instanceof OneRegisterInstruction returned) || returned.getOpcode() != Opcode.RETURN_OBJECT ||
+                                returned.getRegisterA() != loaded.getRegisterA()) {
+                            throw new AssertionError("Final APK getter does not return the defining bundle identity");
                         }
                     }
                     if (method.getImplementation() == null) {

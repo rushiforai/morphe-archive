@@ -8,12 +8,17 @@ import app.morphe.patches.googlephotos.misc.features.ByteSizeFeatureFactoryFinge
 import app.morphe.patches.googlephotos.misc.flags.SkottieFontLoaderDispatcherFingerprint
 import app.morphe.patches.googlephotos.misc.flags.SkottieFontUriResolverFingerprint
 import app.morphe.patches.googlephotos.misc.gms.HomeActivityOnCreateFingerprint
+import app.morphe.patches.googlephotos.misc.models.MddSharedFileManagerCallbackFingerprint
 import app.morphe.patches.googlephotos.misc.models.ModelDownloadManagerClinitFingerprint
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction21c
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 @Suppress("unused")
@@ -135,6 +140,49 @@ val mediaEngineAndAIFixesPatch = bytecodePatch(
             instructions?.forEachIndexed { index, instruction ->
                 if (instruction.opcode.name.startsWith("if-")) {
                     mutableMethod.replaceInstruction(index, "nop")
+                }
+            }
+        }
+
+        // =========================================================================
+        // 4. MDD Resilience Hook (prevent fatal bvrh crash on missing model/file keys)
+        // =========================================================================
+        val mddCallbackMethod = MddSharedFileManagerCallbackFingerprint.methodOrNull
+        if (mddCallbackMethod != null) {
+            val classDef = mutableClassDefBy(mddCallbackMethod.definingClass)
+            val mutableMethod = classDef.findMutableMethodOf(mddCallbackMethod)
+            val instructions = mddCallbackMethod.implementation?.instructions?.toList()
+
+            // Discover the obfuscated empty/null future static field (e.g. Lcgdk;->a:Lcgdo;)
+            val cgdkFieldRef = instructions?.mapNotNull { inst ->
+                if (inst is Instruction21c && inst.opcode == Opcode.SGET_OBJECT) {
+                    val ref = inst.reference as? FieldReference
+                    if (ref != null && ref.type == mddCallbackMethod.returnType && ref.name == "a") {
+                        "${ref.definingClass}->${ref.name}:${ref.type}"
+                    } else null
+                } else null
+            }?.firstOrNull() ?: "Lcgdk;->a:Lcgdo;"
+
+            instructions?.forEachIndexed { index, instruction ->
+                if (instruction is Instruction35c && instruction.opcode == Opcode.INVOKE_STATIC) {
+                    val ref = instruction.reference as? MethodReference
+                    if (ref != null && ref.returnType == mddCallbackMethod.returnType &&
+                        ref.parameterTypes.size == 1 && ref.parameterTypes[0] == "Ljava/lang/Throwable;"
+                    ) {
+                        // Check if immediately preceded by new-instance / invoke-direct of bvrh
+                        val isBvrhCatch = (1..3).any { offset ->
+                            val prev = instructions.getOrNull(index - offset)
+                            prev is ReferenceInstruction && prev.reference.toString().contains("bvrh")
+                        }
+                        if (isBvrhCatch) {
+                            val next = instructions.getOrNull(index + 1)
+                            if (next is OneRegisterInstruction && next.opcode == Opcode.MOVE_RESULT_OBJECT) {
+                                val reg = next.registerA
+                                mutableMethod.replaceInstruction(index, "nop")
+                                mutableMethod.replaceInstruction(index + 1, "sget-object v$reg, $cgdkFieldRef")
+                            }
+                        }
+                    }
                 }
             }
         }

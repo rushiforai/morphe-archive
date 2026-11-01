@@ -222,11 +222,13 @@ val playlistDownloadsPatch=bytecodePatch(name="Download playlist",description="A
             val presenterRow=mutableClassDefBy(binder.definingClass)
             val view=presenterRow.methods.singleOrNull {it.parameterTypes.isEmpty()&&it.returnType=="Landroid/view/View;"}?:throw PatchException("Native playlist row view ownership changed")
             presenterRow.interfaces.add(ROW_OWNER)
-            presenterRow.addInterfaceMethod(findInterfaceMethod(ROW_OWNER,"bd_playlistRowView"),1,"invoke-virtual { p0 }, $view\nmove-result-object p0\nreturn-object p0")
+            val viewInvoke=if(AccessFlags.PRIVATE.isSet(view.accessFlags))"invoke-direct" else "invoke-virtual"
+            val rowInvoke=if(AccessFlags.PRIVATE.isSet(binder.accessFlags))"invoke-direct/range" else "invoke-virtual/range"
+            presenterRow.addInterfaceMethod(findInterfaceMethod(ROW_OWNER,"bd_playlistRowView"),1,"$viewInvoke { p0 }, $view\nmove-result-object p0\nreturn-object p0")
             presenterRow.addInterfaceMethod(findInterfaceMethod(ROW_OWNER,"bd_playlistRow"),4,"""
                 check-cast p1, ${binder.parameterTypes[0]}
                 check-cast p2, ${rowProto.type}
-                invoke-virtual/range { p0 .. p3 }, $binder
+                $rowInvoke { p0 .. p3 }, $binder
                 return-void
             """)
             val rewrite="bd_playlistRow$number"

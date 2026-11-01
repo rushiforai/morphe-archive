@@ -91,6 +91,7 @@ public class SetupGuidancePreferenceTest {
         if (controller != null) controller.close();
         Settings.HIDE_ADS.resetToDefault();
         RuntimeEnvironment.setFontScale(1f);
+        PushReadiness.gmsCoreForTests = null;
     }
 
     @Test
@@ -117,6 +118,21 @@ public class SetupGuidancePreferenceTest {
         assertNull(page.row.getDialog());
         assertEquals(before, Setting.preferences.preferences.getAll());
         assertTrue(GuideActivity.attempts.isEmpty());
+    }
+
+    @Test public void aBuildWithMicroGSaysToAddTheAccountThere() {
+        PushReadiness.gmsCoreForTests = true;
+        show();
+        String copy = copy(open());
+        assertTrue(copy, copy.contains("Add your Google account in microG-RE first."));
+        assertTrue(copy, copy.contains("let microG-RE start on its own"));
+    }
+
+    @Test public void aBuildWithoutMicroGNeverMentionsIt() {
+        PushReadiness.gmsCoreForTests = false;
+        show();
+        String copy = copy(open());
+        assertFalse(copy, copy.contains("microG-RE"));
     }
 
     @Test public void guideDisclosesBuildLoginAndBackupLimitsWithoutRequestingAccountOrKeyInput() {

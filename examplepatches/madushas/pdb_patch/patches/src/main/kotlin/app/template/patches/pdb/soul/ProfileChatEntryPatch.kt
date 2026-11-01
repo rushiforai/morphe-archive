@@ -38,7 +38,7 @@ val pdbProfileChatEntryPatch = bytecodePatch(
     description = "Adds a 'Chat' entry to the profile screen's ⋯ menu: opens " +
         "your conversation with that user when one exists, otherwise their " +
         "profile (channels are server-created — no fake channel making).",
-    default = true,
+    default = false,
 ) {
     compatibleWith(PDB_COMPATIBILITY)
 

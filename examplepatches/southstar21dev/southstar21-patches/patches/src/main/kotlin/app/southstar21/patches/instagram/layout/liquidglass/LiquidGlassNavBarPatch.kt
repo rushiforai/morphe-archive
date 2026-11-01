@@ -81,17 +81,6 @@ val liquidGlassNavBarPatch = bytecodePatch(
             """
         )
 
-        // Reels play through a SurfaceView on some phones, which the glass can't zoom or blur.
-        EnforceTextureViewFingerprint.method.apply {
-            addInstructions(
-                implementation!!.instructions.size - 1,
-                """
-                    invoke-static { v0 }, $EXTENSION_CLASS->enforceTextureView(Z)Z
-                    move-result v0
-                """
-            )
-        }
-
         markPatchIncluded(EXTENSION_CLASS)
     }
 }

@@ -21,10 +21,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The signing certificates and version code the bundle declares have to be the ones on Threads'
- * own builds. Morphe Manager warns about a picked APK whose certificate differs and treats a
- * version code it was not told about as unsupported, so a wrong value here would warn every user
- * who downloaded the genuine release.
+ * The signing certificates the bundle declares have to be the ones on Threads' own builds, and
+ * every retained variant has to carry the declared version. Morphe Manager warns about a picked
+ * APK whose certificate differs, and accepts any version code for a target that names none, so a
+ * wrong value here would warn every user who downloaded the genuine release.
  */
 class AppCompatibilitiesMatchFixturesTest {
 
@@ -60,46 +60,48 @@ class AppCompatibilitiesMatchFixturesTest {
     }
 
     @Test
-    fun `every declared target carries the version code and floor of its vendor build`() {
+    fun `the declared target names the version and floor, and every APKMirror variant has a fixture`() {
         val targets = AppCompatibilities.threads().single().targets
         // Only the newest stable build is declared; a newer one replaces it in the same release.
         assertEquals("the declared version", listOf(AppCompatibilities.THREADS_TARGET_VERSION), targets.map { it.version })
+        assertEquals("the declared Android floor", listOf(AppCompatibilities.THREADS_TARGET_MIN_SDK), targets.map { it.minSdk })
+        // APKMirror ships several density and ABI variants under one version. Pinning one code per
+        // ABI would reject the others, so the target names none and Morphe accepts any code.
+        assertTrue("the target pins a version code", targets.all { it.versionCodes == null })
+        val codes = AppCompatibilities.THREADS_TARGET_VERSION_CODES
+        val version = AppCompatibilities.THREADS_TARGET_VERSION
+        val fixtures = Fixtures.files { it.isVendorContainer() && it.name.contains("-$version-") }
+        val seenCodes = mutableSetOf<Int>()
         var checked = 0
-        for (target in targets) {
-            val version = checkNotNull(target.version)
-            val codes = checkNotNull(target.versionCodes) { "the $version target declares no version codes" }
-            val fixtures = Fixtures.files { it.isVendorContainer() && it.name.contains("-$version-") }
-            for (fixture in fixtures) {
-                ZipFile(fixture).use { zip ->
-                    // An .apkm names the base base.apk, an .xapk after the package.
-                    val base = checkNotNull(zip.getEntry("base.apk") ?: zip.getEntry("${AppCompatibilities.THREADS_PACKAGE}.apk")) {
-                        "${fixture.name} holds no base APK"
+        for (fixture in fixtures) {
+            ZipFile(fixture).use { zip ->
+                // An .apkm names the base base.apk, an .xapk after the package.
+                val base = checkNotNull(zip.getEntry("base.apk") ?: zip.getEntry("${AppCompatibilities.THREADS_PACKAGE}.apk")) {
+                    "${fixture.name} holds no base APK"
+                }
+                val copy = File.createTempFile("fixture-base", ".apk")
+                try {
+                    zip.getInputStream(base).use { input -> copy.outputStream().use { input.copyTo(it) } }
+                    // Each read walks the buffer to its end, so each one gets its own view.
+                    val manifest = RandomAccessFile(copy, "r").use { file ->
+                        ApkUtils.getAndroidManifest(DataSources.asDataSource(file))
                     }
-                    val copy = File.createTempFile("fixture-base", ".apk")
-                    try {
-                        zip.getInputStream(base).use { input -> copy.outputStream().use { input.copyTo(it) } }
-                        // Each read walks the buffer to its end, so each one gets its own view.
-                        val manifest = RandomAccessFile(copy, "r").use { file ->
-                            ApkUtils.getAndroidManifest(DataSources.asDataSource(file))
-                        }
-                        assertEquals(
-                            "${fixture.name} version code",
-                            codes.values.single(),
-                            ApkUtils.getVersionCodeFromBinaryAndroidManifest(manifest.duplicate()),
-                        )
-                        assertEquals(
-                            "${fixture.name} minSdk",
-                            target.minSdk,
-                            ApkUtils.getMinSdkVersionFromBinaryAndroidManifest(manifest.duplicate()),
-                        )
-                        checked++
-                    } finally {
-                        copy.delete()
-                    }
+                    val code = ApkUtils.getVersionCodeFromBinaryAndroidManifest(manifest.duplicate())
+                    assertTrue("${fixture.name} version code $code is a 453.0.0.56.79 build", code in codes)
+                    seenCodes += code
+                    val minSdk = ApkUtils.getMinSdkVersionFromBinaryAndroidManifest(manifest.duplicate())
+                    assertTrue(
+                        "${fixture.name} minSdk $minSdk is above the declared ${AppCompatibilities.THREADS_TARGET_MIN_SDK}",
+                        minSdk <= AppCompatibilities.THREADS_TARGET_MIN_SDK,
+                    )
+                    checked++
+                } finally {
+                    copy.delete()
                 }
             }
         }
-        assertEquals("one retained fixture for each declared target", targets.size, checked)
+        assertEquals("one retained fixture for each APKMirror variant", codes, seenCodes)
+        assertEquals("one retained fixture for each APKMirror variant", codes.size, checked)
     }
 
     /**

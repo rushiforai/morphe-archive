@@ -6,7 +6,8 @@
 # SHA-256 of its bytes. #{option} stands for the solid color a patch option sets, and #{option+13}
 # for that color with 13 added to each channel, as the Dark background color patch raises its
 # highlighted surfaces. Those lines pass for any color picked, as long as every one of a run comes
-# out of the same color. Anything a run changes that isn't here fails the run.
+# out of the same color. A @0x0106... value is one of Android's own wallpaper colors, read as the
+# framework id it resolves to. Anything a run changes that isn't here fails the run.
 #
 # [rebuild] is what decoding and rebuilding the table does on its own, whichever resource patch
 # asked for it. Every other section is a patch, and applies only when the run selects that patch or
@@ -15,8 +16,8 @@
 # onto another build fails at the resource step, on the lines its rebuild changes that aren't here.
 
 [rebuild]
-rewritten 0x7f15057f style/TimelineView [default] item 0x0101007f hex 0x02000000 -> dec 0x02000000
-rewritten 0x7f140c7d string/sign_up_tos_description [default] "By tapping \"Next\":" with spans "b" 11-16 -> "By tapping Next:" with spans "b" 11-14
+rewritten 0x7f150580 style/TimelineView [default] item 0x0101007f hex 0x02000000 -> dec 0x02000000
+rewritten 0x7f140c74 string/sign_up_tos_description [default] "By tapping \"Next\":" with spans "b" 11-16 -> "By tapping Next:" with spans "b" 11-14
 renamed 0x7f0b0b5f id/scrollView is id/id_0x7f0b0b5f
 renamed 0x7f0b0b64 id/scrollview is id/id_0x7f0b0b64
 renamed 0x7f0b0b92 id/seekBar is id/id_0x7f0b0b92
@@ -40,6 +41,23 @@ added style/HushTumblrDarkBackground [default] item 0x7f0406c9 attr/themeNavigat
 added style/HushTumblrDarkBackground [default] item 0x7f0406cd attr/themePrimaryColor #{option}
 added style/HushTumblrDarkBackground [default] item 0x7f0406ce attr/themePrimaryColorDark #{option}
 added style/HushTumblrDarkBackground [default] item 0x7f0406d1 attr/themeSecondaryMainContentBackgroundColor #{option}
+added style/HushTumblrDarkBackgroundWallpaper
+added style/HushTumblrDarkBackgroundWallpaper [default] parent @null
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x01010031 @0x0106004f
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f04058b attr/st_chrome @0x0106004f
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f040593 attr/st_chrome_mobile @0x0106004e
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f040595 attr/st_chrome_panel @0x0106004e
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f0405c0 attr/st_content_mobile_container @0x0106004f
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f0405c2 attr/st_content_panel @0x0106004f
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f0405f0 attr/st_modal @0x0106004e
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f0405f5 attr/st_side_menu @0x0106004f
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f0405ff attr/st_top_menu @0x0106004f
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f0406bf attr/themeHighlightedContentBackgroundColor @0x0106004e
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f0406c3 attr/themeMainContentBackgroundColor @0x0106004f
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f0406c9 attr/themeNavigationBarColor @0x0106004f
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f0406cd attr/themePrimaryColor @0x0106004f
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f0406ce attr/themePrimaryColorDark @0x0106004f
+added style/HushTumblrDarkBackgroundWallpaper [default] item 0x7f0406d1 attr/themeSecondaryMainContentBackgroundColor @0x0106004f
 
 [HushTumblr settings]
 added string/hushtumblr_settings_row

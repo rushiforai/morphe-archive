@@ -1,0 +1,96 @@
+name: Build and publish Cordly
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Prevent two publishes of the same release from racing each other.
+concurrency:
+  group: cordly-release
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Cordly
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Test source and metadata scripts
+        run: |
+          node tests/server_media.cjs
+          sed "s@/\*__FEATURES__\*/@({})@g" patches/src/main/resources/venus/bootstrap.js | node --check
+          node --check tools/cordly-server-import.mjs
+          python3 scripts/release_notes.py --check
+          python3 -m py_compile scripts/build.py
+          python3 scripts/verify_source_setup.py
+
+      - name: Build the Morphe patch bundle
+        run: python3 scripts/build.py
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cordly-patches-mpp
+          if-no-files-found: error
+          path: |
+            patches/build/libs/*.mpp
+            patches/build/libs/SHA256SUMS
+
+      - name: Publish versioned GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(sed -n 's/^[[:space:]]*version[[:space:]]*=[[:space:]]*//p' gradle.properties | head -n1 | xargs)"
+          TAG="$(sed -n 's/^[[:space:]]*releaseTag[[:space:]]*=[[:space:]]*//p' gradle.properties | head -n1 | xargs)"
+          ASSET="$(sed -n 's/^[[:space:]]*releaseAsset[[:space:]]*=[[:space:]]*//p' gradle.properties | head -n1 | xargs)"
+          test "$TAG" = "v$VERSION"
+          test "$ASSET" = "patches-$VERSION.mpp"
+          test -s "patches/build/libs/$ASSET"
+          python3 scripts/release_notes.py "$VERSION" > /tmp/cordly-release-notes.md
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Release $TAG exists; leaving immutable published asset untouched."
+            gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fx "$ASSET"               || { echo "The existing release has no $ASSET. Investigate manually."; exit 1; }
+          else
+            gh release create "$TAG" "patches/build/libs/$ASSET"               --target "$GITHUB_SHA"               --title "Cordly $TAG"               --notes-file /tmp/cordly-release-notes.md
+          fi
+
+      - name: Generate and validate remote-source metadata
+        run: |
+          python3 scripts/build.py --metadata-only
+          python3 scripts/build.py --check-metadata
+          python3 scripts/verify_source_setup.py --published
+
+      - name: Commit remote-source metadata to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add patches-bundle.json patches-list.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore: publish Cordly source metadata [skip ci]'
+            git push origin HEAD:main
+          else
+            echo 'Metadata already up to date.'
+          fi

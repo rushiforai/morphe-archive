@@ -1,0 +1,32 @@
+[
+    {
+        "name": "TAB_NEWS_TITLE",
+        "icon": "brand.icon",
+        "selectedIcon": "brand.active.icon",
+        "deeplink": "onep://gridHome"
+    },
+    {
+        "name": "TAB_REGION_TITLE",
+        "icon": "pin.icon",
+        "selectedIcon": "pin.active.icon",
+        "deeplink": "onep://grid/regio?screen=region"
+    },
+    {
+        "name": "TAB_PODCAST_TITLE",
+        "icon": "podcast.icon",
+        "selectedIcon": "podcast.active.icon",
+        "deeplink": "onep://grid/luister"
+    },
+    {
+        "name": "TAB_PAPER_TITLE",
+        "icon": "newspaper.icon",
+        "selectedIcon": "",
+        "deeplink": "onep://epaper"
+    },
+    {
+        "name": "TAB_MORE_TITLE",
+        "icon": "menu.search.icon",
+        "selectedIcon": "menu.search.icon",
+        "deeplink": "onep://morev2?screen=more"
+    }
+]

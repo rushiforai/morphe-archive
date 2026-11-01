@@ -57,6 +57,7 @@ if ($Replace) { throw 'Replacement uninstall is disabled. Repatch with the insta
 # Not a parameter default: Windows PowerShell leaves $PSScriptRoot empty while it evaluates the
 # defaults of an advanced script started with -File. $root below is this same variable.
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
+$Root = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Root)
 # The argument file is written with [IO.File], which reads a relative path against the process
 # directory, while java is handed the same path from PowerShell's location. Absolute, they agree.
 $OutDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
@@ -65,6 +66,7 @@ $OutDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPat
 . (Join-Path $PSScriptRoot 'common.ps1')
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
+. (Join-Path $PSScriptRoot 'walk-receipt.ps1')
 $Java = Resolve-Java -Explicit $Java
 $DesktopJar = Resolve-DesktopCli -Explicit $DesktopJar -Root $root -Required
 $catalogPath = Join-Path $root 'patches-list.json'
@@ -82,6 +84,7 @@ if (-not $Apk -or -not (Test-Path -LiteralPath $Apk -PathType Leaf)) {
         'HUSHTHREADS_FIXTURE_DIR to the folder that holds it.')
 }
 # The version the result is held to: the vendor APK's own, read the way verify-all-patches.ps1
+$Apk = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Apk)
 # and the receipt read it. The catalog can declare more than one build and the CLI reports the
 # version of the APK it was given, so holding every run to the newest build failed an older build
 # after it had been patched (the Facebook sibling's 577). A build the catalog doesn't declare is
@@ -119,6 +122,13 @@ foreach ($value in @($Keystore, $KeyAlias, $keystorePassword, $env:HUSHTHREADS_S
 $version = Get-BundleVersion -Root $root
 $bundle = Get-ReleaseBundlePath -Root $root -Version $version
 if (-not (Test-Path $bundle)) { throw "No bundle at $bundle. Build it first: :patches:generatePatchesList then :patches:buildAndroid, through the governor." }
+$bundleIdentity = Get-BundleIdentityFacts -BundlePath $bundle
+if (-not $bundleIdentity.Valid) { throw 'The bundle has no verified payload identity.' }
+$patchInputHashes = @{
+    Bundle = (Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
+    Input = (Get-FileHash -LiteralPath $Apk -Algorithm SHA256).Hash.ToLowerInvariant()
+    Catalog = (Get-FileHash -LiteralPath $catalogPath -Algorithm SHA256).Hash.ToLowerInvariant()
+}
 # Only buildAndroid writes this bundle; a test run after a patch change leaves it behind, and the
 # phone would get the previous hooks while the result reads as a verdict on the new ones.
 if (-not $AllowStaleBundle) {
@@ -141,6 +151,8 @@ $out = Join-Path $OutDir "hushthreads-$version-signed.apk"
 $unsigned = Join-Path $OutDir "hushthreads-$version-unsigned.apk"
 $temp = Join-Path $OutDir 'tmp'
 $result = Join-Path $OutDir 'result.json'
+$patchReceiptPath = Join-Path $OutDir 'patch-receipt.json'
+Remove-Item -LiteralPath $patchReceiptPath -Force -ErrorAction SilentlyContinue
 if (Test-Path $out) { Remove-Item $out -Force }
 
 Write-Host "[device] $($names.Count) patches from $(Split-Path -Leaf $bundle) onto $(Split-Path -Leaf $Apk)"
@@ -237,6 +249,21 @@ $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
     -AllowedDependencyNames $dependencyNames -OutputPath $out `
     -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $stock.versionName
 if (-not $validation.Valid) { throw "Patching did not produce a complete APK: $($validation.Reason)" }
+$signedManifest = Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2
+$patchReceipt = [ordered]@{
+    schema = 1; kind = 'hushthreads-patch'
+    bundleSha256 = $patchInputHashes.Bundle; bundlePayloadSha256 = $bundleIdentity.PayloadSha256
+    input = [ordered]@{ file = [IO.Path]::GetFullPath($Apk); sha256 = $patchInputHashes.Input
+        package = [string]$stock.package; versionName = [string]$stock.versionName; versionCode = [string]$stock.versionCode }
+    apk = [ordered]@{ file = $out; sha256 = (Get-FileHash -LiteralPath $out -Algorithm SHA256).Hash.ToLowerInvariant()
+        package = [string]$signedManifest.package; versionName = [string]$signedManifest.versionName; versionCode = [string]$signedManifest.versionCode }
+    catalog = [ordered]@{ file = [IO.Path]::GetFullPath($catalogPath); sha256 = $patchInputHashes.Catalog }
+    requestedPatches = @($names); appliedPatches = @(Get-ReportPatchNames $report.appliedPatches); options = 'defaults'
+}
+$provenance = Test-WalkPatchReceipt -Receipt $patchReceipt -BundlePath $bundle -Java $Java -DesktopJar $DesktopJar -Aapt2 $Aapt2 -SourceRoot $Root
+if (-not $provenance.Valid) { throw "Patched APK provenance failed: $($provenance.Reason)" }
+[IO.File]::WriteAllText($patchReceiptPath, (ConvertTo-Json -InputObject $patchReceipt -Depth 8) + "`n")
+Write-Host "[device] provenance $patchReceiptPath"
 Write-Host "[device] applied $(@($report.appliedPatches).Count), failed $(@($report.failedPatches).Count), target $($report.packageName) $($report.packageVersion)"
 Write-Host "[device] $out"
 

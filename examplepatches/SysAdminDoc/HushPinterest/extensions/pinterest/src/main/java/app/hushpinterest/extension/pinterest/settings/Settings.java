@@ -67,6 +67,12 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_VIDEO_PINS =
             new BooleanSetting("hushpinterest_hide_video_pins", FALSE);
     /**
+     * Pins you've saved or own leave Home, on Filter feed's switch. Home's request only asks for the
+     * field that says so while this or Save pins you download is on. Off to start.
+     */
+    public static final BooleanSetting HIDE_SAVED_PINS =
+            new BooleanSetting("hushpinterest_hide_saved_pins", FALSE);
+    /**
      * Filter feed's second capability: pins whose title, grid title or description holds one of
      * these words or phrases leave the same lists. Empty to start, and empty while paused.
      */
@@ -107,6 +113,12 @@ public class Settings extends BaseSettings {
     /** Download pins' Share image row in the pin menu. Starts off, and needs Download pins on. */
     public static final BooleanSetting SHARE_IMAGE =
             new BooleanSetting("hushpinterest_share_image", FALSE);
+    /** Download pins: downloading one pin from its menu also saves it. Starts off, and needs Download pins on. */
+    public static final BooleanSetting SAVE_DOWNLOADED_PINS =
+            new BooleanSetting("hushpinterest_save_downloaded_pins", FALSE);
+    /** Download pins: saving a pin also downloads it. Starts off, and needs Download pins on. */
+    public static final BooleanSetting DOWNLOAD_SAVED_PINS =
+            new BooleanSetting("hushpinterest_download_saved_pins", FALSE);
     public static final BooleanSetting DOWNLOAD_BOARD =
             new BooleanSetting("hushpinterest_download_board", FALSE);
     public static final BooleanSetting LONG_PRESS_DOWNLOAD =
@@ -135,6 +147,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_nav_search", FALSE);
     public static final BooleanSetting HIDE_HEADER_BUTTONS =
             new BooleanSetting("hushpinterest_hide_header_buttons", FALSE);
+    public static final BooleanSetting HIDE_ASSISTANT =
+            new BooleanSetting("hushpinterest_hide_assistant", FALSE);
     public static final BooleanSetting BLACK_BOTTOM_BAR =
             new BooleanSetting("hushpinterest_black_bottom_bar", FALSE);
     public static final BooleanSetting BLACK_COMMENTS =

@@ -1,3 +1,31 @@
+## [1.3.2](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.1...v1.3.2) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Remove top bar glass and keep only the bottom navigation bar ([2991b1a](https://github.com/southstar21dev/southstar21-patches/commit/2991b1a525d1d54ee583b8c34ed9f725d889a177))
+
+## [1.3.1](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.0...v1.3.1) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Remove full screen Reels and keep Instagram's own Reels layout ([c3a339f](https://github.com/southstar21dev/southstar21-patches/commit/c3a339f6ffcb4d3508e0ead7ed06d54f27990a0e))
+
+## [1.3.0](https://github.com/southstar21dev/southstar21-patches/compare/v1.2.6...v1.3.0) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Fade Reels header controls back in after ads ([39e586f](https://github.com/southstar21dev/southstar21-patches/commit/39e586f5e2f4c16aebf4d570229bdb972051b3e4))
+
+### ✨ New Features
+
+* Bypass signature check and remove build expired popup for Instagram ([ea22957](https://github.com/southstar21dev/southstar21-patches/commit/ea2295729fcc7b44ff9a08e6b78ce6e421db8d6a))
+
+## [1.2.6](https://github.com/southstar21dev/southstar21-patches/compare/v1.2.5...v1.2.6) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* Support Instagram 453.0.0.57.79 ([a17882e](https://github.com/southstar21dev/southstar21-patches/commit/a17882e7aea327516c77a6e34322ff0b205f82c3))
+
 ## [1.2.5](https://github.com/southstar21dev/southstar21-patches/compare/v1.2.4...v1.2.5) (2026-10-30)
 
 ### 🐛 Bug Fixes

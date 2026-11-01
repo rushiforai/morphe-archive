@@ -128,3 +128,10 @@ node_modules/
 # Ignore IDEA files
 .idea/
 local.properties
+
+# Local Morphe signing material and runtime state (never commit these).
+/morphe-data/
+*.keystore
+*.jks
+*.p12
+*.pfx

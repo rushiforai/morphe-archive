@@ -48,4 +48,9 @@ public final class DarkBackgroundForTests {
             DarkBackground.designColors = null;
         }
     }
+
+    /** PausedHooksTest's probe for Match my wallpaper: true when the switch reads on. The test phone's version doesn't matter. */
+    public static boolean choosesTheWallpaper() {
+        return DarkBackground.wallpaperChosen();
+    }
 }

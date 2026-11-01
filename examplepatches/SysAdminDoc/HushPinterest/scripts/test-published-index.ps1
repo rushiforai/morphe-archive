@@ -253,12 +253,12 @@ Add-PublishEvent 'verify-index'
             schema=1; bundleSha256=(Get-FileHash -LiteralPath (Join-Path $assets 'patches-0.0.7.mpp')).Hash.ToLowerInvariant()
             fixtureSha256='f' * 64
             catalogSha256=(Get-FileHash -LiteralPath (Join-Path $global:PublishContract.Root 'patches-list.json')).Hash.ToLowerInvariant()
-            packageName='com.pinterest'; appVersion='14.41.0'; appVersionCode='14418010'
+            packageName='com.pinterest'; appVersion='14.42.0'; appVersionCode='14428010'
             selectedPatches=@($publishCatalog.patches[0].name); signedApkSha256='4' * 64
             completed='2026-10-21T15:59:00Z'
         }
-        $walk = New-WalkReceipt -Result PASS -Full $true -Serial 'TESTPHONE01' -Device 'SM-S908U1' -AppVersion '14.41.0' `
-            -AppVersionCode '14418010' -Build $build `
+        $walk = New-WalkReceipt -Result PASS -Full $true -Serial 'TESTPHONE01' -Device 'SM-S908U1' -AppVersion '14.42.0' `
+            -AppVersionCode '14428010' -Build $build `
             -BundleSha256 (Get-FileHash -LiteralPath (Join-Path $assets 'patches-0.0.7.mpp')).Hash -InstalledApkSha256 ('4' * 64) `
             -Started '2026-10-21T16:00:00Z' -Finished '2026-10-21T16:30:00Z' -Screens 40 -Crashes 0
         foreach ($key in $Change.Keys) { $walk[$key] = $Change[$key] }

@@ -426,7 +426,9 @@ public final class PinDownloads {
     }
 
     static boolean start(Object pin, Context context) {
-        return start(pin, context, null);
+        boolean queued = start(pin, context, null);
+        if (queued) SaveAndDownload.downloaded(pin);
+        return queued;
     }
 
     /** Marks a Media link clip with the copy that made it, so the same text copied again isn't ours. */

@@ -7,6 +7,7 @@
  */
 package app.morphe.patches.threads.download
 
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -14,7 +15,13 @@ import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 /** Instagram's post model, which Threads carries and which keeps its name. */
 internal const val MEDIA = "Lcom/instagram/feed/media/Media;"
@@ -119,6 +126,91 @@ internal fun BytecodePatchContext.imageBridges(patch: String): () -> Unit {
         Bridge("candidateHeight", IMAGE_URL, kept("getHeight", "I"), primitive = true),
     ))
 }
+
+/**
+ * The same for the posts a Threads post shows in place of media of its own: a linked Instagram post,
+ * and the post it attaches, reposts or quotes. These getters are shortened on an interface with no
+ * tree-backed key of their own to search for, so they're read off the method that writes a post
+ * back out as JSON, which loads each field just before it names it: a field and the plain getter
+ * answering it on the same data class, and the interface that class implements declaring that getter.
+ * The linked post and the share info have to come off the interface [MEDIA]'s text post info answers,
+ * and the three shared posts off the interface the share info answers.
+ */
+internal fun BytecodePatchContext.linkedPostBridges(patch: String): () -> Unit {
+    val writer = classDefByStrings(LINKED_INLINE_MEDIA, StringComparisonType.EQUALS).flatMap { it.methods }
+        .singleOrNull { it.writesLinkedPosts() }
+        ?: throw PatchException("$patch: expected one method that writes $LINKED_POST_KEYS")
+    val info = classDefBy(MEDIA).methods.filter { method ->
+        method.parameterTypes.isEmpty() && !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType.startsWith("L") &&
+            method.implementation?.instructions?.any { it.loadsLiteral(TEXT_POST_INFO.hashCode()) } == true
+    }.singleOrNull() ?: throw PatchException("$patch: expected one getter on $MEDIA for $TEXT_POST_INFO")
+
+    fun getter(key: String, onInterface: String): Method {
+        val field = writer.fieldWrittenAs(key)
+            ?: throw PatchException("$patch: expected a field read and tested just before $key is written")
+        val holder = classDefBy(field.definingClass)
+        val method = holder.methods.singleOrNull { candidate ->
+            candidate.parameterTypes.isEmpty() && candidate.returnType == field.type &&
+                candidate.implementation?.instructions?.toList()?.let { body ->
+                    body.size == 2 && body[0].opcode == Opcode.IGET_OBJECT && body[1].opcode == Opcode.RETURN_OBJECT &&
+                        ((body[0] as ReferenceInstruction).reference as FieldReference).name == field.name
+                } == true
+        } ?: throw PatchException("$patch: expected one getter on ${holder.type} for $key, ${field.name}")
+        val declaring = holder.interfaces.filter { type ->
+            classDefByOrNull(type)?.methods?.any { it.name == method.name && it.parameterTypes.isEmpty() && it.returnType == method.returnType } == true
+        }.singleOrNull() ?: throw PatchException("$patch: expected one interface of ${holder.type} declaring ${method.name}, the getter for $key")
+        if (declaring != onInterface) {
+            throw PatchException("$patch: the getter for $key is on $declaring, not $onInterface")
+        }
+        return classDefBy(declaring).methods.first { it.name == method.name && it.parameterTypes.isEmpty() && it.returnType == method.returnType }
+    }
+
+    val infoType = anInterface(patch, info.returnType).type
+    val linked = getter(LINKED_INLINE_MEDIA, infoType)
+    val share = getter(SHARE_INFO, infoType)
+    val shareType = anInterface(patch, share.returnType).type
+    fun post(key: String) = getter(key, shareType).also {
+        if (it.returnType != MEDIA) throw PatchException("$patch: the getter for $key answers ${it.returnType}, not $MEDIA")
+    }
+    if (linked.returnType != MEDIA) throw PatchException("$patch: the getter for $LINKED_INLINE_MEDIA answers ${linked.returnType}, not $MEDIA")
+    fun through(getter: Method) = "invoke-interface {p0}, ${getter.definingClass}->${getter.name}()${getter.returnType}"
+
+    return bridgeWriter(patch, listOf(
+        Bridge("textPostInfo", MEDIA, virtual(info)),
+        Bridge("linkedInlineMedia", infoType, through(linked)),
+        Bridge("shareInfo", infoType, through(share)),
+        Bridge("quotedAttachmentPost", shareType, through(post(QUOTED_ATTACHMENT_POST))),
+        Bridge("repostedPost", shareType, through(post(REPOSTED_POST))),
+        Bridge("quotedPost", shareType, through(post(QUOTED_POST))),
+    ))
+}
+
+private const val TEXT_POST_INFO = "text_post_app_info"
+private const val LINKED_INLINE_MEDIA = "linked_inline_media"
+private const val SHARE_INFO = "share_info"
+private const val QUOTED_ATTACHMENT_POST = "quoted_attachment_post"
+private const val REPOSTED_POST = "reposted_post"
+private const val QUOTED_POST = "quoted_post"
+private val LINKED_POST_KEYS = listOf(LINKED_INLINE_MEDIA, SHARE_INFO, QUOTED_ATTACHMENT_POST, REPOSTED_POST, QUOTED_POST)
+
+/** Whether this method writes a post's linked posts out as JSON, naming each of their keys once. */
+internal fun Method.writesLinkedPosts() = LINKED_POST_KEYS.all { key -> implementation?.instructions?.count { it.isString(key) } == 1 }
+
+/** The fields a method that [writesLinkedPosts] reads for them, on the build's data classes. */
+internal fun Method.linkedPostFields() = LINKED_POST_KEYS.mapNotNull { fieldWrittenAs(it) }
+
+/** The field this method loads and tests for null just before it names [key]: `iget-object vA; if-eqz vA; const-string`. */
+private fun Method.fieldWrittenAs(key: String): FieldReference? {
+    val code = implementation!!.instructions.toList()
+    val named = code.indexOfFirst { it.isString(key) }
+    if (named < 2 || code[named - 2].opcode != Opcode.IGET_OBJECT || code[named - 1].opcode != Opcode.IF_EQZ) return null
+    if ((code[named - 2] as TwoRegisterInstruction).registerA != (code[named - 1] as OneRegisterInstruction).registerA) return null
+    return (code[named - 2] as ReferenceInstruction).reference as FieldReference
+}
+
+private fun Instruction.isString(value: String) =
+    (opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) &&
+        ((this as ReferenceInstruction).reference as StringReference).string == value
 
 private fun virtual(getter: Method) = "invoke-virtual {p0}, ${getter.definingClass}->${getter.name}()${getter.returnType}"
 

@@ -50,7 +50,7 @@ internal const val MATURE_SERVICE_CAPTURE = "$MATURE->service(Ljava/lang/Object;
 internal const val MATURE_RECEIVED = "$MATURE->received(Ljava/lang/Object;Ljava/lang/Object;)V"
 internal const val MATURE_USER = "Lcom/tumblr/UserInfo;"
 internal const val MATURE_AGE = "Lcom/tumblr/rumblr/model/AgeVerification;"
-internal const val MATURE_GATE = "Lkg4;"
+internal const val MATURE_GATE = "Lxg4;"
 internal const val MATURE_REPOSITORY = "Lcom/tumblr/communitylabel/data/settings/a;"
 internal const val MATURE_NATIVE_SERVICE = "Lcom/tumblr/communitylabel/data/settings/CommunityLabelService;"
 internal const val MATURE_PERMISSION = "Lcom/tumblr/communitylabel/data/settings/CommunityLabelUserConfigResponse;"
@@ -60,8 +60,8 @@ internal const val MATURE_REQUESTER = "$EXTENSION_PACKAGE/mature/NativeMatureSer
 internal const val MATURE_CONTINUATION = "$EXTENSION_PACKAGE/mature/NativeMatureContinuation;"
 private const val OBJECT = "Ljava/lang/Object;"
 private const val BOOLEAN = "Ljava/lang/Boolean;"
-private const val COROUTINE = "Lbx5;"
-private const val COROUTINE_CONTEXT = "Ly76;"
+private const val COROUTINE = "Lox5;"
+private const val COROUTINE_CONTEXT = "Ll86;"
 
 @Suppress("unused")
 val revealAllowedMatureContentPatch = bytecodePatch(
@@ -91,7 +91,7 @@ internal data class MatureRevealPlan(
 /** Raw nullable responses, JSON presence and every native ABI are proven before any changes. */
 internal fun BytecodePatchContext.resolveMatureReveal(): MatureRevealPlan {
     listOf(MATURE_COVER, MATURE_AGE_PARSED, MATURE_PERMISSION_PARSED, MATURE_SERVICE_CAPTURE, MATURE_RECEIVED).forEach { requireExtensionHook(PATCH, it) }
-    val cover = matureMethod(MATURE_GATE, "k", listOf("Lhyf;"), "Z")
+    val cover = matureMethod(MATURE_GATE, "k", listOf("Lyzf;"), "Z")
     val body = cover.instructionList()
     requireShape(PATCH, cover.implementation!!.registerCount == 4 && cover.implementation!!.tryBlocks.isEmpty()
         && body.map { it.opcode } == listOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT,
@@ -100,13 +100,13 @@ internal fun BytecodePatchContext.resolveMatureReveal(): MatureRevealPlan {
             Opcode.RETURN, Opcode.INVOKE_DIRECT, Opcode.MOVE_RESULT, Opcode.RETURN, Opcode.RETURN)
         && listOf(12 to 2, 13 to 1, 16 to 2, 17 to 1).all { (index, register) ->
             (body[index] as OneRegisterInstruction).registerA == register
-        } && body[1].methodRef()?.toString() == "$MATURE_GATE->l(Lhyf;)Z"
-        && body[5].methodRef()?.toString() == "$MATURE_GATE->f(Lhyf;)Z"
-        && listOf(8, 14).all { body[it].methodRef()?.toString() == "$MATURE_GATE->j(Lhyf;)Z" },
+        } && body[1].methodRef()?.toString() == "$MATURE_GATE->l(Lyzf;)Z"
+        && body[5].methodRef()?.toString() == "$MATURE_GATE->f(Lyzf;)Z"
+        && listOf(8, 14).all { body[it].methodRef()?.toString() == "$MATURE_GATE->j(Lyzf;)Z" },
         "the native content-label cover result changed")
-    val nsfw = matureMethod("Lw5n;", "b", listOf("Lhyf;", MATURE_GATE), "Ly8n;").instructionList()
-    requireShape(PATCH, nsfw.indexOfFirst { it.methodRef()?.toString() == "Lrc1;->U0()Z" } in 0..8
-        && nsfw.indexOfFirst { it.methodRef()?.toString() == "$MATURE_GATE->k(Lhyf;)Z" } == 10,
+    val nsfw = matureMethod("Ls7n;", "b", listOf("Lyzf;", MATURE_GATE), "Luan;").instructionList()
+    requireShape(PATCH, nsfw.indexOfFirst { it.methodRef()?.toString() == "Led1;->U0()Z" } in 0..8
+        && nsfw.indexOfFirst { it.methodRef()?.toString() == "$MATURE_GATE->k(Lyzf;)Z" } == 10,
         "the separate native NSFW restriction no longer precedes content-label covers")
 
     val fresh = matureMethod(MATURE_USER, "<init>", listOf("Lcom/tumblr/rumblr/response/UserInfoResponse;"), "V").instructionList()
@@ -128,7 +128,7 @@ internal fun BytecodePatchContext.resolveMatureReveal(): MatureRevealPlan {
         && (defaults[222] as RegisterRangeInstruction).startRegister == 4,
         "a missing can_modify_safe_mode value no longer defaults to restricted")
 
-    val ageParser = matureMethod(MATURE_AGE.removeSuffix(";") + "JsonAdapter;", "fromJson", listOf("Lc8b;"), OBJECT)
+    val ageParser = matureMethod(MATURE_AGE.removeSuffix(";") + "JsonAdapter;", "fromJson", listOf("Le9b;"), OBJECT)
     val parsed = ageParser.instructionList()
     val nativeBlock = matureJsonGetter(MATURE_AGE, "block_app", "Z")
     requireShape(PATCH, nativeBlock == "$MATURE_AGE->getBlockApp()Z" && parsed.size == 97
@@ -138,13 +138,13 @@ internal fun BytecodePatchContext.resolveMatureReveal(): MatureRevealPlan {
         && parsed[65].opcode == Opcode.AND_INT_LIT8 && (parsed[65] as NarrowLiteralInstruction).narrowLiteral == -2
         && (parsed[65] as TwoRegisterInstruction).let { it.registerA == 9 && it.registerB == 9 }
         && parsed[77].methodRef()?.toString() == "$MATURE_AGE-><init>(ZLjava/lang/String;Ljava/lang/String;Lcom/tumblr/rumblr/model/AgeGroup;)V"
-        && parsed[81].methodRef()?.toString() == "$MATURE_AGE-><init>(ZLjava/lang/String;Ljava/lang/String;Lcom/tumblr/rumblr/model/AgeGroup;ILr17;)V"
+        && parsed[81].methodRef()?.toString() == "$MATURE_AGE-><init>(ZLjava/lang/String;Ljava/lang/String;Lcom/tumblr/rumblr/model/AgeGroup;ILh27;)V"
         && (parsed[81] as RegisterRangeInstruction).let { it.startRegister == 4 && it.registerCount == 7 }
         && listOf(78 to 14, 82 to 4, 96 to 2).all { (index, register) ->
             parsed[index].opcode == Opcode.RETURN_OBJECT && (parsed[index] as OneRegisterInstruction).registerA == register
         }, "the age_verification JSON presence mask or successful constructor paths changed")
 
-    val permissionParser = matureMethod(MATURE_PERMISSION.removeSuffix(";") + "JsonAdapter;", "fromJson", listOf("Lc8b;"), OBJECT)
+    val permissionParser = matureMethod(MATURE_PERMISSION.removeSuffix(";") + "JsonAdapter;", "fromJson", listOf("Le9b;"), OBJECT)
     val permissionBody = permissionParser.instructionList()
     requireShape(PATCH, permissionBody.size == 110 && permissionParser.implementation!!.registerCount == 15
         && permissionParser.implementation!!.tryBlocks.isEmpty()
@@ -161,7 +161,7 @@ internal fun BytecodePatchContext.resolveMatureReveal(): MatureRevealPlan {
             && (permissionBody[index] as OneRegisterInstruction).registerA == register },
         "the native permission JSON presence masks or successful constructor paths changed")
 
-    val repository = matureMethod(MATURE_REPOSITORY, "<init>", listOf("Lsh7;", MATURE_NATIVE_SERVICE), "V")
+    val repository = matureMethod(MATURE_REPOSITORY, "<init>", listOf("Lii7;", MATURE_NATIVE_SERVICE), "V")
     val made = repository.instructionList()
     requireShape(PATCH, made.size == 14 && made.last().opcode == Opcode.RETURN_VOID
         && repository.implementation!!.registerCount == 9 && repository.implementation!!.tryBlocks.isEmpty()
@@ -178,12 +178,12 @@ internal fun BytecodePatchContext.resolveMatureReveal(): MatureRevealPlan {
     requireShape(PATCH, continuation != null && AccessFlags.INTERFACE.isSet(continuation.accessFlags)
         && continuation.methods.any { it.name == "getContext" && it.hasShape(emptyList(), COROUTINE_CONTEXT) }
         && continuation.methods.any { it.name == "resumeWith" && it.hasShape(listOf(OBJECT), "V") }
-        && COROUTINE_CONTEXT in classDefByOrNull("Ly58;")?.interfaces.orEmpty()
-        && matureMethod("Ly58;", "toString", emptyList(), "Ljava/lang/String;").instructionList().first().stringRef() == "EmptyCoroutineContext"
-        && classDefByOrNull("Ly58;")?.fields?.any { it.name == "a" && it.type == "Ly58;" && AccessFlags.PUBLIC.isSet(it.accessFlags)
+        && COROUTINE_CONTEXT in classDefByOrNull("Lo68;")?.interfaces.orEmpty()
+        && matureMethod("Lo68;", "toString", emptyList(), "Ljava/lang/String;").instructionList().first().stringRef() == "EmptyCoroutineContext"
+        && classDefByOrNull("Lo68;")?.fields?.any { it.name == "a" && it.type == "Lo68;" && AccessFlags.PUBLIC.isSet(it.accessFlags)
             && AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.FINAL.isSet(it.accessFlags) } == true
-        && classDefByOrNull("Ls2b;")?.superclass == "Lu2b;"
-        && matureMethod("Lu2b;", "g", emptyList(), OBJECT).instructionList().first().fieldRef()?.toString() == "Lp86;->COROUTINE_SUSPENDED:Lp86;",
+        && classDefByOrNull("Lu3b;")?.superclass == "Lw3b;"
+        && matureMethod("Lw3b;", "g", emptyList(), OBJECT).instructionList().first().fieldRef()?.toString() == "Lc96;->COROUTINE_SUSPENDED:Lc96;",
         "the native continuation context or suspension marker changed")
     val fetch = matureMethod(MATURE_REQUESTER, "hushFetchMaturePermission", listOf(OBJECT), "V")
     requireShape(PATCH, classDefByOrNull(MATURE_REQUESTER)?.fields?.any { it.name == "service" && it.type == OBJECT
@@ -215,7 +215,7 @@ internal fun BytecodePatchContext.resolveMatureReveal(): MatureRevealPlan {
     matureMethod(MATURE_API_RESPONSE, "getMetaData", emptyList(), MATURE_METADATA)
     matureMethod(MATURE_METADATA, "getStatus", emptyList(), "I")
     val context = matureNewMethod(MATURE_CONTINUATION, "getContext", COROUTINE_CONTEXT,
-        "sget-object v0, Ly58;->a:Ly58;\nreturn-object v0")
+        "sget-object v0, Lo68;->a:Lo68;\nreturn-object v0")
     return MatureRevealPlan(mutableOf(cover), mutableOf(ageParser), mutableOf(permissionParser), mutableOf(repository), bridges, mutableOf(fetch), context)
 }
 
@@ -239,7 +239,7 @@ internal fun BytecodePatchContext.applyMatureReveal(plan: MatureRevealPlan) {
             invoke-direct { v1, p1 }, $MATURE_CONTINUATION-><init>($OBJECT)V
             invoke-interface { v0, v1 }, $MATURE_NATIVE_SERVICE->getCommunityLabelUserConfig($COROUTINE)$OBJECT
             move-result-object v2
-            invoke-static { }, Ls2b;->g()$OBJECT
+            invoke-static { }, Lu3b;->g()$OBJECT
             move-result-object v3
             if-eq v2, v3, :suspended
             invoke-static { p1, v2 }, $MATURE_RECEIVED

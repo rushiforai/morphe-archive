@@ -19,10 +19,10 @@ import app.hushpinterest.extension.shared.settings.preference.QuickSetups;
  *
  * <p>Quiet and Privacy only turn switches on, and only switches whose effect is plain from their
  * name and takes nothing away that someone would miss. Left out on purpose: Hide shopping and
- * both AI pin switches, which hide pins people may want; Boost pin, which some use; Hide search
- * history, which people use to go back to a search; and Open links in your browser, which changes
- * how every link opens. Back to defaults puts every switch a settings file carries back the way
- * it started.
+ * both AI pin switches, which hide pins people may want; Boost pin and Hide Assistant, which some
+ * use; Hide search history, which people use to go back to a search; and Open links in your
+ * browser, which changes how every link opens. Back to defaults puts every switch a settings file
+ * carries back the way it started.
  */
 final class QuickSetupKeys {
     /** Fewer ads, suggestions, nags and pop-ups. */

@@ -1,0 +1,338 @@
+{
+  "description": "Sanitized anonymous HOME DTO shapes, 2026-10-30; article text, IDs, URLs and credentials omitted.",
+  "cases": [
+    {
+      "case": "nieuwsblad-marketing-quiz-slider",
+      "expected_hidden": true,
+      "group": {
+        "__typename": "RegularGroup",
+        "type": "regular",
+        "groupArea": [
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "ExtraPage",
+              "type": "extraPage"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "NewsArticle",
+              "type": "newsArticle"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "PodcastSeries",
+              "type": "podcastSeries"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "PodcastSeries",
+              "type": "podcastSeries"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "NewsArticle",
+              "type": "newsArticle"
+            }
+          }
+        ],
+        "groupOptions": [
+          {
+            "key": "appStoryblock",
+            "value": "RegularBlock-6"
+          },
+          {
+            "key": "groupTheme",
+            "value": "sponsored-content"
+          }
+        ]
+      }
+    },
+    {
+      "case": "nieuwsblad-native-and-html-partners",
+      "expected_hidden": true,
+      "group": {
+        "__typename": "RegularGroup",
+        "type": "regular",
+        "groupArea": [
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "HtmlBlock",
+              "type": "htmlBlock"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "ArticleList",
+              "content": [
+                {
+                  "__typename": "SponsoredArticle",
+                  "type": "sponsoredArticle"
+                }
+              ]
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "ArticleList",
+              "content": [
+                {
+                  "__typename": "SponsoredArticle",
+                  "type": "sponsoredArticle"
+                }
+              ]
+            }
+          }
+        ],
+        "groupOptions": [
+          {
+            "key": "groupTheme",
+            "value": "sponsored-content"
+          },
+          {
+            "key": "appStoryblock",
+            "value": "RegularBlock-4"
+          }
+        ]
+      }
+    },
+    {
+      "case": "nieuwsblad-rss-partner-products",
+      "expected_hidden": true,
+      "group": {
+        "__typename": "RegularGroup",
+        "type": "regular",
+        "groupArea": [
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "HtmlBlock",
+              "type": "htmlBlock"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "RssArticleList"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "RssArticleList"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "RssArticleList"
+            }
+          }
+        ],
+        "groupOptions": [
+          {
+            "key": "groupTheme",
+            "value": "sponsored-content"
+          },
+          {
+            "key": "appStoryblock",
+            "value": "RegularBlock-4"
+          }
+        ]
+      }
+    },
+    {
+      "case": "dsnieuws-native-and-html-partners",
+      "expected_hidden": true,
+      "group": {
+        "__typename": "RegularGroup",
+        "type": "regular",
+        "groupArea": [
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "HtmlBlock",
+              "type": "htmlBlock"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "ArticleList",
+              "content": [
+                {
+                  "__typename": "SponsoredArticle",
+                  "type": "sponsoredArticle"
+                }
+              ]
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "ArticleList",
+              "content": [
+                {
+                  "__typename": "SponsoredArticle",
+                  "type": "sponsoredArticle"
+                }
+              ]
+            }
+          }
+        ],
+        "groupOptions": [
+          {
+            "key": "groupTheme",
+            "value": "sponsored-content"
+          },
+          {
+            "key": "appStoryblock",
+            "value": "RegularBlock-4"
+          }
+        ]
+      }
+    },
+    {
+      "case": "dsnieuws-rss-partner-products",
+      "expected_hidden": true,
+      "group": {
+        "__typename": "RegularGroup",
+        "type": "regular",
+        "groupArea": [
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "HtmlBlock",
+              "type": "htmlBlock"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "RssArticleList"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "RssArticleList"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "RssArticleList"
+            }
+          }
+        ],
+        "groupOptions": [
+          {
+            "key": "groupTheme",
+            "value": "sponsored-content"
+          },
+          {
+            "key": "appStoryblock",
+            "value": "RegularBlock-4"
+          }
+        ]
+      }
+    },
+    {
+      "case": "dsnieuws-nyt-unmarked-separate-followup",
+      "expected_hidden": false,
+      "group": {
+        "__typename": "HtmlGroup",
+        "type": "html",
+        "groupArea": [
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "HtmlBlock",
+              "type": "htmlBlock"
+            }
+          }
+        ],
+        "groupOptions": [
+          {
+            "key": "appStoryblock",
+            "value": "HTML"
+          },
+          {
+            "key": "groupTheme",
+            "value": "none"
+          }
+        ]
+      }
+    },
+    {
+      "case": "nieuwsblad-editorial-group",
+      "expected_hidden": false,
+      "group": {
+        "__typename": "CustomizableStoryblockGroup",
+        "type": "customizableStoryblock",
+        "areaOne": [
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "NewsArticle",
+              "type": "newsArticle"
+            }
+          }
+        ],
+        "areaTwo": [
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "NewsArticle",
+              "type": "newsArticle"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "NewsArticle",
+              "type": "newsArticle"
+            }
+          }
+        ],
+        "areaThree": [
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "NewsArticle",
+              "type": "newsArticle"
+            }
+          },
+          {
+            "__typename": "AtomLink",
+            "content": {
+              "__typename": "NewsArticle",
+              "type": "newsArticle"
+            }
+          }
+        ],
+        "groupOptions": [
+          {
+            "key": "groupTheme",
+            "value": "premium"
+          },
+          {
+            "key": "appStoryblock",
+            "value": "CustomizableStoryblock"
+          }
+        ]
+      }
+    }
+  ]
+}

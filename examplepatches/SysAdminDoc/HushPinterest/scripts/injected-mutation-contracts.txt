@@ -33,20 +33,21 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 family|hideAds|Hide ads|feedAds,adViews,googleAds
 family|hideAiPins|Hide AI-labeled pins|feedAiPins
 family|hideShopping|Hide shopping and product pins|feedShopping
-family|filterFeed|Filter feed|feedVideoPins,feedMutedWords
+family|filterFeed|Filter feed|feedVideoPins,feedMutedWords,feedSavedPins
 family|keepHomeFeed|Keep Home feed|homeFeed
 family|disableAnalytics|Disable analytics|analyticsTasks,analyticsUploads
 family|stripLinkTracking|Strip link tracking|linkTracking,plainPinLinks
 family|hideAdvertisingId|Hide advertising ID|advertisingId,browserId
 family|removeAdTrackingPermissions|Remove ad tracking permissions|
 family|spoofSignature|Spoof signature for Google sign-in|
-family|gmsCoreSupport|GmsCore support|
-family|downloadPins|Download pins|pinDownloads,copyImage,shareImage
+family|gmsCoreSupport|GmsCore support|signInFailure
+family|downloadPins|Download pins|pinDownloads,copyImage,shareImage,saveAndDownload
 family|downloadBoard|Download board|boardMenu,boardPins
 family|longPressDownload|Long-press download|longPressMenu,longPressChoices
 family|externalBrowser|Open links in your browser|visitLinks
 family|systemShare|System share sheet|pinShare
 family|hideScreenshotShare|No screenshot share menu|screenshotShare
+family|hideAssistant|Hide Assistant|assistantEntries
 family|hideSearchHistory|Hide search history|searchHistory,recentSearchRows,recentSearchHeading
 family|hideNavigationButtons|Hide navigation buttons|navigationButtons
 family|hideHeaderButtons|Hide header buttons|headerButtons
@@ -75,11 +76,12 @@ mutation|advertisingId|answers|Lcom/google/android/gms/ads/identifier/Advertisin
 mutation|browserId|browserId|Lapp/hushpinterest/extension/pinterest/privacy/AdvertisingId;->skipBrowserId(Ljava/lang/String;)Z|Lapp/hushpinterest/extension/pinterest/privacy/AdvertisingId;->saveBrowserId(Ljava/lang/Object;Ljava/lang/String;[BLjava/lang/Object;)Ljava/lang/Object;
 mutation|pinDownloads,copyImage,shareImage|downloads|Lapp/hushpinterest/extension/pinterest/actions/PinDownloads;->attach(Ljava/lang/Object;)V|Lcom/pinterest/feature/gridactions/modal/view/PinOverflowMenuModalImpl;
 mutation|boardMenu|boardMenu|Lapp/hushpinterest/extension/pinterest/actions/BoardDownloads;->menu(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-mutation|longPressMenu|longPress|Lapp/hushpinterest/extension/pinterest/actions/LongPressDownload;->show(Ljava/lang/Object;Ljava/lang/Object;)V|Lcom/pinterest/ui/menu/ContextMenuView;
+mutation|longPressMenu|longPress|Lapp/hushpinterest/extension/pinterest/actions/LongPressDownload;->show(Ljava/lang/Object;Ljava/lang/Object;)V|Lcom/pinterest/ui/menu/ContextMenuView;|Lapp/hushpinterest/extension/pinterest/actions/LongPressDownload;->composeItems(Ljava/util/ArrayList;Ljava/lang/Object;)Ljava/util/ArrayList;|Lapp/hushpinterest/extension/pinterest/actions/LongPressDownload;->composeClick(Ljava/lang/Object;Ljava/lang/Object;)Z
 mutation|longPressChoices|longPressChoices|Lapp/hushpinterest/extension/pinterest/actions/LongPressDownload;->buttonKind(Ljava/lang/Object;)I
 mutation|visitLinks|guard|Lapp/hushpinterest/extension/pinterest/actions/ExternalBrowser;->open(Ljava/lang/String;Ljava/lang/Object;)Z|visit|Lapp/hushpinterest/extension/pinterest/actions/ExternalBrowser;->openProfile(Ljava/lang/String;)Z|profileWebsite
 mutation|pinShare|guard|Lapp/hushpinterest/extension/pinterest/actions/SystemShare;->open(Ljava/lang/Object;Ljava/lang/Object;)Z|share|Lapp/hushpinterest/extension/pinterest/actions/SystemShare;->openSendable(Ljava/lang/Object;Ljava/lang/Object;)Z|shareCloseup
 mutation|screenshotShare|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideScreenshotShare()Z|screenshot
+mutation|assistantEntries|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideAssistant()Z|assistant
 mutation|searchHistory|views|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->searchHistoryVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->searchHistoryMeasureSpec(I)I|Lcom/pinterest/feature/search/landing/view/SlpRecentSearchCell;,Lcom/pinterest/feature/search/typeahead/view/SearchTypeaheadRecentSearchesCarouselView;,Lcom/pinterest/feature/search/typeahead/view/SearchTypeaheadRecentSearchPillView;
 mutation|navigationButtons|navigation|Lapp/hushpinterest/extension/pinterest/ui/InterfaceControls;->bindNavigation(Landroid/view/View;Ljava/lang/Object;)V|Lapp/hushpinterest/extension/pinterest/ui/InterfaceControls;->refreshNavigation(Landroid/view/View;)V
 mutation|headerButtons|refresh|Lapp/hushpinterest/extension/pinterest/ui/InterfaceControls;->headerButtons(Landroid/view/View;)V|Lcom/pinterest/gestalt/headerBar/GestaltHeaderBar;
@@ -101,4 +103,7 @@ mutation|saveToasts|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hi
 mutation|imageChooser|imageOrder|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->originalImages()Z
 mutation|closeupImage|closeupImage|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->imageSizes(Ljava/util/Set;)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->closeupImage(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 mutation|updateNag|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->disableUpdateNag()Z|update
+mutation|signInFailure|signInFailure|Lapp/hushpinterest/extension/pinterest/settings/GoogleSignInReadiness;->requestFailed(Ljava/lang/Exception;)V
+mutation|saveAndDownload|saveAndDownload|Lapp/hushpinterest/extension/pinterest/actions/SaveAndDownload;->saving(Ljava/lang/Object;)V|Lapp/hushpinterest/extension/pinterest/actions/SaveAndDownload;->saver(Ljava/lang/Object;)V|Lcom/pinterest/feature/pin/closeup/presenter/OrganicPinCloseupPresenter;
+mutation|feedSavedPins|homePage|Lapp/hushpinterest/extension/pinterest/ads/SavedPins;->homePage(Ljava/lang/Object;)V|Lcom/pinterest/feature/home/model/|Lcom/pinterest/legacy/feeds/DynamicFeed;
 mutation|firebaseCertificate|firebaseCertificate|Lapp/hushpinterest/extension/pinterest/notifications/PushNotifications;->certificateHeader(Ljava/net/URLConnection;Ljava/lang/String;)Ljava/lang/String;

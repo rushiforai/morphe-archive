@@ -151,7 +151,7 @@ class DarkBackgroundFixtureTest {
             val footers = FixtureDex.classesWhere(build, { true }) { method ->
                 method.strings().any { it.startsWith(POST_FOOTER_NOTE) }
             }
-            val context = PatchContexts.of((ExtensionDex.classes() + themeClasses(build) + designClasses(build) + footers).distinctBy { it.type })
+            val context = PatchContexts.of((ExtensionDex.classes() + themeClasses(build) + designClasses(build) + footers + pageClasses(build)).distinctBy { it.type })
             val (footer, read) = context.resolvePostFooterColor()
                 ?: throw AssertionError("${build.name}: the post footer's color wasn't found")
             val before = footer.instructionList()
@@ -174,11 +174,86 @@ class DarkBackgroundFixtureTest {
         }
     }
 
+    /**
+     * A blog's page, title and link colors go through the extension right before their functions
+     * return them, and a tag page's right after it's read from the header, the answer going back where
+     * it was. The JSON adapter's read and the customize screens' reads of the theme stay Tumblr's.
+     */
+    @Test
+    fun `each declared build hands blog and tag page colors to the extension`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val pages = pageClasses(build)
+            val adapter = pages.filter { it.type.endsWith("JsonAdapter;") }.map { it.type to shapeOf(it) }
+            assertEquals("${build.name}: the header's JSON adapter reads the color too", 1, adapter.size)
+            val context = PatchContexts.of((ExtensionDex.classes() + themeClasses(build) + pages).distinctBy { it.type })
+            val blogs = context.resolveBlogColors()
+            assertEquals("${build.name}: a blog's page color, then its title and link colors",
+                listOf(PAGE_COLOR_HOOK, PAGE_TEXT_COLOR_HOOK, PAGE_TEXT_COLOR_HOOK), blogs.map { it.second.hook })
+            assertEquals("${build.name}: three functions", 3, blogs.map { it.first.toString() }.toSet().size)
+            val blogsBefore = blogs.associate { (method, _) -> method.toString() to method.instructionList() }
+            val tags = context.resolveTagPageColors()
+            assertEquals("${build.name}: the page's bars and the timeline's two reads", 3, tags.size)
+            val tagsBefore = tags.associate { (method, _) -> method.toString() to method.instructionList() }
+
+            darkBackgroundPatch.execute(context)
+
+            for ((blog, blogRead) in blogs) {
+                val blogBefore = blogsBefore.getValue(blog.toString())
+                val blogAfter = context.mutableClassDefBy(blog.definingClass).methods
+                    .single { it.name == blog.name && it.parameterTypes == blog.parameterTypes }.instructionList()
+                val at = blogRead.index
+                assertEquals("${blog.name}: a call and its answer", blogBefore.size + 2, blogAfter.size)
+                assertEquals("${blog.name} $at: after the color is kept", Opcode.MOVE_RESULT, blogAfter[at - 1].opcode)
+                assertEquals("${blog.name} $at", blogRead.hook, blogAfter[at].descriptor())
+                assertEquals("${blog.name} $at: on the color", listOf(blogRead.register), blogAfter[at].namedRegisters())
+                assertEquals("${blog.name} $at: goes back where the color was", blogRead.register, (blogAfter[at + 1] as OneRegisterInstruction).registerA)
+                assertEquals("${blog.name}: and that's returned", Opcode.RETURN, blogAfter[at + 2].opcode)
+                assertEquals("${blog.name}: Tumblr's own code around it", blogBefore.map { it.opcode },
+                    blogAfter.filterIndexed { index, _ -> index != at && index != at + 1 }.map { it.opcode })
+            }
+
+            for ((method, read) in tags) {
+                val before = tagsBefore.getValue(method.toString())
+                val after = context.mutableClassDefBy(method.definingClass).methods
+                    .single { it.name == method.name && it.parameterTypes == method.parameterTypes }.instructionList()
+                assertEquals("$method: a call and its answer", before.size + 2, after.size)
+                assertEquals("$method: right after the header's color", "getBackgroundColor", after[read.index - 2].methodRef()?.name)
+                assertEquals("$method: once it's kept", Opcode.MOVE_RESULT_OBJECT, after[read.index - 1].opcode)
+                assertEquals("$method", HUB_COLOR_HOOK, after[read.index].descriptor())
+                assertEquals("$method: on the color", listOf(read.register), after[read.index].namedRegisters())
+                assertEquals("$method: goes back where it was", read.register, (after[read.index + 1] as OneRegisterInstruction).registerA)
+                assertEquals("$method: Tumblr's own code around it", before.map { it.opcode },
+                    after.filterIndexed { index, _ -> index != read.index && index != read.index + 1 }.map { it.opcode })
+            }
+            for ((type, shape) in adapter) {
+                assertEquals("$type: left as Tumblr wrote it", shape, shapeOf(context.classDefBy(type)))
+            }
+        }
+    }
+
+    /** Without a blog's or a tag's color where it was, the themes still get the style. */
+    @Test
+    fun `a build without the page colors gets a warning for each and the rest of the patch`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = PatchContexts.of((ExtensionDex.classes() + themeClasses(build) + designClasses(build)).distinctBy { it.type })
+            val setter = context.resolveThemeHooks().let { it.activity to it.activity.instructionList().size }
+
+            val warnings = PatchLogCapture.warnings { darkBackgroundPatch.execute(context) }
+
+            assertEquals(build.name, 1, warnings.count { it.endsWith("a blog's page keeps the color its owner chose") })
+            assertEquals(build.name, 1, warnings.count { it.endsWith("a tag's page keeps its own color") })
+            assertEquals("${build.name}: the activity's theme is still handed over", setter.second + 1,
+                context.mutableClassDefBy(setter.first.definingClass).methods
+                    .single { it.name == setter.first.name && it.parameterTypes == setter.first.parameterTypes }
+                    .instructionList().size)
+        }
+    }
+
     /** Every hook here fails open: without the design system where it was, the themes still get the style. */
     @Test
     fun `a build without the design system's colors gets a warning and the rest of the patch`() {
         for (build in Fixtures.declaredBuilds()) {
-            val context = PatchContexts.of(ExtensionDex.classes() + themeClasses(build))
+            val context = PatchContexts.of((ExtensionDex.classes() + themeClasses(build) + pageClasses(build)).distinctBy { it.type })
             val hooks = context.resolveThemeHooks()
             val setter = hooks.activity.instructionList().size
 
@@ -212,6 +287,7 @@ class DarkBackgroundFixtureTest {
     @Test
     fun `the patch and the extension name the same style`() {
         assertEquals(DARK_BACKGROUND_STYLE, ExtensionDex.stringConstant(DARK_BACKGROUND, "STYLE"))
+        assertEquals(DARK_WALLPAPER_STYLE, ExtensionDex.stringConstant(DARK_BACKGROUND, "WALLPAPER_STYLE"))
     }
 
     /** A design system row is as far from its page as a highlighted surface in the style is. */
@@ -228,6 +304,13 @@ class DarkBackgroundFixtureTest {
         // The activity's own class both calls setTheme and starts its chain, so it's kept once.
         return classes + activityChains(build, classes).filter { link -> classes.none { it.type == link.type } }
     }
+
+    /** The class that compares and answers a blog's background, and every class that reads a tag page header's color. */
+    private fun pageClasses(build: File): List<ClassDef> =
+        FixtureDex.classesWhere(build, { true }) { method ->
+            BLOG_BACKGROUND_KEY in method.strings() && method.parameterTypes.map(CharSequence::toString) == listOf(BLOG_THEME, BLOG_THEME) ||
+                method.instructionList().any { step -> step.methodRef()?.let { it.definingClass == HUB_HEADER && it.name == "getBackgroundColor" } == true }
+        }
 
     /**
      * The design system's theme function, every class it asks for something without arguments (each

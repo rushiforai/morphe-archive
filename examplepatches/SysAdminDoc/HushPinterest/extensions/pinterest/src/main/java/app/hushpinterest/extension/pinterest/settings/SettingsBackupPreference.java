@@ -441,6 +441,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_ai_self_described": return L10n.t("Hide pins that say they're AI");
             case "hushpinterest_hide_shopping": return L10n.t("Hide shopping and product pins");
             case "hushpinterest_hide_video_pins": return L10n.t("Hide video pins");
+            case "hushpinterest_hide_saved_pins": return L10n.t("Hide pins you've already saved");
             case "hushpinterest_keep_home_feed": return L10n.t("Keep Home feed");
             case "hushpinterest_disable_analytics": return L10n.t("Disable analytics");
             case "hushpinterest_strip_link_tracking": return L10n.t("Strip link tracking");
@@ -453,6 +454,8 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_download_board": return L10n.t("Download board");
             case "hushpinterest_copy_image": return L10n.t("Copy image");
             case "hushpinterest_share_image": return L10n.t("Share image");
+            case "hushpinterest_save_downloaded_pins": return L10n.t("Save pins you download");
+            case "hushpinterest_download_saved_pins": return L10n.t("Download pins you save");
             case "hushpinterest_long_press_download": return L10n.t("Long-press download");
             case "hushpinterest_long_press_hide_save": return L10n.t("Hide Save in the long-press menu");
             case "hushpinterest_long_press_hide_send": return L10n.t("Hide Send in the long-press menu");
@@ -460,6 +463,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_external_browser": return L10n.t("Open links in your browser");
             case "hushpinterest_system_share": return L10n.t("System share sheet");
             case "hushpinterest_hide_screenshot_share": return L10n.t("No screenshot share menu");
+            case "hushpinterest_hide_assistant": return L10n.t("Hide Assistant");
             case "hushpinterest_hide_search_history": return L10n.t("Hide search history");
             case "hushpinterest_hide_nav_create": return L10n.t("Hide Create button");
             case "hushpinterest_hide_nav_notifications": return L10n.t("Hide Notifications button");

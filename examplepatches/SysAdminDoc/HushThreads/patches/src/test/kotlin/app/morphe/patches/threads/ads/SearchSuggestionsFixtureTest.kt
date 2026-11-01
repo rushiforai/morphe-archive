@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PerBuild
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -31,6 +32,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -52,7 +54,7 @@ import org.junit.Test
  * unchanged. Read once per build; each test patches its own copy.
  */
 internal object SearchSuggestionsFixture {
-    private val loaded = mutableMapOf<File, List<ClassDef>>()
+    private val loaded = PerBuild<List<ClassDef>>()
 
     fun classes(build: File): List<ClassDef> = loaded.getOrPut(build) {
         val noted = FixtureDex.classesWhere(build, { true }) { method ->
@@ -93,31 +95,34 @@ class SearchSuggestionsFixtureTest {
             // Search calls the row twice, each under its own note. The carousel's call is the one in
             // the lambda the keyed item draws; the other draws suggestions mixed into the trends list.
             assertEquals(where, 2, targets.calls.size)
-            assertTrue(where, targets.row.note.orEmpty().endsWith("($DISCOVERY_FILE:357)"))
+            assertTrue(where, targets.row.note.orEmpty().endsWith("($DISCOVERY_FILE:375)"))
             assertEquals(where, targets.lambda, targets.row.method.definingClass)
             val trends = targets.calls.single { it !== targets.row && it.method.definingClass != targets.lambda }
-            assertTrue(where, trends.note.orEmpty().endsWith("($DISCOVERY_FILE:412)"))
+            assertTrue(where, trends.note.orEmpty().endsWith("($DISCOVERY_FILE:432)"))
 
-            // Read off 452 apart from the patch: Search's list builder reads the suggestions list at
-            // 168, asks whether it's empty at 169, checks the answer at 171, builds the carousel from
-            // 172 on, constructs it at 184 with that list, adds it under its key at 188 and 189, and
-            // goes to 190 for an empty list. What the check compared, and the hook's register, are
-            // dead there.
+            // Read off each 453 build apart from the patch: Search's list builder reads the
+            // suggestions list at 188, asks whether it's empty at 189, checks the answer at 191,
+            // builds the carousel from 192 on, constructs it at 209 with that list, adds it under
+            // its key at 213 and 214, and goes to 215 for an empty list. What the check compared,
+            // and the hook's register, are dead there.
             val stock = classes.original(targets.method)
-            assertEquals(where, 168, targets.read)
-            assertEquals(where, 171, targets.guard)
-            assertEquals(where, 172, targets.start)
-            assertEquals(where, 184, targets.init)
-            assertEquals(where, 188, targets.key)
-            assertEquals(where, 190, targets.away)
+            assertEquals(where, 188, targets.read)
+            assertEquals(where, 191, targets.guard)
+            assertEquals(where, 192, targets.start)
+            assertEquals(where, 209, targets.init)
+            assertEquals(where, 213, targets.key)
+            assertEquals(where, 215, targets.away)
             assertEquals(where, Opcode.IGET_OBJECT, stock[targets.read].opcode)
             assertEquals(where, targets.list, (stock[targets.read] as OneRegisterInstruction).registerA)
             assertEquals(where, "isEmpty", stock[targets.read + 1].getReference<MethodReference>()?.name)
             assertEquals(where, Opcode.IF_NEZ, stock[targets.guard].opcode)
             assertEquals(where, targets.away, stock.jumpTarget(targets.guard))
             assertEquals(where, SEARCH_CAROUSEL_KEY, stock[targets.key].getReference<StringReference>()?.string)
-            assertTrue(where, stock[180].isNewInstanceOf(targets.lambda))
-            assertEquals(where, targets.list, stock[targets.init].argumentRegister(5))
+            assertTrue(where, (targets.init downTo 0).any { stock[it].isNewInstanceOf(targets.lambda) })
+            val arguments = (0 until 9).mapNotNull { stock[targets.init].argumentRegister(it) }
+            assertTrue(where, arguments.contains(targets.list) || stock.take(targets.init).any { instruction ->
+                instruction is TwoRegisterInstruction && instruction.registerB == targets.list && instruction.registerA in arguments
+            })
             val live = RegisterLiveness.of(targets.method)
             assertFalse(where, targets.free in live.liveInto(targets.start))
             assertFalse(where, targets.free in live.liveInto(targets.away))
@@ -241,7 +246,11 @@ class SearchSuggestionsFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = context(build)
             val targets = context.searchSuggestionTargets()
-            targets.method.addInstructions(targets.init, "const/16 v${targets.list}, 0x0")
+            val body = targets.method.body()
+            val copy = (0 until targets.init).last { at ->
+                (body[at] as? TwoRegisterInstruction)?.registerB == targets.list
+            }
+            targets.method.addInstructions(copy, "const/16 v${targets.list}, 0x0")
             val error = assertThrows(build.name, PatchException::class.java) { context.searchSuggestionTargets() }
             assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("the one ${targets.method.descriptor()} checks"))
         }

@@ -643,3 +643,21 @@ Home keeps the pins you were looking at when you come back to Pinterest or to th
 Show posted date	Veröffentlichungsdatum anzeigen
 Shows the day a pin was posted under its title. It shows on the next pin you open.	Zeigt unter dem Titel eines Pins, an welchem Tag er gepostet wurde. Das Datum erscheint beim nächsten Pin, den du öffnest.
 Posted %1$s	Gepostet am %1$s
+Install microG-RE to use Google sign-in.	Installiere microG-RE für die Google-Anmeldung.
+Turn on microG-RE to use Google sign-in.	Aktiviere microG-RE für die Google-Anmeldung.
+microG-RE didn't answer. Open it, then try again.	microG-RE antwortet nicht. Öffne es und versuche es erneut.
+This build sends Google sign-in to microG-RE. Add your Google account in microG-RE first. If your phone limits background apps, let microG-RE start on its own.	Diese Version leitet die Google-Anmeldung an microG-RE weiter. Füge dein Google-Konto zuerst in microG-RE hinzu. Wenn dein Telefon Hintergrund-Apps einschränkt, erlaube microG-RE, von selbst zu starten.
+Google sign-in failure message	Meldung bei fehlgeschlagener Google-Anmeldung
+# context: Download pins switches that tie a pin's download to its save
+Save pins you download	Heruntergeladene Pins merken
+Downloading a pin from its menu also saves it to your profile, unless it's saved already. Grid and board downloads aren't saved. Needs Download pins on.	Lädst du einen Pin über sein Menü herunter, wird er auch in deinem Profil gemerkt, außer er ist schon gemerkt. Downloads aus Rastern und Pinnwänden werden nicht gemerkt. Pins herunterladen muss an sein.
+Download pins you save	Gemerkte Pins herunterladen
+Saving a pin also downloads it, from any screen. Needs Download pins on.	Merkst du einen Pin, wird er auch heruntergeladen, auf jedem Bildschirm. Pins herunterladen muss an sein.
+Couldn't save this pin. Open it once, then try again.	Pin konnte nicht gemerkt werden. Öffne ihn einmal und versuch es erneut.
+Save and download	Merken und herunterladen
+# context: an Interface switch that removes Pinterest's AI Assistant from the search page, boards and pins; "Assistant" is that feature's name
+Hide Assistant	Assistent ausblenden
+Takes Pinterest's AI Assistant out of search, boards and pins. Search works as usual. The change shows the next time the screen updates.	Entfernt den KI-Assistenten von Pinterest aus der Suche, von Pinnwänden und Pins. Die Suche funktioniert wie gewohnt. Die Änderung zeigt sich, sobald der Bildschirm das nächste Mal aktualisiert wird.
+# context: a Feed switch from the Filter feed patch. It takes pins the person has already saved to a board out of their home feed only; boards and search still show them. The title is also the name of that part of the patch in the build report.
+Hide pins you've already saved	Bereits gemerkte Pins ausblenden
+Takes pins you've saved out of your home feed. Your boards and search still show them.	Entfernt Pins, die du gemerkt hast, aus deinem Startfeed. Deine Pinnwände und die Suche zeigen sie weiter.

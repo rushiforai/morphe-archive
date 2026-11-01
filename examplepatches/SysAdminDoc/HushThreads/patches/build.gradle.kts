@@ -894,8 +894,9 @@ val fixtureTest = tasks.register<Test>("fixtureTest") {
     // reads every method of the APK for the steps that read a post's link), and FixtureDex keeps
     // each build's parsed dex for the length of the run, held softly, so a heap that runs short
     // drops a build and reads it again. Gradle's default of 512 MB ran out of memory once the
-    // fixture tests shared the JVM, and would drop the parsed dex between nearly every test.
-    maxHeapSize = "2g"
+    // fixture tests shared the JVM, and would drop the parsed dex between nearly every test. Eleven
+    // declared builds come to about 1.1 GB of dex alone, so 2 GB would drop them about as often.
+    maxHeapSize = "3g"
     // What the folder holds is the input, not its name: a run whose APK was swapped, re-signed or
     // deleted under the same path has to run again, not come back up to date or out of the build
     // cache with the last folder's verdict. Relative, so where the folder sits on this machine

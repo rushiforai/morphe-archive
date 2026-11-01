@@ -19,8 +19,10 @@ import app.morphe.patches.threads.misc.settings.declaredInHierarchy
 import app.morphe.util.getReference
 import app.morphe.util.superclassChain
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
@@ -88,14 +90,39 @@ internal fun BytecodePatchContext.reportPushServiceLifecycle() {
  */
 internal fun BytecodePatchContext.pushServiceLifecycle(): Pair<MutableMethod, MutableMethod> {
     val service = classDefByOrNull(PUSH_SERVICE) ?: throw PatchException("Threads has no $PUSH_SERVICE_NAME")
-    val names = service.methods
+    val delegate = pushDelegate(service)
+    val delegateTypes = superclassChain(delegate).toSet()
+    return forwardedTo(delegate, delegateTypes, "onCreate") to forwardedTo(delegate, delegateTypes, "onDestroy")
+}
+
+/**
+ * The delegate class the push service builds. 452 names it in an override of the service's own
+ * no-argument String method. 453 moved that choice into the shared service base, which picks a
+ * class by an `instance-of` on the service and then loads the class name: follow that edge, and
+ * keep the direct method for builds that still carry it.
+ */
+private fun BytecodePatchContext.pushDelegate(service: ClassDef): String {
+    val named = service.methods
         .filter { it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;" }
         .flatMap { method -> method.implementation?.instructions?.mapNotNull { it.getReference<StringReference>()?.string }.orEmpty() }
+    val fromInstanceOf = superclassChain(PUSH_SERVICE).flatMap { type ->
+        (classDefByOrNull(type)?.methods ?: emptySet()).flatMap { method ->
+            val instructions = method.implementation?.instructions?.toList().orEmpty()
+            instructions.mapIndexedNotNull { index, instruction ->
+                if (instruction.opcode != Opcode.INSTANCE_OF || instruction.getReference<TypeReference>()?.type != PUSH_SERVICE) {
+                    return@mapIndexedNotNull null
+                }
+                instructions.drop(index + 1).take(6).firstNotNullOfOrNull { next ->
+                    next.getReference<StringReference>()?.string
+                }
+            }
+        }
+    }.distinct()
+    val names = (named + fromInstanceOf).distinct()
     val delegate = names.singleOrNull()?.let { "L" + it.replace('.', '/') + ";" }
         ?: throw PatchException("$PUSH_SERVICE_NAME doesn't name its delegate in one string: $names")
     if (classDefByOrNull(delegate) == null) throw PatchException("$PUSH_SERVICE_NAME names $delegate, which Threads doesn't have")
-    val delegateTypes = superclassChain(delegate).toSet()
-    return forwardedTo(delegate, delegateTypes, "onCreate") to forwardedTo(delegate, delegateTypes, "onDestroy")
+    return delegate
 }
 
 /** The method of [delegate] that the push service's [lifecycle] call runs. */

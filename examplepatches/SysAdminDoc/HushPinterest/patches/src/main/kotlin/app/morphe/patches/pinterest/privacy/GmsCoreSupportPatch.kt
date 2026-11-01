@@ -12,12 +12,15 @@
  */
 package app.morphe.patches.pinterest.privacy
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.encodedValue.MutableStringEncodedValue
+import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
@@ -54,6 +57,11 @@ internal const val GMS_CORE_C2DM = "app.revanced.android.c2dm."
 
 private const val CONTEXT = "Landroid/content/Context;"
 private const val CREDENTIAL_MANAGER = "Landroid/credentials/CredentialManager;"
+internal const val HIDDEN_ACTIVITY = "Landroidx/credentials/playservices/HiddenActivity;"
+internal const val SIGN_IN_FAILURE_TEXT = "During get sign-in intent, failure response from one tap: "
+private const val EXCEPTION = "Ljava/lang/Exception;"
+private const val SIGN_IN_READINESS = "$EXTENSION_PACKAGE/settings/GoogleSignInReadiness;"
+internal const val SIGN_IN_FAILURE_HOOK = "$SIGN_IN_READINESS->requestFailed($EXCEPTION)V"
 
 /** Play services permissions microG-RE defines under its own vendor. Morphe's list. */
 internal val GMS_PERMISSIONS = setOf(
@@ -78,7 +86,7 @@ internal val GMS_PERMISSIONS = setOf(
 
 /**
  * Play services intent actions microG-RE serves only under its own vendor. Morphe's list, and the
- * last four, which Pinterest 14.41.0 binds and microG-RE 7.2.2 declares only as app.revanced
+ * last four, which Pinterest 14.42.0 binds and microG-RE 7.2.2 declares only as app.revanced
  * actions: Credential Manager's identity credentials, App set ID, the SMS retriever and ads.
  */
 internal val GMS_ACTIONS = setOf(
@@ -357,28 +365,35 @@ internal data class GmsCoreField(val type: String, val name: String, val text: S
 internal data class GmsCorePlan(
     val availability: Method,
     val frameworkProvider: Method,
+    val signInFailure: Method,
     val texts: List<GmsCoreText>,
     val fields: List<GmsCoreField>,
 )
 
 /**
- * Finds the three edits, refusing when any of them isn't exactly where 14.41.0 has it:
+ * Finds the four edits, refusing when any of them isn't exactly where 14.42.0 has it:
  *
  * - Play services' availability check, the one method taking a Context and the minimum version
  *   that reads the version metadata ("MetadataValueReader") and Play services' package. It answers
  *   success, so the library stops asking whether Google's own Play services is installed and
- *   signed by Google. In 14.41.0 R8 merged it into an instance method, so the shape leaves the
+ *   signed by Google. In 14.42.0 R8 merged it into an instance method, so the shape leaves the
  *   receiver open.
  * - androidx Credential Manager's framework provider, the one class holding Android's
  *   CredentialManager. On Android 14 and later androidx prefers it, and Android hands Google
  *   sign-in to Google's own Play services whatever the app asks for, so it answers unavailable
  *   and androidx falls back to the Play services provider, which the reroute sends to microG-RE.
+ * - androidx's failure listener for the Sign in with Google request, the static method of its
+ *   hidden activity taking that activity and an Exception and naming [SIGN_IN_FAILURE_TEXT]. It
+ *   turns any failed request into "no credential", and Pinterest shows nothing for that, so the
+ *   button looks dead when microG-RE can't be reached. The extension says why first. Autologin at
+ *   launch goes through the begin sign-in request instead and stays silent.
  * - Every const-string outside the extension that [gmsCoreText] rewrites, and every static String
- *   field value it rewrites (14.41.0 keeps Firebase messaging's receive action in one).
+ *   field value it rewrites (14.42.0 keeps Firebase messaging's receive action in one).
  */
 internal fun BytecodePatchContext.resolveGmsCore(): GmsCorePlan {
     val availability = mutableListOf<Method>()
     val providers = mutableListOf<Method>()
+    val signInFailures = mutableListOf<Method>()
     val texts = mutableListOf<GmsCoreText>()
     val fields = mutableListOf<GmsCoreField>()
     classDefForEach { owner ->
@@ -403,16 +418,20 @@ internal fun BytecodePatchContext.resolveGmsCore(): GmsCorePlan {
             if (holdsCredentialManager && method.name == "isAvailableOnDevice" && method.returnType == "Z" &&
                 method.parameterTypes.isEmpty() && !AccessFlags.STATIC.isSet(method.accessFlags)
             ) providers += method
+            if (owner.type == HIDDEN_ACTIVITY && method.returnType == "V" && AccessFlags.STATIC.isSet(method.accessFlags) &&
+                method.parameterTypes.map(CharSequence::toString) == listOf(HIDDEN_ACTIVITY, EXCEPTION) && SIGN_IN_FAILURE_TEXT in strings
+            ) signInFailures += method
         }
     }
     shape(availability.size == 1, "Play services' availability check has ${availability.size} matches")
     shape(providers.size == 1, "Credential Manager's framework provider has ${providers.size} matches")
+    shape(signInFailures.size == 1, "androidx's sign-in failure listener has ${signInFailures.size} matches")
     val rewritten = texts.map { text -> text.method.texts()[text.index] }.toSet()
     GMS_CORE_REQUIRED_TEXTS.firstOrNull { it !in rewritten }?.let { shape(false, "Pinterest no longer names $it") }
-    return GmsCorePlan(availability.single(), providers.single(), texts, fields)
+    return GmsCorePlan(availability.single(), providers.single(), signInFailures.single(), texts, fields)
 }
 
-/** Rewrites every planned text and field, then answers the two checks. Texts go first: they keep every index. */
+/** Rewrites every planned text and field, answers the two checks, then hooks the listener. Texts go first: they keep every index. */
 internal fun BytecodePatchContext.applyGmsCore(plan: GmsCorePlan) {
     for ((type, sites) in plan.texts.groupBy { it.method.definingClass }) {
         val owner = mutableClassDefBy(type)
@@ -433,6 +452,8 @@ internal fun BytecodePatchContext.applyGmsCore(plan: GmsCorePlan) {
     }
     mutableClassDefBy(plan.availability.definingClass).methods.single { it.same(plan.availability) }.returnEarly(0)
     mutableClassDefBy(plan.frameworkProvider.definingClass).methods.single { it.same(plan.frameworkProvider) }.returnEarly(false)
+    mutableClassDefBy(plan.signInFailure.definingClass).methods.single { it.same(plan.signInFailure) }
+        .addInstructions(0, "invoke-static/range { p1 .. p1 }, $SIGN_IN_FAILURE_HOOK")
 }
 
 /**
@@ -475,6 +496,12 @@ internal val gmsCorePreflightPatch = bytecodePatch {
     dependsOn(settingsPatch, pinterestExtensionPatch)
     execute {
         requireStatusMethod("gmsCoreSupport")
+        requireStatusMethod("signInFailure")
+        val hook = classDefByOrNull(SIGN_IN_READINESS)?.methods?.singleOrNull {
+            it.name == "requestFailed" && it.returnType == "V" && it.parameterTypes.map(CharSequence::toString) == listOf(EXCEPTION)
+        }
+        shape(hook != null && AccessFlags.PUBLIC.isSet(hook.accessFlags) && AccessFlags.STATIC.isSet(hook.accessFlags),
+            "the extension has no callable $SIGN_IN_FAILURE_HOOK")
         resolveGmsCore()
     }
 }
@@ -500,6 +527,7 @@ val gmsCoreSupportPatch = bytecodePatch(
     execute {
         // Found again rather than carried over: patches that ran since may have edited these classes.
         applyGmsCore(resolveGmsCore())
+        enableCapability("signInFailure")
         enableStatus("gmsCoreSupport")
     }
 }

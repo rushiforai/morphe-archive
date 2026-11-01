@@ -141,6 +141,32 @@ public final class PdbDatabase {
         }
     }
 
+    /**
+     * Whether the IM store's {@code users} table has a row for {@code userId} —
+     * i.e. the app itself has IM-cached this user. The deep-link profile route
+     * ({@code pdb://pdb.app/u/{id}}) only renders for users the app already
+     * knows; for anyone else it opens a blank {@code UserProfileActivity} that
+     * never gains a window and eventually ANRs (observed live on 2.135.1).
+     */
+    public static boolean userExists(Context ctx, String userId) {
+        File file = dbWith(ctx, "users");
+        if (file == null) return false;
+        SQLiteDatabase db = null;
+        Cursor c = null;
+        try {
+            db = open(file);
+            c = db.rawQuery(
+                "SELECT 1 FROM users WHERE id = ? LIMIT 1",
+                new String[]{userId});
+            return c.moveToFirst();
+        } catch (Throwable t) {
+            return false;
+        } finally {
+            if (c != null) c.close();
+            if (db != null) db.close();
+        }
+    }
+
     /* ── tools ── */
 
     /** Database files, their tables and row counts. */

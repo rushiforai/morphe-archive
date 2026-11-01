@@ -1,0 +1,232 @@
+name: Autonomous Upstream Sync & Verification
+
+on:
+  schedule:
+    # Run daily at 04:00 UTC
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run sync & verification without pushing to main'
+        required: false
+        type: boolean
+        default: false
+      upstream_repo:
+        description: 'Upstream repository'
+        required: false
+        type: string
+        default: 'https://github.com/jasonwu1994/Gboard-patches.git'
+      upstream_branch:
+        description: 'Upstream branch'
+        required: false
+        type: string
+        default: 'main'
+
+concurrency:
+  group: upstream-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync-and-verify:
+    name: Sync, Verify Invariants & Auto-Merge
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      packages: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream changes
+        id: fetch_upstream
+        shell: pwsh
+        env:
+          UPSTREAM_REPO: ${{ inputs.upstream_repo || 'https://github.com/jasonwu1994/Gboard-patches.git' }}
+          UPSTREAM_BRANCH: ${{ inputs.upstream_branch || 'main' }}
+        run: |
+          Write-Host "Adding upstream remote: $env:UPSTREAM_REPO"
+          git remote add upstream $env:UPSTREAM_REPO
+          git fetch upstream $env:UPSTREAM_BRANCH
+
+          $localHead = git rev-parse HEAD
+          $upstreamHead = git rev-parse "upstream/$env:UPSTREAM_BRANCH"
+          $mergeBase = git merge-base HEAD "upstream/$env:UPSTREAM_BRANCH"
+
+          Write-Host "Local HEAD:    $localHead"
+          Write-Host "Upstream HEAD: $upstreamHead"
+          Write-Host "Merge Base:    $mergeBase"
+
+          if ($upstreamHead -eq $mergeBase) {
+              Write-Host "Repository is already up to date with upstream. No synchronization needed."
+              "has_new_commits=false" >> $env:GITHUB_OUTPUT
+          } else {
+              Write-Host "New upstream commits detected! Proceeding with sync and verification."
+              "has_new_commits=true" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Attempt merge on sync branch
+        if: steps.fetch_upstream.outputs.has_new_commits == 'true'
+        id: attempt_merge
+        shell: pwsh
+        env:
+          UPSTREAM_BRANCH: ${{ inputs.upstream_branch || 'main' }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $syncBranch = "automation/sync-upstream"
+          git checkout -B $syncBranch main
+
+          Write-Host "Attempting merge of upstream/$env:UPSTREAM_BRANCH into $syncBranch..."
+          $mergeOutput = git merge --no-edit "upstream/$env:UPSTREAM_BRANCH" 2>&1
+          $exitCode = $LASTEXITCODE
+
+          if ($exitCode -ne 0) {
+              Write-Host "Merge conflict detected!" -ForegroundColor Red
+              Write-Host $mergeOutput
+
+              # Push sync branch for investigation
+              git merge --abort
+              git checkout -B $syncBranch "upstream/$env:UPSTREAM_BRANCH"
+              git push -u origin $syncBranch --force
+
+              # Check if PR exists
+              $existingPr = gh pr list --head $syncBranch --base main --json number --jq '.[0].number'
+              $body = @"
+          ## 🚨 Upstream Synchronization Conflict Detected
+
+          An automated attempt to merge updates from `$env:UPSTREAM_REPO` (`$env:UPSTREAM_BRANCH`) encountered merge conflicts.
+
+          ### Conflict Summary
+          ````
+          $mergeOutput
+          ````
+
+          ### Action Required
+          Our custom enhancements (Custom Emoji TTF, English US & India Advanced Voice/Rambler, AI writing tools persistence, credits) are safeguarded on `main`.
+          Please inspect the `$syncBranch` branch, resolve conflicts manually, and merge once verified.
+          "@
+
+              try {
+                  if (-not $existingPr) {
+                      $prResult = gh pr create --base main --head $syncBranch --title "🚨 [Upstream Sync] Merge conflict detected from jasonwu1994/Gboard-patches" --body "$body" --label "upstream-sync" 2>&1
+                      if ($LASTEXITCODE -ne 0) {
+                          $prResult = gh pr create --base main --head $syncBranch --title "🚨 [Upstream Sync] Merge conflict detected from jasonwu1994/Gboard-patches" --body "$body" 2>&1
+                      }
+                  } else {
+                      gh pr comment $existingPr --body "$body" 2>&1
+                  }
+              } catch {
+                  Write-Host "Warning: Could not create or comment on PR automatically: $_" -ForegroundColor Yellow
+              }
+
+              throw "Merge conflict detected between upstream and fork custom enhancements. Sync branch $syncBranch pushed."
+          }
+
+          Write-Host "Merge succeeded cleanly without git conflicts."
+          "merge_ok=true" >> $env:GITHUB_OUTPUT
+
+      - name: Setup Java 21
+        if: steps.fetch_upstream.outputs.has_new_commits == 'true'
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        if: steps.fetch_upstream.outputs.has_new_commits == 'true'
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Verify Fork Invariants & Remote Test Suites
+        if: steps.fetch_upstream.outputs.has_new_commits == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          $syncBranch = "automation/sync-upstream"
+          $verificationPassed = $true
+          $failureLog = ""
+
+          Write-Host "Verifying fork invariants..."
+          try {
+              pwsh scripts/verify-invariants.ps1
+              if ($LASTEXITCODE -ne 0) {
+                  $verificationPassed = $false
+                  $failureLog += "`n- Invariant verification failed (check scripts/verify-invariants.ps1)."
+              }
+          } catch {
+              $verificationPassed = $false
+              $failureLog += "`n- Invariant script exception: $_"
+          }
+
+          if ($verificationPassed) {
+              Write-Host "Running Gradle test suites on remote runner..."
+              chmod +x ./gradlew
+              ./gradlew test --no-daemon
+              if ($LASTEXITCODE -ne 0) {
+                  $verificationPassed = $false
+                  $failureLog += "`n- Remote Gradle unit tests failed."
+              }
+          }
+
+          if (-not $verificationPassed) {
+              Write-Host "Upstream updates broke invariants or tests!" -ForegroundColor Red
+              git push -u origin $syncBranch --force
+
+              $existingPr = gh pr list --head $syncBranch --base main --json number --jq '.[0].number'
+              $body = @"
+          ## 🚨 Upstream Invariant / Test Regression Detected
+
+          Upstream commits from `$env:UPSTREAM_REPO` were successfully merged by git, but broke fork invariants or tests:
+          ````
+          $failureLog
+          ````
+
+          The `main` branch remains protected and untouched. Please review `$syncBranch`.
+          "@
+              try {
+                  if (-not $existingPr) {
+                      $prResult = gh pr create --base main --head $syncBranch --title "🚨 [Upstream Sync Regression] Invariant or test check failed" --body "$body" --label "upstream-sync" 2>&1
+                      if ($LASTEXITCODE -ne 0) {
+                          $prResult = gh pr create --base main --head $syncBranch --title "🚨 [Upstream Sync Regression] Invariant or test check failed" --body "$body" 2>&1
+                      }
+                  } else {
+                      gh pr comment $existingPr --body "$body" 2>&1
+                  }
+              } catch {
+                  Write-Host "Warning: Could not create or comment on PR automatically: $_" -ForegroundColor Yellow
+              }
+              throw "Upstream updates broke invariants or tests."
+          }
+
+      - name: Auto-Merge to Main
+        if: steps.fetch_upstream.outputs.has_new_commits == 'true'
+        shell: pwsh
+        env:
+          DRY_RUN: ${{ inputs.dry_run || false }}
+        run: |
+          if ($env:DRY_RUN -eq 'true') {
+              Write-Host "DRY RUN enabled: Skipping push to main."
+              exit 0
+          }
+
+          Write-Host "Fast-forwarding main to verified sync branch..."
+          git checkout main
+          git merge --ff-only automation/sync-upstream
+          git push origin main
+
+          Write-Host "Successfully merged verified upstream updates into main!"
+          Write-Host "Triggering automated release workflow for newly synced patches..."
+          $env:GH_TOKEN = "${{ secrets.MORPHE_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}"
+          gh workflow run release.yml --repo $env:GITHUB_REPOSITORY

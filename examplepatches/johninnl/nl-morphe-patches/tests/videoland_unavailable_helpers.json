@@ -1,0 +1,104 @@
+{
+  "classes": {
+    "Lnl/johninnl/patches/videoland/R;": [
+      ".class public final Lnl/johninnl/patches/videoland/R;",
+      ".super Ljava/lang/Object;"
+    ],
+    "Lpatches/videoland/Availability;": [
+      ".class public final Lpatches/videoland/Availability;",
+      ".super Ljava/lang/Object;"
+    ],
+    "Lpatches/videoland/FilteredSource$Operation;": [
+      ".class final Lpatches/videoland/FilteredSource$Operation;",
+      ".super Lbv/c;",
+      ".field private first:Z",
+      ".field private firstNext:Ljava/lang/Object;",
+      ".field private firstPrevious:Ljava/lang/Object;",
+      ".field private final owner:Lpatches/videoland/FilteredSource;",
+      ".field private params:Lw4/W1$a;",
+      ".field private final prepend:Z",
+      ".field private final visited:Ljava/util/HashSet;"
+    ],
+    "Lpatches/videoland/FilteredSource;": [
+      ".class public final Lpatches/videoland/FilteredSource;",
+      ".super Lw4/W1;",
+      ".field volatile awaitingPublication:Z",
+      ".field final delegate:Lw4/W1;",
+      ".field volatile exhausted:Z",
+      ".field private final stateObservers:Ljava/util/List;"
+    ],
+    "Lpatches/videoland/Rows$Observer$1;": [
+      ".class Lpatches/videoland/Rows$Observer$1;",
+      ".super Ljava/lang/Object;",
+      ".implements Ljava/lang/Runnable;",
+      ".field final synthetic this$0:Lpatches/videoland/Rows$Observer;"
+    ],
+    "Lpatches/videoland/Rows;": [
+      ".class final Lpatches/videoland/Rows;",
+      ".super Ljava/lang/Object;",
+      ".field private static final observers:Ljava/util/WeakHashMap;"
+    ],
+    "Lpatches/videoland/Rows$Observer;": [
+      ".class final Lpatches/videoland/Rows$Observer;",
+      ".super Lw4/A1$c;",
+      ".implements Ljava/lang/Runnable;",
+      ".field final list:Ljava/lang/ref/WeakReference;",
+      ".field final queued:Ljava/util/concurrent/atomic/AtomicBoolean;",
+      ".field final row:Ljava/lang/ref/WeakReference;"
+    ],
+    "Lpatches/videoland/FilteredSource$Invalidation;": [
+      ".class final Lpatches/videoland/FilteredSource$Invalidation;",
+      ".super Ljava/lang/Object;",
+      ".implements Ljv/a;",
+      ".field private final peer:Lw4/W1;"
+    ],
+    "Lpatches/videoland/Availability$Factory;": [
+      ".class final Lpatches/videoland/Availability$Factory;",
+      ".super Ljava/lang/Object;",
+      ".implements Ljv/a;",
+      ".field private final delegate:Ljv/a;"
+    ]
+  },
+  "methods": {
+    "Lnl/johninnl/patches/videoland/R;-><init>()V": "cc7c9af17ab127bd5ae5d01d4964dea46f2784f20f6a371d133993deb4fe3d4e",
+    "Lpatches/videoland/Availability;-><init>()V": "cc7c9af17ab127bd5ae5d01d4964dea46f2784f20f6a371d133993deb4fe3d4e",
+    "Lpatches/videoland/Availability;->collection(Lcom/bedrockstreaming/component/layout/domain/core/model/Block;)Z": "011fe75c82a855c1763c879967ace6e0a26b2df14fc36bebf10947f680a3ca1b",
+    "Lpatches/videoland/Availability;->filter(Ljava/util/List;)Ljava/util/List;": "6d869c85a77aa637e8b55a4f7e9d71ccd8cb0410b89d583ec6e19bdf71634487",
+    "Lpatches/videoland/Availability;->hideAction(Lcom/bedrockstreaming/component/layout/domain/core/model/Action;)Z": "a9bf6204e43a4e11b0af98b73cb509ae45e25592b9a792e2e89904ac3d316f6b",
+    "Lpatches/videoland/Availability;->hideEmpty(Lcom/bedrockstreaming/component/layout/domain/core/model/Block;Lx4/c;)Z": "3821be20f0d8728f3bb208962edcee7b339d639ac89bd90d979e5b46e1c824a5",
+    "Lpatches/videoland/Availability;->keep(Ljava/lang/Object;)Z": "5a06f53bb3267a8e04095c089433308e715aa06c48dbf3981344b734ea5731e8",
+    "Lpatches/videoland/Availability;->keepAction(Lcom/bedrockstreaming/component/layout/domain/core/model/Action;)Z": "a7cb27e721bceb13584eda7da805fb4e1a65aa99f162a8a85dc11f556b54d5ef",
+    "Lpatches/videoland/Availability;->rowCount(LQk/t;)I": "710716abad548e80e1615a43fb9f10ead5723bebc587b47c1f413a4276bb459b",
+    "Lpatches/videoland/Availability;->sectionsChanged(LNk/a$b;)Z": "e04374ff725841d5f41ed5ca388579c73b7c09fececf8126fd433eb96e5ff0d7",
+    "Lpatches/videoland/Availability;->visibleBlock(Lcom/bedrockstreaming/component/layout/domain/core/model/Block;)Lcom/bedrockstreaming/component/layout/domain/core/model/Block;": "a5cbc7c14a347e8bb708bb30b0feb47224499e04e5ca0833d8037fb79598b367",
+    "Lpatches/videoland/Availability;->visibleFactory(Lcom/bedrockstreaming/component/layout/domain/core/model/Block;Ljv/a;)Ljv/a;": "458144cfb627fcc24e54677209105d5058dcc39c141b64aa54f9197b5dc32eb4",
+    "Lpatches/videoland/Availability;->visibleIndex(Lcom/bedrockstreaming/component/layout/domain/core/model/Block;I)I": "c185bbeeb636bbdec88ed818e864f2111ae3df0978785868095d8204af430456",
+    "Lpatches/videoland/Availability;->visiblePager(Lcom/bedrockstreaming/component/layout/domain/core/model/Block;Lw4/A1;)Lw4/A1;": "f617afcc9fcac7f0f378ce0952f7ebd602a24d0f5b507f2b5d42870553483620",
+    "Lpatches/videoland/Availability;->wrapSource(Lw4/W1;)Lw4/W1;": "16bf4ed82cf845811656670557bb17d8c8dd6d4386c36545646ef53c46dac763",
+    "Lpatches/videoland/FilteredSource$Operation;-><init>(Lpatches/videoland/FilteredSource;Lw4/W1$a;Lbv/c;)V": "35b6797372dbb3acd4823e1535c7cddd306350675196795eda341736bcf0728a",
+    "Lpatches/videoland/FilteredSource$Operation;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;": "78cfdc41920171c51d8ee5a7ece1ca57317f76195c085fb0f35bb1e3564f6f84",
+    "Lpatches/videoland/FilteredSource$Operation;->process(Ljava/lang/Object;)Ljava/lang/Object;": "b9b49ef13d79073d6ab818025a55fb8e2803eadc62bd480d31acfb016722c557",
+    "Lpatches/videoland/FilteredSource;-><init>(Lw4/W1;)V": "00b9f8e3357ee7254a9c7b9e3dc9f691045feb0f3082c3a046e1b40f8aa9807b",
+    "Lpatches/videoland/FilteredSource;->b(Lw4/X1;)Ljava/lang/Object;": "f38ac781c258200b15ff8adcbc5bc3a812949db2cea6b8d619dcf162eef79994",
+    "Lpatches/videoland/FilteredSource;->d(Lw4/W1$a;Lbv/c;)Ljava/lang/Object;": "a0c60b4ccfb2359552efcd620826152343f199bfe1f2a50976b466e051f1f98a",
+    "Lpatches/videoland/FilteredSource;->observe(Ljava/lang/Runnable;)V": "591321652113409d313996ce1204ffac673a97e8c26c621667939a6a89fe770b",
+    "Lpatches/videoland/FilteredSource;->pageReady(ZZ)V": "9b846a7923d11e1103ca08aa35eddf436d50b4a160a080dbda4939313a19dcb2",
+    "Lpatches/videoland/FilteredSource;->seed(Lw4/W1$b$c;)V": "f49c54ed8aa7a2a4fbc5b9465f53d353459da79c41d0f3d5b116e37fe463e9fb",
+    "Lpatches/videoland/Rows$Observer$1;-><init>(Lpatches/videoland/Rows$Observer;)V": "4143f15f0f40b6737fbc707061d4dac13bf0538767cf651aee59ea360c9a77c8",
+    "Lpatches/videoland/Rows$Observer$1;->run()V": "187818fe5e15d34adcc2e10718a7079abece8f089413f394e587ee95a96da835",
+    "Lpatches/videoland/Rows;-><clinit>()V": "2e32f2d79aa488eacced6d6a39167cc1645652acc3a9cc33eb6642d1abfc7b2e",
+    "Lpatches/videoland/Rows;-><init>()V": "cc7c9af17ab127bd5ae5d01d4964dea46f2784f20f6a371d133993deb4fe3d4e",
+    "Lpatches/videoland/Rows;->changed(LNk/a$b;)Z": "4b2248ce9664d9e4cf170c6c4a4dbc24ff6ca3eb959b7af44420e6e0ea952a63",
+    "Lpatches/videoland/Rows;->containsCollection(Landroidx/recyclerview/widget/RecyclerView$a;I)Z": "5c55aa22eb46b973669274e1e23af941711976eff9c39fa2b392f70e86e8c548",
+    "Lpatches/videoland/Rows;->count(LQk/t;)I": "be8ea08a86475a03f61e7a53aba24ca21748d8eee7acfa83e39d05b4f2109a72",
+    "Lpatches/videoland/Rows$Observer;-><init>(LQk/t;Lw4/A1;)V": "b227d8f009da7f1ddad222d9e0685476eb912e2b9b94c52da0083c140a4c407d",
+    "Lpatches/videoland/Rows$Observer;->a(II)V": "223ad7c231918e3556631ac4220a1768ebf92e665fd8e0b2f863dbc4fe68a56f",
+    "Lpatches/videoland/Rows$Observer;->b(II)V": "223ad7c231918e3556631ac4220a1768ebf92e665fd8e0b2f863dbc4fe68a56f",
+    "Lpatches/videoland/Rows$Observer;->c(II)V": "223ad7c231918e3556631ac4220a1768ebf92e665fd8e0b2f863dbc4fe68a56f",
+    "Lpatches/videoland/Rows$Observer;->run()V": "20704f784c3c24a9894b73852c1d5af6ee58e958a172e7fd8823337f6cbd62de",
+    "Lpatches/videoland/FilteredSource$Invalidation;-><init>(Lw4/W1;)V": "4cecbaa09ff0773bed61ff66dfaecf57564ea0ad480c30724c18cd03b8aefb2c",
+    "Lpatches/videoland/FilteredSource$Invalidation;->invoke()Ljava/lang/Object;": "6b56bd31923e02f19a16381aaa727f1b2ecbc687c6f69a994b669e2785211ca2",
+    "Lpatches/videoland/Availability$Factory;-><init>(Ljv/a;)V": "6bae57a829897bf174c623e66e0e25609cd7b013ed541ec1d37e8f1a13b9dd8e",
+    "Lpatches/videoland/Availability$Factory;->invoke()Ljava/lang/Object;": "efdee5d8e6d8138d0e30896ea6675a9d271226df717a9ab3ee70d05d7ab2a532"
+  }
+}

@@ -1,4 +1,4 @@
-BDCrusher YT-Music personal patches 0.6.0-beta.1
+BDCrusher YT-Music personal patches 0.6.1-beta.1
 Personal derivative; not an official Morphe, Better Lyrics or Shaders release.
 Android adapters: BDCrusher (2026), GPL-3.0.
 Morphe upstream: v1.48.0-dev.19 / db2338b3bf8a0342b50c738cbc7cf50b0ce0d15c; original notices apply.

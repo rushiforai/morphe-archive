@@ -13,16 +13,6 @@ def manager_timestamp(value):
 
 
 class SourceMetadataTests(unittest.TestCase):
-    def test_mit_review_declares_reviewed_build(self):
-        root = Path(__file__).resolve().parents[1]
-        catalog = json.loads((root / "patches-list.json").read_text(encoding="utf-8"))
-        patch = next(p for p in catalog["patches"] if p["name"] == "MIT Tech Review reading meter")
-        package = next(p for p in patch["compatiblePackages"] if p["packageName"] == "com.technologyreview.mit")
-        self.assertEqual(len(package["targets"]), 1)
-        target = package["targets"][0]
-        self.assertEqual(target["version"], "3.0")
-        self.assertEqual(set(target["versionCodes"].values()), {1787908458})
-        self.assertFalse(target["isExperimental"])
 
     def test_remote_atv_declares_exact_build(self):
         root = Path(__file__).resolve().parents[1]

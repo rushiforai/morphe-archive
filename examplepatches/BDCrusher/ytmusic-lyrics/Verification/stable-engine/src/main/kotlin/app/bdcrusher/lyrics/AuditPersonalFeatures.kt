@@ -52,6 +52,7 @@ fun main(args:Array<String>){
     if(c.fields.any {it.name==ref.name&&it.type==ref.type})return true
     return (listOfNotNull(c.superclass)+c.interfaces).any {field(ref,it,seen)}
    }
+   val access=injectedInvokeAccess(types);require(access.failures.isEmpty()){access.failures.joinToString("\n")}
    val owned=types.values.filter {it.type.startsWith("Lapp/bdcrusher/")};val missing=sortedSetOf<String>();var references=0
    var lifecycle=0;var dialogHooks=0;var oldBars=0;var shaderCallbacks=0;var personalCallbacks=0;var playlistCommands=0;var completions=0;var nativeBrowse=0;var nativeHeader=0;var lyricsMetadataHooks=0;var lyricsPlaybackHooks=0
    for(c in types.values)for(m in c.methods)for(i in m.implementation?.instructions?:emptyList()){
@@ -134,6 +135,17 @@ fun main(args:Array<String>){
     val requestOwner=types.values.singleOrNull {request in it.interfaces}?:error("Native page request adapter missing or duplicated")
     for(name in listOf("bd_playlistId","bd_playlistToken","bd_playlistParams","bd_playlistLanguage","bd_playlistQuery","bd_playlistForm","bd_playlistGenericForm"))require(requestOwner.methods.single {it.name==name}.implementation!!.instructions.any {it is ReferenceInstruction&&it.reference is FieldReference}){"Native request key field missing: $name"}
    }
+   fun disposalContract(type:String,name:String){
+    val m=types.getValue(type).methods.single {it.name==name}
+    val refs=m.implementation!!.instructions.mapNotNull {((it as? ReferenceInstruction)?.reference as? MethodReference)}
+    require(refs.any {it.definingClass=="Lapp/bdcrusher/ytmusic/common/ViewDisposal;"&&it.name=="dispose"}){"Deferred disposal missing: $type/$name"}
+    require(refs.none {it.name=="removeView"||it.name=="destroy"}){"Synchronous structural destruction remains: $type/$name"}
+   }
+   if(shaders){disposalContract("Lapp/bdcrusher/ytmusic/shaders/ShaderRuntime\$Binding;","close");disposalContract("Lapp/bdcrusher/ytmusic/shaders/ShaderSurface;","closeSurface")}
+   if(lyrics){
+    disposalContract("Lapp/bdcrusher/ytmusic/lyrics/BetterLyricsPanelView;","onDetachedFromWindow")
+    disposalContract("Lapp/bdcrusher/ytmusic/lyrics/SourceVerification\$Session;","finish")
+   }
    require(zip.getEntry("assets/bdcrusher-features/NOTICE.txt")!=null)
    if(playlists){
     val owner=types.values.single {c->c.methods.any {it.name=="bdcrusher_nativePlaylistBrowse"}}
@@ -145,7 +157,7 @@ fun main(args:Array<String>){
     require(delegate.implementation!!.instructions.filterIsInstance<ReferenceInstruction>().none {(it.reference as? MethodReference)?.let {m->m.definingClass==normalizer.definingClass&&m.name==normalizer.name&&m.parameterTypes==normalizer.parameterTypes}==true}){"Native request normalization would run twice"}
     require(calls.count {it.name=="bdcrusher_nativePlaylistBrowse"}==1&&calls.count {it.name=="snapshot"}==1){"Native browse delegate/snapshot must be single-owned"}
    }
-   val report="""{"passed":true,"apkSha256":"${featureHash(file)}","ownedClasses":${owned.size},"validatedRuntimeReferences":$references,"unresolvedRuntimeReferences":0,"sharedLifecycleHooks":$lifecycle,"taskDismissalHooks":$taskStops,"sessionCaptureHooks":$sessionCaptures,"dialogHooks":$dialogHooks,"legacyBarHooks":$oldBars,"shaders":$shaders,"playlistDownloads":$playlists,"personalLyrics":$lyrics,"shaderCallbacks":$shaderCallbacks,"personalCallbacks":$personalCallbacks,"lyricsMetadataHooks":$lyricsMetadataHooks,"lyricsPlaybackHooks":$lyricsPlaybackHooks,"playlistCommandHooks":$playlistCommands,"typedCompletionHooks":$completions,"nativeBrowseCaptures":$nativeBrowse,"nativeHeaderHooks":$nativeHeader,"nativePageCacheEntries":$pageEntry,"nativePageObservers":$pageObserve,"nativeOfflineImageHooks":$imageUri,"nativeLiveRowOwners":${rowOwners.size},"phoneVerified":false}"""
+   val report="""{"passed":true,"apkSha256":"${featureHash(file)}","ownedClasses":${owned.size},"validatedRuntimeReferences":$references,"injectedAccessCallsChecked":${access.calls},"nativeBridgeMethodsAccessChecked":${access.nativeBridges},"invalidInjectedCalls":0,"unresolvedRuntimeReferences":0,"sharedLifecycleHooks":$lifecycle,"taskDismissalHooks":$taskStops,"sessionCaptureHooks":$sessionCaptures,"dialogHooks":$dialogHooks,"legacyBarHooks":$oldBars,"shaders":$shaders,"playlistDownloads":$playlists,"personalLyrics":$lyrics,"shaderCallbacks":$shaderCallbacks,"personalCallbacks":$personalCallbacks,"lyricsMetadataHooks":$lyricsMetadataHooks,"lyricsPlaybackHooks":$lyricsPlaybackHooks,"playlistCommandHooks":$playlistCommands,"typedCompletionHooks":$completions,"nativeBrowseCaptures":$nativeBrowse,"nativeHeaderHooks":$nativeHeader,"nativePageCacheEntries":$pageEntry,"nativePageObservers":$pageObserve,"nativeOfflineImageHooks":$imageUri,"nativeLiveRowOwners":${rowOwners.size},"phoneVerified":false}"""
    file.parentFile.resolve("personal-features-audit.json").writeText(report)
    println("PASS: ${file.parentFile.name}; ${owned.size} owned classes, $references runtime references, independent native hooks")
   }

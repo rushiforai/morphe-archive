@@ -107,6 +107,11 @@ val customFontGithubPatch = resourcePatch(
                     "Use one of: ${allowedFontExtensions.joinToString(", ") { ".${it}" }}."
             )
 
+        // Morphe Patcher 2.0.0 and newer decode resources on request instead of
+        // up front, so decode the font directory before looking for the fonts to
+        // replace or remove.
+        decode("res/font*")
+
         val fontResDir = get("res").resolve("font")
         val fontResourceName = "custom_ui_font"
         val fontAssetFile = fontResDir.resolve("$fontResourceName.${fontFile.extension.lowercase()}")
@@ -121,7 +126,8 @@ val customFontGithubPatch = resourcePatch(
 
             legacyFontFiles.forEach { legacyFile ->
                 if (legacyFile.exists()) {
-                    legacyFile.delete()
+                    // Mark the legacy font for removal from the rebuilt APK.
+                    delete("res/font/${legacyFile.name}")
                 }
             }
 
@@ -134,6 +140,9 @@ val customFontGithubPatch = resourcePatch(
         }
 
         val webviewResDir = get("assets").resolve("webview")
+        // Assets are extracted on request too, so the directory may not be staged
+        // yet and writing font.css would fail without it.
+        webviewResDir.mkdirs()
         val fontCssFile = webviewResDir.resolve("font.css")
         fontCssFile.writeText(
             """@font-face {

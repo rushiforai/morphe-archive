@@ -50,6 +50,10 @@ object BundleVerifier {
             require(jar.manifest.mainAttributes.getValue("Version") == args[2]) {
                 "Bundle version does not match ${args[2]}"
             }
+            val tooNew = classesNewerThanJava17(jar)
+            require(tooNew.isEmpty()) {
+                "Bundle classes are newer than Java 17, which Morphe patcher 2.1 refuses to load: $tooNew"
+            }
         }
         val expectedDigest = File(args[3]).readText().trim()
         val actualDigest = MessageDigest.getInstance("SHA-256").digest(bundle.readBytes())
@@ -71,6 +75,28 @@ object BundleVerifier {
         }
         println("Verified ${bundle.name}: ${bundled.size} patches and all three non-empty DEX payloads")
     }
+
+    /** Java 17's class file major version, the newest Morphe patcher 2.1 loads. */
+    const val NEWEST_CLASS_MAJOR = 61
+
+    /**
+     * Every class in the bundle compiled for something newer than Java 17, as "entry (major N)".
+     *
+     * Patcher 2.1 refuses a bundle holding one. The patch classes target an older Java on a newer
+     * toolchain, so a single target bump would build cleanly here and ship a bundle Manager won't
+     * open. The extensions ride along as DEX and carry no class version.
+     */
+    fun classesNewerThanJava17(jar: JarFile): List<String> = jar.entries().asSequence()
+        .filter { !it.isDirectory && it.name.endsWith(".class") }
+        .mapNotNull { entry ->
+            val header = jar.getInputStream(entry).use { it.readNBytes(8) }
+            if (header.size < 8 || !header.copyOfRange(0, 4).contentEquals(CLASS_MAGIC)) return@mapNotNull null
+            val major = ((header[6].toInt() and 0xff) shl 8) or (header[7].toInt() and 0xff)
+            if (major > NEWEST_CLASS_MAJOR) "${entry.name} (major $major)" else null
+        }
+        .toList()
+
+    private val CLASS_MAGIC = byteArrayOf(0xCA.toByte(), 0xFE.toByte(), 0xBA.toByte(), 0xBE.toByte())
 
     /**
      * Every row's dependencies named once and in order.

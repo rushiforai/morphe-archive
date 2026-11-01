@@ -50,7 +50,7 @@ public enum PatchFamily {
     HIDE_AI_PINS(FamilyNames.HIDE_AI_PINS, "hideAiPins", null,
             Settings.HIDE_AI_PINS, Settings.HIDE_AI_SELF_DESCRIBED),
     HIDE_SHOPPING(FamilyNames.HIDE_SHOPPING, "hideShopping", null, Settings.HIDE_SHOPPING),
-    FILTER_FEED(FamilyNames.FILTER_FEED, "filterFeed", null, Settings.HIDE_VIDEO_PINS),
+    FILTER_FEED(FamilyNames.FILTER_FEED, "filterFeed", null, Settings.HIDE_VIDEO_PINS, Settings.HIDE_SAVED_PINS),
     KEEP_HOME_FEED(FamilyNames.KEEP_HOME_FEED, "keepHomeFeed", null, Settings.KEEP_HOME_FEED),
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics",
             "Firebase and Google Analytics collection is turned off", Settings.DISABLE_ANALYTICS),
@@ -67,13 +67,15 @@ public enum PatchFamily {
     GMS_CORE_SUPPORT(FamilyNames.GMS_CORE_SUPPORT, "gmsCoreSupport",
             "Google sign-in and push notifications go through microG-RE"),
     DOWNLOAD_PINS(FamilyNames.DOWNLOAD_PINS, "downloadPins", null, Settings.DOWNLOAD_PINS, Settings.SAVE_IN_PINTEREST_FOLDER,
-            Settings.DOWNLOAD_UNMETERED_ONLY, Settings.DOWNLOAD_NO_ROAMING, Settings.COPY_IMAGE, Settings.SHARE_IMAGE),
+            Settings.DOWNLOAD_UNMETERED_ONLY, Settings.DOWNLOAD_NO_ROAMING, Settings.COPY_IMAGE, Settings.SHARE_IMAGE,
+            Settings.SAVE_DOWNLOADED_PINS, Settings.DOWNLOAD_SAVED_PINS),
     DOWNLOAD_BOARD(FamilyNames.DOWNLOAD_BOARD, "downloadBoard", null, Settings.DOWNLOAD_BOARD),
     LONG_PRESS_DOWNLOAD(FamilyNames.LONG_PRESS_DOWNLOAD, "longPressDownload", null, Settings.LONG_PRESS_DOWNLOAD,
             Settings.LONG_PRESS_HIDE_SAVE, Settings.LONG_PRESS_HIDE_SEND, Settings.LONG_PRESS_HIDE_SEARCH),
     EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "externalBrowser", null, Settings.EXTERNAL_BROWSER),
     SYSTEM_SHARE(FamilyNames.SYSTEM_SHARE, "systemShare", null, Settings.SYSTEM_SHARE),
     HIDE_SCREENSHOT_SHARE(FamilyNames.HIDE_SCREENSHOT_SHARE, "hideScreenshotShare", null, Settings.HIDE_SCREENSHOT_SHARE),
+    HIDE_ASSISTANT(FamilyNames.HIDE_ASSISTANT, "hideAssistant", null, Settings.HIDE_ASSISTANT),
     HIDE_SEARCH_HISTORY(FamilyNames.HIDE_SEARCH_HISTORY, "hideSearchHistory", null, Settings.HIDE_SEARCH_HISTORY),
     HIDE_NAVIGATION_BUTTONS(FamilyNames.HIDE_NAVIGATION_BUTTONS, "hideNavigationButtons", null,
             Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH),
@@ -145,7 +147,7 @@ public enum PatchFamily {
     static final Set<PatchFamily> ACTIONS_PAGE = Collections.unmodifiableSet(EnumSet.of(DOWNLOAD_PINS, DOWNLOAD_BOARD,
             LONG_PRESS_DOWNLOAD, SYSTEM_SHARE));
     static final Set<PatchFamily> INTERFACE_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_SCREENSHOT_SHARE,
-            HIDE_SEARCH_HISTORY, HIDE_NAVIGATION_BUTTONS, HIDE_HEADER_BUTTONS, AMOLED_BLACK, HIDE_CLOSEUP_BUTTONS,
+            HIDE_ASSISTANT, HIDE_SEARCH_HISTORY, HIDE_NAVIGATION_BUTTONS, HIDE_HEADER_BUTTONS, AMOLED_BLACK, HIDE_CLOSEUP_BUTTONS,
             HIDE_PIN_MENU_ITEMS, HIDE_COMMENTS, HIDE_TOPIC_SUGGESTIONS, QUIET_EMAIL_REMINDER, HIDE_SURVEY_PROMPTS,
             HIDE_SAVE_TOASTS, ORIGINAL_IMAGES, SHOW_POSTED_DATE));
 
@@ -158,6 +160,7 @@ public enum PatchFamily {
         FEED_SHOPPING(HIDE_SHOPPING, "feedShopping", "Hide shopping and product pins"),
         FEED_VIDEO_PINS(FILTER_FEED, "feedVideoPins", "Hide video pins"),
         FEED_MUTED_WORDS(FILTER_FEED, "feedMutedWords", "Muted words"),
+        FEED_SAVED_PINS(FILTER_FEED, "feedSavedPins", "Hide pins you've already saved"),
         HOME_FEED(KEEP_HOME_FEED, "homeFeed", "Keep Home feed"),
         ANALYTICS_TASKS(DISABLE_ANALYTICS, "analyticsTasks", "Analytics launch tasks"),
         ANALYTICS_UPLOADS(DISABLE_ANALYTICS, "analyticsUploads", "Analytics uploads"),
@@ -168,6 +171,7 @@ public enum PatchFamily {
         PIN_DOWNLOADS(DOWNLOAD_PINS, "pinDownloads", "Download pins"),
         COPY_IMAGE(DOWNLOAD_PINS, "copyImage", "Copy image"),
         SHARE_IMAGE(DOWNLOAD_PINS, "shareImage", "Share image"),
+        SAVE_AND_DOWNLOAD(DOWNLOAD_PINS, "saveAndDownload", "Save and download"),
         BOARD_MENU(DOWNLOAD_BOARD, "boardMenu", "board menus"),
         BOARD_PINS(DOWNLOAD_BOARD, "boardPins", "loaded board pins"),
         LONG_PRESS_MENU(LONG_PRESS_DOWNLOAD, "longPressMenu", "Long-press download"),
@@ -175,6 +179,7 @@ public enum PatchFamily {
         VISIT_LINKS(EXTERNAL_BROWSER, "visitLinks", "Open links in your browser"),
         PIN_SHARE(SYSTEM_SHARE, "pinShare", "System share sheet"),
         SCREENSHOT_SHARE(HIDE_SCREENSHOT_SHARE, "screenshotShare", "No screenshot share menu"),
+        ASSISTANT_ENTRIES(HIDE_ASSISTANT, "assistantEntries", "Hide Assistant"),
         SEARCH_HISTORY(HIDE_SEARCH_HISTORY, "searchHistory", "Hide search history"),
         RECENT_SEARCH_ROWS(HIDE_SEARCH_HISTORY, "recentSearchRows", "Recent searches under the search bar"),
         RECENT_SEARCH_HEADING(HIDE_SEARCH_HISTORY, "recentSearchHeading", "Recent searches heading on the search page"),
@@ -196,6 +201,7 @@ public enum PatchFamily {
         CLOSEUP_IMAGE(ORIGINAL_IMAGES, "closeupImage", "pin closeups"),
         POSTED_DATE(SHOW_POSTED_DATE, "postedDate", "Show posted date"),
         UPDATE_NAG(DISABLE_UPDATE_NAG, "updateNag", "Disable update nag"),
+        SIGN_IN_FAILURE(GMS_CORE_SUPPORT, "signInFailure", "Google sign-in failure message"),
         FIREBASE_CERTIFICATE(FIX_PUSH_NOTIFICATIONS, "firebaseCertificate", "Fix push notifications");
 
         public final PatchFamily family;
@@ -422,6 +428,7 @@ public enum PatchFamily {
     public static void registerDiagnostics() {
         LogBufferManager.registerReportSection(REPORT);
         LogBufferManager.registerReportSection(PushReadiness.REPORT);
+        LogBufferManager.registerReportSection(GoogleSignInReadiness.REPORT);
         for (PatchFamily family : values()) {
             if (family.switches.isEmpty()) HookStatus.runsWhilePaused(family.patchName);
         }

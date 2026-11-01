@@ -55,11 +55,11 @@ private const val ARRAY_LIST = "Ljava/util/ArrayList;"
 @Category(FixtureTests::class)
 class UiFixtureTest {
     private val patches = listOf(
-        hideScreenshotSharePatch, hideSearchHistoryPatch, hideNavigationButtonsPatch, hideHeaderButtonsPatch,
+        hideScreenshotSharePatch, hideAssistantPatch, hideSearchHistoryPatch, hideNavigationButtonsPatch, hideHeaderButtonsPatch,
         hidePinMenuItemsPatch, hideCommentsPatch, quietEmailReminderPatch, disableUpdateNagPatch, amoledBlackPatch,
     )
     private val flags = listOf(
-        "hideScreenshotShare" to "screenshotShare", "hideSearchHistory" to "searchHistory",
+        "hideScreenshotShare" to "screenshotShare", "hideAssistant" to "assistantEntries", "hideSearchHistory" to "searchHistory",
         "hideNavigationButtons" to "navigationButtons", "hideHeaderButtons" to "headerButtons",
         "hidePinMenuItems" to "pinMenuItems", "hideComments" to "comments",
         "quietEmailReminder" to "emailReminder", "disableUpdateNag" to "updateNag",
@@ -270,6 +270,41 @@ class UiFixtureTest {
         }
     }
 
+    private fun asksForAssistant(method: Method) = method.returnType == "Z" && method.parameterTypes.isEmpty() &&
+        !AccessFlags.STATIC.isSet(method.accessFlags) && "ai_fwd_android_assistant_ask_mode" in method.strings()
+
+    @Test fun `the Assistant's availability answers no only when the switch says so and keeps its own body`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val stock = classes.flatMap { it.methods }.single { asksForAssistant(it) }
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            hideAssistantPatch.execute(context)
+            assertFlag(context, "hideAssistant", true)
+            assertFlag(context, "assistantEntries", true)
+            val body = context.mutableClassDefBy(stock.definingClass).methods.single { asksForAssistant(it) }.instructions()
+            assertEquals("${build.name}: the guard's shape",
+                listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4, Opcode.RETURN), body.take(5).map { it.opcode })
+            val hook = (body[0] as ReferenceInstruction).reference as MethodReference
+            assertEquals("${build.name}: the hook", UI_HOOKS to "hideAssistant", hook.definingClass to hook.name)
+            assertEquals("${build.name}: the enabled branch answers no", 0, (body[3] as NarrowLiteralInstruction).narrowLiteral)
+            assertEquals("${build.name}: the rest is Pinterest's own check", stock.instructions().map { it.opcode }, body.drop(5).map { it.opcode })
+        }
+    }
+
+    @Test fun `a second Assistant availability check refuses before any change`() {
+        val classes = read(Fixtures.declaredBuilds().first())
+        val owner = classes.single { candidate -> candidate.methods.any { asksForAssistant(it) } }
+        val stock = owner.methods.single { asksForAssistant(it) }
+        val twin = ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile, owner.annotations,
+            owner.fields, owner.methods.toList() + ImmutableMethod(owner.type, stock.name + "Twin", listOf(), "Z", stock.accessFlags, null, null,
+                ImmutableMethodImplementation.of(stock.implementation)))
+        val context = PatchContexts.of(ExtensionDex.classes() + classes.filter { it.type != owner.type } + twin)
+        val refused = assertThrows(PatchException::class.java) { hideAssistantPatch.execute(context) }
+        assertTrue(refused.message, refused.message.orEmpty().contains("Assistant availability"))
+        assertFlag(context, "hideAssistant", false)
+        assertFlag(context, "assistantEntries", false)
+    }
+
     @Test fun `a missing family status refuses before changing any vendor method`() {
         for ((index, patch) in patches.withIndex()) {
             val context = PatchContexts.of(ExtensionDex.classes())
@@ -472,7 +507,7 @@ class UiFixtureTest {
             })
 
     private fun read(build: File): List<ClassDef> {
-        val anchors = setOf("sg_android_new_screenshot_api_14", "BottomNavTabModel(type=",
+        val anchors = setOf("sg_android_new_screenshot_api_14", "ai_fwd_android_assistant_ask_mode", "BottomNavTabModel(type=",
             "BottomNavBar tab insertion out of range", "confirmEmailButton", "inAppUpdateManager",
             "unifiedCommentsModulePresenterFactory", "CommentsZone(isVisible=")
         val required = (SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW + COMMENT_PREVIEW + COMMENTS_QUICK_REPLIES + HEADER_BAR + BOTTOM_BAR +

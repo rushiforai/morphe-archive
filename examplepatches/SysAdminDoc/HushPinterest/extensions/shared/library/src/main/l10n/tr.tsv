@@ -643,3 +643,21 @@ Home keeps the pins you were looking at when you come back to Pinterest or to th
 Show posted date	Paylaşım tarihini göster
 Shows the day a pin was posted under its title. It shows on the next pin you open.	Bir pinin paylaşıldığı günü başlığının altında gösterir. Açtığın bir sonraki pinde görünür.
 Posted %1$s	%1$s tarihinde paylaşıldı
+Install microG-RE to use Google sign-in.	Google ile giriş için microG-RE'yi yükle.
+Turn on microG-RE to use Google sign-in.	Google ile giriş için microG-RE'yi aç.
+microG-RE didn't answer. Open it, then try again.	microG-RE yanıt vermedi. Açıp tekrar dene.
+This build sends Google sign-in to microG-RE. Add your Google account in microG-RE first. If your phone limits background apps, let microG-RE start on its own.	Bu sürüm Google ile girişi microG-RE'ye yönlendirir. Önce Google hesabını microG-RE'ye ekle. Telefonun arka plan uygulamalarını kısıtlıyorsa microG-RE'nin kendi kendine başlamasına izin ver.
+Google sign-in failure message	Google ile giriş hatası mesajı
+# context: Download pins switches that tie a pin's download to its save
+Save pins you download	İndirdiğin pinleri kaydet
+Downloading a pin from its menu also saves it to your profile, unless it's saved already. Grid and board downloads aren't saved. Needs Download pins on.	Bir pini menüsünden indirmek, zaten kayıtlı değilse onu profiline de kaydeder. Izgara ve pano indirmeleri kaydedilmez. Pinleri indir açık olmalı.
+Download pins you save	Kaydettiğin pinleri indir
+Saving a pin also downloads it, from any screen. Needs Download pins on.	Bir pini kaydettiğinde, hangi ekranda olursan ol indirilir. Pinleri indir açık olmalı.
+Couldn't save this pin. Open it once, then try again.	Bu pin kaydedilemedi. Bir kez aç, sonra yeniden dene.
+Save and download	Kaydet ve indir
+# context: an Interface switch that removes Pinterest's AI Assistant from the search page, boards and pins; "Assistant" is that feature's name
+Hide Assistant	Asistanı gizle
+Takes Pinterest's AI Assistant out of search, boards and pins. Search works as usual. The change shows the next time the screen updates.	Pinterest'in yapay zeka Asistanı'nı aramadan, panolardan ve pinlerden kaldırır. Arama her zamanki gibi çalışır. Değişiklik, ekran bir sonraki güncellendiğinde görünür.
+# context: a Feed switch from the Filter feed patch. It takes pins the person has already saved to a board out of their home feed only; boards and search still show them. The title is also the name of that part of the patch in the build report.
+Hide pins you've already saved	Kaydettiğin pinleri gizle
+Takes pins you've saved out of your home feed. Your boards and search still show them.	Kaydettiğin pinleri ana akışından kaldırır. Panoların ve arama onları göstermeye devam eder.

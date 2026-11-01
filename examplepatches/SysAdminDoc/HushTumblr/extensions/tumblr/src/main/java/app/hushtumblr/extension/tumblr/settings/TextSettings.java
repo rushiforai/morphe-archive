@@ -31,4 +31,11 @@ public final class TextSettings {
      * once a run, when Tumblr builds its tab list.
      */
     public static final StringSetting TAB_ORDER = new StringSetting("hushtumblr_tab_order", "", true);
+
+    /**
+     * The font file chosen for {@link Settings#APP_FONT}, as {@link app.hushtumblr.extension.tumblr.ui.AppFont#install}
+     * answered it. Empty means the phone's font. It stays out of a settings file, since the font
+     * itself can't travel in one, and an imported switch on the next phone means the phone's font.
+     */
+    public static final StringSetting APP_FONT_FILE = new StringSetting("hushtumblr_app_font_file", "", true);
 }

@@ -301,6 +301,12 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(feed, context, build, PatchFamily.FILTER_FEED, Settings.HIDE_VIDEO_PINS,
                     L10n.t("Hide video pins"), L10n.t("Removes pins that play a video from your home feed, search, "
                         + "related pins and boards. Photos and GIFs stay."), SettingsIcons.BLOCK);
+            // Its own hooks, on Home's request and pages: no row where they didn't go in.
+            if (build.contains(PatchFamily.FILTER_FEED) && PatchFamily.Capability.FEED_SAVED_PINS.installed()) {
+                feed.addPreference(mark(toggle(context, Settings.HIDE_SAVED_PINS, L10n.t("Hide pins you've already saved"),
+                        L10n.t("Takes pins you've saved out of your home feed. Your boards and search still show them.")),
+                        SettingsIcons.BLOCK));
+            }
             // A list rather than a switch, on Filter feed's hook: no row where that capability didn't go in.
             if (build.contains(PatchFamily.FILTER_FEED) && PatchFamily.Capability.FEED_MUTED_WORDS.installed()) {
                 feed.addPreference(mark(new MutedWordsPreference(context), SettingsIcons.BLOCK));
@@ -394,6 +400,15 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                                 + "through Android's share menu. Needs Download pins on. Videos don't get the row.")),
                             SettingsIcons.DOWNLOADS));
                 }
+                if (PatchFamily.Capability.SAVE_AND_DOWNLOAD.installed()) {
+                    actions.addPreference(mark(toggle(context, Settings.SAVE_DOWNLOADED_PINS, L10n.t("Save pins you download"),
+                            L10n.t("Downloading a pin from its menu also saves it to your profile, unless it's saved already. "
+                                + "Grid and board downloads aren't saved. Needs Download pins on.")),
+                            SettingsIcons.DOWNLOADS));
+                    actions.addPreference(mark(toggle(context, Settings.DOWNLOAD_SAVED_PINS, L10n.t("Download pins you save"),
+                            L10n.t("Saving a pin also downloads it, from any screen. Needs Download pins on.")),
+                            SettingsIcons.DOWNLOADS));
+                }
             }
             patchToggle(actions, context, build, PatchFamily.DOWNLOAD_BOARD, Settings.DOWNLOAD_BOARD,
                     L10n.t("Download board"), L10n.t("Downloads up to 500 loaded pins, skipping those in Download history. "
@@ -425,6 +440,10 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("No screenshot share menu"),
                     L10n.t("Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart "
                         + "Pinterest to see the change."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_ASSISTANT, Settings.HIDE_ASSISTANT,
+                    L10n.t("Hide Assistant"),
+                    L10n.t("Takes Pinterest's AI Assistant out of search, boards and pins. Search works as usual. "
+                        + "The change shows the next time the screen updates."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_SEARCH_HISTORY, Settings.HIDE_SEARCH_HISTORY,
                     L10n.t("Hide search history"),
                     L10n.t("Hides your recent searches. It doesn't delete your account's search history. The change "

@@ -17,19 +17,17 @@ import android.view.View;
 import android.view.ViewGroup;
 
 /**
- * iOS 26 "scroll edge effect": content behind the floating tab bar (or a see-through header)
+ * iOS 26 "scroll edge effect": content behind the floating tab bar
  * is progressively blurred and faded towards the screen edge, so the glass floats over a
  * soft frosted band instead of sharp content.
  * <p>
- * Sits directly below the bar or header and re-records the siblings behind it each frame,
+ * Sits directly below the bar and re-records the siblings behind it each frame,
  * like {@link LiquidGlassDrawable} does for the pill.
  */
 @SuppressLint({"NewApi", "ViewConstructor"})
 final class EdgeBlurView extends View {
-    /** How far past the bar/header the effect fades out. */
+    /** How far past the bar the effect fades out. */
     final int extraTop;
-    /** True for the header at the top of the screen: the effect is strongest at the top. */
-    private final boolean atTop;
     private final int blurRadiusPx;
 
     private final Paint maskPaint = new Paint();
@@ -41,12 +39,7 @@ final class EdgeBlurView extends View {
     private boolean dark;
 
     EdgeBlurView(Context context, float density) {
-        this(context, density, false);
-    }
-
-    EdgeBlurView(Context context, float density, boolean atTop) {
         super(context);
-        this.atTop = atTop;
         this.extraTop = Math.round(36 * density);
         this.blurRadiusPx = Math.round(16 * density);
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -117,15 +110,13 @@ final class EdgeBlurView extends View {
         maskHeight = h;
         maskDark = dark;
         // Gradients run from the open end (no effect) towards the screen edge (full effect).
-        float from = atTop ? h : 0;
-        float to = atTop ? 0 : h;
-        maskPaint.setShader(new LinearGradient(0, from, 0, to,
+        maskPaint.setShader(new LinearGradient(0, 0, 0, h,
                 new int[]{Color.TRANSPARENT, Color.BLACK, Color.BLACK},
                 new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
         int base = dark ? Color.BLACK : Color.WHITE;
-        fadePaint.setShader(new LinearGradient(0, from, 0, to,
-                new int[]{withAlpha(base, 0), withAlpha(base, atTop ? 0x40 : (dark ? 0x70 : 0x60)),
-                        withAlpha(base, atTop ? (dark ? 0x80 : 0x70) : (dark ? 0xB0 : 0xA0))},
+        fadePaint.setShader(new LinearGradient(0, 0, 0, h,
+                new int[]{withAlpha(base, 0), withAlpha(base, dark ? 0x70 : 0x60),
+                        withAlpha(base, dark ? 0xB0 : 0xA0)},
                 new float[]{0f, 0.6f, 1f}, Shader.TileMode.CLAMP));
     }
 

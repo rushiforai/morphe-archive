@@ -101,12 +101,12 @@ try {
     function New-WalkReceiptFile([string]$Name, [string]$Result, [bool]$Full, [int]$Screens, [int]$Crashes, [string]$Sha, [string[]]$Problems) {
         $build = [ordered]@{
             schema = 1; bundleSha256 = $Sha; fixtureSha256 = 'f' * 64; catalogSha256 = $catalogHash
-            packageName = 'com.pinterest'; appVersion = '14.41.0'; appVersionCode = '14418010'
+            packageName = 'com.pinterest'; appVersion = '14.42.0'; appVersionCode = '14428010'
             selectedPatches = @($firstPatch); signedApkSha256 = '0' * 64
             completed = $started.AddMinutes(-1).UtcDateTime.ToString('o')
         }
         $receipt = New-WalkReceipt -Result $Result -Full $Full -Serial 'emulator-5554' -Device 'sdk_gphone64_x86_64' `
-            -AppVersion '14.41.0' -AppVersionCode '14418010' -Build $build -BundleSha256 $Sha -InstalledApkSha256 ('0' * 64) `
+            -AppVersion '14.42.0' -AppVersionCode '14428010' -Build $build -BundleSha256 $Sha -InstalledApkSha256 ('0' * 64) `
             -Started $started -Finished $finished -Screens $Screens -Crashes $Crashes -Problems $Problems
         $path = Join-Path $scratch $Name
         [IO.File]::WriteAllText($path, (ConvertTo-Json -InputObject $receipt -Depth 8) + "`n")
@@ -179,7 +179,7 @@ try {
     $preciseBuild = Get-Content -LiteralPath $passWalk -Raw | ConvertFrom-Json
     $preciseBuild.build.completed = $started.AddMilliseconds(800).UtcDateTime.ToString('o')
     $preciseReceipt = New-WalkReceipt -Result 'PASS' -Full $true -Serial 'emulator-5554' -Device 'sdk_gphone64_x86_64' `
-        -AppVersion '14.41.0' -AppVersionCode '14418010' -Build $preciseBuild.build -BundleSha256 $bundleSha256 `
+        -AppVersion '14.42.0' -AppVersionCode '14428010' -Build $preciseBuild.build -BundleSha256 $bundleSha256 `
         -InstalledApkSha256 ('0' * 64) -Started $preciseStart -Finished $finished -Screens 17 -Crashes 0
     $precisePath = Join-Path $scratch 'fractional.json'
     [IO.File]::WriteAllText($precisePath, (ConvertTo-Json -InputObject $preciseReceipt -Depth 8))

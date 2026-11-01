@@ -325,6 +325,25 @@ function Get-WalkVisibleNodes {
     @($geometricallyVisible | Where-Object { Test-WalkNodeUncovered -Node $_ -Visible $visible -Geometry $geometry })
 }
 
+function Get-WalkSlidTabBar {
+    param([xml]$Document, [string]$Package)
+    # Hide the tab bar on Reels slides Instagram's bar below its window with a translation
+    # (GlassScrollHide.java:274-276), so none of it is visible while its tabs keep their selection.
+    # Only a bar wholly past its window's bottom edge counts. One covered on screen is still missing.
+    $bars = @($Document.SelectNodes("//node[@resource-id='${Package}:id/tab_bar']"))
+    if ($bars.Count -ne 1) { return }
+    $window = $bars[0].SelectSingleNode('ancestor::node[last()]')
+    if ($null -eq $window -or $window.GetAttribute('visible-to-user') -cne 'true') { return }
+    $edges = '^\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]$'
+    $windowBounds = [regex]::Match($window.GetAttribute('bounds'), $edges)
+    $barBounds = [regex]::Match($bars[0].GetAttribute('bounds'), $edges)
+    if (-not $windowBounds.Success -or -not $barBounds.Success -or
+        [int]$barBounds.Groups[2].Value -lt [int]$windowBounds.Groups[4].Value) { return }
+    if (@($bars[0].SelectNodes('descendant-or-self::node') | Where-Object {
+        $_.GetAttribute('visible-to-user') -ceq 'true' }).Count) { return }
+    ,$bars[0]
+}
+
 function Test-WalkDestinationContent {
     param($Destination, [xml]$Document, [string]$Package)
     function Get-WalkContentFailure([string]$Reason) { [pscustomobject]@{ Valid=$false; Reason=$Reason } }
@@ -458,7 +477,19 @@ function Test-WalkDestinationContent {
             ($_.GetAttribute('selected') -ceq 'true' -or
                 @($_.SelectNodes('.//node[@selected="true"]') | Where-Object { $visibleSet.Contains($_) }).Count -gt 0)
         })
-        if (@(Get-WalkIdNode $Destination.tab).Count -ne 1 -or $selectedTabs.Count -ne 1 -or
+        $tabNodes = @(Get-WalkIdNode $Destination.tab)
+        $slidBar = if (-not $tabNodes.Count) { Get-WalkSlidTabBar -Document $Document -Package $Package }
+        if ($null -ne $slidBar) {
+            # Nothing of a slid bar is on screen, so its tabs' own selection names the destination.
+            $barNodes = @($slidBar.SelectNodes('.//node'))
+            $tabNodes = @($barNodes | Where-Object { $_.GetAttribute('resource-id') -ceq $tabId })
+            $selectedTabs += @($barNodes | Where-Object {
+                $_.GetAttribute('resource-id').StartsWith("${Package}:id/", [StringComparison]::Ordinal) -and
+                $_.GetAttribute('resource-id') -cmatch '_tab$' -and
+                ($_.GetAttribute('selected') -ceq 'true' -or $_.SelectNodes('.//node[@selected="true"]').Count -gt 0)
+            })
+        }
+        if ($tabNodes.Count -ne 1 -or $selectedTabs.Count -ne 1 -or
             $selectedTabs[0].GetAttribute('resource-id') -cne $tabId) {
             return Get-WalkContentFailure 'The required native tab is not the sole selected tab.'
         }
@@ -466,8 +497,10 @@ function Test-WalkDestinationContent {
             if (@(Get-WalkIdNode $requiredId).Count -ne 1) { return Get-WalkContentFailure 'The native destination header is missing or duplicated.' }
         }
         # The native explicit empty state is legitimate, including a profile with zero posts.
-        # IDs/title/body are present in audit-2026-10-25/02-baseline-profile.xml. Scope it
-        # to the selected destination, and reject loading/error states before accepting it.
+        # IDs/title/body are present in audit-2026-10-25/02-baseline-profile.xml. Home on an
+        # account that follows nobody draws the IGDS headline form instead (Welcome to
+        # Instagram, release walk 2026-10-31). Scope it to the selected destination, and reject
+        # loading/error states before accepting it.
         $emptyScope = switch -CaseSensitive ($Destination.id) {
             'home' { 'android:id/list' }; 'explore' { 'recycler_view' }; 'reels' { 'clips_viewer_view_pager' }
             'inbox' { 'inbox_refreshable_thread_list_recyclerview' }; 'profile' { 'user_detail_fragment' }
@@ -477,9 +510,9 @@ function Test-WalkDestinationContent {
             foreach ($scope in @(Get-WalkIdNode $emptyScope)) {
                 foreach ($empty in @(Get-WalkDescendant $scope | Where-Object { $_.GetAttribute('resource-id') -ceq "${Package}:id/empty_state_view_root" })) {
                     $emptyChildren = @(Get-WalkDescendant $empty)
-                    $hasTitle = @($emptyChildren | Where-Object { $_.GetAttribute('resource-id') -ceq "${Package}:id/igds_empty_state_title" -and
+                    $hasTitle = @($emptyChildren | Where-Object { $_.GetAttribute('resource-id') -cin @("${Package}:id/igds_empty_state_title", "${Package}:id/igds_headline_emphasized_headline") -and
                         $_.GetAttribute('class') -ceq 'android.widget.TextView' -and -not [string]::IsNullOrWhiteSpace($_.GetAttribute('text')) }).Count -gt 0
-                    $hasBody = @($emptyChildren | Where-Object { $_.GetAttribute('resource-id') -ceq "${Package}:id/igds_empty_state_body_text" -and
+                    $hasBody = @($emptyChildren | Where-Object { $_.GetAttribute('resource-id') -cin @("${Package}:id/igds_empty_state_body_text", "${Package}:id/igds_headline_body") -and
                         $_.GetAttribute('class') -ceq 'android.widget.TextView' -and -not [string]::IsNullOrWhiteSpace($_.GetAttribute('text')) }).Count -gt 0
                     $hasEmptyState = $hasEmptyState -or ($hasTitle -and $hasBody)
                 }

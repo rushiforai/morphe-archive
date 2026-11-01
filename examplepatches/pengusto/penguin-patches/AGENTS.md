@@ -15,6 +15,7 @@
 - Do not claim compatibility with untested versions or silently rewrite stored app data. Fail clearly on unsupported bytecode.
 - Keep release workflow manual until the first patch is verified. Use the template semantic release pipeline; do not manually edit generated patch metadata.
 - Local build: Java 21, Android SDK, `./gradlew :patches:buildAndroid`. GitHub Packages needs read:packages; pass credentials via environment, never store them in project files.
+- If GitHub Packages credentials cannot resolve the Morphe plugin, inspect existing isolated offline build notes and caches before setting up replacements. Label artifacts built with dependency substitution separately from the official CI release build and verify their relevant contents.
 - Calendar's existing fork is the reference implementation, not an already converted Morphe patch. Preserve exact HTML on unrelated event edits.
 - Before Android setup, inspect existing ignored local setup notes (especially `.scratch/android-tests/README.md` and `env.sh`, if present) and verify their tools before downloading a second SDK/emulator environment.
 - Bundle repeatable emulator acceptance in scripts with explicit APK paths, serial and disposable-fixture checks, so required sandbox approvals cover a coherent test run. Reject stale UI dumps and distinguish setup failures from actual product regressions. Resolve, stop and start activities with the observed foreground Android user explicitly; activity-manager defaults can target user0 after a profile switch.

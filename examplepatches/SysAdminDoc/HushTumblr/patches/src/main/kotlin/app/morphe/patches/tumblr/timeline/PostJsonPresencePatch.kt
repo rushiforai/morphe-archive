@@ -53,7 +53,7 @@ internal fun BytecodePatchContext.resolvePostJsonPresence(): PostJsonPresencePla
     requireShape(PATCH, model != null && model.fields.none { it.name in setOf("hushRootTrailPresent", "hushPaidContextKnown") }
         && model.methods.none { it.name == "hushSetJsonPresence" }, "the shared presence bridge already exists or Post is missing")
     val reader = classDefByOrNull(ADAPTER)?.methods?.singleOrNull {
-        it.name == "fromJson" && it.hasShape(listOf("Lc8b;"), "Ljava/lang/Object;") && !it.isStatic()
+        it.name == "fromJson" && it.hasShape(listOf("Le9b;"), "Ljava/lang/Object;") && !it.isStatic()
     }
     requireShape(PATCH, reader?.implementation?.registerCount == 178, "the erased Post JSON reader changed")
     val method = reader!!
@@ -91,11 +91,11 @@ internal fun BytecodePatchContext.resolvePostJsonPresence(): PostJsonPresencePla
         && move(2070, Opcode.MOVE_FROM16, 158, 7) && untouched(154, 2127, 2167) && untouched(158, 2071, 2167)
         && allocations == listOf(2098) && one(2098, Opcode.NEW_INSTANCE, 4) && constructors == listOf(2166)
         && ctor?.opcode == Opcode.INVOKE_DIRECT_RANGE && ctor.startRegister == 4 && ctor.registerCount == 156
-        && ctorRef?.parameterTypes?.takeLast(6)?.map { it.toString() } == listOf("I", "I", "I", "I", "I", "Lr17;")
+        && ctorRef?.parameterTypes?.takeLast(6)?.map { it.toString() } == listOf("I", "I", "I", "I", "I", "Lh27;")
         && returns == listOf(2167, 2181) && one(2167, Opcode.RETURN_OBJECT, 4)
         && literal(2065, Opcode.CONST_16, 157, 0) && one(2181, Opcode.RETURN_OBJECT, 157)
         && untouched(157, 2066, 2070) && untouched(157, 2168, 2182) && one(2069, Opcode.IF_NEZ, 0)
-        && body[2180].methodRef().toString() == "Ld6b;->a(Ljava/lang/String;)V"
+        && body[2180].methodRef().toString() == "Lf7b;->a(Ljava/lang/String;)V"
     requireShape(PATCH, shape, "the explicit followed, can_edit and trail masks or complete Post return paths changed")
     val flow = ControlFlow.of(method)
     val predecessors = body.indices.filter { 2167 in flow.normal[it] || 2167 in flow.exceptional[it] }

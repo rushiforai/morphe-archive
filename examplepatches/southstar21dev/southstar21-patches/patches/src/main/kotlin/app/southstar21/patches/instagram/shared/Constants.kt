@@ -13,7 +13,10 @@ object Constants {
         appIconColor = 0xE1306C,
         targets = listOf(
             // Hooks target unobfuscated lifecycle methods, so newer versions
-            // will probably work too, but only this one is verified.
+            // will probably work too, but only these are verified.
+            AppTarget(
+                version = "453.0.0.57.79"
+            ),
             AppTarget(
                 version = "439.0.0.37.89"
             ),
