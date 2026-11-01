@@ -1,2 +1,10 @@
-# Repos reported by the last notification (1)
-example/test-patches
+# Repos reported by the last notification (9)
+Kirkland-Pickles/Gboard-offline-morphe
+VenusIsJaded/Prathxm-Patches
+amfakh/fakh-patches
+c-ardinal/Gboard-patches-jp
+johninnl/nl-morphe-patches
+junksidetm/Gboard-patches
+lildanlid1/Cordly
+quwi26/Quwis-Patches
+sarvottam99/SARVO-Patches
