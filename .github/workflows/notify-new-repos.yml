@@ -133,7 +133,20 @@ jobs:
           git commit -m "chore(data): record $COUNT new patch repo(s) [skip ci]"
           git push --force origin "$BRANCH"
 
-          BODY="$(printf 'The published index gained %s repo(s) since the last notification:\n\n```\n%s\n```\n\nThe baseline is updated in this PR, so the next notification reports only repos added after it. Opened and merged so repository watchers get a single notification per batch.\n' "$COUNT" "$(cat new-repos.txt)")"
+          # Link every repo so the PR body is clickable straight from the notification.
+          # GitLab sources are stored as host/owner/repo, GitHub ones as owner/repo.
+          LINKS=""
+          while IFS= read -r repo; do
+            [ -z "$repo" ] && continue
+            case "$repo" in
+              http://*|https://*) url="$repo" ;;
+              */*/*) url="https://$repo" ;;
+              *) url="https://github.com/$repo" ;;
+            esac
+            LINKS="${LINKS}- [$repo]($url)"$'\n'
+          done < new-repos.txt
+
+          BODY="$(printf 'The published index gained %s repo(s) since the last notification:\n\n%s\nThe baseline is updated in this PR, so the next notification reports only repos added after it. Opened and merged so repository watchers get a single notification per batch.\n' "$COUNT" "$LINKS")"
 
           # An earlier run may have left the PR open because merging was refused, in
           # which case opening another one would fail with "already exists".
