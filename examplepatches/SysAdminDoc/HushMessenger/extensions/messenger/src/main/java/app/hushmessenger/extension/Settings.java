@@ -422,6 +422,40 @@ public final class Settings {
         return false;
     }
 
+    static final String SEARCH_BAR = "inbox_search_bar";
+    /** First answer this process gave for the chat list's search bar, or null before Messenger asked. */
+    static volatile Boolean keptSearchBar;
+    private static final Object SEARCH_BAR_LOCK = new Object();
+
+    /**
+     * Messenger reads Meta's search icon test in each part of the chat list it builds: the search icon, the search bar
+     * above the list and the list's padding. The parts have to agree, so the first answer holds until a restart, like
+     * the emoji drawer's. Messenger's own check runs first, and this only ever turns a yes into a no.
+     */
+    public static boolean inboxSearchIcon(Object config, long flag) {
+        return searchIcon(searchIconFlag(config, flag));
+    }
+
+    /** The search icon answer Messenger gets, given its own. */
+    static boolean searchIcon(boolean original) {
+        // Without the icon there's nothing to hold, so the settings row doesn't wait for a restart that changes nothing.
+        if (!original) return false;
+        Boolean kept = keptSearchBar;
+        if (kept == null) {
+            if (!HostScreens.started) HostScreens.initializeLate();
+            synchronized (SEARCH_BAR_LOCK) {
+                if (keptSearchBar == null) keptSearchBar = wouldUse(SEARCH_BAR);
+                kept = keptSearchBar;
+            }
+        }
+        if (!kept) return true;
+        activeAt.put(SEARCH_BAR, System.currentTimeMillis());
+        return false;
+    }
+
+    /** Messenger's own check of a server flag. The patch writes its body with this build's check. */
+    static boolean searchIconFlag(Object config, long flag) { return false; }
+
     /**
      * The answer a control that holds its first answer for the run is still giving, when the saved switch, Pause or
      * safe mode now says otherwise. Null when the control doesn't hold one, Messenger hasn't asked yet, or they agree.
@@ -440,7 +474,7 @@ public final class Settings {
             return shape < 0 || shape == now ? null : now == AVATAR_CIRCLE;
         }
         Boolean held = "meta_ai".equals(key) ? metaAiTab : "emoji_drawer".equals(key) ? oldEmojiDrawer
-            : OwnFont.KEY.equals(key) ? customFont : bottomTabs.get(key);
+            : SEARCH_BAR.equals(key) ? keptSearchBar : OwnFont.KEY.equals(key) ? customFont : CallRecording.KEY.equals(key) ? CallRecording.heldPlayout() : bottomTabs.get(key);
         return held == null || held == wouldUse(key) ? null : held;
     }
 

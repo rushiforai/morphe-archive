@@ -107,6 +107,7 @@ import app.hushgram.extension.instagram.feed.AmbientSpeed;
 import app.hushgram.extension.instagram.feed.AmbientSpread;
 import app.hushgram.extension.instagram.feed.CornerSize;
 import app.hushgram.extension.instagram.feed.LikeAnimation;
+import app.hushgram.extension.instagram.misc.CustomIcon;
 import app.hushgram.extension.instagram.misc.MediaCache;
 import app.hushgram.extension.instagram.misc.NotificationGroups;
 import app.hushgram.extension.instagram.misc.SettingsRows;
@@ -114,6 +115,7 @@ import app.hushgram.extension.instagram.misc.SpoofLocation;
 import app.hushgram.extension.instagram.share.ShareSheetActions;
 import app.hushgram.extension.instagram.share.SharingDomain;
 import app.hushgram.extension.instagram.stories.StoryBarThickness;
+import app.hushgram.extension.instagram.stories.StoryPriority;
 import app.hushgram.extension.instagram.stories.StoryEmoji;
 import app.hushgram.extension.instagram.stories.StoryFonts;
 import app.hushgram.extension.instagram.stories.StoryRingColor;
@@ -244,6 +246,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private static final int PICK_STORY_EMOJI = 0x484f;
     private static final int PICK_SAVE_FOLDER = 0x4850;
     private static final int PICK_EMOJI = 0x4851;
+    private static final int PICK_ICON_PICTURE = 0x4852;
     /** Framework fragment callbacks run on the main thread. Never reuse a code across pages. */
     private static int documentSequence = PICK_FONT;
     private int documentRequest;
@@ -701,6 +704,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.LIKE_ANIMATION && Settings.LIKE_ANIMATION.key.equals(key);
                     belongs |= family == PatchFamily.CAPTION_WORD_REELS && (Settings.REELS_BLOCKED_WORDS.key.equals(key)
                             || Settings.HIDE_CAPTION_WORD_HOME.key.equals(key));
+                    belongs |= family == PatchFamily.LOW_VIEW_REELS && Settings.MIN_REEL_VIEWS.key.equals(key);
+                    belongs |= family == PatchFamily.STORY_PRIORITY && Settings.STORY_PRIORITY_ACCOUNTS.key.equals(key);
                     belongs |= family == PatchFamily.MESSAGES_LOCK
                             && (Settings.LOCK_AGAIN.key.equals(key) || LOCKED_CHATS_ROW.equals(key)
                             || HIDDEN_CHATS_ROW.equals(key) || PINNED_CHATS_ROW.equals(key) || Settings.UNLOCK_WITH.key.equals(key)
@@ -1761,6 +1766,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             if (result == Activity.RESULT_OK) keepPickedFont(request, data == null ? null : data.getData(), revision);
             return;
         }
+        if (request == PICK_ICON_PICTURE) {
+            documentRequest = 0;
+            documentCode = 0;
+            showConfiguration();
+            if (result == Activity.RESULT_OK) CustomIcon.edit(getActivity(), data == null ? null : data.getData());
+            return;
+        }
         if (request == PICK_SAVE_FOLDER) {
             documentRequest = 0;
             documentCode = 0;
@@ -1859,6 +1871,41 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     static final String GALLERY_FOLDERS = "hushgram_gallery_folders";
+
+    /** The Custom app icon row (#442): Android's picture picker, then the framing dialog. */
+    Row customIconRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(CUSTOM_ICON_KEY);
+        row.setPersistent(false);
+        row.actsAtOnce = true;
+        row.setTitle(L10n.t("Custom app icon"));
+        row.setSummary(L10n.t("Pick a picture, frame it and add it to your home screen as a shortcut to Instagram."));
+        row.setOnPreferenceClickListener(p -> {
+            pickIconPicture();
+            return true;
+        });
+        return row;
+    }
+
+    static final String CUSTOM_ICON_KEY = "hushgram_custom_icon";
+
+    private void pickIconPicture() {
+        if (documentRequest != 0 || changingConfiguration || ExportStatus.CONFIGURATION.active() || Fonts.importActive()) return;
+        if (documentSequence == Integer.MAX_VALUE) {
+            Utils.showToastLong(L10n.t("Couldn't start that. Try again."));
+            return;
+        }
+        documentRequest = PICK_ICON_PICTURE;
+        documentCode = ++documentSequence;
+        Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*");
+        try {
+            startActivityForResult(picker, documentCode);
+        } catch (ActivityNotFoundException | SecurityException failure) {
+            documentRequest = 0;
+            documentCode = 0;
+            Utils.showToastLong(L10n.t("This phone has no file picker. Your settings haven't changed."));
+        }
+    }
 
     private void pickSaveFolder() {
         if (documentRequest != 0 || changingConfiguration || ExportStatus.CONFIGURATION.active() || Fonts.importActive()) return;
@@ -6094,6 +6141,147 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
 
         /** Its edit dialog takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+            fitAboveKeyboard(getDialog());
+        }
+    }
+
+    /** The usernames Stories priority puts first, one to a line (#451). */
+    static AccountsRow priorityAccountsRow(Context context) {
+        AccountsRow row = new AccountsRow(context);
+        row.setKey(Settings.STORY_PRIORITY_ACCOUNTS.key);
+        row.setTitle(L10n.t("Priority accounts"));
+        row.setDialogTitle(L10n.t("Priority accounts"));
+        row.setDialogMessage(L10n.t("Usernames, one on each line. The first line goes first. A leading @ and capital "
+                + "letters don't matter."));
+        row.setPositiveButtonText(L10n.t("Save"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        EditText field = row.getEditText();
+        field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        field.setMaxLines(8);
+        field.setFilters(new InputFilter[]{new InputFilter.LengthFilter(ConfigurationBackup.MAX_WORDS_TEXT)});
+        row.setText(Settings.STORY_PRIORITY_ACCOUNTS.savedValue());
+        return row;
+    }
+
+    /** What the priority accounts row says under its title: how many accounts it holds, or that it has none. */
+    static String priorityAccountsSummary(String stored) {
+        int count = StoryPriority.accounts(stored).size();
+        return count == 0 ? L10n.t("No accounts yet")
+                : L10n.quantity(count, "%1$d account", "%1$d accounts", count);
+    }
+
+    /**
+     * The priority accounts' row, a list typed in a multi-line dialog. Its summary follows its text,
+     * whoever sets it: the person, the shared page syncing it from the setting, or an import.
+     */
+    static final class AccountsRow extends EditTextPreference {
+        AccountsRow(Context context) {
+            super(context);
+        }
+
+        @Override protected View onCreateDialogView() { return editDialogBody(this); }
+
+        @Override protected void onBindDialogView(View view) {
+            getEditText().setText(getText());
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            setSummary(priorityAccountsSummary(text));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its edit dialog takes the screen's colours and shrinks to fit above the keyboard, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+            fitAboveKeyboard(getDialog());
+        }
+    }
+
+    /** The view count Hide reels with few views keeps a reel at, typed as a number (#444). */
+    static MinViewsRow minViewsRow(Context context) {
+        MinViewsRow row = new MinViewsRow(context);
+        row.setKey(Settings.MIN_REEL_VIEWS.key);
+        row.setTitle(L10n.t("Minimum views"));
+        row.setDialogTitle(L10n.t("Minimum views"));
+        row.setDialogMessage(L10n.t("Reels with fewer views than this are left out. Type a whole number."));
+        row.setPositiveButtonText(L10n.t("Save"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        EditText field = row.getEditText();
+        field.setInputType(InputType.TYPE_CLASS_NUMBER);
+        field.setSingleLine(true);
+        field.setFilters(new InputFilter[]{new InputFilter.LengthFilter(9)});
+        row.setText(String.valueOf(Settings.MIN_REEL_VIEWS.savedValue()));
+        return row;
+    }
+
+    /** What the minimum views row says under its title. */
+    static String minViewsSummary(String stored) {
+        return String.format(L10n.t("Fewer than %1$s views"),
+                java.text.NumberFormat.getIntegerInstance().format(MinViewsRow.valueOf(stored)));
+    }
+
+    /**
+     * The minimum views row, a number typed in a dialog. Its text is always a whole number inside the
+     * setting's range, and its summary follows it, whoever sets it.
+     */
+    static final class MinViewsRow extends EditTextPreference {
+        MinViewsRow(Context context) {
+            super(context);
+        }
+
+        /** [text] as a count inside the setting's range, or its default when it isn't a number. */
+        static int valueOf(@Nullable String text) {
+            try {
+                long value = Long.parseLong(text == null ? "" : text.trim());
+                return (int) Math.max(Settings.MIN_REEL_VIEWS.minimum(), Math.min(Settings.MIN_REEL_VIEWS.maximum(), value));
+            } catch (NumberFormatException notANumber) {
+                return Settings.MIN_REEL_VIEWS.defaultValue;
+            }
+        }
+
+        @Override protected View onCreateDialogView() { return editDialogBody(this); }
+
+        @Override protected void onBindDialogView(View view) {
+            getEditText().setText(getText());
+        }
+
+        @Override
+        protected void onDialogClosed(boolean positiveResult) {
+            // What was typed is brought inside the range first, so the setting never takes an empty or huge count.
+            if (positiveResult) getEditText().setText(String.valueOf(valueOf(getEditText().getText().toString())));
+            super.onDialogClosed(positiveResult);
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            setSummary(minViewsSummary(text));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its edit dialog takes the screen's colours and shrinks to fit above the keyboard, as the other rows' dialogs do. */
         @Override
         protected void showDialog(Bundle state) {
             super.showDialog(state);

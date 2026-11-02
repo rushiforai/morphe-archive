@@ -94,7 +94,7 @@ public class CallMixTest {
     }
 
     @Test public void stereoAt48KhzComesDownToMonoAt16Khz() throws IOException {
-        mix.mine.offer(filled(480, 1000, 3000), 480, 2, 48000, false, 10);
+        mix.mine.offer(filled(480, 1000, 3000), 480, 2, 48000, 10);
         mix.finish(10);
         short[] expected = new short[160];
         Arrays.fill(expected, (short) 2000);
@@ -102,7 +102,7 @@ public class CallMixTest {
     }
 
     @Test public void soundAt8KhzComesUpTo16Khz() throws IOException {
-        mix.theirs.offer(filled(80, 1000), 80, 1, 8000, false, 10);
+        mix.theirs.offer(filled(80, 1000), 80, 1, 8000, 10);
         mix.finish(10);
         short[] out = samples();
         assertEquals(160, out.length);
@@ -112,8 +112,8 @@ public class CallMixTest {
     }
 
     @Test public void aSideThatGoesQuietBecomesSilenceAndNothingShifts() throws IOException {
-        mix.mine.offer(filled(160, 1000), 160, 1, 16000, false, 10);
-        mix.mine.offer(filled(160, 2000), 160, 1, 16000, false, 1000);
+        mix.mine.offer(filled(160, 1000), 160, 1, 16000, 10);
+        mix.mine.offer(filled(160, 2000), 160, 1, 16000, 1000);
         mix.finish(1000);
         short[] out = samples();
         assertEquals(CallMix.RATE, out.length);
@@ -126,8 +126,8 @@ public class CallMixTest {
     }
 
     @Test public void aSideThatStartsLateKeepsItsPlaceInTheCall() throws IOException {
-        mix.mine.offer(filled(160, 1000), 160, 1, 16000, false, 10);
-        mix.theirs.offer(filled(160, 500), 160, 1, 16000, false, 500);
+        mix.mine.offer(filled(160, 1000), 160, 1, 16000, 10);
+        mix.theirs.offer(filled(160, 500), 160, 1, 16000, 500);
         mix.finish(500);
         short[] out = samples();
         assertEquals(1000, out[0]);
@@ -136,30 +136,80 @@ public class CallMixTest {
         assertEquals(500, out[7999]);
     }
 
-    @Test public void aMutedFrameIsSilence() throws IOException {
-        mix.mine.offer(filled(160, 1000), 160, 1, 16000, true, 10);
+    @Test public void silentFramesDontCountAsHearingAnyone() throws IOException {
+        mix.mine.offer(filled(160, 0), 160, 1, 16000, 10);
+        mix.theirs.offer(filled(160, 0), 160, 1, 16000, 10);
+        assertFalse(mix.heard());
+        mix.theirs.offer(filled(160, 1), 160, 1, 16000, 20);
+        assertTrue(mix.heard());
+    }
+
+    /** The way WebRTC makes its buffers: direct, in the phone's byte order, while the buffer itself still says big endian. */
+    private static ByteBuffer webrtc(short[] sound) {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(sound.length * 2).order(ByteOrder.nativeOrder());
+        for (int i = 0; i < sound.length; i++) buffer.putShort(i * 2, sound[i]);
+        return buffer.order(ByteOrder.BIG_ENDIAN);
+    }
+
+    @Test public void anAudioThreadsBufferIsReadInThePhonesByteOrder() throws IOException {
+        mix.mine.offer(webrtc(filled(160, 1000)), 320, 1, 16000, 10);
         mix.finish(10);
-        assertArrayEquals(new short[160], samples());
+        short[] expected = new short[160];
+        Arrays.fill(expected, (short) 1000);
+        assertArrayEquals(expected, samples());
+    }
+
+    @Test public void anAudioThreadsBufferKeepsItsOwnPositionAndLimit() throws IOException {
+        ByteBuffer buffer = webrtc(filled(160, 1000));
+        buffer.position(40).limit(100);
+        mix.mine.offer(buffer, 320, 1, 16000, 10);
+        assertEquals(40, buffer.position());
+        assertEquals(100, buffer.limit());
+        assertEquals(ByteOrder.BIG_ENDIAN, buffer.order());
+    }
+
+    @Test public void aMuteLeavingThePositionAtTheEndLosesNothing() throws IOException {
+        ByteBuffer buffer = webrtc(filled(160, 1000));
+        buffer.position(buffer.capacity());
+        mix.mine.offer(buffer, 320, 1, 16000, 10);
+        mix.finish(10);
+        assertEquals(1000, samples()[159]);
+    }
+
+    @Test public void aBufferAskedForMoreThanItHoldsOnlyGivesWhatItHolds() throws IOException {
+        mix.mine.offer(webrtc(filled(80, 1000)), 320, 1, 16000, 5);
+        mix.finish(5);
+        assertEquals(80, samples().length);
+        assertEquals(1000, samples()[79]);
+    }
+
+    @Test public void buffersThatCantBeUsedAreLeftOut() throws IOException {
+        mix.mine.offer((ByteBuffer) null, 320, 1, 16000, 10);
+        mix.mine.offer(webrtc(filled(160, 1000)), 0, 1, 16000, 10);
+        mix.mine.offer(webrtc(filled(160, 1000)), -1, 1, 16000, 10);
+        mix.mine.offer(webrtc(filled(160, 1000)), 320, 0, 16000, 10);
+        mix.mine.offer(webrtc(filled(160, 1000)), 320, 1, 0, 10);
+        assertFalse(mix.heard());
     }
 
     @Test public void twoLoudSidesClipInsteadOfWrappingAround() throws IOException {
-        mix.mine.offer(filled(160, 30000), 160, 1, 16000, false, 10);
-        mix.theirs.offer(filled(160, 30000), 160, 1, 16000, false, 10);
+        mix.mine.offer(filled(160, 30000), 160, 1, 16000, 10);
+        mix.theirs.offer(filled(160, 30000), 160, 1, 16000, 10);
         mix.finish(10);
         assertEquals(Short.MAX_VALUE, samples()[0]);
     }
 
     @Test public void framesThatCantBeUsedAreLeftOut() throws IOException {
-        mix.mine.offer(null, 160, 1, 16000, false, 10);
-        mix.mine.offer(filled(160, 1000), 0, 1, 16000, false, 10);
-        mix.mine.offer(filled(160, 1000), 160, 0, 16000, false, 10);
-        mix.mine.offer(filled(160, 1000), 160, 1, 0, false, 10);
+        mix.mine.offer((short[]) null, 160, 1, 16000, 10);
+        mix.mine.offer(filled(160, 1000), 0, 1, 16000, 10);
+        mix.mine.offer(filled(160, 1000), 160, 0, 16000, 10);
+        mix.mine.offer(filled(160, 1000), 160, 1, 0, 10);
         mix.finish(10);
         assertArrayEquals(new short[160], samples());
     }
 
     @Test public void aFrameClaimingMoreThanItHoldsOnlyUsesWhatItHolds() throws IOException {
-        mix.mine.offer(filled(80, 1000), 160, 1, 16000, false, 5);
+        mix.mine.offer(filled(80, 1000), 160, 1, 16000, 5);
         mix.finish(5);
         assertEquals(80, samples().length);
         assertEquals(1000, samples()[79]);

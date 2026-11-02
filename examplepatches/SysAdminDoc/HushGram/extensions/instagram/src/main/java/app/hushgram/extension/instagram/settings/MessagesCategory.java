@@ -41,6 +41,8 @@ final class MessagesCategory {
                 || build.contains(PatchFamily.CHAT_HISTORY)
                 || build.contains(PatchFamily.ASK_BEFORE_CALL)
                 || build.contains(PatchFamily.MESSAGE_BOX)
+                || build.contains(PatchFamily.PLUS_MENU)
+                || build.contains(PatchFamily.GLASS_CHAT)
                 || build.contains(PatchFamily.FULL_SCREEN_BARS)) {
             PreferenceCategory messages = category(screen, L10n.t("Messages"), SettingsIcons.CHATS,
                     L10n.t("Privacy and controls for your chats."));
@@ -151,6 +153,22 @@ final class MessagesCategory {
             }
             if (build.contains(PatchFamily.MESSAGE_BOX)) {
                 messages.addPreference(page.messageBoxRow(context));
+            }
+            if (build.contains(PatchFamily.PLUS_MENU)) {
+                messages.addPreference(toggle(context, Settings.HIDE_PLUS_SAVED, L10n.t("Hide Saved in the plus menu"),
+                        L10n.t("Takes Saved off the menu the plus button opens in a chat's message bar.")));
+                messages.addPreference(toggle(context, Settings.HIDE_PLUS_AI_IMAGES, L10n.t("Hide AI images in the plus menu"),
+                        L10n.t("Takes AI images off the menu the plus button opens in a chat's message bar.")));
+                messages.addPreference(toggle(context, Settings.HIDE_PLUS_DRAW, L10n.t("Hide Draw in the plus menu"),
+                        L10n.t("Takes Draw off the menu the plus button opens in a chat's message bar.")));
+                messages.addPreference(toggle(context, Settings.MOVE_TO_PLUS_MENU, L10n.t("Gallery and microphone in the plus menu"),
+                        L10n.t("Moves the gallery and microphone buttons off the message bar and into the plus menu. "
+                                + "They work as before. Turn it off and they're back the next time a chat opens.")));
+            }
+            if (build.contains(PatchFamily.GLASS_CHAT)) {
+                messages.addPreference(toggle(context, Settings.GLASS_CHAT, L10n.t("Glass in chats"),
+                        L10n.t("Gives a chat's top bar frosted glass and puts the back, call and video buttons on round "
+                                + "glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.")));
             }
             if (build.contains(PatchFamily.FULL_SCREEN_BARS)) {
                 messages.addPreference(toggle(context, Settings.FULL_SCREEN_MESSAGES, L10n.t("Full screen Messages"),

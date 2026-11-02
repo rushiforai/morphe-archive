@@ -74,7 +74,8 @@ public final class MarkReadButton {
      * Messenger's older chat top bar calls this right before it shows its buttons, padded with nulls, of which it shows
      * the first three. The button goes where the chat details button sits, taking its place when the bar is full, since
      * tapping the chat's name opens the same page. A full bar that doesn't show a details button gives up its last button
-     * that isn't for calls, such as Add friend, so no chat goes without it and no call button is ever pushed out or moved.
+     * that isn't for calls, such as Add friend, Meta AI or a group's home, so no chat goes without it and no call button
+     * is ever pushed out or moved.
      */
     public static void add(List<Object> buttons, Object socket) {
         CallButtons.blank(buttons);
@@ -113,8 +114,8 @@ public final class MarkReadButton {
             // Only the buttons the bar shows count: a place past its cut wouldn't show this one either.
             if (++count > MOST_BUTTONS) continue;
             if (details < 0 && isDetails(held)) details = i;
-            // Messenger's join a call button is a class of its own, so another class is never given up.
-            else if (held.getClass() == button.getClass() && !isCall(held)) spare = i;
+            // Messenger's join a call button is a class of its own, so another class is given up only when it's known.
+            else if ((held.getClass() == button.getClass() || givesWay(held)) && !isCall(held)) spare = i;
         }
         if (details >= 0 && count >= MOST_BUTTONS) buttons.set(details, button);
         else if (details >= 0) buttons.add(details, button);
@@ -134,6 +135,26 @@ public final class MarkReadButton {
     /** Whether a top bar button is the chat details one, by the test tag the button keeps. */
     static boolean isDetails(Object button) throws IllegalAccessException {
         return hasTag(button, DETAILS_TAG);
+    }
+
+    /** The Meta AI chat button's test tag, on either class Messenger builds that button from. */
+    static final String META_AI_TAG = "thread_view_meta_ai_button";
+    /** What a group's home button keeps, by simple name: Messenger leaves that class's name as it is. */
+    static final String GROUP_HOME = "HomebaseRepository";
+
+    /**
+     * Whether a button of a class of its own may give its place up: Messenger's Meta AI chat button, by its tag, or a
+     * group's home button, by the repository it holds. Both go ahead of the call buttons, and the bar then drops its
+     * details button to stay at three. Any other class, such as the join a call button, stays.
+     */
+    static boolean givesWay(Object button) throws IllegalAccessException {
+        if (hasTag(button, META_AI_TAG)) return true;
+        for (Class<?> type = button.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                if (!Modifier.isStatic(field.getModifiers()) && GROUP_HOME.equals(field.getType().getSimpleName())) return true;
+            }
+        }
+        return false;
     }
 
     /** Whether a top bar button starts a call, by the test tag the button keeps. */

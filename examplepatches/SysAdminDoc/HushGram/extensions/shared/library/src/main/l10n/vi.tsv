@@ -393,7 +393,7 @@ Doesn't follow you	Không theo dõi bạn
 Hide suggested people	Ẩn gợi ý người dùng
 Takes Suggested for you and the Discover people button off profiles, yours included. Bios, counts, posts and follower lists stay.	Gỡ Gợi ý cho bạn và nút Khám phá mọi người khỏi trang cá nhân, kể cả của bạn. Tiểu sử, số liệu, bài viết và danh sách người theo dõi vẫn giữ.
 Hide Suggested for you on follow lists	Ẩn Gợi ý cho bạn trên danh sách theo dõi
-Leaves the Suggested for you section off the followers, following and mutual lists, and the Suggested tab off other people's follow lists. Every account in the lists stays.	Bỏ phần Gợi ý cho bạn khỏi danh sách người theo dõi, đang theo dõi và chung, cũng như tab Gợi ý khỏi danh sách theo dõi của người khác. Mọi tài khoản trong danh sách vẫn giữ.
+Leaves the Suggested for you section off the followers, following and mutual lists and the screen where you approve follow requests, and the Suggested tab off other people's follow lists. Every account in the lists and every real request stays.	Bỏ phần Gợi ý cho bạn khỏi danh sách người theo dõi, đang theo dõi và chung, cũng như màn hình nơi bạn duyệt yêu cầu theo dõi, và tab Gợi ý khỏi danh sách theo dõi của người khác. Mọi tài khoản trong danh sách và mọi yêu cầu thật vẫn giữ.
 Hide Complete your profile	Ẩn Hoàn thiện trang cá nhân
 Takes the Complete your profile cards, like Add bio and Find people to follow, off your own profile. Your bio, counts and posts stay.	Gỡ các thẻ Hoàn thiện trang cá nhân, như Thêm tiểu sử và Tìm người để theo dõi, khỏi trang cá nhân của bạn. Tiểu sử, số liệu và bài viết vẫn giữ.
 Hide People you don't follow back	Ẩn Người bạn không theo dõi lại
@@ -1440,3 +1440,33 @@ Nothing logged yet. Each time you scroll your own Followers list to the end, cha
 %1$s started following you, %2$s	%1$s bắt đầu theo dõi bạn, %2$s
 Hide the Map bubble	Ẩn bong bóng Bản đồ
 Takes only the Map bubble out of the row of notes. Your notes stay.	Chỉ gỡ bong bóng Bản đồ khỏi hàng ghi chú. Ghi chú vẫn giữ.
+Hide Saved in the plus menu	Ẩn Đã lưu trong menu dấu cộng
+Takes Saved off the menu the plus button opens in a chat's message bar.	Gỡ Đã lưu khỏi menu mà nút dấu cộng mở ra trong thanh tin nhắn của cuộc trò chuyện.
+Hide AI images in the plus menu	Ẩn ảnh AI trong menu dấu cộng
+Takes AI images off the menu the plus button opens in a chat's message bar.	Gỡ ảnh AI khỏi menu mà nút dấu cộng mở ra trong thanh tin nhắn của cuộc trò chuyện.
+Hide Draw in the plus menu	Ẩn Vẽ trong menu dấu cộng
+Takes Draw off the menu the plus button opens in a chat's message bar.	Gỡ Vẽ khỏi menu mà nút dấu cộng mở ra trong thanh tin nhắn của cuộc trò chuyện.
+Gallery and microphone in the plus menu	Thư viện ảnh và micrô trong menu dấu cộng
+Moves the gallery and microphone buttons off the message bar and into the plus menu. They work as before. Turn it off and they're back the next time a chat opens.	Chuyển nút thư viện ảnh và micrô từ thanh tin nhắn vào menu dấu cộng. Chúng hoạt động như trước. Tắt đi thì chúng quay lại lần sau khi bạn mở cuộc trò chuyện.
+Custom app icon	Biểu tượng ứng dụng tùy chỉnh
+Pick a picture, frame it and add it to your home screen as a shortcut to Instagram.	Chọn một ảnh, căn khung rồi thêm vào màn hình chính làm lối tắt tới Instagram.
+Drag to move, pinch to zoom.	Kéo để di chuyển, chụm để thu phóng.
+Add to home screen	Thêm vào màn hình chính
+Couldn't read that picture.	Không đọc được ảnh đó.
+This launcher can't add it.	Launcher này không thêm được.
+Glass in chats	Kính trong trò chuyện
+Gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Làm thanh trên cùng của cuộc trò chuyện có hiệu ứng kính mờ và đặt các nút quay lại, gọi và video lên những vòng tròn kính. Hiện ở lần mở cuộc trò chuyện tiếp theo. Hiệu ứng làm mờ cần Android 12 trở lên.
+# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary; %1$s is a number with thousands separators (#444)
+Hide reels with few views	Ẩn reel có ít lượt xem
+Leaves out reels in the Reels tab that fewer people have watched than the number below. Reels from accounts you follow, reels sent to you and reels with no view count still play.	Bỏ qua các reel trong tab Reels có ít người xem hơn con số bên dưới. Reel của tài khoản bạn theo dõi, reel được gửi cho bạn và reel không có lượt xem vẫn phát bình thường.
+Minimum views	Số lượt xem tối thiểu
+Reels with fewer views than this are left out. Type a whole number.	Reel có ít lượt xem hơn số này sẽ bị bỏ qua. Nhập một số nguyên.
+Fewer than %1$s views	Dưới %1$s lượt xem
+# context: Stories switch Stories priority, its summary, the Priority accounts row, its dialog message and the row's summaries (none, one account, several accounts) (#451)
+Stories priority	Ưu tiên tin
+Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched, in the order of the list. Once you've watched it, Instagram's own placement applies again. Your own story stays first.	Đưa các tài khoản trong danh sách của bạn lên đầu hàng tin ở đầu Trang chủ khi họ có tin bạn chưa xem, theo thứ tự trong danh sách. Xem xong thì vị trí mặc định của Instagram được áp dụng lại. Tin của chính bạn vẫn ở đầu.
+Priority accounts	Tài khoản ưu tiên
+Usernames, one on each line. The first line goes first. A leading @ and capital letters don't matter.	Tên người dùng, mỗi dòng một tên. Dòng đầu tiên đứng đầu. Dấu @ ở đầu và chữ hoa không quan trọng.
+No accounts yet	Chưa có tài khoản nào
+%1$d account	%1$d tài khoản
+%1$d accounts	%1$d tài khoản

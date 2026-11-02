@@ -119,6 +119,8 @@ public final class TrackerBlocker {
             "zion.api.cnn.io", "collector.cdp.cnn.com", // CNN data collection
             // NFL (61.0.18)
             "prf.hn", // Partnerize purchase attribution
+            // DealSeek (1.64.0)
+            "analytics.us.tiktok.com", "analytics.tiktok.com", // TikTok Business SDK events
             // Google Analytics / Firebase Analytics upload
             "app-measurement.com", "google-analytics.com",
             // Google Ads conversion tracking (not ad serving)
@@ -141,6 +143,18 @@ public final class TrackerBlocker {
             {"graph.facebook.com", "/aem_conversion_configs"}, // Meta aggregated event measurement
             {"graph.facebook.com", "/custom_audience_third_party_id"}, // Meta ad audiences
             {"graph.facebook.com", "/app_indexing"}, // Meta codeless event setup
+            // PostHog event capture and session replay. /flags/ (feature flags) is left alone.
+            {"i.posthog.com", "/batch"},
+            {"i.posthog.com", "/e/"},
+            {"i.posthog.com", "/i/v0/e"},
+            {"i.posthog.com", "/s/"},
+            {"i.posthog.com", "/capture"},
+            // DealSeek's PostHog proxy (1.64.0)
+            {"sesame.dealseek.com", "/batch"},
+            {"sesame.dealseek.com", "/e/"},
+            {"sesame.dealseek.com", "/i/v0/e"},
+            {"sesame.dealseek.com", "/s/"},
+            {"sesame.dealseek.com", "/capture"},
     };
 
     /** Tubi's first-party analytics: analytics-ingestion*.tubi.io / *.tubitv.com. */
@@ -207,6 +221,47 @@ public final class TrackerBlocker {
             throw new IOException("Blocked by Morphe privacy patch: " + host);
         }
         return url.openConnection();
+    }
+
+    /** A closed local port: a request sent here fails the way an offline one does. */
+    private static final String BLOCKED_URL = "http://127.0.0.1:9/";
+
+    /**
+     * Called with the URL of each JavaScript request, so trackers that run in a React Native
+     * app's JavaScript are blocked too. Two native paths carry those requests: React Native's
+     * NetworkingModule (fetch and XMLHttpRequest) and Expo's expo/fetch. A blocked URL is swapped
+     * for {@link #BLOCKED_URL}, so JavaScript gets its usual network error.
+     */
+    public static String filterJsRequestUrl(String url) {
+        try {
+            if (url != null && isBlockedJsRequest(new URL(url))) {
+                return BLOCKED_URL;
+            }
+        } catch (Throwable ignored) {
+            // Not an http(s) URL (blob:, data:): React Native handles those itself.
+        }
+        return url;
+    }
+
+    /** {@link #filterJsRequestUrl(String)} for expo/fetch, which passes a java.net.URL. */
+    public static URL filterJsRequestUrl(URL url) {
+        try {
+            if (url != null && isBlockedJsRequest(url)) {
+                return new URL(BLOCKED_URL);
+            }
+        } catch (Throwable ignored) {
+            // Leave the request as it is.
+        }
+        return url;
+    }
+
+    private static boolean isBlockedJsRequest(URL url) {
+        String host = url.getHost();
+        if (!isBlocked(host, url.getPath())) {
+            return false;
+        }
+        logBlocked("javascript", host);
+        return true;
     }
 
     /** Called with the Builder at the start of OkHttpClient.<init>(Builder). */

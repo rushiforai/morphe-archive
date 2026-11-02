@@ -393,7 +393,7 @@ Doesn't follow you	Não segue você
 Hide suggested people	Ocultar pessoas sugeridas
 Takes Suggested for you and the Discover people button off profiles, yours included. Bios, counts, posts and follower lists stay.	Tira Sugestões para você e o botão Descobrir pessoas dos perfis, incluindo o seu. Bios, contagens, posts e listas de seguidores continuam lá.
 Hide Suggested for you on follow lists	Ocultar Sugestões para você nas listas de seguidores
-Leaves the Suggested for you section off the followers, following and mutual lists, and the Suggested tab off other people's follow lists. Every account in the lists stays.	Tira a seção Sugestões para você das listas de seguidores, seguindo e em comum, e a aba Sugestões das listas de outras pessoas. Todas as contas das listas continuam lá.
+Leaves the Suggested for you section off the followers, following and mutual lists and the screen where you approve follow requests, and the Suggested tab off other people's follow lists. Every account in the lists and every real request stays.	Tira a seção Sugestões para você das listas de seguidores, seguindo e em comum e da tela onde você aprova pedidos de seguir, e a aba Sugestões das listas de outras pessoas. Todas as contas das listas e todos os pedidos reais continuam lá.
 Hide Complete your profile	Ocultar Complete seu perfil
 Takes the Complete your profile cards, like Add bio and Find people to follow, off your own profile. Your bio, counts and posts stay.	Tira do seu próprio perfil os cartões de Complete seu perfil, como Adicionar bio e Encontrar pessoas para seguir. Sua bio, seus números e suas publicações ficam.
 Hide People you don't follow back	Ocultar Pessoas que você não segue de volta
@@ -1523,3 +1523,33 @@ Nothing logged yet. Each time you scroll your own Followers list to the end, cha
 %1$s started following you, %2$s	%1$s começou a seguir você, %2$s
 Hide the Map bubble	Ocultar a bolha do Mapa
 Takes only the Map bubble out of the row of notes. Your notes stay.	Tira só a bolha do Mapa da fileira de notas. Suas notas continuam.
+Hide Saved in the plus menu	Ocultar Salvos no menu de mais
+Takes Saved off the menu the plus button opens in a chat's message bar.	Tira Salvos do menu que o botão de mais abre na barra de mensagens de uma conversa.
+Hide AI images in the plus menu	Ocultar imagens de IA no menu de mais
+Takes AI images off the menu the plus button opens in a chat's message bar.	Tira as imagens de IA do menu que o botão de mais abre na barra de mensagens de uma conversa.
+Hide Draw in the plus menu	Ocultar Desenhar no menu de mais
+Takes Draw off the menu the plus button opens in a chat's message bar.	Tira Desenhar do menu que o botão de mais abre na barra de mensagens de uma conversa.
+Gallery and microphone in the plus menu	Galeria e microfone no menu de mais
+Moves the gallery and microphone buttons off the message bar and into the plus menu. They work as before. Turn it off and they're back the next time a chat opens.	Move os botões de galeria e microfone da barra de mensagens para o menu de mais. Eles funcionam como antes. Desative e eles voltam na próxima vez que uma conversa abrir.
+Custom app icon	Ícone próprio do app
+Pick a picture, frame it and add it to your home screen as a shortcut to Instagram.	Escolha uma imagem, enquadre e adicione à tela inicial como atalho para o Instagram.
+Drag to move, pinch to zoom.	Arraste para mover, pince para ampliar.
+Add to home screen	Adicionar à tela inicial
+Couldn't read that picture.	Não foi possível ler a imagem.
+This launcher can't add it.	Este launcher não pode adicioná-lo.
+Glass in chats	Vidro nos chats
+Gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Dá à barra superior de um chat um vidro fosco e coloca os botões de voltar, ligação e vídeo em círculos de vidro. Aparece na próxima vez que você abrir um chat. O desfoque exige Android 12 ou mais recente.
+# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary; %1$s is a number with thousands separators (#444)
+Hide reels with few views	Ocultar reels com poucas visualizações
+Leaves out reels in the Reels tab that fewer people have watched than the number below. Reels from accounts you follow, reels sent to you and reels with no view count still play.	Deixa de fora, na aba Reels, os reels que menos pessoas viram do que o número abaixo. Reels de contas que você segue, reels enviados a você e reels sem contagem continuam aparecendo.
+Minimum views	Mínimo de visualizações
+Reels with fewer views than this are left out. Type a whole number.	Reels com menos visualizações que isso ficam de fora. Digite um número inteiro.
+Fewer than %1$s views	Menos de %1$s visualizações
+# context: Stories switch Stories priority, its summary, the Priority accounts row, its dialog message and the row's summaries (none, one account, several accounts) (#451)
+Stories priority	Prioridade dos stories
+Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched, in the order of the list. Once you've watched it, Instagram's own placement applies again. Your own story stays first.	Coloca as contas da sua lista primeiro na linha de stories no alto do Início enquanto tiverem um story que você ainda não viu, na ordem da lista. Depois que você assiste, vale de novo a posição do Instagram. Seu próprio story continua em primeiro.
+Priority accounts	Contas prioritárias
+Usernames, one on each line. The first line goes first. A leading @ and capital letters don't matter.	Nomes de usuário, um por linha. A primeira linha vai primeiro. Um @ no início e letras maiúsculas não importam.
+No accounts yet	Nenhuma conta ainda
+%1$d account	%1$d conta
+%1$d accounts	%1$d contas

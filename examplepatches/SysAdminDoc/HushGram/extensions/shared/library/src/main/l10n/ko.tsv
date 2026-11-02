@@ -394,7 +394,7 @@ Doesn't follow you	나를 팔로우하지 않음
 Hide suggested people	추천 사용자 숨기기
 Takes Suggested for you and the Discover people button off profiles, yours included. Bios, counts, posts and follower lists stay.	모든 프로필에서 '추천 계정'과 ‘사람 찾아보기’ 버튼을 숨깁니다. 내 프로필에도 적용됩니다. 프로필 소개, 팔로워 & 팔로잉 수, 게시물 및 팔로워 목록은 그대로 유지됩니다
 Hide Suggested for you on follow lists	팔로우 목록에서 '추천 계정' 숨기기
-Leaves the Suggested for you section off the followers, following and mutual lists, and the Suggested tab off other people's follow lists. Every account in the lists stays.	팔로워, 팔로잉, 함께 아는 팔로워 목록의 '추천 계정' 섹션과 다른 사람 팔로우 목록의 '추천' 탭을 숨깁니다. 목록의 모든 계정은 그대로 유지됩니다.
+Leaves the Suggested for you section off the followers, following and mutual lists and the screen where you approve follow requests, and the Suggested tab off other people's follow lists. Every account in the lists and every real request stays.	팔로워, 팔로잉, 함께 아는 팔로워 목록과 팔로우 요청을 승인하는 화면의 '추천 계정' 섹션, 그리고 다른 사람 팔로우 목록의 '추천' 탭을 숨깁니다. 목록의 모든 계정과 실제 요청은 그대로 유지됩니다.
 Hide Complete your profile	프로필 완성하기 숨기기
 Takes the Complete your profile cards, like Add bio and Find people to follow, off your own profile. Your bio, counts and posts stay.	내 프로필에서 소개 추가, 팔로우할 사람 찾기 같은 프로필 완성하기 카드를 없앱니다. 소개, 숫자, 게시물은 그대로 남습니다.
 Hide People you don't follow back	맞팔로우하지 않은 사람 숨기기
@@ -1522,3 +1522,33 @@ Nothing logged yet. Each time you scroll your own Followers list to the end, cha
 %1$s started following you, %2$s	%1$s 님이 팔로우하기 시작했습니다, %2$s
 Hide the Map bubble	지도 버블 숨기기
 Takes only the Map bubble out of the row of notes. Your notes stay.	메모 목록에서 지도 버블만 숨깁니다. 메모는 그대로 유지됩니다.
+Hide Saved in the plus menu	플러스 메뉴에서 저장됨 숨기기
+Takes Saved off the menu the plus button opens in a chat's message bar.	채팅 메시지 바의 플러스 버튼이 여는 메뉴에서 저장됨을 뺍니다.
+Hide AI images in the plus menu	플러스 메뉴에서 AI 이미지 숨기기
+Takes AI images off the menu the plus button opens in a chat's message bar.	채팅 메시지 바의 플러스 버튼이 여는 메뉴에서 AI 이미지를 뺍니다.
+Hide Draw in the plus menu	플러스 메뉴에서 그리기 숨기기
+Takes Draw off the menu the plus button opens in a chat's message bar.	채팅 메시지 바의 플러스 버튼이 여는 메뉴에서 그리기를 뺍니다.
+Gallery and microphone in the plus menu	플러스 메뉴에 갤러리와 마이크 넣기
+Moves the gallery and microphone buttons off the message bar and into the plus menu. They work as before. Turn it off and they're back the next time a chat opens.	갤러리와 마이크 버튼을 메시지 바에서 플러스 메뉴로 옮깁니다. 작동은 전과 같습니다. 끄면 다음에 채팅을 열 때 다시 돌아옵니다.
+Custom app icon	사용자 지정 앱 아이콘
+Pick a picture, frame it and add it to your home screen as a shortcut to Instagram.	사진을 고르고 위치를 맞춰서 Instagram 바로가기로 홈 화면에 추가하세요.
+Drag to move, pinch to zoom.	끌어서 이동, 두 손가락으로 확대하세요.
+Add to home screen	홈 화면에 추가
+Couldn't read that picture.	사진을 읽을 수 없습니다.
+This launcher can't add it.	이 런처는 추가할 수 없습니다.
+Glass in chats	채팅 유리 효과
+Gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	채팅 상단 바에 반투명 유리 효과를 주고 뒤로가기, 통화, 영상 버튼을 둥근 유리 원 위에 올립니다. 다음에 채팅을 열 때부터 적용됩니다. 흐림 효과는 Android 12 이상이 필요합니다.
+# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary; %1$s is a number with thousands separators (#444)
+Hide reels with few views	조회수가 적은 릴스 숨기기
+Leaves out reels in the Reels tab that fewer people have watched than the number below. Reels from accounts you follow, reels sent to you and reels with no view count still play.	아래 숫자보다 적은 사람이 본 릴스를 릴스 탭에서 숨깁니다. 팔로우하는 계정의 릴스, 받은 릴스, 조회수가 없는 릴스는 그대로 재생됩니다.
+Minimum views	최소 조회수
+Reels with fewer views than this are left out. Type a whole number.	이보다 조회수가 적은 릴스는 숨겨집니다. 정수를 입력하세요.
+Fewer than %1$s views	조회수 %1$s회 미만
+# context: Stories switch Stories priority, its summary, the Priority accounts row, its dialog message and the row's summaries (none, one account, several accounts) (#451)
+Stories priority	스토리 우선 표시
+Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched, in the order of the list. Once you've watched it, Instagram's own placement applies again. Your own story stays first.	목록에 있는 계정에 아직 보지 않은 스토리가 있으면 홈 상단 스토리 줄 맨 앞에 목록 순서대로 놓습니다. 스토리를 보고 나면 인스타그램의 기본 위치로 돌아갑니다. 내 스토리는 계속 맨 앞에 있습니다.
+Priority accounts	우선 계정
+Usernames, one on each line. The first line goes first. A leading @ and capital letters don't matter.	사용자 이름을 한 줄에 하나씩 입력하세요. 첫 줄이 맨 앞에 옵니다. 앞의 @와 대소문자는 상관없습니다.
+No accounts yet	아직 계정이 없습니다
+%1$d account	계정 %1$d개
+%1$d accounts	계정 %1$d개

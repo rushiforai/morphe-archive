@@ -193,6 +193,8 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     var changedViewer = false
     val drawerReaders = mutableListOf<Method>()
     val drawerAnchors = mutableListOf<Method>()
+    val searchIconReaders = mutableListOf<Method>()
+    val searchIconAnchors = mutableListOf<Method>()
     for (cls in classes) {
         val original = cls.fields.firstOrNull { it.name == "__redex_internal_original_name" }
             ?.initialValue.let { (it as? StringEncodedValue)?.value }
@@ -215,6 +217,8 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
             val gate = method.returnType == "Z" && method.parameterTypes.isEmpty()
             if (instructions.any { it.isEmojiDrawerFlag() }) drawerReaders.add(method)
             if (EMOJI_DRAWER_ANCHOR in strings) drawerAnchors.add(method)
+            if (instructions.any { it.isSearchIconFlag() }) searchIconReaders.add(method)
+            if (SEARCH_ICON_ANCHOR in strings) searchIconAnchors.add(method)
             if (method.returnType == "Z" && (method.parameterTypes.isEmpty() ||
                 (AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes == listOf(cls.type)))) {
                 val anchors = strings + method.tableStrings(stringTables)
@@ -372,6 +376,7 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     }
     if (changedViewer) found.getValue("screenshot_viewers").clear() else screenshotViewerRefusal = null
     found.getValue(EMOJI_DRAWER).addAll(connectEmojiDrawer(drawerReaders, drawerAnchors))
+    found.getValue(INBOX_SEARCH_BAR).addAll(connectSearchBar(searchIconReaders, searchIconAnchors))
     found.getValue(EMOJI_SEARCH).addAll(findEmojiSearch(classes))
     found.getValue(TAB_BADGES).addAll(findTabBadges(classes))
     found.getValue(FACEBOOK_BADGE).addAll(findFacebookBadge(classes))

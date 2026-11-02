@@ -266,6 +266,21 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_keep_stories_playing_on_zoom", FALSE);
 
     /**
+     * Accounts on {@link #STORY_PRIORITY_ACCOUNTS} that have a story not watched yet go first in the
+     * stories row at the top of Home, in the list's order
+     * ({@link app.hushgram.extension.instagram.stories.StoryPriority}). Off to start (#451).
+     */
+    public static final BooleanSetting STORY_PRIORITY =
+            new BooleanSetting("hushgram_story_priority", FALSE);
+
+    /**
+     * The usernames {@link #STORY_PRIORITY} puts first, one per line, the first line first. A value
+     * control, not a switch. Empty to start.
+     */
+    public static final StringSetting STORY_PRIORITY_ACCOUNTS =
+            new StringSetting("hushgram_story_priority_accounts", "", parent(STORY_PRIORITY));
+
+    /**
      * Stories open with their sound on, through Instagram's own audio state, when the phone's ringer
      * is on and its volume is up ({@link app.hushgram.extension.instagram.stories.StorySound}). Off
      * to start.
@@ -699,6 +714,23 @@ public class Settings extends BaseSettings {
      * ({@link app.hushgram.extension.instagram.direct.CallConfirm}). Off to start.
      */
     public static final BooleanSetting ASK_BEFORE_CALL = new BooleanSetting("hushgram_ask_before_call", FALSE);
+
+    /**
+     * The plus menu of a chat's message bar leaves off its Saved, AI images and Draw rows
+     * ({@link app.hushgram.extension.instagram.direct.PlusMenu}, #448). Each off to start.
+     */
+    public static final BooleanSetting HIDE_PLUS_SAVED = new BooleanSetting("hushgram_hide_plus_saved", FALSE);
+    public static final BooleanSetting HIDE_PLUS_AI_IMAGES = new BooleanSetting("hushgram_hide_plus_ai_images", FALSE);
+    public static final BooleanSetting HIDE_PLUS_DRAW = new BooleanSetting("hushgram_hide_plus_draw", FALSE);
+
+    /**
+     * A chat's header shows the glass of the See-through top bar, and its buttons sit on glass discs
+     * ({@link app.hushgram.extension.instagram.direct.GlassChat}, #449). Off to start.
+     */
+    public static final BooleanSetting GLASS_CHAT = new BooleanSetting("hushgram_glass_chat", FALSE);
+
+    /** The message bar's gallery and microphone buttons move into the plus menu. Off to start. */
+    public static final BooleanSetting MOVE_TO_PLUS_MENU = new BooleanSetting("hushgram_move_to_plus_menu", FALSE);
 
     /**
      * The buttons the message box of a chat leaves off, as the names of Instagram's button enum with
@@ -1854,6 +1886,22 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_CAPTION_WORD_HOME =
             new BooleanSetting("hushgram_hide_caption_word_home", FALSE, parent(HIDE_CAPTION_WORD_REELS));
+
+    /**
+     * Reels in the Reels tab with fewer views than {@link #MIN_REEL_VIEWS}, unless their author is
+     * followed ({@link app.hushgram.extension.instagram.reels.LowViewReels}). Read as each page of
+     * reels arrives, so a change shows from the next page. Off to start (#444).
+     */
+    public static final BooleanSetting HIDE_LOW_VIEW_REELS =
+            new BooleanSetting("hushgram_hide_low_view_reels", FALSE);
+
+    /**
+     * Under {@link #HIDE_LOW_VIEW_REELS}: the view count a reel needs to stay, typed as a number.
+     * Starts at 1,000. A value control, not a switch.
+     */
+    public static final IntegerSetting MIN_REEL_VIEWS =
+            new IntegerSetting("hushgram_min_reel_views", 1000, false, parent(HIDE_LOW_VIEW_REELS))
+                    .withRange(1, 100_000_000);
 
     /** An explicit Copy action for original comment text. Off until enabled. */
     public static final BooleanSetting COPY_COMMENTS =

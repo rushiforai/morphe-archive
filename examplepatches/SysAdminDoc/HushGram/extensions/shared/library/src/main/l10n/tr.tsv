@@ -393,7 +393,7 @@ Doesn't follow you	Seni takip etmiyor
 Hide suggested people	Önerilen kişileri gizle
 Takes Suggested for you and the Discover people button off profiles, yours included. Bios, counts, posts and follower lists stay.	Senin için önerilenler bölümünü ve Kişileri keşfet düğmesini profillerden, seninki dahil, kaldırır. Biyografiler, sayılar, gönderiler ve takipçi listeleri kalır.
 Hide Suggested for you on follow lists	Takip listelerinde Senin için önerilenleri gizle
-Leaves the Suggested for you section off the followers, following and mutual lists, and the Suggested tab off other people's follow lists. Every account in the lists stays.	Takipçiler, takip edilenler ve ortak takipçiler listelerindeki Senin için önerilenler bölümünü ve başkalarının takip listelerindeki Önerilenler sekmesini kaldırır. Listelerdeki her hesap kalır.
+Leaves the Suggested for you section off the followers, following and mutual lists and the screen where you approve follow requests, and the Suggested tab off other people's follow lists. Every account in the lists and every real request stays.	Takipçiler, takip edilenler ve ortak takipçiler listelerindeki ve takip isteklerini onayladığın ekrandaki Senin için önerilenler bölümünü, ayrıca başkalarının takip listelerindeki Önerilenler sekmesini kaldırır. Listelerdeki her hesap ve her gerçek istek kalır.
 Hide Complete your profile	Profilini tamamla'yı gizle
 Takes the Complete your profile cards, like Add bio and Find people to follow, off your own profile. Your bio, counts and posts stay.	Biyografi ekle ve Takip edilecek kişileri bul gibi Profilini tamamla kartlarını kendi profilinden kaldırır. Biyografin, sayıların ve gönderilerin kalır.
 Hide People you don't follow back	Geri takip etmediğin kişiler bölümünü gizle
@@ -1523,3 +1523,33 @@ Nothing logged yet. Each time you scroll your own Followers list to the end, cha
 %1$s started following you, %2$s	%1$s seni takip etmeye başladı, %2$s
 Hide the Map bubble	Harita balonunu gizle
 Takes only the Map bubble out of the row of notes. Your notes stay.	Notlar satırından yalnızca Harita balonunu kaldırır. Notların kalır.
+Hide Saved in the plus menu	Artı menüsündeki Kaydedilenler'i gizle
+Takes Saved off the menu the plus button opens in a chat's message bar.	Bir sohbetin mesaj çubuğundaki artı düğmesinin açtığı menüden Kaydedilenler'i kaldırır.
+Hide AI images in the plus menu	Artı menüsündeki yapay zeka görsellerini gizle
+Takes AI images off the menu the plus button opens in a chat's message bar.	Bir sohbetin mesaj çubuğundaki artı düğmesinin açtığı menüden yapay zeka görsellerini kaldırır.
+Hide Draw in the plus menu	Artı menüsündeki Çiz'i gizle
+Takes Draw off the menu the plus button opens in a chat's message bar.	Bir sohbetin mesaj çubuğundaki artı düğmesinin açtığı menüden Çiz'i kaldırır.
+Gallery and microphone in the plus menu	Galeri ve mikrofon artı menüsünde
+Moves the gallery and microphone buttons off the message bar and into the plus menu. They work as before. Turn it off and they're back the next time a chat opens.	Galeri ve mikrofon düğmelerini mesaj çubuğundan artı menüsüne taşır. Eskisi gibi çalışırlar. Kapatırsan bir sohbet bir sonraki açılışında geri gelirler.
+Custom app icon	Özel uygulama simgesi
+Pick a picture, frame it and add it to your home screen as a shortcut to Instagram.	Bir resim seç, konumunu ayarla ve Instagram kısayolu olarak ana ekranına ekle.
+Drag to move, pinch to zoom.	Taşımak için sürükle, yakınlaştırmak için sıkıştır.
+Add to home screen	Ana ekrana ekle
+Couldn't read that picture.	Bu resim okunamadı.
+This launcher can't add it.	Bu başlatıcı ekleyemiyor.
+Glass in chats	Sohbetlerde cam
+Gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Bir sohbetin üst çubuğuna buzlu cam efekti verir ve geri, arama ve video düğmelerini yuvarlak cam dairelere koyar. Sohbeti bir sonraki açışında görünür. Bulanıklık için Android 12 veya daha yenisi gerekir.
+# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary; %1$s is a number with thousands separators (#444)
+Hide reels with few views	Az izlenen reelleri gizle
+Leaves out reels in the Reels tab that fewer people have watched than the number below. Reels from accounts you follow, reels sent to you and reels with no view count still play.	Reels sekmesinde, aşağıdaki sayıdan az kişinin izlediği reelleri çıkarır. Takip ettiğin hesapların reelleri, sana gönderilen reeller ve izlenme sayısı olmayan reeller oynamaya devam eder.
+Minimum views	En az izlenme
+Reels with fewer views than this are left out. Type a whole number.	Bundan az izlenen reeller çıkarılır. Tam sayı yaz.
+Fewer than %1$s views	%1$s izlenmeden az
+# context: Stories switch Stories priority, its summary, the Priority accounts row, its dialog message and the row's summaries (none, one account, several accounts) (#451)
+Stories priority	Hikaye önceliği
+Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched, in the order of the list. Once you've watched it, Instagram's own placement applies again. Your own story stays first.	Listendeki hesapları, henüz izlemediğin bir hikayeleri olduğu sürece Ana Sayfa'nın üstündeki hikaye satırında listenin sırasıyla en öne koyar. İzledikten sonra Instagram'ın kendi yerleşimi yeniden geçerli olur. Kendi hikayen ilk sırada kalır.
+Priority accounts	Öncelikli hesaplar
+Usernames, one on each line. The first line goes first. A leading @ and capital letters don't matter.	Kullanıcı adları, her satıra bir tane. İlk satır en öne gelir. Baştaki @ ve büyük harfler önemli değildir.
+No accounts yet	Henüz hesap yok
+%1$d account	%1$d hesap
+%1$d accounts	%1$d hesap

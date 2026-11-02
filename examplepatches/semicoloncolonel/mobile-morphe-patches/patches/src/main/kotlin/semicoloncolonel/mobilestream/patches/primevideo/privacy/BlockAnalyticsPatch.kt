@@ -10,6 +10,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
+import semicoloncolonel.mobilestream.patches.primevideo.misc.renameSharedPermissionsPatch
 import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.privacy.analyticsKillSwitchesPatch
 import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
@@ -32,6 +33,10 @@ val blockAnalyticsPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)
+
+    // A re-signed Prime Video that keeps Amazon's permission names blocks
+    // installing other Amazon apps, so every Prime Video patch renames them.
+    dependsOn(renameSharedPermissionsPatch)
 
     dependsOn(analyticsKillSwitchesPatch)
 

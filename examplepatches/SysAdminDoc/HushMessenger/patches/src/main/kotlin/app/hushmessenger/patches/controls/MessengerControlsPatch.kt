@@ -147,6 +147,7 @@ internal fun MutableMethod.validateHook(hook: String) {
         "delta_unsent" -> validateDeltaUnsent()
         "emoji_typeface" -> validateEmojiTypeface()
         EMOJI_DRAWER -> validateEmojiDrawer()
+        INBOX_SEARCH_BAR -> validateSearchBar()
         EMOJI_SEARCH -> validateEmojiSearch()
         TAB_BADGES -> validateTabBadges()
         TAB_CONFIG -> validateTabConfig()
@@ -248,6 +249,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "delta_unsent" -> method.injectDeltaUnsent()
             "emoji_typeface" -> method.injectEmojiTypeface()
             EMOJI_DRAWER -> method.injectEmojiDrawer()
+            INBOX_SEARCH_BAR -> method.injectSearchBar()
             EMOJI_SEARCH -> method.injectEmojiSearch()
             TAB_BADGES -> method.injectTabBadges()
             TAB_CONFIG -> method.injectTabConfig()
@@ -408,6 +410,18 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
                 }
                 injectControl(key, methods)
                 for ((old, new) in built) { host.methods.remove(old); host.directMethods.remove(old); host.methods.add(new); host.directMethods.add(new) }
+            } else if (key == INBOX_SEARCH_BAR) {
+                val host = mutableClassDefBy(SETTINGS)
+                val stub = host.methods.singleOrNull { it.hookId() == SEARCH_ICON_STUB }
+                    ?: throw PatchException("Messenger controls: the inbox search bar's extension stub is missing")
+                // Built before the first edit, so a changed stub or check stops the patch with Messenger untouched.
+                val built = searchIconReader(stub, searchIconCheck(discoveredControls.getValue(INBOX_SEARCH_BAR)) { classDefByOrNull(it) })
+                injectControl(key, methods)
+                // MutableMethod.implementation has no setter. Keep both method indexes in sync when replacing it.
+                host.methods.remove(stub)
+                host.directMethods.remove(stub)
+                host.methods.add(built)
+                host.directMethods.add(built)
             } else if (key == AUTO_REPLY) {
                 val recipe = autoReplyPictureRecipe
                 val host = mutableClassDefBy(SETTINGS)
@@ -468,6 +482,9 @@ val hideInstantsButtonPatch = controlPatch("instants_button", "Hide the Instants
     "Hides the + button that slides in at the right edge of your chat list and the one under your chat heads. Both open Instants.", "Inbox")
 @Suppress("unused")
 val hideSubtabsPatch = controlPatch("subtabs", "Hide inbox tabs", "Hides the All, Unread and Groups tabs above your chats.", "Inbox")
+@Suppress("unused")
+val keepSearchBarPatch = controlPatch("inbox_search_bar", "Keep the search bar",
+    "Brings back the search bar at the top of your chat list when Messenger has swapped it for a search icon. Restart Messenger after changing it. If Messenger never gave you the icon, nothing changes.", "Inbox")
 @Suppress("unused")
 val hideMarkReadPatch = controlPatch("mark_read_action", "Hide Mark as read", "Hides Mark as read in the menu you get when you press and hold a chat in your chat list, so you can't mark a chat read by accident. Mark as unread stays.", "Inbox")
 @Suppress("unused")
@@ -561,7 +578,7 @@ val localChatSearchPatch = controlPatch("local_chat_search", "Search saved messa
     manifest = { addLocalSearch() })
 @Suppress("unused")
 val callRecordingPatch = controlPatch("call_recording", "Record calls",
-    "Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first.", "Conversations")
+    "Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it. Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first.", "Conversations")
 @Suppress("unused")
 val hideCallButtonsPatch = controlPatch("hide_call_buttons", "Hide call buttons",
     "Takes the audio and video call buttons out of a chat's top bar, so you can't tap one by accident. Calls still ring, and you can still join one that's going.", "Conversations", HIDE_CALL_BAR)

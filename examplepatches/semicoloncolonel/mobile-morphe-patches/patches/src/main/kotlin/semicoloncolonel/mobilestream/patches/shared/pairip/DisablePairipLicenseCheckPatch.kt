@@ -14,6 +14,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import semicoloncolonel.mobilestream.patches.dealseek.shared.Constants as DealSeek
 import semicoloncolonel.mobilestream.patches.foxone.shared.Constants as FoxOne
 
 // Google's Pairip licensing (com.pairip.licensecheck) asks the Play Store
@@ -44,7 +45,7 @@ val disablePairipLicenseCheckPatch = bytecodePatch(
         "any copy not installed from the Play Store. Client-side only; it does not bypass Play " +
         "Integrity attestation.",
 ) {
-    compatibleWith(FoxOne.COMPATIBILITY)
+    compatibleWith(FoxOne.COMPATIBILITY, DealSeek.COMPATIBILITY)
 
     execute {
         PairipProcessResponseFingerprint.method.apply {

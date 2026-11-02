@@ -21,6 +21,8 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.Icon;
+import android.media.AudioRecord;
+import android.media.AudioTrack;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,11 +37,14 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.facebook.rsys.audio.gen.AudioApi;
+import com.facebook.rtc.fbwebrtc.overlayconfig.overlayconfiglayer.OverlayConfigLayerInterface;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
@@ -47,18 +52,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Records a call into one sound file on the phone (#105). The patch tells this class the call's audio API and whether a
- * call is running, and that alone does nothing. With the switch on, a Record pill sits over Messenger's screens during a
- * call. Tapping it gives the native side a Java sink for each side of the call, and a notification stays up for as long
- * as it records. Hanging up or tapping again finishes the file.
+ * Records a call into one sound file on the phone (#105). With the switch on, calls play through WebRTC's Java thread,
+ * the only way the far side's sound reaches Java, and that holds until Messenger restarts. A Record pill sits over
+ * Messenger's screens while a call's audio runs, and nothing is read or kept until it's tapped. From there both audio
+ * threads show this class each frame and a notification stays up for as long as it records. Hanging up or tapping again
+ * finishes the file.
  */
 public final class CallRecording {
     static final String KEY = "call_recording";
     static final String FOLDER = "Messenger Calls";
-    /** Where Messenger's own call meter reads the two sides: your microphone under your id, everyone else under "0". */
-    private static final int MINE_TYPE = 1;
-    private static final String THEIRS = "0";
-    private static final int THEIRS_TYPE = 9;
     private static final String CHANNEL = "hush_call_recording";
     private static final int NOTIFICATION = 105;
     private static final String STOP_ACTION = "app.hushmessenger.CALL_RECORDING_STOP.";
@@ -80,8 +82,12 @@ public final class CallRecording {
     static volatile Store store = new SharedAudio();
 
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
-    private static volatile AudioApi api;
     private static volatile boolean callActive;
+    /** The recording the audio threads hand their sound to. */
+    private static volatile Session listening;
+    /** What native was first told about its audio this run. A flip waits for a restart, so the button and the audio can't disagree. */
+    private static volatile Boolean playoutHeld;
+    private static volatile boolean complained;
     // Main thread only from here on.
     private static Activity top;
     private static TextView pill;
@@ -91,8 +97,10 @@ public final class CallRecording {
     private CallRecording() {}
 
     static void resetForTests() {
-        api = null;
         callActive = false;
+        listening = null;
+        playoutHeld = null;
+        complained = false;
         top = null;
         pill = null;
         session = null;
@@ -100,22 +108,100 @@ public final class CallRecording {
         store = new SharedAudio();
     }
 
-    /** The patch hands over the call's audio API here. */
-    public static void api(Object value) {
+    /** Messenger hands native its call settings here as layers of numbers. With the switch on, ours goes last so its word stands. */
+    public static void addLayer(ArrayList<Object> layers) {
         try {
-            AudioApi next = value instanceof AudioApi ? (AudioApi) value : null;
-            api = next;
-            MAIN.post(() -> {
-                if (session != null && session.call != next) session.finishUp();
-                refresh();
-            });
+            Boolean held = playoutHeld;
+            if (held == null) playoutHeld = held = Settings.enabled(KEY) && Settings.available(KEY);
+            if (held && layers != null) layers.add(new JavaAudioLayer());
         } catch (Throwable error) {
-            Settings.hookFailedPrivately(KEY, "Couldn't note the call's audio", error);
+            Settings.hookFailedPrivately(KEY, "Couldn't choose the call's audio", error);
         }
     }
 
-    /** The patch says here when a call starts and ends. */
-    public static void active(boolean running) {
+    /** Says no to Messenger's own native audio and yes to WebRTC's Java audio. Everything else stays unset. */
+    static final class JavaAudioLayer implements OverlayConfigLayerInterface {
+        /** The ids and the length belong to Messenger's generated config, so a new Messenger version has to be checked against them. */
+        static final int VALUES = 0x18bb;
+        static final int OBOE_ON = 0xb1d;
+        static final int OBOE_RECORD = 0xb1c;
+        static final int MODULE = 6;
+        static final int MODULE_JAVA = 1;
+        private static final int UNSET = -1;
+        private static final int SOURCE = 0x17;
+
+        @Override
+        public int getLayerSource() {
+            return SOURCE;
+        }
+
+        @Override
+        public int[] getUpdatedValues() {
+            return new int[0];
+        }
+
+        @Override
+        public int[] getValues() {
+            int[] values = new int[VALUES];
+            Arrays.fill(values, UNSET);
+            values[OBOE_ON] = 0;
+            values[OBOE_RECORD] = 0;
+            values[MODULE] = MODULE_JAVA;
+            return values;
+        }
+
+        @Override
+        public void logExposure(int id) {}
+    }
+
+    /** For the restart row, once native has asked. */
+    static Boolean heldPlayout() {
+        return Settings.available(KEY) ? playoutHeld : null;
+    }
+
+    /** Native starts the Java playout thread here, so a call's sound is about to run. */
+    public static void playoutStarted() {
+        active(true);
+    }
+
+    public static void playoutStopped() {
+        active(false);
+    }
+
+    /** The far side's next frame, on its way to the speaker. Nothing's touched unless a recording is running. */
+    public static void heard(AudioTrack track, ByteBuffer sound, int bytes) {
+        Session now = listening;
+        if (now == null) return;
+        try {
+            now.mix.theirs.offer(sound, bytes, track.getChannelCount(), track.getSampleRate(), now.elapsed());
+        } catch (Throwable error) {
+            lostSound(error);
+        }
+    }
+
+    /** This phone's next frame, on its way to the far side. A mute has already cleared it by here. */
+    public static void spoke(AudioRecord record, ByteBuffer sound, int bytes) {
+        Session now = listening;
+        if (now == null) return;
+        try {
+            now.mix.mine.offer(sound, bytes, record.getChannelCount(), record.getSampleRate(), now.elapsed());
+        } catch (Throwable error) {
+            lostSound(error);
+        }
+    }
+
+    /** These threads run 50 to 100 times a second, so one line is enough. */
+    private static void lostSound(Throwable error) {
+        if (complained) return;
+        complained = true;
+        Settings.hookFailedPrivately(KEY, "Couldn't read a call's sound", error);
+    }
+
+    static boolean listening() {
+        return listening != null;
+    }
+
+    private static void active(boolean running) {
         try {
             callActive = running;
             MAIN.post(() -> {
@@ -152,7 +238,7 @@ public final class CallRecording {
     }
 
     private static boolean offered() {
-        return session != null || (callActive && api != null && Settings.enabled(KEY) && Settings.available(KEY));
+        return session != null || (callActive && Settings.enabled(KEY) && Settings.available(KEY));
     }
 
     private static void refresh() {
@@ -220,10 +306,8 @@ public final class CallRecording {
                 session.finishUp();
                 return;
             }
-            AudioApi call = api;
-            if (call == null) return;
             Context context = screen.getApplicationContext();
-            session = new Session(context, call);
+            session = new Session(context);
             session.start();
             showNotification(context);
             refresh();
@@ -298,18 +382,18 @@ public final class CallRecording {
         return "Call " + new SimpleDateFormat("yyyy-MM-dd HH.mm.ss", Locale.ROOT).format(when) + "." + VoiceMessages.Format.WAV.extension;
     }
 
-    /** One recording, on a thread of its own, since the file and the native calls shouldn't hold up Messenger's screens. */
+    /** One recording, on a thread of its own, since writing the file shouldn't hold up the call or Messenger's screens. */
     private static final class Session extends Thread {
         private final Context context;
-        final AudioApi call;
         private final long began = SystemClock.elapsedRealtime();
         private final CountDownLatch stop = new CountDownLatch(1);
+        /** Set before the audio threads can see this session. */
+        CallMix mix;
 
-        Session(Context context, AudioApi call) {
+        Session(Context context) {
             super("HushCallRecording");
             setDaemon(true);
             this.context = context;
-            this.call = call;
         }
 
         // Never an interrupt: one that lands during a write closes the file before its last header goes in.
@@ -325,7 +409,7 @@ public final class CallRecording {
             }
         }
 
-        private long elapsed() {
+        long elapsed() {
             return SystemClock.elapsedRealtime() - began;
         }
 
@@ -334,25 +418,19 @@ public final class CallRecording {
             boolean failed = false;
             Target target = null;
             try {
-                String self = LocalSearchStore.currentUser(context.getDatabasePath(KEY).getParentFile());
-                if (self == null) throw new IOException("Can't tell which account is on this call");
                 target = store.open(context, name(new Date()));
-                CallMix mix = new CallMix(target.channel());
-                CallSink mine = new CallSink(mix.mine, began);
-                CallSink theirs = new CallSink(mix.theirs, began);
+                mix = new CallMix(target.channel());
+                listening = this;
                 try {
-                    call.addSink(self, MINE_TYPE, mine);
-                    call.addSink(THEIRS, THEIRS_TYPE, theirs);
                     while (!mix.full() && !stopped()) mix.pump(elapsed());
                 } finally {
-                    remove(self, MINE_TYPE, mine);
-                    remove(THEIRS, THEIRS_TYPE, theirs);
+                    listening = null;
                 }
                 mix.finish(elapsed());
                 kept = mix.heard();
                 // A few seconds with no sound from either side means the call never handed any over, so that's a failure to report.
                 failed = !kept && elapsed() >= NO_SOUND_MILLIS;
-            } catch (IOException | RuntimeException | LinkageError error) {
+            } catch (IOException | RuntimeException error) {
                 failed = true;
                 Settings.hookFailedPrivately(KEY, "Couldn't record a call", error);
             } finally {
@@ -365,14 +443,6 @@ public final class CallRecording {
             boolean keptFile = kept;
             boolean failure = failed;
             MAIN.post(() -> finished(this, context, keptFile, failure));
-        }
-
-        private void remove(String stream, int type, CallSink sink) {
-            try {
-                call.removeSink(stream, type, sink);
-            } catch (RuntimeException | LinkageError error) {
-                Settings.hookFailedPrivately(KEY, "Couldn't stop reading a call's sound", error);
-            }
         }
     }
 

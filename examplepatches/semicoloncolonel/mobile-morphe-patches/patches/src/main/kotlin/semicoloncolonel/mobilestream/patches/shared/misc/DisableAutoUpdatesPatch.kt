@@ -7,6 +7,7 @@
 package semicoloncolonel.mobilestream.patches.shared.misc
 
 import app.morphe.patcher.patch.resourcePatch
+import semicoloncolonel.mobilestream.patches.shared.SHOPPING_APPS
 import semicoloncolonel.mobilestream.patches.amc.shared.Constants as Amc
 import semicoloncolonel.mobilestream.patches.appletv.shared.Constants as AppleTv
 import semicoloncolonel.mobilestream.patches.cnn.shared.Constants as Cnn
@@ -74,6 +75,7 @@ val disableAutoUpdatesPatch = resourcePatch(
         Espn.COMPATIBILITY,
         Nfl.COMPATIBILITY,
         Nba.COMPATIBILITY,
+        *SHOPPING_APPS,
     )
 
     execute {

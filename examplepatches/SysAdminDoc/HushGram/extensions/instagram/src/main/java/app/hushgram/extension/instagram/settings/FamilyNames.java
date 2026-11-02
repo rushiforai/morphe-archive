@@ -34,6 +34,7 @@ public final class FamilyNames {
     public static final String STORY_LOOP = "Loop a story";
     public static final String SMOOTH_STORY_OPEN = "Smooth story opening";
     public static final String STORY_ZOOM_PLAY = "Keep stories playing while zooming";
+    public static final String STORY_PRIORITY = "Stories priority";
     public static final String STORY_SOUND = "Start stories with sound";
     public static final String STORY_SWIPE_REPLY = "Stop swipe up to reply";
     public static final String STORY_FONTS = "Story text fonts";
@@ -123,6 +124,7 @@ public final class FamilyNames {
     public static final String PAID_PARTNERSHIP_REELS = "Hide paid partnership Reels";
     public static final String AI_LABELED_REELS = "Hide AI-labeled reels";
     public static final String CAPTION_WORD_REELS = "Hide reels by caption words";
+    public static final String LOW_VIEW_REELS = "Hide reels with few views";
     public static final String KEEP_REEL_SPEED = "Keep the reel speed";
     public static final String REEL_POST_TIME = "Show a reel's exact time";
     public static final String REEL_SEEK_BAR = "Keep a seek bar on Reels";
@@ -154,6 +156,8 @@ public final class FamilyNames {
     public static final String CHAT_HISTORY = "Chat history tools";
     public static final String ASK_BEFORE_CALL = "Ask before a call";
     public static final String MESSAGE_BOX = "Message box buttons";
+    public static final String PLUS_MENU = "Chat plus menu";
+    public static final String GLASS_CHAT = "Glass in chats";
     public static final String ASK_BEFORE_LIKE = "Ask before a like";
     public static final String ASK_BEFORE_REFRESH = "Ask before a refresh";
     public static final String SAVE_TRAY = "Skip the collections tray";

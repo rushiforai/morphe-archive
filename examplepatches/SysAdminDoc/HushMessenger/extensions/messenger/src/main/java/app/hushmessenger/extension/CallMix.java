@@ -45,7 +45,7 @@ final class CallMix {
         return written >= MOST_SAMPLES;
     }
 
-    /** Whether either side has handed over any sound. Time passing alone only writes silence. */
+    /** Whether either side has handed over any real sound. Time passing and muted frames only write silence. */
     boolean heard() {
         return mine.heard() || theirs.heard();
     }
@@ -99,29 +99,48 @@ final class CallMix {
 
         private final short[] ring = new short[CAPACITY];
         private short[] converted = new short[RATE / 50];
+        private short[] incoming = new short[RATE / 50];
         /** The next position to fill, or -1 before any sound. */
         private long tail = -1;
+        private boolean heard;
         private int rate;
         private int boxSum, boxCount, carry;
         private int last;
 
         synchronized boolean heard() {
-            return tail >= 0;
+            return heard;
+        }
+
+        /**
+         * Takes one frame from an audio thread's own buffer, which holds samples in the phone's byte order whatever the buffer
+         * says. It's read by index on a copy of the buffer's state, since a mute leaves its position at the end.
+         */
+        synchronized void offer(ByteBuffer sound, int bytes, int channels, int frameRate, long elapsedMillis) {
+            if (sound == null || bytes <= 0 || channels <= 0) return;
+            ByteBuffer pcm = sound.duplicate().order(ByteOrder.nativeOrder());
+            pcm.clear();
+            int count = Math.min(bytes, pcm.capacity()) / 2;
+            if (incoming.length < count) incoming = new short[count];
+            for (int i = 0; i < count; i++) incoming[i] = pcm.getShort(i * 2);
+            offer(incoming, count / channels, channels, frameRate, elapsedMillis);
         }
 
         /** Takes one frame of interleaved sound that has just arrived. Runs on Messenger's audio thread, so it does no I/O. */
-        synchronized void offer(short[] sound, int frames, int channels, int frameRate, boolean muted, long elapsedMillis) {
+        synchronized void offer(short[] sound, int frames, int channels, int frameRate, long elapsedMillis) {
             if (sound == null || frames <= 0 || channels <= 0 || frameRate <= 0) return;
             frames = Math.min(frames, sound.length / channels);
             if (frameRate != rate) {
                 rate = frameRate;
                 boxSum = boxCount = carry = 0;
             }
-            int count = convert(sound, frames, channels, muted);
+            int count = convert(sound, frames, channels);
             if (count == 0) return;
             long start = elapsedMillis * RATE / 1000 - count;
             if (tail < 0 || Math.abs(start - tail) > SLACK) move(Math.max(0, start));
-            for (int i = 0; i < count; i++) ring[(int) ((tail + i) % CAPACITY)] = converted[i];
+            for (int i = 0; i < count; i++) {
+                ring[(int) ((tail + i) % CAPACITY)] = converted[i];
+                if (converted[i] != 0) heard = true;
+            }
             tail += count;
         }
 
@@ -141,16 +160,14 @@ final class CallMix {
             }
         }
 
-        private int convert(short[] sound, int frames, int channels, boolean muted) {
+        private int convert(short[] sound, int frames, int channels) {
             int most = (int) ((long) frames * Math.max(RATE, rate) / rate) + 2;
             if (converted.length < most) converted = new short[most];
             int count = 0;
             for (int frame = 0; frame < frames; frame++) {
                 int mono = 0;
-                if (!muted) {
-                    for (int channel = 0; channel < channels; channel++) mono += sound[frame * channels + channel];
-                    mono /= channels;
-                }
+                for (int channel = 0; channel < channels; channel++) mono += sound[frame * channels + channel];
+                mono /= channels;
                 if (rate >= RATE) {
                     // Averages the frames behind each output sample, which keeps most of the top end from folding back down.
                     boxSum += mono;

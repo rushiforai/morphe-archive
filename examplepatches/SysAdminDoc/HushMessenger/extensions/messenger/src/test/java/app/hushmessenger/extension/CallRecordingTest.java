@@ -3,14 +3,14 @@ package app.hushmessenger.extension;
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioRecord;
+import android.media.AudioTrack;
+import android.media.MediaRecorder;
 import android.os.Looper;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-import com.facebook.rsys.audio.frame.AudioFrameData;
-import com.facebook.rsys.audio.frame.gen.AudioFrame;
-import com.facebook.rsys.audio.frame.gen.AudioFrameMetadata;
-import com.facebook.rsys.audio.gen.AudioApi;
-import com.facebook.rsys.audio.gen.AudioSourceSink;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -19,9 +19,9 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 import org.junit.After;
 import org.junit.Before;
@@ -40,31 +40,6 @@ import static org.robolectric.Shadows.shadowOf;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 36)
 public class CallRecordingTest {
-    private static final class Added {
-        final String stream;
-        final int type;
-        final AudioSourceSink sink;
-
-        Added(String stream, int type, AudioSourceSink sink) {
-            this.stream = stream;
-            this.type = type;
-            this.sink = sink;
-        }
-    }
-
-    private static final class FakeApi extends AudioApi {
-        final List<Added> added = new CopyOnWriteArrayList<>();
-        final List<Added> removed = new CopyOnWriteArrayList<>();
-
-        @Override public void addSink(String stream, int type, AudioSourceSink sink) {
-            added.add(new Added(stream, type, sink));
-        }
-
-        @Override public void removeSink(String stream, int type, AudioSourceSink sink) {
-            removed.add(new Added(stream, type, sink));
-        }
-    }
-
     private final class FileStore implements CallRecording.Store {
         volatile boolean closed;
         volatile boolean kept;
@@ -87,34 +62,10 @@ public class CallRecordingTest {
         }
     }
 
-    private static AudioFrame frame(int samples, int channels, int rate, boolean muted, short value, int[] asked) {
-        return new AudioFrame() {
-            @Override public AudioFrameData getAudioData() {
-                return new AudioFrameData() {
-                    @Override public short[] getAudioData(int size) {
-                        asked[0] = size;
-                        short[] sound = new short[size];
-                        java.util.Arrays.fill(sound, value);
-                        return sound;
-                    }
-                };
-            }
-
-            @Override public AudioFrameMetadata getMetadata() {
-                return new AudioFrameMetadata() {
-                    @Override public boolean getIsMuted() { return muted; }
-                    @Override public int getNumberOfChannels() { return channels; }
-                    @Override public int getNumberOfSamples() { return samples; }
-                    @Override public int getSampleRate() { return rate; }
-                };
-            }
-        };
-    }
-
     private File file;
-    private File account;
-    private FakeApi api;
     private FileStore store;
+    private AudioTrack speaker;
+    private AudioRecord microphone;
     private ActivityController<Activity> screen;
 
     @Before public void reset() throws IOException {
@@ -126,11 +77,8 @@ public class CallRecordingTest {
         file = File.createTempFile("call", ".wav");
         store = new FileStore();
         CallRecording.store = store;
-        api = new FakeApi();
-        Context context = RuntimeEnvironment.getApplication();
-        account = context.getDatabasePath("msys_database_42");
-        account.getParentFile().mkdirs();
-        assertTrue(account.createNewFile() || account.isFile());
+        speaker = new AudioTrack(AudioManager.STREAM_VOICE_CALL, 16000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, 640, AudioTrack.MODE_STREAM);
+        microphone = new AudioRecord(MediaRecorder.AudioSource.VOICE_COMMUNICATION, 16000, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, 640);
         CallRecording.register(RuntimeEnvironment.getApplication());
     }
 
@@ -138,7 +86,6 @@ public class CallRecordingTest {
         if (screen != null) screen.pause().stop().destroy();
         idle();
         CallRecording.resetForTests();
-        account.delete();
         file.delete();
     }
 
@@ -157,8 +104,12 @@ public class CallRecordingTest {
     }
 
     private void callStarts() {
-        CallRecording.api(api);
-        CallRecording.active(true);
+        CallRecording.playoutStarted();
+        idle();
+    }
+
+    private void callEnds() {
+        CallRecording.playoutStopped();
         idle();
     }
 
@@ -174,14 +125,16 @@ public class CallRecordingTest {
         Settings.preferences.edit().putBoolean(CallRecording.KEY, true).commit();
     }
 
-    private Added stream(String id) {
-        for (Added one : api.added) if (one.stream.equals(id)) return one;
-        throw new AssertionError(id);
-    }
-
     private void recording() throws InterruptedException {
         pill().performClick();
-        waitFor(() -> api.added.size() == 2);
+        waitFor(CallRecording::listening);
+    }
+
+    /** One 10 ms frame the way the audio threads hold it: direct, in the phone's byte order, and the buffer not saying so. */
+    private static ByteBuffer frame(short value) {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(320).order(ByteOrder.nativeOrder());
+        for (int i = 0; i < 160; i++) buffer.putShort(i * 2, value);
+        return buffer.order(ByteOrder.BIG_ENDIAN);
     }
 
     /** Waits until the file's done and Messenger's screen has heard about it. */
@@ -215,15 +168,15 @@ public class CallRecordingTest {
     @Test public void withNoCallNothingShows() {
         on();
         open();
-        CallRecording.api(api);
-        idle();
         assertNull(pill());
     }
 
     @Config(sdk = 28)
-    @Test public void android9CantSaveThereSoNothingShows() {
+    @Test public void android9CantSaveThereSoNothingShowsAndCallsStayAsTheyAre() {
         on();
         assertFalse(Settings.available(CallRecording.KEY));
+        assertFalse(layerAdded());
+        assertNull(Settings.heldUntilRestart(CallRecording.KEY));
         open();
         callStarts();
         assertNull(pill());
@@ -234,8 +187,7 @@ public class CallRecordingTest {
         open();
         callStarts();
         assertEquals("Record", pill().getText().toString());
-        CallRecording.active(false);
-        idle();
+        callEnds();
         assertNull(pill());
     }
 
@@ -246,11 +198,14 @@ public class CallRecordingTest {
         assertEquals("Record", pill().getText().toString());
     }
 
-    @Test public void nothingTouchesTheCallUntilTheButtonIsTapped() {
+    @Test public void nothingIsReadOrKeptUntilTheButtonIsTapped() {
         on();
         open();
         callStarts();
-        assertTrue(api.added.isEmpty());
+        CallRecording.heard(speaker, frame((short) 500), 320);
+        CallRecording.spoke(microphone, frame((short) 1000), 320);
+        assertFalse(CallRecording.listening());
+        assertNull(store.name);
         assertEquals(0, active());
     }
 
@@ -259,20 +214,17 @@ public class CallRecordingTest {
         open();
         callStarts();
         recording();
-        assertEquals(1, stream("42").type);
-        assertEquals(9, stream("0").type);
         idle();
         assertEquals("Recording, tap to stop", pill().getText().toString());
         assertEquals(1, active());
 
         ShadowSystemClock.advanceBy(Duration.ofSeconds(1));
-        stream("42").sink.onFrame(frame(160, 1, 16000, false, (short) 1000, new int[1]));
-        stream("0").sink.onFrame(frame(160, 1, 16000, false, (short) 500, new int[1]));
+        CallRecording.spoke(microphone, frame((short) 1000), 320);
+        CallRecording.heard(speaker, frame((short) 500), 320);
         pill().performClick();
         finished();
 
-        assertEquals(2, api.removed.size());
-        assertSame(stream("42").sink, api.removed.stream().filter(one -> one.stream.equals("42")).findFirst().get().sink);
+        assertFalse(CallRecording.listening());
         assertTrue(store.kept);
         assertEquals("Record", pill().getText().toString());
         assertEquals(0, active());
@@ -300,34 +252,32 @@ public class CallRecordingTest {
         assertEquals("Couldn't record this call", ShadowToast.getTextOfLatestToast());
     }
 
+    @Test public void framesOfNothingButSilenceCountAsNoSound() throws Exception {
+        on();
+        open();
+        callStarts();
+        recording();
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(10));
+        CallRecording.spoke(microphone, frame((short) 0), 320);
+        CallRecording.heard(speaker, frame((short) 0), 320);
+        pill().performClick();
+        finished();
+        assertFalse(store.kept);
+        assertEquals("Couldn't record this call", ShadowToast.getTextOfLatestToast());
+    }
+
     @Test public void hangingUpFinishesTheFile() throws Exception {
         on();
         open();
         callStarts();
         recording();
         ShadowSystemClock.advanceBy(Duration.ofSeconds(1));
-        stream("0").sink.onFrame(frame(160, 1, 16000, false, (short) 500, new int[1]));
-        CallRecording.active(false);
-        idle();
+        CallRecording.heard(speaker, frame((short) 500), 320);
+        callEnds();
         finished();
-        assertEquals(2, api.removed.size());
         assertTrue(store.kept);
         assertNull(pill());
         assertEquals(0, active());
-    }
-
-    @Test public void aNewCallsAudioFinishesTheOldRecording() throws Exception {
-        on();
-        open();
-        callStarts();
-        recording();
-        ShadowSystemClock.advanceBy(Duration.ofSeconds(1));
-        stream("42").sink.onFrame(frame(160, 1, 16000, false, (short) 500, new int[1]));
-        CallRecording.api(new FakeApi());
-        idle();
-        finished();
-        assertTrue(store.kept);
-        assertEquals(2, api.removed.size());
     }
 
     @Test public void aRecordingKeepsGoingWithMessengerInTheBackground() throws Exception {
@@ -337,10 +287,9 @@ public class CallRecordingTest {
         recording();
         screen.pause();
         idle();
-        assertTrue(api.removed.isEmpty());
+        assertTrue(CallRecording.listening());
         assertFalse(store.closed);
-        CallRecording.active(false);
-        idle();
+        callEnds();
         finished();
     }
 
@@ -365,48 +314,106 @@ public class CallRecordingTest {
             idle();
             return "Couldn't record this call".equals(ShadowToast.getTextOfLatestToast());
         });
-        assertTrue(api.added.isEmpty());
+        assertFalse(CallRecording.listening());
         assertEquals("Record", pill().getText().toString());
         assertEquals(0, active());
     }
 
-    @Test public void withNoAccountItDoesntTouchTheCall() throws Exception {
+    @Test public void theNextCallInTheSameRunCanRecordToo() throws Exception {
         on();
-        account.delete();
         open();
         callStarts();
+        recording();
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(1));
+        CallRecording.heard(speaker, frame((short) 500), 320);
+        callEnds();
+        finished();
+        assertNull(pill());
+
+        store.closed = false;
+        store.kept = false;
+        callStarts();
+        assertEquals("Record", pill().getText().toString());
+        recording();
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(1));
+        CallRecording.spoke(microphone, frame((short) 500), 320);
+        callEnds();
+        finished();
+        assertTrue(store.kept);
+    }
+
+    @Test public void soundThatCantBeReadNeverReachesTheAudioThreads() throws Exception {
+        on();
+        open();
+        callStarts();
+        CallRecording.heard(null, null, 0);
+        recording();
+        CallRecording.heard(null, null, 0);
+        CallRecording.spoke(null, null, 0);
+        CallRecording.heard(speaker, null, 320);
+        CallRecording.spoke(microphone, frame((short) 1), -1);
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(1));
+        CallRecording.spoke(microphone, frame((short) 500), 320);
         pill().performClick();
-        waitFor(() -> {
-            idle();
-            return "Couldn't record this call".equals(ShadowToast.getTextOfLatestToast());
-        });
-        assertTrue(api.added.isEmpty());
+        finished();
+        assertTrue(store.kept);
     }
 
-    @Test public void theSinkAsksNativeForEveryChannelsSamples() throws Exception {
-        CallMix mix = new CallMix(FileChannel.open(file.toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE));
-        int[] asked = new int[1];
-        new CallSink(mix.mine, 0).onFrame(frame(480, 2, 48000, false, (short) 1, asked));
-        assertEquals(960, asked[0]);
+    private static boolean layerAdded() {
+        ArrayList<Object> layers = new ArrayList<>();
+        CallRecording.addLayer(layers);
+        return !layers.isEmpty();
     }
 
-    @Test public void aBrokenFrameNeverReachesNative() throws Exception {
-        CallMix mix = new CallMix(FileChannel.open(file.toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE));
-        CallSink sink = new CallSink(mix.mine, 0);
-        sink.onFrame(new AudioFrame() {
-            @Override public AudioFrameData getAudioData() { throw new IllegalStateException("gone"); }
-            @Override public AudioFrameMetadata getMetadata() { throw new NoSuchMethodError("gone"); }
-        });
-        sink.onFrame(null);
+    @Test public void theAudioOnlyMovesWithTheSwitchOn() {
+        assertFalse(layerAdded());
+        CallRecording.resetForTests();
+        on();
+        assertTrue(layerAdded());
+        CallRecording.resetForTests();
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        assertFalse(layerAdded());
+    }
+
+    @Test public void theAudioHoldsItsFirstAnswerAndTheRestartRowSaysSo() {
+        on();
+        assertNull("Native hasn't asked yet, so the switch still decides", Settings.heldUntilRestart(CallRecording.KEY));
+        assertTrue(layerAdded());
+        assertNull(Settings.heldUntilRestart(CallRecording.KEY));
+
+        Settings.preferences.edit().putBoolean(CallRecording.KEY, false).commit();
+        assertTrue(layerAdded());
+        assertEquals(Boolean.TRUE, Settings.heldUntilRestart(CallRecording.KEY));
+
+        CallRecording.resetForTests();
+        assertFalse(layerAdded());
+        on();
+        assertFalse(layerAdded());
+        assertEquals(Boolean.FALSE, Settings.heldUntilRestart(CallRecording.KEY));
+    }
+
+    @Test public void ourLayerGoesLastBecauseNativeReadsFromTheEnd() {
+        on();
+        ArrayList<Object> layers = new ArrayList<>(List.of("Messenger's own"));
+        CallRecording.addLayer(layers);
+        assertEquals(2, layers.size());
+        assertEquals("Messenger's own", layers.get(0));
+        assertTrue(layers.get(1) instanceof CallRecording.JavaAudioLayer);
+    }
+
+    @Test public void theLayerOnlySpeaksAboutTheCallsAudio() {
+        int[] values = new CallRecording.JavaAudioLayer().getValues();
+        assertEquals(CallRecording.JavaAudioLayer.VALUES, values.length);
+        assertEquals(0, values[CallRecording.JavaAudioLayer.OBOE_ON]);
+        assertEquals(0, values[CallRecording.JavaAudioLayer.OBOE_RECORD]);
+        assertEquals(CallRecording.JavaAudioLayer.MODULE_JAVA, values[CallRecording.JavaAudioLayer.MODULE]);
+        int spoken = 0;
+        for (int value : values) if (value != -1) spoken++;
+        assertEquals("Anything else set would override Messenger's own config", 3, spoken);
+        assertEquals(0, new CallRecording.JavaAudioLayer().getUpdatedValues().length);
     }
 
     @Test public void theFileIsNamedForWhenItStarted() {
         assertTrue(CallRecording.name(new Date(0)).matches("Call \\d{4}-\\d{2}-\\d{2} \\d{2}\\.\\d{2}\\.\\d{2}\\.wav"));
-    }
-
-    @Test public void theCurrentAccountComesFromItsDatabase() {
-        assertEquals("42", LocalSearchStore.currentUser(account.getParentFile()));
-        account.delete();
-        assertNull(LocalSearchStore.currentUser(account.getParentFile()));
     }
 }

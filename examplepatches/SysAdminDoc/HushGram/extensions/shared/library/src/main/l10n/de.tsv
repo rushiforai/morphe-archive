@@ -393,7 +393,7 @@ Doesn't follow you	Folgt dir nicht
 Hide suggested people	Vorgeschlagene Personen ausblenden
 Takes Suggested for you and the Discover people button off profiles, yours included. Bios, counts, posts and follower lists stay.	Entfernt „Vorschläge für dich“ und die Schaltfläche „Personen entdecken“ von Profilen, auch von deinem. Bios, Zahlen, Beiträge und Follower-Listen bleiben.
 Hide Suggested for you on follow lists	„Vorschläge für dich“ in Follower-Listen ausblenden
-Leaves the Suggested for you section off the followers, following and mutual lists, and the Suggested tab off other people's follow lists. Every account in the lists stays.	Lässt den Bereich „Vorschläge für dich“ in den Listen der Follower, Gefolgten und gemeinsamen Follower weg, ebenso den Tab „Vorschläge“ in den Follower-Listen anderer Personen. Jedes Konto in den Listen bleibt.
+Leaves the Suggested for you section off the followers, following and mutual lists and the screen where you approve follow requests, and the Suggested tab off other people's follow lists. Every account in the lists and every real request stays.	Lässt den Bereich „Vorschläge für dich“ in den Listen der Follower, Gefolgten und gemeinsamen Follower weg, ebenso auf dem Bildschirm, auf dem du Folgeanfragen bestätigst, und den Tab „Vorschläge“ in den Follower-Listen anderer Personen. Jedes Konto in den Listen und jede echte Anfrage bleibt.
 Hide Complete your profile	Profil vervollständigen ausblenden
 Takes the Complete your profile cards, like Add bio and Find people to follow, off your own profile. Your bio, counts and posts stay.	Entfernt die Karten von Profil vervollständigen, etwa Steckbrief hinzufügen und Personen zum Folgen finden, von deinem eigenen Profil. Steckbrief, Zahlen und Beiträge bleiben.
 Hide People you don't follow back	Personen, denen du nicht zurückfolgst, ausblenden
@@ -1523,3 +1523,33 @@ Nothing logged yet. Each time you scroll your own Followers list to the end, cha
 %1$s started following you, %2$s	%1$s folgt dir jetzt, %2$s
 Hide the Map bubble	Karte ausblenden
 Takes only the Map bubble out of the row of notes. Your notes stay.	Entfernt nur die Karte aus der Reihe mit Notizen. Deine Notizen bleiben.
+Hide Saved in the plus menu	Gespeichert im Plus-Menü ausblenden
+Takes Saved off the menu the plus button opens in a chat's message bar.	Entfernt Gespeichert aus dem Menü, das der Plus-Button in der Nachrichtenleiste eines Chats öffnet.
+Hide AI images in the plus menu	KI-Bilder im Plus-Menü ausblenden
+Takes AI images off the menu the plus button opens in a chat's message bar.	Entfernt KI-Bilder aus dem Menü, das der Plus-Button in der Nachrichtenleiste eines Chats öffnet.
+Hide Draw in the plus menu	Zeichnen im Plus-Menü ausblenden
+Takes Draw off the menu the plus button opens in a chat's message bar.	Entfernt Zeichnen aus dem Menü, das der Plus-Button in der Nachrichtenleiste eines Chats öffnet.
+Gallery and microphone in the plus menu	Galerie und Mikrofon im Plus-Menü
+Moves the gallery and microphone buttons off the message bar and into the plus menu. They work as before. Turn it off and they're back the next time a chat opens.	Verschiebt die Buttons für Galerie und Mikrofon aus der Nachrichtenleiste ins Plus-Menü. Sie funktionieren wie bisher. Schaltest du es aus, sind sie beim nächsten Öffnen eines Chats wieder da.
+Custom app icon	Eigenes App-Symbol
+Pick a picture, frame it and add it to your home screen as a shortcut to Instagram.	Wähle ein Bild, richte es aus und lege es als Verknüpfung zu Instagram auf deinen Startbildschirm.
+Drag to move, pinch to zoom.	Ziehen zum Verschieben, zwei Finger zum Zoomen.
+Add to home screen	Zum Startbildschirm hinzufügen
+Couldn't read that picture.	Das Bild ließ sich nicht lesen.
+This launcher can't add it.	Dieser Launcher kann es nicht hinzufügen.
+Glass in chats	Glas in Chats
+Gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Gibt der oberen Leiste eines Chats Milchglas und setzt die Buttons für Zurück, Anruf und Video auf runde Glaskreise. Sichtbar beim nächsten Öffnen eines Chats. Der Weichzeichner braucht Android 12 oder neuer.
+# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary; %1$s is a number with thousands separators (#444)
+Hide reels with few views	Reels mit wenigen Aufrufen ausblenden
+Leaves out reels in the Reels tab that fewer people have watched than the number below. Reels from accounts you follow, reels sent to you and reels with no view count still play.	Lässt im Reels-Tab Reels weg, die weniger Leute gesehen haben als die Zahl unten. Reels von Konten, denen du folgst, Reels, die man dir schickt, und Reels ohne Aufrufzahl laufen weiter.
+Minimum views	Mindestaufrufe
+Reels with fewer views than this are left out. Type a whole number.	Reels mit weniger Aufrufen werden weggelassen. Gib eine ganze Zahl ein.
+Fewer than %1$s views	Weniger als %1$s Aufrufe
+# context: Stories switch Stories priority, its summary, the Priority accounts row, its dialog message and the row's summaries (none, one account, several accounts) (#451)
+Stories priority	Story-Priorität
+Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched, in the order of the list. Once you've watched it, Instagram's own placement applies again. Your own story stays first.	Stellt die Konten deiner Liste ganz oben in die Story-Leiste auf der Startseite, solange sie eine Story haben, die du noch nicht gesehen hast, in der Reihenfolge der Liste. Hast du sie gesehen, gilt wieder die Platzierung von Instagram. Deine eigene Story bleibt vorn.
+Priority accounts	Vorrangige Konten
+Usernames, one on each line. The first line goes first. A leading @ and capital letters don't matter.	Benutzernamen, einer pro Zeile. Die erste Zeile steht ganz vorn. Ein @ am Anfang und Groß- und Kleinschreibung spielen keine Rolle.
+No accounts yet	Noch keine Konten
+%1$d account	%1$d Konto
+%1$d accounts	%1$d Konten

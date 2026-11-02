@@ -9,6 +9,7 @@
         <meta-data android:name="hush.feature.stories" android:value="true" />
         <meta-data android:name="hush.feature.instants_button" android:value="true" />
         <meta-data android:name="hush.feature.subtabs" android:value="true" />
+        <meta-data android:name="hush.feature.inbox_search_bar" android:value="true" />
         <meta-data android:name="hush.feature.mark_read_action" android:value="true" />
         <meta-data android:name="hush.feature.facebook" android:value="true" />
         <meta-data android:name="hush.feature.meta_ai" android:value="true" />

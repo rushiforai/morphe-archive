@@ -29,7 +29,8 @@ class HookInjectionReplayTest {
             val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
             activeProfile = controlProfileFor(code)
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
-            val discovered = findControls(dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes })
+            val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
+            val discovered = findControls(classes)
             // Two controls sharing a method edit the same copy, as they do in the patcher.
             val mutable = HashMap<String, MutableMethod>()
             // The community inbox goes in through its own contract, which CommunityInboxTest replays on these builds.
@@ -59,6 +60,10 @@ class HookInjectionReplayTest {
                         autoReplyMessagesBuilder(autoReplyMessagesStub(), recipe)
                         autoReplySendBuilder(autoReplySendStub(), recipe)
                         autoReplyPicturesFlag(autoReplyPicturesStub())
+                    }
+                    // Keep the search bar also fills the extension's flag check with this build's own.
+                    if (key == INBOX_SEARCH_BAR) {
+                        searchIconReader(searchIconStub(), searchIconCheck(discovered.getValue(INBOX_SEARCH_BAR)) { type -> classes.firstOrNull { it.type == type } })
                     }
                 } catch (error: Exception) {
                     refused += "$code $key: ${error.javaClass.simpleName} ${error.message}"

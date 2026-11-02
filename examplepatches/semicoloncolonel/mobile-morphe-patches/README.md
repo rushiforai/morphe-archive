@@ -1,6 +1,6 @@
 # Mobile Morphe Patches
 
-Morphe patches that remove ads and block tracking in the phone versions of streaming and news apps.
+Morphe patches that remove ads and block tracking in the phone versions of streaming, news, and shopping apps.
 
 Some of these patches are ports of [ajstrick81's Android TV patches](https://github.com/ajstrick81/morphe-androidtv-patches). The original hook designs are their work. This project adapts them to the phone builds of the same apps. For the Android TV apps, use the original project.
 
@@ -24,7 +24,7 @@ Some of these patches are ports of [ajstrick81's Android TV patches](https://git
 | PBS | Skip ads (experimental), Block analytics & tracking (opt-in) | `5.27.0` | 10/30/26 |
 | Peacock | Skip ads (experimental), Disable Xfinity auto sign-in, Block analytics & tracking (opt-in) | `7.10.20` | 10/30/26 |
 | Pluto TV | Skip launch video, Skip ads, Mask live ad breaks, Block analytics & tracking (opt-in) | `17.2.0` | 10/31/26 |
-| Prime Video | Skip ads, Block analytics & tracking (opt-in) | `3.0.477.1447` | 10/31/26 |
+| Prime Video | Skip ads, Rename shared permissions, Block analytics & tracking (opt-in) | `3.0.477.1447` | 11/01/26 |
 | Starz | Skip launch video, Skip pre-roll promo (experimental), Remove social sign-in, Block analytics & tracking (opt-in) | `6.11.0` | 10/31/26 |
 | Tubi | Skip ads, Remove social sign-in, Hide sign-in prompts, Block analytics & tracking (opt-in) | `10.43.1` | 10/30/26 |
 
@@ -39,9 +39,22 @@ Some of these patches are ports of [ajstrick81's Android TV patches](https://git
 | The Wall Street Journal | Skip ads (experimental), Hide marketing pop-ups (experimental), Block analytics & tracking (opt-in) | `15.12.0.42675` | 10/30/26 |
 | The Washington Post | Skip ads (experimental), Hide marketing pop-ups (experimental), Disable AI (opt-in), Block analytics & tracking (opt-in) | `7.18.1` | 10/30/26 |
 
+### Shopping
+
+| App | Patches | Tested version | Last updated |
+|-----|---------|----------------|--------------|
+| Amazon Shopping | Hide sponsored listings, Disable AI (opt-in) | `32.19.0.100` | 11/01/26 |
+| Best Buy | Hide sponsored listings, Disable AI (opt-in) | `26.10.10` | 11/01/26 |
+| CVS | Disable AI (opt-in) | `26.10.50` | 11/01/26 |
+| DealSeek | Strip affiliate links, Disable Pairip license check, Block analytics & tracking (opt-in) | `1.64.0` | 11/01/26 |
+| Target | Hide sponsored listings, Disable AI (opt-in) | `2026.43.0` | 11/01/26 |
+| The Home Depot | Disable AI (opt-in) | `8.2.5` | 11/01/26 |
+| Walgreens | The shared privacy patches only | `118.0` | 11/01/26 |
+| Walmart | Disable AI (opt-in) | `26.38` | 11/01/26 |
+
 ## How to install
 
-1. Download the phone build of the app from APKMirror. Match the exact version in the tables above, and download the `.apkm` bundle (ESPN, Hulu, Prime Video, and The Wall Street Journal ship as a single `.apk`). Fox One is not on APKMirror. Install it from the Play Store on your phone and use the installed copy. The same works for the news apps.
+1. Download the phone build of the app from APKMirror. Match the exact version in the tables above, and download the `.apkm` bundle (ESPN, Hulu, Prime Video, The Wall Street Journal, and Walmart ship as a single `.apk`). Fox One is not on APKMirror. Install it from the Play Store on your phone and use the installed copy. The same works for the news and shopping apps.
 2. In Morphe Manager, add this project as a patch source. On your phone, open [this link](https://morphe.software/add-source?github=semicoloncolonel/mobile-morphe-patches). You can also go to Sources, tap +, choose Remote, and paste `https://raw.githubusercontent.com/semicoloncolonel/mobile-morphe-patches/main/patches-bundle.json`.
 3. Select the `.apkm` file and apply the patches.
 
@@ -74,9 +87,14 @@ Some of these patches are ports of [ajstrick81's Android TV patches](https://git
 - On MS NOW, it blocks Adobe, Kochava, Nielsen, comScore, Amplitude, Parse.ly, Iterate, and Firebase/Google Analytics.
 - On CNN, it blocks Adobe, AppsFlyer, Chartbeat, comScore, Firebase/Google Analytics, and CNN's own data collection. Push notifications are left alone.
 - On AMC+, it blocks AppsFlyer, Braze, mParticle, Nielsen, New Relic, NPAW/Youbora, and Firebase/Google Analytics. TV-provider sign-in through Adobe Pass is left alone.
+- On DealSeek, it blocks AppsFlyer, Meta app events, TikTok, PostHog, and Firebase/Google Analytics. PostHog feature flags, which the app reads, are left alone.
 - On The Wall Street Journal, it blocks Adobe Analytics, AppsFlyer, Braze, comScore, LiveRamp, Parse.ly, Permutive, Snowplow, and Firebase/Google Analytics. Podcasts are left alone.
 
-**Disable Pairip license check** (Fox One) lets the patched app start. Google's Pairip license check blocks any copy that was not installed from the Play Store, and every patched app counts as one.
+**Disable Pairip license check** (Fox One and DealSeek) lets the patched app start. Google's Pairip license check blocks any copy that was not installed from the Play Store, and every patched app counts as one.
+
+**Strip affiliate links** (DealSeek) opens each deal at the store's own product page. The app normally sends a deal through its own click tracker, which also receives your analytics ID, and then through an affiliate network such as Impact or Sovrn. With this patch, the deal opens directly at the store, and affiliate tags such as Amazon's are removed. It covers Amazon, Walmart, Best Buy, eBay, Wayfair, and Target. DealSeek does not earn a commission on purchases made this way.
+
+**Rename shared permissions** (Prime Video) is applied with every Prime Video patch. Prime Video declares sign-in permissions that other Amazon apps also declare, and Android refuses to install an app that declares the same permission as an installed app signed with a different key. Without this patch, the patched Prime Video blocks installing Amazon Shopping and other Amazon apps from the Play Store with a "conflicting package" error. The patch adds a `mobilestream.` prefix to those permission names.
 
 **Disable Ask NBA AI** (NBA) hides the Ask NBA chat button on every screen and removes the Ask NBA tile from the Discover tab.
 
@@ -84,7 +102,16 @@ Some of these patches are ports of [ajstrick81's Android TV patches](https://git
 
 **Hide marketing pop-ups** (The Washington Post and The Wall Street Journal) stops in-app marketing messages, such as subscription offers. Push notifications still arrive.
 
-**Disable AI** (The Washington Post) is off by default. It turns off Ask The Post AI, AI article summaries, and the Ask The Post questions shown under articles.
+**Disable AI** is off by default. On The Washington Post, it turns off Ask The Post AI, AI article summaries, and the Ask The Post questions shown under articles. On the shopping apps, it turns off the store's AI assistant and AI features:
+
+- On Amazon Shopping, it turns off Rufus in the tabs, search, and camera lens, and the AI assistant in Amazon Pay. Rufus prompts that Amazon's web pages show inside the app may still appear.
+- On Walmart, it turns off the Sparky assistant and the AI features on item and search pages. Customer care chat, which Walmart routes through Sparky, falls back to the regular help pages.
+- On Target, it turns off Ask Target, AI mode in search, the AI gift finder, the AI shopping list scanner, and AI replies in support chat. AI review summaries still show.
+- On The Home Depot, it turns off the Magic Apron assistant in the app and hides its chat button on the store's web pages.
+- On CVS, it turns off AI search in the help center, which also stops the app from downloading Google's on-device AI model, AI insights, AI summaries of visits, lab results, and claims, and proactive AI on pharmacy orders.
+- On Best Buy, it hides the AI-written review summaries. Ask Blue, Best Buy's AI assistant, is not covered.
+
+**Hide sponsored listings** removes paid placements from search results. On Amazon Shopping, it hides sponsored products in search results and on product pages. On Target, it asks Target's search for results without sponsored products. On Best Buy, it turns on Best Buy's own option for searches without sponsored listings. Best Buy's "Featured products" row still shows.
 
 **Opt out of data sale & sharing** (Fox News, MS NOW, and CNN) sets the app's privacy choice to "do not sell or share" and opts out of targeted advertising, as a second layer behind Block analytics & tracking. Ad and measurement partners receive the US Privacy opt-out signal. On Fox News and MS NOW, this is the starting choice and you can change it in the app's privacy settings. On MS NOW, it replaces the "Allow All" that the app saves for you after onboarding. On CNN, the opt-out stays on.
 
@@ -92,11 +119,19 @@ Some of these patches are ports of [ajstrick81's Android TV patches](https://git
 
 **Hide device identifiers** is off by default and works on every app here. It gives the app a random Android ID, generated once per install, instead of your device's. It also reports a zeroed advertising ID with ad tracking limited, the same as deleting your ad ID in Android settings. The video DRM ID is left alone so playback keeps working.
 
-**Report Wi-Fi connection** is off by default and works on every app here. When the phone is on mobile data, the app sees an unmetered Wi-Fi connection instead, so settings such as "download over Wi-Fi only" and lower streaming quality on mobile data do not apply. Wi-Fi-only download jobs that the app hands to Android also run on mobile data. This can use a lot of mobile data.
+**Report Wi-Fi connection** is off by default and works on the streaming and news apps. When the phone is on mobile data, the app sees an unmetered Wi-Fi connection instead, so settings such as "download over Wi-Fi only" and lower streaming quality on mobile data do not apply. Wi-Fi-only download jobs that the app hands to Android also run on mobile data. This can use a lot of mobile data.
 
-**Hide VPN connection** is off by default and works on every app here. It hides an active VPN from the app's checks on the phone, so the app sees the Wi-Fi or mobile connection that the VPN runs over. The app can still recognize a VPN from your IP address on its servers, and checks built into an app's native code are not covered.
+**Hide VPN connection** is off by default and works on the streaming and news apps. It hides an active VPN from the app's checks on the phone, so the app sees the Wi-Fi or mobile connection that the VPN runs over. The app can still recognize a VPN from your IP address on its servers, and checks built into an app's native code are not covered.
 
 **Spoof carrier** is off by default and works on every app here. It hides your mobile carrier from the app and from the ad, analytics, and crash-reporting SDKs inside it. The carrier name is blank unless you type a different name in the patch option, in which case the app sees that name. The carrier's network code is always hidden. Carrier deals that an app detects from your carrier, such as League Pass included with a phone plan, do not work while this is on.
+
+**Hide Wi-Fi networks** is off by default and works on the shopping apps. The app sees no nearby Wi-Fi networks and cannot read the name of the network you are on, so it cannot tell which store's Wi-Fi is around you. Walmart, for example, looks for its store network to tell that you are inside a store. Store detection, Wi-Fi setup for smart-home devices, and fraud checks at checkout can be affected.
+
+**Block Bluetooth scanning** is off by default and works on the shopping apps. The app cannot scan for Bluetooth devices or the beacons in a store, and it cannot see your paired devices. Beacon libraries no longer wake the app when the phone starts or charges. In-store maps and their location dot (Target and The Home Depot), pharmacy kiosk check-in (CVS), smart-home device setup (Amazon), and pairing with accessories inside the app stop working.
+
+**Hide cell tower info** is off by default and works on the shopping apps. The app cannot see the cell towers your phone sees, which can place you within a few blocks even without location access. Use Spoof carrier to hide the carrier itself.
+
+**Block background location** is off by default and works on the shopping apps. It removes the app's ability to ask for location while it is closed or in the background, so it cannot notice you arriving at a store, even if you tap Allow all the time. Location while you use the app still works if you allow it. Automatic store mode, store-arrival notifications, and pickup check-in that tracks your drive after you close the app stop working.
 
 **Disable auto-updates** is off by default and works on every app here except The Washington Post, whose resources the patcher cannot rebuild. It stops the Play Store from silently replacing the patched app with the official version. On Tubi, it is always applied with Skip ads.
 
@@ -115,6 +150,11 @@ Some of these patches are ports of [ajstrick81's Android TV patches](https://git
 **Disable MGM+ AI** (MGM+ only) is off by default. It turns off the "MGM+ AI" chat assistant: the "Get Personalized Pick" and "Not sure what to watch?" prompts, the AI chat itself, and the AI-picks rows on the Home screen. It forces the feature's flags off whatever the server sends, and changes nothing else.
 
 Everything runs on the device, inside the patched app. The patches do not send data anywhere.
+
+## Known issues
+
+- **Best Buy:** on some phones, the app looks washed out, with a white tint over every screen, and it can take a minute to start. The official app does the same on these phones, so the patches do not cause it. This is an irregular issue that is being reviewed.
+- **Walmart:** if a DNS filter such as Control D blocks `drfdisvc.walmart.com`, Walmart does not send sign-in codes by text. Allow that host and `h-walmart.online-metrix.net`, which Walmart uses for fraud checks at sign-in.
 
 ## Disclaimer
 

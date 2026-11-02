@@ -66,8 +66,11 @@ hook bubbles LX/2WC;->A00()Z
 hook business_suggestions LX/7Q1;->A05(LX/7Q1;)Z
 hook business_suggestions LX/7R7;->A04(LX/7R7;)Z
 hook business_suggestions LX/WAU;->A02()Z
-hook call_recording LX/B3R;->setApi(Lcom/facebook/rsys/audio/gen/AudioApi;)V
-hook call_recording LX/B3R;->setIsCallActive(Z)V
+hook call_recording LX/CvA;->run()V
+hook call_recording LX/CvB;->run()V
+hook call_recording Lcom/facebook/rsys/overlayconfigmanager/OverlayConfigManagerHolder;-><init>(Ljava/util/ArrayList;)V
+hook call_recording Lorg/webrtc/voiceengine/WebRtcAudioTrack;->startPlayout()Z
+hook call_recording Lorg/webrtc/voiceengine/WebRtcAudioTrack;->stopPlayout()Z
 hook car_messages LX/0Qr;->Ahg(LX/0M7;)V
 hook chat_animation Landroidx/fragment/app/Fragment;->onCreateAnimation(IZI)Landroid/view/animation/Animation;
 hook chat_channel_keep LX/1yz;->A09(Landroid/app/NotificationChannel;Lcom/facebook/auth/usersession/FbUserSession;LX/1yz;Ljava/lang/String;IZ)Ljava/lang/String;
@@ -141,6 +144,11 @@ hook hide_call_bar LX/7NK;->Ey6(Lcom/facebook/messaging/model/threadkey/ThreadKe
 hook hide_read_receipts LX/4lY;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4lY;Ljava/lang/String;)V
 hook inbox_promotions LX/26P;->A0J()Z
 hook inbox_promotions LX/26P;->A0K()Z
+hook inbox_search_bar LX/1mq;->A02(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)LX/1nL;
+hook inbox_search_bar LX/1nN;->A0A(Landroid/view/ViewGroup;)V
+hook inbox_search_bar LX/28L;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
+hook inbox_search_bar LX/2Sa;->A05(LX/0XU;LX/5nQ;LX/1Ew;LX/5eI;LX/4CW;LX/5Qk;LX/4CV;LX/2f9;LX/5r9;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;LX/2eN;Lcom/google/common/collect/ImmutableList;Lcom/google/common/collect/ImmutableList;Ljava/util/Map;Ljava/util/concurrent/atomic/AtomicReference;ZZ)LX/1Ig;
+hook inbox_search_bar LX/2Z3;->A0I()Z
 hook instants_button LX/1nN;->A0D(LX/1nN;)V
 hook instants_button LX/HVr;->A0W(LX/HVr;)V
 hook keep_unsent LX/Rpw;->A02(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/util/Map;)V

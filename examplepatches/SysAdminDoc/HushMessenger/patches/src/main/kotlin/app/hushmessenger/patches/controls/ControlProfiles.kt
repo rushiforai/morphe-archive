@@ -98,7 +98,10 @@ internal val PROFILE_347015062 = ControlProfile(
         "bubbles" to setOf("LX/2Vm;->A00()Z"),
         "business_suggestions" to setOf("LX/7Rz;->A05(LX/7Rz;)Z", "LX/7T5;->A04(LX/7T5;)Z", "LX/Kjw;->A02()Z"),
         "call_recording" to setOf(
-            "LX/B5v;->setApi(Lcom/facebook/rsys/audio/gen/AudioApi;)V", "LX/B5v;->setIsCallActive(Z)V",
+            "LX/Cvx;->run()V", "LX/Cvy;->run()V",
+            "Lcom/facebook/rsys/overlayconfigmanager/OverlayConfigManagerHolder;-><init>(Ljava/util/ArrayList;)V",
+            "Lorg/webrtc/voiceengine/WebRtcAudioTrack;->startPlayout()Z",
+            "Lorg/webrtc/voiceengine/WebRtcAudioTrack;->stopPlayout()Z",
         ),
         "car_messages" to setOf("LX/0Qq;->AhZ(LX/0M6;)V"),
         "chat_animation" to setOf("Landroidx/fragment/app/Fragment;->onCreateAnimation(IZI)Landroid/view/animation/Animation;"),
@@ -161,6 +164,12 @@ internal val PROFILE_347015062 = ControlProfile(
         ),
         "hide_read_receipts" to setOf("LX/4mA;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4mA;Ljava/lang/String;)V"),
         "inbox_promotions" to setOf("LX/25z;->A0J()Z", "LX/25z;->A0K()Z"),
+        "inbox_search_bar" to setOf(
+            "LX/1mQ;->A02(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)LX/1mv;",
+            "LX/1mx;->A0A(Landroid/view/ViewGroup;)V", "LX/27v;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
+            "LX/2SA;->A02(LX/0XX;LX/5o2;LX/1EW;LX/5eu;LX/4DB;LX/5RM;LX/4DA;LX/2ej;LX/5rl;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;LX/2dx;Lcom/google/common/collect/ImmutableList;Lcom/google/common/collect/ImmutableList;Ljava/util/Map;Ljava/util/concurrent/atomic/AtomicReference;ZZ)LX/1IG;",
+            "LX/2Yd;->A0I()Z",
+        ),
         "instants_button" to setOf("LX/1mx;->A0D(LX/1mx;)V", "LX/ZnZ;->A0X(LX/ZnZ;)V"),
         "keep_unsent" to setOf("LX/MRd;->A02(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/util/Map;)V"),
         "local_chat_search" to setOf(
@@ -353,7 +362,10 @@ internal val PROFILE_347014996 = ControlProfile(
         "bubbles" to setOf("LX/2Vm;->A00()Z"),
         "business_suggestions" to setOf("LX/7Rz;->A05(LX/7Rz;)Z", "LX/7T5;->A04(LX/7T5;)Z", "LX/Kjw;->A02()Z"),
         "call_recording" to setOf(
-            "LX/B5v;->setApi(Lcom/facebook/rsys/audio/gen/AudioApi;)V", "LX/B5v;->setIsCallActive(Z)V",
+            "LX/Cvx;->run()V", "LX/Cvy;->run()V",
+            "Lcom/facebook/rsys/overlayconfigmanager/OverlayConfigManagerHolder;-><init>(Ljava/util/ArrayList;)V",
+            "Lorg/webrtc/voiceengine/WebRtcAudioTrack;->startPlayout()Z",
+            "Lorg/webrtc/voiceengine/WebRtcAudioTrack;->stopPlayout()Z",
         ),
         "car_messages" to setOf("LX/0Qq;->AhZ(LX/0M6;)V"),
         "chat_animation" to setOf("Landroidx/fragment/app/Fragment;->onCreateAnimation(IZI)Landroid/view/animation/Animation;"),
@@ -416,6 +428,12 @@ internal val PROFILE_347014996 = ControlProfile(
         ),
         "hide_read_receipts" to setOf("LX/4mA;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4mA;Ljava/lang/String;)V"),
         "inbox_promotions" to setOf("LX/25z;->A0J()Z", "LX/25z;->A0K()Z"),
+        "inbox_search_bar" to setOf(
+            "LX/1mQ;->A02(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)LX/1mv;",
+            "LX/1mx;->A0A(Landroid/view/ViewGroup;)V", "LX/27v;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
+            "LX/2SA;->A02(LX/0XX;LX/5o2;LX/1EW;LX/5eu;LX/4DB;LX/5RM;LX/4DA;LX/2ej;LX/5rl;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;LX/2dx;Lcom/google/common/collect/ImmutableList;Lcom/google/common/collect/ImmutableList;Ljava/util/Map;Ljava/util/concurrent/atomic/AtomicReference;ZZ)LX/1IG;",
+            "LX/2Yd;->A0I()Z",
+        ),
         "instants_button" to setOf("LX/1mx;->A0D(LX/1mx;)V", "LX/ZnZ;->A0X(LX/ZnZ;)V"),
         "keep_unsent" to setOf("LX/MRd;->A02(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/util/Map;)V"),
         "local_chat_search" to setOf(
@@ -608,7 +626,10 @@ internal val PROFILE_347014974 = ControlProfile(
         "bubbles" to setOf("LX/2XG;->A00()Z"),
         "business_suggestions" to setOf("LX/7VN;->A05(LX/7VN;)Z", "LX/7WT;->A04(LX/7WT;)Z", "LX/Kou;->A02()Z"),
         "call_recording" to setOf(
-            "LX/BAS;->setApi(Lcom/facebook/rsys/audio/gen/AudioApi;)V", "LX/BAS;->setIsCallActive(Z)V",
+            "LX/D1h;->run()V", "LX/D1i;->run()V",
+            "Lcom/facebook/rsys/overlayconfigmanager/OverlayConfigManagerHolder;-><init>(Ljava/util/ArrayList;)V",
+            "Lorg/webrtc/voiceengine/WebRtcAudioTrack;->startPlayout()Z",
+            "Lorg/webrtc/voiceengine/WebRtcAudioTrack;->stopPlayout()Z",
         ),
         "car_messages" to setOf("LX/0Qx;->Ahe(LX/0MA;)V"),
         "chat_animation" to setOf("Landroidx/fragment/app/Fragment;->onCreateAnimation(IZI)Landroid/view/animation/Animation;"),
@@ -671,6 +692,12 @@ internal val PROFILE_347014974 = ControlProfile(
         ),
         "hide_read_receipts" to setOf("LX/4ot;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4ot;Ljava/lang/String;)V"),
         "inbox_promotions" to setOf("LX/27L;->A0J()Z", "LX/27L;->A0K()Z"),
+        "inbox_search_bar" to setOf(
+            "LX/1nh;->A02(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)LX/1oC;",
+            "LX/1oE;->A0A(Landroid/view/ViewGroup;)V", "LX/29H;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
+            "LX/2Te;->A05(LX/0XX;LX/5qp;LX/1FH;LX/5hf;LX/4FV;LX/5U7;LX/4FU;LX/2gF;LX/5uY;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;LX/2fT;Lcom/google/common/collect/ImmutableList;Lcom/google/common/collect/ImmutableList;Ljava/util/Map;Ljava/util/concurrent/atomic/AtomicReference;ZZ)LX/1J8;",
+            "LX/2a8;->A0I()Z",
+        ),
         "instants_button" to setOf("LX/1oE;->A0D(LX/1oE;)V", "LX/ZiQ;->A0X(LX/ZiQ;)V"),
         "keep_unsent" to setOf("LX/MWa;->A02(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/util/Map;)V"),
         "local_chat_search" to setOf(
@@ -863,7 +890,10 @@ internal val PROFILE_347014990 = ControlProfile(
         "bubbles" to setOf("LX/2WC;->A00()Z"),
         "business_suggestions" to setOf("LX/7Q1;->A05(LX/7Q1;)Z", "LX/7R7;->A04(LX/7R7;)Z", "LX/WAU;->A02()Z"),
         "call_recording" to setOf(
-            "LX/B3R;->setApi(Lcom/facebook/rsys/audio/gen/AudioApi;)V", "LX/B3R;->setIsCallActive(Z)V",
+            "LX/CvA;->run()V", "LX/CvB;->run()V",
+            "Lcom/facebook/rsys/overlayconfigmanager/OverlayConfigManagerHolder;-><init>(Ljava/util/ArrayList;)V",
+            "Lorg/webrtc/voiceengine/WebRtcAudioTrack;->startPlayout()Z",
+            "Lorg/webrtc/voiceengine/WebRtcAudioTrack;->stopPlayout()Z",
         ),
         "car_messages" to setOf("LX/0Qr;->Ahg(LX/0M7;)V"),
         "chat_animation" to setOf("Landroidx/fragment/app/Fragment;->onCreateAnimation(IZI)Landroid/view/animation/Animation;"),
@@ -926,6 +956,12 @@ internal val PROFILE_347014990 = ControlProfile(
         ),
         "hide_read_receipts" to setOf("LX/4lY;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4lY;Ljava/lang/String;)V"),
         "inbox_promotions" to setOf("LX/26P;->A0J()Z", "LX/26P;->A0K()Z"),
+        "inbox_search_bar" to setOf(
+            "LX/1mq;->A02(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)LX/1nL;",
+            "LX/1nN;->A0A(Landroid/view/ViewGroup;)V", "LX/28L;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
+            "LX/2Sa;->A05(LX/0XU;LX/5nQ;LX/1Ew;LX/5eI;LX/4CW;LX/5Qk;LX/4CV;LX/2f9;LX/5r9;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;LX/2eN;Lcom/google/common/collect/ImmutableList;Lcom/google/common/collect/ImmutableList;Ljava/util/Map;Ljava/util/concurrent/atomic/AtomicReference;ZZ)LX/1Ig;",
+            "LX/2Z3;->A0I()Z",
+        ),
         "instants_button" to setOf("LX/1nN;->A0D(LX/1nN;)V", "LX/HVr;->A0W(LX/HVr;)V"),
         "keep_unsent" to setOf("LX/Rpw;->A02(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/util/Map;)V"),
         "local_chat_search" to setOf(

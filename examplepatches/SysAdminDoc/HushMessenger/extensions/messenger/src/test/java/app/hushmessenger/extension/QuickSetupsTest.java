@@ -34,6 +34,7 @@ public class QuickSetupsTest {
     @After public void forgetHeldAnswers() {
         Settings.metaAiTab = null;
         Settings.oldEmojiDrawer = null;
+        Settings.keptSearchBar = null;
         Settings.customFont = null;
         Settings.bottomTabs.clear();
     }

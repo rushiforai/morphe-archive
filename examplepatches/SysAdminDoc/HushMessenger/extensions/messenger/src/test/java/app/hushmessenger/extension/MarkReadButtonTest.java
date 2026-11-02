@@ -164,6 +164,37 @@ public class MarkReadButtonTest {
         assertEquals(Arrays.asList(ours, voice, join), joining);
     }
 
+    /**
+     * #122: a chat with call buttons and no Mark as read. Messenger's Meta AI chat button and a group's home button are
+     * classes of their own ahead of the call buttons, and the bar drops details to keep three, so nothing could give way.
+     */
+    @Test public void theMetaAiOrGroupHomeButtonGivesWayAheadOfTheCallButtons() throws Exception {
+        Object voice = new Button("audio_call_button"), video = new Button("video_call_button");
+        Object ours = new Button("hush_mark_read_button");
+        Object metaAi = new MetaAiButton(), groupHome = new GroupHomeButton();
+        assertTrue(MarkReadButton.givesWay(metaAi));
+        assertTrue(MarkReadButton.givesWay(groupHome));
+
+        List<Object> chat = new ArrayList<>(Arrays.asList(metaAi, voice, video));
+        assertTrue(MarkReadButton.place(chat, ours));
+        assertEquals(Arrays.asList(ours, voice, video), chat);
+
+        List<Object> group = new ArrayList<>(Arrays.asList(groupHome, voice, video));
+        assertTrue(MarkReadButton.place(group, ours));
+        assertEquals(Arrays.asList(ours, voice, video), group);
+
+        // The join a call button, or any other class nobody named, still stays.
+        Object join = new Object(), unknown = new Other();
+        assertFalse(MarkReadButton.givesWay(join));
+        assertFalse(MarkReadButton.givesWay(unknown));
+        List<Object> joining = new ArrayList<>(Arrays.asList(metaAi, join, unknown));
+        assertTrue(MarkReadButton.place(joining, ours));
+        assertEquals(Arrays.asList(ours, join, unknown), joining);
+        List<Object> neither = new ArrayList<>(Arrays.asList(unknown, voice, video));
+        assertFalse(MarkReadButton.place(neither, ours));
+        assertEquals(Arrays.asList(unknown, voice, video), neither);
+    }
+
     @Test public void withRoomItsAddedAndNothingIsGivenUp() throws Exception {
         Object a = new Button("a");
         Object ours = new Button("hush_mark_read_button");
@@ -219,6 +250,27 @@ public class MarkReadButtonTest {
     /** The details button, whose tag sits in its superclass's field. */
     static final class DetailsButton extends Button {
         DetailsButton() { super("settings_button"); }
+    }
+
+    /** Messenger's Meta AI chat button: its own class, with a label, the tag and its tap handlers. */
+    static final class MetaAiButton {
+        final int icon = 1;
+        final String label = "Meta AI";
+        final String tag = "thread_view_meta_ai_button";
+        final Object onTap = new Object();
+    }
+
+    /** A group's home button: its own class holding the group's home repository, the chat and two inner buttons. */
+    static final class GroupHomeButton {
+        final HomebaseRepository repository = new HomebaseRepository();
+        final Object thread = new Object();
+        final Object first = new Button(null), second = new Button(null);
+    }
+
+    static final class HomebaseRepository { }
+
+    static final class Other {
+        final String label = "Something new";
     }
 
     private static final class ThreadKey {

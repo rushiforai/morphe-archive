@@ -1,3 +1,17 @@
+## [1.0.3](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.2...v1.0.3) (2026-11-02)
+
+
+### Bug Fixes
+
+* limit the store-tracking privacy patches to the shopping apps ([6b2084b](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/6b2084b7427102f33ae145c979cee6a8d3e11805))
+* offer Report Wi-Fi connection and Hide VPN connection on streaming and news apps only ([dc77c43](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/dc77c43a5527ea9b5741c22678a6aa8578179ca4))
+* **primevideo:** rename shared Amazon permissions ([2eeb522](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/2eeb5229cb3c1eee24dbfcbba2b31a7299e07477))
+
+
+### Features
+
+* add DealSeek and seven store apps, with shopping privacy patches ([6c6abfa](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/6c6abfa0cbaf084dbc779d87c37f3f2689c54a25))
+
 ## [1.0.2](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.1...v1.0.2) (2026-10-31)
 
 

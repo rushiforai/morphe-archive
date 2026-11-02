@@ -33,6 +33,7 @@ public class RestartStateTest {
     @After public void clearLatches() {
         Settings.metaAiTab = null;
         Settings.oldEmojiDrawer = null;
+        Settings.keptSearchBar = null;
         Settings.bottomTabs.clear();
     }
 
@@ -117,6 +118,7 @@ public class RestartStateTest {
         assertEquals(Boolean.TRUE, Settings.heldUntilRestart("emoji_drawer"));
 
         Settings.oldEmojiDrawer = null;
+        Settings.keptSearchBar = null;
         assertNull("A restart asks again", Settings.heldUntilRestart("emoji_drawer"));
         assertNull("Controls that follow the switch live never hold an answer", Settings.heldUntilRestart("people"));
     }

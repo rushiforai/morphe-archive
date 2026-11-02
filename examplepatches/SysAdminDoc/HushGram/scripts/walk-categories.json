@@ -240,6 +240,8 @@
           "Chat history tools",
           "Ask before a call",
           "Message box buttons",
+          "Chat plus menu",
+          "Glass in chats",
           "Full screen Reels and Home"
         ]
       },
@@ -277,6 +279,7 @@
           "Hide paid partnership Reels",
           "Hide AI-labeled reels",
           "Hide reels by caption words",
+          "Hide reels with few views",
           "Clean up Reels",
           "Keep the Reels top bar",
           "Don't send reel watch history",
@@ -328,6 +331,7 @@
           "Story ring size",
           "Smooth story opening",
           "Keep stories playing while zooming",
+          "Stories priority",
           "Thicker story progress bar",
           "Seek bar on stories",
           "Stop Story auto-advance",

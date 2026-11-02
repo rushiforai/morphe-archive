@@ -6,12 +6,14 @@
 -repackageclasses 'semicoloncolonel.mobilestream.extension.r8'
 
 # Shared "Block analytics & tracking" blocker (opt-in, every app). openConnection / install /
-# blockWebRequest are called only from injected smali via invoke-static, and
+# blockWebRequest / filterJsRequestUrl are called only from injected smali via invoke-static, and
 # BlockInterceptor is matched by instanceof, so R8 must keep all of them.
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.TrackerBlocker {
     public static *** openConnection(java.net.URL);
     public static void install(okhttp3.OkHttpClient$Builder);
     public static *** blockWebRequest(android.webkit.WebResourceRequest);
+    public static java.lang.String filterJsRequestUrl(java.lang.String);
+    public static java.net.URL filterJsRequestUrl(java.net.URL);
 }
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.TrackerBlocker$BlockInterceptor { *; }
 
@@ -80,5 +82,31 @@
 # framework call at app call sites via injected invoke-static, and
 # carrierName() is overwritten by the patch, so R8 must keep them as they are.
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.CarrierSpoofer {
+    public static *;
+}
+
+# DealSeek — "Strip affiliate links". clean / parse are called only from
+# injected smali via invoke-static.
+-keep class semicoloncolonel.mobilestream.extension.dealseek.links.DealSeekLinkCleaner {
+    public static java.lang.String clean(java.lang.String);
+    public static android.net.Uri parse(java.lang.String);
+}
+
+# Shared "Hide Wi-Fi networks" / "Block Bluetooth scanning" / "Hide cell
+# tower info" (opt-in). Every public static method replaces a framework call
+# at app call sites via injected invoke-static, so R8 must keep them as they are.
+-keep class semicoloncolonel.mobilestream.extension.shared.privacy.NearbyHider {
+    public static *;
+}
+
+# Shopping apps — "Disable AI". Every public static method is called only
+# from injected smali via invoke-static.
+-keep class semicoloncolonel.mobilestream.extension.shared.misc.AiFeatureFilter {
+    public static *;
+}
+
+# Shopping apps — "Hide sponsored listings". Called only from injected smali
+# via invoke-static.
+-keep class semicoloncolonel.mobilestream.extension.shared.misc.ShoppingAdsFilter {
     public static *;
 }

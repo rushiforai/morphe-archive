@@ -341,6 +341,13 @@ public class LocalPinsTest {
         assertFalse(mine.flag);
     }
 
+    @Test public void theCurrentAccountComesFromItsDatabase() {
+        File folder = context.getDatabasePath(LocalPins.KEY).getParentFile();
+        assertEquals("100", LocalSearchStore.currentUser(folder));
+        assertTrue(new File(folder, "msys_database_100").delete());
+        assertNull(LocalSearchStore.currentUser(folder));
+    }
+
     @Test public void withNoAccountToSaveUnderThePinIsLeftToMessenger() throws Exception {
         File folder = context.getDatabasePath(LocalPins.KEY).getParentFile();
         assertTrue(new File(folder, "msys_database_100").delete());

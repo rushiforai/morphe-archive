@@ -84,6 +84,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean storyPriority() {
+        return false;
+    }
+
     public static boolean storySound() {
         return false;
     }
@@ -346,6 +350,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean lowViewReels() {
+        return false;
+    }
+
     public static boolean commentCopy() {
         return false;
     }
@@ -548,6 +556,16 @@ public final class SettingsStatus {
 
     /** Rewritten by the Ask before a call patch. */
     public static boolean askBeforeCall() {
+        return false;
+    }
+
+    /** Rewritten by the Chat plus menu patch. */
+    public static boolean plusMenu() {
+        return false;
+    }
+
+    /** Rewritten by the Glass in chats patch. */
+    public static boolean glassChat() {
         return false;
     }
 

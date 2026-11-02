@@ -3,6 +3,7 @@ package semicoloncolonel.mobilestream.patches.primevideo.ads
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import semicoloncolonel.mobilestream.patches.primevideo.misc.renameSharedPermissionsPatch
 import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants
 
 // Prime Video phone 3.0.477.1447 has two players and picks one per playback.
@@ -46,6 +47,10 @@ val skipAdsPatch = bytecodePatch(
         "such as its X-Ray views, are not available. The stream request is not changed.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
+
+    // A re-signed Prime Video that keeps Amazon's permission names blocks
+    // installing other Amazon apps, so every Prime Video patch renames them.
+    dependsOn(renameSharedPermissionsPatch)
 
     execute {
         // getAdPlan has .locals 12.
