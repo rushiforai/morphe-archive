@@ -15,6 +15,7 @@ public final class Features {
     public static final String CUSTOM_TABS = "custom_tabs";
     public static final String ARCADE = "arcade";
     public static final String ARROWS = "arrows";
+    public static final String ARROWS_REVIEWS = "arrows_reviews";
     public static final String BOARD_COLORS = "board_colors";
     public static final String AMOLED = "amoled";
     public static final String ACCENT = "accent";
@@ -85,6 +86,10 @@ public final class Features {
             "An Arrows button in games: while it is on, dragging on the board draws an arrow and "
                 + "tapping marks a square, instead of moving pieces. Clear removes them.",
             null, Features::arrowsPatched),
+        new Feature(ARROWS_REVIEWS, "Board", "glyph_board_analysis", "Arrows in reviews",
+            "Arrows and Clear in Game Review and on the Analysis boards: while it is on, dragging on the "
+                + "board draws an arrow and tapping marks a square. Clear removes them.",
+            null, Features::arrowsReviewsPatched),
         new Feature(AMOLED, "Look", "glyph_circle_fill_contrast", "AMOLED black",
             "Pure black backgrounds instead of chess.com's dark grey. Restart the app after switching it.",
             null, Features::amoledPatched),
@@ -171,6 +176,7 @@ public final class Features {
     public static boolean customTabsPatched() { return false; }
     public static boolean arcadePatched() { return false; }
     public static boolean arrowsPatched() { return false; }
+    public static boolean arrowsReviewsPatched() { return false; }
     public static boolean boardColorsPatched() { return false; }
     public static boolean amoledPatched() { return false; }
     public static boolean accentPatched() { return false; }
@@ -184,6 +190,7 @@ public final class Features {
     public static boolean gameReviewPatched() { return false; }
     public static boolean computerReviewPatched() { return false; }
     public static boolean greatMovesPatched() { return false; }
+    public static boolean crashPatched() { return false; }
 
     public static List<Feature> patched() {
         List<Feature> list = new ArrayList<>();

@@ -55,7 +55,8 @@ public enum PatchFamily {
     FEED_REELS(FamilyNames.FEED_REELS, "feedReels", null,
             Settings.HIDE_FEED_REELS),
     RETURN_REFRESH(FamilyNames.RETURN_REFRESH, "returnRefresh", null,
-            Settings.BLOCK_RETURN_REFRESH, Settings.RETURN_REFRESH_NO_LIMIT, Settings.BACK_KEEPS_HOME),
+            Settings.BLOCK_RETURN_REFRESH, Settings.RETURN_REFRESH_NO_LIMIT, Settings.BACK_KEEPS_HOME,
+            Settings.HIDE_BACK_REMINDER),
     AI_DETECTED_POSTS(FamilyNames.AI_DETECTED_POSTS, "aiDetectedPosts", null,
             Settings.HIDE_AI_DETECTED_POSTS, Settings.HIDE_AI_LABELLED_POSTS, Settings.HIDE_AI_DETECTED_REELS,
             Settings.HIDE_META_AI_FEED_UNITS, Settings.HIDE_AI_CHARACTER_POSTS),
@@ -74,6 +75,8 @@ public enum PatchFamily {
             Settings.KEEP_POST_DATES),
     FULL_POST_TEXT(FamilyNames.FULL_POST_TEXT, "fullPostText", null,
             Settings.SHOW_FULL_POST_TEXT),
+    TRANSLATE_POSTS(FamilyNames.TRANSLATE_POSTS, "translatePosts", null,
+            Settings.TRANSLATE_POST_LINK, Settings.TRANSLATE_POSTS_BY_THEMSELVES),
     WHO_SHARED(FamilyNames.WHO_SHARED, "whoShared", null,
             Settings.SEE_WHO_SHARED),
     AUTO_TRANSLATION(FamilyNames.AUTO_TRANSLATION, "autoTranslation", null,
@@ -116,7 +119,7 @@ public enum PatchFamily {
     GAME_ADS(FamilyNames.GAME_ADS, "gameAds", null,
             Settings.BLOCK_GAME_ADS, Settings.ANSWER_REWARDED_GAME_ADS),
     AFFILIATE_LINKS(FamilyNames.AFFILIATE_LINKS, "affiliateLinks", null,
-            Settings.HIDE_AFFILIATE_LINKS),
+            Settings.HIDE_AFFILIATE_LINKS, Settings.HIDE_COMMISSION_LABEL),
     REEL_DECLUTTER(FamilyNames.REEL_DECLUTTER, "reelDeclutter", null,
             Settings.HIDE_REEL_CHIPS, Settings.HIDE_REEL_FOLLOW_BUTTON, Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON,
             Settings.HIDE_REEL_SOCIAL_FOOTER, Settings.HIDE_REEL_THREADS_CARDS, Settings.REEL_CLEAN_MODE, Settings.PLAY_REELS_ONCE,
@@ -125,7 +128,7 @@ public enum PatchFamily {
             Settings.HIDE_REEL_SAVE_BUTTON, Settings.HIDE_REEL_WHATSAPP_BUTTON, Settings.HIDE_REEL_LIKE_BUTTON,
             Settings.HIDE_REEL_COMMENT_BUTTON, Settings.HIDE_REEL_SHARE_BUTTON, Settings.SHOW_REEL_COMMENT_BUTTON,
             Settings.SHOW_REEL_POST_DATE,
-            Settings.HIDE_REEL_SOUND_BUTTON, Settings.HIDE_REEL_AUDIO_LINE,
+            Settings.HIDE_REEL_SOUND_BUTTON, Settings.REEL_SPEAKER_ABOVE_MENU, Settings.HIDE_REEL_AUDIO_LINE,
             Settings.HIDE_SLOW_CONNECTION_MESSAGE, Settings.FEED_VIDEOS_ALONE, Settings.PLAY_FEED_REELS_WHOLE),
     REEL_PROMPTS(FamilyNames.REEL_PROMPTS, "reelPrompts", null,
             Settings.HIDE_REEL_PROMPTS),
@@ -146,14 +149,14 @@ public enum PatchFamily {
             Settings.SPEED_ON_REPLAYS),
     REEL_HOLD(FamilyNames.HOLD_REEL_FOR_2X, "reelHold", null,
             Settings.HOLD_REEL_FOR_2X, Settings.HOLD_REEL_RIGHT_EDGE, Settings.HOLD_FEED_VIDEO_FOR_2X,
-            Settings.HIDE_2X_LOCK_HINT),
+            Settings.HIDE_2X_LOCK_HINT, Settings.HIDE_2X_POPUPS),
     DEFAULT_COMMENT_ORDER(FamilyNames.DEFAULT_COMMENT_ORDER, "defaultCommentOrder", null,
             Settings.DEFAULT_COMMENT_ORDER),
     META_AI_SUMMARIES(FamilyNames.META_AI_SUMMARIES, "metaAiSummaries", null,
             Settings.HIDE_META_AI_SUMMARIES),
     COMMENT_SHEET_OPTIONS(FamilyNames.COMMENT_SHEET_OPTIONS, "commentSheetOptions", null,
             Settings.LIKE_ONLY, Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS, Settings.OPEN_REPLY_THREADS,
-            Settings.LOAD_WHOLE_REPLY_THREADS, Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS,
+            Settings.LOAD_WHOLE_REPLY_THREADS, Settings.HIDE_REPLIES_BUTTON, Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS,
             Settings.HIDE_SHOP_LINK_COMMENTS, Settings.HIDE_COMMENTS_WITH_WORDS,
             Settings.HIDE_INCOMING_COMMENT_TYPING, Settings.HIDE_NEW_COMMENTS_PILL,
             Settings.HIDE_VIDEO_COMMENT_COMPOSER, Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES,
@@ -166,7 +169,7 @@ public enum PatchFamily {
     TAP_TO_PLAY(FamilyNames.TAP_TO_PLAY, "tapToPlay", null,
             Settings.TAP_TO_PLAY, Settings.TAP_TO_PLAY_REELS_AFTER_FIRST, Settings.TAP_TO_PLAY_STORIES,
             Settings.INLINE_FEED_VIDEO_CONTROLS,
-            Settings.FEED_VIDEO_CAST_BUTTON),
+            Settings.FEED_VIDEO_CAST_BUTTON, Settings.FEED_VIDEO_SEEK_BAR),
     RESUME_LONG_VIDEOS(FamilyNames.RESUME_LONG_VIDEOS, "resumeLongVideos", null,
             Settings.RESUME_LONG_VIDEOS, Settings.RECENTLY_WATCHED),
     FRAME_STEP(FamilyNames.FRAME_STEP, "frameStep", null,
@@ -536,7 +539,7 @@ public enum PatchFamily {
                 || Settings.REEL_CAST_BUTTON.savedValue();
         if (this == VIDEO_DOWNLOAD) anyOn = Settings.DOWNLOAD_VIDEOS.savedValue() || Settings.OPEN_IN_ANOTHER_APP.savedValue();
         if (this == TAP_TO_PLAY) anyOn = Settings.TAP_TO_PLAY.savedValue() || Settings.INLINE_FEED_VIDEO_CONTROLS.savedValue()
-                || Settings.FEED_VIDEO_CAST_BUTTON.savedValue();
+                || Settings.FEED_VIDEO_CAST_BUTTON.savedValue() || Settings.FEED_VIDEO_SEEK_BAR.savedValue();
         // The time switch starts on, and does nothing without the bar kept; Tap the bar to seek works alone.
         if (this == PROGRESS_BAR) anyOn = Settings.KEEP_PROGRESS_BAR.savedValue() || Settings.TAP_TO_SEEK.savedValue();
         if (this == PROMO_NOTIFICATIONS) {

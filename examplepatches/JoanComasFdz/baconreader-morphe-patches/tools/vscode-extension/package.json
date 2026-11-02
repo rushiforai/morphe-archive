@@ -1,0 +1,88 @@
+{
+  "name": "baconreader-morphe-e2e-recordings",
+  "displayName": "BaconReader Morphe e2e recordings",
+  "description": "Shows each e2e scenario's recordings of the BaconReader Morphe patches next to its code: a CodeLens, a play button and a panel that plays the MP4.",
+  "version": "0.1.0",
+  "publisher": "joancomasfdz",
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JoanComasFdz/baconreader-morphe-patches"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Testing",
+    "Visualization"
+  ],
+  "main": "./extension.js",
+  "browser": "./extension.js",
+  "activationEvents": [
+    "onLanguage:csharp"
+  ],
+  "capabilities": {
+    "virtualWorkspaces": true,
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
+  "e2eRecordings": {
+    "prefix": "baconreaderMorphe.e2eRecordings"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "baconreaderMorphe.e2eRecordings.playHere",
+        "title": "BaconReader Morphe: Play e2e recording of this scenario",
+        "icon": "$(play-circle)"
+      },
+      {
+        "command": "baconreaderMorphe.e2eRecordings.refresh",
+        "title": "BaconReader Morphe: Refresh e2e recordings"
+      },
+      {
+        "command": "baconreaderMorphe.e2eRecordings.signIn",
+        "title": "BaconReader Morphe: Sign in to GitHub to read e2e recordings"
+      },
+      {
+        "command": "baconreaderMorphe.e2eRecordings.play",
+        "title": "BaconReader Morphe: Play e2e recording"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "baconreaderMorphe.e2eRecordings.play",
+          "when": "false"
+        },
+        {
+          "command": "baconreaderMorphe.e2eRecordings.playHere",
+          "when": "editorLangId == csharp"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "baconreaderMorphe.e2eRecordings.playHere",
+          "when": "resourceLangId == csharp && resource =~ /\\/Scenarios\\/.*Tests\\.cs$/",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "BaconReader Morphe e2e recordings",
+      "properties": {
+        "baconreaderMorphe.e2eRecordings.repository": {
+          "type": "string",
+          "default": "JoanComasFdz/baconreader-morphe-patches",
+          "description": "The GitHub repository (owner/name) whose release holds the e2e recordings."
+        },
+        "baconreaderMorphe.e2eRecordings.release": {
+          "type": "string",
+          "default": "prs-resources",
+          "description": "The release's tag: the \"E2E videos\" workflow uploads the recordings to it."
+        }
+      }
+    }
+  }
+}

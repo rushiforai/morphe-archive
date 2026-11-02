@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210" height="48" viewBox="0 0 210 48">
+  <defs>
+    <linearGradient id="btnGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#EB4B64"/>
+      <stop offset="100%" stop-color="#C92A49"/>
+    </linearGradient>
+  </defs>
+  <rect width="210" height="48" rx="12" fill="url(#btnGrad)"/>
+  <g transform="translate(18, 12)" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 2.5 L20.2 7.25 L20.2 16.75 L12 21.5 L3.8 16.75 L3.8 7.25 Z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </g>
+  <text x="118" y="30" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF" text-anchor="middle">Add to Morphe</text>
+</svg>

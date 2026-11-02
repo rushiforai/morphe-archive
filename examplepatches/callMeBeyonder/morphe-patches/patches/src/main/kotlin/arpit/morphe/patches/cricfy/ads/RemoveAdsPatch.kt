@@ -5,7 +5,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.extensions.newLabel
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import arpit.morphe.patches.cricfy.shared.Constants.COMPATIBILITY_CRICFY_TV
 import arpit.morphe.patches.cricfy.shared.antiTamperPatch
 import arpit.morphe.patches.cricfy.shared.repairInvalidArrayPayloads
@@ -13,6 +12,25 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22t
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction30t
+
+/**
+ * Every smali conditional branch (`if-*`). `Opcode.name` returns the smali mnemonic
+ * (`if-ne`), not the enum constant, so the set is spelled out.
+ */
+private val CONDITIONAL_BRANCH_OPCODES = setOf(
+    Opcode.IF_EQ,
+    Opcode.IF_NE,
+    Opcode.IF_LT,
+    Opcode.IF_GE,
+    Opcode.IF_GT,
+    Opcode.IF_LE,
+    Opcode.IF_EQZ,
+    Opcode.IF_NEZ,
+    Opcode.IF_LTZ,
+    Opcode.IF_GEZ,
+    Opcode.IF_GTZ,
+    Opcode.IF_LEZ,
+)
 
 /**
  * Removes the four ad surfaces of the app:
@@ -50,11 +68,12 @@ val removeAdsPatch = bytecodePatch(
         // The payloads are unreachable (no `fill-array-data` references them); swap
         // them for minimal valid payloads before the fingerprints are resolved.
         //
-        // `Lm7;` is the R8-renamed ad manager (pinned by compatibility 7.3); the
-        // suffix-matched main activity is fully spelled out for the same reason.
+        // The ad manager is an R8-renamed short class (`Lm7;` in 7.3, `Lj7;` in 7.4),
+        // so it is located by the sponsor gate signature before anything materializes
+        // it. The suffix-matched main activity is fully spelled out for the same reason.
         //
         repairInvalidArrayPayloads(
-            "Lm7;",
+            adsManagerClassType(),
             "Lcom/android/vending/activities/MainActivity;",
         )
 
@@ -150,17 +169,25 @@ val removeAdsPatch = bytecodePatch(
         // check with an unconditional jump to its own skip label — the exact path
         // the app takes when the server disables the ad.
         //
+        // R8 lays the guard out differently per version (7.3 ends in `if-eqz v1, :skip`,
+        // 7.4 in `if-ne v1, v8, :skip` preceded by a null check that jumps to the same
+        // label), so the branch is selected structurally: the last conditional branch
+        // before the `fullTries` read whose target lies past the ad block.
+        //
         val adMethod = CustomAdFullFingerprint.method
+        val adInstructions = adMethod.instructions
 
         // The "fullTries" preference read (third fingerprint filter).
         val fullTriesIndex = CustomAdFullFingerprint.instructionMatches[2].index
 
-        val adGateIndex = adMethod.indexOfFirstInstructionReversedOrThrow(fullTriesIndex, Opcode.IF_EQZ)
-        val adGate = adMethod.instructions[adGateIndex] as? BuilderOffsetInstruction
-            ?: error("Expected an if-eqz instruction at the CustomAdFull gate index $adGateIndex.")
-        check(adGate.target.location.index > fullTriesIndex) {
-            "The sponsors[0] enabled check does not jump over the CustomAdFull ad block."
-        }
+        val adGateIndex = (fullTriesIndex - 1 downTo 0).firstOrNull { index ->
+            val instruction = adInstructions[index]
+            instruction.opcode in CONDITIONAL_BRANCH_OPCODES &&
+                (instruction as? BuilderOffsetInstruction)?.target?.location?.index
+                    ?.let { it > fullTriesIndex } == true
+        } ?: error("Could not find the sponsors[0] gate of the CustomAdFull ad block.")
+
+        val adGate = adInstructions[adGateIndex] as BuilderOffsetInstruction
 
         adMethod.replaceInstruction(adGateIndex, BuilderInstruction30t(Opcode.GOTO_32, adGate.target))
     }

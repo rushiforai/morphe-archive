@@ -10,6 +10,7 @@ import java.util.*;
 public final class PublisherProbe extends Instrumentation {
     public static final class Definition {
         public int id, homeOrder = 0;
+        public boolean showHome = true;
         public String name, source = "preset";
         Definition(int id, String name) { this.id = id; this.name = name; }
     }

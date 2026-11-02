@@ -132,6 +132,7 @@ private fun modelFingerprint(view: View?): Long {
     value = value * 31 + (view.getTag(EddiArchiveSearchUi.RESULT_SCALE_TAG)?.hashCode() ?: 0)
     value = value * 31 + (view.getTag(EddiArchiveSearchUi.REFRESH_ENABLED_TAG)?.hashCode() ?: 0)
     value = value * 31 + (view.getTag(EddiArchiveSearchUi.SEARCH_BUSY_TAG)?.hashCode() ?: 0)
+    value = value * 31 + (view.getTag(PosterHighlight.COLOR_PREVIEW_TAG)?.hashCode() ?: 0)
     value = value * 31 + view.visibility + if (view.isEnabled) 1 else 0
     when (view) {
         is TextView -> value = value * 31 + view.text.hashCode() + (view.error?.hashCode() ?: 0)
@@ -273,17 +274,10 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
                 valueRange = 0f..view.max.coerceAtLeast(1).toFloat(), enabled = view.isEnabled)
         }
         is CompoundButton -> {
-            var checked by remember(view) { mutableStateOf(view.isChecked) }
-            Row(modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = checked, onCheckedChange = { value ->
-                    checked = value
-                    view.isChecked = value
-                    changed()
-                }, enabled = view.isEnabled)
-                Text(view.text?.toString().orEmpty(), Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (view.isEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = .38f))
-            }
+            // Validation may reject a toggle (for example, automatic backup without
+            // a destination). Display the listener's final value, never an optimistic
+            // Compose-only copy that disappears when the screen/app is reopened.
+            BoundSettingRow(BoundSetting(view, view.text?.toString().orEmpty()), changed)
         }
         is ProgressBar -> {
             if (view.isIndeterminate) LinearProgressIndicator(Modifier.fillMaxWidth())

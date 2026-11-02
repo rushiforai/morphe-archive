@@ -6,11 +6,9 @@ internal fun themePaletteModule(bundle: HermesBundle): Int {
             bundle.instructions(function).filter { it.name.startsWith("GetById") }
                 .map { bundle.strings[it.args.last()] }.toSet().containsAll(setOf("theme", "children", "darkTheme", "Provider"))
     }
-    val factory = bundle.functions.single { function -> function.params == 8 && bundle.instructions(function).any {
-        it.name == "CreateClosure" && it.args[2] == provider.id
-    } }
+    val factory = bundle.metroIndex.factoriesCreating(provider.id).single()
     val index = themePaletteDependency(bundle.instructions(factory), bundle.strings)
-    val global = bundle.instructions(bundle.functions[bundle.global])
+    val global = bundle.metroIndex.globalCode
     val closure = global.withIndex().single { it.value.name == "CreateClosure" && it.value.args[2] == factory.id }
     val call = global[closure.index + 1]
     require(call.name == "Call4" && call.args[3] == closure.value.args[0]) { "Feed palette: module definition changed." }

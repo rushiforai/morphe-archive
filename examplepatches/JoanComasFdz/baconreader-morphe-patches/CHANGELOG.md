@@ -1,3 +1,84 @@
+## [1.4.0](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.3.0...v1.4.0) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** Hide formatted spoilers shows a spoiler before opening a link in it ([8984f7a](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/8984f7a60c3f63c263438e15b9db2b123cc00a5b))
+* **baconreader:** Load more comments loads the small "load more comments" again when a post opens again ([c935286](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/c9352868af9cebe378e10727ef9e3f35dccc1a73))
+* **baconreader:** Load more comments shows the title of "Comments to load" in the settings ([3bc3750](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/3bc375030a3b8b6ec12a4303fb9e022ba450a0ff))
+* **baconreader:** put the images under a post's text in the text's column ([f3b412a](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/f3b412a46255f9d4ab2c8154ecf6ee39a91f2b04))
+* **baconreader:** show "Not now" and "Set up" on the links prompt as written, as in Reseam ([8e7e03d](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/8e7e03d3a32782350553359be46dc26cb06cf586))
+* count Fix load more comments in the patches badge ([06ba802](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/06ba8022115f5d6c2b3f007f8677ed0d32747675)), closes [#65](https://github.com/JoanComasFdz/baconreader-morphe-patches/issues/65)
+* **e2e:** exit 0 from record.sh --changed-since when no scenario changed ([0ceb0d6](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/0ceb0d60fe96d07a351c361cc2ff1cebc7d488d4))
+* Install adb with the Android SDK, so Gradle stops adding platform-tools-2 ([b558028](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/b558028d7f4710b6ab6f44771c21c50cb5217bab))
+* Make connect.sh say when its exports are lost, and when --down logged out ([9723aed](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/9723aedfa3d1aab67d60fb3f09c0e8340dc10e9a))
+
+### ✨ New Features
+
+* **baconreader:** Hide formatted spoilers reads hidden spoilers as "spoiler" to accessibility ([4852c6f](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/4852c6f49ac1f3601da302fb3a516d35bb1745a1))
+* **baconreader:** Search comments names its find bar's buttons ([33b02d1](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/33b02d1761e95142e61a82a0f6678cea625a321f))
+* **baconreader:** Show tables shows its cells and button to accessibility ([61da887](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/61da887304ce9d2c20ef9090d3f625ceddc1725b))
+* Copy the e2e tests and their tools from baconreader-reseam-patches, unchanged ([fd04c04](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/fd04c0475abc4856b0d0e34b091af845f8794383))
+* Post the e2e GIFs and MP4s on pull requests, with the player page ([cb81eff](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/cb81effd09c49a5736a2298d54deb1d754a49e13))
+* Run the e2e tests with Morphe Desktop and the .mpp bundle ([6ed595e](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/6ed595e0a7266df3ca94466cb398a9af7da16d2a))
+
+## [1.4.0-dev.8](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.4.0-dev.7...v1.4.0-dev.8) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* count Fix load more comments in the patches badge ([06ba802](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/06ba8022115f5d6c2b3f007f8677ed0d32747675)), closes [#65](https://github.com/JoanComasFdz/baconreader-morphe-patches/issues/65)
+
+## [1.4.0-dev.7](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.4.0-dev.6...v1.4.0-dev.7) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** Hide formatted spoilers shows a spoiler before opening a link in it ([8984f7a](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/8984f7a60c3f63c263438e15b9db2b123cc00a5b))
+* **baconreader:** Load more comments loads the small "load more comments" again when a post opens again ([c935286](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/c9352868af9cebe378e10727ef9e3f35dccc1a73))
+* **baconreader:** Load more comments shows the title of "Comments to load" in the settings ([3bc3750](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/3bc375030a3b8b6ec12a4303fb9e022ba450a0ff))
+
+### ✨ New Features
+
+* **baconreader:** Hide formatted spoilers reads hidden spoilers as "spoiler" to accessibility ([4852c6f](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/4852c6f49ac1f3601da302fb3a516d35bb1745a1))
+* **baconreader:** Search comments names its find bar's buttons ([33b02d1](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/33b02d1761e95142e61a82a0f6678cea625a321f))
+* **baconreader:** Show tables shows its cells and button to accessibility ([61da887](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/61da887304ce9d2c20ef9090d3f625ceddc1725b))
+
+## [1.4.0-dev.6](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.4.0-dev.5...v1.4.0-dev.6) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** show "Not now" and "Set up" on the links prompt as written, as in Reseam ([8e7e03d](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/8e7e03d3a32782350553359be46dc26cb06cf586))
+
+## [1.4.0-dev.5](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.4.0-dev.4...v1.4.0-dev.5) (2026-10-31)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** put the images under a post's text in the text's column ([f3b412a](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/f3b412a46255f9d4ab2c8154ecf6ee39a91f2b04))
+
+## [1.4.0-dev.4](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.4.0-dev.3...v1.4.0-dev.4) (2026-10-26)
+
+### 🐛 Bug Fixes
+
+* **e2e:** exit 0 from record.sh --changed-since when no scenario changed ([0ceb0d6](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/0ceb0d60fe96d07a351c361cc2ff1cebc7d488d4))
+
+## [1.4.0-dev.3](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.4.0-dev.2...v1.4.0-dev.3) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* Install adb with the Android SDK, so Gradle stops adding platform-tools-2 ([b558028](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/b558028d7f4710b6ab6f44771c21c50cb5217bab))
+
+## [1.4.0-dev.2](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.4.0-dev.1...v1.4.0-dev.2) (2026-10-25)
+
+### 🐛 Bug Fixes
+
+* Make connect.sh say when its exports are lost, and when --down logged out ([9723aed](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/9723aedfa3d1aab67d60fb3f09c0e8340dc10e9a))
+
+## [1.4.0-dev.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.3.0...v1.4.0-dev.1) (2026-10-25)
+
+### ✨ New Features
+
+* Copy the e2e tests and their tools from baconreader-reseam-patches, unchanged ([fd04c04](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/fd04c0475abc4856b0d0e34b091af845f8794383))
+* Post the e2e GIFs and MP4s on pull requests, with the player page ([cb81eff](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/cb81effd09c49a5736a2298d54deb1d754a49e13))
+* Run the e2e tests with Morphe Desktop and the .mpp bundle ([6ed595e](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/6ed595e0a7266df3ca94466cb398a9af7da16d2a))
+
 ## [1.3.0](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.2.0...v1.3.0) (2026-10-24)
 
 ### ✨ New Features

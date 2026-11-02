@@ -2,6 +2,7 @@ package dev.twitchpatches.patches.twitch.settings
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -31,7 +32,7 @@ internal val settingsPatch = bytecodePatch {
             .uniqueHook("extension settings click")
         val bridgeName = "renderTwitchSettingsEntry"
         if (action.methods.any { it.name == bridgeName }) {
-            throw app.morphe.patcher.patch.PatchException("Patch settings: entry bridge already exists.")
+            throw PatchException("Patch settings: entry bridge already exists.")
         }
         action.interfaces.add(hooks.callback)
         click.code().withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }

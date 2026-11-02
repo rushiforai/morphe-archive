@@ -593,11 +593,11 @@ public final class ProgrammableNgController {
     static Object[] captureSharedReportSource(Activity activity)throws Exception{
         Object fragment=ExtraQuickFilters.visibleFragment(activity);if(fragment==null)throw new IllegalStateException("表示中のスレがありません");
         String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
-        Object source,board;
-        if("0.8.10.191 dev".equals(version)){source=field(field(fragment,"c"),"K");board=field(fragment,"W");}
+        Object source,board=NativeThreadContext.board(fragment,version);
+        if("0.8.10.191 dev".equals(version)){source=field(field(fragment,"c"),"K");}
         else{Object model=QuickFilterToolbar.findResponseViewModel(fragment);
-            if("0.8.10.226 dev".equals(version)){source=reportFlow(model,"y","c");board=reportFlow(model,"d","c");}
-            else{source=field(reportFlow(model,"l","d"),"c");board=reportFlow(model,"r","d");}}
+            if("0.8.10.226 dev".equals(version)){source=reportFlow(model,"y","c");}
+            else{source=field(reportFlow(model,"l","d"),"c");}}
         String url=boardUrl(board);if(url==null||UNKNOWN_BOARD.equals(url))throw new IllegalStateException("板情報を取得できません");
         return new Object[]{new ArrayList<>(originalResponses(source)),url};
     }

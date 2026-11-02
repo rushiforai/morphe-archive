@@ -1,3 +1,312 @@
+# Haiagaru 1.18.3
+
+## 今回の更新
+
+- Haiagaruの「保存用スレ」と「従来の保存レス」の選択一覧をAndroid標準のリストへ変更しました。スクロール位置とタップ対象を同じリストで扱い、入れ子のスクロール処理を通さず選択します。
+- 保存レスの詳細は、元の一覧を閉じてから開くようにしました。
+- ローカル自動バックアップをONにできなかった場合にもチェックだけONに見える不具合を修正しました。保存先未選択などで拒否された操作は、実際の設定値どおりに表示します。設定名の行全体からも切り替えられます。
+- 「最低限構成」「広告だけの設定プリセット」を適用・復元しても、ローカル自動バックアップのON/OFF・保存先・実行間隔・保持数・保存対象を変更しないようにしました。以前のプリセット退避情報から戻す際も現在のバックアップ設定を維持します。
+
+既にOFFになっている自動バックアップを推測でONにする動作はありません。必要な場合は保存先を確認してONにしてください。
+
+## 確認範囲
+
+191／226／242の隔離エミュレータで、一覧をスクロールした後のスレ・保存レス・従来形式のレスの選択、設定の保存、再起動・同一パッケージへの上書き更新後のON状態保持を確認しました。一括プリセットはON/OFFの両方で適用・復元を検証しています。
+
+一括プリセットが自動バックアップをOFFにする経路は再現して修正しました。APKの更新操作だけで保存済みの設定が消える現象は未再現です。アーカイブで「上に戻るだけ」の報告そのもの、およびOPPO／Android 12実機での解消は未確認です。今回の一覧変更はHaiagaruのレス保存側が対象で、ChMate標準のスレッドアーカイブのタップ処理は変更していません。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* **chmate:** preserve backup settings across presets and stabilize archive lists [skip ci] ([f20d8d7](https://github.com/areteruhiro/Haiagaru-Morphe/commit/f20d8d7df7d0e278e1da85f89cccfaf6284b7960))
+* **chmate:** synchronize dialog toggles and archive navigation ([703d5cd](https://github.com/areteruhiro/Haiagaru-Morphe/commit/703d5cd3db6e8c80a1ea401efc0a543d7459429a))
+
+# Haiagaru 1.18.3-dev.1
+
+## 今回の更新
+
+- Haiagaru形式のZIPで「書き込み履歴」を保存する際、スレごとの索引（.idx）も含めるよう修正しました。DAT本文を保存しなくても、自分の書き込みマークなどを保存・復元できます。
+- DATを含むZIPから書き込み履歴だけを復元する場合も、索引を復元し、現在のDAT本文を保持します。
+- 設定バックアップに、ローカル自動バックアップの実行間隔・保持件数・保存項目の選択を追加しました。復元先で選んだ保存フォルダ・ON/OFF・保存済みZIPの管理記録は維持します。
+- 保存項目の名称を「書き込み履歴・レスの書き込みマーク」に変更しました。
+
+今回の索引保存に対応する前のバックアップでは、DATを含めていない場合に索引が保存されていないことがあります。バックアップに存在しないマークは、この更新だけでは取り戻せません。
+
+## 確認範囲と継続調査
+
+191／226／242の隔離エミュレータで、書き込み履歴だけのZIP、DAT入りZIPからの項目別復元、ChMate本体による復元済みマークの読み取り、設定の保存・復元を確認しました。
+
+自動バックアップのON/OFF・保存先の初期化、191→242更新後の返信通知と「ここまで読んだ」の表示は継続調査中です。隔離した同一パッケージの更新検証では設定の保持、通知からのスレ表示、未読位置の表示を確認しましたが、報告と同じ症状は再現しておらず、修正済みには含めていません。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* **chmate:** synchronize dialog toggles and archive navigation ([703d5cd](https://github.com/areteruhiro/Haiagaru-Morphe/commit/703d5cd3db6e8c80a1ea401efc0a543d7459429a))
+
+# Haiagaru 1.18.2
+
+## 今回の更新
+
+- Haiagaru形式のZIPで「書き込み履歴」を保存する際、スレごとの索引（.idx）も含めるよう修正しました。DAT本文を保存しなくても、自分の書き込みマークなどを保存・復元できます。
+- DATを含むZIPから書き込み履歴だけを復元する場合も、索引を復元し、現在のDAT本文を保持します。
+- 設定バックアップに、ローカル自動バックアップの実行間隔・保持件数・保存項目の選択を追加しました。復元先で選んだ保存フォルダ・ON/OFF・保存済みZIPの管理記録は維持します。
+- 保存項目の名称を「書き込み履歴・レスの書き込みマーク」に変更しました。
+
+今回の索引保存に対応する前のバックアップでは、DATを含めていない場合に索引が保存されていないことがあります。バックアップに存在しないマークは、この更新だけでは取り戻せません。
+
+## 確認範囲と継続調査
+
+191／226／242の隔離エミュレータで、書き込み履歴だけのZIP、DAT入りZIPからの項目別復元、ChMate本体による復元済みマークの読み取り、設定の保存・復元を確認しました。
+
+自動バックアップのON/OFF・保存先の初期化、191→242更新後の返信通知と「ここまで読んだ」の表示は継続調査中です。隔離した同一パッケージの更新検証では設定の保持、通知からのスレ表示、未読位置の表示を確認しましたが、報告と同じ症状は再現しておらず、修正済みには含めていません。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* **chmate:** preserve backup response marks and schedule settings ([67579dd](https://github.com/areteruhiro/Haiagaru-Morphe/commit/67579ddaf432d6bdd73e69680880ba0c6af0d3da))
+
+# Haiagaru 1.18.1
+
+## 今回の更新
+
+- 191／226／242のスレ全メディア移動を共通化しました。サムネイルから開いた後、上下左右でスレ全体の画像・GIF・動画を移動できます。ChMateで設定した「戻る」ジェスチャーを優先します。
+- 拡大中は表示位置の調整を優先します。226／242の描画部品も拡大判定へ対応し、通常表示に戻すとメディアを移動できます。小さい画像の自動拡大は通常表示として扱います。
+- サムネイル起点のメディア一覧・開いた位置の引き継ぎをそろえました。全スレ移動OFFでは標準の動作を維持します。
+- ID／ワッチョイ検索への板情報の引き継ぎ、閲覧位置保存、共有NGのスレ情報取得を共通化しました。操作中のスレの情報を使い、別のタブの板を引き継ぎません。
+- スレ画面の準備中に一覧が非表示でも、閲覧位置を保存する処理が取り付けられるようにしました。
+- HOMEの複数選択ボタンの下部表示は、引き続き242専用です。版固有の通信・UI構造への対策と、保存済みの設定は維持します。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 確認範囲
+
+191／226／242の検証用エミュレータで起動・スレ本文・画像表示と変更箇所を確認しました。標準画像・標準GIF・専用GIF・専用動画のメディア移動、設定した戻る操作、拡大時の移動抑止、検索画面への板情報の引き継ぎを検証しています。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* **chmate:** align native thread context and zoom navigation ([2ce2680](https://github.com/areteruhiro/Haiagaru-Morphe/commit/2ce26804c19daaeae66f8fbd2f6b18f3cd460a3e))
+* **chmate:** unify whole-thread media navigation across versions ([1eb6181](https://github.com/areteruhiro/Haiagaru-Morphe/commit/1eb6181825ddfc99206d613c00f2e0817c1f6824))
+
+# Haiagaru 1.18.0
+
+## 今回の更新
+
+- 下部フィルターパネルに高さ調整つまみを追加しました。常時表示・ポップアップのどちらでも上下ドラッグで変更・保存でき、設定からつまみを隠せます。小さくしたパネル内はスクロールできます。
+- 191の「接続を再利用しない」で板・スレGETごとに接続プールを分離し、以前の接続を拾う経路を防ぎます。代替IPを試し始める間隔は250msから50msへ短縮しました。通信全体の上限の初期値は60秒で、保存済みの設定は維持します。
+- 5chの前スレリンクを開く際、作成から90日未満でも自動過去ログ取得の対象にしました。古いHTTPリンクのHTTPS化と、アーカイブ取得時の308転送に対応します。「DATの自動取得」をOFFにした場合は取得しません。
+- パッチ時の「必死の専用ビューア」OFFを、IDメニュー・保存タブ等から開く経路にも反映し、ChMate標準ビューアへ戻すよう修正しました。
+- 設定カテゴリから戻る際のスクロール位置を保持し、設定UIと投稿者の強調色見本を修正しました。
+- 242の全スレメディア移動と標準画像ビューアの上下「戻る」操作の競合を修正しました。Imgurアルバムのサムネイルを本文のURL順に表示します。
+- スレ内検索のID・ワッチョイ・名前は個別ON/OFF、初期OFFです。ヘッダーの曜日は検索対象に含めません。
+- 巡回エラーの板URL履歴と「既読スレを上に」の設定入口を191／226／242へ揃えました。板一覧の失敗応答や、226／242のキーボード表示中の投稿メニューも修正しました。
+- 共有NGの正規表現受信に対応しました。GAS側は基本ルールで自動承認し、審査済み履歴を種類別シートに保存します。ID・ワッチョイの履歴を期限で削除しません。不正な正規表現は受信時にその条件だけ適用しません。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 確認範囲
+
+191／226／242の検証用エミュレータで起動・スレ本文・画像表示・設定と変更箇所を確認しました。191の接続再利用対策は、古い接続が残るローカルサーバーで検証しています。実回線での巡回時間は板・回線・DNS等に依存します。前スレ取得はリンクの振り分けとローカル転送を検証し、過去ログサービスに保存がないスレの取得は保証しません。版固有の通信・UI構造への対策は、その対象版に限定しています。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* **chmate:** preserve settings position and repair native reader UI ([4b0f8a3](https://github.com/areteruhiro/Haiagaru-Morphe/commit/4b0f8a39e7e00739865377365baffa6f5105551a))
+* preserve native image viewer dismiss gestures during gallery navigation ([3d037b4](https://github.com/areteruhiro/Haiagaru-Morphe/commit/3d037b46cc8d2a6fe371ca44e3fec1ba662da09c))
+* restore poster highlight color previews in settings ([cd11976](https://github.com/areteruhiro/Haiagaru-Morphe/commit/cd11976e7135ce29e2fa4f155c5c96b1b4b4fe0c))
+
+### ✨ New Features
+
+* **chmate:** share patrol diagnostics and web search behavior across versions ([a2e6968](https://github.com/areteruhiro/Haiagaru-Morphe/commit/a2e6968f0d65d5b569b6c1ff036c4fbc53724c12))
+* improve 191 networking, archive links and adjustable filters ([968d107](https://github.com/areteruhiro/Haiagaru-Morphe/commit/968d10767a5c2fc79edbf7efc2610dd0c2521944))
+* **settings:** expose read-first controls across supported versions ([ce67f10](https://github.com/areteruhiro/Haiagaru-Morphe/commit/ce67f101cca3104e4af95cd4f0de469ff7aa2dbf))
+
 # Haiagaru 1.17.0
 
 ## 今回の更新

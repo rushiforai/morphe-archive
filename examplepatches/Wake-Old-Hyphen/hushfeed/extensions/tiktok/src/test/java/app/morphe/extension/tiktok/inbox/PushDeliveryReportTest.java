@@ -120,8 +120,8 @@ public class PushDeliveryReportTest {
 
     @Test public void unsupportedNativeProfileCannotReadAsGlobalQualification() {
         PushDeliveryReport.nativeProfileUnsupported();
-        assertTrue(text().contains("PineDrama unqualified"));
-        assertFalse(text().contains("global 47.5.3 installed"));
+        assertTrue(text().contains("unsupported package/version"));
+        assertFalse(text().contains("global 47.6.3 installed"));
         assertFalse(text().contains("NATIVE_UPLOAD_ACCEPTED UNKNOWN"));
     }
 

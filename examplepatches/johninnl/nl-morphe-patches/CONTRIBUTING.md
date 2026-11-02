@@ -51,6 +51,17 @@ in the next dev build. The release-note guard rejects replayed commits and keeps
 explicit shared-change app scopes mandatory. Archived changelog history remains
 available separately from each release announcement.
 
+Release checks read affected apps from file paths, and Morphe shows a repatch badge for any
+release bullet naming an app. When a commit edits an app's files without changing what its
+patches produce, such as an adapter shared with 2dehands, add an `Unchanged-Apps: Marktplaats`
+trailer. It covers only that commit, so another change to the app in the same release still
+needs its own scope.
+
+A commit editing more than one app's patch folder must declare every one of those apps in
+`Release-Apps` or `Unchanged-Apps`, or the Release safety check fails. Run
+`node .github/scripts/preview_release_notes.cjs` before pushing to `main`, because a pushed
+commit cannot gain a trailer. If one slips through, revert it and reapply it with the trailers.
+
 ## Write for users
 
 Keep Dutch and English app pages aligned. Describe each patch's visible effect,

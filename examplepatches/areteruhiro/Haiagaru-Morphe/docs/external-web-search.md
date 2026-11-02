@@ -29,3 +29,11 @@ Verification:
 
 The capturing-context test does not verify Samsung task-manager behavior or
 returning to a real thread on the reporting device. Physical-device UI QA remains.
+
+2026-11-01: `ExternalWebSearch.prepare` is also called from the existing shared
+`Haiagaru.retargetSelfIntent` launch boundary. All three versions now add NEW_TASK
+to native ACTION_WEB_SEARCH intents, including 242's for-result launcher. Query,
+explicit provider and existing flags are retained; ACTION_VIEW is unchanged.
+191's original dedicated launcher/fallback remains. Six offline runtime checks
+pass on each of 191/226/242; no real search query is submitted. See
+`docs/version-parity-20261101.md` for verification and installation status.

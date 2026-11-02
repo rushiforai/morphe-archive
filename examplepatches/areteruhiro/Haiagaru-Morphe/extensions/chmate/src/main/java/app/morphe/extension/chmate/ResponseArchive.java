@@ -575,7 +575,9 @@ public final class ResponseArchive {
                 int next = labels.size(); if (end < stored.size()) labels.add("次の100件");
                 MAIN.post(() -> {
                     if (a.isFinishing() || a.isDestroyed()) return;
-                    new HaiagaruDialog.Builder(a).setTitle(entry == null ? "保存用スレ" : "保存先のスレを選択")
+                    // Keep selection and scrolling in one native ListView. A saved
+                    // thread must not depend on nested Compose scroll/input state.
+                    new android.app.AlertDialog.Builder(a).setTitle(entry == null ? "保存用スレ" : "保存先のスレを選択")
                             .setItems(labels.toArray(new String[0]), (d, which) -> {
                                 if (which < page.size()) {
                                     if (entry == null) showCollection(a, page.get(which), 0);
@@ -690,7 +692,8 @@ public final class ResponseArchive {
                             View child = posts.getChildAt(i);
                             if (child instanceof TextView && child.hasOnClickListeners()) {
                                 final int index = i / 2;
-                                child.setOnClickListener(v -> { viewer.dismiss(); detail(a, rows.get(index), current, offset); });
+                                child.setOnClickListener(v -> viewer.dismissForNavigation(
+                                        () -> detail(a, rows.get(index), current, offset)));
                             }
                         }
                     });
@@ -731,7 +734,7 @@ public final class ResponseArchive {
                 if (offset > 0) labels.add("先頭に戻る");
                 MAIN.post(() -> {
                     if (a.isFinishing() || a.isDestroyed()) return;
-                    new HaiagaruDialog.Builder(a).setTitle("レスのアーカイブ（" + files.length + "件）")
+                    new android.app.AlertDialog.Builder(a).setTitle("レスのアーカイブ（" + files.length + "件）")
                             .setItems(labels.toArray(new String[0]), (d, which) -> {
                                 if (which < rows.size()) loadDetail(a, rows.get(which));
                                 else showLegacyList(a, more && which == rows.size() ? end : 0);

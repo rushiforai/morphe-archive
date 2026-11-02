@@ -10,6 +10,8 @@ import android.graphics.Point;
 import android.os.Build;
 import android.os.Process;
 import android.os.SystemClock;
+import android.system.Os;
+import android.system.OsConstants;
 import android.view.Display;
 import android.view.WindowManager;
 
@@ -23,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -34,20 +37,23 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
 /**
- * Builds a problem report, schema 1: the app, MicroG-RE, the device, the BYD model, BYD battery and
- * window state (from the main process), safe mode and the feature switches, Maps Car's own logs of the
- * last 3 days, up to three different crash files (with their process's logcat warnings and errors from
- * 0.1.1) and an index of all crashes, and, at Send, the comment and the consent. Every string is redacted ({@link ReportRedactor}) before the preview, and
+ * Builds a problem report, schema 1: the app, MicroG-RE, the device (with its page size and car
+ * platform from 0.1.2), the BYD model, BYD battery and window state (from the main process), safe mode
+ * and the feature switches, Maps Car's own logs of the last 3 days with the main process's logcat
+ * warnings and errors ({@link StartLogcat}, from 0.1.2), up to three different crash files (with their
+ * process's logcat warnings and errors from 0.1.1), an index of all crashes, on Android 11 and newer
+ * the processes' last exits ({@link ExitReasons}), and, at Send, the comment and the consent. Every
+ * string is redacted ({@link ReportRedactor}) before the preview, and
  * the body is cut to the size limit before the preview too, so the preview shows what is sent. Runs
  * off the main thread; reads only state the extension already holds, never the car again.
  */
 final class ReportBuilder {
-    static final int SCHEMA = 1, CONSENT_TEXT_VERSION = 3, MAX_COMMENT_CHARS = 2000;
+    static final int SCHEMA = 1, CONSENT_TEXT_VERSION = 5, MAX_COMMENT_CHARS = 2000;
     /** The main process's last battery and window state is saved at most this often, except on a window change. */
     private static final long SNAPSHOT_EVERY_MS = 60 * 1000;
     private static long snapshotAt;
     private static final int MAX_LOG_LINES = 2000, LOG_BUDGET_BYTES = 320 * 1024, PROCESS_BUDGET_BYTES = 16 * 1024,
-            MAX_LINE_CHARS = 1024, SHORT = 256;
+            MAX_LINE_CHARS = 1024, SHORT = 256, MAX_LIBRARIES = 80;
     // A cut crash file: its start and end with "\n…\n" between, 49,152 characters in all.
     private static final int CRASH_MAX_CHARS = 48 * 1024, CRASH_HEAD_CHARS = 40 * 1024,
             CRASH_TAIL_CHARS = CRASH_MAX_CHARS - CRASH_HEAD_CHARS - 3;
@@ -119,9 +125,10 @@ final class ReportBuilder {
                         : reportProcess ? fromSnapshot(snapshot, "battery") : BydBatteryPatch.reportBattery(context))
                 .put("ui", reportProcess ? fromSnapshot(snapshot, "ui") : ui(context, screen))
                 .put("safe_mode", SafeMode.report(context))
-                .put("logs", logs())
+                .put("logs", logs(context))
                 .put("crashes", crashes(context))
                 .put("crash_index", ReportStore.crashIndex(context))
+                .put("exits", orNull(ExitReasons.report(context)))
                 .put("comment", JSONObject.NULL);
         ReportRedactor redactor = new ReportRedactor();
         redact(report, redactor);
@@ -303,7 +310,50 @@ final class ReportBuilder {
                 .put("smallest_width_dp", system.smallestScreenWidthDp)
                 .put("ui_mode_type", uiModeType(system))
                 .put("night", night(system)));
+        device.put("page_size", pageSize()).put("platform", platform(context));
         return device;
+    }
+
+    // 4096 on the tested head units; 16 KiB pages are not supported.
+    private static Object pageSize() {
+        try {
+            return Os.sysconf(OsConstants._SC_PAGESIZE);
+        } catch (RuntimeException error) {
+            return JSONObject.NULL;
+        }
+    }
+
+    /**
+     * The car platform, for head units other than the tested BYD: the automotive feature (Android
+     * Automotive), whether Android Automotive's car library and the TS car adapter (the vehicle SDK of
+     * DiLink 5) load in this app, and the system's shared libraries by name.
+     */
+    private static JSONObject platform(Context context) throws JSONException {
+        PackageManager packages = context.getPackageManager();
+        JSONArray libraries = new JSONArray();
+        try {
+            String[] names = packages.getSystemSharedLibraryNames();
+            if (names != null) {
+                Arrays.sort(names);
+                for (int i = 0; i < names.length && i < MAX_LIBRARIES; i++) libraries.put(names[i]);
+            }
+        } catch (RuntimeException ignored) {
+            // Left empty.
+        }
+        return new JSONObject()
+                .put("automotive", packages.hasSystemFeature("android.hardware.type.automotive"))
+                .put("android_car", loads(context, "android.car.Car"))
+                .put("ts_car_adapter", loads(context, "com.ts.lib.caradapter.CarAdapterManager"))
+                .put("shared_libraries", libraries);
+    }
+
+    private static boolean loads(Context context, String className) {
+        try {
+            Class.forName(className, false, context.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException | LinkageError | RuntimeException error) {
+            return false;
+        }
     }
 
     static String uiModeType(Configuration configuration) {
@@ -351,7 +401,7 @@ final class ReportBuilder {
                 .put("window", window);
     }
 
-    private static JSONObject logs() throws JSONException {
+    private static JSONObject logs(Context context) throws JSONException {
         ReportLog.Recent recent = ReportLog.recent(System.currentTimeMillis() - LOG_WINDOW_MS, MAX_LOG_LINES, LOG_BUDGET_BYTES);
         JSONArray tags = new JSONArray(), lines = new JSONArray();
         for (String tag : ReportLog.TAGS) tags.put(tag);
@@ -362,7 +412,8 @@ final class ReportBuilder {
                 .put("to", orNull(recent.to))
                 .put("lines", lines)
                 .put("dropped", recent.dropped)
-                .put("process_lines", processLines());
+                .put("process_lines", processLines())
+                .put("main_logcat", orNull(StartLogcat.forReport(context)));
     }
 
     // The Morphe Logger's buffer of this process (MicroG checks and the crash handler), newest kept.

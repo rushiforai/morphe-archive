@@ -16,7 +16,11 @@ import org.json.JSONArray;
 
 /** Foreground-only checks. No alarms, background service or MEGA dependency. */
 final class LocalAutoBackup {
-    private static final String PREFS="haiagaru.local-auto-backup";
+    static final String PREFS="haiagaru.local-auto-backup";
+    /** Configuration is portable; ownership records and success times are not. */
+    static boolean backupSetting(String key){
+        return "hours".equals(key)||"keep".equals(key)||"categories".equals(key);
+    }
     private static final AtomicBoolean REGISTERED=new AtomicBoolean(), RUNNING=new AtomicBoolean();
     private static long lastAttempt;
     private static SharedPreferences prefs(Context c){return c.getSharedPreferences(PREFS,0);}

@@ -13,6 +13,9 @@ public final class PlaybackClaims {
     private Object channel;
     private boolean playing;
     private final Map<String, Attempt> attempts = new LinkedHashMap<>();
+    private WeakReference<BonusClaimer> heldClaimer = new WeakReference<>(null);
+    private Object heldChannel;
+    private String heldClaim;
 
     public synchronized void configure(Object owner, Object channelId, boolean live) {
         if (owner == null) return;
@@ -21,12 +24,14 @@ public final class PlaybackClaims {
             channel = null;
             playing = false;
             attempts.clear();
+            clearHeld();
             return;
         }
         if (player.get() != owner || !Objects.equals(channel, channelId)) {
             attempts.clear();
             playing = false;
         }
+        if (heldChannel != null && !heldChannel.equals(channelId)) clearHeld();
         player = new WeakReference<>(owner);
         channel = channelId;
     }
@@ -51,7 +56,28 @@ public final class PlaybackClaims {
                 || now < previous.time || now - previous.time < RETRY_MS)) return false;
         attempts.put(claimId, new Attempt(now, previous == null ? 1 : previous.count + 1));
         if (attempts.size() > MAX_CLAIMS) attempts.remove(attempts.keySet().iterator().next());
+        if (claimId.equals(heldClaim)) clearHeld();
         return true;
+    }
+
+    public synchronized void hold(BonusClaimer claimer, Object channelId, String claimId) {
+        if (claimer == null || channelId == null || claimId == null || claimId.isEmpty()) return;
+        heldClaimer = new WeakReference<>(claimer);
+        heldChannel = channelId;
+        heldClaim = claimId;
+    }
+
+    public synchronized void clearHeld() {
+        heldClaimer.clear();
+        heldChannel = null;
+        heldClaim = null;
+    }
+
+    public synchronized Runnable takeHeldClaim(long now) {
+        BonusClaimer claimer = heldClaimer.get();
+        String claim = heldClaim;
+        if (claimer == null || !offer(heldChannel, claim, now, true)) return null;
+        return () -> claimer.twitchPatchesClaim(claim);
     }
 
     public synchronized String readiness(Object channelId) {

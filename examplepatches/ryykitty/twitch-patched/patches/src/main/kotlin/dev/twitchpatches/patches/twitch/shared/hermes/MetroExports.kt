@@ -3,7 +3,8 @@ package dev.twitchpatches.patches.twitch.shared.hermes
 internal data class MetroExport(val module: Int, val name: String)
 
 internal class MetroExports(private val bundle: HermesBundle) {
-    private val descendantSymbols = mutableMapOf<Int, Set<String>>()
+    private val metroIndex = bundle.metroIndex
+
     fun resolveAsync(name: String, properties: Set<String>, strings: Set<String>): MetroExport {
         val target = resolve(name, setOf("apply"))
         val function = bundle.functions.single { bundle.strings[it.name] == name && it.params == 2 }
@@ -30,13 +31,11 @@ internal class MetroExports(private val bundle: HermesBundle) {
         }
     }
 
-    private fun descendants(root: HermesBundle.Function): Set<String> = descendantSymbols.getOrPut(root.id) {
+    private fun descendants(root: HermesBundle.Function): Set<String> = metroIndex.descendantSymbols.getOrPut(root.id) {
         val visited = mutableSetOf<Int>()
         val symbols = mutableSetOf<String>()
         val parentCode by lazy {
-            bundle.functions.filter { it.params == 8 }.singleOrNull { factory ->
-                bundle.instructions(factory).any { it.name == "CreateClosure" && it.args[2] == root.id }
-            }?.let(bundle::instructions).orEmpty()
+            metroIndex.factoriesCreating(root.id).singleOrNull()?.let(bundle::instructions).orEmpty()
         }
         var pending = listOf(root)
         repeat(8) {
@@ -72,9 +71,7 @@ internal class MetroExports(private val bundle: HermesBundle) {
         require(index >= 0)
         val register = body[index].args[1]
         val slot = body.take(index).last { it.name == "LoadFromEnvironment" && it.args[0] == register }.args[2]
-        val factory = bundle.functions.single { fn -> fn.params == 8 && bundle.instructions(fn).any {
-            it.name == "CreateClosure" && it.args[2] == hook.id
-        } }
+        val factory = metroIndex.factoriesCreating(hook.id).single()
         val code = bundle.instructions(factory)
         val store = code.indexOfFirst { it.name == "StoreToEnvironment" && it.args[1] == slot }
         require(store >= 2)
@@ -84,11 +81,11 @@ internal class MetroExports(private val bundle: HermesBundle) {
             call.args[3] == read.args[0]) { "Modern Twitch: React dependency flow changed." }
         val arrays = mutableListOf<List<Int>>()
         val registers = mutableMapOf<Int, Int>()
-        for (ins in bundle.instructions(bundle.functions[bundle.global])) {
+        val globalCode = metroIndex.globalCode
+        for (ins in globalCode) {
             val a = ins.args
             if (ins.name.startsWith("NewArrayWithBuffer")) registers[a[0]] = a[3]
             if (ins.name == "CreateClosure" && a[2] == factory.id) {
-                val globalCode = bundle.instructions(bundle.functions[bundle.global])
                 val closureAt = globalCode.indexOf(ins)
                 val define = globalCode.getOrNull(closureAt + 1)
                 require(define?.name == "Call4" && define.args[3] == a[0])
@@ -108,7 +105,7 @@ internal class MetroExports(private val bundle: HermesBundle) {
             }.toSet().containsAll(requiredProperties) }
         require(candidates.isNotEmpty()) { "Modern Twitch: $name contract changed." }
         val function = candidates.singleOrNull() ?: error("Modern Twitch: expected one $name function matching its contract.")
-        val parents = bundle.functions.filter { it.params == 8 }.filter { fn ->
+        val parents = metroIndex.factoriesCreating(function.id).filter { fn ->
             val instructions = bundle.instructions(fn)
             instructions.zipWithNext().any { (create, put) ->
                 create.name == "CreateClosure" && create.args[2] == function.id &&
@@ -119,14 +116,14 @@ internal class MetroExports(private val bundle: HermesBundle) {
             }
         }
         val factory = parents.singleOrNull() ?: error("Modern Twitch: expected one $name export factory.")
-        return definition(factory, name)
+        return metroIndex.export(factory, name)
     }
 
     fun resolveMemo(name: String, component: String, properties: Set<String>): MetroExport {
         val function = bundle.functions.filter { bundle.strings[it.name] == component && it.params == 2 }
             .singleOrNull() ?: error("Modern Twitch: expected one $component function.")
         require(descendants(function).containsAll(properties)) { "Modern Twitch: $component contract changed." }
-        val factory = bundle.functions.filter { it.params == 8 }.single { parent ->
+        val factory = metroIndex.factoriesCreating(function.id).single { parent ->
             val code = bundle.instructions(parent)
             code.indices.any { index ->
                 val create = code[index]
@@ -143,23 +140,23 @@ internal class MetroExports(private val bundle: HermesBundle) {
                     }
             }
         }
-        return definition(factory, name)
+        return metroIndex.export(factory, name)
     }
 
     fun resolveDeferred(name: String, properties: Set<String>, component: String = name): MetroExport {
         val function = bundle.functions.single { bundle.strings[it.name] == component && it.params == 2 }
         requireFunctionContract(component, 2, properties)
-        val factory = bundle.functions.filter { it.params == 8 }.singleOrNull { parent ->
-            val values = mutableMapOf<Int, Value>()
+        val factory = metroIndex.factoriesCreating(function.id).singleOrNull { parent ->
+            val values = mutableMapOf<Int, MetroValue>()
             var matched = false
             for (ins in bundle.instructions(parent)) {
                 val a = ins.args
                 if (ins.name.startsWith("J")) break
-                if (ins.name == "PutByIdLoose" && bundle.strings[a.last()] == name && values[a[0]] == Value.Exports)
-                    matched = values[a[1]] == Value.Closure(function.id)
-                val value: Value? = when (ins.name) {
-                    "LoadParam" -> if (a[1] == 6) Value.Exports else null
-                    "CreateClosure" -> Value.Closure(a[2])
+                if (ins.name == "PutByIdLoose" && bundle.strings[a.last()] == name && values[a[0]] == MetroValue.Exports)
+                    matched = values[a[1]] == MetroValue.Closure(function.id)
+                val value: MetroValue? = when (ins.name) {
+                    "LoadParam" -> if (a[1] == 6) MetroValue.Exports else null
+                    "CreateClosure" -> MetroValue.Closure(a[2])
                     "Mov", "MovLong" -> values[a[1]]
                     else -> null
                 }
@@ -169,30 +166,30 @@ internal class MetroExports(private val bundle: HermesBundle) {
             }
             matched
         } ?: error("Modern Twitch: expected one proven $name deferred export.")
-        return definition(factory, name)
+        return metroIndex.export(factory, name)
     }
 
     fun resolveObjectExport(name: String, keys: Set<String>, methods: Map<String, Int> = emptyMap()): MetroExport {
         require(keys.isNotEmpty())
-        val factory = bundle.functions.filter { it.params == 8 }.singleOrNull { parent ->
+        val factory = metroIndex.factoriesExporting(name).singleOrNull { parent ->
             val code = bundle.instructions(parent)
             val closures = code.filter { it.name == "CreateClosure" }.map { bundle.functions[it.args[2]] }
             if (!methods.all { (method, arity) ->
                 closures.singleOrNull { bundle.strings[it.name] == method }?.params == arity
             }) return@singleOrNull false
-            val values = mutableMapOf<Int, Value>()
+            val values = mutableMapOf<Int, MetroValue>()
             var matched = false
             for (ins in code) {
                 val a = ins.args
                 if (ins.name.startsWith("J")) break
                 if (ins.name.startsWith("PutByIdLoose") && bundle.strings[a.last()] == name &&
-                    values[a[0]] == Value.Exports) {
-                    matched = (values[a[1]] as? Value.ObjectKeys)?.keys?.containsAll(keys) == true
+                    values[a[0]] == MetroValue.Exports) {
+                    matched = (values[a[1]] as? MetroValue.ObjectKeys)?.keys?.containsAll(keys) == true
                 }
-                val value: Value? = when (ins.name) {
-                    "LoadParam" -> if (a[1] == 6) Value.Exports else null
+                val value: MetroValue? = when (ins.name) {
+                    "LoadParam" -> if (a[1] == 6) MetroValue.Exports else null
                     "NewObjectWithBuffer", "NewObjectWithBufferLong" ->
-                        Value.ObjectKeys(bundle.objectLiteral(a[1], a[2]).keys)
+                        MetroValue.ObjectKeys(bundle.objectLiteral(a[1], a[2]).keys)
                     "Mov", "MovLong" -> values[a[1]]
                     else -> null
                 }
@@ -202,41 +199,6 @@ internal class MetroExports(private val bundle: HermesBundle) {
             }
             matched
         } ?: error("Modern Twitch: expected one proven $name object export with ${keys.sorted()}.")
-        return definition(factory, name)
-    }
-
-    private fun definition(factory: HermesBundle.Function, name: String): MetroExport {
-        val modules = mutableListOf<Int>()
-        val registers = mutableMapOf<Int, Value>()
-        for (ins in bundle.instructions(bundle.functions[bundle.global])) {
-            val a = ins.args
-            val value: Value? = when (ins.name) {
-                "LoadConstZero" -> Value.Constant(0)
-                "LoadConstUInt8", "LoadConstInt" -> Value.Constant(a[1])
-                "CreateClosure" -> Value.Closure(a[2])
-                "TryGetById" -> if (bundle.strings[a.last()] == "__d") Value.Define else null
-                "Mov", "MovLong" -> registers[a[1]]
-                else -> null
-            }
-            if (ins.name == "Call4" && registers[a[1]] == Value.Define &&
-                registers[a[3]] == Value.Closure(factory.id)) {
-                val id = registers[a[4]] as? Value.Constant
-                require(id != null && id.number >= 0) { "Modern Twitch: module ID is not a proven constant." }
-                modules.add(id.number)
-            }
-            if (a.isNotEmpty() && !ins.name.startsWith("Put") && !ins.name.startsWith("Store") &&
-                !ins.name.startsWith("J") && ins.name != "Ret") {
-                if (value == null) registers.remove(a[0]) else registers[a[0]] = value
-            }
-        }
-        return MetroExport(modules.singleOrNull() ?: error("Modern Twitch: $name Metro definition is ambiguous."), name)
-    }
-
-    private sealed interface Value {
-        data class Constant(val number: Int) : Value
-        data class Closure(val function: Int) : Value
-        data class ObjectKeys(val keys: Set<String>) : Value
-        data object Define : Value
-        data object Exports : Value
+        return metroIndex.export(factory, name)
     }
 }

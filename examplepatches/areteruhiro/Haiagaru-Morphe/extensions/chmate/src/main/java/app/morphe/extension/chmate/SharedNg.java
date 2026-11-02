@@ -73,7 +73,7 @@ final class SharedNg {
         catch(RejectedExecutionException unavailable){syncQueued.set(false);}
     }
     static String configuredEndpoint(){String url=prefs().getString("endpoint","");return url==null||url.trim().isEmpty()?DEFAULT_ENDPOINT:url;}
-    static String feedEndpoint(){return endpoint()+"?action=reviewed&reporter=1&globalIdentity=1";}
+    static String feedEndpoint(){return endpoint()+"?action=reviewed&reporter=1&globalIdentity=1&regex=1&matchModes=1";}
     static String endpoint(){String url=configuredEndpoint();if(!url.matches("https://script\\.google\\.com/macros/s/[A-Za-z0-9_-]+/exec"))throw new IllegalArgumentException("GASの /exec URLを指定してください");return url;}
     static void changeEndpoint(String next){synchronized(SOURCE_LOCK){
         if(next.equals(configuredEndpoint()))return;
@@ -117,8 +117,12 @@ final class SharedNg {
         finally{busy=false;}
     }
     static List<SharedNgRules.Rule> decode(JSONArray rows)throws JSONException{if(rows.length()>10000)throw new JSONException("条件が多すぎます");List<SharedNgRules.Rule> out=new ArrayList<>();Set<String> seen=new HashSet<>();
-        for(int i=0;i<rows.length();i++){JSONObject r=rows.getJSONObject(i);SharedNgRules.Rule rule=new SharedNgRules.Rule(r.getString("id"),r.getString("board"),r.getString("kind"),r.getString("value"),r.getString("period"),r.getInt("votes"),r.optBoolean("revoked"),r.optInt("minLevel",1),r.optInt("minVotes",0));if(!seen.add(rule.id))throw new JSONException("重複ID");out.add(rule);}return Collections.unmodifiableList(out);}
-    static JSONObject encode(SharedNgRules.Rule r)throws JSONException{return new JSONObject().put("id",r.id).put("board",r.board).put("kind",r.kind).put("value",r.value).put("period",r.period).put("votes",r.votes).put("revoked",r.revoked).put("minLevel",r.minLevel).put("minVotes",r.minVotes);}
+        for(int i=0;i<rows.length();i++){
+            JSONObject r=rows.getJSONObject(i);String id=r.getString("id");if(!seen.add(id))throw new JSONException("重複ID");
+            try{out.add(new SharedNgRules.Rule(id,r.getString("board"),r.getString("kind"),r.getString("value"),r.getString("period"),r.getInt("votes"),r.optBoolean("revoked"),r.optInt("minLevel",1),r.optInt("minVotes",0),r.optBoolean("regex",false)));}
+            catch(java.util.regex.PatternSyntaxException|StackOverflowError invalid){if(!r.optBoolean("regex",false))throw invalid;}
+        }return Collections.unmodifiableList(out);}
+    static JSONObject encode(SharedNgRules.Rule r)throws JSONException{return new JSONObject().put("id",r.id).put("board",r.board).put("kind",r.kind).put("value",r.value).put("period",r.period).put("votes",r.votes).put("revoked",r.revoked).put("regex",r.regex).put("minLevel",r.minLevel).put("minVotes",r.minVotes);}
     static android.util.AtomicFile cacheFile(){return new android.util.AtomicFile(new File(context.getFilesDir(),"shared-ng-cache-v2.json.gz"));}
     /** Stream cached conditions so a large rule set is never duplicated as one JSON string. */
     static void loadCache()throws Exception{
@@ -129,16 +133,16 @@ final class SharedNg {
                 else if(key.equals("endpoint"))source=reader.nextString();
                 else if(key.equals("rules")){reader.beginArray();while(reader.hasNext()){
                     if(loaded.size()>=10000)throw new IOException("保存済み共有NGが上限を超えています");
-                    String id="",board="",kind="",value="",period="";int votes=0,minLevel=1,minVotes=0;boolean revoked=false;
+                    String id="",board="",kind="",value="",period="";int votes=0,minLevel=1,minVotes=0;boolean revoked=false,regex=false;
                     reader.beginObject();while(reader.hasNext()){switch(reader.nextName()){
                         case "id":id=reader.nextString();break;case "board":board=reader.nextString();break;case "kind":kind=reader.nextString();break;case "value":value=reader.nextString();break;case "period":period=reader.nextString();break;
-                        case "minLevel":minLevel=reader.nextInt();break;case "minVotes":minVotes=reader.nextInt();break;case "votes":votes=reader.nextInt();break;case "revoked":revoked=reader.nextBoolean();break;default:reader.skipValue();}}
-                    reader.endObject();SharedNgRules.Rule rule=new SharedNgRules.Rule(id,board,kind,value,period,votes,revoked,minLevel,minVotes);if(!ids.add(id))throw new IOException("保存済み共有NGに重複があります");loaded.add(rule);
+                        case "minLevel":minLevel=reader.nextInt();break;case "minVotes":minVotes=reader.nextInt();break;case "votes":votes=reader.nextInt();break;case "revoked":revoked=reader.nextBoolean();break;case "regex":regex=reader.nextBoolean();break;default:reader.skipValue();}}
+                    reader.endObject();SharedNgRules.Rule rule=new SharedNgRules.Rule(id,board,kind,value,period,votes,revoked,minLevel,minVotes,regex);if(!ids.add(id))throw new IOException("保存済み共有NGに重複があります");loaded.add(rule);
                 }reader.endArray();}else reader.skipValue();
             }reader.endObject();
         }
         if(format!=2)throw new IOException("共有NGキャッシュの形式が不正です");
-        synchronized(SOURCE_LOCK){if(source.equals(feedEndpoint()))rules=Collections.unmodifiableList(loaded);}
+        synchronized(SOURCE_LOCK){if(source.equals(feedEndpoint())||source.equals(endpoint()+"?action=reviewed&reporter=1&globalIdentity=1"))rules=Collections.unmodifiableList(loaded);}
     }
     static void saveCache(List<SharedNgRules.Rule> data,String endpoint)throws Exception{
         android.util.AtomicFile file=cacheFile();FileOutputStream stream=file.startWrite();
@@ -146,7 +150,7 @@ final class SharedNg {
             java.util.zip.GZIPOutputStream zipped=new java.util.zip.GZIPOutputStream(stream);
             android.util.JsonWriter writer=new android.util.JsonWriter(new OutputStreamWriter(zipped,StandardCharsets.UTF_8));
             writer.beginObject().name("format").value(2).name("endpoint").value(endpoint).name("rules").beginArray();
-            for(SharedNgRules.Rule r:data)writer.beginObject().name("id").value(r.id).name("board").value(r.board).name("kind").value(r.kind).name("value").value(r.value).name("period").value(r.period).name("votes").value(r.votes).name("revoked").value(r.revoked).name("minLevel").value(r.minLevel).name("minVotes").value(r.minVotes).endObject();
+            for(SharedNgRules.Rule r:data)writer.beginObject().name("id").value(r.id).name("board").value(r.board).name("kind").value(r.kind).name("value").value(r.value).name("period").value(r.period).name("votes").value(r.votes).name("revoked").value(r.revoked).name("regex").value(r.regex).name("minLevel").value(r.minLevel).name("minVotes").value(r.minVotes).endObject();
             writer.endArray().endObject();writer.flush();zipped.finish();file.finishWrite(stream);
         }catch(Exception e){file.failWrite(stream);throw e;}
     }

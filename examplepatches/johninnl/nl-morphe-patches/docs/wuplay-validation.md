@@ -1,4 +1,7 @@
-# Wuplay catalog publisher validation
+# Wuplay catalog publisher validation (phase 1)
+
+This records the original standalone-selector implementation. For the in-app,
+Home-only update and Android TV visibility approvals, see [phase 2](wuplay-home-channels-validation.md).
 
 Target: original `app.wuplay.androidtv` 0.9.4-beta / 49, minSdk 24.
 Original APK SHA-256: `3f6dc351f7aefeb634d55602c4921c1826555153390d7aee0f622ac7a02d0802`.

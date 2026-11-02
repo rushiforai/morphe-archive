@@ -10,7 +10,7 @@ object Constants {
             name = "IScreen",
             packageName = "com.rockstreamer.iscreen",
             apkFileType = ApkFileType.XAPK,
-            appIconColor = 0XE50019,
+            appIconColor = 0xF22E3E,
             signatures = setOf("55c2444d7e72a523828866ecf6188b95022f61c40117c52f7fbec00ad509dad6"),
             targets =
                 listOf(

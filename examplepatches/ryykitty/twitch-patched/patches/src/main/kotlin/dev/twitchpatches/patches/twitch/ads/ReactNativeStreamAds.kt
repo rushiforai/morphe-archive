@@ -2,13 +2,13 @@ package dev.twitchpatches.patches.twitch.ads
 
 import app.morphe.patcher.patch.resourcePatch
 import dev.twitchpatches.patches.twitch.shared.*
-import dev.twitchpatches.patches.twitch.shared.hermes.HermesBundle
 import dev.twitchpatches.patches.twitch.shared.hermes.MetroExports
+import dev.twitchpatches.patches.twitch.shared.hermes.twitchBundle
 
 internal val reactNativeStreamAdsPatch = resourcePatch {
     dependsOn(reactNativeBridgePatch)
     execute {
-        val exports = MetroExports(HermesBundle(get("assets/index.android.bundle").readBytes()))
+        val exports = MetroExports(twitchBundle())
         val hook = exports.resolve("useControllerState", setOf("useRef", "useSyncExternalStore"), 4)
         exports.requireFunctionContract("useControllerState", 4, setOf("subscribe", "current", "has", "value"))
         val controller = exports.resolve("createAdStateController", setOf("createNativeModuleBacking"))

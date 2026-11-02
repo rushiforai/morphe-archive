@@ -46,7 +46,7 @@ public final class VerifyTcpConnectRace {
         long start = System.nanoTime();
         TcpConnectRace.Result r = TcpConnectRace.connect(candidates, f, 15000, () -> false);
         long ms = (System.nanoTime() - start) / 1000000;
-        check(r.index == 1 && ms >= 200 && ms < 1500, "alternate starts near 250ms");
+        check(r.index == 1 && ms >= 40 && ms < 500, "alternate starts near 50ms");
         check(f.sockets.get(0).closed && !f.sockets.get(1).closed, "only winning socket retained");
         check(f.sockets.get(0).timeout == 15000 && f.sockets.get(1).timeout == 15000, "timeouts unchanged");
         r.socket.close();
@@ -66,7 +66,7 @@ public final class VerifyTcpConnectRace {
         f = new Factory();
         final long cancelAt = System.nanoTime() + 80000000;
         try {
-            TcpConnectRace.connect(candidates, f, 15000, () -> System.nanoTime() >= cancelAt);
+            TcpConnectRace.connect(Arrays.asList(address(2),address(4)), f, 15000, () -> System.nanoTime() >= cancelAt);
             throw new AssertionError("cancel must throw");
         } catch (InterruptedIOException expected) { check(f.sockets.stream().allMatch(s -> s.closed), "cancel closes active sockets"); }
         check(TcpConnectRace.connect(Collections.singletonList(address(1)), new Factory(), 15000, () -> false) == null,

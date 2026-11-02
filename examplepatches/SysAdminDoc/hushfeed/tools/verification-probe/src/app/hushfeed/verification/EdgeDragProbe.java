@@ -43,7 +43,7 @@ import org.json.JSONObject;
 
 /** Explicit, temporary native edge drags. No settings persist and no application buttons are clicked. */
 final class EdgeDragProbe {
-    private static final String TARGET = "com.zhiliaoapp.musically", VERSION = "47.5.3";
+    private static final String TARGET = "com.zhiliaoapp.musically", VERSION = "47.6.3";
     private static final String PREFIX = "app.morphe.extension.tiktok.";
     private static final String UTILS = "app.morphe.extension.shared.Utils";
     private static final String JOURNAL = "hushfeed-edge-drag-restore.json";
@@ -123,8 +123,8 @@ final class EdgeDragProbe {
             if (bounds.width() != decor.getWidth() || bounds.height() != decor.getHeight()) {
                 throw new IllegalStateException("native window is clipped; coordinate mapping refused");
             }
-            comments = unique(decor, activity.getResources().getIdentifier("epr", "id", TARGET));
-            rail = unique(decor, activity.getResources().getIdentifier("lke", "id", TARGET));
+            comments = unique(decor, activity.getResources().getIdentifier("eqi", "id", TARGET));
+            rail = unique(decor, activity.getResources().getIdentifier("ljl", "id", TARGET));
             commentBounds = visibleBounds(comments); railBounds = visibleBounds(rail);
             if (!railBounds.contains(commentBounds)) throw new IllegalStateException("comments are outside the observed native rail");
             pager = pagerAbove(rail);
@@ -508,7 +508,7 @@ final class EdgeDragProbe {
     private static Activity current(ClassLoader loader) throws Exception { return (Activity) call(loader, UTILS, "getVisibleActivity"); }
     private static void checkHost(Context context) throws Exception {
         if (Build.VERSION.SDK_INT < 34 || !TARGET.equals(context.getPackageName()) || !TARGET.equals(Application.getProcessName())
-                || !VERSION.equals(context.getPackageManager().getPackageInfo(TARGET, 0).versionName)) throw new IllegalStateException("fixture requires main TikTok 47.5.3 process on Android 14 or later");
+                || !VERSION.equals(context.getPackageManager().getPackageInfo(TARGET, 0).versionName)) throw new IllegalStateException("fixture requires main TikTok " + VERSION + " process on Android 14 or later");
     }
     private static String devices(AudioManager audio) {
         List<String> devices = new ArrayList<>();

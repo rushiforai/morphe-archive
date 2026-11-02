@@ -1,3 +1,25 @@
+## [1.17.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.16.0...v1.17.0) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* idm signature bug ([f5698e7](https://github.com/ShuhaibNC/morphe-patches/commit/f5698e750ebbe42e15e1d0242d91dbd6acfab479))
+
+### ✨ New Features
+
+* 1dm pip and bg play bypass ([405a04c](https://github.com/ShuhaibNC/morphe-patches/commit/405a04c41eac0162a299a17519657e55c96857e4))
+
+## [1.17.0-dev.2](https://github.com/ShuhaibNC/morphe-patches/compare/v1.17.0-dev.1...v1.17.0-dev.2) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* idm signature bug ([f5698e7](https://github.com/ShuhaibNC/morphe-patches/commit/f5698e750ebbe42e15e1d0242d91dbd6acfab479))
+
+## [1.17.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.16.0...v1.17.0-dev.1) (2026-11-01)
+
+### ✨ New Features
+
+* 1dm pip and bg play bypass ([405a04c](https://github.com/ShuhaibNC/morphe-patches/commit/405a04c41eac0162a299a17519657e55c96857e4))
+
 ## [1.16.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.15.0...v1.16.0) (2026-10-29)
 
 ### 🐛 Bug Fixes

@@ -7,7 +7,7 @@ import app.morphe.patches.shared.isNotExtension
 import app.morphe.patches.shared.morphe.com.android.volley.Network
 import app.morphe.patches.shared.morphe.com.android.volley.NetworkResponse
 import app.morphe.patches.shared.morphe.com.android.volley.Request
-import app.morphe.patches.shared.morphe.kotlin.String
+import app.morphe.patches.shared.morphe.java.lang.String
 import com.android.tools.smali.dexlib2.Opcode
 
 object ContentAvailabilityFieldAccessFingerprint :
@@ -19,8 +19,8 @@ object ContentAvailabilityFieldAccessFingerprint :
                     name = "content_availability",
                     type = String.toString(),
                     opcode = Opcode.IGET_OBJECT,
-                )
-            )
+                ),
+            ),
     )
 
 object PerformRequestMethodCallFingerprint :
@@ -33,7 +33,7 @@ object PerformRequestMethodCallFingerprint :
                     parameters = listOf(Request.toString()),
                     returnType = NetworkResponse.toString(),
                     opcode = Opcode.INVOKE_INTERFACE,
-                )
+                ),
             ),
         custom = ::isNotExtension,
     )

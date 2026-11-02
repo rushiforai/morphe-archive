@@ -41,7 +41,8 @@ internal fun Document.addSettingsEntry() {
     val launcher = application.child("activity-alias", "name" to "app.hushmessenger.extension.SettingsLauncher",
         "targetActivity" to "app.hushmessenger.extension.SettingsActivity", "label" to "HushMessenger settings",
         "icon" to "@android:drawable/ic_menu_preferences", "exported" to "true")
-    val filter = launcher.child("intent-filter")
+    // Android opens the first launcher match for the package (Android Auto too), so this one sorts after Messenger's.
+    val filter = launcher.child("intent-filter", "priority" to "-1")
     filter.child("action", "name" to "android.intent.action.MAIN")
     filter.child("category", "name" to "android.intent.category.LAUNCHER")
     // Launcher shortcuts start it as Messenger itself, so no other app needs a way to kill the process.
@@ -102,6 +103,7 @@ internal val settingsExtension = bytecodePatch(description = "Load HushMessenger
         messageLogContract = null
         readReceiptThreadFields = emptyMap()
         markReadRecipe = null
+        saveVoiceMenuRecipe = null
         autoReplyPictureRecipe = null
         galleryRoute = null
         galleryChatRoute = null
@@ -161,15 +163,21 @@ internal fun MutableMethod.validateHook(hook: String) {
         RECENT_MEDIA -> validateRecentMedia()
         INSTANTS_BUTTON -> validateInstantsButton()
         SAVE_VOICE -> validateSaveVoice()
+        SAVE_VOICE_MENU -> validateSaveVoiceMenu()
         HIDE_READ_RECEIPTS -> validateChatSeen()
         REPLY_READ -> validateReplyRead()
-        MARK_READ_BAR -> validateMarkReadBar()
+        MARK_READ_BAR, HIDE_CALL_BAR -> validateMarkReadBar()
         MARK_READ_CLICK -> validateMarkReadClick()
         ANALYTICS_UPLOADS -> validateAnalyticsUpload()
         ATTRIBUTION_UPLOADS -> validateAttributionUpload()
         AD_EVENTS -> validateAdEvent()
         MQTT_TELEMETRY -> validateMqttTelemetry()
         PINNED_CHATS -> validatePinnedChatLimit()
+        PIN_ROWS -> pinRowSummary() ?: throw PatchException("Messenger controls: the Pin row's check changed (${hookId()})")
+        PIN_ASK -> if (!isPinAsk()) throw PatchException("Messenger controls: the pin call changed (${hookId()})")
+        PIN_DROP -> if (!isPinDrop() || pinStepKey() == null) throw PatchException("Messenger controls: the unpin call changed (${hookId()})")
+        PIN_FULL -> pinFullSite() ?: throw PatchException("Messenger controls: the pin limit's answer changed (${hookId()})")
+        PIN_LIST -> pinListTrace() ?: throw PatchException("Messenger controls: the chat list's read changed (${hookId()})")
         NEARBY_SCANS -> validateNearbyScans()
         WIFI_IDENTITY -> validateWifiIdentity()
         PHONE_ID_SYNC -> validatePhoneIdSync()
@@ -180,6 +188,8 @@ internal fun MutableMethod.validateHook(hook: String) {
         QUIET_CALL_RING -> validateQuietCallRing()
         QUIET_CALL_NOTIFICATION -> validateQuietCallNotification()
         CAR_MESSAGES -> validateCarMessages()
+        LOCAL_CHAT_SEARCH -> validateLocalChatSearch()
+        CALL_RECORDING -> validateCallRecording()
         TEXT_STYLE -> validateTextStyleField()
         MESSAGE_LOG, AUTO_REPLY -> validateMessageLog()
         UNSENT_RECALL -> validateUnsentRecall()
@@ -188,6 +198,7 @@ internal fun MutableMethod.validateHook(hook: String) {
         ORIGINAL_VIDEO -> validateOriginalVideo()
         SYSTEM_CAMERA -> validateSystemCamera()
         EXTERNAL_GALLERY -> validateExternalGallery()
+        GALLERY_TEMP_FILE -> validateGalleryTempFile()
         GALLERY_TO_CHAT -> validateGalleryToChat()
         in CUSTOM_FONT_HOOKS -> validateCustomFont(hook)
         "avatar_tabs" -> validateKeyboardTabsInline()
@@ -230,7 +241,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "allow_screenshot" -> method.injectSwitch("$SETTINGS->allowScreenshot()Z", "0x0")
             HIDE_READ_RECEIPTS -> method.injectChatSeen()
             REPLY_READ -> method.injectReplyRead()
-            MARK_READ_BAR -> method.injectMarkReadBar()
+            MARK_READ_BAR, HIDE_CALL_BAR -> method.injectMarkReadBar()
             MARK_READ_CLICK -> method.injectMarkReadClick()
             "keep_unsent" -> method.injectKeepUnsent()
             "unsent_indicator" -> method.injectUnsentIndicator()
@@ -253,11 +264,17 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             RECENT_MEDIA -> method.injectRecentMedia()
             INSTANTS_BUTTON -> method.injectInstantsButton()
             SAVE_VOICE -> method.injectSaveVoice()
+            SAVE_VOICE_MENU -> method.injectSaveVoiceMenu()
             ANALYTICS_UPLOADS -> method.injectAnalyticsUpload()
             ATTRIBUTION_UPLOADS -> method.injectAttributionUpload()
             AD_EVENTS -> method.injectAdEvent()
             MQTT_TELEMETRY -> method.injectMqttTelemetry()
             PINNED_CHATS -> method.injectPinnedChatLimit()
+            PIN_ROWS -> method.injectPinRow()
+            PIN_ASK -> method.injectPinStep(PINNING_CALL)
+            PIN_DROP -> method.injectPinStep(UNPINNING_CALL)
+            PIN_FULL -> method.injectPinFull()
+            PIN_LIST -> method.injectPinList()
             NEARBY_SCANS -> method.injectNearbyScans()
             WIFI_IDENTITY -> method.injectWifiIdentity()
             PHONE_ID_SYNC -> method.injectPhoneIdSync()
@@ -268,6 +285,8 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             QUIET_CALL_RING -> method.injectQuietCallRing()
             QUIET_CALL_NOTIFICATION -> method.injectQuietCallNotification()
             CAR_MESSAGES -> method.injectCarMessages()
+            LOCAL_CHAT_SEARCH -> method.injectLocalChatSearch()
+            CALL_RECORDING -> method.injectCallRecording()
             TEXT_STYLE -> method.injectTextStyleField()
             MESSAGE_LOG -> method.injectMessageLog()
             UNSENT_RECALL -> method.injectUnsentRecall()
@@ -277,6 +296,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             ORIGINAL_VIDEO -> method.injectOriginalVideo()
             SYSTEM_CAMERA -> method.injectSystemCamera()
             EXTERNAL_GALLERY -> method.injectExternalGallery()
+            GALLERY_TEMP_FILE -> method.injectGalleryTempFile()
             GALLERY_TO_CHAT -> method.injectGalleryToChat()
             in CUSTOM_FONT_HOOKS -> method.injectCustomFont(hook)
             "avatar_tabs" -> method.injectKeyboardTabsInline()
@@ -323,6 +343,10 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
             // Proved on the stock classes, and the extension's half checked, before any target is edited.
             val inboxRoute = if (INBOX_REFRESH_HOOK in selected) {
                 resolveInboxRefresh(discoveredControls.getValue(INBOX_REFRESH_HOOK).single()) { classDefByOrNull(it) } to inboxRefreshStub()
+            } else null
+            val pinRoute = if (PIN_LIST in selected) {
+                val row = discoveredControls.getValue(PIN_ROWS).first { it.definingClass == PIN_MENU_ITEM }
+                resolvePinnedChatRoute(row, discoveredControls.getValue(PIN_LIST).single()) { classDefByOrNull(it) } to pinnedChatStub()
             } else null
             val emojiFontHolder = if ("emoji_typeface" in selected) {
                 discoveredControls.getValue("emoji_typeface").single().emojiFontHolder { classDefByOrNull(it) }
@@ -373,6 +397,17 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
                     host.methods.add(new)
                     host.directMethods.add(new)
                 }
+            } else if (key == SAVE_VOICE_MENU) {
+                val recipe = saveVoiceMenuRecipe ?: throw PatchException("Messenger controls: the voice message Save row's recipe is missing")
+                val host = mutableClassDefBy(SAVE_VOICE_MENU_HOST)
+                // Built before the first edit, so a changed stub stops the patch with Messenger untouched.
+                val built = SAVE_VOICE_MENU_STUBS.map { id ->
+                    val stub = host.methods.singleOrNull { it.hookId() == id }
+                        ?: throw PatchException("Messenger controls: the voice message Save row's extension stub is missing")
+                    stub to saveVoiceMenuBuilder(stub, recipe)
+                }
+                injectControl(key, methods)
+                for ((old, new) in built) { host.methods.remove(old); host.directMethods.remove(old); host.methods.add(new); host.directMethods.add(new) }
             } else if (key == AUTO_REPLY) {
                 val recipe = autoReplyPictureRecipe
                 val host = mutableClassDefBy(SETTINGS)
@@ -397,6 +432,7 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
             } else {
                 injectControl(key, methods)
                 inboxRoute?.let { (route, stub) -> stub.writeInboxRefreshRoute(route) }
+                pinRoute?.let { (route, stub) -> stub.writePinnedChatRoute(route) }
                 emojiFontHolder?.let { init ->
                     mutableClassDefBy(init.substringBefore("->")).methods.single { it.hookId() == init }.injectEmojiFontHolder()
                 }
@@ -435,7 +471,7 @@ val hideSubtabsPatch = controlPatch("subtabs", "Hide inbox tabs", "Hides the All
 @Suppress("unused")
 val hideMarkReadPatch = controlPatch("mark_read_action", "Hide Mark as read", "Hides Mark as read in the menu you get when you press and hold a chat in your chat list, so you can't mark a chat read by accident. Mark as unread stays.", "Inbox")
 @Suppress("unused")
-val pinMoreChatsPatch = controlPatch("pinned_chats", "Pin more chats", "Raises Messenger's limit of three pinned chats to 20, so you can keep more chats at the top of your chat list. Messenger's servers can still stop you sooner.", "Inbox")
+val pinMoreChatsPatch = controlPatch("pinned_chats", "Pin more chats", "Lets you pin chats past Messenger's limit and puts Pin back on chats that don't offer it. Pins past the limit stay on this phone, so they won't show on your other devices.", "Inbox", PINNED_CHATS, PIN_ROWS, PIN_ASK, PIN_DROP, PIN_FULL, PIN_LIST)
 @Suppress("unused")
 val hideFacebookPatch = controlPatch("facebook", "Hide Facebook shortcuts", "Hides Facebook buttons, profile and sharing shortcuts, and the Also from Meta and Subscriptions sections in the Menu tab. Handy if you only use Messenger.", "Navigation", "facebook", FACEBOOK_PROFILE, FACEBOOK_PROFILE_HEADER)
 @Suppress("unused")
@@ -500,6 +536,9 @@ val hideRecentMediaPatch = controlPatch("recent_media", "Hide the recent photo c
 val saveVoicePatch = controlPatch("save_voice", "Save voice messages you play",
     "Each voice message you play is also saved to Recordings/Messenger (Music/Messenger on Android 10 and 11), so your file manager and other players can open it. Playing it again doesn't save another copy. Needs Android 10 or newer.", "Photos and videos")
 @Suppress("unused")
+val saveVoiceMenuPatch = controlPatch("save_voice_menu", "Save button for voice messages",
+    "Adds Save voice message to the menu you get by holding a voice message, for saving just that one. It goes in the same folder as Save voice messages you play, and that switch can stay off.", "Photos and videos")
+@Suppress("unused")
 val hideShareStoryPatch = controlPatch("share_story", "Hide Your story when sharing",
     "When you share a photo, video or link into Messenger from another app, the Send to list no longer offers Your story, so a tap on Add can't post it by mistake. Your chats and groups are still there.", "Photos and videos")
 @Suppress("unused")
@@ -515,7 +554,17 @@ val quietIncomingCallsPatch = controlPatch("quiet_calls", "Quiet incoming calls"
     QUIET_CALL_RING, QUIET_CALL_NOTIFICATION)
 @Suppress("unused")
 val carMessagesPatch = controlPatch("car_messages", "Android Auto messages",
-    "Lets Android Auto read your Messenger messages out loud and send the replies you speak, through its own messaging screen. Android Auto only shows apps installed from the Play Store until you turn on Unknown sources in its developer settings.", "Conversations")
+    "Lets Android Auto read your Messenger messages out loud and send the replies you speak, through its own messaging screen. Android Auto only shows apps installed from the Play Store. Unknown sources in its developer settings opens that up on a desktop head unit, and a real car can still leave Messenger out.", "Conversations")
+@Suppress("unused")
+val localChatSearchPatch = controlPatch("local_chat_search", "Search saved messages",
+    "Adds a button to a chat's search results that searches the messages saved on this phone, for old chats Messenger's own search finds nothing in. It works in chats that aren't end-to-end encrypted, and it can only find what the phone has loaded.", "Conversations",
+    manifest = { addLocalSearch() })
+@Suppress("unused")
+val callRecordingPatch = controlPatch("call_recording", "Record calls",
+    "Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first.", "Conversations")
+@Suppress("unused")
+val hideCallButtonsPatch = controlPatch("hide_call_buttons", "Hide call buttons",
+    "Takes the audio and video call buttons out of a chat's top bar, so you can't tap one by accident. Calls still ring, and you can still join one that's going.", "Conversations", HIDE_CALL_BAR)
 @Suppress("unused")
 val systemCameraPatch = controlPatch("system_camera", "Use the phone's camera app",
     "The camera button in a chat opens your phone's own camera app. The photo then opens in Messenger's editor, ready to send. Photos only.", "Photos and videos",
@@ -523,7 +572,7 @@ val systemCameraPatch = controlPatch("system_camera", "Use the phone's camera ap
 @Suppress("unused")
 val externalGalleryPatch = controlPatch("external_gallery", "Open your gallery app",
     "The gallery button in a chat opens your phone's own gallery app. One photo or video opens in Messenger's editor for that chat, ready to send. Pick several and Messenger's Send to sheet opens with all of them and that chat at the top.", "Photos and videos",
-    manifest = { addExternalGallery() })
+    "external_gallery", GALLERY_TEMP_FILE, manifest = { addExternalGallery() })
 @Suppress("unused")
 val galleryToChatPatch = controlPatch("gallery_to_chat", "Put gallery picks in the chat",
     "With Open your gallery app on, what you pick goes into the chat's message box the way Messenger's own gallery puts it there, instead of the editor or the Send to sheet. Nothing goes out until you tap Send.", "Photos and videos")
@@ -551,7 +600,7 @@ val allowScreenshotPatch = controlPatch("allow_screenshot", "Allow screenshots",
 @Suppress("unused")
 val hideReadReceiptsPatch = controlPatch("hide_read_receipts", "Hide read receipts", "Opening a chat no longer tells people you read their message, and the chat stays unread on this phone. Marking it read yourself or replying in it marks it read and shows Seen, like Messenger does. Group chats aren't tested. Messenger's own Read receipts setting under Privacy & safety marks chats read without showing Seen.", "Privacy", HIDE_READ_RECEIPTS, REPLY_READ)
 @Suppress("unused")
-val markReadButtonPatch = controlPatch("mark_read_button", "Mark as read button", "Puts Messenger's Mark as read icon in a chat's top bar while Hide read receipts is on. Opening the chat still sends nothing, and a tap on the icon sends Seen and marks the chat read. It takes the place of the chat details button, since tapping the chat's name opens the same page, so the call buttons stay put.", "Privacy", MARK_READ_BAR, MARK_READ_CLICK)
+val markReadButtonPatch = controlPatch("mark_read_button", "Mark as read button", "Puts Messenger's Mark as read icon in a chat's top bar while Hide read receipts is on. Opening the chat still sends nothing, and a tap on the icon sends Seen and marks the chat read. When the bar is full it takes the place of the chat details button (tapping the chat's name opens the same page), or of another button that isn't for calls when a chat doesn't have one, so the call buttons stay put.", "Privacy", MARK_READ_BAR, MARK_READ_CLICK)
 @Suppress("unused")
 val keepUnsentPatch = controlPatch("keep_unsent", "Keep unsent messages", "Keeps messages on screen after someone unsends them, in chats where it works. In end-to-end encrypted chats the message stays in its notification instead, since the chat itself can't keep it. Group chats aren't tested.", "Privacy", "keep_unsent", "unsent_indicator", "delta_unsent", UNSENT_RECALL, UNSENT_CLEAR)
 @Suppress("unused")

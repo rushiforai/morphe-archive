@@ -22,6 +22,7 @@ import java.util.*;
 /** Display-only poster highlighting. No NG flags, model fields or DAT text are modified. */
 public final class PosterHighlight {
     static final String PREFS="haiagaru.poster-highlight";
+    static final int COLOR_PREVIEW_TAG=0x48690d01;
     private static final int ITEM=0x7e484b01;
     private static final Map<Object, PosterHighlightRules.Poster> FIRST=Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<MenuItem, Identity> MENU_TARGETS=Collections.synchronizedMap(new WeakHashMap<>());
@@ -290,12 +291,12 @@ public final class PosterHighlight {
         content.addView(scope);
         TextView colorLabel=new TextView(activity);colorLabel.setText("この登録の背景色");content.addView(colorLabel);
         Spinner ruleColor=colorSpinner(activity,true);content.addView(ruleColor);
-        TextView sample=new TextView(activity);sample.setText("名前・本文の強調色の見本");sample.setTypeface(null,Typeface.BOLD);
+        TextView sample=colorSample(activity,color);
         content.addView(sample);
         ruleColor.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
             public void onNothingSelected(AdapterView<?> p){}
             public void onItemSelected(AdapterView<?> p,android.view.View v,int position,long id){
-                sample.setBackgroundColor(position==0?color:COLORS[position-1]);
+                setSampleColor(sample,position==0?color:COLORS[position-1]);
             }
         });
         TextView priority=new TextView(activity);priority.setText("複数の登録に一致した場合は、最後に登録した条件の色を使います。");content.addView(priority);
@@ -325,6 +326,13 @@ public final class PosterHighlight {
         Button button=new Button(activity);button.setText("投稿者の強調（スレ主・ID・ﾜｯﾁｮｲ・トリップ）");
         button.setOnClickListener(v->showSettings(activity));parent.addView(button);
     }
+    private static TextView colorSample(Activity activity,int selectedColor) {
+        TextView sample=new TextView(activity);sample.setText("名前・本文の強調色の見本");sample.setTypeface(null,Typeface.BOLD);
+        setSampleColor(sample,selectedColor);return sample;
+    }
+    private static void setSampleColor(TextView sample,int selectedColor) {
+        sample.setTag(COLOR_PREVIEW_TAG,selectedColor);sample.setBackgroundColor(selectedColor);
+    }
     private static Spinner colorSpinner(Activity activity,boolean inherit) {
         ArrayList<String> labels=new ArrayList<>();
         if(inherit)labels.add("共通設定の色");
@@ -342,9 +350,13 @@ public final class PosterHighlight {
         TextView commonLabel=new TextView(activity);commonLabel.setText("共通設定の色（個別に色を指定していない登録に適用）");content.addView(commonLabel);
         Spinner colors=colorSpinner(activity,false);
         colors.setSelection(Math.max(0,Math.min(COLORS.length-1,prefs().getInt("color",0))));content.addView(colors);
+        TextView commonSample=colorSample(activity,color);content.addView(commonSample);
+        ArrayList<TextView> inheritedSamples=new ArrayList<>();
         colors.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener(){
             public void onNothingSelected(android.widget.AdapterView<?> p){}
             public void onItemSelected(android.widget.AdapterView<?> p,android.view.View v,int position,long id){
+                setSampleColor(commonSample,COLORS[position]);
+                for(TextView sample:inheritedSamples)setSampleColor(sample,COLORS[position]);
                 if(prefs().getInt("color",0)==position)return;
                 prefs().edit().putInt("color",position).apply();reload();refresh();
             }
@@ -360,9 +372,13 @@ public final class PosterHighlight {
                 copy.set(index,new PosterHighlightRules.Rule(old.kind,old.scope,old.target,old.value,on,old.colorIndex));save(copy);
             });
             Spinner individualColor=colorSpinner(activity,true);individualColor.setSelection(r.colorIndex+1);content.addView(individualColor);
+            TextView individualSample=colorSample(activity,r.colorIndex<0?color:COLORS[r.colorIndex]);content.addView(individualSample);
+            if(r.colorIndex<0)inheritedSamples.add(individualSample);
             individualColor.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
                 public void onNothingSelected(AdapterView<?> p){}
                 public void onItemSelected(AdapterView<?> p,android.view.View v,int position,long id){
+                    setSampleColor(individualSample,position==0?color:COLORS[position-1]);
+                    inheritedSamples.remove(individualSample);if(position==0)inheritedSamples.add(individualSample);
                     ArrayList<PosterHighlightRules.Rule> copy=new ArrayList<>(rules);
                     if(index>=copy.size())return;
                     PosterHighlightRules.Rule old=copy.get(index);

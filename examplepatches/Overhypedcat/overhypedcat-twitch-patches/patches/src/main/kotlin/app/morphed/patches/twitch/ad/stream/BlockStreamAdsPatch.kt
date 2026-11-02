@@ -1,9 +1,10 @@
 package app.morphed.patches.twitch.ad.stream
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphed.patches.twitch.shared.Constants.COMPATIBILITY_TWITCH
+import app.morphed.patches.twitch.shared.addInstructionsBeforeReturn
 import app.morphed.patches.twitch.shared.indicesOf
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -11,6 +12,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 private const val HTTP_CLIENT = "Lcom/amazonaws/ivs/net/HttpClient;"
 private const val WRAPPER_CLASS = "Lcom/amazonaws/ivs/net/MorphedHttpClient;"
 private const val REFRESHER_CLASS = "Lapp/morphed/extension/twitch/patches/PlayerRefresher;"
+private const val PLAYER = "Lcom/amazonaws/ivs/player/Player;"
 
 @Suppress("unused")
 val blockStreamAdsPatch = bytecodePatch(
@@ -27,7 +29,7 @@ val blockStreamAdsPatch = bytecodePatch(
         HttpClientFactoryCreateFingerprint.method.apply {
             indicesOf(Opcode.RETURN_OBJECT).forEach { returnIndex ->
                 val register = getInstruction<OneRegisterInstruction>(returnIndex).registerA
-                addInstructions(
+                addInstructionsBeforeReturn(
                     returnIndex,
                     """
                         invoke-static/range { v$register .. v$register }, $WRAPPER_CLASS->wrap($HTTP_CLIENT)$HTTP_CLIENT
@@ -41,12 +43,22 @@ val blockStreamAdsPatch = bytecodePatch(
         CorePlayerImplConstructorFingerprint.method.apply {
             val thisRegister = implementation!!.registerCount - parameters.size - 1
             indicesOf(Opcode.RETURN_VOID).forEach { returnIndex ->
-                addInstructions(
+                addInstructionsBeforeReturn(
                     returnIndex,
-                    "invoke-static/range { v$thisRegister .. v$thisRegister }, " +
-                        "$REFRESHER_CLASS->register(Lcom/amazonaws/ivs/player/Player;)V"
+                    "invoke-static/range { v$thisRegister .. v$thisRegister }, $REFRESHER_CLASS->register($PLAYER)V"
                 )
             }
+        }
+
+        // Remember which surface each player draws on, so the "Blocking ads" label can find the
+        // video of the stream being watched among all video views (previews included).
+        CorePlayerImplSetSurfaceFingerprint.method.apply {
+            val thisRegister = implementation!!.registerCount - 2
+            addInstruction(
+                0,
+                "invoke-static/range { v$thisRegister .. v${thisRegister + 1} }, " +
+                    "$REFRESHER_CLASS->onSurface($PLAYER Landroid/view/Surface;)V"
+            )
         }
     }
 }

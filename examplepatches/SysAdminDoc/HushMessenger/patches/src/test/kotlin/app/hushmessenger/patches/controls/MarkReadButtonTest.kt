@@ -67,6 +67,8 @@ private val BAR_BODY = """
     invoke-direct {v1, v8}, Ljava/util/ArrayList;-><init>(I)V
     move-object v2, p0
     const/4 v13, 0x4
+    const-string v8, "audio_call_button"
+    const-string v8, "video_call_button"
     const-string v8, "$QR_BUTTON_NAME"
     iget-object v12, v2, $SOCKET->A05:$QR_BUTTON
     iget-object v8, v12, $QR_BUTTON->A00:Landroid/content/Context;
@@ -409,6 +411,33 @@ class MarkReadButtonTest {
         assertEquals(listOf(0, 1), code[3].args())
         assertEquals(7, code.branchTarget(5))
         assertEquals(before, code.drop(7))
+    }
+
+    @Test fun bothTopBarControlsWriteTheirSharedSeamOnceInEitherOrder() {
+        for (hideFirst in listOf(true, false)) {
+            val barMethod = bar()
+            val factoryMethod = factory()
+            val clickMethod = click()
+            mirroredControls(markReadFixture(barMethod = barMethod, clickMethod = clickMethod, factoryMethod = factoryMethod))
+            val hide = { injectControl(HIDE_CALL_BUTTONS, mapOf(HIDE_CALL_BAR to listOf(barMethod, factoryMethod))) }
+            val mark = { injectControl(MARK_READ_BUTTON, mapOf(MARK_READ_BAR to listOf(barMethod, factoryMethod), MARK_READ_CLICK to listOf(clickMethod))) }
+            if (hideFirst) { hide(); mark() } else { mark(); hide() }
+            assertEquals(1, barMethod.code().count { it.ref() == MARK_READ_ADD }, "hide first: $hideFirst")
+            assertEquals(1, factoryMethod.code().count { it.ref() == MARK_READ_ADD_TO }, "hide first: $hideFirst")
+            assertEquals(1, clickMethod.code().count { it.ref() == MARK_READ_CLICKED }, "hide first: $hideFirst")
+        }
+    }
+
+    @Test fun hideCallButtonsAloneStillGetsTheSeamAndLeavesTheTapAlone() {
+        val barMethod = bar()
+        val factoryMethod = factory()
+        val clickMethod = click()
+        mirroredControls(markReadFixture(barMethod = barMethod, clickMethod = clickMethod, factoryMethod = factoryMethod))
+        val clickBefore = clickMethod.code()
+        injectControl(HIDE_CALL_BUTTONS, mapOf(HIDE_CALL_BAR to listOf(barMethod, factoryMethod)))
+        assertEquals(MARK_READ_ADD, barMethod.code()[BAR_SITE].ref())
+        assertEquals(1, factoryMethod.code().count { it.ref() == MARK_READ_ADD_TO })
+        assertEquals(clickBefore, clickMethod.code())
     }
 
     @Test fun aStrayMethodRefusesTheControlBeforeAnyEdit() {

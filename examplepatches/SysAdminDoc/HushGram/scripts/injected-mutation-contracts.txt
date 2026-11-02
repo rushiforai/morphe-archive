@@ -74,6 +74,13 @@ once-call Lapp/hushgram/extension/instagram/metaai/MetaAi;->inboxRow(Ljava/lang/
 # there and nowhere else. Left out, the notes row comes back; twice or elsewhere, it isn't the hook
 # the patch wrote. HideNotesRowHookTest checks where it lands.
 once-call Lapp/hushgram/extension/instagram/direct/NotesRow;->sections([Ljava/lang/Object;)[Ljava/lang/Object; in static (LX/*;)V holding InboxViewModelGenerator.calculateAndApplyDiffUpdate
+# The same patch asks NotesRow whether the row keeps its Map bubble, right before the method turning
+# your notes into the row's items tests that. Left out, the bubble stays with the switch on; twice or
+# elsewhere, it isn't the hook the patch wrote. NativeNotesMapTest checks where it lands.
+once-call Lapp/hushgram/extension/instagram/direct/NotesRow;->mapShown(I)I in static (LX/*;LX/*;IZZZ)LX/*; pooled holding instagram.features.direct.inbox.notes.tray.compose.ui.toNotesTrayUiState\s(NotesTrayComposeItem.kt:319)
+# The row built from views asks the same thing, and so does the first-run tip pointing at the bubble.
+once-call Lapp/hushgram/extension/instagram/direct/NotesRow;->mapShown(I)I in instance (LX/*;LX/*;)V pooled holding FriendMapEntryPoint
+once-call Lapp/hushgram/extension/instagram/direct/NotesRow;->mapShown(I)I in instance (Ljava/lang/Object;LX/*;)Ljava/lang/Object; pooled holding musicRowView
 # Hide the search bar in Messages asks at the same place, right after or right before NotesRow
 # (whichever patch went in first asks first), and InboxSearchBar drops SEARCH_BAR by name. Same
 # one method, called once there and nowhere else. HideNotesRowHookTest checks both orders.
@@ -360,6 +367,20 @@ start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPi
 shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_ShoppingCtaComponent_render
 start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hidePollPills()Z holding android_purge_26_q3_PollCTAComponent_render
 shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hidePollPills()Z holding android_purge_26_q3_PollCTAComponent_render
+start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSearchPill()Z holding android_purge_26_q3_ClipsRelatedAdsPivotComponent_render
+shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSearchPill()Z holding android_purge_26_q3_ClipsRelatedAdsPivotComponent_render
+start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_RelatedAdsPivotCTAComponent_render
+shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_RelatedAdsPivotCTAComponent_render
+start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_ShopLensCtaComponent_render
+shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_ShopLensCtaComponent_render
+start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_ShopLensBarCtaComponent_render
+shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_ShopLensBarCtaComponent_render
+start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_ShopLensPausePillComponent_render
+shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_ShopLensPausePillComponent_render
+start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_ShopLensMidSceneComponent_render
+shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_ShopLensMidSceneComponent_render
+start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_ClipsCTAComponent_renderNonSponsoredProductCta
+shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideProductPills()Z holding android_purge_26_q3_ClipsCTAComponent_renderNonSponsoredProductCta
 start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSocialFooter()Z holding android_purge_26_q3_ClipsInfoOverlayUseCase_shouldShowFloatingBubblesAboveUsername
 shared-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSocialFooter()Z holding android_purge_26_q3_ClipsInfoOverlayUseCase_shouldShowFloatingBubblesAboveUsername
 start-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSocialFooter()Z holding android_purge_26_q3_ClipsInlineCommentSocialContextComponent_render
@@ -587,6 +608,12 @@ no-call Landroid/view/SurfaceControl$Transaction;->setExtendedRangeBrightness(La
 # elsewhere, it isn't the hook the patch wrote.
 start-call Lapp/hushgram/extension/instagram/media/HdrBoost;->optionOff(JJ)Z in instance (L*;JZ)Z class-holding __fbt_null__
 once-call Lapp/hushgram/extension/instagram/media/HdrBoost;->optionOff(JJ)Z in instance (L*;JZ)Z class-holding __fbt_null__
+# The patches that read video, and the one that wants it off HDR, put VideoSurface.textureOnly first
+# in Instagram's choice of a SurfaceView, the static (UserSession, String)Z loading the marker below.
+# Left out, a video on a SurfaceView shows sharp through the glass (#430) and can still render HDR
+# (#85); twice or elsewhere, it isn't the hook the patch wrote.
+start-call Lapp/hushgram/extension/instagram/media/VideoSurface;->textureOnly()Z in static (Lcom/instagram/common/session/UserSession;Ljava/lang/String;)Z pooled holding Pixel\s10
+once-call Lapp/hushgram/extension/instagram/media/VideoSurface;->textureOnly()Z in static (Lcom/instagram/common/session/UserSession;Ljava/lang/String;)Z pooled holding Pixel\s10
 #
 # Not pinned:
 # Sanitize sharing links also sends ClipboardManager.setPrimaryClip and both Intent.createChooser
@@ -671,6 +698,14 @@ once-call Lapp/hushgram/extension/instagram/stories/StoryLoop;->loop(I)Z in inst
 # on; twice or elsewhere, it isn't the spring the patch eased.
 once-call Lapp/hushgram/extension/instagram/stories/SmoothStoryOpen;->stiffness(F)F in instance (Landroid/app/Activity;Landroid/view/ViewGroup;Lcom/instagram/common/session/UserSession;Ljava/lang/String;Z)V pooled class-holding ReelViewerAnimator.animateReveal
 once-call Lapp/hushgram/extension/instagram/stories/SmoothStoryOpen;->damping(F)F in instance (Landroid/app/Activity;Landroid/view/ViewGroup;Lcom/instagram/common/session/UserSession;Ljava/lang/String;Z)V pooled class-holding ReelViewerAnimator.animateReveal
+# Keep stories playing while zooming asks keepPlaying() first in the runnable that pauses the story
+# viewer for a pinch (0CnX on 453), which is the one run() holding the pinch's pause reason, and
+# reports every pause and resume of the viewer (A18 and A19 on 453), found by the marks they log
+# (#382). Left out, a pinch pauses the story as Instagram does; twice or elsewhere, it isn't the
+# pause the patch means.
+once-call Lapp/hushgram/extension/instagram/stories/StoryZoomPlay;->keepPlaying()Z in instance ()V holding paused_for_pinch_to_zoom
+once-call Lapp/hushgram/extension/instagram/stories/StoryZoomPlay;->paused(Ljava/lang/String;)V in static (Linstagram/features/stories/fragment/ReelViewerFragment;Ljava/lang/String;)V holding pause_story
+once-call Lapp/hushgram/extension/instagram/stories/StoryZoomPlay;->resumed()V in static (Linstagram/features/stories/fragment/ReelViewerFragment;Ljava/lang/String;Z)V holding resume_story_request_skipped
 # Swipe through a chat's reels answers the read of Instagram's own chat reels flag through chain(),
 # right after it in the test taking the session that the opener of a reel shared in a chat asks
 # (01Oo.A00 on 453's 385914285, 01PZ.A00 on 385914282, #350). Its sibling tests share the shape,
@@ -2119,6 +2154,13 @@ once-call Lapp/hushgram/extension/instagram/feed/HiddenLikeCounts;->sawCount(Lja
 # Back scrolls Home up and reloads it first; twice or elsewhere, it isn't the hook the patch wrote.
 # NativeBackLeavesHomeTest checks where it lands on all seven 450 builds.
 once-call Lapp/hushgram/extension/instagram/feed/BackLeavesHome;->leave()I in instance ()Z calling static Ljava/lang/System;->currentTimeMillis()J class-holding MainFeedFragment.scrollToTopWithReason.
+# Back leaves Home also asks BackLeavesHome.skipTapAgain first thing in the same class's handler for Back
+# at the top of the feed (04rY.FAg on 453, its one instance (Z)Z), which says "Tap again to exit" and can
+# reload with BACK_BUTTON_PRESS_AT_TOP (#54). Left out or not first, the top of the feed takes a second Back
+# and fetches a new page; twice or elsewhere, it isn't the hook the patch wrote.
+# NativeBackLeavesHomeTest checks where it lands on all eight 453 builds.
+start-call Lapp/hushgram/extension/instagram/feed/BackLeavesHome;->skipTapAgain()I in instance (Z)Z class-holding MainFeedFragment.scrollToTopWithReason.
+once-call Lapp/hushgram/extension/instagram/feed/BackLeavesHome;->skipTapAgain()I in instance (Z)Z class-holding MainFeedFragment.scrollToTopWithReason.
 # Keep your place in Home hands HomePlace.timeAway the time away right before Home's warm-start check
 # (02xG.A0F on 452, the instance (Integer)Z loading "MainFeedFragment.onHotStart") asks whether that time is
 # under the minimum for a reload, and reads the answer back into the same pair (#354). Left out, Home
@@ -2395,6 +2437,14 @@ start-call Lapp/hushgram/extension/instagram/misc/CommentsSheet;->contentShown(L
 shared-call Lapp/hushgram/extension/instagram/misc/CommentsSheet;->contentShown(Ljava/lang/Object;Ljava/lang/Object;)V in instance (Landroid/view/View;Landroid/os/Bundle;)V holding reel_comments_sheet
 start-call Lapp/hushgram/extension/instagram/misc/CommentsSheet;->contentShown(Ljava/lang/Object;Ljava/lang/Object;)V in instance (Landroid/view/View;Landroid/os/Bundle;)V lacking instance Landroid/view/View;->findViewById(I)Landroid/view/View; holding const:0x8110da000d5bec Lcom/instagram/quickpromotion/intf/Trigger;->A1L:Lcom/instagram/quickpromotion/intf/Trigger;
 shared-call Lapp/hushgram/extension/instagram/misc/CommentsSheet;->contentShown(Ljava/lang/Object;Ljava/lang/Object;)V in instance (Landroid/view/View;Landroid/os/Bundle;)V lacking instance Landroid/view/View;->findViewById(I)Landroid/view/View; holding const:0x8110da000d5bec Lcom/instagram/quickpromotion/intf/Trigger;->A1L:Lcom/instagram/quickpromotion/intf/Trigger;
+# Pure black dark mode blackens a new notification's row (#374). Each read of the Compose theme's
+# new row tint on the Notifications page goes through NewRowTint.color right after the read: the
+# row, which holds the row's trace label, its swipe background, which reads it twice, and its
+# avatar's ring. Each build merges these lambdas differently, so the trace labels pick them. Left
+# out, new rows stay gray; twice or elsewhere, it isn't the hook the patch wrote.
+once-call Lapp/hushgram/extension/instagram/misc/NewRowTint;->color(J)J in static (*)Ljava/lang/Object; pooled holding com.instagram.newsfeed.ui.buildAnnotatedString\s(NewsfeedStoryMessageState.kt:59)
+once-call Lapp/hushgram/extension/instagram/misc/NewRowTint;->color(J)J in instance (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; sites 2 pooled holding com.instagram.newsfeed.fragment.NewsfeedRow.<anonymous>\s(NewsfeedYouComposeFragment.kt:3634)
+once-call Lapp/hushgram/extension/instagram/misc/NewRowTint;->color(J)J in instance (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; pooled holding com.instagram.newsfeed.compose.ui.StartAvatar.<anonymous>.<anonymous>\s(NewsfeedStoryRow.kt:359)
 # Hide Notes on profile pictures answers the two reads of Instagram's is_consumption_disabled flag
 # for profiles through ProfileNotes.consumptionDisabled, right after each read's move-result. One
 # read is in the profile header builder, the static void method taking a Context and a View first
@@ -2437,10 +2487,11 @@ once-call Lapp/hushgram/extension/instagram/reels/FullScreenBars;->heightsAsked(
 start-call Lapp/hushgram/extension/instagram/reels/FullScreenBars;->heightsDropped(Landroid/app/Activity;Ljava/lang/Object;)V in static (Landroid/app/Activity;L*;)V holding LX/*;->*:Ljava/util/WeakHashMap; LX/*;->*:Ljava/util/List; Ljava/util/List;->remove(Ljava/lang/Object;)Z
 once-call Lapp/hushgram/extension/instagram/reels/FullScreenBars;->heightsDropped(Landroid/app/Activity;Ljava/lang/Object;)V in static (Landroid/app/Activity;L*;)V holding LX/*;->*:Ljava/util/WeakHashMap; LX/*;->*:Ljava/util/List; Ljava/util/List;->remove(Ljava/lang/Object;)Z
 # Fill the screen (#288), under Full screen Reels: Instagram's reel crop decision (08JU.A02 on 452,
-# the one method naming both purge flags below) asks ReelFill.fill with the crop percentage right
-# after working it out, and returns true (fill) on a yes. Left out, reels close to the screen's shape
-# still letterbox with the bars hidden; twice or elsewhere, it isn't the check the patch wrote.
-once-call Lapp/hushgram/extension/instagram/reels/ReelFill;->fill(F)Z in instance (Lcom/instagram/clips/intf/ClipsViewerSource;Lcom/instagram/common/session/UserSession;LX/*;LX/*;Ljava/lang/Boolean;IIZZ)Z holding android_purge_26_q2_ClipsMediaResizingUtils_shouldCropDynamic android_purge_26_q2_ClipsMediaResizingUtils_getCropPercentage
+# the one method naming both purge flags below) asks ReelFill.fill with the viewer's source and the
+# crop percentage right after working it out, and returns true (fill) on a yes. Left out, reels close
+# to the screen's shape still letterbox with the bars hidden; twice or elsewhere, it isn't the check
+# the patch wrote.
+once-call Lapp/hushgram/extension/instagram/reels/ReelFill;->fill(Ljava/lang/Object;F)Z in instance (Lcom/instagram/clips/intf/ClipsViewerSource;Lcom/instagram/common/session/UserSession;LX/*;LX/*;Ljava/lang/Boolean;IIZZ)Z holding android_purge_26_q2_ClipsMediaResizingUtils_shouldCropDynamic android_purge_26_q2_ClipsMediaResizingUtils_getCropPercentage
 # Show the whole reel (piko #2183) asks ReelFill.fit first thing in the same decision, ahead of the
 # early crop for media Instagram lets crop, and answers false (fit with bars) on a yes. Left out,
 # reels keep being cut at the sides; twice or elsewhere, it isn't the check the patch wrote.
@@ -2507,21 +2558,17 @@ once-call Lapp/hushgram/extension/instagram/feed/CommentEmojiRow;->hidesRow(I)Z 
 # out, the editor shows Instagram's fonts alone with the switch on; twice or elsewhere, a font shows
 # twice or not at all. StoryFontsHookTest finds the list in the four 452 builds.
 once-call Lapp/hushgram/extension/instagram/stories/StoryFonts;->formats(Ljava/util/List;)V in instance ()Ljava/util/ArrayList; pooled class-holding TextFormatController
-# The format made from a saved name (0EO0.A0E on 452), the one static (String) method that builds a
-# format through the ten argument builder, asks StoryFonts.named first and returns its answer when it
-# has one, so a sticker rebuilt from its IMPORT_FONT name keeps the picked font. Left out, a re-edited
-# sticker falls back to Instagram's font; later or twice, it isn't the guard the patch wrote.
-start-call Lapp/hushgram/extension/instagram/stories/StoryFonts;->named(Ljava/lang/String;)Ljava/lang/Object; in static (Ljava/lang/String;)L*; holding LX/*;->*(Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Z)LX/*;
-once-call Lapp/hushgram/extension/instagram/stories/StoryFonts;->named(Ljava/lang/String;)Ljava/lang/Object; in static (Ljava/lang/String;)L*; holding LX/*;->*(Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/Float;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Z)LX/*;
+# A sticker opened to edit it again finds its row in the editor's list by name (0GTL.A00 on 453), the
+# static (format, controller) int method in the class that logs TextFormatController, and every picked
+# font has one name, so StoryFonts.row answers first with the row of the font the sticker holds. Left
+# out, a reopened sticker draws in the first picked font and Done keeps it; twice or elsewhere, it
+# isn't the guard the patch wrote.
+once-call Lapp/hushgram/extension/instagram/stories/StoryFonts;->row(Ljava/lang/Object;Ljava/util/List;)I in static (L*;L*;)I pooled class-holding TextFormatController
 # The editor's apply (0GIp.A03 on 452), the static (EditText, format) void method that styles the text
-# itself (its sibling 0GIp.A04 styles the hint), tells StoryFonts.applied first which format it puts
-# on, so the rebuild above knows the last picked font. Left out, a rebuilt sticker never gets the
-# picked font back; twice or elsewhere, it isn't the call the patch wrote.
-start-call Lapp/hushgram/extension/instagram/stories/StoryFonts;->applied(Ljava/lang/Object;)V in static (Landroid/widget/EditText;L*;)V holding Landroid/widget/EditText;->getText()Landroid/text/Editable; LX/*;->*(Landroid/content/Context;Landroid/graphics/Paint;Landroid/text/Editable;LX/*;)V
-once-call Lapp/hushgram/extension/instagram/stories/StoryFonts;->applied(Ljava/lang/Object;)V in static (Landroid/widget/EditText;L*;)V holding Landroid/widget/EditText;->getText()Landroid/text/Editable; LX/*;->*(Landroid/content/Context;Landroid/graphics/Paint;Landroid/text/Editable;LX/*;)V
-# Right after it the same apply hands its text box to StoryEmoji.applied, which lays the picked emoji
-# font over each emoji and watches the text for more (#275). Left out, story emoji never change;
-# twice or elsewhere, it isn't the call the patch wrote.
+# itself (its sibling 0GIp.A04 styles the hint), hands its text box to StoryEmoji.applied first, which
+# lays the picked emoji font over each emoji and watches the text for more (#275). Left out, story
+# emoji never change; twice or elsewhere, it isn't the call the patch wrote.
+start-call Lapp/hushgram/extension/instagram/stories/StoryEmoji;->applied(Landroid/widget/EditText;)V in static (Landroid/widget/EditText;L*;)V holding Landroid/widget/EditText;->getText()Landroid/text/Editable; LX/*;->*(Landroid/content/Context;Landroid/graphics/Paint;Landroid/text/Editable;LX/*;)V
 once-call Lapp/hushgram/extension/instagram/stories/StoryEmoji;->applied(Landroid/widget/EditText;)V in static (Landroid/widget/EditText;L*;)V holding Landroid/widget/EditText;->getText()Landroid/text/Editable; LX/*;->*(Landroid/content/Context;Landroid/graphics/Paint;Landroid/text/Editable;LX/*;)V
 # The story text sticker (092h on 452), the drawable every story text editor makes, hands the text
 # its private (CharSequence, boolean) layout builder is given to StoryEmoji.drawing first and lays out

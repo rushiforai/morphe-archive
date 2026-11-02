@@ -14,12 +14,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This app's own lines from logcat, for crash copies of the problem report. An app without READ_LOGS
- * gets only the lines its own uid wrote, which covers Maps' code and the libraries in its processes
- * (from 0.1.1; until then reports held Maps Car's own lines only).
+ * This app's own lines from logcat, for the problem report. An app without READ_LOGS gets only the
+ * lines its own uid wrote, which covers Maps' code and the libraries in its processes (from 0.1.1;
+ * until then reports held Maps Car's own lines only).
  * <p>
- * Two uses: the warning and error lines of a crashing process, read by the crash handler before the
- * process ends, and native crashes, which run no Java handler: Android writes them to the crash log
+ * Three uses: the warning and error lines of a crashing process, read by the crash handler before the
+ * process ends; the same lines of the main process for every report ({@link StartLogcat}), read with
+ * its pid as well; and native crashes, which run no Java handler: Android writes them to the crash log
  * buffer ("Fatal signal" from libc in the crashing process, then crash_dump's tombstone lines tagged
  * DEBUG), where the next start finds them. Logcat on the head unit is short and lost with a restart,
  * so what was not read in time is gone. Plain Java, so it can be checked off the device.
@@ -87,7 +88,11 @@ final class ReportLogcat {
 
     /** The warning and error lines of process [pid], newest kept; empty when logcat cannot be read in time. */
     static List<String> processTail(int pid) {
-        return crashTail(run(Arrays.asList("logcat", "-d", "-v", "threadtime", "--pid=" + pid), CRASH_TIMEOUT_MS));
+        return processTail(pid, CRASH_TIMEOUT_MS);
+    }
+
+    static List<String> processTail(int pid, long timeoutMs) {
+        return crashTail(run(Arrays.asList("logcat", "-d", "-v", "threadtime", "--pid=" + pid), timeoutMs));
     }
 
     /** This app's entries in the crash log buffer, with epoch times. */

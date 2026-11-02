@@ -34,7 +34,13 @@ function equal(what, got, want) {
   check(`${what}: want ${JSON.stringify(want)} (got ${JSON.stringify(got)})`, got === want);
 }
 
-const supported = ['1.88.10'];
+// The supported list this decision table assumes -- the repo's shipped two-normal-target policy
+// (Constants.kt's AppTargets). The storefront fixture below is a saved 2026-10-15 page and is
+// NOT regenerated, so its served version (1.88.10) drifts further behind the policy at every
+// bump; the fixture-based expectations therefore have to be re-read at each bump (the
+// fixture-storefront case is asserted as the rollback it becomes). The synthetic scenarios
+// below pin the policy's real cases with the current version family.
+const supported = ['1.90.05', '1.89.09'];
 
 // ---- reading the storefront -------------------------------------------------
 const html = fs.readFileSync(FIXTURE, 'utf8');
@@ -54,31 +60,44 @@ equal('no binary in garbage', extractStorefrontBinary('<html>nothing here</html>
 
 // ---- version comparison ----------------------------------------------------
 check('1.10.0 is newer than 1.9.0', compareVersions('1.10.0', '1.9.0') === 1);
-check('1.88.10 equals 1.88.10', compareVersions('1.88.10', '1.88.10') === 0);
-check('1.87.0 is older than 1.88.10', compareVersions('1.87.0', '1.88.10') === -1);
-check('1.88.10 is newer than 1.88.9', compareVersions('1.88.10', '1.88.9') === 1);
+check('1.90.05 equals 1.90.05', compareVersions('1.90.05', '1.90.05') === 0);
+check('1.90.05 is newer than 1.89.09', compareVersions('1.90.05', '1.89.09') === 1);
+check('1.87.0 is older than 1.90.05', compareVersions('1.87.0', '1.90.05') === -1);
+check('1.90.05 is newer than 1.90.04', compareVersions('1.90.05', '1.90.04') === 1);
 
 // ---- the decision ----------------------------------------------------------
 const channelAhead = {
   channel: 'LIVE',
   channelId: '545256815955045',
-  version: '1.89.09',
-  versionCode: 18909000,
-  createdDate: '2026-09-29T19:32:58.000Z',
-  binaryId: '28727061943646433',
+  version: '1.90.05',
+  versionCode: 19005000,
+  createdDate: '2026-10-29T19:32:58.000Z',
+  binaryId: 'x',
 };
 
-// Today's real case: the channel has a build uploaded that the storefront does not serve yet.
-// This is the false positive the checker filed an issue for on 2026-10-15.
-const live = decide({ released, channel: channelAhead, supportedVersions: supported });
+// Today's real shape, with current versions: the channel has the newest supported build
+// uploaded while the storefront still serves the previous one. This is the false positive the
+// checker filed an issue for on 2026-10-15 (then: channel 1.89.09, storefront 1.88.10).
+const live = decide({
+  released: { version: '1.89.09', versionCode: 18909000, binaryId: 'x' },
+  channel: channelAhead,
+  supportedVersions: supported,
+});
 equal('channel ahead of storefront -> no update', live.hasUpdate, false);
 equal('channel ahead of storefront -> confirmed', live.confirmed, true);
 equal('channel ahead of storefront -> noted', live.uploadedNotReleased, true);
 
-// A genuine release: the storefront serves something new, so it is downloadable.
+// The saved fixture's storefront (1.88.10, fetched 2026-10-15) is now OLDER than the oldest
+// supported version -- with the current policy it reads as a rollback against the channel's
+// 1.90.05: no update filed, flagged as a rollback.
+const fixtureRollback = decide({ released, channel: channelAhead, supportedVersions: supported });
+equal('fixture storefront (1.88.10, dropped) -> no update', fixtureRollback.hasUpdate, false);
+equal('fixture storefront (1.88.10, dropped) -> rollback', fixtureRollback.isRollback, true);
+
+// A genuine release: the storefront serves something newer than every supported version.
 const genuine = decide({
-  released: { version: '1.89.09', versionCode: 18909000, binaryId: 'x' },
-  channel: channelAhead,
+  released: { version: '1.91.00', versionCode: 19100000, binaryId: 'x' },
+  channel: { ...channelAhead, version: '1.91.00', versionCode: 19100000 },
   supportedVersions: supported,
 });
 equal('storefront serves a new version -> update', genuine.hasUpdate, true);
@@ -94,36 +113,42 @@ const rollback = decide({
 equal('older storefront version -> no update', rollback.hasUpdate, false);
 equal('older storefront version -> flagged as rollback', rollback.isRollback, true);
 
-// Storefront unreadable: fall back to the channel answer, but say it is unconfirmed.
-const unreadable = decide({ released: null, channel: channelAhead, supportedVersions: supported });
+// Storefront unreadable: fall back to the channel answer, but say it is unconfirmed. The
+// channel's build is one nobody supports yet, so it is still an update worth reporting.
+const unreadable = decide({
+  released: null,
+  channel: { ...channelAhead, version: '1.91.00', versionCode: 19100000 },
+  supportedVersions: supported,
+});
 equal('unreadable storefront -> still reports the channel', unreadable.hasUpdate, true);
 equal('unreadable storefront -> unconfirmed', unreadable.confirmed, false);
 equal('unreadable storefront -> nothing claimed as released', unreadable.released, null);
 
 // A storefront that matches what we support, while the channel is also up to date.
 const quiet = decide({
-  released: { version: '1.88.10', versionCode: 18810000, binaryId: 'x' },
-  channel: { ...channelAhead, version: '1.88.10' },
+  released: { version: '1.90.05', versionCode: 19005000, binaryId: 'x' },
+  channel: channelAhead,
   supportedVersions: supported,
 });
 equal('everything current -> no update', quiet.hasUpdate, false);
 equal('everything current -> nothing pending', quiet.uploadedNotReleased, false);
 
-// An experimental target for a *different* version does not cover 1.89.09: this repo matches
+// An experimental target for a *different* version does not cover 1.91.02: this repo matches
 // versions exactly (an unlisted version is skipped, not failed -- see docs/VERSIONING.md), so a
-// build that is not listed is still worth reporting.
+// build that is not listed is still worth reporting. ('1.91.00' would not do here: it compares
+// numerically EQUAL to '1.91.0', so the not-newer branch would mask the membership difference.)
 const withExperimental = decide({
-  released: { version: '1.89.09', versionCode: 18909000, binaryId: 'x' },
-  channel: channelAhead,
-  supportedVersions: ['1.88.10', '1.89.0'],
+  released: { version: '1.91.02', versionCode: 19102000, binaryId: 'x' },
+  channel: { ...channelAhead, version: '1.91.02', versionCode: 19102000 },
+  supportedVersions: ['1.90.05', '1.91.0'],
 });
-equal('an experimental target for 1.89.0 does not cover 1.89.09', withExperimental.hasUpdate, true);
+equal('an experimental target for 1.91.0 does not cover 1.91.02', withExperimental.hasUpdate, true);
 
 // ...but an exact experimental target does.
 const exactExperimental = decide({
-  released: { version: '1.89.0', versionCode: 18900000, binaryId: 'x' },
-  channel: { ...channelAhead, version: '1.89.0' },
-  supportedVersions: ['1.88.10', '1.89.0'],
+  released: { version: '1.91.0', versionCode: 19100000, binaryId: 'x' },
+  channel: { ...channelAhead, version: '1.91.0', versionCode: 19100000 },
+  supportedVersions: ['1.90.05', '1.91.0'],
 });
 equal('an exact experimental target is supported', exactExperimental.hasUpdate, false);
 

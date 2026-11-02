@@ -28,6 +28,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowDialog;
+import org.robolectric.shadows.ShadowToast;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
@@ -206,23 +207,22 @@ public class SettingsDialogTest {
             awaitText(root, "Message " + (count - 1));
             layout(root);
             ScrollView scroll = root.findViewWithTag("dialog_scroll");
-            LinearLayout list = (LinearLayout) ((ViewGroup) scroll.getChildAt(0)).getChildAt(0);
-            // The retention line, then one page.
-            assertEquals(1 + page, list.getChildCount());
+            LinearLayout list = root.findViewWithTag("message_log_results");
+            assertEquals(page, list.getChildCount());
             for (int built = page; built < count; built = Math.min(count, built + page)) {
                 scroll.scrollTo(0, scroll.getChildAt(0).getHeight());
                 // Scrolled twice before the page it asked for is built, it still gets one page.
                 scroll.scrollTo(0, scroll.getScrollY() - 1);
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
-                assertEquals(1 + Math.min(count, built + page), list.getChildCount());
+                assertEquals(Math.min(count, built + page), list.getChildCount());
                 // Scrolled again before that page is laid out, it doesn't take it for the end and pull in the next.
                 scroll.scrollTo(0, scroll.getScrollY() - 1);
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
-                assertEquals(1 + Math.min(count, built + page), list.getChildCount());
+                assertEquals(Math.min(count, built + page), list.getChildCount());
                 layout(root);
             }
             // Every entry is reachable, newest first.
-            for (int i = 0; i < count; i++) assertNotNull(findText(list.getChildAt(1 + i), "Message " + (count - 1 - i)));
+            for (int i = 0; i < count; i++) assertNotNull(findText(list.getChildAt(i), "Message " + (count - 1 - i)));
         }
     }
 
@@ -250,6 +250,162 @@ public class SettingsDialogTest {
             ((TextView) root.findViewWithTag("message_log_unsent_only")).performClick();
             awaitText(root, "still here");
             assertNotNull(findText(root, "kept one"));
+        }
+    }
+
+    private static void awaitToast(String expected) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + 5000;
+        do {
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            if (expected.equals(ShadowToast.getTextOfLatestToast())) return;
+            Thread.sleep(20);
+        } while (System.currentTimeMillis() < deadline);
+        fail("Missing toast: " + expected + "; latest toast: " + ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void theSearchBoxNarrowsTheLogAndIgnoresAccents() throws Exception {
+        long now = System.currentTimeMillis();
+        MessageLog.write(Settings.appContext, List.of(
+            new MessageLog.Entry(now - 2000, "t1", "Hẹn gặp ở quán cà phê", "Ana", "", "mid.1", false),
+            new MessageLog.Entry(now - 1000, "t2", "lunch tomorrow", "Ben", "", "mid.2", false)));
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            SettingsText text = new SettingsText(screen.get());
+            screen.get().getWindow().getDecorView().findViewWithTag("message_log_view").performClick();
+            View root = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+            awaitText(root, "lunch tomorrow");
+            android.widget.EditText search = root.findViewWithTag("message_log_search");
+            search.setText("QUAN ca phe");
+            assertNotNull(findText(root, "Hẹn gặp ở quán cà phê"));
+            assertNull(findText(root, "lunch tomorrow"));
+            // A sender's name counts as well as the words, and the box keeps its place while the results change.
+            search.setText("ben");
+            assertSame(search, root.findViewWithTag("message_log_search"));
+            assertNotNull(findText(root, "lunch tomorrow"));
+            assertNull(findText(root, "Hẹn gặp ở quán cà phê"));
+            search.setText("nobody said this");
+            TextView none = root.findViewWithTag("message_log_no_match");
+            assertEquals(text.get("message_log_no_match"), none.getText().toString());
+            assertFalse(root.findViewWithTag("message_log_save_text").isEnabled());
+            assertFalse(root.findViewWithTag("message_log_save_csv").isEnabled());
+            search.setText("");
+            assertNotNull(findText(root, "lunch tomorrow"));
+            assertTrue(root.findViewWithTag("message_log_save_csv").isEnabled());
+        }
+    }
+
+    @Test public void theByChatViewOpensAChatAndGoesBack() throws Exception {
+        long now = System.currentTimeMillis();
+        MessageLog.write(Settings.appContext, List.of(
+            new MessageLog.Entry(now - 3000, "t1", "first from ana", "Ana", "", "mid.1", false),
+            new MessageLog.Entry(now - 2000, "t2", "from the group", "Ben", "Trip", "mid.2", false),
+            new MessageLog.Entry(now - 1000, "t1", "second from ana", "Ana", "", "mid.3", false)));
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            SettingsText text = new SettingsText(screen.get());
+            screen.get().getWindow().getDecorView().findViewWithTag("message_log_view").performClick();
+            View root = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+            awaitText(root, "second from ana");
+            TextView byChat = root.findViewWithTag("message_log_by_chat");
+            assertEquals(text.get("message_log_by_chat"), byChat.getText().toString());
+            byChat.performClick();
+            assertEquals(text.get("message_log_by_date"), byChat.getText().toString());
+            assertNull(findText(root, "second from ana"));
+            LinearLayout results = root.findViewWithTag("message_log_results");
+            assertEquals(2, results.getChildCount());
+            // The most recent chat first, under the group's name when it has one.
+            assertNotNull(findText(results.getChildAt(0), "Ana"));
+            assertNotNull(findText(results.getChildAt(1), "Trip"));
+            results.getChildAt(1).performClick();
+            assertNotNull(findText(root, "from the group"));
+            assertNull(findText(root, "first from ana"));
+            root.findViewWithTag("message_log_all_chats").performClick();
+            assertEquals(2, ((LinearLayout) root.findViewWithTag("message_log_results")).getChildCount());
+            byChat.performClick();
+            assertNotNull(findText(root, "first from ana"));
+            assertNotNull(findText(root, "from the group"));
+        }
+    }
+
+    @Test public void eachSaveButtonWritesWhatTheLogIsShowingToThePickedFile() throws Exception {
+        long now = System.currentTimeMillis();
+        MessageLog.write(Settings.appContext, List.of(
+            new MessageLog.Entry(now - 2000, "t1", "keep this line", "Ana", "", "mid.1", false),
+            new MessageLog.Entry(now - 1000, "t2", "not this one", "Ben", "", "mid.2", false)));
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            SettingsActivity activity = screen.get();
+            SettingsText text = new SettingsText(activity);
+            activity.getWindow().getDecorView().findViewWithTag("message_log_view").performClick();
+            View root = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+            awaitText(root, "not this one");
+            ((android.widget.EditText) root.findViewWithTag("message_log_search")).setText("keep");
+
+            root.findViewWithTag("message_log_save_text").performClick();
+            var request = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+            assertEquals(android.content.Intent.ACTION_CREATE_DOCUMENT, request.intent.getAction());
+            assertEquals("text/plain", request.intent.getType());
+            assertTrue(request.intent.getStringExtra(android.content.Intent.EXTRA_TITLE).endsWith(".txt"));
+            android.net.Uri textFile = android.net.Uri.parse("content://test/log.txt");
+            java.io.ByteArrayOutputStream textOut = new java.io.ByteArrayOutputStream();
+            Shadows.shadowOf(activity.getContentResolver()).registerOutputStream(textFile, textOut);
+            activity.onActivityResult(request.requestCode, android.app.Activity.RESULT_OK, new android.content.Intent().setData(textFile));
+            awaitToast(text.get("message_log_saved", "1"));
+            String saved = textOut.toString("UTF-8");
+            assertTrue(saved, saved.contains("keep this line"));
+            assertFalse(saved, saved.contains("not this one"));
+
+            root.findViewWithTag("message_log_save_csv").performClick();
+            request = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+            assertEquals("text/csv", request.intent.getType());
+            assertTrue(request.intent.getStringExtra(android.content.Intent.EXTRA_TITLE).endsWith(".csv"));
+            android.net.Uri csvFile = android.net.Uri.parse("content://test/log.csv");
+            java.io.ByteArrayOutputStream csvOut = new java.io.ByteArrayOutputStream();
+            Shadows.shadowOf(activity.getContentResolver()).registerOutputStream(csvFile, csvOut);
+            ShadowToast.reset();
+            activity.onActivityResult(request.requestCode, android.app.Activity.RESULT_OK, new android.content.Intent().setData(csvFile));
+            awaitToast(text.get("message_log_saved", "1"));
+            saved = csvOut.toString("UTF-8");
+            assertTrue(saved, saved.contains("\"keep this line\""));
+            assertFalse(saved, saved.contains("not this one"));
+
+            // Backing out of the picker saves nothing and says nothing.
+            root.findViewWithTag("message_log_save_text").performClick();
+            request = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+            ShadowToast.reset();
+            activity.onActivityResult(request.requestCode, android.app.Activity.RESULT_CANCELED, null);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(0, ShadowToast.shownToastCount());
+        }
+    }
+
+    @Test public void theExpiryCopySwitchStartsOffAndSitsUnderTheLog() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            android.widget.Switch copy = screen.get().getWindow().getDecorView().findViewWithTag(MessageLog.SAVE_EXPIRING);
+            // Android 9 has no way to reach Download/Messenger without a storage permission.
+            if (Build.VERSION.SDK_INT < 29) {
+                assertNull(copy);
+                return;
+            }
+            assertFalse(copy.isChecked());
+            copy.performClick();
+            assertTrue(Settings.preferences.getBoolean(MessageLog.SAVE_EXPIRING, false));
+            assertEquals(MessageLog.KEY, Settings.SUB_SWITCHES.get(MessageLog.SAVE_EXPIRING));
+        }
+    }
+
+    @Test public void aSaveThatCantWriteSaysSo() throws Exception {
+        MessageLog.write(Settings.appContext, List.of(new MessageLog.Entry(System.currentTimeMillis(), "t", "a line")));
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            SettingsActivity activity = screen.get();
+            SettingsText text = new SettingsText(activity);
+            activity.getWindow().getDecorView().findViewWithTag("message_log_view").performClick();
+            View root = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+            awaitText(root, "a line");
+            root.findViewWithTag("message_log_save_text").performClick();
+            var request = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+            activity.onActivityResult(request.requestCode, android.app.Activity.RESULT_OK, new android.content.Intent().setData(android.net.Uri.parse("file:///sdcard/log.txt")));
+            awaitToast(text.get("message_log_save_failed"));
+            // The picker isn't stuck: the button opens it again.
+            root.findViewWithTag("message_log_save_text").performClick();
+            assertNotNull(Shadows.shadowOf(activity).getNextStartedActivityForResult());
         }
     }
 
@@ -308,8 +464,8 @@ public class SettingsDialogTest {
             layout(root);
             ScrollView scroll = root.findViewWithTag("dialog_scroll");
             View content = scroll.getChildAt(0);
-            LinearLayout list = (LinearLayout) ((ViewGroup) content).getChildAt(0);
-            assertEquals(1 + page, list.getChildCount());
+            LinearLayout list = root.findViewWithTag("message_log_results");
+            assertEquals(page, list.getChildCount());
             // A window three first pages taller than the phone's, like a tablet's, shows the first page whole.
             int tall = 844 + 3 * content.getHeight();
             for (int pass = 0, before = -1; pass < 30 && list.getChildCount() != before; pass++) {
@@ -319,7 +475,7 @@ public class SettingsDialogTest {
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
             }
             layout(root, tall);
-            int built = list.getChildCount() - 1;
+            int built = list.getChildCount();
             assertTrue("Only " + built + " built", built > page);
             // It stops once the end is a screen away, well short of the whole log.
             assertTrue("Built " + built + " of " + count, built < count);
@@ -345,16 +501,15 @@ public class SettingsDialogTest {
             scroll.scrollTo(0, scroll.getChildAt(0).getHeight());
             first.dismiss();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
-            LinearLayout closed = (LinearLayout) ((ViewGroup) scroll.getChildAt(0)).getChildAt(0);
-            assertEquals(1 + page, closed.getChildCount());
+            LinearLayout closed = root.findViewWithTag("message_log_results");
+            assertEquals(page, closed.getChildCount());
             settings.findViewWithTag("message_log_view").performClick();
             Dialog second = ShadowDialog.getLatestDialog();
             assertNotSame(first, second);
             View reopened = second.getWindow().getDecorView();
             awaitText(reopened, "Message " + (count - 1));
             layout(reopened);
-            ScrollView again = reopened.findViewWithTag("dialog_scroll");
-            assertEquals(1 + page, ((ViewGroup) ((ViewGroup) again.getChildAt(0)).getChildAt(0)).getChildCount());
+            assertEquals(page, ((ViewGroup) reopened.findViewWithTag("message_log_results")).getChildCount());
         }
     }
 

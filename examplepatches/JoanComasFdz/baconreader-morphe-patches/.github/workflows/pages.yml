@@ -1,0 +1,30 @@
+name: Deploy site
+
+# Publishes site/ (the e2e recordings' player page, e2e-player.html: docs/hosting.md, "E2E videos on pull requests") to
+# the root of the gh-pages branch, as destiny-loopsmith's pages.yml publishes its site with its player page.
+# One-time setup (docs/hosting.md): Settings → Pages → Source: "Deploy from a branch", gh-pages, / (root).
+
+on:
+  push:
+    branches: [main, dev]
+    paths: ['site/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Deploy to gh-pages
+        uses: JamesIves/github-pages-deploy-action@fa24774553152dd7873cd16ebd8d959b010c5445 # v4.9.0
+        with:
+          branch: gh-pages
+          folder: site
+          force: false

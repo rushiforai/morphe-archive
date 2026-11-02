@@ -118,6 +118,8 @@ gradle-app.setting
 
 # Ignore vscode config
 .vscode/
+# ...except the settings of the workspace the VS Code extension's e2e scenarios open
+!/tests/BaconReader.VsCodeExtension.E2E/Workspace/.vscode/
 
 # Dependency directories
 node_modules/
@@ -132,3 +134,7 @@ local.properties
 # Clean base APK and screenshots fetched by tools/e2e/connect.sh
 .e2e/
 *.apk
+
+# .NET build output (the end-to-end tests and their tools)
+bin/
+obj/

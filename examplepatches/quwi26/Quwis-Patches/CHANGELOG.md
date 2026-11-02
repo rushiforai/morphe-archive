@@ -1,3 +1,56 @@
+# [1.9.4](https://github.com/quwi26/Quwis-Patches/compare/v1.9.3...v1.9.4) (2026-11-01)
+
+### Bug Fixes
+
+* **Arrows in games:** on 4.10.23 the bot game's bottom bar is a Compose row of the app's own buttons, so Arrows and Clear join it there and the floating chip is gone
+* **Arrows in reviews:** 4.10.23's new Analysis screen draws its own Compose bar too; Arrows and Clear are added to it, next to its buttons
+* **Arrows in reviews:** Game Review's bar no longer crashes when it shows the condensed paywall. That state wraps each action in another class, so the Arrows and Clear actions are only added to the plain list
+
+# [1.9.3](https://github.com/quwi26/Quwis-Patches/compare/v1.9.2...v1.9.3) (2026-11-01)
+
+### Bug Fixes
+
+* **Chess.com:** opening Settings on 4.10.23 no longer crashes. Hide Premium-only content filtered the settings rows into a plain List and stored it in an ArrayList field, which the verifier rejects; the copy is cast to the field's type now
+* **Arrows in reviews:** the buttons in Game Review's bottom bar are found again. The action class was looked up by its smali name instead of its Java name, so the lookup failed and the bar stayed empty
+
+# [1.9.2](https://github.com/quwi26/Quwis-Patches/compare/v1.9.1...v1.9.2) (2026-11-01)
+
+### Bug Fixes
+
+* **Chess.com:** Lichess puzzles no longer crash on opening. The empty path stats were returned as a plain object, which the app's verifier rejects; they are cast back to their own type now
+* **Arrows in reviews:** Arrows and Clear now sit in Game Review's own bottom bar, as two more of its buttons, instead of a floating chip over the board
+
+### Features
+
+* **Chess.com:** a new optional patch, Crash details, shows a crash on a screen of its own with the stack trace and a Copy button, so a report can include what went wrong
+
+# [1.9.1](https://github.com/quwi26/Quwis-Patches/compare/v1.9.0...v1.9.1) (2026-11-01)
+
+### Bug Fixes
+
+* **Chess.com:** Lichess puzzles show the rating on 4.10.23 again. The Classic layout's path stats are empty in guest mode, so the rating chip and the user rating read zero; they now carry the Lichess rating, and the review state's own rating stays in step during a session
+
+# [1.9.0](https://github.com/quwi26/Quwis-Patches/compare/v1.8.0...v1.9.0) (2026-11-01)
+
+### Features
+
+* **Chess.com:** a separate Arrows in reviews patch adds Arrows and Clear to Game Review, where a small chip over the board switches drawing on, and to the Analysis boards, where they sit in the bottom bar
+* **Chess.com:** Arrows in games is back to the game bars only; the Analysis board belongs to Arrows in reviews now, and the two features can be switched on and off independently
+
+# [1.8.0](https://github.com/quwi26/Quwis-Patches/compare/v1.7.2...v1.8.0) (2026-11-01)
+
+### Features
+
+* **Chess.com:** Arrows in games now also adds Arrows and Clear to the Analysis board's bottom bar, so arrows and marked squares can be drawn while analysing a game, not only during play
+
+# [1.7.2](https://github.com/quwi26/Quwis-Patches/compare/v1.7.1...v1.7.2) (2026-11-01)
+
+### Bug Fixes
+
+* **Chess.com:** Lichess puzzles are scored on 4.10.23 again; the score constructor's error type changed, so the local scoring fell back to chess.com's API and every wrong move or finish showed its dead-end error
+* **Chess.com:** the solved Lichess puzzle screen has its XP, stats and bonuses (empty, as guest puzzles have none), instead of reading nulls
+* **Chess.com:** Next opens the next Lichess puzzle during a session instead of asking chess.com for a rated one and hitting the free daily limit; chess.com's own puzzles keep their Next
+
 # [1.7.1](https://github.com/quwi26/Quwis-Patches/compare/v1.7.0...v1.7.1) (2026-10-31)
 
 ### Bug Fixes

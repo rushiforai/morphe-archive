@@ -661,33 +661,7 @@ final class ArchivedThreadImporter {
     }
 
     private static byte[] requestBytes(String url) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        connection.setConnectTimeout(6_000);
-        connection.setReadTimeout(15_000);
-        connection.setInstanceFollowRedirects(true);
-        connection.setRequestProperty("User-Agent", "Mozilla/5.0 Haiagaru");
-        try {
-            int code = connection.getResponseCode();
-            if (code < 200 || code >= 300) {
-                throw new IOException("HTTP " + code + " from " + url);
-            }
-            try (BufferedInputStream input = new BufferedInputStream(connection.getInputStream());
-                 ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-                byte[] buffer = new byte[16 * 1024];
-                int total = 0;
-                int count;
-                while ((count = input.read(buffer)) != -1) {
-                    total += count;
-                    if (total > MAX_RESPONSE_BYTES) {
-                        throw new IOException("Archive response was too large");
-                    }
-                    output.write(buffer, 0, count);
-                }
-                return output.toByteArray();
-            }
-        } finally {
-            connection.disconnect();
-        }
+        return ArchiveHttpRead.read(url, MAX_RESPONSE_BYTES);
     }
 
     private static String datMessage(String html) {

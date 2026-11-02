@@ -24,8 +24,9 @@
     function create(React, require) {
         var Card, Sheet;
         function Preview(props) {
-            var emote = props.emote;
-            var result = Card({emote: {token: emote.name}, imageURL: emote.url, testID: prefix});
+            var emote = props.emote, favorites = runtime.emoteFavorites;
+            var result = Card({emote: {token: emote.name}, imageURL: emote.url, testID: prefix,
+                favoriteKey: favorites ? favorites.providerKey(emote.url) : null});
             if (!React.isValidElement(result) || result.props.testID !== prefix) {
                 runtime.log('emotes details card contract failed');
                 return null;

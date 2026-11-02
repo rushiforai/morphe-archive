@@ -1,10 +1,12 @@
 package dev.twitchpatches.patches.twitch.reload
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.literal
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.twitchpatches.patches.twitch.shared.*
@@ -18,15 +20,31 @@ internal data class NativeReloadViewHooks(val bind: Method,
     val controllerBind: Method, val delegate: FieldReference, val transport: FieldReference,
     val playerPresenter: FieldReference, val controller: FieldReference)
 
-internal fun BytecodePatchContext.resolveNativeReloadViews(all: List<Method>, h: NativeReloadPlayerHooks): NativeReloadViewHooks {
-    val overlay = all.filter { method -> method.name == "<init>" && method.code().any {
-        (it as? WideLiteralInstruction)?.wideLiteral == nativeMuteButton.toLong()
-    } && method.references().any { it is MethodReference && it.name == "inflate" &&
-        it.definingClass == "Landroid/view/LayoutInflater;" }
-    }.uniqueHook("native XML player overlay constructor")
-    val create = all.filter { method -> method.isInstance(listOf("Landroid/view/ViewGroup;"), BASE_DELEGATE) &&
-        method.references().any { it.toString() == overlay.reference }
-    }.uniqueHook("native XML live theatre view factory")
+private class OverlayConstructorFingerprint(nativeMuteButton: Int) : Fingerprint(
+    name = "<init>",
+    filters = listOf(
+        literal(nativeMuteButton),
+        methodCall(definingClass = "Landroid/view/LayoutInflater;", name = "inflate"),
+    ),
+)
+
+private class XmlLiveTheatreViewFactoryFingerprint(overlayReference: String) : Fingerprint(
+    parameters = listOf("Landroid/view/ViewGroup;"),
+    returnType = BASE_DELEGATE,
+    filters = listOf(methodCall(overlayReference)),
+)
+
+private object LegacySurfacePlayerControllerFingerprint : Fingerprint(
+    strings = listOf("playerStateAndEventDisposable"),
+)
+
+private class MuteLabelFingerprint(nativeMuteLabel: Long) : Fingerprint(
+    filters = listOf(literal(nativeMuteLabel)),
+)
+
+internal fun BytecodePatchContext.resolveNativeReloadViews(h: NativeReloadPlayerHooks): NativeReloadViewHooks {
+    val overlay = OverlayConstructorFingerprint(nativeMuteButton).originalMethod
+    val create = XmlLiveTheatreViewFactoryFingerprint(overlay.reference).originalMethod
     val presenter = classDefBy(create.definingClass)
     val bind = presenter.methods.filter { method -> method.isInstance(listOf(overlay.definingClass), "V") &&
         method.references().any { it is MethodReference && it.definingClass == presenter.superclass &&
@@ -46,9 +64,10 @@ internal fun BytecodePatchContext.resolveNativeReloadViews(all: List<Method>, h:
         AccessFlags.STATIC.isSet(h.load.accessFlags) || h.load.parameterTypes.size != 2 ||
         h.load.parameterTypes.any { !it.startsWith("L") })
         throw PatchException("Reload stream: native source metadata register contract changed.")
-    val legacy = all.filter { it.hasStrings("playerStateAndEventDisposable") }.map { it.definingClass }
-        .distinct().map { classDefBy(it) }.filter { type -> type.fields.any { it.type == playerGetter.returnType } &&
-            type.fields.any { it.type == h.source.type } }.uniqueHook("native surface player controller")
+    val legacy = classDefBy(LegacySurfacePlayerControllerFingerprint.originalMethod.definingClass)
+    require(legacy.fields.any { it.type == playerGetter.returnType } && legacy.fields.any { it.type == h.source.type }) {
+        "native surface player controller missing expected fields"
+    }
     val transport = legacy.fields.filter { it.type == playerGetter.returnType && !AccessFlags.STATIC.isSet(it.accessFlags) }
         .uniqueHook("native surface controller transport")
     fun delegate(type: String): Boolean {
@@ -72,9 +91,7 @@ internal fun BytecodePatchContext.resolveNativeReloadViews(all: List<Method>, h:
     requireReloadParametersPreserved(bind, setOf(0, 1))
     requireReloadParametersPreserved(controllerBind, setOf(0))
     val savedDelegate = resolveReloadDelegate(controllerBind)
-    val muteOwners = all.filter { method -> method.code().any {
-        (it as? WideLiteralInstruction)?.wideLiteral == nativeMuteLabel
-    } }.map { it.definingClass }.toSet()
+    val muteOwners = MuteLabelFingerprint(nativeMuteLabel).matchAllOrNull()?.map { it.classDef.type }?.toSet() ?: emptySet()
     val controlsDelegate = classDefBy(overlay.definingClass).fields.filter { field ->
         !AccessFlags.STATIC.isSet(field.accessFlags) && field.type.startsWith("L") &&
             !field.type.startsWith("Ljava") && !field.type.startsWith("Landroid") && delegate(field.type) &&

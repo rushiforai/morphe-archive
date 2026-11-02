@@ -22,6 +22,20 @@ internal fun BytecodePatchContext.addBridge(owner: String, name: String, params:
     return method.reference
 }
 
+internal fun BytecodePatchContext.implementBonusClaimer(hooks: PointsHooks) = with(hooks) {
+    val type = mutableClassDefBy(provider.type)
+    if (type.methods.any { it.name == "twitchPatchesClaim" }) throw PatchException("Channel points: bridge name already present: twitchPatchesClaim.")
+    val method = ImmutableMethod(provider.type, "twitchPatchesClaim", listOf(ImmutableMethodParameter("Ljava/lang/String;", null, null)), "V",
+        AccessFlags.PUBLIC.value, null, null, MutableMethodImplementation(3)).toMutable()
+    method.addInstructionsWithLabels(0, """
+        const/4 v0, 0x0
+        invoke-virtual {p0, p1, v0}, ${claim.reference}
+        return-void
+    """)
+    type.methods.add(method)
+    type.interfaces.add(CLAIMER)
+}
+
 internal fun BytecodePatchContext.pointsBridge(hooks: PointsHooks): String = with(hooks) {
     addBridge(provider.type, "twitchPatchesClaimBonus", listOf(provider.type, MODEL), 5, """
         if-eqz p1, :done
@@ -46,7 +60,7 @@ internal fun BytecodePatchContext.pointsBridge(hooks: PointsHooks): String = wit
         move-result v2
         if-eqz v2, :channel_mismatch
         iget-object v3, v0, ${id.definingClass}->${id.name}:Ljava/lang/String;
-        invoke-static {v1, v3}, $RUNTIME->offer(Ljava/lang/Object;Ljava/lang/String;)Z
+        invoke-static {p0, v1, v3}, $RUNTIME->offer(${CLAIMER}Ljava/lang/Object;Ljava/lang/String;)Z
         move-result v2
         if-eqz v2, :done
         const/4 v4, 0x0
@@ -56,6 +70,7 @@ internal fun BytecodePatchContext.pointsBridge(hooks: PointsHooks): String = wit
         const-string v4, "provider model disabled"
         goto :observe
         :no_claim
+        invoke-static {}, $RUNTIME->bonusGone()V
         const-string v4, "provider model has no bonus"
         goto :observe
         :channel_mismatch

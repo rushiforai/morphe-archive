@@ -36,7 +36,7 @@ public final class PersonalRuntime implements Application.ActivityLifecycleCallb
         });
     }
     public void onActivityCreated(Activity a,Bundle b){if(!windows.containsKey(a)){NavigationWindow owner=new NavigationWindow(a.getWindow());windows.put(a,owner);owner.start();}}
-    public void onActivityResumed(Activity a){app.bdcrusher.ytmusic.shaders.ShaderRuntime.hostVisible(true);NavigationWindow owner=windows.get(a);if(owner!=null)owner.update();new Handler(Looper.getMainLooper()).post(()->{app.bdcrusher.ytmusic.playlists.PlaylistRuntime.init();app.bdcrusher.ytmusic.playlists.PlaylistRuntime.refreshFiles(false);});}
+    public void onActivityResumed(Activity a){app.bdcrusher.ytmusic.shaders.ShaderRuntime.hostVisible(true);NavigationWindow owner=windows.get(a);if(owner!=null)owner.update();new Handler(Looper.getMainLooper()).post(()->{app.bdcrusher.ytmusic.playlists.PlaylistRuntime.init();app.bdcrusher.ytmusic.playlists.PlaylistRuntime.refreshFiles(false);app.bdcrusher.ytmusic.playlists.NativeMediaCache.recover();});}
     public void onActivityPaused(Activity a){FeatureDiagnostics.event("Lifecycle","Activity paused; background playback unchanged");app.bdcrusher.ytmusic.shaders.ShaderRuntime.hostVisible(false);}
     public void onActivityStarted(Activity a){}
     public void onActivityStopped(Activity a){FeatureDiagnostics.event("Lifecycle","Activity stopped");}

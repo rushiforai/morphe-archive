@@ -126,6 +126,7 @@ nav:
           - apps/weather/index.md
           - apps/buienalarm.md
           - apps/buienradar.md
+          - apps/rainviewer.md
           - apps/weeronline.md
           - apps/weerplaza.md
       - News and reading:
@@ -158,10 +159,15 @@ nav:
           - apps/mobility/index.md
           - apps/9292.md
           - apps/flitsmeister.md
+          - apps/waze.md
+          - apps/gearslip.md
+          - apps/vela.md
+          - apps/google-maps.md
           - apps/rollerbank.md
       - Entertainment:
           - apps/entertainment/index.md
           - apps/podimo.md
+          - apps/youtube-music.md
           - apps/kijk.md
           - apps/npo-start.md
           - apps/videoland.md
@@ -173,6 +179,7 @@ nav:
           - apps/wuplay.md
       - Other apps:
           - apps/other/index.md
+          - apps/2dehands.md
           - apps/monet.md
           - apps/marktplaats.md
           - apps/projectivy.md

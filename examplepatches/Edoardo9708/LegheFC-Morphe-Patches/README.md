@@ -11,6 +11,7 @@ Repository unico di patch indipendenti per piu applicazioni Android, compatibile
 | App | Pacchetto Android | Versione analizzata | Patch |
 | --- | --- | --- | --- |
 | **Leghe FC** | `it.quadronica.leghe` | 13.2.1 (445) | Avvio e nome **3 campo**, percentuali, formazione suggerita e comparatore |
+| **Minigore 2** | `net.mountainsheep.minigore2zombies` | 1.28 (28) | Guadagno monete configurabile da ×1 a ×1000, compatibilità Android 17 e fix interfaccia |
 | **Twilight** | `com.urbandroid.lux` | 14.32 (APKM) | Test sperimentale su `TrialFilter.isTrial()` e Logcat |
 | **Outdooractive** | `com.outdooractive.Outdooractive` | 3.23.20 | Diagnostica e test sperimentale dei getter di `Membership` |
 | **DNS Changer** | `com.appplanex.dnschanger` | 3.0.0 | Force Pro test D2 |
@@ -28,6 +29,8 @@ Repository unico di patch indipendenti per piu applicazioni Android, compatibile
 - **Yahoo Finance:** Remove Ads A2 verificata su dispositivo; accesso Google via GmsCore A5 confermato. GOLD A3 simula solo il livello locale e non sblocca le funzioni server; A7 registra soltanto stati e risultati di accesso per la diagnostica. Tutte le patch sono disabilitate per default. [Resoconto prove](lab/yahoofinance/README.md).
 
 - **Outdooractive:** patch importata dal ramo `dev` del [repository originario](https://github.com/Edoardo9708/Outdooractive-Morphe-Patches). Il codice registra i valori originali ma **restituisce valori dimostrativi** (`1` per `isProUser`, `2` per `getLevel`). La pubblicazione sul canale stabile non certifica il corretto comportamento della patch nell'app.
+
+**Minigore 2:** la patch agisce sui guadagni, non sui prezzi degli upgrade. Il package rimane quello originale; l'APK rifirmato richiede una migrazione controllata dei dati. Il risultato dell'APK preparato manualmente non sostituisce la verifica del patching tramite Manager. [Dettagli tecnici](lab/minigore/README.md).
 
 ## Installazione
 
@@ -47,7 +50,7 @@ Il codice delle diverse app e separato per package sotto `patches/src/main/kotli
 ## Elenco automatico delle patch pubblicate
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.8.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
+> **[v1.9.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
 <details open>
 <summary>📦 DNS Changer&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -107,6 +110,21 @@ Il codice delle diverse app e separato per package sotto `patches/src/main/kotli
 | [Leghe FC - Avvio e nome 3 campo](#leghe-fc-avvio-e-nome-3-campo) | Corregge l'avvio dell'app e la rinomina in 3 campo. |  |
 | [Leghe FC - Sblocca formazione suggerita e comparatore](#leghe-fc-sblocca-formazione-suggerita-e-comparatore) | Formazione suggerita e confronto fra giocatori. |  |
 | [Leghe FC - Sblocca percentuali](#leghe-fc-sblocca-percentuali) | Mostra le percentuali utili per scegliere chi schierare. |  |
+
+</details>
+
+<details open>
+<summary>📦 Minigore 2&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.28 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Minigore 2 - Moltiplicatore monete](#minigore-2-moltiplicatore-monete) | Imposta il moltiplicatore delle monete guadagnate (x1-x1000) senza modificare prezzi o salvataggi. Include fix schermo Android 17 e debug per ripristino tramite ADB. Solo Minigore 2 v1.28 (28). | • Moltiplicatore monete |
 
 </details>
 

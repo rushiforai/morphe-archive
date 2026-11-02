@@ -3,9 +3,14 @@
 
 package com.onelouder.baconreader.reddit;
 
+import java.util.List;
+
 public class Message extends ThingData {
     public String author;
     public String body;
+    public String parent_id;
+    /** The replies, as things: comments and "more". */
+    public List<Thing> replies;
     public long created_utc;
     public String subject;
 }

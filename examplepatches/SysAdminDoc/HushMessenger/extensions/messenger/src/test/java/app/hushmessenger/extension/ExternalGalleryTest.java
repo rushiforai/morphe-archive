@@ -761,4 +761,118 @@ public class ExternalGalleryTest {
         installGallery();
         assertTrue(Settings.available(GalleryPicker.CHAT_KEY));
     }
+
+    private File refusingFolder() throws IOException {
+        File blocker = File.createTempFile("blocker", null, app.getCacheDir());
+        return new File(blocker, "secure_shared");
+    }
+
+    @Test public void aFolderThatWorksGetsThePlainCallAndNoNote() throws IOException {
+        File folder = new File(app.getCacheDir(), "works");
+        assertTrue(folder.mkdirs());
+        for (boolean on : new boolean[] {false, true}) {
+            Settings.preferences.edit().putBoolean(GalleryPicker.KEY, on).commit();
+            File made = Settings.inboundTempFile("inbound", ".jpg", folder);
+            assertEquals(folder.getCanonicalPath(), made.getParentFile().getCanonicalPath());
+            assertTrue(made.getName().startsWith("inbound"));
+            assertFalse(Settings.preferences.contains(GalleryPicker.TEMP_FOLDER_NOTE));
+        }
+        assertEquals("NOT_USED", GalleryPicker.reportLine());
+    }
+
+    @Test public void aRefusedFolderMovesTheCopyToMessengersCacheFolder() throws IOException {
+        Settings.preferences.edit().putBoolean(GalleryPicker.KEY, true).commit();
+        File made = Settings.inboundTempFile("inbound", ".jpg", refusingFolder());
+        assertEquals(new File(app.getCacheDir(), "secure_shared").getCanonicalPath(), made.getParentFile().getCanonicalPath());
+        assertTrue(made.getName().startsWith("inbound"));
+        assertTrue(made.getName().endsWith(".jpg"));
+        assertTrue(made.isFile());
+    }
+
+    @Test public void aRefusedCacheFolderMovesTheCopyToTheFilesFolder() throws IOException {
+        Settings.preferences.edit().putBoolean(GalleryPicker.KEY, true).commit();
+        File cacheCopies = new File(app.getCacheDir(), "secure_shared");
+        deleteAll(cacheCopies);
+        assertTrue(cacheCopies.createNewFile());
+        try {
+            File made = Settings.inboundTempFile("inbound", ".mp4", refusingFolder());
+            assertEquals(new File(app.getFilesDir(), "secure_shared").getCanonicalPath(), made.getParentFile().getCanonicalPath());
+        } finally {
+            assertTrue(cacheCopies.delete());
+        }
+    }
+
+    @Test public void aFileWhereTheFolderGoesIsHandedBackOnlyWithTheSwitchOn() throws IOException {
+        File taken = File.createTempFile("taken", null, app.getCacheDir());
+        assertFalse(Settings.inboundFolderRefused(taken));
+        Settings.preferences.edit().putBoolean(GalleryPicker.KEY, true).commit();
+        assertTrue(Settings.inboundFolderRefused(taken));
+    }
+
+    @Test public void aFolderThatWorksOrIsMissingStaysWithMessengersCheck() throws IOException {
+        Settings.preferences.edit().putBoolean(GalleryPicker.KEY, true).commit();
+        File folder = new File(app.getCacheDir(), "works");
+        assertTrue(folder.mkdirs());
+        assertFalse(Settings.inboundFolderRefused(folder));
+        assertFalse(Settings.inboundFolderRefused(new File(app.getCacheDir(), "not_made_yet")));
+    }
+
+    @Test public void aFileWhereTheFolderGoesStillGetsTheCopyMoved() throws IOException {
+        Settings.preferences.edit().putBoolean(GalleryPicker.KEY, true).commit();
+        File taken = File.createTempFile("taken", null, app.getCacheDir());
+        assertTrue(Settings.inboundFolderRefused(taken));
+        File made = Settings.inboundTempFile("inbound", ".jpg", taken);
+        assertEquals(new File(app.getCacheDir(), "secure_shared").getCanonicalPath(), made.getParentFile().getCanonicalPath());
+    }
+
+    @Test public void offLeavesMessengersOwnFailure() throws IOException {
+        deleteAll(new File(app.getCacheDir(), "secure_shared"));
+        File refused = refusingFolder();
+        IOException plain = assertThrows(IOException.class, () -> Settings.inboundTempFile("inbound", ".jpg", refused));
+        assertNotNull(plain.getMessage());
+        assertFalse(Settings.preferences.contains(GalleryPicker.TEMP_FOLDER_NOTE));
+        assertFalse(new File(app.getCacheDir(), "secure_shared").exists());
+    }
+
+    @Test public void whenEveryPlaceRefusesTheOriginalFailureStays() throws IOException {
+        Settings.preferences.edit().putBoolean(GalleryPicker.KEY, true).commit();
+        File[] blocked = {new File(app.getCacheDir(), "secure_shared"), new File(app.getFilesDir(), "secure_shared"),
+            new File(app.getExternalCacheDir(), "secure_shared"), new File(app.getExternalFilesDir(null), "secure_shared")};
+        for (File each : blocked) {
+            deleteAll(each);
+            assertTrue(each.createNewFile());
+        }
+        try {
+            File refused = refusingFolder();
+            IOException failure = assertThrows(IOException.class, () -> Settings.inboundTempFile("inbound", ".jpg", refused));
+            assertNotNull(failure.getMessage());
+            assertTrue("The refusal stays on record for the report", Settings.preferences.contains(GalleryPicker.TEMP_FOLDER_NOTE));
+        } finally {
+            for (File each : blocked) assertTrue(each.delete());
+        }
+    }
+
+    @Test public void theReportNamesThePlaceAndReasonWithNoPath() throws IOException {
+        Settings.preferences.edit().putBoolean(GalleryPicker.KEY, true).commit();
+        Settings.inboundTempFile("inbound", ".jpg", refusingFolder());
+        String inCache = GalleryPicker.reportLine();
+        assertTrue(inCache, inCache.startsWith("NOT_USED, copy refused on "));
+        assertTrue(inCache, inCache.contains(" cache ("));
+        assertFalse(inCache, inCache.indexOf('/') >= 0);
+        assertFalse(inCache, inCache.contains(app.getPackageName()));
+
+        Settings.inboundTempFile("inbound", ".jpg", new File("/secure_shared"));
+        String outside = GalleryPicker.reportLine();
+        assertTrue(outside, outside.contains("none of the app's folders"));
+        assertFalse(outside, outside.indexOf('/') >= 0);
+
+        GalleryPicker.lastOutcome = GalleryPicker.Outcome.SELECTED;
+        assertTrue(GalleryPicker.reportLine(), GalleryPicker.reportLine().startsWith("SELECTED, copy refused on "));
+    }
+
+    private static void deleteAll(File file) {
+        File[] inside = file.listFiles();
+        if (inside != null) for (File each : inside) deleteAll(each);
+        file.delete();
+    }
 }

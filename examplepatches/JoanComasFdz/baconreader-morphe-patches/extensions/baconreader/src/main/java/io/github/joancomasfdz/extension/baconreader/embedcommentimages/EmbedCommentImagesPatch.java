@@ -55,6 +55,8 @@ import io.github.joancomasfdz.extension.baconreader.GlideUtils;
 import io.github.joancomasfdz.extension.baconreader.ImageDownloader;
 import io.github.joancomasfdz.extension.baconreader.settings.Settings;
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceType;
+import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 
 /**
@@ -437,13 +439,11 @@ public final class EmbedCommentImagesPatch {
         final int lineBoxHeight = Math.max(textView.getLineHeight() * PLACEHOLDER_LINES, dp(textView, 32));
 
         final FrameLayout slot = new FrameLayout(context);
-        LinearLayout.LayoutParams slotParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        slotParams.topMargin = dp(textView, 4);
-        slot.setLayoutParams(slotParams);
+        slot.setLayoutParams(slotLayoutParams(textView, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         // The image starts empty (0x0) and grows when Glide sets it.
         final ImageView imageView = new ImageView(context);
+        imageView.setId(viewId(image.fullUrl));
         imageView.setAdjustViewBounds(true);
         imageView.setScaleType(ImageView.ScaleType.FIT_START);
         slot.addView(imageView, new FrameLayout.LayoutParams(
@@ -700,6 +700,7 @@ public final class EmbedCommentImagesPatch {
             root.setBackgroundColor(Color.BLACK);
 
             ZoomImageView zoomView = new ZoomImageView(context);
+            zoomView.setId(resourceId("baconreader_patches_image_viewer"));
             root.addView(zoomView, new FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -881,6 +882,22 @@ public final class EmbedCommentImagesPatch {
         return url.replace("&amp;", "&");
     }
 
+    /**
+     * The id of an image's view, a GIF's apart from an image's (the patch adds both to the app's resources): the e2e
+     * tests find the images by it.
+     */
+    private static int viewId(String url) {
+        String path = url.toLowerCase(Locale.ROOT).replaceFirst("[?#].*$", "");
+        String name = path.endsWith(".gif") ? "baconreader_patches_comment_gif" : "baconreader_patches_comment_image";
+        return resourceId(name);
+    }
+
+    /** The id the patch adds to the app's resources as {@code name}, for the e2e tests to find a view by. */
+    static int resourceId(String name) {
+        int id = ResourceUtils.getIdentifier(ResourceType.ID, name);
+        return id == 0 ? View.NO_ID : id;
+    }
+
     /** The width attribute of an <img> tag, or 0. */
     static int width(String tag) {
         return intAttr(WIDTH_ATTR, tag);
@@ -930,6 +947,28 @@ public final class EmbedCommentImagesPatch {
 
     private static int withAlpha(int color, int alpha) {
         return (color & 0x00FFFFFF) | (alpha << 24);
+    }
+
+    /**
+     * A slot under {@code textView}, {@code width} wide, sits in the text's column. A comment's
+     * text is inset by its container's padding, which the slot shares; a post's text by its own
+     * margins (24 dp), which the slot copies, or it runs from the screen's edge to the other. A
+     * comment's image fills the comment's width, so it leaves out the right margin its text keeps
+     * (16 dp).
+     */
+    static LinearLayout.LayoutParams slotLayoutParams(TextView textView, int width) {
+        LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.topMargin = dp(textView, 4);
+        if (textView.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams text =
+                    (ViewGroup.MarginLayoutParams) textView.getLayoutParams();
+            boolean comment =
+                    textView.getId() == ResourceUtils.getIdentifier(ResourceType.ID, "commentBody");
+            params.leftMargin = text.leftMargin;
+            params.rightMargin = comment ? 0 : text.rightMargin;
+        }
+        return params;
     }
 
     private static int dp(View view, int dp) {

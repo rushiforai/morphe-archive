@@ -1,12 +1,12 @@
 # App and patch development map
 
-This guide maps the TikTok app Hushfeed modifies to the code and release checks that make a patch. Its version and patch counts were last synced with the source on 2026-10-31, and `scripts/validate-release-facts.ps1` fails when they drift. The generated [patch catalog](../patches-list.json) is the current source of truth for patch names and compatibility.
+This guide maps the TikTok app Hushfeed modifies to the code and release checks that make a patch. Its version and patch counts were last synced with the source on 2026-11-01. The generated [patch catalog](../patches-list.json) is the current source of truth for patch names and compatibility.
 
 ## What Hushfeed ships
 
 Hushfeed is a Morphe patch bundle, not a TikTok APK. Morphe Manager takes a TikTok APK chosen by the user, applies the selected patches, and signs the result with the user's existing key. The patch definitions and the runtime code they inject live in separate Gradle modules.
 
-Source snapshot: version 0.80.0, 144 patch entries. Those come from gradle.properties and patches-list.json.
+Source snapshot: version 0.80.0, 143 patch entries. Those come from gradle.properties and patches-list.json.
 
 Published bundle: version 0.79.0, 141 patches. Those come from patches-bundle.json and the release it names.
 
@@ -20,12 +20,12 @@ Keep every Unreleased bullet under a `###` group. The release cutter preserves t
 | --- | --- |
 | App | Global TikTok |
 | Package | com.zhiliaoapp.musically |
-| Supported version | 47.5.3 |
-| Version code | 2024705030 |
+| Supported version | 47.6.3 |
+| Version code | 2024706030 |
 | APK signer SHA-256 | 9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba |
 | Extension minimum Android API | 23 |
 
-Global TikTok is the main target. PineDrama (com.ss.android.ttmd.video 47.5.3, version code 2024705030, signer SHA-256 e97ca0c8835c5a9e4f7702a0382b103ede9c5d51e5194c8db54f4c8833f54e18) is built from TikTok's 47.5.3 code, and the patches whose anchors it keeps declare it too: 98 of the 144 in the current catalog. It leaves out TikTok's stories, so the parts of a patch that need them check `shipsStories()` and skip on PineDrama. A patch's package and version support says only that it applies. Whether it works signed in on a drama feed is a separate runtime check. TikTok Lite and regional package variants aren't patch targets.
+Global TikTok is the target. PineDrama has its own repo, [HushPine](https://github.com/SysAdminDoc/HushPine). TikTok Lite and regional package variants aren't patch targets.
 
 The target identity is centralized in [AppCompatibilities.kt](../patches/src/main/kotlin/app/morphe/patches/shared/compat/AppCompatibilities.kt). Patch definitions normally use that compatibility object instead of copying package names, signer hashes, or version codes into each patch. The README's [Supported target](../README.md#supported-target) section is the user-facing version record, and its install steps keep naming the build the published release patches, since that's what people install. When the target moves, update AppCompatibilities.kt from the reviewed APK and add one line under Supported target in the form ``- Next release: TikTok X.Y.Z, [on APKMirror](link) since YYYY-MM-DD (version code ...), SHA-256 `...`.`` The release's index step moves the install steps onto that build and drops the line.
 
@@ -90,11 +90,11 @@ The Morphe Gradle plugin and the default extension namespace are configured in s
 
 The runtime code is grouped by feature under extensions/tiktok/src/main/java/app/morphe/extension/tiktok/. Current package folders are accountmanagement, blockauthor, captions, capture, cleardisplay, comment, commentsort, diagnostics, download, externalbrowser, favorites, featurecontrols, featuregatelab, feed, feedfilter, foldable, follow, font, ghostmode, inbox, interaction, live, misc, navigation, network, notinterested, offline, playback, popups, privacy, profile, publishdate, repost, search, seekbar, seen, settings, share, speed, spoof, storage, telemetry, theme, translation, upload, and wellbeing. Search the generated patch catalog by display name first, then follow its dependencies into the Kotlin and Java sources.
 
-The current catalog's 144 patches are grouped as follows:
+The current catalog's 143 patches are grouped as follows:
 
 | Manager category | Patches |
 | --- | ---: |
-| Comments | 17 |
+| Comments | 16 |
 | Downloads | 5 |
 | Feed | 20 |
 | Inbox | 8 |
@@ -219,11 +219,10 @@ Treat a target update as a new reverse-engineering pass. TikTok can reuse short 
 | --- | --- |
 | :extensions:tiktok:test | Runtime Java behavior through Robolectric |
 | :extensions:tiktok:lint and :extensions:shared:library:lint | Android API-floor calls and guards |
-| :patches:test | Patch logic, contracts, generated documentation, and catalog consistency |
+| :patches:test | Patch logic, fingerprints against the fixtures, and catalog consistency |
 | :patches:generatePatchesList | Catalog generated from the compiled patch bundle |
 | :patches:buildAndroid plus :patches:verifyBundle | Bundle payloads, manifest version, checksum, compatibility description, and catalog match |
 | scripts/verify-all-patches.ps1 | Each patch applies through the Morphe desktop patcher to every declared APK fixture |
-| scripts/validate-release-facts.ps1 | README, catalog, bundle index, fixture results, and release facts agree |
 | audit/run-audit.ps1 | Every patch does what its description says on a phone running the full catalog |
 | Device acceptance | The injected runtime hook behaves in the real TikTok UI on the supported version |
 
@@ -248,13 +247,9 @@ To audit a new TikTok version:
 
 Run `audit/run-audit.ps1 -ValidateResults -Results <results file> -OutDir <evidence folder>` to check saved evidence without rewriting it. Add `-Apk <expected apk>` to qualify it against another artifact. Missing, duplicate, removed, unknown-status and changed or unversioned checks are reported by patch/check key. A partial run keeps old records, but each check must match its definition, build receipt, APK, available evidence and executable-input digest. The digest covers the committed runtime, patch resources, build tools and other executable inputs across the project. It changes conservatively when any of those inputs change. Documentation and audit outputs are excluded. Current-checkout validation refuses uncommitted or hidden executable inputs. Explicit historical-commit validation reads that committed tree. Legacy records without an input digest keep their verdicts but need a new bound run before they qualify. Without a verified build receipt, a run is explicitly unbound. Device-build receipts also retain the stock and patched manifest package, version and version code, both APK hashes, exact patch selection/options, bundle hash and patch-report hash. A version-code override may differ from stock. Every ordinary check requires its patch selected; a negative check must declare `patchSelection: absent`. Older device-build receipts remain historical.
 
-PineDrama gets its own audit. `audit/catalog-pinedrama.json` holds an entry for each of its patches, with checks that open PineDrama's own tabs (Home, Discover, Inbox, Profile, no Friends) and use its `snssdk845221` links. The runner picks the catalog, probe build, tabs and results name from the APK's package, so a PineDrama run writes `audit/results/pinedrama-<version>.json`. Build its probe with `tools/verification-probe/build.ps1 -Profile pinedrama-47.5.3-audit-v1`, and check the catalog without a device with `audit/run-audit.ps1 -Validate -CatalogPackage com.ss.android.ttmd.video`. A release needs a clean audit of every declared package: every check passed, none left in review, inconclusive, failed or skipped.
-
 The verification probe sends diagnostic reports in encoded frames with byte counts and a SHA-256 digest. Missing or damaged frames leave the check inconclusive. Rebuild the probe before rerunning these report checks. A missing current video is also inconclusive when the check declares that video as a prerequisite; a probe exception or an observed expectation failure still fails.
 
-Release receipt schema 3 enumerates every declared package/version pair. Its pre-patching input ledger and patch results retain source and output APK manifests/hashes, requested patches/options, applied patch names and the raw CLI report hash. Every exact declared input needs an independently collected native audit bound to that package, input hash, bundle and clean source. Forced probes don't supply missing declared coverage. Older published receipts remain historical and cannot authorize a new publication.
-
-Walk receipt schema 2 retains the verified native build receipt and installed APK identity before and after the walk. Publication compares its stock APK and exact patch/options selection with the release fixture. The global TikTok profile refuses other packages; PineDrama needs separate native audit and whole-app walk profiles.
+A whole-app walk writes a `walk-receipt.json` with the bundle's hash, the installed APK and the result, one per declared app. `scripts/release/release.ps1` won't publish until each app's walk comes back PASS.
 
 Unreleased startup checks can read 32 bounded first-frame callback records from `SessionPlaybackHold`. They keep weak controller/model/manager references and `elapsedRealtime` timestamps, with direct source-key validation around the existing native reads. The records stay in memory and produce no logs. Pair them only with the same source's stable keyed prepare timestamp. This measures receipt of the extension callback. Displayed-frame timing requires a separate observation.
 

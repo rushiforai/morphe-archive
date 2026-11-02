@@ -54,7 +54,7 @@ The app doesn't move the folder between devices itself. Use [Syncthing](https://
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v1.0.0](https://github.com/jibon-k/notes-morphe-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v1.0.1](https://github.com/jibon-k/notes-morphe-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
 <details open>
 <summary>📦 Samsung Notes&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>

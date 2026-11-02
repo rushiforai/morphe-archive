@@ -1,15 +1,38 @@
 package dev.twitchpatches.patches.twitch.ui
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.checkCast
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.iface.Method
 import dev.twitchpatches.patches.twitch.reload.nativeReloadMethod
 import dev.twitchpatches.patches.twitch.shared.*
 
-internal fun BytecodePatchContext.injectMetadataActions(all: List<Method>, owner: MutableClass, contract: UiCompositionContract) {
-    val state = all.filter { it.name == "toString" && it.hasStrings("Visible(buttons=", ", onNotificationSettingSelected=") }
-        .uniqueHook("fullscreen metadata action state")
+private object FullscreenMetadataActionStateFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    strings = listOf(
+        string("Visible(buttons="),
+        string(", onNotificationSettingSelected="),
+    ),
+)
+
+private object MetadataGiftActionFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    strings = listOf(string("GiftASubButton")),
+    custom = { _, type -> type.methods.any { it.name == "<clinit>" && it.hasStrings("gift_button") } },
+)
+
+private class MetadataRendererFingerprint(concrete: String) : Fingerprint(
+    returnType = "V",
+    isStatic = true,
+    filters = listOf(checkCast(concrete)),
+)
+
+internal fun BytecodePatchContext.injectMetadataActions(owner: MutableClass, contract: UiCompositionContract) {
+    val state = FullscreenMetadataActionStateFingerprint.originalMethod
     val model = classDefBy(state.definingClass)
     val buttons = model.fields.filter { it.type == "Ljava/util/ArrayList;" }.uniqueHook("metadata button list")
     val callback = model.fields.filter { it != buttons }.uniqueHook("metadata notification callback")
@@ -17,12 +40,12 @@ internal fun BytecodePatchContext.injectMetadataActions(all: List<Method>, owner
         .uniqueHook("metadata action constructor")
     require(listOf(buttons, callback).all { AccessFlags.PUBLIC.isSet(it.accessFlags) } &&
         AccessFlags.PUBLIC.isSet(constructor.accessFlags)) { "UI settings: metadata state access changed." }
-    val renderer = all.filter { it.returnType == "V" && it.parameterTypes.size == 8 &&
-        it.parameterTypes[1] == model.type && it.parameterTypes[6] == contract.composer && AccessFlags.STATIC.isSet(it.accessFlags) }
-        .uniqueHook("fullscreen metadata renderer")
-    val gift = all.filter { it.name == "toString" && it.hasStrings("GiftASubButton") &&
-        classDefBy(it.definingClass).methods.any { method -> method.name == "<clinit>" && method.hasStrings("gift_button") }
-    }.uniqueHook("metadata Gift action")
+    val renderer = MetadataRendererFingerprint(contract.concrete).matchAll().map { it.originalMethod }.filter {
+        it.returnType == "V" && it.parameterTypes.size == 8 &&
+            it.parameterTypes[1] == model.type && it.parameterTypes[6].toString() == contract.composer &&
+            AccessFlags.STATIC.isSet(it.accessFlags)
+    }.uniqueHook("fullscreen metadata renderer")
+    val gift = MetadataGiftActionFingerprint.originalMethod
     val buttonBase = classDefBy(requireNotNull(classDefBy(gift.definingClass).superclass))
     val identity = classDefBy(requireNotNull(buttonBase.superclass)).methods.filter {
         it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;" &&
@@ -56,5 +79,5 @@ internal fun BytecodePatchContext.injectMetadataActions(all: List<Method>, owner
         move-result-object p1
     """)
     owner.methods.add(wrapper)
-    replaceNativeUiCalls(all.filter { it.references().any { ref -> ref.toString() == renderer.reference } }, renderer.reference, wrapper)
+    replaceNativeUiCalls(nativeCallers(renderer), renderer.reference, wrapper)
 }

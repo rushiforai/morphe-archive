@@ -120,6 +120,7 @@ import app.hushgram.extension.instagram.stories.StoryRingColor;
 import app.hushgram.extension.instagram.stories.StoryRingSize;
 import app.hushgram.extension.instagram.stories.StoryTimeMode;
 import app.hushgram.extension.instagram.stories.TrayBadge;
+import app.hushgram.extension.instagram.profile.FollowerHistory;
 import app.hushgram.extension.instagram.profile.FollowLabelPlace;
 import app.hushgram.extension.instagram.profile.ProfileTabs;
 import app.hushgram.extension.instagram.misc.GlassCorners;
@@ -203,6 +204,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     static final String CLEAR_DOWNLOAD_HISTORY = "hushgram_clear_download_history";
     /** The row listing who left your Followers list, and the row that forgets them. */
     static final String UNFOLLOWERS_ROW = "hushgram_unfollowers_row";
+    static final String FOLLOWER_HISTORY_ROW = "hushgram_follower_history_row";
     static final String VIEWING_HISTORY_ROW = "hushgram_viewing_history_row";
     static final String CLEAR_VIEWING_HISTORY = "hushgram_clear_viewing_history";
     static final String CLEAR_UNFOLLOWERS = "hushgram_clear_unfollowers";
@@ -668,7 +670,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.FRIENDSHIP_STATUS && Settings.FOLLOW_LABEL_PLACE.key.equals(key);
                     belongs |= family == PatchFamily.FULL_SCREEN_BARS && Settings.FULL_SCREEN_HIDES.key.equals(key);
                     belongs |= family == PatchFamily.GLASS_TAB_BAR && Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key.equals(key);
-                    belongs |= family == PatchFamily.GLASS_TAB_BAR && (Settings.GLASS_TAB_BAR_OPACITY.key.equals(key)
+                    belongs |= family == PatchFamily.GLASS_TAB_BAR && (Settings.GLASS_TAB_BAR_OPACITY.key.equals(key) || Settings.GLASS_TAB_BAR_REFRACT_STRENGTH.key.equals(key)
                             || Settings.GLASS_TAB_BAR_BLUR_RADIUS.key.equals(key)
                             || Settings.GLASS_TAB_BAR_HEIGHT.key.equals(key) || Settings.GLASS_TAB_BAR_LIFT.key.equals(key)
                             || Settings.GLASS_TAB_BAR_CORNERS.key.equals(key) || Settings.GLASS_TAB_BAR_REELS_HIDE.key.equals(key));
@@ -1912,6 +1914,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             }
         }
         if (galleryFolders != null) galleryFolders.setEnabled(!busy && SaveTree.picked());
+        Preference folder = findPreference(Settings.SAVE_FOLDER.key);
+        if (folder instanceof FolderRow) ((FolderRow) folder).showWhere();
     }
 
     private static boolean isFontRequest(int request) {
@@ -3678,6 +3682,47 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return mark(row, SettingsIcons.PERSON);
     }
 
+    /** The row logging who left, came back or is new since each whole Followers list was kept. */
+    static Preference followerHistoryRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(FOLLOWER_HISTORY_ROW);
+        row.setPersistent(false);
+        row.setSelectable(false);
+        row.setTitle(L10n.t("Follower history"));
+        row.setSummary(L10n.t("Reading the list…"));
+        Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+        if (!Utils.runOnBackgroundThread(() -> {
+            String summary = followerHistorySummary(Unfollowers.history(application));
+            Utils.runOnMainThread(() -> row.setSummary(summary));
+        })) {
+            row.setSummary(followerHistorySummary(Unfollowers.history(application)));
+        }
+        return mark(row, SettingsIcons.PERSON);
+    }
+
+    /** What the history row says for [changes], newest first. */
+    static String followerHistorySummary(java.util.List<FollowerHistory.Change> changes) {
+        if (changes.isEmpty()) {
+            return L10n.t("Nothing logged yet. Each time you scroll your own Followers list to the end, "
+                    + "changes since the last time are added here.");
+        }
+        java.text.DateFormat day = java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM);
+        StringBuilder text = new StringBuilder();
+        int shown = 0;
+        for (FollowerHistory.Change change : changes) {
+            if (shown == UNFOLLOWERS_SHOWN) break;
+            String who = change.username.isEmpty() ? L10n.f("Account %1$s", change.id) : "@" + change.username;
+            String when = day.format(new java.util.Date(change.when));
+            String line = change.kind == FollowerHistory.UNFOLLOWED ? L10n.f("%1$s unfollowed you, %2$s", who, when)
+                    : change.kind == FollowerHistory.FOLLOWED_AGAIN ? L10n.f("%1$s followed you again, %2$s", who, when)
+                    : L10n.f("%1$s started following you, %2$s", who, when);
+            text.append(line).append('\n');
+            shown++;
+        }
+        if (changes.size() > UNFOLLOWERS_SHOWN) text.append(L10n.t("Only the newest 50 are shown.")).append('\n');
+        return text.toString().trim();
+    }
+
     /** What the unfollowers row says for [record]. */
     static String unfollowersSummary(Unfollowers.Record record) {
         if (record.checked <= 0) {
@@ -3704,7 +3749,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      * empties [list]. It's handed over rather than looked up, since a search that hides the list row
      * takes it off the screen, and it came back still naming everyone (S22, 2026-10-15).
      */
-    static void clearUnfollowers(Preference row, Preference list) {
+    static void clearUnfollowers(Preference row, Preference list, Preference history) {
         if (!allowMutation(row, true)) return;
         Context context = row.getContext();
         if (!Utils.runOnBackgroundThread(() -> {
@@ -3717,6 +3762,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 if (cleared) {
                     Utils.showToastShort(L10n.t("Unfollower list cleared."));
                     list.setSummary(unfollowersSummary(Unfollowers.Record.NONE));
+                    history.setSummary(followerHistorySummary(java.util.Collections.emptyList()));
                 } else {
                     Utils.showToastLong(L10n.t("Couldn't clear the unfollower list. Try again."));
                 }
@@ -3745,20 +3791,23 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
-    /** How many of the newest viewing history rows the list row shows. */
-    static final int VIEWING_HISTORY_SHOWN = 50;
+    /** How many of the newest viewing history rows the settings row shows. Its page has them all. */
+    static final int VIEWING_HISTORY_SHOWN = 3;
 
     /**
-     * The row listing what the viewing history kept, newest first. Read off the main thread, so it
-     * says so until it's read. It isn't tappable: the summary is the list.
+     * The row with the newest of what the viewing history kept. Read off the main thread, so it
+     * says so until it's read. Tapping it opens the whole list on a page of its own.
      */
     static Preference viewingHistoryRow(Context context) {
         Row row = new Row(context);
         row.setKey(VIEWING_HISTORY_ROW);
         row.setPersistent(false);
-        row.setSelectable(false);
         row.setTitle(L10n.t("Viewing history"));
         row.setSummary(L10n.t("Reading the list…"));
+        row.setOnPreferenceClickListener(tapped -> {
+            ViewingHistoryPage.open(tapped.getContext(), tapped);
+            return true;
+        });
         Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
         if (!Utils.runOnBackgroundThread(() -> {
             String summary = viewingHistorySummary(ViewingHistory.entries(application), System.currentTimeMillis());
@@ -3784,7 +3833,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             text.append(who).append(viewingKindLabel(seen.kind)).append(", ").append(ago).append('\n');
             shown++;
         }
-        if (rows.size() > VIEWING_HISTORY_SHOWN) text.append(L10n.t("Only the newest 50 are shown."));
+        text.append(L10n.f("Tap to see all %1$d, by kind or by search.", rows.size()));
         return text.toString().trim();
     }
 
@@ -3800,6 +3849,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     /** Forgets the viewing history off the main thread, says so, and empties [list]. */
     static void clearViewingHistory(Preference row, Preference list) {
+        clearViewingHistory(row, list, null);
+    }
+
+    /** {@link #clearViewingHistory(Preference, Preference)}, running [after] once it's gone. */
+    static void clearViewingHistory(Preference row, Preference list, @Nullable Runnable after) {
         if (!allowMutation(row, true)) return;
         Context context = row.getContext();
         if (!Utils.runOnBackgroundThread(() -> {
@@ -3812,6 +3866,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 if (cleared) {
                     Utils.showToastShort(L10n.t("Viewing history cleared."));
                     list.setSummary(viewingHistorySummary(java.util.Collections.emptyList(), System.currentTimeMillis()));
+                    if (after != null) after.run();
                 } else {
                     Utils.showToastLong(L10n.t("Couldn't clear the viewing history. Try again."));
                 }
@@ -4005,6 +4060,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             case PLUM: return L10n.t("Instagram on plum");
             case LIGHT: return L10n.t("Instagram in black on white");
             case SKETCH: return L10n.t("Hand-drawn Instagram");
+            case GRADIENT: return L10n.t("Instagram gradient on dark");
+            case RETRO: return L10n.t("Retro Instagram");
             default: return L10n.t("Instagram's own");
         }
     }
@@ -4094,8 +4151,16 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     /** How strong the glass tab bar's tint is, from a slider in percent of the bar's own look (#391). */
     static SliderRow glassOpacityRow(Context context) {
         SliderRow row = new SliderRow(context, Settings.GLASS_TAB_BAR_OPACITY, 5, L10n.t("%1$d%%"));
-        row.setTitle(L10n.t("Tab bar opacity"));
+        row.setTitle(L10n.t("Tint intensity"));
         row.setText(String.valueOf(Settings.GLASS_TAB_BAR_OPACITY.savedValue()));
+        return row;
+    }
+
+    /** How hard the liquid pill bends what's behind its edge, from a slider in percent of the standard bend (#391). */
+    static SliderRow glassRefractRow(Context context) {
+        SliderRow row = new SliderRow(context, Settings.GLASS_TAB_BAR_REFRACT_STRENGTH, 10, L10n.t("%1$d%%"));
+        row.setTitle(L10n.t("Refraction intensity"));
+        row.setText(String.valueOf(Settings.GLASS_TAB_BAR_REFRACT_STRENGTH.savedValue()));
         return row;
     }
 
@@ -5424,7 +5489,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         row.setTitle(L10n.t("Save folder"));
         row.setDialogTitle(L10n.t("Save folder"));
         row.setDialogMessage(L10n.f("Choose a folder name under Movies and Pictures. Invalid characters become "
-                + "underscores. Leave it blank to use the default folder, %1$s.", L10n.isolate(SaveFolder.DEFAULT)));
+                + "underscores. Leave it blank to use the default folder, %1$s. For an SD card or anywhere else, "
+                + "use Choose a folder.", L10n.isolate(SaveFolder.DEFAULT)));
         row.setPositiveButtonText(L10n.t("Save"));
         // Unset, Android fills in its own Cancel in the activity's language, which can differ
         // from Instagram's, and the dialog read "Speichern" next to "Cancel".
@@ -5435,6 +5501,12 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         row.setText(Settings.SAVE_FOLDER.savedValue());
         row.setOnPreferenceChangeListener((preference, typed) -> {
             String raw = typed == null ? "" : typed.toString();
+            if (raw.indexOf('/') >= 0 || raw.indexOf('\\') >= 0) {
+                // This row only takes a name. Cleaned, a card's path would become a folder named
+                // after it on internal storage, so the folder stays as it was.
+                Utils.showToastShort(L10n.t("Use Choose a folder for a path or an SD card."));
+                return false;
+            }
             String clean = SaveFolder.sanitize(raw);
             if (clean.equals(raw)) return true;
             // Keeps the clean name in place of what was typed. The store changes, and the shared
@@ -6049,7 +6121,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         @Override
         public void setText(String text) {
             super.setText(text);
-            setSummary(folderSummary(SaveFolder.sanitize(text)));
+            showWhere();
+        }
+
+        /** Where saves go: a folder that's picked and still there takes them all, and this name isn't used. */
+        void showWhere() {
+            setSummary(SaveTree.reachable(getContext())
+                    ? L10n.t("Not used while you've picked a folder. Saves go there.")
+                    : folderSummary(SaveFolder.sanitize(getText())));
         }
 
         @Override
@@ -6936,6 +7015,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         /** How far one notch of the slider moves the value. */
         final int step;
         private final String format;
+        /** Told the value as the thumb moves, and -1 once it's let go, by a row that shows the change (#391). */
+        @Nullable java.util.function.IntConsumer live;
 
         SliderRow(Context context, IntegerSetting setting, int step, String format) {
             super(context);
@@ -7015,6 +7096,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     String shown = label(valueAt(progress));
                     if (summary != null) summary.setText(shown);
                     describe(bar, shown);
+                    if (live != null) live.accept(valueAt(progress));
                     // A key or a screen reader moves it a notch at a time without a drag, so each notch saves.
                     if (!dragging) choose(valueAt(progress));
                 }
@@ -7028,6 +7110,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 public void onStopTrackingTouch(SeekBar bar) {
                     dragging = false;
                     choose(valueAt(bar.getProgress()));
+                    if (live != null) live.accept(-1);
                 }
             });
         }

@@ -1,5 +1,8 @@
 [versions]
 morphe-patcher = "1.15.1"
+# ARSCLib is a runtime dependency of morphe-patcher; pinned here so patches can use the
+# binary AndroidManifest API at compile time. Keep in sync with the patcher's version.
+arsc-lib = "9b742c412d"
 #noinspection GradleDependency
 smali = "d92701d947"
 gson = "2.14.0"
@@ -12,3 +15,4 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
 morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
 morphe-extensions-library = { module = "app.morphe:morphe-extensions-library", version.ref = "morphe-patches-library" }
+arsc-lib = { module = "com.github.MorpheApp:ARSCLib", version.ref = "arsc-lib" }

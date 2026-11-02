@@ -10,6 +10,7 @@ import java.util.logging.Logger
 val universalBypassPlayStoreInstallCheckPatch = bytecodePatch(
     name = "Universal Bypass Play Store Install Check (Experimental)",
     description = "⚠️ [Experimental / Untested] Bypasses Google Play Store installer source verification ('Download this app from Google Play' dialogs), preventing forced redirects to the Play Store when running sideloaded or patched APKs (such as VPN apps, tools, and games).",
+    default = false,
 ) {
     // Universal patch: Applies to any sideloaded app enforcing Play Store installer verification
     execute {

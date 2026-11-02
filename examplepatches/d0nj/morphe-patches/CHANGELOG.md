@@ -1,3 +1,33 @@
+## [1.6.0](https://github.com/d0nj/morphe-patches/compare/v1.5.0...v1.6.0) (2026-11-02)
+
+### ✨ New Features
+
+* split Firefox branding into icon, logo and name patches ([8d2fcb9](https://github.com/d0nj/morphe-patches/commit/8d2fcb917301feed27a79686b4cd7625aead61d8))
+
+## [1.5.0](https://github.com/d0nj/morphe-patches/compare/v1.4.2...v1.5.0) (2026-11-01)
+
+### ✨ New Features
+
+* add Firefox Nightly branding patch ([cdcb33a](https://github.com/d0nj/morphe-patches/commit/cdcb33a40029115cf201f99ebad4b7d9ce91e3b8))
+
+## [1.4.2](https://github.com/d0nj/morphe-patches/compare/v1.4.1...v1.4.2) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* locate the weather fetch structurally across Niagara versions ([6b56547](https://github.com/d0nj/morphe-patches/commit/6b565477f2e093116a32d097babce47ccc357d94))
+
+## [1.4.1](https://github.com/d0nj/morphe-patches/compare/v1.4.0...v1.4.1) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* shorten patch descriptions ([4e9d8cd](https://github.com/d0nj/morphe-patches/commit/4e9d8cd12b84029a3d77f599832d9818b517bc46))
+
+## [1.4.0](https://github.com/d0nj/morphe-patches/compare/v1.3.1...v1.4.0) (2026-11-01)
+
+### ✨ New Features
+
+* use Open-Meteo for Niagara weather without an account ([71a5257](https://github.com/d0nj/morphe-patches/commit/71a525713b3ebd8d3a878627ba89eddde667434b))
+
 ## [1.3.1](https://github.com/d0nj/morphe-patches/compare/v1.3.0...v1.3.1) (2026-09-11)
 
 ### 🐛 Bug Fixes

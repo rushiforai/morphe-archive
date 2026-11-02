@@ -3811,8 +3811,9 @@ public class NativeToolkitDialog {
         }
     }
 
-    private static void showExportResultsDialog(Activity activity, int successCount, List<ExportFailure> failures, float density, Theme theme) {
-        if (activity == null || activity.isFinishing() || activity.isDestroyed() || failures == null || failures.isEmpty()) return;
+    private static void showExportResultsDialog(Activity activity, int successCount, int unchangedCount, List<ExportFailure> failures, float density, Theme theme) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed() || failures == null
+                || (failures.isEmpty() && unchangedCount <= 0)) return;
 
         Dialog dialog = new Dialog(activity);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -3832,7 +3833,8 @@ public class NativeToolkitDialog {
         root.addView(tvTitle);
 
         TextView tvSummary = new TextView(activity);
-        tvSummary.setText("✅ " + successCount + " exported  •  ❌ " + failures.size() + " failed");
+        tvSummary.setText("✅ " + successCount + " exported  •  ❌ " + failures.size() + " failed"
+                + (unchangedCount > 0 ? "\n" + unchangedCount + " file(s) exported unchanged. Backing them up will re-link to the quota-using original." : ""));
         tvSummary.setTextSize(12.5f);
         tvSummary.setTextColor(theme.textSecondary);
         tvSummary.setPadding(0, (int) (4 * density), 0, (int) (12 * density));
@@ -3931,6 +3933,7 @@ public class NativeToolkitDialog {
         // Retry button
         TextView btnRetry = new TextView(activity);
         btnRetry.setText("Retry Failed (" + failures.size() + ")");
+        btnRetry.setVisibility(failures.isEmpty() ? View.GONE : View.VISIBLE);
         btnRetry.setTextSize(12f);
         btnRetry.setTypeface(null, Typeface.BOLD);
         btnRetry.setTextColor(theme.onPrimary);
@@ -4029,8 +4032,9 @@ public class NativeToolkitDialog {
             int successCount = 0;
             List<ExportFailure> failures = new ArrayList<>();
             List<String> exportedPaths = new ArrayList<>();
-            File dcimDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "GooglePhotos_Export");
-            if (!dcimDir.exists()) dcimDir.mkdirs();
+            List<String> unchangedPaths = new ArrayList<>();
+            File exportDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "GooglePhotos_Export");
+            if (!exportDir.exists()) exportDir.mkdirs();
 
             // Pre-fetch auth token for active Google Photos account
             String authToken = null;
@@ -4065,14 +4069,14 @@ public class NativeToolkitDialog {
                         baseName += (item.mimeType != null && item.mimeType.contains("video")) ? ".mp4" : ".jpg";
                     }
 
-                    File destFile = new File(dcimDir, baseName);
+                    File destFile = new File(exportDir, baseName);
                     int count = 1;
                     while (destFile.exists()) {
                         int dot = baseName.lastIndexOf('.');
                         if (dot > 0) {
-                            destFile = new File(dcimDir, baseName.substring(0, dot) + "_" + count + baseName.substring(dot));
+                            destFile = new File(exportDir, baseName.substring(0, dot) + "_" + count + baseName.substring(dot));
                         } else {
-                            destFile = new File(dcimDir, baseName + "_" + count);
+                            destFile = new File(exportDir, baseName + "_" + count);
                         }
                         count++;
                     }
@@ -4166,7 +4170,7 @@ public class NativeToolkitDialog {
                         }
 
                         // 3c. Fallback to cached bitmap from fetchThumbSync as last resort (images only)
-                        if (!copied && (item.mimeType == null || !item.mimeType.contains("video")) && item.duration <= 0) {
+                        if (!copied && item.quotaBytes <= 0 && (item.mimeType == null || !item.mimeType.contains("video")) && item.duration <= 0) {
                             try {
                                 Bitmap bm = fetchThumbSync(activity, item.remoteUrl, accountId);
                                 if (bm != null) {
@@ -4183,10 +4187,22 @@ public class NativeToolkitDialog {
                     }
 
                     if (copied) {
+                        // A byte-identical backup would re-link to the quota-using original.
+                        if (item.quotaBytes > 0) {
+                            try {
+                                if (!DedupBreaker.tag(destFile, "morphe-reupload:" + item.dedupKey)) {
+                                    unchangedPaths.add(destFile.getAbsolutePath());
+                                }
+                            } catch (Throwable t) {
+                                unchangedPaths.add(destFile.getAbsolutePath());
+                                Logger.printException(() -> "Could not tag exported quota item " + item.filename, t);
+                            }
+                        }
                         successCount++;
                         exportedPaths.add(destFile.getAbsolutePath());
                     } else {
-                        String err = lastError != null ? lastError : "Source media not found or inaccessible";
+                        String err = (lastError != null ? lastError : "Source media not found or inaccessible")
+                                + (item.quotaBytes > 0 ? " (preview fallback is disabled for quota items)" : "");
                         failures.add(new ExportFailure(item, item.filename, err));
                         Logger.printInfo(() -> "Export failed for " + item.filename + ": " + err);
                     }
@@ -4201,7 +4217,7 @@ public class NativeToolkitDialog {
                 String[] pathsArray = exportedPaths.toArray(new String[0]);
                 try {
                     MediaScannerConnection.scanFile(activity, pathsArray, null, (path, uri) -> {
-                        Logger.printInfo(() -> "Exported & indexed in DCIM: " + path);
+                        Logger.printInfo(() -> "Exported & indexed in Pictures: " + path);
                     });
                 } catch (Throwable t) {
                     Logger.printException(() -> "Error calling MediaScannerConnection", t);
@@ -4210,11 +4226,11 @@ public class NativeToolkitDialog {
 
             MAIN_HANDLER.post(() -> {
                 if (progressDialog.isShowing()) progressDialog.dismiss();
-                if (failures.isEmpty()) {
-                    String msg = "Exported " + finalSuccess + " item(s) to DCIM/GooglePhotos_Export";
+                if (failures.isEmpty() && unchangedPaths.isEmpty()) {
+                    String msg = "Exported " + finalSuccess + " item(s) to Pictures/GooglePhotos_Export";
                     Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
                 } else {
-                    showExportResultsDialog(activity, finalSuccess, failures, density, theme);
+                    showExportResultsDialog(activity, finalSuccess, unchangedPaths.size(), failures, density, theme);
                 }
             });
         });

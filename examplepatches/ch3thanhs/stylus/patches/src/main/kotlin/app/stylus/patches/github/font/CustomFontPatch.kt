@@ -70,16 +70,16 @@ private val customFontFileOption = stringOption(
     key = "customFontFile",
     default = null,
     title = "Custom font",
-    description = "The file path to your font file. Tap the file picker and select it. " +
-        "The font file must be in TTF or OTF format. " +
+    description = "The file path to your font. Tap the file picker and select it. " +
+        "The font must be in TTF or OTF format. " +
         "A variable font is recommended so heading and body text keep their different weights.",
     required = true,
 )
 
 @Suppress("unused")
 val customFontGithubPatch = resourcePatch(
-    name = "Custom font (GitHub)",
-    description = "Replaces GitHub's bundled Inter and Mona Sans UI fonts with a custom font file.",
+    name = "Custom font",
+    description = "Replaces the bundled Inter and Mona Sans UI fonts with your own font.",
     default = false,
 ) {
     category("Font")

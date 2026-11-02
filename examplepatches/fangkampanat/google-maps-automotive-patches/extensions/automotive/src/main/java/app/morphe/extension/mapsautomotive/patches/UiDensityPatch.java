@@ -133,7 +133,7 @@ public final class UiDensityPatch {
     /** Injection point: the row subtitle, the current choice. */
     public static String getSettingsSummary(Context context) {
         if (!SafeMode.on(context, SafeMode.UI_DENSITY)) {
-            return isThai(context) ? "ใช้ขนาดของระบบชั่วคราว · สวิตช์ใน Maps Car report" : "System density for now · switch in Maps Car report";
+            return isThai(context) ? "ใช้ขนาดของระบบชั่วคราว · สวิตช์ใน Report Maps Car" : "System density for now · switch in Report Maps Car";
         }
         return describedLabel(context, getTargetDensityDpi(context));
     }

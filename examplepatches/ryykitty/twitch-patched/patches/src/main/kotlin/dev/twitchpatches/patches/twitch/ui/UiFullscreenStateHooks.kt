@@ -1,6 +1,9 @@
 package dev.twitchpatches.patches.twitch.ui
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -15,6 +18,27 @@ import dev.twitchpatches.patches.twitch.shared.*
 private const val HOST = "Ltv/twitch/android/feature/discovery/feed/rn/theatre/ActivityImmersiveModeHost;"
 private const val ACTIVITY = "Landroid/app/Activity;"
 private const val BASE_VIEW = "Ltv/twitch/android/core/mvp/viewdelegate/BaseViewDelegate;"
+
+private object TheatreViewStateModelFingerprint : Fingerprint(
+    name = "toString",
+    strings = listOf(
+        string("TheatreViewState(isPortrait="),
+        string(", playerMode="),
+    ),
+)
+
+private class TheatreLayoutDispatcherFingerprint(modelClass: String) : Fingerprint(
+    isStatic = false,
+    parameters = listOf("Ltv/twitch/android/core/mvp/viewdelegate/ViewDelegateState;"),
+    returnType = "V",
+    filters = listOf(
+        methodCall(
+            definingClass = "this",
+            parameters = listOf(modelClass),
+            returnType = "V",
+        )
+    ),
+)
 
 internal fun BytecodePatchContext.injectUiFullscreenState() {
     val host = classDefBy(HOST)
@@ -33,11 +57,12 @@ internal fun BytecodePatchContext.injectUiFullscreenState() {
     for ((operation, hidden) in listOf("hide" to true, "show" to false)) {
         val method = controller.methods.filter { candidate -> controllerCalls.any { it.toString() == candidate.reference } &&
             candidate.references().filterIsInstance<MethodReference>().any { call ->
-                fun MethodReference.matches() = definingClass == "Landroid/view/WindowInsetsController;" &&
-                    name == operation && parameterTypes.map(CharSequence::toString) == listOf("I")
-                call.matches() || (call.parameterTypes.firstOrNull() == "Landroid/view/WindowInsetsController;" &&
+                call.parameterTypes.firstOrNull() == "Landroid/view/WindowInsetsController;" &&
                     classDefBy(call.definingClass).methods.single { it.reference == call.toString() }
-                        .references().filterIsInstance<MethodReference>().any { it.matches() })
+                        .references().filterIsInstance<MethodReference>().any {
+                            it.definingClass == "Landroid/view/WindowInsetsController;" &&
+                                it.name == operation && it.parameterTypes.map(CharSequence::toString) == listOf("I")
+                        }
             }
         }.uniqueHook("host system bar $operation")
         val owner = mutableClassDefBy(method.definingClass)
@@ -75,10 +100,7 @@ internal fun wrapSystemBarOperation(original: MutableMethod, activity: FieldRefe
 }
 
 private fun BytecodePatchContext.injectNativeFullscreenState() {
-    val all = mutableListOf<Method>()
-    classDefForEach { all.addAll(it.methods) }
-    val model = all.filter { it.name == "toString" && it.hasStrings("TheatreViewState(isPortrait=", ", playerMode=") }
-        .uniqueHook("native theatre layout state")
+    val model = TheatreViewStateModelFingerprint.originalMethod
     val portrait = fieldAfterLabel(model, "TheatreViewState(isPortrait=", "Z")
     val mode = fieldAfterLabel(model, ", playerMode=", null)
     val modeType = classDefBy(mode.type)
@@ -86,11 +108,10 @@ private fun BytecodePatchContext.injectNativeFullscreenState() {
         modeType.fields.map { it.name }.containsAll(listOf("VIDEO_AND_CHAT", "MINIMIZED", "PICTURE_IN_PICTURE"))) {
         "UI settings: native theatre player modes changed."
     }
-    val dispatch = all.filter { it.isInstance(listOf("Ltv/twitch/android/core/mvp/viewdelegate/ViewDelegateState;"), "V") &&
-        AccessFlags.BRIDGE.isSet(it.accessFlags) && it.references().filterIsInstance<MethodReference>().any { call ->
-            call.definingClass == it.definingClass && call.parameterTypes.map(CharSequence::toString) == listOf(model.definingClass)
-        }
-    }.uniqueHook("native theatre layout dispatcher")
+    val dispatch = TheatreLayoutDispatcherFingerprint(model.definingClass).originalMethod
+    require(AccessFlags.BRIDGE.isSet(dispatch.accessFlags) && AccessFlags.PUBLIC.isSet(dispatch.accessFlags)) {
+        "UI settings: native theatre dispatcher flags changed."
+    }
     val target = dispatch.references().filterIsInstance<MethodReference>().single { it.definingClass == dispatch.definingClass }
     val root = classDefBy(BASE_VIEW).fields.filter { it.type == "Landroid/view/View;" && !AccessFlags.STATIC.isSet(it.accessFlags) }
         .uniqueHook("native theatre root view")
@@ -112,10 +133,9 @@ internal fun fieldAfterLabel(method: Method, label: String, type: String?): Fiel
     val code = method.code()
     val at = code.indices.filter { ((code[it] as? ReferenceInstruction)?.reference as? StringReference)?.string == label }
         .uniqueHook("model field label $label")
-    val field = code.drop(at + 1).take(4).filter {
+    val field = code.asSequence().drop(at + 1).take(4).filter {
         it.opcode in setOf(Opcode.IGET, Opcode.IGET_OBJECT, Opcode.IGET_BOOLEAN)
-    }
-        .mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }.firstOrNull()
+    }.firstNotNullOfOrNull { (it as? ReferenceInstruction)?.reference as? FieldReference }
     require(field != null && field.definingClass == method.definingClass && (type == null || field.type == type)) {
         "UI settings: model field after $label changed."
     }

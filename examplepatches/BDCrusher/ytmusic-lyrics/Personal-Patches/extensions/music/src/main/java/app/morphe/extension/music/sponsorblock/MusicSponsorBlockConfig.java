@@ -45,6 +45,7 @@ public final class MusicSponsorBlockConfig implements Configuration {
     private static final MusicSponsorBlockConfig INSTANCE = new MusicSponsorBlockConfig();
 
     private static volatile boolean installed;
+    public static boolean isInstalled() { return installed; }
 
     /** Video the player last reported, before any album song substitution. */
     @Nullable
@@ -81,7 +82,17 @@ public final class MusicSponsorBlockConfig implements Configuration {
         // The album patch can serve the streams of a song under the id of its music video,
         // and the segments of the music video do not match that audio.
         PlaylistRequest.Song song = PlayAlbumSongsPatch.getSong(videoId);
-        SegmentPlaybackController.setCurrentVideoId(song == null ? videoId : song.videoId());
+        String resolved = song == null || app.bdcrusher.ytmusic.playlists.LocalPlayback.response(videoId) != null ? videoId : song.videoId();
+        if (!Utils.isNetworkConnected() && resolved != null) {
+            Utils.runOnBackgroundThread(() -> {
+                var saved = app.bdcrusher.ytmusic.playlists.DownloadChapters.read(resolved);
+                Utils.runOnMainThread(() -> {
+                    if (!java.util.Objects.equals(currentVideoId, videoId)) return;
+                    if (saved != null) SegmentPlaybackController.setSavedSegments(resolved, saved);
+                    else SegmentPlaybackController.setCurrentVideoId(resolved);
+                });
+            });
+        } else SegmentPlaybackController.setCurrentVideoId(resolved);
     }
 
     /**
@@ -90,6 +101,7 @@ public final class MusicSponsorBlockConfig implements Configuration {
      */
     private static void videoIdResolved(@NonNull String videoId, @NonNull String resolvedVideoId) {
         if (!videoId.equals(currentVideoId)) return;
+        if (app.bdcrusher.ytmusic.playlists.LocalPlayback.response(videoId) != null) return;
         Utils.runOnMainThread(() -> SegmentPlaybackController.setCurrentVideoId(resolvedVideoId));
     }
 

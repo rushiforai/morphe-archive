@@ -1,0 +1,221 @@
+/*
+ * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+ */
+
+package app.rex.patches.instagram.entity.mediadata
+
+import app.rex.patches.instagram.entity.decoder.MEDIA_CLASS_NAME
+import app.rex.patches.instagram.entity.decoder.ReelsInlineQualitySurveyRelatedFingerprint
+import app.rex.patches.instagram.entity.decoder.USER_MODEL_CLASS_NAME
+import app.rex.patches.instagram.utils.Constants
+import app.rex.patches.instagram.utils.Constants.EDIT_MEDIA_INFO_FRAGMENT_CLASS
+import app.rex.patches.instagram.utils.Constants.ORIGINAL_SOUND_DATA_INTF
+import app.rex.patches.instagram.utils.Constants.USER_SESSION_CLASS
+import app.morphe.patcher.Fingerprint
+import com.android.tools.smali.dexlib2.iface.Method
+
+internal const val AUDIO_SRC_KEY = "audio_src"
+internal const val EXTENSION_CLASS_DESCRIPTOR = "${Constants.ENTITY_CLASS}/MediaData;"
+internal const val LIVE_TREE_MEDIA_DICT_CLASS = "Lcom/instagram/feed/media/LiveTreeMediaDict;"
+
+/**
+ * Class carrying the LiveTree-backed media getters. Both candidates ship together, so
+ * `mediaDataEntity` pins one before these fingerprints resolve.
+ */
+internal var mediaModelClass: String = LIVE_TREE_MEDIA_DICT_CLASS
+
+private fun Method.inMediaModel(): Boolean = definingClass == mediaModelClass
+
+internal object GetHelperClassExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getHelperClass",
+)
+
+internal object GetMentionSetExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getMentionSet",
+)
+
+internal object GetImageVariantsExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getImageVariants",
+)
+
+internal object GetVideoVariantsV1ExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getVideoVariantsV1",
+)
+
+internal object GetVideoVariantsV2ExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getVideoVariantsV2",
+)
+
+internal object IsVideoExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "isVideo",
+)
+
+internal object GetMediaListExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getMediaList",
+)
+
+internal object GetExtendedDataExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getExtendedData",
+)
+
+internal object GetUserDataWithoutUserSessionExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getUserDataWithoutUserSession",
+)
+
+internal object GetUserDataWithUserSessionExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getUserDataWithUserSession",
+)
+
+internal object GetMediaPkIdExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getMediaPkId",
+)
+
+internal object GetTakenAtSecondsExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getTakenAtSeconds",
+)
+
+internal object GetDescriptionTextExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getDescriptionText",
+)
+
+internal object GetOriginalSoundDataIntfExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getOriginalSoundDataIntf",
+)
+
+internal object GetTrackDataIntfExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getTrackDataIntf",
+)
+
+internal object GetMessageAudioUrlExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getMessageAudioUrl",
+)
+
+internal object GetMoreExtendedDataExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getMoreExtendedData",
+)
+
+internal object GetPostTypeExtensionFingerprint : Fingerprint(
+    definingClass = EXTENSION_CLASS_DESCRIPTOR,
+    name = "getPostType",
+)
+
+// -----------------------------------
+
+internal object InstagramMainActivityNotificationRelatedFingerprint : Fingerprint(
+    definingClass = "/InstagramMainActivity;",
+    strings = listOf("nme_ig_post_post_creation_notif", "nme_ig_post_story_creation_notif"),
+)
+
+internal object AslSessionRelatedFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf("asl_session_id", "is_video", "is_carousel"),
+)
+
+internal object EditMediaInfoFragmentMediaSizeFingerprint : Fingerprint(
+    parameters = listOf(EDIT_MEDIA_INFO_FRAGMENT_CLASS),
+    returnType = "F",
+    definingClass = EDIT_MEDIA_INFO_FRAGMENT_CLASS,
+)
+
+// Backup fingerprint to find a media list method.
+internal object GetAndroidLinkFromMediaObject : Fingerprint(
+    returnType = "Lcom/instagram/model/androidlink/AndroidLink;",
+    definingClass = "Lcom/instagram/profile/fragment/UserDetailFragment;",
+)
+
+internal object FanClubContentPreviewInteractorImplFingerprint : Fingerprint(
+    definingClass = "Lcom/instagram/fanclub/preview/impl/FanClubContentPreviewInteractorImpl;",
+    strings = listOf("subscription_exclusive_content_public_preview_select", "creator_igid"),
+)
+
+internal object AudioIntfMapperFingerprint : Fingerprint(
+    returnType = "Ljava/util/Map;",
+    strings = listOf(AUDIO_SRC_KEY, "audio_src_expiration_timestamp_us", "codec", "duration", "fallback", "file_format"),
+)
+
+internal object ExtMediaDictVideoInfoMapperFingerprint : Fingerprint(
+    strings =
+        listOf(
+            "video_subtitles_uri",
+            "video_to_carousel_cut_info",
+        ),
+    returnType = "Ljava/util/Map;",
+)
+
+internal object LiveTreeMediaDictReelsMentionFingerprint : Fingerprint(
+    returnType = "Ljava/util/List;",
+    strings = listOf("reel_mentions"),
+    custom = { methodDef, _ -> methodDef.inMediaModel() },
+)
+
+internal object LiveTreeMediaDictGetUserFingerprint : Fingerprint(
+    returnType = USER_MODEL_CLASS_NAME,
+    strings = listOf("user"),
+    custom = { methodDef, _ -> methodDef.inMediaModel() },
+)
+
+internal object ExtMediaDictImageInfoMapperFingerprint : Fingerprint(
+    strings =
+        listOf(
+            "igtv_shopping_info",
+            "image_versions2",
+        ),
+    returnType = "Ljava/util/Map;",
+)
+
+internal object GetProductTileMediaFromUserSessionFingerprint : Fingerprint(
+    definingClass = "Lcom/instagram/model/shopping/productfeed/ProductTile;",
+    parameters = listOf(USER_SESSION_CLASS),
+    returnType = "Lcom/instagram/model/shopping/productfeed/ProductTileMedia;",
+)
+
+internal object ProductInfoMapperFingerprint : Fingerprint(
+    strings =
+        listOf(
+            "product_suggestions",
+            "product_tags",
+            "product_type",
+        ),
+    returnType = "Ljava/util/Map;",
+)
+
+internal object ImageInfoCandidatesMapperFingerprint : Fingerprint(
+    parameters = listOf("Lcom/instagram/model/mediasize/ImageInfo;"),
+    returnType = "Ljava/util/Map;",
+    strings = listOf("additional_candidates", "candidates"),
+)
+
+internal object GetOriginalSoundDataIntfFromMediaFingerprint : Fingerprint(
+    classFingerprint = ReelsInlineQualitySurveyRelatedFingerprint,
+    returnType = ORIGINAL_SOUND_DATA_INTF,
+)
+
+internal object GetUserDataFromMediaFingerprint : Fingerprint(
+    classFingerprint = ReelsInlineQualitySurveyRelatedFingerprint,
+    parameters = listOf(USER_SESSION_CLASS, MEDIA_CLASS_NAME),
+    returnType = USER_MODEL_CLASS_NAME,
+)
+
+internal object CommentToStringFingerprint : Fingerprint(
+    name = "toString",
+    strings = listOf("Comment{mCreatedAtSeconds=%d, mUser=@%s, mText=\'%s\'}"),
+)

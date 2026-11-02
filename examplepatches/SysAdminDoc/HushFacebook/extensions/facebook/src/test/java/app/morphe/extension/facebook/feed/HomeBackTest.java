@@ -53,6 +53,7 @@ public class HomeBackTest {
     @After public void restore() {
         PauseForTests.resume();
         Settings.BACK_KEEPS_HOME.resetToDefault();
+        Settings.HIDE_BACK_REMINDER.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         LogBufferManager.clearLogBuffer();
         HookStatus.clear();
@@ -97,6 +98,17 @@ public class HomeBackTest {
         assertTrue(report, report.contains("let Facebook go to the top on a second Back 1"));
     }
 
+    /** With the reminder hidden, Back behaves the same and says nothing (#334). */
+    @Test public void withTheReminderHiddenTheFirstBackStillKeepsHomeWithoutAToast() {
+        Settings.HIDE_BACK_REMINDER.save(true);
+        assertTrue("the first Back left Facebook's scroll to the top in", HomeBack.holdScrollToTop());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertNull("the first Back showed a toast", ShadowToast.getLatestToast());
+
+        SystemClock.sleep(500);
+        assertFalse("the second Back was kept too", HomeBack.holdScrollToTop());
+    }
+
     @Test public void switchedOffEveryBackIsFacebooks() {
         Settings.BACK_KEEPS_HOME.save(false);
         assertFalse(HomeBack.holdScrollToTop());
@@ -129,7 +141,7 @@ public class HomeBackTest {
     /** The toast fits two lines of about 28 characters in every language Hushfacebook carries. */
     @Test public void theToastFitsTwoShortLinesInEveryLanguage() {
         assertTrue(lines(TOAST) <= 2);
-        for (String language : new String[]{"de", "es", "in", "pt-rbr", "tr", "vi", "zh-rcn", "zh-rtw"}) {
+        for (String language : new String[]{"de", "es", "in", "pt-rbr", "ru", "tr", "vi", "zh-rcn", "zh-rtw"}) {
             String translated = L10nTablesForTests.of(language).get(TOAST);
             assertNotNull(language + " has no toast", translated);
             assertTrue(language + ": " + translated, lines(translated) <= 2);

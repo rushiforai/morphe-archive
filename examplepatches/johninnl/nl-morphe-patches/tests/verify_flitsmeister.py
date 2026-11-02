@@ -13,16 +13,23 @@ import re
 import xml.etree.ElementTree as ET
 from flitsmeister_contracts import METHOD_HASHES, RESOURCE_HASHES, PROBES, METHOD_SHAPES, ROW_CONTRACTS
 
-NAMES = {'Unlock Pro', 'Hide Pro notices', 'Fix PairIP startup', 'Disable partner services', 'Hide ads', 'Disable tracking'}
+NAMES = {'Unlock Pro', 'Hide Pro notices', 'Fix PairIP startup', 'Disable partner services', 'Hide ads', 'Disable tracking', 'Guest mode', 'Broadcast navigation data'}
 A = '{http://schemas.android.com/apk/res/android}'
 HELPER = 'Lmorphe/flitsmeister/FeatureEligibility;'
+NAVIGATION = 'Lnl/johninnl/flitsmeister/NavigationBroadcasts;'
+NAVIGATION_ENABLED = False
+NAVIGATION_CALL = re.compile(r'^\s*invoke-static(?:/range)? \{[^}]*\}, ' + re.escape(NAVIGATION) + r'->[^\n]+\n', re.M)
+
 
 
 def source(root, cls):
     name = cls[1:-1] if cls.startswith('L') and cls.endswith(';') else cls
     paths = list(root.glob(f'smali*/{name}.smali')) + list(root.glob(f'smali/smali*/{name}.smali'))
     assert len(paths) == 1, f'Expected singleton class {cls}, found {len(paths)}'
-    return paths[0].read_text()
+    text = paths[0].read_text()
+    # The added calls are checked separately against a closed callsite list.
+    # Remove only those calls before applying all original whole-method/class oracles.
+    return NAVIGATION_CALL.sub('', text) if NAVIGATION_ENABLED else text
 
 
 def method(root, descriptor):
@@ -500,7 +507,47 @@ def verify_pairip(root, enabled):
     print(f'PASS: PairIP restoration={enabled}; {len(PAIRIP_CLASS_HASHES)} class contracts, {len(overrides)} verified functional callbacks, 22 original VM callers, 36 holders, 17 merged helpers, assets/native checked')
 
 
+def verify_navigation(root, selected):
+    expected = {
+        'Lnl/flitsmeister/services/base/FlitsmeisterBaseService;->onCreate()V': ('init(Landroid/content/Context;)V', 'p0'),
+        'Lnl/flitsmeister/services/base/FlitsmeisterBaseService;->onDestroy()V': ('stopped()V', None),
+        'Lab0;->A(Landroid/location/Location;)V': ('location(Landroid/location/Location;)V', 'p1'),
+        'Lab0;->onStart()V': ('started()V', None),
+        'Lab0;->onStop()V': ('stopped()V', None),
+        'Lomf;->z()V': ('road()V', None),
+        'Liz0;->c(Landroid/location/Location;FLjava/lang/String;)V': ('zone(Ljava/lang/Object;Landroid/location/Location;)V', 'p0 .. p1'),
+        'Liz0;->onStop()V': ('zoneStopped()V', None),
+    }
+    found = 0
+    for descriptor, (signature, registers) in expected.items():
+        cls, sig = descriptor.split('->')
+        paths = list(root.glob(f'smali*/{cls[1:-1]}.smali'))
+        assert len(paths) == 1, descriptor
+        text = paths[0].read_text()
+        bodies = re.findall(r'^\.method[^\n]* ' + re.escape(sig) + r'\n.*?^\.end method', text, re.M | re.S)
+        assert len(bodies) == 1, descriptor
+        calls = NAVIGATION_CALL.findall(bodies[0] + '\n')
+        assert len(calls) == int(selected), descriptor + ': exactly one bounded native hook'
+        if calls:
+            assert NAVIGATION + '->' + signature in calls[0], descriptor
+            if registers:
+                content = re.search(r'\{([^}]*)\}', calls[0])[1].strip()
+                assert content in {registers, registers + ' .. ' + registers}, descriptor + ': native parameter registers'
+            else:
+                assert '{}' in calls[0], descriptor
+            found += len(calls)
+    total = sum(len(NAVIGATION_CALL.findall(p.read_text())) for p in root.glob('smali*/**/*.smali')
+                if '/nl/johninnl/' not in str(p))
+    assert total == found, 'No additional native export callsites'
+    paths = list(root.glob('smali*/nl/johninnl/navigation/NavigationProtocol.smali'))
+    assert len(paths) == int(selected), 'One shared primitive broadcast protocol only when selected'
+    print(f'PASS: navigation broadcaster={selected}; {found} native producer/lifecycle hooks; original contracts normalized only by exact hook removal')
+
+
 def verify(root: Path, selected: set[str]) -> None:
+    global NAVIGATION_ENABLED
+    NAVIGATION_ENABLED = "Broadcast navigation data" in selected
+    verify_navigation(root, NAVIGATION_ENABLED)
     assert selected <= NAMES, f'Unknown controls {selected - NAMES}'
     unlock, hide = 'Unlock Pro' in selected, 'Hide Pro notices' in selected
     verify_pairip(root, bool(selected))
@@ -515,6 +562,8 @@ def verify(root: Path, selected: set[str]) -> None:
     tracking_disabled = 'Disable tracking' in selected
     verify_tracking(root, tracking_disabled)
     verify_telemetry(root, tracking_disabled)
+    from verify_flitsmeister_guest import verify as verify_guest
+    verify_guest(root, 'Guest mode' in selected)
     profile = int(unlock) + 2 * int(hide)
     # Coverage comes directly from the independent closed role tables, not
     # from production operation lists. Missing FEATURE rows cannot silently

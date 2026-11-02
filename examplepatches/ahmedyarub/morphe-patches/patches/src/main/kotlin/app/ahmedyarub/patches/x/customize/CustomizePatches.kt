@@ -168,10 +168,11 @@ val customizeNavigationBarPatch = bytecodePatch(
 
 // region Reply sorting
 
-/** Opens a post's conversation, creating its repository with the default sort. */
-private object ConversationOpenFingerprint : Fingerprint(
-    name = "invokeSuspend",
-    strings = listOf("changeReplySorting"),
+/** The reply sorts a conversation offers: Relevance, Recency and Likes. */
+private object ReplySortFingerprint : Fingerprint(
+    name = "<clinit>",
+    strings = listOf("Relevance", "Recency", "Likes"),
+    custom = { method, classDef -> classDef.type.startsWith("Lcom/x/models/") && classDef.superclass == "Ljava/lang/Enum;" },
 )
 
 @Suppress("unused")
@@ -193,16 +194,24 @@ val customizeReplySortingPatch = bytecodePatch(
     execute {
         CustomiseSetting("replySortChoice").method.returnEarly(sort!!)
 
-        // The conversation repository takes the post id and then the sort.
-        val repository = ConversationOpenFingerprint.method.instructions.firstNotNullOfOrNull { instruction ->
-            instruction.getReference<MethodReference>()?.takeIf { reference ->
-                reference.name == "<init>" && reference.parameterTypes.size == 6 && reference.parameterTypes[2] == "J"
-            }
-        } ?: throw PatchException("The conversation is not opened with a repository taking the post id")
-        val sortType = repository.parameterTypes[3].toString()
+        // The conversation repository takes the post id and then the sort. Which code makes it
+        // varies (the conversation itself up to 12.38, a factory from 12.39), so it is found by
+        // its constructor.
+        val sortType = ReplySortFingerprint.classDef.type
+        var repository: String? = null
+        classDefForEach { classDef ->
+            if (repository != null || !classDef.type.startsWith("Lcom/x/repositories/post/")) return@classDefForEach
+            if (classDef.methods.any { method ->
+                    method.name == "<init>" && method.parameterTypes.getOrNull(2)?.toString() == "J" &&
+                        method.parameterTypes.getOrNull(3)?.toString() == sortType
+                }
+            ) repository = classDef.type
+        }
+        val repositoryType = repository ?: throw PatchException("No conversation repository taking the post id and the sort")
 
-        mutableClassDefBy(repository.definingClass).methods.first {
-            it.name == "<init>" && it.parameterTypes == repository.parameterTypes
+        mutableClassDefBy(repositoryType).methods.first {
+            it.name == "<init>" && it.parameterTypes.getOrNull(2)?.toString() == "J" &&
+                it.parameterTypes.getOrNull(3)?.toString() == sortType
         }.apply {
             // p0 is the receiver; the long post id takes two registers.
             val sortRegister = "p5"

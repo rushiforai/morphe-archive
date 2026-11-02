@@ -17,12 +17,12 @@ ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / 'docs/site'
 LANG = {
     'en': {
-        'meta': r'\*\*App version:\*\* (?P<version>\S+) · \*\*Build:\*\* (?P<build>\d+) · \*\*Original file:\*\* (?P<input>APKS|APKM|APK)',
+        'meta': r'\*\*App version:\*\* (?P<version>\S+) · \*\*Build:\*\* (?P<build>\d+) · \*\*Original file:\*\* (?P<input>XAPK|APKS|APKM|APK)',
         'table': '| Patch | Default | What it does |',
         'states': {'On': True, 'Off': False},
     },
     'nl': {
-        'meta': r'\*\*Appversie:\*\* (?P<version>\S+) · \*\*Build:\*\* (?P<build>\d+) · \*\*Origineel bestand:\*\* (?P<input>APKS|APKM|APK)',
+        'meta': r'\*\*Appversie:\*\* (?P<version>\S+) · \*\*Build:\*\* (?P<build>\d+) · \*\*Origineel bestand:\*\* (?P<input>XAPK|APKS|APKM|APK)',
         'table': '| Patch | Standaard | Wat verandert er? |',
         'states': {'Aan': True, 'Uit': False},
     },
@@ -45,8 +45,9 @@ def load_apps(paths):
                 entry = apps.setdefault(slug, {}).setdefault(path, {
                     'targets': {}, 'package': package['packageName']})
                 for target in package.get('targets', []):
-                    for code in (target.get('versionCodes') or {}).values():
-                        key = (target['version'], str(code))
+                    # Some targets specify a version without restricting its build code.
+                    for code in (target.get('versionCodes') or {}).values() or [None]:
+                        key = (target['version'], str(code) if code is not None else None)
                         own = entry['targets'].setdefault(key, {'input': package.get('apkFileType'), 'controls': {}})
                         own['controls'][patch['name']] = patch.get('default', True)
     return apps
@@ -72,9 +73,14 @@ def check_page(path, lang, apps, download_rows):
     meta = re.search('^' + rules['meta'] + '$', text, flags=re.M)
     if not meta:
         return ['missing app version, build and original-file metadata']
-    matches = [entry['targets'][(meta['version'], meta['build'])]
-               for entry in apps.get(path.stem, {}).values()
-               if (meta['version'], meta['build']) in entry['targets']]
+    matches = []
+    for entry in apps.get(path.stem, {}).values():
+        targets = [target for (version, build), target in entry['targets'].items()
+                   if version in (None, meta['version']) and build in (None, meta['build'])]
+        if targets:
+            # Include Any-version add-ons alongside controls for the page's version.
+            matches.append({'input': targets[0]['input'], 'controls': {
+                name: default for target in targets for name, default in target['controls'].items()}})
     if not matches:
         return [f'version {meta["version"]} build {meta["build"]} is not a metadata target']
     if not text.startswith('# ') or '\n## Patches\n' not in text or rules['table'] not in text:

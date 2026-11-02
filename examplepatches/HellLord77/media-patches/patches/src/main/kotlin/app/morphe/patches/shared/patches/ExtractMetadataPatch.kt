@@ -22,26 +22,27 @@ var packageMetadata: PackageMetadata by Delegates.notNull()
 var cpuArchitectures: List<CpuArchitecture> by Delegates.notNull()
     private set
 
-val extractMetadataPatch = rawResourcePatch {
-    availability { installer, arch ->
-        installerType = installer
-        apkArchitecture = arch
-        PatchAvailability.ENABLED
-    }
-
-    dependsOn(
-        bytecodePatch {
-            execute {
-                app.morphe.patches.shared.patches.packageMetadata = packageMetadata
-            }
+val extractMetadataPatch =
+    rawResourcePatch {
+        availability { installer, arch ->
+            installerType = installer
+            apkArchitecture = arch
+            PatchAvailability.REQUIRED
         }
-    )
 
-    execute {
-        cpuArchitectures =
-            get(NATIVE_LIBRARY_DIRECTORY, copy = false)
-                .listFiles()
-                ?.filter { it.isDirectory }
-                ?.mapNotNull { CpuArchitecture.valueOfOrNull(it.name) } ?: emptyList()
+        dependsOn(
+            bytecodePatch {
+                execute {
+                    app.morphe.patches.shared.patches.packageMetadata = packageMetadata
+                }
+            },
+        )
+
+        execute {
+            cpuArchitectures =
+                get(NATIVE_LIBRARY_DIRECTORY, copy = false)
+                    .listFiles()
+                    ?.filter { it.isDirectory }
+                    ?.mapNotNull { CpuArchitecture.valueOfOrNull(it.name) } ?: emptyList()
+        }
     }
-}

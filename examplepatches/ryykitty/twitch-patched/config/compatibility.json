@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "packageName": "tv.twitch.android.app",
   "toolchain": {
-    "morpheDesktop": "1.19.1",
-    "morphePatcher": "2.0.1",
+    "morpheDesktop": "1.20.0",
+    "morphePatcher": "2.0.0",
     "morpheGradlePlugin": "2.0.0",
     "java": 21,
     "androidBuildTools": "36.0.0"
@@ -12,6 +12,7 @@
     "Auto-claim bonus channel points",
     "BTTV, FFZ and 7TV emotes",
     "Block client-requested ads",
+    "Favorite emotes",
     "Block stream ads",
     "Hide Turbo promotions",
     "Hide feed and display ads",
@@ -29,7 +30,7 @@
       "evaluatedAbis": [
         "arm64-v8a"
       ],
-      "deviceAndroidApis": [],
+      "deviceAndroidApis": null,
       "original": {
         "bundleSha256": "e0a37e42d5018b9d3cbb35420af22a980a46b0d4fe3c412fdd3fdb5a1d766393",
         "baseSha256": "56d97dd7133f4d55e76caa103d4296e02b76ade1d851ab67258499caa730d604",
@@ -41,69 +42,30 @@
         "sdkPerDexAndApkChecks": "passed",
         "originalHierarchyFindings": 118,
         "introducedHierarchyFindings": 0,
-        "typeContracts": 89,
-        "evidence": "Fresh SDK APK check passed; identical DEX reused original-aware per-DEX/hierarchy/type-contract evidence; device pending.",
-        "deviceAcceptance": "Current build is not installed. Previous device checks are historical evidence; normal-use acceptance remains pending."
+        "evidence": "Fresh full DEX rebuild and original-aware audit with all eleven feature patches.",
+        "deviceAcceptance": "Not installed. The test device runs the beta, whose higher version code blocks this version."
       },
       "evaluatedArtifact": {
-        "date": "2026-10-29",
+        "date": "2026-11-01",
         "build": "Morphe Desktop",
-        "bundleSha256": "705ee82f9af56085a1c7820d888c37bfd33145aa1dec74fb11eddc87aff14305",
-        "apkSha256": "06c5bf05b6d138b204656de2c868bef7a85dffb1f3d0865758a37bff61c0f7a9",
-        "patchesApplied": 10,
-        "deviceInstall": "Not installed. This audit used offline APK rebuilding and SDK verification."
-      }
-    },
-    {
-      "versionName": "31.7.0",
-      "versionCode": 3107006,
-      "status": "supported",
-      "primary": false,
-      "evaluatedAbis": [
-        "arm64-v8a"
-      ],
-      "deviceAndroidApis": [
-        33
-      ],
-      "original": {
-        "bundleSha256": "be7f603f6394df5119be92fa67ac69834fae7c340394dc24898d615cd1c8ba44",
-        "baseSha256": "4c1e1bb8e75b52d964310cb74ec7c10587ae8eb7fed1efa4959a5e88098c9c56",
-        "mergedSha256": "daf884ef44742143d72b67ead759bbf8a852830418d0b572df6cf86983c61a6f",
-        "signerCertificateSha256": "1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687ac53"
-      },
-      "verification": {
-        "fullDexRebuild": "passed",
-        "sdkPerDexAndApkChecks": "passed",
-        "originalHierarchyFindings": 118,
-        "introducedHierarchyFindings": 0,
-        "typeContracts": 89,
-        "evidence": "Fresh SDK APK check passed; identical DEX reused original-aware per-DEX/hierarchy/type-contract evidence; device pending.",
-        "deviceAcceptance": "Current build is not installed. Previous device checks are historical evidence; normal-use acceptance remains pending."
-      },
-      "evaluatedArtifact": {
-        "date": "2026-10-29",
-        "build": "Morphe Desktop",
-        "bundleSha256": "705ee82f9af56085a1c7820d888c37bfd33145aa1dec74fb11eddc87aff14305",
-        "apkSha256": "383d57855059b45692a577820e97f215a0c06083dfa2f8433aa336d30cee7240",
-        "patchesApplied": 10,
-        "deviceInstall": "Not installed. This audit used offline APK rebuilding and SDK verification."
+        "bundleSha256": "4332f78f5292e4e26164d78c126c02bed960480df906bfe730fdb9c7367b0384",
+        "apkSha256": "528c91d62c99ca8d088deb00a5f44199b3eeae3fa04c1a776eee346cc7c7813e",
+        "patchesApplied": 11
       }
     },
     {
       "versionName": "31.9.0_BETA",
-      "versionCode": 13109000,
+      "versionCode": 13109003,
       "status": "experimental",
       "primary": false,
       "evaluatedAbis": [
         "arm64-v8a"
       ],
-      "deviceAndroidApis": [
-        33
-      ],
+      "deviceAndroidApis": 33,
       "original": {
-        "bundleSha256": "824c9d7bb2e4a68e03cbaa752664fed4105609f6fc8a905bc61e3c2d203cc4b8",
-        "baseSha256": "a7f61ebf97465ae7ad9a516b89f4f47039c1a32cc9c946a83e2ad0da0cc2ae61",
-        "mergedSha256": "d0badacc2b5bc26525f9a6483ce2aa6083739972eacf30d3d0fa66dcc71f20cd",
+        "bundleSha256": "29cd5ca648a8b4bec4191a2f3f7a7d9886c4aaeb0e53f20415e13530894e5b0a",
+        "baseSha256": "a895694419a5c4f103f9675ee54593f330d89d30fc56a6facca380802e2d2d57",
+        "mergedSha256": "2a3427920add7e1fdd78bd6afa169f93f843d79149f7a398840e95e9d612f213",
         "signerCertificateSha256": "1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687ac53"
       },
       "verification": {
@@ -111,46 +73,46 @@
         "sdkPerDexAndApkChecks": "passed",
         "originalHierarchyFindings": 118,
         "introducedHierarchyFindings": 0,
-        "typeContracts": 89,
-        "evidence": "Fresh SDK APK check passed; identical DEX reused original-aware per-DEX/hierarchy/type-contract evidence; device pending.",
-        "deviceAcceptance": "Previous candidate failed DJ screen-off playback. Current build is not installed; device acceptance is pending."
+        "evidence": "Fresh full DEX rebuild and original-aware audit with all eleven feature patches.",
+        "deviceAcceptance": "Morphe Manager 2.3.0 build installed in place on Android 13, with the same method logic as the Morphe Desktop build. Startup, Patch settings, reload, emote input and picker, and both chat layouts checked. Normal-use acceptance is pending."
       },
       "evaluatedArtifact": {
-        "date": "2026-10-29",
+        "date": "2026-11-01",
         "build": "Morphe Desktop",
-        "bundleSha256": "705ee82f9af56085a1c7820d888c37bfd33145aa1dec74fb11eddc87aff14305",
-        "apkSha256": "d224889e95ff81b9b0975a9fccf50bc8ee2ba97f05713005423dc021d3e6d5c6",
-        "patchesApplied": 10,
-        "deviceInstall": "Not installed. This audit used offline APK rebuilding and SDK verification."
+        "bundleSha256": "4332f78f5292e4e26164d78c126c02bed960480df906bfe730fdb9c7367b0384",
+        "apkSha256": "a4ffab82a04cefe5de734b550ba912882dac8c8731959b7ded90884cd744cdaf",
+        "patchesApplied": 11
       }
     }
   ],
   "regressionChecks": {
-    "date": "2026-10-29",
-    "javaKotlinTests": 279,
-    "javaScriptTests": 62,
+    "date": "2026-11-01",
+    "javaKotlinTests": 287,
+    "javaScriptTests": 89,
     "standaloneVerifierTests": "passed",
     "sourceHygiene": "passed",
     "androidApi": 33,
     "reloadViews": "Passed initial binding, released-player cleanup, reused controls, repeated preference changes and native control availability. The previous bundle fails the reused-controls case.",
     "replayAndSettingsWindow": "Passed replay touch routing, repeated system-bar/cutout preference changes, rotation and lifecycle.",
-    "patcherMigration": "Morphe Patcher 2.0.1 lazy resource decoding: 23 of 6482 files decoded on 31.8.0_BETA.",
-    "extensionControls": "Required component contracts resolve on 31.7.0, 31.8.0 and 31.9.0_BETA. Earlier native and React Native hide/show acceptance retained.",
-    "reducedSelection": "Show deleted messages alone passed full DEX rebuilding and SDK verification on 31.7.0; zero introduced findings.",
+    "extensionControls": "Required component contracts resolve on 31.8.0 and 31.9.0_BETA. Native and React Native hide/show acceptance is pending for this build.",
+    "reducedSelection": "Show deleted messages alone passed full DEX rebuilding and the original-aware audit on 31.8.0; zero introduced findings. BTTV, FFZ and 7TV emotes, Favorite emotes and UI settings each applied alone on both targets.",
     "fullscreenRequests": "Android runtime probes passed 20 repeated modern and legacy host requests, live preference changes, restoration and keyboard preservation.",
     "channelActions": "Native metadata models preserve Follow and notification callbacks while filtering Subscribe and gifting. Native chat-overlay Subscribe uses the existing visibility policy.",
-    "backgroundPlayback": "Native lifecycle and React Native policy tests pass. DJ screen-off playback failed on the previous candidate; the bundle-source correction awaits device acceptance.",
-    "reactNativeBundleSource": "Host bundle-source contract resolves uniquely on all three declared targets. Full APK rebuilding and original-aware SDK checks pass; no new hierarchy findings. Device acceptance pending.",
+    "backgroundPlayback": "Native lifecycle and React Native policy tests pass. DJ screen-off playback works on a device.",
+    "reactNativeBundleSource": "Host bundle-source contract resolves uniquely on both targets. Full APK rebuilding and original-aware SDK checks pass; no new hierarchy findings.",
     "streamAdWarmup": "Four tests pass for immediate startup, late clean results, rendition isolation and cancellation. The existing 2.2-second foreground budget is unchanged.",
-    "creatorSponsorships": "Native banner/header contracts and React Native query/placement contracts resolve on all three declared targets. Generated capture instructions and inherited Android method references are tested; three adapter tests cover live toggles and cached creatives. Device acceptance pending.",
-    "releaseAuditDeviceTesting": "No phone interaction or installation during this audit.",
-    "historicalDeviceEvidenceDate": "2026-10-27"
+    "creatorSponsorships": "Native banner/header contracts and React Native query/placement contracts resolve on both targets. Generated capture instructions and inherited Android method references are tested; three adapter tests cover live toggles and cached creatives. Device acceptance pending.",
+    "bonusClaims": "In native Vertical View, a bonus that appeared before playback started was claimed once playback started. With the setting off it stayed unclaimed. React Native chat was not observed with a live bonus.",
+    "olderManagers": "The bundle declares Morphe Patcher 2.0.0. All eleven patches applied on Morphe Patcher 2.0.0, 2.0.1 and 2.1.0 on both targets.",
+    "favoriteEmotes": "The patch resolves on both targets alone and with the full selection. On a device, favorites stayed in sync between native and React Native pickers, cards in live and VOD chat showed the star, Twitch emotes that cannot be used showed locked with the correct upsell or card, and channel provider emotes stayed out of other channels. React Native Vertical renders the same tray and card but could not be opened on the test account.",
+    "hookCoverage": "The patcher ran under line coverage on both targets. Hook variants that neither target uses were removed. Variants that remain differ between 31.8.0 and 31.9.0_BETA or depend on the patch selection.",
+    "emoteInput": "On a device, typing no longer ended React Native chat. The message box showed Twitch and provider emotes as images in React Native chat, native Classic Split and native Vertical View, including animated emotes and the collapsed Vertical View field. Render emotes inline applied both ways without a restart. Suggestions listed names starting with the query first, and React Native provider tabs jumped to their section with every tab still shown."
   },
   "knownLimitations": {
     "streamAds": "If no clean compatible alternative is available within the bounded search, original media is retained and an ad can appear. Live preroll/midroll acceptance remains pending for this build.",
     "storyAds": "No verified ad-specific request or presentation contract. Stories ad coverage is not claimed.",
     "clientAdRequests": "Native request suppression; changing this setting requires a restart.",
-    "deletedMessages": "Native and React Native chat are covered. Text must remain in the received message; earlier deleted history cannot be recovered. A live React Native moderation event remains an acceptance check.",
+    "deletedMessages": "Rows with a forced deleted state were checked on native Classic Split, native Vertical View and React Native Classic. React Native Vertical renders the same row and could not be opened on the test account. Text must remain in the received message; earlier deleted history cannot be recovered. A live moderation event remains an acceptance check.",
     "googlePlayBilling": "Unavailable in the evaluated re-signed app.",
     "notifications": "Registration is included; actual delivery timing requires a live notification event.",
     "experimentalVersion": "31.9.0_BETA is experimental and requires normal-use acceptance.",
@@ -162,48 +124,8 @@
       "DJ audio and background playback"
     ],
     "hypeTrains": "Native event-state and React Native selector tests passed. Live Hype Train transitions still require an event on an available channel.",
-    "emoteDrafts": "Input previews are confirmed in native chat. The user reports missing draft images in React Native Vertical View; chat rendering and autocomplete remain available.",
-    "djBackgroundPlayback": "Screen-off playback on 31.9.0_BETA remains unconfirmed after repeated failed device candidates. The packaged-bundle correction requires user acceptance.",
+    "emoteDrafts": "Twitch and provider draft images are confirmed in React Native chat, native Classic Split and native Vertical View. In native layouts, backspace removes one character and shows the remaining text.",
     "creatorSponsorships": "Native and React Native suppression is covered by hook and adapter checks. Live sponsorship transitions still require device acceptance."
   },
-  "externalStreamProxy": false,
-  "emoteInputDevelopment": {
-    "date": "2026-10-27",
-    "versionName": "31.8.0_BETA",
-    "evaluatedBundleSha256": "13479063cd62d70e302e0ac93232803372466fb16816a842102aa725fbf56f85",
-    "installedApkSha256": "5110fc10f8c168dcef9d86a65070b6e1c1dd1cf4e776184f003c7a622c7f7bcd",
-    "runtimePayloadSha256": "4cbb9ba36771e2dedd5bb4fb8baf2b41855b9249dd6a3624439d8d6ab3b31f8a",
-    "fullDexRebuild": "passed",
-    "sdkPerDexAndApkChecks": "passed",
-    "introducedHierarchyFindings": 0,
-    "deviceInstall": "ADB update with the existing Manager signing key and app data.",
-    "deviceAcceptance": "User confirmed autocomplete and inline emotes working on mobile. Native suggestions were also inspected with images and names.",
-    "automatedSelection": "Instrumentation could inspect the native catalogue; its completion-selection action was inconclusive.",
-    "composerContracts": "Matched React Native composer and input contracts on 31.5.2, 31.6.0, 31.7.0 and 31.8.0_BETA.",
-    "remainingChecks": "Full legacy-input rebuild checks for retained targets are recorded under targets. Versions 31.5.2 and 31.6.0 are no longer supported."
-  },
-  "androidManagerBuild": {
-    "date": "2026-10-27",
-    "versionName": "31.8.0_BETA",
-    "morpheManager": "2.2.0",
-    "morphePatcher": "2.0.1",
-    "heapMb": 1536,
-    "patchesApplied": 10,
-    "bundleSha256": "ba4b6ac6d614ee6afc11f3990ec768d238743e99fb2962db4e5daf1a981885e6",
-    "apkSha256": "5afac84ca4e9517693b445cd1381c0db37a3a351b5baa810b412ae404431f72d",
-    "patchingRebuildingSigning": "passed",
-    "elapsedSeconds": 133,
-    "peakMemoryMb": 662,
-    "sdkPerDexAndApkChecks": "passed",
-    "originalHierarchyFindings": 118,
-    "introducedHierarchyFindings": 0,
-    "typeContracts": 89,
-    "deviceInstall": "Passed an in-place update with the existing Manager signing key; app identity and data retained.",
-    "deviceChecks": {
-      "androidApi": 33,
-      "fullscreenLifecycle": "Passed three off/on cycles, settings-window resizing, rotation and 45 steady-state samples.",
-      "settingsControls": "Passed three off/on cycles through the actual System bars controls, followed by 30 seconds of stable fullscreen playback without a restart.",
-      "visualInspection": "Fullscreen cutout strip and bottom padding absent. Landscape metadata preserved Follow and notification controls while Subscribe and gifting were hidden."
-    }
-  }
+  "externalStreamProxy": false
 }

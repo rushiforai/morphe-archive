@@ -13,7 +13,16 @@ final class EmoteSetting implements SettingGroup {
     @Override public SettingSection section() { return SettingSection.CHAT; }
     @Override public List<ToggleSetting> children() {
         return Arrays.asList(new ProviderSetting(-1, "Enable all providers"), new ProviderSetting(0, "BTTV"),
-                new ProviderSetting(1, "7TV"), new ProviderSetting(2, "FrankerFaceZ"));
+                new ProviderSetting(1, "7TV"), new ProviderSetting(2, "FrankerFaceZ"), new InlineSetting());
+    }
+
+    private static final class InlineSetting implements ToggleSetting {
+        @Override public String key() { return "inline_emotes"; }
+        @Override public String title() { return "Render emotes inline"; }
+        @Override public String summary() { return "Shows emote images instead of their names in the message box."; }
+        @Override public SettingSection section() { return SettingSection.CHAT; }
+        @Override public boolean isEnabled() { return EmoteRuntime.inlineEnabled(); }
+        @Override public void setEnabled(boolean enabled) { EmoteRuntime.setInlineEnabled(enabled); }
     }
 
     private static final class ProviderSetting implements ToggleSetting {

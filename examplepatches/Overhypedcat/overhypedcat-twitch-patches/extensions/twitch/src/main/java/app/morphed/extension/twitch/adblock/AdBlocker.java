@@ -8,7 +8,9 @@ import app.morphed.extension.twitch.hls.UrlKey;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,6 +37,8 @@ public final class AdBlocker {
      * longer than that can a new playlist URL be the same stream moved to another server.
      */
     private static final long MOVED_GAP_MS = 2_500;
+    /** A watched stream polls every ~2 seconds; quiet this long means no stream is open. */
+    private static final long WATCHING_MS = 6_000;
     private static final int MAX_PREVIEW_VARIANTS = 500;
     private static final Pattern TOKEN_PARAMETER = Pattern.compile("[?&]token=([^&]+)");
     private static final Pattern PLAYER_TYPE = Pattern.compile("\"player_type\"\\s*:\\s*\"([^\"]+)\"");
@@ -100,6 +104,18 @@ public final class AdBlocker {
         return url.contains("usher.ttvnw.net") && CHANNEL.matcher(url).find() && !url.contains("picture-by-picture");
     }
 
+    /**
+     * Whether a stream is being watched right now: a stream's player asks for a new playlist about
+     * every 2 seconds, previews are not streams here (they are ignored), and the main page has none.
+     */
+    public boolean isWatching() {
+        long now = clock.getAsLong();
+        for (StreamSession session : sessionsByVariant.values()) {
+            if (session.lastVariantUrl != null && now - session.lastSeen < WATCHING_MS) return true;
+        }
+        return false;
+    }
+
     public boolean isKnownMediaPlaylist(String url) {
         return sessionsByVariant.containsKey(UrlKey.of(url));
     }
@@ -126,10 +142,14 @@ public final class AdBlocker {
         return playerType.find() ? playerType.group(1) : null;
     }
 
-    /** Stream previews (the home feed thumbnails that play) request their token as a feed player. */
+    /** Player types the app uses for previews and other players that are not the stream being watched. */
+    private static final List<String> PREVIEW_PLAYER_TYPES = Arrays.asList(
+            "autoplay", "preview_theatre_mode", "creator_mode_preview", "clips", "creator_stories");
+
+    /** Stream previews (the home feed thumbnails that play) request their token as a feed or preview player. */
     static boolean isPreview(String usherUrl) {
         String playerType = tokenPlayerType(usherUrl);
-        return playerType != null && playerType.contains("feed");
+        return playerType != null && (playerType.contains("feed") || PREVIEW_PLAYER_TYPES.contains(playerType));
     }
 
     /**
@@ -247,7 +267,10 @@ public final class AdBlocker {
             if (variant == null) {
                 searchNote = " (quality unknown)";
             } else if (!session.searching.compareAndSet(false, true)) {
-                searchNote = " (another search is running)";
+                // Another poll (a retry, another quality) is asking right now: use the backup already in
+                // use without waiting, so the stream stays on one source instead of cutting the ad.
+                backup = session.backupResults.get(UrlKey.of(variant.url));
+                searchNote = " (another poll is searching)";
             } else {
                 long searchStart = clock.getAsLong();
                 try {
@@ -274,6 +297,7 @@ public final class AdBlocker {
         session.lastVariantUrl = session.variantUrlFor(url);
         PlaylistStitcher stitcher = session.stitcherFor(url);
         StreamSession.QualityState quality = session.qualityFor(url);
+        quality.lastPoll = session.lastSeen;
         logger.log(pollSummary(session, url, playlist, quality));
 
         if (!playlist.hasAds()) {
@@ -310,7 +334,11 @@ public final class AdBlocker {
         String output = stitcher.process(playlist, body, PlaylistStitcher.NATIVE);
         if (quality.swappingAds && ++quality.cleanPolls >= 2) {
             logger.log("Ad break over on " + session.channel);
-            session.endAdSwap(url);
+            session.endAdSwap(url, clock.getAsLong());
+            breaks.onBreakOver();
+        } else if (!quality.swappingAds && session.endLeftBreaks(clock.getAsLong())) {
+            // The player switched to this (clean) quality during the break and left the other one.
+            logger.log("Ad break over on " + session.channel + " (quality changed)");
             breaks.onBreakOver();
         }
         return output;

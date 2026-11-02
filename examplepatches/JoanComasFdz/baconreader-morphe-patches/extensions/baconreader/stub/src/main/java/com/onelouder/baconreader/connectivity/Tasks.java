@@ -9,5 +9,8 @@ public class Tasks {
         public abstract void onCancel(String str);
 
         public abstract void onComplete(T t);
+
+        public void processInBackground(T t) {
+        }
     }
 }

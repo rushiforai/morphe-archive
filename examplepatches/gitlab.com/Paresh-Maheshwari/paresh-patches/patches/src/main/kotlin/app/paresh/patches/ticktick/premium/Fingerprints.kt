@@ -3,6 +3,7 @@ package app.paresh.patches.ticktick.premium
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.newInstance
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
@@ -88,4 +89,22 @@ object GetProTypeForFakeFingerprint : Fingerprint(
     name = "getProTypeForFake",
     returnType = "I",
     parameters = listOf()
+)
+
+// AlertServiceHandler static h()Z — anti-tamper canary (obfuscated jd/d in 8.2.4.0)
+// Probes fresh `new User()` / `new SignUserInfo()` for isPro(); returns true when tampered.
+// onSchedule returns early on true, so no TASK_REMINDERS alarm is ever set.
+object AlertServiceTamperCheckFingerprint : Fingerprint(
+    returnType = "Z",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    parameters = listOf(),
+    filters = listOf(
+        newInstance("Lcom/ticktick/task/data/User;"),
+        methodCall(definingClass = "Lcom/ticktick/task/data/User;", name = "isPro"),
+        methodCall(definingClass = "Lcom/ticktick/task/data/User;", name = "getProType"),
+        newInstance("Lcom/ticktick/task/network/sync/common/model/SignUserInfo;"),
+        methodCall(definingClass = "Lcom/ticktick/task/network/sync/common/model/SignUserInfo;", name = "isPro"),
+        methodCall(definingClass = "Lcom/ticktick/task/data/User;", name = "getProTypeForFake")
+    ),
+    custom = { _, classDef -> classDef.sourceFile == "AlertServiceHandler.java" }
 )

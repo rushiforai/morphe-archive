@@ -1,0 +1,347 @@
+/*
+ * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+*/
+
+package app.morphe.extension.instagram.settings;
+
+import java.util.TreeMap;
+import static app.morphe.extension.instagram.utils.IgStr.str;
+
+public class SettingsStatus {
+    public static TreeMap<String,Boolean> FLAGS = new TreeMap();
+
+    //Ads section.
+    public static boolean disableAds = false;
+    public static void disableAds() {
+        disableAds = true;
+    }
+
+    public static boolean hideSuggestedContent = false;
+    public static void hideSuggestedContent() {
+        hideSuggestedContent = true;
+    }
+    public static boolean adsSection() {
+        return (disableAds || hideSuggestedContent);
+    }
+
+    //Filter content
+    public static boolean storyFilters = false;
+    public static void storyFilters(){storyFilters = true;}
+    public static boolean filterContentSection(){return storyFilters; }
+    
+    //Ghost section.
+    public static boolean viewStoriesAnonymously = false;
+    public static void viewStoriesAnonymously() {
+        viewStoriesAnonymously = true;
+    }
+    public static boolean viewLiveAnonymously = false;
+    public static void viewLiveAnonymously() {
+        viewLiveAnonymously = true;
+    }
+    public static boolean disableScreenshotDetection = false;
+    public static void disableScreenshotDetection() {
+        disableScreenshotDetection = true;
+    }
+    public static boolean disableTypingStatus = false;
+    public static void disableTypingStatus() {
+        disableTypingStatus = true;
+    }
+    public static boolean viewDmAnonymously = false;
+    public static void viewDmAnonymously() {
+        viewDmAnonymously = true;
+    }
+    public static boolean saveDeletedMessages = false;
+    public static void saveDeletedMessages() {
+        saveDeletedMessages = true;
+    }
+    public static boolean ghostSection() {
+        return (viewStoriesAnonymously || viewLiveAnonymously || disableScreenshotDetection || disableTypingStatus || viewDmAnonymously);
+    }
+
+    //DM section
+    public static boolean unlimitedReplaysOnEphemeralMedia = false;
+    public static void unlimitedReplaysOnEphemeralMedia() {unlimitedReplaysOnEphemeralMedia = true;}
+    public static boolean markChatAsRead = false;
+    public static void markChatAsRead() { markChatAsRead = true; }
+    public static boolean inboxLock = false;
+    public static boolean swipeCameraGesture = true;
+    public static boolean ghostInstants = true;
+    public static void inboxLock() { inboxLock = true; }
+    public static boolean dmSection(){ return markChatAsRead || unlimitedReplaysOnEphemeralMedia || saveDeletedMessages || inboxLock ;}
+
+    //Story section
+    public static boolean customiseStoryTimestamp = false;
+    public static void customiseStoryTimestamp() {
+        customiseStoryTimestamp = true;
+    }
+    public static boolean viewStoryMentions = false;
+    public static void viewStoryMentions() {
+        viewStoryMentions = true;
+    }
+    public static boolean disableStoryFlipping = false;
+    public static void disableStoryFlipping() {
+        disableStoryFlipping = true;
+    }
+    public static boolean loopStory = false;
+    public static void loopStory() {
+        loopStory = true;
+    }
+    public static boolean customiseStoryRingSize = false;
+    public static void customiseStoryRingSize() { customiseStoryRingSize = true; }
+    public static boolean storySection() {
+        return (customiseStoryTimestamp || viewStoryMentions || disableStoryFlipping || loopStory || customiseStoryRingSize);
+    }
+
+    //Links section.
+    public static boolean openLinksExternally = false;
+    public static void openLinksExternally() {
+        openLinksExternally = true;
+    }
+    public static boolean sanitizeShareLinks = false;
+    public static void sanitizeShareLinks() {sanitizeShareLinks = true;}
+    public static boolean customSharingDomain = false;
+    public static void customSharingDomain() {customSharingDomain = true;}
+    public static boolean linksSection() {
+        return (openLinksExternally || sanitizeShareLinks || customSharingDomain);
+    }
+
+    //Distraction-Free section.
+    public static boolean disableStories = false;
+    public static void disableStories() {
+        disableStories = true;
+    }
+    public static boolean disableHighlights = false;
+    public static void disableHighlights() {
+        disableHighlights = true;
+    }
+    public static boolean disableExplore = false;
+    public static void disableExplore() {
+        disableExplore = true;
+    }
+    public static boolean disableComments = false;
+    public static void disableComments() {
+        disableComments = true;
+    }
+    public static boolean hideStoriesTray = false;
+    public static void hideStoriesTray() {
+        hideStoriesTray = true;
+    }
+    public static boolean hideNotesTray = false;
+    public static void hideNotesTray() {
+        hideNotesTray = true;
+    }
+    public static boolean limitFollowingFeed = false;
+    public static void limitFollowingFeed() {
+        limitFollowingFeed = true;
+    }
+    public static boolean hideGroupCreationOnSharesheet = false;
+    public static void hideGroupCreationOnSharesheet() {
+        hideGroupCreationOnSharesheet = true;
+    }
+    public static boolean disableReelsScrolling = false;
+    public static void disableReelsScrolling() {
+        disableReelsScrolling = true;
+    }
+    public static boolean disableSwipeToCreate = false;
+    public static void disableSwipeToCreate() {
+        disableSwipeToCreate = true;
+    }
+    public static boolean focusLock = false;
+    public static void focusLock() {
+        focusLock = true;
+    }
+    public static boolean disableVideoAutoplay = false;
+    public static void disableVideoAutoplay() { disableVideoAutoplay = true;    
+    }
+    public static boolean disableDoubleTapLike = false;
+    public static void disableDoubleTapLike() {
+        disableDoubleTapLike = true;
+    }
+    public static boolean hideReelsFollowButton = false;
+    public static void hideReelsFollowButton() {
+        hideReelsFollowButton = true;
+    }
+    public static boolean disableDiscoverPeople = false;
+    public static void disableDiscoverPeople() {
+        disableDiscoverPeople = true;
+    }
+    public static boolean hideShareButton = false;
+    public static void hideShareButton() {
+        hideShareButton = true;
+    }
+    public static boolean hideSaveButtons = false;
+    public static void hideSaveButtons() {
+        hideSaveButtons = true;
+    }
+    public static boolean hideReshareButton = false;
+    public static void hideReshareButton() {
+        hideReshareButton = true;
+    }
+    public static boolean distractionFreeSection() {
+        return (hideReelsFollowButton || disableDoubleTapLike || hideNotesTray || disableHighlights || disableStories || disableExplore || disableComments || hideStoriesTray || limitFollowingFeed || disableVideoAutoplay || disableDiscoverPeople || hideGroupCreationOnSharesheet || hideReshareButton || hideSaveButtons || hideShareButton || disableReelsScrolling || disableSwipeToCreate || focusLock);
+    }
+
+    //Misc section.
+    public static boolean unlockPlusBenefits = false;
+    public static void unlockPlusBenefits() { unlockPlusBenefits = true; }
+    public static boolean changeLikeAnimation = false;
+    public static void changeLikeAnimation() { changeLikeAnimation = true; }
+    public static boolean disableAnalytics = false;
+    public static void disableAnalytics() { disableAnalytics = true; }
+    public static boolean followBackIndicator = false;
+    public static void followBackIndicator() { followBackIndicator = true; }
+    public static boolean followListNonFollowerBadge = false;
+    public static void followListNonFollowerBadge() { followListNonFollowerBadge = true; }
+    public static boolean improveImageViewing = false;
+    public static void improveImageViewing() {
+        improveImageViewing = true;
+    }
+    public static boolean copyCommentButton = false;
+    public static void copyCommentButton() {
+        copyCommentButton = true;
+    }
+    public static boolean removeEmptyBottomSpace = false;
+    public static void removeEmptyBottomSpace() {
+        removeEmptyBottomSpace = true;
+    }
+    public static boolean moreOptionsOnPost = false;
+    public static void moreOptionsOnPost() { moreOptionsOnPost = true; }
+    public static boolean moreOptionsOnProfile = false;
+    public static void moreOptionsOnProfile() { moreOptionsOnProfile = true; }
+    public static boolean miscSection() {return ( moreOptionsOnProfile || moreOptionsOnPost || changeLikeAnimation || unlockPlusBenefits || removeEmptyBottomSpace || copyCommentButton || improveImageViewing || disableAnalytics || followBackIndicator || followListNonFollowerBadge || customFont);}
+
+    //Font section.
+    public static boolean customFont = false;
+    public static void customFont() { customFont = true; }
+    public static boolean fontSection(){ return customFont; }
+    
+    //Download section.
+    public static boolean downloadMedia = false;
+    public static void downloadMedia() {downloadMedia = true;}
+     public static boolean saveMediaCommentButton = false;
+    public static void saveMediaCommentButton() {
+        saveMediaCommentButton = true;
+    }
+    public static boolean feedDownloadButton = false;
+    public static void feedDownloadButton() {feedDownloadButton = true;}
+    public static boolean downloadVoiceMessage = false;
+    public static void downloadVoiceMessage() { downloadVoiceMessage = true; }
+    public static boolean downloadWithExternalDownloader = false;
+    public static void downloadWithExternalDownloader() { downloadWithExternalDownloader = true; }
+    public static boolean downloadSection(){return (SettingsStatus.downloadMedia || saveMediaCommentButton || SettingsStatus.downloadWithExternalDownloader);}
+
+    //Instants Section
+    public static boolean instantsDownload = false;
+    public static void instantsDownload() {
+        instantsDownload = true;
+    }
+    
+    //Navigation Section
+    public static boolean hideNavigationButtons = false;
+    public static void hideNavigationButtons() { hideNavigationButtons = true; }
+
+    // Developer section.
+    public static boolean enableDeveloperOptions = false;
+    public static void enableDeveloperOptions() {
+        enableDeveloperOptions = true;
+    }
+    public static boolean unlockEmployeeOptions = false;
+    public static void unlockEmployeeOptions() {
+        unlockEmployeeOptions = true;
+    }
+    public static boolean allowUserNetworkCertificate = false;
+    public static void allowUserNetworkCertificate() {
+        allowUserNetworkCertificate = true;
+    }
+    public static boolean recommendedFlags = false;
+    public static void recommendedFlags() {recommendedFlags = true;}
+    public static boolean developerOptionsSection() {
+        return (allowUserNetworkCertificate || unlockEmployeeOptions || enableDeveloperOptions || recommendedFlags);
+    }
+
+
+
+        public static void loadStatusMap(){
+        FLAGS.put(str("rex_disable_ads"),SettingsStatus.disableAds);
+        FLAGS.put(str("rex_hide_suggested_content"),SettingsStatus.hideSuggestedContent);
+
+        FLAGS.put(str("rex_category_hide_navigation_buttons"),SettingsStatus.hideNavigationButtons);
+
+        FLAGS.put(str("rex_category_downloads"),SettingsStatus.downloadMedia);
+        FLAGS.put(str("rex_feed_download_button"),SettingsStatus.feedDownloadButton);
+        FLAGS.put(str("rex_download_voice_media"),SettingsStatus.downloadVoiceMessage);
+        FLAGS.put(str("rex_download_with_external_downloader"),SettingsStatus.downloadWithExternalDownloader);
+        FLAGS.put(str("rex_more_profile_options"),SettingsStatus.moreOptionsOnProfile);
+        FLAGS.put(str("rex_enable_more_options_on_post"),SettingsStatus.moreOptionsOnPost);
+        FLAGS.put(str("rex_disable_video_autoplay"),SettingsStatus.disableVideoAutoplay);
+        FLAGS.put(str("rex_remove_empty_bottom_space"),SettingsStatus.removeEmptyBottomSpace);
+        FLAGS.put(str("rex_save_media_comment"),SettingsStatus.saveMediaCommentButton);
+        FLAGS.put(str("rex_copy_comment"),SettingsStatus.copyCommentButton);
+        FLAGS.put(str("rex_hide_reshare_button"),SettingsStatus.hideReshareButton);
+        FLAGS.put(str("rex_hide_save_buttons"), SettingsStatus.hideSaveButtons);
+        FLAGS.put(str("rex_hide_share_button"), SettingsStatus.hideShareButton);
+        FLAGS.put(str("rex_improve_image_viewing"),SettingsStatus.improveImageViewing);
+        FLAGS.put(str("rex_unlimited_replays"),SettingsStatus.unlimitedReplaysOnEphemeralMedia);
+
+        FLAGS.put(str("rex_customise_story_timestamp"),SettingsStatus.customiseStoryTimestamp);
+        FLAGS.put(str("rex_disable_story_flipping"),SettingsStatus.disableStoryFlipping);
+        FLAGS.put(str("rex_loop_story"),SettingsStatus.loopStory);
+        FLAGS.put(str("rex_view_story_mentions"),SettingsStatus.viewStoryMentions);
+        FLAGS.put(str("rex_follow_back_indicator"),SettingsStatus.followBackIndicator);
+        FLAGS.put(str("rex_follow_list_non_follower_badge"),SettingsStatus.followListNonFollowerBadge);
+        FLAGS.put(str("rex_disable_discover_people"),SettingsStatus.disableDiscoverPeople);
+        FLAGS.put(str("rex_disable_analytics"),SettingsStatus.disableAnalytics);
+        FLAGS.put(str("rex_customise_story_ring_size"),SettingsStatus.customiseStoryRingSize);
+
+        FLAGS.put(str("rex_change_like_animation"),SettingsStatus.changeLikeAnimation);
+        FLAGS.put(str("rex_unlock_plus_benefits"),SettingsStatus.unlockPlusBenefits);
+        FLAGS.put(str("rex_inbox_lock"),SettingsStatus.inboxLock);
+
+        FLAGS.put(str("rex_disable_double_tap_to_like"),SettingsStatus.disableDoubleTapLike);
+        FLAGS.put(str("rex_hide_group_creation_button_on_sharesheet"),SettingsStatus.hideGroupCreationOnSharesheet);
+        FLAGS.put(str("rex_hide_reels_follow_button"),SettingsStatus.hideReelsFollowButton);
+        FLAGS.put(str("rex_limit_following_feed"),SettingsStatus.limitFollowingFeed);
+        FLAGS.put(str("rex_hide_notes_tray"),SettingsStatus.hideNotesTray);
+        FLAGS.put(str("rex_hide_stories_tray"),SettingsStatus.hideStoriesTray);
+        FLAGS.put(str("rex_disable_comments"),SettingsStatus.disableComments);
+        FLAGS.put(str("rex_disable_explore"),SettingsStatus.disableExplore);
+        FLAGS.put(str("rex_disable_highlights"),SettingsStatus.disableHighlights);
+        FLAGS.put(str("rex_disable_stories"),SettingsStatus.disableStories);
+        FLAGS.put(str("rex_disable_swipe_to_create"), SettingsStatus.disableSwipeToCreate);
+        FLAGS.put(str("rex_focus_lock"), SettingsStatus.focusLock);
+
+        FLAGS.put(str("rex_view_dm_anonymously"),SettingsStatus.viewDmAnonymously);
+        FLAGS.put(str("rex_save_deleted_messages"),SettingsStatus.saveDeletedMessages);
+        FLAGS.put(str("rex_disable_screenshot_detection"),SettingsStatus.disableScreenshotDetection);
+        FLAGS.put(str("rex_disable_typing_status"),SettingsStatus.disableTypingStatus);
+        FLAGS.put(str("rex_view_live_anonymously"),SettingsStatus.viewLiveAnonymously);
+        FLAGS.put(str("rex_view_stories_anonymously"),SettingsStatus.viewStoriesAnonymously);
+        FLAGS.put(str("rex_instants_title"),SettingsStatus.instantsDownload);
+
+        FLAGS.put(str("rex_sanitize_share_links"),SettingsStatus.sanitizeShareLinks);
+        FLAGS.put(str("rex_custom_sharing_domain"),SettingsStatus.customSharingDomain);
+        FLAGS.put(str("rex_open_links_externally"),SettingsStatus.openLinksExternally);
+        FLAGS.put(str("rex_enable_dev_options"),SettingsStatus.enableDeveloperOptions);
+        FLAGS.put(str("rex_enable_emp_options"),SettingsStatus.unlockEmployeeOptions);
+        FLAGS.put(str("rex_allow_user_network_certificate"),SettingsStatus.allowUserNetworkCertificate);
+
+        FLAGS.put(str("rex_enable_mark_chat_as_read"),SettingsStatus.markChatAsRead);
+        FLAGS.put(str("rex_category_filter_content"),SettingsStatus.storyFilters);
+        FLAGS.put(str("rex_category_rec_flags"),SettingsStatus.recommendedFlags);
+        FLAGS.put(str("rex_custom_font"),SettingsStatus.customFont);
+
+    }
+
+    public static void swipeCameraGesture() {
+        swipeCameraGesture = true;
+    }
+    public static void ghostInstants() {
+        ghostInstants = true;
+    }
+
+    public static void load() {
+        loadStatusMap();
+    }
+}

@@ -50,23 +50,29 @@ public final class PlaylistRuntime {
     private PlaylistRuntime(){}
     public static void capture(PhoneClient value){client=value;}
     public static String url(String id){if(!PlaylistHeaderModel.validId(id))throw new IllegalArgumentException("Invalid playlist identity");return "https://music.youtube.com/playlist?list="+id;}
+    /** Validated native download parameters can reach this without a rewritten header marker. */
+    public static void download(String id,String title){if(!PlaylistHeaderModel.validId(id))return;DownloadPrompt.playlist(Utils.getActivity(),id,title,()->start(id,title));}
+    /** Retain original playlist/folder tracking for native external-download actions too. */
+    public static void external(String id,String title){if(PlaylistHeaderModel.validId(id))startExternal(id,title);}
+    public record Preview(int count,long seconds,int unknown,java.util.List<app.morphe.extension.shared.innertube.PlayerResponseOuterClass.Format> sample){}
+    /** Size preview enumerates authenticated pages without queuing media or changing playback. */
+    public static Future<?> preview(String playlist,java.util.function.Consumer<Preview> success,java.util.function.Consumer<String> failure){return BROWSE.submit(()->{
+        Future<?> active=null;try{PhoneClient c=client;if(c==null)throw new IOException("Native playlist client is not ready");Set<String> tokens=new HashSet<>();String token="",sample="";int count=0,unknown=0;long seconds=0;
+            do{if(Thread.currentThread().isInterrupted())throw new InterruptedException();active=token.isEmpty()?c.bd_playlistBrowse("VL"+playlist,BROWSE_CALLBACKS):c.bd_playlistContinue(token,BROWSE_CALLBACKS);Object value=active.get(45,TimeUnit.SECONDS);if(!(value instanceof PhoneResponse response))throw new IOException("Playlist response contract unavailable");PlaylistPage page=PlaylistPage.parse(response.bd_playlistBytes(),playlist,!token.isEmpty());
+                for(PlaylistPage.Entry entry:page.entries){count++;if(entry.seconds()>0)seconds+=entry.seconds();else unknown++;if(sample.isEmpty()&&!entry.videoId().isEmpty())sample=entry.videoId();}token=page.continuation;if(!token.isEmpty()&&!tokens.add(token))throw new IOException("Repeated continuation");if(count>100000||tokens.size()>5000)throw new IOException("Playlist limit");
+            }while(!token.isEmpty());
+            java.util.List<app.morphe.extension.shared.innertube.PlayerResponseOuterClass.Format> formats=sample.isEmpty()?List.of():LocalDownloadManager.options(sample).formats();Preview result=new Preview(count,seconds,unknown,formats);MAIN.post(()->success.accept(result));
+        }catch(Exception unavailable){if(active!=null)active.cancel(true);if(!(unavailable instanceof InterruptedException))MAIN.post(()->failure.accept("Size preview unavailable; playlist has not been queued"));else Thread.currentThread().interrupt();}
+    });}
     /** DEFAULT is left to the original native command. Other modes consume only our own marked action. */
     public static boolean command(CommandBytes command){
         try{
             ProtoWire parsed=new ProtoWire(command.toByteArray());
             ProtoWire.Field play=parsed.one(PlaylistPageModel.PLAY);
-            if(play!=null&&play.wire==2){
-                if(!PlaylistBrowse.offline())return false;
-                ProtoWire data=new ProtoWire(play.data);String playlist=new String(data.child(1),StandardCharsets.US_ASCII),video=new String(data.child(2),StandardCharsets.US_ASCII);
-                ProtoWire.Field position=data.one(3);if(!PlaylistHeaderModel.validId(playlist)||position==null||position.wire!=0||position.value>100000)return false;
-                for(JSONObject batch:snapshot)if(playlist.equals(batch.optString("id"))){
-                    int index=(int)position.value;JSONArray entries=batch.optJSONArray("entries");
-                    if(!video.isEmpty()&&(entries==null||index>=entries.length()||!video.equals(entries.optJSONObject(index).optString("id"))||local(video)==null))return false;
-                    if(video.isEmpty()&&(entries==null||batch.optInt("available")<=0))return false;
-                    MAIN.post(()->play(Utils.getActivity(),batch,index));return true;
-                }
-                return false;
-            }
+            // Native watch endpoints remain authoritative online and offline. Never start a
+            // second service/player from a normal playlist row or its Play button.
+            if(play!=null&&play.wire==2)return false;
+            parsed=marked(parsed,0);if(parsed==null)return false;
             ProtoWire.Field marker=parsed.one(PlaylistHeaderModel.MARKER);
             if(marker==null||marker.wire!=2)return false;
             ProtoWire data=new ProtoWire(marker.data);
@@ -75,18 +81,20 @@ public final class PlaylistRuntime {
             DownloadMode mode=Settings.DOWNLOAD_MODE.get();if(mode==DownloadMode.DEFAULT)return false;
             MAIN.post(()->{
                 if(mode==DownloadMode.EXTERNAL){startExternal(id,title);Activity a=Utils.getActivity();if(a!=null)ExternalDownloaderPreference.launchExternalDownloader(id,a,url(id));}
-                else{start(id,title);PlaylistSettingsPage.showBatches(Utils.getActivity());}
+                else{DownloadPrompt.playlist(Utils.getActivity(),id,title,()->start(id,title));}
             });return true;
-        }catch(Exception malformed){return false;}
+        }catch(Exception malformed){app.bdcrusher.ytmusic.common.FeatureDiagnostics.record("Playlist-route","Download command rejected: "+malformed.getClass().getSimpleName());return false;}
     }
-    public static boolean endpoint(byte[] bytes){try{ProtoWire.Field f=new ProtoWire(bytes).one(PlaylistHeaderModel.MARKER);return f!=null&&command(()->bytes);}catch(Exception ignored){return false;}}
+    private static ProtoWire marked(ProtoWire value,int depth){if(value.one(PlaylistHeaderModel.MARKER)!=null)return value;if(depth>=4)return null;for(int n:new int[]{169495254,133724106}){ProtoWire.Field f=value.one(n);if(f!=null&&f.wire==2){ProtoWire result=marked(new ProtoWire(f.data),depth+1);if(result!=null)return result;}}return null;}
+    public static boolean endpoint(byte[] bytes){try{return marked(new ProtoWire(bytes),0)!=null&&command(()->bytes);}catch(Exception ignored){return false;}}
     private static File directory(){return new File(Utils.getContext().getFilesDir(),"bdcrusher-offline-playlists");}
     static File audio(String id){
         if(!id.matches("[A-Za-z0-9_-]{11}"))return null;
         File root=new File(Utils.getContext().getExternalFilesDir(Environment.DIRECTORY_MUSIC),"Morphe");
-        for(String ext:new String[]{".m4a",".webm"}){File file=new File(root,id+ext);if(file.isFile()&&file.length()>0)return file;}return null;
+        for(String ext:new String[]{".webm",".m4a"}){File file=new File(root,id+ext);if(file.isFile()&&file.length()>0)return file;}return null;
     }
     public static void init(){if(PersonalRuntime.installed(Utils.getContext(),"playlists"))STATE.execute(()->{load();publish();if(!resumeOffered&&batches.values().stream().anyMatch(b->b.status.startsWith("Interrupted"))){resumeOffered=true;MAIN.post(()->{Activity a=Utils.getActivity();if(a!=null&&!a.isFinishing())new android.app.AlertDialog.Builder(a).setTitle("Resume playlist downloads?").setMessage("An interrupted batch is saved. Review it to resume; completed music is kept.").setNegativeButton("Later",null).setPositiveButton("Review",(d,w)->PlaylistSettingsPage.showBatches(a)).show();});}});}
+    static void warmNativeMetadata(){if(!PersonalRuntime.installed(Utils.getContext(),"playlists"))return;STATE.execute(()->{load();for(Batch batch:batches.values())for(int i=0;i<batch.entries.length();i++){JSONObject entry=batch.entries.optJSONObject(i);if(entry==null)continue;String id=entry.optString("id");if(LocalPlayback.response(id)!=null)NativeMediaCache.prepare(batch.id,id,i);}});}
     private static void load(){
         if(loaded)return;loaded=true;File[] files=directory().listFiles();if(files==null)return;
         for(File f:files){
@@ -124,7 +132,7 @@ public final class PlaylistRuntime {
     });}
     private static void startExternal(String id,String title){STATE.execute(()->{load();Batch b=batches.get(id);if(b==null){b=new Batch(id,title);batches.put(id,b);TRACKED.add(id);}PlaylistBrowse.retain(id);b.external=true;b.running=true;b.status="Sent to external downloader; checking the selected folder";for(int i=0;i<b.entries.length();i++){JSONObject e=b.entries.optJSONObject(i);if(e!=null&&!e.optString("state").equals("unavailable"))try{e.put("state","external");}catch(JSONException ignored){}}if(save(b))pump();publish();refreshFiles(true);});}
     public static void refreshFiles(boolean force){if(!PersonalRuntime.installed(Utils.getContext(),"playlists"))return;STATE.execute(()->{load();Set<String> ids=new HashSet<>();for(Batch b:batches.values())for(int i=0;i<b.entries.length();i++){String id=b.entries.optJSONObject(i).optString("id");if(id.matches("[A-Za-z0-9_-]{11}"))ids.add(id);}ExternalFiles.refresh(Utils.getContext(),ids,force);});}
-    public static void filesChanged(){STATE.execute(()->{load();for(Batch b:batches.values())for(int i=0;i<b.entries.length();i++){JSONObject e=b.entries.optJSONObject(i);if(e==null||e.optString("state").equals("unavailable"))continue;Local file=local(e.optString("id"));try{if(file!=null){e.put("state","complete");prefetch(e,file);}else if(e.optString("state").equals("complete"))e.put("state",b.external?"external":"missing");}catch(JSONException ignored){}}for(Batch b:batches.values())save(b);publish();});}
+    public static void filesChanged(){STATE.execute(()->{load();for(Batch b:batches.values())for(int i=0;i<b.entries.length();i++){JSONObject e=b.entries.optJSONObject(i);if(e==null||e.optString("state").equals("unavailable"))continue;Local file=local(e.optString("id"));try{if(file!=null){e.put("state","complete");prefetch(e,file);if(LocalPlayback.response(file.id)!=null)NativeMediaCache.prepare(b.id,file.id,i);}else if(e.optString("state").equals("complete"))e.put("state",b.external?"external":"missing");}catch(JSONException ignored){}}for(Batch b:batches.values())save(b);publish();});}
     public record Local(String id,String source,String title,String artist,String artwork,int duration){}
     public static Local local(String id){File f=audio(id);if(f!=null){var t=app.morphe.extension.music.patches.downloads.OfflineTrack.load(f);return new Local(id,f.getAbsolutePath(),t.displayTitle(),t.displayArtist(),artwork(id,t.artworkFile().isFile()?t.artworkFile().getAbsolutePath():""),t.durationSeconds());}ExternalFiles.Item item=ExternalFiles.get(id);return item==null||!ExternalFiles.granted(Utils.getContext())?null:new Local(id,item.uri(),item.title(),item.artist(),artwork(id,item.artwork()),item.duration());}
     private static String artwork(String id,String existing){if(!existing.isEmpty())return existing;File file=PlaylistArtwork.cover(id);return file==null?"":file.getAbsolutePath();}
@@ -158,7 +166,7 @@ public final class PlaylistRuntime {
                 try{if(saved!=null){e.put("state","complete");prefetch(e,saved);continue;}e.put("state","downloading");}catch(JSONException ignored){continue;}
                 activeDownloads++;int index=i;
                 Completion callback=(videoId,file,failure)->STATE.execute(()->{
-                    activeDownloads--;try{JSONObject entry=b.entries.getJSONObject(index);entry.put("state",file!=null?"complete":"failed");if(file==null)entry.put("reason",failure);else{Local ready=local(id);if(ready!=null)prefetch(entry,ready);}}catch(JSONException ignored){}
+                    activeDownloads--;try{JSONObject entry=b.entries.getJSONObject(index);entry.put("state",file!=null?"complete":"failed");if(file==null)entry.put("reason",failure);else{Local ready=local(id);if(ready!=null)prefetch(entry,ready);NativeMediaCache.prepare(b.id,id,index);}}catch(JSONException ignored){}
                     save(b);pump();publish();
                 });
                 MAIN.post(()->enqueue(id,callback));
@@ -205,7 +213,7 @@ public final class PlaylistRuntime {
     private static void enqueue(String id,Completion callback){
         File saved=audio(id);if(saved!=null){callback.complete(id,saved,"");return;}
         synchronized(observers){observers.computeIfAbsent(id,k->new ArrayList<>()).add(callback);}
-        try{LocalDownloadManager.enqueue(id);}catch(Exception failure){finished(id);}
+        try{LocalDownloadManager.enqueueBatch(id,DownloadPrompt.selected(Utils.getContext()));}catch(Exception failure){finished(id);}
     }
     /** Injected immediately after the native downloader releases an active recording, on every outcome. */
     public static void finished(String id){
@@ -230,12 +238,10 @@ public final class PlaylistRuntime {
         if(activity==null)return;STATE.execute(()->preparePlayback(activity,batch,requested));
     }
     private static void preparePlayback(Activity activity,JSONObject batch,int requested){
-        ArrayList<String> queue=new ArrayList<>();JSONArray entries=batch.optJSONArray("entries");if(entries==null)return;int target=-1;
-        for(int i=0;i<entries.length();i++){JSONObject e=entries.optJSONObject(i);if(e==null)continue;Local file=local(e.optString("id"));if(file!=null){if(i==requested)target=queue.size();queue.add(file.source);}}
-        if(queue.isEmpty()){MAIN.post(()->Utils.showToastShort("No downloaded entries in this playlist"));return;}if(target<0)target=0;Local first=source(queue.get(target));
-        Intent intent=new Intent(activity,app.morphe.extension.music.patches.downloads.OfflinePlaybackService.class);
-        intent.setAction(app.morphe.extension.music.patches.downloads.OfflinePlaybackService.ACTION_PLAY_FILE);intent.putExtra(app.morphe.extension.music.patches.downloads.OfflinePlaybackService.EXTRA_PATH,queue.get(target));
-        if(first!=null){intent.putExtra(app.morphe.extension.music.patches.downloads.OfflinePlaybackService.EXTRA_TITLE,first.title);intent.putExtra(app.morphe.extension.music.patches.downloads.OfflinePlaybackService.EXTRA_ARTIST,first.artist);intent.putExtra(app.morphe.extension.music.patches.downloads.OfflinePlaybackService.EXTRA_ARTWORK_PATH,first.artwork);}
-        intent.putStringArrayListExtra(app.morphe.extension.music.patches.downloads.OfflinePlaybackService.EXTRA_QUEUE,queue);intent.putExtra(app.morphe.extension.music.patches.downloads.OfflinePlaybackService.EXTRA_QUEUE_INDEX,target);MAIN.post(()->{if(!activity.isFinishing()&&!activity.isDestroyed())activity.startForegroundService(intent);});
+        String id=batch.optString("id");if(!PlaylistHeaderModel.validId(id))return;
+        // Open the original collection. Native rows and the native player own playback;
+        // this progress/settings action must not create a second playback service.
+        Intent intent=new Intent(Intent.ACTION_VIEW,android.net.Uri.parse(url(id))).setPackage(activity.getPackageName());
+        MAIN.post(()->{if(!activity.isFinishing()&&!activity.isDestroyed())try{activity.startActivity(intent);}catch(android.content.ActivityNotFoundException unavailable){Utils.showToastShort("Open this playlist from your Library");}});
     }
 }

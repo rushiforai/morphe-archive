@@ -57,7 +57,7 @@ public final class PlaylistBrowse {
     public static ListenableFuture<?> observe(ListenableFuture<?> source,Snapshot key){
         if(key==null)return source;
         PlaylistFuture future=new PlaylistFuture(()->{
-            Object response=source.get();if(!(response instanceof PlaylistRuntime.PhoneResponse phone))return response;
+            Object response=PlaylistFuture.await(source);if(!(response instanceof PlaylistRuntime.PhoneResponse phone))return response;
             byte[] bytes=phone.bd_playlistBytes();String playlist=owner(key);
             if(!PlaylistHeaderModel.validId(playlist)||bytes.length>MAX_PAGE)return response;
             try{
@@ -67,7 +67,7 @@ public final class PlaylistBrowse {
                 byte[] changed=PlaylistPageModel.rewrite(bytes,playlist,key.token);return changed==bytes?response:decode(changed);
             }catch(IllegalArgumentException unsupported){FeatureDiagnostics.record("Playlist-page","Unsupported native page kept unchanged");return response;}
         },source);
-        source.addListener(()->IO.execute(future),Runnable::run);return future;
+        source.addListener(()->{if(source.isCancelled())future.cancel(false);else IO.execute(future);},Runnable::run);return future;
     }
     private static void rememberContinuation(Page page){String token=PlaylistPage.parse(page.bytes,page.playlist,!page.key.token.isEmpty()).continuation;if(!token.isEmpty())owners.put(digest(token),page.playlist);}
     private static synchronized void remember(Page page){

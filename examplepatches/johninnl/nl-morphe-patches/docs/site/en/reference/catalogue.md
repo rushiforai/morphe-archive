@@ -1,8 +1,21 @@
 # Patch catalogue
 
-**Patch bundle: 1.12.0**
+**Patch bundle: 1.26.0**
 
 Check the supported app versions and default setting for each patch. The app page explains what each patch changes when using the app.
+
+## 2dehands
+
+[What do the patches change?](../apps/2dehands.md)
+
+`be.tweedehands.m`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| Disable ThreatMetrix | On | 16.19.0 |
+| Disable tracking | On | 16.19.0 |
+| Hide ads | On | 16.19.0 |
+| Skip consent screens | On | 16.19.0 |
 
 ## 9292
 
@@ -161,9 +174,11 @@ Check the supported app versions and default setting for each patch. The app pag
 
 | Patch | Default | App versions |
 | --- | --- | --- |
+| Broadcast navigation data | On | 14.17 |
 | Disable partner services | On | 14.17 |
 | Disable tracking | On | 14.17 |
 | Fix PairIP startup | On | 14.17 |
+| Guest mode | On | 14.17 |
 | Hide Pro notices | On | 14.17 |
 | Hide ads | On | 14.17 |
 | Unlock Pro | On | 14.17 |
@@ -181,6 +196,57 @@ Check the supported app versions and default setting for each patch. The app pag
 | Hide ads | On | 2.6.8 |
 | Read full articles | On | 2.6.8 |
 | Skip consent screens | On | 2.6.8 |
+
+## Gearslip
+
+[What do the patches change?](../apps/gearslip.md)
+
+`app.seb3thehacker.gearslip`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| Control car display density | On | 0.3.31-alpha |
+| Hide apps from drawer | On | 0.3.12-alpha, 0.3.31-alpha |
+| Keep music player entries | On | 0.3.12-alpha, 0.3.31-alpha |
+
+## Google Maps
+
+[What do the patches change?](../apps/google-maps.md)
+
+`com.google.android.apps.maps`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| 120 refresh rate | On | 26.43.05.1002020710 |
+| Account sheet cleanup | On | 26.43.05.1002020710 |
+| Add microG-RE support | Off | 26.43.05.1002020710 |
+| Add original microG support | Off | 26.43.05.1002020710 |
+| Any media app | On | 26.43.05.1002020710 |
+| Avoid Flock cameras | On | 26.43.05.1002020710 |
+| Better offline maps | On | 26.43.05.1002020710 |
+| Black theme | On | 26.43.05.1002020710 |
+| Blue pin | On | 26.43.05.1002020710 |
+| Bypass Play Services checks | On | 26.43.05.1002020710 |
+| Change app name | On | 26.43.05.1002020710 |
+| Change package name | On | 26.43.05.1002020710 |
+| Customization screen | On | 26.43.05.1002020710 |
+| Flock cameras | On | 26.43.05.1002020710 |
+| Follow playing media | Off | 26.43.05.1002020710 |
+| Hide ads and clutter | On | 26.43.05.1002020710 |
+| Legacy icon | On | 26.43.05.1002020710 |
+| Location provider toggle | On | 26.43.05.1002020710 |
+| Offline saved places | On | 26.43.05.1002020710 |
+| Power saving mode | On | 26.43.05.1002020710 |
+| Proxy | On | 26.43.05.1002020710 |
+| Rectangle shapes | On | 26.43.05.1002020710 |
+| Remove permissions | On | 26.43.05.1002020710 |
+| Remove sign-in prompts | On | 26.43.05.1002020710 |
+| Remove telemetry | On | 26.43.05.1002020710 |
+| Speed cameras | On | 26.43.05.1002020710 |
+| Speeding chime | On | 26.43.05.1002020710 |
+| Trim account menu | On | 26.43.05.1002020710 |
+| Waze alerts | On | 26.43.05.1002020710 |
+| Zoom controls in navigation | On | 26.43.05.1002020710 |
 
 ## GVA
 
@@ -435,6 +501,24 @@ Check the supported app versions and default setting for each patch. The app pag
 | Disable tracking | On | 4.73 |
 | Unlock Premium | On | 4.73 |
 
+## RainViewer
+
+[What do the patches change?](../apps/rainviewer.md)
+
+`com.lucky_apps.RainViewer`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| Disable tracking | On | 8.4.1 |
+| Enable local Pro features | On | 8.4.1 |
+| Fix Google services | On | 8.4.1 |
+| Fix integrity | On | 8.4.1 |
+| Hide AI insights | On | 8.4.1 |
+| Hide ads | On | 8.4.1 |
+| Hide weather warnings overlay | On | 8.4.1 |
+| Skip consent screens | On | 8.4.1 |
+| Skip subscription screens | On | 8.4.1 |
+
 ## Rollerbank
 
 [What do the patches change?](../apps/rollerbank.md)
@@ -503,6 +587,16 @@ Check the supported app versions and default setting for each patch. The app pag
 | Hide ads | On | 7.0.16 |
 | Skip consent screens | On | 7.0.16 |
 
+## Vela Maps
+
+[What do the patches change?](../apps/vela.md)
+
+`app.vela`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| External speed controls | On | 0.5.2621 |
+
 ## Videoland Android
 
 [What do the patches change?](../apps/videoland.md)
@@ -556,11 +650,51 @@ Check the supported app versions and default setting for each patch. The app pag
 
 ## Waze
 
+[What do the patches change?](../apps/waze.md)
+
 `com.waze`
 
 | Patch | Default | App versions |
 | --- | --- | --- |
+| Alert distances | On | 5.26.90.901 |
+| All moods | Off | 5.26.90.901 |
+| Allow high refresh rate | Off | 5.26.90.901 |
+| Auto zoom | Off | 5.26.90.901 |
+| Average speed zone bar | On | 5.26.90.901 |
+| Bigger alert pins | Off | 5.26.90.901 |
+| Bigger speedometer | On | 5.26.90.901 |
+| Broadcast navigation data | On | 5.26.90.901 |
+| Car alerts as notifications | Off | 5.26.90.901 |
+| Car reconnect grace period | Off | 5.26.90.901 |
+| Car traffic meter | Off | 5.26.90.901 |
+| Change app name | On | 5.26.90.901 |
+| Extra map info | Off | 5.26.90.901 |
+| Flock cameras | On | 5.26.90.901 |
+| Full black | On | 5.26.90.901 |
+| Hide ads | On | 5.26.90.901 |
+| Hide recent destinations | Off | 5.26.90.901 |
+| Lane guidance | Off | 5.26.90.901 |
+| Map skin | On | 5.26.90.901 |
+| Native camera and hazard controls | Off | 5.26.90.901 |
+| Navigation distances | Off | 5.26.90.901 |
+| No AI reporting | Off | 5.26.90.901 |
+| No Google Assistant | Off | 5.26.90.901 |
+| Open without device location | Off | 5.26.90.901 |
+| Remove permissions | On | 5.26.90.901 |
+| Remove sign-in prompts | On | 5.26.90.901 |
+| Remove telemetry | On | 5.26.90.901 |
+| Report speed limit | Off | 5.26.90.901 |
+| Share alerts with Maps | On | 5.26.90.901 |
+| Skip consent screens | On | 5.26.90.901 |
 | SoundCloud in Waze | On | Any |
+| Speed bump controls | Off | 5.26.90.901 |
+| Speed camera alerts | On | 5.26.90.901 |
+| Speed camera sound at any speed | On | 5.26.90.901 |
+| Speed cameras everywhere | Off | 5.26.90.901 |
+| Speed limit controls | Off | 5.26.90.901 |
+| Speed limit sign | Off | 5.26.90.901 |
+| Stay awake in the background | Off | 5.26.90.901 |
+| Support Gearslip | On | 5.26.90.901 |
 | YT Music Morphe in Waze | On | Any |
 
 ## Weeronline
@@ -600,5 +734,15 @@ Check the supported app versions and default setting for each patch. The app pag
 | Patch | Default | App versions |
 | --- | --- | --- |
 | Publish selected catalog channels | Off | 0.9.4-beta |
+
+## YouTube Music
+
+[What do the patches change?](../apps/youtube-music.md)
+
+`com.google.android.apps.youtube.music`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| Gearslip music browser support | On | Any |
 
 [Releases](https://github.com/johninnl/nl-morphe-patches/releases)

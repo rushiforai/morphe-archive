@@ -26,6 +26,16 @@
 
 .field public static sCurrentActivity:Ljava/lang/ref/WeakReference;
 
+.field public static sFineTuneContrast:F
+
+.field public static sFineTuneShadows:F
+
+.field public static sFineTuneHighlights:F
+
+.field public static sFineTuneVibrance:F
+
+.field public static sFineTuneTint:F
+
 
 # direct methods
 .method static constructor <clinit>()V
@@ -37,7 +47,7 @@
     sput-wide v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sLastInitGcamPtr:J
 
     .line 12
-    const/4 v0, 0x0
+    const/4 v0, -0x1
 
     sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
 
@@ -52,6 +62,18 @@
     sput-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sAppContext:Landroid/content/Context;
 
     sput-object v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentActivity:Ljava/lang/ref/WeakReference;
+
+    const/4 v0, 0x0
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
 
     :try_start_propatcher
     const-string v0, "propatcher"
@@ -76,6 +98,9 @@
 .method public static native nativeApplyTuning(FI)V
 .end method
 
+.method public static native nativeSetFineTuning(FFFFF)V
+.end method
+
 .method public static native nativeProcessHardwareBuffer(Landroid/hardware/HardwareBuffer;I)V
 .end method
 
@@ -84,7 +109,7 @@
 
     sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
 
-    if-lez v0, :cond_check_pref
+    if-ltz v0, :cond_check_pref
 
     return v0
 
@@ -142,9 +167,11 @@
     move-result v0
 
     :goto_cache
-    if-lez v0, :cond_ret_zero
+    if-ltz v0, :cond_ret_zero
 
     sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->loadFineTuningForLook(I)V
 
     return v0
     :try_end_pref_look
@@ -153,6 +180,10 @@
     :catch_pref_look
     :cond_ret_zero
     const/4 v0, 0x0
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->loadFineTuningForLook(I)V
 
     return v0
 .end method
@@ -165,13 +196,50 @@
     return-void
 
     :cond_not_null
+    sget v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sCurrentModeOrdinal:I
+
+    const/4 v0, 0x2
+
+    if-ne v1, v0, :cond_chk_4
+
+    return-void
+
+    :cond_chk_4
+    const/4 v0, 0x4
+
+    if-ne v1, v0, :cond_chk_14
+
+    return-void
+
+    :cond_chk_14
+    const/16 v0, 0xe
+
+    if-ne v1, v0, :cond_chk_15
+
+    return-void
+
+    :cond_chk_15
+    const/16 v0, 0xf
+
+    if-ne v1, v0, :cond_mode_ok
+
+    return-void
+
+    :cond_mode_ok
     invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getSelectedLookId()I
 
     move-result v0
 
-    if-gtz v0, :cond_active
+    if-lez v0, :cond_check_ft
 
-    return-void
+    goto :cond_active
+
+    :cond_check_ft
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->hasActiveFineTuning()Z
+
+    move-result v1
+
+    if-eqz v1, :cond_ret
 
     :cond_active
     :try_start_0
@@ -180,6 +248,295 @@
     .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :catch_0
 
     :catch_0
+    :cond_ret
+    return-void
+.end method
+
+.method public static hasActiveFineTuning()Z
+    .locals 3
+
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    const/4 v1, 0x0
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_c
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_c
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_s
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_s
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_hl
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_hl
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_v
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_v
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    cmpl-float v2, v0, v1
+
+    if-eqz v2, :cond_none
+
+    const/4 v0, 0x1
+
+    return v0
+
+    :cond_none
+    const/4 v0, 0x0
+
+    return v0
+.end method
+
+.method public static updateToneFineTuning(IF)V
+    .locals 1
+
+    if-nez p0, :cond_s
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    goto :cond_sync
+
+    :cond_s
+    const/4 v0, 0x1
+
+    if-ne p0, v0, :cond_hl
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    goto :cond_sync
+
+    :cond_hl
+    const/4 v0, 0x2
+
+    if-ne p0, v0, :cond_sync
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    :cond_sync
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->syncFineTuningToNative()V
+
+    return-void
+.end method
+
+.method public static updateColorFineTuning(IF)V
+    .locals 1
+
+    if-nez p0, :cond_tint
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    goto :cond_sync
+
+    :cond_tint
+    const/4 v0, 0x1
+
+    if-ne p0, v0, :cond_sync
+
+    sput p1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    :cond_sync
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->syncFineTuningToNative()V
+
+    return-void
+.end method
+
+.method public static syncFineTuningToNative()V
+    .locals 5
+
+    :try_start_sync
+    sget v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    sget v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    sget v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    sget v3, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    sget v4, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    invoke-static {v0, v1, v2, v3, v4}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->nativeSetFineTuning(FFFFF)V
+    :try_end_sync
+    .catch Ljava/lang/Throwable; {:try_start_sync .. :try_end_sync} :catch_sync
+
+    :catch_sync
+    return-void
+.end method
+
+.method public static loadFineTuningForLook(I)V
+    .locals 4
+
+    :try_start_load
+    const/4 v0, 0x0
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    sput v0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v2, "pref_tomte_extra_key_"
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1, p0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v1
+
+    if-eqz v1, :cond_check_caps
+
+    invoke-virtual {v1}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    const-string v2, ","
+
+    invoke-virtual {v1, v2}, Ljava/lang/String;->split(Ljava/lang/String;)[Ljava/lang/String;
+
+    move-result-object v1
+
+    array-length v2, v1
+
+    const/4 v3, 0x3
+
+    if-lt v2, v3, :cond_check_caps
+
+    const/4 v2, 0x0
+
+    aget-object v2, v1, v2
+
+    invoke-static {v2}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v2
+
+    sput v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneContrast:F
+
+    const/4 v2, 0x1
+
+    aget-object v2, v1, v2
+
+    invoke-static {v2}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v2
+
+    sput v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneShadows:F
+
+    const/4 v2, 0x2
+
+    aget-object v1, v1, v2
+
+    invoke-static {v1}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v1
+
+    sput v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneHighlights:F
+
+    :cond_check_caps
+    new-instance v1, Ljava/lang/StringBuilder;
+
+    invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+    const-string v2, "pref_tomte_caps_key_"
+
+    invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1, p0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-static {v1}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getPrefEntry(Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v1
+
+    if-eqz v1, :cond_done
+
+    invoke-virtual {v1}, Ljava/lang/Object;->toString()Ljava/lang/String;
+
+    move-result-object v1
+
+    const-string v2, ","
+
+    invoke-virtual {v1, v2}, Ljava/lang/String;->split(Ljava/lang/String;)[Ljava/lang/String;
+
+    move-result-object v1
+
+    array-length v2, v1
+
+    const/4 v3, 0x2
+
+    if-lt v2, v3, :cond_done
+
+    const/4 v2, 0x0
+
+    aget-object v2, v1, v2
+
+    invoke-static {v2}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v2
+
+    sput v2, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneVibrance:F
+
+    const/4 v2, 0x1
+
+    aget-object v1, v1, v2
+
+    invoke-static {v1}, Ljava/lang/Float;->parseFloat(Ljava/lang/String;)F
+
+    move-result v1
+
+    sput v1, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sFineTuneTint:F
+
+    :cond_done
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->syncFineTuningToNative()V
+    :try_end_load
+    .catch Ljava/lang/Throwable; {:try_start_load .. :try_end_load} :catch_load
+
+    :catch_load
     return-void
 .end method
 
@@ -229,6 +586,57 @@
     .catch Ljava/lang/Throwable; {:try_start_tuning .. :try_end_tuning} :catch_tuning
 
     :catch_tuning
+    return-void
+.end method
+
+.method public static restartCameraForTuning()V
+    .locals 4
+
+    :try_start_restart
+
+    const-string v0, "PATCH_LOOKS"
+
+    const-string v1, "Restarting camera to apply native tuning (Gcam re-init required)..."
+
+    invoke-static {v0, v1}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getApplicationContext()Landroid/content/Context;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_exit
+
+    invoke-virtual {v0}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
+
+    move-result-object v1
+
+    invoke-virtual {v0}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;
+
+    move-result-object v2
+
+    invoke-virtual {v2, v1}, Landroid/content/pm/PackageManager;->getLaunchIntentForPackage(Ljava/lang/String;)Landroid/content/Intent;
+
+    move-result-object v1
+
+    if-eqz v1, :cond_exit
+
+    const v2, 0x14000000
+
+    invoke-virtual {v1, v2}, Landroid/content/Intent;->addFlags(I)Landroid/content/Intent;
+
+    invoke-virtual {v0, v1}, Landroid/content/Context;->startActivity(Landroid/content/Intent;)V
+
+    invoke-static {}, Landroid/os/Process;->myPid()I
+
+    move-result v0
+
+    invoke-static {v0}, Landroid/os/Process;->killProcess(I)V
+
+    :cond_exit
+    :try_end_restart
+    .catch Ljava/lang/Throwable; {:try_start_restart .. :try_end_restart} :catch_restart
+
+    :catch_restart
     return-void
 .end method
 
@@ -1010,10 +1418,69 @@
 
     const/4 p0, 0x0
 
-    return p0
-
     :cond_ret_orig
     return p0
+.end method
+
+.method public static applyShotParamsDenoiseAndSharpen(Lcom/google/googlex/gcam/ShotParams;)V
+    .locals 5
+
+    if-nez p0, :cond_start
+
+    return-void
+
+    :cond_start
+    :try_start_shotparams
+    iget-wide v0, p0, Lcom/google/googlex/gcam/ShotParams;->a:J
+
+    const-wide/16 v2, 0x0
+
+    cmp-long v4, v0, v2
+
+    if-nez v4, :cond_check_denoise
+
+    return-void
+
+    :cond_check_denoise
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getNoiseReductionMode()I
+
+    move-result v2
+
+    const/4 v3, 0x2
+
+    if-ge v2, v3, :cond_check_sharpen
+
+    # Off (0) or Low/Minimal (1): Disable ML secondary denoisers to retain 100% fine textures and natural sensor grain
+    const/4 v3, 0x0
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_force_pecan_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_pecan_model_type_set(JLcom/google/googlex/gcam/ShotParams;I)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_walnut_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_chess_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_force_chess_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_bento_edamame_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_bento_edamame_force_apply_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_almond_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_mochi_enabled_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_mochi_force_apply_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    invoke-static {v0, v1, p0, v3}, Lcom/google/googlex/gcam/GcamModuleJNI;->ShotParams_strengthen_denoise_for_sky_set(JLcom/google/googlex/gcam/ShotParams;Z)V
+
+    :cond_check_sharpen
+    :try_end_shotparams
+    .catch Ljava/lang/Throwable; {:try_start_shotparams .. :try_end_shotparams} :catch_shotparams
+
+    :catch_shotparams
+    return-void
 .end method
 
 .method public static filterWalnutEnabled(Z)Z
@@ -1737,8 +2204,6 @@
 
     invoke-static {v0, p0}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
 
-    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->applyNativeTuning()V
-
     return-void
 .end method
 
@@ -2062,6 +2527,10 @@
 
     invoke-static {v0, p0}, Landroid/util/Log;->i(Ljava/lang/String;Ljava/lang/String;)I
 
+    sget p0, Lcom/google/android/patch/cameralooks/TomteInitHelper;->sSelectedLookId:I
+
+    invoke-static {p0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->loadFineTuningForLook(I)V
+
     return-void
 .end method
 
@@ -2106,9 +2575,22 @@
 .method public static getFlagOverride(Ljava/lang/String;)I
     .locals 2
 
-    if-nez p0, :cond_check_lasagna
+    if-nez p0, :cond_check_mantis
 
     const/4 v0, -0x1
+
+    return v0
+
+    :cond_check_mantis
+    const-string v0, "camera.gouda.mantis"
+
+    invoke-virtual {p0, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+
+    move-result v0
+
+    if-eqz v0, :cond_check_lasagna
+
+    const/4 v0, 0x1
 
     return v0
 

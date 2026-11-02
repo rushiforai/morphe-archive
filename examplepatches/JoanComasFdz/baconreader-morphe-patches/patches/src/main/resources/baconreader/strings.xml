@@ -68,6 +68,7 @@
     <string name="revanced_open_links_prompt_not_now">Not now</string>
     <string name="revanced_tables_expand">↔ Expand</string>
     <string name="revanced_tables_fit_to_screen">Fit to screen</string>
+    <string name="revanced_spoiler_hidden">spoiler</string>
     <string name="revanced_text_post_icon_content_description">Show post text</string>
     <string name="revanced_baconreader_user_avatars_title">Show user avatars</string>
     <string name="revanced_baconreader_user_avatars_summary_on">The author\'s avatar is shown before the name, as on Reddit\'s website</string>
@@ -124,6 +125,9 @@
     <string name="revanced_comment_search_hint">Search comments</string>
     <string name="revanced_comment_search_all">SEARCH ALL</string>
     <string name="revanced_comment_search_filter">Show only matching comments</string>
+    <string name="revanced_comment_search_previous">Previous match</string>
+    <string name="revanced_comment_search_next">Next match</string>
+    <string name="revanced_comment_search_close">Close search</string>
     <string name="revanced_comment_search_loading">LOADING…</string>
     <string name="revanced_comment_search_error">Could not load all comments: %s</string>
     <string name="revanced_meme_template_loading">Loading template…</string>

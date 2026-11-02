@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The e2e tool (tools/e2e/README.md): posts a PR's recorded scenarios and cleans prs-resources, with the gh CLI, and
+       runs the steps record.sh and push-gifs.sh hand it. A host: its logic is BaconReader.E2ETools.Core. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>BaconReader.E2ETools</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Dunet" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BaconReader.E2ETools.Core\BaconReader.E2ETools.Core.csproj" />
+  </ItemGroup>
+</Project>

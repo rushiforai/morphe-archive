@@ -130,9 +130,11 @@ private fun List<Instruction>.isListedWrite(at: Int, targets: Set<Int>): Boolean
 }
 
 /** The extension stub the route is written into: `const-string vX, ""` then `return-object vX`. */
-internal fun Method.validateInboxRefreshStub() {
+internal fun Method.validateInboxRefreshStub() = validateRouteStub(INBOX_REFRESH_ROUTE)
+
+internal fun Method.validateRouteStub(id: String) {
     val code = implementation?.instructions?.toList().orEmpty()
-    if (hookId() != INBOX_REFRESH_ROUTE || !AccessFlags.STATIC.isSet(accessFlags) || code.size != 2 ||
+    if (hookId() != id || !AccessFlags.STATIC.isSet(accessFlags) || code.size != 2 ||
         code[0].opcode != Opcode.CONST_STRING || code[0].string() != "" || code[1].opcode != Opcode.RETURN_OBJECT ||
         (code[0] as OneRegisterInstruction).registerA != (code[1] as OneRegisterInstruction).registerA) extensionChanged()
 }

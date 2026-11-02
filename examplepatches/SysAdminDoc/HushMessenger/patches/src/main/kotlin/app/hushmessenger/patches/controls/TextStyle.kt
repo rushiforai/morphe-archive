@@ -28,8 +28,8 @@ internal const val TEXT_INPUT_REMEASURE = "updateState:TextInputComponent.remeas
 internal const val EDIT_TEXT = "Landroid/widget/EditText;"
 private const val TEXT_VIEW = "Landroid/widget/TextView;"
 private const val TEXT_CHANGED = "onTextChanged(Ljava/lang/CharSequence;III)V"
-private const val FOCUS_CHANGED = "onFocusChanged(ZILandroid/graphics/Rect;)V"
-internal const val TEXT_FIELD_FOCUSED = "Lapp/hushmessenger/extension/TextStyleActivity;->textFieldFocused(Landroid/view/View;)V"
+private const val SELECTION_CHANGED = "onSelectionChanged(II)V"
+internal const val TEXT_FIELD_SELECTED = "Lapp/hushmessenger/extension/TextStyleActivity;->textFieldSelected(Landroid/view/View;)V"
 
 private fun textFieldChanged(detail: String): Nothing =
     throw PatchException("Messenger controls: the chat text field changed ($detail)")
@@ -41,44 +41,45 @@ private fun Method.namesRemeasure() = implementation?.instructions?.any {
     ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == TEXT_INPUT_REMEASURE
 } == true
 
-/** Index of the focus change's one call to Android's own, made on `this`. Null when that isn't the shape. */
-internal fun Method.focusSuperCall(): Int? {
-    if (AccessFlags.STATIC.isSet(accessFlags) || signature() != FOCUS_CHANGED || implementation == null) return null
+/** Index of the selection change's one call to Android's own, made on `this`. Null when that isn't the shape. */
+internal fun Method.selectionSuperCall(): Int? {
+    if (AccessFlags.STATIC.isSet(accessFlags) || signature() != SELECTION_CHANGED || implementation == null) return null
     val code = implementation!!.instructions.toList()
     val self = parameterRegister(0)
     return code.indices.filter { at ->
         val call = (code[at] as? ReferenceInstruction)?.reference as? MethodReference
         val receiver = (code[at] as? FiveRegisterInstruction)?.registerC ?: (code[at] as? RegisterRangeInstruction)?.startRegister
         (code[at].opcode == Opcode.INVOKE_SUPER || code[at].opcode == Opcode.INVOKE_SUPER_RANGE) && call != null &&
-            call.definingClass in setOf(TEXT_VIEW, EDIT_TEXT) && call.signature() == FOCUS_CHANGED && receiver == self
+            call.definingClass in setOf(TEXT_VIEW, EDIT_TEXT) && call.signature() == SELECTION_CHANGED && receiver == self
     }.singleOrNull()
 }
 
 /**
  * Messenger's Litho text input, the chat box among them, is an EditText with no view id, and Android adds PROCESS_TEXT
- * entries (Bold and Italic, and every other app's) only to a field that has one, so the chat box never showed them
- * (#42). The input is the one EditText whose onTextChanged names its remeasure, and the hook is that class's own
- * onFocusChanged. A Litho spec names the remeasure too, but it isn't a view. Nothing unless there's exactly one of each.
+ * entries (Bold and Italic, and every other app's) only to a field that has one, so the chat box gets Bold and Italic
+ * as rows of its own menu instead (#42, #125). The input is the one EditText whose onTextChanged names its remeasure, and
+ * the hook is that class's own onSelectionChanged. A Litho spec names the remeasure too, but it isn't a view. Nothing
+ * unless there's exactly one of each.
  */
 internal fun findTextStyleField(classes: Iterable<ClassDef>): List<Method> {
     val anchors = classes.filter { it.superclass == EDIT_TEXT }
         .flatMap { cls -> cls.methods.filter { it.namesRemeasure() }.map { cls to it } }
     val (field, anchor) = anchors.singleOrNull() ?: return emptyList()
     if (AccessFlags.STATIC.isSet(anchor.accessFlags) || anchor.signature() != TEXT_CHANGED) return emptyList()
-    return field.methods.filter { it.focusSuperCall() != null }.takeIf { it.size == 1 }.orEmpty()
+    return field.methods.filter { it.selectionSuperCall() != null }.takeIf { it.size == 1 }.orEmpty()
 }
 
 internal fun MutableMethod.validateTextStyleField() {
-    if (focusSuperCall() == null) textFieldChanged("no single focus change call on this in ${hookId()}")
+    if (selectionSuperCall() == null) textFieldChanged("no single selection change call on this in ${hookId()}")
 }
 
 /**
- * The text input hands itself to the extension first on every focus change. While Bold and Italic is in effect, a field
- * without an id gets one there, before Android builds its selection menu. Off, Pause and safe mode leave it alone.
+ * The text input hands itself to the extension first on every selection change. While Bold and Italic is in effect, a
+ * selection gets the extension's menu rows there, before Android builds the menu. Off, Pause and safe mode leave it alone.
  */
 internal fun MutableMethod.injectTextStyleField() {
     validateTextStyleField()
-    addInstructions(0, "invoke-static {p0}, $TEXT_FIELD_FOCUSED")
+    addInstructions(0, "invoke-static {p0}, $TEXT_FIELD_SELECTED")
 }
 
 /**

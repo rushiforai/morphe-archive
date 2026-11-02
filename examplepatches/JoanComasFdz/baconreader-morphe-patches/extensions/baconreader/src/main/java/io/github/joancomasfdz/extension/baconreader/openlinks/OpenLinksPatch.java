@@ -18,6 +18,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
@@ -158,6 +159,11 @@ public final class OpenLinksPatch {
                     })
                     .create();
             dialog.show();
+            // BaconReader's theme shows a dialog's buttons in capitals: show "Set up" and "Not now" as written.
+            for (int which : new int[] {DialogInterface.BUTTON_POSITIVE, DialogInterface.BUTTON_NEGATIVE}) {
+                Button button = dialog.getButton(which);
+                if (button != null) button.setAllCaps(false);
+            }
             showing = new WeakReference<Dialog>(dialog);
         } catch (Exception t) {
             Logger.printInfo(() -> "Could not show the links prompt", t);

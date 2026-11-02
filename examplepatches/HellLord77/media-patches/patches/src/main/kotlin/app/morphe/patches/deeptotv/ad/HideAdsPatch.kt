@@ -26,7 +26,7 @@ val hideAdsPatch =
             hexPatch(
                 block = {
                     when (packageMetadata.versionCode.toInt()) {
-                        204 ->
+                        204 -> {
                             cpuArchitectures.forEach { arch ->
                                 var lib = "$NATIVE_LIBRARY_DIRECTORY/${arch.arch}/libapp.so"
 
@@ -36,14 +36,12 @@ val hideAdsPatch =
                                 when (arch) {
                                     CpuArchitecture.ARMEABI_V7A -> {
                                         """
-                                09 2a 85 e2
-                                13 29 92 e5
-                            """ asPatternTo
-                                            """
-                                0d 2a 85 e2
-                                7b 26 92 e5
-                            """ inFile
-                                            lib
+                                            09 2a 85 e2
+                                            13 29 92 e5
+                                        """ asPatternTo """
+                                            0d 2a 85 e2
+                                            7b 26 92 e5
+                                        """ inFile lib
                                     }
 
                                     CpuArchitecture.ARM64_V8A -> {
@@ -52,26 +50,26 @@ val hideAdsPatch =
                                         // LDR             X2, [X2,#0x520]       -> LDR
                                         // X2, [X2,#0xB48]
                                         """
-                                62 47 40 91
-                                42 90 42 f9
-                            """ asPatternTo
-                                            """
-                                62 63 40 91
-                                42 a4 45 f9
-                            """ inFile
-                                            lib
+                                            62 47 40 91
+                                            42 90 42 f9
+                                        """ asPatternTo """
+                                            62 63 40 91
+                                            42 a4 45 f9
+                                        """ inFile lib
                                     }
 
                                     else -> {}
                                 }
                             }
+                        }
 
-                        else ->
+                        else -> {
                             throw PatchException(
-                                "Unsupported version: ${packageMetadata.versionName}"
+                                "Unsupported version: ${packageMetadata.versionName}",
                             )
+                        }
                     }
-                }
+                },
             ),
         )
     }

@@ -1,0 +1,118 @@
+/*
+ * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+*/
+
+
+package app.morphe.extension.instagram.patches.overflowMenuButton.reels;
+
+import static app.morphe.extension.instagram.utils.IgStr.str;
+
+import android.view.View;
+import android.content.Context;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceType;
+import app.morphe.extension.shared.ResourceUtils;
+
+import app.morphe.extension.instagram.utils.Pref;
+import app.morphe.extension.instagram.settings.SettingsStatus;
+import app.morphe.extension.instagram.entity.Entity;
+import app.morphe.extension.instagram.constants.UI;
+import app.morphe.extension.instagram.patches.download.DownloadUtils;
+
+import app.morphe.extension.instagram.patches.overflowMenuButton.reels.buttons.ReelButton;
+import app.morphe.extension.instagram.patches.overflowMenuButton.reels.buttons.DownloadButton;
+import app.morphe.extension.instagram.patches.overflowMenuButton.reels.buttons.DebugButton;
+import app.morphe.extension.instagram.patches.overflowMenuButton.reels.buttons.InfoButton;
+import app.morphe.extension.instagram.patches.overflowMenuButton.reels.buttons.ExternalDownloadButton;
+
+public class AddReelButton {
+
+    private static void addReelButton(Context context, ReelOverflowButton reelOverflowButton, Object helperObject){
+        try {
+                int icon = ResourceUtils.getIdentifier(ResourceType.DRAWABLE,reelOverflowButton.drawableResId);
+
+                Class<?> clazz = helperObject.getClass();
+                Method method = clazz.getDeclaredMethod(
+                        "A01",
+                        Context.class,
+                        View.OnClickListener.class,
+                        String.class,
+                        int.class
+                );
+
+                method.setAccessible(true);
+
+                method.invoke(helperObject, context, reelOverflowButton.reelButton, reelOverflowButton.buttonText, icon);
+
+        } catch (Exception e) {
+            Logger.printException(() -> "Error at addReelButton",e);
+        }
+    }
+
+    private static void addDownloadButton(Context context, Object helperObject, Object mediaObject, int currentMediaIndex){
+        String icon = UI.DRAWABLE_DOWNLOAD_ICON;
+        ReelButton reelButton = new DownloadButton(context, mediaObject, currentMediaIndex);
+        String DOWNLOAD_BUTTON_TEXT = str("rex_download_options");
+        if(Pref.enableDirectDownload()){
+            DOWNLOAD_BUTTON_TEXT = str("rex_category_download_media");
+        }
+
+        ReelOverflowButton reelOverflowButton = new ReelOverflowButton(icon,reelButton,DOWNLOAD_BUTTON_TEXT);
+
+        AddReelButton.addReelButton(context,reelOverflowButton,helperObject);
+    }
+
+    private static void addInfoButton(Context context, Object helperObject, Object mediaObject, int currentMediaIndex){
+        String icon = UI.DRAWABLE_BLUB_ICON;
+        ReelButton reelButton = new InfoButton(context, mediaObject, currentMediaIndex);
+        String buttonText = str("rex_more_options");
+
+        ReelOverflowButton reelOverflowButton = new ReelOverflowButton(icon,reelButton,buttonText);
+
+        AddReelButton.addReelButton(context,reelOverflowButton,helperObject);
+    }
+
+    private static void addDebugButton(Context context, Object helperObject, Object mediaObject, int currentMediaIndex) {
+        String icon = UI.DRAWABLE_DEBUG_ICON;
+        ReelButton reelButton = new DebugButton(context, mediaObject);
+        String buttonText = str("rex_debug");
+
+        ReelOverflowButton reelOverflowButton = new ReelOverflowButton(icon, reelButton, buttonText);
+
+        AddReelButton.addReelButton(context, reelOverflowButton, helperObject);
+    }
+
+    private static void addExternalDownloadButton(Context context, Object helperObject, Object mediaObject, int currentMediaIndex){
+        String icon = UI.DRAWABLE_DOWNLOAD_ICON;
+        ReelButton reelButton = new ExternalDownloadButton(context, mediaObject, currentMediaIndex);
+        String buttonText = str("rex_download_with_external_downloader");
+
+        ReelOverflowButton reelOverflowButton = new ReelOverflowButton(icon,reelButton,buttonText);
+
+        AddReelButton.addReelButton(context,reelOverflowButton,helperObject);
+    }
+
+    // Called from hook — passes the real current carousel index.
+    public static void includeCustomReelOverflowButtons(Context context, Object helperObject, Object mediaObject, int currentMediaIndex){
+        DownloadUtils.recordActiveReelMedia(mediaObject, null, currentMediaIndex);
+        if(Pref.rexDebug()){
+            AddReelButton.addDebugButton(context, helperObject, mediaObject, currentMediaIndex);
+        }
+        if(Pref.enableDownload()){
+            AddReelButton.addDownloadButton(context, helperObject, mediaObject, currentMediaIndex);
+        }
+        if(Pref.downloadWithExternalDownloader()){
+            AddReelButton.addExternalDownloadButton(context, helperObject, mediaObject, currentMediaIndex);
+        }
+        if(Pref.moreOptionsOnPost()){
+            AddReelButton.addInfoButton(context, helperObject, mediaObject, currentMediaIndex);
+        }
+    }
+
+
+}

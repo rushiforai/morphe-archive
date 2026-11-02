@@ -18,9 +18,10 @@ Patch settings include search, emote provider controls and UI customization. Gro
 | Hide Turbo promotions | Hides Twitch Turbo promotions and purchase prompts. |
 | Hide subscription discount banners | Hides subscription offers, discount banners and promotional labels. |
 | Auto-claim bonus channel points | Automatically claims bonus channel points while watching live streams. |
-| BTTV, FFZ and 7TV emotes | Adds global and channel emotes to live and replay chat, autocomplete and the emote picker, with animations, tap previews and inline draft images. |
+| BTTV, FFZ and 7TV emotes | Adds global and channel emotes to live and replay chat, autocomplete and the emote picker, with animations and tap previews. Shows Twitch and provider emotes as images in the message box in every chat layout, which Patch settings can turn off. |
+| Favorite emotes | Adds a Favorites section to the emote picker in native and React Native chat. Long-press an emote in the picker or tap the star on its card. Emotes you cannot use yet show as locked, and channel BTTV, FFZ and 7TV emotes only show where they are available. |
 | Reload stream | Reloads live streams with a double-tap control. |
-| Show deleted messages | Reveals retained deleted and moderated messages on tap in native and React Native chat. |
+| Show deleted messages | Keeps deleted and moderated messages readable in native and React Native chat. |
 | UI settings | Controls player buttons, channel actions, extensions, Hype Trains, leaderboards and fullscreen system bars. |
 | Block client-requested ads | Blocks native player ad requests. Restart Twitch after changing this setting. |
 | Playback diagnostics | Records playlist metadata and playback counters for troubleshooting. |
@@ -34,26 +35,24 @@ Included automatically with any modifying patch:
 
 These shared fixes require no separate patch selection. DJ playback uses Twitch's existing player and available renditions.
 
-DJ screen-off playback on 31.9.0_BETA remains under investigation.
-
 All feature patches are selected and enabled by default. UI customization options are off by default. Inspection and playback diagnostics are optional. Previously saved settings are retained.
 
 ## Compatibility
 
-Supported Twitch versions:
+Patches support the latest stable Twitch release and the latest beta:
 
-| Version | Version code |
-| --- | --- |
-| 31.8.0 | 3108006 |
-| 31.7.0 | 3107006 |
+| Version | Version code | Status |
+| --- | --- | --- |
+| 31.8.0 | 3108006 | Stable |
+| 31.9.0_BETA | 13109003 | Experimental |
 
-Twitch 31.8.0 is the primary stable target. Twitch 31.9.0_BETA (13109000) is experimental. Builds are verified against ARM64 originals. See [compatibility data](config/compatibility.json) for Android 13 device checks and remaining validation.
+Support moves forward when a new stable release comes out. Builds are verified against ARM64 originals. See [compatibility data](config/compatibility.json) for Android 13 device checks and remaining validation.
 
-These patches require Morphe Patcher 2.0.1, available in Morphe Manager 2.2.0 and Morphe Desktop 1.19.1.
+These patches require Morphe Patcher 2.0.0 or newer, available in Morphe Manager 2.0.0 and Morphe Desktop 1.19.0. Releases are tested on Morphe Manager 2.3.0 and Morphe Desktop 1.20.0.
 
 Live ad replacement depends on finding a clean, compatible Twitch stream. Ads can still appear when no alternative is available. See [ad-blocking coverage](docs/AD_BLOCKING.md) for supported surfaces and limitations. Google Play billing is unavailable in the re-signed app.
 
-Other versions and ABIs require their own hook and device verification.
+Older versions are not supported. Other ABIs require their own hook and device verification.
 
 ## Using the patches
 

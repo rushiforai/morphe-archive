@@ -1,10 +1,10 @@
 package dev.twitchpatches.patches.twitch.ui
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -15,23 +15,33 @@ import dev.twitchpatches.patches.twitch.shared.*
 private const val HYPE = "Ldev/twitchpatches/extension/ui/UiHypeTrainRuntime;"
 private const val STATE = "Ldev/twitchpatches/extension/ui/UiHypeTrainState;"
 
+private class HypeTrainEventFingerprint(label: String) : Fingerprint(
+    name = "toString",
+    strings = listOf(label),
+)
+
+private object HypeTrainHandlerFingerprint : Fingerprint(
+    isStatic = false,
+    returnType = "V",
+    parameters = listOf("Ljava/lang/Object;"),
+    strings = listOf("hypetrain"),
+)
+
 internal fun BytecodePatchContext.injectUiHypeTrainEvents() {
-    val all = mutableListOf<Method>()
-    classDefForEach { all.addAll(it.methods) }
-    fun event(label: String) = all.filter { it.name == "toString" && it.hasStrings(label) }
-        .uniqueHook("native $label event").definingClass
-    val approaching = event("AddApproachingHypeTrain(bannerViewDelegate=")
-    val active = event("AddHypeTrain(bannerViewDelegate=")
-    val collapse = event("CollapseHypeTrain(reason=")
-    val expand = event("ExpandHypeTrain(expandedViewDelegate=")
-    val level = event("AddHypeTrainLevelUpPill(level=")
+    val approaching = HypeTrainEventFingerprint("AddApproachingHypeTrain(bannerViewDelegate=").originalClassDef.type
+    val active = HypeTrainEventFingerprint("AddHypeTrain(bannerViewDelegate=").originalClassDef.type
+    val collapse = HypeTrainEventFingerprint("CollapseHypeTrain(reason=").originalClassDef.type
+    val expand = HypeTrainEventFingerprint("ExpandHypeTrain(expandedViewDelegate=").originalClassDef.type
+    val level = HypeTrainEventFingerprint("AddHypeTrainLevelUpPill(level=").originalClassDef.type
     val base = classDefBy(active).superclass
     require(listOf(approaching, collapse, expand, level).all { classDefBy(it).superclass == base }) {
         "UI settings: Hype Train event hierarchy changed."
     }
-    val handler = all.filter { it.isInstance(listOf("Ljava/lang/Object;"), "V") && it.hasStrings("hypetrain") &&
-        it.references().filterIsInstance<TypeReference>().map { ref -> ref.type }.containsAll(listOf(approaching, active, expand, collapse, level))
-    }.uniqueHook("native Hype Train presentation handler")
+    val handler = HypeTrainHandlerFingerprint.originalMethod
+    val refs = handler.references().filterIsInstance<TypeReference>().map { it.type }
+    require(refs.containsAll(listOf(approaching, active, expand, collapse, level))) {
+        "UI settings: Hype Train event handler references changed."
+    }
     val removed = handler.references().filterIsInstance<FieldReference>().filter {
         it.type == it.definingClass && classDefBy(it.type).superclass == base
     }.distinctBy { it.toString() }.uniqueHook("native Hype Train removal event")

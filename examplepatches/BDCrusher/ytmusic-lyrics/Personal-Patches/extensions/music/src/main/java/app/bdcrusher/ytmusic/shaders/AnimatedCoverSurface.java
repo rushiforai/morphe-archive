@@ -18,6 +18,7 @@ final class AnimatedCoverSurface extends FrameLayout implements TextureView.Surf
     private Surface output;
     private String file;
     private long sampledAt;
+    private boolean readbackLimited;
     private String loadedPath = "";
     private boolean visible, playing, reduced, prepared, rendered, closed;
     private int videoWidth, videoHeight;
@@ -110,7 +111,7 @@ final class AnimatedCoverSurface extends FrameLayout implements TextureView.Surf
     }
 
     private void sampleFrame(boolean first){
-        long now=android.os.SystemClock.elapsedRealtime();if(!visible||!rendered||!ShaderRuntime.wantsAnimatedFrame()||!first&&(reduced||!playing||now-sampledAt<250))return;sampledAt=now;try{long began=android.os.SystemClock.elapsedRealtime();android.graphics.Bitmap bitmap=texture.getBitmap(208,117);long cost=android.os.SystemClock.elapsedRealtime()-began;if(cost>8)FeatureDiagnostics.event("Cover-readback","small-frame readbackMs="+cost);if(bitmap!=null)ShaderRuntime.animatedFrame(bitmap);}catch(Exception e){FeatureDiagnostics.event("Cover-frame","Frame sampling unavailable");}
+        long now=android.os.SystemClock.elapsedRealtime();if(!visible||!rendered||!ShaderRuntime.wantsAnimatedFrame()||!first&&(readbackLimited||reduced||!playing||now-sampledAt<250))return;sampledAt=now;try{long began=android.os.SystemClock.elapsedRealtime();android.graphics.Bitmap bitmap=texture.getBitmap(208,117);long cost=android.os.SystemClock.elapsedRealtime()-began;if(cost>4){readbackLimited=true;FeatureDiagnostics.event("Cover-readback","readbackMs="+cost+"; retaining this frame for Kawarp to protect native animation");}if(bitmap!=null)ShaderRuntime.animatedFrame(bitmap);}catch(Exception e){readbackLimited=true;FeatureDiagnostics.event("Cover-frame","Frame sampling unavailable; native still artwork retained");}
     }
     private void pause() {
         if (prepared && player != null) try {
@@ -133,6 +134,7 @@ final class AnimatedCoverSurface extends FrameLayout implements TextureView.Surf
         MediaPlayer old = player;
         player = null;
         prepared = rendered = false;
+        readbackLimited = false;
         loadedPath = "";
         texture.setAlpha(0);
         if (old != null) {

@@ -10,6 +10,7 @@ Follow [STYLE.md](STYLE.md). A change is done when the checks below pass for eve
 The same BaconReader patches exist for two patchers: [baconreader-reseam-patches](https://github.com/JoanComasFdz/baconreader-reseam-patches) (Reseam) and [baconreader-morphe-patches](https://github.com/JoanComasFdz/baconreader-morphe-patches) (Morphe).
 
 - **Shared, word for word in both repos:** `AGENTS.md`, `CLAUDE.md`, `STYLE.md`, `docs/patches.md`. The "Shared docs" workflow fails when one differs from the other repo's. Change them in both repos, in one PR each.
+- **Shared but for the patcher's name:** the VS Code e2e recordings extension (`tools/vscode-extension`), its e2e project (`tests/BaconReader.VsCodeExtension.E2E`), the e2e projects' shared code (`tests/BaconReader.E2E.Shared`) and the dev container (`.devcontainer`). The "Shared VS Code extension" workflow fails when the other repo's copy, with "Morphe" and "Reseam" swapped, differs from this one. Change them in both repos, in one PR each.
 - **Patcher-specific:** what really differs between the patchers, one set per repo:
   - [patcher-specific-build.md](patcher-specific-build.md): tools, build, list, patch, sign.
   - [patcher-specific-code.md](patcher-specific-code.md): layout, patch API, extensions, settings, formatting.
@@ -19,7 +20,7 @@ The same BaconReader patches exist for two patchers: [baconreader-reseam-patches
 
 ## Cloud sessions with both repos
 
-A cloud session created with both repos starts in `/home/user`, above the clones, and runs neither repo's session-start hook. In such a session, before the first task, check whether `/opt/patch-tools` exists. If it doesn't, run both repos' hooks and set the JDK as "Two-repo sessions" in [patcher-specific-build.md](patcher-specific-build.md) says (the same steps in both repos), then tell the user what ran and any `session-start:` warning. A session on one repo alone runs its hook on start and needs none of this.
+A cloud session created with both repos starts in `/home/user`, above the clones, and runs neither repo's session-start hook. In such a session, before the first task, always run both repos' hooks and set the JDK as "Two-repo sessions" in [patcher-specific-build.md](patcher-specific-build.md) says (the same steps in both repos), then tell the user what ran and any `session-start:` warning. The hooks skip what is already installed, so this takes seconds when the machine is set up. Don't skip them because some tools are there: a reused machine can be half set up (`/opt/patch-tools` present, but the Android SDK without its platform). A session on one repo alone runs its hook on start and needs none of this.
 
 ## Build
 
@@ -46,13 +47,14 @@ Only a phone shows whether a patch works. Say in the PR what was tested on one a
 
 ## End-to-end tests
 
-In the repos that have [tests/BaconReader.E2E](tests/BaconReader.E2E/README.md) (the Reseam repo; the Morphe repo doesn't yet):
+In both repos, [tests/BaconReader.E2E](tests/BaconReader.E2E/README.md):
 
 - **When the user asks to test a patch, first write its Gherkins,** each in a ```` ```gherkin ```` code block, by [docs/given-when-then-test-rules.md](docs/given-when-then-test-rules.md) and [docs/given-when-then-patch-scenarios.md](docs/given-when-then-patch-scenarios.md), and agree them with the user before writing any C#. Copy every quoted text from the screen, never from the patch's code.
-- The tests are C# (.NET 10, xUnit v3) and Appium, one Gherkin per scenario, written by their [E2E-TEST-CODE-RULES.md](tests/BaconReader.E2E/E2E-TEST-CODE-RULES.md) (binding). Each scenario patches the clean APK with only the patches it names.
-- They need an emulator, reached through the environment their README lists ("The emulator"). In an AndroidDev cloud session, `source tools/e2e/connect.sh` provides it ([patcher-specific-build.md](patcher-specific-build.md), "Cloud sessions"), then run the tests in the same shell.
+- The tests are C# (.NET 10, xUnit v3) and Appium, one Gherkin per scenario, written by their [E2E-TEST-CODE-RULES.md](tests/BaconReader.E2E/E2E-TEST-CODE-RULES.md) (binding). A scenario under `Scenarios/Startup/` (how the app starts: the login, the first-start dialogs) patches the clean APK with only the patches it names; one under `Scenarios/LoggedIn/` (everything else) with every patch, one APK for all of them. Each group runs together, so the phone gets each APK once.
+- They need a phone, reached through the environment their README lists ("The phone"). In an AndroidDev cloud session, `source tools/e2e/connect.sh` provides it ([patcher-specific-build.md](patcher-specific-build.md), "Cloud sessions"), then run the tests in the same shell.
 - A patch's scenarios go in the patch's PR. While working: `tools/e2e/record.sh --no-video <TestClass>`. Right before the push: `tools/e2e/record.sh --changed-since origin/<base branch>`. Right after it: `tools/e2e/push-gifs.sh`; the "E2E videos" workflow posts the GIFs on the PR ([docs/hosting.md](docs/hosting.md)).
-- `dotnet build BaconReader.E2E.slnx` and `dotnet test BaconReader.E2E.slnx` pass with no warnings (without an emulator, the scenarios skip).
+- `dotnet build BaconReader.E2E.slnx` and `dotnet test BaconReader.E2E.slnx` pass with no warnings (without a phone, the scenarios skip).
+- The VS Code e2e recordings extension ([tools/vscode-extension](tools/vscode-extension/README.md)) shows each scenario's recordings next to its code. Its own scenarios, [tests/BaconReader.VsCodeExtension.E2E](tests/BaconReader.VsCodeExtension.E2E/README.md), play in VS Code for the web, with no phone: `tools/e2e/record.sh Recordings`. Its unit tests: `node --test tools/vscode-extension/test/*.test.js`.
 
 ## Test APKs
 

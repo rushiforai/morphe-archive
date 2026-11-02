@@ -1,9 +1,8 @@
 package app.d0nj.patches.niagara
 
+import app.d0nj.patches.niagara.Constants.COMPATIBILITY_NIAGARA
 import app.d0nj.patches.shared.clearBody
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -17,22 +16,11 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 @Suppress("unused")
 val fixChannelFingerprintTipPatch = bytecodePatch(
     name = "Fix home screen numbers tile",
-    description = "Niagara's Channels feature registers a diagnostic tip whose message is a giant " +
-        "fingerprint of concatenated hashCode() integers of up to 30 channel items (~850 digits). " +
-        "Because the provider accepts every tip request, this shows up as a tile of giant numbers on " +
-        "the home feed whenever the channel list refreshes, which happens when apps are installed, " +
-        "updated or removed (for example through ADB). Makes the provider decline tip requests so the " +
-        "diagnostic tip is never shown.",
+    description = "Hides the Channels diagnostic tip that shows up as a tile of " +
+        "giant numbers.",
     default = true,
 ) {
-    compatibleWith(
-        Compatibility(
-            packageName = "bitpit.launcher",
-            name = "Niagara Launcher",
-            appIconColor = 0x1E88E5,
-            targets = listOf(AppTarget(version = null)),
-        ),
-    )
+    compatibleWith(COMPATIBILITY_NIAGARA)
 
     execute {
         val candidates = mutableListOf<ClassDef>()

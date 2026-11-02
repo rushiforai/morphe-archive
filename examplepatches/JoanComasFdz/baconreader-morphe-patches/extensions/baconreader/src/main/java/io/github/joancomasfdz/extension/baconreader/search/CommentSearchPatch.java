@@ -281,6 +281,7 @@ public final class CommentSearchPatch {
         bar.setClickable(true); // Touches do not reach the list below.
 
         EditText input = new EditText(activity);
+        input.setId(resourceId("baconreader_patches_comment_search_field"));
         input.setBackground(null);
         input.setSingleLine(true);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -316,6 +317,7 @@ public final class CommentSearchPatch {
         search.input = input;
 
         TextView counter = new TextView(activity);
+        counter.setId(resourceId("baconreader_patches_comment_search_count"));
         counter.setTextColor(secondary);
         counter.setTextSize(TypedValue.COMPLEX_UNIT_PX, collapseButton.getTextSize());
         counter.setTypeface(collapseButton.getTypeface());
@@ -347,11 +349,14 @@ public final class CommentSearchPatch {
         bar.addView(filterButton, new LinearLayout.LayoutParams(dp(activity, 36), ViewGroup.LayoutParams.MATCH_PARENT));
         search.filterButton = filterButton;
 
-        bar.addView(iconButton(activity, "ic_menu_arrow_up_black_24dp", secondary, v -> move(search, -1)),
+        bar.addView(iconButton(activity, "ic_menu_arrow_up_black_24dp", str("revanced_comment_search_previous"), secondary,
+                        v -> move(search, -1)),
                 new LinearLayout.LayoutParams(dp(activity, 36), ViewGroup.LayoutParams.MATCH_PARENT));
-        bar.addView(iconButton(activity, "ic_menu_arrow_down_black_24dp", secondary, v -> move(search, 1)),
+        bar.addView(iconButton(activity, "ic_menu_arrow_down_black_24dp", str("revanced_comment_search_next"), secondary,
+                        v -> move(search, 1)),
                 new LinearLayout.LayoutParams(dp(activity, 36), ViewGroup.LayoutParams.MATCH_PARENT));
-        bar.addView(iconButton(activity, "abc_ic_clear_material", secondary, v -> close(search)),
+        bar.addView(iconButton(activity, "abc_ic_clear_material", str("revanced_comment_search_close"), secondary,
+                        v -> close(search)),
                 new LinearLayout.LayoutParams(dp(activity, 44), ViewGroup.LayoutParams.MATCH_PARENT));
 
         bar.setVisibility(View.GONE);
@@ -366,9 +371,10 @@ public final class CommentSearchPatch {
         search.bar = bar;
     }
 
-    private static ImageView iconButton(Activity activity, String drawable, ColorStateList color,
+    private static ImageView iconButton(Activity activity, String drawable, String description, ColorStateList color,
                                         View.OnClickListener listener) {
         ImageView button = new ImageView(activity);
+        button.setContentDescription(description);
         button.setImageDrawable(tinted(activity, drawable, color));
         button.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         button.setBackground(themeDrawable(activity, android.R.attr.selectableItemBackgroundBorderless));
@@ -756,6 +762,12 @@ public final class CommentSearchPatch {
             FIELDS.put(key, found);
         }
         return found;
+    }
+
+    /** The id the patch adds to the app's resources as {@code name}, for the e2e tests to find a view by. */
+    private static int resourceId(String name) {
+        int id = ResourceUtils.getIdentifier(ResourceType.ID, name);
+        return id == 0 ? View.NO_ID : id;
     }
 
     private static Drawable tinted(Activity activity, String name, ColorStateList color) {

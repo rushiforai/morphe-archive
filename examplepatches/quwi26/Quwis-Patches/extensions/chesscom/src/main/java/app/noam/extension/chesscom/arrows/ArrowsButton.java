@@ -23,8 +23,10 @@ public final class ArrowsButton extends FrameLayout {
 
     public ArrowsButton(Context context, AttributeSet attrs) {
         super(context, attrs);
-        clear = "clear".equals(getTag());
-        if (!Arrows.enabled()) {
+        String tag = getTag() == null ? "" : getTag().toString();
+        boolean reviews = tag.startsWith("reviews_");
+        clear = tag.endsWith("clear");
+        if (reviews ? !Arrows.reviewsEnabled() : !Arrows.gamesEnabled()) {
             setVisibility(GONE);
             return;
         }

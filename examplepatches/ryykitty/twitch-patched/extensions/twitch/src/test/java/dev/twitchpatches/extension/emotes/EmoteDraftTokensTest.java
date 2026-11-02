@@ -13,6 +13,12 @@ public class EmoteDraftTokensTest {
         return catalog;
     }
 
+    @Test public void namesStartingWithTheQueryComeFirstThenAlphabetically() {
+        java.util.List<String> names = java.util.Arrays.asList("CoolCat", "catJAM", "mcaT ", "CatBag", "DxCat");
+        assertEquals(java.util.Arrays.asList("CatBag", "catJAM", "CoolCat", "DxCat"), EmoteDraftTokens.ranked(":cat", names, name -> name, 4));
+        assertEquals("catJAM", EmoteDraftTokens.ranked("catj", names, name -> name, 1).get(0));
+    }
+
     @Test public void onlyCompleteKnownTokensLoseTheirWrapper() {
         assertEquals("KEK FFZ :Unknown: :kek: :KE", EmoteDraftTokens.normalize(":KEK: :FFZ: :Unknown: :kek: :KE", catalog()));
         assertEquals("/me :KEK:", EmoteDraftTokens.normalize("/me :KEK:", catalog()));

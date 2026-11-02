@@ -9,7 +9,13 @@ $output = (Resolve-Path -LiteralPath $OutputApk).Path
 $run = New-RunDirectory 'verify'
 $morphe = Get-MorphePath
 $sdk = Get-AndroidSdk
-& java '-Xmx4g' '--class-path' $morphe (Join-Path $PSScriptRoot 'verification/OriginalAwareVerifier.java') $original $output $sdk $run 2>&1 |
-    Tee-Object -FilePath (Join-Path $run 'verification.log')
+$prevEAP = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    & java '-Xmx4g' '--class-path' $morphe (Join-Path $PSScriptRoot 'verification/OriginalAwareVerifier.java') $original $output $sdk $run 2>&1 |
+        Tee-Object -FilePath (Join-Path $run 'verification.log')
+} finally {
+    $ErrorActionPreference = $prevEAP
+}
 if ($LASTEXITCODE -ne 0) { throw "Original-aware audit failed. See $run. No installation authorized." }
 Write-Host "Verification artifacts: $run"

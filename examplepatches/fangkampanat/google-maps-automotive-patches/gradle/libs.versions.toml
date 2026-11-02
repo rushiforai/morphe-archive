@@ -1,9 +1,9 @@
 # Dependencies must also be addded to LicensesDialog.java
 
 [versions]
-morphe-patcher = "2.0.1"
-morphe-patches-library = "2.0.1"
-# The smali fork used by patcher 2.0.1 (Desktop 1.19.1). Set explicitly: Gradle ranks the older 4220ae75f7 higher.
+morphe-patcher = "2.1.0"
+morphe-patches-library = "2.1.0"
+# The smali fork used by patcher 2.1.0 (Desktop 1.20.0), unchanged since 2.0.1. Set explicitly: Gradle ranks the older 4220ae75f7 higher.
 smali = "ac700e1942"
 agp = "9.1.0"
 annotation = "1.10.0"

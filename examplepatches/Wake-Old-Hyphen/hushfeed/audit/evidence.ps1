@@ -1,5 +1,5 @@
 # Shared by execution, read-only result validation and human verdict import.
-. (Join-Path (Split-Path -Parent $PSScriptRoot) 'scripts/release-receipt.ps1')
+. (Join-Path (Split-Path -Parent $PSScriptRoot) 'scripts/apk-facts.ps1')
 
 function Test-AuditExecutableInputPath([string]$Path) {
     # Global scope until a reviewed patch-to-input map exists. Unknown paths stay included.
@@ -10,8 +10,8 @@ function Test-AuditExecutableInputPath([string]$Path) {
         $Path -cmatch '^tools/(.*/)?test_[^/]+\.py$') { return $false }
     # Catalog behavior has its own definition hashes. Evidence and receipt outputs must
     # not invalidate the build whose execution they record.
-    if ($Path -cmatch '^audit/catalog(-[a-z]+)?\.json$' -or $Path -cmatch '^audit/results/' -or
-        $Path -cmatch '^release-receipt-[^/]+\.json$' -or $Path -ceq 'patches-bundle.json') { return $false }
+    if ($Path -cmatch '^audit/catalog\.json$' -or $Path -cmatch '^audit/results/' -or
+        $Path -ceq 'patches-bundle.json') { return $false }
     if ($Path -cmatch '\.md$' -or $Path -cmatch '^(docs|concepts)/' -or
         $Path -cin @('LICENSE', 'NOTICE') -or $Path -cmatch '^assets/(readme-|screenshots/)') { return $false }
     return $true
@@ -287,28 +287,17 @@ function Get-DeviceNativeBuildProblem($Build, [string]$ApkHash, $App) {
     } catch { return 'The build has malformed native identity fields.' }
 }
 
-# One audit profile per declared package: its own catalog and results name, the probe build
-# (tools/verification-probe/profile.ps1) that loads inside it, and the routes the runner drives. A package without one can't be audited.
+# The audit profile: the catalog and results name, the probe build (tools/verification-probe/profile.ps1)
+# that loads inside TikTok and the routes the runner drives. Any other package can't be audited.
 function Get-AuditPackageProfile([string]$Package) {
-    if ($Package -ceq 'com.zhiliaoapp.musically') {
-        return [pscustomobject]@{
-            Package = $Package; Label = 'TikTok'; Catalog = 'audit/catalog.json'; ResultsPrefix = 'tiktok'
-            ProbeProfile = 'tiktok-whole-app-v1'; Scheme = 'snssdk1233'; Tabs = @{ feed = '^Home'; friends = '^Friends'; inbox = '^Inbox'; profile = '^Profile' }
-        }
+    if ($Package -cne 'com.zhiliaoapp.musically') { return $null }
+    return [pscustomobject]@{
+        Package = $Package; Label = 'TikTok'; Catalog = 'audit/catalog.json'; ResultsPrefix = 'tiktok'
+        Scheme = 'snssdk1233'; Tabs = @{ feed = '^Home'; friends = '^Friends'; inbox = '^Inbox'; profile = '^Profile' }
     }
-    if ($Package -ceq 'com.ss.android.ttmd.video') {
-        return [pscustomobject]@{
-            Package = $Package; Label = 'PineDrama'; Catalog = 'audit/catalog-pinedrama.json'; ResultsPrefix = 'pinedrama'
-            ProbeProfile = 'pinedrama-47.5.3-audit-v1'
-            # PineDrama has no Friends tab; Discover is its drama catalog.
-            Scheme = 'snssdk845221'; Tabs = @{ feed = '^Home'; discover = '^Discover'; inbox = '^Inbox'; profile = '^Profile' }
-        }
-    }
-    return $null
 }
 
 function Get-AuditNativeBuildProblem($Build, [string]$ApkHash, $App) {
-    # Artifact identity is package-neutral; each package needs its own audit profile and catalog.
     if ($null -eq $App -or $null -eq (Get-AuditPackageProfile ([string]$App.package))) {
         return 'This package has no audit profile.'
     }
@@ -506,7 +495,7 @@ function Set-AuditVerdicts($Entries, $Run, $Verdicts, [string]$Directory, [strin
 function Read-DeviceBuildIdentity([string]$ApkPath, [string]$ReceiptPath, [string]$BundlePath, [string]$GitRoot, $App) {
     if (-not $ReceiptPath) { return [pscustomobject]@{ status = 'unbound'; reason = 'No device-build receipt supplied.' } }
     if (-not $BundlePath) { throw 'A build receipt requires -Bundle to verify its source manifest.' }
-    . (Join-Path (Split-Path -Parent $PSScriptRoot) 'scripts/release-receipt.ps1')
+    . (Join-Path (Split-Path -Parent $PSScriptRoot) 'scripts/apk-facts.ps1')
     $receipt = Get-Content -LiteralPath $ReceiptPath -Raw -Encoding UTF8 | ConvertFrom-Json
     if (($receipt.schemaVersion -isnot [int] -and $receipt.schemaVersion -isnot [long]) -or
         $receipt.schemaVersion -cnotin @(1,2) -or $receipt.kind -cne 'hushfeed-device-build') { throw 'Unsupported device-build receipt.' }

@@ -1,6 +1,5 @@
 package dev.twitchpatches.patches.twitch.playback
 
-import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -9,21 +8,19 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.instruction.*
 import com.android.tools.smali.dexlib2.immutable.reference.*
-import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class BackgroundPlaybackTest {
     private val vertical = "Ltv/twitch/android/feature/theatre/vertical/VerticalTheatreFragment;"
 
-    @Test fun selectsOnlyTheEligibilityUsedByTheStopLifecycle() {
-        val target = eligibility("La;")
-        assertSame(target, nativeBackgroundEligibility(listOf(lifecycle("La;"), eligibility("Lb;"), target)))
+    @Test fun acceptsTheEligibilityUsedByTheStopLifecycle() {
+        requireBackgroundEligibilityContract(lifecycle("La;"), eligibility("La;"))
     }
 
     @Test fun missingLifecycleLinkFailsInsteadOfChangingAnUnrelatedDjCheck() {
-        assertThrows(PatchException::class.java) {
-            nativeBackgroundEligibility(listOf(lifecycle("La;"), eligibility("Lb;")))
+        assertThrows(IllegalArgumentException::class.java) {
+            requireBackgroundEligibilityContract(lifecycle("La;"), eligibility("Lb;"))
         }
     }
 

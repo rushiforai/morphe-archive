@@ -5,7 +5,7 @@ import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patches.platform8.shared.morphe.com.digivive.nexgtv.activities.SplashActivity
 import app.morphe.patches.shared.Type
-import app.morphe.patches.shared.morphe.kotlin.String
+import app.morphe.patches.shared.morphe.java.lang.String
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -18,8 +18,8 @@ object IsProfileCompleteFieldAccessFingerprint :
                     name = "isProfileComplete",
                     type = String.toString(),
                     opcode = Opcode.IGET_OBJECT,
-                )
-            )
+                ),
+            ),
     )
 
 object IsAdditionalProfileFieldSkippedFieldAccessFingerprint :
@@ -31,8 +31,8 @@ object IsAdditionalProfileFieldSkippedFieldAccessFingerprint :
                     name = "isAdditionalProfileFieldSkipped",
                     type = String.toString(),
                     opcode = Opcode.IGET_OBJECT,
-                )
-            )
+                ),
+            ),
     )
 
 object CallNextActivityMethodCallFingerprint :
@@ -50,6 +50,6 @@ object CallNextActivityMethodCallFingerprint :
                     parameters = listOf(Type.int),
                     returnType = Type.void,
                     opcode = Opcode.INVOKE_DIRECT,
-                )
+                ),
             ),
     )

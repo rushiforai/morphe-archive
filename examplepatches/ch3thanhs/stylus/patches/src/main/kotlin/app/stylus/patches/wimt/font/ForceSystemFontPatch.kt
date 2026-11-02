@@ -9,8 +9,8 @@ private const val EXTENSION_CLASS =
 
 @Suppress("unused")
 val forceSystemFontWimtPatch = bytecodePatch(
-    name = "Force system font (Where is my Train)",
-    description = "Renders the app using the device's system font instead of Google Sans / Nunito Sans.",
+    name = "Force system font",
+    description = "Uses the device's system font for UI text.",
     default = true,
 ) {
     category("Font")

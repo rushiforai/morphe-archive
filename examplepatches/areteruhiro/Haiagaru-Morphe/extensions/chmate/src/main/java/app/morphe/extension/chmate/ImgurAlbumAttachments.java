@@ -431,7 +431,20 @@ public final class ImgurAlbumAttachments {
                 changed |= urls.add(image);
             }
             if (changed) {
-                String[] updated = urls.toArray(new String[0]);
+                Map<String,Integer> albumPositions=new LinkedHashMap<>();
+                ParsedBody source; synchronized(PARSED){source=PARSED.get(model);}
+                if(source!=null){
+                    Matcher albums=ALBUM.matcher(source.body);
+                    synchronized(CACHE){while(albums.find()){
+                        Entry entry=CACHE.get(albums.group(1));if(entry==null||entry.images==null)continue;
+                        for(String image:entry.images){
+                            albumPositions.merge(image,albums.start(),Math::min);
+                            String poster=XMediaAttachments.generatedPoster(image);
+                            if(poster!=null)albumPositions.merge(poster,albums.start(),Math::min);
+                        }
+                    }}
+                }
+                String[] updated = MediaAttachmentOrder.reorder(source==null?null:source.body,urls,albumPositions).toArray(new String[0]);
                 if (java.util.Arrays.equals((String[]) existing, updated)) return false;
                 field.set(model, updated);
                 // ChMate also caches thumbnail projections separately from the raw URL array.

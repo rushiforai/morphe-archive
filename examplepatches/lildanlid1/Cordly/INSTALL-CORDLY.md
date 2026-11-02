@@ -6,7 +6,7 @@
 
 **Morphe installation link:** https://morphe.software/add-source?github=lildanlid1/Cordly
 
-This deep link opens Morphe Manager's confirmation to add the GitHub repository as a patch source. It **does not** build an APK or install an uncompiled source ZIP. The source becomes installable only once the workflow publishes a `patches-1.23.0.mpp` release and adds valid metadata to the repository.
+This deep link opens Morphe Manager's confirmation to add the GitHub repository as a patch source. It **does not** build an APK or install an uncompiled source ZIP. The source becomes installable only once the workflow publishes a `patches-1.24.0.mpp` release and adds valid metadata to the repository.
 
 If the repository is empty, upload the **contents** of the prepared Cordly project ZIP to the repository root on GitHub, including `.github/`. In GitHub **Settings → Actions → General**, enable **Read and write permissions** for workflows. Open **Actions → Build and publish Cordly → Run workflow**. Once the workflow finishes successfully, Morphe can read the repository directly.
 
@@ -14,19 +14,19 @@ For later releases, increment `version`, `releaseTag`, and `releaseAsset` in `gr
 
 ## Compile the patch
 
-**Phone + GitHub:** Upload the contents of this project folder to the `lildanlid1/Cordly` repository root. Run **Actions → Build and publish Cordly → Run workflow** and open the resulting GitHub release to obtain `patches-1.23.0.mpp`.
+**Phone + GitHub:** Upload the contents of this project folder to the `lildanlid1/Cordly` repository root. Run **Actions → Build and publish Cordly → Run workflow** and open the resulting GitHub release to obtain `patches-1.24.0.mpp`.
 
-**Computer:** Install Java 21, Node.js 22 and Python 3, then from the extracted project directory run `python3 scripts/build.py`. The output is `patches/build/libs/patches-1.23.0.mpp`. Network access is required for fixed build dependencies.
+**Computer:** Install Java 21, Node.js 22 and Python 3, then from the extracted project directory run `python3 scripts/build.py`. The output is `patches/build/libs/patches-1.24.0.mpp`. Network access is required for fixed build dependencies.
 
 ## Apply on Android
 
 1. Install the latest compatible [Morphe Manager](https://github.com/MorpheApp/morphe-manager/releases).
-2. In **Sources → + → Local**, select the compiled `patches-1.23.0.mpp`, **not** this source ZIP.
+2. In **Sources → + → Local**, select the compiled `patches-1.24.0.mpp`, **not** this source ZIP.
 3. Select the original **Discord 350.8 Stable APKM** (not a previously patched app).
 4. Keep **Cordly settings** and **Server info** selected, then patch. **No Custom branding or App name option is included.**
 5. Since the app remains `com.discord`, it normally cannot be installed beside a differently-signed official Discord. Back up important local data before uninstalling the original app; use the same signing key on later updates.
 6. Open the patched **Discord → Settings → Cordly → Features → Server info** and enable the feature.
-7. Hold a server icon → **Server info** → download artwork together or individually, copy a server summary, or open **Browse and download emojis / stickers**. Search, sort, filter, export matching items, and copy selected links or emoji markup. Tap items to select, hold one to save individually, and use Download selected/all for a ZIP. The Save to interface lets you choose a folder.
+7. Hold a server icon → **Server info**. Tap artwork to preview it and use the overlaid save icon to download. Tap the **Emojis** or **Stickers** counter to open its gallery. Tap an item to preview; hold an item to start selection, then tap others to select them. Use Download selected/all for a ZIP and choose a folder in the Save to interface.
 
 **Limitations:** Media saving depends on the Discord 350.8 file bridge; this source has been syntax-checked and unit-tested but cannot be verified end-to-end without building, patching and running it on an Android device. Exports allow up to 500 items and 32 MiB of downloaded media. Lottie stickers are stored as original `.json` (not converted to GIF).
 

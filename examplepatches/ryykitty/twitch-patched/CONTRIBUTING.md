@@ -20,7 +20,7 @@ Builds produce `patches/build/libs/patches-<version>.mpp`. Use the tool versions
 
 Patch definitions and bytecode transformations live in `patches/`; Android runtime code lives in `extensions/twitch/`. Keep changes within the affected feature. Use Kotlin for patches and Java for runtime code.
 
-Match hooks using strings, types and control flow from an original APK. Require unique matches, derive obfuscated members from those matches, and report a clear error when a contract changes. Preserve register types, labels, exception handlers and Twitch's scheduling.
+Match hooks using strings, types and control flow from an original APK. Require unique matches, derive obfuscated members from those matches, and report a clear error when a contract changes. A Morphe `Fingerprint` returns its first match unless the patcher runs with `--validate`, which `scripts/patch.ps1` passes. Preserve register types, labels, exception handlers and Twitch's scheduling.
 
 All modifying patches depend on the shared settings integration. UI options belong in the [UI settings registry](docs/UI_SETTINGS.md), with customization disabled by default. Keep preference keys stable. Check the [screen inventory](docs/SCREENS.md) when a change affects multiple player layouts.
 

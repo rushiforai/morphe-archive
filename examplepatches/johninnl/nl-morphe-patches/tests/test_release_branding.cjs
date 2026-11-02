@@ -403,3 +403,91 @@ test("Medium vendor dependency fixes are announced only for Medium", () => relea
   ctx.nextRelease.notes = `## [1.0.1](https://github.com/test/repo/compare/v1.0.0...v1.0.1)\n\n* **Medium:** complete dependency ([${head.slice(0, 7)}](https://github.com/test/repo/commit/${head}))\n`;
   assert.doesNotThrow(() => require("../.github/scripts/verify_release_notes.cjs").verifyNotes(ctx));
 }));
+
+function sharedAdapter(run) {
+  return releaseRepository(({dir, git, commit}) => {
+    const fileOf = name => `patches/src/main/kotlin/patches/${name.toLowerCase()}/Compatibility.kt`;
+    const write = (name, revision) => {
+      const file = path.join(dir, fileOf(name)); fs.mkdirSync(path.dirname(file), {recursive: true});
+      fs.writeFileSync(file, `val app = Compatibility(name = "${name}", packageName = "example.${name}")\n// ${revision}\n`);
+    };
+    write("Paper", "old"); write("Belgian", "old"); git("add", ".");
+    const base = commit("feat: baseline"); git("tag", "v1.0.0");
+    const change = (message, ...names) => { names.forEach(name => write(name, message)); git("add", "."); return commit(message); };
+    const release = (head, notes) => {
+      const ctx = context("1.1.0"); ctx.cwd = dir;
+      ctx.lastRelease = {version: "1.0.0", gitTag: "v1.0.0", gitHead: base}; ctx.nextRelease.gitHead = head;
+      ctx.nextRelease.notes = `## [1.1.0](https://github.com/test/repo/compare/v1.0.0...v1.1.0) (2026-11-01)\n${notes}`;
+      return ctx;
+    };
+    const bullet = (scope, hash) => `* **${scope}:** changed ([${hash.slice(0, 7)}](https://github.com/test/repo/commit/${hash}))`;
+    const guard = require("../.github/scripts/verify_release_notes.cjs");
+    return run({change, release, bullet, guard});
+  });
+}
+
+const adapterMessage = "fix: publish Belgian\n\nRelease-Apps: Belgian\nUnchanged-Apps: Paper";
+
+test("a shared adapter edit declared unchanged does not announce the app that owns the files", () => sharedAdapter(({change, release, bullet, guard}) => {
+  const head = change(adapterMessage, "Paper", "Belgian");
+  const ctx = release(head, bullet("Belgian", head));
+  assert.deepEqual(plugin().scopeCommits([{hash: head, message: adapterMessage}], ctx).map(c => c.message.split("\n")[0]), ["fix(Belgian): publish Belgian"]);
+  assert.deepEqual(plugin().appImpact(ctx).affected, ["Belgian"]);
+  assert.doesNotThrow(() => guard.verifyNotes(ctx));
+}));
+
+test("an app declared unchanged cannot be named by the release notes", () => sharedAdapter(({change, release, bullet, guard}) => {
+  const head = change(adapterMessage, "Paper", "Belgian");
+  assert.throws(() => guard.verifyNotes(release(head, `${bullet("Belgian", head)}\n${bullet("Paper", head)}`)), /Paper names an unchanged app/);
+}));
+
+test("a real change to the same app in the release still requires its scope", () => sharedAdapter(({change, release, bullet, guard}) => {
+  const adapter = change(adapterMessage, "Paper", "Belgian");
+  const real = change("fix(Paper): repair the ad filter", "Paper");
+  assert.throws(() => guard.verifyNotes(release(real, bullet("Belgian", adapter))), /Missing release notes scope for changed app Paper/);
+  assert.doesNotThrow(() => guard.verifyNotes(release(real, `${bullet("Belgian", adapter)}\n${bullet("Paper", real)}`)));
+}));
+
+test("an undeclared shared adapter edit still requires the app's scope", () => sharedAdapter(({change, release, bullet, guard}) => {
+  const head = change("fix: publish Belgian\n\nRelease-Apps: Belgian", "Paper", "Belgian");
+  assert.throws(() => guard.verifyNotes(release(head, bullet("Belgian", head))), /Missing release notes scope for changed app Paper/);
+}));
+
+test("Unchanged-Apps rejects unknown apps and apps also declared as affected", () => sharedAdapter(({change, release, bullet}) => {
+  for (const [message, error] of [
+    ["fix: publish Belgian\n\nRelease-Apps: Belgian\nUnchanged-Apps: Papr", /Unknown Unchanged-Apps/],
+    ["fix: publish both\n\nRelease-Apps: Belgian, Paper\nUnchanged-Apps: Paper", /both affected and unchanged/],
+  ]) {
+    const head = change(message, "Paper", "Belgian");
+    assert.throws(() => plugin().scopeCommits([{hash: head, message}], release(head, bullet("Belgian", head))), error);
+  }
+}));
+
+test("a commit editing two apps' folders must declare each of them", () => sharedAdapter(({change, release, bullet}) => {
+  const message = "fix: tune the shared adapter";
+  const head = change(message, "Paper", "Belgian");
+  assert.throws(() => plugin().scopeCommits([{hash: head, message}], release(head, bullet("Belgian", head))),
+    /Declare .*Paper.* in Release-Apps or Unchanged-Apps/);
+}));
+
+test("declaring every edited app satisfies the decision check", () => sharedAdapter(({change, release, bullet}) => {
+  const both = "fix: tune the shared adapter\n\nRelease-Apps: Belgian, Paper";
+  const head = change(both, "Paper", "Belgian");
+  assert.deepEqual(plugin().scopeCommits([{hash: head, message: both}], release(head, bullet("Belgian", head))).map(c => c.message.split("\n")[0]),
+    ["fix(Belgian): tune the shared adapter", "fix(Paper): tune the shared adapter"]);
+  const split = "fix: retune the adapter\n\nRelease-Apps: Belgian\nUnchanged-Apps: Paper";
+  const next = change(split, "Paper", "Belgian");
+  assert.equal(plugin().scopeCommits([{hash: next, message: split}], release(next, bullet("Belgian", next))).length, 1);
+}));
+
+test("two apps sharing one patch folder need no declaration", () => releaseRepository(({dir, git, commit}) => {
+  const file = "patches/src/main/kotlin/patches/npo/Compatibility.kt";
+  const write = text => { fs.mkdirSync(path.dirname(path.join(dir, file)), {recursive: true}); fs.writeFileSync(path.join(dir, file), text); };
+  const apps = 'val a = Compatibility(name = "Phone", packageName = "example.a")\nval b = Compatibility(name = "TV", packageName = "example.b")\n';
+  write(apps); git("add", "."); const base = commit("feat: baseline"); git("tag", "v1.0.0");
+  write(`${apps}// changed\n`); git("add", "."); const message = "fix: repair the player"; const head = commit(message);
+  const ctx = context("1.1.0"); ctx.cwd = dir;
+  ctx.lastRelease = {version: "1.0.0", gitTag: "v1.0.0", gitHead: base}; ctx.nextRelease.gitHead = head;
+  assert.deepEqual(plugin().scopeCommits([{hash: head, message}], ctx).map(c => c.message.split("\n")[0]),
+    ["fix(Phone): repair the player", "fix(TV): repair the player"]);
+}));

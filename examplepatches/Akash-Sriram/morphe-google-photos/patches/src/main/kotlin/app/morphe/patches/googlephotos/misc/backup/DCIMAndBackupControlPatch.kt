@@ -342,7 +342,12 @@ val dcimAndBackupControlPatch = bytecodePatch(
                 mutableCardMethod.addInstructions(
                     0,
                     """
-                    invoke-static/range { p0 .. p2 }, Lapp/morphe/extension/shared/patches/LocalCreationDownloader;->onCheckHeroCardSaved(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)V
+                    invoke-static/range { p0 .. p2 }, Lapp/morphe/extension/shared/patches/LocalCreationDownloader;->shouldFilterMfyCard(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)Z
+                    move-result v0
+                    if-eqz v0, :cond_proceed_q
+                    const/4 v0, 0
+                    return-object v0
+                    :cond_proceed_q
                     """.trimIndent(),
                 )
             }
@@ -375,6 +380,33 @@ val dcimAndBackupControlPatch = bytecodePatch(
                         """.trimIndent(),
                     )
                 }
+            }
+
+            // Fallback to all assistant cards if proto/14-day window has < 3 creations
+            val loadCreationsMethod = delegateClassDef.methods.find { m ->
+                m.parameterTypes.size == 1 && m.parameterTypes[0] == "Lctwl;" && m.returnType == "Ljava/lang/Object;"
+            }
+            if (loadCreationsMethod != null) {
+                val mutableLoadCreationsMethod = delegateClassDef.findMutableMethodOf(loadCreationsMethod)
+                val instructions = mutableLoadCreationsMethod.implementation?.instructions ?: emptyList()
+                val returnIdx = instructions.indexOfLast { it.opcode == Opcode.RETURN_OBJECT }
+                if (returnIdx != -1) {
+                    val returnReg = (instructions.elementAt(returnIdx) as OneRegisterInstruction).registerA
+                    mutableLoadCreationsMethod.addInstructions(
+                        returnIdx,
+                        """
+                        invoke-static { p0, v$returnReg }, Lapp/morphe/extension/shared/patches/LocalCreationDownloader;->onMfyLoadCreations(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+                        move-result-object v$returnReg
+                        """.trimIndent(),
+                    )
+                }
+                // Record the real delegate at the start of the method before p0 can be reassigned
+                mutableLoadCreationsMethod.addInstructions(
+                    0,
+                    """
+                    invoke-static { p0 }, Lapp/morphe/extension/shared/patches/LocalCreationDownloader;->onMfyDelegateInit(Ljava/lang/Object;)V
+                    """.trimIndent(),
+                )
             }
         }
 
@@ -526,50 +558,44 @@ val dcimAndBackupControlPatch = bytecodePatch(
             }
         }
 
-        // 9. Aura Tab Made For You Section Enablement
-        val auraTabMethod = AuraTabViewModelFingerprint.methodOrNull
-        if (auraTabMethod != null) {
-            val auraTabClassDef = mutableClassDefBy(auraTabMethod.definingClass)
-            val isMfyEnabledMethod = auraTabClassDef.methods.find {
-                it.returnType == "Z" && it.parameterTypes.isEmpty()
+        // 9. Made For You (MFY) Feature Flags & Carousel Enablement
+        // The MFY carousel, background sync, and creation settings in Google Photos are gated behind Phenotype flags:
+        // - enable_made_for_you_carousel (controls MFY section in Create tab & MFYSectionDelegate loading)
+        // - enable_made_for_you (controls Creations settings & remix creation sync)
+        // - enable_remix_creations_in_mfy_carousel
+        // - enable_made_for_you_assistant_card_backfill
+        // - enable_auto_play_video_in_made_for_you_carousel_tiles
+        // Because custom package names do not receive server-side Phenotype flag sync from Play Services,
+        // we resolve the Photos Features class dynamically via MfySectionDelegate and force these getters to return true.
+        if (delegateClassDef != null) {
+            val lMethod = delegateClassDef.methods.find {
+                it.parameterTypes.size == 1 && it.parameterTypes[0] == "Z" && it.returnType == "V"
             }
-            if (isMfyEnabledMethod != null) {
-                val mutableMethod = auraTabClassDef.findMutableMethodOf(isMfyEnabledMethod)
-                val instrCount = mutableMethod.implementation!!.instructions.toList().size
-                for (i in (instrCount - 1) downTo 0) {
-                    mutableMethod.removeInstruction(i)
-                }
-                mutableMethod.addInstructions(
-                    0,
-                    """
-                    const/4 v0, 0x1
-                    return v0
-                    """.trimIndent()
-                )
+            if (lMethod != null) {
+                val mfyMethodRef = lMethod.implementation?.instructions
+                    ?.filterIsInstance<ReferenceInstruction>()
+                    ?.mapNotNull { it.reference as? MethodReference }
+                    ?.find { it.parameterTypes.isEmpty() && it.returnType == "Z" }
 
-                // Also patch <init> to unconditionally call shp.n()
-                val ctor = auraTabClassDef.methods.find { it.name == "<init>" }
-                if (ctor != null) {
-                    val mutableCtor = auraTabClassDef.findMutableMethodOf(ctor)
-                    val ctorInstructions = ctor.implementation?.instructions?.toList() ?: emptyList()
-                    for (idx in ctorInstructions.indices) {
-                        val ins = ctorInstructions[idx]
-                        if (ins is ReferenceInstruction) {
-                            val mr = ins.reference as? MethodReference
-                            if (mr != null && mr.definingClass == auraTabClassDef.type && mr.name == isMfyEnabledMethod.name) {
-                                if (idx + 2 < ctorInstructions.size && ctorInstructions[idx + 2].opcode == Opcode.IF_EQZ) {
-                                    mutableCtor.replaceInstruction(idx + 2, "nop")
-                                }
-                                for (j in (idx + 3) until minOf(idx + 10, ctorInstructions.size)) {
-                                    if (ctorInstructions[j].opcode == Opcode.IF_NEZ) {
-                                        mutableCtor.replaceInstruction(j, "nop")
-                                        break
-                                    }
-                                }
-                                break
+                if (mfyMethodRef != null) {
+                    val featuresClassDef = mutableClassDefBy(mfyMethodRef.definingClass)
+                    val mfyMethodNames = setOf(mfyMethodRef.name, "k", "m", "n", "o")
+                    featuresClassDef.methods
+                        .filter { m -> m.name in mfyMethodNames && m.parameterTypes.isEmpty() && m.returnType == "Z" }
+                        .forEach { m ->
+                            val mutableMethod = featuresClassDef.findMutableMethodOf(m)
+                            val instrCount = mutableMethod.implementation?.instructions?.toList()?.size ?: 0
+                            for (i in (instrCount - 1) downTo 0) {
+                                mutableMethod.removeInstruction(i)
                             }
+                            mutableMethod.addInstructions(
+                                0,
+                                """
+                                const/4 v0, 0x1
+                                return v0
+                                """.trimIndent(),
+                            )
                         }
-                    }
                 }
             }
         }

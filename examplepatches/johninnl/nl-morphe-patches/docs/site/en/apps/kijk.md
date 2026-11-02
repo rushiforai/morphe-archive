@@ -2,7 +2,7 @@
 
 **App version:** 9.8.0 · **Build:** 2026101500 · **Original file:** APK
 
-[Use your own original app file](../guides/downloads.md#local-original-inputs)
+[Download original app](https://buzzheavier.com/88t73zvige6p){ .md-button .md-button--primary }
 
 Select the exact original file in Morphe Manager. Use the complete archive for a split app.
 

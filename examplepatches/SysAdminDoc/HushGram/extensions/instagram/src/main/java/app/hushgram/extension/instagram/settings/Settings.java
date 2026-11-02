@@ -258,6 +258,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_smooth_story_open", FALSE, true);
 
     /**
+     * A story keeps playing while two fingers pinch it, instead of pausing for the zoom
+     * ({@link app.hushgram.extension.instagram.stories.StoryZoomPlay}). A story held still first
+     * stays paused. Off to start.
+     */
+    public static final BooleanSetting KEEP_STORIES_PLAYING_ON_ZOOM =
+            new BooleanSetting("hushgram_keep_stories_playing_on_zoom", FALSE);
+
+    /**
      * Stories open with their sound on, through Instagram's own audio state, when the phone's ringer
      * is on and its volume is up ({@link app.hushgram.extension.instagram.stories.StorySound}). Off
      * to start.
@@ -321,6 +329,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting FEED_SEEK_BAR =
             new BooleanSetting("hushgram_feed_seek_bar", FALSE);
+
+    /**
+     * A small button on the bottom start of a feed video that shows or hides its seek bar with one tap
+     * (#437, {@link app.hushgram.extension.instagram.feed.FeedSeekBar}). A tap flips {@link #FEED_SEEK_BAR}.
+     * Off to start.
+     */
+    public static final BooleanSetting FEED_SEEK_BUTTON =
+            new BooleanSetting("hushgram_feed_seek_button", FALSE);
 
     /**
      * A long press on a feed photo shows it zoomed in around the finger until the finger lifts, in
@@ -1107,6 +1123,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_notes_row", FALSE);
 
     /**
+     * Only the Map bubble in the row of notes
+     * ({@link app.hushgram.extension.instagram.direct.NotesRow#mapShown}). Read each time Instagram
+     * works out the row's items again. Off to start.
+     */
+    public static final BooleanSetting HIDE_NOTES_MAP =
+            new BooleanSetting("hushgram_hide_notes_map", FALSE);
+
+    /**
      * The search bar at the top of your messages, the Meta AI one included
      * ({@link app.hushgram.extension.instagram.direct.InboxSearchBar}). Read each time Instagram
      * works out your messages again, so a change shows the next time they update. Off to start.
@@ -1327,6 +1351,15 @@ public class Settings extends BaseSettings {
     public static final IntegerSetting GLASS_TAB_BAR_OPACITY =
             new IntegerSetting("hushgram_glass_tab_bar_opacity_percent", 100, false, parent(GLASS_TAB_BAR))
                     .withRange(0, 150);
+
+    /**
+     * Under {@link #GLASS_TAB_BAR_REFRACT}: how far the liquid pill bends what's behind it, in percent of the
+     * bend it has always had, from a slider (#391). Zero leaves the backdrop straight, higher bends it harder.
+     * Read as the pill draws, so a change shows on the bar without a restart.
+     */
+    public static final IntegerSetting GLASS_TAB_BAR_REFRACT_STRENGTH =
+            new IntegerSetting("hushgram_glass_tab_bar_refract_strength_percent", 100, false, parent(GLASS_TAB_BAR_REFRACT))
+                    .withRange(0, 200);
 
     /** Where the steps the blur and opacity had before their sliders were saved (#391). */
     static final String OLD_GLASS_BLUR_KEY = "hushgram_glass_tab_bar_blur_strength";
@@ -2262,6 +2295,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SETTINGS_BUTTON_ON_HOME =
             new BooleanSetting("hushgram_settings_button_on_home", FALSE, true);
+
+    /**
+     * A menu button at the end of Home's header with the viewing history, Ghost mode and HushGram settings
+     * (#437, {@link app.hushgram.extension.instagram.settings.HomeMenuButton}). The header builds it as it
+     * draws, so a change takes a restart. Off to start.
+     */
+    public static final BooleanSetting MENU_BUTTON_ON_HOME =
+            new BooleanSetting("hushgram_menu_button_on_home", FALSE, true);
 
     /**
      * Instagram's own Messages button is off Home's header, for accounts that still have it there and

@@ -367,4 +367,18 @@ object Constants {
         )
     )
 
+    val IDM_COMPATIBILITY = Compatibility(
+        name = "1DM",
+        packageName = "idm.internet.download.manager",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x1689C5,
+        targets = listOf(
+            AppTarget(
+                version = "20.0",
+                versionCode = 30257,
+                description = "Universal APKM (160-640 dpi, Android 7.0+), build 30257"
+            )
+        )
+    )
+
 }

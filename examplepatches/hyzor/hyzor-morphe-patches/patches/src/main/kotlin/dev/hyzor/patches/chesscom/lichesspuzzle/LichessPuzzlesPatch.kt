@@ -3,6 +3,7 @@ package dev.hyzor.patches.chesscom.lichesspuzzle
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -14,6 +15,7 @@ import dev.hyzor.patches.chesscom.shared.markFeaturePatched
 import dev.hyzor.patches.chesscom.shared.getterForLabel
 import dev.hyzor.patches.chesscom.shared.returnString
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.value.ArrayEncodedValue
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -477,24 +479,38 @@ val lichessPuzzlesPatch = bytecodePatch(
         // 4.10.23 reads the same flag inline in the puzzle flow instead of a store method. A
         // fresh account has it false, so the guest screen ends before the Lichess puzzles
         // arrive; treat it as started while a session is active.
-        var guestStartedHooks = 0
+        //
+        // The methods are found on the immutable classes, and only the classes that get a hook are
+        // made mutable: making one mutable rewrites that class into a new DEX file, so doing it while
+        // scanning every class of the app (this scan visits all of them) costs hundreds of MB.
+        val guestStartedUsers = mutableListOf<Pair<String, Method>>()
         classDefForEach { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
-                val implementation = method.implementation ?: return@forEach
-                val instructions = implementation.instructions.toList()
+            classDef.methods.forEach { method ->
+                val instructions = method.implementation?.instructions ?: return@forEach
                 if (instructions.none { instruction ->
                         ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string == "is_guest_mode_started"
-                    }) return@forEach
-                instructions.indices.filter { index ->
-                    val instruction = instructions[index]
+                    }
+                ) return@forEach
+                guestStartedUsers += classDef.type to method
+            }
+        }
+        var guestStartedHooks = 0
+        guestStartedUsers.forEach { (type, user) ->
+            mutableClassDefBy(type).methods.first { method ->
+                method.name == user.name && method.parameterTypes == user.parameterTypes &&
+                    method.returnType == user.returnType
+            }.apply {
+                val snapshot = instructions.toList()
+                snapshot.indices.filter { index ->
+                    val instruction = snapshot[index]
                     val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                     instruction.opcode == Opcode.INVOKE_STATIC &&
                         reference?.definingClass == "Lcom/chess/utils/android/preferences/f;" &&
                         reference.name == "a" && reference.returnType == "Z" &&
-                        instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT
+                        snapshot.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT
                 }.sortedDescending().forEach { index ->
-                    val register = (instructions[index + 1] as OneRegisterInstruction).registerA
-                    method.addInstructions(
+                    val register = (snapshot[index + 1] as OneRegisterInstruction).registerA
+                    addInstructions(
                         index + 2,
                         """
                             invoke-static/range { v$register .. v$register }, $PUZZLES->guestStarted(Z)Z

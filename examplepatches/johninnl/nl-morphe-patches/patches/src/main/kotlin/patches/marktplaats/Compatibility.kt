@@ -44,7 +44,7 @@ private val payloads = setOf(Opcode.PACKED_SWITCH_PAYLOAD, Opcode.SPARSE_SWITCH_
 
 context(context: app.morphe.patcher.patch.BytecodePatchContext)
 internal fun target(owner: String, signature: String) = run {
-    val binding = marktplaats1619Bindings["$owner->$signature"]
+    val binding = activeBindings()["$owner->$signature"]
     val actualOwner = binding?.owner ?: owner
     val actualSignature = binding?.signature ?: signature
     Fingerprint(
@@ -57,7 +57,7 @@ internal fun target(owner: String, signature: String) = run {
 context(context: app.morphe.patcher.patch.BytecodePatchContext)
 @Suppress("UNUSED_PARAMETER") // Keep canonical call sites; the audited binding owns the current shape.
 internal fun exact(owner: String, signature: String, flags: Int, registers: Int, count: Int) = target(owner, signature).method.also { method ->
-    val binding = checkNotNull(marktplaats1619Bindings["$owner->$signature"]) {
+    val binding = checkNotNull(activeBindings()["$owner->$signature"]) {
         "Missing audited Marktplaats 16.19.0 binding: $owner->$signature"
     }
     check(method.accessFlags == binding.flags && method.implementation!!.registerCount == binding.registers &&
@@ -65,3 +65,8 @@ internal fun exact(owner: String, signature: String, flags: Int, registers: Int,
         "Marktplaats original method changed: $owner->$signature"
     }
 }
+
+context(context: app.morphe.patcher.patch.BytecodePatchContext)
+private fun activeBindings() =
+    if (context.packageMetadata.packageName == "be.tweedehands.m")
+        patches.tweedehands.tweedehands1619Bindings else marktplaats1619Bindings

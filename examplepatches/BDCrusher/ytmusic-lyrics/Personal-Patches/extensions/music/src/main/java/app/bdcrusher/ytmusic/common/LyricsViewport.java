@@ -7,10 +7,11 @@ import android.view.ViewGroup;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-/** Extend only the verified native Lyrics body to the navigation edge, never its header. */
+/** Extend the verified native foreground sheet to the navigation edge, preserving safe content insets. */
 final class LyricsViewport implements AutoCloseable {
     final View root;
     private final View decor;
+    private final View extent;
     private final Map<ViewGroup, boolean[]> clipping = new IdentityHashMap<>();
     private int baseMargin, lastMargin, baseHeight, lastHeight;
     private boolean owned;
@@ -20,7 +21,7 @@ final class LyricsViewport implements AutoCloseable {
     private long geometry=Long.MIN_VALUE,stableAt;private int navigation;
     private final Runnable settle=()->update(navigation);
 
-    LyricsViewport(View root, View decor) { this.root = root; this.decor = decor; }
+    LyricsViewport(View root, View decor) { this.root = root; this.decor = decor;View sheet=app.bdcrusher.ytmusic.shaders.ShaderRuntime.nativeSheet(root);this.extent=sheet==null?root:sheet; }
     boolean contains(View view){for(View child=root;child!=null;child=child.getParent() instanceof View parent?parent:null)if(child==view)return true;return false;}
 
     void update(int navigationBottom) {
@@ -30,13 +31,22 @@ final class LyricsViewport implements AutoCloseable {
             return;
         }
         refreshBackground();
-        ViewGroup.LayoutParams params = root.getLayoutParams();
+        // A full-height sheet may already end at the window edge while a shorter
+        // ancestor still clips it at the old navigation boundary. Geometry alone
+        // cannot detect that case; release only this foreground ancestor chain.
+        for (android.view.ViewParent parent = extent.getParent(); parent instanceof ViewGroup group; parent = group.getParent()) {
+            clipping.putIfAbsent(group, new boolean[]{group.getClipChildren(), group.getClipToPadding()});
+            if (group.getClipChildren()) group.setClipChildren(false);
+            if (group.getClipToPadding()) group.setClipToPadding(false);
+            if (group == decor) break;
+        }
+        ViewGroup.LayoutParams params = extent.getLayoutParams();
         if (params == null) return;
         int[] position = new int[2];
-        root.getLocationInWindow(position);
-        int gap = decor.getHeight() - (position[1] + root.getHeight());
+        extent.getLocationInWindow(position);
+        int gap = decor.getHeight() - (position[1] + extent.getHeight());
         if (gap < 0 || gap > navigationBottom + 1 || gap == 0) return;
-        long current=((long)position[1]<<32)|(root.getHeight()&0xffffffffL),now=android.os.SystemClock.elapsedRealtime();
+        long current=((long)position[1]<<32)|(extent.getHeight()&0xffffffffL),now=android.os.SystemClock.elapsedRealtime();
         if(current!=geometry){geometry=current;stableAt=now;handler.removeCallbacks(settle);handler.postDelayed(settle,90);return;}
         if(now-stableAt<80)return;
         if (!owned) {
@@ -58,19 +68,14 @@ final class LyricsViewport implements AutoCloseable {
         if (!changed) return;
         lastHeight = params.height;
         if (params instanceof ViewGroup.MarginLayoutParams margin) lastMargin = margin.bottomMargin;
-        for (android.view.ViewParent parent = root.getParent(); parent instanceof ViewGroup group; parent = group.getParent()) {
-            clipping.putIfAbsent(group, new boolean[]{group.getClipChildren(), group.getClipToPadding()});
-            if (group.getClipChildren()) group.setClipChildren(false);
-            if (group.getClipToPadding()) group.setClipToPadding(false);
-            if (group == decor) break;
-        }
-        root.setLayoutParams(params);
+        extent.setLayoutParams(params);
         FeatureDiagnostics.event("Panel-layout","entry="+FeatureDiagnostics.entry()+" extendedBottom="+gap+" navigation="+navigationBottom);
     }
 
     private static boolean transparent(android.graphics.drawable.Drawable value){return value.getAlpha()==0||value.getOpacity()==android.graphics.PixelFormat.TRANSPARENT;}
     /** Paint the actual extended foreground body with its native sheet background, not a nav strip. */
     void refreshBackground(){
+        if(app.bdcrusher.ytmusic.shaders.ShaderRuntime.ownsBackground(root))return;
         if(inherited!=null&&root.getBackground()!=inherited){inherited=null;backgroundOwner=null;}
         if(root.getBackground()!=null&&root.getBackground()!=inherited&&!transparent(root.getBackground()))return;
         View owner=null;android.graphics.drawable.Drawable source=null;
@@ -94,12 +99,12 @@ final class LyricsViewport implements AutoCloseable {
         handler.removeCallbacks(settle);geometry=Long.MIN_VALUE;
         if(inherited!=null&&root.getBackground()==inherited)root.setBackground(backgroundBefore);inherited=null;backgroundOwner=null;
         if (owned) {
-            ViewGroup.LayoutParams params = root.getLayoutParams();
+            ViewGroup.LayoutParams params = extent.getLayoutParams();
             if (params != null) {
                 boolean changed = false;
                 if (params.height == lastHeight && params.height != baseHeight) { params.height = baseHeight; changed = true; }
                 if (params instanceof ViewGroup.MarginLayoutParams margin && margin.bottomMargin == lastMargin && margin.bottomMargin != baseMargin) { margin.bottomMargin = baseMargin; changed = true; }
-                if (changed) root.setLayoutParams(params);
+                if (changed) extent.setLayoutParams(params);
             }
             owned = false;
         }

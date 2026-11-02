@@ -126,11 +126,13 @@ val hidePremiumPatch = bytecodePatch(
             // ArrayList during construction. Replace each field with a mutable copy
             // (the constructor may write its own final fields) and filter that.
             val filter = listFields.joinToString("\n") { field ->
+                val cast = if (field.type == "Ljava/util/ArrayList;") "check-cast v2, Ljava/util/ArrayList;\n" else ""
                 """
                     move-object/from16 v0, v$self
                     iget-object v1, v0, ${builder.first.type}->${field.name}:${field.type}
                     invoke-static { v1 }, $PREMIUM->copyFilteredSettingsRows(Ljava/util/List;)Ljava/util/List;
                     move-result-object v2
+                    $cast
                     iput-object v2, v0, ${builder.first.type}->${field.name}:${field.type}
                 """
             }

@@ -23,6 +23,7 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -164,10 +165,10 @@ public final class MorpheSettingsScreen {
         titleCol.setLayoutParams(titleColLp);
 
         TextView tvTitle = new TextView(activity);
-        tvTitle.setText("Morphe");
-        tvTitle.setTextSize(20f);
+        tvTitle.setText("Morphe Settings");
+        tvTitle.setTextSize(19f);
         tvTitle.setTextColor(theme.textPrimary);
-        tvTitle.setTypeface(null, Typeface.BOLD);
+        tvTitle.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         titleCol.addView(tvTitle);
 
         topBar.addView(titleCol);
@@ -175,21 +176,21 @@ public final class MorpheSettingsScreen {
         // Version Badge
         TextView tvVer = new TextView(activity);
         tvVer.setText(MORPHE_VERSION);
-        tvVer.setTextSize(11.5f);
-        tvVer.setTypeface(null, Typeface.BOLD);
+        tvVer.setTextSize(11f);
+        tvVer.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         tvVer.setTextColor(theme.primary);
-        tvVer.setBackground(createRoundedDrawable(theme.surfaceContainer, 12 * density));
+        tvVer.setBackground(createRoundedDrawable(theme.isDark ? 0x224CDAC6 : 0x18006A60, 11 * density));
         int verPadH = (int) (10 * density);
-        int verPadV = (int) (5 * density);
+        int verPadV = (int) (4.5f * density);
         tvVer.setPadding(verPadH, verPadV, verPadH, verPadV);
         topBar.addView(tvVer);
 
         root.addView(topBar);
 
-        // Divider
+        // Subtle hairline Divider
         View topDivider = new View(activity);
-        topDivider.setBackgroundColor(theme.outline);
-        LinearLayout.LayoutParams divLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) (1 * density));
+        topDivider.setBackgroundColor(theme.isDark ? 0x14FFFFFF : 0x0A000000);
+        LinearLayout.LayoutParams divLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (int) Math.max(1, 0.75f * density));
         topDivider.setLayoutParams(divLp);
         root.addView(topDivider);
 
@@ -210,7 +211,7 @@ public final class MorpheSettingsScreen {
         // ─────────────────────────────────────────────────────────────────────
         LinearLayout overviewCard = createCardContainer(activity, density, theme);
         overviewCard.setOrientation(LinearLayout.VERTICAL);
-        int oPad = (int) (18 * density);
+        int oPad = (int) (16 * density);
         overviewCard.setPadding(oPad, oPad, oPad, oPad);
 
         LinearLayout ovHeader = new LinearLayout(activity);
@@ -218,11 +219,11 @@ public final class MorpheSettingsScreen {
         ovHeader.setGravity(Gravity.CENTER_VERTICAL);
 
         FrameLayout ovIconBox = new FrameLayout(activity);
-        int ovIconSize = (int) (42 * density);
+        int ovIconSize = (int) (40 * density);
         LinearLayout.LayoutParams ovIconLp = new LinearLayout.LayoutParams(ovIconSize, ovIconSize);
         ovIconLp.setMargins(0, 0, (int) (14 * density), 0);
         ovIconBox.setLayoutParams(ovIconLp);
-        ovIconBox.setBackground(createRoundedDrawable(theme.primaryContainer, 14 * density));
+        ovIconBox.setBackground(createRoundedDrawable(theme.primaryContainer, 12 * density));
 
         ImageView ovIcon = new ImageView(activity);
         Drawable ovDrawable = PhenotypeFlagManager.getStockDrawable(activity, "quantum_gm_ic_tune_vd_theme_24", theme.onPrimaryContainer);
@@ -230,7 +231,7 @@ public final class MorpheSettingsScreen {
             ovDrawable = new MaterialVectorDrawable(MaterialVectorDrawable.TYPE_TUNE, theme.onPrimaryContainer);
         }
         ovIcon.setImageDrawable(ovDrawable);
-        int ovIcSize = (int) (24 * density);
+        int ovIcSize = (int) (22 * density);
         FrameLayout.LayoutParams ovIcLp = new FrameLayout.LayoutParams(ovIcSize, ovIcSize);
         ovIcLp.gravity = Gravity.CENTER;
         ovIcon.setLayoutParams(ovIcLp);
@@ -244,7 +245,7 @@ public final class MorpheSettingsScreen {
 
         TextView ovTitle = new TextView(activity);
         ovTitle.setText("Morphe Enhancements");
-        ovTitle.setTextSize(16.5f);
+        ovTitle.setTextSize(16f);
         ovTitle.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         ovTitle.setTextColor(theme.textPrimary);
         ovTextCol.addView(ovTitle);
@@ -270,18 +271,24 @@ public final class MorpheSettingsScreen {
         overviewCard.addView(ovHeader);
 
         // Stats summary chips row
+        HorizontalScrollView chipsScroll = new HorizontalScrollView(activity);
+        chipsScroll.setHorizontalScrollBarEnabled(false);
+        chipsScroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        LinearLayout.LayoutParams chipsScrollLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        chipsScrollLp.setMargins(0, (int) (12 * density), 0, 0);
+        chipsScroll.setLayoutParams(chipsScrollLp);
+
         LinearLayout chipsRow = new LinearLayout(activity);
         chipsRow.setOrientation(LinearLayout.HORIZONTAL);
         chipsRow.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams chipsRowLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        chipsRowLp.setMargins(0, (int) (12 * density), 0, 0);
-        chipsRow.setLayoutParams(chipsRowLp);
+        chipsRow.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         chipsRow.addView(createMiniChip(activity, density, theme, "Flags: " + activeOverrides + " active"));
         chipsRow.addView(createMiniChip(activity, density, theme, "Toolkit: Ready"));
         chipsRow.addView(createMiniChip(activity, density, theme, "On-Device AI: OK"));
 
-        overviewCard.addView(chipsRow);
+        chipsScroll.addView(chipsRow);
+        overviewCard.addView(chipsScroll);
         content.addView(overviewCard);
 
         // ─────────────────────────────────────────────────────────────────────
@@ -396,9 +403,18 @@ public final class MorpheSettingsScreen {
         registryGroup.addView(createPreferenceItem(activity, density, theme,
                 "quantum_gm_ic_auto_awesome_mosaic_vd_theme_24",
                 MaterialVectorDrawable.TYPE_SYNC,
-                "Clear Saved Creations Registry",
-                "Reset download tracking to re-sync Made-For-You animations and collages",
-                () -> showClearRegistryDialog(activity, theme)));
+                "Clear MFY Creations Save Status",
+                "Reset Made-For-You card tracking to restore and re-save cards in Create tab",
+                () -> showClearMfyDialog(activity, theme)));
+
+        registryGroup.addView(createItemDivider(activity, density, theme));
+
+        registryGroup.addView(createPreferenceItem(activity, density, theme,
+                "quantum_gm_ic_history_vd_theme_24",
+                MaterialVectorDrawable.TYPE_RESTART,
+                "Clear Story Creations Save Status",
+                "Reset download tracking for Memories and Story highlight creations",
+                () -> showClearStoryDialog(activity, theme)));
 
         content.addView(registryGroup);
 
@@ -464,12 +480,12 @@ public final class MorpheSettingsScreen {
         lp.setMargins(0, 0, 0, (int) (12 * density));
         card.setLayoutParams(lp);
 
-        card.setBackground(createRoundedDrawable(theme.surfaceContainer, 28 * density));
+        card.setBackground(createRoundedDrawable(theme.surfaceContainer, 18 * density));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             card.setOutlineProvider(new ViewOutlineProvider() {
                 @Override
                 public void getOutline(View view, Outline outline) {
-                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), 28 * density);
+                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), 18 * density);
                 }
             });
             card.setClipToOutline(true);
@@ -480,25 +496,25 @@ public final class MorpheSettingsScreen {
     private static TextView createSectionHeader(Activity activity, float density, Theme theme, String title) {
         TextView tv = new TextView(activity);
         tv.setText(title);
-        tv.setTextSize(13.5f);
+        tv.setTextSize(13f);
         tv.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         tv.setTextColor(theme.primary);
         int padH = (int) (16 * density);
-        int padTop = (int) (18 * density);
-        int padBottom = (int) (8 * density);
+        int padTop = (int) (16 * density);
+        int padBottom = (int) (6 * density);
         tv.setPadding(padH, padTop, padH, padBottom);
         return tv;
     }
 
     private static View createItemDivider(Activity activity, float density, Theme theme) {
         View div = new View(activity);
-        int divColor = theme.isDark ? 0x1AFFFFFF : 0x0F000000;
+        int divColor = theme.isDark ? 0x14FFFFFF : 0x0A000000;
         div.setBackgroundColor(divColor);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                (int) (1 * density)
+                (int) Math.max(1, 0.75f * density)
         );
-        lp.setMargins((int) (70 * density), 0, (int) (16 * density), 0);
+        lp.setMargins((int) (68 * density), 0, (int) (16 * density), 0);
         div.setLayoutParams(lp);
         return div;
     }
@@ -519,8 +535,9 @@ public final class MorpheSettingsScreen {
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         int padH = (int) (16 * density);
-        int padV = (int) (13 * density);
+        int padV = (int) (12 * density);
         row.setPadding(padH, padV, padH, padV);
+        row.setMinimumHeight((int) (58 * density));
         row.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         if (onClick != null) {
@@ -530,13 +547,13 @@ public final class MorpheSettingsScreen {
             row.setOnClickListener(v -> onClick.run());
         }
 
-        // Icon Container (Smooth 40dp rounded box with theme.card background)
+        // Icon Container (Smooth 38dp rounded box with theme.card background)
         FrameLayout iconBox = new FrameLayout(activity);
-        int boxSize = (int) (40 * density);
+        int boxSize = (int) (38 * density);
         LinearLayout.LayoutParams boxLp = new LinearLayout.LayoutParams(boxSize, boxSize);
         boxLp.setMargins(0, 0, (int) (14 * density), 0);
         iconBox.setLayoutParams(boxLp);
-        iconBox.setBackground(createRoundedDrawable(theme.card, 13 * density));
+        iconBox.setBackground(createRoundedDrawable(theme.card, 11 * density));
 
         ImageView iv = new ImageView(activity);
         Drawable iconDrawable = PhenotypeFlagManager.getStockDrawable(activity, stockIcon, iconTintColor);
@@ -544,7 +561,7 @@ public final class MorpheSettingsScreen {
             iconDrawable = new MaterialVectorDrawable(fallbackType, iconTintColor);
         }
         iv.setImageDrawable(iconDrawable);
-        int icSize = (int) (22 * density);
+        int icSize = (int) (20 * density);
         FrameLayout.LayoutParams icLp = new FrameLayout.LayoutParams(icSize, icSize);
         icLp.gravity = Gravity.CENTER;
         iv.setLayoutParams(icLp);
@@ -559,7 +576,7 @@ public final class MorpheSettingsScreen {
 
         TextView tvTitle = new TextView(activity);
         tvTitle.setText(title);
-        tvTitle.setTextSize(15f);
+        tvTitle.setTextSize(15.5f);
         tvTitle.setTextColor(theme.textPrimary);
         tvTitle.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         textCol.addView(tvTitle);
@@ -571,7 +588,7 @@ public final class MorpheSettingsScreen {
             tvSub.setTextColor(theme.textSecondary);
             tvSub.setLineSpacing(0, 1.15f);
             LinearLayout.LayoutParams subLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            subLp.setMargins(0, (int) (2.5f * density), 0, 0);
+            subLp.setMargins(0, (int) (2 * density), 0, 0);
             tvSub.setLayoutParams(subLp);
             textCol.addView(tvSub);
         }
@@ -587,7 +604,7 @@ public final class MorpheSettingsScreen {
             ivChevron.setImageDrawable(chev);
             int chevSize = (int) (20 * density);
             LinearLayout.LayoutParams chevLp = new LinearLayout.LayoutParams(chevSize, chevSize);
-            chevLp.setMargins((int) (8 * density), 0, (int) (4 * density), 0);
+            chevLp.setMargins((int) (8 * density), 0, 0, 0);
             ivChevron.setLayoutParams(chevLp);
             row.addView(ivChevron);
         }
@@ -599,13 +616,15 @@ public final class MorpheSettingsScreen {
         TextView chip = new TextView(activity);
         chip.setText(text);
         chip.setTextSize(11.5f);
+        chip.setSingleLine(true);
+        chip.setGravity(Gravity.CENTER);
         chip.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         chip.setTextColor(theme.primary);
-        chip.setBackground(createRoundedDrawable(theme.isDark ? 0x264CDAC6 : 0x1E006A60, 10 * density));
+        chip.setBackground(createRoundedDrawable(theme.isDark ? 0x224CDAC6 : 0x18006A60, 11 * density));
         int pH = (int) (10 * density);
-        int pV = (int) (5 * density);
+        int pV = (int) (4.5f * density);
         chip.setPadding(pH, pV, pH, pV);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, (int) (24 * density));
         lp.setMargins(0, 0, (int) (8 * density), 0);
         chip.setLayoutParams(lp);
         return chip;
@@ -669,18 +688,35 @@ public final class MorpheSettingsScreen {
         ).show();
     }
 
-    private static void showClearRegistryDialog(Activity activity, Theme theme) {
-        String msg = "This clears local tracking of already-downloaded Made-For-You animations, collages, and cinematic photos.\n\n" +
-                "• Local media files in your storage are NEVER deleted.\n" +
-                "• Made-For-You creations will re-sync and become eligible for batch processing again.";
+    private static void showClearMfyDialog(Activity activity, Theme theme) {
+        String msg = "This resets the saved status of Made-For-You creation cards in the Create tab.\n\n" +
+                "• Your saved media in storage is NEVER deleted.\n" +
+                "• Saved creation cards will be restored to the carousel with 'Save' buttons active.";
         PhenotypeFlagManager.createM3MessageDialog(
                 activity,
-                "Clear Creations Registry?",
+                "Reset MFY Save Status?",
                 msg,
-                "Clear Registry",
+                "Reset MFY Status",
                 () -> {
-                    LocalCreationDownloader.clearSavedRegistry(activity);
-                    Toast.makeText(activity, "Morphe: Saved creations registry cleared", Toast.LENGTH_SHORT).show();
+                    LocalCreationDownloader.clearMfySavedRegistry(activity);
+                    Toast.makeText(activity, "Morphe: MFY creations save status reset", Toast.LENGTH_SHORT).show();
+                },
+                true
+        ).show();
+    }
+
+    private static void showClearStoryDialog(Activity activity, Theme theme) {
+        String msg = "This resets the saved status of Story and Memory highlight creations.\n\n" +
+                "• Your saved media in storage is NEVER deleted.\n" +
+                "• Story creations will show 'Save' buttons again and can be re-saved.";
+        PhenotypeFlagManager.createM3MessageDialog(
+                activity,
+                "Reset Story Save Status?",
+                msg,
+                "Reset Story Status",
+                () -> {
+                    LocalCreationDownloader.clearStorySavedRegistry(activity);
+                    Toast.makeText(activity, "Morphe: Story creations save status reset", Toast.LENGTH_SHORT).show();
                 },
                 true
         ).show();

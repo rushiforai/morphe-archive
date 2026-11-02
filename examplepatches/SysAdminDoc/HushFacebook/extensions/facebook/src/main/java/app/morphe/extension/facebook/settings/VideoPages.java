@@ -174,6 +174,9 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.HIDE_REEL_SOUND_BUTTON,
                     L10n.t("Takes the speaker button off the bottom of the side of reels. "
                             + "A change shows from the next reel.")));
+            reels.addPreference(toggle(context, Settings.REEL_SPEAKER_ABOVE_MENU,
+                    L10n.t("Puts the speaker button in the side column of reels, right above the three dots. "
+                            + "A change shows from the next reel.")));
             // The audio line is one of the chips, built as each reel's footer is.
             reels.addPreference(toggle(context, Settings.HIDE_REEL_AUDIO_LINE,
                     L10n.t("Takes the line with the reel's sound, \"Original audio\" or a song, off the bottom of "
@@ -266,6 +269,9 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.HIDE_2X_LOCK_HINT,
                     L10n.t("Holding a video for 2x shows the plain 2x pill, without the \"Pull down to lock 2x speed\" "
                             + "hint. Pulling down still locks it. It works without the switches above.")));
+            reels.addPreference(toggle(context, Settings.HIDE_2X_POPUPS,
+                    L10n.t("Holding a video for 2x shows no pill at all, so no \"Speed: 2x\", \"Release to lock\" or "
+                            + "\"Locked at 2x speed\". The hold and the lock still work.")));
         }
         if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
             subheading(reels, L10n.t("Saving reels"));
@@ -304,6 +310,9 @@ final class VideoPages {
                 playback.addPreference(toggle(context, Settings.INLINE_FEED_VIDEO_CONTROLS,
                         L10n.t("Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls. "
                                 + "With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.")));
+                playback.addPreference(toggle(context, Settings.FEED_VIDEO_SEEK_BAR,
+                        L10n.t("Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. "
+                    + "With Tap to play on, it needs Inline feed video controls on too.")));
                 // The tap hands over the file the video patch's player record found.
                 if (build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
                     playback.addPreference(toggle(context, Settings.FEED_VIDEO_CAST_BUTTON,

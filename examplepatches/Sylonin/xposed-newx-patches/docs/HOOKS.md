@@ -1,4 +1,4 @@
-# Hook map (NewX, X 12.34 to 12.37)
+# Hook map (NewX, X 12.39)
 
 NewX is the Jetpack Compose rewrite of X. R8 renames almost every class and member, and the
 names change between releases. The patch therefore never names an obfuscated member. It finds

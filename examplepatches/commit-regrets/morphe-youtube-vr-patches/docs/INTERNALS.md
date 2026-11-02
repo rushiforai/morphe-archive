@@ -1,6 +1,7 @@
 # Internals map and patch cookbook
 
-Everything here is scoped to **YouTube VR 1.88.10** — the version the fingerprints target. The class
+Everything here was derived from **YouTube VR 1.88.10** (newer targets in
+[FINGERPRINTS.md](FINGERPRINTS.md) name their own anchors). The class
 and member names come from decompiling that build, and they are *not* stable: R8 reassigns them on
 every release. What survives is the **anchor** (a string, a framework reference, a structural
 shape), which is why every row below names both, and why [FINGERPRINTS.md](FINGERPRINTS.md) is the

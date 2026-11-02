@@ -3,11 +3,13 @@ package app.myspoti.extension;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.Intent;
 import android.net.Uri;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.FileObserver;
@@ -49,9 +51,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Runtime bridge for the R8-minified Myspoti 2.2.0 stable APK.
- * Verified APK mappings: OfflineStore=ud5, OfflineTrack=vd5,
- * OfflineCrypto=lc5, OfflineCollections=ic5, OfflineAccounts=cc5.
+ * Runtime bridge for the R8-minified MySpoti 2.3.0 stable APK.
+ * Verified APK mappings: OfflineStore=fj5, OfflineTrack=gj5,
+ * OfflineCrypto=vh5, OfflineCollections=sh5, OfflineCollection=nh5, OfflineAccounts=mh5.
  * Myspoti source origin: https://github.com/kota-zo/myspoti (GPL-3.0).
  */
 public final class DownloadPatch {
@@ -59,17 +61,27 @@ public final class DownloadPatch {
     private static final String PREFS = "morphe_download_tools";
     private static final String PREF_LOCATION = "storage_id";
 
-    // R8 class names and member names are pinned to the inspected 2.2.0 stable APK.
-    private static final String STORE = "ud5";
-    private static final String TRACK = "vd5";
-    private static final String CRYPTO = "lc5";
-    private static final String COLLECTIONS = "ic5";
+    // R8 class names and member names are pinned to the inspected 2.3.0 stable APK.
+    private static final String STORE = "fj5";
+    private static final String TRACK = "gj5";
+    private static final String CRYPTO = "vh5";
+    private static final String COLLECTIONS = "sh5";
 
     private static volatile Context appContext;
     private static volatile Activity foregroundActivity;
+    private static volatile boolean settingsActionRequested;
     private static boolean activityCallbacksInstalled;
     private static final Object ACTION_TAG = new Object();
     private static final Map<Activity, View> DOWNLOAD_ACTIONS = new WeakHashMap<>();
+    private static final Map<Activity, Boolean> DOWNLOAD_ACTION_STYLES = new WeakHashMap<>();
+    private static final Handler SETTINGS_ACTION_HANDLER = new Handler(Looper.getMainLooper());
+    private static volatile boolean immersiveSettingsAction;
+    private static final Runnable REMOVE_SETTINGS_ACTION = () -> {
+        if (settingsActionRequested) return;
+        Activity activity = foregroundActivity;
+        if (activity != null) removeDownloadsAction(activity);
+        Log.i(TAG, "Settings page changed; removed Export & storage action");
+    };
 
     private static final Object AUTO_SYNC_OBSERVER_LOCK = new Object();
     private static final Object EXPORT_SYNC_LOCK = new Object();
@@ -120,20 +132,74 @@ public final class DownloadPatch {
         startAutoSyncObserver(appContext);
     }
 
-    /** Called only while Myspoti's Settings > Downloads composable is being composed. */
+    /** Called from the Classic Settings composable immediately before its Downloads tab content. */
     public static void showForCurrentActivity() {
-        attachForForegroundActivity(0);
+        showSettingsAction(false);
     }
 
-    /** Called by the Settings page router before it composes the newly selected subpage. */
+    private static void showSettingsAction(boolean immersive) {
+        immersiveSettingsAction = immersive;
+        settingsActionRequested = true;
+        runOnMain(() -> {
+            SETTINGS_ACTION_HANDLER.removeCallbacks(REMOVE_SETTINGS_ACTION);
+            attachForForegroundActivity(0);
+        });
+    }
+
+    /**
+     * Tracks the page currently being composed by Immersive Settings AnimatedContent.
+     * Compose keeps the outgoing and incoming pages in its visible-state list, with
+     * the transition target appended last. Updating on each page therefore leaves the
+     * action in the state of the actual destination, regardless of the old page's
+     * final recomposition. This avoids depending on Compose internals or R8-renamed APIs.
+     */
+    public static void syncImmersiveSettingsAction(Object page) {
+        // Lt07 is the inspected 2.3.0 R8 descriptor for the private SettingsPage enum
+        // (Root, Playback, Downloads, DownloadQuality, Data, Display, Look, ...).
+        // The router's Function4 class is R8-merged, so ignore its unrelated call sites.
+        if (!(page instanceof Enum<?>) || !"t07".equals(page.getClass().getName())) return;
+        boolean downloads = "Downloads".equals(((Enum<?>) page).name());
+        runOnMain(() -> {
+            SETTINGS_ACTION_HANDLER.removeCallbacks(REMOVE_SETTINGS_ACTION);
+            settingsActionRequested = downloads;
+            if (downloads) {
+                immersiveSettingsAction = true;
+                attachForForegroundActivity(0);
+            } else {
+                Activity activity = foregroundActivity;
+                if (activity != null) removeDownloadsAction(activity);
+            }
+        });
+    }
+
+    /**
+     * The action is scoped to a Settings > Downloads visit. A separate Activity covers the
+     * Settings content while Export & storage is open, so the Compose page router cannot report
+     * when the tools screen itself is closed. Clear the stale overlay on that explicit exit;
+     * visiting Downloads again will attach a fresh action.
+     */
+    public static void onToolsActivityClosed() {
+        settingsActionRequested = false;
+        immersiveSettingsAction = false;
+        runOnMain(() -> {
+            SETTINGS_ACTION_HANDLER.removeCallbacks(REMOVE_SETTINGS_ACTION);
+            for (Activity activity : new ArrayList<>(DOWNLOAD_ACTIONS.keySet())) {
+                removeDownloadsAction(activity);
+            }
+        });
+    }
+
+    /** Classic Settings has its own tab content hook; keep its debounced cleanup. */
     public static void hideSettingsAction() {
-        Activity activity = foregroundActivity;
-        if (activity == null) return;
-        runOnMain(() -> removeDownloadsAction(activity));
-        Log.i(TAG, "Settings subpage changed; removed Export & storage action");
+        settingsActionRequested = false;
+        runOnMain(() -> {
+            SETTINGS_ACTION_HANDLER.removeCallbacks(REMOVE_SETTINGS_ACTION);
+            SETTINGS_ACTION_HANDLER.postDelayed(REMOVE_SETTINGS_ACTION, 220L);
+        });
     }
 
     private static void attachForForegroundActivity(int attempt) {
+        if (!settingsActionRequested) return;
         Activity activity = foregroundActivity;
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
             if (attempt < 10) {
@@ -150,6 +216,7 @@ public final class DownloadPatch {
 
     /** Direct trigger from the inspected Classic Downloads composable (legacy compatibility). */
     public static void showFromDownloadsScreen(Object navController) {
+        settingsActionRequested = true;
         Activity activity = activityFromNavController(navController);
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
             Log.w(TAG, "Classic Downloads screen composed, but host Activity was not available");
@@ -160,7 +227,7 @@ public final class DownloadPatch {
     }
 
     /**
-     * APK 2.2.0 mapping verified from DEX: NavController Le65 has field b (Lh65),
+     * Legacy NavController mapping (not used by the 2.3.0 Settings hook): NavController Le65 has field b (Lh65),
      * Lh65.h() returns the current NavDestination Lq65, whose field c is its route String.
      */
     private static String currentDestinationRoute(Object navController) {
@@ -183,7 +250,7 @@ public final class DownloadPatch {
     private static Activity activityFromNavController(Object navController) {
         if (navController == null) return null;
         try {
-            // In MySpoti 2.2.0, the obfuscated NavController stores its host Activity in field d.
+            // The old NavController host-Activity field was d; if that changes, use the resumed Activity fallback.
             Field host = navController.getClass().getDeclaredField("d");
             host.setAccessible(true);
             Object value = host.get(navController);
@@ -196,11 +263,11 @@ public final class DownloadPatch {
     }
 
     private static void attachDownloadsActionWhenReady(Activity activity, int attempt) {
-        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
+        if (!settingsActionRequested || activity == null || activity.isFinishing() || activity.isDestroyed()) return;
         View decor = activity.getWindow() == null ? null : activity.getWindow().getDecorView();
         if (decor == null) return;
         decor.post(() -> {
-            if (activity.isFinishing() || activity.isDestroyed()) return;
+            if (!settingsActionRequested || activity.isFinishing() || activity.isDestroyed()) return;
             View content = activity.findViewById(android.R.id.content);
             if (content instanceof FrameLayout) {
                 attachDownloadsAction(activity, (FrameLayout) content);
@@ -216,29 +283,51 @@ public final class DownloadPatch {
     }
 
     private static void attachDownloadsAction(Activity activity, FrameLayout root) {
-        if (activity.isFinishing() || activity.isDestroyed()) return;
+        if (!settingsActionRequested || activity.isFinishing() || activity.isDestroyed()) return;
         root.setClipChildren(false);
         root.setClipToPadding(false);
+        boolean immersive = immersiveSettingsAction;
         View current = root.findViewWithTag(ACTION_TAG);
         if (current != null) {
-            DOWNLOAD_ACTIONS.put(activity, current);
-            return;
+            Boolean currentStyle = DOWNLOAD_ACTION_STYLES.get(activity);
+            if (currentStyle != null && currentStyle == immersive) {
+                DOWNLOAD_ACTIONS.put(activity, current);
+                return;
+            }
+            root.removeView(current);
+            DOWNLOAD_ACTIONS.remove(activity);
+            DOWNLOAD_ACTION_STYLES.remove(activity);
         }
 
         TextView action = new TextView(activity);
         action.setText("Export & storage");
-        action.setContentDescription("Export downloaded songs or change download location");
-        action.setTextColor(Color.BLACK);
-        action.setTextSize(13f);
-        action.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        int horizontal = dp(activity, 14);
-        int vertical = dp(activity, 9);
-        action.setPadding(horizontal, vertical, horizontal, vertical);
-        GradientDrawable background = new GradientDrawable();
-        background.setColor(Color.rgb(30, 215, 96));
-        background.setCornerRadius(dp(activity, 22));
-        action.setBackground(background);
-        action.setElevation(dp(activity, 8));
+        action.setContentDescription("Export & storage. Export downloaded songs or change download location.");
+        action.setGravity(Gravity.CENTER);
+        action.setTextColor(immersive ? MySpotiImmersiveStyle.accent(activity) : Color.BLACK);
+        action.setTextSize(immersive ? 13f : 13f);
+        action.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        if (immersive) {
+            action.setText("↗  Export");
+            action.setPadding(dp(activity, 14), 0, dp(activity, 14), 0);
+            GradientDrawable background = new GradientDrawable();
+            background.setColor(MySpotiImmersiveStyle.GLASS_FILL);
+            background.setCornerRadius(dp(activity, 22));
+            background.setStroke(dp(activity, 1), MySpotiImmersiveStyle.GLASS_EDGE);
+            action.setBackground(new RippleDrawable(ColorStateList.valueOf(0x33FFFFFF), background, null));
+            action.setElevation(dp(activity, 3));
+            action.setStateListAnimator(null);
+            action.setMinHeight(dp(activity, 44));
+            action.setMinWidth(dp(activity, 96));
+        } else {
+            int horizontal = dp(activity, 14);
+            int vertical = dp(activity, 9);
+            action.setPadding(horizontal, vertical, horizontal, vertical);
+            GradientDrawable background = new GradientDrawable();
+            background.setColor(MySpotiImmersiveStyle.accent(activity, false));
+            background.setCornerRadius(dp(activity, 22));
+            action.setBackground(background);
+            action.setElevation(dp(activity, 8));
+        }
         action.setClickable(true);
         action.setFocusable(true);
         action.setTag(ACTION_TAG);
@@ -256,16 +345,18 @@ public final class DownloadPatch {
                 FrameLayout.LayoutParams.WRAP_CONTENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT,
                 Gravity.TOP | Gravity.END);
-        params.topMargin = statusBarHeight(activity) + dp(activity, 8);
-        params.rightMargin = dp(activity, 16);
+        params.topMargin = statusBarHeight(activity) + dp(activity, immersive ? 4 : 8);
+        params.rightMargin = dp(activity, immersive ? 20 : 16);
         root.addView(action, params);
         DOWNLOAD_ACTIONS.put(activity, action);
-        Log.i(TAG, "Export & storage action attached to the Settings Downloads page root");
+        DOWNLOAD_ACTION_STYLES.put(activity, immersive);
+        Log.i(TAG, "Export & storage action attached to the Settings Downloads page root (" + (immersive ? "Immersive" : "Classic") + ")");
     }
 
     private static void removeDownloadsAction(Activity activity) {
         if (activity == null) return;
         View action = DOWNLOAD_ACTIONS.remove(activity);
+        DOWNLOAD_ACTION_STYLES.remove(activity);
         View content = activity.findViewById(android.R.id.content);
         if (action == null && content instanceof FrameLayout) action = ((FrameLayout) content).findViewWithTag(ACTION_TAG);
         if (action == null && activity.getWindow() != null) {
@@ -417,7 +508,9 @@ public final class DownloadPatch {
             autoSyncObserver = new FileObserver(path,
                     FileObserver.CLOSE_WRITE | FileObserver.MOVED_TO | FileObserver.CREATE) {
                 @Override public void onEvent(int event, String name) {
-                    if (name == null || "index.json".equals(name) || "collections.json".equals(name)) {
+                    // Ignore nameless/overflow notifications; only durable native index files
+                    // represent a concrete download or collection change worth syncing.
+                    if ("index.json".equals(name) || "collections.json".equals(name)) {
                         scheduleAutoSync(app);
                     }
                 }
@@ -440,7 +533,6 @@ public final class DownloadPatch {
             return;
         }
         final String path = directory.getAbsolutePath();
-        boolean started = false;
         synchronized (AUTO_SYNC_OBSERVER_LOCK) {
             if (path.equals(lyricsCacheObservedPath) && lyricsCacheObserver != null) return;
             if (lyricsCacheObserver != null) {
@@ -455,12 +547,10 @@ public final class DownloadPatch {
                 }
             };
             lyricsCacheObserver.startWatching();
-            started = true;
-            Log.i(TAG, "Watching MySpoti's native lyrics cache for export auto-sync");
+            Log.i(TAG, "Watching MySpoti's native lyrics cache for future writes; no startup sync queued");
         }
-        // On the first launch after installing this update, run one pass when opted in so
-        // already-downloaded tracks can be backfilled without waiting for another file event.
-        if (started) scheduleAutoSync(app);
+        // Observer installation is not a sync trigger. Existing downloaded tracks are
+        // exported only after a real file change or an explicit user Sync now action.
     }
 
     private static void scheduleAutoSync(Context context) {
@@ -482,6 +572,12 @@ public final class DownloadPatch {
 
     private static void startAutoSync(Context context) {
         Context app = context.getApplicationContext();
+        // Changes observed during a manual/page-started sync are remembered and
+        // coalesced into one follow-up pass after that sync releases the coordinator.
+        if (ExportSyncCoordinator.isRunning()) {
+            deferAutoSync(app);
+            return;
+        }
         android.content.SharedPreferences preferences = app.getSharedPreferences(ExportIndex.PREFS, Context.MODE_PRIVATE);
         if (!preferences.getBoolean(ExportIndex.PREF_AUTO_SYNC, false)) return;
         String value = preferences.getString(ExportIndex.PREF_EXPORT_TREE_URI, null);
@@ -514,6 +610,28 @@ public final class DownloadPatch {
                 if (runAgain) scheduleAutoSync(app);
             }
         });
+    }
+
+    /** Marks an observer event for a single coalesced retry after the current sync. */
+    static void deferAutoSync(Context context) {
+        if (context == null) return;
+        Context app = context.getApplicationContext();
+        synchronized (AUTO_SYNC_OBSERVER_LOCK) { autoSyncAgain = true; }
+        // Close the small race where the current sync finishes just before this
+        // observer request is recorded.
+        if (!ExportSyncCoordinator.isRunning()) onExternalExportSyncFinished(app);
+    }
+
+    /** Called by the Activity after its sync completes, so deferred observer changes are not lost. */
+    static void onExternalExportSyncFinished(Context context) {
+        if (context == null) return;
+        Context app = context.getApplicationContext();
+        boolean runAgain;
+        synchronized (AUTO_SYNC_OBSERVER_LOCK) {
+            runAgain = autoSyncAgain && !autoSyncRunning;
+            if (runAgain) autoSyncAgain = false;
+        }
+        if (runAgain) scheduleAutoSync(app);
     }
 
     public static String selectedStorageId(Context context) {
@@ -584,8 +702,8 @@ public final class DownloadPatch {
 
     /**
      * Snapshot of whole downloaded playlists, albums and Liked Songs.
-     * APK 2.2.0 DEX mapping: ic5.e is SnapshotStateMap<String, dc5>;
-     * dc5 fields a/b/c/d are uri/type/name/trackIds respectively.
+     * APK 2.3.0 DEX mapping: sh5.e is SnapshotStateMap<String, nh5>;
+     * nh5 fields a/b/c/d are uri/type/name/trackIds respectively.
      */
     public static List<CollectionSnapshot> downloadedCollections() throws Exception {
         Class<?> collectionsClass = Class.forName(COLLECTIONS);
@@ -679,6 +797,7 @@ public final class DownloadPatch {
     }
     public static String trackKind(Object track) { return safeTrackString(track, "n"); }
     public static String trackProviderId(Object track) { return safeTrackString(track, "o"); }
+    public static String trackExtensionQuality(Object track) { return safeTrackString(track, "p"); }
     public static long trackDurationMs(Object track) { return trackLong(track, "f"); }
 
     /** Individually downloaded songs, persisted separately from downloaded collection membership. */
@@ -793,6 +912,8 @@ public final class DownloadPatch {
                 nativeTrack.put("kind", portable.optString("kind", "MUSIC"));
                 String providerId = portable.optString("providerId", "");
                 if (!providerId.isEmpty()) nativeTrack.put("providerId", providerId);
+                String extensionQuality = portable.optString("extensionQuality", "");
+                if (!extensionQuality.isEmpty()) nativeTrack.put("extQuality", extensionQuality);
                 mergedIndex.put(nativeTrack);
                 availableIds.add(trackId);
                 result.restored++;
@@ -1344,7 +1465,7 @@ public final class DownloadPatch {
             Class<?> store = Class.forName(STORE);
             Object statuses = declaredField(store, "e").get(null);
             if (statuses instanceof Map) ((Map<?, ?>) statuses).clear();
-            Method load = store.getDeclaredMethod("k", File.class);
+            Method load = store.getDeclaredMethod("n", File.class);
             load.setAccessible(true);
             Object result = load.invoke(null, storageRoot(context));
             return result instanceof List;
@@ -1354,7 +1475,7 @@ public final class DownloadPatch {
         }
     }
 
-    /** The R8-mapped OfflineCollections.file field is ic5.b; collections are ic5.e; singles are ic5.f. */
+    /** The R8-mapped OfflineCollections.file field is sh5.b; collections are sh5.e; singles are sh5.f. */
     private static boolean setCollectionsFileAndRead(Context context) {
         try {
             Class<?> collections = Class.forName(COLLECTIONS);
@@ -1367,7 +1488,7 @@ public final class DownloadPatch {
             if (singles instanceof Set) ((Set<?>) singles).clear();
 
             if (index.isFile()) {
-                Method read = collections.getDeclaredMethod("f", String.class);
+                Method read = collections.getDeclaredMethod("g", String.class);
                 read.setAccessible(true);
                 read.invoke(null, readText(index));
             }

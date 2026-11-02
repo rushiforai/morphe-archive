@@ -19,9 +19,10 @@ object ForceUpdate {
             parameters = emptyList(),
         )
 
-    val getTVForceUpdatePatch = bytecodePatch {
-        execute {
-            GetTvForceUpdateFingerprint.matchSingle().method.returnBoxedBooleanEarly(false)
+    val getTVForceUpdatePatch =
+        bytecodePatch {
+            execute {
+                GetTvForceUpdateFingerprint.matchSingle().method.returnBoxedBooleanEarly(false)
+            }
         }
-    }
 }

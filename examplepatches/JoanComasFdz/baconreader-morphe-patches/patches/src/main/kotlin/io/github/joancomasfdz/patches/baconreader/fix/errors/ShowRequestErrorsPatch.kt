@@ -22,7 +22,8 @@ val showRequestErrorsPatch = bytecodePatch(
 
     execute {
         // Every Reddit request catches its IOException and throws a new one with the 2023 farewell message.
-        // The app's own errors are already useful ("reddit: 404 Not Found", timeouts, parse errors):
+        // The app's own errors are already useful ("reddit: 404 Not Found", Reddit's explanation, a dropped connection, parse errors;
+        // Reddit requests have no timeout):
         // rebuild the method without that try block, so they reach the screen.
         val method = RedditRequestRunTaskFingerprint.method
         val implementation = method.implementation!!

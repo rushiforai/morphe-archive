@@ -7,11 +7,11 @@
 #   2. install what AGENTS.md needs to build and check the bundle: JDK 21, the Android SDK, apktool, and the
 #      credentials of GitHub Packages, where Morphe's Gradle plugin and patcher are. Morphe Desktop, the patcher,
 #      comes from tools/morphe-desktop.sh once the repository is attached to the session.
-# Idempotent and quiet; does nothing outside cloud sessions. Joining the tailnet, waking the emulator and fetching the
+# Idempotent and quiet; does nothing outside cloud sessions. Joining the tailnet, waking the phone and fetching the
 # base APK happen only when a session needs them (tools/e2e/connect.sh), so a session that only edits code never wakes
-# the emulator.
+# the phone.
 # Environment needs: network access "Full", and the variables TS_AUTHKEY_CLOUD (a reusable, ephemeral Tailscale auth
-# key), E2E_EMULATOR_HOST (the emulator's name on the tailnet), E2E_APK_CHECKSUM (the clean base APK's sha256) and
+# key), E2E_DEVICE_HOST (the device host's name on the tailnet), E2E_APK_CHECKSUM (the clean base APK's sha256) and
 # MORPHE_GPR_TOKEN (a classic GitHub token with read:packages; MORPHE_GPR_USER, default JoanComasFdz).
 set -uo pipefail
 
@@ -44,13 +44,6 @@ if ! command -v tailscaled >/dev/null 2>&1; then
     warn "tailscale install failed"
 fi
 
-# Android platform-tools (adb).
-if ! command -v adb >/dev/null 2>&1; then
-  curl -fsSL -o /tmp/platform-tools.zip https://dl.google.com/android/repository/platform-tools-latest-linux.zip &&
-    $sudo unzip -qo /tmp/platform-tools.zip -d /opt && $sudo ln -sf /opt/platform-tools/adb /usr/local/bin/adb ||
-    warn "platform-tools install failed"
-fi
-
 # What the bundle needs to build and pass its checks (AGENTS.md): JDK 21 for Gradle, the Android SDK with ANDROID_HOME
 # (the extensions are Android libraries) and apktool.
 TOOLS=/opt/patch-tools
@@ -62,7 +55,14 @@ if [ ! -x "$JDK21/bin/java" ]; then
     $sudo tar xz -C "$JDK21" --strip-components=1 || warn "JDK 21 install failed"
 fi
 ANDROID_SDK=/opt/android-sdk
-if [ ! -d "$ANDROID_SDK/build-tools/35.0.0" ] || [ ! -d "$ANDROID_SDK/platforms/android-35" ]; then
+# adb comes with the SDK's platform-tools package, installed by sdkmanager so the SDK knows it has it. A platform-tools
+# folder sdkmanager didn't install (no package.xml, such as an adb link from an older version of this hook) makes the
+# Android Gradle plugin install its own copy, as platform-tools-2: remove it so sdkmanager installs the real one.
+if [ -d "$ANDROID_SDK/platform-tools" ] && [ ! -f "$ANDROID_SDK/platform-tools/package.xml" ]; then
+  $sudo rm -rf "$ANDROID_SDK/platform-tools" "$ANDROID_SDK/platform-tools-2"
+fi
+if [ ! -d "$ANDROID_SDK/build-tools/35.0.0" ] || [ ! -d "$ANDROID_SDK/platforms/android-35" ] ||
+  [ ! -f "$ANDROID_SDK/platform-tools/package.xml" ]; then
   if [ ! -x "$ANDROID_SDK/cmdline-tools/latest/bin/sdkmanager" ]; then
     curl -fsSL -o /tmp/cmdline-tools.zip \
       https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip &&
@@ -73,7 +73,7 @@ if [ ! -d "$ANDROID_SDK/build-tools/35.0.0" ] || [ ! -d "$ANDROID_SDK/platforms/
       warn "Android command-line tools install failed"
   fi
   (yes 2>/dev/null || true) | $sudo env JAVA_HOME="$JDK21" "$ANDROID_SDK/cmdline-tools/latest/bin/sdkmanager" \
-    --sdk_root="$ANDROID_SDK" "platforms;android-35" "build-tools;35.0.0" >/dev/null 2>&1 ||
+    --sdk_root="$ANDROID_SDK" "platform-tools" "platforms;android-35" "build-tools;35.0.0" >/dev/null 2>&1 ||
     warn "Android SDK packages install failed"
 fi
 if [ ! -f "$TOOLS/apktool.jar" ]; then
@@ -88,7 +88,7 @@ for tool in apktool; do
   fi
 done
 
-# Appium, run in the session by tools/e2e/connect.sh against the emulator over adb (the emulator host runs none).
+# Appium, run in the session by tools/e2e/connect.sh against the phone over adb (the device host runs none).
 # Pinned: the UiAutomator2 driver's helper apps on the device must match it (server 10.6.6, settings 8.0.9).
 # Appium finds adb in $ANDROID_HOME/platform-tools.
 APPIUM=/opt/appium
@@ -102,8 +102,12 @@ if [ ! -x "$APPIUM/node_modules/.bin/appium" ] || [ ! -d "$APPIUM/home/node_modu
     warn "no npm: Appium not installed"
   fi
 fi
-if [ -d "$ANDROID_SDK" ] && [ ! -e "$ANDROID_SDK/platform-tools/adb" ] && command -v adb >/dev/null 2>&1; then
-  $sudo mkdir -p "$ANDROID_SDK/platform-tools" && $sudo ln -sf "$(command -v adb)" "$ANDROID_SDK/platform-tools/adb"
+# One adb for everything: the SDK's, which Appium and the Android Gradle plugin use, also on PATH for connect.sh (two
+# adb versions would restart each other's server).
+if [ -x "$ANDROID_SDK/platform-tools/adb" ]; then
+  $sudo ln -sf "$ANDROID_SDK/platform-tools/adb" /usr/local/bin/adb
+else
+  warn "no adb: the Android SDK's platform-tools didn't install"
 fi
 
 # Maven Central answers 429 to cloud sessions often, and a Gradle build then fails. Every Gradle build uses Google's
@@ -133,6 +137,19 @@ beforeSettings { s ->
 }
 GRADLE
 
+# The Plugin Portal also redirects lookups it can't answer to Maven Central, not to the mirror, and a 429 there stops
+# Gradle before it asks Google's Maven or GitHub Packages, where Morphe's plugin and the Android Gradle plugin are. It
+# skips their groups, which it never holds.
+cat > "$HOME/.gradle/init.d/skip-plugin-portal.gradle" <<'GRADLE'
+beforeSettings { s ->
+    s.pluginManagement.repositories.configureEach { r ->
+        if (r.name == 'Gradle Central Plugin Repository') {
+            r.content { ['app\\.morphe.*', 'com\\.android.*', 'com\\.google.*', 'androidx.*'].each { g -> excludeGroupByRegex g } }
+        }
+    }
+}
+GRADLE
+
 # Morphe's Gradle plugin and patcher are on GitHub Packages, which needs a token with read:packages: the environment's
 # MORPHE_GPR_TOKEN, written to ~/.gradle/gradle.properties as gpr.user/gpr.key (settings.gradle.kts reads them).
 if [ -n "${MORPHE_GPR_TOKEN:-}" ]; then
@@ -153,7 +170,9 @@ if [ -n "${CLAUDE_ENV_FILE:-}" ] && ! grep -qs "$JDK21" "$CLAUDE_ENV_FILE"; then
   } >> "$CLAUDE_ENV_FILE"
 fi
 
-for variable in TS_AUTHKEY_CLOUD E2E_EMULATOR_HOST E2E_APK_CHECKSUM; do
-  [ -n "${!variable:-}" ] || warn "$variable is not set: the emulator won't be reachable (tools/e2e/connect.sh)"
+for variable in TS_AUTHKEY_CLOUD E2E_DEVICE_HOST E2E_APK_CHECKSUM E2E_ADB_KEY; do
+  [ -n "${!variable:-}" ] || warn "$variable is not set: the phone won't be reachable (tools/e2e/connect.sh)"
 done
+# Quiet by design: say it ran, so a run with nothing left to install doesn't look like no run.
+echo "session-start hook done: tools in /opt/patch-tools, Android SDK in /opt/android-sdk"
 exit 0

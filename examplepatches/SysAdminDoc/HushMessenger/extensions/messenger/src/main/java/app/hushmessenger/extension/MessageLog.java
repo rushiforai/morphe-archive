@@ -1,6 +1,8 @@
 package app.hushmessenger.extension;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import java.io.ByteArrayOutputStream;
@@ -15,10 +17,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -39,12 +44,14 @@ import javax.crypto.spec.GCMParameterSpec;
  *
  * Retention: entries older than 30 days are removed from the file itself, by a check shortly after Messenger starts and
  * every six hours after, whether or not the switch is on. Turning the switch off, pausing or safe mode stop new entries
- * but keep the ones already stored until they expire or the log is cleared.
+ * but keep the ones already stored until they expire or the log is cleared. With {@link #SAVE_EXPIRING} on, a message is
+ * added to a file in Download/Messenger right before it's removed. That file isn't encrypted, so the switch starts off.
  */
 public final class MessageLog {
     private MessageLog() {}
 
     static final String KEY = "message_log";
+    static final String SAVE_EXPIRING = "message_log_save_expiring";
     static final String FILE = "hush_message_log.bin";
     static final String DAMAGED = FILE + ".damaged";
     static final String KEY_ALIAS = "hushmessenger_message_log";
@@ -391,7 +398,7 @@ public final class MessageLog {
                 // Naming uses up Auto reply's notes, so a failed write retries these with their names.
                 retry = withNames;
                 entries.addAll(withNames);
-                prune(entries, System.currentTimeMillis());
+                expire(context, entries, System.currentTimeMillis());
                 save(context, entries);
                 synchronized (PENDING) {
                     failedWrites = 0;
@@ -491,7 +498,7 @@ public final class MessageLog {
         try {
             synchronized (LOCK) {
                 List<Entry> entries = load(context);
-                if (prune(entries, System.currentTimeMillis()) || repairedOnRead) save(context, entries);
+                if (expire(context, entries, System.currentTimeMillis()) || repairedOnRead) save(context, entries);
                 List<Entry> newestFirst = new ArrayList<>(entries.size());
                 for (int i = entries.size() - 1; i >= 0; i--) newestFirst.add(entries.get(i));
                 return new LoadResult(newestFirst, false, new File(context.getFilesDir(), DAMAGED).exists());
@@ -529,7 +536,7 @@ public final class MessageLog {
             synchronized (LOCK) {
                 if (!new File(context.getFilesDir(), FILE).exists()) return;
                 List<Entry> entries = load(context);
-                if (prune(entries, System.currentTimeMillis()) || repairedOnRead) save(context, entries);
+                if (expire(context, entries, System.currentTimeMillis()) || repairedOnRead) save(context, entries);
             }
         } catch (Throwable failure) {
             // Caught here because a periodic task that throws is never run again.
@@ -627,7 +634,7 @@ public final class MessageLog {
             try {
                 List<Entry> entries = new ArrayList<>(removed);
                 entries.addAll(load(context));
-                prune(entries, System.currentTimeMillis());
+                expire(context, entries, System.currentTimeMillis());
                 save(context, entries);
                 return true;
             } catch (Throwable failure) {
@@ -645,6 +652,12 @@ public final class MessageLog {
         int before = entries.size();
         long cutoff = now - MAX_AGE_MS;
         entries.removeIf(entry -> entry.time < cutoff);
+        trim(entries);
+        return entries.size() != before;
+    }
+
+    /** Drops the oldest until the count and the plaintext size fit. Returns whether anything was dropped. */
+    private static boolean trim(List<Entry> entries) {
         long bytes = 0;
         int first = 0;
         for (int i = entries.size() - 1; i >= 0; i--) {
@@ -655,7 +668,33 @@ public final class MessageLog {
             }
         }
         if (first > 0) entries.subList(0, first).clear();
-        return entries.size() != before;
+        return first > 0;
+    }
+
+    /**
+     * {@link #prune}, with what it's about to drop added to the month's file first when that's been asked for. It copies with
+     * the log's switch off too, since Off still lets stored messages expire. A file that can't be written leaves expired
+     * messages for the next check, but the size limits still hold, because past them the log can't be read back at all. A
+     * copy can land twice if the log's own write then fails, which beats not landing.
+     */
+    private static boolean expire(Context context, List<Entry> entries, long now) {
+        SharedPreferences prefs = Settings.preferences;
+        if (Build.VERSION.SDK_INT < 29 || prefs == null || !prefs.getBoolean(SAVE_EXPIRING, false)) return prune(entries, now);
+        List<Entry> kept = new ArrayList<>(entries);
+        if (!prune(kept, now)) return false;
+        Set<Entry> staying = Collections.newSetFromMap(new IdentityHashMap<>());
+        staying.addAll(kept);
+        List<Entry> leaving = new ArrayList<>(entries);
+        leaving.removeIf(staying::contains);
+        try {
+            MessageLogExport.saveExpiring(context, leaving, now);
+        } catch (IOException | RuntimeException failure) {
+            Settings.hookFailedPrivately(KEY, "Can't save expiring messages", failure);
+            return trim(entries);
+        }
+        entries.clear();
+        entries.addAll(kept);
+        return true;
     }
 
     /** The log's file content could not have come from this log, or no longer opens with its key. */

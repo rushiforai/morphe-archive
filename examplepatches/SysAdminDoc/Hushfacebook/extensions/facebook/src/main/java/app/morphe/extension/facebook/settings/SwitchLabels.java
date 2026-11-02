@@ -31,6 +31,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_POST_SHARE_BUTTON) return L10n.t("Hide Share under posts");
         if (setting == Settings.HIDE_POST_SEND_BUTTON) return L10n.t("Hide Send under posts");
         if (setting == Settings.HIDE_AFFILIATE_LINKS) return L10n.t("Hide affiliate product links");
+        if (setting == Settings.HIDE_COMMISSION_LABEL) return L10n.t("Hide the Commission eligible label");
         if (setting == Settings.HIDE_SUGGESTED_POSTS) return L10n.t("Hide page suggestions and Facebook's own promos");
         if (setting == Settings.HIDE_SUGGESTED_FOR_YOU) return L10n.t("Hide \"Suggested for you\" posts");
         if (setting == Settings.HIDE_PEOPLE_YOU_MAY_KNOW) return L10n.t("Hide \"People you may know\"");
@@ -58,12 +59,15 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_META_AI_QUESTIONS) return L10n.t("Hide Meta AI questions under posts");
         if (setting == Settings.KEEP_POST_DATES) return L10n.t("Keep post dates");
         if (setting == Settings.SHOW_FULL_POST_TEXT) return L10n.t("Show full post text");
+        if (setting == Settings.TRANSLATE_POST_LINK) return L10n.t("Add a Translate link to posts");
+        if (setting == Settings.TRANSLATE_POSTS_BY_THEMSELVES) return L10n.t("Translate posts by themselves");
         if (setting == Settings.SEE_WHO_SHARED) return L10n.t("See who shared");
         if (setting == Settings.TURN_OFF_AUTO_TRANSLATION) return L10n.t("Turn off auto-translation");
         if (setting == Settings.HIDE_FEEDS_HEADER) return L10n.t("Hide the Feeds header");
         if (setting == Settings.BLOCK_RETURN_REFRESH) return L10n.t("Keep feed position on return");
         if (setting == Settings.RETURN_REFRESH_NO_LIMIT) return L10n.t("No time limit");
         if (setting == Settings.BACK_KEEPS_HOME) return L10n.t("Back leaves Home where it is");
+        if (setting == Settings.HIDE_BACK_REMINDER) return L10n.t("Hide the Back reminder");
         if (setting == Settings.HIDE_AI_DETECTED_POSTS) return L10n.t("Hide AI-detected posts");
         if (setting == Settings.HIDE_AI_LABELLED_POSTS) return L10n.t("Also hide posts labeled as AI");
         if (setting == Settings.HIDE_META_AI_FEED_UNITS) return L10n.t("Hide Meta AI in the feed");
@@ -103,6 +107,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_VIDEO_COMMENT_COMPOSER) return L10n.t("Hide the video comment box");
         if (setting == Settings.OPEN_REPLY_THREADS) return L10n.t("Open every reply thread");
         if (setting == Settings.LOAD_WHOLE_REPLY_THREADS) return L10n.t("Load whole reply threads");
+        if (setting == Settings.HIDE_REPLIES_BUTTON) return L10n.t("Hide replies button");
         if (setting == Settings.TAP_ANYWHERE_ON_VIEW_MORE_REPLIES) return L10n.t("Tap anywhere on View more replies");
         if (setting == Settings.HIDE_POST_COMMENT_PREVIEWS) return L10n.t("Hide comments under posts");
         if (setting == Settings.HIDE_COMMENT_DOWNVOTE_BUTTON) return L10n.t("Hide dislike on comments");
@@ -163,6 +168,7 @@ final class SwitchLabels {
         if (setting == Settings.SHOW_REEL_COMMENT_BUTTON) return L10n.t("Show Comment when comments are off");
         if (setting == Settings.SHOW_REEL_POST_DATE) return L10n.t("Show the post date on reels");
         if (setting == Settings.HIDE_REEL_SOUND_BUTTON) return L10n.t("Hide the speaker button on reels");
+        if (setting == Settings.REEL_SPEAKER_ABOVE_MENU) return L10n.t("Move the speaker above the three dots");
         if (setting == Settings.HIDE_REEL_AUDIO_LINE) return L10n.t("Hide the audio line on reels");
         if (setting == Settings.HIDE_SLOW_CONNECTION_MESSAGE) return L10n.t("Hide the slow connection message");
         if (setting == Settings.FEED_VIDEOS_ALONE) return L10n.t("Open feed videos on their own");
@@ -198,6 +204,7 @@ final class SwitchLabels {
         if (setting == Settings.HOLD_REEL_RIGHT_EDGE) return L10n.t("Only on the right edge");
         if (setting == Settings.HOLD_FEED_VIDEO_FOR_2X) return L10n.t("Hold a feed video for 2x");
         if (setting == Settings.HIDE_2X_LOCK_HINT) return L10n.t("Hide the pull down to lock hint");
+        if (setting == Settings.HIDE_2X_POPUPS) return L10n.t("Hide the 2x popups");
         if (setting == Settings.DOWNLOAD_REELS) return L10n.t("Download");
         if (setting == Settings.SHOW_REEL_DOWNLOAD_BUTTON) return L10n.t("Download button on reels");
         if (setting == Settings.REEL_CAST_BUTTON) return L10n.t("Cast button on reels");
@@ -207,6 +214,7 @@ final class SwitchLabels {
         if (setting == Settings.TAP_TO_PLAY_STORIES) return L10n.t("Video stories wait for a tap");
         if (setting == Settings.INLINE_FEED_VIDEO_CONTROLS) return L10n.t("Inline feed video controls");
         if (setting == Settings.FEED_VIDEO_CAST_BUTTON) return L10n.t("Cast button on feed videos");
+        if (setting == Settings.FEED_VIDEO_SEEK_BAR) return L10n.t("Seek bar on feed videos");
         if (setting == Settings.RESUME_LONG_VIDEOS) return L10n.t("Resume long videos");
         if (setting == Settings.RECENTLY_WATCHED) return L10n.t("Remember what you watch");
         if (setting == Settings.FRAME_STEP) return L10n.t("Frame step");

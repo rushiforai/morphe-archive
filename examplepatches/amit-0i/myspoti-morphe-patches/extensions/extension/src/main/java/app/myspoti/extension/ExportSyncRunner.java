@@ -30,6 +30,13 @@ final class ExportSyncRunner {
 
     static void sync(Context context, Uri tree, boolean deleteRemoved) throws Exception {
         Context app = context.getApplicationContext();
+        if (!ExportSyncCoordinator.tryStart("Auto-sync", false, "Preparing automatic export…")) {
+            DownloadPatch.deferAutoSync(app);
+            Log.i(TAG, "Skipped an automatic export pass because another sync is already active; one retry was queued");
+            return;
+        }
+        boolean completed = false;
+        try {
         synchronized (DownloadPatch.exportSyncLock()) {
             List<?> tracks = DownloadPatch.downloadedTracks(app);
             List<DownloadPatch.CollectionSnapshot> collections = null;
@@ -70,10 +77,13 @@ final class ExportSyncRunner {
             int lyricsFailed = 0;
             String lastError = null;
             final long lyricsRetryIntervalMs = 12L * 60L * 60L * 1000L;
+            int done = 0;
+            ExportSyncCoordinator.update("Exporting downloaded songs…", 0, tracks.size());
             for (Object track : tracks) {
                 Uri destination = null;
                 boolean created = false;
                 boolean lyricsLookupAttempted = false;
+                boolean lyricsRepairLookupAttempted = false;
                 try {
                     File source = DownloadPatch.audioFile(app, track);
                     if (!source.isFile()) throw new java.io.FileNotFoundException("Downloaded audio is missing: " + source.getName());
@@ -89,23 +99,50 @@ final class ExportSyncRunner {
                     destination = index.existingDocument(trackId);
                     boolean sameFingerprint = destination != null && index.sameFingerprint(trackId, fingerprint);
 
-                    JSONObject lyricsJson = index.readLyricsJson(trackId);
+                    boolean canEmbedLyrics = AudioMetadataWriter.supportsLyricsEmbedding(extension);
+                    boolean lyricsSidecarsMissing = false;
+                    if (index.hasLyricsAvailable(trackId)) {
+                        try { lyricsSidecarsMissing = index.lyricsSidecarsNeedRepair(trackId); }
+                        catch (Throwable inspectLyricsError) {
+                            // Lyrics inspection must not prevent an otherwise valid audio export.
+                            Log.w(TAG, "Could not inspect portable lyric sidecars for " + trackId, inspectLyricsError);
+                        }
+                    }
+                    boolean needLyricsJson = !index.hasLyricsAvailable(trackId) || lyricsSidecarsMissing
+                            || (canEmbedLyrics && !index.hasLyricsEmbedded(trackId));
+                    JSONObject lyricsJson = needLyricsJson ? index.readLyricsJson(trackId) : null;
                     // First consume MySpoti's durable lyrics cache. A track can acquire lyrics
                     // after its audio export, and that cache write triggers another auto-sync.
-                    if (lyricsJson == null) lyricsJson = LyricsStore.readNativeCache(app, trackId);
-                    // Retry missing lyrics even when audio was exported earlier. The first
-                    // pass can race a player-side lookup or provider response; skipping an
-                    // unchanged fingerprint here permanently left that export without lyrics.
-                    if (lyricsJson == null && index.shouldLookupLyrics(trackId, lyricsRetryIntervalMs)) {
+                    if (needLyricsJson && lyricsJson == null) lyricsJson = LyricsStore.readNativeCache(app, trackId);
+                    // If the JSON sidecar and native cache are unavailable, a surviving LRC is
+                    // still enough to recreate both portable lyric formats.
+                    if (needLyricsJson && lyricsJson == null) {
+                        String savedLrc = index.readLyricsLrc(trackId);
+                        lyricsJson = LyricsStore.fromLrc(trackId, savedLrc, "Portable LRC backup");
+                    }
+                    // Retry missing lyrics even when audio was exported earlier, but throttle the
+                    // provider lookup so repeated collection/index events don't block on the same miss.
+                    boolean shouldLookupMissingLyrics = lyricsSidecarsMissing
+                            ? index.shouldRetryMissingLyrics(trackId, lyricsRetryIntervalMs)
+                            : index.shouldLookupLyrics(trackId, lyricsRetryIntervalMs);
+                    if (needLyricsJson && lyricsJson == null && shouldLookupMissingLyrics) {
                         lyricsLookupAttempted = true;
-                        lyricsJson = LyricsStore.obtain(app, trackId, title, artist, album,
-                                DownloadPatch.trackDurationMs(track), DownloadPatch.trackCoverUrl(track));
+                        lyricsRepairLookupAttempted = lyricsSidecarsMissing;
+                        // Never hold the SAF export pass open while waiting for lyrics networking.
+                        // MySpoti writes its durable cache when prefetch completes; the cache
+                        // observer schedules a short follow-up pass that archives the result.
+                        LyricsStore.requestPrefetch(app, trackId, title, artist, album,
+                                DownloadPatch.trackDurationMs(track), DownloadPatch.trackCoverUrl(track),
+                                lyricsSidecarsMissing);
                     }
                     boolean hasLyrics = LyricsStore.validLyricsJson(lyricsJson);
                     // Avoid rewriting an existing cache file: its FileObserver would otherwise
                     // schedule an endless chain of identical background syncs.
                     if (hasLyrics && LyricsStore.readNativeCache(app, trackId) == null) {
-                        LyricsStore.restoreNativeCache(app, trackId, lyricsJson);
+                        try { LyricsStore.restoreNativeCache(app, trackId, lyricsJson); }
+                        catch (Throwable cacheError) {
+                            Log.w(TAG, "Could not restore native lyrics cache for " + trackId, cacheError);
+                        }
                     }
                     String lyricsText = hasLyrics ? LyricsStore.toPlainText(lyricsJson) : "";
                     String lyricsLrc = hasLyrics ? LyricsStore.toLrc(lyricsJson, title, artist, album) : "";
@@ -121,7 +158,8 @@ final class ExportSyncRunner {
                                     DownloadPatch.trackDurationMs(track), extension, source.length(), true, displayName,
                                     DownloadPatch.trackAlbumId(track), DownloadPatch.trackCoverUrl(track),
                                     DownloadPatch.trackSource(track), DownloadPatch.trackVerified(track),
-                                    DownloadPatch.trackKind(track), DownloadPatch.trackProviderId(track));
+                                    DownloadPatch.trackKind(track), DownloadPatch.trackProviderId(track),
+                                    DownloadPatch.trackExtensionQuality(track));
                         } else {
                             displayName = addTrackIdSuffix(displayName, trackId);
                             destination = index.createDocumentInPath(mime(extension), displayName, "Tracks");
@@ -132,7 +170,6 @@ final class ExportSyncRunner {
                         relativePath = displayName;
                     }
 
-                    boolean canEmbedLyrics = AudioMetadataWriter.supportsLyricsEmbedding(extension);
                     boolean needAudioWrite = created || (!sameFingerprint && !legacyImported)
                             || (hasLyrics && canEmbedLyrics && !index.hasLyricsEmbedded(trackId));
                     boolean embeddedLyrics = index.hasLyricsEmbedded(trackId);
@@ -148,7 +185,8 @@ final class ExportSyncRunner {
                                 DownloadPatch.trackDurationMs(track), extension, exportedBytes, legacyImported, relativePath,
                                 DownloadPatch.trackAlbumId(track), DownloadPatch.trackCoverUrl(track),
                                 DownloadPatch.trackSource(track), DownloadPatch.trackVerified(track),
-                                DownloadPatch.trackKind(track), DownloadPatch.trackProviderId(track));
+                                DownloadPatch.trackKind(track), DownloadPatch.trackProviderId(track),
+                                DownloadPatch.trackExtensionQuality(track));
                         exported++;
                     } else {
                         skipped++;
@@ -164,9 +202,11 @@ final class ExportSyncRunner {
                             Log.w(TAG, "Audio exported but lyric sidecars could not be saved for " + title, error);
                         }
                     } else if (lyricsLookupAttempted) {
-                        // Keep an attempt timestamp after the track record is present, but let
-                        // a manual Sync now bypass this interval and explicitly retry the miss.
+                        // Keep a lookup timestamp so unrelated index events don't repeatedly
+                        // fetch a known miss. Missing previously-exported sidecars have their own
+                        // repair throttle because their normal lookup timestamp may be stale.
                         index.markLyricsLookupAttempted(trackId);
+                        if (lyricsRepairLookupAttempted) index.markMissingLyricsLookupAttempted(trackId);
                     }
                 } catch (Throwable error) {
                     failed++;
@@ -174,8 +214,12 @@ final class ExportSyncRunner {
                     lastError = error.getMessage() == null ? error.getClass().getSimpleName() : error.getMessage();
                     Log.w(TAG, "Background export failed for " + DownloadPatch.trackTitle(track), error);
                 }
+                done++;
+                ExportSyncCoordinator.update("Exported " + exported + " new · " + skipped
+                        + " present · " + failed + " failed", done, tracks.size());
             }
 
+            ExportSyncCoordinator.update("Updating playlist & album lists…", tracks.size(), tracks.size());
             int deletedTracks = 0;
             int deletedCollections = 0;
             boolean deletionSyncSafe = deleteRemoved && DownloadPatch.canMirrorDeletedDownloads(
@@ -210,6 +254,12 @@ final class ExportSyncRunner {
                     + ", manifests=" + manifestCount + ", collectionFailures=" + collectionFailures
                     + ", deletedExports=" + deletedTracks + ", deletedManifests=" + deletedCollections
                     + (lastError == null ? "" : ", lastError=" + lastError));
+        }
+        completed = true;
+        } finally {
+            ExportSyncCoordinator.finish(completed
+                    ? "Automatic background sync complete. The export archive is up to date."
+                    : "Automatic background sync did not complete. Check the sync log for details.");
         }
     }
 
@@ -296,7 +346,8 @@ final class ExportSyncRunner {
 
     private static String addTrackIdSuffix(String filename, String trackId) {
         int dot = filename.lastIndexOf('.');
-        String suffix = trackId.length() > 6 ? trackId.substring(trackId.length() - 6) : trackId;
+        // Keep the entire Spotify ID: six-character tails can collide across tracks.
+        String suffix = trackId == null ? "unknown" : trackId.replaceAll("[^A-Za-z0-9._-]", "_");
         return dot > 0 ? filename.substring(0, dot) + " [" + suffix + "]" + filename.substring(dot)
                 : filename + " [" + suffix + "]";
     }

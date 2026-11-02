@@ -1,0 +1,78 @@
+/*
+ * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+ */
+
+package app.morphe.extension.instagram.settings;
+
+import static app.morphe.extension.instagram.utils.IgStr.str;
+
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+
+import app.morphe.extension.rex.RexUtils;
+import app.morphe.extension.instagram.settings.preference.fragments.BackupPrefActivity;
+import app.morphe.extension.instagram.settings.preference.fragments.RestorePrefActivity;
+import app.morphe.extension.rex.downloader.FolderPickerActivity;
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.instagram.constants.Constants;
+
+@SuppressWarnings("deprecation")
+public class ActivityHook {
+
+    public static void launchActivity(Context context, Class<?> activityClass) {
+        launchActivity(context, new Intent(context, activityClass));
+    }
+
+    private static void launchActivity(Context context, Intent intent) {
+        try {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        } catch (Exception e) {
+            Logger.printException(() -> "launchActivity failure", e);
+            RexUtils.logger(e);
+        }
+    }
+
+    public static void startRexActivity(String fragment_name, String title) {
+        Context context = RexUtils.getContext();
+        Intent intent = new Intent(context, SettingsActivity.class);
+        intent.putExtra(Constants.REX_FRAGMENT_NAME, fragment_name);
+        intent.putExtra(Constants.REX_FRAGMENT_TITLE, title);
+        launchActivity(context, intent);
+    }
+
+    public static void launchFragment(Context ctx, String bundleKey) {
+        Intent intent = null;
+        if (bundleKey.equals("rex_export_dev_overrides") || bundleKey.equals("rex_export_pref")) {
+            intent = new Intent(ctx, BackupPrefActivity.class);
+        } else if (bundleKey.equals("rex_import_dev_overrides") || bundleKey.equals("rex_import_id_mapping")
+                || bundleKey.equals("rex_import_pref") || bundleKey.equals("rex_pref_add_font")) {
+            intent = new Intent(ctx, RestorePrefActivity.class);
+        } else if (bundleKey.equals("rex_download_set_path")) {
+            intent = new Intent(ctx, FolderPickerActivity.class);
+        }
+        if (intent != null) {
+            intent.putExtra(bundleKey, true);
+            launchActivity(ctx, intent);
+        }
+    }
+
+    public static void handleUrlIntent(Boolean isVideo, String mediaUrl) {
+        String dataType = "image/*";
+        String exportHeaderString = str("rex_open_image_with");
+        if (isVideo) {
+            dataType = "video/*";
+            exportHeaderString = str("rex_open_video_with");
+        }
+
+        Uri uri = Uri.parse(mediaUrl);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(uri, dataType);
+        Intent chooserIntent = Intent.createChooser(intent, exportHeaderString);
+        RexUtils.launchIntent(chooserIntent);
+    }
+}

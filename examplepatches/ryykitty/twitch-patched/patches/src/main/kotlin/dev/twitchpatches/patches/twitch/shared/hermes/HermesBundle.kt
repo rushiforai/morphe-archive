@@ -69,6 +69,8 @@ internal class HermesBundle(val bytes: ByteArray) {
         }
     }
 
+    val metroIndex by lazy { MetroIndex(this) }
+
     fun instructions(fn: Function): List<HermesInstruction> = HermesOpcodes.decode(bytes, fn.offset, fn.size)
     fun objectLiteral(shape: Int, offset: Int): Map<String, Any?> {
         val keys = aligned(literals + word(80))

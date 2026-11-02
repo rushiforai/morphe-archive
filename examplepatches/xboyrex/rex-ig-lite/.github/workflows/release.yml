@@ -1,0 +1,118 @@
+name: Release xboyrex Patch Bundle
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 3.11.0)'
+        required: false
+        default: ''
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Build & Release xboyrex (.mpp)
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Build xboyrex Android .mpp Bundle (with classes.dex) & Patch List
+        run: |
+          chmod +x gradlew
+          ./gradlew checkStringResources generatePatchesList buildAndroid --no-daemon
+          MPP_FILE=$(find patches/build/libs -maxdepth 1 -name "patches-*.mpp" ! -name "*-sources*" ! -name "*-javadoc*" | head -n 1)
+          if [ -z "$MPP_FILE" ]; then
+            echo "No .mpp file found in patches/build/libs!"
+            exit 1
+          fi
+          echo "Verifying classes.dex inside $MPP_FILE..."
+          unzip -l "$MPP_FILE" | grep "classes.dex"
+
+      - name: Upload xboyrex .mpp Workflow Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rex-ig-lite-patches-mpp
+          path: |
+            patches/build/libs/patches-*.mpp
+            !patches/build/libs/*-sources.mpp
+            !patches/build/libs/*-javadoc.mpp
+            patches-list.json
+          if-no-files-found: error
+
+      - name: Update patches-bundle.json, patches-list.json, README.md & Publish GitHub Release
+        run: |
+          MPP_FILE=$(find patches/build/libs -maxdepth 1 -name "patches-*.mpp" ! -name "*-sources*" ! -name "*-javadoc*" | head -n 1)
+          MPP_BASENAME=$(basename "$MPP_FILE")
+          VERSION_RAW=$(grep "^version" gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          INPUT_VER="${{ github.event.inputs.version }}"
+          if [ -n "$INPUT_VER" ]; then
+            VERSION_CLEAN="${INPUT_VER#v}"
+          else
+            VERSION_CLEAN="${VERSION_RAW#v}"
+          fi
+          TAG_NAME="v${VERSION_CLEAN}"
+          CREATED_AT=$(date -u +"%Y-%m-%dT%H:%M:%S")
+
+          cat > patches-bundle.json <<EOF
+          {
+            "created_at": "${CREATED_AT}",
+            "description": "xboyrex Unified Patches v${VERSION_CLEAN} by Mayank (@xboyrex)",
+            "download_url": "https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/${MPP_BASENAME}",
+            "signature_download_url": "",
+            "version": "${VERSION_CLEAN}"
+          }
+          EOF
+          cp patches-bundle.json bundle.json
+
+          if [ -f "patches-list.json" ]; then
+            jq --arg v "${VERSION_CLEAN}" '.version = $v' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json
+            python3 .github/scripts/generate_patches_readme.py "${{ github.repository }}" "${{ github.ref_name }}" patches-list.json README.md || true
+          fi
+
+          # Commit updated metadata back to branch so Morphe Manager Remote source reads the exact latest release
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json patches-list.json README.md
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update bundle metadata for ${TAG_NAME} [skip ci]"
+            git push origin "HEAD:${{ github.ref_name }}" || true
+          fi
+
+          ASSETS=("$MPP_FILE" "patches-bundle.json" "bundle.json")
+          if [ -f "patches-list.json" ]; then
+            ASSETS+=("patches-list.json")
+          fi
+
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" "${ASSETS[@]}" --clobber
+          else
+            gh release create "$TAG_NAME" "${ASSETS[@]}"               --title "xboyrex Patches ${TAG_NAME}"               --notes "Automated xboyrex (.mpp) Android patch bundle release by Mayank (@xboyrex)."
+          fi

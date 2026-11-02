@@ -46,9 +46,13 @@ const originalSections = [
     {id: 'native', title: 'Twitch', category: 'global', emotes: [{id: 'native', token: 'Kappa'}]}
 ];
 let received;
+const scrolled = [];
 function Original(props) {
     received = props;
     return React.createElement('Hydration', {children: React.createElement('Tray', {
+        children: React.createElement('SectionList', {testID: 'emote-grid-list',
+            sections: props.sections.map(section => ({key: section.id})),
+            ref: {current: {scrollToLocation(target) { scrolled.push(target); }}}}),
         footer: React.createElement('View', {children: React.createElement('ScrollView', {
             testID: 'emote-nav-tablist', children: [React.createElement({type: NavTab}, {category: {key: 'global'},
                 active: true, onPress: () => selected.push('native')})]})})})});
@@ -75,12 +79,14 @@ assert.equal(buttons.length, 4, 'adds three provider buttons to the native foote
 const logo = buttons[1].type(buttons[1].props);
 assert.equal(logo.props.children[0].props.children.props.src, 'https://cdn.betterttv.net/assets/logos/bttv_logo.png');
 buttons[2].props.onPress();
+assert.deepEqual(JSON.parse(JSON.stringify(scrolled)), [{sectionIndex: 2, itemIndex: 0, viewOffset: 0}], 'a provider tab jumps to its first section');
 tree = Picker(props);
-assert.equal(received.sections.length, 1);
-assert.equal(received.sections[0].title, '7TV Channel Emotes', 'provider navigation filters its complete catalog');
+assert.equal(received.sections.length, 6, 'the list and its tabs stay complete after a provider tab');
+assert.equal(tabs(tree)[2].props.active, true, 'the pressed provider tab is highlighted');
+assert.equal(tabs(tree)[0].props.active, false);
 tabs(tree)[0].props.onPress();
 Picker(props);
-assert.equal(provider, null, 'native navigation restores all sections');
+assert.equal(provider, null, 'native navigation clears the provider tab');
 assert.equal(selected.at(-1), 'native');
 mask = 5;
 provider = '7tv';

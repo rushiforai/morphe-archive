@@ -1,0 +1,48 @@
+/*
+ * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+ */
+
+package app.rex.patches.twitter.timeline.removePremiumUpsell
+
+import app.rex.patches.twitter.misc.settings.settingsPatch
+import app.rex.patches.twitter.utils.Constants.COMPATIBILITY_X
+import app.rex.patches.twitter.utils.Constants.PREF_DESCRIPTOR
+import app.rex.patches.twitter.utils.enableSettings
+import app.rex.patches.twitter.utils.flagSettings
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.string
+import com.android.tools.smali.dexlib2.Opcode
+
+private object RemovePremiumUpsellPatchFingerprint : Fingerprint(
+    filters =
+        listOf(
+            string("subscriptions_upsells_premium_home_nav"),
+        ),
+)
+
+@Suppress("unused")
+val disablePremiumUpsellPatch =
+    bytecodePatch(
+        name = "Remove premium upsell",
+        description = "Removes premium upsells",
+    ) {
+        compatibleWith(COMPATIBILITY_X)
+        dependsOn(settingsPatch)
+
+        execute {
+
+            RemovePremiumUpsellPatchFingerprint.method.apply {
+                val cond_loc = instructions.first { it.opcode == Opcode.INVOKE_VIRTUAL }.location.index
+
+                addInstruction(cond_loc + 1, "invoke-static {}, $PREF_DESCRIPTOR;->removePremiumUpsell()Z")
+
+                enableSettings("removePremiumUpsell")
+                flagSettings("removePremiumUpsell")
+            }
+        }
+    }

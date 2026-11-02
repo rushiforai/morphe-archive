@@ -290,6 +290,8 @@ With the switch above on, your place stays however long you're away. Pull to ref
 Back leaves Home where it is	返回键不改变主页位置
 Pressing Back on a scrolled Home no longer jumps to the top and reloads the feed. Press Back again within two seconds to do that.	在已向下滚动的主页上按返回键，不会再跳到顶部并重新加载动态消息。两秒内再按一次返回键即可这样做。
 Press Back again to go to the top	再按一次返回键回到顶部
+Hide the Back reminder	隐藏返回键提醒
+Back keeps your place without saying "Press Back again to go to the top".	返回键保留你的位置，不再显示“再按一次返回键回到顶部”。
 A finished story stays on screen until you tap or swipe. Turn this off for Facebook's timing.	播放完的快拍会停留在屏幕上，直到你点按或滑动。关闭此项则采用 Facebook 的计时。
 View stories anonymously	匿名查看快拍
 Facebook isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you. Stories you watch to the end show as watched on this phone only, until that person posts a new one.	Facebook 不会得知你看了哪些快拍，因此你不会出现在对方的查看者名单中。回复或回应仍会暴露你。看完的快拍只会在这部手机上显示为已看过，直到对方发布新的快拍。
@@ -501,6 +503,9 @@ Comments show their replies right away, so there's no View replies to tap.	评�
 Load whole reply threads	加载完整回复
 # context: summary of that switch; View more replies is the row Facebook shows under an open thread that has more replies to load
 An open reply thread keeps loading as you scroll, so there's no View more replies to tap.	展开的回复会在你滚动时持续加载，因此不用再点按“查看更多回复”。
+Hide replies button	隐藏回复按钮
+An open reply thread gets a Hide replies button, so you can close it again after reading.	展开的回复串会显示隐藏回复按钮，读完后可以再次收起。
+Hide replies	隐藏回复
 # context: switch title under Comments; View more replies is the row under an open reply thread that loads more replies, and this makes the whole row take the tap instead of only its words
 Tap anywhere on View more replies	点按“查看更多回复”整行任意位置
 # context: summary of that switch
@@ -845,6 +850,8 @@ Hold a feed video for 2x	按住动态消息视频以 2 倍速播放
 # context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
 Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	按住动态消息或 Watch 中的视频会以两倍速播放，直到你松手。无需开启上面的开关。
 Hide the pull down to lock hint	隐藏“下拉锁定”提示
+Hide the 2x popups	隐藏 2x 弹出提示
+Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	按住视频以 2x 播放时不显示任何提示，包括“速度：2x”、“松开以锁定”和“已锁定 2x 速度”。按住和锁定仍然可用。
 # context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
 Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	按住视频以 2 倍速播放时只显示普通的 2x 标签，不显示“下拉锁定 2 倍速”提示。下拉仍可锁定。无需开启上面的开关。
 Default playback quality	默认播放画质
@@ -967,6 +974,22 @@ Keep post dates	保留帖子日期
 # context: description of that switch; the rotating details are the texts Facebook's newer post header takes turns showing on that line
 Shows the post's date under the poster's name instead of Facebook's rotating details, which can go blank on some phones.	在发布者姓名下方显示帖子日期，而不是 Facebook 轮换显示的详情（在某些手机上可能变成空白）。
 Show full post text	显示完整帖子文字
+Translate	翻译
+See original	查看原文
+Translation	译文
+Show original	显示原文
+Show translation	显示译文
+Translating...	正在翻译...
+Couldn't translate this. Check your connection and try again.	无法翻译。请检查网络连接后重试。
+Add a Translate link to posts	为帖子添加“翻译”链接
+Translate posts by themselves	自动翻译帖子
+Posts in another language get a Translate link under their text. A tap sends that post's text to Google Translate.	其他语言的帖子文字下方会出现“翻译”链接。点按后，该帖子的文字会发送到 Google 翻译。
+Posts in another language show translated, with See original under them. Each post's text goes to Google Translate as it's drawn.	其他语言的帖子会显示译文，下方有“查看原文”。每条帖子的文字在显示时都会发送到 Google 翻译。
+Translate to	翻译成
+The phone's language	手机语言
+Languages to leave alone	不翻译的语言
+None picked. Posts in every language can be translated.	未选择。任何语言的帖子都可以翻译。
+Left alone: %s	不翻译：%s
 Posts in the feed show all of their text, so there's no See more to tap.	动态中的帖子会显示全部文字，不用再点“展开”。
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	查看谁分享了
@@ -984,7 +1007,9 @@ No "Are you interested in this reel?" prompt on reels. The reel plays as usual.	
 # context: switch title under News feed; affiliate product links are the shop links creators add to their posts to earn a commission
 Hide affiliate product links	隐藏联盟商品链接
 # context: description of that switch; "Commission eligible" is Facebook's own label, so use Facebook's wording in your language if you know it
-Hides product cards from shopping links that creators add to posts, reels and comments. The "Commission eligible" label stays.	隐藏创作者添加到帖子、Reels 和评论中的购物链接商品卡片。“符合佣金条件”标签保留。
+Hides product cards from shopping links that creators add to posts, reels and comments.	隐藏创作者添加到帖子、Reels 和评论中的购物链接商品卡片。
+Hide the Commission eligible label	隐藏“符合佣金条件”标签
+Hides the "Commission eligible" label under the creator's name on reels.	隐藏 Reels 创作者姓名下方的“符合佣金条件”标签。
 # context: The reel button and the video menu item while links are sent to another app (#41)
 Send to app	发送到应用
 # context: Title of Android's app chooser when a video's link is sent
@@ -1764,6 +1789,8 @@ Takes the Save button off the side of reels. The buttons above it move down. A c
 Hide the speaker button on reels	隐藏 Reels 上的扬声器按钮
 # context: summary of that switch
 Takes the speaker button off the bottom of the side of reels. A change shows from the next reel.	去掉 Reels 侧边底部的扬声器按钮。更改会从下一个 Reels 开始显示。
+Move the speaker above the three dots	把扬声器移到三个点上方
+Puts the speaker button in the side column of reels, right above the three dots. A change shows from the next reel.	把扬声器按钮放到 Reels 的侧边栏，就在三个点上方。更改会从下一个 Reels 开始显示。
 # context: switch title under News feed; the reaction preview is the stack of reaction icons and the line with the number of reactions under a post
 Hide the reaction preview on posts	隐藏帖子上的回应预览
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
@@ -2083,6 +2110,9 @@ Reels order will be set to %1$s.	Reels 排序将设为 %1$s。
 Cast button on feed videos	动态视频上的投屏按钮
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	为动态中的视频添加投屏按钮。它会把视频交给你已安装的投屏应用（如 Web Video Caster），由它发送到电视。Facebook 已不再自带投屏功能。
 Cast this video	投屏此视频
+Seek bar on feed videos	动态视频上的进度条
+Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	在动态视频底部显示一条进度条。拖动后松开即可跳到该位置。直播视频和广告仍使用它们自己的控件。开启“点按播放”时，还需要开启“动态消息视频控件”。
+Feed video position	动态视频播放位置
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	徽章颜色
 # context: title of the row that holds a color code for the Facebook logo at the top of Home

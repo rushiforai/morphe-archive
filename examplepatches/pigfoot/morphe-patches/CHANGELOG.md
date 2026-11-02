@@ -1,3 +1,9 @@
+## [0.5.0](https://github.com/pigfoot/morphe-patches/compare/v0.4.1...v0.5.0) (2026-11-01)
+
+### ✨ New Features
+
+* **windy:** add premium features for 51.3.2 ([#9](https://github.com/pigfoot/morphe-patches/issues/9)) ([09e18c1](https://github.com/pigfoot/morphe-patches/commit/09e18c150466fc2b5da378ef72ac7e434a098f00))
+
 ## [0.4.1](https://github.com/pigfoot/morphe-patches/compare/v0.4.0...v0.4.1) (2026-10-29)
 
 ### 🐛 Bug Fixes

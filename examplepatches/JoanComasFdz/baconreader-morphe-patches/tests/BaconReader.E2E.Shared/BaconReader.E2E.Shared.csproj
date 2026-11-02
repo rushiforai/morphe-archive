@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- What the end-to-end projects share (tests/BaconReader.E2E, the app's; tests/BaconReader.VsCodeExtension.E2E, the
+       VS Code extension's): a scenario's Gherkin and [TestDescription], the screens it is played on, its names and the
+       record record.sh reads next to its video. Their own code rules: each project's E2E-TEST-CODE-RULES.md. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="Humanizer.Core" />
+  </ItemGroup>
+</Project>

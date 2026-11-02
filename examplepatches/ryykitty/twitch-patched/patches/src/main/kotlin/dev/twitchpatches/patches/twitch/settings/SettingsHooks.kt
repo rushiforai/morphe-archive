@@ -1,5 +1,7 @@
 package dev.twitchpatches.patches.twitch.settings
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.string
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -10,14 +12,24 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.TypeReference
-import dev.twitchpatches.patches.twitch.shared.code
-import dev.twitchpatches.patches.twitch.shared.references
-import dev.twitchpatches.patches.twitch.shared.uniqueHook
+import dev.twitchpatches.patches.twitch.shared.*
 
 private const val FRAGMENT = "Ltv/twitch/android/settings/main/MainSettingsFragmentV2;"
 internal const val SETTINGS = "Ldev/twitchpatches/extension/settings/PatchSettings;"
 internal const val ACTION = "Ldev/twitchpatches/extension/settings/SettingsClickAction;"
+
+private object SettingsScreenFingerprint : Fingerprint(
+    strings = listOf(
+        string("annualRecapExperiment"),
+        string("primeLinkingExperiment"),
+    ),
+)
+
+private object SettingsCallbackFingerprint : Fingerprint(
+    name = "<init>",
+    parameters = listOf(FRAGMENT, "I"),
+    returnType = "V",
+)
 
 internal data class SettingsHooks(
     val group: Method,
@@ -30,20 +42,9 @@ internal data class SettingsHooks(
 )
 
 internal fun BytecodePatchContext.resolveSettingsHooks(): SettingsHooks {
-    val roots = mutableListOf<MethodReference>()
-    val callbacks = mutableListOf<String>()
-    classDefForEach { type ->
-        type.methods.forEach { method ->
-            val references = method.references()
-            if (references.filterIsInstance<TypeReference>().any { it.type == FRAGMENT }) {
-                roots.addAll(references.filterIsInstance<MethodReference>().filter {
-                    it.returnType == "V" && it.parameterTypes.size > 30 &&
-                        it.parameterTypes.count { parameter -> parameter == "Ljava/lang/String;" } == 4
-                })
-            }
-        }
-        if (type.methods.any { it.name == "<init>" && it.parameterTypes.map { parameter -> parameter.toString() } ==
-                listOf(FRAGMENT, "I") }) callbacks.add(type.type)
+    val roots = SettingsScreenFingerprint.originalMethod.references().filterIsInstance<MethodReference>().filter {
+        it.returnType == "V" && it.parameterTypes.size > 30 &&
+            it.parameterTypes.count { parameter -> parameter == "Ljava/lang/String;" } == 4
     }
     val root = roots.distinctBy { it.toString() }.uniqueHook("native settings composition root")
     val owner = classDefBy(root.definingClass)
@@ -66,8 +67,8 @@ internal fun BytecodePatchContext.resolveSettingsHooks(): SettingsHooks {
     if (rowCalls.size != 7) throw PatchException("Patch settings: expected seven native account/preferences rows.")
     val rowIndex = rowCalls.first().index
     val register = rowComposerRegister(group, rowIndex)
-    val callbackClass = callbacks.map { classDefBy(it) }.filter { callback in it.interfaces }
-        .uniqueHook("settings navigation callback")
+    val callbackClass = SettingsCallbackFingerprint.originalClassDef
+    require(callback in callbackClass.interfaces) { "Patch settings: navigation callback interface mismatch." }
     val unit = callbackClass.methods.filter { it.name == "invoke" && it.parameterTypes.isEmpty() }
         .flatMap { method ->
             val returned = method.code().filter { it.opcode == Opcode.RETURN_OBJECT }

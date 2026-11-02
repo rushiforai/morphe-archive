@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 
 final class EmoteDraftTokens {
     static String normalize(String text, Map<String, Emote> catalog) {
@@ -31,9 +32,15 @@ final class EmoteDraftTokens {
         for (Emote emote : catalog.values()) {
             if (emote.code.toLowerCase(Locale.ROOT).contains(needle)) result.add(emote);
         }
-        result.sort(Comparator.comparing((Emote emote) -> !emote.code.toLowerCase(Locale.ROOT).startsWith(needle))
-                .thenComparing(emote -> emote.code, String.CASE_INSENSITIVE_ORDER));
-        return result.subList(0, Math.min(10, result.size()));
+        return ranked(needle, result, emote -> emote.code, 10);
+    }
+
+    static <T> ArrayList<T> ranked(String query, List<T> matches, Function<T, String> code, int limit) {
+        String needle = (query.startsWith(":") ? query.substring(1) : query).toLowerCase(Locale.ROOT);
+        List<T> sorted = new ArrayList<>(matches);
+        sorted.sort(Comparator.comparing((T match) -> !code.apply(match).trim().toLowerCase(Locale.ROOT).startsWith(needle))
+                .thenComparing(match -> code.apply(match).trim(), String.CASE_INSENSITIVE_ORDER));
+        return new ArrayList<>(sorted.subList(0, Math.min(limit, sorted.size())));
     }
 
     static int selection(String text, int caret, Map<String, Emote> catalog) {

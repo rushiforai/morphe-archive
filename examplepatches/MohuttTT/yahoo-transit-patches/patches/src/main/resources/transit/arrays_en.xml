@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='utf8'?>
+<resources>
+  <string-array name="capture_dialog_list">
+    <item>LINE</item>
+    <item>Other apps</item>
+  </string-array>
+  <string-array name="label_voice_prompt">
+    <item>Tokyo</item>
+    <item>Osaka</item>
+  </string-array>
+  <string-array name="list_routemap_area">
+    <item>Sapporo</item>
+    <item>Sendai</item>
+    <item>Tokyo</item>
+    <item>Yokohama</item>
+    <item>Nagoya</item>
+    <item>Kyoto</item>
+    <item>Osaka</item>
+    <item>Kobe</item>
+    <item>Fukuoka</item>
+  </string-array>
+  <string-array name="regist_myroute_max_list">
+    <item>Replace oldest route</item>
+    <item>Select routes to delete</item>
+  </string-array>
+  <string-array name="start_stop_choice">
+    <item>Set as origin</item>
+    <item>Set as destination</item>
+  </string-array>
+  <string-array name="start_stop_delete">
+    <item>Remove</item>
+  </string-array>
+  <string-array name="week">
+    <item>Sun</item>
+    <item>Mon</item>
+    <item>Tue</item>
+    <item>Wed</item>
+    <item>Thu</item>
+    <item>Fri</item>
+    <item>Sat</item>
+  </string-array>
+</resources>

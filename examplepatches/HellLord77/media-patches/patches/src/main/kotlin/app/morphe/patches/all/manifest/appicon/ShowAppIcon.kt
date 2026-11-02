@@ -29,6 +29,6 @@ val showAppIcon =
             showAppIconPatch(
                 showInLauncherOption.value!!,
                 showInLeanbackLauncherOption.value!!,
-            )
+            ),
         )
     }

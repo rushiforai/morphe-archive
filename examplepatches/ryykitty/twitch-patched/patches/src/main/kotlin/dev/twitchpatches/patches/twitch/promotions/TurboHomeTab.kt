@@ -1,5 +1,7 @@
 package dev.twitchpatches.patches.twitch.promotions
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.Opcode
@@ -9,8 +11,22 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import dev.twitchpatches.patches.twitch.shared.*
 
-private const val TURBO_PAGE = "Ltv/twitch/android/models/feed/DiscoveryFeedPage\$TurboPage;"
-private const val FOLLOWING_PAGE = "Ltv/twitch/android/models/feed/DiscoveryFeedPage\$FollowingPage;"
+private const val TURBO_PAGE = $$"Ltv/twitch/android/models/feed/DiscoveryFeedPage$TurboPage;"
+private const val FOLLOWING_PAGE = $$"Ltv/twitch/android/models/feed/DiscoveryFeedPage$FollowingPage;"
+
+private object TurboHomeTabProducerFingerprint : Fingerprint(
+    isStatic = false,
+    parameters = listOf("Z"),
+    returnType = "Ljava/util/List;",
+    filters = listOf(
+        fieldAccess(
+            definingClass = TURBO_PAGE,
+            name = "INSTANCE",
+            type = TURBO_PAGE,
+            opcode = Opcode.SGET_OBJECT,
+        )
+    ),
+)
 
 internal fun validateTurboTabProducer(method: Method): Int {
     if (!method.isInstance(listOf("Z"), "Ljava/util/List;"))
@@ -36,18 +52,11 @@ internal fun validateTurboTabProducer(method: Method): Int {
 }
 
 internal fun BytecodePatchContext.hideTurboHomeTab() {
-    val candidates = mutableListOf<Method>()
-    classDefForEach { type -> candidates.addAll(type.methods.filter { method ->
-        method.isInstance(listOf("Z"), "Ljava/util/List;") && method.references().any {
-            it.toString() == "$TURBO_PAGE->INSTANCE:$TURBO_PAGE"
-        }
-    }) }
-    val producer = candidates.uniqueHook("native optional Turbo home tab producer")
+    val producer = TurboHomeTabProducerFingerprint.originalMethod
     val branch = validateTurboTabProducer(producer)
     val parameter = (producer.implementation?.registerCount ?: 0) - 1
-    mutableClassDefBy(producer.definingClass).methods.filter { it.reference == producer.reference }
-        .uniqueHook("resolved Turbo home tab producer").insertBeforeWithLabels(branch, """
-            invoke-static/range {v$parameter .. v$parameter}, Ldev/twitchpatches/extension/promotions/PromotionSettings;->allowTurboTab(Z)Z
-            move-result v$parameter
-        """)
+    TurboHomeTabProducerFingerprint.method.insertBeforeWithLabels(branch, """
+        invoke-static/range {v$parameter .. v$parameter}, Ldev/twitchpatches/extension/promotions/PromotionSettings;->allowTurboTab(Z)Z
+        move-result v$parameter
+    """)
 }

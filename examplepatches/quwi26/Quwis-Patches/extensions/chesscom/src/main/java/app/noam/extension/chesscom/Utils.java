@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import app.noam.extension.chesscom.crash.CrashHandler;
 import app.noam.extension.chesscom.settings.Welcome;
 import app.noam.extension.chesscom.theme.Recolor;
 
@@ -34,6 +35,7 @@ public final class Utils {
         if (application != null || app == null) return;
         application = app;
         app.registerActivityLifecycleCallbacks(new ActivityTracker());
+        CrashHandler.install(app);
     }
 
     public static Context context() {

@@ -1,0 +1,1879 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="abandoned_rail" source="この路線は廃止･削除されました">This line has been discontinued or removed.</string>
+  <string name="about_bus_location" source="バスロケについて">About bus tracking</string>
+  <string name="about_co2" source="CO2排出量について">About CO2 emissions</string>
+  <string name="about_content_title" source="概要">Overview</string>
+  <string name="about_copyright" source="著作権表示">Copyright notices</string>
+  <string name="about_info" source="規約について">Terms and conditions</string>
+  <string name="about_os" source="対応OS">Supported OS</string>
+  <string name="about_os_content" source="Android OS 8.0以上&#10;※ただし、一部の機種では正常に動作しない場合があります。">Android 8.0 or later. Some devices may not work correctly.</string>
+  <string name="about_overview_1" source="全国の鉄道・航空路線・バスなどの経路・運賃の検索や、全国の鉄道の時刻表、駅情報、路線図、運行情報を閲覧できるアプリケーションです。&#10;現在対応している路線バス事業者は、">Search routes and fares for trains, flights and buses across Japan, and view timetables, station information, route maps and service updates. Supported local bus operators are listed</string>
+  <string name="about_overview_2" source="からご確認いただけます。"> at this link.</string>
+  <string name="about_overview_link" source="こちら">here</string>
+  <string name="about_terms" source="利用規約">Terms of use</string>
+  <string name="about_terms_environment_info" source="利用環境情報に関する特約">Special terms for usage-environment information</string>
+  <string name="about_timetable" source="時刻表について">About timetables</string>
+  <string name="about_title" source="このアプリケーションについて">About this app</string>
+  <string name="action_setting" source="設定">Settings</string>
+  <string name="address_reg_finish_message" source="設定しました。">Settings saved.</string>
+  <string name="address_reg_finish_title" source="設定完了">Setup complete</string>
+  <string name="alarm_confirm_delete" source="削除">Delete</string>
+  <string name="alarm_confirm_no_alarm" source="設定中アラームはありません。">No active alarms.</string>
+  <string name="alarm_confirm_title" source="設定中アラーム">Active alarms</string>
+  <string name="alarm_delete" source="設定中のアラームを削除しました。">Active alarm removed.</string>
+  <string name="alarm_delete_btn" source="設定中のアラームを削除">Remove active alarm</string>
+  <string name="alarm_edit_desc" source="別のアラームを設定する場合は、設定中のアラームを一旦解除してください。">Remove the active alarm before setting another one.</string>
+  <string name="alarm_edit_label" source="に設定されています。"> is the current setting.</string>
+  <string name="alarm_filtered" source="この内容で絞り込みを設定すると、設定済みのアラームが消えますが、よろしいですか？">Applying this filter will remove the existing alarm. Continue?</string>
+  <string name="alarm_length" source="%d秒間">%d seconds</string>
+  <string name="alarm_length_setting" source="アラームの長さ">Alarm duration</string>
+  <string name="alarm_length_setting_info" source="端末はバイブレーション通知のみとなります。">This device will notify by vibration only.</string>
+  <string name="alarm_length_setting_info2" source="端末の設定によってはアラームが鳴らない場合があります。サイレントモードの設定や通知設定をご確認ください。">The alarm may not sound depending on device settings. Check silent mode and notification settings.</string>
+  <string name="alarm_length_setting_info_title" source="通知について">About notifications</string>
+  <string name="alarm_minutes" source="%d分前">%d min before</string>
+  <string name="alarm_minutes_message" source="%d分前です">%d minutes remaining</string>
+  <string name="alarm_minutes_setting" source="時間設定">Alarm timing</string>
+  <string name="alarm_permission_dialog_message" source="アラームやリマインダー機能の利用が許可されていません。&#10;この機能を利用するにはアラームとリマインダーの設定を許可してください。">Alarm and reminder permission is disabled. Allow it in device settings to use this feature.</string>
+  <string name="alarm_permission_dialog_title" source="アラーム/リマインダーの許可">Alarm / reminder permission</string>
+  <string name="alarm_setting_confirm" source="設定中のアラームを確認">View active alarms</string>
+  <string name="alarm_setting_preference" source="アラーム時間設定">Alarm timing</string>
+  <string name="alarm_setting_station" source="乗降駅設定">Boarding / arrival stations</string>
+  <string name="alarm_setting_title" source="乗降アラーム設定">Boarding / arrival alarms</string>
+  <string name="api_err_msg_address" source="定期区間の駅を取得できませんでした">Could not load stations covered by the pass.</string>
+  <string name="api_err_msg_bus" source="登録バス停を取得できませんでした">Could not load saved bus stops.</string>
+  <string name="api_err_msg_spot" source="登録スポットを取得できませんでした">Could not load saved places.</string>
+  <string name="api_err_msg_station" source="登録駅を取得できませんでした">Could not load saved stations.</string>
+  <string name="app_name" source="Yahoo!乗換案内">Yahoo! Transit</string>
+  <string name="app_name_short" source="Y!乗換案内">Y! Transit</string>
+  <string name="app_shortcuts_home" source="自宅">Home</string>
+  <string name="app_shortcuts_office" source="職場">Work</string>
+  <string name="app_shortcuts_spot" source="最寄駅">Nearby stations</string>
+  <string name="app_unused_restriction_dialog_message" source="しばらくアプリを起動しなかった時に運行情報が通知されなくなる場合があります。&#10;設定画面から「アプリが使用されていない場合の権限の削除」項目をオフに変更して、もう一度アプリを開き直してください。">Service notifications may stop if the app is unused for a while. In device settings, turn off the option to remove permissions and free up space for unused apps.</string>
+  <string name="app_unused_restriction_title" source="未使用時の通知の許可">Allow notifications when unused</string>
+  <string name="appeal_diainfo_list_item_push_btn" source="通知する">Notify</string>
+  <string name="appeal_diainfo_list_title" source="よく使う路線の遅延情報を通知しませんか？">Get delay notifications for frequently used lines?</string>
+  <string name="appemg_emg1_area_etc" source=" など"> and others</string>
+  <string name="appemg_emg1_close_button_label" source="地震情報を閉じる">Close earthquake information</string>
+  <string name="appemg_emg1_text" source="今後の情報にご注意ください">Stay alert for further updates.</string>
+  <string name="appemg_emg1_title" source=" %1$sごろ発生">Occurred around %1$s</string>
+  <string name="appemg_emg1_title_heading" source="地震情報">Earthquake information</string>
+  <string name="appemg_emg2_close_button_label" source="津波情報を閉じる">Close tsunami information</string>
+  <string name="appemg_emg2_link" source="対象地域など詳細情報を確認">View affected areas and details</string>
+  <string name="appemg_emg2_title_major" source="大津波警報 発表中">Major tsunami warning in effect</string>
+  <string name="appemg_emg2_title_normal" source="津波警報 発表中">Tsunami warning in effect</string>
+  <string name="appemg_emg3_close_button_label" source="閉じる">Close</string>
+  <string name="appemg_emg3_link" source=" 詳細"> Details</string>
+  <string name="appemg_max_seismic_intensity" source="最大震度">Maximum seismic intensity</string>
+  <string name="appsso_account_selection_description" source="このアプリで利用するIDを選択してください。">Select the account to use in this app.</string>
+  <string name="appsso_cancel" source="キャンセル">Cancel</string>
+  <string name="appsso_date_invalid_error_button" source="日時を修正する">Correct date and time</string>
+  <string name="appsso_date_invalid_error_description" source="端末の日時が正しくないため安全な通信ができない状態となっています。端末の日時設定を修正してください。">An incorrect device date or time prevents a secure connection. Correct the device clock in settings.</string>
+  <string name="appsso_date_invalid_error_title" source="端末の時計が正しくありません。">Device clock is incorrect</string>
+  <string name="appsso_delete" source="削除">Delete</string>
+  <string name="appsso_delete_dialog_dismiss_button_text" source="キャンセル">Cancel</string>
+  <string name="appsso_delete_dialog_message" source="端末に保存されているログイン情報が削除されます。&#10;Yahoo! JAPAN提供アプリでログインする際に再度IDおよびパスワードの入力が求められます。">Saved sign-in information will be removed from this device. You will need to enter your ID and password again when signing in to Yahoo! JAPAN apps.</string>
+  <string name="appsso_delete_dialog_positive_button_text" source="削除する">Delete</string>
+  <string name="appsso_delete_info_suffix" source="の&#10;ログイン情報を削除します">: remove saved sign-in information</string>
+  <string name="appsso_error_dialog_message" source="最初からやり直してください">Please start again.</string>
+  <string name="appsso_error_dialog_title" source="読み込みに失敗しました">Could not load</string>
+  <string name="appsso_error_message_need_login" source="ログインしてください">Please sign in.</string>
+  <string name="appsso_go_next" source="次へ">Next</string>
+  <string name="appsso_loading_label" source="読み込み中">Loading</string>
+  <string name="appsso_login_another_yid" source="別のYahoo! JAPAN IDでログイン">Sign in with another Yahoo! JAPAN ID</string>
+  <string name="appsso_login_with_suffix" source="さんでログイン">: sign in</string>
+  <string name="appsso_logout_block_dialog_message" source="アプリに戻ってログアウトしてください">Return to the app to sign out.</string>
+  <string name="appsso_logout_block_dialog_title" source="ログアウトできません">Cannot sign out</string>
+  <string name="appsso_network_not_connecting_error_description" source="ネットワークに接続したうえで再度お試しください。">Connect to a network and try again.</string>
+  <string name="appsso_network_not_connecting_error_title" source="ネットワークに接続されていません。">No network connection</string>
+  <string name="appsso_no_app_to_view" source="リンクを開くにはブラウザアプリを有効にしてください">Enable a browser app to open this link.</string>
+  <string name="appsso_promotion_login_key_message" source="Yahoo! JAPAN IDでログインできます">Sign in with a Yahoo! JAPAN ID</string>
+  <string name="appsso_reload" source="再試行">Retry</string>
+  <string name="appsso_setting" source="設定">Settings</string>
+  <string name="appsso_skip" source="スキップ">Skip</string>
+  <string name="appsso_unknown_error_title" source="読み込みに失敗しました。">Could not load.</string>
+  <string name="appsso_webview_back_link" source="戻る">Back</string>
+  <string name="appsso_webview_login_retry" source="最初からログインしてください。">Please sign in again from the beginning.</string>
+  <string name="appsso_webview_network_erorr" source="読み込みに失敗しました。">Could not load.</string>
+  <string name="article_error" source="お知らせ一覧が取得できませんでした。&#10;恐れ入りますが再度お試しください。">Could not load announcements. Please try again.</string>
+  <string name="article_error_reload" source="再読み込み">Reload</string>
+  <string name="article_loading" source="読み込み中">Loading</string>
+  <string name="autoupdate_desc" source="時刻表データを指定時刻で自動更新します。&#10;※端末状態（電波状態など）によっては、指定時刻に更新されない場合があります。">Timetable data updates automatically at the specified time. Device or network conditions may delay updates.</string>
+  <string name="autoupdate_no" source="無し">None</string>
+  <string name="autoupdate_no_station" source="データが存在しません。&#10;最寄駅を登録してください。">No data. Save a nearby station first.</string>
+  <string name="browser_recommend_dialog_download" source="ダウンロード">Download</string>
+  <string name="browser_recommend_dialog_launch" source="ブラウザーを起動">Open browser</string>
+  <string name="browser_recommend_dialog_no_more" source="今後このダイアログを表示しない">Do not show again</string>
+  <string name="btn_change" source="変更">Change</string>
+  <string name="btn_create" source="作成">Create</string>
+  <string name="btn_delete" source="削除">Delete</string>
+  <string name="btn_download" source="ダウンロード">Download</string>
+  <string name="btn_edit" source="編集">Edit</string>
+  <string name="btn_finish" source="完了">Done</string>
+  <string name="btn_plus_add" source="＋追加">+ Add</string>
+  <string name="busstopinfo_access" source="%1$s駅[%2$s]出口から徒歩%3$s分">Walk %3$s min from %1$s station, exit %2$s</string>
+  <string name="busstopinfo_station_label" source="%1$s駅">%1$s station</string>
+  <string name="busstopinfo_title" source="バス停情報">Bus stop information</string>
+  <string name="button_add" source="追加">Add</string>
+  <string name="button_alarm_cancel" source="キャンセル">Cancel</string>
+  <string name="button_alarm_detail" source="アラーム詳細設定">Alarm details</string>
+  <string name="button_alarm_route" source="路線確認">Check line</string>
+  <string name="button_alarm_set" source="設定">Settings</string>
+  <string name="button_cancel" source="キャンセル">Cancel</string>
+  <string name="button_close" source="閉じる">Close</string>
+  <string name="button_delete" source="削除する">Delete</string>
+  <string name="button_edit" source="編集する">Edit</string>
+  <string name="button_ikendama" source="ご意見・ご要望">Feedback</string>
+  <string name="button_my_route_register" source="登録する">Save</string>
+  <string name="button_my_route_register_no" source="今はしない">Not now</string>
+  <string name="button_nearstaton" source="最寄">Nearby</string>
+  <string name="button_ok" source="OK">OK</string>
+  <string name="button_overwrite" source="上書き">Replace</string>
+  <string name="button_register" source="登録">Save</string>
+  <string name="button_register_alarm" source="アラームに登録">Set alarm</string>
+  <string name="button_retry" source="再試行">Retry</string>
+  <string name="button_search" source="検索">Search</string>
+  <string name="button_search_mistake_form" source="検索結果に関するご指摘">Report a route issue</string>
+  <string name="button_search_type_average" source="指定なし">Any</string>
+  <string name="button_search_type_current" source="現在時刻">Now</string>
+  <string name="button_search_type_first" source="始発">First train</string>
+  <string name="button_search_type_goal" source="到着">Arrive</string>
+  <string name="button_search_type_last" source="終電">Last train</string>
+  <string name="button_search_type_start" source="出発">Depart</string>
+  <string name="button_search_with_datetime" source="この時刻で検索">Search at this time</string>
+  <string name="button_set" source="設定">Settings</string>
+  <string name="button_setting_change" source="設定を変更">Change settings</string>
+  <string name="button_setting_close" source="%1$s:%2$sの設定のまま閉じる">Close with %1$s:%2$s setting</string>
+  <string name="button_share" source="シェアする">Share</string>
+  <string name="button_submit" source="決定">Apply</string>
+  <string name="button_teiki_fare_appeal" source="定期代を確認する">Check pass fares</string>
+  <string name="button_unregist" source="解除">Remove</string>
+  <string name="button_update_setting" source="設定する">Apply</string>
+  <string name="button_yes" source="はい">Yes</string>
+  <string name="capture_dialog_msg" source="ルート画像をシェアしますか？">Share this route image?</string>
+  <string name="capture_dialog_title" source="アルバムに画像を保存しました">Image saved to gallery</string>
+  <string name="capture_share_title" source="アプリケーションを選択">Choose an app</string>
+  <string name="channel_appeal_diainfo_push" source="よく使う路線の遅延を通知する">Delay alerts for frequent lines</string>
+  <string name="channel_congestion_post" source="混雑状況の投稿">Crowding reports</string>
+  <string name="channel_countdown_widget" source="通勤タイマーウィジェット">Commute timer widget</string>
+  <string name="channel_daily_push_request" source="運行情報まとめ取得通知">Fetch service summary</string>
+  <string name="channel_description_alarm" source="こちらの設定をオンにすると、アプリ側で設定・カスタマイズしたアラーム音やバイブレーションの秒数などが反映されなくなる場合があります。">Enabling this system setting may override the alarm sounds and vibration durations customized in the app.</string>
+  <string name="channel_diainfo_daily_push" source="運行情報のまとめ通知">Service summaries</string>
+  <string name="channel_diainfo_push" source="運行情報の即時通知">Instant service alerts</string>
+  <string name="channel_info_push" source="お知らせ">Announcements</string>
+  <string name="channel_myroute_push" source="よく使うルートを登録する">Save frequent routes</string>
+  <string name="channel_shortcut_push" source="ショートカットを設定する">Set up shortcuts</string>
+  <string name="channel_timer_alarm" source="カウントダウンアラーム（通勤タイマー）">Countdown alarm (commute timer)</string>
+  <string name="channel_timer_auto_start" source="自動起動設定%1$d（通勤タイマー）">Automatic start %1$d (commute timer)</string>
+  <string name="channel_timer_auto_start_display_over_other_apps" source="自動起動設定（通勤タイマー）">Automatic start (commute timer)</string>
+  <string name="channel_timer_update" source="通勤タイマーデータ更新">Commute timer data updates</string>
+  <string name="channel_transfer_alarm" source="乗降アラーム">Boarding / arrival alarm</string>
+  <string name="channel_walk_navi" source="徒歩のナビ通知">Walking navigation</string>
+  <string name="check_airplane" source="空路">Flights</string>
+  <string name="check_bullet_train" source="新幹線">Shinkansen</string>
+  <string name="check_expressway_bus" source="高速バス">Highway buses</string>
+  <string name="check_ferry" source="フェリー">Ferries</string>
+  <string name="check_route_bus" source="路線/連絡バス">Local / connecting buses</string>
+  <string name="check_teiki" source="検索時に適用">Apply when searching</string>
+  <string name="check_toll_express" source="有料特急">Limited express</string>
+  <string name="compass" source="コンパス">Compass</string>
+  <string name="complete_msg_add_rail" source="ルート中の路線を登録して、通知設定しました。">Lines on the route saved and notifications enabled.</string>
+  <string name="complete_msg_match_count" source="件該当しました。"> matches found.</string>
+  <string name="complete_msg_push_change" source="通知設定を変更しました。">Notification settings changed.</string>
+  <string name="complete_msg_push_on" source="路線を通知設定しました。">Notifications enabled for this line.</string>
+  <string name="complete_msg_push_regist_on" source="路線を登録して、通知設定しました。">Line saved and notifications enabled.</string>
+  <string name="complete_msg_push_register_on_boarding" source="路線を登録して、通知登録しました。">Line saved and notifications enabled.</string>
+  <string name="complete_msg_push_set" source="通知内容を設定しました。">Notification preferences saved.</string>
+  <string name="complete_msg_push_set_registerd_rail" source="登録路線の通知設定をしました">Notifications configured for saved lines.</string>
+  <string name="complete_msg_regist_bus" source="バス停を登録しました">Bus stop saved.</string>
+  <string name="complete_msg_regist_myroute_delete" source="%1$d件を削除して、ルートを登録しました。ルートは乗換案内のマイルートから確認できます。">Deleted %1$d items and saved the route. Find it in My Routes.</string>
+  <string name="complete_msg_regist_rail" source="路線を登録しました。">Line saved.</string>
+  <string name="complete_msg_regist_station" source="駅を登録しました">Station saved.</string>
+  <string name="complete_msg_regist_title" source="登録しました">Saved</string>
+  <string name="complete_msg_save_memo" source="メモは乗換案内から確認できます。">Find saved routes in Transit.</string>
+  <string name="complete_msg_save_memo_question" source="メモは乗換案内から確認できます。&#10;このルートをアラームに登録しますか？">Find saved routes in Transit. Set an alarm for this route?</string>
+  <string name="complete_msg_save_memo_title" source="保存しました">Saved</string>
+  <string name="complete_msg_save_my_route_text" source="乗換案内の「マイルート」から確認できます。">Find it in My Routes in Transit.</string>
+  <string name="complete_msg_teiki" source="定期券区間を登録しました。">Pass coverage saved.</string>
+  <string name="complete_msg_title_change" source="変更完了">Changes saved</string>
+  <string name="complete_msg_title_set" source="設定完了">Setup complete</string>
+  <string name="complete_msg_title_set_done" source="設定しました">Settings saved</string>
+  <string name="complete_msg_unregist_bus" source="バス停の登録を解除しました">Bus stop removed.</string>
+  <string name="complete_msg_unregist_station" source="駅の登録を解除しました">Station removed.</string>
+  <string name="complete_msg_unregister" source="登録を解除しました。">Item removed.</string>
+  <string name="confirm_gps_environment" source="通信状況をお確かめのうえ、再度お試しください。">Check your connection and try again.</string>
+  <string name="countdown_disp_mode_list" source="リスト表示">List view</string>
+  <string name="countdown_shortcut_desc_setting" source="通勤タイマーモードで起動できるショートカットをホーム画面に作成します。">Create a home-screen shortcut that opens the commute timer.</string>
+  <string name="countdown_title" source="Y!乗換案内(通勤タイマー)">Y! Transit (Commute timer)</string>
+  <string name="countdown_widget_content_text" source="カウントダウン中です。">Countdown in progress.</string>
+  <string name="countdown_widget_error_msg" source="ウィジェットをタップしてください">Tap the widget.</string>
+  <string name="countdown_widget_no_timetable_filter" source="表示できる列車がありません。絞り込みの設定を変更してください。">No trains to display. Change the filter.</string>
+  <string name="countdown_widget_no_timetable_set_goal" source="通勤、通学先の最寄駅と路線を設定してください。">Set the station and line near work or school.</string>
+  <string name="countdown_widget_no_timetable_set_home" source="自宅の最寄駅と路線を設定してください。">Set the station and line near home.</string>
+  <string name="countdown_widget_no_timetable_week" source="指定された曜日の時刻表が存在しません。">No timetable for the selected day of the week.</string>
+  <string name="countdown_widget_title" source="(4✕2)乗換案内(通勤タイマー)">(4 x 2) Transit (Commute timer)</string>
+  <string name="crash_dialog_title" source="利用できないデータがあります。">Some data cannot be used.</string>
+  <string name="crash_history_message" source="お手数ですが、削除してから再検索をお試しください。">Delete the affected data and search again.</string>
+  <string name="crash_memo_message" source="お手数ですが、削除してからメモの再保存をお試しください。">Delete the affected data and save the route again.</string>
+  <string name="current_time_text" source="%1$02d:%2$02d現在">As of %1$02d:%2$02d</string>
+  <string name="daily_diainfo_dialog_content" source="登録した路線の運行情報が&lt;br&gt;通勤・通学などの&lt;b&gt;指定した時間&lt;/b&gt;に&lt;br&gt;&lt;b&gt;まとめて&lt;/b&gt;届きます&lt;br&gt;&lt;br&gt;※%1$s:%2$sにまとめ通知が設定されています&lt;br&gt;必要に応じて設定を変更してください">Receive &lt;b&gt;combined service updates&lt;/b&gt; for saved lines at your &lt;b&gt;chosen time&lt;/b&gt;, such as your commute.&lt;br&gt;&lt;br&gt;A summary is set for %1$s:%2$s. Change it if needed.</string>
+  <string name="daily_diainfo_dialog_title" source="運行情報のまとめ通知が新登場！">Service summaries are now available!</string>
+  <string name="daily_diainfo_text_all_normal" source="%1$s登録した路線はすべて平常運転です&#10;(%2$d:%3$02d時点)">%1$sAll saved lines are operating normally
+(as of %2$d:%3$02d)</string>
+  <string name="daily_diainfo_text_get_diainfo" source="情報を取得中…">Loading information...</string>
+  <string name="daily_diainfo_text_time" source="(%1$d:%2$02d時点)">(as of %1$d:%2$02d)</string>
+  <string name="daily_diainfo_title" source="運行情報まとめ">Service summary</string>
+  <string name="daily_diainfo_title_has_diainfo" source="運行情報まとめ (%1$s路線)">Service summary (%1$s lines)</string>
+  <string name="daily_push_going" source="行き">Outbound</string>
+  <string name="daily_push_returning" source="帰り">Return</string>
+  <string name="datetime_condition_title" source="日時設定">Date and time</string>
+  <string name="debug_api_switch_button" source="デバッグ: API向き先切替">Debug: switch API host</string>
+  <string name="debug_api_switch_description" source="選択したホストは即時に反映されます。">The selected host takes effect immediately.</string>
+  <string name="debug_api_switch_reset" source="既定に戻す">Reset to default</string>
+  <string name="debug_api_switch_reset_confirm_message" source="既定の向き先に戻しますか？">Restore the default host?</string>
+  <string name="debug_api_switch_reset_confirm_title" source="確認">Confirm</string>
+  <string name="debug_api_switch_save_close" source="保存して閉じる">Save and close</string>
+  <string name="debug_api_switch_select_label" source="向き先を選択">Select host</string>
+  <string name="debug_api_switch_title" source="API向き先切替">Switch API host</string>
+  <string name="debug_api_switch_toast" source="API向き先が変更されています">API host has been changed</string>
+  <string name="deleting_dialog_button_cancel" source="キャンセル">Cancel</string>
+  <string name="deleting_dialog_button_ok" source="削除">Delete</string>
+  <string name="deleting_dialog_fail_message" source="削除できませんでした">Could not delete</string>
+  <string name="deleting_dialog_success_message" source="削除しました">Deleted</string>
+  <string name="deleting_regist" source="削除してよろしいですか？">Delete this item?</string>
+  <string name="departure_time" source="%1$02d:%2$02d発">%1$02d:%2$02d D</string>
+  <string name="detail_condition_title" source="検索条件設定">Search options</string>
+  <string name="dia_adjust_congestion_level_text_no" source="混雑する区間なし">No crowded sections</string>
+  <string name="dia_adjust_timetable_note1" source="時刻によって前後のルートが変わる可能性があります。">Earlier and later route options may vary by time.</string>
+  <string name="dia_adjust_timetable_note2" source="また、混雑傾向の駅区間は表示している路線のみが対象です。">Crowding tendencies apply only to sections on the displayed line.</string>
+  <string name="dia_adjust_title" source="前後のダイヤ">Earlier / later services</string>
+  <string name="dia_vacancy_seat_full_title" source="満席">Full</string>
+  <string name="dia_vacancy_seat_left_title" source="空席あり">Seats available</string>
+  <string name="diainfo_area_title" source="全国">Nationwide</string>
+  <string name="diainfo_cgm_btn_cancel" source="取り消し">Cancel</string>
+  <string name="diainfo_cgm_btn_confirm_ok" source="投票">Submit report</string>
+  <string name="diainfo_cgm_btn_normal" source="平常運転">Normal service</string>
+  <string name="diainfo_cgm_btn_over_30min" source="30分以上の遅れ">Over 30 min late</string>
+  <string name="diainfo_cgm_btn_suspended" source="運転見合わせ">Service suspended</string>
+  <string name="diainfo_cgm_btn_within_10min" source="一時停車もしくは10分以内の遅れ">Brief stop or up to 10 min late</string>
+  <string name="diainfo_cgm_btn_within_30min" source="10分から30分程度の遅れ">10 to 30 min late</string>
+  <string name="diainfo_cgm_increased_vote" source="[%1$s] 投稿が増加">[%1$s] More reports</string>
+  <string name="diainfo_cgm_msg_cancel" source="投票を取り消しますか？">Cancel your report?</string>
+  <string name="diainfo_cgm_msg_change" source="投票内容を変更しますか？">Change your report?</string>
+  <string name="diainfo_cgm_msg_confirm" source="「%s」で投票しますか？">Report "%s"?</string>
+  <string name="diainfo_cgm_over_30min" source="30分以上遅延">Over 30 min late</string>
+  <string name="diainfo_cgm_scale" source="遅延〜運休">Delays / cancellations</string>
+  <string name="diainfo_cgm_suspended" source="運転見合わせ">Service suspended</string>
+  <string name="diainfo_cgm_time" source="%1$d:%2$02d〜%3$d:%4$02d集計">Reports from %1$d:%2$02d to %3$d:%4$02d</string>
+  <string name="diainfo_cgm_title_01" source="今の運行状況は？ボタンを押して投票！">How is service now? Tap to report.</string>
+  <string name="diainfo_cgm_title_02" source="投票ありがとうございます！">Thanks for your report!</string>
+  <string name="diainfo_cgm_title_03" source="投票を取り消しました">Report canceled</string>
+  <string name="diainfo_cgm_vote_cancel_text" source="投票を取り消す">Cancel report</string>
+  <string name="diainfo_cgm_within_10min" source="一時停車〜10分遅延">Brief stop / up to 10 min late</string>
+  <string name="diainfo_cgm_within_30min" source="〜30分遅延">Up to 30 min late</string>
+  <string name="diainfo_chubu_airport" source="中部国際空港">Chubu Centrair Airport</string>
+  <string name="diainfo_detour_line" source="この路線を回避してルート検索">Find a route avoiding this line</string>
+  <string name="diainfo_detour_select_dialog_text_1" source="運行情報発生中の区間のみ">Affected sections only</string>
+  <string name="diainfo_detour_select_dialog_text_2" source="すべての区間">All sections</string>
+  <string name="diainfo_detour_select_dialog_title" source="回避する条件を選択">Choose sections to avoid</string>
+  <string name="diainfo_etc" source="他%s件">%s more</string>
+  <string name="diainfo_event_buzzword" source="沿線に関するつぶやき">Posts about this line</string>
+  <string name="diainfo_event_lv1" source="やや混雑">Somewhat crowded</string>
+  <string name="diainfo_event_lv2" source="かなり混雑">Very crowded</string>
+  <string name="diainfo_event_lv3" source="はげしい混雑">Extremely crowded</string>
+  <string name="diainfo_event_no_stations" source="該当なし">None</string>
+  <string name="diainfo_event_stations" source="混雑が予想される駅">Stations with expected crowding</string>
+  <string name="diainfo_event_title_sub" source="いつもより">Compared with usual</string>
+  <string name="diainfo_flight_header_title" source="空港から探す">Search by airport</string>
+  <string name="diainfo_haneda_airport" source="羽田空港">Haneda Airport</string>
+  <string name="diainfo_itami_airport" source="伊丹空港">Itami Airport</string>
+  <string name="diainfo_jre" source="現在の列車走行位置 (JR東日本アプリ)">Live train positions (JR East app)</string>
+  <string name="diainfo_kansai_airport" source="関西国際空港">Kansai International Airport</string>
+  <string name="diainfo_kind_title" source="列車種別から探す">Search by service type</string>
+  <string name="diainfo_list_title_exp" source="新幹線">Shinkansen</string>
+  <string name="diainfo_list_title_local" source="在来線、私鉄、地下鉄">Local rail, private railways and subways</string>
+  <string name="diainfo_list_title_local_2" source="在来線">Local rail</string>
+  <string name="diainfo_list_title_ltd_exp" source="有料特急">Limited express</string>
+  <string name="diainfo_login" source="登録した路線は、遅延・運休時にすぐ状況確認ができます！">Save lines to quickly check delays and cancellations.</string>
+  <string name="diainfo_login_btn" source="路線を登録">Save a line</string>
+  <string name="diainfo_mail" source="運行情報メールの設定">Service email settings</string>
+  <string name="diainfo_mail_description" source="運行情報をメールで受け取れます">Receive service updates by email</string>
+  <string name="diainfo_mail_description_sub" source="※Yahoo!路線情報の設定画面に移動">Opens Yahoo! Transit website settings</string>
+  <string name="diainfo_mail_entry" source="メール設定※">Email settings*</string>
+  <string name="diainfo_narita_airport" source="成田空港">Narita Airport</string>
+  <string name="diainfo_no_arround" source="現在地周辺の路線を取得できませんでした。">Could not load nearby lines.</string>
+  <string name="diainfo_noinfo" source="現在、事故・遅延に関する情報はありません。">No incident or delay information at present.</string>
+  <string name="diainfo_noinfo_title" source="平常運転">Normal service</string>
+  <string name="diainfo_push_not_set" source="運行情報の即時通知が設定されていません">Instant service alerts are not enabled.</string>
+  <string name="diainfo_push_set_recommend" source="以下の路線を一括で設定しますか？">Configure all the following lines?</string>
+  <string name="diainfo_push_set_recommend_no" source="通知設定しない">Not now</string>
+  <string name="diainfo_push_set_recommend_yes" source="通知設定する">Enable notifications</string>
+  <string name="diainfo_realtime_timeline_header" source="%1$sに関する投稿">Posts about %1$s</string>
+  <string name="diainfo_realtime_x_button" source="X投稿共有">Share on X</string>
+  <string name="diainfo_regist_btn" source="この路線を登録">Save this line</string>
+  <string name="diainfo_regist_error" source="登録路線情報を取得できませんでした。恐れ入りますが再度お試しください。">Could not load saved lines. Please try again.</string>
+  <string name="diainfo_regist_push_btn" source="この路線の遅延・運休を通知">Notify delays / cancellations on this line</string>
+  <string name="diainfo_register_teiki_rail" source="定期区間の路線を登録する">Save lines covered by your pass</string>
+  <string name="diainfo_set_push" source="通知設定">Notification settings</string>
+  <string name="diainfo_show_detail" source="運行情報を表示">View service information</string>
+  <string name="diainfo_status" source="運転状況">Service status</string>
+  <string name="diainfo_tab_diainfo" source="遅延・運休">Delays / cancellations</string>
+  <string name="diainfo_tab_event" source="混雑予報">Crowding forecast</string>
+  <string name="diainfo_tab_title_flight" source="フライト情報">Flight information</string>
+  <string name="diainfo_tab_title_train" source="鉄道運行情報">Train service information</string>
+  <string name="diainfo_title_around" source="周辺の路線">Nearby lines</string>
+  <string name="diainfo_title_regist_station" source="登録した路線">Saved lines</string>
+  <string name="diainfo_to_normal" source="平常運転に復帰">Normal service resumed</string>
+  <string name="diainfo_top_title" source="運行情報">Service info</string>
+  <string name="diainfo_transfer" source="振替輸送あり">Alternative transport available</string>
+  <string name="diainfo_twitter_btn" source="この路線に関する投稿">Posts about this line</string>
+  <string name="diainfo_unregist_push_btn" source="プッシュ通知を解除">Disable push notifications</string>
+  <string name="diainfo_unregist_push_message" source="解除してもよろしいですか？">Disable notifications?</string>
+  <string name="diainfo_unregist_push_title" source="通知設定解除">Disable notifications</string>
+  <string name="diainfo_update" source="画面を引き下げて最新に更新(%1$d月%2$d日%3$02d:%4$02d更新)">Pull to refresh (updated %1$d/%2$d %3$02d:%4$02d)</string>
+  <string name="dialog_title_optimize" source="最適化してください">Optimization required</string>
+  <string name="didi_title" source="DiDiで配車">Book with DiDi</string>
+  <string name="diff_exhaust_co2" source="利用時より %s">%s compared with the alternative</string>
+  <string name="direct_lp_text" source="※動画タップでリンク先に移動します">Tap the video to open the link.</string>
+  <string name="eco_introduction" source="CO2排出量の少ないルートが確認できます">Compare routes with lower CO2 emissions</string>
+  <string name="err_msg_abandoned_route" source="こちらの路線は廃止・削除されました。&#10;登録路線から削除しますか？">This line has been discontinued or removed. Remove it from saved lines?</string>
+  <string name="err_msg_alarm_over" source="アラームを設定できる時刻を過ぎています。">It is too late to set an alarm.</string>
+  <string name="err_msg_basic" source="通信エラーが発生しました。&#10;恐れ入りますが、時間をおいて再度お試しください。">Connection error. Please try again later.</string>
+  <string name="err_msg_cant_autoupdate" source="時刻表データの自動更新が一部失敗しました。">Some timetable updates failed.</string>
+  <string name="err_msg_cant_countdown" source="最寄駅の時刻表データの最適化に失敗しました。時刻表データ管理画面で手動でデータ更新も可能です。">Could not optimize nearby-station timetables. You can update them manually in timetable data management.</string>
+  <string name="err_msg_cant_get_bus_stop" source="バス停情報を取得できませんでした。恐れ入りますが再度お試しください。">Could not load bus stop information. Please try again.</string>
+  <string name="err_msg_cant_get_diainfo" source="運行情報を取得できませんでした。恐れ入りますが再度お試しください。">Could not load service information. Please try again.</string>
+  <string name="err_msg_cant_get_dirinfo" source="路線情報を取得できませんでした。恐れ入りますが再度お試しください。">Could not load line information. Please try again.</string>
+  <string name="err_msg_cant_get_regist" source="登録情報を取得できませんでした。恐れ入りますが再度お試しください。">Could not load saved items. Please try again.</string>
+  <string name="err_msg_cant_get_route" source="ルートを取得できませんでした。">Could not load route.</string>
+  <string name="err_msg_cant_get_station" source="駅情報が取得できませんでした。恐れ入りますが再度お試しください。">Could not load station information. Please try again.</string>
+  <string name="err_msg_cant_get_timetable" source="時刻表の情報を取得できませんでした。恐れ入りますが再度お試しください。">Could not load timetable. Please try again.</string>
+  <string name="err_msg_cant_get_timetable_bus" source="停車バス停一覧を取得できませんでした。恐れ入りますが再度お試しください。">Could not load bus stops. Please try again.</string>
+  <string name="err_msg_cant_get_timetable_station" source="停車駅一覧を取得できませんでした。恐れ入りますが再度お試しください。">Could not load station stops. Please try again.</string>
+  <string name="err_msg_cant_gps" source="現在地情報を取得できませんでした。">Could not determine your location.</string>
+  <string name="err_msg_cant_post_over_bus" source="バス停を登録できませんでした。登録できるバス停数は50件までです。">Cannot save bus stop. The limit is 50 stops.</string>
+  <string name="err_msg_cant_post_over_rail" source="路線を登録できませんでした。登録できる路線数は10件までです。">Cannot save line. The limit is 10 lines.</string>
+  <string name="err_msg_cant_post_over_sta" source="駅を登録できませんでした。登録できる駅数は50件までです。">Cannot save station. The limit is 50 stations.</string>
+  <string name="err_msg_cant_post_regist" source="登録情報を更新できませんでした。恐れ入りますが再度お試しください。">Could not update saved items. Please try again.</string>
+  <string name="err_msg_cant_post_still_bus" source="このバス停はすでに登録されています。">This bus stop is already saved.</string>
+  <string name="err_msg_cant_post_still_rail" source="この路線はすでに登録されています。">This line is already saved.</string>
+  <string name="err_msg_cant_post_still_sta" source="この駅はすでに登録されています。">This station is already saved.</string>
+  <string name="err_msg_cant_post_teiki" source="定期情報を登録できませんでした。恐れ入りますが再度お試しください。">Could not save pass information. Please try again.</string>
+  <string name="err_msg_cant_set_custom_time" source="既に登録済みの時間帯が含まれています。">This time period is already saved.</string>
+  <string name="err_msg_connection" source="通信環境の良い場所で再度お試しください">Try again with a better connection.</string>
+  <string name="err_msg_daily_push_same_topic_id" source="別の時間を設定するか、通知をオフにしてください">Choose another time or disable notifications.</string>
+  <string name="err_msg_illegal_error" source="予期せぬエラー">Unexpected error</string>
+  <string name="err_msg_invalid" source="予期せぬエラーが発生しました。">An unexpected error occurred.</string>
+  <string name="err_msg_invalid_countdown" source="最寄駅の時刻表データをこのAndroidOSに最適化する必要があります。">Nearby-station timetable data must be optimized for this Android version.</string>
+  <string name="err_msg_invalid_token" source="認証に問題が発生したため、再ログインしてください。">Authentication failed. Please sign in again.</string>
+  <string name="err_msg_my_timetable_create_error" source="追加できませんでした。時間をおいて再度お試しください。">Could not add item. Please try again later.</string>
+  <string name="err_msg_my_timetable_delete_error" source="削除できませんでした。時間をおいて再度お試しください。">Could not delete item. Please try again later.</string>
+  <string name="err_msg_my_timetable_filter_over_limit" source="追加できませんでした。絞り込み条件を50件以下にして再度お試しください。">Could not add item. Use no more than 50 filter conditions.</string>
+  <string name="err_msg_my_timetable_needs_to_upload" source="マイ時刻表ページから同期後に追加できます。">Sync from My timetables before adding an item.</string>
+  <string name="err_msg_my_timetable_over_limit" source="登録は20件までです。追加するにはマイ時刻表の編集が必要です。">The limit is 20 timetables. Edit My timetables to add more.</string>
+  <string name="err_msg_my_timetable_overwrite_old" source="削除する項目を選択し直してください。">Select the items to delete again.</string>
+  <string name="err_msg_my_timetable_sync" source="時刻表を取得できませんでした。">Could not load timetable.</string>
+  <string name="err_msg_my_timetable_sync_with_retry" source="時刻表を取得できませんでした。時間をおいて再度お試しください。">Could not load timetable. Please try again later.</string>
+  <string name="err_msg_my_timetable_update_delete_error" source="操作を完了できませんでした。時間をおいて再度お試しください。">Could not complete operation. Please try again later.</string>
+  <string name="err_msg_my_timetable_update_only_error" source="並べ替えできませんでした。時間をおいて再度お試しください。">Could not reorder items. Please try again later.</string>
+  <string name="err_msg_no_address" source="住所が取得できません。">Could not load address.</string>
+  <string name="err_msg_no_area_diainfo" source="このエリアは運行情報を提供しておりません。">Service information is unavailable in this area.</string>
+  <string name="err_msg_no_around_station" source="周辺に駅が見つかりませんでした。">No nearby stations found.</string>
+  <string name="err_msg_no_busstop" source="該当するバス停が見つかりませんでした。">No matching bus stop found.</string>
+  <string name="err_msg_no_calendar" source="カレンダーがインストールされていません。">No calendar app installed.</string>
+  <string name="err_msg_no_check" source="いずれか１つにチェックしてください。">Select one option.</string>
+  <string name="err_msg_no_detour_route" source="迂回できるルートがありません。">No detour route available.</string>
+  <string name="err_msg_no_dia" source="ご乗車いただけるダイヤが見つかりません">No available service found.</string>
+  <string name="err_msg_no_history" source="入力履歴がありません">No input history.</string>
+  <string name="err_msg_no_input_goal" source="目的地を入力してください。">Enter a destination.</string>
+  <string name="err_msg_no_input_start" source="出発地を入力してください。">Enter an origin.</string>
+  <string name="err_msg_no_input_start_goal" source="出発地と目的地を入力してください。">Enter an origin and destination.</string>
+  <string name="err_msg_no_line" source="LINEがインストールされていません。">LINE is not installed.</string>
+  <string name="err_msg_no_mailer" source="メールがインストールされていません。">No email app installed.</string>
+  <string name="err_msg_no_match" source="候補が見つかりませんでした。">No suggestions found.</string>
+  <string name="err_msg_no_match_address" source="該当する住所が見つかりませんでした。">No matching address found.</string>
+  <string name="err_msg_no_match_rail" source="該当する路線が見つかりませんでした。">No matching line found.</string>
+  <string name="err_msg_no_match_timetable" source="時刻表を再表示します。">Reloading timetable.</string>
+  <string name="err_msg_no_music" source="アラーム音に指定された音楽ファイルが開けません。">Cannot open the selected alarm sound file.</string>
+  <string name="err_msg_no_regist_address" source="現在地から自宅までワンタップ検索が可能です。自宅を設定しましょう。">Set your home address to find a route home from here with one tap.</string>
+  <string name="err_msg_no_regist_address_work" source="現在地から職場までワンタップ検索が可能です。職場を設定しましょう。">Set your work address to find a route to work from here with one tap.</string>
+  <string name="err_msg_no_regist_bus" source="登録されているバス停はありません。">No saved bus stops.</string>
+  <string name="err_msg_no_regist_rail" source="登録されている路線はありません。">No saved lines.</string>
+  <string name="err_msg_no_regist_station" source="登録されている駅はありません。">No saved stations.</string>
+  <string name="err_msg_no_search_memo" source="%sがありません。">No %s available.</string>
+  <string name="err_msg_no_select_alarm" source="アラームにチェックを入れてください。">Select an alarm.</string>
+  <string name="err_msg_no_select_bus" source="バス停にチェックを入れてください。">Select a bus stop.</string>
+  <string name="err_msg_no_select_rail" source="路線にチェックを入れてください。">Select a line.</string>
+  <string name="err_msg_no_select_search_memo" source="%sにチェックを入れてください。">Select %s.</string>
+  <string name="err_msg_no_select_spot" source="スポットにチェックを入れてください。">Select a place.</string>
+  <string name="err_msg_no_select_station" source="駅にチェックを入れてください。">Select a station.</string>
+  <string name="err_msg_no_set_custom_time" source="時間が設定されていません。">No time set.</string>
+  <string name="err_msg_no_set_day_of_week" source="曜日が設定されていません。">No day of the week set.</string>
+  <string name="err_msg_no_station" source="該当する駅が見つかりませんでした。">No matching station found.</string>
+  <string name="err_msg_no_suggest" source="候補が見つかりませんでした">No suggestions found.</string>
+  <string name="err_msg_no_timetable_timer" source="表示できる電車がありません。絞り込みの設定を変更してください。">No trains to display. Change the filter.</string>
+  <string name="err_msg_no_timetable_week" source="指定された曜日の時刻表が存在しません。">No timetable for the selected day of the week.</string>
+  <string name="err_msg_not_available_retry" source="一時的に利用できません。時間をおいて再度お試しください。">Temporarily unavailable. Please try again later.</string>
+  <string name="err_msg_not_exist_rail" source="指定された路線の情報は存在しません。">No information for this line.</string>
+  <string name="err_msg_not_timetable" source="平均検索のため発車時刻が存在しません。">No departure time for searches without a specified time.</string>
+  <string name="err_msg_not_today" source="当日以外の発車時刻ではカウントダウンできません。">Countdown is available only for departures today.</string>
+  <string name="err_msg_not_train" source="恐れ入りますが、バス・徒歩から始まるルートはカウントダウンできません。">Countdown is unavailable for routes starting with a bus or walking.</string>
+  <string name="err_msg_old_token" source="問題が発生したため、お手数ですが再度ログインし直してください。">An error occurred. Please sign in again.</string>
+  <string name="err_msg_open_db_failed" source="お手数ですが、削除してから再取得/再登録をお試しください。&#10;&#10;対象データ：&#10;・ルートメモ&#10;・乗降アラーム">Delete and reload or save the affected route and alarm data again.</string>
+  <string name="err_msg_others_about_default" source="現在情報を取得できません。&#10;恐れ入りますが、時間をおいて再度お試しください。">Information is unavailable. Please try again later.</string>
+  <string name="err_msg_over_countdown" source="発車時刻が過ぎているためカウントダウンできません。">Departure time has passed; countdown is unavailable.</string>
+  <string name="err_msg_over_startset" source="設定できる数は4件までです。">You can save up to 4 settings.</string>
+  <string name="err_msg_post_rail_other" source="登録駅・路線情報を取得できませんでした。恐れ入りますが再度お試しください。">Could not load saved stations or lines. Please try again.</string>
+  <string name="err_msg_post_rail_over_edit" source="登録路線は10件までです。編集してください。">The limit is 10 lines. Edit saved lines.</string>
+  <string name="err_msg_post_rail_over_on_boarding" source="登録できませんでした。設定から登録路線を編集してください。">Could not save. Edit saved lines in Settings.</string>
+  <string name="err_msg_push_already_on" source="この路線はすでに通知設定されています。">Notifications are already enabled for this line.</string>
+  <string name="err_msg_push_unregister_already" source="この路線はすでに通知解除されています。">Notifications are already disabled for this line.</string>
+  <string name="err_msg_regist_myroute" source="登録は%s件までです。">The limit is %s routes.</string>
+  <string name="err_msg_register_over_max_rail" source="登録上限数を超えています。設定画面で登録路線の編集をお願いします。">Line limit reached. Edit saved lines in Settings.</string>
+  <string name="err_msg_register_over_max_station" source="登録上限数を超えています。設定画面で登録駅の編集をお願いします。">Station limit reached. Edit saved stations in Settings.</string>
+  <string name="err_msg_same_start_goal" source="出発地と目的地が同じです。">Origin and destination are the same.</string>
+  <string name="err_msg_save_memo" source="%1$sが一杯です。保存できるのは%2$s件までです。">%1$s is full. You can save up to %2$s items.</string>
+  <string name="err_msg_show" source="広告が表示できませんでした">Ad could not be displayed</string>
+  <string name="err_msg_teiki_failed" source="定期情報を取得できませんでした。&#10;恐れ入りますが、時間をおいて再度お試しください。">Could not load pass information. Please try again later.</string>
+  <string name="err_msg_timetable_no_filter_for_bus" source="絞り込み条件は1つ以上設定してください。">Select at least one filter condition.</string>
+  <string name="err_msg_timetable_no_filter_for_station" source="種別、行き先はそれぞれ1つ以上設定してください。">Select at least one service type and destination.</string>
+  <string name="err_msg_timetable_no_train" source="条件に一致する列車がありません。絞り込みの設定を変更してください。">No matching trains. Change the filter.</string>
+  <string name="err_msg_title_api" source="エラー">Error</string>
+  <string name="err_msg_title_daily_push_same_topic_id" source="%1$sの通知と同じ時間を設定しています">Same notification time as %1$s</string>
+  <string name="err_msg_title_data" source="アプリ内のデータが破損しました。">App data is corrupted.</string>
+  <string name="err_msg_title_delete" source="削除できません">Cannot delete</string>
+  <string name="err_msg_title_info" source="お知らせ">Information</string>
+  <string name="err_msg_title_input" source="エラー">Error</string>
+  <string name="err_msg_title_no_filter" source="条件がありません">No conditions set</string>
+  <string name="err_msg_title_no_match_timetable" source="列車が特定できませんでした">Could not identify train</string>
+  <string name="err_msg_title_no_train" source="列車がありません">No trains available</string>
+  <string name="err_msg_title_regist" source="登録できません">Cannot save</string>
+  <string name="err_msg_title_registered" source="登録できませんでした">Could not save</string>
+  <string name="err_msg_title_save" source="保存できません">Cannot save</string>
+  <string name="err_msg_title_set" source="設定失敗">Setup failed</string>
+  <string name="err_msg_title_setting" source="設定できません">Cannot configure</string>
+  <string name="err_msg_title_sync" source="同期できません">Cannot sync</string>
+  <string name="err_msg_title_timetable_data_invalid" source="マイ時刻表データが破損しております。お手数をおかけいたしますが、再度駅の登録をお願いいたします。">My timetables data is corrupted. Please save the station again.</string>
+  <string name="err_msg_title_timetable_overwrite_old" source="端末内とクラウド上のデータに差異があります">Device and cloud data differ</string>
+  <string name="err_msg_title_token" source="ログインできません">Cannot sign in</string>
+  <string name="err_msg_title_unregistered" source="解除できませんでした">Could not remove</string>
+  <string name="err_msg_title_update" source="編集できません">Cannot edit</string>
+  <string name="err_msg_train_list_memo" source="このメモは前後のダイヤに調整できません。&#10;ルートメモの保存を再度お試しください。">This saved route cannot be adjusted to earlier or later services. Save the route again.</string>
+  <string name="err_msg_train_list_no_data_memo" source="このメモは前後のダイヤに調整できません。&#10;ルート検索を再度お試しください。">This saved route cannot be adjusted to earlier or later services. Search again.</string>
+  <string name="err_msg_train_list_no_data_normal" source="このルートは前後のダイヤに調整できません。&#10;ルート検索を再度お試しください。">This route cannot be adjusted to earlier or later services. Search again.</string>
+  <string name="err_msg_via_kanma" source="入力内容にカンマ(,)は使用できません。">Commas (,) cannot be used in this input.</string>
+  <string name="err_msg_voice_failed" source="音声認識に失敗しました。&#10;恐れ入りますが再度お試しください。">Speech recognition failed. Please try again.</string>
+  <string name="error_alarm_after" source="到着時刻を過ぎているため、アラームを設定できません。">Arrival time has passed; cannot set alarm.</string>
+  <string name="error_alarm_after_goal" source="到着時刻を過ぎているため設定できません。">Arrival time has passed; cannot set alarm.</string>
+  <string name="error_alarm_after_start" source="出発時刻を過ぎているため設定できません。">Departure time has passed; cannot set alarm.</string>
+  <string name="error_alarm_checked" source="アラームを設定する駅にチェックを入れてください。">Select a station for the alarm.</string>
+  <string name="error_alarm_max" source="アラーム設定は最大5件までです。&#10;一番古いアラームに上書きしますか？">The limit is 5 alarms. Replace the oldest alarm?</string>
+  <string name="error_alarm_max_toast" source="アラーム設定の上限です。">Alarm limit reached.</string>
+  <string name="error_dialog_button_close" source="閉じる">Close</string>
+  <string name="error_dialog_button_complete_update" source="編集を完了する">Finish editing</string>
+  <string name="error_dialog_message" source="予期しないエラーが発生しました。">An unexpected error occurred.</string>
+  <string name="error_dialog_title" source="エラー">Error</string>
+  <string name="error_failed_set_after_final" source="経路情報に不正があるため検索できません。再読み込み後、お試しください。">Invalid route information. Reload and try again.</string>
+  <string name="error_no_latlon_data" source="緯度経度情報がありません。">Location coordinates are unavailable.</string>
+  <string name="error_text" source="動画を読み込めませんでした">Could not load video</string>
+  <string name="error_text_detail_fullscreen" source="お手数ですが、しばらく時間をおいてから&#10;再読み込みをお試しください">Please wait and try reloading.</string>
+  <string name="error_text_detail_inline" source="タップして再読み込みするか、&#10;しばらく時間をおいてから、再度アクセスしてください">Tap to reload, or wait and try again.</string>
+  <string name="everyday" source="毎日">Every day</string>
+  <string name="exhaust_co2" source="CO2排出量 %s">CO2 emissions: %s</string>
+  <string name="exp_fare_title" source="特別料金">Special fare</string>
+  <string name="exp_fare_title_exp_ticket" source="特急券のみ">Express ticket only</string>
+  <string name="exp_fare_title_ticket_and_exp_ticket" source="乗車券 + 特急券">Base + express ticket</string>
+  <string name="exp_fare_title_ticket_and_exp_ticket_s_work_p" source="乗車券 + 特急券(S WorkPシート)">Base + express ticket (S WorkP seat)</string>
+  <string name="exp_fare_title_ticket_and_exp_ticket_supreme_class_cabin_10" source="乗車券 + 特急券(スプリームクラス・キャビン10号車)">Base + express ticket (Supreme Class, cabin car 10)</string>
+  <string name="exp_fare_title_ticket_and_exp_ticket_supreme_class_cabin_7" source="乗車券 + 特急券(スプリームクラス・キャビン7号車)">Base + express ticket (Supreme Class, cabin car 7)</string>
+  <string name="express_ticket_jrc" source="JR東海/西日本/九州">JR Central / West / Kyushu</string>
+  <string name="express_ticket_jrc_ex" source="EX予約優先">Prefer EX Reservation</string>
+  <string name="express_ticket_jrc_ex_full" source="EX予約優先 (年会費あり)">Prefer EX Reservation (annual fee)</string>
+  <string name="express_ticket_jrc_ex_text" source="EX予約">EX Reservation</string>
+  <string name="express_ticket_jrc_smart_ex" source="スマートEX優先">Prefer smartEX</string>
+  <string name="express_ticket_jrc_smart_ex_full" source="スマートEX優先 (年会費無料)">Prefer smartEX (no annual fee)</string>
+  <string name="express_ticket_jrc_smart_ex_text" source="スマートEX">smartEX</string>
+  <string name="express_ticket_jre" source="JR東日本">JR East</string>
+  <string name="express_ticket_jre_e_ticket" source="eチケット優先">Prefer e-ticket</string>
+  <string name="express_ticket_jre_e_ticket_full" source="eチケット優先 (年会費無料)">Prefer e-ticket (no annual fee)</string>
+  <string name="express_ticket_jre_ticket2_text" source="新幹線eチケット">Shinkansen e-ticket</string>
+  <string name="express_ticket_jre_ticket_text" source="eチケット">e-ticket</string>
+  <string name="express_ticket_normal" source="通常">Standard</string>
+  <string name="express_ticket_title" source="新幹線チケット">Shinkansen tickets</string>
+  <string name="fare_discounted_ticket_title" source="お得なきっぷ">Discount tickets</string>
+  <string name="fare_exp_tab_jrc_ex" source="EX予約">EX Reservation</string>
+  <string name="fare_exp_tab_jrc_smart_ex" source="スマートEX">smartEX</string>
+  <string name="fare_exp_tab_jre_e" source="新幹線eチケット">Shinkansen e-ticket</string>
+  <string name="fare_exp_tab_normal" source="通常">Standard</string>
+  <string name="fare_external_link_notice_title" source="おしらせ">Notice</string>
+  <string name="fare_free_pass_price_type_child" source="小児">Child</string>
+  <string name="fare_free_pass_price_type_normal" source="大人">Adult</string>
+  <string name="fare_free_pass_title" source="フリーきっぷ">Unlimited-ride tickets</string>
+  <string name="fare_free_pass_validity_period_prefix" source="有効期限：%1$s">Valid until: %1$s</string>
+  <string name="fare_green_car_promotion_title" source="普通列車グリーン車の魅力と乗り方">How to use Green Cars on local trains</string>
+  <string name="fare_item_diff_0" source="差額なし">No fare difference</string>
+  <string name="fare_item_diff_price_plus" source="+%1$s円">+%1$s yen</string>
+  <string name="fare_item_mobile_suica_button" source="モバイルSuicaアプリで購入">Buy in Mobile Suica</string>
+  <string name="fare_item_price" source="%1$s円">%1$s yen</string>
+  <string name="fare_item_teiki_text" source="定期券">Commuter pass</string>
+  <string name="fare_jrw_reserved_promotion_title" source="いつもの移動を快適に">Make everyday travel more comfortable</string>
+  <string name="fare_module_title_exp" source="特別料金">Special fare</string>
+  <string name="fare_module_title_normal" source="運賃・特別料金">Base / special fares</string>
+  <string name="fare_nankai_sazan_exp_pr" source="[PR] 南海・特急チケットレスサービスへ遷移します">[PR] Opens Nankai ticketless express service</string>
+  <string name="fare_reload_text" source="再読み込み">Reload</string>
+  <string name="fare_total_price_label" source="到着地まで">To destination</string>
+  <string name="finish_set_alarm" source="アラームを設定しました。">Alarm set.</string>
+  <string name="forbid_login_dialog_button" source="OK">OK</string>
+  <string name="forbid_login_dialog_message" source="現在の画面ではログインやIDの切り替えはできません">Cannot sign in or switch accounts on this screen.</string>
+  <string name="forecast_fare_link_text" source="予測運賃についてはこちら">About estimated fares</string>
+  <string name="format_date_jp" source="%1$4d年%2$02d月%3$02d日(%4$s)">%1$4d-%2$02d-%3$02d (%4$s)</string>
+  <string name="format_date_jp_article" source="yyyy年M月d日">yyyy-MM-dd</string>
+  <string name="free_word_activity_description" source="一致する検索結果が見つかりませんでした">No matching results found.</string>
+  <string name="free_word_button_end_text" source="」を検索">" in routes</string>
+  <string name="free_word_button_web_end_text" source="」をウェブで検索">" on the web</string>
+  <string name="gotaxi_title" source="GOで配車">Book with GO</string>
+  <string name="gps_permission_error" source="現在地を取得できませんでした。&#10;端末の設定から許可してください。">Could not determine location. Allow access in device settings.</string>
+  <string name="green_car_check_link_text" source="グリーン車を確認">View Green Cars</string>
+  <string name="has_past_date_data_message" source="過去の日付指定の時刻表は表示できないため、最新の情報に更新します。&#10;&#10;※同一条件の時刻表は統合されます。">Timetables for past dates cannot be displayed. Updating to current information. Timetables with identical conditions will be merged.</string>
+  <string name="has_past_date_data_title" source="過去の日付指定の時刻表があります">Some timetables use past dates</string>
+  <string name="having_other_choices" source="ほかに候補地があります。">Other suggestions are available.</string>
+  <string name="hint_goal_name" source="駅,バス停,空港,施設,住所">Station, stop, airport, place or address</string>
+  <string name="hint_goal_name_timer" source="通勤・通学先の最寄駅">Station near work or school</string>
+  <string name="hint_goal_name_widget" source="到着地を入力">Enter destination</string>
+  <string name="hint_input_goal_name" source="到着地を入力">Enter destination</string>
+  <string name="hint_input_goal_name_pattern_spot" source="到着地 (例: 東京タワー)">Destination (e.g. Tokyo Tower)</string>
+  <string name="hint_input_goal_name_pattern_station_spot" source="到着地 (例: 東京タワー, 新宿駅)">Destination (e.g. Tokyo Tower, Shinjuku)</string>
+  <string name="hint_input_name_pattern_spot" source="例: 東京タワー">E.g. Tokyo Tower</string>
+  <string name="hint_input_name_pattern_station_spot" source="例: 東京タワー, 新宿駅">E.g. Tokyo Tower, Shinjuku</string>
+  <string name="hint_input_start_name" source="出発地を入力">Enter origin</string>
+  <string name="hint_input_start_name_pattern_spot" source="出発地 (例: 東京タワー)">Origin (e.g. Tokyo Tower)</string>
+  <string name="hint_input_start_name_pattern_station_spot" source="出発地 (例: 東京タワー, 新宿駅)">Origin (e.g. Tokyo Tower, Shinjuku)</string>
+  <string name="hint_input_via_name1" source="経由">Via</string>
+  <string name="hint_input_via_name2" source="を入力">Enter</string>
+  <string name="hint_rail_name" source="路線を入力">Enter line</string>
+  <string name="hint_spot_only" source="施設を入力">Enter place</string>
+  <string name="hint_start_name" source="駅,バス停,空港,施設,住所">Station, stop, airport, place or address</string>
+  <string name="hint_start_name_timer" source="自宅の最寄駅">Station near home</string>
+  <string name="hint_station_or_busstop_name" source="駅、バス停を入力">Enter station or bus stop</string>
+  <string name="hint_via_bus" source="バス停を入力">Enter bus stop</string>
+  <string name="hint_via_station" source="駅を入力">Enter station</string>
+  <string name="hint_via_station_only" source="駅">Station</string>
+  <string name="ic_card_appeal_description" source="(1) &lt;b&gt;通常検索&lt;/b&gt;の右上の&lt;b&gt;ICカードアイコン&lt;/b&gt;&lt;br&gt;(2) &lt;b&gt;設定&lt;/b&gt;内の「&lt;b&gt;ICカード残高確認&lt;/b&gt;」&lt;br&gt;&lt;br&gt;のどちらかで確認画面が表示できます">Open the balance screen from:&lt;br&gt;(1) The &lt;b&gt;IC card icon&lt;/b&gt; at the top right of &lt;b&gt;Standard search&lt;/b&gt;&lt;br&gt;(2) &lt;b&gt;IC card balance&lt;/b&gt; in &lt;b&gt;Settings&lt;/b&gt;</string>
+  <string name="ic_card_appeal_title" source="ICカードの残高が&#10;確認できるようになりました">You can now check your IC card balance</string>
+  <string name="ic_card_balance_check_title" source="ICカード残高確認">IC card balance</string>
+  <string name="ic_card_balance_text" source="残高">Balance</string>
+  <string name="ic_card_balance_yen" source="円"> yen</string>
+  <string name="ic_card_balance_yen_max" source="円以上"> yen or more</string>
+  <string name="ic_card_hold_up_sub_text" source="ICカードの位置は端末によって異なります">The NFC reading position varies by device</string>
+  <string name="ic_card_hold_up_text" source="ICカードを端末にかざしてください">Hold your IC card against the device</string>
+  <string name="ic_card_not_support_error_button_text" source="閉じる">Close</string>
+  <string name="ic_card_not_support_error_text" source="NFC（ICカード残高確認機能）非対応の端末です。">This device does not support NFC card balance checks.</string>
+  <string name="ic_card_not_support_error_title" source="エラー">Error</string>
+  <string name="ic_card_permission_error_text" source="ICカード残高確認機能を使うためには、接続の詳細設定から「NFCを使用」をオンにしてください。">Turn on NFC in device connection settings to check your IC card balance.</string>
+  <string name="ic_card_permission_error_title" source="NFCの使用権限がありません">NFC permission is disabled</string>
+  <string name="ic_card_read_error" source="ICカードの読み取りに失敗しました。">Could not read IC card.</string>
+  <string name="ic_card_read_restart_button_text" source="再読み取り">Read again</string>
+  <string name="ic_card_read_start_button_text" source="読み取りを開始">Start reading</string>
+  <string name="ic_card_reading_sub_text" source="読み取り中…">Reading...</string>
+  <string name="ic_card_reading_text" source="ICカードを読み取り中です">Reading IC card</string>
+  <string name="ic_card_shortcut_button_text" source="ショートカットを作成する">Create shortcut</string>
+  <string name="ic_card_shortcut_create_failed" source="ICカード残高確認のショートカット作成に失敗しました">Could not create the IC card balance shortcut.</string>
+  <string name="ic_card_shortcut_created" source="ホーム画面にICカード残高確認のショートカットを作成しました">IC card balance shortcut added to home screen.</string>
+  <string name="ic_card_shortcut_text" source="ホーム画面から素早く残高確認できます">Check your balance quickly from the home screen</string>
+  <string name="ic_card_shortcut_title" source="IC残高確認">IC balance</string>
+  <string name="image_select_error_message" source="選択した画像は背景画像に設定できません">This image cannot be used as a background.</string>
+  <string name="image_select_error_title" source="画像読み込みエラー">Could not load image</string>
+  <string name="info" source="スタッフからのお知らせ">App announcements</string>
+  <string name="input_address_hint" source="駅、バス停、施設、住所を入力">Enter station, bus stop, place or address</string>
+  <string name="input_location" source="現在地付近">Near current location</string>
+  <string name="input_lococlip" source="マイスポット一覧">My Places</string>
+  <string name="input_my_address" source="自宅・職場">Home / work</string>
+  <string name="input_no_gps" source="現在地が取得できませんでした">Could not determine location</string>
+  <string name="input_no_gps_permission" source="現在地が取得できませんでした。%1$sをご確認ください。">Could not determine location. Check %1$s.</string>
+  <string name="input_no_gps_permission_label" source="設定">Settings</string>
+  <string name="input_no_result" source="見つかりませんでした">Not found</string>
+  <string name="input_search_address_label" source="現在地の住所">Current address</string>
+  <string name="input_search_btn_history" source="住所・履歴">Address / history</string>
+  <string name="input_search_btn_regist" source="登録地">Saved places</string>
+  <string name="input_search_btn_start" source="カウントダウン開始">Start countdown</string>
+  <string name="input_search_by_address" source="住所から探す">Search by address</string>
+  <string name="input_search_check" source="チェック">Select</string>
+  <string name="input_search_guide" source="最大6件ずつ設定可能です。項目の長押しで削除ができます。">Save up to 6 items in each group. Touch and hold an item to delete it.</string>
+  <string name="input_search_history" source="入力履歴">Input history</string>
+  <string name="input_search_history_often" source="よく使う場所">Frequent places</string>
+  <string name="input_search_history_space" source="入力履歴">Input history</string>
+  <string name="input_search_invalid_bus" source="このバス停は廃止・削除されました">This bus stop has been discontinued or removed.</string>
+  <string name="input_search_invalid_station" source="この駅は廃止・削除されました">This station has been discontinued or removed.</string>
+  <string name="input_search_no_setting" source="「＋追加」ボタンをタップして、最寄駅を追加">Tap "+ Add" to add a nearby station</string>
+  <string name="input_search_register" source="登録駅・バス停">Saved stations / stops</string>
+  <string name="input_search_title_goal" source="通勤・通学先の最寄駅">Station near work or school</string>
+  <string name="input_search_title_home" source="自宅の最寄駅">Station near home</string>
+  <string name="kukan" source="区間登録">Save pass coverage</string>
+  <string name="kukan_nologin" source="区間登録%1$s">Save coverage %1$s</string>
+  <string name="kukan_nologin_label" source="【定期代を考慮して検索】">[Use commuter pass fares]</string>
+  <string name="label_5min_after" source="5分後">5 min later</string>
+  <string name="label_5min_before" source="5分前">5 min earlier</string>
+  <string name="label_address_home" source="自宅">Home</string>
+  <string name="label_address_other" source="その他">Other</string>
+  <string name="label_address_work" source="職場">Work</string>
+  <string name="label_airplane_warning_text" source="※航空運賃は全て普通運賃表示。">Airfares shown are standard fares.</string>
+  <string name="label_alarm" source="アラーム">Alarm</string>
+  <string name="label_alarm_dlg_title" source="アラーム設定中です">An alarm is active</string>
+  <string name="label_alarm_title" source="アラーム設定">Alarm settings</string>
+  <string name="label_and_search" source="で検索">Search</string>
+  <string name="label_appeal_variation_search" source="ルートが見つかりませんか？">Cannot find a route?</string>
+  <string name="label_approach_info" source="接近中の電車の遅延情報">Approaching train delays</string>
+  <string name="label_arr" source="着"> A</string>
+  <string name="label_arrival_bus_stop_list_hint" source="到着バス停を選択・絞り込み">Select or filter arrival stops</string>
+  <string name="label_arrival_bus_stop_list_title" source="到着バス停を選択">Select arrival stop</string>
+  <string name="label_arrival_track" source="番線着">Arrival platform</string>
+  <string name="label_arrival_track_bus" source="おりば">Alighting stop</string>
+  <string name="label_before_minute" source="分前">min before</string>
+  <string name="label_bus_note" source="系統や方面によって位置が異なる場合があります">Stop locations may vary by service or direction</string>
+  <string name="label_busstop" source="バス停">Bus stop</string>
+  <string name="label_busstop_candidate" source="バス候補">Bus options</string>
+  <string name="label_calender" source="カレンダーに登録">Add to calendar</string>
+  <string name="label_calender_route" source="カレンダーに登録">Add to calendar</string>
+  <string name="label_car_list_title" source="号車付近">Near car</string>
+  <string name="label_car_num" source="両">cars</string>
+  <string name="label_car_only" source="(%1$s両目のみ)">(car %1$s only)</string>
+  <string name="label_car_only_range" source="(%1$s〜%2$s両目のみ)">(cars %1$s to %2$s only)</string>
+  <string name="label_change_station" source="最寄駅切り替え">Change nearby station</string>
+  <string name="label_comeback" source="帰り">Return</string>
+  <string name="label_connection_indicator" source="乗換">Transfers</string>
+  <string name="label_copy_etc_app" source="他のアプリに共有">Share to another app</string>
+  <string name="label_copy_text" source="クリップボードにコピー">Copy to clipboard</string>
+  <string name="label_delay_notify" source="鉄道の遅延・運休を通知">Notify train delays and cancellations</string>
+  <string name="label_delete_clip" source="このスポットは掲載終了しました">This place is no longer listed</string>
+  <string name="label_delete_history_checked" source="チェックを入れた履歴を削除">Delete selected history</string>
+  <string name="label_delete_memo_title" source="%1$sの削除">Delete %1$s</string>
+  <string name="label_delete_station" source="駅を削除してもよろしいですか？">Delete this station?</string>
+  <string name="label_dep" source="発"> D</string>
+  <string name="label_departure_track" source="番線発">Departure platform</string>
+  <string name="label_departure_track_bus" source="のりば">Boarding stop</string>
+  <string name="label_destination" source="目的地">Destination</string>
+  <string name="label_detail_price" source="運賃内訳">Fare breakdown</string>
+  <string name="label_detailsetting_off" source="条件設定なし">No preferences</string>
+  <string name="label_detour_only_applicable" source="該当の区間のみ回避">Avoid affected section only</string>
+  <string name="label_detour_rail" source="回避対象の路線">Lines to avoid</string>
+  <string name="label_detour_target" source="回避対象">Avoid</string>
+  <string name="label_diainfo_change_publish_time" source="(MM月dd日 HH時mm分掲載)">(MM/dd HH:mm)</string>
+  <string name="label_diainfo_normal" source="平常運転に復帰">Normal service resumed</string>
+  <string name="label_diainfo_status" source="運転状況の更新">Service status update</string>
+  <string name="label_direct_search" source="ワンタップ検索">One-tap search</string>
+  <string name="label_direction" source="方面">Direction</string>
+  <string name="label_direction_goto" source="行">bound</string>
+  <string name="label_direction_goto_suffix" source="%1$s行">For %1$s</string>
+  <string name="label_direction_interpolation" source="%1$s方面">Toward %1$s</string>
+  <string name="label_door_both" source="両側">Both sides</string>
+  <string name="label_door_left" source="左側">Left</string>
+  <string name="label_door_position" source="ドア位置">Door side</string>
+  <string name="label_door_right" source="右側">Right</string>
+  <string name="label_easy_id_regist" source="かんたんID登録(無料)">Create an ID (free)</string>
+  <string name="label_entrance_in" source="駅入口：">Entrance: </string>
+  <string name="label_entrance_out" source="駅出口：">Exit: </string>
+  <string name="label_entrance_with_colon" source="駅入口：%1$s">Entrance: %1$s</string>
+  <string name="label_entry_rail" source="＋路線登録はこちらから">+ Add a line</string>
+  <string name="label_entry_station" source="＋駅登録はこちらから">+ Add a station</string>
+  <string name="label_err_myroute_cond_load" source="マイルートのデータの取得に失敗しました。">Could not load My Routes.</string>
+  <string name="label_exit" source="出口">Exit</string>
+  <string name="label_exit_with_colon" source="駅出口：%1$s">Exit: %1$s</string>
+  <string name="label_exp_Free_price" source="自由席">Non-reserved</string>
+  <string name="label_exp_green_price" source="グリーン車">Green Car</string>
+  <string name="label_exp_price" source="特急料金">Express surcharge</string>
+  <string name="label_exp_reserved_price" source="指定席">Reserved</string>
+  <string name="label_explain_variation_search" source="周辺の駅やバス停を乗車地点に含めたルートが検索できます">Search routes using nearby stations and bus stops</string>
+  <string name="label_express_ekinet_supported" source="Supported by JR東日本">Supported by JR East</string>
+  <string name="label_expresss" source="特急">Limited express</string>
+  <string name="label_feature_edge_price" source="%1$s円">%1$s yen</string>
+  <string name="label_filter" source="絞り込み">Filter</string>
+  <string name="label_filter_dest" source="行き先">Destination</string>
+  <string name="label_filter_kind" source="種別">Service type</string>
+  <string name="label_first" source="始発">First train</string>
+  <string name="label_first_memo" source="タップして最新の状態を読込">Tap to refresh</string>
+  <string name="label_flight_no" source="便">Flight</string>
+  <string name="label_forecast_fare" source="※予測運賃">Estimated fare</string>
+  <string name="label_gate_pass_available" source="クレカタッチ決済可">Contactless credit card accepted</string>
+  <string name="label_gate_pass_note_fare_only_price_diff" source="※運賃のみ、料金は異なります">Base fare only; other charges may differ</string>
+  <string name="label_gate_pass_note_price_diff" source="※料金は異なります">Charges may differ</string>
+  <string name="label_get_off_door_front" source="前おり">Exit at front</string>
+  <string name="label_get_off_door_rear" source="後おり">Exit at rear</string>
+  <string name="label_get_on_door_front" source="前のり">Board at front</string>
+  <string name="label_get_on_door_rear" source="後のり">Board at rear</string>
+  <string name="label_getting_off_door" source="降車ドア">Exit door</string>
+  <string name="label_goal_name" source="到着">Arrive</string>
+  <string name="label_goal_name_colon" source="到着地：">To: </string>
+  <string name="label_goal_name_long" source="到着地">Destination</string>
+  <string name="label_goto" source="行">bound</string>
+  <string name="label_goto_space" source=" 行"> bound</string>
+  <string name="label_header_address_commuter_pass" source="定期区間の駅">Stations covered by pass</string>
+  <string name="label_here" source="現在地">Current location</string>
+  <string name="label_here_busstop" source="周辺のバス停">Nearby bus stops</string>
+  <string name="label_here_station" source="周辺の駅">Nearby stations</string>
+  <string name="label_history_all_select" source="すべて選択">Select all</string>
+  <string name="label_history_all_unselect" source="すべて選択解除">Deselect all</string>
+  <string name="label_history_no_msg" source="検索履歴がありません。">No search history.</string>
+  <string name="label_home" source="自宅">Home</string>
+  <string name="label_hour" source="時間">h</string>
+  <string name="label_ic_card_available" source="[IC可]">[IC accepted]</string>
+  <string name="label_imakoko_warning" source="時刻表に基づく現在地を表示">Position based on timetable</string>
+  <string name="label_landmark" source="施設">Place</string>
+  <string name="label_last" source="終電">Last train</string>
+  <string name="label_line" source="LINEで送信">Send via LINE</string>
+  <string name="label_local_memo_login" source="ルートメモを同期する ＞">Sync saved routes &gt;</string>
+  <string name="label_loop_line" source="回り">loop</string>
+  <string name="label_mail_route" source="メールで送信">Send by email</string>
+  <string name="label_manual" source="手動設定">Manual</string>
+  <string name="label_map" source="地図">Map</string>
+  <string name="label_memo_count" source="%1$d/%2$d件">%1$d/%2$d items</string>
+  <string name="label_menu_map" source="地図">Map</string>
+  <string name="label_menu_result_list_shortcut" source="ショートカット作成">Create shortcut</string>
+  <string name="label_menu_result_memo" source="ルートメモ">Saved routes</string>
+  <string name="label_menu_result_near_search" source="最寄再検索">Search nearby again</string>
+  <string name="label_menu_result_share" source="シェア">Share</string>
+  <string name="label_menu_spotsearch" source="スポット検索">Places</string>
+  <string name="label_minute" source="分">min</string>
+  <string name="label_minute_after" source="分後">min later</string>
+  <string name="label_more" source="もっと見る">Show more</string>
+  <string name="label_new_route_memo" source="新しいメモがあります。画面引下げで読込">New saved routes available. Pull down to load.</string>
+  <string name="label_new_route_memo_without_pull" source="新しいメモがあります。">New saved routes available.</string>
+  <string name="label_next" source="次">Next</string>
+  <string name="label_next_line" source="次は">Next</string>
+  <string name="label_no_data" source="情報なし">No information</string>
+  <string name="label_no_route_back" source="戻る">Back</string>
+  <string name="label_no_timetable" source="※時刻にカッコが付いている区間は、ダイヤ情報がない、またはダイヤが未定の区間です。時刻は目安としてお考えください。">Times in parentheses are estimates for sections with no published or finalized timetable.</string>
+  <string name="label_noinfo" source="情報なし">No information</string>
+  <string name="label_now_detour_rail" source="【回避中】">[Avoiding]</string>
+  <string name="label_number_of_car" source="両編成">cars</string>
+  <string name="label_one_way_indicator" source="片道">One-way </string>
+  <string name="label_optimize" source="最適化">Optimize</string>
+  <string name="label_origin" source="出発地">Origin</string>
+  <string name="label_other" source="その他住所">Other address</string>
+  <string name="label_other_candidates_title" source="ほかの候補地">Other suggestions</string>
+  <string name="label_others" source="(その他)">(Other)</string>
+  <string name="label_others_address" source="自宅・職場・その他">Home, work and other places</string>
+  <string name="label_partial_reserved_seat" source="一部指定席">Partly reserved</string>
+  <string name="label_pict_elevator" source="エレベーター">Elevator</string>
+  <string name="label_pict_escalator" source="エスカレーター">Escalator</string>
+  <string name="label_pict_home" source="同じホーム">Same platform</string>
+  <string name="label_pict_info" source="降車位置付近の駅設備をピンクで表示">Facilities near your alighting position are highlighted in pink</string>
+  <string name="label_pict_kaisatsu" source="改札">Ticket gate</string>
+  <string name="label_pict_slope" source="スロープ">Ramp</string>
+  <string name="label_pict_stairs" source="階段">Stairs</string>
+  <string name="label_post_pay" source="後払い">Pay on exit</string>
+  <string name="label_pre_decl_destination" source="※下車バス停を事前申告">Tell the driver your destination stop in advance</string>
+  <string name="label_pre_pay" source="前払い">Pay on boarding</string>
+  <string name="label_preference_alarm" source="乗降アラーム">Boarding / arrival alarm</string>
+  <string name="label_preference_no_setting" source="設定なし">None</string>
+  <string name="label_preference_not_set" source="未設定">Not set</string>
+  <string name="label_preference_seat_kind" source="座席指定">Seat preference</string>
+  <string name="label_preference_ticket_ic" source="ICカード優先">Prefer IC card fares</string>
+  <string name="label_preference_ticket_ic_cheapest" source="ICカード(地方独自)優先">Prefer local IC fares</string>
+  <string name="label_preference_ticket_ic_cheapest_short" source="IC(地方)優先">Local IC first</string>
+  <string name="label_preference_ticket_ic_major" source="ICカード(全国共通)優先">Prefer nationwide IC fares</string>
+  <string name="label_preference_ticket_ic_major_short" source="IC(全国)優先">Nationwide IC first</string>
+  <string name="label_preference_ticket_kind" source="運賃種別">Fare type</string>
+  <string name="label_preference_ticket_normal" source="現金優先">Cash first</string>
+  <string name="label_preferences_about" source="このアプリケーションについて">About this app</string>
+  <string name="label_preferences_delete_yid" source="Yahoo! JAPAN IDの削除">Delete Yahoo! JAPAN ID</string>
+  <string name="label_preferences_help" source="ヘルプ・お問い合わせ">Help and contact</string>
+  <string name="label_preferences_ikendama" source="アプリへのご意見・ご要望">App feedback</string>
+  <string name="label_preferences_ikendama_route" source="ルート結果・情報に関するご指摘">Report route or information issues</string>
+  <string name="label_preferences_login" source="ログイン">Sign in</string>
+  <string name="label_preferences_logout" source="ログアウト">Sign out</string>
+  <string name="label_preferences_passkey_setting" source="パスキー（生体認証）の設定">Passkey settings</string>
+  <string name="label_preferences_review" source="レビューで応援">Rate this app</string>
+  <string name="label_preferences_theme_mode" source="表示モード">Appearance</string>
+  <string name="label_preferences_theme_mode_dark" source="ダーク">Dark</string>
+  <string name="label_preferences_theme_mode_dialog_button_restart" source="決定（アプリ再起動）">Apply and restart</string>
+  <string name="label_preferences_theme_mode_dialog_message_restart" source="表示モードの変更時はアプリを再起動します">The app will restart to change appearance</string>
+  <string name="label_preferences_theme_mode_dialog_title" source="表示モードの選択">Choose appearance</string>
+  <string name="label_preferences_theme_mode_light" source="ライト">Light</string>
+  <string name="label_preferences_theme_mode_system" source="システム準拠">System default</string>
+  <string name="label_preferences_version" source="アプリのバージョン">App version</string>
+  <string name="label_previous" source="前">Previous</string>
+  <string name="label_price_detail" source="定期代(通勤/通学)">Commuter / student pass fares</string>
+  <string name="label_promo_title" source="ログインすると下記の機能がご利用いただけます">Sign in to use these features</string>
+  <string name="label_promo_words" source="Yahoo! JAPAN IDでログイン">Sign in with Yahoo! JAPAN ID</string>
+  <string name="label_rail" source="路線候補">Line suggestions</string>
+  <string name="label_realtime_bus_warning" source="リアルタイムな現在地を表示。実際の位置、時刻と異なる場合があります。">Live location may differ from actual position or time.</string>
+  <string name="label_realtime_congestion_caution" source="ルート中の駅で入場規制の可能性">Entry restrictions may apply at stations on this route</string>
+  <string name="label_recommend_track" source="オススメ乗車位置">Suggested boarding position</string>
+  <string name="label_regist_bus" source="駅・バス停を登録する">Save a station or bus stop</string>
+  <string name="label_regist_line" source="路線を登録する">Save a line</string>
+  <string name="label_regist_station" source="駅を登録する">Save a station</string>
+  <string name="label_registered_route" source="登録したルート">Saved routes</string>
+  <string name="label_research" source="再検索">Search again</string>
+  <string name="label_research_from_nearstation" source="最寄駅から再検索">Search from nearby station</string>
+  <string name="label_result_after_final_next" source="終電後">After last train</string>
+  <string name="label_result_detour_average_search" source="時刻指定せずに迂回路検索">Find detour without a time</string>
+  <string name="label_result_detour_diainfo_push" source="電車の遅れを通知する">Notify train delays</string>
+  <string name="label_result_detour_diainfo_push_detail" source="チェックを入れた路線が対象です">Applies to selected lines</string>
+  <string name="label_result_detour_err_over" source="登録できるのは10件までです">Save up to 10 items</string>
+  <string name="label_result_detour_title" source="迂回路検索設定">Detour settings</string>
+  <string name="label_result_list_count" source="回">times</string>
+  <string name="label_result_list_hour" source="時間">h</string>
+  <string name="label_result_list_min" source="分">min</string>
+  <string name="label_result_list_next" source="一本後">Next service</string>
+  <string name="label_result_list_on_board" source="乗車">Board</string>
+  <string name="label_result_list_other" source="ほか">Other</string>
+  <string name="label_result_list_previous" source="一本前">Previous service</string>
+  <string name="label_result_list_tab_cheap" source="安い順">Cheapest</string>
+  <string name="label_result_list_tab_easy" source="乗換回数順">Fewest transfers</string>
+  <string name="label_result_list_tab_fast" source="早い順">Fastest</string>
+  <string name="label_result_list_yen" source="円"> yen</string>
+  <string name="label_retry" source="再試行">Retry</string>
+  <string name="label_return_normal_search" source="通常の検索結果に戻る">Return to regular results</string>
+  <string name="label_riding_position" source="乗車位置">Boarding position</string>
+  <string name="label_riding_position_facilities" source="降車駅の設備情報">Arrival station facilities</string>
+  <string name="label_riding_position_title" source="乗り換え乗車位置">Best position for transfers</string>
+  <string name="label_ridingposition_direction" source="方面選択">Choose direction</string>
+  <string name="label_ridingposition_title" source="詳細">Details</string>
+  <string name="label_route" source="経路">Route</string>
+  <string name="label_route_loading" source="読み込み中...">Loading...</string>
+  <string name="label_route_map" source="徒歩ルート">Walking route</string>
+  <string name="label_route_num" source="ルート%1$d">Route %1$d</string>
+  <string name="label_same_home" source="同じホーム乗換">Same-platform transfer</string>
+  <string name="label_seach_on_average" source="時刻を指定しないで検索">Search without a time</string>
+  <string name="label_search" source="経路検索">Route search</string>
+  <string name="label_search_cheap" source="最も安い経路">Cheapest route</string>
+  <string name="label_search_detour_rail" source="迂回路検索">Detour search</string>
+  <string name="label_search_easy" source="最も楽な経路">Fewest transfers</string>
+  <string name="label_search_fast" source="最も早い経路">Fastest route</string>
+  <string name="label_search_method" source="検索方法">Search method</string>
+  <string name="label_search_off" source="オフ">Off</string>
+  <string name="label_search_on_first" source="始発を検索">Find first train</string>
+  <string name="label_search_on_last" source="終電を検索">Find last train</string>
+  <string name="label_search_on_nowtime" source="起動時の時刻で検索">Search using current time</string>
+  <string name="label_search_on_setting_time" source="○○時○○分着で検索">Search by specified arrival time</string>
+  <string name="label_search_on_setting_time_template" source="%1$2d時%2$2d分%3$sで検索">Search at %1$2d:%2$2d %3$s</string>
+  <string name="label_search_result_alarm" source="アラーム">Alarm</string>
+  <string name="label_search_result_detail_diainfo_date" source="%1$02d:%2$02d現在">As of %1$02d:%2$02d</string>
+  <string name="label_search_result_diainfo" source="遅延・運休あり">Delays or cancellations</string>
+  <string name="label_search_result_diainfo_date" source="(%1$02d月%2$02d日%3$02d:%4$02d現在)">(as of %1$02d/%2$02d %3$02d:%4$02d)</string>
+  <string name="label_search_result_diainfo_detail" source="詳細">Details</string>
+  <string name="label_search_result_diainfo_detour" source="迂回路">Detour</string>
+  <string name="label_search_result_eventinfo" source="混雑予報あり">Crowding forecast available</string>
+  <string name="label_search_result_map" source="マップ">Map</string>
+  <string name="label_search_result_memo" source="ルートメモに保存">Save route</string>
+  <string name="label_search_result_myroute" source="マイルートに登録">Add to My Routes</string>
+  <string name="label_search_result_next" source="次のルート">Next route</string>
+  <string name="label_search_result_previous" source="前のルート">Previous route</string>
+  <string name="label_search_result_regular_green_car_annotation" source="普通列車グリーン車連結の列車です。ご利用には乗車券・定期券のほか、普通列車グリーン券が必要です。">This local train has a Green Car. A separate Green Car ticket is required in addition to a base-fare ticket or commuter pass.</string>
+  <string name="label_search_result_screenshot" source="スクリーンショット">Screenshot</string>
+  <string name="label_search_result_share" source="LINE・メールで送る">Send via LINE or email</string>
+  <string name="label_search_result_ticket_ic" source="IC優先">IC first</string>
+  <string name="label_search_result_ticket_normal" source="現金優先">Cash first</string>
+  <string name="label_search_result_variation" source="発着地に周辺の駅・バス停を含めた検索結果です">Results include nearby stations and bus stops</string>
+  <string name="label_search_type" source="日時設定">Date and time</string>
+  <string name="label_search_type_average" source="時刻指定なし">Any time</string>
+  <string name="label_search_type_average_detour" source="迂回路選択時は時刻指定が出来ません">A time cannot be set for detours</string>
+  <string name="label_search_type_average_long" source="経路候補検索(時刻指定なし)">Route options (any time)</string>
+  <string name="label_search_type_current_start" source="現在時刻">Now</string>
+  <string name="label_search_type_detour_long" source="迂回路(時刻指定なし)">Detours (any time)</string>
+  <string name="label_search_type_first" source="始発">First train</string>
+  <string name="label_search_type_goal" source="到着">Arrive</string>
+  <string name="label_search_type_last" source="終電">Last train</string>
+  <string name="label_search_type_start" source="出発">Depart</string>
+  <string name="label_season_info_warning_text" source="%1$s特急料金は%2$sの料金">%1$s express surcharge uses the %2$s fare</string>
+  <string name="label_seat_free" source="自由席優先">Non-reserved</string>
+  <string name="label_seat_green" source="グリーン車優先">Green Car</string>
+  <string name="label_seat_reserved" source="指定席優先">Reserved</string>
+  <string name="label_second" source="秒後">seconds later</string>
+  <string name="label_second_only" source="秒">sec</string>
+  <string name="label_second_over" source="秒経過">seconds elapsed</string>
+  <string name="label_share_download" source="↓アプリのダウンロードはこちらから">Download the app here</string>
+  <string name="label_share_note" source="※定期代やチケット設定が含まれた検索結果は個人の設定に依存するため、上記の文面やリンク先の経路・料金が、送信元と受取先で一致しない場合がございますのでご注意ください。">Pass and ticket preferences are personal settings. Shared route details and fares may therefore differ between sender and recipient.</string>
+  <string name="label_share_route_title" source="移動(%1$s)">Travel (%1$s)</string>
+  <string name="label_share_route_url" source="★PC・スマホでこの検索結果を見る">View these results on a computer or phone</string>
+  <string name="label_shorcut_desc" source="以下の設定で作成します">Create with these settings</string>
+  <string name="label_shorcut_title" source="ショートカットの作成">Create shortcut</string>
+  <string name="label_shortcut_message" source="歩く速度、条件設定も指定した内容で検索を行います">Search using the specified walking speed and route preferences</string>
+  <string name="label_shortcut_start_action" source="ショートカット起動動作">Shortcut action</string>
+  <string name="label_spacial_train" source="注記">Notes</string>
+  <string name="label_special_train_info" source="※臨時ダイヤは当日運休になる場合があります">Special services may be canceled on the day of travel</string>
+  <string name="label_special_train_info_colon" source="：該当列車に関する注記">: Notes for this train</string>
+  <string name="label_spot" source="スポット">Place</string>
+  <string name="label_sta_type_insert" source="乗換不要">No transfer needed</string>
+  <string name="label_sta_type_through" source="通過">Passes through</string>
+  <string name="label_start" source="発"> D</string>
+  <string name="label_start_name" source="出発">Depart</string>
+  <string name="label_start_name_colon" source="出発地：">From: </string>
+  <string name="label_start_name_long" source="出発地">Origin</string>
+  <string name="label_static_route_stop" source="※ご利用いただけません">Not available</string>
+  <string name="label_station" source="駅">Station</string>
+  <string name="label_station_airport" source="駅・空港">Stations / airports</string>
+  <string name="label_station_candidate" source="駅候補">Station suggestions</string>
+  <string name="label_station_diagram" source="時刻表">Timetable</string>
+  <string name="label_stop_station_count" source="%1$d駅">%1$d stn</string>
+  <string name="label_tab_timetable_memo" source="マイ時刻表">My timetables</string>
+  <string name="label_tab_timetable_memo_edit" source="マイ時刻表の編集">Edit My timetables</string>
+  <string name="label_tab_timetable_search" source="駅、バス停から検索">Find a station or bus stop</string>
+  <string name="label_teiki" source="定期代">Pass fare</string>
+  <string name="label_teiki1" source="1ヵ月">1 month</string>
+  <string name="label_teiki3" source="3ヵ月">3 months</string>
+  <string name="label_teiki6" source="6ヵ月">6 months</string>
+  <string name="label_teiki_bussiness" source="通勤">Commuter</string>
+  <string name="label_teiki_detail" source="内訳">Breakdown</string>
+  <string name="label_teiki_exp" source="新幹線定期券の登録">Save Shinkansen pass</string>
+  <string name="label_teiki_fare_appeal_description" source="同じルートをよく検索している方におすすめです">Recommended if you frequently search the same route</string>
+  <string name="label_teiki_fare_appeal_description_sub" source="※定期料金の確認画面に移動">Opens commuter pass fare details</string>
+  <string name="label_teiki_fare_appeal_title" source="定期券の料金を確認してみませんか？">Check whether a commuter pass saves money?</string>
+  <string name="label_teiki_highschool" source="通学(高校)">Student (high school)</string>
+  <string name="label_teiki_highschool_button" source="通学&#10;(高校)">Student
+(high school)</string>
+  <string name="label_teiki_juniorhighschool" source="通学(中学)">Student (junior high)</string>
+  <string name="label_teiki_juniorhighschool_button" source="通学&#10;(中学)">Student
+(junior high)</string>
+  <string name="label_teiki_name" source="定期">Pass</string>
+  <string name="label_teiki_no_data" source="このルートに%1$s定期券の&#10;情報はありません">No %1$s pass information is available for this route</string>
+  <string name="label_teiki_off_peak" source="オフピーク">Off-peak</string>
+  <string name="label_teiki_off_peak_about" source="オフピーク定期券について">About off-peak passes</string>
+  <string name="label_teiki_off_peak_button" source="オフ&#10;ピーク">Off-peak</string>
+  <string name="label_teiki_off_peak_info" source="「オフピーク定期券」は、平日朝のピーク時間帯以外に利用できる通勤定期券です。">Off-peak commuter passes are valid outside the weekday morning peak period.</string>
+  <string name="label_teiki_off_peak_unavailable" source="※オフピーク定期券は登録対象外です">Off-peak passes cannot be saved</string>
+  <string name="label_teiki_peak_time_note" source="JRとの連絡定期券を購入した場合、JR区間以外でも「ピーク時間帯」がある可能性があります。">A combined JR pass may also have peak periods on non-JR sections.</string>
+  <string name="label_teiki_peak_time_title" source="ピーク時間帯（定期利用不可、IC普通運賃が必要）">Peak period (pass invalid; standard IC fare required)</string>
+  <string name="label_teiki_price" source="%1$s円">%1$s yen</string>
+  <string name="label_teiki_price_header" source="定期代">Pass fare</string>
+  <string name="label_teiki_round_trip_compare_header" source="定期購入がお得な目安">When a pass saves money</string>
+  <string name="label_teiki_round_trip_compare_note" source="※「定期購入がお得な目安」は、ICカードまたは普通乗車券表示区間を往復利用した場合に、定期券の購入金額と同額になるまでに必要な往復回数を表しています。">The break-even number is the round trips at the displayed IC or paper-ticket fare needed to equal the pass price.</string>
+  <string name="label_teiki_round_trip_count" source="%1$d往復">%1$d round trips</string>
+  <string name="label_teiki_search_result" source="定期区間候補">Pass coverage options</string>
+  <string name="label_teiki_setting_no_data" source="このルートは定期券がない区間か、登録できない区間が含まれています。 他の区間をお試しください。">This route includes sections with no pass or sections that cannot be saved. Try other sections.</string>
+  <string name="label_teiki_total" source="合計">Total</string>
+  <string name="label_teiki_university" source="通学(大学)">Student (university)</string>
+  <string name="label_teiki_university_button" source="通学&#10;(大学)">Student
+(university)</string>
+  <string name="label_teiti_search" source="定期区間検索">Find pass coverage</string>
+  <string name="label_teiti_search_title" source="ルート検索して定期区間を登録してください&#10;対象は鉄道駅のみになります">Search a route to save pass coverage. Only railway stations are supported.</string>
+  <string name="label_time_minute" source="%1$s分">%1$s min</string>
+  <string name="label_time_minute_stop_count" source="%1$s分&#10;(%2$s駅)">%1$s min
+(%2$s stn)</string>
+  <string name="label_timer_goal" source="通勤・通学先">Work / school</string>
+  <string name="label_timetable_goto" source="行">bound</string>
+  <string name="label_timetable_memo_save" source="「マイ時刻表」から確認できます。">Find it in My timetables.</string>
+  <string name="label_timetable_memo_save_delete" source="%1$d件を削除して、時刻表を登録しました。「マイ時刻表」から確認できます。">Deleted %1$d items and saved the timetable. Find it in My timetables.</string>
+  <string name="label_title_after" source="%1$sの%2$d本後">%1$s (+%2$d)</string>
+  <string name="label_title_before" source="%1$sの%2$d本前">%1$s (-%2$d)</string>
+  <string name="label_title_del_history" source="検索履歴の削除">Delete search history</string>
+  <string name="label_title_edit_history" source="入力履歴編集">Edit input history</string>
+  <string name="label_title_history" source="検索履歴">History</string>
+  <string name="label_title_my_route" source="マイルート">My Routes</string>
+  <string name="label_title_my_route_edit" source="マイルートの編集">Edit My Routes</string>
+  <string name="label_title_quick" source="現在地からのルート">Routes from here</string>
+  <string name="label_title_route_memo" source="ルートメモ">Saved routes</string>
+  <string name="label_title_route_memo_edit" source="ルートメモの編集">Edit saved routes</string>
+  <string name="label_title_start_time" source="%1$s発に時刻変更">Depart at %1$s</string>
+  <string name="label_title_start_time_no" source="時刻変更">Change time</string>
+  <string name="label_top_tutorial_next" source="次のページ">Next page</string>
+  <string name="label_top_tutorial_previous" source="前のページ">Previous page</string>
+  <string name="label_total_connection" source="乗換">Transfers</string>
+  <string name="label_total_distance" source="距離">Distance</string>
+  <string name="label_total_price" source="運賃">Fare</string>
+  <string name="label_total_time" source="所要時間">Duration</string>
+  <string name="label_track" source="番線">Platform</string>
+  <string name="label_track_back" source="後">Rear</string>
+  <string name="label_track_back2" source="後方">Rear</string>
+  <string name="label_track_front" source="前">Previous</string>
+  <string name="label_track_front2" source="前方">Front</string>
+  <string name="label_track_middle" source="中">Middle</string>
+  <string name="label_track_middle2" source="中央">Middle</string>
+  <string name="label_train_no" source="号">No.</string>
+  <string name="label_transfer_count" source="乗換%1$d回">Transfers: %1$d</string>
+  <string name="label_unit_edge_min" source="分">min</string>
+  <string name="label_update" source="更新日">Updated</string>
+  <string name="label_variation_research" source="周辺の駅・バス停を含めて再検索">Search nearby stations and stops</string>
+  <string name="label_via" source="経由:">Via:</string>
+  <string name="label_via1" source="経由1">Via 1</string>
+  <string name="label_via2" source="経由2">Via 2</string>
+  <string name="label_via3" source="経由3">Via 3</string>
+  <string name="label_via_colon" source="経由駅：">Via: </string>
+  <string name="label_via_num" source="経由%1$d">Via %1$d</string>
+  <string name="label_voice_placeholder_text_pattern1" source="・〇〇から〇〇まで&#10;・〇〇駅">From [origin] to [destination]
+[Station name]</string>
+  <string name="label_voice_placeholder_text_pattern2" source="〇〇から〇〇まで">From [origin] to [destination]</string>
+  <string name="label_walk" source="徒歩">Walk</string>
+  <string name="label_walk_check" source="徒歩(同駅)">Walk (same station)</string>
+  <string name="label_walk_in_time" source="徒歩%1$d分">Walk %1$d min</string>
+  <string name="label_walk_in_time_same_station" source="徒歩(同駅)%1$s分">Walk (same station) %1$s min</string>
+  <string name="label_walk_route" source="徒歩ルート">Walking route</string>
+  <string name="label_walk_route_after_get_off_in_time" source="降りてからの徒歩%1$s分">Walk after alighting %1$s min</string>
+  <string name="label_walk_route_from_exit_in_time" source="出口からの徒歩%1$s分">Walk from exit %1$s min</string>
+  <string name="label_walk_route_gate_in" source="入場：%1$s">Enter: %1$s</string>
+  <string name="label_walk_route_gate_out" source="出場：%1$s">Exit: %1$s</string>
+  <string name="label_walk_route_in_station" source="駅内徒歩">Walk inside station</string>
+  <string name="label_walk_route_in_station_in_time" source="駅内徒歩%1$s分">Walk inside station %1$s min</string>
+  <string name="label_walk_route_in_time" source="徒歩%1$s分">Walk %1$s min</string>
+  <string name="label_walk_route_in_time_short" source="徒歩%1$s分">Walk %1$s min</string>
+  <string name="label_walk_speed_fast" source="急いで">Fast</string>
+  <string name="label_walk_speed_normal" source="少し急いで">Slightly fast</string>
+  <string name="label_walk_speed_slow" source="少しゆっくり">Slightly slow</string>
+  <string name="label_walk_speed_title" source="乗換・歩く速度">Walking speed</string>
+  <string name="label_walk_speed_very_slow" source="ゆっくり">Slow</string>
+  <string name="label_way_in_use" source="利用手段">Transport modes</string>
+  <string name="label_work" source="職場">Work</string>
+  <string name="label_yahoo_calendar" source="Yahoo!カレンダーに登録">Add to Yahoo! Calendar</string>
+  <string name="label_yahoo_calendar_close" source="閉じる">Close</string>
+  <string name="label_yahoo_calendar_confirm" source="確認する">Confirm</string>
+  <string name="label_yahoo_calendar_event_summary" source="移動">Travel</string>
+  <string name="label_yahoo_calendar_fail_message" source="時間を置いて再度お試しください。">Please try again later.</string>
+  <string name="label_yahoo_calendar_fail_title" source="登録できませんでした">Could not save</string>
+  <string name="label_yahoo_calendar_success_message" source="Yahoo! JAPANアプリで確認できます。">View it in the Yahoo! JAPAN app.</string>
+  <string name="label_yahoo_calendar_success_title" source="登録しました">Saved</string>
+  <string name="label_yen" source="円"> yen</string>
+  <string name="localpush_login_01_msg" source="アプリでスムーズに移動できます">Travel smoothly with the app</string>
+  <string name="localpush_login_01_title" source="おでかけ前に電車の遅れをチェック！">Check train delays before leaving!</string>
+  <string name="localpush_login_02_msg" source="最適なルートをご案内します！">Find the best route for your trip!</string>
+  <string name="localpush_login_02_title" source="あなたの移動をサポート">Helping you get around</string>
+  <string name="localpush_login_03_msg" source="電車の遅延や運休を通知できます">Receive train delay and cancellation alerts</string>
+  <string name="localpush_login_03_title" source="帰りの電車は遅延していませんか？">Is your train home delayed?</string>
+  <string name="localpush_logout_01_msg" source="便利な行き方を案内します！">Find a convenient way to travel!</string>
+  <string name="localpush_logout_01_title" source="あなたのルート、最適ですか？">Is your route the best option?</string>
+  <string name="localpush_logout_02_msg" source="電車の遅延や運休を通知できます">Receive train delay and cancellation alerts</string>
+  <string name="localpush_logout_02_title" source="帰りの電車は遅延していませんか？">Is your train home delayed?</string>
+  <string name="localpush_logout_03_msg" source="最適なルートをご案内します！">Find the best route for your trip!</string>
+  <string name="localpush_logout_03_title" source="あなたの移動をサポート">Helping you get around</string>
+  <string name="location" source="位置情報">Location</string>
+  <string name="location_permission_dialog_message" source="位置情報の利用が許可されていません。&#10;この機能を使うには「権限」→「位置情報」の権限を許可してください。">Location permission is disabled. Allow location access under Permissions in device settings.</string>
+  <string name="location_permission_dialog_title" source="位置情報の許可">Location permission</string>
+  <string name="location_permit_accept" source="このアプリでは、現在地からのルートを検索するために、位置情報を取得します。&lt;br /&gt; また、混雑機能の精度改善のため、アプリを閉じているときや、使用していないときも位置情報を取得する場合があります。">This app uses location to search routes from your current position.&lt;br&gt;Location may also be collected while the app is closed or unused to improve crowding estimates.</string>
+  <string name="location_permit_msg" source="取得した位置情報は広告の最適化など、他の当社のサービス等の提供のためにも利用させていただきます。詳しくは「LINK_USE」をご確認ください。&lt;br /&gt; この設定はYahoo! JAPANサービスで共通の設定となっており「LINK_PRIVACY」からいつでも変更可能です。">Location information is also used to provide other company services, including ad personalization. See LINK_USE.&lt;br&gt;This setting is shared across Yahoo! JAPAN services and can be changed at LINK_PRIVACY.</string>
+  <string name="location_permit_next_btn" source="次へ">Next</string>
+  <string name="location_permit_privacy_text" source="プライバシー設定">Privacy settings</string>
+  <string name="location_permit_sub_title" source="「Y!乗換案内」に位置情報へのアクセスを&lt;br /&gt; ACCEPTしてください。">ACCEPT location access for Y! Transit.</string>
+  <string name="location_permit_title_background" source="混雑精度の改善にご協力ください">Help improve crowding estimates</string>
+  <string name="location_permit_title_foreground" source="現在地からルート検索できます">Find routes from your current location</string>
+  <string name="location_permit_use_text" source="位置情報の利用について">About location use</string>
+  <string name="location_use_info" source="LINEヤフー株式会社の位置情報の利用について">How LY Corporation uses location information</string>
+  <string name="login_button_address" source="定期区間を登録">Save pass coverage</string>
+  <string name="login_button_bus" source="バス停を登録">Save a bus stop</string>
+  <string name="login_button_spot" source="スポットを登録">Save a place</string>
+  <string name="login_button_station" source="駅を登録">Save a station</string>
+  <string name="login_dialog_message" source="ログインしてください">Please sign in.</string>
+  <string name="login_dialog_positive_button" source="ログイン">Sign in</string>
+  <string name="login_dialog_title" source="通知登録にはログインが必要です">Sign in to enable notifications</string>
+  <string name="login_from_setting_dialog_message" source="設定画面よりログインしてください。">Please sign in from Settings.</string>
+  <string name="lp_error_reload_button_text" source="再読み込み">Reload</string>
+  <string name="lp_error_text" source="エラーが発生しました&#10;再度お試しください">An error occurred. Please try again.</string>
+  <string name="lp_loading_text" source="ウェブサイトを読み込み中">Loading website</string>
+  <string name="maintenance_msg" source="ご不便をおかけいたしますが、期間中はメモの保存ができません。">Saved routes cannot be added during maintenance. Thank you for your patience.</string>
+  <string name="maintenance_msg_title" source="メンテナンス中です">Under maintenance</string>
+  <string name="map_display_title" source="地図">Map</string>
+  <string name="map_longpress_desc" source="地図を長押しすると地点を指定できます。">Touch and hold the map to select a location.</string>
+  <string name="map_route_title" source="徒歩ルート">Walking route</string>
+  <string name="mapbox_app_info_location" source="位置情報取得について">About location collection</string>
+  <string name="mapbox_app_info_terms" source="LINEヤフー地図ガイドライン">LY Corporation map guidelines</string>
+  <string name="mapbox_app_info_title" source="このアプリについて">About this app</string>
+  <string name="mapbox_copyright_text" source="&lt;a href=https://www.mapbox.com/about/maps/&gt;©Mapbox&lt;/a&gt; &lt;a href=https://www.openstreetmap.org/about/&gt;©OpenStreetMap&lt;/a&gt; &lt;a href=https://map.yahoo.co.jp/promo/app/license/attribution.html&gt;©LY Corporation&lt;/a&gt; &lt;a href=https://map.yahoo.co.jp/promo/lymap_guideline.html&gt;LINEヤフー地図ガイドライン&lt;/a&gt;">&lt;a href=https://www.mapbox.com/about/maps/&gt;©Mapbox&lt;/a&gt; &lt;a href=https://www.openstreetmap.org/about/&gt;©OpenStreetMap&lt;/a&gt; &lt;a href=https://map.yahoo.co.jp/promo/app/license/attribution.html&gt;©LY Corporation&lt;/a&gt; &lt;a href=https://map.yahoo.co.jp/promo/lymap_guideline.html&gt;LY Corporation map guidelines&lt;/a&gt;</string>
+  <string name="mapbox_location_detail" source="詳細を確認する">View details</string>
+  <string name="mapbox_location_msg" source="本アプリの地図情報は Mapbox社と連携してお届けします。&#10;Mapbox社は同社のサービスの提供および改善等のために、位置情報を取得し、取得した情報を、同社のプライバシーポリシーに従って利用します。お客様が当該取得を許可しない場合は「取得を許可しない」を選択してください。">Maps are provided in cooperation with Mapbox. Mapbox collects location to provide and improve its services, using the information under its privacy policy. Select "Do not allow" to decline collection.</string>
+  <string name="mapbox_location_no" source="取得を許可しない">Do not allow</string>
+  <string name="mapbox_location_yes_off" source="取得を許可する">Allow collection</string>
+  <string name="mapbox_location_yes_on" source="取得を引き続き許可する">Continue allowing collection</string>
+  <string name="memo_alarm_time" source="発着の%1$s分前にアラームを通知">Notify %1$s min before departure / arrival</string>
+  <string name="menu_around" source="周辺の駅">Nearby stations</string>
+  <string name="menu_login" source="ログイン">Sign in</string>
+  <string name="menu_teiki_search" source="定期区間登録">Save pass coverage</string>
+  <string name="menu_teiki_set" source="定期区間の設定">Pass coverage settings</string>
+  <string name="menu_timer" source="通勤タイマー">Commute timer</string>
+  <string name="menu_timer_title" source="通勤タイマー">Commute timer</string>
+  <string name="menu_title" source="乗換案内">Transit</string>
+  <string name="msg_clipboard" source="クリップボードにコピーしました。">Copied to clipboard.</string>
+  <string name="msg_error_teiki_delete" source="定期区間の削除に失敗しました。">Could not delete pass coverage.</string>
+  <string name="msg_extract_train" source="年末年始の臨時ダイヤは「周辺の駅」からご確認ください。">Check special year-end and New Year schedules from Nearby stations.</string>
+  <string name="msg_optimize_countdown" source="最寄駅の時刻表データをこのAndroidOSに最適化中...">Optimizing nearby-station timetables for this Android version...</string>
+  <string name="msg_skin_delete_data" source="テーマ画像を削除します。">Delete theme images.</string>
+  <string name="msg_skin_delete_desc" source="テーマの長押しでダウンロードデータを削除できます。">Touch and hold a theme to delete downloaded data.</string>
+  <string name="mtrl_picker_confirm" source="OK">OK</string>
+  <string name="mtrl_timepicker_confirm" source="OK">OK</string>
+  <string name="my_timetable_dialog_next" source="次へ">Next</string>
+  <string name="my_timetable_dialog_over_limit_edit" source="編集へ進む">Edit timetables</string>
+  <string name="mypage_address_hint" source="駅、バス停、施設を入力">Enter station, bus stop or place</string>
+  <string name="mypage_cloud_edit_failed_title" source="完了できません">Cannot complete</string>
+  <string name="mypage_detour" source="【迂回路】">[Detour]</string>
+  <string name="mypage_loading_text" source="少々お待ちください...">Please wait...</string>
+  <string name="mypage_local_memo_notice" source="↓%1$s件のメモは同期するとパソコンなどでも確認できます">Sync %1$s saved routes to view them on your computer and other devices</string>
+  <string name="mypage_onetap_home_no_msg" source="自宅を設定すると、ワンタップで現在地からのルートを検索できます。">Set Home to find routes from your current location with one tap.</string>
+  <string name="mypage_onetap_office_no_msg" source="職場を設定すると、ワンタップで現在地からのルートを検索できます。">Set Work to find routes from your current location with one tap.</string>
+  <string name="mypage_onetap_other_no_msg" source="その他の場所を設定すると、ワンタップで現在地からのルートを検索できます。">Save another place to find routes from your current location with one tap.</string>
+  <string name="mypage_search_memo_crash" source="このルートはメモ保存できませんでした">Could not save this route.</string>
+  <string name="mypage_search_memo_sort_crash" source="サーバーに新しいデータがあります。&#10;お手数ですが同期を行なってから再度お試しください。">Newer data is available on the server. Sync and try again.</string>
+  <string name="mypage_sync_failed_exceeded_limit" source="あなたのID上に登録できるのは%s件までです。1件のメモを削除してください。">Your account can save up to %s items. Delete one saved route.</string>
+  <string name="mypage_sync_failed_message" source="時間をおいて再度お試しください。">Please try again later.</string>
+  <string name="mypage_sync_failed_title" source="同期できません">Cannot sync</string>
+  <string name="mypage_sync_finished" source="同期しました。">Synced.</string>
+  <string name="myroute_change_route" source="経路入れ替え">Replace route</string>
+  <string name="myroute_desc" source="長押しで登録ルートの駅名と条件を変更して検索できます。">Touch and hold to change the stations and preferences of a saved route and search again.</string>
+  <string name="navi_auth_err_message" source="ログイン認証に問題が発生しました。再ログインしてから検索をお試しください。">Sign-in authentication failed. Sign in again before searching.</string>
+  <string name="navi_default_err_message" source="予期せぬエラーが発生しました。&#10;時間をおいてから再度お試しください。">An unexpected error occurred. Please try again later.</string>
+  <string name="navi_default_err_message_login" source="予期せぬエラーが発生しました。&#10;時間をおいてから再度検索、または再ログインをお試しください。">An unexpected error occurred. Try searching or signing in again later.</string>
+  <string name="near_me_button_text" source="配車を予約">Book a ride</string>
+  <string name="near_me_header" source="空港シェア乗り">Shared airport shuttle</string>
+  <string name="near_me_subtext" source="エリア別定額で事前に配車予約が可能">Book in advance at a fixed fare for your area</string>
+  <string name="near_me_title_part2" source="/ ニアミー">/ NearMe</string>
+  <string name="no_share_app" source="共有できるアプリがありません。">No compatible sharing app.</string>
+  <string name="normal_congestion_pr" source="混雑傾向がわかるようになりました">Crowding trends are now available</string>
+  <string name="normal_congestion_warning" source="検索数を基にした1日の乗車傾向を時間別に表示&#10;路線・方面ごとに混雑度の基準は異なります">Hourly travel trends are estimated from search counts. Crowding scales vary by line and direction.</string>
+  <string name="normal_fare_title" source="運賃">Fare</string>
+  <string name="notice_dialog_title" source="注意">Notice</string>
+  <string name="notice_forecast_fare" source="※予測運賃&#10;2026年春の運賃改定後の予測運賃です。実際の運賃と差異がある可能性があります。">Estimated fare after the spring 2026 fare changes. Actual fares may differ.</string>
+  <string name="notice_msg_battery_saver" source="バッテリーセーバーがオンになっている場合はバイブレーションが作動しません。">Vibration is disabled when Battery Saver is on.</string>
+  <string name="notification_daily_description" source="登録した路線の運行情報を、通勤・通学など毎日の移動時間にあわせて、指定された時間にまとめてお知らせします">Receive combined updates for saved lines at a chosen time around your daily commute.</string>
+  <string name="notification_daily_going" source="行きの通知">Outbound notifications</string>
+  <string name="notification_daily_off" source="通知しない">Do not notify</string>
+  <string name="notification_daily_on" source="通知する(%1$s:%2$sごろ)">Notify around %1$s:%2$s</string>
+  <string name="notification_daily_return" source="帰りの通知">Return notifications</string>
+  <string name="notification_daily_time" source="通知の時間帯">Notification time</string>
+  <string name="notification_daily_title" source="運行情報のまとめ通知">Service summaries</string>
+  <string name="notification_db_error_text" source="お手数ですがこの通知をタップして、データを削除してからお試しください">Tap this notification, delete the affected data and try again.</string>
+  <string name="notification_db_error_title" source="アプリ内のデータが破損しております">App data is corrupted</string>
+  <string name="notification_going_title" source="行きの通知">Outbound notifications</string>
+  <string name="notification_immediate" source="即時通知">Instant alerts</string>
+  <string name="notification_immediate_description" source="登録した路線の運行情報に更新があると、即時にお知らせします&#10;通知を送る時間帯 / 曜日と、通知する路線を選択できます">Receive immediate updates for saved lines. Choose lines, days and time periods for notifications.</string>
+  <string name="notification_immediate_off" source="通知しない">Do not notify</string>
+  <string name="notification_immediate_on" source="通知する">Notify</string>
+  <string name="notification_immediate_title" source="運行情報の即時通知">Instant service alerts</string>
+  <string name="notification_msg_01" source="「乗換が間に合わなかった」そんな時は...">Missed a connection? Here is what to do...</string>
+  <string name="notification_msg_02" source="「眠ってたら乗り過ごした」そんな時は...">Missed your stop while sleeping? Here is what to do...</string>
+  <string name="notification_msg_03" source="「眠ってたら乗り過ごした」そんな時は...">Missed your stop while sleeping? Here is what to do...</string>
+  <string name="notification_msg_04" source="電車が運転見合わせで遅れた・・・そんな時には運行情報登録！">Train delayed or suspended? Save the line for service alerts!</string>
+  <string name="notification_msg_04_no_login" source="「あれ？バス停はどこだ？」そんな時は...">Cannot find the bus stop? Here is what to do...</string>
+  <string name="notification_msg_add_search" source="%1$s〜%2$sを1タップで検索">Search %1$s to %2$s with one tap</string>
+  <string name="notification_off_denied" source="端末が通知オフ">Notifications disabled on device</string>
+  <string name="notification_permission_dialog_message" source="通知機能の利用が許可されていません。&#10;この機能を使うには設定の「通知」の権限を許可してください。">Notification permission is disabled. Allow notifications in device settings to use this feature.</string>
+  <string name="notification_permission_dialog_title" source="通知の許可">Notification permission</string>
+  <string name="notification_regist_rail" source="登録路線の管理">Manage saved lines</string>
+  <string name="notification_returning_title" source="帰りの通知">Return notifications</string>
+  <string name="notification_title" source="便利な機能をご紹介！">Discover useful features!</string>
+  <string name="notification_title_add_diainfo" source="よく使う路線の遅延を通知する">Get delays for frequent lines</string>
+  <string name="notification_title_add_myroute" source="よく使うルートを登録する">Save frequent routes</string>
+  <string name="notification_title_add_shortcut" source="ショートカットを設定する">Create a shortcut</string>
+  <string name="notification_title_start" source="運行情報の登録忘れていませんか？">Have you set up service alerts?</string>
+  <string name="notification_title_start_no_login" source="乗換案内をもっと活用してみよう！">Get more from Transit!</string>
+  <string name="notification_walk_navi" source="%1$s〜%2$sまでのナビをする">Navigate from %1$s to %2$s</string>
+  <string name="on_boarding_btn_regist" source="通知登録する">Enable notifications</string>
+  <string name="on_boarding_btn_search" source="路線を探してみる">Find a line</string>
+  <string name="on_boarding_close" source="あとで設定する">Set up later</string>
+  <string name="on_boarding_loading" source="読み込み中…">Loading...</string>
+  <string name="on_boarding_no_granted_loc_perm_msg" source="ご利用路線の通知を登録をすると、電車が遅れたり、止まったりした時もすぐ通知でお知らせします。&lt;br /&gt; まずは、あなたが利用している路線を探してみましょう！">Save the lines you use to receive train delay and cancellation alerts.&lt;br&gt;Start by finding your lines!</string>
+  <string name="on_boarding_title" source="通知登録で電車の遅れ・運休をお知らせします">Get notifications for train delays and cancellations</string>
+  <string name="one_tap_search_img_description" source="ワンタップ検索の機能説明画像">Illustration explaining one-tap search</string>
+  <string name="one_tap_search_text1" source="検索結果の">Shows your route quickly by</string>
+  <string name="one_tap_search_text2" source="一覧画面をスキップ"> skipping the results list</string>
+  <string name="one_tap_search_text3" source="してすばやくルートを表示する機能です"> and opening route details directly</string>
+  <string name="one_tap_search_title" source="ワンタップ検索とは">What is one-tap search?</string>
+  <string name="others_edit_history" source="入力履歴">Input history</string>
+  <string name="others_privacy_center" source="プライバシーセンター">Privacy center</string>
+  <string name="others_privacy_policy" source="プライバシーポリシー">Privacy policy</string>
+  <string name="others_san" source="さん"> </string>
+  <string name="others_software" source="ソフトウエアガイドライン">Software guidelines</string>
+  <string name="others_title_data" source="データ管理">Data management</string>
+  <string name="others_title_info" source="情報">Information</string>
+  <string name="others_title_yid" source="Yahoo! JAPAN ID情報">Yahoo! JAPAN ID information</string>
+  <string name="player_replay" source="再生する">Play</string>
+  <string name="player_show_detail" source="詳しくはこちら">Learn more</string>
+  <string name="player_show_download" source="ダウンロード">Download</string>
+  <string name="player_show_install" source="インストール">Install</string>
+  <string name="preference_title" source="設定">Settings</string>
+  <string name="preferences_del_address" source="を削除してよろしいですか？">: delete this item?</string>
+  <string name="preferences_del_teiki" source="定期区間を削除してよろしいですか？">Delete pass coverage?</string>
+  <string name="promo_word01" source="Yahoo! JAPAN IDでログインすると&#10; 便利な機能がご利用できます。&#10;&#10; ぜひお試しください！">Sign in with a Yahoo! JAPAN ID to use additional features. Give it a try!</string>
+  <string name="promo_word02" source="保存したルートをYahoo! JAPAN IDで共有&#10; ログインしてもっと便利に！ &#10; &#10; ぜひお試しください！">Sync saved routes with your Yahoo! JAPAN ID. Sign in for added convenience!</string>
+  <string name="promo_word03" source="Yahoo! JAPAN IDでログインすると、&#10; 検索結果で定期代を考慮した運賃がわかる&#10; &#10; 定期券をお持ちの方にオススメ！">Sign in with a Yahoo! JAPAN ID to see fares accounting for your commuter pass. Recommended for pass holders!</string>
+  <string name="promo_word04" source="Yahoo! JAPAN IDでログインすると、&#10; プッシュ通知で運行情報をお知らせします&#10; &#10; 通勤・通学・大事な約束にも、&#10; コレさえあれば遅刻を回避！">Sign in with a Yahoo! JAPAN ID for push service alerts, helping you avoid delays on commutes and important trips.</string>
+  <string name="promo_word05" source="ログインすると&#10; 便利な機能がご利用できます。&#10;ぜひお試しください！">Sign in to use additional features. Give it a try!</string>
+  <string name="push_congestion_appeal_text" source="%1$sの混雑度をシェアしよう！">Share crowding on %1$s!</string>
+  <string name="push_congestion_appeal_title" source="乗車時の混雑度はいかがでしたか？">How crowded was your ride?</string>
+  <string name="push_day_friday" source="金曜日">Friday</string>
+  <string name="push_day_monday" source="月曜日">Monday</string>
+  <string name="push_day_saturday" source="土曜日">Saturday</string>
+  <string name="push_day_sunday" source="日曜日">Sunday</string>
+  <string name="push_day_thursday" source="木曜日">Thursday</string>
+  <string name="push_day_tuesday" source="火曜日">Tuesday</string>
+  <string name="push_day_wednesday" source="水曜日">Wednesday</string>
+  <string name="push_diainfo" source="運行情報通知">Service notifications</string>
+  <string name="push_diainfo_page_info" source="端末の設定により、通知がされない場合があります。">Device settings may prevent notifications.</string>
+  <string name="push_diainfo_page_info_sub01" source="詳しくは">For details, read</string>
+  <string name="push_diainfo_page_info_sub02" source="「通知のご注意」"> "Notification notes"</string>
+  <string name="push_diainfo_page_info_sub03" source="をお読みください。">.</string>
+  <string name="push_diainfo_title" source="運行情報の即時通知">Instant service alerts</string>
+  <string name="push_level_1" source="少なめ">Fewer</string>
+  <string name="push_level_2" source="普通">Standard</string>
+  <string name="push_level_3" source="多め">More</string>
+  <string name="push_line_title" source="通知する路線">Lines to notify</string>
+  <string name="push_notice_page_link" source="ソフトウエアに関する規則（ガイドライン）">Software rules and guidelines</string>
+  <string name="push_notice_page_text01" source="プッシュ通知は、環境やお使いの携帯端末の仕様、設定などにより、正常に受信できない場合があります。">Network conditions, device specifications or settings may prevent push notifications from arriving correctly.</string>
+  <string name="push_notice_page_text02" source="プッシュ通知の送信は、1件のお知らせにつき1回限りとなります。不着時でも再送はできませんのでご了承ください。">Each update is sent only once. Notifications that do not arrive cannot be resent.</string>
+  <string name="push_notice_page_text03" source="お使いの携帯端末の設定によっては、プッシュ通知を受信しても、その到着をお知らせしない場合があります（例：おやすみモードなど）。詳しくはお使いの携帯端末の取扱説明書をご覧ください。">Device settings such as Do Not Disturb may silence received notifications. Consult your device manual for details.</string>
+  <string name="push_notice_page_text04" source="プッシュ通知を受信できなかった場合は、メニュー「運行情報」から以下の設定をご確認ください。&#10;・曜日 / 時間&#10;・通知の量&#10;・通知する路線">If notifications do not arrive, check days, times, alert frequency and selected lines under Service info.</string>
+  <string name="push_notice_page_text05" source="プッシュ通知の保証につきましては、弊社「ソフトウエアに関する規則（ガイドライン）」をご確認ください。">See the software rules and guidelines for the terms covering push notifications.</string>
+  <string name="push_notice_page_title" source="運行情報プッシュ通知をご利用になる際は、以下を必ずお読みください。">Please read the following before using service push notifications.</string>
+  <string name="push_notice_title" source="プッシュ通知のご注意">Push notification notes</string>
+  <string name="push_set_day_of_week" source="曜日">Days of the week</string>
+  <string name="push_set_label" source="通知する">Notify</string>
+  <string name="push_set_level" source="通知の量">Alert frequency</string>
+  <string name="push_set_no_label" source="通知しない">Do not notify</string>
+  <string name="push_set_popup_label" source="ポップアップ通知">Pop-up notifications</string>
+  <string name="push_set_popup_title" source="挙動設定">Notification behavior</string>
+  <string name="push_set_time" source="時間">h</string>
+  <string name="push_time_add_custom" source="+条件を追加">+ Add condition</string>
+  <string name="push_time_add_custom_more" source="+さらに条件を追加">+ Add another condition</string>
+  <string name="push_time_allday" source="終日">All day</string>
+  <string name="push_time_custom" source="カスタム">Custom</string>
+  <string name="push_time_custom_sub" source="開始時刻と終了時刻(最大３件)">Start and end times (up to 3 periods)</string>
+  <string name="push_time_edit" source="時間帯の編集">Edit time periods</string>
+  <string name="realtime_bus_arrived_text" source="到着済">Arrived</string>
+  <string name="realtime_bus_before_start_text" source="運行開始前">Before service starts</string>
+  <string name="realtime_bus_congestion_lv1" source="ゆったり座れる">Plenty of seats</string>
+  <string name="realtime_bus_congestion_lv2" source="座れる">Seats available</string>
+  <string name="realtime_bus_congestion_lv3" source="立てば乗車可能">Standing room available</string>
+  <string name="realtime_bus_congestion_lv4" source="混雑している">Crowded</string>
+  <string name="realtime_bus_congestion_lv5" source="ほぼ満員">Almost full</string>
+  <string name="realtime_bus_congestion_lv6" source="満員で乗れない">Full; cannot board</string>
+  <string name="realtime_bus_delay_prospect_text" source="%1$s分遅れ見込み">Expected %1$s min late</string>
+  <string name="realtime_bus_delay_text" source="約%1$s分遅れ">About %1$s min late</string>
+  <string name="realtime_bus_departed_not_arrived_no_position_text" source="乗車バス停へ向け走行中">Approaching your bus stop</string>
+  <string name="realtime_bus_departed_not_arrived_one_position_text" source="1つ前のバス停">One stop away</string>
+  <string name="realtime_bus_departed_not_arrived_twe_position_text" source="2つ前のバス停">Two stops away</string>
+  <string name="realtime_bus_error_text_horizontal" source="バス位置情報が取得できません">Bus location unavailable</string>
+  <string name="realtime_bus_error_text_vertical" source="バス位置情報が&#10;取得できません">Bus location
+unavailable</string>
+  <string name="realtime_bus_ontime_text" source="ほぼ定刻">Nearly on time</string>
+  <string name="realtime_bus_operation_stop_text" source="運行中止">Service canceled</string>
+  <string name="realtime_bus_prospect_ontime_text" source="定刻見込み">Expected on time</string>
+  <string name="realtime_bus_run_position_text" source="走行位置">Live position</string>
+  <string name="realtime_bus_running_on_route_text" source="乗車バス停を出発済">Departed your bus stop</string>
+  <string name="realtime_bus_scheduled_text" source="定刻予定">Scheduled on time</string>
+  <string name="realtime_congestion_error_graph" source="混雑グラフを表示できません">Crowding graph unavailable</string>
+  <string name="realtime_congestion_lv3" source="入場規制の可能性">Possible entry restrictions</string>
+  <string name="realtime_congestion_lv3_caution" source="※つぶやきによる検出">Detected from social posts</string>
+  <string name="realtime_congestion_no_data" source="混雑情報はありません">No crowding information</string>
+  <string name="realtime_congestion_search_link_text" source="この駅に関するつぶやき">Posts about this station</string>
+  <string name="realtime_congestion_warning" source="実測データに基づいた現在の普通列車の混雑状況をリアルタイムに表示">Live crowding on local trains based on measured data</string>
+  <string name="realtime_green_congestion_warning" source="実測データに基づいた現在のグリーン車混雑状況をリアルタイムに表示">Live Green Car crowding based on measured data</string>
+  <string name="realtime_reroute_text" source="乗車できる時刻で再検索">Search again for a boardable service</string>
+  <string name="realtime_train_activity_title" source="接近している電車の遅延情報">Approaching train delays</string>
+  <string name="realtime_train_arrived_text" source="到着済">Arrived</string>
+  <string name="realtime_train_caution_text" source="※ 実際の走行位置、種別と異なる場合があります">Actual train position or service type may differ</string>
+  <string name="realtime_train_caution_title" source="検索したルート以外の電車も確認できます。&#10;時刻や番線は駅構内の情報と照らし合わせてご利用ください。">Other trains are also shown. Check times and platforms against station information.</string>
+  <string name="realtime_train_coming_departed_text" source="乗車駅へ向け走行中">Approaching your station</string>
+  <string name="realtime_train_coming_first_arrived_text" source="1駅前">One station away</string>
+  <string name="realtime_train_coming_first_departed_text" source="1駅前を出発">Departed previous station</string>
+  <string name="realtime_train_coming_second_arrived_text" source="2駅前">Two stations away</string>
+  <string name="realtime_train_coming_second_departed_text" source="2駅前を出発">Departed two stations before</string>
+  <string name="realtime_train_congestion_green_car_label" source="グリーン車">Green Car</string>
+  <string name="realtime_train_congestion_green_car_prefix" source="グリーン車：">Green Car: </string>
+  <string name="realtime_train_congestion_green_lv1" source="余裕あり">Plenty of space</string>
+  <string name="realtime_train_congestion_green_lv2" source="すこし混雑">Somewhat crowded</string>
+  <string name="realtime_train_congestion_green_lv3" source="満席">Full</string>
+  <string name="realtime_train_congestion_icon_description" source="リアルタイム混雑情報の混雑度アイコン">Live train crowding icon</string>
+  <string name="realtime_train_congestion_lv1" source="座席に座れる">Seats available</string>
+  <string name="realtime_train_congestion_lv2" source="ゆったり立てる">Plenty of standing room</string>
+  <string name="realtime_train_congestion_lv3" source="すこし混雑">Somewhat crowded</string>
+  <string name="realtime_train_congestion_lv4" source="肩がふれあう">Shoulder-to-shoulder</string>
+  <string name="realtime_train_congestion_lv5" source="かなり混雑">Very crowded</string>
+  <string name="realtime_train_congestion_ordinary_car_label" source="普通車">Standard car</string>
+  <string name="realtime_train_corporation_name_text" source="提供：%1$s ">Provided by: %1$s </string>
+  <string name="realtime_train_delay_prospect_text" source="%1$s分遅れ見込み">Expected %1$s min late</string>
+  <string name="realtime_train_delay_text" source="約%1$s分遅れ">About %1$s min late</string>
+  <string name="realtime_train_green_congestion_icon_description" source="リアルタイムグリーン車混雑情報の混雑度アイコン">Live Green Car crowding icon</string>
+  <string name="realtime_train_info_delay_61" source="60分以上遅れ">Over 60 min late</string>
+  <string name="realtime_train_info_delay_text" source="%1$s分遅れ">%1$s min late</string>
+  <string name="realtime_train_info_on_time_text" source="定刻">On time</string>
+  <string name="realtime_train_info_row_text" source="%1$s行">For %1$s</string>
+  <string name="realtime_train_jrw_link_text" source="JR西日本公式情報">Official JR West information</string>
+  <string name="realtime_train_no_data_in_connected_edge" source="リアルタイムの在線位置情報の対象外の区間か、データが取得できない状態です">Live train positions are unsupported on this section or data is unavailable.</string>
+  <string name="realtime_train_ontime_text" source="ほぼ定刻">Nearly on time</string>
+  <string name="realtime_train_position_text" source="より広域な走行位置">Wider-area train positions</string>
+  <string name="realtime_train_prospect_ontime_text" source="定刻見込み">Expected on time</string>
+  <string name="realtime_train_running_text" source="乗車駅を出発済">Departed your station</string>
+  <string name="realtime_train_station_can_not_arrive" source="[未達]">[Not reached]</string>
+  <string name="realtime_train_station_type_current" source="当駅">Here</string>
+  <string name="realtime_train_station_type_pre" source="前駅">Prev.</string>
+  <string name="realtime_train_station_type_prepre" source="前々駅">Two stations before</string>
+  <string name="realtime_train_update_time_text" source="(%1$02d:%2$02d更新)">(updated %1$02d:%2$02d)</string>
+  <string name="recommend_body" source="Yahoo!乗換案内アプリの紹介です。&#10; LINEやメールで乗換ルートを送ることもできるのでオススメ&#10; ダウンロードはこちら。https://yahoo.jp/eDHTNM #ヤフー乗換案内">Try Yahoo! Transit to search routes and share them via LINE or email. Download: https://yahoo.jp/eDHTNM #YahooTransit</string>
+  <string name="recommend_menu" source="トモダチにオススメする">Recommend to a friend</string>
+  <string name="regist_bus" source="登録バス停">Saved bus stops</string>
+  <string name="regist_bus_add" source="バス停を追加">Add bus stop</string>
+  <string name="regist_bus_delete" source="削除">Delete</string>
+  <string name="regist_bus_total" source="50件までバス停を登録できます。">Save up to 50 bus stops.</string>
+  <string name="regist_description" source="編集は「設定」メニューで行ってください。">Edit saved items in Settings.</string>
+  <string name="regist_over_rail_delete" source="路線を選んで削除する">Select lines to delete</string>
+  <string name="regist_over_rail_edit" source="登録路線は10件までです。編集してください。">The limit is 10 lines. Edit saved lines.</string>
+  <string name="regist_over_rail_msg" source="登録数の上限を超えています。10件以下に登録しなおしてください。">Too many saved lines. Reduce the list to 10 or fewer.</string>
+  <string name="regist_rail" source="登録路線">Saved lines</string>
+  <string name="regist_rail_add" source="路線を追加">Add line</string>
+  <string name="regist_rail_and_push_diainfo" source="登録路線・運行情報通知">Saved lines / service alerts</string>
+  <string name="regist_rail_delete" source="削除">Delete</string>
+  <string name="regist_rail_total" source="10件まで路線を登録できます。">Save up to 10 lines.</string>
+  <string name="regist_spot" source="登録スポット">Saved places</string>
+  <string name="regist_spot_add" source="スポットを追加">Add place</string>
+  <string name="regist_spot_delete" source="削除">Delete</string>
+  <string name="regist_spot_total" source="100件まで表示可能です。">Display up to 100 places.</string>
+  <string name="regist_station" source="登録駅">Saved stations</string>
+  <string name="regist_station_add" source="駅を追加">Add station</string>
+  <string name="regist_station_delete" source="削除">Delete</string>
+  <string name="regist_station_total" source="50件まで駅を登録できます。">Save up to 50 stations.</string>
+  <string name="regist_teiki" source="この定期区間を登録">Save this pass coverage</string>
+  <string name="register_rail_notification_snackbar_btn_close" source="またあとで">Later</string>
+  <string name="register_rail_notification_snackbar_btn_regist" source="登録する">Save</string>
+  <string name="register_rail_notification_snackbar_msg" source="遅延・運休時にすぐ通知します！">Get immediate delay and cancellation alerts!</string>
+  <string name="register_rail_notification_snackbar_title" source="このルートの路線を通知登録しませんか？">Enable alerts for lines on this route?</string>
+  <string name="reload" source="再読み込み">Reload</string>
+  <string name="request_gps_permission" source="端末の設定から許可してください。">Allow access in device settings.</string>
+  <string name="require_notification_permission_dialog_message" source="電車の遅れ・運休を通知する機能を使うために、アプリからの通知を許可してください。&#10;&#10;通知頻度は後からアプリの設定で変更できます。">Allow app notifications to receive train delay and cancellation alerts. You can change alert frequency later in app settings.</string>
+  <string name="require_notification_permission_dialog_title" source="通知登録の準備をしましょう">Prepare service notifications</string>
+  <string name="result_after_final" source="終電後検索">After-last-train search</string>
+  <string name="result_after_final_notice" source="到着エリアを拡大して最寄駅に近い駅までのルートを、深夜急行バス利用を含めた条件で検索。">Search a wider destination area for stations near your destination, including late-night express buses.</string>
+  <string name="result_after_final_notice_top_bus" source="・深夜急行バスの利用">Include late-night express buses</string>
+  <string name="result_after_final_notice_top_nearby" source="・到着エリアを拡大して最寄駅に近い駅までを検索">Widen the destination area to nearby stations</string>
+  <string name="result_list_change_condition" source="検索条件を変更">Change search options</string>
+  <string name="result_login_btn" source="時刻指定ありで検索">Search with a specified time</string>
+  <string name="result_research_current_time" source="現在時刻で再検索">Search again for now</string>
+  <string name="result_reverse_research_current_time" source="発着を入れ替えて再検索">Swap origin / destination and search</string>
+  <string name="result_share_diainfo_event_func" source="混雑予報を共有">Share crowding forecast</string>
+  <string name="result_share_diainfo_func" source="運行情報を共有">Share service information</string>
+  <string name="result_share_func" source="検索結果を共有">Share search results</string>
+  <string name="ring_mode_silent_dialog_message" source="音量やバイブレーションの設定がオフですとバイブレーション等が鳴らない可能性がありますので端末の設定をあらかじめご確認ください。">Check device sound and vibration settings in advance. Alerts may not sound or vibrate if these are disabled.</string>
+  <string name="romance_car_seat_full_description" source="最新の状況は遷移先でご確認ください">Check the latest availability on the linked page</string>
+  <string name="romance_car_seat_saloon" source="サルーン">Saloon</string>
+  <string name="romance_car_seat_standard" source="一般席">Standard seat</string>
+  <string name="romance_car_seat_view_front" source="前展望席">Front observation seat</string>
+  <string name="romance_car_seat_view_rear" source="後展望席">Rear observation seat</string>
+  <string name="route_memo_alarm_warning" source="登録したアラームは削除されません。&#10;設定画面から削除をお願いします。">Saved alarms are not deleted with the route. Remove them from Settings.</string>
+  <string name="route_memo_btn_login" source="ルートメモを登録">Save route</string>
+  <string name="route_memo_select_overwrite_msg" source="あなたのID上に保存できるのは%1$d件までです。&#10; 一番古いメモに上書き保存しますか？">Your account can save up to %1$d routes. Replace the oldest route?</string>
+  <string name="route_memo_select_overwrite_msg_local" source="この端末に保存できるのは%1$d件までです。&#10; 一番古いメモに上書き保存しますか？">This device can save up to %1$d routes. Replace the oldest route?</string>
+  <string name="routemap_area" source="エリアを選択">Choose area</string>
+  <string name="routemap_hint" source="駅、バス停、施設を入力">Enter station, bus stop or place</string>
+  <string name="routemap_near_bus" source="バス停">Bus stop</string>
+  <string name="routemap_near_train" source="鉄道駅">Railway station</string>
+  <string name="routemap_search_route" source="検索">Search</string>
+  <string name="routemap_show_route" source="ルートを表示">Show route</string>
+  <string name="routememo_update_datetime" source="最終同期 %1$d月%2$d日 %3$02d:%4$02d">Last synced %1$d/%2$d %3$02d:%4$02d</string>
+  <string name="save_cond_desc" source="次回からもこの設定を使用する">Use these settings next time</string>
+  <string name="save_memo_select_delete" source="メモを選んで削除する">Select saved routes to delete</string>
+  <string name="save_memo_select_overwrite" source="一番古いメモに上書き保存する">Replace oldest saved route</string>
+  <string name="search_gps_retry" source="再取得">Refresh</string>
+  <string name="search_line_keyword" source="路線を入力">Enter line</string>
+  <string name="search_memo_delete" source="削除">Delete</string>
+  <string name="search_memo_edit" source="編集">Edit</string>
+  <string name="search_memo_filter" source="絞り込み %1$s">Filter %1$s</string>
+  <string name="search_memo_item_total" source="%1$s: %2$s 距離: %3$skm">%1$s: %2$s Distance: %3$s km</string>
+  <string name="search_memo_timetable" source="マイ時刻表">My timetables</string>
+  <string name="search_memo_timetable_name" source="%1$sの時刻表">Timetable for %1$s</string>
+  <string name="search_msg_api" source="通信中...">Connecting...</string>
+  <string name="search_msg_diainfo" source="運行情報を取得中...">Loading service information...</string>
+  <string name="search_msg_dirinfo" source="路線情報を取得中...">Loading lines...</string>
+  <string name="search_msg_gps" source="現在地を取得中...">Locating...</string>
+  <string name="search_msg_regist" source="登録駅情報を取得中...">Loading saved stations...</string>
+  <string name="search_msg_regist_delete" source="削除中...">Deleting...</string>
+  <string name="search_msg_regist_post" source="登録中...">Saving...</string>
+  <string name="search_msg_regist_rail" source="登録路線情報を取得中...">Loading saved lines...</string>
+  <string name="search_msg_timetable" source="時刻表情報を取得中...">Loading timetable...</string>
+  <string name="search_msg_timetable_bus" source="停車バス停一覧を取得中...">Loading bus stops...</string>
+  <string name="search_msg_timetable_station" source="停車駅一覧を取得中...">Loading stops...</string>
+  <string name="search_msg_title" source="少々お待ちください。">Please wait.</string>
+  <string name="search_msg_working" source="処理中...">Working...</string>
+  <string name="search_result_error_excluded_transport_guidance" source="利用手段で%1$sがオフになっています。時刻や検索条件を見直して再度お試しください。">%1$s is disabled in Transport modes. Review the time and search options, then try again.</string>
+  <string name="search_result_title" source="検索結果">Search results</string>
+  <string name="search_result_title_root" source="ルート">Route</string>
+  <string name="search_station_bus_keyword" source="駅、バス停を入力">Enter station or bus stop</string>
+  <string name="search_station_gps" source="現在地周辺の駅を探す">Find nearby stations</string>
+  <string name="search_station_keyword" source="駅を入力">Enter station</string>
+  <string name="search_station_regist" source="登録駅から探す">Choose saved station</string>
+  <string name="search_widget_title" source="(4✕1)Y!乗換案内">(4 x 1) Y! Transit</string>
+  <string name="searching_dialog_title" source="少々お待ちください。">Please wait.</string>
+  <string name="select_app" source="アプリを選択">Choose an app</string>
+  <string name="select_cond_ticket_desc" source="諸事情により運賃算定基準が公開されない場合があります。そのため一部区間では実際の運賃と異なる可能性があります。">Fare calculation rules are not always published, so actual fares may differ on some sections.</string>
+  <string name="select_prefectures" source="都道府県を選択">Choose prefecture</string>
+  <string name="send_ytransit_blog" source="過去の記事を見る">View older articles</string>
+  <string name="set_again" source="再度設定">Set again</string>
+  <string name="set_notification_channel" source="通知詳細設定">Advanced notifications</string>
+  <string name="set_notification_channel_description" source="通知音・ランプ・バイブレーションの設定">Sound, light and vibration settings</string>
+  <string name="set_push_lamp" source="通知ランプ">Notification light</string>
+  <string name="set_push_permission" source="通知する">Notify</string>
+  <string name="set_push_sound" source="通知音">Notification sound</string>
+  <string name="set_push_vibration" source="バイブレーション">Vibration</string>
+  <string name="setting_alarm_desc" source="音量を確認するには「視聴する」ボタンを押してください。&#10;※機種によってはマナーモード時に音が出力されないことがあります。">Tap Preview to check volume. Some devices may not play sound in silent mode.</string>
+  <string name="setting_alarm_length" source="アラームの長さ（他のアプリに重ねて表示がオンの時のみ）">Alarm duration (when display over other apps is enabled)</string>
+  <string name="setting_alarm_play" source="視聴する">Preview</string>
+  <string name="setting_alarm_stop" source="停止する">Stop</string>
+  <string name="setting_alarm_stop_title" source="アラームを停止する">Stop alarm</string>
+  <string name="setting_alarm_volume" source="アラームの音量（他のアプリに重ねて表示がオンの時のみ）">Alarm volume (when display over other apps is enabled)</string>
+  <string name="setting_countdown" source="カウントダウン開始時刻">Countdown start time</string>
+  <string name="setting_desc" source="通勤や外出時に乗る電車の発車時刻の残り時間をカウントダウンする機能です。はじめに、自宅と通勤・通学先の最寄駅の情報を設定してください。">Count down to the departure time of a train for your commute or trip. Start by setting the stations near home and work or school.</string>
+  <string name="setting_desc_no_goal" source="通勤・通学先の最寄駅と路線を設定してください。">Set the station and line near work or school.</string>
+  <string name="setting_desc_no_home" source="自宅の最寄駅と路線を設定してください。">Set the station and line near home.</string>
+  <string name="setting_desc_title" source="通勤タイマー機能">Commute timer</string>
+  <string name="setting_dialog_button_cancel" source="キャンセル">Cancel</string>
+  <string name="setting_dialog_button_ok" source="設定する">Apply</string>
+  <string name="setting_divide" source="行き、帰り切り替え設定">Outbound / return settings</string>
+  <string name="setting_divide_desc" source="カウントダウンの方面（行き・帰り）を切り替える時刻を設定できます。⇔（やじるし）ボタンで「行き」と「帰り」を反転させることもできます。">Choose when the countdown switches between outbound and return journeys. You can also use the swap arrow to switch directions.</string>
+  <string name="setting_divide_time" source="切り替え時刻">Switch time</string>
+  <string name="setting_line" source="方面">Direction</string>
+  <string name="setting_off" source="オフ">Off</string>
+  <string name="setting_on" source="オン">On</string>
+  <string name="setting_repeat" source="繰り返し">Repeat</string>
+  <string name="setting_repeat_no" source="繰り返しなし">Do not repeat</string>
+  <string name="setting_skin" source="テーマ設定">Theme</string>
+  <string name="setting_skin_download" source="%sをダウンロードしますか？(3G環境では数分かかる場合があります)">Download %s? This may take several minutes over a mobile connection.</string>
+  <string name="setting_sound" source="アラーム音">Alarm sound</string>
+  <string name="setting_sound_change" source="アラーム音の変更">Change alarm sound</string>
+  <string name="setting_sound_no" source="なし">None</string>
+  <string name="setting_sound_remove" source="アラーム音の削除">Remove alarm sound</string>
+  <string name="setting_start_desc01" source="通勤タイマーの自動起動設定とは、設定した曜日・時間に通勤タイマーを起動して、カウントダウンを表示する機能です。&#10;通勤通学など、毎日同じ時間に出かける際のアラーム機能としてお使いいただけます。&#10;【ご注意】&#10;・設定できる件数は最大4件です。&#10;・バッテリーセイバーがオンになっている場合はバイブレーションが作動しません。">Automatic start opens the commute timer and shows the countdown on selected days and times. Use it as a daily commute alarm. Save up to 4 schedules. Vibration is disabled when Battery Saver is on.</string>
+  <string name="setting_start_desc02" source="OS10以上の端末でアプリを自動起動するためには「他のアプリの上に重ねて表示」をオンにしていただく必要があります。LINK_SETTINGから設定をお願いいたします。設定がオフの場合は通知のみとなります。">On Android 10 or later, allow Display over other apps to start the app automatically. Configure it at LINK_SETTING. Otherwise, only a notification is shown.</string>
+  <string name="setting_start_desc02_link_text" source="こちら">here</string>
+  <string name="setting_start_no_setting" source="データが存在しません。&#10;起動日時を設定してください。">No data. Set the start date and time.</string>
+  <string name="setting_start_no_station" source="データが存在しません。&#10;最寄駅を登録してください。">No data. Save a nearby station.</string>
+  <string name="setting_start_title" source="起動日時">Start date and time</string>
+  <string name="setting_startup" source="自動起動設定">Automatic start</string>
+  <string name="setting_startuptime" source="乗車時刻の目安">Approximate boarding time</string>
+  <string name="setting_station" source="最寄駅の設定">Nearby station settings</string>
+  <string name="setting_timetalbe" source="時刻表データ管理">Timetable data</string>
+  <string name="setting_vibration" source="バイブレーション">Vibration</string>
+  <string name="share_diainfo_event_message_end" source="[Yahoo!乗換案内]&#10; ↓ アプリのダウンロードはこちらから&#10; https://transit.yahoo.co.jp/smartphone/app/?referrer=app_share&#10; ---------------&#10;">[Yahoo! Transit]
+Download the app:
+https://transit.yahoo.co.jp/smartphone/app/?referrer=app_share
+---------------
+</string>
+  <string name="share_diainfo_event_message_end_without_url" source="[Yahoo!乗換案内]&#10; ---------------&#10;">[Yahoo! Transit]
+---------------
+</string>
+  <string name="share_diainfo_event_message_no_data" source="&#10;混雑予報はありません&#10;">
+No crowding forecast
+</string>
+  <string name="share_diainfo_event_message_start" source="---------------&#10;%1$sの混雑予報&#10;%2$s&#10;%3$d月%4$d日（%5$s）">---------------
+Crowding forecast for %1$s
+%2$s
+%3$d/%4$d (%5$s)</string>
+  <string name="share_diainfo_event_message_time" source="%1$d月%2$d日 %3$d:%4$02d現在の情報&#10;&#10;">Information as of %1$d/%2$d %3$d:%4$02d
+
+</string>
+  <string name="share_diainfo_message" source="-------------&#10; %1$s %2$s&#10; 詳細はこちら→%3$s&#10;&#10; [Yahoo!乗換案内]&#10; ↓ アプリのダウンロードはこちらから&#10; https://transit.yahoo.co.jp/smartphone/app/?referrer=app_share&#10; -------------&#10;">-------------
+%1$s %2$s
+Details: %3$s
+
+[Yahoo! Transit]
+Download the app:
+https://transit.yahoo.co.jp/smartphone/app/?referrer=app_share
+-------------
+</string>
+  <string name="share_diainfo_message_without_url" source="-------------&#10; %1$s %2$s&#10;&#10; [Yahoo!乗換案内]&#10; -------------&#10;">-------------
+%1$s %2$s
+
+[Yahoo! Transit]
+-------------
+</string>
+  <string name="shortcut_create_failed" source="ショートカットの作成に失敗しました">Could not create shortcut.</string>
+  <string name="shortcut_created" source="ホーム画面にショートカットを作成しました">Shortcut added to home screen.</string>
+  <string name="shortcut_description" source="この画面はショートカット作成モードです。出発地と到着地を入力して、作成ボタンを押すとホーム画面に追加されます。">Enter an origin and destination, then tap Create to add a route shortcut to your home screen.</string>
+  <string name="shortcut_title" source="Y!乗換案内ルート">Y! Transit route</string>
+  <string name="silent_mode_dialog_do_not_show_again" source="次回以降は表示しない">Do not show again</string>
+  <string name="silent_mode_dialog_message" source="サイレントモードのため、乗降アラームが発動しない可能性があります。また音量やバイブレーションの設定がオフですとバイブレーション等が鳴らない可能性がありますので合わせてご確認ください。">Do Not Disturb may prevent boarding and arrival alarms. Disabled sound or vibration settings may also silence alerts. Check device settings.</string>
+  <string name="silent_mode_dialog_positive_button" source="音設定">Sound settings</string>
+  <string name="silop_sdk_clear_logs" source="ログを削除">Delete logs</string>
+  <string name="silop_sdk_force_stop" source="強制停止">Force stop</string>
+  <string name="silop_sdk_gps_polygon" source="GPSポリゴン">GPS polygon</string>
+  <string name="silop_sdk_myspot" source="マイスポット">My Places</string>
+  <string name="silop_sdk_ok" source="OK">OK</string>
+  <string name="silop_sdk_pending_job" source="Jobの状態">Job status</string>
+  <string name="silop_sdk_pending_work" source="Workの状態">Work status</string>
+  <string name="skin_album_image_num" source="%1$d枚">%1$d images</string>
+  <string name="skin_album_select" source="このアルバムを選択">Choose this album</string>
+  <string name="skin_album_title" source="アルバム選択">Choose album</string>
+  <string name="skin_error_delete" source="テーマ画像データの削除に失敗しました。">Could not delete theme images.</string>
+  <string name="skin_error_download" source="テーマ画像データのダウンロードに失敗しました。通信状況をお確かめのうえ、再度お試しください。">Could not download theme images. Check your connection and try again.</string>
+  <string name="skin_error_noimage" source="設定されていたテーマが更新されたため、通常タイマーを表示します。">The selected theme has changed. Showing the standard timer.</string>
+  <string name="skin_error_save" source="テーマ画像データの保存に失敗しました。端末の空き容量をご確認のうえ、再度お試しください。">Could not save theme images. Check available storage and try again.</string>
+  <string name="skin_error_term" source="設定されていたテーマは期限切れのため、通常タイマーを表示します。">The selected theme has expired. Showing the standard timer.</string>
+  <string name="skin_error_update" source="設定されていたテーマは更新の必要があります。テーマ設定ページでダウンロードを行ってください。">This theme needs updating. Download it again from Theme settings.</string>
+  <string name="skin_msg_album_no_data" source="写真データが見つかりませんでした">No photos found.</string>
+  <string name="skin_msg_download" source="テーマ画像をダウンロード">Download theme images</string>
+  <string name="skin_msg_getting_album" source="写真データを読み込み中...">Loading photos...</string>
+  <string name="skin_normal_desc" source="電車の時刻をドットで表示！ シンプルカウントダウン画面です。">A simple countdown screen with dot-style train times.</string>
+  <string name="skin_normal_title" source="標準テーマ">Standard theme</string>
+  <string name="sound_none_text_landscape" source="この動画には&#10;音声はありません">This video
+has no audio</string>
+  <string name="sound_none_text_portrait" source="この動画には音声はありません">This video has no audio</string>
+  <string name="spot_add_clip_success" source="スポットを登録しました">Place saved.</string>
+  <string name="spot_around_info_title" source="周辺情報">Nearby information</string>
+  <string name="spot_congestion_forecast_graph" source="周辺の混雑予報">Nearby crowding forecast</string>
+  <string name="spot_current_location" source="現在地 : %s周辺">Current location: near %s</string>
+  <string name="spot_delete_clip_success" source="スポットの登録を解除しました">Place removed from saved items.</string>
+  <string name="spot_delete_keep_success" source="スポットを削除しました">Place deleted.</string>
+  <string name="spot_detail_ttl" source="スポット情報">Place information</string>
+  <string name="spot_genre_bank" source="銀行/ATM">Bank / ATM</string>
+  <string name="spot_genre_busstop" source="バス停">Bus stop</string>
+  <string name="spot_genre_cafe" source="カフェ">Cafe</string>
+  <string name="spot_genre_convenience" source="コンビニ">Convenience store</string>
+  <string name="spot_genre_fastfood" source="ファストフード">Fast food</string>
+  <string name="spot_genre_feature" source="話題のお店">Popular places</string>
+  <string name="spot_genre_hotel" source="ホテル">Hotel</string>
+  <string name="spot_genre_rentcar" source="レンタカー">Car rental</string>
+  <string name="spot_genre_restaurant" source="ファミレス">Family restaurant</string>
+  <string name="spot_genre_station" source="鉄道駅">Railway station</string>
+  <string name="spot_go_loco" source="もっと情報を見る">More information</string>
+  <string name="spot_info_access_plain_text" source="%1$s駅[%2$s]出口から徒歩%3$s分">Walk %3$s min from %1$s station, exit %2$s</string>
+  <string name="spot_info_address" source="住所">Address</string>
+  <string name="spot_info_budget" source="平均予算">Average budget</string>
+  <string name="spot_info_budget_yen" source="%,d円">%,d yen</string>
+  <string name="spot_info_bus_stop_link_with_time" source="%1$sから徒歩%2$s分">Walk %2$s min from %1$s</string>
+  <string name="spot_info_bus_stop_plain_text_with_time" source="%1$sから徒歩%2$s分">Walk %2$s min from %1$s</string>
+  <string name="spot_info_close" source="定休日">Closed on</string>
+  <string name="spot_info_map_image" source="地図">Map</string>
+  <string name="spot_info_near_bus_stop" source="最寄&#10;バス停">Nearest
+bus stop</string>
+  <string name="spot_info_near_station" source="最寄駅">Nearest station</string>
+  <string name="spot_info_phone" source="電話">Phone</string>
+  <string name="spot_info_provider" source="情報提供元">Information provider</string>
+  <string name="spot_info_review" source="クチコミ">Reviews</string>
+  <string name="spot_info_review_more" source="もっと見る">Show more</string>
+  <string name="spot_info_time" source="営業時間">Opening hours</string>
+  <string name="spot_input_lococlip" source="マイスポット一覧">My Places</string>
+  <string name="spot_near_spot_list" source="現在地周辺のスポット">Places near you</string>
+  <string name="spot_no_bus_data" source="このバス停は、名称変更、廃止などの理由で削除されました">This bus stop was removed due to a name change, closure or another reason.</string>
+  <string name="spot_no_current_location" source="現在地を取得できませんでした。">Could not determine location.</string>
+  <string name="spot_no_data" source="このスポットは掲載終了しました">This place is no longer listed</string>
+  <string name="spot_no_goal_location" source="スポット詳細が取得できていません。">Place details have not loaded.</string>
+  <string name="spot_no_station_data" source="この駅は、名称変更、廃止などの理由で削除されました">This station was removed due to a name change, closure or another reason.</string>
+  <string name="spot_reserve" source="予約する">Book now</string>
+  <string name="spot_review_count" source="(%d件)">(%d reviews)</string>
+  <string name="spot_review_count_label" source="件"> reviews</string>
+  <string name="spot_search" source="スポット検索">Places</string>
+  <string name="spot_search_err_result" source="表示できません。時間を置いて再度お試しください。">Cannot display this information. Please try again later.</string>
+  <string name="spot_search_no_result" source="スポットが見つかりませんでした。">No places found.</string>
+  <string name="spot_search_query" source="「%1$s」の検索結果">Results for "%1$s"</string>
+  <string name="spot_search_view_hint" source="施設名（例：東京タワー）">Place name (e.g. Tokyo Tower)</string>
+  <string name="spot_top_no_current_location" source="現在地 : 取得できませんでした">Current location: unavailable</string>
+  <string name="spot_top_no_gps_setting_btn" source="設定">Settings</string>
+  <string name="spot_top_until_location" source="現在地">Current location</string>
+  <string name="sride_title" source="S.RIDEで配車">Book with S.RIDE</string>
+  <string name="start_walk_navi" source="ナビ開始">Start navigation</string>
+  <string name="station_desc" source="路線、方面を選んでください。">Select a line and direction.</string>
+  <string name="station_desc_goal" source="職場・学校から、自宅に帰る時の路線・方面を選んでください。">Select the line and direction from work or school to home.</string>
+  <string name="station_desc_home" source="自宅から、職場・学校に行く時の路線・方面を選んでください。">Select the line and direction from home to work or school.</string>
+  <string name="station_info_error_button_title" source="再読み込み">Reload</string>
+  <string name="station_info_error_description" source="通信状況をお確かめの上、再度お試しください">Check your connection and try again.</string>
+  <string name="station_info_error_title" source="インターネットに接続できませんでした">Could not connect to the internet</string>
+  <string name="stationinfo_description" source="詳細">Details</string>
+  <string name="stationinfo_exit_empty_text" source="詳細を見る">View details</string>
+  <string name="stationinfo_exit_title" source="出口">Exit</string>
+  <string name="stationinfo_facility_title" source="駅設備">Station facilities</string>
+  <string name="stationinfo_flight_title" source="運航情報">Flight status</string>
+  <string name="stationinfo_floated_snack_bar_confirm_text" source="確認">Confirm</string>
+  <string name="stationinfo_floor_map" source="構内図">Station map</string>
+  <string name="stationinfo_list_title_bus" source="バス停候補">Bus stop suggestions</string>
+  <string name="stationinfo_list_title_station" source="駅候補">Station suggestions</string>
+  <string name="stationinfo_no_goal_location" source="駅詳細が取得できていません。">Station details have not loaded.</string>
+  <string name="stationinfo_rail_title" source="路線">Lines</string>
+  <string name="stationinfo_realtime_congestion_title" source="混雑状況">Crowding</string>
+  <string name="stationinfo_register_button_text" source="登録">Save</string>
+  <string name="stationinfo_share_button_text" source="共有">Share</string>
+  <string name="stationinfo_spot_go_button_text" source="ルート">Route</string>
+  <string name="stationinfo_timetable_button_text" source="時刻表">Timetable</string>
+  <string name="stationinfo_timetable_text" source="詳細を見る">View details</string>
+  <string name="stationinfo_title" source="駅情報">Station information</string>
+  <string name="stationinfo_unregister_button_text" source="登録済み">Saved</string>
+  <string name="submit_btn" source="決定">Apply</string>
+  <string name="taxi_btn" source="アプリを開く">Open app</string>
+  <string name="taxi_info" source="※タクシー料金と時間は、東京都における一般道のみのルートです。概算のため実際とは異なることがあります。">Taxi fare and time estimates assume ordinary roads in Tokyo. Actual fares and times may differ.</string>
+  <string name="taxi_note" source="タクシー料金と時間のご注意">Taxi fare / time notes</string>
+  <string name="taxi_price" source="約%1$s円">About %1$s yen</string>
+  <string name="taxi_time" source="約%1$s分 &lt;small&gt;約%2$skm&lt;/small&gt;">About %1$s min &lt;small&gt;About %2$s km&lt;/small&gt;</string>
+  <string name="taxi_view_title" source="タクシー利用の目安">Taxi estimate</string>
+  <string name="taxi_warikan" source="&lt;b&gt;割り勘&lt;/b&gt; 2人:%1$s円 / 3人:%2$s円 / 4人:%3$s円">&lt;b&gt;Split fare&lt;/b&gt; 2 people: %1$s yen / 3: %2$s yen / 4: %3$s yen</string>
+  <string name="teiki" source="定期区間">Pass coverage</string>
+  <string name="teiki_register_rail_caution" source="※路線の運行情報の即時通知も設定します">Also enables instant service notifications for these lines</string>
+  <string name="teiki_register_rail_title" source="利用路線の登録">Save lines you use</string>
+  <string name="teiki_register_station_title" source="利用駅の登録">Save stations you use</string>
+  <string name="teiki_set_label" source="登録済み">Saved</string>
+  <string name="teiki_set_no_label" source="登録なし">Not saved</string>
+  <string name="teiki_setting_title" source="定期代考慮">Use pass fares</string>
+  <string name="telemetry_btn_change" source="設定を変更する">Change settings</string>
+  <string name="telemetry_btn_change_info" source="(位置情報取得を許可しない設定はこちら)">To disable location collection, change settings here</string>
+  <string name="telemetry_btn_continue" source="アプリの利用を続ける">Continue using app</string>
+  <string name="telemetry_msg" source="本アプリはMapbox社と連携し地図情報をお届けします。Mapbox社は、地図情報の改善や地図表示のためにお客様の端末の位置情報、端末情報、通信情報、アプリ操作情報を取得し、これらを同社の&lt;a href=\'%1$s\'&gt;プライバシーポリシー&lt;/a&gt;に従って利用します。&lt;br /&gt;本アプリでは、お客様の端末の位置情報の取得・利用に関して、以下の２つの設定をご変更いただくことができます。&lt;br /&gt;&lt;br /&gt;・下の「設定を変更する」または地図左下の&lt;img src=\'btn_mapinfo\'&gt;ボタン&lt;br /&gt;Mapbox社が同社の製品・サービスの改善などのために端末の位置情報を利用しない設定に変更できます。ただし、お客様がMapbox社の上記利用を許可しない場合でも、Mapbox社は地図を表示するために必要な範囲に限りお客様の端末の位置情報を取得・利用します。&lt;br /&gt;&lt;br /&gt;・端末の位置情報設定&lt;br /&gt;端末の位置情報設定から本アプリに端末の位置情報の使用を許可しない設定に変更できます。お客様が端末の位置情報設定で本アプリに端末の位置情報の使用を許可しない場合、Mapbox社もお客様の端末の位置情報を取得することはありません。&lt;br /&gt;なお、端末の位置情報設定から本アプリに端末の位置情報の使用を許可しない場合でも本アプリはご利用いただけますが、この場合でもMapbox社は端末情報、通信情報、アプリ操作情報を取得します。">Maps are provided in cooperation with Mapbox. To improve and display maps, Mapbox collects device location, device information, communication information and app interaction information, using it under its &lt;a href='%1$s'&gt;privacy policy&lt;/a&gt;.&lt;br&gt;You can change location collection and use in two ways:&lt;br&gt;&lt;br&gt;1. Use Change settings below or the &lt;img src='btn_mapinfo'&gt; button at the lower left of the map to disable location use for improving Mapbox products and services. Even if you decline this use, Mapbox still collects and uses location as necessary to display maps.&lt;br&gt;&lt;br&gt;2. In device location settings, deny this app location access. Mapbox will then not collect device location. You can continue using this app without location permission, but Mapbox still collects device, communication and app interaction information.</string>
+  <string name="telemetry_title" source="Mapbox社による&#10;位置情報取得について">About Mapbox location collection</string>
+  <string name="time_condition_title" source="時刻設定">Time settings</string>
+  <string name="timer_shortcut_create_failed" source="通勤タイマーショートカットの作成に失敗しました">Could not create commute timer shortcut.</string>
+  <string name="timer_shortcut_created" source="ホーム画面に通勤タイマーショートカットを作成しました">Commute timer shortcut added to home screen.</string>
+  <string name="timetable_btn_login" source="時刻表を登録">Save timetable</string>
+  <string name="timetable_bus_car_location" source="バス位置">Bus position</string>
+  <string name="timetable_bus_mark_midnight" source="夜">Night</string>
+  <string name="timetable_bus_mark_midnight_txt" source="深夜バス">Late-night bus</string>
+  <string name="timetable_bus_sign_home" source="発車のりば">Boarding stop</string>
+  <string name="timetable_bus_sign_kind" source="系統">Service number</string>
+  <string name="timetable_detail_title" source="時刻表">Timetable</string>
+  <string name="timetable_dir" source="方面">Direction</string>
+  <string name="timetable_display_mode_list" source="縦（リスト表示）">Vertical (list)</string>
+  <string name="timetable_display_mode_station" source="横（駅表示）">Horizontal (station)</string>
+  <string name="timetable_edit_error" source="端末の接続設定を確認してみましょう">Check device connection settings</string>
+  <string name="timetable_error_label" source="指定された曜日の時刻表は存在しません。">No timetable for the selected day of the week.</string>
+  <string name="timetable_error_no_data" source="この駅の時刻表は提供していません">No timetable available for this station.</string>
+  <string name="timetable_error_nothing_label" source="時刻表がない駅のため、再度登録しなおしてください。">This station has no timetable. Save another station.</string>
+  <string name="timetable_error_nothing_title" source="表示できません">Cannot display</string>
+  <string name="timetable_extract_mark" source="[臨]">[Special]</string>
+  <string name="timetable_filter_destination" source="行き先">Destination</string>
+  <string name="timetable_filter_kind" source="種別">Service type</string>
+  <string name="timetable_filter_title" source="絞り込み">Filter</string>
+  <string name="timetable_first_mark" source="[始]">[Starts here]</string>
+  <string name="timetable_green_car" source="普通列車グリーン車">Green Car on local train</string>
+  <string name="timetable_login_btn" source="ログイン">Sign in</string>
+  <string name="timetable_memo_appeal_dialog_close" source="閉じる">Close</string>
+  <string name="timetable_memo_appeal_dialog_content_count" source="&lt;br&gt;&lt;br&gt;時刻表は%1$d件まで登録できます&lt;br&gt;&lt;br&gt;現在の登録件数：&lt;b&gt;%2$d&lt;/b&gt;/%3$d">&lt;br&gt;&lt;br&gt;Save up to %1$d timetables&lt;br&gt;&lt;br&gt;Currently saved: &lt;b&gt;%2$d&lt;/b&gt;/%3$d</string>
+  <string name="timetable_memo_appeal_dialog_content_has_local" source="マイ時刻表を同期すると&lt;br&gt;Yahoo! JAPAN IDを通じて&lt;br&gt;複数の端末で利用できるようになります">Sync My timetables with your Yahoo! JAPAN ID to use them on multiple devices</string>
+  <string name="timetable_memo_appeal_dialog_content_no_local" source="登録済みのマイ時刻表があります&lt;br&gt;同期すると、現在お使いの端末でも&lt;br&gt;利用できます">Saved timetables are available. Sync to use them on this device.</string>
+  <string name="timetable_memo_appeal_dialog_content_no_local_no_cloud" source="マイ時刻表を登録すると&lt;br&gt;Yahoo! JAPAN IDを通じて&lt;br&gt;複数の端末で利用できるようになります">Save My timetables with your Yahoo! JAPAN ID to use them on multiple devices</string>
+  <string name="timetable_memo_appeal_dialog_delete_and_sync" source="時刻表を整理して同期する">Organize and sync timetables</string>
+  <string name="timetable_memo_appeal_dialog_later" source="後で">Later</string>
+  <string name="timetable_memo_appeal_dialog_register" source="時刻表を登録する">Save timetable</string>
+  <string name="timetable_memo_appeal_dialog_supplement_1" source="※他のYahoo! JAPANサービスでも同じマイ時刻表が利用できます&lt;br&gt;">Use the same My timetables in other Yahoo! JAPAN services&lt;br&gt;</string>
+  <string name="timetable_memo_appeal_dialog_supplement_2" source="※同期したマイ時刻表は&lt;a href=privacy_policy&gt;プライバシーポリシー&lt;/a&gt;に基づき取り扱います&lt;br&gt;">Synced timetables are handled under the &lt;a href=privacy_policy&gt;privacy policy&lt;/a&gt;&lt;br&gt;</string>
+  <string name="timetable_memo_appeal_dialog_supplement_3" source="※一度同期すると以降は自動的に同期されます">After the first sync, changes sync automatically</string>
+  <string name="timetable_memo_appeal_dialog_supplement_no_lcaol_no_cloud_1" source="※他のYahoo! JAPANサービスでも同じマイ時刻表が利用できます&lt;br&gt;">Use the same My timetables in other Yahoo! JAPAN services&lt;br&gt;</string>
+  <string name="timetable_memo_appeal_dialog_supplement_no_lcaol_no_cloud_2" source="※登録したマイ時刻表は&lt;a href=privacy_policy&gt;プライバシーポリシー&lt;/a&gt;に基づき取り扱います&lt;br&gt;">Saved timetables are handled under the &lt;a href=privacy_policy&gt;privacy policy&lt;/a&gt;&lt;br&gt;</string>
+  <string name="timetable_memo_appeal_dialog_supplement_no_lcaol_no_cloud_3" source="※一度登録すると以降は自動的に同期されます">After saving, changes sync automatically</string>
+  <string name="timetable_memo_appeal_dialog_sync" source="時刻表を同期する">Sync timetables</string>
+  <string name="timetable_memo_appeal_dialog_title" source="いつでもどこでもマイ時刻表">My timetables, anywhere</string>
+  <string name="timetable_memo_bus_stop_not_exist" source="時刻表がありませんでした">No timetable found.</string>
+  <string name="timetable_memo_dialog_content_back_to_register" source="時刻表ページからマイ時刻表に追加できます。">Add to My timetables from the timetable screen.</string>
+  <string name="timetable_memo_dialog_content_not_yet_uploaded" source="マイ時刻表ページから同期できます。">Sync from the My timetables screen.</string>
+  <string name="timetable_memo_dialog_title_back_to_register" source="登録に進みます">Continue to save</string>
+  <string name="timetable_memo_dialog_title_not_yet_uploaded" source="マイ時刻表は未同期です">My timetables have not synced</string>
+  <string name="timetable_memo_filter_size_over_limit" source="絞り込み件数が上限を超えているため、この時刻表は同期することができません。">Cannot sync this timetable because the filter limit has been exceeded.</string>
+  <string name="timetable_memo_load_error" source="通信環境が悪いため、表示ができません">Cannot display due to a poor connection.</string>
+  <string name="timetable_memo_loading" source="読み込み中...">Loading...</string>
+  <string name="timetable_memo_new" source="新しいマイ時刻表があります。">New My timetables available.</string>
+  <string name="timetable_memo_no_timetable" source="指定の曜日または絞り込みでは時刻表がありません">No timetable for the selected day or filter.</string>
+  <string name="timetable_memo_organize_available_message" source="選択した項目を削除して、時刻表の同期に進みます">Delete selected items, then continue to sync.</string>
+  <string name="timetable_memo_organize_button" source="削除して同期">Delete and sync</string>
+  <string name="timetable_memo_organize_message" source="選択した項目を削除して、時刻表を同期しますか？">Delete selected items and sync timetables?</string>
+  <string name="timetable_memo_organize_unavailable_message_head" source="時刻表を同期するには、あと ">To sync, delete another </string>
+  <string name="timetable_memo_organize_unavailable_message_tail" source=" 件の削除が必要です"> items</string>
+  <string name="timetable_memo_update_datetime" source="最終同期 M月d日 HH:mm">'Last synced' M/d HH:mm</string>
+  <string name="timetable_memo_upload" source="マイ時刻表を別デバイスからも利用する">Use My timetables on other devices</string>
+  <string name="timetable_realtime_delay_text" source="%1$s分遅れ %2$02d:%3$02d発">%1$s min late, %2$02d:%3$02d dep.</string>
+  <string name="timetable_realtime_dialog_content" source="電車やバスのリアルタイムな&#10;接近・遅延情報がひとめで確認できます&#10;おでかけの際にぜひご活用ください">Check live arrival and delay information for trains and buses at a glance before traveling.</string>
+  <string name="timetable_realtime_dialog_supplement" source="※対象路線は順次拡大中です">Supported lines are being expanded</string>
+  <string name="timetable_realtime_dialog_title" source="時刻表でも接近・遅延情報を&#10;リアルタイムにお届け！">Live arrivals and delays in timetables!</string>
+  <string name="timetable_realtime_ontime_text" source="定刻 %1$02d:%2$02d発">On time, %1$02d:%2$02d dep.</string>
+  <string name="timetable_regist_error" source="登録駅情報を取得できませんでした。恐れ入りますが再度お試しください。">Could not load saved stations. Please try again.</string>
+  <string name="timetable_remarks" source="備考">Notes</string>
+  <string name="timetable_st_car_location" source="列車位置">Train position</string>
+  <string name="timetable_st_car_num" source="列車番号">Train number</string>
+  <string name="timetable_st_congestion_info" source="混雑情報">Crowding information</string>
+  <string name="timetable_st_day_holiday" source="休日">Holidays</string>
+  <string name="timetable_st_day_ordinary" source="平日">Weekdays</string>
+  <string name="timetable_st_day_saturday" source="土曜">Saturday</string>
+  <string name="timetable_st_info" source="%s駅の情報を見る">View %s station information</string>
+  <string name="timetable_st_link_timetable" source="時刻表">Timetable</string>
+  <string name="timetable_st_mark_extra" source="：特定日または特定曜日のみ運転">: Runs only on specified dates or days</string>
+  <string name="timetable_st_mark_extra_txt" source="特定日または特定曜日のみ運転">Runs only on specified dates or days</string>
+  <string name="timetable_st_mark_first" source="：当駅始発">: Starts at this station</string>
+  <string name="timetable_st_mark_no" source="無印">No mark</string>
+  <string name="timetable_st_select_date" source="日付指定">Choose date</string>
+  <string name="timetable_st_select_filter" source="絞り込み">Filter</string>
+  <string name="timetable_st_sign_distination" source="行き先・経由">Destination / via</string>
+  <string name="timetable_st_sign_home" source="発車ホーム番号">Departure platform</string>
+  <string name="timetable_st_sign_kind" source="列車種別・列車名">Service type / train name</string>
+  <string name="timetable_st_sign_mark" source="注意マーク">Note symbols</string>
+  <string name="timetable_st_sign_num_of_car" source="車両数">Number of cars</string>
+  <string name="timetable_station" source="%s駅">%s station</string>
+  <string name="timetable_station_bus_title" source="停車バス停一覧">Bus stops</string>
+  <string name="timetable_station_drive_comment" source="運転日">Operating dates</string>
+  <string name="timetable_station_get_off_only" source="降車専用">Alight only</string>
+  <string name="timetable_station_get_on_only" source="乗車専用">Board only</string>
+  <string name="timetable_station_guide_comment" source="備考">Notes</string>
+  <string name="timetable_station_title" source="停車駅一覧">Station stops</string>
+  <string name="timetable_stopbusstop_list" source="停車バス停一覧">Bus stops</string>
+  <string name="timetable_stopstation_list" source="停車駅一覧">Station stops</string>
+  <string name="timetable_top_cannot_get_location" source="場所を変えて再度お試しください">Try again from another location.</string>
+  <string name="timetable_top_login" source="登録した駅は、様々な画面ですぐに呼び出せます！">Save stations for quick access from multiple screens!</string>
+  <string name="timetable_top_login_btn" source="駅を登録">Save a station</string>
+  <string name="timetable_top_no_arround" source="現在地周辺の駅を取得できませんでした。">Could not load nearby stations.</string>
+  <string name="timetable_top_no_bus" source="本日のバスは終了しました">Bus service has ended for today</string>
+  <string name="timetable_top_no_regist" source="登録されている駅はありません。駅情報ページから登録することができます。">No saved stations. Save stations from their information screen.</string>
+  <string name="timetable_top_no_timetable" source="指定の曜日では時刻表がありません">No timetable for the selected day.</string>
+  <string name="timetable_top_no_train" source="本日の電車は終了しました">Train service has ended for today</string>
+  <string name="timetable_top_show_all" source="全て見る＞">Show all &gt;</string>
+  <string name="timetable_top_title" source="時刻表">Timetable</string>
+  <string name="timetable_top_title_timer" source="駅時刻表">Station timetable</string>
+  <string name="timetable_update_msg" source="最新の時刻表とダイヤが異なります。更新しますか？">This timetable differs from the latest schedule. Update it?</string>
+  <string name="timetable_update_msg_no" source="更新しない">Do not update</string>
+  <string name="timetable_update_msg_yes" source="更新する">Update</string>
+  <string name="title_push_permission" source="お知らせ通知設定">Notification settings</string>
+  <string name="title_station_and_busstop_candidate" source="駅・バス停候補">Station / bus stop suggestions</string>
+  <string name="title_station_gps" source="現在地周辺の駅">Nearby stations</string>
+  <string name="title_station_keyword" source="駅を入力">Enter station</string>
+  <string name="title_station_regist" source="登録駅">Saved stations</string>
+  <string name="title_teiki" source="定期区間情報">Pass coverage</string>
+  <string name="top_navi_history_title" source="検索履歴">History</string>
+  <string name="top_navi_input_title" source="通常検索">Standard search</string>
+  <string name="top_navi_myroute_title" source="マイルート">My Routes</string>
+  <string name="top_navi_route_memo_title" source="ルートメモ">Saved routes</string>
+  <string name="total_price_text" source="（通常総額%s円）">(standard total: %s yen)</string>
+  <string name="transfer_notification_importance_dialog_message" source="通知がサイレント状態のため、乗降アラームが発動しない可能性があります。また音量やバイブレーションの設定がオフですとバイブレーション等が鳴らない可能性がありますので合わせてご確認ください。">Silent notifications may prevent boarding / arrival alarms. Disabled sound or vibration settings can also silence alerts. Check device settings.</string>
+  <string name="turn_on_gps" source="現在地を取得できませんでした。端末の位置情報の設定をご確認ください。">Could not determine location. Check device location settings.</string>
+  <string name="turn_on_gps_permission" source="現在地を取得できませんでした。位置情報の取得が許可されていません。">Could not determine location. Location permission is disabled.</string>
+  <string name="turn_on_microphone" source="マイクへのアクセスが許可されていません。&#10;端末の設定から許可してください。">Microphone permission is disabled. Allow it in device settings.</string>
+  <string name="turn_on_storage_permission" source="ストレージへのアクセスが許可されていません。&#10;端末の設定から許可してください。">Storage permission is disabled. Allow it in device settings.</string>
+  <string name="turn_on_storage_permission_dialog_message" source="ストレージへのアクセスが許可されていません。&#10;この機能を使うには%sの権限を許可してください。">Storage permission is disabled. Allow %s to use this feature.</string>
+  <string name="turn_on_storage_permission_dialog_message_item_Q" source="「権限」→「ストレージ」">Permissions &gt; Storage</string>
+  <string name="turn_on_storage_permission_dialog_message_item_R" source="「権限」→「ファイルとメディア」">Permissions &gt; Files and media</string>
+  <string name="turn_on_storage_permission_dialog_title" source="ストレージの許可">Storage permission</string>
+  <string name="update" source="更新">Update</string>
+  <string name="update_dialog_message" source="アップデートがあります。">An update is available.</string>
+  <string name="update_dialog_title" source="アップデート情報">Update information</string>
+  <string name="update_msg" source="更新しました">Updated</string>
+  <string name="update_notification_msg_01" source="「定期を使った安い運賃は？」そんな時は...">Want cheaper fares using your pass? Here is how...</string>
+  <string name="update_notification_msg_02" source="「えっ！電車止まってる？」そんな時は...">Train service stopped? Here is what to do...</string>
+  <string name="update_notification_msg_03" source="「電車に間に合うかな？」そんな時は...">Will you catch your train? Here is how to check...</string>
+  <string name="update_notification_msg_04" source="「最寄駅の入力がいつも面倒」そんな時は...">Tired of entering your nearest station? Try this...</string>
+  <string name="update_notification_msg_05" source="「家に着くのは何時だろう？」そんな時は...">When will you get home? Here is how to check...</string>
+  <string name="update_notification_msg_06" source="「あれ？バス停はどこだ？」そんな時は...">Cannot find the bus stop? Try this...</string>
+  <string name="update_notification_msg_07" source="「あれ？1本前に間に合った」そんな時は...">Caught an earlier train? Here is what to do...</string>
+  <string name="version_copyright_rescue" source="レスキューナウ All rights reserved.">Rescue Now. All rights reserved.</string>
+  <string name="via_but_not_station_or_bus_stop" source="経由は駅・バス停のみのため指定不可">Via points must be stations or bus stops</string>
+  <string name="voice_ui_message_retry" source="もう一度タップして&#10;お話しください">Tap again and speak</string>
+  <string name="voice_ui_title_hint_default" source="調べたい言葉を&#10;お話しください">Say what you want to search for</string>
+  <string name="voice_ui_title_hint_error" source="通信できませんでした。&#10;通信環境をご確認ください">Connection failed. Check your network.</string>
+  <string name="voice_ui_title_hint_listening" source="聞き取っています">Listening</string>
+  <string name="voice_ui_title_hint_not_recognized" source="すみません、&#10;聞き取ることができませんでした">Could not recognize your speech</string>
+  <string name="voice_ui_title_hint_suggestion" source="たとえば、&#10;こんな検索をしてみてください">For example, try a search like this</string>
+  <string name="walk_condition_title" source="乗換時間設定">Transfer time settings</string>
+  <string name="walk_navi_error_can_not_find_walk_route_title" source="徒歩ルートが見つかりませんでした">No walking route found</string>
+  <string name="walk_navi_error_can_not_start_navigation_message" source="現在地が大きく離れています。現在地から%1$sまでのルートを再検索しますか？">You are far from the route. Search again from your location to %1$s?</string>
+  <string name="walk_navi_error_can_not_start_navigation_title" source="案内を開始できませんでした">Could not start navigation</string>
+  <string name="walk_navi_error_no_route_message" source="案内を終了します。よろしいですか？">End navigation?</string>
+  <string name="walk_navi_error_no_route_title" source="ルートを再設定できませんでした">Could not recalculate route</string>
+  <string name="walk_navi_error_permission_message" source="案内を終了します。">Ending navigation.</string>
+  <string name="walk_navi_finish_button" source="終了する">End navigation</string>
+  <string name="walk_navi_finished_navi_message" source="目的地付近に到着しました。案内を終了します。">You have arrived near your destination. Ending navigation.</string>
+  <string name="walk_navi_not_finish_button" source="終了しない">Continue navigation</string>
+  <string name="walk_navi_not_reroute_button" source="再検索しない">Do not search again</string>
+  <string name="walk_navi_reroute_button" source="再検索する">Search again</string>
+  <string name="walk_navi_start_button" source="ナビ開始">Start navigation</string>
+  <string name="walk_speed_1" source="駅や道に詳しい。速く歩く">Know the station and route well; walk fast</string>
+  <string name="walk_speed_2" source="迷わず移動できる。やや速く歩く">Can navigate without getting lost; walk slightly fast</string>
+  <string name="walk_speed_3" source="迷う可能性がある。ややゆっくり歩く">May need time to find the way; walk slightly slowly</string>
+  <string name="walk_speed_4" source="駅や道に不慣れ。ゆっくり歩く">Unfamiliar with the station or route; walk slowly</string>
+  <string name="walk_speed_icon_description" source="乗り換え・歩く速度設定アイコン">Walking / transfer speed icon</string>
+  <string name="web_view_err_cannot_open_link" source="リンクを開けませんでした。">Could not open link.</string>
+  <string name="web_view_err_message1" source="指定されたページが表示できませんでした。">Could not display this page.</string>
+  <string name="web_view_err_message2" source="一時的にご利用いただけないか、URLが正しく指定されていない可能性があります。">The page may be temporarily unavailable or the URL may be incorrect.</string>
+  <string name="week_all" source="月、火、水、木、金、土、日">Mon, Tue, Wed, Thu, Fri, Sat, Sun</string>
+  <string name="week_change" source="曜日変更">Change days</string>
+  <string name="week_holiday" source="休日">Holidays</string>
+  <string name="week_ordinary" source="平日">Weekdays</string>
+  <string name="week_saturday" source="土曜">Saturday</string>
+  <string name="yjadsdk_cpf_error_view_already_friends" source="既に友だち追加済みです">Already added as a friend</string>
+  <string name="yjadsdk_cpf_error_view_back" source="タップして戻る">Tap to go back</string>
+  <string name="yjadsdk_cpf_error_view_failed" source="友だち追加に失敗しました">Could not add friend</string>
+  <string name="yjadsdk_cpf_error_view_title" source="エラータイトル">Error</string>
+  <string name="yjadsdk_cpf_view_add_btn" source="LINE 友だち追加">Add LINE friend</string>
+  <string name="yjadsdk_cpf_view_ask" source="このLINE公式アカウントを友だち追加しますか？">Add this official LINE account as a friend?</string>
+  <string name="yjadsdk_cpf_view_cancel_btn" source="キャンセル">Cancel</string>
+  <string name="yjadsdk_feedback_inbanner_back" source="戻る">Back</string>
+  <string name="yjadsdk_feedback_inbanner_block_hidden_button_text" source="非表示に設定">Hide ad</string>
+  <string name="yjadsdk_feedback_inbanner_block_opinion_text" source="ご意見・ご感想">Feedback</string>
+  <string name="yjadsdk_feedback_inbanner_block_result_normal_text" source="この広告を非表示に設定しました">This ad has been hidden</string>
+  <string name="yjadsdk_feedback_inbanner_block_result_temp_text" source="この広告を一時的に非表示にします">This ad will be hidden temporarily</string>
+  <string name="yjadsdk_feedback_inbanner_block_setting_text" source="広告表示設定">Ad preferences</string>
+  <string name="yjadsdk_feedback_inbanner_block_setting_text_a" source="ご意見・ご感想&#10;広告表示設定">Feedback
+Ad preferences</string>
+  <string name="yjadsdk_feedback_inbanner_block_setting_text_b" source="ご意見・ご感想｜広告表示設定">Feedback | Ad preferences</string>
+  <string name="yjadsdk_feedback_inbanner_block_title" source="この広告を非表示に設定しますか">Hide this ad?</string>
+  <string name="yjadsdk_feedback_inbanner_enquete_description_login" source="今後もこの広告を非表示にするにはログインしてください">Sign in to keep this ad hidden</string>
+  <string name="yjadsdk_feedback_inbanner_enquete_other_opinions_and_setting" source="その他のご意見｜広告表示設定">Other feedback | Ad preferences</string>
+  <string name="yjadsdk_feedback_inbanner_enquete_other_opinions_and_setting_a" source="ご意見・ご感想｜広告表示設定">Feedback | Ad preferences</string>
+  <string name="yjadsdk_feedback_inbanner_enquete_thanks_description" source="いただいたご意見は広告改善の&#10;参考にさせていただきます">Your feedback will help improve ads</string>
+  <string name="yjadsdk_feedback_inbanner_enquete_thanks_description_login" source="今後もこの広告を非表示にするには&#10;ログインが必要です">Sign in to keep this ad hidden</string>
+  <string name="yjadsdk_feedback_inbanner_enquete_thanks_title" source="ご協力ありがとうございました">Thank you for your feedback</string>
+  <string name="yjadsdk_feedback_inbanner_enquete_title" source="ご意見をお聞かせください">Tell us what you think</string>
+  <string name="yjadsdk_feedback_inbanner_error_opinion_and_setting" source="ご意見・ご感想｜広告表示設定">Feedback | Ad preferences</string>
+  <string name="yjadsdk_feedback_inbanner_error_title_common" source="送信できませんでした">Could not send</string>
+  <string name="yjadsdk_feedback_inbanner_error_title_status" source="この広告を一時的に非表示にします">This ad will be hidden temporarily</string>
+  <string name="yjadsdk_feedback_inbanner_filler_opinion_and_setting" source="ご意見・ご感想｜広告表示設定">Feedback | Ad preferences</string>
+  <string name="yjadsdk_feedback_inbanner_filler_title" source="Yahoo! JAPAN広告">Yahoo! JAPAN ads</string>
+  <string name="yjadsdk_feedback_popup_block_hidden_button_text" source="非表示に設定">Hide ad</string>
+  <string name="yjadsdk_feedback_popup_block_opinion_text" source="ご意見・ご感想を送る">Send feedback</string>
+  <string name="yjadsdk_feedback_popup_block_setting_text" source="広告表示設定">Ad preferences</string>
+  <string name="yjadsdk_feedback_popup_block_title" source="この広告を非表示に設定しますか">Hide this ad?</string>
+  <string name="yjadsdk_feedback_popup_cancel_button_text" source="キャンセル">Cancel</string>
+  <string name="yjadsdk_feedback_popup_enquete_nonlogin_text" source="今後もこの広告を非表示に設定するには、Yahoo! JAPAN IDでログインする必要があります">Sign in with a Yahoo! JAPAN ID to keep this ad hidden</string>
+  <string name="yjadsdk_feedback_popup_enquete_setting_text" source="その他のご意見｜広告表示設定">Other feedback | Ad preferences</string>
+  <string name="yjadsdk_feedback_popup_enquete_title" source="ご意見をお聞かせください">Tell us what you think</string>
+  <string name="yjadsdk_feedback_popup_error_blocked_description_text" source="この広告を非表示に設定します">This ad will be hidden</string>
+  <string name="yjadsdk_feedback_popup_error_close_text" source="閉じる">Close</string>
+  <string name="yjadsdk_feedback_popup_error_description_text" source="この広告を一時的に非表示にします">This ad will be hidden temporarily</string>
+  <string name="yjadsdk_feedback_popup_error_title" source="送信できませんでした">Could not send</string>
+  <string name="ymlv_ad_player_detail" source="詳細">Details</string>
+  <string name="ymlv_player_create_error_fullscreen" source="お手数ですが、しばらく時間をおいてから&#10;再読み込みをお試しください。">Please wait and try reloading.</string>
+  <string name="ymlv_player_create_error_inline" source="タップして再読み込みするか、&#10;しばらく時間をおいてから、再度アクセスしてください。">Tap to reload, or wait and try again.</string>
+  <string name="ymlv_player_create_error_main" source="動画を読み込めませんでした。">Could not load video.</string>
+  <string name="ymlv_player_replay" source="再生する">Play</string>
+  <string name="ymlv_player_show_detail" source="詳しくはこちら">Learn more</string>
+  <string name="yrequiredcondition_available_area_dialog_button" source="詳細を見る">View details</string>
+  <string name="yrequiredcondition_available_area_dialog_message" source="このサービスはお客様の地域からはご利用になれません">This service is unavailable in your region.</string>
+  <string name="yrequiredcondition_available_area_dialog_title" source="お知らせ">Notice</string>
+  <string name="yrequiredcondition_error_dialog_message" source="予期しないエラーが発生しました。">An unexpected error occurred.</string>
+  <string name="yrequiredcondition_error_dialog_title" source="エラー">Error</string>
+  <string name="yw_floor_item_list_floor_name" source="屋外">Outdoors</string>
+  <string name="yw_mapbox_attr_item_provided_info" source="提供している情報について">About the provided information</string>
+  <string name="yw_mapbox_attr_item_telemetry" source="位置情報取得について">About location collection</string>
+  <string name="yw_mapbox_attr_item_terms" source="LINEヤフー地図ガイドライン">LY Corporation map guidelines</string>
+  <string name="yw_mapbox_attr_title" source="このアプリについて">About this app</string>
+  <string name="yw_navi_arrive_text" source="着">Arr.</string>
+  <string name="yw_navi_bad_accuracy" source="位置情報精度が悪いです">Poor location accuracy</string>
+  <string name="yw_navi_cancel" source="キャンセル">Cancel</string>
+  <string name="yw_navi_cannot_route_msg" source="現在地から %s までのルートを再検索します。">Searching again from your location to %s.</string>
+  <string name="yw_navi_cannot_route_title" source="案内を開始できませんでした">Could not start navigation</string>
+  <string name="yw_navi_cannot_start_navigation_msg" source="現在地が大きく離れています。現在地から %s までのルートを再検索しますか？">You are far from the route. Search again from your location to %s?</string>
+  <string name="yw_navi_cannot_start_navigation_title" source="案内を開始できませんでした">Could not start navigation</string>
+  <string name="yw_navi_different_floor" source="フロアが異なります">You are on a different floor</string>
+  <string name="yw_navi_dont_re_search" source="再検索しない">Do not search again</string>
+  <string name="yw_navi_end" source="終了">End</string>
+  <string name="yw_navi_hour_unit_text" source="時間">h</string>
+  <string name="yw_navi_label_current_location" source="そのまま&#10;道なりに進む">Continue
+along the road</string>
+  <string name="yw_navi_label_reach_to_goal" source="目的地付近に到着">Arrived near destination</string>
+  <string name="yw_navi_label_reach_to_goal_gate" source="駅入口付近に到着">Arrived near station entrance</string>
+  <string name="yw_navi_label_reach_to_via" source="%s付近に到着">Arrived near %s</string>
+  <string name="yw_navi_label_virtual_route" source="歩道に出てください">Move onto the sidewalk</string>
+  <string name="yw_navi_label_virtual_route_gate" source="出口から">From the exit</string>
+  <string name="yw_navi_less_than_minute_unit_text" source="分未満"> min or less</string>
+  <string name="yw_navi_minute_unit_text" source="分">min</string>
+  <string name="yw_navi_navi_error" source="案内を停止しました。画面をご確認ください。">Navigation stopped. Check the screen.</string>
+  <string name="yw_navi_no" source="いいえ">No</string>
+  <string name="yw_navi_no_route_message" source="案内を終了します。よろしいですか？">End navigation?</string>
+  <string name="yw_navi_no_route_title" source="ルートを再設定できませんでした">Could not recalculate route</string>
+  <string name="yw_navi_notify_go_background" source="案内を続けます">Navigation continues</string>
+  <string name="yw_navi_notify_reach_to_goal" source="目的地付近に到着しました">Arrived near destination</string>
+  <string name="yw_navi_on_off_onboarding_text" source="音声のON・OFFができます">Turn voice guidance on or off</string>
+  <string name="yw_navi_onboarding_text" source="音声案内に対応しました！">Voice guidance is now available!</string>
+  <string name="yw_navi_out_of_route" source="ルートから外れました">Off route</string>
+  <string name="yw_navi_progress_arrive" source="で到着"> to arrive</string>
+  <string name="yw_navi_progress_remaining" source="残り">Remaining</string>
+  <string name="yw_navi_re_route" source="再検索">Search again</string>
+  <string name="yw_navi_re_search" source="再検索する">Search again</string>
+  <string name="yw_navi_route_overview_title" source="全体行程">Full route</string>
+  <string name="yw_navi_start_message" source="徒歩でのナビを開始します">Starting walking navigation</string>
+  <string name="yw_navi_walk" source="歩く">Walk</string>
+  <string name="yw_navi_yes" source="はい">Yes</string>
+  <string name="yw_opt_out_button_negative" source="取得を許可しない">Do not allow</string>
+  <string name="yw_opt_out_button_neutral" source="詳細を確認する">View details</string>
+  <string name="yw_opt_out_button_positive_disabled" source="取得を許可する">Allow collection</string>
+  <string name="yw_opt_out_button_positive_enabled" source="取得を引き続き許可する">Continue allowing collection</string>
+  <string name="yw_opt_out_message" source="本アプリの地図情報は Mapbox社と連携してお届けします。&#10;Mapbox社は同社のサービスの提供および改善等のために、位置情報を取得し、取得した情報を、同社のプライバシーポリシーに従って利用します。お客様が当該取得を許可しない場合は「取得を許可しない」を選択してください。">Maps are provided in cooperation with Mapbox. Mapbox collects location to provide and improve its services and uses it under its privacy policy. Select Do not allow to decline collection.</string>
+  <string name="yw_opt_out_title" source="位置情報取得について">About location collection</string>
+  <string name="yw_opt_out_toast" source="設定を反映しました">Settings applied</string>
+  <string name="yw_route_detail_goal" source="目的地">Destination</string>
+  <string name="yw_route_detail_info" source="歩く %s %s">Walk %s %s</string>
+  <string name="yw_route_detail_location" source="現在地">Current location</string>
+  <string name="yw_route_detail_start" source="出発地">Origin</string>
+  <string name="yw_route_detail_via" source="経由地">Via</string>
+</resources>

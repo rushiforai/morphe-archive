@@ -45,7 +45,26 @@ public final class FeaturePreferences {
     public static PreferenceCategory heading(Context c){return new Heading(c);}
     private static class Row extends Preference {Row(Context c){super(c);}@Override protected void onBindView(View v){super.onBindView(v);bind(v);}}
     private static final class Toggle extends SwitchPreference {Toggle(Context c){super(c);}@Override protected void onBindView(View v){super.onBindView(v);bind(v);}}
-    private static final class Choice extends ListPreference {Choice(Context c){super(c);}@Override protected void onBindView(View v){super.onBindView(v);bind(v);}}
+    private static final class Choice extends ListPreference {
+        Choice(Context c){super(c);}
+        @Override protected void onBindView(View v){super.onBindView(v);bind(v);}
+        @Override protected void onPrepareDialogBuilder(android.app.AlertDialog.Builder builder){
+            super.onPrepareDialogBuilder(builder);
+            CharSequence[] entries=getEntries(),values=getEntryValues();
+            if(entries==null||values==null||entries.length!=values.length)return;
+            // The host themes preference rows separately from the framework dialog list.
+            android.widget.ArrayAdapter<CharSequence> adapter=new android.widget.ArrayAdapter<>(getContext(),android.R.layout.simple_list_item_single_choice,entries){
+                @Override public View getView(int position,View recycled,android.view.ViewGroup parent){
+                    View row=super.getView(position,recycled,parent);
+                    if(row instanceof TextView text){text.setTextColor(ThemeUtils.getAppForegroundColor());text.setSingleLine(false);text.setTextSize(16);}
+                    return row;
+                }
+            };
+            builder.setSingleChoiceItems(adapter,findIndexOfValue(getValue()),(dialog,index)->{
+                String value=values[index].toString();if(callChangeListener(value))setValue(value);dialog.dismiss();
+            });
+        }
+    }
     private static final class Text extends EditTextPreference {Text(Context c){super(c);}@Override protected void onBindView(View v){super.onBindView(v);bind(v);}}
     private static final class Heading extends PreferenceCategory {Heading(Context c){super(c);}@Override protected void onBindView(View v){super.onBindView(v);v.setPadding(dp(getContext(),28),dp(getContext(),26),dp(getContext(),28),dp(getContext(),8));if(v instanceof TextView t){t.setTextColor(ThemeUtils.getAppForegroundColor());t.setTextSize(14);t.setTypeface(null,Typeface.BOLD);}}}
 }

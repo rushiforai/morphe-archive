@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+ */
+
+package app.rex.patches.instagram.misc.actionBar.chatActionBarButton
+
+import app.rex.patches.instagram.utils.Constants.ACTIONBAR_DESCRIPTOR
+import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
+import app.morphe.util.indexOfFirstInstruction
+import app.morphe.util.registersUsed
+import com.android.tools.smali.dexlib2.Opcode
+
+object ChatActionBarBuilderFingerprint : Fingerprint(
+    returnType = "V",
+    filters =
+        listOf(
+            resourceLiteral(ResourceType.ID, "direct_thread_header"),
+            resourceLiteral(ResourceType.LAYOUT, "layout_direct_thread_header"),
+        ),
+)
+
+val chatActionBarButtonPatch =
+    bytecodePatch(
+        description = "This patch is adds support for adding buttons inside chat action bar.",
+    ) {
+        compatibleWith(COMPATIBILITY_INSTAGRAM)
+
+        execute {
+
+            ChatActionBarBuilderFingerprint.apply {
+                val layoutIndex = instructionMatches.last().index
+                method
+                    .apply {
+                        val viewGroupInstruction = getInstruction(indexOfFirstInstruction(Opcode.CHECK_CAST))
+                        val viewGroupRegister = viewGroupInstruction.registersUsed[0]
+
+                        val fistMoveResultObjectAfterLayoutIndex = indexOfFirstInstruction(layoutIndex, Opcode.MOVE_RESULT_OBJECT)
+
+                        addInstruction(
+                            fistMoveResultObjectAfterLayoutIndex + 1,
+                            """
+                            invoke-static {v$viewGroupRegister}, $ACTIONBAR_DESCRIPTOR->chatActionBarButton(Landroid/view/ViewGroup;)V
+                            """.trimIndent(),
+                        )
+                    }
+            }
+        }
+    }

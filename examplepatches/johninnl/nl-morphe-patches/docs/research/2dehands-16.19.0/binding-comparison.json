@@ -1,0 +1,527 @@
+[
+  {
+    "canonical": "La0;->a()V",
+    "marktplaats": "La0;->a()V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lad2;->c()Z",
+    "marktplaats": "Lu0l;->c()Z",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lad2;->h(Z)V",
+    "marktplaats": "Lu0l;->h(Z)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lal;->b(Lcom/horizon/android/core/advertising/nativead/view/NativeAdContainer;)V",
+    "marktplaats": "Lhl;->b(Lcom/horizon/android/core/advertising/nativead/view/NativeAdContainer;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Landroidx/credentials/playservices/CredentialProviderPlayServicesImpl;->isAvailableOnDevice(I)Z",
+    "marktplaats": "Landroidx/credentials/playservices/CredentialProviderPlayServicesImpl;->isAvailableOnDevice(I)Z",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Landroidx/credentials/playservices/CredentialProviderPlayServicesImpl;->onGetCredential(Landroid/content/Context;Llj6;Landroid/os/CancellationSignal;Ljava/util/concurrent/Executor;Ldt3;)V",
+    "marktplaats": "Landroidx/credentials/playservices/CredentialProviderPlayServicesImpl;->onGetCredential(Landroid/content/Context;Lmt6;Landroid/os/CancellationSignal;Ljava/util/concurrent/Executor;Luz3;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Landroidx/credentials/playservices/controllers/identitycredentials/getcredential/a;->onReceiveResult(ILandroid/os/Bundle;)V",
+    "marktplaats": "Landroidx/credentials/playservices/controllers/identitycredentials/getcredential/a;->onReceiveResult(ILandroid/os/Bundle;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lbo/app/qe;->a()Z",
+    "marktplaats": "Lbo/app/qe;->a()Z",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lbo/app/qe;->b(Z)V",
+    "marktplaats": "Lbo/app/qe;->b(Z)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lc1c;->a(Landroid/content/Context;)V",
+    "marktplaats": "Lqic;->a(Landroid/content/Context;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lc37;->c()V",
+    "marktplaats": "Lcom/horizon/android/core/advertising/a;->a()V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lc37;->d()V",
+    "marktplaats": "Lde7;->c()V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lc8h;->a(Landroidx/fragment/app/w;Ljava/lang/String;)V",
+    "marktplaats": "Lzvh;->a(Landroidx/fragment/app/w;Ljava/lang/String;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcg3;->onUIReady(Landroid/view/View;)V",
+    "marktplaats": "Ltm3;->onUIReady(Landroid/view/View;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcom/adjust/sdk/AdjustInstance;->initSdk(Lcom/adjust/sdk/AdjustConfig;)V",
+    "marktplaats": "Lcom/adjust/sdk/AdjustInstance;->initSdk(Lcom/adjust/sdk/AdjustConfig;)V",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/adjust/sdk/AdjustInstance;->onResume()V",
+    "marktplaats": "Lcom/adjust/sdk/AdjustInstance;->onResume()V",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/adjust/sdk/AdjustInstance;->sendReferrer(Ljava/lang/String;Landroid/content/Context;)V",
+    "marktplaats": "Lcom/adjust/sdk/AdjustInstance;->sendReferrer(Ljava/lang/String;Landroid/content/Context;)V",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/adjust/sdk/AdjustInstance;->trackEvent(Lcom/adjust/sdk/AdjustEvent;)V",
+    "marktplaats": "Lcom/adjust/sdk/AdjustInstance;->trackEvent(Lcom/adjust/sdk/AdjustEvent;)V",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/adjust/sdk/AdjustReferrerReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+    "marktplaats": "Lcom/adjust/sdk/AdjustReferrerReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/adyen/checkout/components/core/internal/analytics/a;->d(Lkotlin/coroutines/jvm/internal/ContinuationImpl;)Ljava/lang/Object;",
+    "marktplaats": "Lcom/adyen/checkout/components/core/internal/analytics/a;->d(Lkotlin/coroutines/jvm/internal/ContinuationImpl;)Ljava/lang/Object;",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/adyen/checkout/components/core/internal/analytics/a;->e()V",
+    "marktplaats": "Lcom/adyen/checkout/components/core/internal/analytics/a;->e()V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/adyen/checkout/components/core/internal/ui/model/AnalyticsParamsLevel;->getPriority()I",
+    "marktplaats": "Lcom/adyen/checkout/components/core/internal/ui/model/AnalyticsParamsLevel;->getPriority()I",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/braze/Braze$Companion;->enableSdk(Landroid/content/Context;)V",
+    "marktplaats": "Lcom/braze/Braze$Companion;->enableSdk(Landroid/content/Context;)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/braze/Braze$Companion;->isDisabled()Z",
+    "marktplaats": "Lcom/braze/Braze$Companion;->isDisabled()Z",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/braze/Braze$Companion;->setOutboundNetworkRequestsOffline(Z)V",
+    "marktplaats": "Lcom/braze/Braze$Companion;->setOutboundNetworkRequestsOffline(Z)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/braze/Braze;->runGuardedAsync$android_sdk_base_release(Lkotlin/jvm/functions/Function0;ZZZLkotlin/jvm/functions/Function0;)V",
+    "marktplaats": "Lcom/braze/Braze;->runGuardedAsync$android_sdk_base_release(Lkotlin/jvm/functions/Function0;ZZZLkotlin/jvm/functions/Function0;)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/braze/push/BrazePushReceiver$Companion;->handleReceivedIntent(Landroid/content/Context;Landroid/content/Intent;Z)V",
+    "marktplaats": "Lcom/braze/push/BrazePushReceiver$Companion;->handleReceivedIntent(Landroid/content/Context;Landroid/content/Intent;Z)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/google/firebase/sessions/settings/a;->d(Lkotlin/coroutines/Continuation;)Ljava/lang/Object;",
+    "marktplaats": "Lcom/google/firebase/sessions/settings/a;->d(Lkotlin/coroutines/Continuation;)Ljava/lang/Object;",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/braze/i;->d(Lcom/horizon/android/braze/i;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;",
+    "marktplaats": "Lcom/horizon/android/braze/i;->d(Lcom/horizon/android/braze/i;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/braze/i;->e(Lcom/horizon/android/braze/i;)V",
+    "marktplaats": "Lcom/horizon/android/braze/i;->e(Lcom/horizon/android/braze/i;)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/braze/i;->g()V",
+    "marktplaats": "Lcom/horizon/android/braze/i;->g()V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/advertising/banners/tracking/a;->a(Lcom/horizon/android/core/advertising/banners/tracking/BannerMetricsData;Lkotlin/coroutines/jvm/internal/ContinuationImpl;)Ljava/lang/Object;",
+    "marktplaats": "Lcom/horizon/android/core/advertising/banners/tracking/a;->a(Lcom/horizon/android/core/advertising/banners/tracking/BannerMetricsData;Lkotlin/coroutines/jvm/internal/ContinuationImpl;)Ljava/lang/Object;",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/advertising/banners/tracking/b;->a(Lcom/horizon/android/core/advertising/banners/tracking/BannerMetricsData;)V",
+    "marktplaats": "Lcom/horizon/android/core/advertising/banners/tracking/b;->a(Lcom/horizon/android/core/advertising/banners/tracking/BannerMetricsData;)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/advertising/nativead/NativeAdRepo$getSponsoredAd$1;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "marktplaats": "Lcom/horizon/android/core/advertising/nativead/NativeAdRepo$getSponsoredAd$1;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/advertising/nativead/a;->a(Lcom/horizon/android/core/datamodel/nativead/NativeAdvertisementRequest;Lkotlin/coroutines/jvm/internal/ContinuationImpl;)Ljava/lang/Object;",
+    "marktplaats": "Lcom/horizon/android/core/advertising/nativead/a;->a(Lcom/horizon/android/core/datamodel/nativead/NativeAdvertisementRequest;Lkotlin/coroutines/jvm/internal/ContinuationImpl;)Ljava/lang/Object;",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/advertising/nativead/a;->c(Lcom/horizon/android/core/datamodel/nativead/NativeAdEvent;Lkotlin/coroutines/jvm/internal/ContinuationImpl;)Ljava/lang/Object;",
+    "marktplaats": "Lcom/horizon/android/core/advertising/nativead/a;->c(Lcom/horizon/android/core/datamodel/nativead/NativeAdEvent;Lkotlin/coroutines/jvm/internal/ContinuationImpl;)Ljava/lang/Object;",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/advertising/nativead/view/NativeAdContainer;->a(Z)V",
+    "marktplaats": "Lcom/horizon/android/core/advertising/nativead/view/NativeAdContainer;->a(Z)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/advertising/nativead/view/NativeAdContainer;->onAttachedToWindow()V",
+    "marktplaats": "Lcom/horizon/android/core/advertising/nativead/view/NativeAdContainer;->onAttachedToWindow()V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/advertising/targeting/AdTargetingRepository$requestDisplayTargetingForAd$1;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "marktplaats": "Lcom/horizon/android/core/advertising/targeting/AdTargetingRepository$requestDisplayTargetingForAd$1;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/advertising/targeting/AdTargetingRepository$requestDisplayTargetingForListing$2;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "marktplaats": "Lcom/horizon/android/core/advertising/targeting/AdTargetingRepository$requestDisplayTargetingForListing$2;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/networking/threatmetrix/a;->d(Lcom/horizon/android/core/networking/threatmetrix/a;Lcom/horizon/android/HorizonApplication;)V",
+    "marktplaats": "Lcom/horizon/android/core/networking/threatmetrix/a;->d(Lcom/horizon/android/core/networking/threatmetrix/a;Lcom/horizon/android/HorizonApplication;)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/networking/threatmetrix/a;->e()Z",
+    "marktplaats": "Lcom/horizon/android/core/networking/threatmetrix/a;->e()Z",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/tracking/config/a;->m()Z",
+    "marktplaats": "Lcom/horizon/android/core/tracking/config/a;->l()Z",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/tracking/crash/a;-><init>()V",
+    "marktplaats": "Lcom/horizon/android/core/tracking/crash/a;-><init>()V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/tracking/crash/a;->b()V",
+    "marktplaats": "Lcom/horizon/android/core/tracking/crash/a;->b()V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/tracking/crash/a;->c(Ljava/lang/String;)V",
+    "marktplaats": "Lcom/horizon/android/core/tracking/crash/a;->c(Ljava/lang/String;)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/tracking/crash/a;->d(Ljava/lang/String;Ljava/lang/Throwable;)V",
+    "marktplaats": "Lcom/horizon/android/core/tracking/crash/a;->d(Ljava/lang/String;Ljava/lang/Throwable;)V",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/tracking/crash/a;->e(Ljava/lang/Throwable;)V",
+    "marktplaats": "Lcom/horizon/android/core/tracking/crash/a;->e(Ljava/lang/Throwable;)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/tracking/gaid/a;->a(Lcom/horizon/android/core/tracking/gaid/a;)V",
+    "marktplaats": "Lcom/horizon/android/core/tracking/gaid/a;->a(Lcom/horizon/android/core/tracking/gaid/a;)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/tracking/gaid/a;->b()V",
+    "marktplaats": "Lcom/horizon/android/core/tracking/gaid/a;->b()V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/feature/feeds/homepage/ui/e;->c(Ldx6;)V",
+    "marktplaats": "Lcom/horizon/android/feature/feeds/homepage/ui/e;->c(La87;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcom/horizon/android/feature/search/search/api/LrpItemsRequest;-><init>(Ljava/util/List;Ljava/util/List;Lcom/horizon/android/feature/search/search/api/LrpSearchRequest;)V",
+    "marktplaats": "Lcom/horizon/android/feature/search/search/api/LrpItemsRequest;-><init>(Ljava/util/List;Ljava/util/List;Lcom/horizon/android/feature/search/search/api/LrpSearchRequest;)V",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/horizon/android/feature/search/search/model/FlexibleSearchResponse;-><init>(Ljava/util/List;Lcom/horizon/android/core/datamodel/search/Histograms;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/Boolean;Lcom/horizon/android/feature/search/search/api/RecommendedCategoryDataDto;)V",
+    "marktplaats": "Lcom/horizon/android/feature/search/search/model/FlexibleSearchResponse;-><init>(Ljava/util/List;Lcom/horizon/android/core/datamodel/search/Histograms;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/Boolean;Lcom/horizon/android/feature/search/search/api/RecommendedCategoryDataDto;)V",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/horizon/android/feature/search/search/model/FlexibleSearchResponse;->component1()Ljava/util/List;",
+    "marktplaats": "Lcom/horizon/android/feature/search/search/model/FlexibleSearchResponse;->component1()Ljava/util/List;",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/horizon/android/feature/search/search/model/FlexibleSearchResponse;->getItems()Ljava/util/List;",
+    "marktplaats": "Lcom/horizon/android/feature/search/search/model/FlexibleSearchResponse;->getItems()Ljava/util/List;",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/horizon/android/feature/search/search/model/FlexibleSearchResponse;->toAdSearchResult()Lcom/horizon/android/core/datamodel/search/AdSearchResult;",
+    "marktplaats": "Lcom/horizon/android/feature/search/search/model/FlexibleSearchResponse;->toAdSearchResult()Lcom/horizon/android/core/datamodel/search/AdSearchResult;",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/horizon/android/feature/search/search/usecase/a;->b(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/jvm/internal/SuspendLambda;)Ljava/lang/Object;",
+    "marktplaats": "Lcom/horizon/android/feature/search/search/usecase/a;->b(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/jvm/internal/SuspendLambda;)Ljava/lang/Object;",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/horizon/android/feature/search/search/usecase/a;->c(Ljava/util/List;Lcom/horizon/android/core/datamodel/search/ItemsVisualisation;Lkotlin/coroutines/jvm/internal/SuspendLambda;)Ljava/lang/Object;",
+    "marktplaats": "Lcom/horizon/android/feature/search/search/usecase/a;->c(Ljava/util/List;Lcom/horizon/android/core/datamodel/search/ItemsVisualisation;Lkotlin/coroutines/jvm/internal/SuspendLambda;)Ljava/lang/Object;",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lcom/horizon/android/feature/vip/contentorder/VipContentOrder;->getPhoneSections$vip()Ljava/util/List;",
+    "marktplaats": "Lcom/horizon/android/feature/vip/contentorder/VipContentOrder;->getPhoneSections$vip()Ljava/util/List;",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcom/horizon/android/feature/vip/contentorder/VipContentOrder;->getTabletSections$vip()Ljava/util/List;",
+    "marktplaats": "Lcom/horizon/android/feature/vip/contentorder/VipContentOrder;->getTabletSections$vip()Ljava/util/List;",
+    "belgian_at_same_binding": "identical"
+  },
+  {
+    "canonical": "Lcz9;->b(Ljava/util/LinkedHashMap;)V",
+    "marktplaats": "Lffa;->b(Ljava/util/LinkedHashMap;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcz9;->g(Lcom/horizon/android/core/tracking/analytics/SendEventCommand;)V",
+    "marktplaats": "Lffa;->g(Lcom/horizon/android/core/tracking/analytics/SendEventCommand;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcz9;->i(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Ljava/util/Map;)V",
+    "marktplaats": "Lffa;->i(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/util/Map;Ljava/util/Map;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcz9;->j(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V",
+    "marktplaats": "Lffa;->j(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcz9;->k(Lcom/horizon/android/core/tracking/analytics/SendPageViewCommand;)V",
+    "marktplaats": "Lffa;->k(Lcom/horizon/android/core/tracking/analytics/SendPageViewCommand;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcz9;->m(Ljava/lang/String;Lcom/horizon/android/core/tracking/analytics/AnalyticsPageType;Ljava/util/Map;)V",
+    "marktplaats": "Lffa;->m(Ljava/lang/String;Lcom/horizon/android/core/tracking/analytics/AnalyticsPageType;Ljava/util/Map;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcz9;->n(Ljava/lang/String;Ljava/lang/String;)V",
+    "marktplaats": "Lffa;->n(Ljava/lang/String;Ljava/lang/String;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcz9;->o(Ljava/lang/String;Ljava/lang/String;)V",
+    "marktplaats": "Lffa;->o(Ljava/lang/String;Ljava/lang/String;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcz9;->p(Lcom/horizon/android/core/tracking/analytics/SetParametersCommand;)V",
+    "marktplaats": "Lffa;->p(Lcom/horizon/android/core/tracking/analytics/SetParametersCommand;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Ldp7;->b()V",
+    "marktplaats": "Lu08;->b()V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Le13;->q(Landroid/content/Context;ILcom/horizon/android/core/datamodel/TargetingConfiguration;Lcom/horizon/android/core/datamodel/search/ItemsVisualisation;)Landroid/view/View;",
+    "marktplaats": "Lu73;->q(Landroid/content/Context;ILcom/horizon/android/core/datamodel/TargetingConfiguration;Lcom/horizon/android/core/datamodel/search/ItemsVisualisation;)Landroid/view/View;",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lei;->d(ZZLkm6;)Lwq;",
+    "marktplaats": "Lfi;->d(ZZLqw6;)Lgr;",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lfd3;->g()Ljava/lang/Boolean;",
+    "marktplaats": "Lwj3;->g()Ljava/lang/Boolean;",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lfdj;->a(Landroid/content/Context;Lnsk;)Landroid/content/Intent;",
+    "marktplaats": "Ltfk;->a(Landroid/content/Context;Llol;)Landroid/content/Intent;",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lh04;->f()Z",
+    "marktplaats": "Lt74;->f()Z",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lida;->a(Lcom/horizon/android/core/advertising/nativead/view/NativeAdContainer;)V",
+    "marktplaats": "Laua;->a(Lcom/horizon/android/core/advertising/nativead/view/NativeAdContainer;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lkn1;->a(Lqtc;)Z",
+    "marktplaats": "Lbt1;->a(Lmcd;)Z",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Llc3;->call()Ljava/lang/Object;",
+    "marktplaats": "Lbj3;->call()Ljava/lang/Object;",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lnd0;->f(Ljava/lang/String;Ljava/lang/Double;Landroid/os/Bundle;ZLjava/util/UUID;Lu4b;)V",
+    "marktplaats": "Lji0;->f(Ljava/lang/String;Ljava/lang/Double;Landroid/os/Bundle;ZLjava/util/UUID;Lrlb;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lnw0;->b(Ldy0;I)V",
+    "marktplaats": "Lj11;->d(Lz21;I)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lpfj;->z0()Z",
+    "marktplaats": "Leik;->z0()Z",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lqn5;->b(Lmd0;Ljava/lang/String;Landroid/os/Bundle;Ljava/lang/Double;)V",
+    "marktplaats": "Lhx5;->b(Lii0;Ljava/lang/String;Landroid/os/Bundle;Ljava/lang/Double;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lqn5;->c(Lnc5;Z)V",
+    "marktplaats": "Lhx5;->c(Lcq3;Z)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lrt3;->a(Lrt3;Ljava/lang/Object;)Lit3;",
+    "marktplaats": "Li04;->a(Li04;Ljava/lang/Object;)Lzz3;",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Ls2i;->a(Landroid/content/Context;Landroid/view/ViewGroup;Lcom/horizon/android/core/datamodel/TargetingConfiguration;[Lok;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V",
+    "marktplaats": "Lqqi;->a(Landroid/content/Context;Landroid/view/ViewGroup;Lcom/horizon/android/core/datamodel/TargetingConfiguration;[Ld91;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lsok;->k(Ljava/lang/String;Lorg/json/JSONArray;Lfp6;)V",
+    "marktplaats": "Lxyl;->q(Ljava/lang/String;Lorg/json/JSONArray;Ljz6;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lsok;->q(Ljava/lang/String;Ljava/lang/String;)V",
+    "marktplaats": "Lxyl;->r(Ljava/lang/String;Ljava/lang/String;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lsw8;->a()Ljava/lang/Boolean;",
+    "marktplaats": "Lzb9;->a()Ljava/lang/Boolean;",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Ltz8;->i()V",
+    "marktplaats": "La63;->s()V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lupg;->d(Lzf6;Lcom/google/firebase/perf/v1/ApplicationProcessState;)V",
+    "marktplaats": "Ldch;->d(Lxp6;Lcom/google/firebase/perf/v1/ApplicationProcessState;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lupg;->e(Lajg;Lcom/google/firebase/perf/v1/ApplicationProcessState;)V",
+    "marktplaats": "Ldch;->e(Li5h;Lcom/google/firebase/perf/v1/ApplicationProcessState;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lupg;->f(Llqb;Lcom/google/firebase/perf/v1/ApplicationProcessState;)V",
+    "marktplaats": "Ldch;->f(Lv7c;Lcom/google/firebase/perf/v1/ApplicationProcessState;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lupg;->onUpdateAppState(Lcom/google/firebase/perf/v1/ApplicationProcessState;)V",
+    "marktplaats": "Ldch;->onUpdateAppState(Lcom/google/firebase/perf/v1/ApplicationProcessState;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lwg;->onActivityResumed(Landroid/app/Activity;)V",
+    "marktplaats": "Lxg;->onActivityResumed(Landroid/app/Activity;)V",
+    "belgian_at_same_binding": "different"
+  },
+  {
+    "canonical": "Lxc0;->c(Lcom/facebook/appevents/FlushReason;)V",
+    "marktplaats": "Lth0;->c(Lcom/facebook/appevents/FlushReason;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lxc0;->d(Lcom/facebook/appevents/FlushReason;)V",
+    "marktplaats": "Lth0;->d(Lcom/facebook/appevents/FlushReason;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lxc0;->f(Lcom/facebook/appevents/FlushReason;Lvoa;)Lq42;",
+    "marktplaats": "Lth0;->f(Lcom/facebook/appevents/FlushReason;Lk84;)Lma2;",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lxj5;->e(Z)V",
+    "marktplaats": "Lv08;->j(Z)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lxvh;->b(Lcom/horizon/android/core/datamodel/MpAd;Lcom/horizon/android/feature/vip/d;Z)V",
+    "marktplaats": "Lwji;->b(Lcom/horizon/android/core/datamodel/MpAd;Lcom/horizon/android/feature/vip/d;Z)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lzaj;->b(Landroid/app/Application;Ljava/lang/String;)V",
+    "marktplaats": "Lm6l;->e(Landroid/app/Application;Ljava/lang/String;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lzaj;->i()V",
+    "marktplaats": "Lm6l;->o()V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lzaj;->j(Lcom/facebook/appevents/AppEvent;Lcom/facebook/appevents/AccessTokenAppIdPair;)V",
+    "marktplaats": "Lm6l;->u(Lcom/facebook/appevents/AppEvent;Lcom/facebook/appevents/AccessTokenAppIdPair;)V",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lcom/horizon/android/core/advertising/nativead/a;->b(Ljava/lang/String;)Logd;",
+    "marktplaats": "Lcom/horizon/android/core/advertising/nativead/a;->b(Ljava/lang/String;)Lv1e;",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lhla;->R(Lzie;)Ljava/util/HashMap;",
+    "marktplaats": "Lcj4;->c(Lu4f;)Ljava/util/HashMap;",
+    "belgian_at_same_binding": "missing"
+  },
+  {
+    "canonical": "Lrzc;-><init>(Lcom/horizon/android/core/datamodel/resource/ResourceStatus;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/ArrayList;)V",
+    "marktplaats": "Lrid;-><init>(Lcom/horizon/android/core/datamodel/resource/ResourceStatus;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/ArrayList;)V",
+    "belgian_at_same_binding": "missing"
+  }
+]

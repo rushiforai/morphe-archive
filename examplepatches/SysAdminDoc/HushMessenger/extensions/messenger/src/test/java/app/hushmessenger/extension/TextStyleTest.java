@@ -7,9 +7,14 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Looper;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +41,6 @@ public class TextStyleTest {
         Settings.activeAt.clear();
         CrashGuard.resetForTests();
         Settings.hookErrors.clear();
-        TextStyleActivity.entries = null;
         realWork = TextStyleActivity.work;
         TextStyleActivity.work = Runnable::run;
     }
@@ -267,74 +271,239 @@ public class TextStyleTest {
         assertEquals(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, state(TextStyleActivity.ITALIC));
     }
 
-    // Android adds text actions only to a field with a view id, and Messenger's chat box has none.
-    @Test public void theChatBoxGetsAnIdWhileTheSwitchIsOn() {
-        EditText box = new EditText(app);
-        TextStyleActivity.textFieldFocused(box);
-        assertEquals("Off leaves the field as Messenger made it", View.NO_ID, box.getId());
-        assertTrue(box.isSaveEnabled());
-
+    // The chat box has no view id, so Android gives it no PROCESS_TEXT entries. Bold and Italic are rows of its own menu.
+    @Test public void aSelectionGetsBoldAndItalicRightAfterPaste() {
         Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
-        TextStyleActivity.textFieldFocused(box);
-        int id = box.getId();
-        assertNotEquals(View.NO_ID, id);
-        assertFalse("The draft stays out of saved state, as it did without an id", box.isSaveEnabled());
-        TextStyleActivity.textFieldFocused(box);
-        assertEquals("The next focus change keeps the same id", id, box.getId());
-        assertNotEquals("Each field gets its own", id, focused(new EditText(app)).getId());
-
-        EditText named = new EditText(app);
-        named.setId(0x7f0b0042);
-        TextStyleActivity.textFieldFocused(named);
-        assertEquals("A field with an id keeps it", 0x7f0b0042, named.getId());
-        assertTrue(named.isSaveEnabled());
-        TextStyleActivity.textFieldFocused(null);
-        assertTrue(Settings.hookErrors.isEmpty());
+        EditText box = selected("hello world", 0, 5);
+        ActionMode.Callback rows = box.getCustomSelectionActionModeCallback();
+        assertNotNull(rows);
+        Menu menu = new android.widget.PopupMenu(app, box).getMenu();
+        menu.add(Menu.NONE, android.R.id.paste, 6, "Paste");
+        menu.add(Menu.NONE, android.R.id.shareText, 7, "Share");
+        assertTrue(rows.onCreateActionMode(null, menu));
+        assertEquals(Arrays.asList("Paste", "Bold", "Italic", "Share"), titles(menu));
+        assertEquals("Nothing to do with an id any more", View.NO_ID, box.getId());
+        assertTrue(box.isSaveEnabled());
         assertEquals("Only styling counts as a use", 0, Settings.lastActive(TextStyleActivity.KEY));
     }
 
-    private static EditText focused(EditText field) {
-        TextStyleActivity.textFieldFocused(field);
-        return field;
-    }
-
-    @Test public void pauseSafeModeAMissingControlAndRootMountLeaveTheChatBoxAlone() {
-        for (String state : new String[] {"paused", "safe", "missing", "root"}) {
+    @Test public void offPauseSafeModeAndAMissingControlLeaveTheFieldAlone() {
+        for (String state : new String[] {"off", "paused", "safe", "missing"}) {
             Settings.initialize(app);
-            Settings.preferences.edit().clear().putBoolean(TextStyleActivity.KEY, true)
+            Settings.preferences.edit().clear().putBoolean(TextStyleActivity.KEY, !state.equals("off"))
                 .putBoolean("paused", state.equals("paused")).putBoolean("safe_mode", state.equals("safe")).commit();
             CrashGuard.resetForTests();
             CrashGuard.onProcessStart(app);
             if (state.equals("missing")) Settings.installed = java.util.Collections.emptySet();
-            // A Root Mount install keeps Messenger's manifest, so there are no entries for an id to bring in.
-            if (state.equals("root")) shadowOf(app.getPackageManager()).removeActivity(new ComponentName(app.getPackageName(), TextStyleActivity.BOLD));
-            TextStyleActivity.entries = null;
-            EditText box = focused(new EditText(app));
-            assertEquals(state, View.NO_ID, box.getId());
-            assertTrue(state, box.isSaveEnabled());
+            EditText box = selected("hello", 0, 5);
+            assertNull(state, box.getCustomSelectionActionModeCallback());
         }
         assertTrue(Settings.hookErrors.isEmpty());
     }
 
+    @Test public void aRootMountInstallGetsTheRowsToo() {
+        // Its manifest has no entries to enable, and these rows don't need them.
+        shadowOf(app.getPackageManager()).removeActivity(new ComponentName(app.getPackageName(), TextStyleActivity.BOLD));
+        assertFalse(TextStyleActivity.present(app));
+        assertTrue(Settings.available(TextStyleActivity.KEY));
+        Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
+        EditText box = selected("hello", 0, 5);
+        Menu menu = new android.widget.PopupMenu(app, box).getMenu();
+        box.getCustomSelectionActionModeCallback().onCreateActionMode(null, menu);
+        assertEquals(Arrays.asList("Bold", "Italic"), titles(menu));
+    }
+
+    @Test public void noSelectionAttachesNothingAndAMissingFieldIsFine() {
+        Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
+        EditText box = new EditText(app);
+        box.setText("hello");
+        box.setSelection(2);
+        TextStyleActivity.textFieldSelected(box);
+        assertNull(box.getCustomSelectionActionModeCallback());
+        TextStyleActivity.textFieldSelected(null);
+        TextStyleActivity.textFieldSelected(new View(app));
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    // Litho sets the field's callback again each time it binds the view.
+    @Test public void aBindThatWipesTheRowsIsCaughtByTheNextSelection() {
+        Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
+        EditText box = selected("hello world", 0, 5);
+        ActionMode.Callback first = box.getCustomSelectionActionModeCallback();
+        box.setSelection(0, 3);
+        TextStyleActivity.textFieldSelected(box);
+        assertSame("Another selection doesn't wrap it twice", first, box.getCustomSelectionActionModeCallback());
+
+        box.setCustomSelectionActionModeCallback(null);
+        box.setSelection(0, 5);
+        TextStyleActivity.textFieldSelected(box);
+        assertNotNull(box.getCustomSelectionActionModeCallback());
+    }
+
+    @Test public void messengersOwnCallbackKeepsItsSay() {
+        Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
+        List<String> heard = new ArrayList<>();
+        boolean[] create = {false}, prepare = {false}, click = {true};
+        ActionMode.Callback messengers = new ActionMode.Callback() {
+            @Override public boolean onCreateActionMode(ActionMode mode, Menu menu) { heard.add("create"); return create[0]; }
+            @Override public boolean onPrepareActionMode(ActionMode mode, Menu menu) { heard.add("prepare"); return prepare[0]; }
+            @Override public boolean onActionItemClicked(ActionMode mode, MenuItem item) { heard.add("click"); return click[0]; }
+            @Override public void onDestroyActionMode(ActionMode mode) { heard.add("destroy"); }
+        };
+        EditText box = new EditText(app);
+        box.setCustomSelectionActionModeCallback(messengers);
+        box.setText("hello");
+        box.setSelection(0, 5);
+        TextStyleActivity.textFieldSelected(box);
+        ActionMode.Callback rows = box.getCustomSelectionActionModeCallback();
+        assertNotSame(messengers, rows);
+
+        Menu menu = new android.widget.PopupMenu(app, box).getMenu();
+        assertFalse("Messenger can still refuse the menu", rows.onCreateActionMode(null, menu));
+        assertEquals("And then nothing is added", 0, menu.size());
+        create[0] = true;
+        assertTrue(rows.onCreateActionMode(null, menu));
+        assertEquals(2, menu.size());
+        assertFalse(rows.onPrepareActionMode(null, menu));
+        MenuItem other = menu.add("Other");
+        assertTrue(rows.onActionItemClicked(null, other));
+        click[0] = false;
+        assertFalse(rows.onActionItemClicked(null, other));
+        rows.onDestroyActionMode(null);
+        assertEquals(Arrays.asList("create", "create", "prepare", "click", "click", "destroy"), heard);
+    }
+
+    @Test public void withNoCallbackOfMessengersTheMenuStillWorks() {
+        Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
+        EditText box = selected("hello", 0, 5);
+        ActionMode.Callback rows = box.getCustomSelectionActionModeCallback();
+        Menu menu = new android.widget.PopupMenu(app, box).getMenu();
+        assertTrue(rows.onCreateActionMode(null, menu));
+        assertTrue(rows.onPrepareActionMode(null, menu));
+        assertFalse("Android's own rows go on to Android", rows.onActionItemClicked(null, menu.add("Cut")));
+        rows.onDestroyActionMode(null);
+    }
+
+    // A field with its own id gets these two again as PROCESS_TEXT entries, after the create call.
+    @Test public void theRowsReplaceTheEntriesAndLeaveOtherAppsAlone() {
+        Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
+        EditText box = selected("hello", 0, 5);
+        ActionMode.Callback rows = box.getCustomSelectionActionModeCallback();
+        Menu menu = new android.widget.PopupMenu(app, box).getMenu();
+        rows.onCreateActionMode(null, menu);
+        menu.add(Menu.NONE, Menu.NONE, 100, "Messenger").setIntent(new Intent().setClassName(app, TextStyleActivity.BOLD));
+        menu.add(Menu.NONE, Menu.NONE, 101, "Messenger").setIntent(new Intent().setClassName(app, TextStyleActivity.ITALIC));
+        menu.add(Menu.NONE, Menu.NONE, 102, "Translate").setIntent(new Intent().setClassName("com.example", "com.example.Translate"));
+        rows.onPrepareActionMode(null, menu);
+        assertEquals(Arrays.asList("Bold", "Italic", "Translate"), titles(menu));
+    }
+
+    @Test public void tappingARowStylesTheSelectionAndLeavesTheCursorAfterIt() {
+        Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
+        EditText box = selected("hello world", 0, 5);
+        Menu menu = new android.widget.PopupMenu(app, box).getMenu();
+        box.getCustomSelectionActionModeCallback().onCreateActionMode(null, menu);
+        assertTrue(menu.performIdentifierAction(TextStyleActivity.BOLD_ROW, 0));
+        String bold = TextStyleActivity.restyle("hello", TextStyleActivity.BOLD_STYLE);
+        assertEquals(bold + " world", box.getText().toString());
+        assertEquals("Typing carries on after the word", bold.length(), box.getSelectionStart());
+        assertEquals(bold.length(), box.getSelectionEnd());
+        assertTrue("Styling counts as a use", Settings.lastActive(TextStyleActivity.KEY) > 0);
+
+        box.setSelection(0, bold.length());
+        assertTrue(menu.performIdentifierAction(TextStyleActivity.ITALIC_ROW, 0));
+        String both = TextStyleActivity.restyle(bold, TextStyleActivity.ITALIC_STYLE);
+        assertEquals("The other style joins it", both + " world", box.getText().toString());
+
+        box.setSelection(0, both.length());
+        menu.performIdentifierAction(TextStyleActivity.ITALIC_ROW, 0);
+        assertEquals("The same one again takes it off", bold + " world", box.getText().toString());
+    }
+
+    @Test public void aBackwardsSelectionStylesTheSameText() {
+        Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
+        EditText box = new EditText(app);
+        box.setText("hello world");
+        android.text.Selection.setSelection(box.getText(), 5, 0);
+        TextStyleActivity.styleSelection(box, TextStyleActivity.BOLD_STYLE);
+        assertEquals(TextStyleActivity.restyle("hello", TextStyleActivity.BOLD_STYLE) + " world", box.getText().toString());
+    }
+
+    @Test public void aRowTheTextCantTakeSaysWhyAndChangesNothing() {
+        Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
+        EditText box = selected("Привет", 0, 6);
+        Menu menu = new android.widget.PopupMenu(app, box).getMenu();
+        box.getCustomSelectionActionModeCallback().onCreateActionMode(null, menu);
+        assertTrue(menu.performIdentifierAction(TextStyleActivity.BOLD_ROW, 0));
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(SettingsText.english("text_style_bold_none"), ShadowToast.getTextOfLatestToast());
+        assertEquals("Привет", box.getText().toString());
+        assertEquals("Still selected, so another row can be picked", 6, box.getSelectionEnd());
+        assertEquals(0, Settings.lastActive(TextStyleActivity.KEY));
+
+        menu.performIdentifierAction(TextStyleActivity.ITALIC_ROW, 0);
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(SettingsText.english("text_style_italic_none"), ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void aPauseWhileTheMenuIsOpenLeavesTheTextAlone() {
+        Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
+        EditText box = selected("hello", 0, 5);
+        Menu menu = new android.widget.PopupMenu(app, box).getMenu();
+        box.getCustomSelectionActionModeCallback().onCreateActionMode(null, menu);
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        menu.performIdentifierAction(TextStyleActivity.BOLD_ROW, 0);
+        assertEquals("hello", box.getText().toString());
+        box.setText("Привет");
+        box.setSelection(0, 6);
+        menu.performIdentifierAction(TextStyleActivity.BOLD_ROW, 0);
+        shadowOf(Looper.getMainLooper()).idle();
+        assertNull("Pause says nothing", ShadowToast.getLatestToast());
+        assertEquals(0, Settings.lastActive(TextStyleActivity.KEY));
+    }
+
     @Test public void aFieldThatThrowsIsReportedInsteadOfCrashing() {
         Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
+        boolean[] failing = {false};
         EditText broken = new EditText(app) {
-            @Override public void setId(int id) { throw new IllegalStateException("not now"); }
+            @Override public boolean hasSelection() {
+                if (failing[0]) throw new IllegalStateException("not now");
+                return super.hasSelection();
+            }
         };
-        TextStyleActivity.textFieldFocused(broken);
+        failing[0] = true;
+        TextStyleActivity.textFieldSelected(broken);
         assertEquals(java.util.Collections.singleton(TextStyleActivity.KEY), Settings.hookErrors.keySet());
     }
 
-    @Test public void onASamsungPhoneTheRowSaysWhereToShowTheEntries() {
-        String hint = SettingsText.english("text_style_samsung");
-        for (String maker : new String[] {"samsung", "Google"}) {
-            org.robolectric.shadows.ShadowBuild.setManufacturer(maker);
-            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
-                android.widget.Switch control = screen.get().getWindow().getDecorView().findViewWithTag(TextStyleActivity.KEY);
-                assertEquals(maker, maker.equals("samsung"), control.getContentDescription().toString().contains(hint));
+    @Test public void aTapThatThrowsDoesntCrashEither() {
+        Settings.preferences.edit().putBoolean(TextStyleActivity.KEY, true).commit();
+        boolean[] failing = {false};
+        EditText broken = new EditText(app) {
+            @Override public android.text.Editable getText() {
+                if (failing[0]) throw new IllegalStateException("not now");
+                return super.getText();
             }
+        };
+        failing[0] = true;
+        TextStyleActivity.styleSelection(broken, TextStyleActivity.BOLD_STYLE);
+        assertEquals(java.util.Collections.singleton(TextStyleActivity.KEY), Settings.hookErrors.keySet());
+    }
+
+    private EditText selected(String text, int start, int end) {
+        EditText box = new EditText(app);
+        box.setText(text);
+        box.setSelection(start, end);
+        TextStyleActivity.textFieldSelected(box);
+        return box;
+    }
+
+    private static List<String> titles(Menu menu) {
+        List<String> titles = new ArrayList<>();
+        for (int at = 0; at < menu.size(); at++) {
+            if (menu.getItem(at).isVisible()) titles.add(menu.getItem(at).getTitle().toString());
         }
-        assertTrue(hint.contains("Manage apps"));
+        return titles;
     }
 
     @Test public void theSwitchSitsUnderConversationsAndStartsOff() {

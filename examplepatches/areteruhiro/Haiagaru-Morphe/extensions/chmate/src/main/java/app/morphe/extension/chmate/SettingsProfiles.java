@@ -53,9 +53,10 @@ public final class SettingsProfiles {
         defaultValue(HaiagaruSettingsGestures.SENSITIVITY,100);
         defaultValue(ExpertSettings.KEY,false);
         for(String key:EXTRA_BOOLEAN)booleanKey(key);
-        for(String key:new String[]{ThreadSearchOptions.ID,ThreadSearchOptions.WACCHOI,ThreadSearchOptions.NAME}){booleanKey(key);defaultValue(key,true);}
+        for(String key:new String[]{ThreadSearchOptions.ID,ThreadSearchOptions.WACCHOI,ThreadSearchOptions.NAME}){booleanKey(key);defaultValue(key,false);}
         for(String key:new String[]{VideoViewerSettings.HOLD_SPEED,VideoViewerSettings.TAP_CONTROLS,VideoViewerSettings.CHMATE_GESTURES,
                 VideoViewerSettings.MEDIA_SWIPE,VideoViewerSettings.GIF_AUTOPLAY,VideoViewerSettings.LETTERBOX_TOUCH}){booleanKey(key);defaultValue(key,true);}
+        choiceKey("update191TimeoutSeconds",new HashSet<>(Arrays.asList(0,30,60,120)));defaultValue("update191TimeoutSeconds",60);
         numberKey("videoPreviewMinimumSeconds",0,86459);
         numberKey("checkerHeaderPercent",10,60);
         numberKey("hissiViewerResponseSpacingDp",0,20);
@@ -76,6 +77,8 @@ public final class SettingsProfiles {
         numberKey(HissiScanTemplate.PAGES,1,10000);
         numberKey(HissiScanTemplate.REQUESTS,0,Integer.MAX_VALUE);
         defaultValue(CheckerBarOptions.TABS,40);
+        booleanKey(QuickFilterOptions.HANDLE);defaultValue(QuickFilterOptions.HANDLE,true);
+        numberKey(QuickFilterOptions.HEIGHT,0,10000);defaultValue(QuickFilterOptions.HEIGHT,0);
         booleanKey(CheckerBarOptions.HANDLES);
         defaultValue(CheckerBarOptions.HANDLES,true);
         numberKey(NativeToolTabs.HEADER_HEIGHT_KEY,48,80);

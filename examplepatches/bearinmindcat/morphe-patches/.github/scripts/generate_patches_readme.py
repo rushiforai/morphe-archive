@@ -41,9 +41,27 @@ def pkg_emoji(pkg):
     return "📦"
 
 
-def is_samsung(pkg):
-    """Samsung's own apps, listed together under one "Samsung Apps" spoiler."""
-    return pkg.startswith(("com.samsung.", "com.sec."))
+# Phone makers' own apps, each maker's listed together under one spoiler: (title, name prefix dropped when sorting,
+# package prefixes, packages without the maker's prefix).
+VENDOR_GROUPS = [
+    ("Samsung Apps", "samsung ", ("com.samsung.", "com.sec."), ()),
+    ("Xiaomi Apps", "xiaomi ", ("com.miui.", "com.xiaomi."), ("com.android.soundrecorder", "com.android.calendar")),
+    ("Nothing Apps", "nothing ", ("com.nothing.",), ()),
+    ("Honor Apps", "honor ", ("com.hihonor.",), ()),
+    ("RedMagic Apps", "redmagic ", ("cn.nubia.",), ()),
+    ("LG Apps", "lg ", ("com.lge.",), ()),
+    # OPPO's ColorOS, also OnePlus's OxygenOS and realme UI: apps carry the OnePlus or OPPO name.
+    ("ColorOS Apps", ("oneplus ", "oppo ", "coloros ", "realme "),
+     ("com.oneplus.", "net.oneplus.", "com.coloros.", "com.oplus.", "com.oppo."), ()),
+]
+
+
+def vendor_group(pkg):
+    """The vendor group an app is listed under, or None for a top-level app."""
+    for group in VENDOR_GROUPS:
+        if pkg.startswith(group[2]) or pkg in group[3]:
+            return group
+    return None
 
 
 # Apps this bundle renames, rendered as "<source app>  →  <patched app>" in the
@@ -137,6 +155,136 @@ APP_RENAMES = {
     "com.sec.android.app.voicenote": (
         '<img src="docs/icons/samsung-voice-recorder.png" width="20" height="20" align="top"> Samsung Voice Recorder',
         '<img src="docs/icons/samsung-voice-recorder.png" width="20" height="20" align="top"> Samsung Voice Recorder',
+    ),
+    "com.miui.compass": (
+        '<img src="docs/icons/xiaomi-compass.png" width="20" height="20" align="top"> Xiaomi Compass',
+        '<img src="docs/icons/xiaomi-compass.png" width="20" height="20" align="top"> Xiaomi Compass',
+    ),
+    "com.miui.gallery": (
+        '<img src="docs/icons/xiaomi-gallery.png" width="20" height="20" align="top"> Xiaomi Gallery',
+        '<img src="docs/icons/xiaomi-gallery.png" width="20" height="20" align="top"> Xiaomi Gallery',
+    ),
+    "com.miui.mediaeditor": (
+        '<img src="docs/icons/xiaomi-gallery-editor.png" width="20" height="20" align="top"> Xiaomi Gallery Editor',
+        '<img src="docs/icons/xiaomi-gallery-editor.png" width="20" height="20" align="top"> Xiaomi Gallery Editor',
+    ),
+    "com.android.soundrecorder": (
+        '<img src="docs/icons/xiaomi-recorder.png" width="20" height="20" align="top"> Xiaomi Recorder',
+        '<img src="docs/icons/xiaomi-recorder.png" width="20" height="20" align="top"> Xiaomi Recorder',
+    ),
+    "com.miui.notes": (
+        '<img src="docs/icons/xiaomi-notes.png" width="20" height="20" align="top"> Xiaomi Notes',
+        '<img src="docs/icons/xiaomi-notes.png" width="20" height="20" align="top"> Xiaomi Notes',
+    ),
+    "com.xiaomi.scanner": (
+        '<img src="docs/icons/xiaomi-scanner.png" width="20" height="20" align="top"> Xiaomi Scanner',
+        '<img src="docs/icons/xiaomi-scanner.png" width="20" height="20" align="top"> Xiaomi Scanner',
+    ),
+    "com.miui.weather2": (
+        '<img src="docs/icons/xiaomi-weather.png" width="20" height="20" align="top"> Xiaomi Weather',
+        '<img src="docs/icons/xiaomi-weather.png" width="20" height="20" align="top"> Xiaomi Weather',
+    ),
+    "com.miui.screenrecorder": (
+        '<img src="docs/icons/xiaomi-screen-recorder.png" width="20" height="20" align="top"> Xiaomi Screen Recorder',
+        '<img src="docs/icons/xiaomi-screen-recorder.png" width="20" height="20" align="top"> Xiaomi Screen Recorder',
+    ),
+    "com.android.calendar": (
+        '<img src="docs/icons/xiaomi-calendar.png" width="20" height="20" align="top"> Xiaomi Calendar',
+        '<img src="docs/icons/xiaomi-calendar.png" width="20" height="20" align="top"> Xiaomi Calendar',
+    ),
+    "com.nothing.gallery": (
+        '<img src="docs/icons/nothing-gallery.png" width="20" height="20" align="top"> Nothing Gallery',
+        '<img src="docs/icons/nothing-gallery.png" width="20" height="20" align="top"> Nothing Gallery',
+    ),
+    "com.nothing.soundrecorder": (
+        '<img src="docs/icons/nothing-recorder.png" width="20" height="20" align="top"> Nothing Recorder',
+        '<img src="docs/icons/nothing-recorder.png" width="20" height="20" align="top"> Nothing Recorder',
+    ),
+    "com.hihonor.calculator": (
+        '<img src="docs/icons/honor-calculator.png" width="20" height="20" align="top"> Honor Calculator',
+        '<img src="docs/icons/honor-calculator.png" width="20" height="20" align="top"> Honor Calculator',
+    ),
+    "com.hihonor.hnvideoplayer": (
+        '<img src="docs/icons/honor-video-player.png" width="20" height="20" align="top"> Honor Video Player',
+        '<img src="docs/icons/honor-video-player.png" width="20" height="20" align="top"> Honor Video Player',
+    ),
+    "com.hihonor.compass": (
+        '<img src="docs/icons/honor-compass.png" width="20" height="20" align="top"> Honor Compass',
+        '<img src="docs/icons/honor-compass.png" width="20" height="20" align="top"> Honor Compass',
+    ),
+    "com.hihonor.deskclock": (
+        '<img src="docs/icons/honor-clock.png" width="20" height="20" align="top"> Honor Clock',
+        '<img src="docs/icons/honor-clock.png" width="20" height="20" align="top"> Honor Clock',
+    ),
+    "com.hihonor.soundrecorder": (
+        '<img src="docs/icons/honor-recorder.png" width="20" height="20" align="top"> Honor Recorder',
+        '<img src="docs/icons/honor-recorder.png" width="20" height="20" align="top"> Honor Recorder',
+    ),
+    "com.hihonor.calendar": (
+        '<img src="docs/icons/honor-calendar.png" width="20" height="20" align="top"> Honor Calendar',
+        '<img src="docs/icons/honor-calendar.png" width="20" height="20" align="top"> Honor Calendar',
+    ),
+    "com.hihonor.filemanager": (
+        '<img src="docs/icons/honor-files.png" width="20" height="20" align="top"> Honor Files',
+        '<img src="docs/icons/honor-files.png" width="20" height="20" align="top"> Honor Files',
+    ),
+    "com.hihonor.notepad": (
+        '<img src="docs/icons/honor-notes.png" width="20" height="20" align="top"> Honor Notes',
+        '<img src="docs/icons/honor-notes.png" width="20" height="20" align="top"> Honor Notes',
+    ),
+    "cn.nubia.gamelauncher": (
+        '<img src="docs/icons/redmagic-game-space.png" width="20" height="20" align="top"> RedMagic Game Space',
+        '<img src="docs/icons/redmagic-game-space.png" width="20" height="20" align="top"> RedMagic Game Space',
+    ),
+    "com.lge.qmemoplus": (
+        '<img src="docs/icons/lg-quickmemo.png" width="20" height="20" align="top"> LG QuickMemo+',
+        '<img src="docs/icons/lg-quickmemo.png" width="20" height="20" align="top"> LG QuickMemo+',
+    ),
+    "com.lge.lifetracker": (
+        '<img src="docs/icons/lg-health.png" width="20" height="20" align="top"> LG Health',
+        '<img src="docs/icons/lg-health.png" width="20" height="20" align="top"> LG Health',
+    ),
+    "com.oneplus.calculator": (
+        '<img src="docs/icons/coloros-calculator.png" width="20" height="20" align="top"> OnePlus Calculator',
+        '<img src="docs/icons/coloros-calculator.png" width="20" height="20" align="top"> OnePlus Calculator',
+    ),
+    # OnePlus Weather (ColorOS port, coloros-ports-d)
+    "net.oneplus.weather": (
+        '<img src="docs/icons/coloros-weather.png" width="20" height="20" align="top"> OnePlus Weather',
+        '<img src="docs/icons/coloros-weather.png" width="20" height="20" align="top"> OnePlus Weather',
+    ),
+    # OnePlus Photos (ColorOS port, coloros-ports-d)
+    "com.oneplus.gallery": (
+        '<img src="docs/icons/coloros-gallery.png" width="20" height="20" align="top"> OnePlus Photos',
+        '<img src="docs/icons/coloros-gallery.png" width="20" height="20" align="top"> OnePlus Photos',
+    ),
+    # OnePlus My Files (coloros-ports-c)
+    "com.oneplus.filemanager": (
+        '<img src="docs/icons/coloros-myfiles.png" width="20" height="20" align="top"> OnePlus My Files',
+        '<img src="docs/icons/coloros-myfiles.png" width="20" height="20" align="top"> OnePlus My Files',
+    ),
+    # OnePlus Notes (coloros-ports-c)
+    "com.oneplus.note": (
+        '<img src="docs/icons/coloros-notes.png" width="20" height="20" align="top"> OnePlus Notes',
+        '<img src="docs/icons/coloros-notes.png" width="20" height="20" align="top"> OnePlus Notes',
+    ),
+    # OnePlus Screen Recording (coloros-ports-c)
+    "com.oplus.screenrecorder": (
+        '<img src="docs/icons/coloros-screenrecorder.png" width="20" height="20" align="top"> OnePlus Screen Recording',
+        '<img src="docs/icons/coloros-screenrecorder.png" width="20" height="20" align="top"> OnePlus Screen Recording',
+    ),
+    # ColorOS ports (coloros-ports-b): OnePlus Compass, OnePlus Clock, OnePlus Recorder
+    "com.coloros.compass2": (
+        '<img src="docs/icons/coloros-compass.png" width="20" height="20" align="top"> OnePlus Compass',
+        '<img src="docs/icons/coloros-compass.png" width="20" height="20" align="top"> OnePlus Compass',
+    ),
+    "com.oneplus.deskclock": (
+        '<img src="docs/icons/coloros-clock.png" width="20" height="20" align="top"> OnePlus Clock',
+        '<img src="docs/icons/coloros-clock.png" width="20" height="20" align="top"> OnePlus Clock',
+    ),
+    "com.oneplus.soundrecorder": (
+        '<img src="docs/icons/coloros-recorder.png" width="20" height="20" align="top"> OnePlus Recorder',
+        '<img src="docs/icons/coloros-recorder.png" width="20" height="20" align="top"> OnePlus Recorder',
     ),
 }
 
@@ -284,26 +432,31 @@ def build_content(expanded=False):
         return spoiler(pkg_label(pkg, entry), len(patches), entry["targets"], patches_table(patches), expanded,
                        screenshots_row(pkg))
 
-    # One spoiler per app, in the order they appear in the JSON; Samsung's apps are grouped in one spoiler of
-    # their own, by name, after the others.
-    samsung = {pkg: entry for pkg, entry in by_pkg.items() if is_samsung(pkg)}
+    # One spoiler per app, in the order they appear in the JSON; each phone maker's own apps are grouped in one
+    # spoiler of their own (VENDOR_GROUPS), by name, after the others.
     for pkg, entry in by_pkg.items():
-        if pkg not in samsung:
+        if vendor_group(pkg) is None:
             lines.append(app_spoiler(pkg, entry))
             lines.append("")
 
-    if samsung:
+    for title, prefix, _, _ in VENDOR_GROUPS:
+        group = {pkg: entry for pkg, entry in by_pkg.items() if (vendor_group(pkg) or ("",))[0] == title}
+        if not group:
+            continue
+
         def name(pkg):
-            text = re.sub(r"<[^>]+>|&nbsp;", " ", pkg_label(pkg, samsung[pkg])).split("-&gt;")[0].strip().lower()
-            return text.removeprefix("samsung ")
-        names = sorted(samsung, key=name)
-        count = sum(len(samsung[pkg]["patches"]) for pkg in samsung)
-        apps  = "app" if len(samsung) == 1 else "apps"
+            text = re.sub(r"<[^>]+>|&nbsp;", " ", pkg_label(pkg, group[pkg])).split("-&gt;")[0].strip().lower()
+            for p in (prefix if isinstance(prefix, tuple) else (prefix,)):
+                text = text.removeprefix(p)
+            return text
+        names = sorted(group, key=name)
+        count = sum(len(group[pkg]["patches"]) for pkg in group)
+        apps  = "app" if len(group) == 1 else "apps"
         noun  = "patch" if count == 1 else "patches"
-        inner = "\n\n".join(app_spoiler(pkg, samsung[pkg]) for pkg in names)
+        inner = "\n\n".join(app_spoiler(pkg, group[pkg]) for pkg in names)
         tag   = "<details open>" if expanded else "<details>"
         lines.append(f"""{tag}
-<summary>📱 Samsung Apps&nbsp;&nbsp;•&nbsp;&nbsp;{len(samsung)} {apps}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
+<summary>📱 {title}&nbsp;&nbsp;•&nbsp;&nbsp;{len(group)} {apps}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
 <br>
 <blockquote>
 

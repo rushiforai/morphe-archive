@@ -46,8 +46,8 @@ Loading older messages.	Eski mesajlar yükleniyor.
 Loading older messages. %1$d message so far.	Eski mesajlar yükleniyor. Şimdilik %1$d mesaj.
 Loading older messages. %1$d messages so far.	Eski mesajlar yükleniyor. Şimdilik %1$d mesaj.
 Lock these settings	Bu ayarları kilitle
-Long press a chat's name and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Bir sohbetin adına uzun bas ve Sohbeti dışa aktar seçeneğini seç. Sohbetin tamamı İndirilenler içindeki HushGram klasörüne metin dosyası olarak kaydedilir, her mesaj bir satırdır.
-Long press a chat's name and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Bir sohbetin adına uzun bas ve İlk mesaja atla veya Bir tarihe atla seçeneğini seç. Sohbet eski mesajlarını kendisi yükler, bir sayaç ve İptal düğmesi gösterir.
+Open a chat, long press its name at the top and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Bir sohbet aç, üstteki adına uzun bas ve Sohbeti dışa aktar seçeneğini seç. Sohbetin tamamı İndirilenler içindeki HushGram klasörüne metin dosyası olarak kaydedilir, her mesaj bir satırdır.
+Open a chat, long press its name at the top and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Bir sohbet aç, üstteki adına uzun bas ve İlk mesaja atla veya Bir tarihe atla seçeneğini seç. Sohbet eski mesajlarını kendisi yükler, bir sayaç ve İptal düğmesi gösterir.
 Mark a chat seen when you reply	Yanıt verdiğinde sohbeti görüldü olarak işaretle
 No messages found to save.	Kaydedilecek mesaj yok.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	1 ile 72 saat arasında bir bekleme seç. Kilitliyken, kilidi açmayı isteyip bekleme bitene kadar burada hiçbir şey değişmez.
@@ -197,7 +197,8 @@ Each video saves at the best quality Instagram offers for it.	Her video, Instagr
 Each video saves at its lowest quality, for the smallest file.	Her video en düşük kalitesinde kaydedilir, böylece dosya en küçük olur.
 Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	Her video %1$s kalitesinde ya da bunun altındaki en yakın kalitede kaydedilir. Bu kadar düşük kalitesi olmayan video, bunun üstündeki en yakın kalitede kaydedilir.
 Save folder	Kayıt klasörü
-Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Movies ve Pictures altında bir klasör adı seç. Geçersiz karakterler alt çizgiye dönüşür. Varsayılan %1$s klasörünü kullanmak için boş bırak.
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s. For an SD card or anywhere else, use Choose a folder.	Movies ve Pictures altında bir klasör adı seç. Geçersiz karakterler alt çizgiye dönüşür. Varsayılan %1$s klasörünü kullanmak için boş bırak. SD kart veya başka bir yer için Klasör seç seçeneğini kullan.
+Use Choose a folder for a path or an SD card.	Yol veya SD kart için: Klasör seç.
 Save	Kaydet
 Folder name	Klasör adı
 Folder set to %1$s.	Klasör %1$s olarak ayarlandı.
@@ -540,7 +541,7 @@ Group notifications	Bildirimleri grupla
 Hide shopping	Alışverişi gizle
 Hide surveys	Anketleri gizle
 Hide the caught up card	Hepsini gördün kartını gizle
-Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, the card stays. Pull down on Home to refresh after changing it.	Takip ettiğin hesapların gönderilerinden sonra gelen, en yenilerini gördüğünü söyleyen kartı ve onun Eski gönderiler bağlantısını gizler. Ana Sayfa'da hiç yeni gönderi yoksa kart kalır. Değiştirdikten sonra yenilemek için Ana Sayfa'yı aşağı çek.
+Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, only that line goes and the link stays. Pull down on Home to refresh after changing it.	Takip ettiğin hesapların gönderilerinden sonra gelen, en yenilerini gördüğünü söyleyen kartı ve onun Eski gönderiler bağlantısını gizler. Ana Sayfa'da hiç yeni gönderi yoksa yalnızca o yazı gider, bağlantı kalır. Değiştirdikten sonra yenilemek için Ana Sayfa'yı aşağı çek.
 Instagram is locked	Instagram kilitli
 Instagram locks as soon as you leave it or the screen turns off.	Instagram'dan çıktığın veya ekran kapandığı anda Instagram kilitlenir.
 Instagram locks once you've been away from it for %1$s.	Instagram'dan %1$s boyunca uzak kaldığında Instagram kilitlenir.
@@ -967,7 +968,6 @@ Queued. It starts once the post before it is saved.	Sırada. Önceki gönderi ka
 Not saved: %1$d posts are already waiting	Kaydedilmedi: zaten %1$d gönderi bekliyor
 Show all settings as a list	Tüm ayarları liste olarak göster
 Show settings by category	Ayarları kategoriye göre göster
-Tab bar opacity	Sekme çubuğu opaklığı
 Tab bar height	Sekme çubuğu yüksekliği
 Standard	Standart
 Blur strength	Bulanıklık gücü
@@ -1497,3 +1497,29 @@ Instagram's reminder to review whether it can process your data for ads stops op
 Stop videos looping	Videoları tekrarlama
 # context: summary under that switch; auto scroll is Instagram's own Reels setting, worded as in Keep auto scroll on
 Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	Akıştaki videolar ve reels videoları yeniden oynatılmak yerine son karelerinde durur. Otomatik kaydırma açıkken reels videoları bir sonrakine geçebilmesi için tekrarlanmaya devam eder.
+Not used while you've picked a folder. Saves go there.	Bir klasör seçiliyken kullanılmaz. Her şey o klasöre kaydedilir.
+All	Tümü
+Posts	Gönderiler
+Nothing matches.	Eşleşen bir şey yok.
+Couldn't open that one.	Bu açılamadı.
+Tap to see all %1$d, by kind or by search.	%1$d kaydın tümünü türe göre veya arayarak görmek için dokunun.
+Instagram gradient on dark	Koyu üzerinde Instagram gradyanı
+Retro Instagram	Retro Instagram
+Menu button on Home's header	Ana sayfa üstünde menü düğmesi
+Adds a menu button at the top of Home with your viewing history, Ghost mode and HushGram settings. Restart Instagram to see the change.	Ana sayfanın üstüne görüntüleme geçmişin, Hayalet modu ve HushGram ayarlarını içeren bir menü düğmesi ekler. Değişikliği görmek için Instagram'ı yeniden başlat.
+HushGram menu	HushGram menüsü
+Seek bar button on feed videos	Akış videolarında arama çubuğu düğmesi
+Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	Akış videosunun sol altına arama çubuğunu gösteren veya gizleyen küçük bir düğme ekler. Akış videolarında arama çubuğu açık da olsa kapalı da olsa çalışır.
+Seek bar	Arama çubuğu
+Tint intensity	Renk tonu yoğunluğu
+Refraction intensity	Kırılma yoğunluğu
+Preview of the tab bar	Sekme çubuğu önizlemesi
+Keep stories playing while zooming	Yakınlaştırırken hikâyeler oynamaya devam etsin
+A story keeps playing while you pinch to zoom it. Hold it still first and it stays paused while you zoom.	Bir hikâye, iki parmakla yakınlaştırırken oynamaya devam eder. Önce basılı tutarsan yakınlaştırırken duraklatılmış kalır.
+Follower history	Takipçi geçmişi
+Nothing logged yet. Each time you scroll your own Followers list to the end, changes since the last time are added here.	Henüz bir şey kaydedilmedi. Kendi takipçi listeni sonuna kadar her kaydırışında, son seferden beri olan değişiklikler buraya eklenir.
+%1$s unfollowed you, %2$s	%1$s seni takibi bıraktı, %2$s
+%1$s followed you again, %2$s	%1$s seni yeniden takip etti, %2$s
+%1$s started following you, %2$s	%1$s seni takip etmeye başladı, %2$s
+Hide the Map bubble	Harita balonunu gizle
+Takes only the Map bubble out of the row of notes. Your notes stay.	Notlar satırından yalnızca Harita balonunu kaldırır. Notların kalır.

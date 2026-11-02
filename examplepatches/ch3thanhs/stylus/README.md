@@ -15,7 +15,26 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.8.3](https://github.com/ch3thanhs/stylus/releases/tag/v1.8.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.9.0](https://github.com/ch3thanhs/stylus/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+<details open>
+<summary>📦 Bitwarden&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**Package name:** `com.x8bit.bitwarden`
+
+**🎯 Supported versions:**
+
+| 2026.10.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Custom font](#custom-font) | Replaces the bundled DM Sans UI fonts with your own font. | • Custom font<br>• Font feature settings |
+| [Custom monospace font](#custom-monospace-font) | Replaces the bundled Roboto Mono font with your own monospace font. | • Custom monospace font |
+| [Force system font](#force-system-font) | Uses the device's system font for UI text. Monospace text keeps its bundled font. |  |
+
+</details>
+
 <details open>
 <summary>📦 GitHub&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -29,10 +48,10 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Custom font (GitHub)](#custom-font-github) | Replaces GitHub's bundled Inter and Mona Sans UI fonts with a custom font file. | • Custom font |
-| [Custom monospace font (GitHub)](#custom-monospace-font-github) | Replaces GitHub's bundled Roboto Mono code font with a custom monospace font file. | • Custom monospace font |
-| [Force system font (GitHub)](#force-system-font-github) | Renders GitHub UI text using the device system font by overriding bundled font resources at runtime. |  |
-| [Force system font (including monospace) (GitHub)](#force-system-font-including-monospace-github) | Renders GitHub UI and monospace text using the device system UI font. |  |
+| [Custom font](#custom-font) | Replaces the bundled Inter and Mona Sans UI fonts with your own font. | • Custom font |
+| [Custom monospace font](#custom-monospace-font) | Replaces the bundled Roboto Mono code font with your own monospace font. | • Custom monospace font |
+| [Force system font](#force-system-font) | Uses the device's system font for UI text. |  |
+| [Force system font (including monospace)](#force-system-font-including-monospace) | Uses the device's system font for UI and monospace text. |  |
 
 </details>
 
@@ -49,25 +68,8 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Custom font (Where is my Train)](#custom-font-where-is-my-train) | Replaces Where is my Train's bundled Google Sans, Nunito Sans, and Roboto UI fonts with a custom font file. Optional OpenType feature settings can enable alternate digits such as Inter's ss01 open-style numbers. | • Custom font<br>• Font feature settings |
-| [Force system font (Where is my Train)](#force-system-font-where-is-my-train) | Renders the app using the device's system font instead of Google Sans / Nunito Sans. |  |
-
-</details>
-
-<details open>
-<summary>📦 Bitwarden&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**Package name:** `com.x8bit.bitwarden`
-
-**🎯 Supported versions:**
-
-| 2026.10.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Force system font (Bitwarden)](#force-system-font-bitwarden) | Renders the app using the device's system font instead of DM Sans / Roboto. |  |
+| [Custom font](#custom-font) | Replaces the bundled Google Sans, Nunito Sans, and Roboto UI fonts with your own font. | • Custom font<br>• Font feature settings |
+| [Force system font](#force-system-font) | Uses the device's system font for UI text. |  |
 
 </details>
 
@@ -84,7 +86,7 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Force system font (Telegram)](#force-system-font-telegram) | Renders the app using the device's system font instead of Telegram's bundled font. |  |
+| [Force system font](#force-system-font) | Uses the device's system font for all app text. |  |
 
 </details>
 
@@ -101,7 +103,7 @@ A collection of font-related [Morphe](https://morphe.software) patches to improv
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Force system font (Telegram)](#force-system-font-telegram) | Renders the app using the device's system font instead of Telegram's bundled font. |  |
+| [Force system font](#force-system-font) | Uses the device's system font for all app text. |  |
 
 </details>
 

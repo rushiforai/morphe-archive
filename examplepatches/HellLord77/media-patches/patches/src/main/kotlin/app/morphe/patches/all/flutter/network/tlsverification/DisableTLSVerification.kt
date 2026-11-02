@@ -19,13 +19,14 @@ val disableTLSVerification =
                 CpuArchitecture.X86_64,
             )
 
-        val options = architectures.map {
-            booleanOption(key = it.arch, default = true, title = it.arch)
-        }
+        val options =
+            architectures.map {
+                booleanOption(key = it.arch, default = true, title = it.arch)
+            }
 
         dependsOn(
             disableTLSVerificationPatch {
                 architectures.filterIndexed { index, _ -> options[index].value!! }
-            }
+            },
         )
     }

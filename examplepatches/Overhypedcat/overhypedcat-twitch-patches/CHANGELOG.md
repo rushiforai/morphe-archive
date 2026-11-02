@@ -1,3 +1,39 @@
+## [2.1.5](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v2.1.4...v2.1.5) (2026-11-01)
+
+### Bug Fixes
+
+* Block the main page's banner and feed ads again, without a label ([bff8766](https://github.com/[secure]/overhypedcat-twitch-patches/commit/bff8766c43354e897f38036a17f149c45819374c))
+
+## [2.1.4](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v2.1.3...v2.1.4) (2026-11-01)
+
+### Bug Fixes
+
+* Only block the ad server while a stream is being watched ([768cd84](https://github.com/[secure]/overhypedcat-twitch-patches/commit/768cd84bb86b841cc71e323003136d2cfd967749))
+
+## [2.1.3](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v2.1.2...v2.1.3) (2026-11-01)
+
+### Bug Fixes
+
+* Client-side ad blocking ran on few paths; label tied to the watched stream ([9d4fc80](https://github.com/[secure]/overhypedcat-twitch-patches/commit/9d4fc80731b02735a895fdf9bf790af53e8a2041))
+
+## [2.1.2](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v2.1.1...v2.1.2) (2026-11-01)
+
+### Bug Fixes
+
+* Ad feedback only while watching a stream, over its video ([c505e51](https://github.com/[secure]/overhypedcat-twitch-patches/commit/c505e51d83572303478aa078491e57b2030a0ce1))
+
+## [2.1.1](https://github.com/Overhypedcat/overhypedcat-twitch-patches/compare/v2.1.0...v2.1.1) (2026-11-01)
+
+### Bug Fixes
+
+* Visible "Blocking ads" label and no 5 second stalls during an ad ([9d1d67f](https://github.com/Overhypedcat/overhypedcat-twitch-patches/commit/9d1d67f3b25b966f07e57370e47b9fd890020c7f))
+
+## [2.1.0](https://github.com/Overhypedcat/overhypedcat-twitch-patches/compare/v2.0.0...v2.1.0) (2026-11-01)
+
+### New Features
+
+* Block the ads the app plays itself ([9be9f21](https://github.com/Overhypedcat/overhypedcat-twitch-patches/commit/9be9f21f8be90e85bb0216ea698fdc557b4d7aa3))
+
 ## [2.0.0](https://github.com/Overhypedcat/overhypedcat-twitch-patches/compare/v1.3.3...v2.0.0) (2026-10-28)
 
 ### ⚠ BREAKING CHANGES

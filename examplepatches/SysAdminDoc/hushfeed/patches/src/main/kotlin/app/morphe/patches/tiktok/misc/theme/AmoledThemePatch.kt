@@ -6,7 +6,6 @@
  */
 package app.morphe.patches.tiktok.misc.theme
 
-import app.morphe.patcher.PackageMetadata
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.colorOption
 import app.morphe.patcher.patch.resourcePatch
@@ -161,7 +160,7 @@ internal fun renamedPathCollisions(
  * of its own and stays.
  */
 internal val DARK_BACKGROUND_COLORS: Map<String, Set<String>> = linkedMapOf(
-    "47.5.3" to setOf("a44", "a46", "a47", "a49", "a4g"),
+    "47.6.3" to setOf("a3w", "a3y", "a3z", "a41", "a49"),
 )
 
 /** This build's background grays, or a refusal: a name carried over from another build is a guess. */
@@ -182,17 +181,8 @@ internal fun declaredVersions(): Set<String> =
     AppCompatibilities.tiktok().flatMap { it.targets }.mapNotNull { it.version }.toSet()
 
 /**
- * What a patch's declared-build checks and notes call this build. PineDrama shares TikTok's
- * version names (both are 47.5.3), so its builds go by "PineDrama 47.5.3", which is never one of
- * [declaredVersions]: a part PineDrama lacks is left out with a note, as it was while PineDrama
- * ran a version of its own (47.4.3). TikTok's builds keep the bare version.
- */
-internal val PackageMetadata.buildName: String
-    get() = if (packageName == AppCompatibilities.PINEDRAMA_PACKAGE) "PineDrama $versionName" else versionName
-
-/**
  * The dark style literals behind TikTok's sheets and pages per build, named by TikTok's own token
- * table (AmoledSheetTokensTest). On 47.5.3:
+ * table (AmoledSheetTokensTest). On 47.6.3:
  * - aig is UISheetFlat1's dark value (attr/a27), the fill of the comment panel, the share sheet
  *   and TikTok's other sheets, panels and modals.
  * - aim is UISheetGrouped1's (attr/a2c), the fill of the feed's long-press panel and the other
@@ -210,7 +200,7 @@ internal val PackageMetadata.buildName: String
  * another surface tier, which is why only a build whose names were read is patched.
  */
 internal val SURFACE_STYLE_ITEMS: Map<String, Set<String>> = linkedMapOf(
-    "47.5.3" to setOf("agq", "c3", "aig", "aim", "bx", "agt"),
+    "47.6.3" to setOf("agq", "c3", "aig", "aim", "bx", "agt"),
 )
 
 /** This build's surface style items, or a refusal like the palette's. */

@@ -149,6 +149,7 @@ public final class TableSpan extends ReplacementSpan {
         TableSpan[] spans = ((Spanned) text).getSpans(0, text.length(), TableSpan.class);
         if (spans.length == 0) return;
         TableTouch.install(textView, null);
+        TableAccessibility.install(textView);
         for (TableSpan span : spans) span.interactive = true;
         Runnable fit = new Runnable() {
             @Override
@@ -403,6 +404,50 @@ public final class TableSpan extends ReplacementSpan {
             rowTop += rowHeights[r];
         }
         return null;
+    }
+
+    /**
+     * What accessibility shows of the table: each cell, row by row, then the expand or fit button,
+     * with where each shows, relative to the table's top left: a cell's text, where a tap opens its
+     * link. A cell scrolled out of the table's width, or empty, has empty bounds.
+     */
+    List<TablePart> parts() {
+        List<TablePart> parts = new ArrayList<>();
+        if (layouts == null) return parts;
+        float border = Math.max(1f, density);
+        RectF shown = new RectF(0f, 0f, visibleWidth, gridHeight);
+        float rowTop = 0;
+        for (int r = 0; r < rowHeights.length; r++) {
+            float cellLeft = border - scrollX;
+            for (int c = 0; c < columnWidths.length; c++) {
+                float cellRight = cellLeft + columnWidths[c] + 2 * padH;
+                StaticLayout layout = layouts[r][c];
+                RectF bounds = new RectF();
+                if (layout != null) {
+                    float left = Float.MAX_VALUE;
+                    float right = 0f;
+                    for (int line = 0; line < layout.getLineCount(); line++) {
+                        left = Math.min(left, layout.getLineLeft(line));
+                        right = Math.max(right, layout.getLineRight(line));
+                    }
+                    float textLeft = cellLeft + padH;
+                    float textTop = rowTop + dp(PAD_V_DP) + border;
+                    bounds.set(textLeft + left, textTop, textLeft + right, textTop + layout.getHeight());
+                }
+                if (bounds.isEmpty() || !bounds.intersect(shown)) bounds.setEmpty();
+                CharSequence text = layout != null ? layout.getText() : "";
+                ClickableSpan link = null;
+                if (text instanceof Spanned) {
+                    ClickableSpan[] links = ((Spanned) text).getSpans(0, text.length(), ClickableSpan.class);
+                    if (links.length > 0) link = links[0];
+                }
+                parts.add(new TablePart(text, bounds, link, false));
+                cellLeft = cellRight + border;
+            }
+            rowTop += rowHeights[r];
+        }
+        if (!toggleRect.isEmpty()) parts.add(new TablePart(label(), new RectF(toggleRect), null, true));
+        return parts;
     }
 
     private ClickableSpan linkInCell(StaticLayout layout, float x, float y) {
@@ -720,6 +765,10 @@ public final class TableSpan extends ReplacementSpan {
             result[c] = text;
         }
         return result;
+    }
+
+    private String label() {
+        return isExpanded() ? str("revanced_tables_fit_to_screen") : str("revanced_tables_expand");
     }
 
     int dp(int value) {

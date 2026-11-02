@@ -21,11 +21,11 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Bridge to MySpoti 2.2.0's own LyricsApi and its private offline cache.
+ * Bridge to MySpoti 2.3.0's own LyricsApi and its private offline cache.
  *
- * APK mappings verified against the 2.2.0 source and release DEX:
- * LyricsApi = Lpg4; LyricsApi.Track = Lfg4; cache = Lpg4.b;
- * in-flight requests = Lpg4.c; prefetch(Track) = Lpg4.n(Lfg4;).
+ * APK mappings verified against the 2.3.0 source and release DEX:
+ * LyricsApi = Lal4; LyricsApi.Track = Lnk4; cache = Lal4.b;
+ * in-flight requests = Lal4.c; prefetch(Track) = Lal4.x(Lnk4;).
  * The release build has R8-rewritten coroutine continuation types, so invoking the public
  * prefetch entry point and waiting on its cache/in-flight state is safer than synthesizing
  * a Continuation with the source-level Kotlin type name.
@@ -35,13 +35,53 @@ import java.util.Map;
  */
 final class LyricsStore {
     private static final String TAG = "MyspotiStoragePatch";
-    private static final String API_CLASS = "pg4";
-    private static final String TRACK_CLASS = "fg4";
+    private static final String API_CLASS = "al4";
+    private static final String TRACK_CLASS = "nk4";
     private static final String LYRICS_ENTITY = "com.music.spotui.data.entity.Lyrics";
     private static final long FETCH_WAIT_MS = 30_000L;
     private static final long NATIVE_CACHE_MAX_AGE_MS = 14L * 24L * 60L * 60L * 1000L;
 
     private LyricsStore() {}
+
+
+    /**
+     * Start MySpoti's native lyrics fetch without waiting for the network result. Export sync
+     * must not block for up to FETCH_WAIT_MS for every song that has no lyrics yet; the native
+     * cache observer can archive the result once MySpoti finishes the request.
+     */
+    static boolean requestPrefetch(Context context, String trackId, String title, String artist,
+                                   String album, long durationMs, String coverUrl, boolean retryMiss) {
+        if (trackId == null || trackId.trim().isEmpty()) return false;
+        String key = trackId.trim();
+        try {
+            if (readNativeCache(context, key) != null) return false;
+            Class<?> api = Class.forName(API_CLASS);
+            Class<?> trackType = Class.forName(TRACK_CLASS);
+            Object track = createTrack(trackType, key, title, artist, album, durationMs, coverUrl);
+            Object apiInstance = singletonInstance(api);
+            Map<?, ?> cache = objectMap(api, "b", apiInstance);
+            Map<?, ?> inFlight = objectMap(api, "c", apiInstance);
+            // A player-initiated request is already doing the work; count it as queued so
+            // the sync status accurately reports the outstanding background lookup.
+            if (inFlight != null && inFlight.containsKey(key)) return true;
+            Object cached = cache == null ? null : cache.get(key);
+            if (cached != null && isLyrics(cached)) {
+                JSONObject encoded = encodeRuntimeLyrics(cached, key);
+                if (encoded != null) writeNativeCache(context, key, encoded);
+                return false;
+            }
+            if (cached != null && !retryMiss) return false;
+            if (retryMiss && cache != null && cached != null) {
+                try { cache.remove(key); } catch (Throwable ignored) {}
+            }
+            Method prefetch = findPrefetchMethod(api, trackType);
+            prefetch.invoke(Modifier.isStatic(prefetch.getModifiers()) ? null : apiInstance, track);
+            return true;
+        } catch (Throwable error) {
+            Log.w(TAG, "Could not request non-blocking lyrics lookup for " + safe(title), error);
+            return false;
+        }
+    }
 
     /** Obtain lyrics by scheduling MySpoti's native fetch and waiting for its result. */
     static JSONObject obtain(Context context, String trackId, String title, String artist,
@@ -109,29 +149,14 @@ final class LyricsStore {
     }
 
     /**
-     * Call the confirmed 2.2.0 prefetch(Track) method. It launches MySpoti's own suspend fetch
+     * Call the confirmed 2.3.0 prefetch(Track) method. It launches MySpoti's own suspend fetch
      * job, shares any request already in flight, and fills the same memory/disk cache used by
      * the player. Wait for that real job to populate the cache instead of assuming the prefetch
      * call itself has completed the work.
      */
     private static Object awaitNativePrefetch(Context context, Class<?> api, Object apiInstance,
                                                Class<?> trackType, Object track, String key) throws Exception {
-        Method prefetch;
-        try {
-            prefetch = api.getDeclaredMethod("n", trackType);
-        } catch (NoSuchMethodException renamed) {
-            prefetch = null;
-            for (Method candidate : api.getDeclaredMethods()) {
-                Class<?>[] parameters = candidate.getParameterTypes();
-                if (parameters.length == 1 && parameters[0] == trackType
-                        && candidate.getReturnType() == void.class) {
-                    prefetch = candidate;
-                    break;
-                }
-            }
-            if (prefetch == null) throw renamed;
-        }
-        prefetch.setAccessible(true);
+        Method prefetch = findPrefetchMethod(api, trackType);
         prefetch.invoke(Modifier.isStatic(prefetch.getModifiers()) ? null : apiInstance, track);
 
         Map<?, ?> cache = objectMap(api, "b", apiInstance);
@@ -165,6 +190,26 @@ final class LyricsStore {
         }
         Log.w(TAG, "Timed out waiting for MySpoti's native lyrics prefetch");
         return null;
+    }
+
+    private static Method findPrefetchMethod(Class<?> api, Class<?> trackType) throws Exception {
+        Method prefetch;
+        try {
+            prefetch = api.getDeclaredMethod("x", trackType);
+        } catch (NoSuchMethodException renamed) {
+            prefetch = null;
+            for (Method candidate : api.getDeclaredMethods()) {
+                Class<?>[] parameters = candidate.getParameterTypes();
+                if (parameters.length == 1 && parameters[0] == trackType
+                        && candidate.getReturnType() == void.class) {
+                    prefetch = candidate;
+                    break;
+                }
+            }
+            if (prefetch == null) throw renamed;
+        }
+        prefetch.setAccessible(true);
+        return prefetch;
     }
 
     private static boolean isLyrics(Object value) {
@@ -221,16 +266,22 @@ final class LyricsStore {
             String text = stringProperty(line, "text");
             if (text.trim().isEmpty()) continue;
             JSONObject item = new JSONObject().put("t", time).put("x", text);
-            Object rawWords = property(line, "words");
-            if (rawWords instanceof Iterable) {
-                JSONArray words = new JSONArray();
-                for (Object word : (Iterable<?>) rawWords) {
-                    if (word == null) continue;
-                    words.put(new JSONArray().put(longProperty(word, "startMs"))
-                            .put(longProperty(word, "endMs")).put(stringProperty(word, "text")));
-                }
-                if (words.length() > 0) item.put("w", words);
-            }
+            JSONArray words = encodeWords(property(line, "words"));
+            if (words != null) item.put("w", words);
+
+            // MySpoti 2.3.0 added source translations, romanization, singer labels and
+            // backing vocals to each line. Preserve them in both the portable archive and
+            // the native cache so a restore does not silently strip the new lyric features.
+            Object translation = property(line, "translation");
+            if (translation != null) item.put("tr", String.valueOf(translation));
+            Object romanization = property(line, "romanization");
+            if (romanization != null) item.put("ro", String.valueOf(romanization));
+            Object voice = property(line, "voice");
+            if (voice instanceof Number) item.put("v", ((Number) voice).intValue());
+            Object background = property(line, "background");
+            if (background != null) item.put("bg", String.valueOf(background));
+            JSONArray backgroundWords = encodeWords(property(line, "backgroundWords"));
+            if (backgroundWords != null) item.put("bw", backgroundWords);
             lines.put(item);
         }
         if (lines.length() == 0) return null;
@@ -241,6 +292,8 @@ final class LyricsStore {
         Object provider = property(value, "provider");
         encoded.put("language", language == null ? JSONObject.NULL : String.valueOf(language));
         encoded.put("provider", provider == null ? JSONObject.NULL : String.valueOf(provider));
+        Object translationLanguage = property(value, "translationLanguage");
+        encoded.put("trl", translationLanguage == null ? JSONObject.NULL : String.valueOf(translationLanguage));
         Object colors = property(value, "colors");
         if (colors != null) {
             encoded.put("colors", new JSONArray().put(intProperty(colors, "background"))
@@ -250,6 +303,18 @@ final class LyricsStore {
         encoded.put("key", key);
         encoded.put("at", System.currentTimeMillis());
         return encoded;
+    }
+
+
+    private static JSONArray encodeWords(Object rawWords) throws Exception {
+        if (!(rawWords instanceof Iterable)) return null;
+        JSONArray words = new JSONArray();
+        for (Object word : (Iterable<?>) rawWords) {
+            if (word == null) continue;
+            words.put(new JSONArray().put(longProperty(word, "startMs"))
+                    .put(longProperty(word, "endMs")).put(stringProperty(word, "text")));
+        }
+        return words.length() == 0 ? null : words;
     }
 
     private static Object property(Object owner, String name) throws Exception {

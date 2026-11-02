@@ -23,4 +23,17 @@ object Constants {
         appIconColor = 0xF26522,
         targets = listOf(AppTarget(version = "18.6.5", versionCode = 1130100213))
     )
+
+    val STRAVA_COMPATIBILITY = Compatibility(
+        name = "Strava",
+        packageName = "com.strava",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0xFC4C02,
+        targets = listOf(
+            AppTarget(version = "480.15", versionCode = 12399564),
+            AppTarget(version = "485.12", versionCode = 12400090),
+            AppTarget(version = "486.9", versionCode = 12400193),
+            AppTarget(version = "486.11", versionCode = 12400195)
+        )
+    )
 }

@@ -32,6 +32,18 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
+      - name: Check list interactions and download history
+        run: |
+          revision=porting/revisions/v1.10.0
+          mkdir -p /tmp/nicoid-current-tests
+          javac --release 8 -d /tmp/nicoid-current-tests "$revision"/src/e/e/a/{GestureRules110,GestureDefaults113,TabOrder113,PlaybackOrder110,SearchBounds110,SeriesPages110,Mp4Playlist115}.java "$revision"/test/{CoreRegression,Mp4PlaylistTest}.java
+          java -cp /tmp/nicoid-current-tests e.e.a.CoreRegression
+          java -cp /tmp/nicoid-current-tests e.e.a.Mp4PlaylistTest
+          curl -fLs --retry 2 https://repo.maven.apache.org/maven2/org/eclipse/jdt/ecj/3.38.0/ecj-3.38.0.jar -o /tmp/nicoid-ecj.jar
+          echo "97c566b120009c203a2fc8b291f4a9adbc171cf1ccb70f06f6b4e1828c00ce8e  /tmp/nicoid-ecj.jar" | sha256sum -c -
+          python3 "$revision/test/download_files_test.py" /tmp/nicoid-ecj.jar
+          python3 "$revision/test/comment_continuity_test.py" /tmp/nicoid-ecj.jar
+
       - name: Check video count order and precision
         run: |
           javac -d /tmp/nicoid-count-tests extensions/extension/src/main/java/e/e/a/VideoCountRules.java porting/tests/VideoCountRulesTest.java

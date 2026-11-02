@@ -1,5 +1,6 @@
 [versions]
-morphe-patcher = "2.0.1"
+# Bundles declare this as Patcher-Version. Morphe refuses a bundle that declares a newer patcher than it ships.
+morphe-patcher = "2.0.0"
 #noinspection GradleDependency
 smali = "4220ae75f7"
 gson = "2.14.0"

@@ -4,13 +4,13 @@ import app.morphe.patcher.patch.resourcePatch
 import dev.twitchpatches.patches.twitch.shared.RN_ASSET
 import dev.twitchpatches.patches.twitch.shared.assetSource
 import dev.twitchpatches.patches.twitch.shared.reactNativeBridgePatch
-import dev.twitchpatches.patches.twitch.shared.hermes.HermesBundle
 import dev.twitchpatches.patches.twitch.shared.hermes.MetroExports
+import dev.twitchpatches.patches.twitch.shared.hermes.twitchBundle
 
 internal val reactNativeEmotesPatch = resourcePatch {
     dependsOn(reactNativeBridgePatch)
     execute {
-        val bundle = HermesBundle(get("assets/index.android.bundle").readBytes())
+        val bundle = twitchBundle()
         val exports = MetroExports(bundle)
         val row = exports.resolveMemo("ChatMessageRow", "ChatMessageRowComponent",
             setOf("message", "channelID", "sourceRoomID", "body", "emotes", "stripReplyMention", "MessageBody"))

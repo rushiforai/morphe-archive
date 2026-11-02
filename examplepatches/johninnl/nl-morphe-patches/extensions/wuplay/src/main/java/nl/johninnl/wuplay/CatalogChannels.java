@@ -82,10 +82,10 @@ public final class CatalogChannels {
                 int published = 0, failed = 0;
                 for (NativeCatalogs.Definition definition : snapshot.definitions) if (desired.contains(definition.key)) {
                     try {
-                        if (!selected(application).contains(definition.key)) continue;
+                        if (!selected(application).contains(definition.key) || !nativeApi.isHome(snapshot.profileId, definition.key)) continue;
                         java.util.List<?> items = nativeApi.fetch(snapshot, definition);
                         // Selection can change while the native request is suspended.
-                        if (!selected(application).contains(definition.key)) continue;
+                        if (!selected(application).contains(definition.key) || !nativeApi.isHome(snapshot.profileId, definition.key)) continue;
                         nativeApi.requireDefault(snapshot.profileId);
                         publisher.publish(definition, items); published++;
                     } catch (Exception | LinkageError failure) {
@@ -93,6 +93,12 @@ public final class CatalogChannels {
                         Log.w("WuplayTvChannels", "Catalog refresh failed; retaining previous programs (" + failure.getClass().getSimpleName() + ")");
                     }
                 }
+                // Home visibility and selections may change while any request is suspended.
+                NativeCatalogs.Snapshot current = nativeApi.snapshot();
+                Set<String> currentSelected = selected(application), currentDesired = new HashSet<>();
+                for (NativeCatalogs.Definition definition : current.definitions)
+                    if (currentSelected.contains(definition.key)) currentDesired.add(definition.key);
+                publisher.removeUnselected(currentDesired);
                 status = "Published " + published + " catalogs." + (failed == 0 ? "" : " " + failed + " failed; previous content retained.");
             }
             Log.i("WuplayTvChannels", status);

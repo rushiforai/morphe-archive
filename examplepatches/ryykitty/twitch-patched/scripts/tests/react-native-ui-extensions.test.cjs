@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-function fixture(hasEntry) {
+function fixture() {
     const adapters = {};
     let hidden = false;
     const runtime = {
@@ -14,7 +14,7 @@ function fixture(hasEntry) {
     const React = {createElement(type, props) { return {type, props}; }};
     const source = fs.readFileSync(path.resolve(__dirname, '../../patches/src/main/resources/reactnative/ui-controls.js'), 'utf8')
         .replace('__TWITCH_UI_SKYLINE_ROW_EXPORT__', 'SupportActionRow')
-        .replace('__TWITCH_UI_EXTENSION_ENTRY_MODULE__', hasEntry ? '11' : 'null')
+        .replace('__TWITCH_UI_EXTENSION_ENTRY_MODULE__', '11')
         .replace(/__TWITCH_UI_[A-Z_]+_MODULE__/g, '10');
     vm.runInNewContext(source, {globalThis: {__twitchPatchRuntime: runtime}});
     return {adapters, React, set(value) { hidden = value; },
@@ -22,7 +22,7 @@ function fixture(hasEntry) {
 }
 
 test('channel extension controls follow the existing preference in both directions', () => {
-    const f = fixture(true);
+    const f = fixture();
     for (const name of ['ClassicExtensionsIcon', 'ExtensionsEntryButton']) {
         const original = () => {}, props = {installations: [{id: 'fixture'}], onOpen() {}, onPress() {}};
         const render = f.adapt(name, original);
@@ -36,10 +36,4 @@ test('channel extension controls follow the existing preference in both directio
             assert.equal(render(props).props, props);
         }
     }
-});
-
-test('older bundles retain the classic extension hook without registering an absent entry button', () => {
-    const f = fixture(false);
-    assert.equal(typeof f.adapters.ClassicExtensionsIcon, 'function');
-    assert.equal(f.adapters.ExtensionsEntryButton, undefined);
 });

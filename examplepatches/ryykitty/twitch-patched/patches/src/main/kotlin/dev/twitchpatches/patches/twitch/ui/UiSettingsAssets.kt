@@ -4,8 +4,8 @@ import app.morphe.patcher.patch.resourcePatch
 import dev.twitchpatches.patches.twitch.shared.RN_ASSET
 import dev.twitchpatches.patches.twitch.shared.assetSource
 import dev.twitchpatches.patches.twitch.shared.reactNativeAssetsPatch
-import dev.twitchpatches.patches.twitch.shared.hermes.HermesBundle
 import dev.twitchpatches.patches.twitch.shared.hermes.MetroExports
+import dev.twitchpatches.patches.twitch.shared.hermes.twitchBundle
 import dev.twitchpatches.patches.twitch.shared.hermes.dependencyModule
 import dev.twitchpatches.patches.twitch.shared.uniqueHook
 import dev.twitchpatches.patches.twitch.shared.parseResourceXml
@@ -14,7 +14,7 @@ import org.w3c.dom.Element
 internal val uiSettingsAssetsPatch = resourcePatch {
     dependsOn(reactNativeAssetsPatch)
     execute {
-        val bundle = HermesBundle(get("assets/index.android.bundle").readBytes())
+        val bundle = twitchBundle()
         val exports = MetroExports(bundle)
         val sheet = exports.resolveDeferred("BottomSheet", setOf("children", "onClose", "scrollable", "footer"))
         val row = exports.resolveDeferred("SettingsListItem", setOf("title", "subtitle", "onPress", "disabled", "accessibilityRole"))

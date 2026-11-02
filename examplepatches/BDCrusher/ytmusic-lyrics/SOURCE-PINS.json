@@ -257,6 +257,23 @@
     "debugging": "Existing Enable debug logging / Export debug logs; no capture timer; reproduce line stutter without screen recording.",
     "phoneVerified": false
   },
+  "nativeDownloadsRevision": {
+    "version": "0.7.0-beta.4",
+    "date": "2026-11-01",
+    "report": "Research/DOWNLOADS-AND-FOREGROUND-0.7.0-BETA.2-2026-11-01.md",
+    "youtubeDownloaderReference": {
+      "tag": "v2.1.0-dev.4",
+      "commit": "b6f45967e3dcd54bf79fa39f8bfd5610667b1b1b",
+      "InAppDownloadsPatch.javaSha256": "6f9c06c57dc597d57b8559bd10fa94f5689ea064a0126f1d3793ad0e8ac1a1fb",
+      "LocalDownloadManager.javaSha256": "2c320dda757c02d9e989acab56f4bad0d8f2d114fa8b5ee8df88b6136ead430a",
+      "scope": "Quality/size/storage UX and ordinary available-stream download behavior; no Premium or eligibility bypass copied. Existing fork history/base preserved."
+    },
+    "nativeContracts": "Typed native watch request core, next/player responses and paired futures; native NetFetch task/callback ABI on both original arm64 targets. Native source loader and original playlist remain authoritative; own virtual URL reads saved files.",
+    "externalFiles": "Read-only selected SAF folder; exact recording identity; native adapter accepts seekable WebM/Opus or M4A/AAC-LC verified through Android MediaExtractor. Folder is indexed on resume; native next metadata must have been prepared online.",
+    "chapters": "SponsorBlock sidecar names/colors/timestamps and existing native skip/seekbar behavior; original audio timeline retained, no embedded chapter tags.",
+    "artwork": "Static JPEG saved with audio and mapped through verified shared native Uri loader. Animated artwork remains streamed, lookup ledger only. Slow frame readback falls back to a moving still-art Kawarp mesh.",
+    "phoneVerified": false
+  },
   "crashCorrectionsRevision": {
     "version": "0.6.1-beta.1",
     "date": "2026-10-31",

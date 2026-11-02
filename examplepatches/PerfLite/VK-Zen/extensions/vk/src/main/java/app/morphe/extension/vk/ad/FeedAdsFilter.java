@@ -8,6 +8,82 @@ import java.util.List;
 
 public class FeedAdsFilter {
 
+    private static volatile boolean postFieldsResolved = false;
+    private static Field postMarkedAsAdField = null;
+    private static Field postAdMarkerField = null;
+    private static Field postEasyPromoteField = null;
+    private static Field postRepostField = null;
+    private static Field postAttachmentsField = null;
+
+    private static synchronized void resolvePostFields(Class<?> clazz) {
+        if (postFieldsResolved) return;
+        try {
+            Field[] fields = clazz.getDeclaredFields();
+            Field prevBoolean = null;
+            Field prevString = null;
+
+            for (Field f : fields) {
+                f.setAccessible(true);
+                Class<?> type = f.getType();
+
+                if (type == boolean.class) {
+                    prevBoolean = f;
+                } else if (type == String.class) {
+                    prevString = f;
+                } else if (type == clazz) {
+                    postRepostField = f;
+                } else if (List.class.isAssignableFrom(type)) {
+                    if (postAttachmentsField == null) {
+                        postAttachmentsField = f;
+                    }
+                } else if (type.getName().endsWith("EasyPromote")) {
+                    postEasyPromoteField = f;
+                    if (prevBoolean != null) {
+                        postMarkedAsAdField = prevBoolean;
+                    }
+                    if (prevString != null) {
+                        postAdMarkerField = prevString;
+                    }
+                }
+            }
+
+            // Fallback for known VK 8.201 layout if not dynamically found
+            if (postMarkedAsAdField == null) {
+                try {
+                    Field fF = clazz.getDeclaredField("F");
+                    fF.setAccessible(true);
+                    if (fF.getType() == boolean.class) {
+                        postMarkedAsAdField = fF;
+                    }
+                } catch (Throwable ignored) {}
+            }
+            if (postAdMarkerField == null) {
+                try {
+                    Field fH = clazz.getDeclaredField("H");
+                    fH.setAccessible(true);
+                    if (fH.getType() == String.class) {
+                        postAdMarkerField = fH;
+                    }
+                } catch (Throwable ignored) {}
+            }
+            if (postRepostField == null) {
+                try {
+                    Field fD = clazz.getDeclaredField("D");
+                    fD.setAccessible(true);
+                    postRepostField = fD;
+                } catch (Throwable ignored) {}
+            }
+            if (postAttachmentsField == null) {
+                try {
+                    Field fz = clazz.getDeclaredField("z");
+                    fz.setAccessible(true);
+                    postAttachmentsField = fz;
+                } catch (Throwable ignored) {}
+            }
+        } catch (Throwable ignored) {}
+        postFieldsResolved = true;
+    }
+
     /**
      * Checks whether an item is any form of advertisement or promotional block.
      */
@@ -24,75 +100,86 @@ public class FeedAdsFilter {
         // For Post: check ONLY actual ad indicators
         if (className.endsWith(".Post")) {
             try {
-                // 1. Check marked_as_ads (field J)
-                try {
-                    Field fJ = item.getClass().getDeclaredField("J");
-                    fJ.setAccessible(true);
-                    if (fJ.getBoolean(item)) {
-                        return true;
-                    }
-                } catch (Throwable ignored) {}
+                if (!postFieldsResolved) {
+                    resolvePostFields(item.getClass());
+                }
 
-                // 2. Check marked_as_author_ad (field F)
-                try {
-                    Field fF = item.getClass().getDeclaredField("F");
-                    fF.setAccessible(true);
-                    if (fF.getBoolean(item)) {
-                        return true;
-                    }
-                } catch (Throwable ignored) {}
-
-                // 3. Check ad marker text (field G) - only if it actually indicates an advertisement
-                try {
-                    Field fG = item.getClass().getDeclaredField("G");
-                    fG.setAccessible(true);
-                    Object valG = fG.get(item);
-                    if (valG != null) {
-                        String s = valG.toString().toLowerCase();
-                        if (s.contains("реклама") || s.contains("promoted")) {
+                // 1. Check markedAsAd (field F in 8.201)
+                if (postMarkedAsAdField != null) {
+                    try {
+                        if (postMarkedAsAdField.getBoolean(item)) {
                             return true;
                         }
-                    }
-                } catch (Throwable ignored) {}
+                    } catch (Throwable ignored) {}
+                }
+
+                // 2. Check easyPromote block
+                if (postEasyPromoteField != null) {
+                    try {
+                        if (postEasyPromoteField.get(item) != null) {
+                            return true;
+                        }
+                    } catch (Throwable ignored) {}
+                }
+
+                // 3. Check adMarker text (field H in 8.201)
+                if (postAdMarkerField != null) {
+                    try {
+                        Object marker = postAdMarkerField.get(item);
+                        if (marker != null) {
+                            String s = marker.toString().toLowerCase();
+                            if (s.contains("реклама") || s.contains("promoted")) {
+                                return true;
+                            }
+                        }
+                    } catch (Throwable ignored) {}
+                }
 
                 // 4. Check repost
-                try {
-                    Field fD = item.getClass().getDeclaredField("D");
-                    fD.setAccessible(true);
-                    Object repost = fD.get(item);
-                    if (repost != null && repost != item && isAdItem(repost)) {
-                        return true;
-                    }
-                } catch (Throwable ignored) {}
+                if (postRepostField != null) {
+                    try {
+                        Object repost = postRepostField.get(item);
+                        if (repost != null && repost != item && isAdItem(repost)) {
+                            return true;
+                        }
+                    } catch (Throwable ignored) {}
+                }
 
-                // 5. Check ShitAttachment in attachments (unwrapping EntryAttachment if wrapped)
-                try {
-                    Field fz = item.getClass().getDeclaredField("z");
-                    fz.setAccessible(true);
-                    Object attaches = fz.get(item);
-                    if (attaches instanceof List) {
-                        List<?> list = (List<?>) attaches;
-                        for (Object attach : list) {
-                            if (attach == null) continue;
-                            Object real = unwrapAttachment(attach);
-                            if (real != null) {
-                                String rName = real.getClass().getName();
-                                // Standalone ShitAttachment without video is an ad post
-                                if (rName.endsWith(".ShitAttachment")) {
-                                    try {
-                                        Field fVideo = real.getClass().getDeclaredField("I");
-                                        fVideo.setAccessible(true);
-                                        if (fVideo.get(real) == null) {
+                // 5. Check ShitAttachment in attachments
+                Field attachField = postAttachmentsField;
+                if (attachField == null) {
+                    try {
+                        attachField = item.getClass().getDeclaredField("z");
+                        attachField.setAccessible(true);
+                    } catch (Throwable ignored) {}
+                }
+                if (attachField != null) {
+                    try {
+                        Object attaches = attachField.get(item);
+                        if (attaches instanceof List) {
+                            List<?> list = (List<?>) attaches;
+                            for (Object attach : list) {
+                                if (attach == null) continue;
+                                Object real = unwrapAttachment(attach);
+                                if (real != null) {
+                                    String rName = real.getClass().getName();
+                                    // Standalone ShitAttachment without video is an ad post
+                                    if (rName.endsWith(".ShitAttachment")) {
+                                        try {
+                                            Field fVideo = real.getClass().getDeclaredField("I");
+                                            fVideo.setAccessible(true);
+                                            if (fVideo.get(real) == null) {
+                                                return true;
+                                            }
+                                        } catch (Throwable t) {
                                             return true;
                                         }
-                                    } catch (Throwable t) {
-                                        return true;
                                     }
                                 }
                             }
                         }
-                    }
-                } catch (Throwable ignored) {}
+                    } catch (Throwable ignored) {}
+                }
             } catch (Throwable ignored) {}
         }
 
@@ -130,8 +217,14 @@ public class FeedAdsFilter {
     public static void sanitizePost(Object post) {
         if (post == null) return;
         try {
-            Field fz = post.getClass().getDeclaredField("z");
-            fz.setAccessible(true);
+            if (!postFieldsResolved) {
+                resolvePostFields(post.getClass());
+            }
+            Field fz = postAttachmentsField;
+            if (fz == null) {
+                fz = post.getClass().getDeclaredField("z");
+                fz.setAccessible(true);
+            }
             Object attaches = fz.get(post);
             if (attaches instanceof List) {
                 List<?> list = (List<?>) attaches;

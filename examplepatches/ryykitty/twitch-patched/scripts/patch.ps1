@@ -60,7 +60,7 @@ $env:PATH = "$(Join-Path $sdk 'platform-tools');$env:PATH"
 $arguments = @("-Xmx${HeapMb}m", '-jar', $morphe, 'patch', '-p', $bundle, '--exclusive')
 if ($KeepScratch) { $arguments += '--disable-purge' }
 foreach ($name in $Patch) { $arguments += @('-e', $name) }
-$arguments += @('--bytecode-mode=FULL')
+$arguments += @('--bytecode-mode=FULL', '--validate')
 if (-not $auditBase) { $arguments += "--verify-with-sdk=$sdk" }
 $arguments += @('--keystore', $keystore,
     '-o', $output, '-r', (Join-Path $run 'result.json'),
@@ -80,7 +80,13 @@ $arguments += @('--keystore', $keystore,
     createdUtc = [DateTime]::UtcNow.ToString('o')
 } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $run 'run.json') -Encoding utf8
 
-& java @arguments 2>&1 | Tee-Object -FilePath (Join-Path $run 'patch.log')
+$previousPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    & java @arguments 2>&1 | Tee-Object -FilePath (Join-Path $run 'patch.log')
+} finally {
+    $ErrorActionPreference = $previousPreference
+}
 if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $output)) {
     throw "Patching failed. Inspect $run. No installation attempted."
 }

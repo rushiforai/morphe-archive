@@ -290,6 +290,8 @@ With the switch above on, your place stays however long you're away. Pull to ref
 Back leaves Home where it is	Atrás deja Inicio donde está
 Pressing Back on a scrolled Home no longer jumps to the top and reloads the feed. Press Back again within two seconds to do that.	Al pulsar Atrás en Inicio con el feed desplazado, ya no salta arriba ni recarga el feed. Pulsa Atrás otra vez en menos de dos segundos para hacerlo.
 Press Back again to go to the top	Pulsa Atrás otra vez para ir arriba
+Hide the Back reminder	Ocultar el aviso de Atrás
+Back keeps your place without saying "Press Back again to go to the top".	Atrás mantiene tu posición sin decir «Pulsa Atrás otra vez para ir arriba».
 A finished story stays on screen until you tap or swipe. Turn this off for Facebook's timing.	Una historia terminada permanece en pantalla hasta que toques o deslices. Desactiva esto para usar el tiempo de Facebook.
 View stories anonymously	Ver historias de forma anónima
 Facebook isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you. Stories you watch to the end show as watched on this phone only, until that person posts a new one.	Facebook no sabe qué historias ves, así que no apareces en sus listas de espectadores. Si respondes o reaccionas, se te sigue viendo. Las historias que ves hasta el final aparecen como vistas solo en este teléfono, hasta que esa persona publique una nueva.
@@ -501,6 +503,9 @@ Comments show their replies right away, so there's no View replies to tap.	Los c
 Load whole reply threads	Cargar hilos de respuestas completos
 # context: summary of that switch; View more replies is the row Facebook shows under an open thread that has more replies to load
 An open reply thread keeps loading as you scroll, so there's no View more replies to tap.	Un hilo de respuestas abierto sigue cargando mientras te desplazas, sin tener que tocar para ver más respuestas.
+Hide replies button	Botón Ocultar respuestas
+An open reply thread gets a Hide replies button, so you can close it again after reading.	Un hilo de respuestas abierto tiene un botón Ocultar respuestas para cerrarlo después de leerlo.
+Hide replies	Ocultar respuestas
 # context: switch title under Comments; View more replies is the row under an open reply thread that loads more replies, and this makes the whole row take the tap instead of only its words
 Tap anywhere on View more replies	Tocar en cualquier parte de Ver más respuestas
 # context: summary of that switch
@@ -848,6 +853,8 @@ Hold a feed video for 2x	Mantener pulsado un vídeo del feed para 2x
 # context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
 Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	Mantener pulsado un vídeo del feed o de Watch lo reproduce al doble de velocidad hasta que lo sueltes. Funciona sin los interruptores de arriba.
 Hide the pull down to lock hint	Ocultar el aviso de deslizar hacia abajo para bloquear
+Hide the 2x popups	Ocultar los avisos de 2x
+Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	Al mantener pulsado un video para 2x no aparece ningún aviso, ni "Velocidad: 2x", ni "Suelta para bloquear", ni "Bloqueado a velocidad 2x". Mantener pulsado y bloquear siguen funcionando.
 # context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
 Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	Al mantener pulsado un vídeo para 2x se muestra solo la etiqueta 2x, sin el aviso "Desliza hacia abajo para bloquear la velocidad 2x". Deslizar hacia abajo sigue bloqueándola. Funciona sin los interruptores de arriba.
 Default playback quality	Calidad de reproducción predeterminada
@@ -970,6 +977,22 @@ Keep post dates	Mantener la fecha de las publicaciones
 # context: description of that switch; the rotating details are the texts Facebook's newer post header takes turns showing on that line
 Shows the post's date under the poster's name instead of Facebook's rotating details, which can go blank on some phones.	Muestra la fecha de la publicación bajo el nombre de quien publica, en lugar de los datos rotativos de Facebook, que en algunos teléfonos se quedan en blanco.
 Show full post text	Mostrar el texto completo de las publicaciones
+Translate	Traducir
+See original	Ver original
+Translation	Traducción
+Show original	Mostrar original
+Show translation	Mostrar traducción
+Translating...	Traduciendo...
+Couldn't translate this. Check your connection and try again.	No se pudo traducir. Revisa tu conexión e inténtalo de nuevo.
+Add a Translate link to posts	Añadir un enlace Traducir a las publicaciones
+Translate posts by themselves	Traducir las publicaciones automáticamente
+Posts in another language get a Translate link under their text. A tap sends that post's text to Google Translate.	Las publicaciones en otro idioma llevan un enlace Traducir debajo del texto. Al tocarlo, el texto de esa publicación se envía al Traductor de Google.
+Posts in another language show translated, with See original under them. Each post's text goes to Google Translate as it's drawn.	Las publicaciones en otro idioma se muestran traducidas, con Ver original debajo. El texto de cada publicación se envía al Traductor de Google al mostrarse.
+Translate to	Traducir a
+The phone's language	El idioma del teléfono
+Languages to leave alone	Idiomas que no se traducen
+None picked. Posts in every language can be translated.	Ninguno elegido. Se pueden traducir publicaciones en cualquier idioma.
+Left alone: %s	No se traducen: %s
 Posts in the feed show all of their text, so there's no See more to tap.	Las publicaciones del feed muestran todo su texto, así que no hay que tocar Ver más.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Ver quién compartió
@@ -987,7 +1010,9 @@ No "Are you interested in this reel?" prompt on reels. The reel plays as usual.	
 # context: switch title under News feed; affiliate product links are the shop links creators add to their posts to earn a commission
 Hide affiliate product links	Ocultar los enlaces de productos de afiliados
 # context: description of that switch; "Commission eligible" is Facebook's own label, so use Facebook's wording in your language if you know it
-Hides product cards from shopping links that creators add to posts, reels and comments. The "Commission eligible" label stays.	Oculta las tarjetas de producto de los enlaces de compra que los creadores añaden a publicaciones, reels y comentarios. La etiqueta «Apto para comisión» se queda.
+Hides product cards from shopping links that creators add to posts, reels and comments.	Oculta las tarjetas de producto de los enlaces de compra que los creadores añaden a publicaciones, reels y comentarios.
+Hide the Commission eligible label	Ocultar la etiqueta «Apto para comisión»
+Hides the "Commission eligible" label under the creator's name on reels.	Oculta la etiqueta «Apto para comisión» bajo el nombre del creador en los reels.
 # context: The reel button and the video menu item while links are sent to another app (#41)
 Send to app	Enviar a una app
 # context: Title of Android's app chooser when a video's link is sent
@@ -1769,6 +1794,8 @@ Takes the Save button off the side of reels. The buttons above it move down. A c
 Hide the speaker button on reels	Ocultar el botón del altavoz en los reels
 # context: summary of that switch
 Takes the speaker button off the bottom of the side of reels. A change shows from the next reel.	Quita el botón del altavoz de la parte inferior del lateral de los reels. Un cambio se ve a partir del siguiente reel.
+Move the speaker above the three dots	Mover el altavoz encima de los tres puntos
+Puts the speaker button in the side column of reels, right above the three dots. A change shows from the next reel.	Pone el botón del altavoz en la columna lateral de los reels, justo encima de los tres puntos. Un cambio se ve a partir del siguiente reel.
 # context: switch title under News feed; the reaction preview is the stack of reaction icons and the line with the number of reactions under a post
 Hide the reaction preview on posts	Ocultar la vista previa de reacciones en las publicaciones
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
@@ -2088,6 +2115,9 @@ Reels order will be set to %1$s.	El orden de los reels será %1$s.
 Cast button on feed videos	Botón de enviar en videos del feed
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Añade un botón de enviar a los videos del feed. Pasa el video a una app de transmisión que tengas, como Web Video Caster, que lo envía a tu TV. Facebook ya no tiene transmisión propia.
 Cast this video	Enviar este video
+Seek bar on feed videos	Barra de progreso en videos del feed
+Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Muestra una barra en la parte inferior de un video del feed. Arrástrala y suéltala para saltar a ese punto. Los videos en vivo y los anuncios conservan sus propios controles. Si “Toca para reproducir” está activado, también necesita “Controles de video en el feed”.
+Feed video position	Posición del video del feed
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Color de insignias
 # context: title of the row that holds a color code for the Facebook logo at the top of Home

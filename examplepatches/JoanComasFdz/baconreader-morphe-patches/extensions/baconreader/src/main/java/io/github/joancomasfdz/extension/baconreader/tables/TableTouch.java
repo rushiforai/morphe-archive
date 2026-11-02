@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewParent;
+import android.view.accessibility.AccessibilityEvent;
 import android.widget.TextView;
 
 /**
@@ -70,7 +71,11 @@ final class TableTouch implements View.OnTouchListener {
                     if (parent != null) parent.requestDisallowInterceptTouchEvent(true);
                 }
                 if (dragging) {
-                    if (active.scrollBy(lastX - event.getX())) textView.invalidate();
+                    if (active.scrollBy(lastX - event.getX())) {
+                        textView.invalidate();
+                        // The cells moved: accessibility reads where they are again.
+                        textView.sendAccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED);
+                    }
                     lastX = event.getX();
                 }
                 return true;

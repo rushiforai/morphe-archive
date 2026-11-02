@@ -27,16 +27,23 @@ fun showAppIconPatch(
 
                 for (child in node.childElementsSequence()) {
                     when (child.tagName) {
-                        "action" ->
-                            if (child.getAttribute("android:name") == "android.intent.action.MAIN")
+                        "action" -> {
+                            if (child.getAttribute("android:name") == "android.intent.action.MAIN") {
                                 hasMainAction = true
-
-                        "category" ->
-                            when (child.getAttribute("android:name")) {
-                                "android.intent.category.LAUNCHER" -> hasLauncher = true
-                                "android.intent.category.LEANBACK_LAUNCHER" ->
-                                    hasLeanbackLauncher = true
                             }
+                        }
+
+                        "category" -> {
+                            when (child.getAttribute("android:name")) {
+                                "android.intent.category.LAUNCHER" -> {
+                                    hasLauncher = true
+                                }
+
+                                "android.intent.category.LEANBACK_LAUNCHER" -> {
+                                    hasLeanbackLauncher = true
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -61,7 +68,8 @@ fun showAppIconPatch(
             }
 
             if (!changed) {
-                Logger.getLogger(this::class.java.name)
+                Logger
+                    .getLogger(this::class.java.name)
                     .warning("No changes made: Did not find any launcher intent-filters to change.")
             }
         }

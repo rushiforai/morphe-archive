@@ -3,6 +3,7 @@ import argparse
 from contextlib import contextmanager
 import json
 import hashlib
+import os
 from pathlib import Path
 import re
 import shutil
@@ -75,6 +76,9 @@ APPS = {
     "tvgids": {"Hide ads": [], "Disable tracking": ["Hide ads"],
                "Skip consent screens": ["Disable tracking", "Hide ads"]},
     "marktplaats": {"Hide ads": [], "Disable tracking": ["Hide ads"], "Disable ThreatMetrix": [], "Skip consent screens": ["Disable tracking", "Hide ads"], "Google sign-in via microG-Re": []},
+    "2dehands": {"Hide ads": [], "Disable tracking": ["Hide ads", "Disable ThreatMetrix"],
+                 "Disable ThreatMetrix": [],
+                 "Skip consent screens": ["Disable tracking", "Hide ads", "Disable ThreatMetrix"]},
     "9292": {"Fix PairIP startup": [], "Hide ads": ["Fix PairIP startup"],
              "Disable tracking": ["Hide ads", "Fix PairIP startup"],
              "Skip consent screens": ["Disable tracking", "Hide ads", "Fix PairIP startup"]},
@@ -144,12 +148,51 @@ APPS = {
     },
     "flitsmeister": {
         "Fix PairIP startup": [], "Unlock Pro": [], "Hide Pro notices": [],
+        "Broadcast navigation data": [],
         "Disable partner services": [], "Hide ads": [], "Disable tracking": [],
+        "Guest mode": ["Fix PairIP startup"],
     },
 }
 
 for _newspaper_app in ("hbvl", "gva"):
     APPS[_newspaper_app]["Hide newspaper navigation"] = []
+
+
+def manifest_base(archive: zipfile.ZipFile, candidates: list[zipfile.ZipInfo], out: Path) -> zipfile.ZipInfo:
+    """Resolve unhinted base/feature names from actual binary manifests."""
+    sdk = Path(os.environ.get('ANDROID_HOME', Path.home() / 'Library/Android/sdk'))
+    installed = sorted(sdk.glob('build-tools/*/aapt2'), reverse=True)
+    aapt = shutil.which('aapt2') or (str(installed[0]) if installed else None)
+    if aapt is None:
+        raise ValueError('Expected one unambiguous base APK; aapt2 is required to inspect feature manifests')
+    matches = []
+    with tempfile.TemporaryDirectory(prefix='base-manifests-', dir=out) as scratch:
+        for member in candidates:
+            apk = Path(scratch) / Path(member.filename).name
+            apk.write_bytes(archive.read(member))
+            result = subprocess.run([aapt, 'dump', 'xmltree', str(apk), '--file', 'AndroidManifest.xml'],
+                                    text=True, capture_output=True)
+            if result.returncode:
+                raise ValueError('Expected one unambiguous base APK; invalid candidate manifest')
+            lines = result.stdout.splitlines()
+            root = next((index for index, line in enumerate(lines)
+                         if re.fullmatch(r'\s*E: manifest \(line=\d+\)', line)), None)
+            if root is None:
+                raise ValueError('Expected one unambiguous base APK; missing manifest root')
+            attributes = []
+            for line in lines[root + 1:]:
+                if re.match(r'\s*E:', line):
+                    break
+                attributes.append(line)
+            header = '\n'.join(attributes)
+            if not re.search(r'A: package="[^"]+"', header):
+                raise ValueError('Expected one unambiguous base APK; missing manifest package')
+            split = re.search(r'A: split="([^"]*)"', header)
+            if split is None or not split[1]:
+                matches.append(member)
+    if len(matches) != 1:
+        raise ValueError('Expected one unambiguous base APK')
+    return matches[0]
 
 
 def prepare_input(original: Path, out: Path) -> tuple[Path, Path]:
@@ -222,9 +265,7 @@ def prepare_input(original: Path, out: Path) -> tuple[Path, Path]:
             else:
                 candidates = [entry for name, entry in by_basename.items()
                               if not name.lower().startswith(("config.", "split_", "split."))]
-                if len(candidates) != 1:
-                    raise ValueError("Expected one unambiguous base APK")
-                base = candidates[0]
+                base = candidates[0] if len(candidates) == 1 else manifest_base(archive, candidates, out)
         reference = out / "input-base.apk"
         reference.write_bytes(archive.read(base))
         if base.filename != "base.apk":
@@ -310,11 +351,13 @@ def verifier_command(app: str, destination: Path, effective: set[str], apk: Path
         if original_reference is None or not original_reference.is_dir():
             raise ValueError("Rollerbank validation needs the decoded original APK")
         command = [sys.executable, "tests/verify_rollerbank.py", str(destination), "--original-root", str(original_reference)]
+    elif app == "2dehands":
+        command = [sys.executable, "tests/verify_tweedehands.py", str(destination)]
     elif app in {"detijd", "demorgen", "humo", "hln", "nieuwsblad", "dsnieuws", "hbvl", "gva", "tvgids", "marktplaats", "9292", "weerplaza", "nunl", "volkskrant", "trouw", "parool", "ftm", "flitsmeister", "ad", "tubantia", "ed", "nrc", "dumpert", "rtl", "brabant", "west", "vi", "teletekst"}:
         command = [sys.executable, f"tests/verify_{app}.py", str(destination)]
     else:
         command = [sys.executable, "tests/verify_targets.py", app, str(destination)]
-    if app in {"detijd", "tvgids", "marktplaats", "9292", "dumpert", "rtl", "brabant", "west", "vi", "teletekst"} and apk is not None:
+    if app in {"detijd", "tvgids", "marktplaats", "2dehands", "9292", "dumpert", "rtl", "brabant", "west", "vi", "teletekst"} and apk is not None:
         command += ["--apk", str(apk)]
     if app == "tvgids":
         if original_reference is None:

@@ -218,6 +218,8 @@ class ControlsTest {
         assertEquals("app.hushmessenger.extension.SettingsLauncher", alias.getAttribute("android:name"))
         assertEquals("app.hushmessenger.extension.SettingsActivity", alias.getAttribute("android:targetActivity"))
         assertEquals("android.intent.category.LAUNCHER", (alias.getElementsByTagName("category").item(0) as org.w3c.dom.Element).getAttribute("android:name"))
+        // A launcher match for the package has to reach Messenger itself, not this alias (#75).
+        assertEquals("-1", (alias.getElementsByTagName("intent-filter").item(0) as org.w3c.dom.Element).getAttribute("android:priority"))
         assertFailsWith<PatchException> { document.addSettingsEntry() }
     }
 

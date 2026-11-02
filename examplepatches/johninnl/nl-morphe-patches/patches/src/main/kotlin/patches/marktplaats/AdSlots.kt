@@ -12,7 +12,7 @@ private const val item = "Lcom/horizon/android/core/datamodel/search/SearchResul
 private const val type = "Lcom/horizon/android/core/datamodel/search/SearchResultItemType;"
 private const val order = "Lcom/horizon/android/feature/vip/contentorder/VipContentOrder;"
 private const val section = "Lcom/horizon/android/feature/vip/VipContentSection;"
-private val adTypes = listOf("SRP_HEADER_NATIVE_AD", "SRP_LIST_NATIVE_AD", "DISPLAY_BANNER")
+private val displayAdTypes = listOf("SRP_HEADER_NATIVE_AD", "SRP_LIST_NATIVE_AD", "DISPLAY_BANNER")
 
 /** Nulls/unknown values pass through; lists without removed elements retain identity. */
 context(context: app.morphe.patcher.patch.BytecodePatchContext)
@@ -49,7 +49,10 @@ private fun listFilter(owner: String, name: String, predicate: String) = Mutable
 }
 
 context(context: app.morphe.patcher.patch.BytecodePatchContext)
-internal fun suppressAdSlots() {
+internal fun suppressAdSlots(removePaidPlacements: Boolean = false) {
+    val adTypes = displayAdTypes + if (removePaidPlacements) listOf(
+        "ICAS_TOPBLOCK_LISTING", "ICAS_SIBLING_LISTING", "SHIPPING_PROMOTION", "GENAI_PROMOTION",
+    ) else emptyList()
     val responseCtor = "<init>(${list}Lcom/horizon/android/core/datamodel/search/Histograms;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/Boolean;Lcom/horizon/android/feature/search/search/api/RecommendedCategoryDataDto;)V"
     val responseMethod = exact(response, responseCtor, 65537, 7, 8)
     val responseClass = target(response, responseCtor).classDef
@@ -58,6 +61,17 @@ internal fun suppressAdSlots() {
         sget-object v4, $type->$name:$type
         if-eq v3, v4, :next
     """.trimIndent() }
+    val rankingCheck = if (removePaidPlacements) """
+        invoke-virtual {v2}, $item->getListing()Lcom/horizon/android/core/datamodel/CapiAd;
+        move-result-object v3
+        if-eqz v3, :keep
+        invoke-virtual {v3}, Lcom/horizon/android/core/datamodel/CapiAd;->isAdmarktAd()Z
+        move-result v4
+        if-nez v4, :next
+        invoke-virtual {v3}, Lcom/horizon/android/core/datamodel/CapiAd;->getRankingLabel()Lcom/horizon/android/core/datamodel/RankingLabel;
+        move-result-object v3
+        if-nez v3, :next
+    """.trimIndent() else ""
     responseClass.methods.add(listFilter(response, "morpheAdSlots", """
         instance-of v3, v2, $item
         if-eqz v3, :keep
@@ -65,6 +79,7 @@ internal fun suppressAdSlots() {
         invoke-virtual {v2}, $item->getItemType()$type
         move-result-object v3
         $typeChecks
+        $rankingCheck
     """.trimIndent()))
     // All normal/default/copy paths delegate here; nullable response items stay null.
     responseMethod.addInstructions(1, "invoke-static {p1}, $response->morpheAdSlots($list)$list\nmove-result-object p1")

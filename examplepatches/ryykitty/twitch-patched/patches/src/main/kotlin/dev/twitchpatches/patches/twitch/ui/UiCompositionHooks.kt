@@ -1,24 +1,30 @@
 package dev.twitchpatches.patches.twitch.ui
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
-import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction3rc
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.twitchpatches.patches.twitch.reload.nativeReloadMethod
 import dev.twitchpatches.patches.twitch.shared.*
 
 private const val BRIDGE = "Ldev/twitchpatches/extension/ui/UiComposeBridge;"
 
+private class VerticalHypeTrainContainerFingerprint(composer: String) : Fingerprint(
+    returnType = "V",
+    strings = listOf("VerticalTheatreHypeTrainHighlightsFragment/arguments"),
+    custom = { method, _ -> method.parameterTypes.size == 3 && method.parameterTypes[1].toString() == composer },
+)
+
 internal fun BytecodePatchContext.injectUiComposition() {
-    val all = mutableListOf<Method>()
-    classDefForEach { all.addAll(it.methods) }
-    val contract = resolveUiComposition(all)
+    val contract = resolveUiComposition()
     val owner = mutableClassDefBy(BRIDGE)
     val update = owner.methods.filter { it.name == "update" && it.parameterTypes.isEmpty() }.uniqueHook("UI state update bridge")
     owner.methods.remove(update)
@@ -47,12 +53,9 @@ internal fun BytecodePatchContext.injectUiComposition() {
         move-result v0
         return v0
     """, static = true))
-    injectNativeUiMenus(all, contract)
-    restoreVerticalLayoutControls(all, contract)
-    val train = all.filter { it.returnType == "V" && it.parameterTypes.size == 3 &&
-        it.parameterTypes[1] == contract.composer &&
-        it.hasStrings("VerticalTheatreHypeTrainHighlightsFragment/arguments")
-    }.uniqueHook("native vertical Hype Train container")
+    injectNativeUiMenus(contract)
+    restoreVerticalLayoutControls(contract)
+    val train = VerticalHypeTrainContainerFingerprint(contract.composer).originalMethod
     val trainWrapper = uiWrapper(train, "verticalHypeTrain", contract, """
         const-string v1, "hide_hype_trains"
         invoke-static {v1, v0}, $BRIDGE->hidden(Ljava/lang/String;${contract.composer})Z
@@ -60,7 +63,7 @@ internal fun BytecodePatchContext.injectUiComposition() {
         if-nez v1, :done
     """)
     owner.methods.add(trainWrapper)
-    replaceUiCalls(all.filter { it.references().any { ref -> ref.toString() == train.reference } }, train.reference, trainWrapper)
+    replaceUiCalls(nativeCallers(train), train.reference, trainWrapper)
     for ((layout, renderer) in listOf("classic" to contract.classic, "vertical" to contract.vertical)) {
         for ((part, original) in contract.controls) {
             if (renderer.references().none { it.toString() == original.reference }) continue
@@ -119,13 +122,13 @@ internal fun BytecodePatchContext.injectUiComposition() {
     """)
     owner.methods.add(row)
     replaceNativeUiCalls(contract.actionCallers.getValue(contract.classicRow.renderer.reference), contract.classicRow.renderer.reference, row)
-    injectClassicHeader(all, owner, contract.classicRow)
-    injectMetadataActions(all, owner, contract)
+    injectClassicHeader(owner, contract.classicRow)
+    injectMetadataActions(owner, contract)
 }
 
-internal fun uiWrapper(original: Method, name: String, contract: UiCompositionContract, condition: String): app.morphe.patcher.util.proxy.mutableTypes.MutableMethod {
-    require(original.returnType == "V" && com.android.tools.smali.dexlib2.AccessFlags.STATIC.isSet(original.accessFlags) &&
-        com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.isSet(original.accessFlags) &&
+internal fun uiWrapper(original: Method, name: String, contract: UiCompositionContract, condition: String): MutableMethod {
+    require(original.returnType == "V" && AccessFlags.STATIC.isSet(original.accessFlags) &&
+        AccessFlags.PUBLIC.isSet(original.accessFlags) &&
         original.parameterTypes.none { it == "J" || it == "D" } && original.parameterTypes.count { it == contract.composer } == 1) {
         "UI settings: native renderer parameter contract changed."
     }
@@ -151,6 +154,7 @@ private fun BytecodePatchContext.replaceUiCalls(methods: List<Method>, original:
 internal fun rewriteUiCalls(methods: List<Method>, original: String, replacement: MethodReference,
     mutableMethod: (Method) -> MutableMethod) {
     methods.forEach { source ->
+        require(source.reference != replacement.toString()) { "UI settings: a wrapper cannot replace the call it wraps." }
         if (source.implementation?.instructions?.none {
             (it as? ReferenceInstruction)?.reference?.toString() == original
         } != false) return@forEach

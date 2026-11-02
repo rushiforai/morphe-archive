@@ -19,7 +19,7 @@ UI customization options share the UI settings patch and registry. Keep each opt
 
 Use Kotlin for patches and Java for extensions. Keep feature code together and share helpers when several features need them. Prefer small functions and files under 250 lines.
 
-Resolve hooks from strings, types and control flow in the original APK. Derive obfuscated members from matched instructions. Require a unique match and a clear error for missing hooks.
+Resolve hooks from strings, types and control flow in the original APK. Derive obfuscated members from matched instructions. Require a unique match and a clear error for missing hooks. A Morphe `Fingerprint` returns its first match unless the patcher runs with `--validate`, which `scripts/patch.ps1` passes, so give each fingerprint enough detail to match one method on every target.
 
 Preserve register types, parameters, labels, exception handlers and Twitch's scheduler. Use typed bridges for injected calls. Keep network and parsing work off the UI thread; scope caches and cancellation to the player or channel lifecycle.
 

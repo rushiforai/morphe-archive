@@ -4,9 +4,8 @@ import app.morphe.patcher.patch.Option
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
-import app.morphe.util.asSequence
-import app.morphe.util.getNode
 import org.w3c.dom.Element
+import org.w3c.dom.NodeList
 import java.util.logging.Logger
 
 lateinit var packageNameOption: Option<String>
@@ -20,12 +19,15 @@ fun setOrGetFallbackPackageName(fallbackPackageName: String): String {
     }
 }
 
+private fun NodeList.asElementSequence(): Sequence<Element> =
+    (0 until length).asSequence().mapNotNull { item(it) as? Element }
+
 @Suppress("unused")
 val changePackageNamePatch = resourcePatch(
     name = "Change package name",
     description = "Appends \".mightymich\" to the package name by default. " +
         "Changing the package name of the app can lead to unexpected issues.",
-    default = false
+    default = false,
 ) {
     packageNameOption = stringOption(
         key = "packageName",
@@ -43,8 +45,7 @@ val changePackageNamePatch = resourcePatch(
         key = "updatePermissions",
         default = true,
         title = "Update permissions",
-        description = "Rewrite package-scoped custom permissions " +
-            "(e.g. DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION). " +
+        description = "Rewrite package-scoped custom permissions. " +
             "Fixes some install errors; can break features in certain apps.",
     )
 
@@ -65,7 +66,7 @@ val changePackageNamePatch = resourcePatch(
         )
 
         document("AndroidManifest.xml").use { document ->
-            val manifest = document.getNode("manifest") as Element
+            val manifest = document.documentElement as Element
             val packageName = manifest.getAttribute("package")
 
             if (packageName in incompatibleAppPackages) {
@@ -84,54 +85,52 @@ val changePackageNamePatch = resourcePatch(
             manifest.setAttribute("package", newPackageName)
 
             if (updatePermissions == true) {
-                val permissions = manifest.getElementsByTagName("permission").asSequence()
-                val usesPermissions = manifest.getElementsByTagName("uses-permission").asSequence()
                 val receiverNotExported = "DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+                val permissionNodes =
+                    manifest.getElementsByTagName("permission").asElementSequence() +
+                        manifest.getElementsByTagName("uses-permission").asElementSequence()
 
-                (permissions + usesPermissions)
-                    .map { it as Element }
-                    .filter {
-                        val name = it.getAttribute("android:name")
-                        name == "$packageName.$receiverNotExported" ||
-                            name.startsWith("$packageName.")
-                    }
-                    .forEach { el ->
-                        val old = el.getAttribute("android:name")
+                for (el in permissionNodes) {
+                    val old = el.getAttribute("android:name")
+                    if (old == "$packageName.$receiverNotExported" ||
+                        old.startsWith("$packageName.")
+                    ) {
                         el.setAttribute(
                             "android:name",
                             newPackageName + old.substring(packageName.length),
                         )
                     }
+                }
 
                 val componentTags = listOf(
-                    "activity", "activity-alias", "service", "receiver", "provider"
+                    "activity",
+                    "activity-alias",
+                    "service",
+                    "receiver",
+                    "provider",
                 )
                 for (tag in componentTags) {
-                    manifest.getElementsByTagName(tag).asSequence()
-                        .map { it as Element }
-                        .forEach { el ->
-                            for (attr in listOf(
-                                "android:permission",
-                                "android:readPermission",
-                                "android:writePermission",
-                            )) {
-                                if (!el.hasAttribute(attr)) continue
-                                val raw = el.getAttribute(attr)
-                                if (raw.startsWith("$packageName.")) {
-                                    el.setAttribute(
-                                        attr,
-                                        newPackageName + raw.substring(packageName.length),
-                                    )
-                                }
+                    for (el in manifest.getElementsByTagName(tag).asElementSequence()) {
+                        for (attr in listOf(
+                            "android:permission",
+                            "android:readPermission",
+                            "android:writePermission",
+                        )) {
+                            if (!el.hasAttribute(attr)) continue
+                            val raw = el.getAttribute(attr)
+                            if (raw.startsWith("$packageName.")) {
+                                el.setAttribute(
+                                    attr,
+                                    newPackageName + raw.substring(packageName.length),
+                                )
                             }
                         }
+                    }
                 }
             }
 
             if (updateProviders == true) {
-                val providers = manifest.getElementsByTagName("provider").asSequence()
-                for (node in providers) {
-                    val provider = node as Element
+                for (provider in manifest.getElementsByTagName("provider").asElementSequence()) {
                     val authorities = provider.getAttribute("android:authorities")
                     if (authorities.isEmpty()) continue
                     val updated = authorities.split(';').joinToString(";") { part ->

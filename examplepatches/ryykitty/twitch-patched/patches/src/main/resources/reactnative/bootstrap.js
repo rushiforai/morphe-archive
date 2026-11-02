@@ -1,7 +1,7 @@
 (function (global) {
     'use strict';
     if (global.__twitchPatchRuntime) return;
-    var policies = Array(13).fill(false);
+    var policies = Array(15).fill(false);
     var listeners = new Set();
     var targets = Object.create(null);
     var define;
@@ -13,6 +13,10 @@
             entries.push({name: name, adapter: adapter, memo: memo === true, registration: registration, decorator: decorator === true});
         },
         decorate: function (id, name, adapter) { runtime.target(id, name, adapter, false, undefined, true); },
+        decorateOutermost: function (id, name, adapter) {
+            runtime.decorate(id, name, adapter);
+            targets[id][targets[id].length - 1].outermost = true;
+        },
         decorateType: function (id, name, adapter) {
             var entries = targets[id] || (targets[id] = []);
             entries.unshift({name: name, adapter: adapter, memo: true, componentType: true, decorator: true});
@@ -34,10 +38,10 @@
         return;
     }
     global.RN$registerCallableModule('TwitchPatchPolicy', function () {
-        return {set: function (claim, turbo, banners, foreground, display, emotes, streamAds, reload, bttv, sevenTV, ffz, lightTheme, deletedMessages) {
+        return {set: function (claim, turbo, banners, foreground, display, emotes, streamAds, reload, bttv, sevenTV, ffz, lightTheme, deletedMessages, favoriteEmotes, inlineEmotes) {
             policies = [claim === true, turbo === true, banners === true, foreground === true, display === true,
                 emotes === true, streamAds === true, reload === true, bttv === true, sevenTV === true, ffz === true,
-                typeof lightTheme === 'boolean' ? lightTheme : undefined, deletedMessages === true];
+                typeof lightTheme === 'boolean' ? lightTheme : undefined, deletedMessages === true, favoriteEmotes === true, inlineEmotes === true];
             listeners.forEach(function (listener) { listener(); });
         }};
     });
@@ -55,7 +59,8 @@
                     var exports = arguments[4].exports;
                     var require = arguments[1];
                     var React = require(__TWITCH_REACT_MODULE__);
-                    entries.forEach(function (target) {
+                    entries.filter(function (target) { return !target.outermost; })
+                        .concat(entries.filter(function (target) { return target.outermost; })).forEach(function (target) {
                         var original = exports && exports[target.name];
                         if (target.memo ? !original || original.$$typeof !== Symbol.for('react.memo') ||
                             typeof original.type !== 'function' : typeof original !== 'function') {

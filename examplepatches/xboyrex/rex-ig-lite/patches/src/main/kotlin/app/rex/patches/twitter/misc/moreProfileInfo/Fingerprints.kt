@@ -1,0 +1,52 @@
+/*
+ * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+ */
+
+package app.rex.patches.twitter.misc.moreProfileInfo
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
+
+internal object ProfileStatViewFormerFingerprint : Fingerprint(
+    definingClass = "Lcom/twitter/app/profiles/header/components",
+    filters =
+        listOf(
+            resourceLiteral(ResourceType.ID, "stats_container"),
+        ),
+)
+
+internal object ProfileStatViewLoaderFingerprint : Fingerprint(
+    filters =
+        listOf(
+            resourceLiteral(ResourceType.DRAWABLE, "avatar_bg_gray"),
+            resourceLiteral(ResourceType.PLURALS, "profile_follower_count"),
+        ),
+)
+
+internal object CheckIranFlagOnUserHeaderTextFieldsFingerprint : Fingerprint(
+    strings = listOf("android_twemoji_iran_flag_emoji_enabled"),
+    parameters = listOf("Landroid/widget/TextView;", "Ljava/lang/CharSequence;"),
+)
+
+internal object SetUserNameOnUserHeaderFingerprint : Fingerprint(
+    classFingerprint = CheckIranFlagOnUserHeaderTextFieldsFingerprint,
+    parameters = listOf("Ljava/lang/String;"),
+)
+
+internal object SetTweetStatViewValueExtension : Fingerprint(
+    definingClass = "Lapp/morphe/extension/twitter/patches/",
+    name = "setTweetStatViewValue",
+)
+
+internal object HeaderComponentViewFieldNameExtension : Fingerprint(
+    definingClass = "Lapp/morphe/extension/twitter/patches/",
+    name = "headerComponentViewFieldName",
+)
+
+internal object HeaderComponentContextFieldNameExtension : Fingerprint(
+    definingClass = "Lapp/morphe/extension/twitter/patches/",
+    name = "headerComponentContextFieldName",
+)

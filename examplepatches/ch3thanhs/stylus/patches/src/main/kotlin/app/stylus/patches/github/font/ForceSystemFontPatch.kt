@@ -9,8 +9,8 @@ private const val EXTENSION_CLASS =
     "Lapp/stylus/extension/github/patches/ForceSystemFontPatch;"
 
 private val forceSystemFontGithubCssPatch = resourcePatch(
-    name = "Force system font web content (GitHub)",
-    description = "Internal dependency patch for force system font webview CSS override.",
+    name = "Force system font web content",
+    description = "Internal webview CSS override.",
     default = true,
 ) {
 
@@ -42,8 +42,8 @@ samp {
 
 @Suppress("unused")
 val forceSystemFontGithubPatch = bytecodePatch(
-    name = "Force system font (GitHub)",
-    description = "Renders GitHub UI text using the device system font by overriding bundled font resources at runtime.",
+    name = "Force system font",
+    description = "Uses the device's system font for UI text.",
     default = true,
 ) {
     category("Font")

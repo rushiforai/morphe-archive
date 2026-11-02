@@ -1,0 +1,98 @@
+{
+  "repository": "https://github.com/bearinmindcat/morphe-patches",
+  "commit": "32e42e0f757581147307af27196e3aca517d0570",
+  "files": [
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeAppNamePatch.kt",
+      "sha256": "2f1ea7126f50860f883f080901db9ab1fffe7e2b5e71885dcf18d8db27c5225c"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeBlackPatch.kt",
+      "sha256": "8cc1f20c1899ee6dd7a8da3886b3753e00f3f2010214773583667083cb377bae"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeConfigOverrides.kt",
+      "sha256": "6bb9c48e306c46e723042d698174d288ee000b441e11a61efc4a51686505026c"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeConstants.kt",
+      "sha256": "3e99ab07d8d5e298d5e2c6e8cfa4acca3fc4c9833f4d154d196eac9654bbd8d1"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeCustomizationPatch.kt",
+      "sha256": "c72816ab3d832351c73d0bc0546c9e102da0795605220ae3ed5bd13bf4a86143"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeExtrasPatches.kt",
+      "sha256": "3531f0b1f9ed55da93eb781e663b6553f9e9d1dc40b59ce33b6a91748ec5afe8"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeFlockCamerasPatch.kt",
+      "sha256": "6b774c627760e285ece1bb8349990498405cb054ade6aac9968e7fa28294f421"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeMapSkinPatch.kt",
+      "sha256": "ad47240e19ef85783c176f0754b0c4341049556e6cbfe79c731c60d75fc81b2b"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeRemovePermissionsPatch.kt",
+      "sha256": "3530456afb43d33db30408f1a03f8d0081462c81138db1bb0bb5ed6d5a544ce8"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeRemoveSignInPromptsPatch.kt",
+      "sha256": "2397a4329fb92eb2545147ca3ec4e9d7a5aff0b266e5d2cedac309f31c207981"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeRemoveTelemetryPatch.kt",
+      "sha256": "bb6f16b3f50b6dc113d7bce31bd1bd414ad13c1e23ac61e3c68281e682ce86b0"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeShareAlertsPatch.kt",
+      "sha256": "602e9a01d826c3acbb7da2afdb3dbc2ddfeb985fbb23486e300b77f31cc44d16"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeSpeedCameraAlertsPatch.kt",
+      "sha256": "425b8244da666118185f0e4dd3088e7ae492197453d0304a50434944f02aba77"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeSpeedometerPatch.kt",
+      "sha256": "643b89f66f870118ce338b8dd4681a7532fee48703f71aac91d3e2fe19c4e603"
+    },
+    {
+      "path": "patches/src/main/kotlin/org/ungoogled/patches/waze/WazeZoneBarPatch.kt",
+      "sha256": "9d27e0183f8d4226f5a1861c08e1be2476d8592d739bb63b21517e17e4af5443"
+    },
+    {
+      "path": "extensions/waze/src/main/java/org/ungoogled/waze/Bridge.java",
+      "sha256": "806567051793c44dad87783306eb81f42132632ed6d9df66a71a238df7b07609"
+    },
+    {
+      "path": "extensions/waze/src/main/java/org/ungoogled/waze/Chime.java",
+      "sha256": "4919f4fb1d14f0739b458a725593eabcb1cdf2604771c08699b1652a52ede6ab"
+    },
+    {
+      "path": "extensions/waze/src/main/java/org/ungoogled/waze/Customization.java",
+      "sha256": "be53be353fa5aa3997ee5d022222ca514861f7febc85674f855020718f2ca72b"
+    },
+    {
+      "path": "extensions/waze/src/main/java/org/ungoogled/waze/Flock.java",
+      "sha256": "f48e94fb0f4fcc859bd8c1a9fe9d9e5dd378f7a4fcf0d41f337b94a62734b268"
+    },
+    {
+      "path": "extensions/waze/src/main/java/org/ungoogled/waze/GodotPins.java",
+      "sha256": "c1ebb37b88b5ffe090b07092f1e10ed7014356f70bfa5f61249bbcd31e9f952c"
+    },
+    {
+      "path": "extensions/waze/src/main/java/org/ungoogled/waze/OsmCameras.java",
+      "sha256": "7b2c2d708076f9cb30dbc366c98066ebebad1e62173dfaba6c14dadce9609cce"
+    },
+    {
+      "path": "extensions/waze/src/main/java/org/ungoogled/waze/SpeedCameras.java",
+      "sha256": "742c1facaf6d85f6bcdc0270c7ce0ef2a9819fcd033f9fe43f57e477fe426cab"
+    },
+    {
+      "path": "extensions/waze/src/main/java/org/ungoogled/waze/ZoneBar.java",
+      "sha256": "57022e1b24e24d3ab83465d1b806b844d91937832c40058b662e5ba12cad1ecd"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 **App version:** 4.32.0 · **Build:** 3723 · **Original file:** APKS
 
-[Download original app](https://buzzheavier.com/jtbt2vu0n7jp){ .md-button .md-button--primary }
+[Download original app](https://buzzheavier.com/9fl1lzedekqp){ .md-button .md-button--primary }
 
 Select the exact original file in Morphe Manager. Use the complete archive for a split app.
 

@@ -1,28 +1,19 @@
 package app.d0nj.patches.niagara
 
+import app.d0nj.patches.niagara.Constants.COMPATIBILITY_NIAGARA
 import app.d0nj.patches.shared.clearBody
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 
 @Suppress("unused")
 val unlockProPatch = bytecodePatch(
     name = "Unlock Pro",
-    description = "Makes the entitlement holder always report Pro in Niagara Launcher. " +
-        "Unlocks all Pro features and bypasses the 7-day trial prompt. " +
-        "Server-backed features (account sync, Stripe checkout) are not affected.",
+    description = "Unlocks Pro features and skips the trial prompt. Account sync " +
+        "and Stripe checkout still need a real purchase.",
     default = true,
 ) {
-    compatibleWith(
-        Compatibility(
-            packageName = "bitpit.launcher",
-            name = "Niagara Launcher",
-            appIconColor = 0x1E88E5,
-            targets = listOf(AppTarget(version = null)),
-        ),
-    )
+    compatibleWith(COMPATIBILITY_NIAGARA)
 
     execute {
         val recordConstructor = AccountRecordFingerprint.method

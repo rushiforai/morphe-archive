@@ -44,7 +44,9 @@ final class HaiagaruBackupArchive {
                 new File(context.getFilesDir(), "haiagaru-response-archive"), false));
         roots.add(new Root("archive", HaiagaruSyncSnapshot.THREAD_ARCHIVES, new File(external, "archive"), false));
         roots.add(new Root("archive-origins", HaiagaruSyncSnapshot.THREAD_ARCHIVES, ArchiveOrigins.directory(context), false));
-        roots.add(new Root("dat", HaiagaruSyncSnapshot.DAT, new File(external, "dat"), false));
+        // Native .idx companions contain per-response marks independently of
+        // postDataList.json. Back them up even when DAT bodies are not selected.
+        roots.add(new Root("dat", HaiagaruSyncSnapshot.DAT | HaiagaruSyncSnapshot.POST_HISTORY, new File(external, "dat"), false));
         roots.add(new Root("posts", HaiagaruSyncSnapshot.POST_HISTORY, context.getFileStreamPath("postDataList.json"), true));
         roots.add(new Root("memo", HaiagaruSyncSnapshot.KAKIKOMI, new File(external, "kakikomi.txt"), true));
         for (String name : new String[]{"font", "theme"}) {
@@ -78,7 +80,7 @@ final class HaiagaruBackupArchive {
             if (metadataBytes.length > HaiagaruSyncSnapshot.MAX_METADATA_BYTES) throw new IOException("設定・認証情報のJSONが64 MiBを超えています（ZIP全体の容量制限ではありません）");
             long required = RESERVE + metadataBytes.length;
             List<Root> roots = roots(context);
-            for (Root root : roots) if ((flags & root.bit) != 0) required = Math.addExact(required, size(root.file, 0));
+            for (Root root : roots) if ((flags & root.bit) != 0) required = Math.addExact(required, size(root.file, 0,indexOnly(root,flags)));
             // ZIP can be slightly larger than its input. Leave headroom and fail before transfer.
             required = Math.addExact(required, required / 50);
             if (target.getParentFile().getUsableSpace() < required) throw new IOException("バックアップ用の空き容量が不足しています");
@@ -89,7 +91,7 @@ final class HaiagaruBackupArchive {
                 output.closeEntry();
                 for (Root root : roots) if ((flags & root.bit) != 0 && root.file.exists()) {
                     if (root.single) writeFile(output, root.file, root.name + "/data");
-                    else writeTree(output, root.file, root.name, 0);
+                    else writeTree(output, root.file, root.name, 0,indexOnly(root,flags));
                 }
                 output.finish(); output.flush(); stream.getFD().sync();
             }
@@ -99,13 +101,20 @@ final class HaiagaruBackupArchive {
     }
 
     private static long size(File file, int depth) throws IOException {
+        return size(file,depth,false);
+    }
+    private static boolean indexOnly(Root root,int flags){return root.name.equals("dat")&&(flags&HaiagaruSyncSnapshot.DAT)==0;}
+    private static boolean selected(Root root,String path,int flags){
+        return (root.bit&flags)!=0&&(!indexOnly(root,flags)||path.endsWith(".idx"));
+    }
+    private static long size(File file,int depth,boolean indices) throws IOException {
         checkFile(file, depth);
         if (!file.exists()) return 0;
-        if (file.isFile()) return file.length();
+        if (file.isFile()) return !indices||file.getName().endsWith(".idx")?file.length():0;
         long result = 0;
         File[] children = file.listFiles();
         if (children == null) throw new IOException("保存対象のフォルダを読み取れません");
-        for (File child : children) result = Math.addExact(result, size(child, depth + 1));
+        for (File child : children) result = Math.addExact(result, size(child, depth + 1,indices));
         return result;
     }
 
@@ -115,15 +124,15 @@ final class HaiagaruBackupArchive {
         }
     }
 
-    private static void writeTree(ZipOutputStream output, File directory, String prefix, int depth) throws IOException {
+    private static void writeTree(ZipOutputStream output, File directory, String prefix, int depth,boolean indices) throws IOException {
         checkFile(directory, depth);
         File[] children = directory.listFiles();
         if (children == null) throw new IOException("保存対象のフォルダを読み取れません");
         for (File child : children) {
             checkFile(child, depth + 1);
             String name = prefix + "/" + child.getName();
-            if (child.isDirectory()) writeTree(output, child, name, depth + 1);
-            else if (child.isFile()) writeFile(output, child, name);
+            if (child.isDirectory()) writeTree(output, child, name, depth + 1,indices);
+            else if (child.isFile()&&(!indices||child.getName().endsWith(".idx"))) writeFile(output, child, name);
         }
     }
 
@@ -208,7 +217,7 @@ final class HaiagaruBackupArchive {
             if (!names.add(entry.getName()) || names.size() > 1_000_000 || entry.isDirectory()) throw new IOException("重複・過剰・不正なZIP項目です");
             if (!entry.getName().equals(METADATA)) {
                 Root root = rootFor(roots, entry.getName());
-                if ((root.bit & flags) == 0) throw new IOException("宣言されていないバックアップ項目です");
+                if (!selected(root,entry.getName(),flags)) throw new IOException("宣言されていないバックアップ項目です");
                 destination(root, entry.getName());
             }
             checkedCopy(zip, entry, null);
@@ -253,7 +262,7 @@ final class HaiagaruBackupArchive {
                 ZipEntry entry = entries.nextElement();
                 if (entry.getName().equals(METADATA)) continue;
                 Root root = rootFor(roots, entry.getName());
-                if ((selected & root.bit) == 0) continue;
+                if (!selected(root,entry.getName(),selected)) continue;
                 File target = destination(root, entry.getName());
                 // In two-way sync existing binary/native records are never overwritten.
                 boolean mergeHistory = merge && target.isFile()

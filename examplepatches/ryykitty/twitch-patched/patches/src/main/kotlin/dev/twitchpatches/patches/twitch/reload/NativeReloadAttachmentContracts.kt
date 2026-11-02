@@ -4,6 +4,7 @@ import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -42,7 +43,7 @@ internal fun resolveReloadDelegate(method: Method): FieldReference {
     }
     val store = stores.uniqueHook("native saved view delegate assignment")
     if (method.code().take(store.index).any {
-            !it.opcode.canContinue() || it is com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction ||
+            !it.opcode.canContinue() || it is OffsetInstruction ||
                 (it.opcode.setsRegister() && (it as? OneRegisterInstruction)?.registerA == registers - 1)
         }) throw PatchException("Reload stream: saved delegate assignment control flow changed.")
     val field = (store.value as ReferenceInstruction).reference as FieldReference

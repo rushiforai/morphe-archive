@@ -2,7 +2,7 @@
 
 **App version:** 4.73 · **Build:** 98 · **Original file:** APK
 
-[Use your own original APK](../guides/downloads.md#local-original-inputs){ .md-button .md-button--primary }
+[Download original app](https://buzzheavier.com/brg76oa9losi){ .md-button .md-button--primary }
 
 ## Patches
 

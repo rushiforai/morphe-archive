@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- `Search saved messages` is a new switch under Conversations, for old chats Messenger's own search finds nothing in. It adds a button to a chat's search results that looks through the messages this phone has saved for that chat, and tapping a result opens the chat there. It works in chats that aren't end-to-end encrypted. It can only find what the phone has loaded, so the screen says how far back it got, and scrolling up in the chat loads more. It reads Messenger's data without changing it, and it starts off. Refs #92.
+- `Record calls` is a new switch under Conversations. During a call it puts a Record button over Messenger, and the call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. It needs Android 10 or newer, it's experimental and it starts off. Refs #105.
+- `Hide call buttons` is a new switch under Conversations. It takes the audio and video call buttons out of a chat's top bar, so a tap meant for something else can't start an awkward call. Calls still ring, and you can still join one that's going. Refs #121.
+- `Save button for voice messages` is a new switch under Photos and videos. Hold a voice message, tap More, and Save voice message is at the top, for keeping just that one. It lands in the same folder as `Save voice messages you play`, which can stay off. Refs #123.
+- The message log got easier to get around in. There's a search box that looks through words and names and doesn't care about accents, and `Group by chat` lists your chats so you can open one. `Save as text` and `Save as CSV` write what's showing to a file you pick, and `Save messages before they're removed` adds each message to a text file in Download/Messenger just before the log drops it, one file a month. Saved files aren't encrypted, so that switch starts off, and it needs Android 10 or newer. Refs #127.
+
+### Fixed
+
+- `Pin more chats` works now. A fourth pin used to end in Messenger's "Can't pin chat", because the limit lives on Meta's servers and nothing on the phone can talk them out of it. Pins past the limit now stay on your phone instead: they go to the top with the pin mark, survive a restart and unpin like any other, but they won't show on your other devices. Chats that don't offer Pin at all get it back the same way. Turn the switch off or pause HushMessenger and those pins step aside until you turn it back on. Refs #56, #60, #47.
+- New messages pop up at the top of the screen again on a phone where they'd stopped. While chat heads were on, Messenger lowered its Chats notification channel for good, and only Meta's server flags ever raised it back, so the pop-ups stayed gone even with chat heads turned off. **Keep chat pop-ups** is a new patch with no switch that stops the lowering and raises the channel at the next start. It leaves the channel alone if you changed it yourself in Android's settings, and picking `Chat heads` under `Allow chat bubbles` keeps Messenger's own behavior. Refs #126.
+- `Mark as read button` now shows up in chats whose top bar was full with no chat details button to replace, like a chat with an Add friend button. It takes the place of a button that isn't for calls there, so the call buttons still stay put. Refs #122.
+- Android Auto's launcher opens Messenger again instead of showing the HushMessenger settings entry in its place. The drawer entry now sorts after Messenger's own, so anything that launches Messenger by package name (Android Auto, the Facebook app's Messenger button, a Manager's Open button) lands in Messenger. The `Android Auto messages` text now says Unknown sources is only enough on a desktop head unit, since a real car can still leave Messenger out. Refs #75.
+- With `Open your gallery app`, a photo or video from Google Photos no longer crashes Messenger when the folder it copies your pick into won't take the file. The copy moves to another of Messenger's own folders and the send carries on, and **Report a problem** says which folder refused and why. Refs #124.
+- `Bold and italic text` now puts Bold and Italic straight into the chat box's text menu, by name, with nothing to tick first on a Samsung phone. On some Samsung phones those two rows showed up as Messenger and Messenger, and they brought Dictionary, Translate and other apps' rows into the chat box along with them. Those rows are gone from the chat box again. Refs #125.
+
 ## 0.28.0 (2026-10-31)
 
 ### New

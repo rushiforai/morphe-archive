@@ -1,5 +1,5 @@
 {
-  "bundleSha256": "b12b2d51d5911f2b0926783b28baab8354d2193b673b828e25ab2abe0e7b0633",
+  "bundleSha256": "602ba90508e1d520bf79075a4dee62a8fb450efe225a3beffe846022b1538058",
   "patches": [
     {
       "name": "Download playlist",

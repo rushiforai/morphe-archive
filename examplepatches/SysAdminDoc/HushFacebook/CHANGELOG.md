@@ -2,7 +2,27 @@
 
 Changes in each Hushfacebook version, newest first.
 
-## 0.20.0 (2026-10-31)
+## Unreleased
+
+* **Facebook:** The play and cast buttons on feed videos now land in the same place on every phone, just under the channel picture on reel style posts. How far down they sat used to depend on the status bar.
+* **Facebook:** New `Seek bar on feed videos` under Video and audio. It runs a bar just above the bottom of a feed video, clear of the speaker and tagged people buttons, and you drag it and let go to jump to that point, with the time showing while you drag. It starts off, and with `Tap to play` on it needs `Inline feed video controls` on too. (#326)
+* **Facebook:** New `Hide replies button` switch under Comments and writing. A reply thread you opened gets a Hide replies button over it, with the arrow pointing up, so you can close it again after reading. It starts off. (#325)
+* **Facebook:** With the tab bar at the top, Notifications, Groups, Feeds and Profile no longer lose their first rows under the bar. 0.20.0 caused this when it let reels run full height under a top bar, and now only the Reels tab does that. (#328)
+* **Facebook:** Starting on a Feeds filter, like Friends, no longer lands on an empty "You're all caught up" page. The chosen filter now loads its posts by itself. (#330)
+* **Facebook:** New `Hide the Back reminder` switch under News feed. With `Back leaves Home where it is` on, Back keeps your place without the "Press Back again to go to the top" toast. (#334)
+* **Facebook:** New `Hide the Commission eligible label` switch under News feed takes that label off reels, along with the gap it leaves under the creator's name when a reel has nothing else to disclose. It starts off. (#329)
+* **Facebook:** `See-through bars` keeps frosting the tab bar when the page under it stops short of the bar's holder or sits a level up. Those layouts used to flip it to a dark strip with the feed sharp behind it. (#250)
+* **Facebook:** With `Tab to open on` set to Feeds on an account with no Feeds tab, `Restart Facebook to apply this change` lands back on the settings screen. The Feeds page used to open over it. (#330)
+* **Facebook:** `Select part of a post's text` no longer draws solid boxes behind the selection handles and the copy toolbar. (#294)
+* **Facebook:** `Hide the Subscribe button on videos` also takes the Subscribe pill in a reel's footer, next to the author's name. (#291)
+* **Facebook:** New `Hide the 2x popups` switch under Video and audio. Holding a video for 2x then shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work. It starts off. (#289)
+* **Facebook:** New `Move the speaker above the three dots` switch under Video and audio. It puts a reel's speaker button in the side column, right above the three dots. It starts off. (#331)
+* **Facebook:** With `Keep the progress bar` on, a reel's bar and time now travel with the reel while you drag it, so they stop sitting on top of the next reel. (#120)
+* **Facebook:** The Hush settings now come in Russian, translated by vortexnode. (#335)
+* **Facebook:** `Keep the progress bar` lifts a reel's bar when the Reels tab would put it behind the tab bar. (#282)
+* **Facebook:** Posts in another language can get a Translate line under their text, or show translated by themselves with See original under them, through Google Translate. Both switches start off, in Hushfacebook settings > News feed, where you also pick the language to translate to and the languages to leave alone. (#332)
+
+## 0.20.0 (2026-11-01)
 
 * **Facebook:** This one needs Morphe Manager 2.3.0 or newer, so update Manager before you patch, and it moves to Facebook 585.0.0.47.54. Reels can show when they were posted, keep their Comment button when comments are off, and play or pause with a tap above their comments, and a burn-in guard fades a video's buttons when you leave it alone. New switches hide the search button, Like under comments, the emoji row over the comment box, the Subscribe button on videos and the stories you've already watched or that come from Pages. Marketplace listings say when they went up, comment videos can be saved, and `Opening pause` and `Take breaks` help you spend less time scrolling. Fixes cover the search screen that spun forever, the blur on see-through bars, Events, Instagram and Messenger links that went nowhere, and reels that lost their Quality row.
 
@@ -94,9 +114,11 @@ Changes in each Hushfacebook version, newest first.
 * **Tooling:** The file listing the supported Facebook builds and the patch list generator credit where they really came from, De-Vanced, by way of tiktok-patches-for-morphe and Hushfeed. Their old notices pointed at ReVanced files that never existed. NOTICE and the app's Licenses page name De-Vanced now, and the mirror check fails a cited file that GitLab sends to a folder page instead.
 * **Tooling:** The build moves to Gradle 9.8.2, still pinned by checksum. It's a bug-fix release, and the wrapper jar is the same file as 9.8.1's.
 * **Facebook:** `Turn off HDR brightness` turns PQ videos down on Snapdragon phones again, apart from the Snapdragon 8 Gen 1. Every Snapdragon was left out after that chip's video service crashed when asked to turn HDR down, and a Snapdragon 8 Elite turns out to do the job fine in HEVC, VP9 and AV1. HLG videos are handled as they were.
-* **Facebook:** With `Picture-in-picture` on, a reel keeps its place when you come back to it, from the window's expand button or from another app (#44). Facebook put it back at the start every time its screen returned, and that's the seek Hushfacebook drops now. A reel you swipe away from still starts over when you swipe back, like it always has.
+* **Facebook:** With `Picture-in-picture` on, a reel keeps its place when you come back to it, from the window's expand button or from another app (#44). Facebook put it back at the start every time its screen returned, and that's the seek Hushfacebook drops now. Swiping away from a reel and back works the way it always has.
 * **Facebook:** With `Keep the progress bar` on, a reel you reach after refreshing or swiping back up keeps its own bar and time, where it could show none at all or sit frozen on the last reel's length (#120). An older reel closing took the newer reel's bar with it.
 * **Facebook:** With `Material You theme` on, Facebook could crash in random places with a color error (#323). The theme's colors only existed in dark mode, so a screen built in dark mode crashed when it read one after Android had left dark mode. They have a plain value now too.
+* **Facebook:** With `Keep the progress bar` on, tapping a reel's bar could freeze it, with the time gone or stuck until the reel looped (#120). On some accounts Facebook's tap stops the bar's timer and only starts it again after a real drag. Hushfacebook starts it again once you let go.
+* **Facebook:** With `Long press opens comments` on, resting a finger on a reel's progress bar jumped to the next reel. The hold read the strip of the next reel under the bar as a long post and scrolled it up. A hold there now stays on the reel you're watching.
 
 ## 0.19.0 (2026-10-27)
 

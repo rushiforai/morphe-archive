@@ -16,6 +16,7 @@ public final class PlaylistSettingsPage {
     static void folderChanged(){new android.os.Handler(android.os.Looper.getMainLooper()).post(()->{folderRows.removeIf(ref->ref.get()==null);for(var ref:folderRows){Preference row=ref.get();if(row!=null)row.setSummary("Read-only access; files are matched by [video ID]. "+ExternalFiles.status());}});}
     private static void heading(Context c,PreferenceScreen page,String text){PreferenceCategory group=app.bdcrusher.ytmusic.common.FeaturePreferences.heading(c);group.setTitle(text);page.addPreference(group);}
     public static void install(PreferenceFragment fragment){
+        DownloadSettings.install(fragment);
         Context c=fragment.getActivity();if(!PersonalRuntime.installed(c,"playlists"))return;
         PreferenceScreen root=fragment.getPreferenceScreen();if(root.findPreference("bdcrusher_playlists_screen")!=null)return;
         PreferenceScreen page=fragment.getPreferenceManager().createPreferenceScreen(c);page.setKey("bdcrusher_playlists_screen");page.setTitle("Playlist downloads");page.setOrder(7);root.addPreference(page);
@@ -51,7 +52,7 @@ public final class PlaylistSettingsPage {
                 TextView status=new TextView(activity);status.setText(complete+" / "+(entries==null?0:entries.length())+" saved"+(batch.optBoolean("enumerated")?"":" (still enumerating)")+"\n"+batch.optString("status")+(failed>0?"\n"+failed+" unavailable or failed":""));list.addView(status);
                 ProgressBar progress=new ProgressBar(activity,null,android.R.attr.progressBarStyleHorizontal);progress.setMax(entries==null?1:Math.max(1,entries.length()));progress.setProgress(complete);progress.setIndeterminate(!batch.optBoolean("enumerated"));list.addView(progress);
                 LinearLayout buttons=new LinearLayout(activity);buttons.setOrientation(LinearLayout.VERTICAL);list.addView(buttons);
-                action(activity,buttons,"Play downloaded entries",()->PlaylistRuntime.play(activity,batch));
+                action(activity,buttons,"Open original playlist",()->PlaylistRuntime.play(activity,batch));
                 action(activity,buttons,batch.optBoolean("running")?"Pause":"Resume",()->PlaylistRuntime.control(id,batch.optBoolean("running")?"pause":"resume"));
                 action(activity,buttons,"Retry missing tracks",()->PlaylistRuntime.control(id,"retry"));
                 action(activity,buttons,"Cancel remaining",()->new AlertDialog.Builder(activity).setTitle("Cancel remaining downloads?").setMessage("Completed files and the offline playlist are kept. Active downloads finish safely.").setNegativeButton("Keep downloading",null).setPositiveButton("Cancel remaining",(d,w)->PlaylistRuntime.control(id,"cancel")).show());

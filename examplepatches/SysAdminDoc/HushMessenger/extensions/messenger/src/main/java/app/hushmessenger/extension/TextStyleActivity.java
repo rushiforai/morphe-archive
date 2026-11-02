@@ -10,7 +10,13 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.PatternMatcher;
+import android.text.Editable;
+import android.text.Selection;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -23,15 +29,19 @@ import java.util.concurrent.TimeUnit;
 /**
  * Bold and Italic in the menu Android shows over selected text (#42). Messenger has no formatting in chats, so the
  * selection comes back in Unicode's sans-serif bold or italic letters, which every phone can show, and picking the
- * same one again turns them back. The two menu entries are aliases of this screen. Android lists every enabled one in
- * each of Messenger's text fields that has a view id, so they're enabled only while the switch is in effect, and
- * {@link #textFieldFocused} gives the chat box an id then.
+ * same one again turns them back. The chat box and Messenger's other Litho inputs get them as rows of their own menu
+ * through {@link #textFieldSelected}. Fields with a view id get them from two aliases of this screen, which Android lists
+ * in each such field, so those are enabled only while the switch is in effect.
  */
 public final class TextStyleActivity extends Activity {
     static final String KEY = "text_style";
     static final String BOLD = "app.hushmessenger.extension.BoldText";
     static final String ITALIC = "app.hushmessenger.extension.ItalicText";
     static final int BOLD_STYLE = 1, ITALIC_STYLE = 2;
+    /** Our own menu row ids, outside the ranges of android.R.id and of any app resource. */
+    static final int BOLD_ROW = 0x48000001, ITALIC_ROW = 0x48000002;
+    /** Right after Paste in Android's order for the selection menu. */
+    private static final int ROW_ORDER = 6;
     /** Where each style's capitals and small letters start: plain, bold, italic, bold italic. */
     private static final int[] CAPITALS = {'A', 0x1D5D4, 0x1D608, 0x1D63C};
     private static final int[] SMALL = {'a', 0x1D5EE, 0x1D622, 0x1D656};
@@ -283,34 +293,103 @@ public final class TextStyleActivity extends Activity {
         }
     }
 
-    /** Whether this install has the menu entries. A manifest can't change while Messenger runs, so it's asked once. */
-    static volatile Boolean entries;
-
     /**
-     * Messenger's text input, the chat box among them, calls this first on every focus change. Android adds PROCESS_TEXT
-     * entries, these two and every other app's, only to a field with a view id, and the chat box has none, so while the
-     * switch is in effect a field without one gets one. Its saving goes off first: without an id it never saved its
-     * state, so the draft stays out of saved state as before. A field that already has an id keeps it.
+     * Messenger's text input, the chat box among them, calls this first on every selection change, which comes right
+     * before Android builds its menu. Attaching any earlier doesn't last, since Litho sets the field's menu callback again
+     * each time it binds the view.
      */
-    public static void textFieldFocused(View field) {
+    public static void textFieldSelected(View field) {
         try {
-            if (field == null || !Settings.wouldUse(KEY) || field.getId() != View.NO_ID) return;
-            Boolean known = entries;
-            if (known == null) entries = known = present(field.getContext());
-            if (!known) return;
-            field.setSaveEnabled(false);
-            field.setId(View.generateViewId());
+            if (!(field instanceof TextView) || !Settings.wouldUse(KEY)) return;
+            TextView text = (TextView) field;
+            if (!text.hasSelection()) return;
+            ActionMode.Callback current = text.getCustomSelectionActionModeCallback();
+            if (!(current instanceof StyleRows)) text.setCustomSelectionActionModeCallback(new StyleRows(current, text));
         } catch (Throwable error) {
-            Settings.hookFailed(KEY, "Can't give a text field an id", error);
+            Settings.hookFailed(KEY, "Can't add Bold and Italic to a text field", error);
         }
     }
 
     /**
-     * Samsung's text menu shows another app's entries only once they're ticked under its More options, Manage apps, and
-     * entries that were just enabled start unticked there (S22, One UI, 2026-10-30), so the row says where to turn them on.
+     * Bold and Italic as rows of the field's own menu. PROCESS_TEXT entries can't do this job in the chat box: Android adds
+     * them only to a field with a view id, a field given one also picks up every other app's entries, and some Samsung
+     * phones label both of ours with the app's name or hide them until they're ticked under Manage apps (#125).
      */
-    static boolean hiddenByPhone() {
-        return "samsung".equalsIgnoreCase(android.os.Build.MANUFACTURER);
+    private static final class StyleRows implements ActionMode.Callback {
+        private final ActionMode.Callback messengers;
+        private final TextView field;
+
+        StyleRows(ActionMode.Callback messengers, TextView field) {
+            this.messengers = messengers;
+            this.field = field;
+        }
+
+        @Override public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            if (messengers != null && !messengers.onCreateActionMode(mode, menu)) return false;
+            try {
+                if (Settings.wouldUse(KEY) && field.getText() instanceof Editable) {
+                    SettingsText text = new SettingsText(field.getContext());
+                    addRow(menu, field, BOLD_ROW, text.get("text_style_bold"), BOLD_STYLE);
+                    addRow(menu, field, ITALIC_ROW, text.get("text_style_italic"), ITALIC_STYLE);
+                }
+            } catch (RuntimeException error) {
+                Settings.hookFailed(KEY, "Can't add the Bold and Italic rows", error);
+            }
+            return true;
+        }
+
+        /**
+         * Android adds PROCESS_TEXT entries after the create call, so a field with its own id would list these two twice.
+         * They all share id 0, so hiding is the way to drop only ours.
+         */
+        @Override public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            for (int at = menu.size() - 1; at >= 0; at--) {
+                MenuItem item = menu.getItem(at);
+                if (style(item.getIntent()) != 0) item.setVisible(false);
+            }
+            return messengers == null || messengers.onPrepareActionMode(mode, menu);
+        }
+
+        @Override public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            return messengers != null && messengers.onActionItemClicked(mode, item);
+        }
+
+        @Override public void onDestroyActionMode(ActionMode mode) {
+            if (messengers != null) messengers.onDestroyActionMode(mode);
+        }
+    }
+
+    /** The row answers its own tap, so it keeps working if a bind swaps the field's callback while the menu is open. */
+    private static void addRow(Menu menu, TextView field, int id, String title, int style) {
+        MenuItem row = menu.add(Menu.NONE, id, ROW_ORDER, title);
+        row.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        row.setOnMenuItemClickListener(tapped -> {
+            styleSelection(field, style);
+            return true;
+        });
+    }
+
+    /** Swaps the selection for its styled form and puts the cursor after it, where typing carries on. */
+    static void styleSelection(TextView field, int style) {
+        try {
+            CharSequence all = field.getText();
+            int start = Math.min(field.getSelectionStart(), field.getSelectionEnd());
+            int end = Math.max(field.getSelectionStart(), field.getSelectionEnd());
+            if (!(all instanceof Editable) || start < 0 || start == end || !Settings.wouldUse(KEY)) return;
+            String styled = restyle(all.subSequence(start, end), style);
+            if (styled == null) {
+                SettingsText text = new SettingsText(field.getContext());
+                Toast.makeText(field.getContext().getApplicationContext(), text.get(style == BOLD_STYLE ? "text_style_bold_none" : "text_style_italic_none"), Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (!Settings.enabled(KEY)) return;
+            Editable editable = (Editable) all;
+            editable.replace(start, end, styled);
+            // An input filter can shorten what went in.
+            Selection.setSelection(editable, Math.min(start + styled.length(), editable.length()));
+        } catch (RuntimeException error) {
+            Settings.hookFailedPrivately(KEY, "Can't style the selected text", error);
+        }
     }
 
     /** A Root Mount install keeps Messenger's own manifest, which has no menu entries to enable. */

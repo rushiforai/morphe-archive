@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The e2e tool's logic (tools/e2e/README.md): pure, with its own Optional/Result (Functional.cs), so the workflow
+       builds the tool in seconds. -->
+  <PropertyGroup>
+    <RootNamespace>BaconReader.E2ETools.Core</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Dunet" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="BaconReader.E2ETools.Tests" />
+  </ItemGroup>
+</Project>

@@ -24,7 +24,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 private object StreamSelectionFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
     filters = listOf(
-        // Turns the remembered resolution into a filter (3.0.75: Fg.s$a.a, 3.0.76: zg.p$a.a).
+        // Turns the remembered resolution into a filter (3.0.75: Fg.s$a.a, 3.0.76: zg.p$a.a, 3.0.77: LCg/r$a.a).
         anyInstruction(
             methodCall(
                 definingClass = "LFg/s\$a;",
@@ -38,8 +38,14 @@ private object StreamSelectionFingerprint : Fingerprint(
                 parameters = listOf("Ljava/lang/String;"),
                 returnType = "Lzg/p;",
             ),
+            methodCall(
+                definingClass = "LCg/r\$a;",
+                name = "a",
+                parameters = listOf("Ljava/lang/String;"),
+                returnType = "LCg/r;",
+            ),
         ),
-        // The constructor that receives the quality from the app settings (3.0.75: Hg.o.<init>, 3.0.76: Bg.r.<init>).
+        // The constructor that receives the quality from the app settings (3.0.75: Hg.o.<init>, 3.0.76: Bg.r.<init>, 3.0.77: LEg/r.<init>).
         anyInstruction(
             methodCall(
                 definingClass = "LHg/o;",
@@ -53,12 +59,18 @@ private object StreamSelectionFingerprint : Fingerprint(
                 parameters = listOf("LAe/b;", "Lzg/c\$c;"),
                 returnType = "V",
             ),
+            methodCall(
+                definingClass = "LEg/r;",
+                name = "<init>",
+                parameters = listOf("LDe/b;", "LCg/e\$c;"),
+                returnType = "V",
+            ),
         ),
     ),
 )
 
 /**
- * Stream selection evaluation loop (Fg.o.g in 3.0.75, zg.l.g in 3.0.76), which decides whether to play
+ * Stream selection evaluation loop (Fg.o.g in 3.0.75, zg.l.g in 3.0.76, Cg.n.h in 3.0.77), which decides whether to play
  * the strict stream or immediately fall back to a lower quality upon receiving fast streams.
  */
 private object StreamWaitDecisionFingerprint : Fingerprint(
@@ -102,7 +114,7 @@ val preferredQualityPriorityPatch = bytecodePatch(
             addInstruction(parseResolution.index + 2, "move-result-object v$register")
         }
 
-        // 2. Prevent premature fallback to lower quality in Fg.o.g/zg.l.g when the first fast provider finishes.
+        // 2. Prevent premature fallback to lower quality in Fg.o.g/zg.l.g/Cg.n.h when the first fast provider finishes.
         // Instead of falling back immediately on status == Loaded, route through the timeout check.
         StreamWaitDecisionFingerprint.method.apply {
             val stringMatchIndex = StreamWaitDecisionFingerprint.stringMatches[0].index
@@ -119,7 +131,7 @@ val preferredQualityPriorityPatch = bytecodePatch(
             replaceInstruction(branchIndex, alwaysJump)
         }
 
-        // 3. Customize the timeout duration in Fg.o.<clinit>/zg.l.<clinit> for how long to wait for 1080p before fallback.
+        // 3. Customize the timeout duration in Fg.o.<clinit>/zg.l.<clinit>/Cg.n.<clinit> for how long to wait for 1080p before fallback.
         val timeoutSec = waitTimeoutSecondsOption.value!!
         StreamSelectionFingerprint.classDef.methods.first { it.name == "<clinit>" }.apply {
             for (index in implementation!!.instructions.indices) {

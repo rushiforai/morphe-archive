@@ -63,6 +63,8 @@ public class CommentLimitPreference extends Preference {
     }
 
     private void init() {
+        // Made in code, with no XML to name it: without a title, its row showed only its summary.
+        setTitle(str("revanced_baconreader_comment_limit_title"));
         updateSummary();
         setOnPreferenceClickListener(preference -> {
             showDialog();

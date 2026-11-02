@@ -34,6 +34,16 @@ public final class CatalogPolicy {
             && !"library".equals(source) && !"watchlist".equals(source);
     }
 
+    public static boolean homeCatalog(String source, boolean showHome) {
+        return showHome && contentSource(source);
+    }
+
+    public static boolean requestVisibility(String owner, String providerId, String type,
+            boolean browsable, Set<String> selectedHomeCatalogs) {
+        return "app.wuplay.androidtv".equals(owner) && providerId != null && providerId.startsWith(PREFIX)
+            && "TYPE_PREVIEW".equals(type) && !browsable && selectedHomeCatalogs.contains(providerId);
+    }
+
     public static boolean artwork(String url) {
         if (url == null) return false;
         try {

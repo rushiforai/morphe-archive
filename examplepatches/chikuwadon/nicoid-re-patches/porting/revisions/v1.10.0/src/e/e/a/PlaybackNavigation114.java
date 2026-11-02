@@ -1,0 +1,15 @@
+package e.e.a;
+import android.app.*;import android.content.*;import android.preference.PreferenceManager;
+import java.lang.ref.WeakReference;
+/** Retained playback has an explicit browsing destination instead of a stale Activity Intent. */
+public final class PlaybackNavigation114 {
+ static final String RETURN="nicoid_return_to_browse_114";
+ static WeakReference<Activity> last=new WeakReference<>(null);static Intent route;static String tab="";
+ static void browsed(Activity a,String id){if(a==null||a.isDestroyed()||a.isFinishing()||PlaybackBar221.player(a)||TabRoutes228.foreground.get()!=a)return;SavedTabs227.Tab selected=MultiTabs227.enabled()?MultiTabs227.data().find(id):null;last=new WeakReference<>(a);tab=selected==null?"":selected.id;route=selected==null?new Intent(a.getIntent()).setComponent(a.getComponentName()):TabRoutes228.intent(a,selected);}
+ static Activity destination(Activity source){Activity a=last.get();if(a!=null&&!a.isFinishing()&&!a.isDestroyed()&&a!=source&&a.getTaskId()==source.getTaskId())return a;for(MultiTabs227.Host h:MultiTabs227.HOSTS.values())if(route!=null&&h.a.getComponentName().equals(route.getComponent())&&!h.a.isDestroyed()&&!h.a.isFinishing()&&h.a!=source&&h.a.getTaskId()==source.getTaskId())return h.a;return null;}
+ static Intent browseIntent(Activity a,Activity fallback){SavedTabs227.Tab selected=MultiTabs227.enabled()?MultiTabs227.data().find(tab):null;if(selected!=null)return TabRoutes228.intent(a,selected);if(route!=null)return new Intent(route);return new Intent(fallback.getIntent()).setComponent(fallback.getComponentName());}
+ static void mark(Intent i){i.putExtra(RETURN,true);}
+ static void launch(Service service,Intent i){mark(i);Activity a=last.get();if(a!=null&&!a.isDestroyed()&&!a.isFinishing()){i.setFlags(i.getFlags()&~Intent.FLAG_ACTIVITY_NEW_TASK);a.startActivity(i);}else service.startActivity(i);}
+ static boolean showBrowse(Activity from,boolean finish){try{Activity target=destination(from);if(route==null&&target==null)return false;Intent i=browseIntent(from,target);i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT|Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_NO_ANIMATION|Intent.FLAG_ACTIVITY_NO_USER_ACTION);from.startActivity(i);from.overridePendingTransition(0,0);if(finish)from.finish();return true;}catch(Exception e){android.util.Log.w("nicoid-navigation","Cannot restore browsing screen",e);return false;}}
+ public static boolean back(Activity a){if(!a.getIntent().getBooleanExtra(RETURN,false))return false;if(PopupReturn244.matches(a))return true;try{Object owner=Playback214.get(a,"v");String mode=PreferenceManager.getDefaultSharedPreferences(a).getString("back_playback","background");if("background".equals(mode)){if(MiniSession225.minimize(owner))return true;if(PlaybackTransfer221.popup(owner,true)){showBrowse(a,false);return true;}}else if("popup".equals(mode)&&PlaybackTransfer221.popup(owner,false)){showBrowse(a,false);return true;}return showBrowse(a,true);}catch(Exception e){android.util.Log.w("nicoid-navigation","Cannot leave restored playback",e);return false;}}
+}

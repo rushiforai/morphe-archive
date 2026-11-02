@@ -1,3 +1,27 @@
+## [1.17.6](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.5...v1.17.6) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Toolkit:** make quota-item exports re-upload as new quota-free items ([#56](https://github.com/Akash-Sriram/morphe-google-photos/issues/56)) ([636440f](https://github.com/Akash-Sriram/morphe-google-photos/commit/636440f8de58941b0bf5f32a5077b30c0a9c4cb3))
+
+## [1.17.5](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.4...v1.17.5) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Creations:** separate MFY and story save reset, redirect exports to Pictures, and refine settings UI ([67c2208](https://github.com/Akash-Sriram/morphe-google-photos/commit/67c22085ee67774eddc2f0fc789edb5916a7b000))
+
+## [1.17.4](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.3...v1.17.4) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Ui:** wrap overview chips in HorizontalScrollView and center single-line text ([328c526](https://github.com/Akash-Sriram/morphe-google-photos/commit/328c526c36b939297c9c3da182f739b964750ee9))
+
+## [1.17.3](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.2...v1.17.3) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Mfy:** enable Made For You feature flags in Photos Features to restore creations carousel ([a501946](https://github.com/Akash-Sriram/morphe-google-photos/commit/a5019468442b6f27051dc4baa513575c70f08020))
+
 ## [1.17.2](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.1...v1.17.2) (2026-11-01)
 
 ### 🐛 Bug Fixes

@@ -3,7 +3,7 @@ package dev.twitchpatches.patches.twitch.shared.hermes
 import java.security.MessageDigest
 
 internal object HermesFeedTheme {
-    fun apply(bundle: HermesBundle): ByteArray {
+    fun apply(bundle: HermesBundle): HermesBundle {
         val function = bundle.functions.single { bundle.strings[it.name] == "DiscoveryFeedContent" && it.params == 2 }
         val code = bundle.instructions(function)
         val (index, replacement) = replacement(code, bundle.strings)
@@ -14,7 +14,7 @@ internal object HermesFeedTheme {
             .copyInto(bytes, bytes.size - 20)
         val updated = HermesBundle(bytes)
         require(updated.instructions(function).size == code.size + 1) { "Feed theme: replacement validation failed." }
-        return bytes
+        return updated
     }
 
     internal fun replacement(code: List<HermesInstruction>, strings: List<String>): Pair<Int, ByteArray> {

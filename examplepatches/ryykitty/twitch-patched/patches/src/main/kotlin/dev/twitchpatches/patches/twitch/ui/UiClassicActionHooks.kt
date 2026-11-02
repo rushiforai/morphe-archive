@@ -1,6 +1,9 @@
 package dev.twitchpatches.patches.twitch.ui
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.checkCast
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.Method
@@ -14,9 +17,29 @@ internal data class UiClassicActionContract(
     val constructor: MethodReference, val identity: MethodReference,
 )
 
-internal fun BytecodePatchContext.resolveClassicActionRow(all: List<Method>, composer: String): UiClassicActionContract {
-    val state = all.filter { it.name == "toString" && it.hasStrings("Visible(buttons=", ", isViewerFollowing=") }
-        .uniqueHook("UI classic action state")
+private object ClassicActionStateFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    strings = listOf(
+        string("Visible(buttons="),
+        string(", isViewerFollowing="),
+    ),
+)
+
+private class ClassicActionRendererFingerprint(concrete: String) : Fingerprint(
+    returnType = "V",
+    isStatic = true,
+    filters = listOf(checkCast(concrete)),
+)
+
+private object ClassicBitsModelFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    strings = listOf(string("BitsIconButton")),
+)
+
+internal fun BytecodePatchContext.resolveClassicActionRow(composer: String, concrete: String): UiClassicActionContract {
+    val state = ClassicActionStateFingerprint.originalMethod
     val model = classDefBy(state.definingClass)
     val buttons = model.fields.filter { it.type == "Ljava/util/List;" }.uniqueHook("UI classic action list")
     val following = model.fields.filter { it.type == "Z" }.uniqueHook("UI classic Follow state")
@@ -26,10 +49,12 @@ internal fun BytecodePatchContext.resolveClassicActionRow(all: List<Method>, com
     val constructor = model.methods.filter { it.name == "<init>" &&
         it.parameterTypes == listOf("Ljava/util/List;", "Z") && AccessFlags.PUBLIC.isSet(it.accessFlags) }
         .uniqueHook("UI classic action state constructor")
-    val renderer = all.filter { it.returnType == "V" && it.parameterTypes.size == 7 &&
-        it.parameterTypes[0] == model.type && it.parameterTypes[5] == composer && AccessFlags.STATIC.isSet(it.accessFlags) }
-        .uniqueHook("UI classic action row renderer")
-    val bits = all.filter { it.name == "toString" && it.hasStrings("BitsIconButton") }.uniqueHook("UI classic Bits model")
+    val renderer = ClassicActionRendererFingerprint(concrete).matchAll().map { it.originalMethod }.filter {
+        it.returnType == "V" && it.parameterTypes.size == 7 &&
+            it.parameterTypes[0] == model.type && it.parameterTypes[5].toString() == composer &&
+            AccessFlags.STATIC.isSet(it.accessFlags)
+    }.uniqueHook("UI classic action row renderer")
+    val bits = ClassicBitsModelFingerprint.originalMethod
     val identity = classDefBy(bits.definingClass).methods.filter {
         it.isInstance(emptyList(), "Ljava/lang/String;") && it.hasStrings("bits_button_chat")
     }.uniqueHook("UI classic button identity")

@@ -1,0 +1,37 @@
+# Waze consent, advertising and tracking audit
+
+Target: the supplied `com.waze` APKM, **5.26.90.901 / 1030746**. Audit includes the base DEX, manifest, resources, and the arm64 `libwaze.so` strings and JNI contracts. Decompiled proprietary code is retained locally, not redistributed here.
+
+## Confirmed gaps and changes
+
+| Area | Original evidence | Follow-up behavior |
+| --- | --- | --- |
+| Ad personalization | Legacy `ih.v(Context)` and current `uid.d.a(...)` can present a prompt even though profile targeting is false. The current prompt checks `selection_status == unset`. | **Skip consent screens** invokes the genuine non-personalized handlers: `ih.j(false)` and `uid.d.g(false, true)`. No advertising consent is granted. |
+| Privacy and terms on signup | `uid.state_impl.g.p.f` launches the GDPR service; `m.f` launches ND4C terms. | Retain superclass state-entry initialization, then invoke each original accepted handler before launching the service. These handlers persist the answer and complete the state transition. |
+| Native and legacy privacy bumps | `NativeManager.ShowPrivacyConsentBump` queues a request; `ih.w(...)` constructs a dialog then advances to ad consent. | Execute the existing consent-acknowledgement and non-personalized completion calls without queuing or constructing UI. |
+| Current phone/car policy bump | `s.e.invokeSuspend` compares required and accepted IDs; both phone and Android Auto observe its result. | When an answer is required, execute Waze’s exact `s.b.d()` acceptance body, recording the current required ID, and return false before either UI route is requested. |
+| Sponsored search | `search.v2.p.f()` reads `SEARCH_ADS_FEATURE_ENABLED`; `search.bh` independently adds the Adspam cookie and trustless token to search requests. The map-ad flags do not cover this. | **Hide ads** also disables search ads on phone/in car, trustless ad tokens, and the Adspam cookie. Core search remains. |
+| Main-menu promotion | The previous combined build displayed the Cat in the Hat promotional card. It is independent of sponsored map pins. | Disable `REWIRE_MAIN_MENU_PROMOTIONAL_CHIP_ENABLED` and filter cached `MainMenuState.bannerModels` before Compose consumes them. Runtime verification confirmed the cached card disappears while the normal menu and Customization remain. |
+| Advertising ID | `h.a.d.a()` calls GMS; `h.a.g` caches the ID and defaults `isAllowTracking` to true when unavailable. Removing the AD_ID manifest permission alone does not stop this on Android 12L. | **Remove telemetry** blocks the fetch before GMS, filters cached IDs at return, and returns tracking-not-allowed. |
+| Persisted usage/ad/metric events | `stats.az.d()` ingestion is blocked, but `stats.an` independently drains its stored queue. All its concrete transports inherit `modules.c.a.c.c(List, metadata)`. | The stats-only transport returns the original successful batch without invoking the network client, allowing queued events to be removed normally. The native stats module and Firebase event-log config are also disabled. |
+| Automatic diagnostic logs | `ConfigManagerBase.sendLogsAutoConfirm` schedules a native upload. Native strings identify `storagegateway-row.waze.com/StorageGateway/upload_log`. | Block this automatic wrapper while completing its optional callback exactly once. Explicit user-invoked **Send logs** remains available. Local offline/insight logging flags are disabled. |
+| Firebase sessions | Sessions is registered independently. Its library waits for enabled subscribers, so registration alone did not prove collection, but the prior patch did not explicitly disable the SDK. | Add `firebase_sessions_enabled=false` alongside the existing permanent Firebase Performance deactivation. Crashlytics collection enablement and Waze stats remain blocked. |
+
+**Skip consent screens is version-specific and on by default.** It answers privacy/terms consent as requested, and declines ad personalization. It does not dismiss Android location, microphone, Bluetooth, notification or account-login permission prompts. Turning the control off restores the original flows.
+
+## What remains
+
+- No separate third-party cookie-consent manager was found in the shipped Java/manifest/resources. Waze’s own privacy and ad-consent paths above are present. A shared HTTP `CookieManager(ACCEPT_ALL)` and native session cookies remain because they are also used for authentication and Waze service requests. Hiding consent is not the same as blocking every cookie.
+- Routing, searches, map downloads, live traffic and voluntary reports still contact Waze and can carry location, route, account/session and device data. These are service functionality, not covered by an assertion that all tracking is gone.
+- Firebase App Check/Play Integrity, installation/push tokens and functional configuration remain. Disabling all Firebase initialization would also break functionality; SDK presence alone is not evidence of telemetry transmission.
+- **Share alerts with Maps**, when applied and enabled, broadcasts alert locations locally through the existing Ungoogled Maps protocol. It is an implicit broadcast rather than a package-restricted one. This is intentional companion functionality, but other local receivers can subscribe. The sharing-off fix stops cached heartbeats and clears them.
+- OSM speed/Flock camera layers are off until enabled. When enabled they query Overpass servers with geographic bounding boxes. Audio-provider authentication and playback contact the selected provider. These optional extension functions are not made offline by Remove telemetry.
+- Native code retains diagnostic and networking capability, including explicit Send logs. The static audit plus targeted runtime probes does not establish the absence of every possible native or server-controlled transmission. No full TLS traffic audit or live drive was performed.
+
+## Validation
+
+The updated **27-patch** catalog applied together and independently: **28 successful patch/rebuild runs**, fingerprint validation enabled and no forced compatibility. The Android build and six Robolectric tests passed. The three new consent tests verify that a required answer executes completion and returns no-screen, an existing answer is not repeated, and disabling the patch preserves the original decision.
+
+The local [instrumentation probe](../../scripts/waze/PrivacyProbe.java), signed with the same test key as the patched emulator app, exercised the actual patched DEX on API 36. All **15 assertions** passed: shared phone/car accepted-ID persistence, legacy advertising/privacy/native paths, the current advertising dialog’s opt-out handler, GMS fetch suppression, cached-ID suppression and off-control preservation, successful queued-batch completion, automatic-log callback completion, persisted native privacy approval, personalization remaining declined, cached-menu-banner filtering with off-control preservation, and Waze remaining visible without a consent window.
+
+The signup state hooks and unchanged accepted handlers were independently reviewed against target smali; not every signup/account/Android Auto UI path was exercised on a host. The probe tests shared policy logic rather than Android Auto host behavior. [privacy-validation.json](privacy-validation.json) records artifact hashes and check counts. Raw logs and emulator captures remain under the ignored `.analysis/waze-526/privacy/` directory.

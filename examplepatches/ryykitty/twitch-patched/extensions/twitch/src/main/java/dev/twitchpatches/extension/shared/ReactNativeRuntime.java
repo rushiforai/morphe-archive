@@ -21,13 +21,14 @@ import dev.twitchpatches.extension.promotions.PromotionSettings;
 import dev.twitchpatches.extension.promotions.SubscriptionBannerSettings;
 import dev.twitchpatches.extension.ads.AdSettings;
 import dev.twitchpatches.extension.emotes.EmoteRuntime;
+import dev.twitchpatches.extension.emotes.FavoriteEmotes;
 import dev.twitchpatches.extension.reload.ReloadRuntime;
 import dev.twitchpatches.extension.ui.UiSettings;
 import dev.twitchpatches.extension.chat.DeletedMessageSettings;
 
 public final class ReactNativeRuntime implements Application.ActivityLifecycleCallbacks {
     private static final WeakHashMap<Object, Boolean> instances = new WeakHashMap<>();
-    private static final boolean[] selected = new boolean[9];
+    private static final boolean[] selected = new boolean[10];
     private static boolean initialized;
     private static int resumed;
     private static volatile CompletableFuture<String> bootstrap;
@@ -66,6 +67,7 @@ public final class ReactNativeRuntime implements Application.ActivityLifecycleCa
         if (!Boolean.TRUE.equals(instances.get(instance))) return;
         dispatch(instance, policy());
         if (selected[7]) dispatchUi(instance, UiSettings.snapshot());
+        if (selected[9]) dispatchFavorites(instance, FavoriteEmotes.serialized());
     }
 
     public static synchronized void preloaded(Object instance) {
@@ -95,9 +97,11 @@ public final class ReactNativeRuntime implements Application.ActivityLifecycleCa
     public static synchronized void refresh() {
         boolean[] policy = policy();
         String ui = selected[7] ? UiSettings.snapshot() : null;
+        String favorites = selected[9] ? FavoriteEmotes.serialized() : null;
         for (Object instance : instances.keySet()) {
             dispatch(instance, policy);
             if (ui != null) dispatchUi(instance, ui);
+            if (favorites != null) dispatchFavorites(instance, favorites);
         }
     }
 
@@ -110,7 +114,8 @@ public final class ReactNativeRuntime implements Application.ActivityLifecycleCa
                 selected[5] && AdSettings.enabled(2), selected[6] && ReloadRuntime.enabled(),
                 selected[4] && EmoteRuntime.providerEnabled(0), selected[4] && EmoteRuntime.providerEnabled(1),
                 selected[4] && EmoteRuntime.providerEnabled(2), TwitchTheme.light(),
-                selected[8] && DeletedMessageSettings.enabled()};
+                selected[8] && DeletedMessageSettings.enabled(), selected[9] && FavoriteEmotes.enabled(),
+                selected[4] && EmoteRuntime.inlineEnabled()};
     }
 
     private static void dispatch(Object instance, boolean[] policy) {
@@ -119,6 +124,10 @@ public final class ReactNativeRuntime implements Application.ActivityLifecycleCa
 
     private static void dispatchUi(Object instance, String preferences) {
         throw new IllegalStateException("React Native UI bridge was not generated.");
+    }
+
+    private static void dispatchFavorites(Object instance, String favorites) {
+        throw new IllegalStateException("React Native favorites bridge was not generated.");
     }
 
     @Override public void onActivityResumed(Activity activity) { synchronized (ReactNativeRuntime.class) { resumed++; refresh(); } }

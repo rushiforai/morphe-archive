@@ -21,12 +21,14 @@ final class NativeCatalogs {
         final Object nativeValue;
         final String key, name, source;
         final int order;
+        final boolean showHome;
         Definition(String profile, Object value) throws Exception {
             nativeValue = value;
             key = CatalogPolicy.channelKey(profile, (Integer) field(value, "id"));
             name = (String) field(value, "name");
             source = (String) field(value, "source");
             order = (Integer) field(value, "homeOrder");
+            showHome = (Boolean) field(value, "showHome");
         }
     }
 
@@ -55,11 +57,25 @@ final class NativeCatalogs {
         List<Definition> definitions = new ArrayList<>();
         for (Object value : (List<?>) first(field(repository, "definitions"))) {
             Definition definition = new Definition(id, value);
-            if (CatalogPolicy.contentSource(definition.source)) definitions.add(definition);
+            if (CatalogPolicy.homeCatalog(definition.source, definition.showHome)) definitions.add(definition);
         }
         requireDefault(id);
         definitions.sort(Comparator.comparingInt(d -> d.order));
         return new Snapshot(id, (String) field(profile, "name"), definitions);
+    }
+
+    boolean isHome(String profileId, String key) throws Exception {
+        requireDefault(profileId);
+        boolean eligible = false;
+        for (Object value : (List<?>) first(field(repository, "definitions"))) {
+            Definition definition = new Definition(profileId, value);
+            if (definition.key.equals(key)) {
+                eligible = CatalogPolicy.homeCatalog(definition.source, definition.showHome);
+                break;
+            }
+        }
+        requireDefault(profileId);
+        return eligible;
     }
 
     void requireDefault(String expected) throws Exception {

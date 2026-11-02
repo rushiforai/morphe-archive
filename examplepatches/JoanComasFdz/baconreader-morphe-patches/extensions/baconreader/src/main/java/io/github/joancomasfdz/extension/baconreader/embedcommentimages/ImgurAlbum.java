@@ -18,7 +18,6 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.lang.reflect.Method;
@@ -74,10 +73,8 @@ final class ImgurAlbum {
     static View createSlot(final TextView textView, final String url) {
         final Context context = textView.getContext();
         final AlbumLayout slot = new AlbumLayout(textView, url);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.topMargin = dp(context, 4);
-        slot.setLayoutParams(params);
+        slot.setLayoutParams(EmbedCommentImagesPatch.slotLayoutParams(
+                textView, ViewGroup.LayoutParams.WRAP_CONTENT));
         LAYOUTS.put(slot, slot);
 
         List<EmbedCommentImagesPatch.ImageRef> known = ALBUMS.get(url);
@@ -262,9 +259,11 @@ final class ImgurAlbum {
             discardPage();
             page = view;
             addView(view, 0);
-            // The album slot has the margin of an image slot already.
+            // The album slot has the margins of an image slot already.
             ViewGroup.LayoutParams params = view.getLayoutParams();
-            if (params instanceof MarginLayoutParams) ((MarginLayoutParams) params).topMargin = 0;
+            if (params instanceof MarginLayoutParams) {
+                ((MarginLayoutParams) params).setMargins(0, 0, 0, ((MarginLayoutParams) params).bottomMargin);
+            }
         }
 
         void discardPage() {

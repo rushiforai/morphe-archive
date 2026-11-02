@@ -10,6 +10,19 @@ import com.android.tools.smali.dexlib2.Opcode
 private const val SDK_CONFIGURATION_CLASS = "Lcom/waze/sdk/SdkConfiguration;"
 
 /**
+ * `private boolean HostValidator.isAllowListed(String packageName, Signature[] signatures)`
+ *
+ * The Car App Library's certificate allowlist. On a phone this is the only route for a
+ * third-party host, because the TEMPLATE_RENDERER permission only counts on Automotive.
+ */
+internal object HostValidatorAllowListFingerprint : Fingerprint(
+    definingClass = "Landroidx/car/app/validation/HostValidator;",
+    name = "isAllowListed",
+    returnType = "Z",
+    parameters = listOf("Ljava/lang/String;", "[Landroid/content/pm/Signature;"),
+)
+
+/**
  * `static synchronized void SdkConfiguration.updateAppList()`
  *
  * Loads the audio/transport partner list from native code

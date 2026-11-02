@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 JoanComasFdz
+# SPDX-License-Identifier: GPL-3.0-only
+
+# Fails when the VS Code e2e recordings extension, its e2e project, the e2e projects' shared code or the dev container
+# differs from the other BaconReader patches repo's in anything but the patcher's name (AGENTS.md, "Shared and
+# patcher-specific files"): the other repo's copy, with "Morphe" and "Reseam" swapped (any case), must be this one.
+# Same file in both repos. A PR compares with the other repo's branch of the same name when there is one, so the two PRs
+# of one change pass together.
+name: Shared VS Code extension
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    name: Compare with the other repo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Compare
+        env:
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          case "$REPO" in
+            */baconreader-reseam-patches) other=JoanComasFdz/baconreader-morphe-patches base=dev mine=reseam theirs=morphe ;;
+            */baconreader-morphe-patches) other=JoanComasFdz/baconreader-reseam-patches base=main mine=morphe theirs=reseam ;;
+            *) echo "::error::unknown repo $REPO"; exit 1 ;;
+          esac
+          ref=$base
+          if [ -n "$HEAD_REF" ] && curl -fsSIL -o /dev/null "https://raw.githubusercontent.com/$other/$HEAD_REF/AGENTS.md"; then
+            ref=$HEAD_REF
+          fi
+          echo "Comparing with $other@$ref, $theirs → $mine"
+          copy="$RUNNER_TEMP/other"
+          mkdir -p "$copy"
+          curl -fsSL "https://codeload.github.com/$other/tar.gz/refs/heads/$ref" | tar -xz -C "$copy" --strip-components=1
+          Mine="${mine^}" Theirs="${theirs^}"
+          # Its text files with the other patcher's name swapped for this one's (binary files stay as they are).
+          grep -rlI . "$copy" | xargs -r perl -pi -e "s/$theirs/$mine/g; s/$Theirs/$Mine/g; s/\U$theirs\E/\U$mine\E/g"
+          fail=0
+          for d in tools/vscode-extension tests/BaconReader.VsCodeExtension.E2E tests/BaconReader.E2E.Shared .devcontainer; do
+            diff -ru "$copy/$d" "$d" || { echo "::error file=$d::differs from $other@$ref (with $Theirs → $Mine)"; fail=1; }
+          done
+          exit $fail

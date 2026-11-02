@@ -12,6 +12,7 @@ import java.util.logging.Logger
 val universalWebViewDebuggingPatch = bytecodePatch(
     name = "Universal WebView Debugging (Experimental)",
     description = "⚠️ [Experimental / Untested] Enables Chrome Developer Tools inspection (chrome://inspect) on all internal WebViews across any hybrid application or game.",
+    default = false,
 ) {
     // Universal patch: No compatibleWith() call. Applies to any app.
 

@@ -34,7 +34,18 @@ final class FakeHttp implements Http {
         }
     }
 
-    private static Response find(Map<String, String> responses, String key) throws IOException {
+    /** Requests whose URL contains a key take this many milliseconds. */
+    final Map<String, Long> delays = new LinkedHashMap<>();
+
+    private Response find(Map<String, String> responses, String key) throws IOException {
+        for (Map.Entry<String, Long> delay : delays.entrySet()) {
+            if (!key.contains(delay.getKey())) continue;
+            try {
+                Thread.sleep(delay.getValue());
+            } catch (InterruptedException e) {
+                throw new IOException("interrupted");
+            }
+        }
         for (Map.Entry<String, String> entry : responses.entrySet()) {
             if (key.contains(entry.getKey())) return new Response(200, entry.getValue());
         }

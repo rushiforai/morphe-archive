@@ -26,9 +26,7 @@ internal fun requireReloadCounter(bundle: HermesBundle) {
     require(parentIndex >= 0) { "Reload stream: nonce updater has no factory environment." }
     val parent = body[parentIndex]
     val updater = body.drop(parentIndex + 1).single { it.name == "LoadFromEnvironment" && it.args[1] == parent.args[0] }
-    val factory = bundle.functions.single { function -> function.params == 8 && bundle.instructions(function).any {
-        it.name == "CreateClosure" && it.args[2] == root.id
-    } }
+    val factory = bundle.metroIndex.factoriesCreating(root.id).single()
     val pair = bundle.instructions(factory).zipWithNext().single { (create, store) ->
         create.name == "CreateClosure" && store.name == "StoreToEnvironment" &&
             store.args[1] == updater.args[2] && store.args[2] == create.args[0]

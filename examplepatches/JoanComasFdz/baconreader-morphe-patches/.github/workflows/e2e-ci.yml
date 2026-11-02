@@ -1,0 +1,30 @@
+name: E2E CI
+
+# Builds the end-to-end tests and their tools (.NET) and runs what needs no phone and no browser: the e2e tool's
+# tests, the e2e projects' shape and naming tests (their scenarios skip themselves without a phone or VS Code for the
+# web), and the VS Code extension's unit tests (the runner's own Node). Recording is the session's job (tests/BaconReader.E2E/README.md,
+# tests/BaconReader.VsCodeExtension.E2E/README.md). The bundle itself is built by dev_build.yml and release.yml.
+
+on:
+  push:
+    branches: [main, dev]
+    paths: ['tests/**', 'tools/e2e/**', 'tools/vscode-extension/**', 'BaconReader.E2E.slnx', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '.github/workflows/e2e-ci.yml']
+  pull_request:
+    paths: ['tests/**', 'tools/e2e/**', 'tools/vscode-extension/**', 'BaconReader.E2E.slnx', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '.github/workflows/e2e-ci.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - run: dotnet build BaconReader.E2E.slnx -c Release
+      - run: dotnet test tools/e2e/BaconReader.E2ETools.Tests -c Release --no-build
+      - run: dotnet test tests/BaconReader.E2E -c Release --no-build
+      - run: dotnet test tests/BaconReader.VsCodeExtension.E2E -c Release --no-build
+      - run: node --test tools/vscode-extension/test/*.test.js

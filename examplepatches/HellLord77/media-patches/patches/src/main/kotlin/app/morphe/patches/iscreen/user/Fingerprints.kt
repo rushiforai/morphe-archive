@@ -16,7 +16,7 @@ object GetRefreshTokenMethodCallFingerprint :
                     parameters = emptyList(),
                     returnType = Type.STRING,
                     opcode = Opcode.INVOKE_VIRTUAL,
-                )
+                ),
             ),
         custom = ::isNotExtension,
     )

@@ -11,7 +11,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 
-private const val EXTENSION_CLASS = "Lapp/morphe/extension/network/patches/NetworkCapabilities;"
+private const val EXTENSION_CLASS = "Lapp/morphe/extension/network/patches/HideVPNPatch;"
 
 val hideVPNPatch =
     bytecodePatch(

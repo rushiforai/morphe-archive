@@ -1,26 +1,17 @@
 package app.d0nj.patches.novelreader
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
-import app.morphe.patcher.patch.bytecodePatch
+import app.d0nj.patches.novelreader.Constants.COMPATIBILITY_NOVEL_READER
 import app.d0nj.patches.shared.clearBody
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.bytecodePatch
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock premium",
-    description = "Makes isPremium() always return true in AI Audio Novel Reader. " +
-        "Unlocks all premium features and disables the 10-hour trial countdown.",
+    description = "Unlocks premium features and stops the 10-hour trial countdown.",
     default = true,
 ) {
-    compatibleWith(
-        Compatibility(
-            packageName = "com.thien.novelreader",
-            name = "AI Audio Novel Reader",
-            appIconColor = 0x006200EE,
-            targets = listOf(AppTarget(version = null)),
-        ),
-    )
+    compatibleWith(COMPATIBILITY_NOVEL_READER)
 
     execute {
         IsPremiumFingerprint.method.apply {

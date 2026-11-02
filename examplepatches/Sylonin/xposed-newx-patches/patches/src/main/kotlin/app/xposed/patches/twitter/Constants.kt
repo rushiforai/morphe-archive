@@ -9,20 +9,14 @@ object Constants {
     const val HOOKS_CLASS = "Lapp/xposed/extension/Hooks;"
     const val BRIDGE_CLASS = "Lapp/xposed/extension/ComposeBridge;"
 
-    /** The Compose-based X ("NewX") releases piko-newx supports. */
+    /** The Compose-based X ("NewX") release this bundle supports. */
     val COMPATIBILITY_NEW_X = Compatibility(
         name = "NewX",
         packageName = "com.twitter.android",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x000000,
         targets = listOf(
-            AppTarget(version = "12.34.0-prod.01"),
-            AppTarget(version = "12.35.0-prod.01"),
-            AppTarget(version = "12.36.1-prod.01"),
-            AppTarget(version = "12.37.0-prod.01"),
-            AppTarget(version = "12.37.1-prod.01"),
-            AppTarget(version = "12.37.2-prod.01"),
-            AppTarget(version = "12.38.1-prod.01"),
+            AppTarget(version = "12.39.0-prod.01"),
         ),
     )
 }

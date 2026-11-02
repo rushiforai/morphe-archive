@@ -9,8 +9,8 @@ private const val EXTENSION_CLASS =
 
 @Suppress("unused")
 val forceSystemFontPatch = bytecodePatch(
-    name = "Force system font (Bitwarden)",
-    description = "Renders the app using the device's system font instead of DM Sans / Roboto.",
+    name = "Force system font",
+    description = "Uses the device's system font for UI text. Monospace text keeps its bundled font.",
     default = true,
 ) {
     category("Font")
@@ -28,7 +28,7 @@ val forceSystemFontPatch = bytecodePatch(
             when (targetMethod.variant) {
                 TypefaceCompatCreateFromResourcesFontFileVariant.LEGACY_STATIC ->
                     """
-                        invoke-static { p4 }, $EXTENSION_CLASS->getSystemTypeface(I)Landroid/graphics/Typeface;
+                        invoke-static { p0, p1, p4 }, $EXTENSION_CLASS->getSystemTypeface(Landroid/content/res/Resources;II)Landroid/graphics/Typeface;
                         move-result-object v0
                         if-eqz v0, :original
                         return-object v0
@@ -38,7 +38,7 @@ val forceSystemFontPatch = bytecodePatch(
 
                 TypefaceCompatCreateFromResourcesFontFileVariant.MODERN_VIRTUAL ->
                     """
-                        invoke-static { p5 }, $EXTENSION_CLASS->getSystemTypeface(I)Landroid/graphics/Typeface;
+                        invoke-static { p2, p3, p5 }, $EXTENSION_CLASS->getSystemTypeface(Landroid/content/res/Resources;II)Landroid/graphics/Typeface;
                         move-result-object v0
                         if-eqz v0, :original
                         return-object v0

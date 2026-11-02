@@ -1,9 +1,9 @@
 {
   "morpheDesktop": {
-    "version": "1.19.1",
-    "file": "morphe-desktop-1.19.1-all.jar",
-    "url": "https://github.com/MorpheApp/morphe-desktop/releases/download/v1.19.1/morphe-desktop-1.19.1-all.jar",
-    "sha256": "a51472252cd63b2eac635dbb5a154ff918bfc15268da89679feb3d760230c573"
+    "version": "1.20.0",
+    "file": "morphe-desktop-1.20.0-all.jar",
+    "url": "https://github.com/MorpheApp/morphe-desktop/releases/download/v1.20.0/morphe-desktop-1.20.0-all.jar",
+    "sha256": "679f579b3ad743ac0ca697ef71e57430d00be59411b04494afd1845c43fb79f0"
   },
   "jadx": {
     "version": "1.5.6",

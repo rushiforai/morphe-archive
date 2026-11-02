@@ -62,6 +62,13 @@ public final class FilterPosition {
     }
 
     static View findList(View root) {
+        return findList(root,true);
+    }
+    /** Fragment binding may run before its response list becomes visible. */
+    static View findListForBinding(View root) {
+        return findList(root,false);
+    }
+    private static View findList(View root,boolean visibleOnly) {
         if (root == null) return null;
         if (root instanceof ListView) return root;
         for (Class<?> type = root.getClass(); type != null; type = type.getSuperclass())
@@ -69,8 +76,8 @@ public final class FilterPosition {
         if (root instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) root;
             for (int i = 0; i < group.getChildCount(); i++) {
-                View found = findList(group.getChildAt(i));
-                if (found != null && found.isShown()) return found;
+                View found = findList(group.getChildAt(i),visibleOnly);
+                if (found != null && (!visibleOnly||found.isShown())) return found;
             }
         }
         return null;

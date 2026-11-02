@@ -13,6 +13,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import dev.twitchpatches.patches.twitch.shared.code
+import dev.twitchpatches.patches.twitch.shared.insertOpenUrlGate
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -31,7 +32,7 @@ class UiSettingsHooksTest {
         val original = method.code()
         val branch = (original.first() as OffsetInstruction).codeOffset
         val bridge = "Lsynthetic/Intent;->ui(Ljava/lang/String;Lcom/facebook/react/bridge/Promise;)Z"
-        injectUiUrlGate(method, bridge)
+        insertOpenUrlGate(method, bridge)
         val code = method.code()
         val call = code[0] as RegisterRangeInstruction
         assertEquals(2, call.startRegister)

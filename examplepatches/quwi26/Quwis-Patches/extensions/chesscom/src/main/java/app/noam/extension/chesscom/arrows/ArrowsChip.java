@@ -12,7 +12,13 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.util.List;
+
 import app.noam.extension.chesscom.Utils;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
 
 /**
  * 4.10.23's bot game bar is a Compose bar the patch cannot add buttons to, so a small in-app chip
@@ -24,7 +30,86 @@ public final class ArrowsChip {
     private ArrowsChip() {}
 
     public static void attach(Activity activity) {
-        if (activity == null || !Arrows.enabled()) return;
+        attach(activity, Arrows.gamesEnabled());
+    }
+
+    /** The Game Review screen, whose Compose UI has no bottom bar we can add buttons to. */
+    public static void attachReviews(Activity activity) {
+        if (reviewsInBar()) return;
+        attach(activity, Arrows.reviewsEnabled());
+    }
+
+    /** True when the review bar itself carries the buttons, so the chip is not needed. */
+    public static boolean reviewsInBar() {
+        return false;
+    }
+
+    /**
+     * Adds Arrows and Clear to the action list the review's own bottom bar draws, so they look like
+     * the app's buttons. The patch sets the action class name in actionType().
+     */
+    @SuppressWarnings("unchecked")
+    public static void addActions(Object actions) {
+        if (!Arrows.reviewsEnabled()) return;
+        try {
+            List<Object> list = null;
+            for (Field field : actions.getClass().getDeclaredFields()) {
+                if (!List.class.isAssignableFrom(field.getType())) continue;
+                field.setAccessible(true);
+                Object value = field.get(actions);
+                if (value instanceof List) list = (List<Object>) value;
+            }
+            if (list == null) throw new IllegalStateException("No actions in " + actions.getClass().getName());
+            if (list.isEmpty()) return;
+
+            Class<?> type = Class.forName(actionType());
+            // Some states (the condensed paywall's bar) wrap each action in another class; leave those alone.
+            if (!type.isInstance(list.get(0))) return;
+            if (hasAction(list, ArrowsBar.arrowsLabel())) return;
+
+            Constructor<?> constructor = type.getConstructor(
+                String.class, Integer.class, Function0.class, Function1.class,
+                boolean.class, boolean.class, int.class);
+            list.add(constructor.newInstance(
+                ArrowsBar.arrowsLabel(), Integer.valueOf(ArrowsBar.arrowsIcon()),
+                ArrowsBar.onArrows(), null, true, false, 0x78));
+            list.add(constructor.newInstance(
+                ArrowsBar.clearLabel(), Integer.valueOf(ArrowsBar.clearIcon()),
+                ArrowsBar.onClear(), null, true, false, 0x78));
+        } catch (Throwable throwable) {
+            Utils.logError("Arrows review bar", throwable);
+        }
+    }
+
+    /** The bar action class, set by the patch. */
+    private static String actionType() {
+        return "";
+    }
+
+    /** The label of a bar action (its only String field). */
+    private static String labelOf(Object action) {
+        for (Field field : action.getClass().getDeclaredFields()) {
+            if (field.getType() != String.class) continue;
+            try {
+                field.setAccessible(true);
+                Object value = field.get(action);
+                if (value instanceof String) return (String) value;
+            } catch (Throwable ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private static boolean hasAction(List<Object> actions, String label) {
+        for (Object action : actions) {
+            if (label.equals(labelOf(action))) return true;
+        }
+        return false;
+    }
+
+    private static void attach(Activity activity, boolean enabled) {
+        if (activity == null || !enabled) return;
         try {
             View decor = activity.getWindow().getDecorView();
             if (!(decor instanceof ViewGroup)) return;

@@ -1,17 +1,16 @@
 <#
 .SYNOPSIS
-    Walks the whole patched TikTok or PineDrama on a release phone or an emulator and writes the
-    walk-receipt.json that release.ps1's publish stage needs, one per app the bundle declares.
+    Walks the whole patched TikTok on a release phone or an emulator and writes the
+    walk-receipt.json release.ps1 reads.
 
 .DESCRIPTION
     Patches -Package's app from the bundle being released with patch-for-device.ps1 and installs
     it (or, with -AuditBuild, walks the build already installed from that receipt), then opens
-    every screen the patches reach. On TikTok that's For You and Following with swipes, the
-    comment and share sheets, search, the Friends, Inbox and Profile tabs and Inbox's Activity
-    page. On PineDrama it's Short Video, Following and Drama, the same sheets and search, and the
-    Discover, Rewards, Inbox and Profile tabs. Both then expand every Hushfeed settings section,
-    scroll it to its end and collapse it, plus Search settings. Hushfeed opens from Profile's
-    menu, or from a long press on Home when an app's menu has no Hushfeed row. After each step
+    every screen the patches reach: For You and Following with swipes, the comment and share
+    sheets, search, the Friends, Inbox and Profile tabs and Inbox's Activity page. It then expands
+    every Hushfeed settings section, scrolls it to its end and collapses it, plus Search settings.
+    Hushfeed opens from Profile's menu, or from a long press on Home when that route has no
+    Hushfeed row. After each step
     the app has to still be the foreground app on the same process. Logcat's crash lines for it
     decide the rest.
 
@@ -22,29 +21,23 @@
     dumpsys) and dumps again.
 
     TikTok shows the language picked in its own settings whatever the phone or per-app locale
-    says, so the walk finds the app's screens through its profile's labels (walk-app-core.ps1;
-    TikTok's in English and Italian, PineDrama's in English) and Hushfeed's through its own
-    translation tables.
+    says, so the walk finds the app's screens through its profile's labels (walk-app-core.ps1, in
+    English and Italian) and Hushfeed's through its own translation tables.
 
     The receipt is PASS only when every planned screen was reached, the app never crashed, died
     or left the foreground, and the installed APK is the one patched from -Bundle.
 
 .EXAMPLE
-    ./scripts/walk-app.ps1 -Serial $env:HUSHFEED_DEVICE_SERIAL -Bundle build/release-assets/0.78.0/patches-0.78.0.mpp `
+    ./scripts/walk-app.ps1 -Serial $env:HUSHFEED_DEVICE_SERIAL -Bundle patches/build/release/patches-0.78.0.mpp `
         -PatchArgs @{ Apk = 'C:/fixtures/tiktok.apk'; Keystore = 'C:/keys/device.keystore'; KeyAlias = 'Morphe' }
 
-.EXAMPLE
-    ./scripts/walk-app.ps1 -Serial $env:HUSHFEED_DEVICE_SERIAL -Package com.ss.android.ttmd.video `
-        -Bundle build/release-assets/0.80.0/patches-0.80.0.mpp -Out build/walk-pinedrama/walk-receipt.json `
-        -PatchArgs @{ Apk = 'C:/fixtures/pinedrama.apk'; Keystore = 'C:/keys/device.keystore'; KeyAlias = 'Morphe' }
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$Serial,
     # The app to walk, one of the packages in walk-app-core.ps1's $WalkProfiles.
     [string]$Package = 'com.zhiliaoapp.musically',
-    # The bundle the receipt vouches for. Publish holds the receipt to the staged copy in
-    # build/release-assets, so pass that one when walking a release.
+    # The bundle the receipt vouches for.
     [string]$Bundle,
     # Walk the build already installed, described by the .audit-build.json patch-for-device.ps1
     # left beside its APK, instead of patching and installing a new one.
@@ -109,7 +102,7 @@ if (-not $adb) { throw 'No adb found. Put it on the PATH or install the platform
 
 if (-not $AuditBuild) {
     $patch = @{} + $PatchArgs
-    $patch.Serial = $Serial; $patch.LeaseDir = $LeaseDir; $patch.ChatIdentity = $ChatIdentity; $patch.Package = $WalkPackage
+    $patch.Serial = $Serial; $patch.LeaseDir = $LeaseDir; $patch.ChatIdentity = $ChatIdentity
     if (-not $patch.ContainsKey('OutDir')) { $patch.OutDir = Join-Path $work 'apk' }
     Write-WalkLog "patching and installing from $releaseBundle"
     & (Join-Path $PSScriptRoot 'patch-for-device.ps1') @patch
@@ -301,13 +294,24 @@ function Restore-WalkTabs([string]$From, [int]$Height) {
     return @()
 }
 
+function Select-WalkRow($Nodes, [string]$Label, [string]$Id, [int]$Height) {
+    # The band starts under the toolbar, which ends at 0.095 of the height on the S22, where the
+    # first row's title (Search settings) sits at 0.117: a 0.12 cutoff never saw it.
+    return @(Find-UiNode -Nodes $Nodes -Label $Label -Id $Id |
+            Where-Object { $_.Top -gt $Height * 0.10 -and $_.Bottom -lt $Height * 0.95 }) | Select-Object -First 1
+}
+
 function Find-WalkRow([string]$Label, [int]$Width, [int]$Height, [string]$Name, [string]$Id) {
-    # Settings rows: scroll the page to its top, then down until the row shows. Hushfeed's page
-    # rows carry the id "title", which keeps the walk off Hushfeed home's quick setup buttons
-    # (one of them is "Privacy", like the page).
+    # Settings rows: scroll the page up until the row shows or the top stops moving, then down
+    # until it shows. Hushfeed's page rows carry the id "title", which keeps the walk off
+    # Hushfeed home's quick setup buttons (one of them is "Privacy", like the page). The way up
+    # reads every screen: a header being collapsed sits above its controls, and an expanded Feed
+    # filter runs about twelve screens, so eight blind swipes up left the walk under the header.
     $before = ''
-    for ($i = 0; $i -lt 8; $i++) {
+    for ($i = 0; $i -lt 30; $i++) {
         $nodes = Get-WalkScreen "$Name-top"
+        $row = Select-WalkRow $nodes $Label $Id $Height
+        if ($row) { return $row }
         $print = Get-UiFingerprint $nodes
         if ($print -ceq $before) { break }
         $before = $print
@@ -316,8 +320,7 @@ function Find-WalkRow([string]$Label, [int]$Width, [int]$Height, [string]$Name, 
     $before = ''
     for ($i = 0; $i -lt 12; $i++) {
         $nodes = Get-WalkScreen $Name
-        $row = @(Find-UiNode -Nodes $nodes -Label $Label -Id $Id |
-                Where-Object { $_.Top -gt $Height * 0.12 -and $_.Bottom -lt $Height * 0.95 }) | Select-Object -First 1
+        $row = Select-WalkRow $nodes $Label $Id $Height
         if ($row) { return $row }
         $print = Get-UiFingerprint $nodes
         if ($print -ceq $before) { return $null }
@@ -331,15 +334,15 @@ function Get-WalkSectionView([string]$Label, [int]$Width, [int]$Height, [string]
     $row = Find-WalkRow $Label $Width $Height $Name 'title'
     if (-not $row) { return $null }
     if ($row.Top -gt $Height * 0.4) {
-        # Leave room below the header. Refresh the dump before the next tap.
+        # Leave room below the header. Refresh the dump before the next tap. The swipe is slow
+        # because a fast one flings on, 1107 px for 711 asked, and carries the row off the top.
         $distance = [int][Math]::Min($row.Top - $Height * 0.25, $Height * 0.45)
         Invoke-WalkAdb shell input swipe ([int]($Width / 2)) ([int]($Height * 0.7)) `
-            ([int]($Width / 2)) ([int]($Height * 0.7) - $distance) 450 | Out-Null
+            ([int]($Width / 2)) ([int]($Height * 0.7) - $distance) ($distance * 4) | Out-Null
         Start-Sleep -Milliseconds 1300
     }
     $nodes = Get-WalkScreen $Name
-    $row = @(Find-UiNode -Nodes $nodes -Label $Label -Id 'title' |
-            Where-Object { $_.Top -gt $Height * 0.12 -and $_.Bottom -lt $Height * 0.95 }) | Select-Object -First 1
+    $row = Select-WalkRow $nodes $Label 'title' $Height
     if (-not $row) { return $null }
     $next = @($nodes | Where-Object { $_.Id -ceq 'title' -and $_.Top -ge $row.Bottom -and
             $_.Bottom -lt $Height * 0.95 -and $_.Text } | Sort-Object Top) | Select-Object -First 1
@@ -485,7 +488,7 @@ try {
         $null = Restore-WalkTabs $sheet.Name $H
     }
 
-    # The other top feeds (Following, and PineDrama's Drama), each then back to the main feed.
+    # The other top feeds, each then back to the main feed.
     foreach ($other in $appProfile.OtherFeeds) {
         $nodes = Get-WalkScreen "before $other" -AllowPause
         $tabNode = @(Find-UiNode -Nodes $nodes -Label $WalkLabels[$other] | Where-Object { $_.Top -lt $H * 0.15 }) | Select-Object -First 1
@@ -515,7 +518,7 @@ try {
         $null = Restore-WalkTabs 'search' $H
     }
 
-    # The other tabs, TikTok Inbox's Activity page, and Profile.
+    # The other tabs, Inbox's Activity page, and Profile.
     foreach ($tab in $appProfile.Tabs) {
         $nodes = Restore-WalkTabs "before $tab" $H
         $nav = Find-WalkNav $nodes $WalkLabels[$tab] $H

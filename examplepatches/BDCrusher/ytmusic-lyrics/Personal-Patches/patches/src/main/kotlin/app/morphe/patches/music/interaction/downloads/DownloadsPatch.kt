@@ -10,6 +10,11 @@ package app.morphe.patches.music.interaction.downloads
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.PatchException
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.morphe.patches.music.misc.settings.PreferenceScreen
 import app.morphe.patches.music.misc.settings.settingsPatch
 import app.morphe.patches.music.shared.Constants.COMPATIBILITY_YOUTUBE_MUSIC
@@ -22,6 +27,7 @@ import app.morphe.patches.shared.misc.settings.preference.TextPreference
 import app.morphe.patches.shared.misc.textcomponent.hookSpannableString
 import app.morphe.patches.shared.misc.textcomponent.textComponentPatch
 import app.morphe.util.cloneParameters
+import app.bdcrusher.ytmusic.playlists.installNativeDownloadContext
 
 private val OFFLINE_PLAYBACK_PERMISSIONS = listOf(
     "android.permission.WAKE_LOCK",
@@ -37,6 +43,7 @@ private val downloadsResourcePatch = resourcePatch {
     dependsOn(settingsPatch)
 
     execute {
+        this["assets/bdcrusher-features/downloads.enabled"].apply {parentFile.mkdirs();writeText("1\n")}
         PreferenceScreen.PLAYER.addPreferences(
             PreferenceScreenPreference(
                 key = "morphe_external_downloader_screen",
@@ -97,12 +104,24 @@ val downloadsPatch = bytecodePatch(
         downloadsResourcePatch,
         settingsPatch,
         textComponentPatch,
-        musicVideoInformationPatch
+        musicVideoInformationPatch,
+        app.bdcrusher.ytmusic.playlists.localPlaybackPatch
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE_MUSIC)
 
     execute {
+        OfflineVideoEndpointFingerprint.clearMatch()
+        installNativeDownloadContext(OfflineVideoEndpointFingerprint.originalMethod)
+        // The native download promotion carries a serialized identity, not a plain
+        // recording ID. Both exact originals expose this one-string command schema.
+        val offlineCommands=mutableListOf<com.android.tools.smali.dexlib2.iface.ClassDef>()
+        classDefForEach { c -> if(c.methods.any {m->m.name=="<clinit>"&&m.implementation?.instructions?.any {it is WideLiteralInstruction&&it.wideLiteral==133724106L}==true})offlineCommands+=c }
+        val nativeOffline=offlineCommands.singleOrNull()?:throw PatchException("Downloads: offline download command schema is missing or ambiguous")
+        val expectedSchema=listOf(4,1,0,1,1,1,1,0,0,0,1,4104,0)
+        if(nativeOffline.methods.none {m->m.implementation?.instructions?.any {i->((i as? ReferenceInstruction)?.reference as? StringReference)?.string?.map {it.code}==expectedSchema}==true}||
+            nativeOffline.methods.none {m->m.implementation?.instructions?.any {i->((i as? ReferenceInstruction)?.reference as? MethodReference)?.name=="newSingularGeneratedExtension"}==true})
+            throw PatchException("Downloads: native offline parameter contract changed")
         hookSpannableString(EXTENSION_CLASS)
 
         CommandResolverFingerprint.method.cloneParameters().apply {

@@ -10,6 +10,7 @@ import java.util.logging.Logger
 val universalAmoledPatch = bytecodePatch(
     name = "Universal AMOLED Black Theme (Experimental)",
     description = "⚠️ [Experimental / Untested] Injects true OLED pitch black (#000000) into UI background surfaces, replacing dark grey tones to maximize battery savings and contrast on AMOLED displays for any app.",
+    default = false,
 ) {
     // Universal patch: No compatibleWith() call. Applies to any app.
 

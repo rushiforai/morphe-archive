@@ -17,7 +17,7 @@ import app.bdcrusher.ytmusic.common.FeatureDiagnostics;
 
 /** External handoff is never completion. Only an indexed, readable recording is available offline. */
 public final class ExternalFiles {
-    public record Item(String id,String uri,String title,String artist,String album,int duration,long bytes,String artwork) {}
+    public record Item(String id,String uri,String title,String artist,String album,int duration,long bytes,String artwork,byte[] nativeResponse) {}
     private static final ExecutorService IO=Executors.newSingleThreadExecutor();
     private static volatile Map<String,Item> items=Map.of(),uris=Map.of();
     private static volatile String status="Choose a folder to use YTDLnis files offline";
@@ -56,7 +56,7 @@ public final class ExternalFiles {
             }catch(Exception problem){failure="Folder could not be read; choose it again";FeatureDiagnostics.record("Playlist-files","Folder scan failed: "+problem.getClass().getSimpleName());}
             if(expected!=epoch||!selectedTree.equals(folder(c))){synchronized(ExternalFiles.class){scanning=false;}PlaylistRuntime.refreshFiles(true);return;}
             if(!granted(c)){next.clear();failure="Folder permission needs renewal";}
-            items=Map.copyOf(next);Map<String,Item> byUri=new HashMap<>();for(Item item:next.values())byUri.put(item.uri,item);uris=Map.copyOf(byUri);status=failure.isEmpty()?next.size()+" matched audio files"+(ambiguous.isEmpty()?"":"; "+ambiguous.size()+" ambiguous IDs kept unmatched")+(unmatched==0?"":"; other files ignored"):failure;
+            items=Map.copyOf(next);Map<String,Item> byUri=new HashMap<>();int nativeReady=0;for(Item item:next.values()){byUri.put(item.uri,item);if(item.nativeResponse()!=null)nativeReady++;}uris=Map.copyOf(byUri);status=failure.isEmpty()?next.size()+" matched audio files; "+nativeReady+" supported for native offline playback"+(nativeReady<next.size()?" (seekable WebM/Opus or M4A/AAC-LC required)":"")+(ambiguous.isEmpty()?"":"; "+ambiguous.size()+" ambiguous IDs kept unmatched")+(unmatched==0?"":"; other files ignored"):failure;
             synchronized(ExternalFiles.class){scanning=false;}FeatureDiagnostics.record("Playlist-files","Matched="+next.size()+"; ambiguous="+ambiguous.size()+"; partial="+!failure.isEmpty());PlaylistSettingsPage.folderChanged();PlaylistRuntime.filesChanged();
         });
     }
@@ -67,7 +67,7 @@ public final class ExternalFiles {
         try(MediaMetadataRetriever media=new MediaMetadataRetriever()){
             media.setDataSource(c,uri);if(!"yes".equalsIgnoreCase(media.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO)))return null;
             String title=text(media.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)),artist=text(media.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)),album=text(media.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM));int duration=0;try{duration=(int)(Long.parseLong(text(media.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)))/1000);}catch(NumberFormatException ignored){}
-            String art=saveArtwork(c,id,media.getEmbeddedPicture());return new Item(id,uri.toString(),title,artist,album,duration,bytes,art);
+            String art=saveArtwork(c,id,media.getEmbeddedPicture());byte[] nativeResponse=ExternalNativeFormat.inspect(c,uri,id,bytes,title,artist,duration);return new Item(id,uri.toString(),title,artist,album,duration,bytes,art,nativeResponse);
         }catch(Exception unsupported){return null;}
     }
     private static String text(String s){return s==null?"":s;}

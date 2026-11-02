@@ -130,6 +130,8 @@ public final class NativeToolTabs {
         return open(activity,tool,null);
     }
     public static boolean open(Activity activity,String tool,Intent launch){
+        if (("hissi".equals(tool)||"checker".equals(tool))
+                && !Haiagaru.dedicatedCheckerViewerAvailable()) return false;
         if(activity==null||!supported())return false;
         // The shared switch selects HOME vs thread pane, not whether tabs exist.
         if(!selected(activity,tool))return false;

@@ -11,7 +11,6 @@ import javax.xml.transform.stream.StreamResult
 internal var nativeMuteLabel = 0L
 internal var nativeReloadIcon = 0
 internal var nativeMuteButton = 0
-internal var nativePlaybackContainer = 0
 
 internal val nativeReloadResources = resourcePatch {
     execute {
@@ -26,7 +25,6 @@ internal val nativeReloadResources = resourcePatch {
         nativeMuteLabel = id("string", "mute_button_text")
         nativeReloadIcon = id("drawable", "ic_refresh_white_24dp").toInt()
         nativeMuteButton = id("id", "mute_button").toInt()
-        nativePlaybackContainer = id("id", "playback_view_container").toInt()
         for ((name, constrained) in listOf("bottom_player_overlay_controls" to true,
             "bottom_player_control_overlay_widget" to false)) {
             val file = get("res/layout/$name.xml")

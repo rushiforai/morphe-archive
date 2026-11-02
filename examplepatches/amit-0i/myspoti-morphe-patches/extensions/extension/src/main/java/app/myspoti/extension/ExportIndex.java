@@ -16,7 +16,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Portable export index stored in the user-selected folder. The index and generated
@@ -45,6 +47,9 @@ final class ExportIndex {
     private JSONObject entries;
     private JSONObject collectionEntries;
     private final List<Child> children = new ArrayList<>();
+    // SAF providers can be slow when queried once per document. Keep one child listing per
+    // directory for the lifetime of a sync and reuse it for track checks and filename lookups.
+    private final Map<String, List<Child>> childCache = new HashMap<>();
 
     private ExportIndex(Context context, Uri tree) throws Exception {
         this.context = context.getApplicationContext();
@@ -63,7 +68,48 @@ final class ExportIndex {
 
     private void loadChildren() throws Exception {
         children.clear();
+        childCache.clear();
         children.addAll(queryChildren(parentDocumentId));
+        childCache.put(parentDocumentId, new ArrayList<>(children));
+    }
+
+    private List<Child> childrenForParent(String parentId) throws Exception {
+        List<Child> cached = childCache.get(parentId);
+        if (cached != null) return cached;
+        List<Child> loaded = queryChildren(parentId);
+        childCache.put(parentId, loaded);
+        return loaded;
+    }
+
+    private void rememberChild(String parentId, Child child) {
+        List<Child> cached = childCache.get(parentId);
+        if (cached != null) cached.add(child);
+        if (parentDocumentId.equals(parentId)) {
+            boolean exists = false;
+            for (Child item : children) if (item.id.equals(child.id)) { exists = true; break; }
+            if (!exists) children.add(child);
+        }
+    }
+
+    private String parentIdForRelativePath(String relativePath) throws Exception {
+        String normalized = relativePath == null ? "" : relativePath.replace('\\', '/').trim();
+        while (normalized.startsWith("/")) normalized = normalized.substring(1);
+        String[] parts = normalized.isEmpty() ? new String[0] : normalized.split("/");
+        String folderId = parentDocumentId;
+        for (int i = 0; i < parts.length - 1; i++) {
+            String folderName = parts[i];
+            Child found = null;
+            for (Child child : childrenForParent(folderId)) {
+                if (folderName.equals(child.name)
+                        && DocumentsContract.Document.MIME_TYPE_DIR.equals(child.mime)) {
+                    found = child;
+                    break;
+                }
+            }
+            if (found == null) return null;
+            folderId = found.id;
+        }
+        return folderId;
     }
 
     private List<Child> queryChildren(String parentId) throws Exception {
@@ -123,7 +169,7 @@ final class ExportIndex {
             root.put("format", FORMAT);
             root.put("version", VERSION);
             root.put("appPackage", "app.myspoti.stable");
-            root.put("appVersion", "2.2.0");
+            root.put("appVersion", "2.3.0");
             root.put("createdAt", System.currentTimeMillis());
             root.put("entries", entries);
             root.put("collections", collectionEntries);
@@ -292,15 +338,47 @@ final class ExportIndex {
         save();
     }
 
+    boolean shouldRetryMissingLyrics(String trackId, long retryIntervalMs) {
+        JSONObject item = entry(trackId);
+        if (item == null) return true;
+        long attemptedAt = item.optLong("lyricsRepairLookupAttemptedAt", 0L);
+        return attemptedAt <= 0L || System.currentTimeMillis() - attemptedAt >= retryIntervalMs;
+    }
+
+    void markMissingLyricsLookupAttempted(String trackId) throws Exception {
+        JSONObject item = entry(trackId);
+        if (item == null) throw new IOException("Cannot record a missing-lyrics repair before the audio export record exists for " + trackId);
+        item.put("lyricsRepairLookupAttemptedAt", System.currentTimeMillis());
+        entries.put(trackId, item);
+        save();
+    }
+
     JSONObject readLyricsJson(String trackId) throws IOException {
         JSONObject item = entry(trackId);
         if (item == null) return null;
         String id = item.optString("lyricsJsonDocumentId", "");
-        if (id.isEmpty()) return null;
-        try (InputStream input = resolver.openInputStream(documentUri(id))) {
-            if (input == null) return null;
-            JSONObject object = new JSONObject(new String(readAll(input), StandardCharsets.UTF_8));
-            return LyricsStore.validLyricsJson(object) ? object : null;
+        if (!id.isEmpty()) {
+            try (InputStream input = resolver.openInputStream(documentUri(id))) {
+                if (input != null) {
+                    JSONObject object = new JSONObject(new String(readAll(input), StandardCharsets.UTF_8));
+                    if (LyricsStore.validLyricsJson(object)) return object;
+                }
+            } catch (Throwable t) {
+                android.util.Log.w("MyspotiStoragePatch", "Could not read indexed portable lyrics JSON for " + trackId + "; trying its path", t);
+            }
+        }
+        String path = item.optString("lyricsJsonFileName", "");
+        String canonicalPath = "Lyrics/JSON/" + safeTrackFileToken(trackId) + ".json";
+        if (path.isEmpty()) path = canonicalPath;
+        try {
+            Uri fallback = findDocumentAtRelativePath(path);
+            if (fallback == null && !canonicalPath.equals(path)) fallback = findDocumentAtRelativePath(canonicalPath);
+            if (fallback == null) return null;
+            try (InputStream input = resolver.openInputStream(fallback)) {
+                if (input == null) return null;
+                JSONObject object = new JSONObject(new String(readAll(input), StandardCharsets.UTF_8));
+                return LyricsStore.validLyricsJson(object) ? object : null;
+            }
         } catch (Throwable t) {
             android.util.Log.w("MyspotiStoragePatch", "Could not read portable lyrics JSON for " + trackId, t);
             return null;
@@ -311,17 +389,30 @@ final class ExportIndex {
         JSONObject item = entry(trackId);
         if (item == null) return null;
         String id = item.optString("lyricsLrcDocumentId", "");
-        if (id.isEmpty()) return null;
-        try (InputStream input = resolver.openInputStream(documentUri(id))) {
-            if (input == null) return null;
-            return new String(readAll(input), StandardCharsets.UTF_8);
+        if (!id.isEmpty()) {
+            try (InputStream input = resolver.openInputStream(documentUri(id))) {
+                if (input != null) return new String(readAll(input), StandardCharsets.UTF_8);
+            } catch (Throwable t) {
+                android.util.Log.w("MyspotiStoragePatch", "Could not read indexed portable LRC for " + trackId + "; trying its path", t);
+            }
+        }
+        String path = item.optString("lyricsLrcFileName", "");
+        String canonicalPath = "Lyrics/LRC/" + expectedLyricsLrcName(trackId, relativePathFromRoot(trackId));
+        if (path.isEmpty()) path = canonicalPath;
+        try {
+            Uri fallback = findDocumentAtRelativePath(path);
+            if (fallback == null && !canonicalPath.equals(path)) fallback = findDocumentAtRelativePath(canonicalPath);
+            if (fallback == null) return null;
+            try (InputStream input = resolver.openInputStream(fallback)) {
+                return input == null ? null : new String(readAll(input), StandardCharsets.UTF_8);
+            }
         } catch (Throwable t) {
             android.util.Log.w("MyspotiStoragePatch", "Could not read portable LRC lyrics for " + trackId, t);
             return null;
         }
     }
 
-    /** Save full-fidelity JSON plus a same-basename .lrc beside the exported audio. */
+    /** Save portable lyrics under Lyrics/, away from the audio files in Tracks/. */
     void writeLyrics(String trackId, JSONObject lyrics, String lrcContent, boolean embedded) throws Exception {
         if (!LyricsStore.validLyricsJson(lyrics) || lrcContent == null || lrcContent.trim().isEmpty()) return;
         JSONObject item = entries.optJSONObject(trackId);
@@ -332,14 +423,22 @@ final class ExportIndex {
         String audioName = pathParts[pathParts.length - 1];
         int dot = audioName.lastIndexOf('.');
         String baseName = dot > 0 ? audioName.substring(0, dot) : audioName;
-        String[] parentPath = new String[Math.max(0, pathParts.length - 1)];
-        if (parentPath.length > 0) System.arraycopy(pathParts, 0, parentPath, 0, parentPath.length);
-        Uri audioParent = ensureFolderPath(parentPath);
+        String legacyLrcName = baseName + ".lrc";
+        String trackToken = safeTrackFileToken(trackId);
+        String trackSuffix = " [" + trackToken + "]";
+        // Legacy exports did not include a track ID in their media filename. Add the full
+        // stable ID to the LRC name even for those imports, so same-title songs never collide.
+        if (!baseName.endsWith(trackSuffix)) baseName += trackSuffix;
         String lrcName = baseName + ".lrc";
-        Uri lrcDocument = findDocumentInFolder(audioParent, lrcName);
+        String oldLrcDocumentId = item.optString("lyricsLrcDocumentId", "");
+        String oldJsonDocumentId = item.optString("lyricsJsonDocumentId", "");
+        Uri lrcFolder = ensureFolderPath("Lyrics", "LRC");
+        Uri lrcDocument = findDocumentInFolder(lrcFolder, lrcName);
         if (lrcDocument == null) {
-            lrcDocument = DocumentsContract.createDocument(resolver, audioParent, "application/x-subrip", lrcName);
+            lrcDocument = DocumentsContract.createDocument(resolver, lrcFolder, "application/x-subrip", lrcName);
             if (lrcDocument == null) throw new IOException("Android could not create lyrics sidecar " + lrcName);
+            rememberChild(DocumentsContract.getDocumentId(lrcFolder), new Child(
+                    DocumentsContract.getDocumentId(lrcDocument), lrcName, "application/x-subrip", -1L));
         }
         try (OutputStream output = resolver.openOutputStream(lrcDocument, "wt")) {
             if (output == null) throw new IOException("Could not write lyrics sidecar " + lrcName);
@@ -347,12 +446,14 @@ final class ExportIndex {
             output.flush();
         }
 
-        Uri lyricsFolder = ensureFolderPath("Lyrics");
+        Uri lyricsFolder = ensureFolderPath("Lyrics", "JSON");
         String jsonName = safeTrackFileToken(trackId) + ".json";
         Uri jsonDocument = findDocumentInFolder(lyricsFolder, jsonName);
         if (jsonDocument == null) {
             jsonDocument = DocumentsContract.createDocument(resolver, lyricsFolder, "application/json", jsonName);
             if (jsonDocument == null) throw new IOException("Android could not create JSON lyrics archive " + jsonName);
+            rememberChild(DocumentsContract.getDocumentId(lyricsFolder), new Child(
+                    DocumentsContract.getDocumentId(jsonDocument), jsonName, "application/json", -1L));
         }
         JSONObject portable = new JSONObject(lyrics.toString());
         portable.put("key", trackId);
@@ -365,8 +466,8 @@ final class ExportIndex {
         item.put("lyricsAvailable", true);
         item.put("lyricsJsonDocumentId", DocumentsContract.getDocumentId(jsonDocument));
         item.put("lyricsLrcDocumentId", DocumentsContract.getDocumentId(lrcDocument));
-        item.put("lyricsJsonFileName", "Lyrics/" + jsonName);
-        item.put("lyricsLrcFileName", (parentPath.length == 0 ? "" : joinPath(parentPath) + "/") + lrcName);
+        item.put("lyricsJsonFileName", "Lyrics/JSON/" + jsonName);
+        item.put("lyricsLrcFileName", "Lyrics/LRC/" + lrcName);
         item.put("lyricsSynced", portable.optBoolean("synced", false));
         item.put("lyricsProvider", portable.optString("provider", ""));
         item.put("lyricsLanguage", portable.optString("language", ""));
@@ -374,6 +475,46 @@ final class ExportIndex {
         item.put("lyricsUpdatedAt", System.currentTimeMillis());
         entries.put(trackId, item);
         save();
+
+        // Older versions placed the LRC next to its audio file. Remove only the exact
+        // document previously recorded for this track, and only after the new copy is safe.
+        String newLrcDocumentId = DocumentsContract.getDocumentId(lrcDocument);
+        try { deleteDuplicateDocumentsInFolder(lrcFolder, lrcName, newLrcDocumentId); }
+        catch (Throwable error) {
+            android.util.Log.w("MyspotiStoragePatch", "Could not clean duplicate LRC files for " + trackId, error);
+        }
+        if (!oldLrcDocumentId.isEmpty() && !oldLrcDocumentId.equals(newLrcDocumentId)) {
+            try { deleteRecordedDocument(oldLrcDocumentId); }
+            catch (Throwable error) {
+                android.util.Log.w("MyspotiStoragePatch", "Could not remove the previous LRC sidecar for " + trackId, error);
+            }
+        }
+        String newJsonDocumentId = DocumentsContract.getDocumentId(jsonDocument);
+        try { deleteDuplicateDocumentsInFolder(lyricsFolder, jsonName, newJsonDocumentId); }
+        catch (Throwable error) {
+            android.util.Log.w("MyspotiStoragePatch", "Could not clean duplicate JSON lyrics files for " + trackId, error);
+        }
+        if (!oldJsonDocumentId.isEmpty() && !oldJsonDocumentId.equals(newJsonDocumentId)) {
+            try { deleteRecordedDocument(oldJsonDocumentId); }
+            catch (Throwable error) {
+                android.util.Log.w("MyspotiStoragePatch", "Could not remove the previous JSON lyrics file for " + trackId, error);
+            }
+        }
+        // Previous patch versions put the LRC next to the exported audio. Remove only
+        // exact-name sidecars that correspond to this indexed audio file. This also cleans
+        // up same-name duplicates left by document providers that allow duplicate display names.
+        String[] audioParentPath = new String[Math.max(0, pathParts.length - 1)];
+        if (audioParentPath.length > 0) System.arraycopy(pathParts, 0, audioParentPath, 0, audioParentPath.length);
+        try { deleteDocumentsNamedInFolder(ensureFolderPath(audioParentPath), legacyLrcName); }
+        catch (Throwable error) {
+            android.util.Log.w("MyspotiStoragePatch", "Could not remove old adjacent LRC sidecars for " + trackId, error);
+        }
+        // The previous JSON layout stored <track-id>.json directly under Lyrics/.
+        // Clean only that exact indexed filename after the replacement is safely written.
+        try { deleteDocumentsNamedInFolder(ensureFolderPath("Lyrics"), jsonName); }
+        catch (Throwable error) {
+            android.util.Log.w("MyspotiStoragePatch", "Could not remove the legacy JSON lyrics file for " + trackId, error);
+        }
     }
 
     private static String safeTrackFileToken(String id) {
@@ -455,7 +596,7 @@ final class ExportIndex {
         }
         if (entries.length() > shown) text.append("\n…and ").append(entries.length() - shown).append(" more songs.");
         text.append("\nMusic is stored once in Tracks/; playlists and albums reference those files.");
-        text.append("\nLyrics: ").append(lyricsCount()).append(" track(s) archived as JSON and LRC sidecars.");
+        text.append("\nLyrics: ").append(lyricsCount()).append(" track(s) in Lyrics/LRC/ and Lyrics/JSON/.");
         text.append("\nStored beside your exported files; reconnect this same folder after reinstall.");
         return text.toString();
     }
@@ -477,8 +618,99 @@ final class ExportIndex {
         if (item == null) return null;
         String id = item.optString("documentId", "");
         if (id.isEmpty()) return null;
-        Uri uri = documentUri(id);
-        return documentExists(uri) ? uri : null;
+        String relativePath = item.optString("relativePathFromRoot", "");
+        if (relativePath.isEmpty()) relativePath = item.optString("fileName", "");
+        try {
+            String parentId = parentIdForRelativePath(relativePath);
+            // The portable index is authoritative about the expected parent folder. If that
+            // folder no longer exists, the indexed audio is missing and must be re-exported.
+            // Do not query the stale document URI: Android's FileSystemProvider can throw
+            // IllegalArgumentException/FileNotFoundException while validating a deleted
+            // document against the tree root (instead of returning an empty cursor).
+            if (parentId == null) return null;
+
+            // One child-documents query per containing folder replaces one resolver query
+            // per exported song. A successful folder listing is authoritative: if the indexed
+            // document ID is absent, the file was deleted/moved and should be recreated.
+            for (Child child : childrenForParent(parentId)) {
+                if (id.equals(child.id) && !DocumentsContract.Document.MIME_TYPE_DIR.equals(child.mime)) {
+                    return documentUri(id);
+                }
+            }
+            return null;
+        } catch (SecurityException error) {
+            throw new IOException("Permission to inspect an existing export was lost. Reconnect the export folder.", error);
+        } catch (IOException error) {
+            throw error;
+        } catch (Exception error) {
+            throw new IOException("Android could not inspect the export folder.", error);
+        }
+    }
+
+    boolean hasLyricsAvailable(String trackId) {
+        JSONObject item = entry(trackId);
+        return item != null && item.optBoolean("lyricsAvailable", false);
+    }
+
+    /**
+     * Check the actual canonical sidecars, not just the historical lyricsAvailable flag.
+     * Users can delete .lrc/.json files without changing the portable index; a sync must
+     * detect that and rebuild both files from whichever surviving copy is available.
+     */
+    boolean lyricsSidecarsNeedRepair(String trackId) throws IOException {
+        JSONObject item = entry(trackId);
+        if (item == null || !item.optBoolean("lyricsAvailable", false)) return false;
+        String audioPath = relativePathFromRoot(trackId);
+        if (audioPath.isEmpty()) return true;
+        String jsonPath = "Lyrics/JSON/" + safeTrackFileToken(trackId) + ".json";
+        String lrcPath = "Lyrics/LRC/" + expectedLyricsLrcName(trackId, audioPath);
+        try {
+            return !documentExistsAtRelativePath(jsonPath) || !documentExistsAtRelativePath(lrcPath);
+        } catch (SecurityException error) {
+            throw new IOException("Permission to inspect exported lyrics was lost. Reconnect the export folder.", error);
+        } catch (IOException error) {
+            throw error;
+        } catch (Exception error) {
+            throw new IOException("Android could not inspect the exported lyrics folders.", error);
+        }
+    }
+
+    private boolean documentExistsAtRelativePath(String relativePath) throws Exception {
+        String normalized = relativePath == null ? "" : relativePath.replace('\\', '/');
+        int slash = normalized.lastIndexOf('/');
+        if (slash <= 0 || slash == normalized.length() - 1) return false;
+        String parentId = parentIdForRelativePath(normalized);
+        if (parentId == null) return false;
+        String expectedName = normalized.substring(slash + 1);
+        for (Child child : childrenForParent(parentId)) {
+            if (expectedName.equals(child.name)
+                    && !DocumentsContract.Document.MIME_TYPE_DIR.equals(child.mime)) return true;
+        }
+        return false;
+    }
+
+    private Uri findDocumentAtRelativePath(String relativePath) throws Exception {
+        String normalized = relativePath == null ? "" : relativePath.replace('\\', '/');
+        int slash = normalized.lastIndexOf('/');
+        if (slash <= 0 || slash == normalized.length() - 1) return null;
+        String parentId = parentIdForRelativePath(normalized);
+        if (parentId == null) return null;
+        String expectedName = normalized.substring(slash + 1);
+        for (Child child : childrenForParent(parentId)) {
+            if (expectedName.equals(child.name)
+                    && !DocumentsContract.Document.MIME_TYPE_DIR.equals(child.mime)) return documentUri(child.id);
+        }
+        return null;
+    }
+
+    private static String expectedLyricsLrcName(String trackId, String audioPath) {
+        String[] parts = audioPath.replace('\\', '/').split("/");
+        String audioName = parts.length == 0 ? "" : parts[parts.length - 1];
+        int dot = audioName.lastIndexOf('.');
+        String baseName = dot > 0 ? audioName.substring(0, dot) : audioName;
+        String suffix = " [" + safeTrackFileToken(trackId) + "]";
+        if (!baseName.endsWith(suffix)) baseName += suffix;
+        return baseName + ".lrc";
     }
 
     boolean sameFingerprint(String trackId, String fingerprint) {
@@ -520,7 +752,20 @@ final class ExportIndex {
 
     boolean deleteDocument(Uri document) {
         if (document == null) return true;
-        try { return DocumentsContract.deleteDocument(resolver, document); }
+        try {
+            boolean deleted = DocumentsContract.deleteDocument(resolver, document);
+            if (deleted) {
+                String documentId = DocumentsContract.getDocumentId(document);
+                for (List<Child> siblings : childCache.values()) {
+                    java.util.Iterator<Child> iterator = siblings.iterator();
+                    while (iterator.hasNext()) if (documentId.equals(iterator.next().id)) iterator.remove();
+                }
+                java.util.Iterator<Child> rootIterator = children.iterator();
+                while (rootIterator.hasNext()) if (documentId.equals(rootIterator.next().id)) rootIterator.remove();
+                childCache.clear();
+            }
+            return deleted;
+        }
         catch (Throwable error) {
             android.util.Log.w("MyspotiStoragePatch", "Could not delete generated export document", error);
             return false;
@@ -533,7 +778,7 @@ final class ExportIndex {
         Uri uri = DocumentsContract.createDocument(resolver, parent, mime, displayName);
         if (uri == null) throw new IOException("Android could not create " + displayName);
         String id = DocumentsContract.getDocumentId(uri);
-        children.add(new Child(id, displayName, mime, -1L));
+        rememberChild(parentDocumentId, new Child(id, displayName, mime, -1L));
         return uri;
     }
 
@@ -544,6 +789,8 @@ final class ExportIndex {
         if (existing != null) return existing;
         Uri uri = DocumentsContract.createDocument(resolver, folder, mime, displayName);
         if (uri == null) throw new IOException("Android could not create " + displayName);
+        rememberChild(DocumentsContract.getDocumentId(folder),
+                new Child(DocumentsContract.getDocumentId(uri), displayName, mime, -1L));
         return uri;
     }
 
@@ -583,6 +830,8 @@ final class ExportIndex {
         if (document == null) {
             document = DocumentsContract.createDocument(resolver, folder, "audio/x-mpegurl", fileName);
             if (document == null) throw new IOException("Android could not create playlist manifest " + fileName);
+            rememberChild(DocumentsContract.getDocumentId(folder), new Child(
+                    DocumentsContract.getDocumentId(document), fileName, "audio/x-mpegurl", -1L));
         }
 
         try (OutputStream output = resolver.openOutputStream(document, "wt")) {
@@ -620,7 +869,7 @@ final class ExportIndex {
                 throw new IOException("Invalid export folder name: " + rawName);
             }
             Child found = null;
-            for (Child child : queryChildren(folderId)) {
+            for (Child child : childrenForParent(folderId)) {
                 if (name.equals(child.name) && DocumentsContract.Document.MIME_TYPE_DIR.equals(child.mime)) {
                     found = child;
                     break;
@@ -630,7 +879,10 @@ final class ExportIndex {
                 Uri created = DocumentsContract.createDocument(resolver, folder,
                         DocumentsContract.Document.MIME_TYPE_DIR, name);
                 if (created == null) throw new IOException("Android could not create folder " + name);
-                folderId = DocumentsContract.getDocumentId(created);
+                String createdId = DocumentsContract.getDocumentId(created);
+                rememberChild(folderId, new Child(createdId, name,
+                        DocumentsContract.Document.MIME_TYPE_DIR, -1L));
+                folderId = createdId;
                 folder = created;
             } else {
                 folderId = found.id;
@@ -642,12 +894,30 @@ final class ExportIndex {
 
     private Uri findDocumentInFolder(Uri folder, String displayName) throws Exception {
         String id = DocumentsContract.getDocumentId(folder);
-        for (Child child : queryChildren(id)) {
+        for (Child child : childrenForParent(id)) {
             if (displayName.equals(child.name) && !DocumentsContract.Document.MIME_TYPE_DIR.equals(child.mime)) {
                 return documentUri(child.id);
             }
         }
         return null;
+    }
+
+    private void deleteDocumentsNamedInFolder(Uri folder, String displayName) throws Exception {
+        deleteDuplicateDocumentsInFolder(folder, displayName, null);
+    }
+
+    /** Keep one selected document and remove any same-name duplicate files in a folder. */
+    private void deleteDuplicateDocumentsInFolder(Uri folder, String displayName, String keepDocumentId) throws Exception {
+        String id = DocumentsContract.getDocumentId(folder);
+        for (Child child : childrenForParent(id)) {
+            if (!displayName.equals(child.name)
+                    || DocumentsContract.Document.MIME_TYPE_DIR.equals(child.mime)
+                    || (keepDocumentId != null && keepDocumentId.equals(child.id))) continue;
+            Uri document = documentUri(child.id);
+            if (!deleteDocument(document)) {
+                android.util.Log.w("MyspotiStoragePatch", "Could not remove duplicate lyric file " + displayName);
+            }
+        }
     }
 
     private Uri findDocumentInPath(String displayName, String... folderPath) throws Exception {
@@ -681,14 +951,14 @@ final class ExportIndex {
                 String title, String artist, String album, long durationMs, String extension,
                 long exportedBytes, boolean importedLegacy, String relativePathFromRoot) throws Exception {
         record(trackId, fingerprint, document, displayName, title, artist, album, durationMs,
-                extension, exportedBytes, importedLegacy, relativePathFromRoot, "", "", "", false, "MUSIC", "");
+                extension, exportedBytes, importedLegacy, relativePathFromRoot, "", "", "", false, "MUSIC", "", "");
     }
 
     void record(String trackId, String fingerprint, Uri document, String displayName,
                 String title, String artist, String album, long durationMs, String extension,
                 long exportedBytes, boolean importedLegacy, String relativePathFromRoot,
                 String albumId, String coverUrl, String source, boolean verified,
-                String kind, String providerId) throws Exception {
+                String kind, String providerId, String extensionQuality) throws Exception {
         if (trackId == null || trackId.isEmpty()) throw new IOException("The MySpoti track ID is missing; cannot create a reliable sync record.");
         JSONObject item = new JSONObject();
         item.put("trackId", trackId);
@@ -707,6 +977,7 @@ final class ExportIndex {
         item.put("verified", verified);
         item.put("kind", kind == null || kind.isEmpty() ? "MUSIC" : kind);
         item.put("providerId", providerId == null ? "" : providerId);
+        item.put("extensionQuality", extensionQuality == null ? "" : extensionQuality);
         JSONObject previous = entries.optJSONObject(trackId);
         if (previous != null) {
             String[] preserved = new String[] { "lyricsJsonDocumentId", "lyricsLrcDocumentId", "lyricsJsonFileName", "lyricsLrcFileName", "lyricsProvider", "lyricsLanguage" };
@@ -716,6 +987,7 @@ final class ExportIndex {
             if (previous.has("lyricsSynced")) item.put("lyricsSynced", previous.optBoolean("lyricsSynced"));
             if (previous.has("lyricsEmbedded")) item.put("lyricsEmbedded", previous.optBoolean("lyricsEmbedded"));
             if (previous.has("lyricsLookupAttemptedAt")) item.put("lyricsLookupAttemptedAt", previous.optLong("lyricsLookupAttemptedAt"));
+            if (previous.has("lyricsRepairLookupAttemptedAt")) item.put("lyricsRepairLookupAttemptedAt", previous.optLong("lyricsRepairLookupAttemptedAt"));
             if (previous.has("lyricsLookupVersion")) item.put("lyricsLookupVersion", previous.optInt("lyricsLookupVersion"));
         }
         item.put("exportedBytes", exportedBytes);

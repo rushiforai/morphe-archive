@@ -157,12 +157,19 @@ internal object OpenedListFillFingerprint : Fingerprint(
     },
 )
 
+/**
+ * The Following feed's loader: the static method that builds a `FollowFeedList` from the request
+ * and reads its items back. It took the request and a cache on 47.5.3 (`LX/0NMJ;->LIZ`) and
+ * five arguments on 47.6.3 (`LX/0NHh;->LIZ`, with a tag, a cursor and a count joining), so only
+ * "more than one" is asked of the parameter list. The one-argument cache lookup beside it also
+ * reads the items, but never logs the "feed" it was asked for.
+ */
 internal object FollowFeedFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;",
     strings = listOf("feed"),
     custom = { method, _ ->
-        method.parameterTypes.size == 2 && method.implementation?.instructions?.any {
+        method.parameterTypes.size >= 2 && method.implementation?.instructions?.any {
             it.getReference<MethodReference>()?.let { reference ->
                 reference.definingClass == "Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;" &&
                     reference.name == "getItems"
@@ -957,13 +964,13 @@ internal const val SHORT_VIDEO_CONTEXT = "Lcom/ss/android/ugc/aweme/shortvideo/S
  * The camera's AI Cast gate (AI Self; AI Theater in TikTok's code), X.0twO.LIZ on 47.4.3. The
  * recorder registers the AI Theater toolbar component, the AI Cast button, only when this says
  * yes. It already says no for minors, stories, duets, the DM camera, templates and the
- * add_yours, trend_button and anchor_combine_tts shoot ways, and logs its own name before a yes.
+ * trend_button and anchor_combine_tts shoot ways, and logs its own name before a yes.
  */
 internal object AiTheaterRecordEntranceFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf(SHORT_VIDEO_CONTEXT),
-    strings = listOf("enableAITheaterRecordEntrance", "add_yours", "trend_button", "anchor_combine_tts"),
+    strings = listOf("enableAITheaterRecordEntrance", "trend_button", "anchor_combine_tts"),
 )
 
 internal const val VISUAL_SEARCH_SERVICE =
@@ -1225,10 +1232,10 @@ internal const val SERIES_FEED_RESP_CLASS_DESCRIPTOR =
     "Lcom/ss/android/ugc/aweme/minidrama/common/component/topfeed/common/arch/SeriesFeedResp;"
 
 /**
- * The drama tab's feed answer (#294). PineDrama fetches that feed with requests of its own and
- * converts the answer straight into this object, so the list never reaches FeedItemList.getItems.
+ * The drama tab's feed answer (#294). That feed comes from requests of its own, which convert the
+ * answer straight into this object, so the list never reaches FeedItemList.getItems.
  * Every converter, the preload, the end-of-drama picks and the copy helper build it through this
- * one constructor. Real-named class and field, the same shape on TikTok 47.5.3 and PineDrama.
+ * one constructor. Real-named class and field.
  */
 internal object SeriesFeedRespConstructorFingerprint : Fingerprint(
     definingClass = SERIES_FEED_RESP_CLASS_DESCRIPTOR,

@@ -4,6 +4,9 @@ import android.text.InputType
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.Image
@@ -33,6 +36,7 @@ internal data class BoundSetting(
     val enabled: Boolean = control.isEnabled,
     val checked: Boolean? = (control as? CompoundButton)?.isChecked,
     val description: String = "",
+    val previewColor: Int? = control.getTag(PosterHighlight.COLOR_PREVIEW_TAG) as? Int,
 ) {
     // Native Views are not Compose state. Include their current values in row equality so
     // Compose cannot skip a row whose saved value or dependent enabled state has changed.
@@ -91,7 +95,7 @@ internal fun settingsRows(root: ViewGroup): List<BoundSetting> {
     val grouped = mutableListOf<BoundSetting>()
     for (row in result) {
         val help = row.control is TextView && row.control !is Button && row.control !is EditText &&
-            !row.control.hasOnClickListeners() && !row.control.isLongClickable && row.control.text !is android.text.Spanned
+            !row.control.hasOnClickListeners() && !row.control.isLongClickable && row.previewColor == null && row.control.text !is android.text.Spanned
         if (help && grouped.isNotEmpty()) {
             val previous = grouped.removeAt(grouped.lastIndex)
             grouped.add(previous.copy(description = listOf(previous.description, row.label).filter { it.isNotBlank() }.joinToString("\n\n")))
@@ -164,7 +168,11 @@ internal fun BoundSettingRow(item: BoundSetting, changed: () -> Unit) {
             modifier = Modifier.fillMaxWidth().combinedClickable(enabled = view.isEnabled,
                 onClick = { view.performClick(); changed() }, onLongClick = { view.performLongClick(); changed() }))
         is TextView -> {
-            if (view.hasOnClickListeners() || view.isLongClickable) Text(view.text.toString(),
+            if (item.previewColor != null) Text(view.text.toString(),
+                style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.fillMaxWidth().background(Color(item.previewColor), MaterialTheme.shapes.small).padding(12.dp))
+            else if (view.hasOnClickListeners() || view.isLongClickable) Text(view.text.toString(),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                     .combinedClickable(enabled = view.isEnabled, onClick = { view.performClick(); changed() },

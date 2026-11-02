@@ -110,6 +110,27 @@ internal val PackageUtilsFingerprint = Fingerprint(
     ),
 )
 
+/** 5.26.90.901: the same accessor re-homed to `com.waze.utils.o` and became static. */
+internal val PackageUtilsV2Fingerprint = Fingerprint(
+    definingClass = "Lcom/waze/utils/o;",
+    name = "a",
+    parameters = listOf("Landroid/content/Context;"),
+    returnType = "I",
+    filters = listOf(
+        methodCall(
+            definingClass = "Landroid/content/pm/PackageManager;",
+            name = "getPackageInfo",
+            returnType = "Landroid/content/pm/PackageInfo;",
+        ),
+        fieldAccess(
+            opcode = Opcode.IGET,
+            definingClass = "Landroid/content/pm/PackageInfo;",
+            name = "versionCode",
+            type = "I",
+        ),
+    ),
+)
+
 @Suppress("unused")
 private val disablePlayStoreUpdatesResourcePatch = resourcePatch {
     // Unnamed helper (not a row): reads the pre-lock code, then is the LAST writer of the manifest
@@ -157,7 +178,11 @@ val disablePlayStoreUpdatesPatch = bytecodePatch(
                     "refusing to report a preservation that was not applied",
             )
         }
-        val method = PackageUtilsFingerprint.method
+        val method = listOf(PackageUtilsFingerprint, PackageUtilsV2Fingerprint)
+            .firstNotNullOfOrNull { fingerprint -> runCatching { fingerprint.method }.getOrNull() }
+            ?: throw PatchException(
+                "playStoreUpdatesPatch: no PackageUtils version accessor bound on this build",
+            )
         val implementation = method.implementation
             ?: throw PatchException("playStoreUpdatesPatch: com.waze.utils.n.a has no implementation")
         var target = -1
@@ -174,7 +199,7 @@ val disablePlayStoreUpdatesPatch = bytecodePatch(
         }
         if (target < 0) {
             throw PatchException(
-                "playStoreUpdatesPatch: com.waze.utils.n.a no longer reads PackageInfo.versionCode - " +
+                "playStoreUpdatesPatch: the version accessor no longer reads PackageInfo.versionCode - " +
                     "refusing to report a preservation that was not applied",
             )
         }
@@ -185,7 +210,7 @@ val disablePlayStoreUpdatesPatch = bytecodePatch(
         val destination = if (dest < locals) "v$dest" else "p${dest - locals}"
         method.replaceInstruction(target, "const $destination, 0x${originalVersionCode.toString(16)}")
         println(
-            "playStoreUpdatesPatch: com.waze.utils.n.a now reports the pre-lock code $originalVersionCode " +
+            "playStoreUpdatesPatch: the version accessor now reports the pre-lock code $originalVersionCode " +
                 "(its push-metadata callers keep a sane number)",
         )
     }

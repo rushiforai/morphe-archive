@@ -1,0 +1,104 @@
+name: Build .mpp
+
+on:
+  push:
+    branches: [main, master]
+    paths: ["patches/**", "extensions/**", "gradle/**", "*.kts", ".github/workflows/build-mpp.yml"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version number (e.g. 1.2.0)"
+        required: true
+        type: string
+  release:
+    types: [published]
+
+permissions:
+  contents: write   # attach the .mpp to releases
+  packages: read    # Morphe's Gradle plugin lives on GitHub Packages
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set build version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          V="${INPUT_VERSION:-${TAG:-dev-${GITHUB_SHA::7}}}"
+          V="${V#v}"
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+          sed -i "s|VERSION = \"[^\"]*\"|VERSION = \"$V\"|" extensions/facebook/src/main/java/app/morphe/extension/facebook/about/BuildInfo.java
+          grep VERSION extensions/facebook/src/main/java/app/morphe/extension/facebook/about/BuildInfo.java
+
+      - name: Build patch bundle
+        env:
+          # If the built-in token can't read Morphe's packages, add a repo secret GPR_TOKEN
+          # (classic PAT, read:packages only) and it will be used instead.
+          GPR_USER: ${{ github.actor }}
+          GPR_KEY: ${{ secrets.GPR_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :patches:buildAndroid --no-daemon -Pversion="$VERSION" -Pgpr.user="$GPR_USER" -Pgpr.key="$GPR_KEY"
+
+      - name: Collect .mpp
+        run: |
+          mkdir -p dist
+          f=$(ls -t patches/build/libs/patches-*.mpp | head -1)
+          cp "$f" "dist/marketplace-patches-$VERSION.mpp"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: marketplace-patches-${{ env.VERSION }}
+          path: dist/marketplace-patches-*.mpp
+
+      - name: Create release from manual run
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v$VERSION" dist/marketplace-patches-*.mpp \
+            --title "Marketplace $VERSION" \
+            --notes "Morphe patch bundle for Facebook 582.0.0.50.54. Import the .mpp into Morphe." \
+            --target "$GITHUB_SHA"
+
+      - name: Update patches-bundle.json + patches-list.json (lets Morphe add this repo by URL)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          python3 - <<'PY'
+          import json, os, datetime
+          v = os.environ["VERSION"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+          json.dump({
+            "created_at": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"),
+            "description": f"## {v}\n\nMorphe patch bundle for Facebook 582.0.0.50.54.",
+            "download_url": f"https://github.com/{repo}/releases/download/v{v}/marketplace-patches-{v}.mpp",
+            "signature_download_url": "",
+            "version": v,
+          }, open("patches-bundle.json", "w"), indent=2)
+          PY
+          python3 tools/gen_patches_list.py "$VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin "$DEFAULT_BRANCH"
+          git checkout -B "$DEFAULT_BRANCH" "origin/$DEFAULT_BRANCH"
+          git add patches-bundle.json patches-list.json
+          git commit -m "Update patches-bundle.json and patches-list.json for v$VERSION" || echo "nothing to commit"
+          git push origin "$DEFAULT_BRANCH"
+
+      - name: Attach to release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" dist/marketplace-patches-*.mpp --clobber

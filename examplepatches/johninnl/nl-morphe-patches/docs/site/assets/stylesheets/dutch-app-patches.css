@@ -264,3 +264,13 @@ body { font-family: var(--dap-font-body); }
   .dap-logo--light { display: block !important; }
   .md-typeset .grid.cards > ul > li { break-inside: avoid; }
 }
+
+/* Keep phone walkthrough screenshots readable without filling a desktop page. */
+.md-typeset img.aa-screenshot {
+  display: block;
+  width: min(100%, 23rem);
+  height: auto;
+  margin: 1rem 0;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.5rem;
+}

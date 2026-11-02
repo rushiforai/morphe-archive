@@ -1,9 +1,12 @@
 package dev.twitchpatches.patches.twitch.reload
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -25,10 +28,13 @@ internal data class NativeReloadPlayerHooks(
     val castValueFlow: FieldReference, val castValue: MethodReference, val castType: String,
 )
 
-internal fun BytecodePatchContext.resolveNativeReloadPlayer(all: List<Method>, ui: NativeReloadUiHooks): NativeReloadPlayerHooks {
-    val constructor = all.filter {
-        it.name == "<init>" && it.hasStrings("VerticalTheatrePlayable", "VerticalTheatre", "video_cc")
-    }.uniqueHook("native live player owner")
+private object LivePlayerOwnerConstructorFingerprint : Fingerprint(
+    name = "<init>",
+    strings = listOf("VerticalTheatrePlayable", "VerticalTheatre", "video_cc"),
+)
+
+internal fun BytecodePatchContext.resolveNativeReloadPlayer(ui: NativeReloadUiHooks): NativeReloadPlayerHooks {
+    val constructor = LivePlayerOwnerConstructorFingerprint.originalMethod
     val vm = classDefBy(constructor.definingClass)
     val fragment = classDefBy(NATIVE_FRAGMENT)
     val playerGetter = fragment.methods.filter { it.isInstance(emptyList(), vm.type) }
@@ -80,7 +86,7 @@ internal fun BytecodePatchContext.resolveNativeReloadPlayer(all: List<Method>, u
     val castValue = setQuality.references().filterIsInstance<MethodReference>().filter { it.name == "getValue" }
         .uniqueHook("native remote playback state value")
     val castType = setQuality.code().filter { it.opcode == Opcode.INSTANCE_OF }.mapNotNull {
-        ((it as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? TypeReference)?.type
+        ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type
     }.filter { it != "Ltv/twitch/android/models/streams/StreamModel;" }.uniqueHook("native remote playback model")
     val state = classDefBy(wrapper.type).methods.filter { it.name == "getState" && it.parameterTypes.isEmpty() }
         .uniqueHook("native playback state getter")
@@ -90,9 +96,8 @@ internal fun BytecodePatchContext.resolveNativeReloadPlayer(all: List<Method>, u
         } && method.hasStrings("VerticalTheatre")
     }.uniqueHook("native player release")
     val flowFactory = constructor.references().filterIsInstance<MethodReference>().filter {
-        it.parameterTypes == listOf("Ljava/lang/Object;") &&
-            it.returnType in all.filter { method -> method.name == "getValue" && method.parameterTypes.isEmpty() }
-                .map { method -> method.definingClass }.toSet()
+        it.returnType.startsWith("L") && it.parameterTypes == listOf("Ljava/lang/Object;") &&
+            classDefByOrNull(it.returnType)?.methods?.any { method -> method.name == "getValue" && method.parameterTypes.isEmpty() } == true
     }.distinctBy { it.toString() }.uniqueHook("native mutable preference flow factory")
     val flowSetter = classDefBy(flowFactory.returnType).methods.filter {
         it.isInstance(listOf("Ljava/lang/Object;", "Ljava/lang/Object;"), "Z") &&
@@ -100,7 +105,7 @@ internal fun BytecodePatchContext.resolveNativeReloadPlayer(all: List<Method>, u
     }.uniqueHook("native mutable preference flow setter")
     for (field in listOf(playable, player, wrapper, media, source, metadataOwner, metadata, castFlow, castValueFlow)) {
         val definition = classDefBy(field.definingClass).fields.single { it.toString() == field.toString() }
-        if (!com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.isSet(definition.accessFlags))
+        if (!AccessFlags.PUBLIC.isSet(definition.accessFlags))
             throw PatchException("Reload stream: native player member is inaccessible: ${field.name}.")
     }
     return NativeReloadPlayerHooks(vm.type, playerGetter, controlsGetter, playable, player, wrapper, media,

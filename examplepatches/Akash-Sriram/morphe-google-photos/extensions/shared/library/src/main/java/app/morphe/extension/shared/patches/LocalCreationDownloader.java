@@ -86,31 +86,38 @@ public class LocalCreationDownloader {
     private static volatile java.lang.ref.WeakReference<Object> sCurrentMfyMixin = null;
     private static volatile java.lang.ref.WeakReference<Object> sCurrentPresenter = null;
 
-    public static synchronized void clearSavedRegistry(Context context) {
-        sSavedKeys.clear();
+    public static synchronized void clearMfySavedRegistry(Context context) {
+        Context ctx = context != null ? context.getApplicationContext() : getApplicationContext();
+        if (ctx != null) {
+            SharedPreferences prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            SharedPreferences.Editor edit = prefs.edit();
+            Map<String, ?> all = prefs.getAll();
+            for (String key : all.keySet()) {
+                if (key.startsWith("card_")) {
+                    edit.remove(key);
+                    String rawId = key.substring(5);
+                    edit.remove(rawId);
+                    sSavedKeys.remove(key);
+                    sSavedKeys.remove(rawId);
+                } else if (sCardMediaMap.containsKey(key)) {
+                    edit.remove(key);
+                    sSavedKeys.remove(key);
+                    sSavedKeys.remove("card_" + key);
+                }
+            }
+            edit.commit();
+        }
+
+        sSavedKeys.removeIf(k -> k.startsWith("card_"));
+        for (String id : sCardMediaMap.keySet()) {
+            sSavedKeys.remove(id);
+        }
         sCardMediaMap.clear();
         sWsfMediaMap.clear();
         sIdMediaMap.clear();
         sIdCardMap.clear();
         sWsfCardMap.clear();
         sCardWsfMap.clear();
-        Context ctx = context != null ? context.getApplicationContext() : getApplicationContext();
-        if (ctx != null) {
-            SharedPreferences prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-            prefs.edit().clear().commit();
-        }
-        // Clean up test collages in DCIM/Google Photos so testing from scratch is 100% clean
-        try {
-            File dir = getGooglePhotosDir();
-            if (dir.exists()) {
-                File[] files = dir.listFiles((d, name) -> name.contains("-COLLAGE") || name.contains("-ANIMATION"));
-                if (files != null) {
-                    for (File f : files) {
-                        f.delete();
-                    }
-                }
-            }
-        } catch (Throwable ignored) {}
 
         // Reset active MfyMixin state flow
         if (sCurrentMfyMixin != null && sCurrentMfyMixin.get() != null) {
@@ -132,7 +139,7 @@ public class LocalCreationDownloader {
                             }
                             if (setVal != null) {
                                 setVal.invoke(flow, new HashMap<>());
-                                Log.i(TAG, "Cleared MFY state flow in clearSavedRegistry");
+                                Log.i(TAG, "Cleared MFY state flow in clearMfySavedRegistry");
                             }
                         }
                     }
@@ -143,9 +150,9 @@ public class LocalCreationDownloader {
         }
 
         // Reset active Presenter state and sets
-        if (sCurrentPresenter != null && sCurrentPresenter.get() != null) {
+        final Object pres = (sCurrentPresenter != null) ? sCurrentPresenter.get() : sCurrentMfyDelegate;
+        if (pres != null) {
             try {
-                Object pres = sCurrentPresenter.get();
                 MAIN_HANDLER.post(() -> {
                     try {
                         updatePresenterSets(pres, null, null, false);
@@ -154,13 +161,59 @@ public class LocalCreationDownloader {
                         lMethod.invoke(pres, false);
                     } catch (Throwable ignored) {}
                 });
-                Log.i(TAG, "Cleared presenter saved sets and triggered refresh in clearSavedRegistry");
+                Log.i(TAG, "Cleared presenter saved sets and triggered refresh in clearMfySavedRegistry");
             } catch (Throwable t) {
-                Log.w(TAG, "Failed clearing presenter in clearSavedRegistry", t);
+                Log.w(TAG, "Failed clearing presenter in clearMfySavedRegistry", t);
             }
         }
 
-        Log.i(TAG, "Cleared saved memories registry and cleaned local test creations.");
+        // Also clear made_for_you_creation_initial_data.pb across all accounts so fallback re-queries fresh state
+        try {
+            if (ctx != null) {
+                File filesDir = ctx.getFilesDir();
+                File accountStorage = new File(filesDir, "accountstorage");
+                if (accountStorage.exists() && accountStorage.isDirectory()) {
+                    File[] accts = accountStorage.listFiles();
+                    if (accts != null) {
+                        for (File acct : accts) {
+                            File pb = new File(acct, "protodb/made_for_you_creation_initial_data.pb");
+                            if (pb.exists()) {
+                                if (pb.delete()) {
+                                    Log.i(TAG, "Deleted MFY initial data pb: " + pb.getAbsolutePath());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Error deleting mfy initial data pb in clearMfySavedRegistry", t);
+        }
+
+        Log.i(TAG, "Cleared MFY saved creations registry.");
+    }
+
+    public static synchronized void clearStorySavedRegistry(Context context) {
+        Context ctx = context != null ? context.getApplicationContext() : getApplicationContext();
+        if (ctx != null) {
+            SharedPreferences prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            SharedPreferences.Editor edit = prefs.edit();
+            Map<String, ?> all = prefs.getAll();
+            for (String key : all.keySet()) {
+                if (!key.startsWith("card_") && !sCardMediaMap.containsKey(key)) {
+                    edit.remove(key);
+                }
+            }
+            edit.commit();
+        }
+        sSavedKeys.removeIf(k -> !k.startsWith("card_") && !sCardMediaMap.containsKey(k));
+
+        Log.i(TAG, "Cleared Story saved creations registry.");
+    }
+
+    public static synchronized void clearSavedRegistry(Context context) {
+        clearMfySavedRegistry(context);
+        clearStorySavedRegistry(context);
     }
 
     private static void ensureReceiverRegistered(Context context) {
@@ -324,31 +377,45 @@ public class LocalCreationDownloader {
             }
             final Context appContext = sAppContext != null ? sAppContext : (context != null ? context.getApplicationContext() : null);
 
-            CreationTime time = extractCreationTime(mediaItem);
-            String collageFileName = (time != null && time.utcMs > 0) ? getOfficialCollageFileName(time) : null;
-            String animFileName = (time != null && time.utcMs > 0) ? ("IMG_" + time.formatLocalFileName() + "-ANIMATION.mp4") : null;
-            File targetCollage = (collageFileName != null) ? new File(getGooglePhotosDir(), collageFileName) : null;
-            File targetAnim = (animFileName != null) ? new File(getGooglePhotosDir(), animFileName) : null;
-            boolean fileOnDisk = (targetCollage != null && targetCollage.exists()) || (targetAnim != null && targetAnim.exists());
+            final Object pres = (sCurrentPresenter != null) ? sCurrentPresenter.get() : sCurrentMfyDelegate;
 
-            // If already saved in registry, suppress duplicate download
+            // Immediately mark THIS specific card as Saving... in StateFlow and mixin
+            if (pres != null) {
+                updateMfyCardTileState(pres, id, false, false);
+            }
+            updateMfySaveStatus(mfyMixin, id, false);
+
+            // If already saved in registry, show Saved and cleanly remove it after short delay
             if (isCreationSaved(mediaItem) || isCardSaved(id)) {
                 Log.i(TAG, "MFY creation " + id + " is already saved locally. Suppressing duplicate download.");
                 recordCardSaved(id);
+                if (pres != null) {
+                    updateMfyCardTileState(pres, id, true, false);
+                }
                 updateMfySaveStatus(mfyMixin, id, true);
+                MAIN_HANDLER.postDelayed(() -> {
+                    if (pres != null) {
+                        updateMfyCardTileState(pres, id, true, true);
+                        try {
+                            Method lMethod = pres.getClass().getMethod("l", boolean.class);
+                            lMethod.invoke(pres, false);
+                        } catch (Throwable ignored) {}
+                    }
+                    updateMfySaveStatus(mfyMixin, id, null);
+                }, 700);
                 return true;
             }
 
-            // Immediately mark as saved in memory/prefs to prevent double clicks
+            CreationTime time = extractCreationTime(mediaItem);
+            String collageFileName = (time != null && time.utcMs > 0) ? getOfficialCollageFileName(time) : null;
+            String animFileName = (time != null && time.utcMs > 0) ? ("IMG_" + time.formatLocalFileName() + "-ANIMATION.mp4") : null;
             String itemKey = extractItemKey(mediaItem);
             long utcMs = time != null ? time.utcMs : 0;
             if (appContext != null) {
                 recordSavedItem(appContext, itemKey, id, collageFileName, null, utcMs);
             }
 
-            // Set saving status (saved = false) in MFY UI state flow immediately
-            updateMfySaveStatus(mfyMixin, id, false);
-            Log.i(TAG, "Intercepted MFY creation save for ID " + id + ". Redirecting to DCIM/Google Photos.");
+            Log.i(TAG, "Intercepted MFY creation save for ID " + id + ". Exporting to DCIM/Google Photos in background.");
 
             EXECUTOR.execute(() -> {
                 if (appContext != null) {
@@ -356,21 +423,29 @@ public class LocalCreationDownloader {
                     MAIN_HANDLER.post(() -> {
                         if (success) {
                             recordCardSaved(id);
-                            updateMfySaveStatus(mfyMixin, id, true);
-                            if (sCurrentPresenter != null && sCurrentPresenter.get() != null) {
-                                Object pres = sCurrentPresenter.get();
-                                updatePresenterSets(pres, id, null, true);
-                                updatePresenterStateFlow(pres, id, null, true);
-                                try {
-                                    Method lMethod = pres.getClass().getMethod("l", boolean.class);
-                                    lMethod.invoke(pres, false);
-                                } catch (Throwable ignored) {}
-                            }
                             Toast.makeText(appContext, "Saved creation to Google Photos", Toast.LENGTH_SHORT).show();
                             Log.i(TAG, "Successfully exported MFY creation " + id + " to DCIM/Google Photos.");
+                            if (pres != null) {
+                                updateMfyCardTileState(pres, id, true, false);
+                            }
+                            updateMfySaveStatus(mfyMixin, id, true);
+                            MAIN_HANDLER.postDelayed(() -> {
+                                if (pres != null) {
+                                    updateMfyCardTileState(pres, id, true, true);
+                                    try {
+                                        Method lMethod = pres.getClass().getMethod("l", boolean.class);
+                                        lMethod.invoke(pres, false);
+                                    } catch (Throwable ignored) {}
+                                }
+                                updateMfySaveStatus(mfyMixin, id, null);
+                            }, 700);
                         } else {
                             Toast.makeText(appContext, "Failed to save creation", Toast.LENGTH_SHORT).show();
                             Log.w(TAG, "Failed exporting MFY creation " + id);
+                            if (pres != null) {
+                                updateMfyCardTileState(pres, id, null, false);
+                            }
+                            updateMfySaveStatus(mfyMixin, id, null);
                         }
                     });
                 }
@@ -404,21 +479,9 @@ public class LocalCreationDownloader {
         ClassLoader cl = LocalCreationDownloader.class.getClassLoader();
         Class<?> statusInterface = getStatusInterface(cl);
         if (saved) {
-            String[] savedClasses = new String[]{"snz", "slj"};
+            // sob.a represents Saved
+            String[] savedClasses = new String[]{"sob", "sll"};
             for (String clsName : savedClasses) {
-                try {
-                    Class<?> cls = Class.forName(clsName, true, cl);
-                    if (android.os.Parcelable.class.isAssignableFrom(cls) &&
-                            (statusInterface == null || statusInterface.isAssignableFrom(cls))) {
-                        Constructor<?> ctor = cls.getDeclaredConstructor(int.class);
-                        ctor.setAccessible(true);
-                        return ctor.newInstance(4);
-                    }
-                } catch (Throwable ignored) {}
-            }
-        } else {
-            String[] pendingClasses = new String[]{"sob", "soa", "sll", "slk"};
-            for (String clsName : pendingClasses) {
                 try {
                     Class<?> cls = Class.forName(clsName, true, cl);
                     if (android.os.Parcelable.class.isAssignableFrom(cls) &&
@@ -426,14 +489,207 @@ public class LocalCreationDownloader {
                         Field f = cls.getDeclaredField("a");
                         f.setAccessible(true);
                         Object val = f.get(null);
-                        if (val != null && (statusInterface == null || statusInterface.isInstance(val))) {
-                            return val;
-                        }
+                        if (val != null) return val;
+                    }
+                } catch (Throwable ignored) {}
+            }
+        } else {
+            // soa.a represents Saving
+            String[] savingClasses = new String[]{"soa", "slk"};
+            for (String clsName : savingClasses) {
+                try {
+                    Class<?> cls = Class.forName(clsName, true, cl);
+                    if (android.os.Parcelable.class.isAssignableFrom(cls) &&
+                            (statusInterface == null || statusInterface.isAssignableFrom(cls))) {
+                        Field f = cls.getDeclaredField("a");
+                        f.setAccessible(true);
+                        Object val = f.get(null);
+                        if (val != null) return val;
                     }
                 } catch (Throwable ignored) {}
             }
         }
         return null;
+    }
+
+    public static String extractCardIdFromSna(Object snaObj) {
+        if (snaObj == null) return null;
+        try {
+            Field aField = snaObj.getClass().getDeclaredField("a");
+            aField.setAccessible(true);
+            Object idVal = aField.get(snaObj);
+            return (idVal instanceof String) ? (String) idVal : null;
+        } catch (Throwable t) {
+            for (Field f : snaObj.getClass().getDeclaredFields()) {
+                if (f.getType() == String.class) {
+                    try {
+                        f.setAccessible(true);
+                        Object v = f.get(snaObj);
+                        if (v != null) return (String) v;
+                    } catch (Throwable ignored) {}
+                }
+            }
+        }
+        return null;
+    }
+
+    private static Object createUpdatedSna(Object originalTile, Object newStatus) {
+        if (originalTile == null) return null;
+        try {
+            Class<?> snaClass = originalTile.getClass();
+            Field aField = snaClass.getDeclaredField("a");
+            Field bField = snaClass.getDeclaredField("b");
+            Field cField = snaClass.getDeclaredField("c");
+            Field hField = snaClass.getDeclaredField("h");
+            Field dField = snaClass.getDeclaredField("d");
+            Field eField = snaClass.getDeclaredField("e");
+            Field gField = snaClass.getDeclaredField("g");
+            aField.setAccessible(true);
+            bField.setAccessible(true);
+            cField.setAccessible(true);
+            hField.setAccessible(true);
+            dField.setAccessible(true);
+            eField.setAccessible(true);
+            gField.setAccessible(true);
+
+            Object aVal = aField.get(originalTile);
+            Object bVal = bField.get(originalTile);
+            Object cVal = cField.get(originalTile);
+            Object hVal = hField.get(originalTile);
+            Object dVal = dField.get(originalTile);
+            Object eVal = eField.get(originalTile);
+            Object gVal = gField.get(originalTile);
+
+            for (Constructor<?> ctor : snaClass.getConstructors()) {
+                if (ctor.getParameterTypes().length == 8) {
+                    ctor.setAccessible(true);
+                    return ctor.newInstance(aVal, bVal, cVal, hVal, dVal, eVal, newStatus, gVal);
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Failed creating updated sna tile", t);
+        }
+        return null;
+    }
+
+    private static Object createUpdatedSny(Object originalSny, List<?> newTiles) {
+        if (originalSny == null) return null;
+        try {
+            Class<?> snyClass = originalSny.getClass();
+            Field dField = snyClass.getDeclaredField("d");
+            Field bField = snyClass.getDeclaredField("b");
+            Field cField = snyClass.getDeclaredField("c");
+            dField.setAccessible(true);
+            bField.setAccessible(true);
+            cField.setAccessible(true);
+
+            int dVal = dField.getInt(originalSny);
+            Object bVal = bField.get(originalSny);
+            Object cVal = cField.get(originalSny);
+
+            for (Constructor<?> ctor : snyClass.getConstructors()) {
+                if (ctor.getParameterTypes().length == 4) {
+                    ctor.setAccessible(true);
+                    return ctor.newInstance(dVal, newTiles, bVal, cVal);
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Failed creating updated sny", t);
+        }
+        return null;
+    }
+
+    public static void updateMfyCardTileState(Object presenter, String cardId, Boolean saved, boolean remove) {
+        if (presenter == null || cardId == null) return;
+        try {
+            Field mField = null;
+            try {
+                mField = presenter.getClass().getDeclaredField("m");
+            } catch (Throwable ignored) {}
+            if (mField == null) {
+                for (Field f : presenter.getClass().getDeclaredFields()) {
+                    String tName = f.getType().getName();
+                    if (tName.contains("culm") || tName.contains("StateFlow")) {
+                        mField = f;
+                        break;
+                    }
+                }
+            }
+            if (mField == null) return;
+            mField.setAccessible(true);
+            Object flow = mField.get(presenter);
+            if (flow == null) return;
+
+            Method getVal = null;
+            try {
+                getVal = flow.getClass().getMethod("e");
+            } catch (NoSuchMethodException e) {
+                try {
+                    getVal = flow.getClass().getMethod("getValue");
+                } catch (NoSuchMethodException ignored) {}
+            }
+            if (getVal == null) return;
+
+            Object curSny = getVal.invoke(flow);
+            if (curSny == null) return;
+
+            Field aField = null;
+            for (Field f : curSny.getClass().getDeclaredFields()) {
+                if (List.class.isAssignableFrom(f.getType())) {
+                    aField = f;
+                    break;
+                }
+            }
+            if (aField == null) return;
+            aField.setAccessible(true);
+            List<?> tiles = (List<?>) aField.get(curSny);
+            if (tiles == null || tiles.isEmpty()) return;
+
+            List<Object> newTiles = new ArrayList<>();
+            boolean found = false;
+            Object statusObj = (saved != null) ? resolveStatusObject(saved.booleanValue()) : null;
+
+            for (Object tile : tiles) {
+                if (tile == null) continue;
+                String tileId = extractCardIdFromSna(tile);
+                if (cardId.equals(tileId)) {
+                    found = true;
+                    if (remove) {
+                        // Omit from newTiles
+                        continue;
+                    } else {
+                        Object updatedTile = createUpdatedSna(tile, statusObj);
+                        if (updatedTile != null) {
+                            newTiles.add(updatedTile);
+                        } else {
+                            newTiles.add(tile);
+                        }
+                    }
+                } else {
+                    newTiles.add(tile);
+                }
+            }
+
+            if (found) {
+                Object newSny = createUpdatedSny(curSny, newTiles);
+                if (newSny != null) {
+                    Method setVal = null;
+                    try {
+                        setVal = flow.getClass().getMethod("f", Object.class);
+                    } catch (NoSuchMethodException e) {
+                        try {
+                            setVal = flow.getClass().getMethod("setValue", Object.class);
+                        } catch (NoSuchMethodException ignored) {}
+                    }
+                    if (setVal != null) {
+                        setVal.invoke(flow, newSny);
+                        Log.i(TAG, "updateMfyCardTileState: Successfully updated sny in StateFlow for " + cardId + " (saved=" + saved + ", remove=" + remove + ", newSize=" + newTiles.size() + ")");
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Error in updateMfyCardTileState", t);
+        }
     }
 
     public static void onMfyMixinBound(Object mfyMixin) {
@@ -533,7 +789,7 @@ public class LocalCreationDownloader {
         }
     }
 
-    private static void updateMfySaveStatus(Object mfyMixin, String id, boolean saved) {
+    private static void updateMfySaveStatus(Object mfyMixin, String id, Boolean saved) {
         if (mfyMixin == null || id == null) return;
         try {
             Field bField = null;
@@ -586,21 +842,26 @@ public class LocalCreationDownloader {
                             }
                         }
 
-                        Object statusObj = resolveStatusObject(saved);
-                        if (statusObj instanceof android.os.Parcelable) {
-                            newMap.put(id, statusObj);
-                            Method setVal = null;
+                        if (saved == null) {
+                            newMap.remove(id);
+                        } else {
+                            Object statusObj = resolveStatusObject(saved.booleanValue());
+                            if (statusObj instanceof android.os.Parcelable) {
+                                newMap.put(id, statusObj);
+                            }
+                        }
+
+                        Method setVal = null;
+                        try {
+                            setVal = flow.getClass().getMethod("f", Object.class);
+                        } catch (NoSuchMethodException e) {
                             try {
-                                setVal = flow.getClass().getMethod("f", Object.class);
-                            } catch (NoSuchMethodException e) {
-                                try {
-                                    setVal = flow.getClass().getMethod("setValue", Object.class);
-                                } catch (NoSuchMethodException ignored) {}
-                            }
-                            if (setVal != null) {
-                                setVal.invoke(flow, newMap);
-                                Log.i(TAG, "Updated MFY state flow for ID " + id + " to " + (saved ? "SAVED" : "SAVING"));
-                            }
+                                setVal = flow.getClass().getMethod("setValue", Object.class);
+                            } catch (NoSuchMethodException ignored) {}
+                        }
+                        if (setVal != null) {
+                            setVal.invoke(flow, newMap);
+                            Log.i(TAG, "Updated MFY state flow for ID " + id + " to " + (saved == null ? "REMOVED" : (saved ? "SAVED" : "SAVING")));
                         }
                     }
                 }
@@ -649,88 +910,153 @@ public class LocalCreationDownloader {
         }
     }
 
+    private static volatile Object sCurrentMfyDelegate;
+
     /**
-     * Intercepts hero card creation in Create Tab (Lqlb->q / Lqno->q / Lskw->q).
-     * Caches the media item and if already saved locally with a physical file,
-     * marks the card ID in presenter.j so the "Save" button starts in the "Saved" state.
+     * Captures the MFYSectionDelegate instance at the beginning of snn.j execution
+     * before p0 can be overwritten by local register allocations.
      */
-    public static void onCheckHeroCardSaved(Object presenter, String cardId, Object mediaItem) {
-        if (presenter == null || cardId == null || mediaItem == null) return;
+    public static void onMfyDelegateInit(Object delegate) {
+        if (delegate != null) {
+            sCurrentMfyDelegate = delegate;
+            sCurrentPresenter = new java.lang.ref.WeakReference<>(delegate);
+        }
+    }
+
+    /**
+     * Intercepts MFY creations loading in Create Tab (snn.j).
+     * Filters out already saved creations and ensures that at least 8 (or all available) un-saved creations
+     * are loaded from SQLite, replenishing the MFY carousel so it never collapses and always has fresh suggestions.
+     */
+    public static Object onMfyLoadCreations(Object snnDelegate, Object sngResult) {
         try {
-            sCurrentPresenter = new java.lang.ref.WeakReference<>(presenter);
-            sCardMediaMap.put(cardId, mediaItem);
-
-            // Index by allMediaId if present in mediaItem string
-            try {
-                Pattern idPat = Pattern.compile("idValue=(\\d+)");
-                Matcher m = idPat.matcher(mediaItem.toString());
-                if (m.find()) {
-                    String idVal = m.group(1);
-                    sIdMediaMap.put(idVal, mediaItem);
-                    sIdCardMap.put(idVal, cardId);
-                }
-            } catch (Throwable ignored) {}
-
-            Object wsf = null;
-            // 1. Try Lysl.b(mediaItem) in 7.98
-            try {
-                Class<?> lyslClass = Class.forName("Lysl", true, mediaItem.getClass().getClassLoader());
-                for (Method m : lyslClass.getMethods()) {
-                    if (Modifier.isStatic(m.getModifiers()) && m.getParameterTypes().length == 1 &&
-                        m.getParameterTypes()[0].isInstance(mediaItem) && m.getReturnType() != void.class) {
-                        wsf = m.invoke(null, mediaItem);
-                        if (wsf != null) break;
+            List<?> creations = null;
+            if (sngResult != null) {
+                for (Field f : sngResult.getClass().getDeclaredFields()) {
+                    if (List.class.isAssignableFrom(f.getType())) {
+                        f.setAccessible(true);
+                        creations = (List<?>) f.get(sngResult);
+                        break;
                     }
                 }
-            } catch (Throwable ignored) {}
+            }
 
-            // 2. Candidate classes for identifier wrapper
-            if (wsf == null) {
-                for (String cls : new String[]{"ysk", "ysd", "wtz", "wsh", "wsg", "wss", "wuw"}) {
-                    try {
-                        Class<?> wsgClass = Class.forName(cls, true, mediaItem.getClass().getClassLoader());
-                        for (Method m : wsgClass.getMethods()) {
-                            if (m.getParameterTypes().length == 1 &&
-                                m.getParameterTypes()[0].isInstance(mediaItem) &&
-                                m.getReturnType() != void.class &&
-                                Modifier.isStatic(m.getModifiers())) {
-                                wsf = m.invoke(null, mediaItem);
-                                if (wsf != null) break;
-                            }
-                        }
-                        if (wsf == null) {
-                            for (java.lang.reflect.Constructor<?> c : wsgClass.getConstructors()) {
-                                if (c.getParameterTypes().length == 2 &&
-                                    c.getParameterTypes()[0].isInstance(mediaItem) &&
-                                    c.getParameterTypes()[1] == boolean.class) {
-                                    wsf = c.newInstance(mediaItem, false);
-                                    if (wsf != null) break;
-                                }
-                            }
-                        }
-                    } catch (Throwable ignored) {}
-                    if (wsf != null) break;
+            // Filter out any creations that are already marked as saved
+            List<Object> unSavedCreations = new ArrayList<>();
+            if (creations != null) {
+                for (Object item : creations) {
+                    String cardId = extractCardIdFromSna(item);
+                    if (cardId == null || !isCardSaved(cardId)) {
+                        unSavedCreations.add(item);
+                    }
                 }
             }
 
-            if (wsf != null) {
-                sWsfMediaMap.put(wsf, mediaItem);
-                sCardWsfMap.put(cardId, wsf);
-                sWsfCardMap.put(wsf, cardId);
+            // If the loaded creations already have >= 3 un-saved items and no saved items were present, return them directly
+            if (unSavedCreations.size() >= 3 && unSavedCreations.size() == (creations != null ? creations.size() : 0)) {
+                Log.d(TAG, "onMfyLoadCreations: Loaded " + unSavedCreations.size() + " un-saved creations from proto/recent window.");
+                return sngResult;
             }
 
+            int currentCount = unSavedCreations.size();
+            Log.i(TAG, "onMfyLoadCreations: Un-saved creations count (" + currentCount + ") < 3. Falling back to query all historical creations from assistant_cards...");
+
+            Object delegate = snnDelegate;
+            if (delegate == null || delegate instanceof Map || delegate instanceof Collection) {
+                delegate = sCurrentMfyDelegate;
+                if (delegate == null && sCurrentPresenter != null) {
+                    delegate = sCurrentPresenter.get();
+                }
+            }
+            if (delegate == null) {
+                Log.w(TAG, "onMfyLoadCreations: delegate is null, cannot perform fallback");
+                return sngResult;
+            }
+
+            // Find method d(Instant, boolean, Set) on snnDelegate
+            Method queryAllMethod = null;
+            for (Method m : delegate.getClass().getDeclaredMethods()) {
+                Class<?>[] pTypes = m.getParameterTypes();
+                if (pTypes.length == 3 && pTypes[1] == boolean.class && Set.class.isAssignableFrom(pTypes[2])) {
+                    queryAllMethod = m;
+                    break;
+                }
+            }
+
+            if (queryAllMethod != null) {
+                queryAllMethod.setAccessible(true);
+                // First attempt: diverse categories (z=true)
+                Object fallbackSng = queryAllMethod.invoke(delegate, null, true, new java.util.LinkedHashSet<>());
+                List<?> fallbackList = extractListFromSng(fallbackSng);
+                int fallbackCount = fallbackList != null ? fallbackList.size() : 0;
+                Log.i(TAG, "onMfyLoadCreations: Fallback query (z=true) returned " + fallbackCount + " creations.");
+
+                // If diverse query returned < 3 items, try all categories (z=false)
+                if (fallbackCount < 3) {
+                    fallbackSng = queryAllMethod.invoke(delegate, null, false, new java.util.LinkedHashSet<>());
+                    fallbackList = extractListFromSng(fallbackSng);
+                    fallbackCount = fallbackList != null ? fallbackList.size() : 0;
+                    Log.i(TAG, "onMfyLoadCreations: Fallback query (z=false) returned " + fallbackCount + " creations.");
+                }
+
+                if (fallbackCount > 0) {
+                    return fallbackSng;
+                }
+            } else {
+                Log.w(TAG, "onMfyLoadCreations: Could not find d(Instant, boolean, Set) on " + delegate.getClass().getName());
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Error in onMfyLoadCreations fallback", t);
+        }
+        return sngResult;
+    }
+
+    private static List<?> extractListFromSng(Object sngObj) {
+        if (sngObj == null) return null;
+        try {
+            for (Field f : sngObj.getClass().getDeclaredFields()) {
+                if (List.class.isAssignableFrom(f.getType())) {
+                    f.setAccessible(true);
+                    return (List<?>) f.get(sngObj);
+                }
+            }
+        } catch (Throwable ignored) {}
+        return null;
+    }
+
+    /**
+     * Called at instruction 0 of snn.q(str, bzdj).
+     * If the card has already been saved, returns true to signal q to return null immediately.
+     * This causes snn.d to cleanly skip saved cards and pull the next un-saved creation from SQLite.
+     */
+    public static boolean shouldFilterMfyCard(Object presenter, String cardId, Object mediaItem) {
+        if (presenter != null) {
+            sCurrentPresenter = new java.lang.ref.WeakReference<>(presenter);
+            sCurrentMfyDelegate = presenter;
+        }
+        if (cardId == null) return false;
+        if (mediaItem != null) {
+            sCardMediaMap.put(cardId, mediaItem);
+        }
+        try {
             boolean saved = isCreationSaved(mediaItem) || isCardSaved(cardId);
             if (saved) {
                 recordCardSaved(cardId);
-                updatePresenterSets(presenter, cardId, wsf, true);
-                Log.i(TAG, "Marked hero card " + cardId + " as saved in Create Tab presenter");
-            } else {
-                updatePresenterSets(presenter, cardId, wsf, false);
-                updatePresenterStateFlow(presenter, cardId, wsf, false);
+                updatePresenterSets(presenter, cardId, null, true);
+                Log.d(TAG, "shouldFilterMfyCard: Skipping saved card " + cardId);
+                return true;
             }
         } catch (Throwable t) {
-            Log.w(TAG, "Error in onCheckHeroCardSaved", t);
+            Log.w(TAG, "Error in shouldFilterMfyCard", t);
         }
+        return false;
+    }
+
+    /**
+     * Legacy hook retained for backward compatibility.
+     */
+    public static void onCheckHeroCardSaved(Object presenter, String cardId, Object mediaItem) {
+        shouldFilterMfyCard(presenter, cardId, mediaItem);
     }
 
     private static void updatePresenterSets(Object presenter, Object cardId, Object wsf, boolean saved) {
@@ -2336,6 +2662,9 @@ public class LocalCreationDownloader {
      * so that the equality check Intrinsics.areEqual(newSlm, skm.f) evaluates to true and safely skips updating.
      */
     public static Object safeSlm(Object candidate, Object skm) {
+        if (candidate == null) {
+            return null;
+        }
         ClassLoader cl = LocalCreationDownloader.class.getClassLoader();
         Class<?> statusInterface = getStatusInterface(cl);
         if (candidate instanceof android.os.Parcelable) {
@@ -2363,11 +2692,7 @@ public class LocalCreationDownloader {
                 Log.w(TAG, "safeSlm fallback error: " + t.getMessage());
             }
         }
-        Object fallback = resolveStatusObject(false);
-        if (fallback instanceof android.os.Parcelable) {
-            return fallback;
-        }
-        return candidate;
+        return null;
     }
 
     public static Integer resolveBucketId(Integer bucketId) {

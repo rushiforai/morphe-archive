@@ -8,17 +8,19 @@ import java.util.regex.Pattern;
 
 /**
  * Removes what could identify the user or a place from every string of a problem report, on the
- * device and before the preview, so the preview shows what is sent. Rules version 1, in this order:
+ * device and before the preview, so the preview shows what is sent. Rules version 2, in this order:
  * the Send to car extra, map links, URL queries, coordinates, e-mail addresses (MicroG account
- * names), VINs and IP addresses. Free text such as a street name in the comment is not detected;
+ * names), VINs, IP addresses and, from version 2, numbers of 15 or more digits (Maps writes the
+ * account's number into paths such as files/users/road_view/<21 digits>/, which reach the report with
+ * its logcat lines). Free text such as a street name in the comment is not detected;
  * the preview is the user's control for that. Plain Java, so it can be checked off the device.
  */
 final class ReportRedactor {
-    static final int RULES_VERSION = 1;
+    static final int RULES_VERSION = 2;
     private static final String[] KEYS = {"send_to_car_extras", "map_links", "url_queries", "coordinates", "emails",
-            "vins", "ip_addresses"};
+            "vins", "ip_addresses", "long_ids"};
     private static final int SEND_TO_CAR = 0, MAP_LINKS = 1, URL_QUERIES = 2, COORDINATES = 3, EMAILS = 4, VINS = 5,
-            IP_ADDRESSES = 6;
+            IP_ADDRESSES = 6, LONG_IDS = 7;
     // A URL ends at white space, quotes, angle brackets or a closing parenthesis.
     private static final String URL_REST = "[^\\s\"'<>)]*";
     private static final Pattern SEND_TO_CAR_EXTRA = Pattern.compile("\\(send to car: [^)]*\\)");
@@ -35,6 +37,8 @@ final class ReportRedactor {
     // Not part of a longer dotted number such as a version.
     private static final Pattern IPV4 = Pattern.compile("(?<![\\d.])(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})(?!\\.?\\d)");
     private static final Pattern IPV6 = Pattern.compile("(?<![0-9A-Fa-f:])(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}(?![0-9A-Fa-f:])");
+    // A whole run of digits, not part of a word, a hex string or a dotted number.
+    private static final Pattern LONG_ID = Pattern.compile("(?<![0-9A-Za-z.])\\d{15,}(?![0-9A-Za-z.])");
 
     private final int[] counts = new int[KEYS.length];
 
@@ -59,6 +63,7 @@ final class ReportRedactor {
             return "<ip>";
         });
         text = replace(text, IPV6, IP_ADDRESSES, match -> "<ip>");
+        text = replace(text, LONG_ID, LONG_IDS, match -> "<id>");
         return text;
     }
 

@@ -1,0 +1,8 @@
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="@color/v1_surface_primary_ripple">
+  <item>
+    <selector>
+      <item android:state_checked="true"><layer-list><item android:width="65dp" android:height="52.5dp" android:gravity="center" android:drawable="@drawable/transit_en_bg_menu_delay_on" /></layer-list></item>
+      <item><layer-list><item android:width="65dp" android:height="52.5dp" android:gravity="center" android:drawable="@drawable/transit_en_bg_menu_delay_off" /></layer-list></item>
+    </selector>
+  </item>
+</ripple>

@@ -6,13 +6,9 @@ import dev.twitchpatches.patches.twitch.shared.hermes.MetroExports
 
 internal fun renderUiChatOverlays(bundle: HermesBundle): String {
     val exports = MetroExports(bundle)
-    val train = bundle.functions.single { bundle.strings[it.name] == "TheatrePlayerHypeTrain" && it.params == 2 }
-    val wrapped = bundle.instructions(train).any { it.name.startsWith("GetById") && bundle.strings[it.args.last()] == "ErrorBoundary" }
-    val trainProperties = if (wrapped) setOf("ErrorBoundary") else
-        setOf("channelId", "useHypeTrainOverlayState", "useCondensedHypeTrainDisplayState")
     val targets = mapOf(
         "BOARDS" to exports.resolve("ChannelLeaderboardStripHost", setOf("useChannelLeaderboard", "hiddenForTray", "ChatTopBannerCarousel")),
-        "TRAIN_PLAYER" to exports.resolve("TheatrePlayerHypeTrain", trainProperties),
+        "TRAIN_PLAYER" to exports.resolve("TheatrePlayerHypeTrain", setOf("ErrorBoundary")),
         "TRAIN_SKYLINE" to exports.resolve("SkylineHypeTrainHost", setOf("useHighlightSelector", "HypeTrainHighlightRenderer", "HighlightChrome")),
         "TRAIN_RENDERER" to exports.resolveDeferred("HypeTrainHighlightRenderer", setOf("highlight", "expanded", "onToggleExpanded")),
         "HIGHLIGHTS" to exports.resolve("useHighlightSelector", setOf("useContext", "useStore")),

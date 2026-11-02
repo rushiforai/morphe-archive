@@ -1,0 +1,110 @@
+{
+  "scope": "Local candidate build and synthetic native-callback IPC verification; no live-drive accuracy claim",
+  "targets": {
+    "com.waze": "5.26.90.901 (1030746)",
+    "nl.flitsmeister": "14.17 (1287)"
+  },
+  "transport": "nl.johninnl.navigation.NAVIGATION_STATE",
+  "same_receiver_for_both": true,
+  "android_api": 36,
+  "architecture": "arm64-v8a",
+  "activities_backgrounded": true,
+  "flitsmeister_overlay_permission": "denied",
+  "waze_zone_overlay_enabled": false,
+  "native_probe": {
+    "flitsmeister": "real background service, location singleton and zone task; real native methods driven with deterministic observations",
+    "waze": "live Koin LocationSensorListener and native navigation/insights callbacks"
+  },
+  "combined_applications": {
+    "Waze": 29,
+    "Flitsmeister": 7
+  },
+  "flitsmeister_retained_contracts": {
+    "entire_methods": 395,
+    "pairip_classes": 66,
+    "restored_functional_callbacks": 13,
+    "new_native_hooks": 8
+  },
+  "unit_tests": {
+    "waze": 18,
+    "flitsmeister": 10
+  },
+  "python": {
+    "run": 396,
+    "skipped": 39,
+    "failures": 0
+  },
+  "release_node_tests": 39,
+  "bilingual_app_pages": 86,
+  "capture_verification": {
+    "com.waze": {
+      "events": 20,
+      "session": "11a02d8e-c10b-4f46-814d-8eff1c31df6e",
+      "cross_uid_authenticated": true,
+      "segments": [
+        "probe-a",
+        "probe-b"
+      ],
+      "current_speed_and_partial_average": true,
+      "clearing": true
+    },
+    "nl.flitsmeister": {
+      "events": 20,
+      "session": "7be88ccf-040c-4b09-ba6f-ca1fec84c919",
+      "cross_uid_authenticated": true,
+      "segments": [
+        "probe-zone:1",
+        "probe-zone:2"
+      ],
+      "current_speed_and_partial_average": true,
+      "clearing": true
+    }
+  },
+  "candidate_mpp_sha256": "069b2f29a48c92a5e87a20f47635839a0f3efdcd324a252e68fa99f3124ac083",
+  "capture_sha256": "2c152b5880364ab6609c7a88158acf70f12f49a07a880d630919dfd4c6c61c59",
+  "limitations": [
+    "synthetic native observations, not physical driving or head-unit validation",
+    "background delivery still requires active app engine/service and permitted location",
+    "Flitsmeister projected progress and all observed averages are partial estimates"
+  ],
+  "main_candidate": {
+    "flitsmeister_combined_controls": 8,
+    "guest_mode_preserved": true,
+    "python_tests": 412,
+    "python_skipped": 45,
+    "extension_unit_tests": 28,
+    "release_node_tests": 39,
+    "candidate_mpp_sha256": "a8be8929c4f58073146473c99eff807ad07edf47b1d88de0d24cfba4af3ff8e5",
+    "extension_payloads_identical_to_signed_dev_5": true
+  },
+  "published_prerelease": {
+    "version": "1.9.0-dev.5",
+    "mpp_sha256": "e077ae11d65bcbb0def5fca8050cd95bc53dafef6e351171048ab58e30f77362",
+    "signature_verified": true,
+    "workflow_run": 41332271255,
+    "native_receiver_verification": {
+      "com.waze": {
+        "events": 18,
+        "session": "cfe16762-c06b-4972-bfa2-590fe6c1ecab",
+        "cross_uid_authenticated": true,
+        "segments": [
+          "probe-a",
+          "probe-b"
+        ],
+        "current_speed_and_partial_average": true,
+        "clearing": true
+      },
+      "nl.flitsmeister": {
+        "events": 19,
+        "session": "8bb02425-4d75-4e91-9759-89d82f6b7c5e",
+        "cross_uid_authenticated": true,
+        "segments": [
+          "probe-zone:1",
+          "probe-zone:2"
+        ],
+        "current_speed_and_partial_average": true,
+        "clearing": true
+      }
+    }
+  }
+}

@@ -43,15 +43,48 @@ def metadata(path, input_type="APKS"):
 
 
 class AppPageTests(unittest.TestCase):
-    def test_catalogue_only_addon_requires_no_app_guide(self):
+    def test_waze_any_version_addon_requires_its_app_guide(self):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / 'metadata.json'
-            expected = metadata(path)
+            metadata(path)
             data = json.loads(path.read_text())
             data['patches'].append({'name': 'YT Music Morphe in Waze', 'compatiblePackages': [{
                 'packageName': 'com.waze', 'formFactor': 'MOBILE', 'targets': [{'version': None}]}]})
             path.write_text(json.dumps(data))
-            self.assertEqual(pages.load_apps([path]), expected)
+            apps = pages.load_apps([path])
+            self.assertIn('waze', apps)
+            self.assertEqual(apps['waze'][path]['targets'][(None, None)]['controls'],
+                             {'YT Music Morphe in Waze': True})
+
+    def test_version_only_target_includes_any_version_controls_and_rejects_drift(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            source = directory / 'metadata.json'
+            source.write_text(json.dumps({'patches': [
+                {'name': name, 'default': default, 'compatiblePackages': [{
+                    'packageName': 'com.waze', 'apkFileType': 'APKM',
+                    'targets': [{'version': version, 'versionCodes': None}]}]}
+                for name, default, version in [('Hide ads', True, '1.0'),
+                                               ('Audio add-on', False, None)]
+            ]}))
+            apps = pages.load_apps([source])
+            target = directory / 'waze.md'
+            text = fixture(input_type='APKM') + '| **Audio add-on** | Off | Adds audio. |\n'
+            rows = {'waze': {'url': '../guides/downloads.md#local-original-inputs',
+                             'version': '1.0', 'build': '100'}}
+            for candidate, error in [
+                (text, None),
+                (text.replace('**Audio add-on** | Off', '**Audio add-on** | On'), 'patch names/defaults'),
+                (text.replace('**App version:** 1.0', '**App version:** 9.0'), 'patch names/defaults'),
+                (text.replace('**Build:** 100', '**Build:** 999'), 'target differs from downloads'),
+            ]:
+                with self.subTest(error=error):
+                    target.write_text(candidate)
+                    errors = pages.check_page(target, 'en', apps, rows)
+                    if error is None:
+                        self.assertEqual(errors, [])
+                    else:
+                        self.assertTrue(any(error in message for message in errors), errors)
 
     def test_unknown_package_still_requires_an_app_mapping(self):
         with tempfile.TemporaryDirectory() as temporary:

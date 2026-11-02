@@ -14,6 +14,6 @@ object ForceUpdateFieldAccessFingerprint :
                     name = "force_update",
                     type = Type.boolean,
                     opcode = Opcode.IGET_BOOLEAN,
-                )
-            )
+                ),
+            ),
     )

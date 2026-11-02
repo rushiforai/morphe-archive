@@ -1617,6 +1617,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchHiddenNgMenu(packageMetadata.versionName)
         patchNativeUploadHistory(packageMetadata.versionName)
         patchPostingOverflowMenu(packageMetadata.versionName, "MediaUploadHosts", "upload_hosts")
+        patchNativeReaderUi(packageMetadata.versionName)
         patchResponseArchive(packageMetadata.versionName)
         patchArchiveOrigins(packageMetadata.versionName)
         patchThreadArchiveOrder(packageMetadata.versionName)

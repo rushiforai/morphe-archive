@@ -17,7 +17,7 @@ object PremiumFingerprint : Fingerprint(
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
-    name = "Unlock TrebEdit Premium",
+    name = "Unlock Premium Features",
     description = "Unlocks lifetime access to TrebEdit Premium.",
     default = true
 ) {

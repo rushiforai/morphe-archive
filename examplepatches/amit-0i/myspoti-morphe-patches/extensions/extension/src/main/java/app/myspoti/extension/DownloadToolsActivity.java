@@ -14,6 +14,8 @@ import android.graphics.drawable.RippleDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.DocumentsContract;
 import android.view.Gravity;
 import android.view.View;
@@ -38,21 +40,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Spotify-inspired offline tools screen opened from MySpoti Settings > Downloads.
- * Keeps export, tagging, artwork and storage-migration behavior in the same Activity.
+ * Offline tools screen opened from MySpoti Settings > Downloads.
+ * Both appearances mirror MySpoti's own Classic and Immersive palettes and accent preferences.
+ * Export, tagging, artwork and storage-migration behavior remain unchanged.
  */
 public final class DownloadToolsActivity extends Activity {
     private static final int REQUEST_EXPORT_FOLDER = 741;
 
-    // Classic Spotify palette: near-black canvas, raised charcoal surfaces and green actions.
-    private static final int BG = Color.rgb(18, 18, 18);          // #121212
-    private static final int SURFACE = Color.rgb(36, 36, 36);     // #242424
-    private static final int SURFACE_ALT = Color.rgb(42, 42, 42); // #2A2A2A
-    private static final int DIVIDER = Color.rgb(58, 58, 58);
-    private static final int GREEN = Color.rgb(30, 215, 96);     // #1ED760
-    private static final int TEXT = Color.WHITE;
-    private static final int MUTED = Color.rgb(179, 179, 179);   // #B3B3B3
-    private static final int SUBTLE = Color.rgb(128, 128, 128);
+    // Both looks read their own accent preference; the surrounding surface palette follows the look.
+    private int BG = 0xFF121212;
+    private int SURFACE = 0xFF1F1F1F;
+    private int SURFACE_ALT = 0xFF282828;
+    private int DIVIDER = 0xFF3E3E3E;
+    private int ACCENT = 0xFF1ED760;
+    private int TEXT = Color.WHITE;
+    private int MUTED = 0xFFB3B3B3;
+    private int SUBTLE = 0xFF808080;
+    private boolean immersiveLook;
+    private Typeface immersiveTypeface;
 
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private TextView trackCount;
@@ -68,13 +73,89 @@ public final class DownloadToolsActivity extends Activity {
     private Dialog progressDialog;
     private ProgressBar progressBar;
     private TextView progressMessage;
+    private LinearLayout backgroundStopButton;
+    private boolean activityResumed;
+    private boolean observedActiveSync;
+    private final Handler syncStatusHandler = new Handler(Looper.getMainLooper());
+    private final Runnable syncStatusPoller = new Runnable() {
+        @Override public void run() {
+            renderSyncCoordinatorStatus();
+            if (activityResumed) syncStatusHandler.postDelayed(this, 750L);
+        }
+    };
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
+        applyLookPalette();
         configureWindow();
         buildUi();
         refreshSummary();
-        autoSyncSavedFolder();
+        // Opening this screen is read-only: show the saved archive/sync state, but
+        // never start an automatic export pass just because the user viewed the page.
+        showSavedExportStatus();
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        activityResumed = true;
+        syncStatusHandler.removeCallbacks(syncStatusPoller);
+        syncStatusHandler.post(syncStatusPoller);
+    }
+
+    @Override protected void onPause() {
+        activityResumed = false;
+        syncStatusHandler.removeCallbacks(syncStatusPoller);
+        super.onPause();
+    }
+
+    private void renderSyncCoordinatorStatus() {
+        ExportSyncCoordinator.Snapshot snapshot = ExportSyncCoordinator.snapshot();
+        if (snapshot.running) {
+            observedActiveSync = true;
+            if (exportSyncStatus != null) exportSyncStatus.setText(snapshot.displayText());
+            if (backgroundStopButton != null) {
+                backgroundStopButton.setVisibility(snapshot.canStop ? View.VISIBLE : View.GONE);
+                backgroundStopButton.setEnabled(!snapshot.stopRequested);
+            }
+        } else {
+            if (observedActiveSync && snapshot.lastResult != null && !snapshot.lastResult.trim().isEmpty()
+                    && exportSyncStatus != null) exportSyncStatus.setText(snapshot.lastResult);
+            observedActiveSync = false;
+            if (backgroundStopButton != null) backgroundStopButton.setVisibility(View.GONE);
+        }
+    }
+
+    /** Read the same look/accent preferences that MySpoti uses in its Compose theme. */
+    private void applyLookPalette() {
+        immersiveLook = MySpotiImmersiveStyle.isImmersive(this);
+        ACCENT = MySpotiImmersiveStyle.accent(this, immersiveLook);
+        // Match MySpoti's Classic Material color scheme, including its optional AMOLED black page.
+        BG = getSharedPreferences("energy_settings", MODE_PRIVATE)
+                .getBoolean("black_background", false) ? Color.BLACK : 0xFF121212;
+        SURFACE = 0xFF1F1F1F;
+        SURFACE_ALT = 0xFF282828;
+        DIVIDER = 0xFF3E3E3E;
+        TEXT = Color.WHITE;
+        MUTED = 0xFFB3B3B3;
+        SUBTLE = 0xFF808080;
+        if (immersiveLook) {
+            // Reuse MySpoti's packaged Inter font when present; fall back to the Android sans face
+            // on builds whose resource table does not expose it to the extension activity.
+            if (Build.VERSION.SDK_INT >= 26) {
+                int interId = getResources().getIdentifier("inter", "font", null);
+                if (interId != 0) {
+                    try { immersiveTypeface = getResources().getFont(interId); }
+                    catch (Throwable ignored) { immersiveTypeface = null; }
+                }
+            }
+            BG = MySpotiImmersiveStyle.PAGE;
+            SURFACE = MySpotiImmersiveStyle.RAISED;
+            SURFACE_ALT = MySpotiImmersiveStyle.GLASS_FILL;
+            DIVIDER = MySpotiImmersiveStyle.SEPARATOR;
+            TEXT = MySpotiImmersiveStyle.TEXT;
+            MUTED = MySpotiImmersiveStyle.TEXT_SECONDARY;
+            SUBTLE = MySpotiImmersiveStyle.TEXT_TERTIARY;
+        }
     }
 
     private void configureWindow() {
@@ -94,6 +175,20 @@ public final class DownloadToolsActivity extends Activity {
         flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
         flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
         decor.setSystemUiVisibility(flags);
+    }
+
+    /** Mirrors ImmersiveSwitchRow: white thumb, selected accent track, graphite off track. */
+    private void applySwitchColors(Switch control) {
+        int checkedThumb = immersiveLook ? Color.WHITE : ACCENT;
+        int uncheckedThumb = immersiveLook ? Color.WHITE : 0xFFB3B3B3;
+        int checkedTrack = MySpotiImmersiveStyle.withAlpha(ACCENT, immersiveLook ? 255 : 136);
+        int uncheckedTrack = immersiveLook ? 0xFF3A3A3F : 0xFF555555;
+        control.setThumbTintList(new ColorStateList(
+                new int[][] { new int[] { android.R.attr.state_checked }, new int[] {} },
+                new int[] { checkedThumb, uncheckedThumb }));
+        control.setTrackTintList(new ColorStateList(
+                new int[][] { new int[] { android.R.attr.state_checked }, new int[] {} },
+                new int[] { checkedTrack, uncheckedTrack }));
     }
 
     private void buildUi() {
@@ -151,13 +246,14 @@ public final class DownloadToolsActivity extends Activity {
         LinearLayout.LayoutParams crumbParams = new LinearLayout.LayoutParams(0, -2, 1f);
         crumbParams.leftMargin = dp(13);
         top.addView(breadcrumb, crumbParams);
-        TextView badge = label("OFFLINE", 10, GREEN, Typeface.BOLD);
+        TextView badge = label("OFFLINE", 10, ACCENT, Typeface.BOLD);
         badge.setLetterSpacing(0.12f);
         top.addView(badge);
         root.addView(top);
 
         addSpace(root, 25);
-        TextView title = label("Export & storage", 30, TEXT, Typeface.create("sans-serif-black", Typeface.NORMAL));
+        TextView title = label("Export & storage", immersiveLook ? 32 : 30, TEXT,
+                Typeface.create(immersiveLook ? "sans-serif" : "sans-serif-black", Typeface.BOLD));
         title.setLineSpacing(0, 1f);
         root.addView(title);
         addSpace(root, 5);
@@ -168,7 +264,7 @@ public final class DownloadToolsActivity extends Activity {
         LinearLayout overview = card();
         LinearLayout overviewHeader = row(this);
         overviewHeader.setGravity(Gravity.CENTER_VERTICAL);
-        TextView musicIcon = iconBadge("♫", GREEN, Color.BLACK, 46);
+        TextView musicIcon = iconBadge("♫", immersiveLook ? SURFACE_ALT : ACCENT, immersiveLook ? ACCENT : Color.BLACK, 46);
         overviewHeader.addView(musicIcon, new LinearLayout.LayoutParams(dp(46), dp(46)));
 
         LinearLayout overviewTitles = column();
@@ -178,7 +274,7 @@ public final class DownloadToolsActivity extends Activity {
         addSpace(overviewTitles, 3);
         overviewTitles.addView(label("Saved on this device", 12, MUTED, Typeface.NORMAL));
         overviewHeader.addView(overviewTitles, titleParams);
-        TextView localPill = label("LOCAL", 10, GREEN, Typeface.BOLD);
+        TextView localPill = label("LOCAL", 10, ACCENT, Typeface.BOLD);
         localPill.setLetterSpacing(0.08f);
         overviewHeader.addView(localPill);
         overview.addView(overviewHeader);
@@ -189,7 +285,7 @@ public final class DownloadToolsActivity extends Activity {
 
         LinearLayout metrics = row(this);
         LinearLayout countMetric = column();
-        trackCount = label("—", 27, TEXT, Typeface.create("sans-serif-black", Typeface.NORMAL));
+        trackCount = label("—", 27, TEXT, immersiveLook ? Typeface.create("sans-serif", Typeface.BOLD) : Typeface.create("sans-serif-black", Typeface.NORMAL));
         countMetric.addView(trackCount);
         addSpace(countMetric, 2);
         countMetric.addView(label("DOWNLOADED TRACKS", 10, MUTED, Typeface.BOLD));
@@ -203,7 +299,7 @@ public final class DownloadToolsActivity extends Activity {
         metrics.addView(metricDivider, metricDividerParams);
 
         LinearLayout sizeMetric = column();
-        storageSize = label("—", 27, TEXT, Typeface.create("sans-serif-black", Typeface.NORMAL));
+        storageSize = label("—", 27, TEXT, immersiveLook ? Typeface.create("sans-serif", Typeface.BOLD) : Typeface.create("sans-serif-black", Typeface.NORMAL));
         sizeMetric.addView(storageSize);
         addSpace(sizeMetric, 2);
         sizeMetric.addView(label("SPACE USED", 10, MUTED, Typeface.BOLD));
@@ -227,7 +323,7 @@ public final class DownloadToolsActivity extends Activity {
         LinearLayout exportCard = card();
         LinearLayout exportHeading = row(this);
         exportHeading.setGravity(Gravity.CENTER_VERTICAL);
-        exportHeading.addView(iconBadge("↗", GREEN, Color.BLACK, 42), new LinearLayout.LayoutParams(dp(42), dp(42)));
+        exportHeading.addView(iconBadge("↗", immersiveLook ? SURFACE_ALT : ACCENT, immersiveLook ? ACCENT : Color.BLACK, 42), new LinearLayout.LayoutParams(dp(42), dp(42)));
         LinearLayout exportTitleBlock = column();
         LinearLayout.LayoutParams exportTitleParams = new LinearLayout.LayoutParams(0, -2, 1f);
         exportTitleParams.leftMargin = dp(12);
@@ -255,9 +351,9 @@ public final class DownloadToolsActivity extends Activity {
         addSpace(exportCard, 18);
         LinearLayout exportButton = actionButton("Choose / reconnect export folder", true, "→");
         exportButton.setOnClickListener(v -> chooseExportFolder());
-        exportCard.addView(exportButton, new LinearLayout.LayoutParams(-1, dp(50)));
+        exportCard.addView(exportButton, new LinearLayout.LayoutParams(-1, dp(immersiveLook ? 50 : 50)));
         addSpace(exportCard, 10);
-        TextView metadataNote = label("Title, artist, album, artwork and lyrics are embedded where supported. Synced lyrics are also saved as .lrc sidecars. Audio is not re-encoded.", 11, SUBTLE, Typeface.NORMAL);
+        TextView metadataNote = label("Title, artist, album and artwork are embedded where supported. Lyrics are saved separately in Lyrics/LRC and Lyrics/JSON. Audio is not re-encoded.", 11, SUBTLE, Typeface.NORMAL);
         metadataNote.setGravity(Gravity.CENTER);
         exportCard.addView(metadataNote);
 
@@ -273,12 +369,7 @@ public final class DownloadToolsActivity extends Activity {
         autoSyncRow.addView(autoSyncText, new LinearLayout.LayoutParams(0, -2, 1f));
         autoSyncSwitch = new Switch(this);
         autoSyncSwitch.setShowText(false);
-        autoSyncSwitch.setThumbTintList(new ColorStateList(
-                new int[][] { new int[] { android.R.attr.state_checked }, new int[] {} },
-                new int[] { GREEN, 0xFFB3B3B3 }));
-        autoSyncSwitch.setTrackTintList(new ColorStateList(
-                new int[][] { new int[] { android.R.attr.state_checked }, new int[] {} },
-                new int[] { 0x8830D760, 0xFF555555 }));
+        applySwitchColors(autoSyncSwitch);
         boolean autoSyncEnabled = getSharedPreferences(ExportIndex.PREFS, MODE_PRIVATE)
                 .getBoolean(ExportIndex.PREF_AUTO_SYNC, false);
         autoSyncSwitch.setChecked(autoSyncEnabled);
@@ -303,12 +394,7 @@ public final class DownloadToolsActivity extends Activity {
         deleteSyncRow.addView(deleteSyncText, new LinearLayout.LayoutParams(0, -2, 1f));
         deleteSyncSwitch = new Switch(this);
         deleteSyncSwitch.setShowText(false);
-        deleteSyncSwitch.setThumbTintList(new ColorStateList(
-                new int[][] { new int[] { android.R.attr.state_checked }, new int[] {} },
-                new int[] { GREEN, 0xFFB3B3B3 }));
-        deleteSyncSwitch.setTrackTintList(new ColorStateList(
-                new int[][] { new int[] { android.R.attr.state_checked }, new int[] {} },
-                new int[] { 0x8830D760, 0xFF555555 }));
+        applySwitchColors(deleteSyncSwitch);
         boolean deleteSyncEnabled = getSharedPreferences(ExportIndex.PREFS, MODE_PRIVATE)
                 .getBoolean(ExportIndex.PREF_DELETE_REMOVED, false);
         deleteSyncSwitch.setChecked(deleteSyncEnabled);
@@ -321,6 +407,16 @@ public final class DownloadToolsActivity extends Activity {
         exportSyncStatus = label("Auto-sync is off by default. Choose an export folder, then enable it to sync each completed download and playlist/album change.", 11, MUTED, Typeface.NORMAL);
         exportSyncStatus.setLineSpacing(dp(3), 1f);
         exportCard.addView(exportSyncStatus);
+        backgroundStopButton = actionButton("Stop active sync", true, "■");
+        backgroundStopButton.setOnClickListener(v -> {
+            if (ExportSyncCoordinator.requestStop()) {
+                renderSyncCoordinatorStatus();
+                Toast.makeText(this, "Sync will stop after the current song finishes.", Toast.LENGTH_SHORT).show();
+            }
+        });
+        backgroundStopButton.setVisibility(View.GONE);
+        addSpace(exportCard, 8);
+        exportCard.addView(backgroundStopButton, new LinearLayout.LayoutParams(-1, dp(42)));
         addSpace(exportCard, 5);
         exportArchiveStatus = label("The export index will be stored inside your chosen folder.", 11, SUBTLE, Typeface.NORMAL);
         exportArchiveStatus.setLineSpacing(dp(3), 1f);
@@ -336,7 +432,7 @@ public final class DownloadToolsActivity extends Activity {
         LinearLayout collectionsCard = card();
         LinearLayout collectionsHeading = row(this);
         collectionsHeading.setGravity(Gravity.CENTER_VERTICAL);
-        collectionsHeading.addView(iconBadge("≡", GREEN, Color.BLACK, 42), new LinearLayout.LayoutParams(dp(42), dp(42)));
+        collectionsHeading.addView(iconBadge("≡", immersiveLook ? SURFACE_ALT : ACCENT, immersiveLook ? ACCENT : Color.BLACK, 42), new LinearLayout.LayoutParams(dp(42), dp(42)));
         LinearLayout collectionsTitleBlock = column();
         LinearLayout.LayoutParams collectionsTitleParams = new LinearLayout.LayoutParams(0, -2, 1f);
         collectionsTitleParams.leftMargin = dp(12);
@@ -363,7 +459,7 @@ public final class DownloadToolsActivity extends Activity {
         LinearLayout restoreCard = card();
         LinearLayout restoreHeading = row(this);
         restoreHeading.setGravity(Gravity.CENTER_VERTICAL);
-        restoreHeading.addView(iconBadge("↶", GREEN, Color.BLACK, 42), new LinearLayout.LayoutParams(dp(42), dp(42)));
+        restoreHeading.addView(iconBadge("↶", immersiveLook ? SURFACE_ALT : ACCENT, immersiveLook ? ACCENT : Color.BLACK, 42), new LinearLayout.LayoutParams(dp(42), dp(42)));
         LinearLayout restoreTitleBlock = column();
         LinearLayout.LayoutParams restoreTitleParams = new LinearLayout.LayoutParams(0, -2, 1f);
         restoreTitleParams.leftMargin = dp(12);
@@ -377,7 +473,7 @@ public final class DownloadToolsActivity extends Activity {
         addSpace(restoreCard, 13);
         LinearLayout restoreButton = actionButton("Restore exported songs to Downloads", true, "↶");
         restoreButton.setOnClickListener(v -> prepareRestoreFromSavedFolder());
-        restoreCard.addView(restoreButton, new LinearLayout.LayoutParams(-1, dp(48)));
+        restoreCard.addView(restoreButton, new LinearLayout.LayoutParams(-1, dp(immersiveLook ? 50 : 48)));
         addSpace(restoreCard, 9);
         restoreStatus = label("Reconnect your export folder after reinstall, then restore your songs here.", 11, SUBTLE, Typeface.NORMAL);
         restoreStatus.setLineSpacing(dp(3), 1f);
@@ -388,7 +484,7 @@ public final class DownloadToolsActivity extends Activity {
         LinearLayout storageCard = card();
         LinearLayout storageHeading = row(this);
         storageHeading.setGravity(Gravity.CENTER_VERTICAL);
-        storageHeading.addView(iconBadge("▣", SURFACE_ALT, GREEN, 42), new LinearLayout.LayoutParams(dp(42), dp(42)));
+        storageHeading.addView(iconBadge("▣", SURFACE_ALT, ACCENT, 42), new LinearLayout.LayoutParams(dp(42), dp(42)));
         LinearLayout storageTitleBlock = column();
         LinearLayout.LayoutParams storageTitleParams = new LinearLayout.LayoutParams(0, -2, 1f);
         storageTitleParams.leftMargin = dp(12);
@@ -401,7 +497,7 @@ public final class DownloadToolsActivity extends Activity {
         addSpace(storageCard, 16);
         LinearLayout moveButton = actionButton("Change download location", false, "→");
         moveButton.setOnClickListener(v -> chooseStorageLocation());
-        storageCard.addView(moveButton, new LinearLayout.LayoutParams(-1, dp(48)));
+        storageCard.addView(moveButton, new LinearLayout.LayoutParams(-1, dp(immersiveLook ? 50 : 48)));
         addSpace(storageCard, 9);
         TextView moveNote = label("Existing downloads are moved, not downloaded again. Keep downloads idle while moving.", 11, SUBTLE, Typeface.NORMAL);
         moveNote.setGravity(Gravity.CENTER);
@@ -420,9 +516,10 @@ public final class DownloadToolsActivity extends Activity {
 
     private LinearLayout card() {
         LinearLayout card = column();
-        card.setPadding(dp(17), dp(17), dp(17), dp(17));
-        GradientDrawable background = roundRect(SURFACE, 17);
-        background.setStroke(dp(1), 0xFF303030);
+        int inset = immersiveLook ? 16 : 17;
+        card.setPadding(dp(inset), dp(inset), dp(inset), dp(inset));
+        GradientDrawable background = roundRect(SURFACE, immersiveLook ? 14 : 17);
+        if (!immersiveLook) background.setStroke(dp(1), 0xFF303030);
         card.setBackground(background);
         return card;
     }
@@ -440,7 +537,10 @@ public final class DownloadToolsActivity extends Activity {
     }
 
     private TextView label(String value, float size, int color, int style) {
-        return label(value, size, color, Typeface.create("sans-serif", style));
+        Typeface face = immersiveLook && immersiveTypeface != null
+                ? Typeface.create(immersiveTypeface, style)
+                : Typeface.create("sans-serif", style);
+        return label(value, size, color, face);
     }
 
     private TextView label(String value, float size, int color, Typeface typeface) {
@@ -448,7 +548,10 @@ public final class DownloadToolsActivity extends Activity {
         text.setText(value);
         text.setTextColor(color);
         text.setTextSize(size);
-        text.setTypeface(typeface);
+        Typeface face = immersiveLook && immersiveTypeface != null
+                ? Typeface.create(immersiveTypeface, typeface == null ? Typeface.NORMAL : typeface.getStyle())
+                : typeface;
+        text.setTypeface(face);
         text.setIncludeFontPadding(false);
         return text;
     }
@@ -456,16 +559,19 @@ public final class DownloadToolsActivity extends Activity {
     private TextView iconBadge(String glyph, int background, int foreground, int sizeDp) {
         TextView icon = label(glyph, 23, foreground, Typeface.BOLD);
         icon.setGravity(Gravity.CENTER);
-        icon.setBackground(roundRect(background, 50));
+        icon.setBackground(roundRect(background, immersiveLook ? 14 : 50));
         return icon;
     }
 
     private TextView chip(String value) {
-        TextView chip = label(value, 9, value.equals("COVER ART + TAGS") ? GREEN : TEXT, Typeface.BOLD);
+        TextView chip = label(value, 9, value.equals("COVER ART + TAGS") ? ACCENT : TEXT, Typeface.BOLD);
         chip.setLetterSpacing(0.04f);
         chip.setGravity(Gravity.CENTER);
         chip.setPadding(dp(9), dp(7), dp(9), dp(7));
-        chip.setBackground(roundRect(value.equals("COVER ART + TAGS") ? 0xFF173522 : SURFACE_ALT, 30));
+        int chipFill = value.equals("COVER ART + TAGS")
+                ? (immersiveLook ? MySpotiImmersiveStyle.tintedSurface(this, 44) : 0xFF173522)
+                : SURFACE_ALT;
+        chip.setBackground(roundRect(chipFill, 30));
         return chip;
     }
 
@@ -474,14 +580,15 @@ public final class DownloadToolsActivity extends Activity {
         button.setOrientation(LinearLayout.HORIZONTAL);
         button.setGravity(Gravity.CENTER);
         button.setPadding(dp(16), 0, dp(16), 0);
-        button.setBackground(ripple(roundRect(primary ? GREEN : SURFACE_ALT, 40), primary ? 0x22000000 : 0x33FFFFFF));
+        button.setBackground(ripple(roundRect(primary ? ACCENT : SURFACE_ALT, immersiveLook ? 14 : 40), primary ? 0x22FFFFFF : 0x33FFFFFF));
         button.setClickable(true);
         button.setFocusable(true);
         button.setContentDescription(title);
-        TextView caption = label(title, 14, primary ? Color.BLACK : TEXT, Typeface.BOLD);
+        int primaryContent = immersiveLook ? Color.WHITE : Color.BLACK;
+        TextView caption = label(title, 14, primary ? primaryContent : TEXT, Typeface.BOLD);
         button.addView(caption);
         if (trailing != null && !trailing.isEmpty()) {
-            TextView arrow = label(trailing, 19, primary ? Color.BLACK : GREEN, Typeface.BOLD);
+            TextView arrow = label(trailing, 19, primary ? primaryContent : ACCENT, Typeface.BOLD);
             LinearLayout.LayoutParams arrowParams = new LinearLayout.LayoutParams(-2, -2);
             arrowParams.leftMargin = dp(10);
             button.addView(arrow, arrowParams);
@@ -563,9 +670,17 @@ public final class DownloadToolsActivity extends Activity {
         if (requestCode != REQUEST_EXPORT_FOLDER || resultCode != RESULT_OK || data == null || data.getData() == null) return;
         Uri tree = data.getData();
         try {
-            int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            int requestedFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+            int flags = data.getFlags() & requestedFlags;
+            if ((flags & requestedFlags) != requestedFlags) {
+                throw new SecurityException("Android did not grant both read and write access to the selected folder.");
+            }
             getContentResolver().takePersistableUriPermission(tree, flags);
-        } catch (Throwable ignored) {}
+        } catch (Throwable permissionError) {
+            Log.w("MyspotiStoragePatch", "Could not persist access to the selected export folder", permissionError);
+            Toast.makeText(this, "Android could not keep access to that folder. Please select it again and allow access.", Toast.LENGTH_LONG).show();
+            return;
+        }
         // The URI permission is app-scoped, but the JSON ledger beside the exported music is
         // portable. After reinstall, the user reconnects this same folder to restore the ledger.
         getSharedPreferences(ExportIndex.PREFS, MODE_PRIVATE).edit()
@@ -578,7 +693,36 @@ public final class DownloadToolsActivity extends Activity {
         offerRestoreAfterFolderReconnect(tree);
     }
 
+    private void showSavedExportStatus() {
+        if (ExportSyncCoordinator.isRunning()) {
+            renderSyncCoordinatorStatus();
+            return;
+        }
+        android.content.SharedPreferences preferences = getSharedPreferences(ExportIndex.PREFS, MODE_PRIVATE);
+        boolean enabled = preferences.getBoolean(ExportIndex.PREF_AUTO_SYNC, false);
+        String value = preferences.getString(ExportIndex.PREF_EXPORT_TREE_URI, null);
+        if (value == null || value.trim().isEmpty()) {
+            if (exportSyncStatus != null) exportSyncStatus.setText(enabled
+                    ? "Auto-sync is on. Choose an export folder to automatically export future downloads and collection changes."
+                    : "Choose an export folder, then use Sync now to export songs, playlists and albums.");
+            if (exportArchiveStatus != null) exportArchiveStatus.setText(
+                    "The export index will be stored inside your chosen folder.");
+            return;
+        }
+        if (exportSyncStatus != null) exportSyncStatus.setText(enabled
+                ? "Auto-sync is on. New downloads and playlist/album changes will be exported automatically. Use Sync now to check existing exports."
+                : "Auto-sync is off. Use Sync now to update songs, playlists and albums.");
+        // Reading the archive summary does not start a sync or modify exported files.
+        loadSavedArchiveSummary();
+    }
+
     private void autoSyncSavedFolder() {
+        // Reopening this screen must attach to an existing sync, not start another
+        // export pass that waits behind the first pass's SAF lock.
+        if (ExportSyncCoordinator.isRunning()) {
+            renderSyncCoordinatorStatus();
+            return;
+        }
         boolean enabled = getSharedPreferences(ExportIndex.PREFS, MODE_PRIVATE)
                 .getBoolean(ExportIndex.PREF_AUTO_SYNC, false);
         if (!enabled) {
@@ -589,7 +733,7 @@ public final class DownloadToolsActivity extends Activity {
         String value = getSharedPreferences(ExportIndex.PREFS, MODE_PRIVATE)
                 .getString(ExportIndex.PREF_EXPORT_TREE_URI, null);
         if (value == null || value.trim().isEmpty()) {
-            if (exportSyncStatus != null) exportSyncStatus.setText("Choose an export folder once. MySpoti will check it automatically on future visits.");
+            if (exportSyncStatus != null) exportSyncStatus.setText("Choose an export folder once. New downloads and playlist/album changes will then sync automatically.");
             if (exportArchiveStatus != null) exportArchiveStatus.setText("After reinstalling, choose the same folder again; its export index remains beside your music.");
             return;
         }
@@ -761,7 +905,7 @@ public final class DownloadToolsActivity extends Activity {
         dialog.setCancelable(true);
         dialog.setCanceledOnTouchOutside(true);
         dialog.show();
-        styleSpotifyDialog(dialog, 460);
+        styleMySpotiDialog(dialog, 460);
     }
 
     private void runNativeRestore(Uri tree) {
@@ -805,12 +949,24 @@ public final class DownloadToolsActivity extends Activity {
 
     /** Idempotent export/sync: track IDs are exported once, then collection M3U8 manifests are refreshed. */
     private void syncExports(Uri tree, boolean automatic) {
+        String mode = automatic ? "Auto-sync" : "Manual sync";
+        String initialStatus = automatic ? "Checking your export folder…" : "Preparing downloaded songs…";
+        if (!ExportSyncCoordinator.tryStart(mode, !automatic, initialStatus)) {
+            renderSyncCoordinatorStatus();
+            if (!automatic) Toast.makeText(this, "A sync is already running. Its status is shown on this page.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        renderSyncCoordinatorStatus();
         final List<?> tracks;
         final List<DownloadPatch.CollectionSnapshot> collections;
         try {
             tracks = downloadedTracks();
         } catch (Throwable t) {
-            Toast.makeText(this, "Could not read downloads: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            String error = safeMessage(t);
+            ExportSyncCoordinator.finish("Could not start sync: " + error);
+            renderSyncCoordinatorStatus();
+            DownloadPatch.onExternalExportSyncFinished(getApplicationContext());
+            Toast.makeText(this, "Could not read downloads: " + error, Toast.LENGTH_LONG).show();
             return;
         }
         String collectionReadError = null;
@@ -841,9 +997,11 @@ public final class DownloadToolsActivity extends Activity {
         catch (Throwable error) { Log.w("MyspotiStoragePatch", "Could not snapshot individual downloads", error); }
         final java.util.Set<String> activeSingleIds = singleSnapshot;
 
+        ExportSyncCoordinator.update("Comparing downloaded songs with the export index…", 0, tracks.size());
         showProgress(automatic ? "Checking export folder" : "Syncing downloads",
                 tracks.isEmpty() ? "Reading your saved export list…" : "Comparing downloaded songs with the export index…",
-                true, Math.max(1, tracks.size()));
+                true, Math.max(1, tracks.size()), !automatic);
+        try {
         worker.execute(() -> {
             synchronized (DownloadPatch.exportSyncLock()) {
             int exported = 0;
@@ -853,7 +1011,9 @@ public final class DownloadToolsActivity extends Activity {
             int untaggedCount = 0;
             int lyricsSavedCount = 0;
             int lyricsMissingCount = 0;
+            int lyricsLookupQueuedCount = 0;
             int lyricsFailureCount = 0;
+            String lyricsLastError = null;
             String lastError = null;
             int archiveCount = 0;
             int savedCollectionCount = 0;
@@ -864,6 +1024,7 @@ public final class DownloadToolsActivity extends Activity {
             String archiveSummary = "";
             String collectionSummary = "";
             ExportIndex index = null;
+            boolean cancelled = false;
             try {
                 index = ExportIndex.open(this, tree);
                 try {
@@ -874,6 +1035,10 @@ public final class DownloadToolsActivity extends Activity {
                 archiveSummary = index.summary();
                 int done = 0;
                 for (Object track : tracks) {
+                    if (!automatic && ExportSyncCoordinator.isStopRequested()) {
+                        cancelled = true;
+                        break;
+                    }
                     Uri destination = null;
                     boolean created = false;
                     try {
@@ -889,16 +1054,41 @@ public final class DownloadToolsActivity extends Activity {
                         String displayName = exportDisplayName(artist, title, source);
                         String relativePathFromRoot = index.relativePathFromRoot(trackId);
 
-                        // Reuse an existing portable lyrics copy first; otherwise ask the same resolver
-                        // used by MySpoti's player. This writes the exact native offline cache format too.
-                        JSONObject lyricsJson = index.readLyricsJson(trackId);
-                        if (lyricsJson == null) {
-                            lyricsJson = LyricsStore.obtain(this, trackId, title, artist, album,
-                                    DownloadPatch.trackDurationMs(track), DownloadPatch.trackCoverUrl(track), true);
+                        boolean canEmbedLyrics = AudioMetadataWriter.supportsLyricsEmbedding(extension);
+                        // The index flag can outlive user-deleted sidecar files. Verify the
+                        // canonical LRC and JSON paths before deciding that lyrics are complete.
+                        boolean lyricsSidecarsMissing = false;
+                        if (index.hasLyricsAvailable(trackId)) {
+                            try { lyricsSidecarsMissing = index.lyricsSidecarsNeedRepair(trackId); }
+                            catch (Throwable inspectLyricsError) {
+                                Log.w("MyspotiStoragePatch", "Could not inspect portable lyric sidecars for " + trackId, inspectLyricsError);
+                            }
+                        }
+                        boolean needLyricsJson = !index.hasLyricsAvailable(trackId) || lyricsSidecarsMissing
+                                || (canEmbedLyrics && !index.hasLyricsEmbedded(trackId));
+                        JSONObject lyricsJson = needLyricsJson ? index.readLyricsJson(trackId) : null;
+                        if (needLyricsJson && lyricsJson == null) lyricsJson = LyricsStore.readNativeCache(this, trackId);
+                        // Recover the JSON archive from a surviving .lrc if the JSON copy and
+                        // MySpoti's private cache are both unavailable.
+                        if (needLyricsJson && lyricsJson == null) {
+                            String savedLrc = index.readLyricsLrc(trackId);
+                            lyricsJson = LyricsStore.fromLrc(trackId, savedLrc, "Portable LRC backup");
+                        }
+                        // A manual sync must not wait up to 30 seconds for every missing lyric set.
+                        // Kick MySpoti's own prefetch in the background; its durable cache observer
+                        // will trigger an incremental export pass when lyrics arrive (when auto-sync
+                        // is enabled). With auto-sync off, the next manual sync picks up the cache.
+                        if (needLyricsJson && lyricsJson == null && LyricsStore.requestPrefetch(this, trackId,
+                                title, artist, album, DownloadPatch.trackDurationMs(track),
+                                DownloadPatch.trackCoverUrl(track), true)) {
+                            lyricsLookupQueuedCount++;
                         }
                         boolean hasLyrics = LyricsStore.validLyricsJson(lyricsJson);
                         if (hasLyrics && LyricsStore.readNativeCache(this, trackId) == null) {
-                            LyricsStore.restoreNativeCache(this, trackId, lyricsJson);
+                            try { LyricsStore.restoreNativeCache(this, trackId, lyricsJson); }
+                            catch (Throwable cacheError) {
+                                Log.w("MyspotiStoragePatch", "Could not restore native lyrics cache for " + trackId, cacheError);
+                            }
                         }
                         String lyricsText = hasLyrics ? LyricsStore.toPlainText(lyricsJson) : "";
                         String lyricsLrc = hasLyrics ? LyricsStore.toLrc(lyricsJson, title, artist, album) : "";
@@ -916,7 +1106,8 @@ public final class DownloadToolsActivity extends Activity {
                                         DownloadPatch.trackDurationMs(track), extension, source.length(), true, displayName,
                                         DownloadPatch.trackAlbumId(track), DownloadPatch.trackCoverUrl(track),
                                         DownloadPatch.trackSource(track), DownloadPatch.trackVerified(track),
-                                        DownloadPatch.trackKind(track), DownloadPatch.trackProviderId(track));
+                                        DownloadPatch.trackKind(track), DownloadPatch.trackProviderId(track),
+                                        DownloadPatch.trackExtensionQuality(track));
                             } else {
                                 displayName = addTrackIdSuffix(displayName, trackId);
                                 destination = index.createDocumentInPath(mime(extension), displayName, "Tracks");
@@ -927,7 +1118,6 @@ public final class DownloadToolsActivity extends Activity {
                             relativePathFromRoot = displayName;
                         }
 
-                        boolean canEmbedLyrics = AudioMetadataWriter.supportsLyricsEmbedding(extension);
                         boolean needAudioWrite = created || (!sameFingerprint && !legacyImported)
                                 || (hasLyrics && canEmbedLyrics && !index.hasLyricsEmbedded(trackId));
                         boolean embeddedLyrics = index.hasLyricsEmbedded(trackId);
@@ -945,7 +1135,8 @@ public final class DownloadToolsActivity extends Activity {
                                     DownloadPatch.trackDurationMs(track), extension, exportedBytes, legacyImported, relativePathFromRoot,
                                     DownloadPatch.trackAlbumId(track), DownloadPatch.trackCoverUrl(track),
                                     DownloadPatch.trackSource(track), DownloadPatch.trackVerified(track),
-                                    DownloadPatch.trackKind(track), DownloadPatch.trackProviderId(track));
+                                    DownloadPatch.trackKind(track), DownloadPatch.trackProviderId(track),
+                                    DownloadPatch.trackExtensionQuality(track));
                             exported++;
                             archiveCount = index.count();
                         } else {
@@ -959,9 +1150,11 @@ public final class DownloadToolsActivity extends Activity {
                                 lyricsSavedCount++;
                             } catch (Throwable lyricError) {
                                 lyricsFailureCount++;
+                                if (lyricsLastError == null) lyricsLastError = lyricError.getMessage() == null
+                                        ? lyricError.getClass().getSimpleName() : lyricError.getMessage();
                                 Log.w("MyspotiStoragePatch", "Audio exported but lyric sidecars could not be saved for " + title, lyricError);
                             }
-                        } else {
+                        } else if (!index.hasLyricsAvailable(trackId) || lyricsSidecarsMissing) {
                             lyricsMissingCount++;
                         }
                     } catch (Throwable t) {
@@ -975,45 +1168,59 @@ public final class DownloadToolsActivity extends Activity {
                     final int skippedValue = skipped;
                     final int failedValue = failed;
                     final int lyricsValue = lyricsSavedCount;
-                    runOnUiThread(() -> updateProgress(progressValue,
-                            "Exported " + exportedValue + " new · " + skippedValue + " present · "
-                                    + lyricsValue + " with lyrics · " + failedValue + " failed"));
-                }
-
-                boolean deleteRemoved = getSharedPreferences(ExportIndex.PREFS, MODE_PRIVATE)
-                        .getBoolean(ExportIndex.PREF_DELETE_REMOVED, false);
-                boolean deletionSyncSafe = deleteRemoved && DownloadPatch.canMirrorDeletedDownloads(
-                        this, activeTrackIds, activeCollectionKeys, activeSingleIds);
-                int deletedTracks = 0;
-                int deletedCollections = 0;
-                if (deletionSyncSafe) {
-                    // Prune stale audio before regenerating manifests, so no M3U8 points at a
-                    // file that this same sync is about to remove.
-                    deletedTracks = index.removeTracksNotIn(activeTrackIds);
-                    index.replaceSingleTrackIds(activeSingleIds);
-                } else if (deleteRemoved) {
-                    Log.w("MyspotiStoragePatch", "Skipped deletion sync because MySpoti's source indexes were not fully loaded");
-                }
-
-                // Build collection manifests only after the shared track files have been synced
-                // and stale exports pruned. Each list reuses the same Tracks/ document IDs.
-                runOnUiThread(() -> updateProgress(Math.max(1, tracks.size()), "Updating playlist & album lists…"));
-                if (collectionError == null) {
-                    CollectionSyncResult collectionResult = syncCollectionManifests(index, collections);
-                    collectionManifests = collectionResult.manifests;
-                    collectionTracks = collectionResult.referencedTracks;
-                    missingCollectionTracks = collectionResult.missingTracks;
-                    collectionFailures = collectionResult.failures;
-                    collectionSummary = collectionResult.summary;
-                    if (deletionSyncSafe) {
-                        deletedCollections = index.removeCollectionsNotIn(activeCollectionKeys);
+                    String progressText = "Exported " + exportedValue + " new · " + skippedValue + " present · "
+                            + lyricsValue + " with lyrics · " + failedValue + " failed";
+                    ExportSyncCoordinator.update(progressText, progressValue, tracks.size());
+                    runOnUiThread(() -> updateProgress(progressValue, progressText));
+                    if (!automatic && ExportSyncCoordinator.isStopRequested()) {
+                        cancelled = true;
+                        break;
                     }
-                } else {
-                    collectionSummary = "Could not read MySpoti collection index: " + collectionError;
-                    collectionFailures++;
                 }
-                if (deletionSyncSafe) Log.i("MyspotiStoragePatch", "Deletion sync removed " + deletedTracks
-                        + " exported song(s) and " + deletedCollections + " obsolete collection manifest(s)");
+
+                if (!automatic && ExportSyncCoordinator.isStopRequested()) cancelled = true;
+                if (!cancelled) {
+                    boolean deleteRemoved = getSharedPreferences(ExportIndex.PREFS, MODE_PRIVATE)
+                            .getBoolean(ExportIndex.PREF_DELETE_REMOVED, false);
+                    boolean deletionSyncSafe = deleteRemoved && DownloadPatch.canMirrorDeletedDownloads(
+                            this, activeTrackIds, activeCollectionKeys, activeSingleIds);
+                    int deletedTracks = 0;
+                    int deletedCollections = 0;
+                    if (deletionSyncSafe) {
+                        // Prune stale audio before regenerating manifests, so no M3U8 points at a
+                        // file that this same sync is about to remove.
+                        deletedTracks = index.removeTracksNotIn(activeTrackIds);
+                        index.replaceSingleTrackIds(activeSingleIds);
+                    } else if (deleteRemoved) {
+                        Log.w("MyspotiStoragePatch", "Skipped deletion sync because MySpoti's source indexes were not fully loaded");
+                    }
+
+                    // Build collection manifests only after the shared track files have been synced
+                    // and stale exports pruned. Each list reuses the same Tracks/ document IDs.
+                    ExportSyncCoordinator.update("Updating playlist & album lists…", tracks.size(), tracks.size());
+                    runOnUiThread(() -> updateProgress(Math.max(1, tracks.size()), "Updating playlist & album lists…"));
+                    if (collectionError == null) {
+                        CollectionSyncResult collectionResult = syncCollectionManifests(index, collections, !automatic);
+                        collectionManifests = collectionResult.manifests;
+                        collectionTracks = collectionResult.referencedTracks;
+                        missingCollectionTracks = collectionResult.missingTracks;
+                        collectionFailures = collectionResult.failures;
+                        collectionSummary = collectionResult.summary;
+                        if (!automatic && ExportSyncCoordinator.isStopRequested()) {
+                            cancelled = true;
+                            collectionSummary = "Collection updates stopped. Existing manifests were kept; run Sync now again to finish.";
+                        } else if (deletionSyncSafe) {
+                            deletedCollections = index.removeCollectionsNotIn(activeCollectionKeys);
+                        }
+                    } else {
+                        collectionSummary = "Could not read MySpoti collection index: " + collectionError;
+                        collectionFailures++;
+                    }
+                    if (deletionSyncSafe) Log.i("MyspotiStoragePatch", "Deletion sync removed " + deletedTracks
+                            + " exported song(s) and " + deletedCollections + " obsolete collection manifest(s)");
+                } else {
+                    collectionSummary = "Collection updates and deletion sync were skipped because you stopped this sync.";
+                }
                 archiveCount = index.count();
                 savedCollectionCount = index.collectionCount();
                 archiveSummary = index.summary();
@@ -1029,7 +1236,9 @@ public final class DownloadToolsActivity extends Activity {
             final int plainCount = untaggedCount;
             final int lyricsCount = lyricsSavedCount;
             final int noLyricsCount = lyricsMissingCount;
+            final int lyricsQueuedCount = lyricsLookupQueuedCount;
             final int lyricsFailures = lyricsFailureCount;
+            final String lyricError = lyricsLastError;
             final int savedCount = archiveCount;
             final int savedManifestCount = savedCollectionCount;
             final int manifestCount = collectionManifests;
@@ -1039,10 +1248,15 @@ public final class DownloadToolsActivity extends Activity {
             final String savedSummary = archiveSummary;
             final String manifestSummary = collectionSummary;
             final String error = lastError;
+            final boolean wasCancelled = cancelled || (!automatic && ExportSyncCoordinator.isStopRequested());
+            final boolean wasBackgrounded = ExportSyncCoordinator.snapshot().backgrounded;
+            final int problemCount = failureCount + lyricsFailures + collectionFailureCount;
             runOnUiThread(() -> {
                 dismissProgress();
                 String message;
-                if (tracks.isEmpty()) {
+                if (wasCancelled) {
+                    message = "Sync stopped. " + newCount + " song(s) were completed; unfinished songs will be picked up next time.";
+                } else if (tracks.isEmpty()) {
                     message = "No MySpoti offline downloads are currently available. Your export archive still contains " + savedCount + " song(s).";
                 } else {
                     message = "Sync complete: " + newCount + " new export(s), " + skippedCount
@@ -1050,19 +1264,43 @@ public final class DownloadToolsActivity extends Activity {
                     if (tagCount > 0) message += " Metadata and artwork embedded in " + tagCount + " file(s).";
                     if (plainCount > 0) message += " " + plainCount + " unsupported format(s) exported without embedded tags.";
                 }
-                if (lyricsCount > 0) message += " Lyrics saved for " + lyricsCount + " track(s): MySpoti offline cache, .lrc sidecars and embedded tags where supported.";
+                if (lyricsCount > 0) message += " Lyrics saved for " + lyricsCount + " track(s): Lyrics/LRC/, Lyrics/JSON/, MySpoti offline cache and embedded tags where supported.";
                 if (noLyricsCount > 0) message += " Lyrics were not available yet for " + noLyricsCount + " track(s); sync again later to retry.";
-                if (lyricsFailures > 0) message += " Lyrics sidecar write failed for " + lyricsFailures + " track(s).";
+                if (lyricsFailures > 0) message += " Lyrics export failed for " + lyricsFailures + " track(s).";
+                if (lyricsQueuedCount > 0) message += " Requested background lyrics lookup for " + lyricsQueuedCount
+                        + " track(s); MySpoti will add them to the export on a later sync when they become available.";
                 if (manifestCount > 0 || !collections.isEmpty()) {
                     message += " Updated " + manifestCount + " playlist/album list(s), referencing " + referencedCount + " exported track(s).";
                     if (missingCount > 0) message += " " + missingCount + " collection track(s) are not downloaded/exported yet.";
                 }
                 if (collectionFailureCount > 0) message += " " + collectionFailureCount + " collection manifest(s) could not be updated.";
-                if (error != null && failureCount > 0) message += " Last error: " + error;
+                if (error != null && failureCount > 0) message += " Last track error: " + error;
+                if (lyricError != null && lyricsFailures > 0) message += " Last lyrics error: " + lyricError;
+                if (wasBackgrounded) message = "Background sync finished. " + message;
                 Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-                if (exportSyncStatus != null) exportSyncStatus.setText(failureCount == 0
-                        ? "Last sync complete. Auto-sync watches completed song downloads and playlist/album changes in the background when enabled."
-                        : "Sync finished with " + failureCount + " problem(s). Check folder permissions and try Sync now.");
+                if (exportSyncStatus != null) {
+                    String status;
+                    if (wasCancelled) status = "Sync stopped. Completed exports were kept; run Sync now again to finish the remaining songs.";
+                    else if (problemCount == 0) status = lyricsQueuedCount > 0
+                            ? "Audio sync complete. MySpoti is looking up lyrics for " + lyricsQueuedCount
+                                    + " track(s) in the background; they will be exported when available."
+                            : "Last sync complete. Auto-sync watches completed song downloads and playlist/album changes in the background when enabled.";
+                    else {
+                        String detail = error != null ? error : (lyricError != null ? lyricError : manifestSummary);
+                        status = "Sync finished with " + problemCount + " problem(s).";
+                        if (detail != null && !detail.trim().isEmpty()) status += " Latest detail: " + detail;
+                        if (detail != null && (detail.toLowerCase(java.util.Locale.ROOT).contains("permission")
+                                || detail.toLowerCase(java.util.Locale.ROOT).contains("securityexception"))) {
+                            status += " Reconnect the export folder if Android has revoked its access.";
+                        }
+                    }
+                    exportSyncStatus.setText(status);
+                    ExportSyncCoordinator.finish(status);
+                    renderSyncCoordinatorStatus();
+                } else {
+                    ExportSyncCoordinator.finish(wasCancelled ? "Sync stopped. Completed exports were kept." : "Sync finished.");
+                }
+                DownloadPatch.onExternalExportSyncFinished(getApplicationContext());
                 if (exportArchiveStatus != null) exportArchiveStatus.setText(savedSummary.isEmpty()
                         ? savedCount + " song record(s) in the portable export index. The index and lyrics sidecars are stored in the selected folder, not in app data."
                         : savedSummary);
@@ -1081,13 +1319,20 @@ public final class DownloadToolsActivity extends Activity {
             });
             }
         });
+        } catch (Throwable submitError) {
+            ExportSyncCoordinator.finish("Could not start sync: " + safeMessage(submitError));
+            renderSyncCoordinatorStatus();
+            if (!automatic) Toast.makeText(this, "Could not start sync: " + safeMessage(submitError), Toast.LENGTH_LONG).show();
+            DownloadPatch.onExternalExportSyncFinished(getApplicationContext());
+        }
     }
 
     private CollectionSyncResult syncCollectionManifests(ExportIndex index,
-            List<DownloadPatch.CollectionSnapshot> collections) {
+            List<DownloadPatch.CollectionSnapshot> collections, boolean allowStop) {
         CollectionSyncResult result = new CollectionSyncResult();
         java.util.Map<String, Boolean> availableDocumentCache = new java.util.HashMap<>();
         for (DownloadPatch.CollectionSnapshot collection : collections) {
+            if (allowStop && ExportSyncCoordinator.isStopRequested()) break;
             if (collection == null || collection.uri == null || collection.uri.isEmpty()) continue;
             try {
                 boolean album = "album".equalsIgnoreCase(collection.type);
@@ -1232,7 +1477,9 @@ public final class DownloadToolsActivity extends Activity {
 
     private static String addTrackIdSuffix(String filename, String trackId) {
         int dot = filename.lastIndexOf('.');
-        String suffix = trackId.length() > 6 ? trackId.substring(trackId.length() - 6) : trackId;
+        // A short suffix can collide for two different Spotify IDs. Keep the complete
+        // stable ID in the filename so each track has a distinct export and lyric sidecar.
+        String suffix = trackId == null ? "unknown" : trackId.replaceAll("[^A-Za-z0-9._-]", "_");
         return dot > 0 ? filename.substring(0, dot) + " [" + suffix + "]" + filename.substring(dot)
                 : filename + " [" + suffix + "]";
     }
@@ -1274,8 +1521,9 @@ public final class DownloadToolsActivity extends Activity {
             final boolean isCurrent = option.id.equals(selectedId);
             LinearLayout item = column();
             item.setPadding(dp(14), dp(13), dp(14), dp(13));
-            GradientDrawable itemBackground = roundRect(isCurrent ? Color.rgb(26, 51, 36) : SURFACE_ALT, 13);
-            itemBackground.setStroke(dp(1), isCurrent ? GREEN : DIVIDER);
+            int selectedFill = immersiveLook ? MySpotiImmersiveStyle.tintedSurface(this, 48) : Color.rgb(26, 51, 36);
+            GradientDrawable itemBackground = roundRect(isCurrent ? selectedFill : SURFACE_ALT, immersiveLook ? 14 : 13);
+            itemBackground.setStroke(dp(1), isCurrent ? ACCENT : DIVIDER);
             item.setBackground(ripple(itemBackground, 0x22FFFFFF));
             item.setClickable(true);
             item.setFocusable(true);
@@ -1285,7 +1533,7 @@ public final class DownloadToolsActivity extends Activity {
             TextView optionName = label(option.label, 14, TEXT, Typeface.BOLD);
             titleRow.addView(optionName, new LinearLayout.LayoutParams(0, -2, 1f));
             if (isCurrent) {
-                TextView current = label("CURRENT", 9, GREEN, Typeface.BOLD);
+                TextView current = label("CURRENT", 9, ACCENT, Typeface.BOLD);
                 current.setLetterSpacing(0.09f);
                 current.setPadding(dp(8), dp(5), dp(8), dp(5));
                 current.setBackground(roundRect(Color.rgb(18, 66, 38), 30));
@@ -1330,7 +1578,7 @@ public final class DownloadToolsActivity extends Activity {
         dialog.setCancelable(true);
         dialog.setCanceledOnTouchOutside(true);
         dialog.show();
-        styleSpotifyDialog(dialog, 440);
+        styleMySpotiDialog(dialog, 440);
     }
 
     private void confirmMove(DownloadPatch.StorageOption option) {
@@ -1348,7 +1596,7 @@ public final class DownloadToolsActivity extends Activity {
         LinearLayout destination = column();
         destination.setPadding(dp(13), dp(11), dp(13), dp(11));
         destination.setBackground(roundRect(SURFACE_ALT, 12));
-        destination.addView(label("NEW DOWNLOAD LOCATION", 9, GREEN, Typeface.BOLD));
+        destination.addView(label("NEW DOWNLOAD LOCATION", 9, ACCENT, Typeface.BOLD));
         addSpace(destination, 5);
         destination.addView(label(option.label, 14, TEXT, Typeface.BOLD));
         addSpace(destination, 3);
@@ -1379,7 +1627,7 @@ public final class DownloadToolsActivity extends Activity {
         dialog.setCancelable(true);
         dialog.setCanceledOnTouchOutside(true);
         dialog.show();
-        styleSpotifyDialog(dialog, 440);
+        styleMySpotiDialog(dialog, 440);
     }
 
     private LinearLayout dialogPanel() {
@@ -1391,7 +1639,7 @@ public final class DownloadToolsActivity extends Activity {
         return panel;
     }
 
-    private void styleSpotifyDialog(Dialog dialog, int maxWidthDp) {
+    private void styleMySpotiDialog(Dialog dialog, int maxWidthDp) {
         Window window = dialog.getWindow();
         if (window == null) return;
         window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -1417,6 +1665,11 @@ public final class DownloadToolsActivity extends Activity {
     }
 
     private void showProgress(String title, String message, boolean determinate, int max) {
+        showProgress(title, message, determinate, max, false);
+    }
+
+    private void showProgress(String title, String message, boolean determinate, int max,
+                              boolean allowSyncControls) {
         dismissProgress();
         Dialog dialog = new Dialog(this);
         LinearLayout panel = column();
@@ -1437,9 +1690,34 @@ public final class DownloadToolsActivity extends Activity {
             progressBar.setMax(Math.max(1, max));
             progressBar.setProgress(0);
         }
-        progressBar.setProgressTintList(ColorStateList.valueOf(GREEN));
+        progressBar.setProgressTintList(ColorStateList.valueOf(ACCENT));
         progressBar.setProgressBackgroundTintList(ColorStateList.valueOf(DIVIDER));
         panel.addView(progressBar, new LinearLayout.LayoutParams(-1, dp(5)));
+        if (allowSyncControls) {
+            addSpace(panel, 16);
+            LinearLayout actions = row(this);
+            actions.setGravity(Gravity.CENTER_VERTICAL);
+            LinearLayout backgroundButton = actionButton("Run in background", false, "↘");
+            backgroundButton.setOnClickListener(v -> {
+                ExportSyncCoordinator.markBackgrounded();
+                dismissProgress();
+                renderSyncCoordinatorStatus();
+                Toast.makeText(this, "Sync continues in the background. Return to Export & Storage to check progress.", Toast.LENGTH_SHORT).show();
+            });
+            actions.addView(backgroundButton, new LinearLayout.LayoutParams(0, dp(44), 1f));
+            View gap = new View(this);
+            actions.addView(gap, new LinearLayout.LayoutParams(dp(8), 1));
+            LinearLayout stopButton = actionButton("Stop sync", true, "■");
+            stopButton.setOnClickListener(v -> {
+                ExportSyncCoordinator.requestStop();
+                updateProgressMessage("Stopping after the current song finishes…");
+                stopButton.setEnabled(false);
+                stopButton.setClickable(false);
+                renderSyncCoordinatorStatus();
+            });
+            actions.addView(stopButton, new LinearLayout.LayoutParams(0, dp(44), 1f));
+            panel.addView(actions);
+        }
         dialog.setContentView(panel);
         dialog.setCancelable(false);
         dialog.setCanceledOnTouchOutside(false);
@@ -1461,6 +1739,11 @@ public final class DownloadToolsActivity extends Activity {
     private void updateProgress(int value, String message) {
         if (progressDialog == null || !progressDialog.isShowing()) return;
         if (progressBar != null && !progressBar.isIndeterminate()) progressBar.setProgress(value);
+        if (progressMessage != null) progressMessage.setText(message);
+    }
+
+    private void updateProgressMessage(String message) {
+        if (progressDialog == null || !progressDialog.isShowing()) return;
         if (progressMessage != null) progressMessage.setText(message);
     }
 
@@ -1498,7 +1781,12 @@ public final class DownloadToolsActivity extends Activity {
     }
 
     @Override protected void onDestroy() {
+        activityResumed = false;
+        syncStatusHandler.removeCallbacks(syncStatusPoller);
         dismissProgress();
+        // The floating entry belongs to the current Settings > Downloads visit. Clear it
+        // when this tools page is explicitly closed; re-entering Downloads installs it again.
+        if (isFinishing()) DownloadPatch.onToolsActivityClosed();
         super.onDestroy();
         worker.shutdown();
     }

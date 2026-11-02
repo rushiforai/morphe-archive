@@ -22,6 +22,7 @@ class WeatherInputRegression extends OriginalInputRegression {
             case "buienalarm" -> new String[]{"org.yoki.android.buienalarm","4.32.0","3723","5"};
             case "buienradar" -> new String[]{"com.supportware.Buienradar","7.4.8","7897","5"};
             case "weerplaza" -> new String[]{"nl.weerplaza.app","3.13.1","734","5"};
+            case "rainviewer" -> new String[]{"com.lucky_apps.RainViewer","8.4.1","44084","9"};
             default -> throw new IllegalArgumentException(appName);
         };
         PackageMetadata original=read(originalFile),other=read(new File(args[3]));
@@ -38,7 +39,11 @@ class WeatherInputRegression extends OriginalInputRegression {
         ResourcePatch guard=(ResourcePatch)owner.getDeclaredMethod("getOriginalInput").invoke(appName.equals("buienradar")?owner.getField("INSTANCE").get(null):null);
         for(Patch<?> patch:named)for(Patch<?> node:closure(patch))
             if(node!=guard)check(node.getDependencies().contains(guard),appName+" preflight precedes every mutation: "+patch.getName());
-        Set<Integer> supported=appName.equals("buienradar")?Set.of(28,29,32):Set.of(26);
+        Set<Integer> supported=switch(appName) {
+            case "buienradar" -> Set.of(28,29,32);
+            case "rainviewer" -> Set.of(29,32);
+            default -> Set.of(26);
+        };
         int minimum;
         try(ApkModule apk=ApkModule.loadApkFile(originalFile)){minimum=apk.getAndroidManifest().getMinSdkVersion();}
         check(supported.contains(minimum),appName+" original minimum SDK observed");

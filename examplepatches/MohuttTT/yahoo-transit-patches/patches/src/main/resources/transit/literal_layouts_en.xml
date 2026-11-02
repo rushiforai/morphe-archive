@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding='utf8'?>
+<layouts>
+  <layout source="res/layout/activity_home_input.xml" target="res/layout-en/activity_home_input.xml">
+    <replacement attribute="text" source="バス">Bus</replacement>
+    <replacement attribute="text" source="施設">Place</replacement>
+    <replacement attribute="text" source="駅">Station</replacement>
+  </layout>
+  <layout source="res/layout/address_name_list.xml" target="res/layout-en/address_name_list.xml">
+    <replacement attribute="text" source="かんおんじし">Kanonji</replacement>
+    <replacement attribute="text" source="観音寺市">Kanonji</replacement>
+  </layout>
+  <layout source="res/layout/countdown_panel.xml" target="res/layout-en/countdown_panel.xml">
+    <replacement attribute="text" source="15:23発">15:23 dep.</replacement>
+    <replacement attribute="text" source="始発">Starts here</replacement>
+    <replacement attribute="text" source="普通 [始]">Local [Starts here]</replacement>
+    <replacement attribute="text" source="都庁前 行き">For Tochomae</replacement>
+  </layout>
+  <layout source="res/layout/countdown_panel_skin.xml" target="res/layout-en/countdown_panel_skin.xml">
+    <replacement attribute="text" source="15:23発">15:23 dep.</replacement>
+    <replacement attribute="text" source="始発">Starts here</replacement>
+    <replacement attribute="text" source="普通 [始]">Local [Starts here]</replacement>
+    <replacement attribute="text" source="都庁前 行き">For Tochomae</replacement>
+  </layout>
+  <layout source="res/layout/fragment_stationinfo_list.xml" target="res/layout-en/fragment_stationinfo_list.xml">
+    <replacement attribute="text" source="バス">Bus</replacement>
+    <replacement attribute="text" source="駅">Station</replacement>
+  </layout>
+  <layout source="res/layout/list_countdown_panel.xml" target="res/layout-en/list_countdown_panel.xml">
+    <replacement attribute="text" source="05:51発">05:51 dep.</replacement>
+    <replacement attribute="text" source="普通 [始]">Local [Starts here]</replacement>
+    <replacement attribute="text" source="東武動物公園 行き">For Tobu-dobutsu-koen</replacement>
+  </layout>
+  <layout source="res/layout/list_item_diainfo.xml" target="res/layout-en/list_item_diainfo.xml">
+    <replacement attribute="text" source="メインタイトル">Title</replacement>
+  </layout>
+  <layout source="res/layout/list_item_diainfo_large.xml" target="res/layout-en/list_item_diainfo_large.xml">
+    <replacement attribute="text" source="メインタイトル">Title</replacement>
+  </layout>
+  <layout source="res/layout/list_item_diainfo_subtext.xml" target="res/layout-en/list_item_diainfo_subtext.xml">
+    <replacement attribute="text" source="サブ">Subtitle</replacement>
+    <replacement attribute="text" source="メインタイトル">Title</replacement>
+    <replacement attribute="text" source="拡張テキスト">Additional information</replacement>
+  </layout>
+  <layout source="res/layout/list_item_edge_pass_station.xml" target="res/layout-en/list_item_edge_pass_station.xml">
+    <replacement attribute="text" source="乗換不要">No transfer needed</replacement>
+  </layout>
+  <layout source="res/layout/list_item_lococlip.xml" target="res/layout-en/list_item_lococlip.xml">
+    <replacement attribute="text" source="和風居酒屋 / 串焼き / バー / 和食">Izakaya / skewers / bar / Japanese food</replacement>
+    <replacement attribute="text" source="店舗名">Place name</replacement>
+    <replacement attribute="text" source="渋谷区矢風町82 ヤフービル3F ">Sample address</replacement>
+  </layout>
+  <layout source="res/layout/list_item_yomigana.xml" target="res/layout-en/list_item_yomigana.xml">
+    <replacement attribute="text" source="サブ">Subtitle</replacement>
+  </layout>
+  <layout source="res/layout/list_item_yomigana_icon.xml" target="res/layout-en/list_item_yomigana_icon.xml">
+    <replacement attribute="text" source="サブ">Subtitle</replacement>
+    <replacement attribute="text" source="メイン">Title</replacement>
+  </layout>
+  <layout source="res/layout/rail_direction_timer.xml" target="res/layout-en/rail_direction_timer.xml">
+    <replacement attribute="text" source="駅名">Station name</replacement>
+  </layout>
+  <layout source="res/layout/setting_divide.xml" target="res/layout-en/setting_divide.xml">
+    <replacement attribute="text" source="14:00～終電">14:00 - last train</replacement>
+    <replacement attribute="text" source="始発～14:00">First train - 14:00</replacement>
+  </layout>
+  <layout source="res/layout/setting_start_detail.xml" target="res/layout-en/setting_start_detail.xml">
+    <replacement attribute="text" source="5秒">5 sec</replacement>
+  </layout>
+  <layout source="res/layout/shortcut_dialog.xml" target="res/layout-en/shortcut_dialog.xml">
+    <replacement attribute="text" source="ショートカット名">Shortcut name</replacement>
+  </layout>
+  <layout source="res/layout/timetable_list_popup.xml" target="res/layout-en/timetable_list_popup.xml">
+    <replacement attribute="text" source="12・13番線">Platforms 12 / 13</replacement>
+    <replacement attribute="text" source="15両">15 cars</replacement>
+  </layout>
+  <layout source="res/layout/timetable_nodata.xml" target="res/layout-en/timetable_nodata.xml">
+    <replacement attribute="text" source="日付や条件を変更していただくと時刻表が表示される場合があります。">Try another date or filter to find a timetable.</replacement>
+    <replacement attribute="text" source="時刻表がありません">No timetable available</replacement>
+  </layout>
+  <layout source="res/layout/timetable_tab_widget.xml" target="res/layout-en/timetable_tab_widget.xml">
+    <replacement attribute="text" source="平日">Weekdays</replacement>
+  </layout>
+  <layout source="res/layout/view_edge_item_door.xml" target="res/layout-en/view_edge_item_door.xml">
+    <replacement attribute="text" source=": 降車ドア">: Exit door</replacement>
+  </layout>
+  <layout source="res/layout/view_edge_item_riding_position.xml" target="res/layout-en/view_edge_item_riding_position.xml">
+    <replacement attribute="text" source=": 乗車位置">: Boarding position</replacement>
+  </layout>
+  <layout source="res/layout/view_realtime_congestion_link.xml" target="res/layout-en/view_realtime_congestion_link.xml">
+    <replacement attribute="text" source="(11:23現在)">(as of 11:23)</replacement>
+    <replacement attribute="text" source="入場規制の可能性あり">Possible entry restrictions</replacement>
+  </layout>
+  <layout source="res/layout/view_real_time_train_station.xml" target="res/layout-en/view_real_time_train_station.xml">
+    <replacement attribute="text" source="当駅">This station</replacement>
+  </layout>
+  <layout source="res/layout/view_search_err.xml" target="res/layout-en/view_search_err.xml">
+    <replacement attribute="text" source="到着地が見つかりませんでした">Destination not found</replacement>
+  </layout>
+  <layout source="res/layout/view_single_train_icon.xml" target="res/layout-en/view_single_train_icon.xml">
+    <replacement attribute="text" source="特">Ltd.</replacement>
+  </layout>
+  <layout source="res/layout/voice_ui_view_settings.xml" target="res/layout-en/voice_ui_view_settings.xml">
+    <replacement attribute="text" source="設定">Settings</replacement>
+    <replacement attribute="text" source="音声ログ送信">Send voice logs</replacement>
+  </layout>
+  <layout source="res/layout/widget_countdown.xml" target="res/layout-en/widget_countdown.xml">
+    <replacement attribute="text" source="−−:−−発">--:-- dep.</replacement>
+  </layout>
+  <layout source="res/layout/widget_countdown_l.xml" target="res/layout-en/widget_countdown_l.xml">
+    <replacement attribute="text" source="−−:−−発">--:-- dep.</replacement>
+  </layout>
+  <layout source="res/layout/yw_item_callout_view.xml" target="res/layout-en/yw_item_callout_view.xml">
+    <replacement attribute="text" source="出発地にセット">Set as origin</replacement>
+    <replacement attribute="text" source="目的地にセット">Set as destination</replacement>
+  </layout>
+</layouts>

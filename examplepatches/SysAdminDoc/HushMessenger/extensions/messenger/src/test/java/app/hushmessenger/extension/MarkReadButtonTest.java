@@ -124,13 +124,49 @@ public class MarkReadButtonTest {
         assertFalse(MarkReadButton.isDetails(new Object()));
     }
 
-    @Test public void withoutADetailsButtonItOnlyTakesAFreeSlot() throws Exception {
-        Object a = new Button("a"), b = new Button("b"), c = new Button("c");
-        Object ours = new Object();
-        List<Object> full = new ArrayList<>(Arrays.asList(a, b, c, null));
-        assertFalse(MarkReadButton.place(full, ours));
-        assertEquals("no call button is pushed out", Arrays.asList(a, b, c, null), full);
+    /** #122: the chats with no button. Their bars were full with no details button, or had details past the three it shows. */
+    @Test public void aFullBarWithoutADetailsButtonGivesUpItsLastButtonThatIsntForCalls() throws Exception {
+        Object voice = new Button("audio_call_button"), video = new Button("video_call_button");
+        Object friend = new Button("friendship_status_button"), details = new DetailsButton();
+        Object ours = new Button("hush_mark_read_button");
 
+        List<Object> noDetails = new ArrayList<>(Arrays.asList(friend, voice, video, null));
+        assertTrue(MarkReadButton.place(noDetails, ours));
+        assertEquals(Arrays.asList(ours, voice, video, null), noDetails);
+
+        List<Object> detailsCutOff = new ArrayList<>(Arrays.asList(friend, voice, video, details));
+        assertTrue(MarkReadButton.place(detailsCutOff, ours));
+        assertEquals("it shows, among the first three", Arrays.asList(ours, voice, video, details), detailsCutOff);
+
+        Object share = new Button("broadcast_channel_share_button"), bell = new Button("notification_button");
+        Object invite = new Button("thread_view_title_bar_channel_invite_button");
+        List<Object> channel = new ArrayList<>(Arrays.asList(share, invite, bell));
+        assertTrue(MarkReadButton.place(channel, ours));
+        assertEquals(Arrays.asList(share, invite, ours), channel);
+    }
+
+    @Test public void noCallButtonIsEverGivenUp() throws Exception {
+        Object ours = new Button("hush_mark_read_button");
+        for (String tag : MarkReadButton.CALL_TAGS) assertTrue(tag, MarkReadButton.isCall(new Button(tag)));
+        assertFalse(MarkReadButton.isCall(new Button("friendship_status_button")));
+        assertFalse(MarkReadButton.isCall(new Object()));
+
+        Object voice = new Button("audio_call_button"), dot = new Button("audio_call_button_green_dot"), video = new Button("video_call_button");
+        List<Object> calls = new ArrayList<>(Arrays.asList(voice, dot, video, new Button("friendship_status_button")));
+        List<Object> same = new ArrayList<>(calls);
+        assertFalse(MarkReadButton.place(calls, ours));
+        assertEquals(same, calls);
+
+        // Messenger's join a call button is another class with no tag to read.
+        Object join = new Object(), friend = new Button("friendship_status_button");
+        List<Object> joining = new ArrayList<>(Arrays.asList(friend, voice, join));
+        assertTrue(MarkReadButton.place(joining, ours));
+        assertEquals(Arrays.asList(ours, voice, join), joining);
+    }
+
+    @Test public void withRoomItsAddedAndNothingIsGivenUp() throws Exception {
+        Object a = new Button("a");
+        Object ours = new Button("hush_mark_read_button");
         List<Object> roomy = new ArrayList<>(Arrays.asList(a, null, null));
         assertTrue(MarkReadButton.place(roomy, ours));
         assertEquals(Arrays.asList(a, null, null, ours), roomy);

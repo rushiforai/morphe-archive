@@ -4,8 +4,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.matchSingle
 import app.morphe.util.returnBoxedBooleanEarly
 
-val getResultPatch = bytecodePatch {
-    execute {
-        GetResultFingerprint.matchSingle().method.returnBoxedBooleanEarly(true)
+val getResultPatch =
+    bytecodePatch {
+        execute {
+            GetResultFingerprint.matchSingle().method.returnBoxedBooleanEarly(true)
+        }
     }
-}

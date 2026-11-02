@@ -7,7 +7,9 @@ import app.morphed.extension.twitch.hls.UrlKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * State for one loaded live stream: its qualities, the stitched playlists, and the backup in use.
@@ -22,7 +24,12 @@ final class StreamSession {
         boolean swappingAds;
         /** Polls in a row without ad segments while swapping; the break ends at two. */
         int cleanPolls;
+        /** When this quality was last polled; a quality the player left no longer holds a break open. */
+        long lastPoll;
     }
+
+    /** How long a quality can go without a poll before it counts as left. */
+    static final long QUALITY_LEFT_MS = 6_000;
 
     final String channel;
     /** Usher master playlist URL the app requested; backups reuse its parameters. */
@@ -37,6 +44,12 @@ final class StreamSession {
     final Map<String, BackupStreamFinder.Result> backupResults = new ConcurrentHashMap<>();
     final Map<String, Long> failedPlayerTypes = new ConcurrentHashMap<>();
     final AtomicBoolean searching = new AtomicBoolean();
+    /** Counts finished ad breaks; a search from an earlier break must not change the next one. */
+    final AtomicInteger breakGeneration = new AtomicInteger();
+    /** Guards {@link #pendingSearch}. */
+    final Object searchLock = new Object();
+    /** The backup search running in the background, if any; it can outlive the poll that started it. */
+    Future<BackupStreamFinder.Result> pendingSearch;
     /** When a search last found no ad-free player type; searches pause for a while after. */
     volatile long lastEmptySearchAt = Long.MIN_VALUE / 2;
 
@@ -82,17 +95,48 @@ final class StreamSession {
         return state;
     }
 
+    /**
+     * Ends breaks of qualities the player has left (no poll for a while), for example when it
+     * switched quality during an ad. Returns true if that ended the break as a whole.
+     */
+    boolean endLeftBreaks(long now) {
+        boolean ended = false;
+        boolean stillInBreak = false;
+        for (QualityState state : qualities.values()) {
+            if (!state.swappingAds) continue;
+            if (now - state.lastPoll >= QUALITY_LEFT_MS) {
+                state.swappingAds = false;
+                state.cleanPolls = 0;
+                ended = true;
+            } else {
+                stillInBreak = true;
+            }
+        }
+        if (!ended || stillInBreak) return false;
+        resetAfterBreak();
+        return true;
+    }
+
     /** The break of the quality {@code url} belongs to is over. */
-    void endAdSwap(String url) {
+    void endAdSwap(String url, long now) {
         String key = UrlKey.of(variantUrlFor(url));
         QualityState state = qualityFor(url);
         state.swappingAds = false;
         state.cleanPolls = 0;
         backupResults.remove(key);
         for (QualityState other : qualities.values()) {
-            if (other.swappingAds) return;
+            // A quality the player switched away from mid-break would otherwise hold it open forever.
+            if (other.swappingAds && now - other.lastPoll < QUALITY_LEFT_MS) return;
         }
-        // No quality is in a break any more: the next one starts with a fresh search.
+        for (QualityState other : qualities.values()) other.swappingAds = false;
+        resetAfterBreak();
+    }
+
+    private void resetAfterBreak() {
+        // No quality is in a break any more: the next one starts with a fresh search, and searches
+        // still running from this break drop their results.
+        breakGeneration.incrementAndGet();
+        backupResults.clear();
         failedPlayerTypes.clear();
         lastEmptySearchAt = Long.MIN_VALUE / 2;
     }

@@ -280,7 +280,7 @@
     },
     {
       "name": "Back leaves Home",
-      "description": "Makes Back on Home leave Instagram at once, instead of first scrolling the feed to the top and reloading it. Starts off. Turn it on in HushGram settings > Feed.",
+      "description": "Makes Back on Home leave Instagram at once, instead of first scrolling the feed to the top and reloading it or saying \"Tap again to exit\". Starts off. Turn it on in HushGram settings > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -2468,7 +2468,7 @@
     },
     {
       "name": "Hide the notes row",
-      "description": "Takes the row of notes, and the Map bubble in it, off the top of your messages. Your chats stay. Starts off. Turn it on in HushGram settings > Messages.",
+      "description": "Takes the row of notes, and the Map bubble in it, off the top of your messages. Your chats stay. A second switch takes only the Map bubble. Both start off. Turn them on in HushGram settings > Messages.",
       "category": "Messages",
       "use": true,
       "dependencies": [
@@ -2849,6 +2849,45 @@
       "name": "Keep in chat",
       "description": "Keeps view once and replayable photos and videos in your chats after you open them, so they don't disappear. A photo or video you send stays Instagram's own sent bubble. Starts off. Turn it on in HushGram settings > Messages.",
       "category": "Messages",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "453.0.0.57.79"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "453.0.0.57.79",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 385914557,
+                "ARMEABI_V7A": 385914556,
+                "X86": 385914558
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Keep stories playing while zooming",
+      "description": "Keeps a story playing while you pinch to zoom it, instead of pausing it. A story you hold still first stays paused. Starts off. Turn it on in HushGram settings > Stories.",
+      "category": "Stories",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -3276,7 +3315,7 @@
     },
     {
       "name": "Pick the app icon",
-      "description": "Lets you pick the icon Instagram shows on your home screen: Instagram's own, HushGram's, Instagram's glyph on black, on plum, or in black on white, or a hand-drawn Instagram glyph on white. The new icon shows once you leave Instagram, and you may need to add it to your home screen again from the app drawer. Starts on Instagram's own. Pick one in HushGram settings > Layout.",
+      "description": "Lets you pick the icon Instagram shows on your home screen: Instagram's own, HushGram's, Instagram's glyph on black, on plum, or in black on white, a hand-drawn Instagram glyph on white, Instagram's gradient glyph on dark, or the old retro camera icon. The new icon shows once you leave Instagram, and you may need to add it to your home screen again from the app drawer. Starts on Instagram's own. Pick one in HushGram settings > Layout.",
       "category": "Interface",
       "use": true,
       "dependencies": [

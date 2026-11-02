@@ -118,7 +118,7 @@
         },
         {
             "name": "Android Auto messages",
-            "description": "Lets Android Auto read your Messenger messages out loud and send the replies you speak, through its own messaging screen. Android Auto only shows apps installed from the Play Store until you turn on Unknown sources in its developer settings. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "description": "Lets Android Auto read your Messenger messages out loud and send the replies you speak, through its own messaging screen. Android Auto only shows apps installed from the Play Store. Unknown sources in its developer settings opens that up on a desktop head unit, and a real car can still leave Messenger out. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
             "category": "Conversations",
             "dependencies": [
@@ -1346,6 +1346,63 @@
             "options": []
         },
         {
+            "name": "Hide call buttons",
+            "description": "Takes the audio and video call buttons out of a chat's top bar, so you can't tap one by accident. Calls still ring, and you can still join one that's going. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Conversations",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: hide_call_buttons",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "585.0.0.53.94",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347014974, 347014990, 347014996, 347015062, 347015064, 347015065 and 347015067; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
             "name": "Hide chat promotions",
             "description": "Hides promotion banners inside conversations. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
@@ -2302,6 +2359,50 @@
             "options": []
         },
         {
+            "name": "Keep chat pop-ups",
+            "description": "Messenger can turn off message pop-ups for good when it expects a chat head to show. This stops that and brings them back on a phone where it already happened, unless you lowered them yourself in Android's settings or picked Chat heads under Allow chat bubbles.",
+            "default": true,
+            "category": "Fixes",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "585.0.0.53.94",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347014974, 347014990, 347014996, 347015062, 347015064, 347015065 and 347015067; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
             "name": "Keep emoji search on emoji",
             "description": "Typing while the emoji keyboard is open no longer jumps to sticker search. The keyboard stays on emoji. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
@@ -2417,7 +2518,7 @@
         },
         {
             "name": "Mark as read button",
-            "description": "Puts Messenger's Mark as read icon in a chat's top bar while Hide read receipts is on. Opening the chat still sends nothing, and a tap on the icon sends Seen and marks the chat read. It takes the place of the chat details button, since tapping the chat's name opens the same page, so the call buttons stay put. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "description": "Puts Messenger's Mark as read icon in a chat's top bar while Hide read receipts is on. Opening the chat still sends nothing, and a tap on the icon sends Seen and marks the chat read. When the bar is full it takes the place of the chat details button (tapping the chat's name opens the same page), or of another button that isn't for calls when a chat doesn't have one, so the call buttons stay put. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
             "category": "Privacy",
             "dependencies": [
@@ -2702,7 +2803,7 @@
         },
         {
             "name": "Pin more chats",
-            "description": "Raises Messenger's limit of three pinned chats to 20, so you can keep more chats at the top of your chat list. Messenger's servers can still stop you sooner. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "description": "Lets you pin chats past Messenger's limit and puts Pin back on chats that don't offer it. Pins past the limit stay on this phone, so they won't show on your other devices. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
             "category": "Inbox",
             "dependencies": [
@@ -2837,6 +2938,63 @@
                     "type": "ResourcePatch",
                     "name": null,
                     "description": "Record HushMessenger capability: quiet_calls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "585.0.0.53.94",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347014974, 347014990, 347014996, 347015062, 347015064, 347015065 and 347015067; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Record calls",
+            "description": "Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Conversations",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: call_recording",
                     "dependencies": [
                         {
                             "type": "ResourcePatch",
@@ -3030,6 +3188,63 @@
             "options": []
         },
         {
+            "name": "Save button for voice messages",
+            "description": "Adds Save voice message to the menu you get by holding a voice message, for saving just that one. It goes in the same folder as Save voice messages you play, and that switch can stay off. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Photos and videos",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: save_voice_menu",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "585.0.0.53.94",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347014974, 347014990, 347014996, 347015062, 347015064, 347015065 and 347015067; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
             "name": "Save voice messages you play",
             "description": "Each voice message you play is also saved to Recordings/Messenger (Music/Messenger on Android 10 and 11), so your file manager and other players can open it. Playing it again doesn't save another copy. Needs Android 10 or newer. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
@@ -3052,6 +3267,63 @@
                     "type": "ResourcePatch",
                     "name": null,
                     "description": "Record HushMessenger capability: save_voice",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "585.0.0.53.94",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347014974, 347014990, 347014996, 347015062, 347015064, 347015065 and 347015067; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Search saved messages",
+            "description": "Adds a button to a chat's search results that searches the messages saved on this phone, for old chats Messenger's own search finds nothing in. It works in chats that aren't end-to-end encrypted, and it can only find what the phone has loaded. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Conversations",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: local_chat_search",
                     "dependencies": [
                         {
                             "type": "ResourcePatch",

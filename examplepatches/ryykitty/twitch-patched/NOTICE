@@ -88,5 +88,5 @@ and register-liveness checks, label-preserving insertion and synthetic tests.
 
 Show deleted messages adapted from patches/twitch/chat/ShowDeletedMessagesPatch.kt
 and ChatFingerprints.kt in arandomhooman/hoomans-morphe-patches (commit above),
-GPL-3.0. Changes: structural span and formatter discovery, register derivation
-from the formatter code, a settings toggle and strict instruction-count checks.
+GPL-3.0. Changes: structural formatter discovery, the sender name span derived
+from the formatter code, a settings toggle and React Native chat support.

@@ -7,6 +7,10 @@ public final class EmoteInputBridge {
         throw new UnsupportedOperationException("Emote suggestion identity bridge is not patched.");
     }
 
+    public static String id(Object emote) {
+        throw new UnsupportedOperationException("Emote id bridge is not patched.");
+    }
+
     public static Object model(String id, String code, boolean animated) {
         throw new UnsupportedOperationException("Emote input model bridge is not patched.");
     }

@@ -5,7 +5,7 @@ body:
     id: report-id
     attributes:
       label: Report ID
-      description: Shown after you send a report from the Maps Car report icon (or Settings › Report a problem). If no report could be sent, leave it empty and attach the crash file from Documents/Morphe below.
+      description: Shown after you send a report from the Report Maps Car icon (or Settings › Report a problem). If no report could be sent, leave it empty and attach the crash file from Documents/Morphe below.
       placeholder: MC-XXXX-XXXX
   - type: input
     id: car

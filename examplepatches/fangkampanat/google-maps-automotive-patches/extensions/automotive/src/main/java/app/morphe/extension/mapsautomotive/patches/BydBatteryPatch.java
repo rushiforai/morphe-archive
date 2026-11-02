@@ -114,6 +114,12 @@ public final class BydBatteryPatch {
     private static final int[] LOADS_KG = {0, 75, 125, 275};
     private static final int DEFAULT_LOAD_KG = 0, DRIVER_KG = 75;
     private static final String KEY_LOAD = "people_kg";
+    /** The last whole-percent step of SOC ({@link BydSocFraction}): the percent entered, its energy, the direction. */
+    private static final String KEY_STEP_SOC = "soc_step", KEY_STEP_WH = "soc_step_wh", KEY_STEP_DOWN = "soc_step_down";
+    /** Two readings at most this far apart are consecutive (one poll and a late one), so a change between them is a step. */
+    private static final long STEP_GAP_MS = 25000;
+    /** Whole percents driven through before their mean energy replaces the reading's own average. */
+    private static final int MIN_LEVELS = 3;
     /** An older stored load above the car's 1,500 kg, driver included: read less the driver until a new choice. */
     private static final String KEY_OLD_LOAD = "load_kg";
     /** New Dolphin Standard Range (Rever Automotive's specification): 70 kW motor, 60 kW DC charging. */
@@ -149,6 +155,8 @@ public final class BydBatteryPatch {
     private static String readerStatus;
     private static long lastRevision = -1;
     private static int lastLoggedSoc = -1, failures;
+    // Worker thread only, restored before the worker starts.
+    private static final BydSocFraction socFraction = new BydSocFraction();
     private static String lastLoggedSelection;
 
     private BydBatteryPatch() {
@@ -166,6 +174,7 @@ public final class BydBatteryPatch {
             Class.forName(BYD_SDK_CLASS);
             context = base;
             loadKg = storedLoad(base);
+            restoreSocStep(base);
             authority = base.getPackageName() + AUTHORITY_SUFFIX;
             modelUri = new Uri.Builder().scheme("content").authority(authority).path(MODEL_PATH).build();
             BydVehicleModel.initialize(base, NOMINAL_WH, ROLLING_N, LINEAR_N, DRAG_N);
@@ -272,14 +281,21 @@ public final class BydBatteryPatch {
     private static void publish(BydEnergyReader.Sample sample) {
         int current = (int) Math.round(sample.energy * 1000);
         BydVehicleModel.Model model = BydVehicleModel.activatePending();
-        // BYD reports whole SOC percents and Maps floors percentages. Centring the pair inside its
-        // percent makes Maps show the dashboard value (as in phone Maps).
-        boolean centred = sample.soc >= 10 && sample.soc < 100 && sample.soc == Math.rint(sample.soc);
-        double capacity = sample.soc >= 10 ? current * 100.0 / (centred ? sample.soc + 0.5 : sample.soc)
+        // BYD reports whole SOC percents and Maps floors percentages. Placing the pair inside its
+        // percent makes Maps show the dashboard value (as in phone Maps); where inside follows the energy
+        // used since the last step (BydSocFraction), the midpoint until a step is seen.
+        boolean inPercent = sample.soc >= 10 && sample.soc < 100 && sample.soc == Math.rint(sample.soc);
+        boolean consecutive = lastSampleAt != 0 && SystemClock.elapsedRealtime() - lastSampleAt <= STEP_GAP_MS;
+        boolean stepped = socFraction.observe(consecutive ? lastSoc : Double.NaN, sample.soc, current);
+        double fraction = inPercent ? socFraction.fraction(sample.soc, current, whPerPercent(sample.soc, current)) : Double.NaN;
+        boolean located = !Double.isNaN(fraction);
+        if (inPercent && !located) fraction = BydSocFraction.MIDPOINT;
+        double capacity = sample.soc >= 10 ? current * 100.0 / (inPercent ? sample.soc + fraction : sample.soc)
                 : BydVehicleModel.lowSocCapacity(model);
         if (!(capacity >= 5000 && capacity <= 150000 && current <= capacity + 500)) {
             throw new IllegalArgumentException("inconsistent SOC " + sample.soc + " and energy " + current);
         }
+        if (stepped) saveSocStep();
         int capacityWh = Math.max(current, (int) Math.round(capacity));
         int outsideC = outsideTemperature != null ? outsideTemperature.read() : BydOutsideTemperature.UNAVAILABLE;
         // The table is chosen once, from the first measured capacity.
@@ -319,7 +335,8 @@ public final class BydBatteryPatch {
             lastLoggedSelection = source;
             ReportLog.i(TAG, "energy model: soc=" + sample.soc + " energy_wh=" + current + " capacity_wh=" + capacityWh
                     + " capacity_basis=" + (sample.soc < 10 ? BydVehicleModel.lowSocCapacityBasis(model)
-                    : centred ? "soc_midpoint" : "soc") + " " + source
+                    : !inPercent ? "soc" : located ? String.format(Locale.ROOT, "soc_step_%s;soc_fraction=%.2f",
+                    socFraction.fromAbove() ? "down" : "up", fraction) : "soc_midpoint") + " " + source
                     + (file == null ? "" : ";measured_kwh_100km=" + model.consumption + ";model_revision=" + model.revision));
         }
         // Learning cannot invalidate the published reading.
@@ -393,6 +410,35 @@ public final class BydBatteryPatch {
             ReportLog.w(TAG, "Could not read the load", error);
         }
         return DEFAULT_LOAD_KG;
+    }
+
+    private static void restoreSocStep(Context context) {
+        try {
+            SharedPreferences preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+            socFraction.restore(preferences.getInt(KEY_STEP_SOC, -1), preferences.getInt(KEY_STEP_WH, 0),
+                    preferences.getBoolean(KEY_STEP_DOWN, true));
+        } catch (RuntimeException error) {
+            ReportLog.w(TAG, "Could not read the SOC step", error);
+        }
+    }
+
+    // Worker thread only. The step outlives the process, so a drive after parking starts placed in its percent.
+    private static void saveSocStep() {
+        try {
+            context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().putInt(KEY_STEP_SOC, socFraction.soc())
+                    .putInt(KEY_STEP_WH, socFraction.entryWh()).putBoolean(KEY_STEP_DOWN, socFraction.fromAbove()).apply();
+        } catch (RuntimeException error) {
+            ReportLog.w(TAG, "SOC step not saved: " + BydEnergyReader.describe(error));
+        }
+    }
+
+    /**
+     * The energy of one percent: the mean of the whole percents driven through in that SOC range
+     * (above 90% the BMS holds more per percent), otherwise the reading's own average.
+     */
+    private static double whPerPercent(double soc, int currentWh) {
+        BydSpeedBands.LevelStatus level = BydSpeedBands.levelStatus()[soc > BydSpeedBands.HIGH_SOC ? 0 : 1];
+        return level.count >= MIN_LEVELS ? level.kwhPerPercent * 1000 : currentWh / (soc + BydSocFraction.MIDPOINT);
     }
 
     /** The outside temperature, or the file's own (23 °C) when the car does not report it. */
@@ -479,7 +525,7 @@ public final class BydBatteryPatch {
     public static String getSettingsSummary(Context context) {
         boolean thai = UiDensityPatch.isThai(context);
         if (!SafeMode.on(context, SafeMode.BYD_BATTERY)) {
-            return thai ? "ปิดชั่วคราว · สวิตช์ใน Maps Car report" : "Off for now · switch in Maps Car report";
+            return thai ? "ปิดชั่วคราว · สวิตช์ใน Report Maps Car" : "Off for now · switch in Report Maps Car";
         }
         if (!isEnabled(context)) {
             if (untestedByd(context)) return thai ? "ปิด · ยังไม่ได้ทดสอบกับรถรุ่นนี้" : "Off · not tested on this car model";

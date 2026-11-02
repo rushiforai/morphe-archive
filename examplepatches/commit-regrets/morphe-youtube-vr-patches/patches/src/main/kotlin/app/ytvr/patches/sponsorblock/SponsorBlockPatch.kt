@@ -90,10 +90,10 @@ private class SeekbarIds(
 
 @Suppress("MagicNumber")
 private val SEEKBAR_SETS = listOf(
+    // 1.90.05
+    SeekbarIds(0x7f0b0a3b, 0x7f0b0a3c, 0x7f0b0a3d, 0x7f0b0a3e, 0x7f0b0a41, 0x7f0b0a42),
     // 1.89.09
     SeekbarIds(0x7f0b0a39, 0x7f0b0a3a, 0x7f0b0a3b, 0x7f0b0a3c, 0x7f0b0a3f, 0x7f0b0a40),
-    // 1.88.10
-    SeekbarIds(0x7f0b0a23, 0x7f0b0a24, 0x7f0b0a25, 0x7f0b0a26, 0x7f0b0a29, 0x7f0b0a2a),
 )
 
 /**
@@ -155,15 +155,25 @@ private fun Instruction.storesFieldOfType(type: String): FieldReference? {
 }
 
 /** True when [this] references every seek-bar resource id (they are inlined ints). */
-private fun Method.matchedSeekbarIds(): SeekbarIds? {
-    val implementation = implementation ?: return null
+private fun Method.matchedSeekbarIds(): SeekbarIds? = matchingSeekbarSets().firstOrNull()
+
+/**
+ * Every supported seek-bar id set whose five code-referenced ids this method contains
+ * (seekbar, buffered, container, position, thumb). Those five overlap by one id: 1.90.05's
+ * seekbar is `0x7f0b0a3b`, which is 1.89.09's seekbar_buffered. `0x7f0b0a3c` is seekbar_bg on
+ * 1.90.05 and seekbar_container on 1.89.09, so only the 1.89.09 set matches on it. A future
+ * denser overlap could make both sets match one method; the bake site throws in that case
+ * instead of baking the first set's ids into the wrong build.
+ */
+private fun Method.matchingSeekbarSets(): List<SeekbarIds> {
+    val implementation = implementation ?: return emptyList()
     val seen = HashSet<Int>()
     for (instruction in implementation.instructions) {
         if (instruction is NarrowLiteralInstruction) {
             seen.add(instruction.narrowLiteral)
         }
     }
-    return SEEKBAR_SETS.firstOrNull { set -> set.allFive.all { seen.contains(it) } }
+    return SEEKBAR_SETS.filter { set -> set.allFive.all { seen.contains(it) } }
 }
 
 /** True when [this] references every seek-bar resource id in any supported set (they are inlined ints). */
@@ -1350,7 +1360,15 @@ val sponsorBlockPatch = bytecodePatch(
         // Bake the option values into the app once, at start: the baked defaults first,
         // then the overlay's ids, then the settings store — which reads the user's own
         // choices over those defaults, so the order inside this one block matters.
-        val seekbarIds = seekbarControllerFingerprint.method.matchedSeekbarIds()
+        val seekbarMatches = seekbarControllerFingerprint.method.matchingSeekbarSets()
+        if (seekbarMatches.size > 1) {
+            throw PatchException(
+                "SponsorBlock: ${seekbarMatches.size} supported seek-bar id sets match the " +
+                    "binder -- the supported versions' id ranges have collided; add the new " +
+                    "version's set and prune the stale one before baking",
+            )
+        }
+        val seekbarIds = seekbarMatches.firstOrNull()
             ?: throw PatchException(
                 "SponsorBlock: seek-bar fingerprint matched but none of the known id sets " +
                     "were present -- refusing to bake a guessed version's ids",

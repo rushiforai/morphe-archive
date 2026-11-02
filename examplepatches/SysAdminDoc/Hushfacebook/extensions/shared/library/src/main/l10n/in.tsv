@@ -290,6 +290,8 @@ With the switch above on, your place stays however long you're away. Pull to ref
 Back leaves Home where it is	Kembali membiarkan Beranda di tempatnya
 Pressing Back on a scrolled Home no longer jumps to the top and reloads the feed. Press Back again within two seconds to do that.	Menekan Kembali di Beranda yang sudah digulir tidak lagi melompat ke atas dan memuat ulang beranda. Tekan Kembali lagi dalam dua detik untuk melakukannya.
 Press Back again to go to the top	Tekan Kembali lagi untuk ke atas
+Hide the Back reminder	Sembunyikan pengingat Kembali
+Back keeps your place without saying "Press Back again to go to the top".	Kembali mempertahankan posisi Anda tanpa menampilkan “Tekan Kembali lagi untuk ke atas”.
 A finished story stays on screen until you tap or swipe. Turn this off for Facebook's timing.	Cerita yang selesai tetap di layar sampai Anda mengetuk atau menggeser. Matikan ini untuk memakai waktu bawaan Facebook.
 View stories anonymously	Lihat cerita secara anonim
 Facebook isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you. Stories you watch to the end show as watched on this phone only, until that person posts a new one.	Facebook tidak diberi tahu cerita mana yang kamu tonton, jadi kamu tidak masuk daftar penontonnya. Membalas atau memberi reaksi tetap menunjukkan dirimu. Cerita yang kamu tonton sampai habis ditandai sudah dilihat hanya di ponsel ini, sampai orang itu memposting cerita baru.
@@ -501,6 +503,9 @@ Comments show their replies right away, so there's no View replies to tap.	Komen
 Load whole reply threads	Muat utas balasan lengkap
 # context: summary of that switch; View more replies is the row Facebook shows under an open thread that has more replies to load
 An open reply thread keeps loading as you scroll, so there's no View more replies to tap.	Utas balasan yang terbuka terus dimuat saat kamu menggulir, tanpa perlu mengetuk untuk melihat balasan lainnya.
+Hide replies button	Tombol Sembunyikan balasan
+An open reply thread gets a Hide replies button, so you can close it again after reading.	Utas balasan yang terbuka mendapat tombol Sembunyikan balasan, jadi kamu bisa menutupnya lagi setelah membaca.
+Hide replies	Sembunyikan balasan
 # context: switch title under Comments; View more replies is the row under an open reply thread that loads more replies, and this makes the whole row take the tap instead of only its words
 Tap anywhere on View more replies	Ketuk di mana saja pada Lihat balasan lainnya
 # context: summary of that switch
@@ -848,6 +853,8 @@ Hold a feed video for 2x	Tahan video feed untuk 2x
 # context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
 Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	Menahan video di feed atau di Watch memutarnya dengan kecepatan dua kali lipat sampai kamu melepaskannya. Ini berfungsi tanpa sakelar di atas.
 Hide the pull down to lock hint	Sembunyikan petunjuk tarik ke bawah untuk mengunci
+Hide the 2x popups	Sembunyikan popup 2x
+Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	Menahan video untuk 2x tidak menampilkan pil apa pun, jadi tidak ada "Kecepatan: 2x", "Lepaskan untuk mengunci", atau "Terkunci pada kecepatan 2x". Menahan dan mengunci tetap berfungsi.
 # context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
 Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	Menahan video untuk 2x hanya menampilkan label 2x biasa, tanpa petunjuk "Tarik ke bawah untuk mengunci kecepatan 2x". Menarik ke bawah tetap menguncinya. Ini berfungsi tanpa sakelar di atas.
 Default playback quality	Kualitas pemutaran default
@@ -970,6 +977,22 @@ Keep post dates	Pertahankan tanggal postingan
 # context: description of that switch; the rotating details are the texts Facebook's newer post header takes turns showing on that line
 Shows the post's date under the poster's name instead of Facebook's rotating details, which can go blank on some phones.	Menampilkan tanggal postingan di bawah nama pemosting, bukan keterangan bergantian milik Facebook yang bisa kosong di beberapa ponsel.
 Show full post text	Tampilkan teks postingan lengkap
+Translate	Terjemahkan
+See original	Lihat aslinya
+Translation	Terjemahan
+Show original	Tampilkan aslinya
+Show translation	Tampilkan terjemahan
+Translating...	Menerjemahkan...
+Couldn't translate this. Check your connection and try again.	Tidak bisa menerjemahkan ini. Periksa koneksi Anda lalu coba lagi.
+Add a Translate link to posts	Tambahkan tautan Terjemahkan ke postingan
+Translate posts by themselves	Terjemahkan postingan secara otomatis
+Posts in another language get a Translate link under their text. A tap sends that post's text to Google Translate.	Postingan dalam bahasa lain mendapat tautan Terjemahkan di bawah teksnya. Mengetuknya mengirim teks postingan itu ke Google Terjemahan.
+Posts in another language show translated, with See original under them. Each post's text goes to Google Translate as it's drawn.	Postingan dalam bahasa lain tampil sudah diterjemahkan, dengan Lihat aslinya di bawahnya. Teks tiap postingan dikirim ke Google Terjemahan saat ditampilkan.
+Translate to	Terjemahkan ke
+The phone's language	Bahasa ponsel
+Languages to leave alone	Bahasa yang tidak diterjemahkan
+None picked. Posts in every language can be translated.	Belum ada yang dipilih. Postingan dalam bahasa apa pun bisa diterjemahkan.
+Left alone: %s	Tidak diterjemahkan: %s
 Posts in the feed show all of their text, so there's no See more to tap.	Postingan di feed menampilkan seluruh teksnya, jadi tidak perlu mengetuk Lihat selengkapnya.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Lihat siapa yang membagikan
@@ -987,7 +1010,9 @@ No "Are you interested in this reel?" prompt on reels. The reel plays as usual.	
 # context: switch title under News feed; affiliate product links are the shop links creators add to their posts to earn a commission
 Hide affiliate product links	Sembunyikan tautan produk afiliasi
 # context: description of that switch; "Commission eligible" is Facebook's own label, so use Facebook's wording in your language if you know it
-Hides product cards from shopping links that creators add to posts, reels and comments. The "Commission eligible" label stays.	Menyembunyikan kartu produk dari tautan belanja yang ditambahkan kreator ke postingan, reel, dan komentar. Label “Memenuhi syarat komisi” tetap ada.
+Hides product cards from shopping links that creators add to posts, reels and comments.	Menyembunyikan kartu produk dari tautan belanja yang ditambahkan kreator ke postingan, reel, dan komentar.
+Hide the Commission eligible label	Sembunyikan label “Memenuhi syarat komisi”
+Hides the "Commission eligible" label under the creator's name on reels.	Menyembunyikan label “Memenuhi syarat komisi” di bawah nama kreator pada reel.
 # context: The reel button and the video menu item while links are sent to another app (#41)
 Send to app	Kirim ke aplikasi
 # context: Title of Android's app chooser when a video's link is sent
@@ -1769,6 +1794,8 @@ Takes the Save button off the side of reels. The buttons above it move down. A c
 Hide the speaker button on reels	Sembunyikan tombol speaker di reel
 # context: summary of that switch
 Takes the speaker button off the bottom of the side of reels. A change shows from the next reel.	Menghapus tombol speaker dari bagian bawah sisi reel. Perubahan terlihat mulai reel berikutnya.
+Move the speaker above the three dots	Pindahkan speaker ke atas tiga titik
+Puts the speaker button in the side column of reels, right above the three dots. A change shows from the next reel.	Menaruh tombol speaker di kolom samping reel, tepat di atas tiga titik. Perubahan terlihat mulai reel berikutnya.
 # context: switch title under News feed; the reaction preview is the stack of reaction icons and the line with the number of reactions under a post
 Hide the reaction preview on posts	Sembunyikan pratinjau reaksi di postingan
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
@@ -2088,6 +2115,9 @@ Reels order will be set to %1$s.	Urutan reel akan diatur ke %1$s.
 Cast button on feed videos	Tombol transmisi di video feed
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Menambahkan tombol transmisi ke video feed. Tombol ini menyerahkan video ke aplikasi transmisi yang kamu punya, seperti Web Video Caster, yang mengirimnya ke TV-mu. Facebook sudah tidak punya fitur transmisi sendiri.
 Cast this video	Transmisikan video ini
+Seek bar on feed videos	Bilah geser di video feed
+Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Menampilkan bilah di bagian bawah video feed. Geser lalu lepaskan untuk melompat ke titik itu. Video live dan iklan tetap memakai kontrolnya sendiri. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
+Feed video position	Posisi video feed
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Warna lencana
 # context: title of the row that holds a color code for the Facebook logo at the top of Home

@@ -28,7 +28,7 @@ internal fun renderUiControls(bundle: HermesBundle): String {
         "SHEET_ACTIONS" to exports.resolve("SkylineSheetActions", setOf(skylineSupport.name, "supportButtonState", "channel", "support")),
         "OVERLAY_ACTIONS" to exports.resolve("OverlayActionButtons", setOf("testID", "showCheerButton", "onSubscribe", "onGift")),
         "CHAT_BAND" to exports.resolve("SkylineChatBand", setOf("ChatArea", "channelID", "onTrayChange")),
-        "COMPOSER" to exports.resolve("ChatComposerBar", setOf("showBitsButton", "onOpenQuickCheering", "channelID")),
+        "COMPOSER" to exports.resolve("ChatComposerBar", setOf("showBitsButton", "bitsChatMode", "channelID")),
         "EXTENSIONS" to exports.resolve("ClassicExtensionsIcon", setOf("installations", "onOpen", "testID", "hasInstalledExtensions")),
     )
     exports.requireNestedContract("PlayerControlsOverlay", setOf("player-controls-cast", "player-controls-share"))

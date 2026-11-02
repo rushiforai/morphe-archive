@@ -51,7 +51,7 @@ final class HaiagaruSyncSnapshot {
     private static final String HAIAGARU_PREFS =
             "io.github.areteruhiro.chmate.haiagaru.ui-config";
     private static final String[] EXTRA_SETTINGS = {"haiagaru_thread_commands", "haiagaru_replace_str",
-            "haiagaru.programmable-ng", "haiagaru_eddi_search", "haiagaru_upload_history"};
+            "haiagaru.programmable-ng", "haiagaru_eddi_search", "haiagaru_upload_history",LocalAutoBackup.PREFS};
 
     private HaiagaruSyncSnapshot() {}
 
@@ -464,6 +464,7 @@ final class HaiagaruSyncSnapshot {
             for (Map.Entry<String, ?> entry : context.getSharedPreferences(
                     name, Context.MODE_PRIVATE).getAll().entrySet()) {
                 if (!safePreferenceKey(entry.getKey())) continue;
+                if(name.equals(LocalAutoBackup.PREFS)&&!LocalAutoBackup.backupSetting(entry.getKey()))continue;
                 JSONObject typed = encodePreference(entry.getValue());
                 if (typed != null) values.put(entry.getKey(), typed);
             }
@@ -483,6 +484,9 @@ final class HaiagaruSyncSnapshot {
                     ? context.getPackageName() + "_preferences" : name;
             JSONObject values = files.optJSONObject(name);
             if (values == null) continue;
+            if(name.equals(LocalAutoBackup.PREFS)){
+                restoreLocalAutoBackup(context,values,false);continue;
+            }
             SharedPreferences.Editor editor = context.getSharedPreferences(
                     targetName, Context.MODE_PRIVATE).edit();
             for (Iterator<String> keys = values.keys(); keys.hasNext();) {
@@ -528,6 +532,9 @@ final class HaiagaruSyncSnapshot {
                     ? context.getPackageName() + "_preferences" : name;
             JSONObject values = files.optJSONObject(name);
             if (values == null) continue;
+            if(name.equals(LocalAutoBackup.PREFS)){
+                restoreLocalAutoBackup(context,values,true);continue;
+            }
             SharedPreferences preferences = context.getSharedPreferences(
                     targetName, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = preferences.edit();
@@ -617,6 +624,24 @@ final class HaiagaruSyncSnapshot {
                 && !lower.contains("account") && !lower.contains("auth")
                 && !lower.contains("2chapi") && !lower.contains("sync"))
                 || HAIAGARU_PREFS.equals(name);
+    }
+
+    private static void restoreLocalAutoBackup(Context context,JSONObject values,boolean missingOnly)throws Exception {
+        SharedPreferences prefs=context.getSharedPreferences(LocalAutoBackup.PREFS,0);
+        SharedPreferences.Editor editor=prefs.edit();
+        for(String key:new String[]{"hours","keep","categories"}){
+            if(!values.has(key)||missingOnly&&prefs.contains(key))continue;
+            JSONObject entry=values.getJSONObject(key);
+            if(!"int".equals(entry.optString("type")))throw new IOException("自動バックアップ設定の型が不正です");
+            int number=entry.getInt("value");
+            if(key.equals("hours")&&(number<1||number>8760)||key.equals("keep")&&(number<1||number>100)
+                    ||key.equals("categories")&&(number<0||(number&~ALL)!=0))throw new IOException("自動バックアップ設定の値が不正です");
+            editor.putInt(key,number);
+        }
+        // A backup file cannot grant access to a destination or consent to start
+        // sending new backups there. Keep this installation's folder, enablement,
+        // successful-run timestamps and owned-file list; never import ownership.
+        if(!editor.commit())throw new IOException("自動バックアップ設定の復元に失敗しました");
     }
 
     private static boolean settingsName(String name, String sourcePackage) {

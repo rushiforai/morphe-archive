@@ -52,6 +52,11 @@ object WazeConstants {
             // 2026-10-27. Added so the bundle stops skipping every row on the version people actually
             // run, then verified row by row against that base.
             AppTarget(version = "5.26.5.0"),
+            // Seventh target (versionCode 1030746, beta handed over 2026-11-01). Verified the same way
+            // as the others: all 33 rows apply with zero failures, and the four rows whose anchors had
+            // moved (hide recent destinations, skip sign-in, unlock driver moods, disable Play Store
+            // updates) were re-anchored and then checked in the patched dex.
+            AppTarget(version = "5.26.90.901"),
             // Experimental: attempt on any version / any architecture.
             AppTarget(version = null, isExperimental = true),
         ),

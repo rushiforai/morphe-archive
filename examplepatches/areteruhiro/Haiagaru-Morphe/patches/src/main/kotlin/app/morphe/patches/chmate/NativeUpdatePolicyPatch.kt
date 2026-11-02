@@ -97,6 +97,9 @@ internal fun BytecodePatchContext.patchNativeUpdatePolicy(version: String) {
         }
     }
 
+    check(mutableClassDefBy("Lo/putFloat;").fields.any { it.name == "c" && it.type == "Lo/putFloatArray;" })
+    check(mutableClassDefBy("Lo/putFloatArray;").fields.any { it.name == "a" && it.type == "I" })
+    check(mutableClassDefBy("Lo/r8lambdaSKTp07BDug1dt6rTGFYR7p2Uyw;").fields.any { it.name == "b" && it.type == "Lo/putFloatArray;" })
     val bridge = mutableClassDefBy(POLICY)
     fun newBridge(name: String, registers: Int): MutableMethod {
         val old = bridge.methods.single { it.name == name }
@@ -328,5 +331,5 @@ internal fun BytecodePatchContext.patchNativeUpdatePolicy(version: String) {
         invoke-virtual {v2, p2}, Ljava/net/Socket;->setSoTimeout(I)V
         goto :connected_source
     """.trimIndent(), ExternalLabel("original_connect", originalConnect), ExternalLabel("connected_source", sourceSetup))
-    println("191 update safeguards: $callbacks progress readers, $calls scoped native calls, 250ms TCP race/socket handoff")
+    println("191 update safeguards: $callbacks progress readers, $calls scoped native calls, 50ms TCP race/socket handoff")
 }

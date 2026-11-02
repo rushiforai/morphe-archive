@@ -10,7 +10,7 @@ import app.morphed.extension.twitch.dns.HostBlocklist;
 
 /**
  * Replaces the {@code InetAddress.getAllByName} call in Twitch's OkHttp connection code: ad and
- * tracking servers are refused, everything else is looked up by the phone as usual.
+ * tracking servers are refused everywhere, everything else is looked up by the phone as usual.
  */
 @SuppressWarnings("unused")
 public final class TwitchDns {
@@ -26,6 +26,8 @@ public final class TwitchDns {
     public static InetAddress[] getAllByName(String host) throws UnknownHostException {
         if (HostBlocklist.isBlocked(host)) {
             report(host);
+            // The label only shows while a stream is watched; main page ads are blocked silently.
+            if (HostBlocklist.isAdServer(host)) StreamAdsPatch.adBlocked();
             throw new UnknownHostException("Blocked by Twitch Morphed: " + host);
         }
         return InetAddress.getAllByName(host);

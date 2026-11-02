@@ -19,7 +19,7 @@ private const val ANDROID = "http://schemas.android.com/apk/res/android"
 private val wuplay = Compatibility(
     name = "Wuplay Android TV", packageName = "app.wuplay.androidtv", apkFileType = ApkFileType.APK,
     formFactor = FormFactor.TV,
-    signatures = setOf("ae406f7d398ae1ae418238f83d07554e6aa6cf5855b66edb9c4c85995d435e7f"),
+    signatures = setOf(WuplaySettingsHooks.ORIGINAL_SIGNER),
     targets = listOf(AppTarget(version = "0.9.4-beta", versionCode = 49, minSdk = 24)),
 )
 private val originalInput = patches.shared.originalInput(wuplay)
@@ -37,15 +37,9 @@ private val catalogResources = resourcePatch {
             val activity = xml.createElement("activity")
             activity.setAttributeNS(ANDROID, "android:name", name)
             activity.setAttributeNS(ANDROID, "android:label", "Wuplay TV channels")
-            activity.setAttributeNS(ANDROID, "android:exported", "true")
+            activity.setAttributeNS(ANDROID, "android:exported", "false")
             activity.setAttributeNS(ANDROID, "android:enableOnBackInvokedCallback", "false")
-            val filter = xml.createElement("intent-filter")
-            for ((tag, value) in listOf("action" to "android.intent.action.MAIN",
-                "category" to "android.intent.category.LEANBACK_LAUNCHER")) {
-                val node = xml.createElement(tag); node.setAttributeNS(ANDROID, "android:name", value)
-                filter.appendChild(node)
-            }
-            activity.appendChild(filter); app.appendChild(activity)
+            app.appendChild(activity)
         }
     }
 }
@@ -53,7 +47,7 @@ private val catalogResources = resourcePatch {
 @Suppress("unused")
 val catalogChannels = bytecodePatch(
     name = "Publish selected catalog channels",
-    description = "Select catalogs from the default profile in the Wuplay TV channels launcher entry. " +
+    description = "Choose which default-profile Home catalogs to publish in Settings > Catalogs > TV channels. " +
         "Publishes Android TV preview channels with artwork and Wuplay links; requires Android TV 8 or later.",
     default = false,
 ) {
@@ -71,7 +65,7 @@ val catalogChannels = bytecodePatch(
             "Lapp/wuplay/androidtv/data/CatalogRepositoryImpl;" to mapOf("definitions" to "Lkotlinx/coroutines/flow/Flow;"),
             "Lapp/wuplay/androidtv/domain/model/Profile;" to mapOf("id" to "Ljava/lang/String;", "name" to "Ljava/lang/String;"),
             "Lapp/wuplay/androidtv/domain/model/CatalogDefinition;" to mapOf(
-                "id" to "I", "name" to "Ljava/lang/String;", "source" to "Ljava/lang/String;", "homeOrder" to "I"),
+                "id" to "I", "name" to "Ljava/lang/String;", "source" to "Ljava/lang/String;", "homeOrder" to "I", "showHome" to "Z"),
             "Lapp/wuplay/androidtv/domain/repository/CatalogContent;" to mapOf("items" to "Ljava/util/List;", "error" to "Ljava/lang/String;"),
             "Lapp/wuplay/androidtv/domain/stremio/MetaPreview;" to listOf("type", "id", "imdbId", "name", "description", "poster", "background")
                 .associateWith { "Ljava/lang/String;" },
@@ -95,6 +89,24 @@ val catalogChannels = bytecodePatch(
             parameters = emptyList(), returnType = "Lkotlinx/coroutines/SupervisorJobImpl;").uniqueMatch()
         Fingerprint(definingClass = "Lkotlinx/coroutines/JobSupport;", name = "cancel",
             parameters = listOf("Ljava/util/concurrent/CancellationException;"), returnType = "V").uniqueMatch()
+        Fingerprint(definingClass = "Landroidx/compose/foundation/lazy/LazyListIntervalContent;", name = "item",
+            parameters = listOf("Ljava/lang/Object;", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function3;"), returnType = "V").uniqueMatch()
+        Fingerprint(definingClass = "Landroidx/compose/runtime/GapComposer;", name = "consume",
+            parameters = listOf("Landroidx/compose/runtime/ProvidableCompositionLocal;"), returnType = "Ljava/lang/Object;").uniqueMatch()
+        Fingerprint(definingClass = "Lapp/wuplay/androidtv/ui/screens/settings/SettingRowKt;", name = "SettingRow",
+            parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function0;",
+                "Landroidx/compose/ui/Modifier;", "Ljava/lang/String;", "Landroidx/compose/ui/focus/FocusRequester;",
+                "Lkotlin/jvm/functions/Function0;", "Lkotlin/jvm/functions/Function0;", "Z", "Z",
+                "Landroidx/compose/runtime/GapComposer;", "I", "I"), returnType = "V").uniqueMatch()
+        val settings = Fingerprint(definingClass = WuplaySettingsHooks.OWNER, name = "invoke",
+            parameters = listOf("Ljava/lang/Object;"), returnType = "Ljava/lang/Object;").uniqueMatch().method
+        WuplaySettingsHooks.apply(settings)
+        val focus = Fingerprint(definingClass = WuplaySettingsHooks.FOCUS_OWNER, name = "invoke",
+            parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"), returnType = "Ljava/lang/Object;").uniqueMatch().method
+        WuplaySettingsHooks.extendCatalogFocus(focus)
+        val container = Fingerprint(definingClass = "Lapp/wuplay/androidtv/TvAppContainer;", name = "<init>",
+            parameters = listOf(APP), returnType = "V").uniqueMatch().method
+        WuplaySettingsHooks.retainBuildIdentity(container)
         val method = Fingerprint(definingClass = APP, name = "onCreate", parameters = emptyList(), returnType = "V").uniqueMatch().method
         val instructions = method.implementation!!.instructions.toList()
         check(method.implementation!!.registerCount == 5 && instructions.size == 28 &&

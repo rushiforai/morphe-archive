@@ -108,35 +108,30 @@ val followButtonOnPostsPatch = bytecodePatch(
 
         // region The app's follow button and what it needs
 
-        var followButton: Method? = null
-        classDefForEach { classDef ->
-            classDef.methods.firstOrNull { method ->
-                AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" &&
-                    method.parameterTypes.size > 10 &&
-                    method.parameterTypes[0].toString() == followState &&
-                    method.parameterTypes[1].toString() == userType &&
-                    method.parameterTypes.any { it.toString() == COMPOSER }
-            }?.let { followButton = it }
-        }
-        val button = followButton ?: throw PatchException("No follow button composable")
-        val buttonParams = button.parameterTypes.map { it.toString() }
-        val handlerType = buttonParams[2]
-        val styleType = buttonParams[4]
-
-        // The focal post draws it with a style instance and a defaults mask, both reused here.
+        // The app's follow button is the one the focal post draws: other composables share its
+        // first parameters (12.39 has four), so it is taken from that call, with the style
+        // instance and the defaults mask the call passes, both reused here.
+        var followButton: MethodReference? = null
         var style: String? = null
         var defaultsMask: Int? = null
         val focalCaller = presenter.definingClass.substringBeforeLast('/')
         classDefForEach { classDef ->
-            if (!classDef.type.startsWith(focalCaller) || style != null) return@classDefForEach
+            if (!classDef.type.startsWith(focalCaller) || followButton != null) return@classDefForEach
             classDef.methods.forEach { method ->
+                // The focal post's composable takes the post state; the quick promote card draws
+                // the button too, with other defaults.
+                if (followButton != null || method.parameterTypes.none { it.toString() == postState }) return@forEach
                 val instructions = method.implementation?.instructions?.toList() ?: return@forEach
                 val call = instructions.indexOfFirst { instruction ->
-                    instruction.methodRef()?.let {
-                        it.definingClass == button.definingClass && it.name == button.name && it.params() == buttonParams
+                    instruction.opcode == Opcode.INVOKE_STATIC_RANGE && instruction.methodRef()?.let {
+                        it.returnType == "V" && it.parameterTypes.size > 10 &&
+                            it.parameterTypes[0].toString() == followState && it.parameterTypes[1].toString() == userType &&
+                            it.parameterTypes.any { type -> type.toString() == COMPOSER }
                     } == true
                 }
                 if (call < 0) return@forEach
+                val reference = instructions[call].methodRef()!!
+                val styleType = reference.parameterTypes[4].toString()
                 val last = (instructions[call] as RegisterRangeInstruction).let { it.startRegister + it.registerCount - 1 }
                 defaultsMask = (instructions.subList(0, call).last { instruction ->
                     instruction is NarrowLiteralInstruction && instruction is OneRegisterInstruction && instruction.registerA == last
@@ -147,8 +142,12 @@ val followButtonOnPostsPatch = bytecodePatch(
                             it.superclass == styleType || it.interfaces.contains(styleType)
                         } == true
                 }.getReference<TypeReference>()!!.type
+                followButton = reference
             }
         }
+        val button = followButton ?: throw PatchException("The focal post never draws the follow button")
+        val buttonParams = button.parameterTypes.map { it.toString() }
+        val handlerType = buttonParams[2]
         if (style == null || defaultsMask == null) throw PatchException("The focal post never draws the follow button")
 
         // The friendship factory makes the handler a follow button follows and unfollows through.

@@ -2,7 +2,7 @@
 
 **Appversie:** 20.1 · **Build:** 10596 · **Origineel bestand:** APKS
 
-[Gebruik je eigen originele appbestand](../guides/downloads.md#local-original-inputs)
+[Download originele app](https://buzzheavier.com/c79v6uimo26s){ .md-button .md-button--primary }
 
 Selecteer het exacte originele bestand in Morphe Manager. Gebruik bij een gesplitste app het volledige archief.
 

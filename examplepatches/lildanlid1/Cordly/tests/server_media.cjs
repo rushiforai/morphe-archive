@@ -73,5 +73,5 @@ assert.ok(api.serverSummary({name:'Example',id:'123456789012345678',created:1740
 
 assert.equal(fs.existsSync('patches/src/main/kotlin/app/venus/patches/BrandingPatches.kt'),false,
     'The actual Android app branding patch must be absent');
-assert.equal(source.includes('const revision = "1.23.0"'),true);
+assert.equal(source.includes('const revision = "1.24.0"'),true);
 console.log('Cordly media checks passed: ZIP, filters, sorting, emoji markup, server summaries/artwork, app identity.');

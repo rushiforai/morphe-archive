@@ -15,7 +15,7 @@ accessor, seek result) were answered while building, by the bridge methods the p
 the player wrapper and by the `onSeeked` hook respectively. `git log` has the removed text if a
 design question it debated ever comes back.*
 
-*Measured against YouTube VR 1.88.10 (the version this repo supports).*
+*Measured against YouTube VR 1.88.10 and re-verified against 1.90.05 on the device (the class names this document cites are per-version -- `pwe`/`pwd`/`ablw` are `pyg`/`pyf`/`abnu` on 1.90.05; see the name map in FINGERPRINTS.md).*
 
 ## 1. The feature and its API contract
 

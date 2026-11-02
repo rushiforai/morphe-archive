@@ -1,18 +1,25 @@
 package dev.twitchpatches.patches.twitch.promotions
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.resource.ResourceType
-import app.morphe.patcher.resource.resourceId
+import app.morphe.patcher.resourceLiteral
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import dev.twitchpatches.patches.twitch.settings.resolveSettingsHooks
 import dev.twitchpatches.patches.twitch.settings.settingsPatch
 import dev.twitchpatches.patches.twitch.shared.*
 
 private const val BANNER_POLICY = "Ldev/twitchpatches/extension/promotions/SubscriptionBannerSettings;"
+
+private object SubscriptionPromotionRendererFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        resourceLiteral(ResourceType.STRING, "creator_led_promotion_title"),
+        resourceLiteral(ResourceType.STRING, "creator_led_promotion_subtitle"),
+    ),
+)
 
 @Suppress("unused")
 val hideSubscriptionBannersPatch = bytecodePatch(
@@ -24,18 +31,10 @@ val hideSubscriptionBannersPatch = bytecodePatch(
     dependsOn(settingsPatch, reactNativeBridgePatch, reactNativeSubscriptionBannersPatch)
     execute {
         val composer = resolveSettingsHooks().composer
-        val title = resourceId(ResourceType.STRING, "creator_led_promotion_title")
-        val subtitle = resourceId(ResourceType.STRING, "creator_led_promotion_subtitle")
-        val candidates = mutableListOf<Method>()
-        classDefForEach { type -> candidates.addAll(type.methods.filter { method ->
-            val parameters = method.parameterTypes.map { it.toString() }
-            parameters.size == 7 && parameters.subList(2, 4) == List(2) { "Ljava/lang/String;" } &&
-                parameters.takeLast(2) == listOf(composer, "I") && method.returnType == "V" &&
-                method.code().filterIsInstance<WideLiteralInstruction>().map { it.wideLiteral }.let {
-                    title in it && subtitle in it
-                }
-        }) }
-        val renderer = candidates.uniqueHook("subscription promotion title/subtitle renderer")
+        val renderer = SubscriptionPromotionRendererFingerprint.originalMethod
+        require(renderer.parameterTypes.takeLast(2) == listOf(composer, "I")) {
+            "Subscription banner renderer contract changed"
+        }
         validateOptionalRenderer(renderer)
         val promotionType = renderer.parameterTypes[1].toString()
         val creatorLed = renderer.references().filterIsInstance<FieldReference>().filter {

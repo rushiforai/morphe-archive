@@ -71,7 +71,7 @@ jobs:
           SHARED_MAPS_API_KEY: ${{ secrets.SHARED_MAPS_API_KEY }}
           BRIGHT_ARTICLE_SIGNING_KEY: ${{ secrets.BRIGHT_ARTICLE_SIGNING_KEY }}
         run: |
-          ./gradlew :patches:buildAndroid :extensions:medium-reader:testDebugUnitTest :extensions:medium-privacy:testDebugUnitTest --no-daemon
+          ./gradlew :patches:buildAndroid :extensions:medium-reader:testDebugUnitTest :extensions:medium-privacy:testDebugUnitTest :extensions:waze:testDebugUnitTest :extensions:flitsmeister:testDebugUnitTest :extensions:vela:testDebugUnitTest :extensions:extension:testDebugUnitTest :extensions:gearslip:testDebugUnitTest :patches:test --no-daemon
           python3 scripts/medium/check_bundle.py
           python3 -m unittest discover -s scripts/medium/tests
           # The release version is assigned later; never upload preflight bundles.

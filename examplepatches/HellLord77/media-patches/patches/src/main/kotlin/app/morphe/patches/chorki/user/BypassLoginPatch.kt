@@ -26,7 +26,7 @@ val bypassLoginPatch =
             hexPatch(
                 block = {
                     when (packageMetadata.versionCode.toInt()) {
-                        311 ->
+                        311 -> {
                             cpuArchitectures.forEach { arch ->
                                 var lib = "$NATIVE_LIBRARY_DIRECTORY/${arch.arch}/libapp.so"
 
@@ -39,14 +39,12 @@ val bypassLoginPatch =
                                         // LDR             R2, [R2,#0x9D7] -> LDR             R2,
                                         // [R2,#0x917]
                                         """
-                                0d 2a 85 e2
-                                d7 29 92 e5
-                            """ asPatternTo
-                                            """
-                                0d 2a 85 e2
-                                17 29 92 e5
-                            """ inFile
-                                            lib
+                                            0d 2a 85 e2
+                                            d7 29 92 e5
+                                        """ asPatternTo """
+                                            0d 2a 85 e2
+                                            17 29 92 e5
+                                        """ inFile lib
                                     }
 
                                     CpuArchitecture.ARM64_V8A -> {
@@ -54,26 +52,26 @@ val bypassLoginPatch =
                                         // LDR             X2, [X2,#0xC88]       -> LDR
                                         // X2, [X2,#0xB08]
                                         """
-                                62 67 40 91
-                                42 44 46 f9
-                            """ asPatternTo
-                                            """
-                                62 67 40 91
-                                42 84 45 f9
-                            """ inFile
-                                            lib
+                                            62 67 40 91
+                                            42 44 46 f9
+                                        """ asPatternTo """
+                                            62 67 40 91
+                                            42 84 45 f9
+                                        """ inFile lib
                                     }
 
                                     else -> {}
                                 }
                             }
+                        }
 
-                        else ->
+                        else -> {
                             throw PatchException(
-                                "Unsupported version: ${packageMetadata.versionName}"
+                                "Unsupported version: ${packageMetadata.versionName}",
                             )
+                        }
                     }
-                }
+                },
             ),
         )
     }

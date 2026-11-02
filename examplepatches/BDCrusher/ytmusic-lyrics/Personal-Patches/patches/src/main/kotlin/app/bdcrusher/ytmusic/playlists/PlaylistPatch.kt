@@ -34,7 +34,6 @@ private const val ARTWORK="Lapp/bdcrusher/ytmusic/playlists/PlaylistArtwork;"
 private const val ROWS="Lapp/bdcrusher/ytmusic/playlists/PlaylistRows;"
 private const val ROW_OWNER="Lapp/bdcrusher/ytmusic/playlists/PlaylistRows\$Owner;"
 private object PlaylistHeader:Fingerprint(strings=listOf("com/google/android/apps/youtube/music/ui/presenter/MusicElementHeaderPresenter"))
-private object PlaylistImageLoader:Fingerprint(strings=listOf("Unknown CustomImageSource extension: "))
 private object PlaylistRowSchema:Fingerprint(name="<clinit>",filters=listOf(literal(161429595)))
 private object PlaylistResources
 private val playlistResources=resourcePatch {
@@ -50,9 +49,7 @@ private val playlistResources=resourcePatch {
             activity.setAttribute("android:exported","false")
             doc.getElementsByTagName("application").item(0).appendChild(activity)
         }
-        document("res/xml/file_provider_paths.xml").use {doc->
-            val path=doc.createElement("files-path");path.setAttribute("name","bdcrusher_playlist_artwork");path.setAttribute("path","bdcrusher-playlist-artwork/");doc.documentElement.appendChild(path)
-        }
+
     }
 }
 @Suppress("unused")
@@ -187,28 +184,6 @@ val playlistDownloadsPatch=bytecodePatch(name="Download playlist",description="A
             move-result-object v0
             :result
             return-object v0
-        """)
-        // The verified Elements image source goes through the native Uri loader, including local URIs.
-        PlaylistImageLoader.clearMatch();val image=PlaylistImageLoader.method
-        val loads=image.implementation!!.instructions.withIndex().filter {(_,i)->i.opcode==Opcode.INVOKE_VIRTUAL&&i.getReference<MethodReference>()?.parameterTypes==listOf("Landroid/net/Uri;")}
-        val load=loads.singleOrNull()?:throw PatchException("Native playlist artwork Uri loader changed")
-        val uri=(load.value as FiveRegisterInstruction).registerD
-        image.addInstruction(load.index,"invoke-static/range { v$uri .. v$uri }, $ARTWORK->local(Landroid/net/Uri;)Landroid/net/Uri;")
-        image.addInstruction(load.index+1,"move-result-object v$uri")
-        var provider=classDefBy("Lcom/google/android/apps/youtube/music/util/MusicFileProviderCompat;")
-        val adapters=mutableListOf<MethodReference>()
-        while(true){
-            adapters+=provider.methods.filter {AccessFlags.STATIC.isSet(it.accessFlags)&&it.parameterTypes==listOf("Landroid/content/Context;","Ljava/lang/String;","Ljava/io/File;")&&it.returnType=="Landroid/net/Uri;"}
-            provider=provider.superclass?.let {classDefByOrNull(it)}?:break
-        }
-        val adapter=adapters.singleOrNull()?:throw PatchException("Native playlist FileProvider adapter changed")
-        val owner=mutableClassDefBy(adapter.definingClass);owner.accessFlags=owner.accessFlags or AccessFlags.PUBLIC.value
-        val nativeAdapter=owner.methods.single {it.name==adapter.name&&it.parameterTypes==adapter.parameterTypes};nativeAdapter.accessFlags=(nativeAdapter.accessFlags and (AccessFlags.PRIVATE.value or AccessFlags.PROTECTED.value).inv()) or AccessFlags.PUBLIC.value
-        val art=mutableClassDefBy(ARTWORK);art.methods.removeAll {it.name=="fileUri"&&it.parameterTypes==adapter.parameterTypes}
-        art.addBridge("fileUri",adapter.parameterTypes.map {it.toString()},adapter.returnType,3,AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,"""
-            invoke-static/range { p0 .. p2 }, $adapter
-            move-result-object p0
-            return-object p0
         """)
         PlaylistRowSchema.clearMatch()
         val rowDefaults=PlaylistRowSchema.originalMethod.implementation!!.instructions.mapNotNull {it.getReference<FieldReference>()}.filter {it.type==it.definingClass&&implementsType(it.type,"Lcom/google/protobuf/MessageLite;")}.distinct()

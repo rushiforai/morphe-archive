@@ -5,15 +5,21 @@
 package app.morphe.patches.instagram.direct.notes
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
 import app.morphe.patches.instagram.metaai.INBOX_SECTION_MARKER
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesAccessing
+import app.morphe.patches.instagram.misc.extension.classesLoadingString
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.jumpTargets
+import app.morphe.patches.instagram.misc.extension.loadsString
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.stringLoadedAt
 import app.morphe.patches.instagram.misc.extension.uniqueMethod
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
@@ -25,10 +31,15 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Hide the notes row"
 internal const val NOTES_ROW = "$EXTENSION_PACKAGE/direct/NotesRow;"
@@ -42,18 +53,33 @@ internal const val NOTES_SECTION = "TRAY"
 
 private const val BIT_SET = "Ljava/util/BitSet;"
 
+/** The hook answering whether the row of notes has a Map bubble to add. */
+internal const val MAP_SHOWN = "$NOTES_ROW->mapShown(I)I"
+
+/** The trace name of the method turning your notes into the row's items, the one place the Map bubble is added. */
+internal const val NOTES_TRAY_ITEMS =
+    "instagram.features.direct.inbox.notes.tray.compose.ui.toNotesTrayUiState (NotesTrayComposeItem.kt:319)"
+
+/** The trace name of the Map bubble's own content, which takes the bubble's item. */
+internal const val NOTES_MAP_CONTENT =
+    "instagram.features.direct.inbox.notes.tray.compose.ui.NotesFriendMapPogContent (NotesFriendMapPogContent.kt:9)"
+
+/** What the row built from views loads for the Map bubble, right after finding it has one to add. */
+internal const val NOTES_MAP_ROW = "FriendMapEntryPoint"
+
 /**
- * Leaves the row of notes, and the Map bubble in it, out of your messages. Included in the default
- * selection with its switch initially off, so leaving the row out remains the user's pick.
+ * Leaves the row of notes, and the Map bubble in it, out of your messages, or only the bubble.
+ * Included in the default selection with both switches initially off, so leaving either out remains
+ * the user's pick.
  *
- * Only the list of sections your messages may show changes. Notes are still fetched, and a note
- * on a profile picture or in a chat still shows.
+ * Only the list of sections your messages may show, and the row's question of whether to add the
+ * bubble, change. Notes are still fetched, and a note on a profile picture or in a chat still shows.
  */
 @Suppress("unused")
 val hideNotesRowPatch = bytecodePatch(
     name = "Hide the notes row",
     description = "Takes the row of notes, and the Map bubble in it, off the top of your messages. Your chats " +
-        "stay. Starts off. Turn it on in HushGram settings > Messages.",
+        "stay. A second switch takes only the Map bubble. Both start off. Turn them on in HushGram settings > Messages.",
     default = true,
 ) {
     category("Messages")
@@ -62,7 +88,10 @@ val hideNotesRowPatch = bytecodePatch(
 
     execute {
         requireStatusMethod("notesRow")
-        hideNotesRow(findNotesSections())
+        val sections = findNotesSections()
+        val map = findNotesMapSites()
+        hideNotesRow(sections)
+        map.forEach { hideNotesMap(it) }
         enableStatus("notesRow")
     }
 }
@@ -201,9 +230,155 @@ internal fun BytecodePatchContext.askForSections(site: NotesSectionsSite, hook: 
     )
 }
 
+/** Where a Map bubble hook goes: the method asking, the test of its answer, the register holding that answer, and the field it read it from. */
+internal class NotesMapSite(
+    val type: String,
+    val name: String,
+    val parameters: List<String>,
+    val test: Int,
+    val register: Int,
+    val answer: FieldReference,
+)
+
+/**
+ * Every place Instagram asks whether there's a Map bubble. It builds the row of notes either from
+ * composables or from views, and which one a phone gets is its own choice, so a hook on one route
+ * alone leaves the bubble on the other's phones. All of them read the same field of the same data:
+ * the composables' list ([findNotesMap]), the views' list, and the first-run tip pointing at the bubble.
+ */
+internal fun BytecodePatchContext.findNotesMapSites(): List<NotesMapSite> {
+    val composed = findNotesMap()
+    return listOf(composed, findNotesMapRow(composed.answer), findNotesMapTip(composed.answer))
+}
+
+/**
+ * Finds the row's question of whether it has a Map bubble to add, failing before anything changes
+ * when an update moved it: in the one method loading [NOTES_TRAY_ITEMS], the one object it makes of
+ * the type the one method loading [NOTES_MAP_CONTENT] takes is the bubble's item. The nearest boolean
+ * read before that has to be a field of the data the item's constructor takes first, tested right
+ * after by a branch landing past the item's add, with nothing jumping onto that test and nothing
+ * after it reading the answer, since the hook hands the test an int.
+ */
+internal fun BytecodePatchContext.findNotesMap(): NotesMapSite {
+    fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
+    fun loading(marker: String) = classesLoadingString(marker).flatMap { it.methods }.filter { loadsString(it, marker) }
+
+    val builders = loading(NOTES_TRAY_ITEMS)
+    val builder = builders.singleOrNull() ?: refuse("expected one method loading \"$NOTES_TRAY_ITEMS\", found ${builders.size}")
+    val contents = loading(NOTES_MAP_CONTENT)
+    val content = contents.singleOrNull() ?: refuse("expected one method loading \"$NOTES_MAP_CONTENT\", found ${contents.size}")
+
+    val where = "${builder.definingClass}->${builder.name}"
+    val code = builder.instructions()
+    val taken = content.parameterTypes.map(CharSequence::toString).toSet()
+    val made = code.indices.filter { code[it].opcode == Opcode.NEW_INSTANCE && code[it].typeMade() in taken }
+    val item = made.singleOrNull() ?: refuse("expected $where to make one of what ${content.definingClass}->${content.name} takes, found ${made.size}")
+    val itemType = code[item].typeMade()
+    val itemRegister = (code[item] as OneRegisterInstruction).registerA
+
+    val built = (item + 1 until code.size).firstOrNull { code[it].constructorCalled()?.definingClass == itemType }
+        ?: refuse("$where never constructs $itemType")
+    val data = code[built].constructorCalled()!!.parameterTypes.firstOrNull()?.toString()
+        ?: refuse("$itemType is built from nothing in $where")
+    val added = (built + 1 until code.size).firstOrNull {
+        code[it].methodCalled()?.name == "add" && code[it].argumentRegisters().lastOrNull() == itemRegister
+    } ?: refuse("$where never adds its $itemType")
+
+    val read = (item - 1 downTo 0).firstOrNull { code[it].opcode == Opcode.IGET_BOOLEAN }
+        ?: refuse("$where reads no boolean before making its $itemType")
+    val field = (code[read] as ReferenceInstruction).reference as FieldReference
+    if (field.definingClass != data) refuse("$where reads ${field.definingClass}->${field.name} before making its $itemType, not one of $data")
+    val register = (code[read] as TwoRegisterInstruction).registerA
+    val test = read + 1
+    if (code.getOrNull(test)?.opcode != Opcode.IF_EQZ || (code[test] as OneRegisterInstruction).registerA != register) {
+        refuse("$where doesn't test ${field.name} right after reading it")
+    }
+    if (code.target(test) <= added) refuse("$where's test of ${field.name} doesn't skip adding the $itemType")
+    if (test in builder.jumpTargets()) refuse("something in $where jumps onto its test of ${field.name}")
+    if (builder.readsAfter(test, register).isNotEmpty()) refuse("$where reads v$register again after testing ${field.name}")
+    return NotesMapSite(builder.definingClass, builder.name, builder.parameterTypes.map(CharSequence::toString), test, register, field)
+}
+
+/** The views' list: the one method reading [answer] that also loads [NOTES_MAP_ROW], whose test skips that load. */
+private fun BytecodePatchContext.findNotesMapRow(answer: FieldReference): NotesMapSite {
+    val reads = readsOf(answer).filter { (method, _) -> loadsString(method, NOTES_MAP_ROW) }
+    val (method, read) = reads.singleOrNull() ?: throw PatchException(
+        "$PATCH: expected one method reading ${answer.name} and loading \"$NOTES_MAP_ROW\", found ${reads.size}",
+    )
+    val site = notesMapSite(method, read, Opcode.IF_EQZ, answer)
+    val code = method.instructions()
+    val loaded = (site.test + 1 until code.target(site.test)).any { stringLoadedAt(code, it) == NOTES_MAP_ROW }
+    if (!loaded) throw PatchException("$PATCH: ${method.definingClass}->${method.name}'s test of ${answer.name} doesn't skip loading \"$NOTES_MAP_ROW\"")
+    return site
+}
+
+/** The first-run tip: the one read of [answer] compared with yes, not no, whose match keeps that data in a new object. */
+private fun BytecodePatchContext.findNotesMapTip(answer: FieldReference): NotesMapSite {
+    val reads = readsOf(answer).filter { (method, read) -> method.instructions().getOrNull(read + 1)?.opcode == Opcode.IF_NE }
+    val (method, read) = reads.singleOrNull() ?: throw PatchException(
+        "$PATCH: expected one method comparing ${answer.name} with yes, found ${reads.size}",
+    )
+    val site = notesMapSite(method, read, Opcode.IF_NE, answer)
+    val code = method.instructions()
+    val kept = (site.test + 1 until code.target(site.test)).any {
+        code[it].opcode == Opcode.IPUT_OBJECT && ((code[it] as ReferenceInstruction).reference as FieldReference).type == answer.definingClass
+    }
+    if (!kept) throw PatchException("$PATCH: ${method.definingClass}->${method.name}'s test of ${answer.name} doesn't guard keeping its data")
+    return site
+}
+
+/** Every read of [answer] outside its own class, as the method and the instruction's index. */
+private fun BytecodePatchContext.readsOf(answer: FieldReference): List<Pair<Method, Int>> =
+    classesAccessing(answer.definingClass, answer.name, Opcode.IGET_BOOLEAN)
+        .filter { it.type != answer.definingClass }
+        .flatMap { it.methods }
+        .flatMap { method ->
+            method.instructions().withIndex().filter { (_, instruction) ->
+                val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                instruction.opcode == Opcode.IGET_BOOLEAN && field?.definingClass == answer.definingClass && field.name == answer.name
+            }.map { method to it.index }
+        }
+
+/** The site of the read at [read], which [opcode] has to test right after, with nothing jumping onto that test and nothing after it reading the answer. */
+private fun notesMapSite(method: Method, read: Int, opcode: Opcode, answer: FieldReference): NotesMapSite {
+    val where = "${method.definingClass}->${method.name}"
+    val code = method.instructions()
+    val register = (code[read] as TwoRegisterInstruction).registerA
+    val test = read + 1
+    if (code.getOrNull(test)?.opcode != opcode || (code[test] as OneRegisterInstruction).registerA != register) {
+        throw PatchException("$PATCH: $where doesn't test ${answer.name} right after reading it")
+    }
+    if (test in method.jumpTargets()) throw PatchException("$PATCH: something in $where jumps onto its test of ${answer.name}")
+    if (method.readsAfter(test, register).isNotEmpty()) throw PatchException("$PATCH: $where reads v$register again after testing ${answer.name}")
+    return NotesMapSite(method.definingClass, method.name, method.parameterTypes.map(CharSequence::toString), test, register, answer)
+}
+
+/** Hands the answer to [MAP_SHOWN] right before [site] tests it. */
+internal fun BytecodePatchContext.hideNotesMap(site: NotesMapSite) {
+    val builder = mutableClassDefBy(site.type).methods.single {
+        it.name == site.name && it.parameterTypes.map(CharSequence::toString) == site.parameters
+    }
+    builder.addInstructions(
+        site.test,
+        """
+            invoke-static/range { v${site.register} .. v${site.register} }, $MAP_SHOWN
+            move-result v${site.register}
+        """,
+    )
+}
+
 private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 
 private fun Method.holdsString(value: String) = instructions().any { it.stringLoaded() == value }
+
+private fun Instruction.typeMade(): String? = ((this as? ReferenceInstruction)?.reference as? TypeReference)?.type
+
+/** The index of the instruction the branch at [index] lands on. */
+private fun List<Instruction>.target(index: Int): Int {
+    val address = IntArray(size + 1)
+    forEachIndexed { at, instruction -> address[at + 1] = address[at] + instruction.codeUnits }
+    return address.indexOf(address[index] + (this[index] as OffsetInstruction).codeOffset)
+}
 
 private fun Instruction.stringLoaded(): String? =
     if (opcode != Opcode.CONST_STRING && opcode != Opcode.CONST_STRING_JUMBO) null

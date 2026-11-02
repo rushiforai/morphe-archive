@@ -96,7 +96,3 @@ internal object CreateItemButtonTextFingerprint : Fingerprint(
         )
     }
 )
-
-internal object AuraTabViewModelFingerprint : Fingerprint(
-    strings = listOf("AuraTabViewModel", "AURA_TAB_VIEW_MODEL_FETCH_MFT_STATUS"),
-)

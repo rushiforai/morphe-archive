@@ -12,6 +12,10 @@ Guard: use the official Morphe Gradle `patches/` and `extensions/` layout. Keep
 documentation, patch descriptions, option text and commit messages in English;
 preserve the original app identity and display name. Do not introduce a separate
 custom bundle builder.
+Write installer-facing patch descriptions and option labels for ordinary users:
+lead with what changes for them, use plain language, and state only relevant
+limitations. Keep fingerprints, predicates, hooks and other implementation details
+in developer documentation, not the installation UI.
 Pointer: [README.md](README.md), [settings.gradle.kts](settings.gradle.kts).
 
 ### Change planning

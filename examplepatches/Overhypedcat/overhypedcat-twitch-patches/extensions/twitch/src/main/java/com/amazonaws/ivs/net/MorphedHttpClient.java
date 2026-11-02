@@ -36,6 +36,7 @@ public final class MorphedHttpClient implements HttpClient {
     public static HttpClient wrap(HttpClient client) {
         if (client == null || client instanceof MorphedHttpClient) return client;
         DebugLog.resumeIfEnabled();
+        StreamAdsPatch.prepare();
         DebugLog.log("Player HTTP client created: " + client.description());
         return new MorphedHttpClient(client);
     }
@@ -115,11 +116,20 @@ public final class MorphedHttpClient implements HttpClient {
                 if (DebugLog.isOn()) DebugLog.log("Playlist " + UrlKey.of(url) + " cancelled during processing");
                 return;
             }
-            if (response.getHeader("Content-Length") != null) {
-                response.setHeader("Content-Length", String.valueOf(output.length));
+            boolean answered = false;
+            try {
+                if (response.getHeader("Content-Length") != null) {
+                    response.setHeader("Content-Length", String.valueOf(output.length));
+                }
+                response.setConsumer(null, new BytesConsumer(request, output));
+                answered = true;
+                callback.onResponse(response);
+            } catch (Throwable t) {
+                // Without an answer the player would wait for its 10 second timeout.
+                StreamAdsPatch.deliveryFailed(url, t);
+                if (!answered) callback.onError(t instanceof Exception ? (Exception) t : new RuntimeException(t));
+                return;
             }
-            response.setConsumer(null, new BytesConsumer(request, output));
-            callback.onResponse(response);
         }
 
         if (DebugLog.isOn()) {

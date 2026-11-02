@@ -1,0 +1,95 @@
+{
+  "repository_commit": "524b70f92af925dace92e5369033c02072a9c154",
+  "xapk_sha256": "0cba44037d335adddc4352c995c1c3139536f15b8ae140fc212967e253d34816",
+  "inventory": [
+    {
+      "file": "alertscentercompose.apk",
+      "sha256": "07f7daa6456e70a873ece4c85f84152564ce2c62ba65776eaf1e311559652445",
+      "verified": true,
+      "certificate": "7c2c46aca6a23f0523b69cac1a21f03078be6fd41b3811874c4be1344c23ba47",
+      "dex": [
+        "classes.dex"
+      ],
+      "native_libraries": []
+    },
+    {
+      "file": "be.tweedehands.m.apk",
+      "sha256": "ad0dcf64e7b4e1a85bf908d821b854be79566f919496fd2576f517494967f6b1",
+      "verified": true,
+      "certificate": "7c2c46aca6a23f0523b69cac1a21f03078be6fd41b3811874c4be1344c23ba47",
+      "dex": [
+        "classes.dex",
+        "classes2.dex",
+        "classes3.dex",
+        "classes4.dex",
+        "classes5.dex",
+        "classes6.dex"
+      ],
+      "native_libraries": []
+    },
+    {
+      "file": "config.arm64_v8a.apk",
+      "sha256": "5d11ead41355bcfcce7cbddf2845be57923b98727ecd089bfc3c4e082ae60db9",
+      "verified": true,
+      "certificate": "7c2c46aca6a23f0523b69cac1a21f03078be6fd41b3811874c4be1344c23ba47",
+      "dex": [],
+      "native_libraries": [
+        "lib/arm64-v8a/libTMXProfiling-7.7-71-jni.so",
+        "lib/arm64-v8a/libandroidx.graphics.path.so",
+        "lib/arm64-v8a/libd124.so",
+        "lib/arm64-v8a/libdatastore_shared_counter.so",
+        "lib/arm64-v8a/libimage_processing_util_jni.so",
+        "lib/arm64-v8a/libsigner.so",
+        "lib/arm64-v8a/libsurface_util_jni.so"
+      ]
+    },
+    {
+      "file": "config.armeabi_v7a.apk",
+      "sha256": "c3caf24b286ac62bccc7bd318878c633ba27cf81ad6dc401ffe5b7a9ccf26b2f",
+      "verified": true,
+      "certificate": "7c2c46aca6a23f0523b69cac1a21f03078be6fd41b3811874c4be1344c23ba47",
+      "dex": [],
+      "native_libraries": [
+        "lib/armeabi-v7a/libTMXProfiling-7.7-71-jni.so",
+        "lib/armeabi-v7a/libandroidx.graphics.path.so",
+        "lib/armeabi-v7a/libd124.so",
+        "lib/armeabi-v7a/libdatastore_shared_counter.so",
+        "lib/armeabi-v7a/libimage_processing_util_jni.so",
+        "lib/armeabi-v7a/libsigner.so",
+        "lib/armeabi-v7a/libsurface_util_jni.so"
+      ]
+    },
+    {
+      "file": "config.hdpi.apk",
+      "sha256": "f8cb6ac399ca4aafda0c5f50fac91b57e2efb87b7078b6c6ea2249a1b3bcb0f4",
+      "verified": true,
+      "certificate": "7c2c46aca6a23f0523b69cac1a21f03078be6fd41b3811874c4be1344c23ba47",
+      "dex": [],
+      "native_libraries": []
+    },
+    {
+      "file": "config.xhdpi.apk",
+      "sha256": "30db37819cb2d790ce29706948cf40c26c47a31e3ceb5ab6d1d9614487d53063",
+      "verified": true,
+      "certificate": "7c2c46aca6a23f0523b69cac1a21f03078be6fd41b3811874c4be1344c23ba47",
+      "dex": [],
+      "native_libraries": []
+    },
+    {
+      "file": "config.xxhdpi.apk",
+      "sha256": "8371e3777266e544c512f7bc42b02cdbb48f5de9f0e59fb60343db21dfa3d8f4",
+      "verified": true,
+      "certificate": "7c2c46aca6a23f0523b69cac1a21f03078be6fd41b3811874c4be1344c23ba47",
+      "dex": [],
+      "native_libraries": []
+    },
+    {
+      "file": "config.xxxhdpi.apk",
+      "sha256": "8eaf39007442ec50ac7091a89c0e0ea13befc097ff5b51f610435e0107d99ba9",
+      "verified": true,
+      "certificate": "7c2c46aca6a23f0523b69cac1a21f03078be6fd41b3811874c4be1344c23ba47",
+      "dex": [],
+      "native_libraries": []
+    }
+  ]
+}

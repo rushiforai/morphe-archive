@@ -68,7 +68,7 @@ available as the most broadly compatible video option.
 ## Available patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.8.2](https://github.com/bitflippr/cobalt-morphe/releases/tag/v1.8.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.8.2](https://github.com/xorwyrm/cobalt-morphe/releases/tag/v1.8.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -105,7 +105,7 @@ patches/build/libs/patches-<version>.mpp
 
 For local testing, apply that bundle with Morphe CLI. Once this repository has
 a semantic-release GitHub release, add
-`https://github.com/bitflippr/cobalt-morphe` as a custom source in Morphe
+`https://github.com/xorwyrm/cobalt-morphe` as a custom source in Morphe
 Manager and select **Cobalt downloads**. The patch is not selected by default.
 
 Use a YouTube version listed in `patches-list.json`. The compatibility list is

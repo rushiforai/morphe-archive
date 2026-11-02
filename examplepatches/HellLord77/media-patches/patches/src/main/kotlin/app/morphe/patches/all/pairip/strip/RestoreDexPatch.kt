@@ -14,33 +14,34 @@ import java.util.function.Supplier
 private val ASSET_FILE_MAGIC = byteArrayOf(0x00, 0x49, 0x41, 0x50)
 private val DEX_FILE_MAGIC = byteArrayOf(0x64, 0x65, 0x78, 0x0a)
 
-internal val restoreDexPatch = bytecodePatch {
-    val vmAssets = mutableListOf<File>()
+internal val restoreDexPatch =
+    bytecodePatch {
+        val vmAssets = mutableListOf<File>()
 
-    dependsOn(
-        rawResourcePatch {
-            execute {
-                get("assets").listFiles()?.forEach { file ->
-                    if (!file.isFile) return@forEach
+        dependsOn(
+            rawResourcePatch {
+                execute {
+                    get("assets").listFiles()?.forEach { file ->
+                        if (!file.isFile) return@forEach
 
-                    file.inputStream().use { stream ->
-                        val header = stream.readNBytes(ASSET_FILE_MAGIC.size)
-                        if (!header.contentEquals(ASSET_FILE_MAGIC)) return@forEach
-                        vmAssets.add(file)
+                        file.inputStream().use { stream ->
+                            val header = stream.readNBytes(ASSET_FILE_MAGIC.size)
+                            if (!header.contentEquals(ASSET_FILE_MAGIC)) return@forEach
+                            vmAssets.add(file)
+                        }
                     }
                 }
-            }
 
-            finalize {
-                vmAssets.forEach(File::delete)
-            }
+                finalize {
+                    vmAssets.forEach(File::delete)
+                }
+            },
+        )
+
+        extendWithAll {
+            vmAssets.mapNotNull(::restoreDex)
         }
-    )
-
-    extendWithAll {
-        vmAssets.mapNotNull(::restoreDex)
     }
-}
 
 private fun restoreDex(vmAsset: File): Supplier<InputStream>? {
     RandomAccessFile(vmAsset, "r").use { raf ->

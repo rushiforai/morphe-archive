@@ -1,3 +1,65 @@
+## [2.8.5](https://github.com/bearinmindcat/morphe-patches/compare/v2.8.4...v2.8.5) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* add coloros calculator non-coloros support ([af42ed7](https://github.com/bearinmindcat/morphe-patches/commit/af42ed70f80f0b24532d1574e48eb8f243881c69))
+* add coloros clock non-coloros support ([f2a40b8](https://github.com/bearinmindcat/morphe-patches/commit/f2a40b86da6552e35696b7aca6fa8a90728b9493))
+* add coloros compass non-coloros support ([29c0ccb](https://github.com/bearinmindcat/morphe-patches/commit/29c0ccbfed5b1f3022cf5a53407a284517865033))
+* add coloros my files non-coloros support ([7886b20](https://github.com/bearinmindcat/morphe-patches/commit/7886b208de8c013313e877e6d3bbb163090dc583))
+* add coloros notes non-coloros support ([29b06e8](https://github.com/bearinmindcat/morphe-patches/commit/29b06e86245bc35d7caac771448c45cbf5bd07af))
+* add coloros photos non-coloros support ([5f9985f](https://github.com/bearinmindcat/morphe-patches/commit/5f9985f13e4500e65e1cc6d1c125a112294c81d5))
+* add coloros recorder non-coloros support ([0090be6](https://github.com/bearinmindcat/morphe-patches/commit/0090be65b34d670dbed1ace1df93a86f3c6df679))
+* add coloros screen recording non-coloros support ([275b850](https://github.com/bearinmindcat/morphe-patches/commit/275b850c6bd7516d2c39818a1fade4b225daa672))
+* add coloros weather non-coloros support ([02e118f](https://github.com/bearinmindcat/morphe-patches/commit/02e118f4aaaf0ae74de9f1932b7a02403c942ad5))
+
+## [2.8.4](https://github.com/bearinmindcat/morphe-patches/compare/v2.8.3...v2.8.4) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* add lg health remove telemetry ([5a09944](https://github.com/bearinmindcat/morphe-patches/commit/5a099440a04f2283330f7d3c9452efe9e66a53a5))
+* add lg quickmemo+ non-lg support ([e6c6d13](https://github.com/bearinmindcat/morphe-patches/commit/e6c6d1392229fa24aa9c4d35483887f02e3e0e74))
+* add redmagic game space non-redmagic support ([432e6f8](https://github.com/bearinmindcat/morphe-patches/commit/432e6f87918c80d89cdc4744e892f94aadcf5320))
+* pdfcraft's icon in the readme and morphe manager is its new red one ([ef3f081](https://github.com/bearinmindcat/morphe-patches/commit/ef3f08151ed5c58453067be4ed773cd97bf4c144))
+* samsung gallery no longer crashes on samsung-only media columns; issue [#97](https://github.com/bearinmindcat/morphe-patches/issues/97) ([c46d1d8](https://github.com/bearinmindcat/morphe-patches/commit/c46d1d8050cbc04c5f8ec82908b8e45cfdc06621))
+* samsung gallery's edit button opens samsung photo editor; issue [#97](https://github.com/bearinmindcat/morphe-patches/issues/97) ([a34836a](https://github.com/bearinmindcat/morphe-patches/commit/a34836a8eed0d9b9be8f25055bf361d141599be6))
+* samsung keyboard's disable telemetry finds the diagnostics agent on every build of a version; issue [#98](https://github.com/bearinmindcat/morphe-patches/issues/98) ([39472c9](https://github.com/bearinmindcat/morphe-patches/commit/39472c9257639615b7a2dea95b9d6bc8fbd947bf))
+* samsung notes installs on android 15 phones that run 32-bit apps when libraries are stripped ([2656466](https://github.com/bearinmindcat/morphe-patches/commit/26564664912558be3493cfba48c54518d00d978b))
+* samsung weather no longer crashes on phones whose search index lacks parent types; issue [#92](https://github.com/bearinmindcat/morphe-patches/issues/92) ([80a942f](https://github.com/bearinmindcat/morphe-patches/commit/80a942fbf31b5ceeaedd1e2baff0327637c00f38))
+
+## [2.8.3](https://github.com/bearinmindcat/morphe-patches/compare/v2.8.2...v2.8.3) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* add honor calculator non-magicos support ([28c5f97](https://github.com/bearinmindcat/morphe-patches/commit/28c5f973327e4d02c941d59ea79ea42d0be570f4))
+* add honor calendar non-magicos support ([566004e](https://github.com/bearinmindcat/morphe-patches/commit/566004e0d0dd1ba86484a0f1cfdae09eb68dfd96))
+* add honor clock non-magicos support ([a2aa94e](https://github.com/bearinmindcat/morphe-patches/commit/a2aa94e2e10077001a124e556cde95fcbefa50b1))
+* add honor compass non-magicos support ([18a61f8](https://github.com/bearinmindcat/morphe-patches/commit/18a61f851a5a814bc61c7618914515c13f65513c))
+* add honor files non-magicos support ([7ddc69a](https://github.com/bearinmindcat/morphe-patches/commit/7ddc69a2017775f6aaa17bc0d800b6f419e2dd60))
+* add honor notes non-magicos support ([4830559](https://github.com/bearinmindcat/morphe-patches/commit/4830559d60fb402e9aef9bd9b897398395c5dccb))
+* add honor recorder non-magicos support ([9b46580](https://github.com/bearinmindcat/morphe-patches/commit/9b46580601a8dd73b8696efd0b27a28e18404392))
+* add honor video player non-magicos support ([d626141](https://github.com/bearinmindcat/morphe-patches/commit/d626141b3b92036994e6c825ef2d86a7777ace05))
+
+## [2.8.2](https://github.com/bearinmindcat/morphe-patches/compare/v2.8.1...v2.8.2) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* add nothing gallery non-nothing os support ([4a8fbf8](https://github.com/bearinmindcat/morphe-patches/commit/4a8fbf8201eb010d4ee24edb051b2765043a4841))
+* add nothing recorder non-nothing os support ([6b9ac34](https://github.com/bearinmindcat/morphe-patches/commit/6b9ac34ceacc0d420058e0a65465373c5426115c))
+* add xiaomi calendar non-hyperos support ([4bed6e3](https://github.com/bearinmindcat/morphe-patches/commit/4bed6e37fce69d67cde34fce24f14a79e38afa17))
+* add xiaomi gallery editor non-hyperos support ([4eecfc5](https://github.com/bearinmindcat/morphe-patches/commit/4eecfc52973e86ef07f0875c19d361815ca4930c))
+* add xiaomi screen recorder non-hyperos support ([b334dd6](https://github.com/bearinmindcat/morphe-patches/commit/b334dd682a0ad538406de49eab59e1147c2598b0))
+
+## [2.8.1](https://github.com/bearinmindcat/morphe-patches/compare/v2.8.0...v2.8.1) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* add xiaomi compass non-hyperos support ([be4c333](https://github.com/bearinmindcat/morphe-patches/commit/be4c333a70ca054fe2632c59c628460cb4f09dfb))
+* add xiaomi gallery non-hyperos support ([ea6f872](https://github.com/bearinmindcat/morphe-patches/commit/ea6f87277c9370c95ffebc8881245833559e6809))
+* add xiaomi notes non-hyperos support ([b16367e](https://github.com/bearinmindcat/morphe-patches/commit/b16367ea8f9d3eb6f7baac825c23bca52b683a1a))
+* add xiaomi recorder non-hyperos support ([739bb97](https://github.com/bearinmindcat/morphe-patches/commit/739bb973056c892eee2e0b1120b1acb903ab11c3))
+* add xiaomi scanner non-hyperos support ([b67faf1](https://github.com/bearinmindcat/morphe-patches/commit/b67faf14ea851006111ffae74030bf8f1e5483fd))
+* add xiaomi weather non-hyperos support ([f05247f](https://github.com/bearinmindcat/morphe-patches/commit/f05247f5e9cbb33f486213d8c3b75800d0848f7d))
+
 ## [2.8.0](https://github.com/bearinmindcat/morphe-patches/compare/v2.7.6...v2.8.0) (2026-11-01)
 
 ### 🐛 Bug Fixes

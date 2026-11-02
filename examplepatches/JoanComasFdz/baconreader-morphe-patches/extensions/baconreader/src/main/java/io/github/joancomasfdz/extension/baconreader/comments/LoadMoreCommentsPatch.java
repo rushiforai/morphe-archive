@@ -14,6 +14,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,9 +39,12 @@ public final class LoadMoreCommentsPatch {
     private static final String MORE = "com.onelouder.baconreader.reddit.More";
 
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
-    /** The "more" items already loaded or tried (a reload of the thread has new ones). */
-    private static final Set<Object> TRIED = Collections.newSetFromMap(new WeakHashMap<>());
-    /** Per loaded thread (its first comment): the automatic requests made. */
+    /**
+     * Per opened thread, the "more" items already loaded or tried, by identity: BaconReader's items are equal by id,
+     * and a thread opened again, or reloaded, has new ones to load.
+     */
+    private static final Map<Object, Set<Object>> TRIED = new WeakHashMap<>();
+    /** Per opened thread: the automatic requests made. A post opened again is a new thread. */
     private static final Map<Object, Integer> REQUESTS = new WeakHashMap<>();
     /** Comment lists loading a "more" automatically. */
     private static final Map<Object, Boolean> RUNNING = new WeakHashMap<>();
@@ -74,15 +78,16 @@ public final class LoadMoreCommentsPatch {
             }
             Object threadKey = field(adapter, "threadKey");
             Object more = null;
-            Object firstComment = null;
+            Object opened = null;
             Class<?> threadManager = Class.forName(THREAD_MANAGER);
             synchronized (threadManager) {
                 Map<Object, Object> threads = (Map<Object, Object>) staticField(threadManager, "threads");
                 Object thread = threads.get(threadKey);
                 if (thread == null) return;
+                opened = thread;
+                Set<Object> tried = TRIED.get(thread);
                 Map<String, Integer> states = (Map<String, Integer>) field(thread, "states");
                 List<Object> replies = new ArrayList<>((Collection<Object>) field(thread, "replies"));
-                if (!replies.isEmpty()) firstComment = replies.get(0);
                 for (Object reply : replies) {
                     if (!reply.getClass().getName().equals(MORE)) continue;
                     List<String> children = (List<String>) field(reply, "children");
@@ -90,16 +95,21 @@ public final class LoadMoreCommentsPatch {
                     int count = (int) field(reply, "count");
                     // "Continue this thread" has no children: it is another page.
                     if (children == null || children.isEmpty() || count > maxReplies) continue;
-                    if (TRIED.contains(reply) || states.containsKey(id)) continue; // Loaded or loading.
+                    if ((tried != null && tried.contains(reply)) || states.containsKey(id)) continue; // Loaded or loading.
                     more = reply;
                     break;
                 }
             }
-            if (more == null || firstComment == null) return;
-            Integer requests = REQUESTS.get(firstComment);
+            if (more == null || opened == null) return;
+            Integer requests = REQUESTS.get(opened);
             if (requests != null && requests >= MAX_AUTO_REQUESTS) return;
-            REQUESTS.put(firstComment, requests == null ? 1 : requests + 1);
-            TRIED.add(more);
+            REQUESTS.put(opened, requests == null ? 1 : requests + 1);
+            Set<Object> tried = TRIED.get(opened);
+            if (tried == null) {
+                tried = Collections.newSetFromMap(new IdentityHashMap<>());
+                TRIED.put(opened, tried);
+            }
+            tried.add(more);
             RUNNING.put(adapter, true);
 
             Method loadMore = null;

@@ -5,9 +5,9 @@ public class ThreadSearchTest{
  public static void main(String[] args)throws Exception{
  for(String name:new String[]{"o.processAdDisplayErrorPostbackForUserError","o.BouncyCastleSocketAdapterCompanion","o.KeJ11"}){
   Object r=Class.forName(name).getConstructor().newInstance();String[] fields=name.endsWith("KeJ11")?new String[]{"h","n","p","g"}:name.contains("Bouncy")?new String[]{"d","m","t","j"}:new String[]{"c","n","q","h"};
-  String[] values={"本文の検索 語句","名前 ﾜｯﾁｮｲ abcd-EF12","2026/10/28 ID:A.Af1CYTq","A.Af1CYTq"};for(int i=0;i<4;i++)r.getClass().getField(fields[i]).set(r,values[i]);
+  String[] values={"本文の検索 語句","名前 ﾜｯﾁｮｲ abcd-EF12","2026/10/28(水) ID:A.Af1CYTq","A.Af1CYTq"};for(int i=0;i<4;i++)r.getClass().getField(fields[i]).set(r,values[i]);
   for(int mask=0;mask<8;mask++){
-   ThreadSearchOptions.mask=mask;check(search(r,"本文"),"body always");check(search(r,"名前")==((mask&4)!=0),"name toggle "+mask);check(search(r,"abcd-EF12")==((mask&2)!=0),"wacchoi toggle "+mask);check(search(r,"ID:A.Af1CYTq")==((mask&1)!=0),"ID toggle "+mask);
+   ThreadSearchOptions.mask=mask;check(!search(r,"2026/10/28")&&!search(r,"水"),"header date and weekday excluded "+mask);check(search(r,"本文"),"body always");check(search(r,"名前")==((mask&4)!=0),"name toggle "+mask);check(search(r,"abcd-EF12")==((mask&2)!=0),"wacchoi toggle "+mask);check(search(r,"ID:A.Af1CYTq")==((mask&1)!=0),"ID toggle "+mask);
    check(search(r,"本文 AND abcd-EF12")==((mask&2)!=0),"AND respects wacchoi "+mask);check(search(r,"名前 A.Af1CYTq")==((mask&5)==5),"AND across selected fields "+mask);check(search(r,"本文.*検索"),"regex retained");
   }
   ThreadSearchOptions.mask=0;r.getClass().getField(fields[0]).set(r,"本文にID:A.Af1CYTqとabcd-EF12と名前を引用");check(search(r,"A.Af1CYTq")&&search(r,"abcd-EF12")&&search(r,"名前"),"body quotes still match");r.getClass().getField(fields[0]).set(r,values[0]);

@@ -43,3 +43,31 @@ Additional terms under GPLv3 Section 7 retained from the upstream NOTICE:
 The name "Morphe" and any Morphe branding may not be used to endorse or
 promote products derived from this software without specific prior
 written permission.
+
+
+Waze patch catalog adaptation
+-----------------------------
+
+Source: bearinmindcat/morphe-patches (bearinmind patches), commit
+32e42e0f757581147307af27196e3aca517d0570.
+Licensed under the GNU General Public License, version 3.
+Adapted for Waze 5.26.90.901 and extended by this project.
+
+
+Waze driving controls
+---------------------
+
+Feature selections and configuration keys adapted from Forsigh/waze-patches,
+commit 9cf1b4b (2026-11-01), licensed under the GNU General Public License,
+version 3. Implemented for Waze 5.26.90.901 using this project's configuration
+locking, native-thread dispatch and editable Customization controls.
+
+Waze phase-two controls
+-----------------------
+
+Camera/hazard choices, speed-bump visibility, projection keep-alive, recent-list
+suppression and display-mode ceiling are adapted from Forsigh/waze-patches,
+commit 9cf1b4b (GPLv3), for Waze 5.26.90.901. This project adds separate native
+notification/sound gates and speed-bump warning suppression, isolates projection
+reconnect from phone background lifetime, preserves the stock recent fetch behind
+a runtime switch, and makes the display ceiling editable and reversible.

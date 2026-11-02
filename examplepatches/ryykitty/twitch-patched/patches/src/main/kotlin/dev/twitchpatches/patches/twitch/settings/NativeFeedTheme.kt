@@ -1,5 +1,7 @@
 package dev.twitchpatches.patches.twitch.settings
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -14,6 +16,20 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import dev.twitchpatches.patches.twitch.shared.*
+
+private class FeedThemeHelperFingerprint(helperType: String) : Fingerprint(
+    name = "feedThemeHelper",
+    returnType = helperType,
+    custom = { method, _ -> method.implementation != null },
+)
+
+private object FeedContextThemeFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    parameters = emptyList(),
+    filters = listOf(
+        methodCall("Landroid/view/ContextThemeWrapper;->applyOverrideConfiguration(Landroid/content/res/Configuration;)V"),
+    ),
+)
 
 internal fun feedContextThemeIndices(method: Method, factory: String): List<Int> {
     val code = method.code()
@@ -94,16 +110,13 @@ internal fun BytecodePatchContext.restoreNativeFeedTheme() {
         helper.methods.remove(original)
         helper.methods.add(replacement)
     }
-    val factories = mutableListOf<String>()
-    classDefForEach { type ->
-        if (type.methods.any { it.name == "feedThemeHelper" && it.returnType == helper.type && it.implementation != null })
-            factories.add(type.type)
-    }
-    val factory = factories.uniqueHook("native feed dependency factory")
+    val factory = FeedThemeHelperFingerprint(helper.type).originalClassDef.type
+    val providerMethods = FeedContextThemeFingerprint.matchAllOrNull()?.map { it.method }
+        ?: error("Feed theme: native context providers not found.")
     val providers = mutableListOf<Pair<Method, Int>>()
-    classDefForEach { type -> type.methods.forEach { method ->
+    providerMethods.forEach { method ->
         feedContextThemeIndices(method, factory).forEach { providers.add(method to it) }
-    } }
+    }
     require(providers.size == 2) { "Feed theme: native context providers changed." }
     providers.forEach { (original, index) ->
         val instruction = original.code()[index]

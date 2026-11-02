@@ -75,8 +75,17 @@ public final class Arrows {
 
     private Arrows() {}
 
-    public static boolean enabled() {
+    public static boolean gamesEnabled() {
         return Features.arrowsPatched() && Features.isEnabled(Features.ARROWS);
+    }
+
+    public static boolean reviewsEnabled() {
+        return Features.arrowsReviewsPatched() && Features.isEnabled(Features.ARROWS_REVIEWS);
+    }
+
+    /** Either feature: the board needs its marks layers even when only one of them is on. */
+    public static boolean enabled() {
+        return gamesEnabled() || reviewsEnabled();
     }
 
     /** The marks layers carry Stockfish's arrows and eval bar too. */

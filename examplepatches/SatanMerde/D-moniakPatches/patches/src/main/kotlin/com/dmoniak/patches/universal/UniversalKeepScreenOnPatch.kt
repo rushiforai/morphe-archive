@@ -10,6 +10,7 @@ import java.util.logging.Logger
 val universalKeepScreenOnPatch = bytecodePatch(
     name = "Keep Screen Awake (Universal)",
     description = "Forces the screen to stay illuminated and prevents the device display from dimming or going to sleep while running games, navigation apps, video tools, or readers.",
+    default = false,
 ) {
     execute {
         val logger = Logger.getLogger(this::class.java.name)

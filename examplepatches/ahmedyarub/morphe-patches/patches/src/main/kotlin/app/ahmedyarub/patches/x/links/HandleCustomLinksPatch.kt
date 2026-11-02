@@ -23,7 +23,7 @@ private val rewriteCustomLinksPatch = bytecodePatch {
     execute {
         MainActivityOnCreateFingerprint.method.addInstructions(
             0,
-            "invoke-static { p0 }, $LINKS_CLASS->rewriteCustomDeepLinks(Landroid/app/Activity;)V",
+            "invoke-static/range { p0 .. p0 }, $LINKS_CLASS->rewriteCustomDeepLinks(Landroid/app/Activity;)V",
         )
         MainActivityOnNewIntentFingerprint.method.addInstructions(
             0,

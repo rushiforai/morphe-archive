@@ -192,6 +192,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting BACK_KEEPS_HOME =
             new BooleanSetting("hushfacebook_back_keeps_home", FALSE);
 
+    /** Back keeps Home without the toast saying a second Back goes to the top (#334). */
+    public static final BooleanSetting HIDE_BACK_REMINDER =
+            new BooleanSetting("hushfacebook_hide_back_reminder", FALSE, Setting.parent(BACK_KEEPS_HOME));
+
     /**
      * Feed posts Facebook's own detection marked as made with AI. Off until one AI-labeled and one
      * ordinary post have been recorded on a signed-in feed and the rule told them apart.
@@ -553,11 +557,15 @@ public class Settings extends BaseSettings {
     /**
      * The product cards of the shop links a creator attaches to a post go: on a reel, under a feed
      * post and floating over the comment box ({@link app.morphe.extension.facebook.ads.AffiliateLinks}).
-     * The "Commission eligible" label stays. A change shows on the reels, posts and comment sheets
-     * built after it.
+     * The "Commission eligible" label has its own switch, {@link #HIDE_COMMISSION_LABEL}. A change
+     * shows on the reels, posts and comment sheets built after it.
      */
     public static final BooleanSetting HIDE_AFFILIATE_LINKS =
             new BooleanSetting("hushfacebook_hide_affiliate_links", TRUE);
+
+    /** The "Commission eligible" label under a reel's creator goes (#329). Shows on the reels built after a change. */
+    public static final BooleanSetting HIDE_COMMISSION_LABEL =
+            new BooleanSetting("hushfacebook_hide_commission_label", FALSE);
 
     /**
      * The chips under a reel that prompt you to make something (Remix, Use template, Add yours,
@@ -727,6 +735,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_REEL_SOUND_BUTTON =
             new BooleanSetting("hushfacebook_hide_reel_sound_button", FALSE);
+
+    /**
+     * A reel's speaker button sits in the side column right above the three dots, not in the corner
+     * under them ({@link app.morphe.extension.facebook.reels.ReelDeclutter#cornerForSide}, #331). Off
+     * by default. A change shows from the next reel.
+     */
+    public static final BooleanSetting REEL_SPEAKER_ABOVE_MENU =
+            new BooleanSetting("hushfacebook_reel_speaker_above_menu", FALSE);
 
     /**
      * The line under a reel naming its sound, "Original audio" or a song, isn't drawn, and the other
@@ -1023,6 +1039,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_2x_lock_hint", FALSE);
 
     /**
+     * Holding a video for 2x draws no pill at all: no speed, no "Release to lock" and no "Locked at 2x
+     * speed" (#289). The hold and its lock work as before. Works without {@link #HOLD_REEL_FOR_2X}.
+     * Starts off.
+     */
+    public static final BooleanSetting HIDE_2X_POPUPS =
+            new BooleanSetting("hushfacebook_hide_2x_popups", FALSE);
+
+    /**
      * Comment sheets ask for the order in {@link #COMMENT_ORDER} where Facebook's servers would
      * choose one, and an order picked in a post's comments stays for that post until Facebook
      * restarts ({@link app.morphe.extension.facebook.comments.DefaultCommentOrder}). A request that
@@ -1089,6 +1113,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting LOAD_WHOLE_REPLY_THREADS =
             new BooleanSetting("hushfacebook_load_whole_reply_threads", FALSE);
+
+    /**
+     * A reply thread a tap opened gets a Hide replies row over it, with its arrow up, that closes it
+     * again ({@link app.morphe.extension.facebook.comments.CommentSheetOptions}, #325). Off by
+     * default. A change shows on the next comments drawn.
+     */
+    public static final BooleanSetting HIDE_REPLIES_BUTTON =
+            new BooleanSetting("hushfacebook_hide_replies_button", FALSE);
 
     /**
      * A tap anywhere on a View more replies row opens the replies, not only a tap on its words
@@ -1259,6 +1291,18 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting FEED_VIDEO_CAST_BUTTON =
             new BooleanSetting("hushfacebook_feed_video_cast_button", FALSE) {
+                @Override
+                protected void onValueChanged() {
+                    FeedVideoControls.settingsChanged();
+                }
+            };
+
+    /**
+     * A bar along the bottom of a feed video to drag to any point in it (#326). A drag shows the
+     * time, and the video moves when it's let go. Starts off.
+     */
+    public static final BooleanSetting FEED_VIDEO_SEEK_BAR =
+            new BooleanSetting("hushfacebook_feed_video_seek_bar", FALSE) {
                 @Override
                 protected void onValueChanged() {
                     FeedVideoControls.settingsChanged();
@@ -2398,6 +2442,30 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SHOW_FULL_POST_TEXT =
             new BooleanSetting("hushfacebook_show_full_post_text", FALSE);
+
+    /**
+     * A post in another language gets a Translate line under its text, and a tap sends the text to
+     * Google Translate ({@link app.morphe.extension.facebook.feed.PostTranslation}). A change shows
+     * on the posts drawn after it.
+     */
+    public static final BooleanSetting TRANSLATE_POST_LINK =
+            new BooleanSetting("hushfacebook_translate_post_link", FALSE);
+
+    /**
+     * A post in another language shows translated by itself, with See original under it. Each such
+     * post's text goes to Google Translate as it's drawn. Includes the line above, for the posts
+     * whose answer doesn't come in time.
+     */
+    public static final BooleanSetting TRANSLATE_POSTS_BY_THEMSELVES =
+            new BooleanSetting("hushfacebook_translate_posts_by_themselves", FALSE);
+
+    /** The language posts are translated to, as Google Translate's code. Empty goes by the phone's language. */
+    public static final StringSetting TRANSLATE_TO =
+            new StringSetting("hushfacebook_translate_to", "");
+
+    /** The languages posts stay in, as Google Translate's codes joined with commas. */
+    public static final StringSetting TRANSLATE_LEAVE_ALONE =
+            new StringSetting("hushfacebook_translate_leave_alone", "");
 
     /**
      * A post's three-dot menu gets See who shared, which opens Facebook's own list of the people

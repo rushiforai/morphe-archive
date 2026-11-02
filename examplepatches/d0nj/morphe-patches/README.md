@@ -7,16 +7,29 @@ Patches for apps I use, built with [Morphe](https://morphe.software).
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.1](https://github.com/d0nj/morphe-patches/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.6.0](https://github.com/d0nj/morphe-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
-<summary>📦 Niagara Launcher&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 Firefox&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Fix home screen numbers tile](#fix-home-screen-numbers-tile) | Niagara's Channels feature registers a diagnostic tip whose message is a giant fingerprint of concatenated hashCode() integers of up to 30 channel items (~850 digits). Because the provider accepts every tip request, this shows up as a tile of giant numbers on the home feed whenever the channel list refreshes, which happens when apps are installed, updated or removed (for example through ADB). Makes the provider decline tip requests so the diagnostic tip is never shown. |  |
-| [Remove analytics](#remove-analytics) | Disables all telemetry in Niagara Launcher: the weekly usage-report upload (app launches, notification metadata, survey responses), retention milestone events, GDPR consent sync, Singular attribution sessions and events (advertising ID, app set ID, install referrer, FCM token) and the runtime Firebase Analytics opt-in. |  |
-| [Unlock Pro](#unlock-pro) | Makes the entitlement holder always report Pro in Niagara Launcher. Unlocks all Pro features and bypasses the 7-day trial prompt. Server-backed features (account sync, Stripe checkout) are not affected. |  |
+| [Firefox Nightly app name](#firefox-nightly-app-name) | Renames the app to Firefox Nightly, or to a name of your own. | • App name |
+| [Firefox Nightly icon](#firefox-nightly-icon) | Swaps the launcher icon for the Nightly one. |  |
+| [Firefox Nightly in-app logo](#firefox-nightly-in-app-logo) | Swaps the logo and wordmark shown inside the app. |  |
+
+</details>
+
+<details open>
+<summary>📦 Niagara Launcher&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Fix home screen numbers tile](#fix-home-screen-numbers-tile) | Hides the Channels diagnostic tip that shows up as a tile of giant numbers. |  |
+| [Remove analytics](#remove-analytics) | Stops usage reports, retention events and analytics sessions. |  |
+| [Unlock Pro](#unlock-pro) | Unlocks Pro features and skips the trial prompt. Account sync and Stripe checkout still need a real purchase. |  |
+| [Use Open-Meteo for weather](#use-open-meteo-for-weather) | Sources weather from Open-Meteo so the at-a-glance tile works without an account. |  |
 
 </details>
 
@@ -26,7 +39,7 @@ Patches for apps I use, built with [Morphe](https://morphe.software).
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock premium](#unlock-premium) | Makes isPremium() always return true in AI Audio Novel Reader. Unlocks all premium features and disables the 10-hour trial countdown. |  |
+| [Unlock premium](#unlock-premium) | Unlocks premium features and stops the 10-hour trial countdown. |  |
 
 </details>
 

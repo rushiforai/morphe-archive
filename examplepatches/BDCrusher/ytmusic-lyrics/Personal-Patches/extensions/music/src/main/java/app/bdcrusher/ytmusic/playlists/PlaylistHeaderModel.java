@@ -13,8 +13,15 @@ public final class PlaylistHeaderModel {
     private PlaylistHeaderModel(){}
     public static boolean validId(String id){return id!=null&&(id.startsWith("PL")&&id.matches("[A-Za-z0-9_-]{10,150}")||id.equals("LM")||id.equals("SE"));}
     public static byte[] rewrite(byte[] wrapped){
-        try{return ProtoWire.at(wrapped,MODEL,0,PlaylistHeaderModel::update);}
-        catch(IllegalArgumentException unsupported){return wrapped;}
+        if(wrapped==null||wrapped.length>512*1024)return wrapped;
+        try{byte[] direct=ProtoWire.at(wrapped,MODEL,0,PlaylistHeaderModel::update);if(!Arrays.equals(direct,wrapped))return direct;}catch(IllegalArgumentException alternateWrapper){}
+        try{return walk(wrapped,0,new int[]{0});}catch(IllegalArgumentException unsupported){return wrapped;}
+    }
+    /** Header wrappers differ for owned/shared playlists. Match the exact native VM, not one wrapper path. */
+    private static byte[] walk(byte[] bytes,int depth,int[] budget){
+        if(depth>12||++budget[0]>5000)return bytes;ProtoWire message;try{message=new ProtoWire(bytes);}catch(IllegalArgumentException opaque){return bytes;}boolean changed=false;
+        for(int i=0;i<message.fields.size();i++){ProtoWire.Field f=message.fields.get(i);if(f.wire!=2)continue;byte[] next=f.number==373186255?update(f.data):walk(f.data,depth+1,budget);if(!Arrays.equals(next,f.data)){message.fields.set(i,ProtoWire.blob(f.number,next));changed=true;}}
+        return changed?message.bytes():bytes;
     }
     private static byte[] update(byte[] raw){
         ProtoWire model=new ProtoWire(raw);String entity=new String(model.child(7),StandardCharsets.UTF_8);

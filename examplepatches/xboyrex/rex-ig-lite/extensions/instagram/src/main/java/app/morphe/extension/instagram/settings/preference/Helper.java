@@ -1,0 +1,292 @@
+/*
+ * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+ */
+
+package app.morphe.extension.instagram.settings.preference;
+
+import android.app.Activity;
+import android.content.Context;
+import android.preference.Preference;
+import android.preference.SwitchPreference;
+import java.util.Set;
+
+import app.morphe.extension.instagram.patches.dm.InboxLock;
+import app.morphe.extension.instagram.settings.preference.widgets.SwitchPref;
+import app.morphe.extension.instagram.settings.preference.widgets.ListPref;
+import app.morphe.extension.instagram.settings.preference.widgets.LikeAnimationPreference;
+import app.morphe.extension.instagram.settings.preference.widgets.ButtonPref;
+import app.morphe.extension.instagram.settings.preference.widgets.EditTextPref;
+import app.morphe.extension.instagram.settings.preference.widgets.DownloadFileNameTemplatePref;
+import app.morphe.extension.instagram.settings.preference.widgets.InstagramPreferenceStyle;
+import app.morphe.extension.instagram.settings.preference.widgets.MultiSelectListPref;
+import app.morphe.extension.instagram.settings.preference.widgets.NavigationBarPreference;
+import app.morphe.extension.instagram.settings.preference.widgets.NavigationStartupPreference;
+import app.morphe.extension.instagram.settings.SettingsRestart;
+import app.morphe.extension.instagram.settings.Settings;
+import app.morphe.extension.instagram.theme.MaterialYouTheme;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.Logger;
+
+import app.morphe.extension.rex.sharedPreference.SharedPref;
+import app.morphe.extension.rex.settings.BooleanSetting;
+import app.morphe.extension.rex.settings.StringSetting;
+import app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref;
+
+public class Helper {
+    private final Context context;
+
+    public Helper(Context context) {
+        this.context = context;
+    }
+
+    public Preference switchPreference(String title, String summary, BooleanSetting setting) {
+        SwitchPref preference = new SwitchPref(context);
+        preference.setTitle(title);
+        preference.setSummary(summary);
+        preference.setKey(setting.key);
+        preference.setDefaultValue(setting.defaultValue);
+        if (Settings.AMOLED_THEME.key.equals(setting.key)) {
+            preference.setSwitchInteractionEnabled(
+                    MaterialYouTheme.canEnableAmoled(context)
+            );
+        }
+        return preference;
+    }
+
+    public Preference switchPreference(String title, String summary, BooleanSetting setting, String svgIconPath) {
+        Preference pref = switchPreference(title, summary, setting);
+        InstagramPreferenceStyle.setLeftIcon(pref, svgIconPath);
+        return pref;
+    }
+
+    public Preference forcedSwitchPreference(
+            String title,
+            String summary,
+            BooleanSetting setting,
+            boolean forced,
+            String forcedSummary
+    ) {
+        Preference preference = switchPreference(title, forced ? forcedSummary : summary, setting);
+        if (forced && preference instanceof SwitchPref) {
+            SwitchPref switchPreference = (SwitchPref) preference;
+            switchPreference.setPersistent(false);
+            switchPreference.setDefaultValue(Boolean.TRUE);
+            switchPreference.setChecked(true);
+            switchPreference.setSwitchInteractionEnabled(false);
+        }
+        return preference;
+    }
+
+    public Preference forcedSwitchPreference(
+            String title,
+            String summary,
+            BooleanSetting setting,
+            boolean forced,
+            String forcedSummary,
+            String svgIconPath
+    ) {
+        Preference pref = forcedSwitchPreference(title, summary, setting, forced, forcedSummary);
+        InstagramPreferenceStyle.setLeftIcon(pref, svgIconPath);
+        return pref;
+    }
+
+    public Preference listPreference(String title, String summary, StringSetting setting) {
+        ListPref preference = setting == Settings.CHANGE_LIKE_ANIMATION
+                ? new LikeAnimationPreference(context) : new ListPref(context);
+        String key = setting.key;
+        preference.setTitle(title);
+        preference.setDialogTitle(title);
+        preference.setSummary(summary);
+        preference.setKey(key);
+        preference.setDefaultValue(setting.defaultValue);
+        return preference;
+    }
+
+    public Preference listPreference(String title, String summary, StringSetting setting, String svgIconPath) {
+        Preference pref = listPreference(title, summary, setting);
+        InstagramPreferenceStyle.setLeftIcon(pref, svgIconPath);
+        return pref;
+    }
+
+    public ButtonPref buttonPreference(String title, String summary, String setting) {
+        ButtonPref preference = new ButtonPref(context);
+        preference.setTitle(title);
+        preference.setSummary(summary);
+        preference.setKey(setting);
+        return preference;
+    }
+
+    public ButtonPref buttonPreference(String title, String summary, String setting, String svgIconPath) {
+        ButtonPref pref = buttonPreference(title, summary, setting);
+        pref.setLeftVectorIcon(svgIconPath);
+        return pref;
+    }
+
+    public ButtonPref actionButtonPreference(String title, String summary, String svgIconPath, Runnable action) {
+        ButtonPref pref = new ButtonPref(context);
+        pref.setTitle(title);
+        pref.setSummary(summary);
+        pref.setLeftVectorIcon(svgIconPath);
+        if (action != null) {
+            pref.setCustomClickAction(action);
+        }
+        return pref;
+    }
+
+    public ButtonPref linkButtonPreference(String title, String summary, String leftSvgPath, String rightSvgPath, Runnable action) {
+        ButtonPref pref = actionButtonPreference(title, summary, leftSvgPath, action);
+        if (rightSvgPath != null) {
+            pref.setRightVectorIcon(rightSvgPath);
+        }
+        return pref;
+    }
+
+    public Preference categoryPreference(String title, String summary, String setting) {
+        ButtonPref preference = buttonPreference(title, summary, setting);
+        preference.setPressedHighlightEnabled(true);
+        return preference;
+    }
+
+    public Preference categoryPreference(String title, String summary, String setting, String svgIconPath) {
+        ButtonPref preference = buttonPreference(title, summary, setting, svgIconPath);
+        preference.setPressedHighlightEnabled(true);
+        return preference;
+    }
+
+    public Preference navigationBarPreference(String title, String summary) {
+        NavigationBarPreference preference = new NavigationBarPreference(context);
+        preference.setTitle(title);
+        preference.setSummary(summary);
+        preference.setSingleLineTitle(false);
+        return preference;
+    }
+
+    public Preference navigationStartupPreference(String title, String summary) {
+        NavigationStartupPreference preference = new NavigationStartupPreference(context);
+        preference.setTitle(title);
+        preference.setDialogTitle(title);
+        preference.setSummary(summary);
+        preference.setSingleLineTitle(false);
+        return preference;
+    }
+
+    public Preference editTextPreference(String title, String summary, StringSetting setting) {
+        EditTextPref preference = new EditTextPref(context);
+        preference.setTitle(title);
+        preference.setDialogTitle(title);
+        preference.setSummary(summary);
+        preference.setKey(setting.key);
+        preference.setDefaultValue(setting.defaultValue);
+        return preference;
+    }
+
+    public Preference editTextPreference(String title, String summary, StringSetting setting, String svgIconPath) {
+        Preference pref = editTextPreference(title, summary, setting);
+        InstagramPreferenceStyle.setLeftIcon(pref, svgIconPath);
+        return pref;
+    }
+
+    public Preference editTextNumPreference(String title, String summary, StringSetting setting) {
+        EditTextPref preference = (EditTextPref) editTextPreference(title, summary, setting);
+        preference.setNumericOnly(true);
+        return preference;
+    }
+
+    public Preference editTextNumPreference(String title, String summary, StringSetting setting, String svgIconPath) {
+        Preference pref = editTextNumPreference(title, summary, setting);
+        InstagramPreferenceStyle.setLeftIcon(pref, svgIconPath);
+        return pref;
+    }
+
+    public Preference downloadFileNameTemplatePreference(
+            String title,
+            String summary,
+            StringSetting setting
+    ) {
+        DownloadFileNameTemplatePref preference = new DownloadFileNameTemplatePref(context);
+        preference.setTitle(title);
+        preference.setDialogTitle(title);
+        preference.setSummary(summary);
+        preference.setKey(setting.key);
+        preference.setDefaultValue(setting.defaultValue);
+        return preference;
+    }
+
+    public Preference multiSelectListPref(String title, String summary, StringSetting setting) {
+        MultiSelectListPref preference = new MultiSelectListPref(context);
+        String key = setting.key;
+        preference.setTitle(title);
+        preference.setDialogTitle(title);
+        preference.setSummary(summary);
+        preference.setKey(key);
+        preference.setInitialValue(key);
+        return preference;
+    }
+
+    public boolean setValue(Preference preference, Object newValue) {
+        String key = preference.getKey();
+        try {
+            if (newValue != null) {
+                Object previousValue = getValue(preference);
+                String newValClass = newValue.getClass().getSimpleName();
+                boolean saved = false;
+
+                if (newValClass.equals("Boolean")) {
+                    Boolean val = (Boolean) newValue;
+                    if (Settings.AMOLED_THEME.key.equals(key)) {
+                        return MaterialYouTheme.requestAmoledChange(context, val);
+                    }
+                    if (Settings.MATERIAL_YOU_THEME.key.equals(key)) {
+                        return MaterialYouTheme.requestMaterialYouChange(context, val);
+                    }
+                    boolean inboxLockKey = Settings.INBOX_LOCK.key.equals(key)
+                            || Settings.INBOX_LOCK_NOTIFICATIONS.key.equals(key);
+                    if (inboxLockKey && !val && InboxLock.mustConfirmToDisable() && context instanceof Activity) {
+                        InboxLock.confirm((Activity) context, () -> {
+                            if (setValue(preference, newValue)) ((SwitchPreference) preference).setChecked(false);
+                        });
+                        return false;
+                    }
+                    saved = SharedPref.setBooleanPref(key, val);
+                } else if (newValClass.equals("String")) {
+                    String val = (String) newValue;
+                    if (key.contains("_")) {
+                        saved = SharedPref.setStringPref(key, val);
+                    } else {
+                        saved = FlagsSharedPref.setStringPref(key, val);
+                    }
+                } else if (newValClass.equals("HashSet")) {
+                    saved = SharedPref.setSetPref(key, (Set) newValue);
+                }
+
+                if (saved) {
+                    SettingsRestart.markChanged(previousValue, newValue);
+                }
+                return saved;
+            }
+            return false;
+        } catch (Exception ex) {
+            Utils.showToastShort(ex.toString());
+            Logger.printException(() -> "Failed setting pref: ", ex);
+            return false;
+        }
+    }
+
+    private Object getValue(Preference preference) {
+        if (preference instanceof SwitchPref) {
+            return ((SwitchPref) preference).isChecked();
+        }
+        if (preference instanceof ListPref) {
+            return ((ListPref) preference).getValue();
+        }
+        if (preference instanceof EditTextPref) {
+            return ((EditTextPref) preference).getText();
+        }
+        if (preference instanceof MultiSelectListPref) {
+            return ((MultiSelectListPref) preference).getValues();
+        }
+        return null;
+    }
+}

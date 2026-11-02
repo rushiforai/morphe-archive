@@ -34,7 +34,7 @@ body:
       description: |
         On a PC with adb: `adb shell dumpsys package com.google.android.apps.youtube.vr.oculus | grep -E 'versionName|versionCode'`
         In Morphe Manager, the version is shown next to the app you selected.
-      placeholder: "1.88.10 (18810000)"
+      placeholder: "1.90.05 (19005000)"
     validations:
       required: true
   - type: input

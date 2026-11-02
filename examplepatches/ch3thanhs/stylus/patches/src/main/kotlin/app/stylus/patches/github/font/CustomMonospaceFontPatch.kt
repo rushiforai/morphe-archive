@@ -12,15 +12,15 @@ private val customMonospaceFontFileOption = stringOption(
     key = "customMonospaceFontFile",
     default = null,
     title = "Custom monospace font",
-    description = "The file path to your monospace font file. Tap the file picker and select it. " +
-        "The font file must be in TTF or OTF format.",
+    description = "The file path to your monospace font. Tap the file picker and select it. " +
+        "The font must be in TTF or OTF format.",
     required = true,
 )
 
 @Suppress("unused")
 val customMonospaceFontGithubPatch = resourcePatch(
-    name = "Custom monospace font (GitHub)",
-    description = "Replaces GitHub's bundled Roboto Mono code font with a custom monospace font file.",
+    name = "Custom monospace font",
+    description = "Replaces the bundled Roboto Mono code font with your own monospace font.",
     default = false,
 ) {
     category("Font")

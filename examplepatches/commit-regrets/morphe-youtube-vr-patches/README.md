@@ -6,7 +6,7 @@ Patches for YouTube VR (Meta Quest / Horizon OS), for use with
 ## ❓ About
 
 Patches for the YouTube VR app for Meta Quest (`com.google.android.apps.youtube.vr.oculus`), pinned to
-**1.89.09** and **1.88.10**. R8 reassigns every name per release, so a store update needs re-fingerprinting and an
+**1.90.05** and **1.89.09**. R8 reassigns every name per release, so a store update needs re-fingerprinting and an
 unlisted version is *skipped*, not failed — see [docs/VERSIONING.md](docs/VERSIONING.md) and
 [docs/FINGERPRINTS.md](docs/FINGERPRINTS.md).
 
@@ -138,14 +138,14 @@ override the patch options, which stay the defaults. The streaming spoof and the
 rather than a switch.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.29.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/releases/tag/v1.29.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+> **[v1.30.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/releases/tag/v1.30.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
 <summary>📦 YouTube VR&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.89.09 | 1.88.10 |
+| 1.90.05 | 1.89.09 |
 | :---: | :---: |
 | Verified: every fingerprint was re-derived against this build. | Verified: every fingerprint was re-derived against this build. |
 
@@ -181,7 +181,7 @@ rather than a switch.
 | **[REA](https://github.com/morluto/rea)** *(optional)* | reverse-engineering toolkit: device integration and APK/JADX analysis | `PATH` |
 | **`gh`** *(optional)* | checking CI runs and releases | `PATH` |
 
-You also need a **stock YouTube VR 1.89.09 or 1.88.10 APK** as the input; this repository does not ship one, and
+You also need a **stock YouTube VR 1.90.05 or 1.89.09 APK** as the input; this repository does not ship one, and
 the build's first run needs network access to resolve the patcher dependency. The headset-only recipes
 (wireless adb, capturing the screen without wearing it) are in [AGENTS.md](AGENTS.md#device-access),
 along with one honest caveat: `rea capture-adb-screen` did not work in this environment, so the

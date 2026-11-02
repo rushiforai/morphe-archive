@@ -1,21 +1,28 @@
 package dev.twitchpatches.extension.emotes;
 
+import android.graphics.drawable.Drawable;
 import android.os.Looper;
 import android.text.Editable;
+import android.text.Spanned;
 import android.text.TextWatcher;
 import android.text.style.ReplacementSpan;
 import android.view.View;
 import android.view.inputmethod.BaseInputConnection;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
+import android.widget.MultiAutoCompleteTextView;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.Function;
 
 public final class EmoteDraftRuntime {
+    private static final int MAX_SUGGESTIONS = 20;
     private static final WeakHashMap<EditText, Draft> inputs = new WeakHashMap<>();
 
     private EmoteDraftRuntime() { }
@@ -39,8 +46,7 @@ public final class EmoteDraftRuntime {
         draft.render();
     }
 
-    public static void tokenizer(android.widget.MultiAutoCompleteTextView view,
-                                 android.widget.MultiAutoCompleteTextView.Tokenizer tokenizer) {
+    public static void tokenizer(MultiAutoCompleteTextView view, MultiAutoCompleteTextView.Tokenizer tokenizer) {
         view.setTokenizer(tokenizer);
         bind(view);
     }
@@ -50,29 +56,39 @@ public final class EmoteDraftRuntime {
         if (!EmoteRuntime.enabled() || catalog == null || query == null) return nativeMatches;
         String channel = EmoteRuntime.currentChannel();
         catalog.ensure(channel);
-        List<Object> result = new ArrayList<>(nativeMatches.subList(0, Math.min(10, nativeMatches.size())));
+        List<Object> merged = new ArrayList<>(nativeMatches);
         Set<String> names = new HashSet<>();
         for (Object value : nativeMatches) names.add(EmoteInputBridge.code(value).trim());
-        int added = 0;
         for (Emote emote : EmoteDraftTokens.suggestions(query.startsWith(":") ? query : ":" + query, catalog.snapshot(channel))) {
-            if (result.size() >= 20) break;
-            if (names.contains(emote.code)) continue;
-            result.add(Math.min(5 + added++, result.size()), EmoteInputBridge.model("twitchpatches-picker:" + emote.url, emote.code, emote.animated));
+            if (!names.contains(emote.code))
+                merged.add(EmoteInputBridge.model(EmotePickerRuntime.PREFIX + emote.url, emote.code, emote.animated));
         }
-        return result;
+        return EmoteDraftTokens.ranked(query, merged, EmoteInputBridge::code, MAX_SUGGESTIONS);
+    }
+
+    static Function<String, Emote> draftEmotes() {
+        EmoteCatalog catalog = EmoteRuntime.catalog();
+        String channel = EmoteRuntime.currentChannel();
+        Map<String, Emote> external = catalog != null && EmoteRuntime.enabled() ? catalog.snapshot(channel) : Collections.emptyMap();
+        return token -> {
+            Emote twitch = TwitchEmotes.find(token);
+            return twitch != null ? twitch : external.get(token);
+        };
     }
 
     static void refresh(String image) {
         if (!EmoteRuntime.foreground()) return;
+        ComposeEmoteDraft.refresh(image);
         for (Draft draft : new ArrayList<>(inputs.values())) {
             if (image == null || draft.pending.contains(image)) draft.render();
             EditText view = draft.owner.get();
-            if (image == null && view instanceof android.widget.AutoCompleteTextView && view.hasFocus())
-                ((android.widget.AutoCompleteTextView) view).refreshAutoCompleteResults();
+            if (image == null && view instanceof AutoCompleteTextView && view.hasFocus())
+                ((AutoCompleteTextView) view).refreshAutoCompleteResults();
         }
     }
 
     static void pause() {
+        ComposeEmoteDraft.pause();
         for (Draft draft : new ArrayList<>(inputs.values())) for (EmoteSpan span : draft.spans) span.stop();
     }
 
@@ -94,35 +110,43 @@ public final class EmoteDraftRuntime {
                 for (EmoteSpan span : spans) { text.removeSpan(span); span.close(); }
                 spans.clear();
                 pending.clear();
+                if (!view.isAttachedToWindow() || !view.isShown() || BaseInputConnection.getComposingSpanStart(text) >= 0) return;
                 EmoteCatalog catalog = EmoteRuntime.catalog();
-                EmoteImages images = EmoteRuntime.images();
-                if (!EmoteRuntime.enabled() || catalog == null || images == null || !view.isAttachedToWindow() ||
-                        !view.isShown() || BaseInputConnection.getComposingSpanStart(text) >= 0) return;
-                String channel = EmoteRuntime.currentChannel();
-                catalog.ensure(channel);
-                Map<String, Emote> entries = catalog.snapshot(channel);
-                String plain = text.toString(), next = EmoteDraftTokens.normalize(plain, entries);
-                if (!plain.equals(next)) {
-                    int start = view.getSelectionStart(), end = view.getSelectionEnd();
-                    int first = 0;
-                    while (first < plain.length() && first < next.length() && plain.charAt(first) == next.charAt(first)) first++;
-                    int suffix = 0;
-                    while (suffix < plain.length() - first && suffix < next.length() - first &&
-                            plain.charAt(plain.length() - suffix - 1) == next.charAt(next.length() - suffix - 1)) suffix++;
-                    text.replace(first, plain.length() - suffix, next.substring(first, next.length() - suffix));
-                    view.setSelection(EmoteDraftTokens.selection(plain, start, entries), EmoteDraftTokens.selection(plain, end, entries));
+                if (catalog != null && EmoteRuntime.enabled()) {
+                    String channel = EmoteRuntime.currentChannel();
+                    catalog.ensure(channel);
+                    unwrapColonTokens(view, text, catalog.snapshot(channel));
                 }
-                for (EmoteTokens.Match match : EmoteTokens.find(text, entries)) {
-                    if (text.getSpans(match.start, match.end, ReplacementSpan.class).length != 0) continue;
-                    android.graphics.drawable.Drawable drawable = images.drawable(view.getResources(), match.emote.url);
-                    if (drawable == null) { pending.add(match.emote.url); images.request(match.emote); continue; }
-                    EmoteSpan span = new EmoteSpan(view, drawable, 0);
-                    text.setSpan(span, match.start, match.end, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    spans.add(span);
-                    span.start();
-                }
+                if (EmoteRuntime.inlineEnabled()) renderImages(view, text);
                 view.invalidate();
             } finally { editing = false; }
+        }
+
+        private void unwrapColonTokens(EditText view, Editable text, Map<String, Emote> entries) {
+            String plain = text.toString(), next = EmoteDraftTokens.normalize(plain, entries);
+            if (plain.equals(next)) return;
+            int start = view.getSelectionStart(), end = view.getSelectionEnd();
+            int first = 0;
+            while (first < plain.length() && first < next.length() && plain.charAt(first) == next.charAt(first)) first++;
+            int suffix = 0;
+            while (suffix < plain.length() - first && suffix < next.length() - first &&
+                    plain.charAt(plain.length() - suffix - 1) == next.charAt(next.length() - suffix - 1)) suffix++;
+            text.replace(first, plain.length() - suffix, next.substring(first, next.length() - suffix));
+            view.setSelection(EmoteDraftTokens.selection(plain, start, entries), EmoteDraftTokens.selection(plain, end, entries));
+        }
+
+        private void renderImages(EditText view, Editable text) {
+            EmoteImages images = EmoteRuntime.images();
+            if (images == null) return;
+            for (EmoteTokens.Match match : EmoteTokens.find(text, draftEmotes())) {
+                if (text.getSpans(match.start, match.end, ReplacementSpan.class).length != 0) continue;
+                Drawable drawable = images.drawable(view.getResources(), match.emote.url);
+                if (drawable == null) { pending.add(match.emote.url); images.request(match.emote); continue; }
+                EmoteSpan span = new EmoteSpan(view, drawable, 0);
+                text.setSpan(span, match.start, match.end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spans.add(span);
+                span.start();
+            }
         }
 
         @Override public void afterTextChanged(Editable text) {

@@ -1,0 +1,38 @@
+# Build workspace (cloned morphe-patches, Morphe jar, APKs, keystore)
+work/
+dist/
+
+# Facebook APKs, bundles, dex dumps (never commit; not ours to redistribute)
+*.apk
+*.apks
+*.xapk
+*.mpp
+*.dex
+*.keystore
+*.jks
+*.zip
+
+# Build / test output
+tests/out/
+*.class
+out/
+build/
+.gradle/
+ai-context/
+
+# Secrets (GitHub Packages token)
+.env
+*.token
+gradle.properties
+local.properties
+
+# Tooling / IDE / OS
+__pycache__/
+*.pyc
+*.pkl
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+logcat*.txt

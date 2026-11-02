@@ -36,7 +36,6 @@ public final class LiveWindow {
         while (hints.size() > 256) hints.remove(hints.keySet().iterator().next());
     }
 
-    public boolean hasNewLive() { return !live.isEmpty() && (lastLive == null || live.lastKey() > lastLive); }
     public boolean hasOutput() { return !window.isEmpty(); }
 
     public boolean acceptCleanBackup(HlsPlaylist playlist, String source) {

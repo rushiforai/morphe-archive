@@ -26,6 +26,9 @@ does not make a patch universal or prove compatibility with another app.
 - Source: [OriginalCertificate.kt](../patches/src/main/kotlin/app/pigfoot/patches/shared/certificate/OriginalCertificate.kt).
 - Tests: [OriginalCertificateTest.kt](../patches/src/test/kotlin/app/pigfoot/patches/OriginalCertificateTest.kt).
 - Consumer: [PiTT input/resource/bytecode adapter](../patches/src/main/kotlin/app/pigfoot/patches/pitt/PittPatches.kt).
+- Consumer: [Windy original-input guard](../patches/src/main/kotlin/app/pigfoot/patches/windy/WindyPatches.kt),
+  using an independently qualified app-owned signer pin. This is input validation,
+  not signature spoofing; no Firebase/GmsCore policy is applied to Windy.
 
 Pass `packageMetadata.signingCertificates.values.flatten()` and the **app-owned,
 independently qualified SHA-1 pin** to `requireOriginalCertificate`. The function

@@ -1,14 +1,16 @@
 package dev.twitchpatches.patches.twitch.emotes
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
-import com.android.tools.smali.dexlib2.Opcode
 import dev.twitchpatches.patches.twitch.shared.*
 
 internal const val PICKER_RUNTIME = "Ldev/twitchpatches/extension/emotes/EmotePickerRuntime;"
@@ -25,11 +27,38 @@ internal data class NativePickerHooks(
     val scroll: MethodReference, val url: Method, val imageBinder: Method,
 )
 
+private class PickerModelFingerprint(marker: String) : Fingerprint(
+    name = "toString",
+    strings = listOf(marker),
+)
+
+private object NativePickerPresenterFingerprint : Fingerprint(
+    name = "<init>",
+    strings = listOf("createEmotePickerState"),
+)
+
+private object PickerImageHelperFingerprint : Fingerprint(
+    strings = listOf(
+        "https://static-cdn.jtvnw.net/emoticons/v2/",
+        "/",
+    ),
+)
+
+private object PickerImageUrlFingerprint : Fingerprint(
+    classFingerprint = PickerImageHelperFingerprint,
+    parameters = listOf("Landroid/content/Context;", PICKER_STRING, "Ljava/lang/Float;"),
+    returnType = PICKER_STRING,
+)
+
+private class PickerImageBinderFingerprint(urlRef: String) : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        methodCall(urlRef),
+    ),
+)
+
 internal fun BytecodePatchContext.resolveNativePickerHooks(): NativePickerHooks {
-    val classes = mutableListOf<ClassDef>().apply { classDefForEach { add(it) } }
-    fun model(marker: String) = classes.filter { type -> type.methods.any {
-        it.name == "toString" && it.hasStrings(marker)
-    } }.uniqueHook("picker $marker")
+    fun model(marker: String) = PickerModelFingerprint(marker).originalClassDef
     fun ClassDef.constructor(parameters: List<String>) = methods.filter {
         it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == parameters
     }.uniqueHook("picker $type constructor")
@@ -40,9 +69,7 @@ internal fun BytecodePatchContext.resolveNativePickerHooks(): NativePickerHooks 
     val header = model("EmoteHeaderNamedUiModel(loginName=")
     val section = model("EmoteUiSet(header=")
     val event = model("NewEmoteSets(emotes=")
-    val presenter = classes.filter { type -> type.methods.any { it.name == "<init>" &&
-        it.hasStrings("createEmotePickerState") }
-    }.uniqueHook("native picker presenter")
+    val presenter = NativePickerPresenterFingerprint.originalClassDef
     val start = presenter.methods.filter { method -> method.returnType == "V" &&
         method.parameterTypes.size == 2 && method.parameterTypes.first().toString() == CHANNEL_ID &&
         method.references().filterIsInstance<MethodReference>().any { it.definingClass == "Ltv/twitch/android/util/RxHelperKt;" }
@@ -87,16 +114,10 @@ internal fun BytecodePatchContext.resolveNativePickerHooks(): NativePickerHooks 
     val descriptor = emote.methods.filter { it.name == "<init>" && it.parameterTypes.size == 4 }
         .uniqueHook("picker emote model constructor")
     val entries = section.fields.filter { it.type == PICKER_LIST }.uniqueHook("picker section entries")
-    val imageBuilders = classes.filter { type -> type.methods.any {
-        it.hasStrings("https://static-cdn.jtvnw.net/emoticons/v2/", "/")
-    } }
-    val url = imageBuilders.flatMap { it.methods }.filter {
-        it.isInstance(listOf("Landroid/content/Context;", PICKER_STRING, "Ljava/lang/Float;"), PICKER_STRING)
-    }.uniqueHook("native picker image URL")
-    val imageBinder = classes.flatMap { it.methods }.filter { method -> method.returnType == "V" &&
-        method.references().filterIsInstance<MethodReference>().any { it.toString() == url.reference } &&
-        method.references().filterIsInstance<TypeReference>().any { it.type == emote.type } }
-        .uniqueHook("native picker image binder")
+    val url = PickerImageUrlFingerprint.originalMethod
+    val imageBinder = PickerImageBinderFingerprint(url.reference).matchAll()
+        .single { it.originalMethod.references().any { ref -> ref.toString() == emote.type } }
+        .originalMethod
     return NativePickerHooks(presenter, start, event.constructor(listOf(PICKER_LIST, "Z")), delegate,
         genericConstructor, input.constructor(listOf(PICKER_STRING, PICKER_STRING, "Z")),
         unlocked.constructor(listOf(generic.superclass.orEmpty(), input.type)), descriptor,

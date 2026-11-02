@@ -1,0 +1,161 @@
+[
+  {
+    "meta": {
+      "created_at": "2026-10-31T04:14:52.401122270Z",
+      "source": "patches-0.5.6.mpp",
+      "sha256": "5f463dfb255ab8cf62d8457caecff54178cb3174d3eee5fe3c1554a687109158"
+    },
+    "patches": {
+      "Bypass PairIP license check": {
+        "enabled": true
+      },
+      "Unlock hidden feature flags": {
+        "enabled": true
+      },
+      "Remove AI assistant FAB (+ footer patch id)": {
+        "enabled": true
+      },
+      "Disable security checks": {
+        "enabled": true
+      },
+      "Disable SSL pinning": {
+        "enabled": true
+      },
+      "Inspect HTTPS traffic (adb reverse proxy)": {
+        "enabled": false,
+        "options": {
+          "Proxy host": "127.0.0.1",
+          "Proxy port": "8080"
+        }
+      },
+      "Fix SIM identifier access": {
+        "enabled": true
+      },
+      "Spoof stock signing cert hash": {
+        "enabled": true
+      },
+      "Disable AppsFlyer": {
+        "enabled": true
+      },
+      "Disable CleverTap": {
+        "enabled": true
+      },
+      "Disable Firebase Performance + installer check": {
+        "enabled": true
+      },
+      "Disable trackers": {
+        "enabled": true
+      },
+      "Kill residual beacon traffic": {
+        "enabled": true
+      },
+      "Remove ads": {
+        "enabled": true
+      },
+      "Fix app icon": {
+        "enabled": true
+      },
+      "No profile-visitor limit": {
+        "enabled": true
+      },
+      "Allow standalone install (split-less APK)": {
+        "enabled": true
+      },
+      "Mock Pro (client-side)": {
+        "enabled": true
+      },
+      "Chat button on profiles": {
+        "enabled": true
+      },
+      "Soul history": {
+        "enabled": true
+      },
+      "Pdb Extras \u2014 resources": {
+        "enabled": true
+      },
+      "Pdb Extras feature menu": {
+        "enabled": true
+      },
+      "Relocate runtime MMKV copy": {
+        "enabled": false
+      },
+      "Floating power button": {
+        "enabled": true
+      },
+      "Show profile IDs on names": {
+        "enabled": true
+      },
+      "Disable PairIP license check": {
+        "enabled": false
+      },
+      "Provide Original app certificate": {
+        "enabled": true,
+        "options": {
+          "originalApkPath": null,
+          "manualCertSha1": null,
+          "manualCertSha256": null,
+          "manualCertBase64": null
+        }
+      },
+      "Spoof Widevine / DRM level": {
+        "enabled": false,
+        "options": {
+          "securityLevel": "L1",
+          "hdcpLevel": "HDCP_V2_2"
+        }
+      },
+      "Fix Firebase after re-signing": {
+        "enabled": false
+      },
+      "GmsCore support (MicroG)": {
+        "enabled": false,
+        "options": {
+          "gmsCoreVendor": "app.revanced.android.gms",
+          "mainActivityName": null,
+          "packageName": null
+        }
+      },
+      "Spoof install source": {
+        "enabled": false,
+        "options": {
+          "installerPackageName": "com.android.vending"
+        }
+      },
+      "Spoof app signature": {
+        "enabled": true,
+        "options": {
+          "packageName": null
+        }
+      },
+      "Extra settings screen": {
+        "enabled": true
+      },
+      "Extra settings resources": {
+        "enabled": true,
+        "options": {
+          "stravaAccent": "Blue",
+          "unlockShareOverlays": "true",
+          "suConsoleExport": "false"
+        }
+      },
+      "Remove Data Peek upsells": {
+        "enabled": true
+      },
+      "Remove telemetry": {
+        "enabled": true
+      },
+      "AMOLED dark theme": {
+        "enabled": true
+      },
+      "Custom app name": {
+        "enabled": false,
+        "options": {
+          "stravaAppName": ""
+        }
+      },
+      "Unlock Premium": {
+        "enabled": true
+      }
+    }
+  }
+]

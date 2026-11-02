@@ -1,7 +1,9 @@
 package dev.twitchpatches.patches.twitch.ui
 
-import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
@@ -18,16 +20,28 @@ private val barRequests = mapOf(
     "Landroid/view/WindowInsetsController;->show(I)V" to "showSystemBars",
 )
 
+private object SetSystemUiVisibilityFingerprint : Fingerprint(
+    filters = listOf(methodCall("Landroid/view/View;->setSystemUiVisibility(I)V")),
+)
+
+private object ShowWindowInsetsControllerFingerprint : Fingerprint(
+    filters = listOf(methodCall("Landroid/view/WindowInsetsController;->show(I)V")),
+)
+
 internal fun BytecodePatchContext.injectUiBarRequests() {
-    val matches = mutableListOf<Pair<String, String>>()
-    classDefForEach { owner ->
-        if (!owner.type.startsWith("Ldev/twitchpatches/extension/")) owner.methods.forEach { method ->
-            if (method.references().any { it.toString() in barRequests }) matches.add(owner.type to method.reference)
+    val matches = mutableListOf<MutableMethod>()
+    SetSystemUiVisibilityFingerprint.matchAllOrNull()?.forEach { match ->
+        if (!match.originalClassDef.type.startsWith("Ldev/twitchpatches/extension/")) {
+            matches.add(match.method)
+        }
+    }
+    ShowWindowInsetsControllerFingerprint.matchAllOrNull()?.forEach { match ->
+        if (!match.originalClassDef.type.startsWith("Ldev/twitchpatches/extension/")) {
+            matches.add(match.method)
         }
     }
     val found = mutableSetOf<String>()
-    matches.forEach { (owner, reference) ->
-        val method = mutableClassDefBy(owner).methods.single { it.reference == reference }
+    matches.distinctBy { it.reference }.forEach { method ->
         found.addAll(rewriteUiBarRequests(method))
     }
     require(found == barRequests.keys) { "UI settings: system bar request paths changed." }

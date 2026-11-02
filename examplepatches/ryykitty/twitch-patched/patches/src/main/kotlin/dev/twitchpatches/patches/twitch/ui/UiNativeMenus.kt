@@ -1,7 +1,11 @@
 package dev.twitchpatches.patches.twitch.ui
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.literal
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.twitchpatches.patches.twitch.reload.nativeReloadMethod
 import dev.twitchpatches.patches.twitch.shared.*
@@ -9,13 +13,38 @@ import dev.twitchpatches.patches.twitch.shared.*
 private const val BRIDGE = "Ldev/twitchpatches/extension/ui/UiComposeBridge;"
 private const val ACTION = "Ldev/twitchpatches/extension/ui/UiMenuAction;"
 
-internal fun BytecodePatchContext.injectNativeUiMenus(all: List<Method>, contract: UiCompositionContract) {
+private class PlaybackMenuHeadingFingerprint(optionsTitleId: Long, composer: String) : Fingerprint(
+    returnType = "V",
+    parameters = listOf(composer, "I"),
+    filters = listOf(literal(optionsTitleId)),
+)
+
+private object VerticalHeaderSubscribeModelFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    strings = listOf(string("Subscribe(isIconOnly=")),
+)
+
+private object VerticalHeaderGiftModelFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    strings = listOf(string("Gift(isIconOnly=")),
+)
+
+private class VerticalLeaderboardFingerprint(leaderboardStringId: Long, leaderboardDrawableId: Long) : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        literal(leaderboardStringId),
+        literal(leaderboardDrawableId),
+    ),
+)
+
+internal fun BytecodePatchContext.injectNativeUiMenus(contract: UiCompositionContract) {
     fun Method.resource(name: String) = code().any {
-        (it as? com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction)?.wideLiteral == uiResourceIds[name]
+        (it as? WideLiteralInstruction)?.wideLiteral == uiResourceIds[name]
     }
-    val title = all.filter { it.parameterTypes == listOf(contract.composer, "I") && it.returnType == "V" &&
-        it.resource("string/options_title") }.uniqueHook("native playback menu heading")
-    val viewing = all.filter { it.definingClass == title.definingClass && it.resource("string/viewing_options_label") }
+    val title = PlaybackMenuHeadingFingerprint(uiResourceIds.getValue("string/options_title"), contract.composer).originalMethod
+    val viewing = classDefBy(title.definingClass).methods.filter { it.resource("string/viewing_options_label") }
         .uniqueHook("native viewing options renderer")
     val row = viewing.references().filterIsInstance<MethodReference>().filter { it.returnType == "V" &&
         it.parameterTypes.size == 10 && it.parameterTypes[0] == "Ljava/lang/String;" &&
@@ -40,21 +69,29 @@ internal fun BytecodePatchContext.injectNativeUiMenus(all: List<Method>, contrac
     """, static = true)
     val bridge = mutableClassDefBy(BRIDGE)
     bridge.methods.add(menu)
-    replaceNativeUiCalls(all, title.reference, menu)
+    replaceNativeUiCalls(nativeCallers(title), title.reference, menu)
 
-    val subscribe = all.filter { it.name == "toString" && it.hasStrings("Subscribe(isIconOnly=") }
-        .uniqueHook("vertical header Subscribe model").definingClass
-    val gift = all.filter { it.name == "toString" && it.hasStrings("Gift(isIconOnly=") }
-        .uniqueHook("vertical header Gift model").definingClass
+    val subscribe = VerticalHeaderSubscribeModelFingerprint.originalMethod.definingClass
+    val gift = VerticalHeaderGiftModelFingerprint.originalMethod.definingClass
     val base = classDefBy(subscribe).superclass
     require(base == classDefBy(gift).superclass) { "UI settings: header action hierarchy changed." }
-    val support = all.filter { it.parameterTypes.size == 4 && it.parameterTypes[0] == base &&
-        it.parameterTypes[2] == contract.composer && it.returnType == "V" }.uniqueHook("native vertical header action")
-    val leaderboard = all.filter { it.parameterTypes.size == 4 && it.parameterTypes[2] == contract.composer &&
-        it.resource("string/leaderboard") && it.resource("drawable/format_leaderboard") }.uniqueHook("native vertical leaderboard button")
-    val header = all.filter { it.definingClass == leaderboard.definingClass &&
-        it.references().any { ref -> ref.toString() == support.reference } &&
-        it.references().any { ref -> ref.toString() == leaderboard.reference } }.uniqueHook("native vertical action header")
+    val leaderboard = VerticalLeaderboardFingerprint(
+        uiResourceIds.getValue("string/leaderboard"),
+        uiResourceIds.getValue("drawable/format_leaderboard"),
+    ).originalMethod
+    require(leaderboard.parameterTypes.size == 4 && leaderboard.parameterTypes[2].toString() == contract.composer) {
+        "UI settings: native vertical leaderboard changed."
+    }
+    val candidates = classDefBy(leaderboard.definingClass).methods.filter {
+        it.references().any { ref -> ref.toString() == leaderboard.reference }
+    }
+    val support = candidates.flatMap { it.references().filterIsInstance<MethodReference>() }
+        .mapNotNull { ref -> classDefByOrNull(ref.definingClass)?.methods?.firstOrNull { it.reference == ref.toString() } }
+        .filter { it.parameterTypes.size == 4 && it.parameterTypes[0].toString() == base &&
+            it.parameterTypes[2].toString() == contract.composer && it.returnType == "V" }
+        .uniqueHook("native vertical header action")
+    val header = candidates.filter { it.references().any { ref -> ref.toString() == support.reference } }
+        .uniqueHook("native vertical action header")
     val actionWrapper = uiWrapper(support, "verticalHeaderAction", contract, """
         instance-of v1, p0, $subscribe
         if-nez v1, :subscribe

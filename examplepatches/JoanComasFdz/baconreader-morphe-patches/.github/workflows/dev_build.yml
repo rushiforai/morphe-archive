@@ -6,6 +6,8 @@ on:
   push:
     branches-ignore:
       - main
+      # The e2e GIFs' throwaway branches (docs/hosting.md): nothing to build.
+      - 'e2e-gifs/**'
     # Skip pushes that only change files the build doesn't use.
     paths-ignore:
       - '**.md'
@@ -41,6 +43,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release download --repo MorpheApp/morphe-desktop --pattern '*.jar' --dir morphe-desktop
+
+      # Test-only "E2E …" patches live in e2e-patches/, whose .mpp is never released.
+      - name: Only the e2e patches have E2E patches
+        run: |
+          java -jar morphe-desktop/*.jar list-patches --patches patches/build/libs/patches-*.mpp > main.txt
+          java -jar morphe-desktop/*.jar list-patches --patches e2e-patches/build/libs/e2e-patches-*.mpp > e2e.txt
+          cat main.txt e2e.txt
+          if grep -E '^Name: E2E ' main.txt; then
+            echo "The released patches list an E2E patch: test-only patches go in e2e-patches/." >&2
+            exit 1
+          fi
+          grep -q '^Name: E2E fake Reddit$' e2e.txt
 
       - name: Upload patches
         uses: actions/upload-artifact@v4

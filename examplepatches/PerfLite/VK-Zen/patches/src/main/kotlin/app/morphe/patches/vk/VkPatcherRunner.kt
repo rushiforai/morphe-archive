@@ -12,6 +12,7 @@ import app.morphe.patches.vk.ad.videoAdsPatch
 import app.morphe.patches.vk.video.videoQualityPatch
 import app.morphe.patches.vk.layout.navigationPatch
 import app.morphe.patches.vk.misc.cloneAppPatch
+import app.morphe.patches.vk.misc.iconColorPatch
 import app.morphe.patches.vk.misc.nativePatch
 import app.morphe.patches.vk.misc.pushNotificationsPatch
 import app.morphe.patches.vk.misc.securityPatch
@@ -100,6 +101,7 @@ fun main(args: Array<String>) {
             audioAdsPatch,
             nativePatch,
             cloneAppPatch,
+            iconColorPatch,
             securityPatch,
             pushNotificationsPatch,
             vpnDetectionPatch,

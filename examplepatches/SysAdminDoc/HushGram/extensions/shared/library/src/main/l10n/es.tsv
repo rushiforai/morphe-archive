@@ -46,8 +46,8 @@ Loading older messages.	Cargando mensajes anteriores.
 Loading older messages. %1$d message so far.	Cargando mensajes anteriores. %1$d mensaje por ahora.
 Loading older messages. %1$d messages so far.	Cargando mensajes anteriores. %1$d mensajes por ahora.
 Lock these settings	Bloquear estos ajustes
-Long press a chat's name and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Mantén pulsado el nombre de un chat y elige Exportar chat. El chat entero se guarda como archivo de texto en Descargas, carpeta HushGram, con una línea por mensaje.
-Long press a chat's name and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Mantén pulsado el nombre de un chat y elige Ir al primer mensaje o Ir a una fecha. El chat carga solo sus mensajes anteriores, con un contador y un botón Cancelar.
+Open a chat, long press its name at the top and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Abre un chat, mantén pulsado su nombre arriba y elige Exportar chat. El chat entero se guarda como archivo de texto en Descargas, carpeta HushGram, con una línea por mensaje.
+Open a chat, long press its name at the top and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Abre un chat, mantén pulsado su nombre arriba y elige Ir al primer mensaje o Ir a una fecha. El chat carga solo sus mensajes anteriores, con un contador y un botón Cancelar.
 Mark a chat seen when you reply	Marcar un chat como visto al responder
 No messages found to save.	No hay mensajes que guardar.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	Elige una espera de 1 a 72 horas. Con el bloqueo, aquí no cambia nada hasta que pidas desbloquear y termine la espera.
@@ -197,7 +197,8 @@ Each video saves at the best quality Instagram offers for it.	Cada video se guar
 Each video saves at its lowest quality, for the smallest file.	Cada video se guarda con su calidad más baja, para que el archivo sea lo más pequeño posible.
 Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	Cada video se guarda en %1$s o en la calidad más cercana por debajo. Si un video no tiene ninguna tan baja, se guarda en la más cercana por encima.
 Save folder	Carpeta de guardado
-Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Elige un nombre de carpeta en Movies y Pictures. Los caracteres no válidos se convierten en guiones bajos. Déjalo vacío para usar la carpeta predeterminada, %1$s.
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s. For an SD card or anywhere else, use Choose a folder.	Elige un nombre de carpeta en Movies y Pictures. Los caracteres no válidos se convierten en guiones bajos. Déjalo vacío para usar la carpeta predeterminada, %1$s. Para una tarjeta SD u otro lugar, usa Elegir una carpeta.
+Use Choose a folder for a path or an SD card.	Para una ruta o tarjeta SD: Elegir una carpeta.
 Save	Guardar
 Folder name	Nombre de carpeta
 Folder set to %1$s.	Carpeta establecida en %1$s.
@@ -540,7 +541,7 @@ Group notifications	Agrupar notificaciones
 Hide shopping	Ocultar compras
 Hide surveys	Ocultar encuestas
 Hide the caught up card	Ocultar la tarjeta de que estás al día
-Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, the card stays. Pull down on Home to refresh after changing it.	Oculta la tarjeta que aparece después de las publicaciones de cuentas que sigues y dice que ya viste las más recientes, junto con su enlace a publicaciones anteriores. Si Inicio no tiene ninguna publicación nueva, la tarjeta se queda. Desliza Inicio hacia abajo para actualizar después de cambiarlo.
+Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, only that line goes and the link stays. Pull down on Home to refresh after changing it.	Oculta la tarjeta que aparece después de las publicaciones de cuentas que sigues y dice que ya viste las más recientes, junto con su enlace a publicaciones anteriores. Si Inicio no tiene ninguna publicación nueva, solo desaparece esa frase y el enlace se queda. Desliza Inicio hacia abajo para actualizar después de cambiarlo.
 Instagram is locked	Instagram está bloqueado
 Instagram locks as soon as you leave it or the screen turns off.	Instagram se bloquea en cuanto sales de él o se apaga la pantalla.
 Instagram locks once you've been away from it for %1$s.	Instagram se bloquea cuando llevas %1$s fuera de él.
@@ -967,7 +968,6 @@ Queued. It starts once the post before it is saved.	En cola. Empieza en cuanto s
 Not saved: %1$d posts are already waiting	No se guardó: ya hay %1$d publicaciones esperando
 Show all settings as a list	Mostrar todos los ajustes como lista
 Show settings by category	Mostrar los ajustes por categoría
-Tab bar opacity	Opacidad de la barra de pestañas
 Tab bar height	Altura de la barra de pestañas
 Standard	Estándar
 Blur strength	Intensidad del desenfoque
@@ -1497,3 +1497,29 @@ Instagram's reminder to review whether it can process your data for ads stops op
 Stop videos looping	No repetir los videos
 # context: summary under that switch; auto scroll is Instagram's own Reels setting, worded as in Keep auto scroll on
 Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	Los videos del feed y los reels se detienen en su último fotograma en vez de volver a reproducirse. Los reels se siguen repitiendo mientras el desplazamiento automático está activado, para que pueda pasar al siguiente.
+Not used while you've picked a folder. Saves go there.	No se usa mientras tengas una carpeta elegida. Todo se guarda ahí.
+All	Todo
+Posts	Publicaciones
+Nothing matches.	No hay coincidencias.
+Couldn't open that one.	No se pudo abrir.
+Tap to see all %1$d, by kind or by search.	Toca para ver los %1$d, por tipo o buscando.
+Instagram gradient on dark	Instagram con degradado sobre oscuro
+Retro Instagram	Instagram retro
+Menu button on Home's header	Botón de menú en el encabezado de Inicio
+Adds a menu button at the top of Home with your viewing history, Ghost mode and HushGram settings. Restart Instagram to see the change.	Añade un botón de menú en la parte superior de Inicio con tu historial, el modo fantasma y la configuración de HushGram. Reinicia Instagram para ver el cambio.
+HushGram menu	Menú de HushGram
+Seek bar button on feed videos	Botón de la barra de búsqueda en videos del feed
+Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	Añade un botón pequeño abajo a la izquierda de un video del feed que muestra u oculta su barra de búsqueda. Funciona con la barra de búsqueda en videos del feed activada o desactivada.
+Seek bar	Barra de búsqueda
+Tint intensity	Intensidad del tinte
+Refraction intensity	Intensidad de la refracción
+Preview of the tab bar	Vista previa de la barra de pestañas
+Keep stories playing while zooming	Mantener las historias en reproducción al hacer zoom
+A story keeps playing while you pinch to zoom it. Hold it still first and it stays paused while you zoom.	Una historia sigue reproduciéndose mientras la amplías con dos dedos. Si la mantienes pulsada antes, se queda en pausa mientras haces zoom.
+Follower history	Historial de seguidores
+Nothing logged yet. Each time you scroll your own Followers list to the end, changes since the last time are added here.	Aún no hay nada registrado. Cada vez que desplazas tu propia lista de seguidores hasta el final, los cambios desde la última vez se añaden aquí.
+%1$s unfollowed you, %2$s	%1$s dejó de seguirte, %2$s
+%1$s followed you again, %2$s	%1$s volvió a seguirte, %2$s
+%1$s started following you, %2$s	%1$s empezó a seguirte, %2$s
+Hide the Map bubble	Ocultar la burbuja del Mapa
+Takes only the Map bubble out of the row of notes. Your notes stay.	Quita solo la burbuja del Mapa de la fila de notas. Tus notas se quedan.

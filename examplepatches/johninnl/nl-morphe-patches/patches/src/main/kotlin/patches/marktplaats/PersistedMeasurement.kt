@@ -64,7 +64,7 @@ internal fun suppressPersistedMeasurement() {
     // both run the filter. Keep original persisted rows, context and extras.
     method.replaceInstruction(113,
         "invoke-static {v0}, $owner->morpheMeasurementBatch(Ljava/util/ArrayList;)Ljava/util/ArrayList;")
-    val discardWait = "v14"
+    val discardWait = if (context.packageMetadata.packageName == "be.tweedehands.m") "v13" else "v14"
     method.addInstructionsWithLabels(114, """
         move-result-object v0
         invoke-virtual {v0}, Ljava/util/ArrayList;->isEmpty()Z

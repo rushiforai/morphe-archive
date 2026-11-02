@@ -26,4 +26,4 @@ Use the same signing key for future patched updates, and keep a working installe
 
 Check startup and the features you use, such as playback, maps, login or alerts. [Troubleshooting](troubleshooting.md) explains common problems.
 
-For Flitsmeister in the car, follow the [Android Auto installer steps](android-auto.md). For privileged installation tools, see [Shizuku](shizuku.md) or [Android TV setup](shizuku-tv.md).
+For Waze or Flitsmeister in the car, follow the [Android Auto steps with screenshots](android-auto.md). For privileged installation tools, see [Shizuku](shizuku.md) or [Android TV setup](shizuku-tv.md).

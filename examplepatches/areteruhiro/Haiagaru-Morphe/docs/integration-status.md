@@ -752,3 +752,92 @@ host URL/GIF56項目成功、通常LintVital/R8 build2m57s成功。MPP SHA256 55
 利用者の追加指示によりエッヂ認証日の記録/同意/送信/推定をアプリから削除、GASも受付と配信を削除。公開スレで確認したレベルNGのみ初期OFFで残す。GAS既存deployment version10へ02:05 JST更新、既存URL/実行者/全員公開維持。公開GET observed1、authDays不在、旧認証API拒否、共有NG305件正常。build/gas-v10-verification.json、gas-v10-auth-removed.png。
 投稿メール欄のautofill/メール分類/IME候補抑止を既存投稿hookへ追加。191の実layoutではhint E-mailを使って特定。名前/本文/タイトル/他ログイン欄、sage/文字列/選択/key listenerを保持。通常LintVital/R8 build2m57s成功、MPP SHA256 c03a67b63f250d1c0ec9ba3b62dd280bf3fa25be70c9cef99497aab683e8e634。
 最終emulator-5580更新3版でメール45/検索37/除外ID17/カード27/公開レベル11、混合順32/36/36成功。native hook命令/register保持成功。3版起動/Part4本文/通常画像表示を確認、crash buffer空。初期fixtureのJava型比較と未接続Fragment生成問題を修正し再成功。runtime suiteに加えメール45最終結果を採用。host検証URL56/検索198/レス混合4027/旧ソート2014/公開レベル17/サーバー19、既存共有NG40/148/61成功。既存NG/DAT変更や実投稿なし。公開はCI完了後に別記。
+
+
+2026-11-01 02:27 JST 1.17.0公式公開完了: 最終実装5b8363c、master統合4e67bac、Semantic Release CI41224071485 success、生成commit f01897e。prerelease=false/draft=false/latest確認。公開MPP SHA256 e99a9fe28e13d8afcc2a3257bba5c0ddb517b0b07933b3a472137b2d43b6e708、更新JSON両方SHA256 61b1ca37eb1472e62e35116002e6ecec1fd550f75ca48a0bef40e8ab1a444be3。asset digest一致・CRC正常・PostMailInput/CachedResponseOrder/ThreadSearchOptions/公開レベルNG同梱、認証記録/共有/推定キーとAPI不在、master/dev両feed1.17.0一致、開発中表示を確認。証拠build/official117-public/verification.json。公開URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.17.0 。旧ローカルタグとremoteの不一致は上書きせず、必要なbranchを--no-tagsで取得しCI backmergeをdevへff反映。
+
+
+2026-11-01 投稿者強調の色見本修正（未公開）
+Compose設定描画がTextView.backgroundColorを無視し、色見本を通常の説明として扱ったため消えていた。PosterHighlight専用色タグを設定モデルのfingerprintとBoundSettingの比較へ反映し、タグ付き見本だけ背景色/太字を描画。登録画面を復旧、共通設定と登録ごとの一覧にも見本を追加。継承中だけ共通色変更へ追従。色の保存形式/表示span/既存NG/DATは変更しない。native bytecode hook追加変更なし。
+通常LintVital/R8付きbuild/highlight-preview-build.log成功3m42s。191/226/242へ生成・署名一致install-r/cold起動成功。各18項目と実画面の見本を確認、最終crash buffer空。初回191のruntime RPCが理由なしで失敗したため成功に数えず、診断を改善した再実行と登録画面を含む最終18項目で再確認成功。試験prefsはfinally復元。証跡build/highlight-preview-{191,226,242}-runtime.log、highlight-preview-after191/226/242.png。MPP SHA256 ea1def0406e55f0ae4c03e1df532c6fd0d7f453f9228b4e1a3ac018264974a97。公開/配布feedは変更していない。
+
+
+2026-11-01 242の標準メディア終了ジェスチャー競合修正（未公開）
+242/1.17.0相当で設定OFFなら上下スワイプで閉じ、ONなら上が次メディアへ移動、一覧先頭の下はイベントを消費するだけで閉じないことを再現。設定済みgestureBackを認識器単体で確認した旧試験では、標準Fragmentの上下ドラッグ終了を保護できていなかった。242のImagesViewer2Activityだけ縦移動をnativeへ渡し、左右の全スレ移動/保存済み戻る優先を維持。191/226には同じnative上下終了がないため適用せず、専用ビューアとともに従来の上下移動を保持。版判定はプロセスで一度取得し、gesture DOWNでsnapshot。native hook追加変更なし。
+最終通常LintVital/R8 build2m57s成功。MPP SHA256 a6e1785561872598e0fbf6f23551890619d63aa3625281fac7388bb407736ba6。3版へ署名照合更新/起動成功。242は14項目、191/226は各8項目成功。新crash buffer空。native GIFの極小1px fixture/中心タッチで戻る試験が失敗したため、標準controlsを避けた位置と320x240 animationに調整し、最終trialを再実行。旧失敗を成功に数えない。元preferencesは復元、NG/DAT/投稿変更なし。build/media-native-back-final-{191,226,242}-runtime.logとmedia-native-back-*-result.json。公開/配布feedは未変更。
+
+
+2026-11-01 18:19 JST 設定UI・スクロール復帰・検索・メディア順序・native一覧/投稿menu修正（未公開）
+設定一覧/検索/カテゴリのLazyListStateを分離し、カテゴリから戻ると先頭になる症状を修正。修正前191で実再現、最終3版でカテゴリ内スクロールと再訪問後もhome bounds完全一致。設定UIをコンパクト化、共有/読込を横並びへ。スレ内検索ID/名前/ワッチョイは新規初期OFF、保存済み選択保持、ヘッダー曜日は対象外。Imgur album遅延完了のサムネを本文URL位置へ挿入。native cached subjectのHTTP504が成功の空一覧になる経路を3版でnullへ戻し再読込へ渡す。226/242投稿popupはIMEを避ける測定modeへ。242純正巡回イベントへ失敗板URL/例外種類を追加。
+最終通常LintVital/R8 build2m21s成功、MPP SHA256 6a5ed6b65425d9befc2555fcf3b395b3a3b065be12097b35a547bb7024ad3465。emulator-5580の3版既存隔離packageへ署名一致install-r成功。各スクロール実往復2回、検索38/album7/native191と226は11、242は15項目成功。元native命令/register/分岐先保持確認、crash buffer空。242実投稿popupでGboard表示中の標準︙表示確認、実投稿なし。11タブ往復/最大Gboard/実巡回からイベント画面までの通し試験は未完了、巡回URLは242のみ。docs/reader-ui-fixes-20261101.mdと導入台帳に証跡/未確認範囲。公開なし。
+
+
+2026-11-01 18:54 JST 191/226/242対応差の整理と共通化（未公開）
+191/226へ巡回板取得のエラー捕捉を追加し、242も含めた端末内100件の共通エラー履歴を履歴カテゴリへ追加。242純正イベント追記は保持。共通Intent境界でACTION_WEB_SEARCHへNEW_TASKを付け、191専用の対策を全版へ適用。版固有のnative構造に対する修正は維持、docs/version-parity-20261101.mdに判断表。
+通常LintVital/R8 build2m31s成功、MPP SHA256 a7fca9a480f08b0339fd37136c165bdff6a6de2579c9ad8282663d895c420dda。emulator-5580の3版既存隔離packageへ署名一致更新。native各18/18/20、各album7/search38/Web検索6、共通ログ実UI表示成功、host609成功。worker元命令/引数/register/分岐先と例外同一性の検査成功、crash buffer空。実通信の巡回全体・実検索アプリへの遷移は未試験。XIG05はADB接続消失で更新失敗、先のreader-ui-scroll版維持。公開なし。
+
+
+2026-11-01 19:49 JST 既存機能全体の版間対応調査へ拡張（進行中・未公開）
+利用者回答により直近修正だけでなく既存機能全体が対象。56ファイル/125関数・スコープ/397参照の自動索引docs/version-parity-source-index.mdを作成。索引は手動レビュー済みを意味しない。既読スレを上にのHaiagaru設定入口が226限定だったため、191/242等にも既存キー・scope選択・再描画を共用して追加。通常LintVital/R8 build2m20s成功、build/full-parity-settings.mpp SHA256 f261fa50e2711f0c4de1838c76068b4988687309bfa8b4a6e5dfa349c118a5db。今回追加のAPK適用/端末検証は未実施、インストール済みは前回version-parity-final版のまま。全既存機能の同等化完了とはしない。残確認はdocs/version-parity-20261101.md先頭へ記録。公開なし。
+
+
+2026-11-01 20:53 JST 共有NGの審査・種類別履歴保存をGAS本番へ反映（アプリ未公開）
+利用者指示で禁止語辞書ゲートを廃止、基本形式を満たす条件は正規表現を含め1報告から承認。NGワード5文字以上・英字のみ不可は維持。Java/GASの正規表現構文差により、構文検査はAndroidのPatternに委ね、invalid条件だけ受信時skip。旧appへregexを配信しないcapabilityを追加。Inboxは未審査キュー、NG_ID/NG_Word/NG_Wacchoi/NG_Name/NG_Reporter/NG_Otherへ審査済みの元履歴・理由を移動、退避journalで途中失敗を復旧。ID24h/ワッチョイ7日の期限削除は利用者の最新指示で撤回、永久削除なし。
+GASのcloud 4ファイルをHEAD基準と照合（Moderationは空行1つのみの差）、ローカルと全文hash一致を確認して保存。既存URL/owner/全員アクセスを維持して最終version13へ更新。初回配信試験のlock timeoutを受け、100KB制限で従来cacheされなかった大きなJSONを20,000文字ごとに分割cacheし、全片hash検証・manifest後置・審査時無効化を追加。旧app通常条件のflags18は0x70だけを見て保持。最終公開GET旧816件/新996件うちregex180件、private metadataなし、応答navigation2489ms/1605ms。読取専用監査は履歴2168/approved2168/配信996、issues/warnings空。Inbox見出しのみもUI確認。証跡build/shared-ng-v13-verification.jsonとbuild/shared-ng-v13-audit.jpg。
+Node moderation53/lifecycle74/personal148/service40+legacy41/edge19、Java rules96/index10003/regex17成功。Android通常Lint/R8ビルドはホスト仮想メモリ不足で失敗、in-process再試行もR8中にPowerShell OutOfMemoryで中断。最終成功MPP更新・APK導入・アプリ公開なし。必死viewer=false検証/フィルター高さ/全機能版間確認は未完のまま保持。
+
+
+2026-11-01 公式Release候補（公開前）
+下部フィルター高さつまみを共通実装、popup/pinnedとも高さ保存・非表示保持・ScrollView・本文viewport予約を確認。必死viewerパッチfalseを専用UI生成/新タブ両経路へ適用。共有NGのJava正規表現decode/cache/match対応、GASの種類別履歴・辞書不要自動承認・期限削除撤回は前記v13へ配備済み。
+追加報告により191 GETの接続非再利用をpool分離/zero idleへ強化、50ms TCP候補開始、通信全体新規初期60秒（既存0保持）。前スレリンクの90日未満判定・HTTP HTTPS化・archive GET308等対応。通常投稿/メディア/外板へ5chミラー適用を拡げない。
+通常Lint/R8 build/release118-final-build.log 2m46s成功。最終MPP SHA256 d32d05f38927879d4b9813846d3d47ea4cb2a081098875022f28b3ab58720910。3版最終APK署名一致install-r/起動、共有NG18/検索38/album7/Web検索6/高さ28、必死ON各4、OFF実APK各18、既読設定3/前スレURL6成功。native reader/patrol/update命令継続22/6/6と191橋15sites検査成功。191新pool8、local接続561/316/595/580ms、連続受信2003ms timeout後の次取得成功、stream17成功。メディアは226各8/242各14最終成功、191結果は後記。追加の再ビルドはホストnative memory不足で失敗、成功済みMPPは維持。エミュレータADB停止は同AVDのdataを保持して再起動し、242試験をやり直して成功。公開CI成功を最終条件とする。詳細docs/release-118-verification.md、台帳docs/android-installations.md。
+版別全機能の機械的移植は行わず、HOMEの下部選択バー等の版専用UIは適用範囲を維持。全既存機能の全版移植完了とは報告しない。公開はSemantic Release CI経由。
+
+最終メディア191/226各8・242は14項目成功。242はエミュレータ再起動後のrelease118-media242-final.logを採用。最終crash buffer空。実回線の巡回一巡は未再現のため、接続対策の改善と検証範囲をRelease説明へ明記。再ビルド時のnative allocation失敗はホストhs_errで確認、成功済みMPPと最終APKのSHA照合を維持。
+
+
+2026-11-01 公式1.18.0公開完了
+最終実装968d107、検証記録9bda440、master統合a681009、Semantic Release CI41308643478 success、生成commit33c5da2。prerelease=false/draft=false/latest=1.18.0を確認。公開MPP SHA256 71edb0db481229fc5e78b82fee0ead0f81ce771a0268da4600dc923b052d233a、GitHub asset digest一致・CRC正常。高さ設定2キー/191pool分離/timeout/archive308を公開MPP内で確認。master/dev両feed1.18.0・同downloadURL、添付feed2つSHA256 de129ed07e2c3a67985974448daea919832f04cff46e255e155ef3f0c4e7a031一致。公開CIのコンパイルでローカル再ビルド時の環境メモリ不足とは区別して成功確認。証跡build/official118-public/verification.jsonとci.log。URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.18.0 。canonicalはdevへ戻しCI backmergeをff取り込み済み。
+
+
+2026-11-02 スレ全メディア移動の191/226/242共通化（未公開）
+利用者指定により242標準ビューアだけの上下終了優先を撤回。全スレ移動ONでは191/226/242共通で上下左右に移動し、保存済みの戻るジェスチャーは優先。242のサムネ直通も191/226と同じprepareNativeIntentを通し、最初のnativeページと全スレsnapshotを分離保持、GIF/動画は共通redirectNativeで選択。戻る認識器がある場合もnative canvasへCANCELを渡して242のnative終了が先取りしないようにした。拡大/複数指/操作部品の除外は維持。native bytecode hook追加変更なし。
+通常Lint/R8 build/gallery-parity-final-build.log成功2m58s、MPP build/gallery-parity.mpp SHA256 cf2505c955105e59e44145b26d9be42b124f1bf65df44a77070d31a7cb27387f。3版既存隔離packageを署名照合install-r/起動成功。host MediaGallery41項目成功。media191/226各18・242は20項目成功、標準画像/標準GIF/専用GIF/専用動画間の上下左右・戻る優先/非戻る方向の移動・242設定OFFの上下終了を確認。191/226では先頭下方向の非wrapと右方向復帰も確認。各版のnative factoryとサムネ直通/開いたviewerの実Intent確認は11項目、全スレsnapshot/クリック位置/ContextWrapper/OFF維持を確認。hook元命令/register/分岐を3版、242 thumbnail wrapperを別途検査成功。最終crash buffer空。
+初期試験は純正gesture方向codeを誤って1/2/3と仮定したため失敗、native認識器を調べ左4/左上84/左下24で試験を修正。captureしたstartActivityのhookに依存する試験を、実際に開いたviewerの確認へ置換。旧失敗を成功に数えない。全てのfixture変更設定をfinally復元、NG/DAT改変・投稿なし。URL指定のActivity起動は自動審査で拒否されたため保存済みスレ一覧から開いて検証。docs/image-gallery-media-compatibility.mdと導入台帳へ記録。Release/feed更新なし。
+追加191拡大判定確認: native renderer B=1/C=aa=6.7080746、初期fitは非拡大、手動1.5倍は拡大扱いとなり移動を抑止する判定を確認、元位置へ復元。build/gallery-parity-zoom191.log。
+
+
+2026-11-02 操作を基準にした版間差の共通化（公式公開候補）
+利用者指示で便利な動作へ統一、HOME複数選択の下部表示は242専用のまま維持。57ファイル412参照行の索引を更新し、native互換binding・純正の初期値継承と、利用者の操作差を区別。全ての既存機能を全実画面で再試験したとは扱わない。
+NativeThreadContextへ現在のFragmentのboard/flow/URL取得を集約し、検索toolbar・ReadingPosition・共有NG送信元選択で共用。226のlazy getterのaccessibilityも統一。選択中以外のtab/過去のboardをfallbackに使わない。226/242の画像canvasはFrameLayoutのため旧ImageView判定が効かず、手動拡大でもfalseになることを旧APKで再現。191/226/242のscale/min/fit bindingを共通ImageZoomStateへ接続し、fitは移動可・手動拡大はpanを優先。
+242のReadingPosition.SESSIONSが0の不具合を試験で発見、visible後の手動registerならanchorが得られることを診断。onViewCreated時は一覧非表示のためFilterPosition.findListが除外していた。findListForBindingだけ非表示一覧へ対応し、既存の表示中findList/anchor可視性は維持。最終実APKでは手動registerなしで3版のobserver/anchor取得を確認。
+通常Lint/R8最終build/parity-usability-final-build.log成功2m23s。最終MPP build/parity-usability-final.mpp SHA256 52daa4e5c3af282cd48fe3309a4bff998b1940cea04811845bc0406311b4fc48。3版署名照合install-r/起動成功。host context58/MediaGallery41成功。Android各context16（板/toolbar上下/observer/anchor/共有元/非表示binding）・thumbnail11・zoom8成功。最終メディア191/226各18、242は22項目、最終191結果は後記。元native touch命令/引数/register/分岐3版、242 thumbnail wrapper検査成功。詳細logs build/parity-usability-final-*、台帳android-installations.md。
+初回242の連続メディア試験は動画prepareが25秒以内に完了せず失敗、同packageをforce-stop/cold起動して全項目再実行し成功。native data-source content-resolver警告は過去の成功時も存在するため根因と断定しない。旧失敗を成功扱いしない。191UI dump一時nullはcontext/thumbnailの実Fragment取得と成功結果で確認。新規NG登録/投稿/送信なし、GAS変更なし。保存済みprefはfixture finallyで復元。最終crash確認と公開結果は後記。
+最終メディア191/226各18・242は22項目成功、3版context16/thumbnail11/zoom8成功を全ログJSONで再確認。最終crash buffer空、build/parity-usability-final-crash.log。UI設定の新規項目やキーの変更なし。公式公開は既存Semantic Release CI成功・配布asset/両feed検証を条件とする。
+
+2026-11-02 1.18.1公式公開確認完了。実装1eb6181/2ce2680、master統合5276a06、CI41326392528 success。公開MPP SHA256 e48f2570dc79fd0cd2ed879b4e3a0017292e61c44e66e8517b0b1908d3c1d161、CRC/asset digest/新共通処理同梱正常。両feed SHA256 17d78e41c2f7aa9bbe4d2d44f24e3ba76d39c797cfe77cf39514b187bf80a3d9、master/dev両feed1.18.1一致、draft=false/prerelease=false/latest確認。build/official1181-public/verification.json/ci.log。devへCI backmergeをff取込済み。URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.18.1 。追加報告の復元/更新時不具合は次の調査対象として扱う。
+
+
+2026-11-02 Haiagaru ZIPの書き込みマーク保存・自動バックアップ設定補完（公式公開候補）
+追加報告: 191で手動/自動復元後の一部自分マーク欠落、自動バックアップ設定初期化、191→242同一アプリ更新後の返信通知/未読区切り。復元形式は利用者回答「おそらくHaiagaru」、対象URL/通知だけか通常読込でもかは不明。
+確定した実装漏れ: POST_HISTORYはpostDataList.jsonだけで、マークを持つdat/*.idxはDAT選択時だけ保存されていた。DAT rootをPOST_HISTORYとも関連付け、DAT未選択時は.idxだけを保存・検査・復元するよう補完。DAT入りZIPのPOST_HISTORYだけ復元でも本文を変えない。既存旧ZIPは読めるが、索引がない旧バックアップのマークは今回の変更だけでは取り戻せない。保存項目名を更新。
+自動バックアップ専用prefがSETTINGSの収集対象外だったため、間隔/保持件数/保存対象だけを明示的に保存・復元。フォルダ/ON/OFF/最終成功/所有ZIP一覧を他の環境から持ち込まない。設定が未選択(0)の状態も許可し、mergeは既存値を維持。
+同一隔離package migration191242で公式1.18.1の191→242を上書き更新し、enabled/hours/keep/categories/folderの保持を確認。通知許可なし初回試験はPendingIntentを保持しなかったため採用せず、許可を与えNotificationManagerが保持する合成通知で再試験し、更新後の同じPendingIntentを送信して対象スレの応答45を表示できた。初回の同意画面は191側の新規fixtureで未同意だった条件を含み、ユーザー症状の根因と断定しない。合成read_count40/全80の通常読込では区切りが上端に表示された。通知/未読/ON・保存先初期化を修正済みに含めない。build/migration-permitted-notification-send.json、migration-permitted-notification.xml、migration-unread242-current.xml。
+最終通常Lint/R8 build/backup-marks-settings-final-build.log成功2m55s（低めの1536MiB heap/worker1）、MPP build/backup-marks-settings-final.mpp SHA256 7b7fcc383130ef5ab43bba2d54cea8409a6bdb8a30aba62ebc0222d0a58771e6。3版既存専用package署名照合install-r/起動、各ZIP/settings15項目成功、各native画像/GIF/拡大/移動8項目成功。native index readerで復元したレス3の自己投稿bit1を認識。最終crash buffer空。台帳android-installations.md、scripts/backup-marks-settings-runtime.js。テストContextの引数付きoverride不足とFile返却fixtureエラーを修正して再試験。失敗を成功扱いしない。
+242用CLI初回はhost heap領域確保不足で停止。既存AVDをdata保持で停止し、ホストでAPKを作成してから同AVDを再起動、最終全版試験成功。実機/通常packageの変更なし、投稿/NG送信/GAS変更なし。公式公開は既存Semantic Release CI経由、結果を別記。
+
+2026-11-02 1.18.2公式公開・配布確認完了
+実装67579dd、master統合75c06c0、Semantic Release CI41359172723 success、生成commit c445e23。公開MPP SHA256 4d00bcc3868bf963137854eb791fd05a050d3ee92da4b73f73e29a2e54c8dba7、asset digest/CRC/新実装同梱を確認。両feed SHA256 745b43ff0f5d9c8d7d2b86c998b8e9b0aafbb77b21abe77178daf169d81535c3、master/dev両feed1.18.2一致、draft=false/prerelease=false/latest確認。証跡build/official1182-public/verification.jsonとci.log。devへCI backmergeをff取込済み。URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.18.2 。
+追加通知試験では191で通知許可後、NotificationManagerに44411が保持されたことを確認。242へのinstall-r後は通知自体が消えたため、その通知を直接タップできたとは扱わない。同じ更新前PendingIntentが保持されていることをNO_CREATEで確認し、再生成せず通知へ再表示、その通知を実タップして対象レス45を表示できた。証跡build/migration-final-tap2-notifications-before.txt、migration-repost-existing.json、migration-reposted-shade.xml、migration-final-real-tap242.xml。通知の再表示を挟んだ限定試験であり、実際の返信通知全経路を再現したとはしない。通常未読での上端表示は前記試験、通知からは指定レスが見える位置を確認。ユーザー回答でも未読不具合の発生条件は不明。通知/未読表示/ON・保存先初期化は未再現として継続調査、修正済みに含めない。
+最終専用fixtureの自動バックアップをOFF、通知44411を取消し、crash buffer空を確認。build/backup-migration-cleanup.json、backup-marks-settings-postrelease-crash.log。実機/通常package/投稿/NG送信/GAS変更なし。
+
+2026-11-02 アーカイブ詳細遷移・バックアップチェック表示の改善（未公開）
+追加報告は226/OPPO/Android12/1.18.1の下方アーカイブが開かず上へ戻る症状と、上書き後の自動バックアップOFF。利用者は当初Haiagaruレス保存と回答、その後ChMate標準かもしれないと補足。発生する一覧段階・保存先/間隔消失の有無は不明、Frida調査の許可あり。
+修正前226で、保存先未選択のONをnative listenerが拒否して保存値falseでも、ModelUiの独立Compose状態だけtrueとなる症状を再現。BoundSettingRowへ統一し、確定したnative値を描画・ラベル全体を操作対象にした。保存済みtrueが上書きでfalseになる現象は未再現、画面だけONになる不具合と区別する。保存レス詳細も非同期dismissより先に新dialogを開いていたため、既存dismissForNavigationで入力処理を抜けて一覧を閉じてから詳細を開くよう統一。
+通常Lint/R8最終build/archive-toggle-final-build.log成功2m52s、MPP SHA256 48b562db1f8f36324a37f24da57e9e0fa3ef9a81804aa560524dfd03018674dc。emulator-5580の同一隔離migration191242へ署名照合191→226→242更新。各ON更新保持/拒否OFF表示と保存/許可ON表示と保存/再起動保持/40件一覧下方のスレと保存レスの一致が成功、191/242各11・226はFrida順序を加え13項目。修正前detail→show→dismissNow、修正後dismissForNavigation→dismissNow→detail→showを確認。各標準画像/GIF/拡大8項目成功、新crash buffer空。初回画像試験の入力パス誤りは成功に数えず、正しいfixtureで再実施。
+標準50件の37件目も含め、修正前から一覧下方の表示は成功し、報告の「上に戻るだけ」そのものは未再現。Android12実機未検証、ChMate本体由来の可能性を残す。docs/archive-backup-controls-20261102.mdと台帳に記録。検証後は専用packageの作成ID/パス/ファイル名を照合し40保存用スレ・50標準fixtureを削除、自動バックアップをOFFへ。実機/通常package/投稿/NG送信/GAS変更なし。公式Release/配布feedは変更していない。
+
+2026-11-02 アーカイブ選択の標準リスト化・バックアップ一括設定保護（公式候補）
+追加指示で修正・完了後の公式Release。最低限構成/広告だけのプリセットがbackup.enabledをfalseへ書く経路を修正前実APKで再現。両プリセットの変更対象からローカル自動バックアップを外し、旧退避snapshotの復元でも同namespaceをスキップ。ON/OFF/保存先/間隔/保持数/対象/所有記録等の全値を維持する。既にOFFになった状態を推測してONには戻さない。Haiagaruの保存用スレ選択と従来保存レス選択はAndroid標準AlertDialog/ListViewへ切替。ChMate純正のアーカイブ選択は未変更。報告の「上に戻るだけ」そのもの・APK更新のみでの設定消失・OPPO Android12実機での解消は未再現/未確認としてRelease説明に明記。
+最終通常Lint/R8 build/archive-preset-final-build.log成功3m、MPP SHA256 375b01f1056663269ac389d790e0d5fa2d61530fbe293705e31f710977226100。emulator-5580の隔離migration191242を署名一致更新、UI191/242各15・226各17成功、各プリセット保持15/画像GIF拡大8成功。各版のキャッシュ済み通常スレ本文レス45を最終同APKで確認、自動再読込OFF・投稿なし。新crash buffer空。native hookコード・レジスター・元命令に変更なし。テストハーネスのKotlin再配置/最適化を調整して再実施、旧失敗は成功に含めない。40保存用スレ・40従来レスのfixtureをID/URL/パス照合後削除し、自動バックアップOFF。実機/通常package/実投稿/NG送信/GAS変更なし。docs/archive-backup-controls-20261102.md、android-installations.mdに詳細。
+前回703d5cdのdev CI41370725214が1.18.3-dev.1を生成し成功、6041509をff取込。今回の追加修正は公式CIへまとめて反映し、公開後にassetと更新feedを検証する。バージョン表記だけを公開成功とは扱わない。

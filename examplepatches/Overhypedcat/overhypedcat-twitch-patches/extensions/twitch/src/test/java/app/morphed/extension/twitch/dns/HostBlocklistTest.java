@@ -22,6 +22,14 @@ public class HostBlocklistTest {
     }
 
     @Test
+    public void tellsAdServersFromTrackers() {
+        assertTrue(HostBlocklist.isAdServer("edge.ads.twitch.tv"));
+        assertTrue(HostBlocklist.isAdServer("aax.amazon-adsystem.com"));
+        assertFalse(HostBlocklist.isAdServer("spade.twitch.tv"));
+        assertFalse(HostBlocklist.isAdServer("player.stats.live-video.net"));
+    }
+
+    @Test
     public void leavesTwitchItselfAlone() {
         assertFalse(HostBlocklist.isBlocked("gql.twitch.tv"));
         assertFalse(HostBlocklist.isBlocked("usher.ttvnw.net"));
@@ -35,11 +43,13 @@ public class HostBlocklistTest {
 
     @Test
     public void blockedServerIsRefusedAndOthersAreLookedUpNormally() throws Exception {
-        try {
-            TwitchDns.getAllByName("edge.ads.twitch.tv");
-            fail();
-        } catch (UnknownHostException expected) {
-            assertTrue(expected.getMessage().contains("Blocked"));
+        for (String host : new String[]{"edge.ads.twitch.tv", "spade.twitch.tv"}) {
+            try {
+                TwitchDns.getAllByName(host);
+                fail(host);
+            } catch (UnknownHostException expected) {
+                assertTrue(expected.getMessage().contains("Blocked"));
+            }
         }
         // An IP literal needs no network, so this checks the normal path without depending on DNS.
         assertEquals("10.0.0.1", TwitchDns.getAllByName("10.0.0.1")[0].getHostAddress());

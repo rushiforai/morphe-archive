@@ -3,7 +3,7 @@ group = "app.madushas.pdb-patches"
 patches {
     about {
         name = "Madusha's Morphe Patches"
-        description = "Patches for Pdb (pdb.app) and MyDialog (net.omobio.dialogsc): telemetry removal, security-check bypasses, ad removal, premium unlock and power-user features."
+        description = "Patches for Pdb (pdb.app), MyDialog (net.omobio.dialogsc) and Strava (com.strava): telemetry removal, security-check bypasses, ad removal, premium unlock and power-user features."
         source = "https://github.com/madushas/morphe-patches-custom"
         author = "madushas"
         contact = "https://github.com/madushas"

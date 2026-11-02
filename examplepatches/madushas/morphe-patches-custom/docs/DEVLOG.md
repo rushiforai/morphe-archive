@@ -981,3 +981,51 @@ a quiet emulator before blaming patches or the account.
   the committed state before strava stash; verify patches-list on release).
 - Remaining: rebuild chat-entry properly (anchor cra-ctor + context asserts),
   then re-enable. Release 0.5.7 after user's OK.
+
+## 2026-11-01 — Device feedback on 0.5.7: Soul history honesty pass (TODO list)
+User report (real device): no crash ✓, but
+1. ORDER WRONG: oldest on top, newest at bottom (expected newest first).
+   [SUSPECT] recordSoul upsert: re-seeing a user MOVES the row to the end
+   (next.put(row) appends) — that's correct for "most recent interaction",
+   but showSoulHistory renders rows in ARRAY order = newest-LAST? Verify
+   soulHistory() ordering vs the render loop; likely the JSON build puts the
+   new row at the END and soulHistory() reads forward without reversing.
+2. CHAT BUTTON always toasts "conversation not found" — the channel lookup
+   (channel_members JOIN channels) fails even for users the user HAS chatted
+   with. Workaround: tap name → profile → app's own Chat works. [SUSPECT]
+   wrong DB (0.5.7 moved IM DB? schema renamed channel_members? or the
+   join's userId vs targetUser column), or openChat runs before IM DB opened.
+   Either way: honest UX = if no channel found, toast should say exactly that
+   AND the fallback must OPEN THE PROFILE (it apparently doesn't today).
+3. Make it honest: title should say "seen on device" semantics; if chat isn't
+   possible, don't show a Chat pill that dead-ends — show "Open profile".
+Plan: fix order (reverse render), fix channel query (log actual DB+schema on
+device), chat pill → openChat with graceful "open profile" fallback, honest
+toasts. Rebuild ext + release.
+
+## 2026-11-02 — Soul history fixes verified on emulator (0.5.8 pre-release)
+- Order FIXED: reversed render (soulHistory() now newest-first) — verified on
+  the sdk_gphone64_x86_64 AVD (5556): latest profiles on top.
+- Chat button: Helena_419's pill → **opened her profile** (graceful fallback,
+  not a dead toast). "Conversation not found" toast seen earlier was the OLD
+  build; the fallback path (userExists → pdb://u/{id}) works. NOTE: it falls
+  back for users without a local channel even if you HAVE chatted — the
+  channel_members JOIN may miss rows whose member rows live in a different
+  DB file; needs the real device to confirm (user reported chatted users
+  still toast). Honest UI plan: label the pill "Chat" only when a channel
+  exists, else "Profile" — requires a channelExists(id) pre-check per row.
+- Build recipe for local x86 tests: input = repo base + MMKV 1.3.14 x86_64
+  (source-built) + PDB_ENABLE_PATCHES="Relocate runtime MMKV copy" (stale
+  files/mmkv_1_3_14_64.so from older installs otherwise wins).
+- AVD map: sdk_gphone64_x86_64 = 5556 (non-root), Pixel_9_Pro = 5554 (root,
+  boots arm64 MMKV natively). WhatsApp on 5556 crash-loops; force-stop it.
+
+## 2026-11-02 — Honest Chat/Profile pill VERIFIED (0.5.8 ext)
+- SoulHistory rows now resolve channelForUser off-UI-thread: pill reads "Chat"
+  only when a local channel exists, else "Profile" (opens the profile).
+- Verified on RootEmu (5556): all rows on the test account correctly show
+  "Profile" (no channels), ordering newest-first ✓ (0/1/2/3h timestamps).
+- No Chat-pill case found on emulator (no real channels on test accounts) —
+  needs the user's real device to verify the "Chat" label + direct open.
+-adb direct-start of SoulHistoryActivity is DENIED (non-exported, by design);
+  open it via power bubble → Soul history (works).

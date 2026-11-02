@@ -3,7 +3,7 @@ group = "app.stylus"
 patches {
     about {
         name = "Stylus"
-        description = "Personal Morphe patches. Includes: Force system font (Bitwarden)."
+        description = "A collection of font-related Morphe patches to improve readability/accessibility."
         source = "git@github.com:ch3thanhs/stylus.git"
         author = "ch3thanhs"
         contact = "na"

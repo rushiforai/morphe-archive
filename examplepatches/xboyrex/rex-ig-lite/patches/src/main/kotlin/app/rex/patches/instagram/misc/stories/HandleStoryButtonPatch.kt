@@ -1,0 +1,128 @@
+/*
+ * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+ */
+
+package app.rex.patches.instagram.misc.stories
+
+import app.rex.patches.instagram.entity.decoder.MEDIA_CLASS_NAME
+import app.rex.patches.instagram.entity.decoder.decoderEntity
+import app.rex.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.rex.patches.instagram.utils.Constants.PATCHES_DESCRIPTOR
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.util.getReference
+import app.morphe.util.registersUsed
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
+// The method is obfuscated but this is where it adds buttons.
+object AddStoryButtonFingerprint : Fingerprint(
+    returnType = "[Ljava/lang/CharSequence;",
+    strings = listOf("[INTERNAL] Pause Playback"),
+    custom = { methodDef, _ ->
+        methodDef.parameters.size == 1
+    },
+)
+
+object SelfStoryAddStoryButtonFingerprint : Fingerprint(
+    returnType = "[Ljava/lang/CharSequence;",
+    strings = listOf("ReelOptionsOverflowHelper"),
+)
+
+// The method is obfuscated but this is where the onclick call executes.
+internal object OnCLickStoryButtonFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf("explore_viewer", "friendships/mute_friend_reel/%s/", "[INTERNAL] Pause Playback"),
+)
+
+internal object SelfStoryOnCLickStoryButtonFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf("story_interactions/bulk_story_like/", "[INTERNAL] Pause Playback"),
+)
+
+val handleStoryButtonPatch =
+    bytecodePatch(
+        description = "This patch is used for handing button interaction on stories",
+    ) {
+        compatibleWith(COMPATIBILITY_INSTAGRAM)
+        dependsOn(decoderEntity)
+        execute {
+
+            val STORY_BUTTON_EXTENSION_CLASS = "${PATCHES_DESCRIPTOR}/story/StoryButton;"
+            listOf(SelfStoryAddStoryButtonFingerprint, AddStoryButtonFingerprint).forEach { fingerprint ->
+                fingerprint.matchAll(1..1).single().method.apply {
+                    val code = instructions
+                    val arrayListRegister = code.mapNotNull { instruction ->
+                        val reference = instruction.getReference<MethodReference>()
+                        if (reference?.name == "toArray" &&
+                            reference.parameterTypes == listOf("[Ljava/lang/Object;") &&
+                            reference.returnType == "[Ljava/lang/Object;"
+                        ) instruction.registersUsed.firstOrNull() else null
+                    }.distinct().singleOrNull()
+                        ?: throw PatchException("Could not uniquely resolve the story menu output list")
+                    val allocationIndex = code.withIndex().singleOrNull { (index, instruction) ->
+                        val reference = instruction.getReference<MethodReference>()
+                        val result = code.getOrNull(index + 1)
+                        instruction.opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) &&
+                            reference?.returnType == "Ljava/util/ArrayList;" &&
+                            reference.parameterTypes.isEmpty() &&
+                            result?.opcode == Opcode.MOVE_RESULT_OBJECT &&
+                            result.registersUsed == listOf(arrayListRegister)
+                    }?.index ?: throw PatchException("Could not uniquely resolve the story menu list allocation")
+
+                    addInstructions(
+                        allocationIndex + 2,
+                        """
+                        invoke-static/range {v$arrayListRegister .. v$arrayListRegister}, $STORY_BUTTON_EXTENSION_CLASS->addButtons(Ljava/util/ArrayList;)Ljava/util/ArrayList;
+                        move-result-object v$arrayListRegister
+                        """.trimIndent(),
+                    )
+                }
+            }
+
+            val onClickFingerprints = listOf(SelfStoryOnCLickStoryButtonFingerprint, OnCLickStoryButtonFingerprint)
+            onClickFingerprints.forEach { fingerprint ->
+                fingerprint.method.apply {
+                    val classDef = fingerprint.classDef
+                    val reelItemClassName = "Lcom/instagram/model/reels/ReelItem;"
+                    val appActivity = "Landroid/app/Activity;"
+                    val charSequence = "Ljava/lang/CharSequence;"
+
+                    val classFields = classDef.fields
+                    val reelItemField = classFields.first { it.type == reelItemClassName }
+                    val appActivityField = classFields.first { it.type == appActivity }
+                    val reelItemMediaField =
+                        mutableClassDefBy { it.type == reelItemClassName }.fields.last { it.type == MEDIA_CLASS_NAME }
+
+                    val characterSequenceParameterIndex = parameters.indexOfLast { it.type == charSequence }
+                    val selfClassParameterIndex = parameters.indexOfLast { it.type == classDef.type }
+
+                    // Hard coding registries as it's going to be the first line in the method.
+                    addInstructionsWithLabels(
+                        0,
+                        """
+                        move-object/from16 v0, p$characterSequenceParameterIndex
+                        move-object/from16 v1, p$selfClassParameterIndex
+                        
+                        iget-object v2, v1, $appActivityField
+                        iget-object v3, v1, $reelItemField
+                        iget-object v3, v3, $reelItemMediaField
+                        invoke-static {v0,v2,v3}, $STORY_BUTTON_EXTENSION_CLASS->storyButtonAction($charSequence Landroid/content/Context;Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :rex
+                        return-void
+                        """.trimIndent(),
+                        ExternalLabel("rex", getInstruction(0)),
+                    )
+                }
+            }
+        }
+    }

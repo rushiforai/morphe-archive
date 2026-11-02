@@ -22,6 +22,6 @@ internal object InvokeMethodCallFingerprint :
                     parameters = listOf(Type.STRING, Type.OBJECT_ARRAY),
                     returnType = Type.OBJECT,
                     opcode = Opcode.INVOKE_STATIC,
-                )
+                ),
             ),
     )

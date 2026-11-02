@@ -308,7 +308,9 @@ internal fun boundCode(value: String): String {
     // R8 can move methods between merged owners; resolve full members first.
     val members = Regex("L[^;\\s]+;->[^\\s,}]+")
         .replace(value) { references1619[it.value] ?: it.value }
-    return Regex("L[^;\\s]+;").replace(members) { types1619[it.value] ?: it.value }
+    val translated = Regex("L[^;\\s]+;").replace(members) { types1619[it.value] ?: it.value }
+    return if (context.packageMetadata.packageName == "be.tweedehands.m")
+        patches.tweedehands.boundFromMarktplaats(translated) else translated
 }
 
 context(context: BytecodePatchContext)

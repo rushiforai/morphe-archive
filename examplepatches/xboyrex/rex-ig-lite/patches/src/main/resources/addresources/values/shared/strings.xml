@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rex_name" translatable="false">xboyrex</string>
+    <string name="rex_title_settings">xboyrex settings</string>
+    <string name="rex_title_rex_patches">xboyrex Patches</string>
+</resources>

@@ -11,6 +11,14 @@ import com.onelouder.baconreader.connectivity.Tasks;
 import java.util.List;
 
 public class RedditApi {
+    /**
+     * GET comments/linkId(/-/commentId).json: the post and its comments, or the thread of one comment, as
+     * [the post's Listing, the comments' Listing].
+     */
+    public static void getComments(Context context, String linkId, String commentId, int context2, String sort,
+                                   int limit, Tasks.OnCompleteListener<List<Listing>> listener) {
+    }
+
     /** GET api/link_flair?r=subreddit: the post flairs users can choose in the subreddit. */
     public static void getLinkFlairs(Context context, String subreddit, Tasks.OnCompleteListener<List<LinkFlair>> listener) {
     }

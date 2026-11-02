@@ -4,56 +4,36 @@ import app.morphe.patcher.patch.rawResourcePatch
 import arpit.morphe.patches.cricfy.shared.Constants.COMPATIBILITY_CRICFY_TV
 
 /**
- * One `AntiTamper::isTampered(JNIEnv*, jobject)` stub, addressed by file offset.
- *
- * The offsets are taken from the `.dynsym` entry of the function in each ABI of
- * `libnative-lib.so` shipped in CRICFy TV 7.3 and are relative to the start of the
- * file (the library has a single `PT_LOAD` mapping the headers, so virtual address
- * and file offset coincide). The prologue is verified before anything is written.
+ * Name of the symbol that gates every protected operation of `libnative-lib.so`:
+ * `AntiTamper::isTampered(JNIEnv*, jobject)`.
  */
-private class IsTamperedPatch(
-    val abi: String,
-    val offset: Int,
-    val prologue: String,
-    val replacement: String,
-)
+private const val IS_TAMPERED_SYMBOL = "_ZN10AntiTamper10isTamperedEP7_JNIEnvP8_jobject"
+
+/** `mov w0, #0 ; ret` — AArch64 `false`. */
+private val STUB_AARCH64 = byteArrayOf(0x00, 0x00, 0x80.toByte(), 0x52, 0xC0.toByte(), 0x03, 0x5F, 0xD6.toByte())
+
+/** `mov r0, #0 ; bx lr` — ARM `false`. */
+private val STUB_ARM = byteArrayOf(0x00, 0x00, 0xA0.toByte(), 0xE3.toByte(), 0x1E, 0xFF.toByte(), 0x2F, 0xE1.toByte())
+
+/** `xor eax, eax ; ret` — x86/x86-64 `false`. */
+private val STUB_X86 = byteArrayOf(0x31, 0xC0.toByte(), 0xC3.toByte())
+
+/** ELF `e_machine` values of the ABIs the app ships. */
+private const val EM_386 = 0x03
+private const val EM_ARM = 0x28
+private const val EM_X86_64 = 0x3E
+private const val EM_AARCH64 = 0xB7
+
+private const val PT_LOAD = 1
+private const val SHT_DYNSYM = 11
 
 /**
- * `AntiTamper::isTampered` of CRICFy TV 7.3.
- *
- * The library is shared by all ABIs, so the four variants are patched in place:
- * a `mov`-zero-return stub replaces the function body, regardless of the size of
- * the original function. The remaining bytes of the old body are never executed.
+ * Resolved `isTampered` body: the file offset of the function and the stub that
+ * makes it return `false` for the ABIs it was resolved for.
  */
-private val IS_TAMPERED_PATCHES = listOf(
-    // mov w0, #0 ; ret
-    IsTamperedPatch(
-        abi = "arm64-v8a",
-        offset = 0x65BE8,
-        prologue = "fd7bbea9f44f01a9fd030091f30301aa",
-        replacement = "00008052c0035fd6",
-    ),
-    // mov r0, #0 ; bx lr
-    IsTamperedPatch(
-        abi = "armeabi-v7a",
-        offset = 0x3E538,
-        prologue = "704c2de910b08de20150a0e10060a0e1",
-        replacement = "0000a0e31eff2fe1",
-    ),
-    // xor eax, eax ; ret
-    IsTamperedPatch(
-        abi = "x86",
-        offset = 0x50D10,
-        prologue = "5589e553575683ec0ce8000000005b81",
-        replacement = "31c0c3",
-    ),
-    // xor eax, eax ; ret
-    IsTamperedPatch(
-        abi = "x86_64",
-        offset = 0x61A50,
-        prologue = "554889e54157415653504989f64989ff",
-        replacement = "31c0c3",
-    ),
+private class IsTamperedLocation(
+    val offset: Int,
+    val stub: ByteArray,
 )
 
 /**
@@ -66,15 +46,19 @@ private val IS_TAMPERED_PATCHES = listOf(
  * debugger, emulator, root and hook checks; on a re-signed build it returns true and
  * `Baker.merge` hands back the ciphertext unchanged. The JSON converter then fails
  * with `ConvertException` / `Unexpected JSON token` and the app shows its request
- * error dialog instead of the home screen.
+ * error dialog instead of the home screen. `PlaylistCipher.open` is gated the same way
+ * and returns `null` on a tampered build.
  *
  * The decryption key does not depend on the signature (`AesDecrypt_decrypt` only
  * receives the ciphertext), so forcing the check to return false restores the normal
  * startup path. This is applied to every ABI in the APK because the Manager builds
  * for the device it is installed on, not necessarily the host.
  *
- * The offsets are version-specific, which is why this patch is only compatible with
- * 7.3. A mismatch fails the patch instead of shipping a broken build.
+ * The function is located through the library's own `.dynsym`, so the patch follows
+ * every app update without offset tables (7.3 and 7.4 both resolve): the symbol value
+ * is mapped to a file offset with the `PT_LOAD` program headers, and the instruction
+ * that returns `false` for that architecture is written over the entry. A library
+ * without the symbol fails the patch instead of shipping a broken build.
  */
 @Suppress("unused")
 internal val antiTamperPatch = rawResourcePatch(
@@ -86,7 +70,6 @@ internal val antiTamperPatch = rawResourcePatch(
     compatibleWith(COMPATIBILITY_CRICFY_TV)
 
     execute {
-        val patchesByAbi = IS_TAMPERED_PATCHES.associateBy(IsTamperedPatch::abi)
         val libraries = listApkEntries("lib/")
             .filter { it.endsWith("/libnative-lib.so") }
         check(libraries.isNotEmpty()) {
@@ -94,28 +77,123 @@ internal val antiTamperPatch = rawResourcePatch(
         }
 
         for (entry in libraries) {
-            val abi = entry.removePrefix("lib/").substringBefore('/')
-            val patch = patchesByAbi[abi]
-                ?: error("Unsupported ABI $abi: no isTampered offset for $entry.")
-
             val file = get(entry)
             val bytes = file.readBytes()
-            val prologue = patch.prologue.hexToBytes()
-            check(bytes.size >= patch.offset + prologue.size) {
-                "$entry is too small for the isTampered offset 0x${patch.offset.toString(16)}."
-            }
-            check(bytes.copyOfRange(patch.offset, patch.offset + prologue.size).contentEquals(prologue)) {
-                "$entry does not contain the expected isTampered prologue at " +
-                    "0x${patch.offset.toString(16)}; the native library is not the 7.3 build."
+            val location = locateIsTampered(bytes)
+                ?: error("$entry does not export $IS_TAMPERED_SYMBOL; unsupported build.")
+            check(location.offset + location.stub.size <= bytes.size) {
+                "$entry is too small for the isTampered body at 0x${location.offset.toString(16)}."
             }
 
-            patch.replacement.hexToBytes().copyInto(bytes, patch.offset)
+            location.stub.copyInto(bytes, location.offset)
             file.writeBytes(bytes)
         }
     }
 }
 
-private fun String.hexToBytes(): ByteArray =
-    ByteArray(length / 2) { index ->
-        substring(index * 2, index * 2 + 2).toInt(16).toByte()
+/**
+ * Resolves [IS_TAMPERED_SYMBOL] in an ELF32/ELF64 little-endian shared object and
+ * returns the file offset of its body plus the ABI stub that returns `false`.
+ */
+private fun locateIsTampered(bytes: ByteArray): IsTamperedLocation? {
+    check(bytes.size >= 0x40 && bytes[0] == 0x7F.toByte() && bytes[1] == 'E'.code.toByte() &&
+        bytes[2] == 'L'.code.toByte() && bytes[3] == 'F'.code.toByte()) {
+        "Not an ELF file."
     }
+    val elfClass = bytes[4].toInt()
+    check(bytes[5].toInt() == 1) { "Only little-endian ELF files are supported." }
+
+    val is64 = when (elfClass) {
+        1 -> false
+        2 -> true
+        else -> error("Unsupported ELF class $elfClass.")
+    }
+
+    val machine = bytes.u16(18)
+    val stub = when {
+        is64 && machine == EM_AARCH64 -> STUB_AARCH64
+        !is64 && machine == EM_ARM -> STUB_ARM
+        !is64 && machine == EM_386 -> STUB_X86
+        is64 && machine == EM_X86_64 -> STUB_X86
+        else -> error("Unsupported ELF machine 0x${machine.toString(16)}.")
+    }
+
+    val programHeaderOffset = if (is64) bytes.u64(0x20) else bytes.u32(0x1C).toLong()
+    val sectionHeaderOffset = if (is64) bytes.u64(0x28) else bytes.u32(0x20).toLong()
+    val programHeaderEntrySize = bytes.u16(if (is64) 0x36 else 0x2A)
+    val programHeaderCount = bytes.u16(if (is64) 0x38 else 0x2C)
+    val sectionHeaderEntrySize = bytes.u16(if (is64) 0x3A else 0x2E)
+    val sectionHeaderCount = bytes.u16(if (is64) 0x3C else 0x30)
+
+    /** Section header field offsets differ between ELF32 and ELF64. */
+    fun sectionField(index: Int, offset32: Int, offset64: Int, size: Int): Long {
+        val header = (sectionHeaderOffset + index.toLong() * sectionHeaderEntrySize).toInt()
+        return if (size == 4) bytes.u32(header + if (is64) offset64 else offset32).toLong()
+        else bytes.u64(header + if (is64) offset64 else offset32)
+    }
+
+    // Locate .dynsym and its string table.
+    var dynsymIndex = -1
+    for (index in 0 until sectionHeaderCount) {
+        if (sectionField(index, 4, 4, 4) == SHT_DYNSYM.toLong()) {
+            dynsymIndex = index
+            break
+        }
+    }
+    check(dynsymIndex >= 0) { "No .dynsym section in the library." }
+
+    val dynsymOffset = sectionField(dynsymIndex, 16, 24, if (is64) 8 else 4).toInt()
+    val dynsymSize = sectionField(dynsymIndex, 20, 32, if (is64) 8 else 4)
+    val dynsymEntrySize = sectionField(dynsymIndex, 36, 56, if (is64) 8 else 4).toInt()
+    val stringTableIndex = sectionField(dynsymIndex, 24, 40, 4).toInt()
+    val stringTableOffset =
+        sectionField(stringTableIndex, 16, 24, if (is64) 8 else 4).toInt()
+
+    var symbolValue = -1L
+    val symbolSize = if (is64) 24 else 16
+    val entrySize = if (dynsymEntrySize > 0) dynsymEntrySize else symbolSize
+    var entry = dynsymOffset
+    while (entry + entrySize <= dynsymOffset + dynsymSize) {
+        val nameOffset = bytes.u32(entry)
+        val name = readNullTerminated(bytes, stringTableOffset + nameOffset)
+        if (name == IS_TAMPERED_SYMBOL) {
+            symbolValue = if (is64) bytes.u64(entry + 8) else bytes.u32(entry + 4).toLong()
+            break
+        }
+        entry += entrySize
+    }
+    if (symbolValue < 0) return null
+
+    // Map the virtual address to a file offset through the PT_LOAD segments.
+    var fileOffset = -1
+    for (index in 0 until programHeaderCount) {
+        val header = (programHeaderOffset + index.toLong() * programHeaderEntrySize).toInt()
+        if (bytes.u32(header) != PT_LOAD) continue
+        val segmentOffset = (if (is64) bytes.u64(header + 8) else bytes.u32(header + 4).toLong())
+        val segmentAddress = (if (is64) bytes.u64(header + 16) else bytes.u32(header + 8).toLong())
+        val segmentFileSize = (if (is64) bytes.u64(header + 32) else bytes.u32(header + 16).toLong())
+        if (symbolValue >= segmentAddress && symbolValue < segmentAddress + segmentFileSize) {
+            fileOffset = (segmentOffset + (symbolValue - segmentAddress)).toInt()
+            break
+        }
+    }
+    check(fileOffset >= 0) { "$IS_TAMPERED_SYMBOL is not mapped by a PT_LOAD segment." }
+
+    return IsTamperedLocation(fileOffset, stub)
+}
+
+private fun ByteArray.u8(offset: Int): Int = this[offset].toInt() and 0xFF
+
+private fun ByteArray.u16(offset: Int): Int = u8(offset) or (u8(offset + 1) shl 8)
+
+private fun ByteArray.u32(offset: Int): Int =
+    u16(offset) or (u16(offset + 2) shl 16)
+
+private fun ByteArray.u64(offset: Int): Long =
+    u32(offset).toLong() and 0xFFFFFFFFL or (u32(offset + 4).toLong() shl 32)
+
+private fun readNullTerminated(bytes: ByteArray, offset: Int): String {
+    var end = offset
+    while (end < bytes.size && bytes[end] != 0.toByte()) end++
+    return String(bytes, offset, end - offset, Charsets.US_ASCII)
+}

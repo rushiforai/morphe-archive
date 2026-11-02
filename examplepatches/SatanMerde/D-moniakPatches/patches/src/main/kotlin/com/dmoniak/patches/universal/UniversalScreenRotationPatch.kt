@@ -12,6 +12,7 @@ import java.util.logging.Logger
 val universalScreenRotationPatch = bytecodePatch(
     name = "Universal Enable Screen Rotation (Experimental)",
     description = "⚠️ [Experimental / Untested] Unlocks screen orientation restrictions across any app, allowing portrait-only applications and games to freely rotate into landscape mode for tablets, foldables, and car units.",
+    default = false,
 ) {
     // Universal patch: No compatibleWith() call. Applies to any app.
 

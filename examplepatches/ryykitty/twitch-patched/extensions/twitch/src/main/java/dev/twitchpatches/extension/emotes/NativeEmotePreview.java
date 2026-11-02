@@ -42,6 +42,7 @@ final class NativeEmotePreview {
             View child = content.getChildAt(index);
             child.setVisibility(child == originalImage || child == name || child == provider ? View.VISIBLE : View.GONE);
         }
+        FavoriteEmoteCard.bindProvider(content, emote);
         ImageView image = new ImageView(dialog.getContext());
         image.setId(originalImage.getId());
         image.setLayoutParams(originalImage.getLayoutParams());

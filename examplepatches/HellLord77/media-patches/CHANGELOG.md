@@ -1,3 +1,22 @@
+## [1.3.5](https://github.com/HellLord77/media-patches/compare/v1.3.4...v1.3.5) (2026-11-01)
+
+### 🚀 Updated App Support
+
+* Added bongo update ([9938723](https://github.com/HellLord77/media-patches/commit/9938723124adb64ab0a0655c74b6432075737e63))
+* Bump Shadin to 4.4.5 ([83c730a](https://github.com/HellLord77/media-patches/commit/83c730ac89a743e527320dedc639807c858cc714))
+
+## [1.3.5-dev.2](https://github.com/HellLord77/media-patches/compare/v1.3.5-dev.1...v1.3.5-dev.2) (2026-11-01)
+
+### 🚀 Updated App Support
+
+* Added bongo update ([9938723](https://github.com/HellLord77/media-patches/commit/9938723124adb64ab0a0655c74b6432075737e63))
+
+## [1.3.5-dev.1](https://github.com/HellLord77/media-patches/compare/v1.3.4...v1.3.5-dev.1) (2026-10-30)
+
+### 🚀 Updated App Support
+
+* Bump Shadin to 4.4.5 ([83c730a](https://github.com/HellLord77/media-patches/commit/83c730ac89a743e527320dedc639807c858cc714))
+
 ## [1.3.4](https://github.com/HellLord77/media-patches/compare/v1.3.3...v1.3.4) (2026-10-14)
 
 ### 🐛 Bug Fixes

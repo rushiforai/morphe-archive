@@ -425,6 +425,16 @@ public class SegmentPlaybackController {
         }
     }
 
+    /** Host-owned, validated offline chapter data; reuse native markers and skip policy unchanged. */
+    public static void setSavedSegments(String videoId, SponsorSegment[] saved) {
+        Utils.verifyOnMainThread();
+        clearData();
+        if (videoId == null || !settings().sbEnabled().get() || isCurrentChannelWhitelisted()) return;
+        currentVideoId = videoId;
+        setSegments(saved);
+        setVideoTime(video().getVideoTime());
+    }
+
     /**
      * Must be called off main thread.
      */

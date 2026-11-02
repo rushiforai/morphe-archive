@@ -1,12 +1,19 @@
 package dev.twitchpatches.patches.twitch.reload
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.*
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.twitchpatches.patches.twitch.shared.*
 
 internal fun requireReloadControllerForwarding(method: Method, field: FieldReference, target: String) {
@@ -42,12 +49,18 @@ internal fun requireReloadControllerForwarding(method: Method, field: FieldRefer
         }) throw PatchException("Reload stream: wrapped controller forwarding changed.")
 }
 
-internal fun BytecodePatchContext.installNativeReloadControllerOwner(all: List<Method>, views: NativeReloadViewHooks) {
-    val wrappers = all.filter { method -> method.isInstance(views.controllerBind.parameterTypes.map { it.toString() }, "V") &&
-        method.references().any { it.toString() == views.controllerBind.reference } &&
-        views.controller.type in classDefBy(method.definingClass).interfaces
-    }
-    val wrapper = wrappers.uniqueHook("wrapped native live controller attachment")
+private class WrappedControllerAttachmentFingerprint(
+    controllerInterface: String,
+    controllerBind: MethodReference,
+) : Fingerprint(
+    interfaces = listOf(controllerInterface),
+    parameters = controllerBind.parameterTypes.map { it.toString() },
+    returnType = "V",
+    filters = listOf(methodCall(controllerBind)),
+)
+
+internal fun BytecodePatchContext.installNativeReloadControllerOwner(views: NativeReloadViewHooks) {
+    val wrapper = WrappedControllerAttachmentFingerprint(views.controller.type, views.controllerBind).originalMethod
     val type = classDefBy(wrapper.definingClass)
     val field = type.fields.filter { candidate -> !AccessFlags.STATIC.isSet(candidate.accessFlags) &&
         candidate.type.startsWith("L") && !candidate.type.startsWith("Ljava") && !candidate.type.startsWith("Landroid") &&

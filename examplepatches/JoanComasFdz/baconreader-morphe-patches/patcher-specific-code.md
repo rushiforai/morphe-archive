@@ -21,6 +21,8 @@ extensions/baconreader/src/main/java/io/github/joancomasfdz/extension/baconreade
                                Java added to the app, one package per feature
 extensions/baconreader/stub/   stand-ins for BaconReader classes the extension compiles against
 extensions/shared/             bundles Morphe's extensions library as extensions/shared.mpe
+e2e-patches/src/main/kotlin/io/github/joancomasfdz/patches/baconreader/e2e/
+                               test-only patches for the e2e tests, in an .mpp of their own, never released
 ```
 
 - Areas: `api` (Spoof client), `fix/<feature>`, `inbox` (Reddit chat), `layout/<feature>`, `misc/<feature>`.

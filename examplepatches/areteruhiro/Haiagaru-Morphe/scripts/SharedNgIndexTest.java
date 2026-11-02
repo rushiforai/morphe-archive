@@ -22,7 +22,7 @@ public final class SharedNgIndexTest {
             for(SharedNgRules.Rule r:rules){int kind=Arrays.asList(SharedNgIndex.KINDS).indexOf(r.kind);
                 if(r.revoked||r.votes<Math.max(votes,r.minVotes)||ignored.contains(r.id)||excluded.contains(r.board)||(mask&(1<<kind))==0)continue;
                 if(r.matchesPrepared(board,id,SharedNgRules.wacchoi(name),"","",SharedNgRules.text(body),votes)
-                        ||(r.kind.equals("name")||r.kind.equals("trip"))&&r.board.equals(board)&&name.contains(r.value)){expected=true;break;}
+                        ||(r.kind.equals("name")||r.kind.equals("trip"))&&(r.board.equals(board)||r.board.equals("*"))&&name.contains(r.value)){expected=true;break;}
             }
             check(expected==index.matches(board,id,name,body));
         }

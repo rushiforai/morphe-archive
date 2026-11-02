@@ -112,9 +112,70 @@ private fun resolveStyle(raw: String?): String {
 }
 
 internal const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
-internal const val ADAPTIVE_ICON = "res/A8b.xml"
-internal const val FOREGROUND_VECTOR = "res/q1K.xml"
+internal const val MANIFEST_FILE = "AndroidManifest.xml"
 internal const val SPLASH_LOGO = "res/drawable/splash_logo.xml"
+
+/**
+ * Waze renames its icon resources between builds (5.26.5.0 shipped `res/A8b.xml`, the 5.26.90.901
+ * beta ships `@mipmap/launch_icon_beta`), so nothing here is hardcoded any more: the icon is read
+ * out of the manifest and the files are found by resource name.
+ */
+private fun app.morphe.patcher.patch.ResourcePatchContext.resRoot(): java.io.File =
+    get("res") ?: throw PatchException("Change Waze icon: res directory missing - unsupported Waze build")
+
+/** Finds `name` with any extension, preferring the XML form, and returns its archive path. */
+private fun app.morphe.patcher.patch.ResourcePatchContext.findResource(name: String): String? {
+    val root = resRoot()
+    var xml: String? = null
+    var any: String? = null
+    root.walkTopDown().forEach { file ->
+        if (!file.isFile || file.name.substringBeforeLast('.') != name) return@forEach
+        val path = file.relativeTo(root.parentFile).path.replace('\\', '/')
+        if (file.name.endsWith(".xml")) {
+            if (xml == null) xml = path
+        } else if (any == null) {
+            any = path
+        }
+    }
+    return xml ?: any
+}
+
+/** The launcher icon Waze's manifest points at, read from the manifest rather than assumed. */
+private fun app.morphe.patcher.patch.ResourcePatchContext.launcherIconPath(): String {
+    var ref = ""
+    document(MANIFEST_FILE).use { dom ->
+        val app = dom.getElementsByTagName("application").item(0) as? org.w3c.dom.Element
+            ?: throw PatchException("Change Waze icon: AndroidManifest has no <application>")
+        ref = listOf("android:icon", "android:roundIcon")
+            .firstNotNullOfOrNull { name ->
+                app.getAttributeNode(name)?.nodeValue?.takeIf { it.isNotBlank() }
+            }
+            .orEmpty()
+    }
+    if (ref.isNotBlank()) {
+        val name = ref.trim().removePrefix("@").removePrefix("+").substringAfterLast('/')
+        findResource(name)?.let { return it }
+    }
+    for (candidate in listOf("launch_icon", "launch_icon_beta")) {
+        findResource(candidate)?.let { if (it.endsWith(".xml")) return it }
+    }
+    throw PatchException("Change Waze icon: could not locate the launcher icon (manifest icon='$ref')")
+}
+
+/** The adaptive icon's foreground layer, or null when the build ships a bitmap foreground. */
+private fun app.morphe.patcher.patch.ResourcePatchContext.foregroundPath(iconPath: String): String? {
+    var ref = ""
+    val doc = document(iconPath)
+    doc.use {
+        val root = doc.documentElement
+        if (root.nodeName != "adaptive-icon") return null
+        val foreground = root.getElementsByTagName("foreground").item(0) as? org.w3c.dom.Element
+            ?: return null
+        ref = foreground.getAttributeNode("android:drawable")?.nodeValue.orEmpty()
+    }
+    val name = ref.trim().removePrefix("@").removePrefix("+").substringAfterLast('/')
+    return if (name.isBlank()) null else findResource(name)
+}
 
 internal val DENSITY_BITMAPS = listOf(
     "res/VZx.webp", // mdpi
@@ -198,14 +259,15 @@ private fun app.morphe.patcher.patch.ResourcePatchContext.writeIconArtwork(bytes
         dir.resolve("morphe_waze_icon.png").writeBytes(bytes)
     }
 
-    val icon = document(ADAPTIVE_ICON)
+    val iconPath = launcherIconPath()
+    val icon = document(iconPath)
     icon.use {
         val root = icon.documentElement
         if (root.nodeName != "adaptive-icon") {
-            throw PatchException("Change Waze icon: $ADAPTIVE_ICON is not an adaptive icon (${root.nodeName})")
+            throw PatchException("Change Waze icon: $iconPath is not an adaptive icon (${root.nodeName})")
         }
         val foreground = root.getElementsByTagName("foreground").item(0) as? Element
-            ?: throw PatchException("Change Waze icon: no <foreground> layer in $ADAPTIVE_ICON")
+            ?: throw PatchException("Change Waze icon: no <foreground> layer in $iconPath")
         val drawableAttr = foreground.getAttributeNode("android:drawable")
             ?: throw PatchException("Change Waze icon: <foreground> has no android:drawable attribute")
         drawableAttr.nodeValue = "@mipmap/morphe_waze_icon"
@@ -215,7 +277,11 @@ private fun app.morphe.patcher.patch.ResourcePatchContext.writeIconArtwork(bytes
         // Opaque artwork: the backdrop only shows if the picture has transparent edges.
         val background = root.getElementsByTagName("background").item(0) as? Element
         background?.setAttribute("android:drawable", "@color/brand_waze")
-        println("Change Waze icon: $label installed as @mipmap/morphe_waze_icon")
+        // Themed icons draw the monochrome layer, so it follows the new artwork too - otherwise a
+        // themed launcher keeps showing the old glyph on top of the new one.
+        val monochrome = root.getElementsByTagName("monochrome").item(0) as? Element
+        monochrome?.setAttribute("android:drawable", "@mipmap/morphe_waze_icon")
+        println("Change Waze icon: $label installed as @mipmap/morphe_waze_icon (in $iconPath)")
     }
 }
 
@@ -227,17 +293,43 @@ private fun app.morphe.patcher.patch.ResourcePatchContext.paintGhostBackdrop(col
     }
     val argb = if (value.length == 7) "#ff" + value.substring(1) else "#" + value.substring(1)
 
-    val doc = document(FOREGROUND_VECTOR)
-    doc.use {
-        val root = doc.documentElement
-        if (root.nodeName != "vector") {
-            throw PatchException("Change Waze icon: $FOREGROUND_VECTOR is not a vector drawable (${root.nodeName})")
+    val iconPath = launcherIconPath()
+    val foreground = foregroundPath(iconPath)
+    if (foreground != null && foreground.endsWith(".xml")) {
+        val doc = document(foreground)
+        doc.use {
+            val root = doc.documentElement
+            if (root.nodeName != "vector") {
+                throw PatchException("Change Waze icon: $foreground is not a vector drawable (${root.nodeName})")
+            }
+            val backdrop = doc.createElement("path") as Element
+            backdrop.setAttributeNS(ANDROID_NS, "android:pathData", "M0,0H108V108H0Z")
+            backdrop.setAttributeNS(ANDROID_NS, "android:fillColor", argb)
+            root.insertBefore(backdrop, root.firstChild)
+            println("Change Waze icon: stock ghost kept, backdrop $argb prepended to $foreground")
         }
-        val backdrop = doc.createElement("path") as Element
-        backdrop.setAttributeNS(ANDROID_NS, "android:pathData", "M0,0H108V108H0Z")
-        backdrop.setAttributeNS(ANDROID_NS, "android:fillColor", argb)
-        root.insertBefore(backdrop, root.firstChild)
-        println("Change Waze icon: stock ghost kept, backdrop $argb prepended")
+        return
+    }
+
+    // The beta ships the ghost as a per-density bitmap, so there is no vector to prepend to. The
+    // colour goes on the adaptive icon's background layer instead - same visible result, and the
+    // ghost keeps its own artwork.
+    val drawables = get("res/drawable")
+        ?: throw PatchException("Change Waze icon: res/drawable missing - cannot add the backdrop layer")
+    drawables.resolve("morphe_icon_backdrop.xml").writeText(
+        """
+        <?xml version="1.0" encoding="utf-8"?>
+        <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+            <solid android:color="$argb" />
+        </shape>
+        """.trimIndent() + "\n",
+    )
+    val icon = document(iconPath)
+    icon.use {
+        val background = it.documentElement.getElementsByTagName("background").item(0) as? Element
+            ?: throw PatchException("Change Waze icon: $iconPath has no <background> layer")
+        background.setAttribute("android:drawable", "@drawable/morphe_icon_backdrop")
+        println("Change Waze icon: stock ghost kept, backdrop $argb set as the icon background")
     }
 }
 
@@ -267,6 +359,10 @@ private fun app.morphe.patcher.patch.ResourcePatchContext.hideLaunchLogo() {
     )
 
     try {
+        if (get(SPLASH_LOGO) == null) {
+            println("Change Waze icon: $SPLASH_LOGO not present - launch logo left as is")
+            return
+        }
         val splash = document(SPLASH_LOGO)
         splash.use {
             val root = splash.documentElement

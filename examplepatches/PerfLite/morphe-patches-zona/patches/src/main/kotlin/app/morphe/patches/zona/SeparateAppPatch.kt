@@ -98,11 +98,13 @@ val separateAppPatch = resourcePatch(
         // Recolor the 'Z' mark in all launcher icon foreground drawables.
         // FreeZona uses `zona_foreground.xml` for its primary launcher icon (`res/mipmap-anydpi-v26/zona.xml`),
         // while `ic_launcher_foreground.xml` is also kept for completeness.
+        // Official Zona 3.0.77 uses `res/Qr.xml` as foreground and `res/0w.xml` as background.
         val iconColor = iconColorOption.value
         if (!iconColor.isNullOrBlank()) {
             val foregrounds = listOf(
                 "res/drawable/zona_foreground.xml",
                 "res/drawable/ic_launcher_foreground.xml",
+                "res/Qr.xml",
             )
             for (foreground in foregrounds) {
                 if (foreground in listApkEntries()) {
@@ -118,10 +120,17 @@ val separateAppPatch = resourcePatch(
 
         // Optionally recolor the launcher icon background.
         val iconBackgroundColor = iconBackgroundColorOption.value
-        val iconBackground = "res/drawable/ic_launcher_background.xml"
-        if (!iconBackgroundColor.isNullOrBlank() && iconBackground in listApkEntries()) {
-            document(iconBackground).use { document ->
-                (document.documentElement as Element).setAttribute("android:color", iconBackgroundColor)
+        if (!iconBackgroundColor.isNullOrBlank()) {
+            val backgrounds = listOf(
+                "res/drawable/ic_launcher_background.xml",
+                "res/0w.xml",
+            )
+            for (background in backgrounds) {
+                if (background in listApkEntries()) {
+                    document(background).use { document ->
+                        (document.documentElement as Element).setAttribute("android:color", iconBackgroundColor)
+                    }
+                }
             }
 
             for (icon in listApkEntries("res/mipmap-anydpi-v26/")) {

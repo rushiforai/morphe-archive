@@ -26,4 +26,4 @@ Gebruik voor toekomstige gepatchte updates dezelfde sleutel en bewaar een werken
 
 Controleer opstarten en de functies die je gebruikt, zoals afspelen, kaarten, login of waarschuwingen. [Problemen oplossen](troubleshooting.md) helpt bij veelvoorkomende problemen.
 
-Volg voor Flitsmeister in de auto de [Android Auto-installatiestappen](android-auto.md). Lees voor installatietools met extra toegang over [Shizuku](shizuku.md) of [Android TV instellen](shizuku-tv.md).
+Volg voor Waze of Flitsmeister in de auto de [Android Auto-stappen met screenshots](android-auto.md). Lees voor installatietools met extra toegang over [Shizuku](shizuku.md) of [Android TV instellen](shizuku-tv.md).

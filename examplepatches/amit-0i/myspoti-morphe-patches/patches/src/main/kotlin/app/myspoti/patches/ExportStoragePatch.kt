@@ -41,7 +41,6 @@ private val downloadToolsActivityManifestPatch = resourcePatch {
     }
 }
 
-/** Myspoti 2.2.0 stable release: these are the R8 names verified from the uploaded APK. */
 private val applicationOnCreate = Fingerprint(
     definingClass = "Lapp/myspoti/MyspotiApplication;",
     name = "onCreate",
@@ -63,26 +62,42 @@ private val applicationCollectionsRead = Fingerprint(
     parameters = emptyList(),
     filters = listOf(
         methodCall(
-            definingClass = "Lic5;",
-            name = "f",
+            definingClass = "Lsh5;",
+            name = "g",
             returnType = "V",
             parameters = listOf("Ljava/lang/String;"),
         ),
     ),
 )
 
+// LocalPlayPlan.localIds in the 2.3.0 stable APK. Its callback interface is R8-renamed
+// to Ldo2;, but the method shape and descriptor are stable for the supported target.
+private val localPlayPlan = Fingerprint(
+    definingClass = "Lur2;",
+    name = "O",
+    returnType = "Ljava/util/ArrayList;",
+    parameters = listOf(
+        "Ljava/util/ArrayList;",
+        "Ljava/lang/String;",
+        "Z",
+        "Z",
+        "Z",
+        "Ldo2;",
+    ),
+)
+
 private val offlineStoreLoad = Fingerprint(
-    definingClass = "Lud5;",
-    name = "k",
+    definingClass = "Lfj5;",
+    name = "n",
     returnType = "Ljava/util/ArrayList;",
     parameters = listOf("Ljava/io/File;"),
 )
 
 private val accountClaimLiveRoot = Fingerprint(
-    definingClass = "Lcc5;",
+    definingClass = "Lmh5;",
     name = "a",
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Lx01;"),
+    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Lf21;"),
     filters = listOf(
         string("offline"),
         methodCall(
@@ -95,10 +110,10 @@ private val accountClaimLiveRoot = Fingerprint(
 )
 
 private val accountParkLiveRoot = Fingerprint(
-    definingClass = "Lcc5;",
+    definingClass = "Lmh5;",
     name = "e",
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Lx01;"),
+    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Lf21;"),
     filters = listOf(
         string("offline"),
         methodCall(
@@ -111,46 +126,79 @@ private val accountParkLiveRoot = Fingerprint(
 )
 
 
-// MySpoti 2.2.0 stable APK Settings navigation, verified from the supplied DEX:
-// Lqs2.s is the SettingsPage switch and calls Lqs2.o only for SettingsPage.Downloads.
-// This means the action is installed only on Settings > Downloads, not Library > Downloads.
-private val settingsDownloadsPage = Fingerprint(
-    definingClass = "Lqs2;",
-    name = "o",
+private val settingsClassicScreen = Fingerprint(
+    definingClass = "Ldu2;",
+    name = "w",
     returnType = "V",
-    parameters = listOf("Lit0;", "I"),
+    parameters = listOf("Lhb5;", "Lou0;", "I"),
+    // Each methodCall filter captures one occurrence. Repeating the filter five
+    // times records all five section-header calls in source order, so index [2]
+    // below reliably refers to the Downloads tab rather than the first header.
     filters = listOf(
         methodCall(
-            definingClass = "Lud5;",
-            name = "r",
-            returnType = "J",
+            definingClass = "Ldu2;",
+            name = "v",
+            returnType = "V",
+            parameters = listOf("I", "I", "Lou0;"),
         ),
         methodCall(
-            definingClass = "Landroid/text/format/Formatter;",
-            name = "formatShortFileSize",
-            returnType = "Ljava/lang/String;",
-            parameters = listOf("Landroid/content/Context;", "J"),
+            definingClass = "Ldu2;",
+            name = "v",
+            returnType = "V",
+            parameters = listOf("I", "I", "Lou0;"),
+        ),
+        methodCall(
+            definingClass = "Ldu2;",
+            name = "v",
+            returnType = "V",
+            parameters = listOf("I", "I", "Lou0;"),
+        ),
+        methodCall(
+            definingClass = "Ldu2;",
+            name = "v",
+            returnType = "V",
+            parameters = listOf("I", "I", "Lou0;"),
+        ),
+        methodCall(
+            definingClass = "Ldu2;",
+            name = "v",
+            returnType = "V",
+            parameters = listOf("I", "I", "Lou0;"),
         ),
     ),
 )
 
-private val settingsPageRouter = Fingerprint(
-    definingClass = "Lqs2;",
-    name = "s",
-    returnType = "V",
-    parameters = listOf("Le65;", "Lit0;", "I"),
+private val immersiveSettingsPageRouter = Fingerprint(
+    definingClass = "Lrv;",
+    name = "invoke",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),
     filters = listOf(
         methodCall(
-            definingClass = "Lqs2;",
-            name = "o",
+            definingClass = "Lqk3;",
+            name = "g",
             returnType = "V",
-            parameters = listOf("Lit0;", "I"),
+            parameters = listOf("Lhb5;", "Ldo2;", "Lco2;", "Lou0;", "I"),
         ),
     ),
 )
 
 context(_: BytecodePatchContext)
 private fun applyMyspotiStorageHooks() {
+    // A downloaded selection always enters the local player, even while online
+    // and even when the surrounding playlist is only partly downloaded. The
+    // extension uses the host's existing isDownloaded callback and returns the
+    // downloaded subset in queue order; an undownloaded selection still follows
+    // the original Web Player / audio-source path.
+    localPlayPlan.method.addInstructions(
+        0,
+        """
+            invoke-static/range {p0 .. p5}, Lapp/myspoti/extension/LocalPlaybackPolicy;->localIds(Ljava/util/ArrayList;Ljava/lang/String;ZZZLjava/lang/Object;)Ljava/util/ArrayList;
+            move-result-object v0
+            return-object v0
+        """.trimIndent(),
+    )
+
     // OfflineStore.load(File) is staticized by R8. Its single File parameter is p0.
     // Replace that parameter before the original loader stores the root and scans indexes.
     offlineStoreLoad.method.addInstructions(
@@ -196,21 +244,32 @@ private fun applyMyspotiStorageHooks() {
     )
 
 
-    // The parent SettingsPage router runs whenever the selected Settings subpage changes.
-    // Clear the action first; the Downloads subpage below re-adds it only while selected.
-    // This does not modify Le65 NavController methods (which caused ART VerifyError in
-    // earlier builds); it hooks only MySpoti's own Settings composables.
-    settingsPageRouter.method.addInstructions(
+    val sectionHeaderCalls = settingsClassicScreen.instructionMatches
+    require(sectionHeaderCalls.size == 5) {
+        "Expected five Classic Settings section headers in MySpoti 2.3.0, found ${sectionHeaderCalls.size}"
+    }
+    settingsClassicScreen.method.addInstructions(
+        sectionHeaderCalls[2].index,
+        """
+            invoke-static {}, $EXT->showForCurrentActivity()V
+        """.trimIndent(),
+    )
+    settingsClassicScreen.method.addInstructions(
         0,
         """
             invoke-static {}, $EXT->hideSettingsAction()V
         """.trimIndent(),
     )
 
-    settingsDownloadsPage.method.addInstructions(
+
+    // The Settings page router is AnimatedContent's content lambda. Its first
+    // argument is AnimatedContentScope and its second is the page enum. Compose
+    // emits the target page last, after the outgoing page, so the final visibility
+    // update always reflects the destination rather than a page being disposed.
+    immersiveSettingsPageRouter.method.addInstructions(
         0,
         """
-            invoke-static {}, $EXT->showForCurrentActivity()V
+            invoke-static/range {p2 .. p2}, $EXT->syncImmersiveSettingsAction(Ljava/lang/Object;)V
         """.trimIndent(),
     )
 
@@ -219,7 +278,7 @@ private fun applyMyspotiStorageHooks() {
 @Suppress("unused")
 val myspotiExportStorageStable = bytecodePatch(
     name = "MySpoti Export & Storage",
-    description = "Adds Export & storage to Settings > Downloads in Myspoti 2.2.0, with tagged audio exports, offline lyrics resolution/cache, portable LRC and JSON lyrics, embedded lyrics, playlist/album M3U8 manifests, reinstall restoration into native Downloads and lyrics caches, shared track files and offline storage migration.",
+    description = "Adds Export & storage to Settings > Downloads in MySpoti 2.3.0 in both Classic and Immersive looks, matching MySpoti's Immersive glass, grouped surfaces and selected accent; includes local-first playback for downloaded tracks, tagged audio exports, offline lyrics resolution/cache, portable LRC and JSON lyrics, embedded lyrics, playlist/album M3U8 manifests, reinstall restoration into native Downloads and lyrics caches, shared track files and offline storage migration.",
     default = true,
 ) {
     compatibleWith(MYSPOTI_STABLE)

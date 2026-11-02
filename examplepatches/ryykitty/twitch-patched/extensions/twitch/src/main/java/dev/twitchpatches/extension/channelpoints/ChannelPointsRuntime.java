@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import dev.twitchpatches.extension.settings.PatchSettings;
 
@@ -48,7 +50,9 @@ public final class ChannelPointsRuntime implements Application.ActivityLifecycle
 
     public static void state(Object player, boolean playing) {
         ChannelPointsRuntime runtime = instance;
-        if (runtime != null) runtime.claims.state(player, playing);
+        if (runtime == null) return;
+        runtime.claims.state(player, playing);
+        if (playing) runtime.claimHeldBonus();
     }
 
     public static void release(Object player) {
@@ -56,14 +60,28 @@ public final class ChannelPointsRuntime implements Application.ActivityLifecycle
         if (runtime != null) runtime.claims.release(player);
     }
 
-    public static boolean offer(Object channel, String claim) {
+    public static boolean offer(BonusClaimer claimer, Object channel, String claim) {
         ChannelPointsRuntime runtime = instance;
         if (runtime == null) return false;
         boolean permitted = runtime.enabled && runtime.startedActivities > 0;
         boolean accepted = runtime.claims.offer(channel, claim, SystemClock.elapsedRealtime(), permitted);
+        if (!accepted && runtime.enabled) runtime.claims.hold(claimer, channel, claim);
         runtime.logOffer(accepted ? "claim attempt reserved" : !runtime.enabled ? "setting disabled" :
                 runtime.startedActivities == 0 ? "no foreground activity" : runtime.claims.readiness(channel));
         return accepted;
+    }
+
+    public static void bonusGone() {
+        ChannelPointsRuntime runtime = instance;
+        if (runtime != null) runtime.claims.clearHeld();
+    }
+
+    private void claimHeldBonus() {
+        if (!enabled || startedActivities == 0) return;
+        Runnable claim = claims.takeHeldClaim(SystemClock.elapsedRealtime());
+        if (claim == null) return;
+        android.util.Log.i("TwitchPatchesPoints", "held claim attempt reserved");
+        new Handler(Looper.getMainLooper()).post(claim);
     }
 
     private synchronized void logOffer(String category) {
@@ -86,7 +104,10 @@ public final class ChannelPointsRuntime implements Application.ActivityLifecycle
         dev.twitchpatches.extension.shared.ReactNativeRuntime.refresh();
     }
 
-    @Override public void onActivityStarted(Activity activity) { startedActivities++; }
+    @Override public void onActivityStarted(Activity activity) {
+        startedActivities++;
+        claimHeldBonus();
+    }
     @Override public void onActivityStopped(Activity activity) { startedActivities = Math.max(0, startedActivities - 1); }
     @Override public void onActivityCreated(Activity activity, Bundle state) { }
     @Override public void onActivityResumed(Activity activity) { }

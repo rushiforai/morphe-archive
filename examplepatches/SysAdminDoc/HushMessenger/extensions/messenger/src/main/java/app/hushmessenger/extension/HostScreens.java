@@ -48,6 +48,11 @@ public final class HostScreens {
             Log.e("HushMessenger", "Can't watch for chats opening", error);
         }
         try {
+            if (app != null && Settings.bundled(bundledControls()).contains(CallRecording.KEY)) CallRecording.register(app);
+        } catch (RuntimeException error) {
+            Log.e("HushMessenger", "Can't watch for calls", error);
+        }
+        try {
             if (app != null) SettingsReopen.watch(app);
         } catch (RuntimeException error) {
             Log.e("HushMessenger", "Can't watch for the first screen after a restart", error);
@@ -126,6 +131,11 @@ public final class HostScreens {
 
     /** Rewritten with the chat list supplier's subscribe call and listed count once the patch proves both. */
     static String inboxRefreshRoute() {
+        return "";
+    }
+
+    /** Rewritten with the fields Local pins reads and writes and the chat list's refresh once the patch proves them. */
+    static String pinnedChatRoute() {
         return "";
     }
 

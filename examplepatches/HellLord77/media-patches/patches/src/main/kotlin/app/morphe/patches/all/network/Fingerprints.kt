@@ -16,7 +16,7 @@ object HasTransportMethodCallFingerprint :
                     parameters = listOf(Type.int),
                     returnType = Type.boolean,
                     opcode = Opcode.INVOKE_VIRTUAL,
-                )
+                ),
             ),
         custom = ::isNotExtension,
     )

@@ -1,3 +1,15 @@
+## [1.9.0](https://github.com/ch3thanhs/stylus/compare/v1.8.3...v1.9.0) (2026-11-01)
+
+### ✨ New Features
+
+* **bitwarden:** add custom font patches ([5bedaf9](https://github.com/ch3thanhs/stylus/commit/5bedaf9a9f4d796b5e4e2f09bfc2838c0b248acc))
+
+## [1.9.0-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.8.3...v1.9.0-dev.1) (2026-11-01)
+
+### ✨ New Features
+
+* **bitwarden:** add custom font patches ([5bedaf9](https://github.com/ch3thanhs/stylus/commit/5bedaf9a9f4d796b5e4e2f09bfc2838c0b248acc))
+
 ## [1.8.3](https://github.com/ch3thanhs/stylus/compare/v1.8.2...v1.8.3) (2026-10-31)
 
 ### 🐛 Bug Fixes

@@ -2,7 +2,7 @@
 
 **App version:** 1.1.0 · **Build:** 134 · **Original file:** APK
 
-[Use your original APK](../guides/downloads.md#local-original-inputs){ .md-button .md-button--primary }
+[Download original app](https://buzzheavier.com/xk5uwpz9uobd){ .md-button .md-button--primary }
 
 Select the original Monet launcher APK in Morphe Manager.
 
@@ -18,7 +18,7 @@ This patch adds Wuplay content choices. It does not change advertising or tracki
 
 ## Before using
 
-First use [Wuplay's catalog publisher](wuplay.md): open **Wuplay TV channels**, choose catalogs from the default profile, and press **Save and refresh**.
+First use [Wuplay's catalog publisher](wuplay.md): inside Wuplay, open **Settings > Catalogs > TV channels**, choose Home catalogs from the default profile, and press **Save and refresh**. Android TV's optional **Add to TV Home** approval is not required for Monet to read the published channels.
 
 In Monet, create a custom media row, select **Wuplay**, and choose a catalog in **Content**. Repeat for each desired catalog. Monet's normal row names, ordering, layout, card limits and hide-title controls remain available. Existing Continue Watching, Recommendations and combined choices remain intact.
 

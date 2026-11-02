@@ -2,7 +2,7 @@
 
 **Appversie:** 1.48.2-2405 · **Build:** 245497937 · **Origineel bestand:** APKS
 
-[Download originele app](https://buzzheavier.com/1s5dezsqvxbq){ .md-button .md-button--primary }
+[Download originele app](https://buzzheavier.com/c7sdu1cfelij){ .md-button .md-button--primary }
 
 Selecteer het exacte originele bestand in Morphe Manager. Gebruik bij een gesplitste app het volledige archief.
 

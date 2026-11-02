@@ -42,7 +42,7 @@ final class ReportStore {
     private static final String PREFERENCES = "morphe_reports", KEY_INSTALL_ID = "install_id", KEY_MAX_BYTES = "max_bytes",
             KEY_CRASH_SEEN = "crash_seen", KEY_CRASH_TOASTED = "crash_toasted", KEY_NATIVE_CHECKED = "native_checked";
     private static final String LIST = "reports.json", QUEUE = "queue", CRASH = "crash", VALUES = "values",
-            SNAPSHOT = "snapshot.json", LOCK = "lock", INDEX = "index.txt";
+            SNAPSHOT = "snapshot.json", START_LOGCAT = "start_logcat.json", LOCK = "lock", INDEX = "index.txt";
     private static final int MAX_INDEX_LINES = 100, MAX_INDEX_ENTRIES = 20, SUMMARY_READ_BYTES = 64 * 1024;
     private static final Pattern NATIVE_SIGNAL = Pattern.compile("signal (\\d+) \\((\\w+)\\)");
     // Guarded by the class: crash summaries by file name, with the file size they were read at.
@@ -155,20 +155,37 @@ final class ReportStore {
         if (value > 0) setValue(context, KEY_MAX_BYTES, Integer.toString(value));
     }
 
-    // The main process's last battery and window state, for reports built in the report screen's process.
+    // The main process's last battery and window state, for reports built in the report screen's process,
+    // and its last start's logcat lines (StartLogcat).
 
     static void saveSnapshot(Context context, JSONObject snapshot) {
-        try {
-            File dir = root(context);
-            if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("no report folder");
-            replaceFile(new File(dir, SNAPSHOT), snapshot.toString().getBytes(StandardCharsets.UTF_8));
-        } catch (IOException error) {
-            ReportLog.w(ReportPatch.TAG, "state for the report not saved", error);
-        }
+        saveJson(context, SNAPSHOT, snapshot, "state for the report not saved");
     }
 
     static JSONObject snapshot(Context context) {
-        File file = new File(root(context), SNAPSHOT);
+        return readJson(context, SNAPSHOT);
+    }
+
+    static void saveStartLogcat(Context context, JSONObject lines) {
+        saveJson(context, START_LOGCAT, lines, "start log not saved");
+    }
+
+    static JSONObject startLogcat(Context context) {
+        return readJson(context, START_LOGCAT);
+    }
+
+    private static void saveJson(Context context, String name, JSONObject json, String failure) {
+        try {
+            File dir = root(context);
+            if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("no report folder");
+            replaceFile(new File(dir, name), json.toString().getBytes(StandardCharsets.UTF_8));
+        } catch (IOException error) {
+            ReportLog.w(ReportPatch.TAG, failure, error);
+        }
+    }
+
+    private static JSONObject readJson(Context context, String name) {
+        File file = new File(root(context), name);
         if (!file.isFile()) return null;
         try {
             return new JSONObject(new String(readFile(file), StandardCharsets.UTF_8));

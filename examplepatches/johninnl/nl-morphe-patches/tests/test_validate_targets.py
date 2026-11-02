@@ -1,6 +1,7 @@
 """Exercise split input staging and app-specific validation routing."""
 import importlib.util
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -196,7 +197,33 @@ class InputStagingTests(unittest.TestCase):
         self.assertEqual(reference.read_bytes(), b'base')
 
 
+@unittest.skipUnless(os.environ.get('TWEEDEHANDS_XAPK'), 'Set TWEEDEHANDS_XAPK to the genuine archive')
+class BelgianArchiveTests(unittest.TestCase):
+    def test_unhinted_feature_is_distinguished_by_manifest_and_all_payloads_are_preserved(self):
+        source = Path(os.environ['TWEEDEHANDS_XAPK'])
+        original = source.read_bytes()
+        with tempfile.TemporaryDirectory() as scratch:
+            staged, base = validator.prepare_input(source, Path(scratch))
+            with zipfile.ZipFile(source) as before, zipfile.ZipFile(staged) as after:
+                self.assertEqual(len(after.namelist()), 8)
+                self.assertEqual(base.read_bytes(), before.read('be.tweedehands.m.apk'))
+                for name in before.namelist():
+                    mapped = 'base.apk' if name == 'be.tweedehands.m.apk' else name
+                    self.assertEqual(after.read(mapped), before.read(name))
+            self.assertEqual(source.read_bytes(), original)
+
+
 class TargetRoutingTests(unittest.TestCase):
+    def test_belgian_privacy_profile_includes_profiling_and_has_its_own_verifier(self):
+        self.assertEqual(validator.APPS.get('2dehands'), {
+            'Hide ads': [], 'Disable tracking': ['Hide ads', 'Disable ThreatMetrix'],
+            'Disable ThreatMetrix': [],
+            'Skip consent screens': ['Disable tracking', 'Hide ads', 'Disable ThreatMetrix']})
+        self.assertEqual(validator.verifier_command('2dehands', Path('decoded'),
+                         {'Hide ads'}, apk=Path('rebuilt.apk')),
+                         [sys.executable, 'tests/verify_tweedehands.py', 'decoded',
+                          '--apk', 'rebuilt.apk', '-e', 'Hide ads'])
+
     def test_gva_uses_mediahuis_controls_and_its_own_verifier(self):
         self.assertEqual(validator.APPS.get('gva'), validator.APPS['hbvl'])
         self.assertEqual(
@@ -342,7 +369,9 @@ class TargetRoutingTests(unittest.TestCase):
 
     def test_marktplaats_threatmetrix_is_a_normal_default_control(self):
         catalog = json.loads((ROOT / 'patches-list.json').read_text())
-        matches = [p for p in catalog['patches'] if p['name'] == 'Disable ThreatMetrix']
+        matches = [p for p in catalog['patches'] if p['name'] == 'Disable ThreatMetrix' and
+                   any(app['packageName'] == 'nl.marktplaats.android'
+                       for app in p.get('compatiblePackages') or [])]
         self.assertEqual(len(matches), 1)
         self.assertIs(matches[0]['default'], True)
 
@@ -458,7 +487,9 @@ class TargetRoutingTests(unittest.TestCase):
         self.assertIn('flitsmeister', validator.APPS)
         self.assertEqual(validator.APPS['flitsmeister'], {
             'Fix PairIP startup': [], 'Unlock Pro': [], 'Hide Pro notices': [],
+            'Broadcast navigation data': [],
             'Disable partner services': [], 'Hide ads': [], 'Disable tracking': [],
+            'Guest mode': ['Fix PairIP startup'],
         })
         self.assertEqual(
             validator.verifier_command('flitsmeister', Path('decoded'), {'Unlock Pro'}),

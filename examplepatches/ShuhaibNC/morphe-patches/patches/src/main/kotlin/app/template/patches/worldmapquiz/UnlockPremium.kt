@@ -16,7 +16,7 @@ object PremiumFingerprint : Fingerprint(
 
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
-    name = "Unlock Premium",
+    name = "Enable Premium",
     description = "Unlocks Premium mode, map themes, rivers, mountains, deserts, oceanic trenches, oceanic currents, lakes, islands and winds",
     default = true
 ) {

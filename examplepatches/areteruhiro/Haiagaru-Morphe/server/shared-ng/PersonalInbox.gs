@@ -13,14 +13,14 @@ function ngFamilyName_(scope){const group=ngFamilyBoard_(scope);return {'5ch/all
 // Hidden/chain presentation flags do not create separate votes for the same condition.
 function ngConditionKey_(c){return ngHash_(JSON.stringify([ngFamilyBoard_(c.board),c.kind,c.value,"",c.regex,c.flags&~9]));}
 /** Personal registrations enter Inbox first; they never become public rules on receipt. */
-function ngInboxSetup_(){const b=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId);const headers={Inbox:['operationId','reporter','conditionJson','action','receivedAt','state','reason','policyVersion','decisionJson'],ReviewPolicy:['key','value']};for(const name of Object.keys(headers)){let s=b.getSheetByName(name)||b.insertSheet(name);if(s.getLastRow()===0)s.getRange(1,1,1,headers[name].length).setValues([headers[name]]);else if(JSON.stringify(s.getRange(1,1,1,headers[name].length).getValues()[0])!==JSON.stringify(headers[name]))throw Error('Unexpected '+name+' headers');}}
+function ngInboxSetup_(){const b=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId);const headers={Inbox:['operationId','reporter','conditionJson','action','receivedAt','state','reason','policyVersion','decisionJson'],ReviewPolicy:['key','value']};for(const name of [...Object.keys(headers),...NG_REVIEW_SHEETS,'ReviewTransfer']){const expected=headers[name]||headers.Inbox;let s=b.getSheetByName(name)||b.insertSheet(name);if(s.getLastRow()===0)s.getRange(1,1,1,expected.length).setValues([expected]);else if(JSON.stringify(s.getRange(1,1,1,expected.length).getValues()[0])!==JSON.stringify(expected))throw Error('Unexpected '+name+' headers');}}
 function ngInboxValidate_(r){
  if(!r||typeof r.operationId!=='string'||!/^[a-f0-9]{64}$/.test(r.operationId)||!['upsert','delete'].includes(r.action))throw Error('Invalid operation');
  if(!['id','wacchoi','prefix','suffix','name','trip','keyword','reporter'].includes(r.kind)||typeof r.value!=='string'||r.value.length<1||r.value.length>2000)throw Error('Invalid personal condition');
  if(typeof r.board!=='string'||!(r.board==='*'||/^([a-z0-9.-]+)(:\d+)?(\/[A-Za-z0-9_.-]+)+$/.test(r.board))||r.board.length>300)throw Error('Invalid board');
- if(['prefix','suffix'].includes(r.kind)&&!/^[A-Za-z0-9+/]{4}$/.test(r.value))throw Error('Invalid Wacchoi part');
- if(r.kind==='wacchoi'&&!/^[A-Za-z0-9+/]{4}-[A-Za-z0-9+/]{4}$/.test(r.value))throw Error('Invalid Wacchoi');
- if(r.kind==='id'&&r.regex!==true&&!/^[A-Za-z0-9+/!_.-]{1,100}$/.test(r.value))throw Error('Invalid ID');
+ if(r.regex!==true&&(r.flags&0x20)===0&&['prefix','suffix'].includes(r.kind)&&!/^[A-Za-z0-9+/]{4}$/.test(r.value))throw Error('Invalid Wacchoi part');
+ if(r.regex!==true&&(r.flags&0x20)===0&&r.kind==='wacchoi'&&!/^[A-Za-z0-9+/]{4}-[A-Za-z0-9+/]{4}$/.test(r.value))throw Error('Invalid Wacchoi');
+ if(r.kind==='id'&&r.regex!==true&&(r.flags&0x20)===0&&!/^[A-Za-z0-9+/!_.-]{1,100}$/.test(r.value))throw Error('Invalid ID');
  if(r.kind==='reporter'&&(ngFamilyBoard_(r.board)!=='edge/all'||r.regex===true||r.flags!==16||!/^[A-Za-z0-9+/!_.-]{1,100}$/.test(r.value)))throw Error('Invalid reporter ID');
  if(!Number.isInteger(r.flags)||r.flags<0||r.flags>65535)throw Error('Invalid flags');
  const c={board:r.board==='unknown.invalid/unresolved'?'*':ngFamilyBoard_(r.board),kind:r.kind,value:r.value,period:"",regex:r.regex===true||(r.flags&0x20)!==0,flags:r.flags};
@@ -38,7 +38,7 @@ function ngReceivePersonal_(body){
  if(body.version!==2||body.action!=='personal'||typeof body.device!=='string'||!/^[a-f0-9]{64}$/.test(body.device)||!Array.isArray(body.reports)||!body.reports.length||body.reports.length>20)throw Error('Invalid personal batch');
  const incoming=body.reports.map(ngInboxValidate_),props=PropertiesService.getScriptProperties(),pepper=props.getProperty('REPORTER_PEPPER');if(!pepper)throw Error('Run setupSharedNg first');
  const lock=LockService.getScriptLock();lock.waitLock(15000);try{
-  ngInboxSetup_();const b=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId),s=b.getSheetByName('Inbox'),rows=ngRows_(s),reporter=ngHash_(pepper+':'+body.device),known=new Set(rows.filter(r=>r[1]===reporter).map(r=>r[0]));
+  ngInboxSetup_();const b=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId);ngRecoverPersonalTransfer_(b);const s=b.getSheetByName('Inbox'),rows=ngAllPersonalRows_(b),reporter=ngHash_(pepper+':'+body.device),known=new Set(rows.filter(r=>r[1]===reporter).map(r=>r[0]));
   const day=new Date().toISOString().slice(0,10);let used=rows.filter(r=>r[1]===reporter&&String(r[4]).startsWith(day)).length;let accepted=0;
   for(const r of incoming){if(known.has(r.operationId))continue;if(++used>100)throw Error('Daily report limit');known.add(r.operationId);accepted++;}
   const staged=[];for(const r of incoming)if(!rows.some(row=>row[0]===r.operationId&&row[1]===reporter)&&!staged.some(row=>row[0]===r.operationId))staged.push([r.operationId,reporter,JSON.stringify(r.condition),r.action,new Date().toISOString(),'pending','awaiting_policy',0,'{}']);
@@ -50,7 +50,7 @@ function reviewPersonalNg(){
  const lock=LockService.getScriptLock();lock.waitLock(15000);try{return ngReviewPersonalLocked_();}finally{lock.releaseLock();}
 }
 function ngReviewPersonalLocked_(){
- ngInboxSetup_();const b=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId),s=b.getSheetByName('Inbox'),rows=ngRows_(s),props=PropertiesService.getScriptProperties();
+ ngInboxSetup_();const b=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId);ngRecoverPersonalTransfer_(b);const s=b.getSheetByName('Inbox'),rows=ngAllPersonalRows_(b),before=JSON.stringify(rows),props=PropertiesService.getScriptProperties();
  const config=ngReviewConfig_(b),overrides=JSON.parse(props.getProperty('REVIEW_OVERRIDES')||'{}');let policyVersion=Number(config.policyVersion||props.getProperty('REVIEW_POLICY_VERSION')||1);
  const active=new Map();for(const row of rows){
   if(ngEmptyInboxRow_(row))continue;
@@ -62,11 +62,13 @@ function ngReviewPersonalLocked_(){
  for(const x of active.values()){
   const perBoard=(config.boards||{})[ngFamilyBoard_(x.c.board)]||{},policy=Object.assign({},config,perBoard);
   const decision=x.row[3]==='delete'?{state:'withdrawn',reason:'reporter_deleted',minLevel:5,minVotes:0}:overrides[x.key]||ngPolicy_(x.c,(groups.get(x.key)||new Set()).size,policy);
-  if(decision.state==='approved'&&(x.c.board==='unknown.invalid/unresolved'||x.c.regex||((x.c.flags&0x70)!==0&&(x.c.flags&0x70)!==0x10)||(x.c.kind==='reporter'&&x.c.board!=='edge/all'))){decision.state='pending';decision.reason='scope_or_lifetime_review';}
+  if(decision.state==='approved'&&(x.c.board==='unknown.invalid/unresolved'||!ngMatchModeSupported_(x.c)||!ngRegexValid_(x.c)||(x.c.kind==='reporter'&&x.c.board!=='edge/all'))){decision.state='pending';decision.reason='scope_or_lifetime_review';}
   if(x.row[3]==='upsert'&&x.c.kind==='keyword'&&!ngShareableKeyword_(x.c.value)){decision.state='rejected';decision.reason='ineligible_keyword';}
   x.row[5]=decision.state;x.row[6]=decision.reason;x.row[7]=policyVersion;x.row[8]=JSON.stringify(decision);
  }
- if(rows.length)s.getRange(2,1,rows.length,9).setValues(rows);
+ const latest=new Set(Array.from(active.values()).map(x=>x.row));
+ for(const row of rows)if(row[5]==='pending'&&!latest.has(row)){row[5]='withdrawn';row[6]='reporter_superseded';}
+ if(before!==JSON.stringify(rows)||ngRows_(b.getSheetByName('Inbox')).some(row=>!ngEmptyInboxRow_(row)&&row[6]!=='awaiting_policy')||(b.getSheetByName('Reviewed')&&ngRows_(b.getSheetByName('Reviewed')).length))ngStorePersonalRows_(b,rows);
  return rows.length;
 }
 function ngReviewConfig_(book){
@@ -76,12 +78,12 @@ function ngReviewConfig_(book){
 }
 function reviewSelectedPersonalNg(){
  const book=SpreadsheetApp.getActiveSpreadsheet();if(!book||book.getId()!==NG_CONFIG.spreadsheetId)throw Error('共有NGの管理シートから実行してください');
- const sheet=book.getActiveSheet(),range=sheet.getActiveRange();if(sheet.getName()!=='Inbox'||!range||range.getRow()<2)throw Error('Inboxの対象行を選んでください');
+ const sheet=book.getActiveSheet(),range=sheet.getActiveRange();if(!['Inbox','Reviewed',...NG_REVIEW_SHEETS].includes(sheet.getName())||!range||range.getRow()<2)throw Error('Inboxまたは種類別の審査シートで対象行を選んでください');
  const ui=SpreadsheetApp.getUi(),response=ui.prompt('審査結果','approved / pending / rejected を入力',ui.ButtonSet.OK_CANCEL);if(response.getSelectedButton()!==ui.Button.OK)return;
  const state=response.getResponseText().trim();if(!['approved','pending','rejected'].includes(state))throw Error('Invalid review state');
  const row=sheet.getRange(range.getRow(),1,1,9).getValues()[0],c=JSON.parse(row[2]);
  if(state==='approved'&&c.kind==='keyword'&&!ngShareableKeyword_(c.value))throw Error('NGワードは5文字以上・英字のみ不可です');
- if(state==='approved'&&(c.board==='unknown.invalid/unresolved'||((c.flags&0x70)!==0&&(c.flags&0x70)!==0x10)||(['id','wacchoi','prefix','suffix'].includes(c.kind)&&c.board==='*')||c.regex))throw Error('板が不明な条件、正規表現は配信できません');
+ if(state==='approved'&&(c.board==='unknown.invalid/unresolved'||!ngMatchModeSupported_(c)||!ngRegexValid_(c)))throw Error('板が不明、未対応の一致方式、構文が不正な正規表現は配信できません');
  const props=PropertiesService.getScriptProperties(),overrides=JSON.parse(props.getProperty('REVIEW_OVERRIDES')||'{}');const key=ngConditionKey_(c);
  overrides[key]={state,reason:'manual_review',minLevel:5,minVotes:1};props.setProperty('REVIEW_OVERRIDES',JSON.stringify(overrides));reviewPersonalNg();
 }
@@ -97,10 +99,51 @@ function setReviewedSharedNgRevoked_(key,revoked){
 }
 function setSelectedReviewedSharedNgRevoked_(revoked){
  const book=SpreadsheetApp.getActiveSpreadsheet();if(!book||book.getId()!==NG_CONFIG.spreadsheetId)throw Error('共有NGの管理シートから実行してください');
- const sheet=book.getActiveSheet(),range=sheet.getActiveRange();if(sheet.getName()!=='Inbox'||!range||range.getRow()<2)throw Error('Inboxの対象行を選んでください');
+ const sheet=book.getActiveSheet(),range=sheet.getActiveRange();if(!['Inbox','Reviewed',...NG_REVIEW_SHEETS].includes(sheet.getName())||!range||range.getRow()<2)throw Error('Inboxまたは種類別の審査シートで対象行を選んでください');
  const row=sheet.getRange(range.getRow(),1,1,9).getValues()[0],condition=JSON.parse(row[2]);
  setReviewedSharedNgRevoked_(ngConditionKey_(condition),revoked);
  SpreadsheetApp.getUi().alert(revoked?'条件を配信停止にしました。次回の配信更新で反映します。':'配信停止を解除しました。審査条件を満たす場合、次回の配信更新で再開します。');
 }
 function revokeSelectedReviewedSharedNg(){setSelectedReviewedSharedNgRevoked_(true);}
 function resumeSelectedReviewedSharedNg(){setSelectedReviewedSharedNgRevoked_(false);}
+
+/** Pending queue plus reviewed history, ordered independently of sheet migration. */
+function ngAllPersonalRows_(book){
+ const unique=new Map();let serial=0;
+ for(const name of ['Reviewed',...NG_REVIEW_SHEETS,'Inbox']){const sheet=book.getSheetByName(name);if(!sheet)continue;
+  for(const row of ngRows_(sheet)){if(ngEmptyInboxRow_(row))continue;const key=row[0]&&row[1]?row[1]+':'+row[0]:'invalid:'+serial++;unique.set(key,row);}
+ }
+ return Array.from(unique.values()).sort((a,b)=>String(a[4]).localeCompare(String(b[4])));
+}
+function ngWritePersonalRows_(sheet,rows){
+ const previous=Math.max(0,sheet.getLastRow()-1);
+ if(rows.length)sheet.getRange(2,1,rows.length,9).setValues(rows);
+ SpreadsheetApp.flush();
+ if(previous>rows.length)sheet.getRange(rows.length+2,1,previous-rows.length,9).clearContent();
+}
+const NG_REVIEW_SHEETS=['NG_ID','NG_Word','NG_Wacchoi','NG_Name','NG_Reporter','NG_Other'];
+function ngReviewSheetName_(row){
+ try{const kind=JSON.parse(row[2]).kind;return kind==='id'?'NG_ID':kind==='keyword'?'NG_Word':['wacchoi','prefix','suffix'].includes(kind)?'NG_Wacchoi':['name','trip'].includes(kind)?'NG_Name':kind==='reporter'?'NG_Reporter':'NG_Other';}catch(invalid){return 'NG_Other';}
+}
+function ngCommitPersonalRows_(book,rows){
+ for(const name of NG_REVIEW_SHEETS)ngWritePersonalRows_(book.getSheetByName(name),rows.filter(row=>row[6]!=='awaiting_policy'&&ngReviewSheetName_(row)===name));
+ ngWritePersonalRows_(book.getSheetByName('Inbox'),rows.filter(row=>row[6]==='awaiting_policy'));
+ const legacy=book.getSheetByName('Reviewed');if(legacy)ngWritePersonalRows_(legacy,[]);
+}
+/** Write-ahead snapshot makes moves and retries idempotent. */
+function ngStorePersonalRows_(book,rows){
+ const props=PropertiesService.getScriptProperties();
+ ngWritePersonalRows_(book.getSheetByName('ReviewTransfer'),rows);
+ props.setProperty('REVIEW_TRANSFER',JSON.stringify({phase:'staged',count:rows.length}));
+ ngRecoverPersonalTransfer_(book);
+ const cache=CacheService.getScriptCache();if(cache.remove)cache.remove('reviewed-feed-v9');
+}
+function ngRecoverPersonalTransfer_(book){
+ const props=PropertiesService.getScriptProperties(),raw=props.getProperty('REVIEW_TRANSFER');if(!raw)return;
+ const journal=JSON.parse(raw),sheet=book.getSheetByName('ReviewTransfer');
+ if(journal.phase==='staged'){
+  const rows=ngRows_(sheet);if(rows.length!==journal.count)throw Error('Review transfer snapshot incomplete');
+  ngCommitPersonalRows_(book,rows);SpreadsheetApp.flush();props.setProperty('REVIEW_TRANSFER',JSON.stringify({phase:'committed'}));
+ }else if(journal.phase!=='committed')throw Error('Invalid review transfer phase');
+ ngWritePersonalRows_(sheet,[]);props.deleteProperty('REVIEW_TRANSFER');
+}

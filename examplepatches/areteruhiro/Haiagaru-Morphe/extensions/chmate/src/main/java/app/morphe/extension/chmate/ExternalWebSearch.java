@@ -12,6 +12,12 @@ import android.widget.Toast;
 public final class ExternalWebSearch {
     private ExternalWebSearch() { }
 
+    /** All native launch boundaries use this, including newer for-result launchers. */
+    public static void prepare(Intent intent) {
+        if (intent != null && Intent.ACTION_WEB_SEARCH.equals(intent.getAction()))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    }
+
     public static void open(Context context, String query) {
         if (context == null || query == null || query.trim().isEmpty()) return;
         Context application = context.getApplicationContext();

@@ -4,14 +4,16 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.matchSingle
 import app.morphe.util.returnEarly
 
-val classConstructorPatch = bytecodePatch {
-    execute {
-        ClassConstructorFingerprint.matchSingle().method.returnEarly()
+val classConstructorPatch =
+    bytecodePatch {
+        execute {
+            ClassConstructorFingerprint.matchSingle().method.returnEarly()
+        }
     }
-}
 
-val invokePatch = bytecodePatch {
-    execute {
-        InvokeFingerprint.matchSingle().method.returnEarly(null)
+val invokePatch =
+    bytecodePatch {
+        execute {
+            InvokeFingerprint.matchSingle().method.returnEarly(null)
+        }
     }
-}

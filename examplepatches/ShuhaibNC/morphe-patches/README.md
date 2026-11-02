@@ -32,7 +32,7 @@ A collection of patches that I think would be useful to add, based on features, 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.16.0](https://github.com/ShuhaibNC/morphe-patches/releases/tag/v1.16.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
+> **[v1.17.0](https://github.com/ShuhaibNC/morphe-patches/releases/tag/v1.17.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;32 patches total
 
 <details open>
 <summary>📦 Where is my Train&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
@@ -65,8 +65,8 @@ A collection of patches that I think would be useful to add, based on features, 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Amoled Dark Theme](#amoled-dark-theme) | Adds amoled dark graphics to the app. |  |
+| [Enable Premium](#enable-premium) | Unlocks Premium mode, map themes, rivers, mountains, deserts, oceanic trenches, oceanic currents, lakes, islands and winds |  |
 | [Remove Unwanted Promotional Icons and Ads](#remove-unwanted-promotional-icons-and-ads) | Removes bloated promotional icons and ads from the home screen. |  |
-| [Unlock Premium](#unlock-premium) | Unlocks Premium mode, map themes, rivers, mountains, deserts, oceanic trenches, oceanic currents, lakes, islands and winds |  |
 
 </details>
 
@@ -204,6 +204,21 @@ A collection of patches that I think would be useful to add, based on features, 
 </details>
 
 <details open>
+<summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 20.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock PiP and Bg Play Features in Youtube](#unlock-pip-and-bg-play-features-in-youtube) | Unlocks picture-in-picture mode and background play features in Youtube. |  |
+
+</details>
+
+<details open>
 <summary>📦 Manglish Keyboard&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -230,6 +245,21 @@ A collection of patches that I think would be useful to add, based on features, 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium](#unlock-premium) | Premium features are unlocked and ads are disabled. |  |
+
+</details>
+
+<details open>
+<summary>📦 TrebEdit&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.5.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium Features](#unlock-premium-features) | Unlocks lifetime access to TrebEdit Premium. |  |
 
 </details>
 
@@ -275,21 +305,6 @@ A collection of patches that I think would be useful to add, based on features, 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Reverso Context Premium](#unlock-reverso-context-premium) | All Premium features are unlocked. |  |
-
-</details>
-
-<details open>
-<summary>📦 TrebEdit&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 3.5.5 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock TrebEdit Premium](#unlock-trebedit-premium) | Unlocks lifetime access to TrebEdit Premium. |  |
 
 </details>
 

@@ -3,6 +3,9 @@ name: Release
 on:
   workflow_dispatch:
   push:
+    # The e2e GIFs' throwaway branches (docs/hosting.md): nothing to build.
+    branches-ignore:
+      - 'e2e-gifs/**'
     # Skip pushes that only change files the build doesn't use.
     paths-ignore:
       - '**.md'

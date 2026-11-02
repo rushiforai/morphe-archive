@@ -8,6 +8,7 @@ import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.feed.methodsHolding
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
@@ -106,7 +107,7 @@ internal fun soundButtonGates(method: Method, key: String = SOUND_BUTTON_KEY): L
  * Hands the reel speaker button's check to the extension before Facebook branches on it. Refuses
  * unless exactly one gate jumps past [SOUND_BUTTON_KEY] outside the extension.
  */
-internal fun BytecodePatchContext.hideReelSoundButton() {
+internal fun BytecodePatchContext.hideReelSoundButton(): SpeakerSite? {
     val found = classDefByStrings(SOUND_BUTTON_KEY, StringComparisonType.EQUALS)
         .filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.distinctBy { it.type }
         .flatMap { owner -> methodsHolding(owner, SOUND_BUTTON_KEY).flatMap { method -> soundButtonGates(method).map { owner.type to method } } }
@@ -127,10 +128,14 @@ internal fun BytecodePatchContext.hideReelSoundButton() {
             move-result v${gate.answer}
         """,
     )
+    return null
 }
 
 /** A static call at [call] whose answer of [type] goes by move-result-object into [register], null-checked by the if-eqz at [call] + 2. */
 internal data class SpeakerBuild(val call: Int, val register: Int, val type: String)
+
+/** The [build] in [method] of [owner] whose answer goes through the extension. */
+internal class SpeakerSite(val owner: String, val method: MutableMethod, val build: SpeakerBuild)
 
 /** The types [method] news up. */
 internal fun newInstanceTypes(method: Method): Set<String> =
@@ -182,7 +187,7 @@ private fun buildsIn(method: Method, opcodes: Set<Opcode>, buildsSpeaker: (Metho
  * Refuses unless exactly one piece the footer news up calls a static builder of the sound toggle
  * that way.
  */
-internal fun BytecodePatchContext.hideReelFooterSoundButton() {
+internal fun BytecodePatchContext.hideReelFooterSoundButton(): SpeakerSite {
     fun outsideExtension(type: String) = !type.startsWith(EXTENSION_PACKAGE)
     val toggles = classDefByStrings(SOUND_TOGGLE_STRING, StringComparisonType.EQUALS)
         .map { it.type }.filter(::outsideExtension).toSet()
@@ -195,7 +200,7 @@ internal fun BytecodePatchContext.hideReelFooterSoundButton() {
     }
     val found = pieces.filter(::outsideExtension).mapNotNull { classDefByOrNull(it) }
         .flatMap { piece -> piece.methods.filter { speakerBuilds(it, buildsSpeaker).isNotEmpty() }.map { piece.type to it } }
-    hookSpeakerBuild(
+    return hookSpeakerBuild(
         found, "expected one piece of \"$FOOTER_COMPONENT\" to build the speaker button, found ${found.size}",
     ) { speakerBuilds(it, buildsSpeaker) }
 }
@@ -206,7 +211,7 @@ internal fun BytecodePatchContext.hideReelFooterSoundButton() {
  * news up the sound toggle under [SOUND_BUTTON_KEY] and answers it wrapped, or null, and render adds
  * what comes back. Refuses unless exactly one method of [SPEAKER_CONTROLS] calls such a builder that way.
  */
-private fun BytecodePatchContext.hideControlsSpeakerBuild() {
+private fun BytecodePatchContext.hideControlsSpeakerBuild(): SpeakerSite {
     val toggles = classDefByStrings(SOUND_TOGGLE_STRING, StringComparisonType.EQUALS)
         .map { it.type }.filterNot { it.startsWith(EXTENSION_PACKAGE) }.toSet()
     if (toggles.isEmpty()) throw PatchException("$PATCH: no class loads \"$SOUND_TOGGLE_STRING\"")
@@ -217,7 +222,7 @@ private fun BytecodePatchContext.hideControlsSpeakerBuild() {
         .filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.distinctBy { it.type }
         .flatMap { owner -> methodsHolding(owner, SPEAKER_CONTROLS).map { owner.type to it } }
         .filter { (_, method) -> controlSpeakerBuilds(method, buildsSpeaker).isNotEmpty() }
-    hookSpeakerBuild(
+    return hookSpeakerBuild(
         found,
         "expected one static check whose false skips \"$SOUND_BUTTON_KEY\", or one method of \"$SPEAKER_CONTROLS\" " +
             "building the speaker button, found ${found.size}",
@@ -228,12 +233,12 @@ private fun BytecodePatchContext.hideControlsSpeakerBuild() {
 internal fun buildsControlsSpeaker(method: Method, call: MethodReference, toggles: Set<String>): Boolean =
     isCalledBy(method, call) && holdsString(method, SOUND_BUTTON_KEY) && newInstanceTypes(method).any(toggles::contains)
 
-/** The one place in [found] that builds the speaker, hooked on the builder's answer before the null check. */
+/** The one place in [found] that builds the speaker, whose answer goes through the extension before the null check. */
 private fun BytecodePatchContext.hookSpeakerBuild(
     found: List<Pair<String, Method>>,
     problem: String,
     builds: (Method) -> List<SpeakerBuild>,
-) {
+): SpeakerSite {
     val (owner, holder) = found.singleOrNull() ?: throw PatchException("$PATCH: $problem")
     val method = mutableClassDefBy(owner).methods.single {
         it.name == holder.name && it.parameterTypes.map(CharSequence::toString) == holder.parameterTypes.map(CharSequence::toString)
@@ -250,4 +255,5 @@ private fun BytecodePatchContext.hookSpeakerBuild(
             check-cast v${build.register}, ${build.type}
         """,
     )
+    return SpeakerSite(owner, method, build)
 }

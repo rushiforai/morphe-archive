@@ -1,3 +1,18 @@
+## [1.24.0](https://github.com/lildanlid1/Cordly/compare/v1.23.0...v1.24.0) (2026-11-01)
+
+### ✨ New Features
+
+* **Discord - Server info:** Preview artwork and emojis by tapping images, and hold items to start multiple selection
+
+### 🐛 Bug Fixes
+
+* **Discord - Server info:** Fixed discarding download errors that prevented identifying failed emoji exports
+
+### 🔧 Improvements
+
+* **Discord - Server info:** Move artwork downloads onto images, open galleries from counters, and colour boosts pink
+* **Discord - Server info:** Validate archive entries and saved file sizes before reporting successful exports
+
 ## 1.23.0 (2026-10-31)
 
 ### ✨ New Features

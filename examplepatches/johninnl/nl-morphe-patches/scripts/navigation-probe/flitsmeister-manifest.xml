@@ -1,0 +1,1 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="nl.johninnl.flitsmeisterprobe"><uses-sdk android:minSdkVersion="32" android:targetSdkVersion="32"/><application android:label="Flitsmeister navigation probe"/><instrumentation android:name=".FlitsmeisterProbe" android:targetPackage="nl.flitsmeister"/></manifest>

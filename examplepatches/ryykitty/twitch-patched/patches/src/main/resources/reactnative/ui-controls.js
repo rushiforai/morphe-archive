@@ -95,7 +95,7 @@
     function supportHost(module, name, header) {
         runtime.target(module, name, function (original, React, policy, require) {
             var Row = require(__TWITCH_UI_SKYLINE_ROW_MODULE__)[skylineRowName];
-            var Trophy = header && __TWITCH_UI_LEADERBOARD_MODULE__ !== null && require(__TWITCH_UI_LEADERBOARD_MODULE__).SkylineLeaderboardTrophy;
+            var Trophy = header && require(__TWITCH_UI_LEADERBOARD_MODULE__).SkylineLeaderboardTrophy;
             return function (props) {
                 var hidden = useOptions(React, header ? 'vertical_header' : 'vertical_support', ['subscribe', 'gift', 'bits', 'leaderboard']);
                 var result = original.apply(this, arguments);
@@ -133,7 +133,6 @@
         };
     });
     function extensions(module, name) {
-        if (module === null) return;
         runtime.decorate(module, name, function (original, React) {
             return function (props) {
                 var hidden = runtime.ui.useEnabled(React, 'hide_channel_extensions');

@@ -42,13 +42,55 @@ So after any fingerprint change, verify *which* method was modified:
    of the **one-parameter** constructor, not the two-parameter sibling. For `pqy`, the patch's own
    edit must be visible as `this.c = false;` (the `instance-of` replaced by `const/4`).
 
+   At 1.90.05 (re-derived 2026-11-01) the same bundle changes exactly 33 classes, verified two ways
+   with `apk/scratch/VerifyPatched.java` (a bytecode diff against the stock dex): the set is
+   role-for-role identical to the same bundle's 1.89.09 set, and the method-level dump
+   (`VerifyMethods.java`) shows each hook at instruction 0 of the intended method. The 1.90.05 name
+   map, where it differs from 1.89.09:
+
+   | 1.89.09 | 1.90.05 | hook |
+   |---|---|---|
+   | `Lahip;` | `Lahie;` | user-agent spoof |
+   | `Laxg;` | `Laxe;` | DataSpec build (method `a()` kept; `Laxe;` is a name reused from an older release) |
+   | `Lcfr;` | `Lcfq;` | Extension settings-bridge hook and the settings-panel hide hook (`ModSettingsUi.onSettingsHidden`) |
+   | `Lfnf;` | `Lfna;` | skip-ad countdown (method `b(I)` kept; `Lfna;` is a reused name, measured on both dexes) |
+   | `Lgan;` | `Lgai;` | SponsorBlock skip-card bridge host (`Lgai;` is a reused name, measured on both dexes) |
+   | `Lgum;` | `Lguk;` | skip-Ad-button ctor (the SkipButtonCard anchor; its `b(I)` is a countdown site too in 1.90.05) |
+   | `Lguo;` | `Lgum;` | seek-bar binder |
+   | `Lmht;` | `Lmit;` | **ad-slot accessors** (see below) |
+   | `Lmml;` | `Lmnd;` | PlayerBytes layout bootstrap |
+   | `Lmvt;` | `Lmwk;` | PlayerBytes slot detector |
+   | `Lmvy;` | `Lmwp;` | ad-break renderer |
+   | `Lnqu;` | `Lnrk;` | QUIC engine gate |
+   | `Loem;` | `Lofe;` | version spoofs |
+   | `Lory;` | `Losz;` | streaming-data ctor (the `oqb` successor; still the **one-parameter** ctor of `Lzlo;`) |
+   | `Lovc;` | `Lowe;` | innertube URI builder |
+   | `Lpsx;` | `Lpua;` | media-data-source ctor (the `"ump"` literal) |
+   | `Lpye;` | `Lpyf;` | events delegator (`onSeeked`/`onPlaying`/…). **`Lpyf;` names the *wrapper* in 1.89.09 and the *delegator* in 1.90.05** — the two names rotate between the roles |
+   | `Lpyf;` | `Lpyg;` | player wrapper (SponsorBlock hooks + the three generated bridges; interface now `Lqji;`, enum `Labnu;`) |
+   | `Lshw;` | `Lshx;` | playability |
+   | `Lubk;` | `Lubp;` | ad-break request |
+   | `Lscr;` | unchanged | video-quality ctor (the class name is the same on 1.89.09 and 1.90.05) |
+
+   **The ad-slot accessors moved house in 1.90.05**: the placements field now lives on
+   **StreamingData**, not on the player response. The pair is `Lmit;->c(Lzlo;)Lvpn;` /
+   `Lmit;->d(Lzlo;Ljava/util/List;)Lvpn;` in the same utility class as the CISA lookup helper the
+   hooked detector calls; both read `Lzlo;->n:Lwzv;` (1.88.10 read `Lzjp;->n:Lwxq;` off the player
+   response). 1.89.09 still reads `Lzmj;->n:Lxau;` (`Lmht;->k` / `l`). The 1.90.05 caller pattern
+   is unchanged: `d` 3x from the neutered bootstrap (`mnd.a`) and 3x from the unhooked reader
+   (`mtb.r`), `c` as the shorthand. Measured: exactly one static method app-wide per shape. The
+   slot-list singleton the injected early return hands back is `Lvul;->a:Lvpn;`, mined from the
+   renderer method and returned with `sget-object`.
+
    With **SponsorBlock** enabled (it is `default = true`, so default runs include it), the set
-   gains exactly three classes, each explainable: `pwe` (the loadVideo/seek hooks + the three
-   generated bridge methods), `pwd` (the onSeeked hook) and `ablw` (the seek-source enum: its clinit
-   was matched to mine the constant, and the bridge references the field). The bridge bodies read
-   `iget-object Lpwe;->a:Lqhg;` → `invoke-interface Lqhg;->e()J` / `->g()J` / `->F(J, Lablw;)V` with
-   `sget-object Lablw;->a:Lablw;` — read them back with the `Inspect dump` harness before trusting a
-   green run.
+   gains exactly three classes. At 1.88.10 those are `pwe` (the loadVideo/seek hooks + the three
+   generated bridge methods), `pwd` (the onSeeked hook) and `ablw` (the seek-source enum). The
+   1.88.10 bridge bodies read `iget-object Lpwe;->a:Lqhg;` → `invoke-interface Lqhg;->e()J` /
+   `->g()J` / `->F(J, Lablw;)V` with `sget-object Lablw;->a:Lablw;`. At 1.90.05 the same three
+   roles are `pyg`, `pyf` and `abnu`: `iget-object Lpyg;->a:Lqji;` → `invoke-interface Lqji;->e()J`
+   / `->g()J` / `->F(J, Labnu;)V`, and the enum constant is the field `Labnu.<clinit>` stores after
+   `SEEK_SOURCE_UNKNOWN`. Read the patched dex back with the `Inspect dump` harness before trusting
+   a green run.
 
 The patcher's other silent traps — `parameters` semantics, comparing opcodes by enum rather than by
 the smali mnemonic, and the rest — are listed in [INTERNALS.md](INTERNALS.md).
@@ -70,7 +112,7 @@ the smali mnemonic, and the rest — are listed in [INTERNALS.md](INTERNALS.md).
 | SponsorBlock `onSeeked` | `pwd.u(J, Lablw)` | ✅ the `onSeeked(positionMillis=%d)` literal (1) + `J` first parameter | **yes** |
 | SponsorBlock time-info snapshot | `pwe.A()` — **not hooked, mined** | ✅ wrapper class literal + a static call with the exact TimeInfo prototype `(J J J J I J J String) -> reference`: 2 matches app-wide (`pwe.A` and `qkl.<clinit>`), the class literal separates them | **yes** |
 | SponsorBlock seek-source enum | `ablw.<clinit>` — **mined** | ✅ the `SEEK_SOURCE_UNKNOWN` const-string, 1 method app-wide; the field stored right after it is the constant the seek bridge loads | **yes** |
-| SponsorBlock seek-bar binder | `gtw.<init>(View, …)` in 1.88.10 / `guo.<init>(View, …)` in 1.89.09 | ✅ **the five inlined `R.id.seekbar*` ints** (1.88.10: `0x7f0b0a23`/`a25`/`a26`/`a29`/`a2a`; 1.89.09: `0x7f0b0a39`/`a3b`/`a3c`/`a3f`/`a40`). Matched against supported version sets | **yes** (resource ids are inlined constants; R8 cannot rename them) |
+| SponsorBlock seek-bar binder | `gtw.<init>(View, …)` in 1.88.10 / `guo.<init>(View, …)` in 1.89.09 / `gum.<init>(…)` in 1.90.05 | ✅ **the five inlined `R.id.seekbar*` ints** (1.88.10: `0x7f0b0a23`/`a25`/`a26`/`a29`/`a2a`; 1.89.09: `0x7f0b0a39`/`a3b`/`a3c`/`a3f`/`a40`; 1.90.05: `0x7f0b0a3b`/`a3d`/`a3e`/`a41`/`a42`). The code matches the 1.89.09 and 1.90.05 sets; the 1.88.10 ids are the historical anchor and are not in `SEEKBAR_SETS` | **yes** (resource ids are inlined constants; R8 cannot rename them) |
 | SponsorBlock seek-bar timeline | `gtw.e(J,J,J,J)V` | ✅ same class + the `(J J J J)V` shape + a `setLayoutParams` call. The class also has a synthetic `(J J J J)V` bridge (`k`) that only forwards to `Lrve;->e`, so the layout call is what separates them — verified in the built dex, where the bridge is untouched | **yes** |
 | the seek-bar ids as anchors | — | four ids: 1 method each; `R.id.seekbar` alone: 2 (`gtw.<init>` and `SeekBarPreference.a`) — hence the row above | |
 | "is the player-controls view alive during playback?" | — | **Yes, it is built at launch** — an earlier note here claimed otherwise, and that was a *symptom of our own bug*: the first marker build injected `invoke-static {v0, v2, v4, v6}` into `gtw.e(JJJJ)V`, ART rejected the class (`long or double parameter at index 0 is not a pair`), and the whole watch UI failed to build, so the hook never ran. Dex 35c lists *every* register, so four longs need eight entries (it holds five) — **wide arguments require `invoke-*-range`**. Moving them into locals instead is worse: it clobbers the method's own registers and trips the same verifier |
@@ -192,7 +234,7 @@ with jadx on that dex alone, which agreed):
 | Hide ads renderer | returns `List` + constructs `java.util.PriorityQueue` | 1 (of 10 such constructor sites) | `List` + `oqi.F()` + a `new-instance` window |
 | Hide ads request | the log template alone, plus a "returns a reference" guard for the injected `return-object` | 1 | `Lonm;` / 13 parameters / `tyj.s` |
 | Hide ads slot | `Z` + one reference parameter + the class holds the CISA literal + the body calls `isPresent()` | 1 (shape alone: 12) | `Lmuf;` / `a` + the `mgn.g` lookup |
-| Ad-slot accessors | **names**, deliberately: 1.88.10: `Lmgn;` `c(Lzjp;)` and `d(Lzjp;Ljava/util/List;)`; 1.89.09: `Lmht;` `k(Lzmj;)` and `l(Lzmj;Ljava/util/List;)`, both returning the slot list (`Lvmo;` in 1.88.10, `Lvpr;` in 1.89.09) | 2 | `Lmgn;` (1.88.10) / `Lmht;` (1.89.09) |
+| Ad-slot accessors | **names**, deliberately: 1.88.10: `Lmgn;` `c(Lzjp;)` and `d(Lzjp;Ljava/util/List;)`; 1.89.09: `Lmht;` `k(Lzmj;)` and `l(Lzmj;Ljava/util/List;)`; 1.90.05: `Lmit;` `c(Lzlo;)` and `d(Lzlo;Ljava/util/List;)` — all returning the slot list (`Lvmo;`/`Lvpr;`/`Lvpn;`). In 1.90.05 the parameter is the **StreamingData** proto, not the player response: the placements field moved | 2 | `Lmgn;` (1.88.10) / `Lmht;` (1.89.09) / `Lmit;` (1.90.05) |
 | Ad cue-point callback | the **unobfuscated** media-interfaces name `CuePointDataProviderWrapper$NativeCallback.onCuepointList([B)` -- the server's statement of where the ad breaks are | 1 | not obfuscated |
 | Hide ads layout | unchanged (the `…PlayerAds count: ` string) | 1 | already durable |
 | playability adult | boxed `Boolean`, no parameters, the class holds the `…playability/PlayabilityPolicy` logger literal | 1 | `Lsfp;` / `f` |
@@ -231,7 +273,7 @@ same harness discipline; "matches" is what the anchor as written measures:
 
 | target | anchor | matches |
 |---|---|---|
-| the settings click handler(s) | `(Preference)Z` method holding the literal `developer_settings`, enumerated via `classDefByStrings` (the patcher 2.x name of `getAllClassesWithString`; the hidden method delegates to it) (2 stacks: `fzb`, `fqa`) | 2, both intended |
+| the settings click handler(s) | `(Preference)Z` method holding the literal `developer_settings`, enumerated via `classDefByStrings` (the patcher 2.x name of `getAllClassesWithString`; the hidden method delegates to it) (2 stacks: `fzb`, `fqa` in 1.88.10; `fzc`, `fqa` in 1.90.05) | 2, both intended |
 | the fragment the branch opens | the `const-class` after that literal, validated by requiring its class to hold the `"Developer Settings"` title literal | 1 per stack (`fyp` / `fnj`) |
 | the sub-screen's title site | the class's methods holding `"Developer Settings"` | 1 per class (`fyp.W`, `fnj.W`) |
 | the sub-screen's wiring skip | the class's only `()V` method with exactly one `0x7f1800xx` literal (the `xml` id window), patched after the single-int call that follows it (`o(I)`) | 1 per class (`fyp.aD`, `fnj.aD`) |

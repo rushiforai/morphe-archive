@@ -2,6 +2,7 @@ package app.paresh.patches.ticktick.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.returnEarly
 import app.paresh.patches.ticktick.shared.Constants.COMPATIBILITY_TICKTICK
 
 @Suppress("unused")
@@ -60,5 +61,9 @@ val tickTickPremiumPatch = bytecodePatch(
             const/4 v0, 0x1
             return v0
         """)
+
+        // AlertServiceHandler tamper check → always false (fixes timed-reminder scheduling;
+        // forced isPro() makes its blank User/SignUserInfo probes look tampered, skipping setAlarm)
+        AlertServiceTamperCheckFingerprint.method.returnEarly(false)
     }
 }

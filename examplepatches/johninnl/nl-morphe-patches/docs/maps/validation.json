@@ -1,0 +1,215 @@
+{
+  "target": {
+    "package": "com.google.android.apps.maps",
+    "version": "26.43.05.1002020710",
+    "version_code": 1068844719,
+    "min_sdk": 29,
+    "version_codes": {
+      "ARM64_V8A": 1068844719,
+      "ARMEABI_V7A": 1068844719,
+      "X86_64": 1068844719,
+      "X86": 1068844719
+    },
+    "input_format": "APK",
+    "input_sha256": "81506a2c54fc9a8faca34c18af7619d9c9d26cbfbe799b66884a59ac17791004"
+  },
+  "upstream": {
+    "repository": "https://github.com/bearinmindcat/morphe-patches",
+    "commit": "bd522fe2ac9397c8af5931be3816e74534d61b4e",
+    "maps_patches": 30
+  },
+  "morphe": {
+    "validation_bundle_project_version": "1.24.1",
+    "validation_bundle_sha256": "7a2854111d1f7196c0ab16e8f4124ebccd72d961b034bcdc2e105af827dfd661",
+    "desktop_version": "1.19.1",
+    "bytecode_mode": "FULL",
+    "compatibility_checked": true,
+    "force_used": false,
+    "default_patches": 27,
+    "covered_patches": 30
+  },
+  "apk_profiles": [
+    {
+      "name": "defaults",
+      "applied_patches": 27,
+      "failed_patches": 0,
+      "assembler_errors": 0,
+      "signature_v2_verified": true,
+      "direct_references_checked": 8089,
+      "unresolved_references": 0,
+      "inaccessible_native_references": 0,
+      "native_observation_entry_hooks_verified": true,
+      "output_apk_sha256": "f14323d8973d5d3b2e4473ddcbcc6fc73b595c9ef58b56aa36c6d9a78745df10",
+      "report": ".analysis/google-maps/validation/access/defaults.json"
+    },
+    {
+      "name": "microg-re",
+      "applied_patches": 28,
+      "failed_patches": 0,
+      "assembler_errors": 0,
+      "signature_v2_verified": true,
+      "direct_references_checked": 8030,
+      "unresolved_references": 0,
+      "inaccessible_native_references": 0,
+      "native_observation_entry_hooks_verified": true,
+      "output_apk_sha256": "31add7fd5531ffabd09793d44affb4b2632e5e7d267f2f71e98db6e8615d9150",
+      "report": ".analysis/google-maps/validation/access/microg-re.json"
+    },
+    {
+      "name": "original-microg",
+      "applied_patches": 28,
+      "failed_patches": 0,
+      "assembler_errors": 0,
+      "signature_v2_verified": true,
+      "direct_references_checked": 8030,
+      "unresolved_references": 0,
+      "inaccessible_native_references": 0,
+      "native_observation_entry_hooks_verified": true,
+      "output_apk_sha256": "cb484650a190b5b82a1590c7ca094bc4e0f0f544a76691542326278e4e69b60c",
+      "report": ".analysis/google-maps/validation/access/original-microg.json"
+    },
+    {
+      "name": "media",
+      "applied_patches": 28,
+      "failed_patches": 0,
+      "assembler_errors": 0,
+      "signature_v2_verified": true,
+      "direct_references_checked": 8089,
+      "unresolved_references": 0,
+      "inaccessible_native_references": 0,
+      "native_observation_entry_hooks_verified": true,
+      "output_apk_sha256": "ecd68fd82427caa018930b7a58804fb829166958dd03ac6765a63c3f7e166dc4",
+      "report": ".analysis/google-maps/validation/access/media.json"
+    }
+  ],
+  "checked_at": "2026-11-02T02:54:03.814816+00:00",
+  "regression": {
+    "maps_extension_tests": 42,
+    "other_extension_tests": 166,
+    "patch_tests": 21,
+    "python_tests": 414,
+    "python_skipped": 45,
+    "node_release_tests": 47,
+    "medium_tool_tests": 15,
+    "medium_abi_collisions": 0,
+    "app_pages_checked": 104,
+    "rendered_docs_html_checked": 181
+  },
+  "runtime": {
+    "platform": "Android 16 arm64 emulator",
+    "evidence_boundary": "Controlled local publisher replay validates the Maps consumer; it does not establish native provider road accuracy or physical driving.",
+    "cases": [
+      {
+        "case": "unknown",
+        "passed": true,
+        "source": "nl.flitsmeister",
+        "external": false,
+        "zone_active": false,
+        "native_injected_items": 0,
+        "compact_attached": true
+      },
+      {
+        "case": "zone",
+        "passed": true,
+        "source": "nl.flitsmeister",
+        "external": true,
+        "zone_active": true,
+        "native_injected_items": 2,
+        "compact_attached": true
+      },
+      {
+        "case": "zero",
+        "passed": true,
+        "source": "com.waze",
+        "external": true,
+        "zone_active": false,
+        "native_injected_items": 0,
+        "compact_attached": true
+      },
+      {
+        "case": "malformed",
+        "passed": true,
+        "source": "nl.flitsmeister",
+        "external": true,
+        "zone_active": false,
+        "native_injected_items": 0,
+        "compact_attached": true
+      },
+      {
+        "case": "clear",
+        "passed": true,
+        "source": "nl.flitsmeister",
+        "external": false,
+        "zone_active": false,
+        "native_injected_items": 0,
+        "compact_attached": true
+      },
+      {
+        "case": "legacy",
+        "passed": true,
+        "source": "waze_bridge",
+        "external": false,
+        "zone_active": false,
+        "native_injected_items": 2,
+        "compact_attached": false
+      },
+      {
+        "case": "expiry",
+        "passed": true,
+        "source": "nl.flitsmeister",
+        "external": false,
+        "zone_active": false,
+        "native_injected_items": 0,
+        "compact_attached": true
+      },
+      {
+        "case": "spoof",
+        "passed": true,
+        "source": "com.waze",
+        "external": false,
+        "zone_active": false,
+        "native_injected_items": 0,
+        "compact_attached": true
+      }
+    ],
+    "native_units_bridge_explicit": {
+      "kilometers": 1,
+      "miles": 0
+    },
+    "visible_police_and_camera_pins_verified": true,
+    "ahead_note_visible": true,
+    "normal_search_and_place_details_verified": true,
+    "local_save_unsave_verified": true,
+    "route_preview_verified": true,
+    "fatal_or_linkage_errors": 0,
+    "waze_zone_to_clear_same_process_verified": true,
+    "total_replay_checks": 9,
+    "test_publishers_and_probe_uninstalled": true,
+    "settings_restored_source": "off",
+    "tested_patched_apk_sha256": "2e82bda76f047ab2066fbb6d2a71cc48f2d72affe1512fa4ed732c7e78d189fc",
+    "validated_patched_apk_sha256": "f14323d8973d5d3b2e4473ddcbcc6fc73b595c9ef58b56aa36c6d9a78745df10",
+    "all_9299_zip_entries_byte_identical": true,
+    "canonical_zip_payload_sha256": "3a0ca90dfb6253595fabd352789af103f46beb31798c68ecf148ff1fbe25855c",
+    "signing_certificate_sha256": "b16b4097649da960b9788350f1b7ef394cf23b37795659782a4b29913918f212"
+  },
+  "publication": {
+    "version": "1.25.0",
+    "release_url": "https://github.com/johninnl/nl-morphe-patches/releases/tag/v1.25.0",
+    "source_commit": "f57abb97c9eb11de5792dc50d66c3bab62d4489a",
+    "release_commit": "9d2aa53eb8ec8e78e3e1ed47d31f5ceebaf6075f",
+    "release_workflow": "https://github.com/johninnl/nl-morphe-patches/actions/runs/41380498959",
+    "release_workflow_conclusion": "success",
+    "morphe_discovery_verified": true,
+    "trusted_ed25519_signature_verified": true,
+    "release_bundle_sha256": "92263759a8a6694409cff395098d78a04e70da1091e3cc073bfb8f7841af9ee7",
+    "maps_compiled_entries_compared": 184,
+    "changed_entries": [],
+    "maps_extension_sha256": "23eaf042c209ad4d532a2a489f5c045db39ac6959bf9d1c33ff9977029bcf801",
+    "tested_bundle_sha256": "7a2854111d1f7196c0ab16e8f4124ebccd72d961b034bcdc2e105af827dfd661",
+    "published_default_application_passed": true,
+    "published_default_applied": 27,
+    "published_default_apk_sha256": "858190598b592cbde0363a93727fb6bea1198fc87e927b2830d14a5ff7e668dc",
+    "runtime_tested_and_published_patched_apk_entry_names_identical": true,
+    "runtime_tested_and_published_patched_apk_changed_entries": []
+  }
+}

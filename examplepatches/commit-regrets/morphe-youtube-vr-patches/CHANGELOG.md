@@ -1,3 +1,13 @@
+## [1.30.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/compare/v1.29.0...v1.30.0) (2026-11-01)
+
+### ✨ New Features
+
+* support YouTube VR 1.90.05, drop 1.88.10
+    Every fingerprint was re-derived against the 1.90.05 dex and the whole  
+    patch set verified on the device: the spoof fetches and injects its  
+    ladder, ad slots stay empty, 8K is applied, SponsorBlock segments and  
+    markers … ([463dc48](https://github.com/commit-regrets/morphe-youtube-vr-patches/commit/463dc4842459709290b812f5e6a210002ec8e31e))
+
 ## [1.29.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/compare/v1.28.0...v1.29.0) (2026-10-30)
 
 ### 🐛 Bug Fixes

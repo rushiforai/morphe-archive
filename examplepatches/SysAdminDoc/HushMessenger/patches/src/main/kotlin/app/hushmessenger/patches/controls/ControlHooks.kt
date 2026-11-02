@@ -262,7 +262,7 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
                 STORY_SUGGESTIONS_QUERY in strings + method.tableStrings(stringTables)) add("people_story")
             // The chat list supplier's items read, which first traces under its own name.
             if (cls.type == INBOX_SUPPLIER && !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == IMMUTABLE_LIST &&
-                method.parameterTypes.isEmpty() && INBOX_ITEMS_TRACE in strings) add(INBOX_REFRESH_HOOK)
+                method.parameterTypes.isEmpty() && INBOX_ITEMS_TRACE in strings) { add(INBOX_REFRESH_HOOK); add(PIN_LIST) }
             if (cls.type == "Lcom/facebook/screenshot/ScreenshotContentObserver;" && method.name == "onChange" &&
                 method.returnType == "V") add("allow_screenshot")
             // Android 14 and newer report a screenshot here, and Messenger turns it into the in-chat notice.
@@ -388,12 +388,13 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     found.getValue(RECENT_MEDIA).addAll(findRecentMedia(classes))
     found.getValue(INSTANTS_BUTTON).addAll(findInstantsButton(classes))
     found.getValue(SAVE_VOICE).addAll(findSaveVoice(classes))
+    found.getValue(SAVE_VOICE_MENU).addAll(findSaveVoiceMenu(classes))
     found.getValue(ANALYTICS_UPLOADS).addAll(findAnalyticsUploads(classes) + findBoundUploadTasks(classes) +
         findXAnalyticsUploadTimers(classes) + findInProcessUploadStarts(classes))
     found.getValue(ATTRIBUTION_UPLOADS).addAll(findAttributionUploads(classes))
     found.getValue(AD_EVENTS).addAll(findAdEvents(classes))
     found.getValue(MQTT_TELEMETRY).addAll(findMqttTelemetry(classes))
-    found.getValue(PINNED_CHATS).addAll(findPinnedChatLimit(classes))
+    findPinnedChats(classes).forEach { (hook, methods) -> found.getValue(hook).addAll(methods) }
     found.getValue(NEARBY_SCANS).addAll(patchStage("Find nearby scans") { findNearbyScans(classes) })
     found.getValue(WIFI_IDENTITY).addAll(patchStage("Find Wi-Fi identity reads") { findWifiIdentityReads(classes) })
     found.getValue(PHONE_ID_SYNC).addAll(findPhoneIdSync(classes))
@@ -404,19 +405,25 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     found.getValue(QUIET_CALL_RING).addAll(findQuietCallRing(classes))
     found.getValue(QUIET_CALL_NOTIFICATION).addAll(findQuietCallNotification(classes))
     found.getValue(CAR_MESSAGES).addAll(findCarMessages(classes))
+    found.getValue(LOCAL_CHAT_SEARCH).addAll(findLocalChatSearch(classes))
+    found.getValue(CALL_RECORDING).addAll(findCallRecording(classes))
     found.getValue(TEXT_STYLE).addAll(findTextStyleField(classes))
     found.getValue(MESSAGE_LOG).addAll(findMessageLogHook(classes))
     found.getValue(AUTO_REPLY).addAll(findMessageLogHook(classes))
     found.getValue(UNSENT_RECALL).addAll(findUnsentRecall(classes))
     found.getValue(UNSENT_CLEAR).addAll(findUnsentClear(classes))
+    found.getValue(CHAT_CHANNEL_KEEP).addAll(findChatChannelKeep(classes))
+    found.getValue(CHAT_CHANNEL_RAISE).addAll(findChatChannelRaise(classes))
     autoReplyPictureRecipe = resolveAutoReplyPictureRecipe(classes)
     messageLogContract = resolveMessageLogContract(classes)
     readReceiptThreadFields = resolveReadReceiptThreadFields(classes)
     val (markReadBar, markReadClick) = findMarkReadButton(classes)
     found.getValue(MARK_READ_BAR).addAll(markReadBar)
+    found.getValue(HIDE_CALL_BAR).addAll(markReadBar)
     found.getValue(MARK_READ_CLICK).addAll(markReadClick)
     found.getValue(SYSTEM_CAMERA).addAll(findSystemCamera(classes))
     found.getValue(EXTERNAL_GALLERY).addAll(findExternalGallery(classes))
+    found.getValue(GALLERY_TEMP_FILE).addAll(findGalleryTempFile(classes))
     found.getValue(GALLERY_TO_CHAT).addAll(findGalleryToChat(classes))
     for ((hook, methods) in findCustomFont(classes)) found.getValue(hook).addAll(methods)
     return found

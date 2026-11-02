@@ -19,11 +19,12 @@ object PreferenceUtil {
             parameters = emptyList(),
         )
 
-    val isVastShowPatch = bytecodePatch {
-        execute {
-            IsVastShowFingerprint.matchSingle().method.returnEarly(false)
+    val isVastShowPatch =
+        bytecodePatch {
+            execute {
+                IsVastShowFingerprint.matchSingle().method.returnEarly(false)
+            }
         }
-    }
 
     object IsBannerAdsShowFingerprint :
         Fingerprint(
@@ -34,11 +35,12 @@ object PreferenceUtil {
             parameters = emptyList(),
         )
 
-    val isBannerAdsShowPatch = bytecodePatch {
-        execute {
-            IsBannerAdsShowFingerprint.matchSingle().method.returnEarly(false)
+    val isBannerAdsShowPatch =
+        bytecodePatch {
+            execute {
+                IsBannerAdsShowFingerprint.matchSingle().method.returnEarly(false)
+            }
         }
-    }
 
     object IsSubscribedFingerprint :
         Fingerprint(
@@ -49,11 +51,12 @@ object PreferenceUtil {
             parameters = emptyList(),
         )
 
-    val isSubscribedPatch = bytecodePatch {
-        execute {
-            IsSubscribedFingerprint.matchSingle().method.returnEarly(true)
+    val isSubscribedPatch =
+        bytecodePatch {
+            execute {
+                IsSubscribedFingerprint.matchSingle().method.returnEarly(true)
+            }
         }
-    }
 
     object IsTVodSubscribedFingerprint :
         Fingerprint(
@@ -64,11 +67,12 @@ object PreferenceUtil {
             parameters = emptyList(),
         )
 
-    val isTVodSubscribedPatch = bytecodePatch {
-        execute {
-            IsTVodSubscribedFingerprint.matchSingle().method.returnEarly(true)
+    val isTVodSubscribedPatch =
+        bytecodePatch {
+            execute {
+                IsTVodSubscribedFingerprint.matchSingle().method.returnEarly(true)
+            }
         }
-    }
 
     object IsLoginFingerprint :
         Fingerprint(
@@ -79,9 +83,10 @@ object PreferenceUtil {
             parameters = emptyList(),
         )
 
-    val isLoginPatch = bytecodePatch {
-        execute {
-            IsLoginFingerprint.matchSingle().method.returnEarly(true)
+    val isLoginPatch =
+        bytecodePatch {
+            execute {
+                IsLoginFingerprint.matchSingle().method.returnEarly(true)
+            }
         }
-    }
 }

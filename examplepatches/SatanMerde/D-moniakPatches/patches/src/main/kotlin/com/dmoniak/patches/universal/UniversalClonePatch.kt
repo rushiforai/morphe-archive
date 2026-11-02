@@ -12,6 +12,7 @@ import java.util.logging.Logger
 val universalClonePatch = bytecodePatch(
     name = "Universal App Clone (Experimental)",
     description = "⚠️ [Experimental / Untested] Enables side-by-side dual installation for any app, allowing the official unmodified app and the patched version to run simultaneously on the same device without signature or provider collisions.",
+    default = false,
 ) {
     // Universal patch: No compatibleWith() call. This makes it applicable to any app selected in Morphe Manager.
 

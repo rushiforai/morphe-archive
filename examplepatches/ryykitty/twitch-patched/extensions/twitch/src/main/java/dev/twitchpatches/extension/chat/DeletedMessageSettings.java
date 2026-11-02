@@ -2,6 +2,8 @@ package dev.twitchpatches.extension.chat;
 
 import android.app.Application;
 import android.content.SharedPreferences;
+import android.text.Spanned;
+import android.text.SpannedString;
 import dev.twitchpatches.extension.settings.PatchSettings;
 import dev.twitchpatches.extension.settings.SettingSection;
 import dev.twitchpatches.extension.settings.ToggleSetting;
@@ -19,7 +21,7 @@ public final class DeletedMessageSettings {
         PatchSettings.register(new ToggleSetting() {
             @Override public String key() { return "show_deleted_messages"; }
             @Override public String title() { return "Show deleted messages"; }
-            @Override public String summary() { return "Tap a deleted or moderated message to reveal its text."; }
+            @Override public String summary() { return "Keep deleted and moderated messages readable."; }
             @Override public SettingSection section() { return SettingSection.CHAT; }
             @Override public boolean isEnabled() { return enabled(); }
             @Override public void setEnabled(boolean checked) {
@@ -31,4 +33,8 @@ public final class DeletedMessageSettings {
     }
 
     public static boolean enabled() { return enabled; }
+
+    public static Spanned labelDeletedMessage(SpannedString message, Class<?> senderNameSpan) {
+        return enabled && message != null ? DeletedMessageLabel.appendTo(message, senderNameSpan) : null;
+    }
 }

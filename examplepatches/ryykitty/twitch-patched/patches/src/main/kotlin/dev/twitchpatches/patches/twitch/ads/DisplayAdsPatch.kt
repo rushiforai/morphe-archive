@@ -1,5 +1,6 @@
 package dev.twitchpatches.patches.twitch.ads
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -11,6 +12,12 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import dev.twitchpatches.patches.twitch.settings.settingsPatch
 import dev.twitchpatches.patches.twitch.shared.*
 
+private object DisplayAdResponseParserFingerprint : Fingerprint(
+    isStatic = false,
+    parameters = listOf("Lretrofit2/adapter/rxjava2/Result;", "Z"),
+    strings = listOf("failed to parse display ad response: "),
+)
+
 @Suppress("unused")
 val hideDisplayAdsPatch = bytecodePatch(
     name = "Hide feed and display ads",
@@ -20,12 +27,8 @@ val hideDisplayAdsPatch = bytecodePatch(
     compatibleWith(TwitchTarget.compatibility)
     dependsOn(settingsPatch, reactNativeBridgePatch, reactNativeFeedAdsPatch)
     execute {
-        val classes = mutableListOf<com.android.tools.smali.dexlib2.iface.ClassDef>().apply { classDefForEach { add(it) } }
-        val parser = classes.flatMap { it.methods }.filter {
-            it.hasStrings("failed to parse display ad response: ") &&
-                it.parameterTypes.map { p -> p.toString() } == listOf("Lretrofit2/adapter/rxjava2/Result;", "Z") &&
-                AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags)
-        }.uniqueHook("display-ad response parser")
+        val parser = DisplayAdResponseParserFingerprint.method
+        if (!AccessFlags.PUBLIC.isSet(parser.accessFlags)) throw PatchException("Display ads: response parser is no longer public.")
         val noAd = parser.code().filter { it.opcode == Opcode.SGET_OBJECT }
             .mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }
             .filter { it.type == it.definingClass && classDefBy(it.type).superclass == parser.returnType }
@@ -34,20 +37,19 @@ val hideDisplayAdsPatch = bytecodePatch(
             .uniqueHook("display no-ad singleton field")
         if (!AccessFlags.PUBLIC.isSet(singleton.accessFlags) || !AccessFlags.STATIC.isSet(singleton.accessFlags))
             throw PatchException("Display ads: no-ad field is not a public singleton.")
-        val method = mutable(parser)
         val words = 1 + parser.parameterTypes.sumOf { if (it.toString() in listOf("J", "D")) 2 else 1 }
-        val code = method.code()
-        if ((method.implementation?.registerCount ?: 0) <= words || code.isEmpty())
+        val code = parser.code()
+        if ((parser.implementation?.registerCount ?: 0) <= words || code.isEmpty())
             throw PatchException("Display ads: no scratch register at method entry.")
-        method.addInstructionsWithLabels(0, """
+        parser.addInstructionsWithLabels(0, """
             invoke-static {}, $AD_SETTINGS->displayAdsBlocked()Z
             move-result v0
             if-eqz v0, :original
             sget-object v0, $noAd
             return-object v0
         """, ExternalLabel("original", code.first()))
-        blockBrowseDisplayAds(classes.flatMap { it.methods })
-        blockChannelSkins(classes)
+        blockBrowseDisplayAds()
+        blockChannelSkins()
         initializeAdFeature(1)
     }
 }

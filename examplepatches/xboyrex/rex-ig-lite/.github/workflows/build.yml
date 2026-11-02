@@ -1,0 +1,51 @@
+name: Build xboyrex Patches (.mpp)
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    name: Build xboyrex (.mpp)
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Android DEX (.mpp) & Patch List
+        run: |
+          ./gradlew checkStringResources buildAndroid generatePatchesList --no-daemon
+          MPP_FILE=$(find patches/build/libs -maxdepth 1 -name "patches-*.mpp" ! -name "*-sources*" ! -name "*-javadoc*" | head -n 1)
+          echo "Verifying classes.dex inside $MPP_FILE..."
+          unzip -l "$MPP_FILE" | grep "classes.dex"
+
+      - name: Upload xboyrex .mpp Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rex-ig-lite-patches-mpp
+          path: |
+            patches/build/libs/patches-*.mpp
+            !patches/build/libs/*-sources.mpp
+            !patches/build/libs/*-javadoc.mpp
+            patches-list.json
+          if-no-files-found: error

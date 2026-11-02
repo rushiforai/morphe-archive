@@ -19,9 +19,10 @@ object MainContentModel {
             parameters = emptyList(),
         )
 
-    val isPaidPatch = bytecodePatch {
-        execute {
-            IsPaidFingerprint.matchSingle().method.returnEarly(false)
+    val isPaidPatch =
+        bytecodePatch {
+            execute {
+                IsPaidFingerprint.matchSingle().method.returnEarly(false)
+            }
         }
-    }
 }

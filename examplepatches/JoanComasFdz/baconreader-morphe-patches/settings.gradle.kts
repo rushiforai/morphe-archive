@@ -26,3 +26,6 @@ settings {
         proguardFiles(rootProject.projectDir.resolve("extensions/proguard-rules.pro").toString())
     }
 }
+
+// The e2e tests' own patches, built into their own .mpp (e2e-patches/build/libs), which the release never publishes.
+include("e2e-patches")

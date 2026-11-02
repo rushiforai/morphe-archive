@@ -1,0 +1,54 @@
+// SPDX-FileCopyrightText: 2026 JoanComasFdz
+// SPDX-License-Identifier: GPL-3.0-only
+// A GitHub Codespace, or desktop VS Code's Dev Containers, on this repository: the e2e tests' .NET and Node, what the
+// VS Code extension's scenarios record with, zsh and tmux, and the BaconReader Morphe e2e recordings extension installed
+// from its source. One numbered script per feature, run by postCreateCommand.sh (README.md here lists them). No Android
+// phone and no patcher: the app's scenarios and the bundle need a cloud session (patcher-specific-build.md).
+// tools/vscode-extension/README.md, "Install", says how to use it.
+{
+  "name": "BaconReader Morphe patches",
+  "image": "mcr.microsoft.com/devcontainers/base:noble",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "22", "pnpmVersion": "none" }
+  },
+  "containerEnv": {
+    "DOTNET_NOLOGO": "1",
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1",
+    "POWERLEVEL9K_DISABLE_GITSTATUS": "true"
+  },
+  // VS Code for the web runs in it for the extension's scenarios: below 4 cores and 8 GB it is slow.
+  "hostRequirements": { "cpus": 4, "memory": "8gb" },
+  // Once, when the container is created: every feature's script, in order.
+  "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
+  // Each time VS Code attaches: pack the extension from tools/vscode-extension and install it, so it is always this
+  // checkout's (it needs VS Code attached, so it can't run in postCreateCommand.sh).
+  "postAttachCommand": "bash .devcontainer/6-install-e2e-recordings-extension.sh",
+  "customizations": {
+    "vscode": {
+      // C# Dev Kit (it brings the C# extension): the solution explorer and the test explorer.
+      "extensions": ["ms-dotnettools.csdevkit"],
+      "settings": {
+        // VS Code's default dark theme, forced: a Codespace otherwise opens in GitHub Dark Default. Set here (the
+        // container's settings), it wins over a theme picked in VS Code while in the container.
+        "workbench.colorTheme": "Default Dark Modern",
+        // zsh (4-install-zsh-config.sh) in the terminal; its Spaceship prompt and eza's icons need a Nerd Font, installed
+        // on the computer VS Code draws on (README.md here).
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": { "path": "zsh" },
+          "bash": { "path": "bash", "icon": "terminal-bash" }
+        },
+        "terminal.integrated.fontFamily": "'FiraCode Nerd Font', 'MesloLGS NF', 'CaskaydiaCove Nerd Font', 'JetBrainsMono Nerd Font', monospace",
+        "terminal.integrated.fontSize": 14,
+        "terminal.integrated.lineHeight": 1.2,
+        "terminal.integrated.letterSpacing": 0.5,
+        "terminal.integrated.fontLigatures.enabled": true,
+        // The secondary side bar, where VS Code opens its chat, starts hidden (View → Appearance → Secondary Side Bar
+        // shows it), and the chat's button in the title bar too.
+        "workbench.secondarySideBar.defaultVisibility": "hidden",
+        "chat.commandCenter.enabled": false
+      }
+    }
+  }
+}

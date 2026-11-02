@@ -26,7 +26,7 @@ val freeContentPatch =
             hexPatch(
                 block = {
                     when (packageMetadata.versionCode.toInt()) {
-                        290 ->
+                        290 -> {
                             cpuArchitectures.forEach { arch ->
                                 var lib = "$NATIVE_LIBRARY_DIRECTORY/${arch.arch}/libapp.so"
 
@@ -39,14 +39,12 @@ val freeContentPatch =
                                         // LDR             R2, [R2,#0x93F]  -> LDR             R2,
                                         // [R2,#0x90B]
                                         """
-                                06 2a 85 e2
-                                3f 29 92 e5
-                            """ asPatternTo
-                                            """
-                                06 2a 85 e2
-                                0b 29 92 e5
-                            """ inFile
-                                            lib
+                                            06 2a 85 e2
+                                            3f 29 92 e5
+                                        """ asPatternTo """
+                                            06 2a 85 e2
+                                            0b 29 92 e5
+                                        """ inFile lib
                                     }
 
                                     CpuArchitecture.ARM64_V8A -> {
@@ -54,21 +52,20 @@ val freeContentPatch =
                                         // LDR             X2, [X2,#0xDB0]      -> LDR
                                         // X2, [X2,#0xD48]
                                         """
-                                62 2f 40 91
-                                42 d8 46 f9
-                            """ asPatternTo
-                                            """
-                                62 2f 40 91
-                                42 a4 46 f9
-                            """ inFile
-                                            lib
+                                            62 2f 40 91
+                                            42 d8 46 f9
+                                        """ asPatternTo """
+                                            62 2f 40 91
+                                            42 a4 46 f9
+                                        """ inFile lib
                                     }
 
                                     else -> {}
                                 }
                             }
+                        }
 
-                        288 ->
+                        288 -> {
                             cpuArchitectures.forEach { arch ->
                                 var lib = "$NATIVE_LIBRARY_DIRECTORY/${arch.arch}/libapp.so"
 
@@ -81,14 +78,12 @@ val freeContentPatch =
                                         // LDR             R2, [R2,#0x1E3]  -> LDR             R2,
                                         // [R2,#0x1AF]
                                         """
-                                05 2a 85 e2
-                                e3 21 92 e5
-                            """ asPatternTo
-                                            """
-                                05 2a 85 e2
-                                af 21 92 e5
-                            """ inFile
-                                            lib
+                                            05 2a 85 e2
+                                            e3 21 92 e5
+                                        """ asPatternTo """
+                                            05 2a 85 e2
+                                            af 21 92 e5
+                                        """ inFile lib
                                     }
 
                                     CpuArchitecture.ARM64_V8A -> {
@@ -96,26 +91,26 @@ val freeContentPatch =
                                         // LDR             X0, [X0,#0xF00]    -> LDR             X0,
                                         // [X0,#0xE98]
                                         """
-                                62 23 40 91
-                                42 80 47 f9
-                            """ asPatternTo
-                                            """
-                                62 23 40 91
-                                42 4c 47 f9
-                            """ inFile
-                                            lib
+                                            62 23 40 91
+                                            42 80 47 f9
+                                        """ asPatternTo """
+                                            62 23 40 91
+                                            42 4c 47 f9
+                                        """ inFile lib
                                     }
 
                                     else -> {}
                                 }
                             }
+                        }
 
-                        else ->
+                        else -> {
                             throw PatchException(
-                                "Unsupported version: ${packageMetadata.versionName}"
+                                "Unsupported version: ${packageMetadata.versionName}",
                             )
+                        }
                     }
-                }
+                },
             ),
         )
     }

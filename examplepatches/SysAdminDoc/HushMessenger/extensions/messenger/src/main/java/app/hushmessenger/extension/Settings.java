@@ -93,6 +93,14 @@ public final class Settings {
                 && !CrashGuard.isSafeMode() && prefs.getBoolean(key, false);
     }
 
+    /** Whether Hush is on at all: not paused, not in safe mode. For a fix that has no switch of its own. */
+    static boolean running() {
+        if (!HostScreens.started) HostScreens.initializeLate();
+        if (HostScreens.failed) return false;
+        SharedPreferences prefs = preferences;
+        return prefs != null && !prefs.getBoolean("paused", false) && !CrashGuard.isSafeMode();
+    }
+
     public static long lastActive(String key) {
         Long ts = activeAt.get(key);
         return ts != null ? ts : 0;
@@ -337,6 +345,7 @@ public final class Settings {
         owners.put(Settings.AVATAR_ROUNDED, Settings.AVATAR_SHAPE);
         for (String keep : KEEP_BADGES.values()) owners.put(keep, TAB_BADGES);
         owners.put(QuietCalls.CHOSEN_ONLY, QuietCalls.KEY);
+        owners.put(MessageLog.SAVE_EXPIRING, MessageLog.KEY);
         SUB_SWITCHES = Collections.unmodifiableMap(owners);
     }
 
@@ -910,6 +919,30 @@ public final class Settings {
             return null;
         }
     }
+
+    /**
+     * Messenger's copy of an item it's handed asks here for its file. Messenger picks the folder from where the item sits
+     * and dies if it can't make a file there (#124), so with Open your gallery app on the copy goes to another of its
+     * folders. A folder that works gets the plain call.
+     */
+    public static java.io.File inboundTempFile(String prefix, String suffix, java.io.File folder) throws java.io.IOException {
+        try {
+            return java.io.File.createTempFile(prefix, suffix, folder);
+        } catch (java.io.IOException refused) {
+            java.io.File spare = GalleryPicker.spareTempFile(appContext, prefix, suffix, folder, refused);
+            if (spare == null) throw refused;
+            return spare;
+        }
+    }
+    /**
+     * Messenger's check of a temp folder asks here first. It throws on a folder that's there but can't be used, before the
+     * copy gets as far as {@link #inboundTempFile}, and takes a folder it couldn't make without complaint. Answering true
+     * treats this one the same way, so the copy can move and the provider's walk over its folders stays alive.
+     */
+    public static boolean inboundFolderRefused(java.io.File folder) {
+        return folder.exists() && !(folder.isDirectory() && folder.canRead() && folder.canWrite()) && enabled(GalleryPicker.KEY);
+    }
+
     /**
      * The chat hands every result here before it reads one. A photo from another app comes back under 1112, and the chat
      * takes its type from the result and sends one without a type as a plain file. Gallery apps often hand back only the
@@ -1042,14 +1075,15 @@ public final class Settings {
             Context context = appContext;
             return context == null || GalleryPicker.screenIntent(context) != null;
         }
-        if (TextStyleActivity.KEY.equals(key)) {
+        // A Root Mount install keeps the stock manifest, with no search screen.
+        if (LocalChatSearch.KEY.equals(key)) {
             Context context = appContext;
-            return context == null || TextStyleActivity.present(context);
+            return context == null || LocalSearchActivity.present(context);
         }
         if ("hide_menu_row".equals(key)) return menuRowCanHide();
         if (HIDE_ICON_SHORTCUTS.equals(key) || HIDE_LOGO_PRESS.equals(key)) return anotherWayIn(key);
         // Android 9 lets no app add to the shared Recordings or Music folders without the storage permission.
-        if (VoiceMessages.KEY.equals(key)) return Build.VERSION.SDK_INT >= 29;
+        if (VoiceMessages.KEY.equals(key) || SaveVoiceMenu.KEY.equals(key) || CallRecording.KEY.equals(key)) return Build.VERSION.SDK_INT >= 29;
         if (!"bubbles".equals(key)) return true;
         if (Build.VERSION.SDK_INT < 30) return false;
         if (!HostScreens.started) HostScreens.initializeLate();

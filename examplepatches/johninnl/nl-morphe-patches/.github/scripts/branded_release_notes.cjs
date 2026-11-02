@@ -74,6 +74,12 @@ function unreleasedCommitHashes(context) {
   return new Set(hashes.split("\n").filter(Boolean));
 }
 
+// Apps whose files a commit edits without changing what that app's patches produce,
+// such as an adapter shared with another app. See the Unchanged-Apps note in CONTRIBUTING.md.
+function unchangedApps(message) {
+  return /^Unchanged-Apps: (.+)$/mi.exec(message)?.[1].split(",").map(app => app.trim()) || [];
+}
+
 // Every public bullet is scoped: Morphe treats unscoped quoted patch names
 // such as `Hide ads` as applicable to every app carrying that patch name.
 // Explicit trailers cover changes to shared code and scopes naming multiple apps.
@@ -93,12 +99,24 @@ function appImpact(context) {
     git(context, "diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "-m", "--first-parent", hash).split("\n")));
   const changed = (base ? git(context, "diff", "--name-only", base, head).split("\n") : git(context, "ls-tree", "-r", "--name-only", head).split("\n"))
     .filter(file => !freshFiles || freshFiles.has(file));
-  const namesFor = files => [...new Set(files.flatMap(file => {
-    const owner = file.startsWith(root) ? file.slice(root.length).split("/")[0]
-      : file.startsWith("support/medium/") ? "medium" : null;
-    return apps.get(owner) || [];
-  }))];
-  return {apps, changed, namesFor, affected: namesFor(changed), unreleased};
+  const ownerOf = file => file.startsWith(root) ? file.slice(root.length).split("/")[0]
+    : file.startsWith("support/medium/") ? "medium" : null;
+  const namesFor = files => [...new Set(files.flatMap(file => apps.get(ownerOf(file)) || []))];
+  // One entry per patch folder, because a folder can hold several apps of one product.
+  const foldersFor = files => [...new Set(files.map(ownerOf))].map(owner => apps.get(owner)).filter(Boolean);
+  // Morphe badges an app for any bullet that names it, so an edit that changes nothing for an
+  // app must not name it. An exemption covers only the commits declaring it: a real change to
+  // the same app in the same release still requires its scope.
+  const messages = git(context, "log", "--format=%H%x1f%B%x1e", head, ...(base ? ["--not", base] : []))
+    .split("\x1e").map(entry => entry.trim().split("\x1f")).filter(([hash]) => hash && (!unreleased || unreleased.has(hash)));
+  const declared = new Set(messages.flatMap(([, message]) => unchangedApps(message)));
+  const touched = new Set(declared.size ? messages.flatMap(([hash, message]) => {
+    const files = git(context, "diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "-m", "--first-parent", hash)
+      .split("\n").filter(file => changed.includes(file));
+    return namesFor(files).filter(app => !unchangedApps(message).includes(app));
+  }) : []);
+  const affected = namesFor(changed).filter(app => !declared.has(app) || touched.has(app));
+  return {apps, changed, namesFor, foldersFor, affected, unreleased};
 }
 
 function scopeCommits(commits, context) {
@@ -108,10 +126,18 @@ function scopeCommits(commits, context) {
     const match = /^(\w+)(?:\(([^)]+)\))?(!?): (.*)/.exec(commit.message);
     if (!match) return [commit];
     const apps = /^Release-Apps: (.+)$/mi.exec(commit.message)?.[1].split(",").map(app => app.trim());
+    const unchanged = unchangedApps(commit.message);
+    if (unchanged.some(app => apps?.includes(app))) throw new Error("An app cannot be both affected and unchanged");
+    if (impact && unchanged.some(app => ![...impact.apps.values()].flat().includes(app))) throw new Error("Unknown Unchanged-Apps name");
     if (!apps && ["general", "release", "build", "ci", "deps"].includes(match[2]?.toLowerCase())) return [commit];
     const files = impact ? git(context, "diff-tree", "--root", "--no-commit-id", "--name-only", "-r", commit.hash).split("\n") : [];
     const relevant = files.filter(file => impact?.changed.includes(file));
-    const inferred = impact?.namesFor(relevant) || [];
+    // Only a person can tell whether editing shared code changed each app, so a commit
+    // across patch folders has to say. Inferring would badge apps that did not change.
+    const folders = impact?.foldersFor(relevant) || [];
+    const undecided = folders.filter(names => !names.some(app => apps?.includes(app) || unchanged.includes(app))).flat();
+    if (folders.length > 1 && undecided.length) throw new Error(`Declare ${undecided.join(", ")} in Release-Apps or Unchanged-Apps: this commit edits several apps' patch folders`);
+    const inferred = (impact?.namesFor(relevant) || []).filter(app => !unchanged.includes(app));
     // Merging historical commits can leave the current source unchanged.
     // Do not advertise those controls a second time.
     if (impact && impact.namesFor(files).length && !inferred.length &&

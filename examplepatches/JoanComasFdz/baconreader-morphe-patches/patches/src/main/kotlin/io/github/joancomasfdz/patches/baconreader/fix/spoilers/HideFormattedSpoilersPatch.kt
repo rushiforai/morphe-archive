@@ -4,12 +4,19 @@
 
 package io.github.joancomasfdz.patches.baconreader.fix.spoilers
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import io.github.joancomasfdz.patches.baconreader.misc.extension.EXTENSION_PACKAGE
+import io.github.joancomasfdz.patches.baconreader.misc.extension.sharedExtensionPatch
 import io.github.joancomasfdz.patches.shared.Constants.COMPATIBILITY_BACONREADER
 import io.github.joancomasfdz.patches.shared.Constants.COMPATIBILITY_BACONREADER_PREMIUM
 
 private const val ELEMENT = "Lcom/onelouder/baconreader/parser/RedditParser\$Element;"
+
+private const val EXTENSION_CLASS_DESCRIPTOR = "$EXTENSION_PACKAGE/spoilers/HideFormattedSpoilersPatch;"
 
 @Suppress("unused")
 val hideFormattedSpoilersPatch = bytecodePatch(
@@ -18,6 +25,8 @@ val hideFormattedSpoilersPatch = bytecodePatch(
         "instead of showing them in plain sight.",
 ) {
     compatibleWith(COMPATIBILITY_BACONREADER, COMPATIBILITY_BACONREADER_PREMIUM)
+
+    dependsOn(sharedExtensionPatch)
 
     execute {
         // The app only hides a spoiler (<span class="md-spoiler-text">) whose content is a single plain text.
@@ -44,5 +53,22 @@ val hideFormattedSpoilersPatch = bytecodePatch(
                 return v0
             """,
         )
+
+        // Accessibility reads a hidden spoiler as "spoiler", not its text, which the box only paints over:
+        // after the text of a comment or a post is set, and after a tap on a spoiler sets it again.
+        listOf(
+            CommentHolderUpdateViewFingerprint,
+            DetailLinkFragmentUpdateSelftextFingerprint,
+            SpoilerClickableSpanOnClickFingerprint,
+        ).forEach { fingerprint ->
+            val index = fingerprint.instructionMatches[0].index
+            fingerprint.method.apply {
+                val textViewRegister = getInstruction<FiveRegisterInstruction>(index).registerC
+                addInstruction(
+                    index + 1,
+                    "invoke-static { v$textViewRegister }, $EXTENSION_CLASS_DESCRIPTOR->describe(Landroid/view/View;)V",
+                )
+            }
+        }
     }
 }

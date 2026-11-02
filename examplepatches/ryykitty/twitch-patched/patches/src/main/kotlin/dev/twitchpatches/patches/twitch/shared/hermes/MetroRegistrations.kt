@@ -3,9 +3,7 @@ package dev.twitchpatches.patches.twitch.shared.hermes
 internal class MetroRegistrations(private val bundle: HermesBundle) {
     fun requireRenderer(component: String, registration: String) {
         val function = bundle.functions.single { bundle.strings[it.name] == component && it.params == 2 }
-        val factory = bundle.functions.filter { it.params == 8 }.single { parent ->
-            bundle.instructions(parent).any { it.name == "CreateClosure" && it.args[2] == function.id }
-        }
+        val factory = bundle.metroIndex.factoriesCreating(function.id).single()
         requireRendererRegistration(bundle.instructions(factory), bundle.strings, function.id, registration, bundle::objectLiteral)
     }
 }

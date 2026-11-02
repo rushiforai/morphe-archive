@@ -100,8 +100,8 @@ final class FeedCategory {
                             + "interested and Interested buttons. Nothing is answered for you.")));
             feed.addPreference(toggle(context, Settings.HIDE_CAUGHT_UP_CARD, L10n.t("Hide the caught up card"),
                     L10n.t("Hides the card after the posts from accounts you follow that says you've seen the latest "
-                            + "ones, and its Older posts link. When Home has no new posts at all, the card stays. Pull "
-                            + "down on Home to refresh after changing it.")));
+                            + "ones, and its Older posts link. When Home has no new posts at all, only that line goes "
+                            + "and the link stays. Pull down on Home to refresh after changing it.")));
             if (PatchFamily.feedTypesInBuild()) {
                 feed.addPreference(toggle(context, Settings.HIDE_FEED_VIDEOS, L10n.t("Hide videos"),
                         L10n.t("Removes every single-video post and reel from Home, even from accounts you follow. "
@@ -194,6 +194,9 @@ final class FeedCategory {
             feed.addPreference(toggle(context, Settings.FEED_SEEK_BAR, L10n.t("Seek bar on feed videos"),
                     L10n.t("Shows a bar along the bottom of the video playing in a feed. Drag it and let go to jump "
                             + "to that point in the video.")));
+            feed.addPreference(toggle(context, Settings.FEED_SEEK_BUTTON, L10n.t("Seek bar button on feed videos"),
+                    L10n.t("Adds a small button at the bottom left of a feed video that shows or hides its seek bar. "
+                            + "It works with Seek bar on feed videos on or off.")));
         }
         if (longPressZoom) {
             feed.addPreference(toggle(context, Settings.LONG_PRESS_TO_ZOOM, L10n.t("Long press a photo to zoom"),

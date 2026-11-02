@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-29T11:55:21Z",
-  "description": "BlitzerMorph: Shows live Blitzer.de speed cameras from Atudo on microG Maps",
-  "download_url": "https://raw.githubusercontent.com/v1rtu0s/morphe-patches/main/patches-1.1.0.mpp",
-  "signature_download_url": "",
-  "version": "1.2.0"
-}
+  "created_at": "2026-11-01T20:00:00Z",
+    "description": "BlitzerMorph: Shows live mobile speed cameras from Atudo on Google Maps",
+    "download_url": "https://raw.githubusercontent.com/v1rtu0s/morphe-patches/main/patches-1.4.0.mpp",
+    "signature_download_url": "",
+    "version": "1.4.0"
+  }

@@ -250,6 +250,8 @@ val cloneAppPatch = resourcePatch(
                     val resStream = cl?.getResourceAsStream("zen_icons/$relPath")
                         ?: cl?.getResourceAsStream("/zen_icons/$relPath")
                     if (resStream != null) {
+                        // Leave a layer the icon color patch already wrote alone.
+                        if (get(relPath, copy = false).exists()) continue
                         val target = this[relPath]
                         target.parentFile?.mkdirs()
                         target.writeBytes(resStream.use { it.readBytes() })

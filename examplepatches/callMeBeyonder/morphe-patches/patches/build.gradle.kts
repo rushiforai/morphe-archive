@@ -20,6 +20,9 @@ dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
 
+    // Provided at runtime by morphe-patcher; used for the binary AndroidManifest.xml edit.
+    compileOnly(libs.arsc.lib)
+
     // Common patch utilities (extension hook, installer spoof, signature spoof, ...).
     implementation(libs.morphe.patches.library)
 }

@@ -188,12 +188,12 @@ public class StreamingDataRequest {
     }
 
     private StreamingDataRequest(String videoId, boolean isInline, Map<String, String> playerHeaders,
-                                 boolean includeVideoDetails, ClientType[] clientOrder, boolean isDownload) {
+                                 boolean includeVideoDetails, ClientType[] clientOrder, boolean isDownload, boolean opusOnly) {
         this.videoId = videoId;
         this.isInline = isInline;
         this.future = Utils.submitOnBackgroundThread(
-                () -> fetch(resolveVideoIdToFetch(videoId), isInline, playerHeaders, includeVideoDetails,
-                        clientOrder, isDownload));
+                () -> fetch(opusOnly ? videoId : resolveVideoIdToFetch(videoId), isInline, playerHeaders, includeVideoDetails,
+                        clientOrder, isDownload, opusOnly));
     }
 
     public static void fetchRequest(String videoId, boolean isInline, Map<String, String> fetchHeaders) {
@@ -203,7 +203,7 @@ public class StreamingDataRequest {
         }
         // Always fetch, even if there is an existing request for the same video.
         cache.put(videoId, new StreamingDataRequest(videoId, isInline, fetchHeaders, false,
-                clientOrderToUse, false));
+                clientOrderToUse, false, false));
     }
 
     /**
@@ -219,7 +219,13 @@ public class StreamingDataRequest {
         ClientType[] clientOrder = buildClientOrder(downloadClients, preferredClient)
                 .toArray(new ClientType[0]);
         // The video details name the saved file, so the download asks for them as well.
-        return new StreamingDataRequest(videoId, false, lastPlayerHeaders, true, clientOrder, true);
+        return new StreamingDataRequest(videoId, false, lastPlayerHeaders, true, clientOrder, true, false);
+    }
+
+    /** Music's explicit Opus download path; other hosts keep their existing format selection. */
+    public static StreamingDataRequest fetchRequestForOpusDownload(String videoId, List<ClientType> downloadClients, ClientType preferredClient) {
+        ClientType[] order=buildClientOrder(downloadClients,preferredClient).toArray(new ClientType[0]);
+        return new StreamingDataRequest(videoId,false,lastPlayerHeaders,true,order,true,true);
     }
 
     @Nullable
@@ -474,7 +480,7 @@ public class StreamingDataRequest {
     }
 
     private static StreamData fetch(String videoId, boolean isInline, Map<String, String> playerHeaders,
-                                    boolean includeVideoDetails, ClientType[] clientOrder, boolean isDownload) {
+                                    boolean includeVideoDetails, ClientType[] clientOrder, boolean isDownload, boolean opusOnly) {
         final boolean debugEnabled = BaseSettings.DEBUG.get();
         final long fetchStartTime = System.currentTimeMillis();
         String authorization = playerHeaders.get(AUTHORIZATION_HEADER);
@@ -507,6 +513,22 @@ public class StreamingDataRequest {
             }
 
             if (streamingData != null) {
+                if (opusOnly) {
+                    try {
+                        PlayerResponse download = PlayerResponse.parseFrom(streamingData.streamingData());
+                        boolean usable = videoId.equals(download.getVideoDetails().getVideoId())
+                                && download.getStreamingData().getAdaptiveFormatsList().stream().anyMatch(format ->
+                                format.getMimeType().startsWith("audio/webm")
+                                        && format.getMimeType().contains("opus") && !format.getUrl().isBlank());
+                        if (!usable) {
+                            Logger.printDebug(() -> "Download client has no exact-recording Opus stream; trying the next normal client");
+                            continue;
+                        }
+                    } catch (Exception invalidDownload) {
+                        Logger.printDebug(() -> "Download client response could not be decoded; trying next client");
+                        continue;
+                    }
+                }
                 // Stats for nerds describes what is playing, which a download never changes.
                 if (!isDownload) {
                     lastSpoofedClientType = clientType;

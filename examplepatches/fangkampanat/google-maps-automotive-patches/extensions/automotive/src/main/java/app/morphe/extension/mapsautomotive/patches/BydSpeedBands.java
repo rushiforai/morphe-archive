@@ -21,7 +21,10 @@ import java.util.Locale;
  * a finished pool adds measured and predicted energy to the band's totals. The interval checks are
  * BydVehicleModel's: gaps, odometer jumps, a rise while stationary (charging), BMS jumps. Standing
  * still for more than 5 minutes is parking and is not counted. A BMS step lands in the interval where
- * it shows, so a band change can move up to 100 Wh between bands; this evens out over pools.
+ * it shows, so a band change can move up to 100 Wh between bands; this evens out over pools. Each
+ * pool counts its runs, the stretches of consecutive intervals in its band: every run adds the
+ * rounding of the 100 Wh steps at its two ends, so a pool of many short runs (speeds around 60 or
+ * 80 km/h) is less precise than one driven in a single stretch.
  * <p>
  * Above 90% SOC the BMS reports more energy per percent (on the Dolphin about 0.78 kWh per 1% at
  * 99–96% against 0.50 in the middle) and the user gets more distance per percent, so those intervals
@@ -45,14 +48,14 @@ final class BydSpeedBands {
     private static final int MIN_LEVEL_WH = 100, MAX_LEVEL_WH = 2000, MAX_LEVEL_METRES = 30000;
 
     private static final class Band {
-        long poolMetres, poolMs;
+        long poolMetres, poolMs, poolRuns;
         double poolMeasuredWh, poolPredictedWh, poolSpeedMetres;
-        long pools, rejected, totalMetres;
+        long pools, rejected, totalMetres, totalRuns;
         double totalMeasuredWh, totalPredictedWh;
         double lastMeasured = Double.NaN, lastPredicted = Double.NaN;
 
         void clearPool() {
-            poolMetres = poolMs = 0;
+            poolMetres = poolMs = poolRuns = 0;
             poolMeasuredWh = poolPredictedWh = poolSpeedMetres = 0;
         }
     }
@@ -77,6 +80,8 @@ final class BydSpeedBands {
     private static int unsaved;
     // The last one-percent drop in this chain: the level it entered (-1: none), its energy and odometer.
     private static int stepLevel = -1, stepWh, stepMileage;
+    // The band of the last counted interval while its run goes on (-1: none).
+    private static int runBand = -1;
 
     private BydSpeedBands() { }
 
@@ -96,6 +101,8 @@ final class BydSpeedBands {
                 band.poolMetres = b.getLong("pool_m"); band.poolMs = b.getLong("pool_ms");
                 band.poolMeasuredWh = b.getDouble("pool_measured_wh"); band.poolPredictedWh = b.getDouble("pool_predicted_wh");
                 band.poolSpeedMetres = b.getDouble("pool_speed_m");
+                // Older states have no runs.
+                band.poolRuns = b.optLong("pool_runs", 0); band.totalRuns = b.optLong("total_runs", 0);
                 band.pools = b.getLong("pools"); band.rejected = b.getLong("rejected"); band.totalMetres = b.getLong("total_m");
                 band.totalMeasuredWh = b.getDouble("total_measured_wh"); band.totalPredictedWh = b.getDouble("total_predicted_wh");
                 band.lastMeasured = b.optDouble("last_measured", Double.NaN); band.lastPredicted = b.optDouble("last_predicted", Double.NaN);
@@ -156,11 +163,17 @@ final class BydSpeedBands {
             if (stepLevel == entered + 1) level(entered + 1, stepWh - energyWh, (sample.mileage - stepMileage) * 100L);
             stepLevel = entered; stepWh = energyWh; stepMileage = sample.mileage;
         }
-        if (stationaryMs <= MAX_PARKED_MS) {
+        if (stationaryMs > MAX_PARKED_MS) {
+            runBand = -1;
+        } else {
             double meanKmh = (previousSpeed + sample.speedKmh) / 2;
             int index = previousSoc > HIGH_SOC ? ABOVE_90 : band(meanKmh);
             Band band = bands[index];
             double sinceStart = (previousAt - chainStart) / 1000.0;
+            if (index != runBand) {
+                band.poolRuns++;
+                runBand = index;
+            }
             band.poolMetres += stepM;
             band.poolMs += dt;
             band.poolMeasuredWh += previousWh - energyWh;
@@ -248,24 +261,30 @@ final class BydSpeedBands {
         band.totalMetres += band.poolMetres;
         band.totalMeasuredWh += band.poolMeasuredWh;
         band.totalPredictedWh += band.poolPredictedWh;
+        band.totalRuns += band.poolRuns;
         band.lastMeasured = measured;
         band.lastPredicted = predicted;
         ReportLog.i(TAG, String.format(Locale.ROOT, "band_pool_finished;band=%s;metres=%d;minutes=%.1f;measured_wh=%.0f;predicted_wh=%.0f"
-                        + ";measured_kwh_100km=%.2f;predicted_kwh_100km=%.2f;ratio=%.3f;pools=%d;total_km=%.1f;total_ratio=%.3f"
-                        + ";table=%s;mass_kg=%d;outside_c=%d", NAMES[index], band.poolMetres, band.poolMs / 60000.0,
-                band.poolMeasuredWh, band.poolPredictedWh, measured, predicted, measured / predicted, band.pools,
-                band.totalMetres / 1000.0, band.totalMeasuredWh / band.totalPredictedWh, table, massKg, outsideC));
-        band.clearPool();
-        persist();
+                        + ";measured_kwh_100km=%.2f;predicted_kwh_100km=%.2f;ratio=%.3f;runs=%d;pools=%d;total_km=%.1f;total_ratio=%.3f"
+                        + ";total_runs=%d;table=%s;mass_kg=%d;outside_c=%d", NAMES[index], band.poolMetres, band.poolMs / 60000.0,
+                band.poolMeasuredWh, band.poolPredictedWh, measured, predicted, measured / predicted, band.poolRuns, band.pools,
+                band.totalMetres / 1000.0, band.totalMeasuredWh / band.totalPredictedWh, band.totalRuns, table, massKg, outsideC));
+        endPool(band);
     }
 
     private static void reject(int index, String reason) {
         Band band = bands[index];
         band.rejected++;
         ReportLog.i(TAG, String.format(Locale.ROOT, "band_pool_rejected;band=%s;reason=%s;metres=%d;measured_wh=%.0f;predicted_wh=%.0f"
-                        + ";speed_metres=%.0f", NAMES[index], reason, band.poolMetres, band.poolMeasuredWh,
-                band.poolPredictedWh, band.poolSpeedMetres));
+                        + ";speed_metres=%.0f;runs=%d", NAMES[index], reason, band.poolMetres, band.poolMeasuredWh,
+                band.poolPredictedWh, band.poolSpeedMetres, band.poolRuns));
+        endPool(band);
+    }
+
+    // The next interval in the band starts the next pool's first run.
+    private static void endPool(Band band) {
         band.clearPool();
+        runBand = -1;
         persist();
     }
 
@@ -276,6 +295,7 @@ final class BydSpeedBands {
         previousSoc = sample.soc; previousSpeed = sample.speedKmh;
         stationaryMs = 0;
         stepLevel = -1;
+        runBand = -1;
     }
 
     private static void clear() {
@@ -283,6 +303,7 @@ final class BydSpeedBands {
         for (int i = 0; i < levels.length; i++) levels[i] = new Levels();
         chained = false;
         stepLevel = -1;
+        runBand = -1;
     }
 
     private static void persist() {
@@ -295,6 +316,7 @@ final class BydSpeedBands {
                 b.put("pool_m", band.poolMetres); b.put("pool_ms", band.poolMs);
                 b.put("pool_measured_wh", band.poolMeasuredWh); b.put("pool_predicted_wh", band.poolPredictedWh);
                 b.put("pool_speed_m", band.poolSpeedMetres);
+                b.put("pool_runs", band.poolRuns); b.put("total_runs", band.totalRuns);
                 b.put("pools", band.pools); b.put("rejected", band.rejected); b.put("total_m", band.totalMetres);
                 b.put("total_measured_wh", band.totalMeasuredWh); b.put("total_predicted_wh", band.totalPredictedWh);
                 // JSON forbids NaN.

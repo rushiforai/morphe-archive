@@ -3,10 +3,10 @@ function exportReviewedSharedNg(){
  const lock=LockService.getScriptLock();lock.waitLock(15000);try{return ngExportReviewedLocked_();}finally{lock.releaseLock();}
 }
 function ngExportReviewedLocked_(){
- ngReviewPersonalLocked_();const book=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId),rows=ngRows_(book.getSheetByName('Inbox')),active=new Map();
+ ngReviewPersonalLocked_();const book=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId),rows=ngAllPersonalRows_(book),active=new Map();
  for(const row of rows){const c=ngParsedInboxCondition_(row);if(!c)continue;const key=ngConditionKey_(c);active.set(row[1]+':'+key,{row,c,key});}
  const groups=new Map();for(const x of active.values())if(x.row[3]==='upsert'&&x.row[5]==='approved'){
-  const key=x.key;if(!groups.has(key))groups.set(key,{id:key,board:ngFamilyBoard_(x.c.board),boardName:ngFamilyName_(x.c.board),kind:x.c.kind,value:x.c.value,period:"",votes:0,revoked:false,minLevel:JSON.parse(x.row[8]).minLevel,minVotes:1});groups.get(key).votes++;
+  const key=x.key;if(!groups.has(key))groups.set(key,{id:key,board:ngFamilyBoard_(x.c.board),boardName:ngFamilyName_(x.c.board),kind:x.c.kind,value:x.c.value,period:"",regex:!!x.c.regex,flags:x.c.flags&~9,votes:0,revoked:false,minLevel:JSON.parse(x.row[8]).minLevel,minVotes:1});groups.get(key).votes++;
  }
  const rules=Array.from(groups.values()).sort((a,b)=>a.id.localeCompare(b.id));
  const revoked=JSON.parse(PropertiesService.getScriptProperties().getProperty('REVIEW_REVOKED_IDS')||'[]');for(const rule of rules)if(revoked.includes(rule.id))rule.revoked=true;
@@ -44,12 +44,27 @@ function installSharedNgPublishTrigger(){
  ScriptApp.newTrigger('publishReviewedSharedNg').timeBased().everyHours(1).create();
 }
 
+/** GAS cache entries are limited to 100KB; commit the chunk manifest last. */
+function ngReviewedCacheGet_(){
+ const cache=CacheService.getScriptCache(),raw=cache.get('reviewed-feed-v9');if(!raw)return null;
+ try{const m=JSON.parse(raw);if(!Number.isInteger(m.count)||m.count<1||m.count>1000||!/^[a-f0-9]{64}$/.test(m.hash))return null;
+  let data='';for(let i=0;i<m.count;i++){const part=cache.get('reviewed-part:'+m.hash+':'+i);if(part===null||part===undefined)return null;data+=part;}
+  return ngHash_(data)===m.hash?data:null;
+ }catch(invalid){return null;}
+}
+function ngReviewedCachePut_(data){
+ const cache=CacheService.getScriptCache(),hash=ngHash_(data);let count=0;
+ for(let start=0;start<data.length;){let end=Math.min(start+20000,data.length);const last=data.charCodeAt(end-1);if(end<data.length&&last>=0xd800&&last<=0xdbff)end--;
+  if(count>=1000)return;cache.put('reviewed-part:'+hash+':'+count++,data.slice(start,end),300);start=end;
+ }
+ if(count)cache.put('reviewed-feed-v9',JSON.stringify({hash,count}),240);
+}
 /** Anonymous reads expose only the same approved data as the optional GitHub feed. */
 function reviewedSharedNgFeed(e){
- const cache=CacheService.getScriptCache();let data=cache.get('reviewed-feed-v7');
- if(!data){data=exportReviewedSharedNg();if(data.length<20000)cache.put('reviewed-feed-v7',data,300);}
+ let data=ngReviewedCacheGet_();
+ if(!data){data=exportReviewedSharedNg();ngReviewedCachePut_(data);}
  // Older clients reject unknown kinds; expose the new kind only on explicit capability opt-in.
- const feed=JSON.parse(data),cap=e&&e.parameter||{};feed.rules=feed.rules.filter(r=>(cap.reporter==='1'||r.kind!=='reporter')&&(cap.globalIdentity==='1'||r.board!=='*'||!['id','wacchoi','prefix','suffix'].includes(r.kind)));data=JSON.stringify(feed);
+ const feed=JSON.parse(data),cap=e&&e.parameter||{};feed.rules=feed.rules.filter(r=>(cap.regex==='1'||!r.regex)&&(cap.matchModes==='1'||[0,16].includes((r.flags||0)&0x70))&&(cap.reporter==='1'||r.kind!=='reporter')&&(cap.globalIdentity==='1'||r.board!=='*'||!['id','wacchoi','prefix','suffix'].includes(r.kind)));data=JSON.stringify(feed);
  return ContentService.createTextOutput(data).setMimeType(ContentService.MimeType.JSON);
 }
 /** Read-only audit: never re-review, publish, change revision, or log personal values. */
@@ -62,7 +77,7 @@ function ngAuditReviewedLocked_(){
  const issues={},warnings={},states={},reasons={},kinds={},active=new Map();
  function issue(code){issues[code]=(issues[code]||0)+1;}
  function warning(code){warnings[code]=(warnings[code]||0)+1;}
- const rows=sheet?ngRows_(sheet):[];if(!sheet)issue('INBOX_MISSING');
+ const rows=sheet?ngAllPersonalRows_(book):[];if(!sheet)issue('INBOX_MISSING');
  for(const row of rows){
   if(ngEmptyInboxRow_(row))continue;
   try{
@@ -78,13 +93,13 @@ function ngAuditReviewedLocked_(){
  for(const x of active.values()){
   const rawState=String(x.row[5]),state=['pending','approved','rejected','withdrawn'].includes(rawState)?rawState:'invalid_state',reason=String(x.row[6]);states[state]=(states[state]||0)+1;if(state==='invalid_state')issue('INVALID_REVIEW_STATE');
   // Only known reason codes reach logs; sheet text itself is untrusted/private.
-  const reasonCode=['invalid_value','ineligible_keyword','disabled_personal_condition','unresolved_board','regular_expression_review','unsupported_native_match_mode','missing_board_scope','independent_reports','insufficient_reports','poster_name_review','unsupported_kind','dictionary_exception','no_dictionary_match','dictionary_and_reports','dictionary_waiting_reports','reporter_deleted','manual_review','scope_or_lifetime_review','awaiting_policy'].includes(reason)?reason:'unrecognized_reason';reasons[reasonCode]=(reasons[reasonCode]||0)+1;
+  const reasonCode=['invalid_value','ineligible_keyword','disabled_personal_condition','unresolved_board','regular_expression_review','unsupported_native_match_mode','missing_board_scope','independent_reports','insufficient_reports','poster_name_review','unsupported_kind','dictionary_exception','no_dictionary_match','dictionary_and_reports','dictionary_waiting_reports','reporter_deleted','manual_review','scope_or_lifetime_review','awaiting_policy','basic_rules_passed','invalid_regular_expression','reporter_superseded'].includes(reason)?reason:'unrecognized_reason';reasons[reasonCode]=(reasons[reasonCode]||0)+1;
   kinds[x.c.kind]=(kinds[x.c.kind]||0)+1;
   if(x.row[3]==='delete'){withdrawn++;if(state!=='withdrawn')issue('WITHDRAWAL_NOT_REVIEWED');continue;}
   const policy=Object.assign({},config,(config.boards||{})[x.c.board]||{});
   const expected=overrides[x.key]||ngPolicy_(x.c,votes.get(x.key),policy);
   const identity=['id','wacchoi','prefix','suffix','reporter'].includes(x.c.kind);
-  const unsafe=x.c.board==='unknown.invalid/unresolved'||x.c.regex||((x.c.flags&0x70)!==0&&(x.c.flags&0x70)!==0x10)||(x.c.kind==='reporter'&&x.c.board!=='edge/all');
+  const unsafe=x.c.board==='unknown.invalid/unresolved'||!ngMatchModeSupported_(x.c)||!ngRegexValid_(x.c)||(x.c.kind==='reporter'&&x.c.board!=='edge/all');
   const expectedState=unsafe&&expected.state==='approved'?'pending':expected.state;
   if(state!==expectedState){waitingReview++;issue('REVIEW_STATE_MISMATCH');}
   if(state==='approved'){
@@ -94,7 +109,7 @@ function ngAuditReviewedLocked_(){
    approved.set(x.key,(approved.get(x.key)||0)+1);
   }
  }
- const cached=CacheService.getScriptCache().get('reviewed-feed-v7');let cachedPublished=null;
+ const cached=ngReviewedCacheGet_();let cachedPublished=null;
  if(cached)try{
   const feed=JSON.parse(cached),seen=new Set();cachedPublished=feed.rules.length;
   if(!feed.ok||!feed.full||!Array.isArray(feed.rules))throw Error('format');
@@ -111,10 +126,10 @@ function ngAuditReviewedLocked_(){
   ngFamilyBoard_('mercury.bbspink.com/erobbs')!==ngFamilyBoard_('5ch/android'),
   ngFamilyName_('jbbs.shitaraba.net/game/123')==='したらば掲示板',
   ngPolicy_({board:'5ch/all',kind:'keyword',value:'今すぐ死ね',period:'',flags:16},1).state==='approved',
-  ngPolicy_({board:'5ch/all',kind:'keyword',value:'ordinary-neutral-audit日本語',period:'',flags:16},50).state==='pending',
+  ngPolicy_({board:'5ch/all',kind:'keyword',value:'ordinary-neutral-audit日本語',period:'',flags:16},50).state==='approved',
   ngPolicy_({board:'5ch/all',kind:'id',value:'AuditId',period:'',flags:16},1).state==='approved',
   ngPolicy_({board:'unknown.invalid/unresolved',kind:'id',value:'AuditId',period:'',flags:16},50).state==='pending',
-  ngPolicy_({board:'edge/all',kind:'keyword',value:'今すぐ死ね',period:'',flags:32,regex:true},50).state==='pending'
+  ngPolicy_({board:'edge/all',kind:'keyword',value:'今すぐ死ね',period:'',flags:32,regex:true},50).state==='approved'
  ];if(probes.some(ok=>!ok))issue('POLICY_PROBE_FAILED');
  const result={ok:Object.keys(issues).length===0,readOnly:true,totalInboxRows:rows.length,latestReporterConditions:active.size,activeReporterConditions:Array.from(votes.values()).reduce((a,b)=>a+b,0),withdrawn,states,reasons,kinds,approvedConditions:approved.size,waitingReview,cachedPublished,issues,warnings,policyProbes:probes.length};
  console.log(JSON.stringify(result));return result;

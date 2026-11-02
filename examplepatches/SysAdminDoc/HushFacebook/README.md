@@ -22,7 +22,7 @@ Each row in the [patch table](#patches) says how its switch starts. The ad filte
 
 This project has no connection to Meta or to the Morphe project. Neither endorses it, and neither wrote it.
 
-The latest release is [v0.19.0](https://github.com/SysAdminDoc/Hushfacebook/releases/tag/v0.19.0), with 105 patches. It includes all changes since v0.18.1, among them Save and Download buttons under posts, switches that take Like, Comment, Share or Send off posts and reels, a cast button for feed videos and support for 32-bit phones, as the [changelog](CHANGELOG.md) describes.
+The latest release is [v0.20.0](https://github.com/SysAdminDoc/Hushfacebook/releases/tag/v0.20.0), with 109 patches. It includes all changes since v0.19.0, among them It includes all changes since v0.19.0, among them a move to Facebook 585.0.0.47.54, a burn-in guard for videos, reels that can show when they were posted, and switches for the search button, Like under comments, the Subscribe button and the stories you've already watched, as the [changelog](CHANGELOG.md) describes, as the [changelog](CHANGELOG.md) describes.
 
 [Add to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2FHushfacebook) | [Download a release](https://github.com/SysAdminDoc/Hushfacebook/releases/latest) | [Browse the patches](#patches)
 
@@ -61,7 +61,7 @@ Changing one of those brings up a **Restart Facebook** row at the top of the pag
 
 Morphe Manager can back up your patch choices but not these switches. **Export settings** saves them to a JSON file, word lists included, and **Import settings** reads one back on this phone or a new one. It shows what the file would change before anything does. **Check for new Hushfacebook releases** under Updates is off until you turn it on. Then it asks GitHub once a day and tells you when there's a newer release, and you update through Morphe Manager as usual.
 
-The settings follow the language Facebook shows. German, Spanish, Indonesian, Brazilian Portuguese, Turkish, Vietnamese, Simplified Chinese and Traditional Chinese (Taiwan) are translated. Other languages get English. [Translating](CONTRIBUTING.md#translating) explains how to fix a string or add a language.
+The settings follow the language Facebook shows. German, Spanish, Indonesian, Brazilian Portuguese, Turkish, Vietnamese, Russian, Simplified Chinese and Traditional Chinese (Taiwan) are translated. Other languages get English. [Translating](CONTRIBUTING.md#translating) explains how to fix a string or add a language.
 
 To keep Reel downloads in More without the sidebar button, leave **Download** on under **Reels and Watch** and turn off **Download button on reels** on the same page.
 
@@ -72,6 +72,8 @@ To keep Reel downloads in More without the sidebar button, leave **Download** on
 **Inline feed video controls**, under **Video and audio**, adds a separate play/pause button to feed videos. It starts off. With **Tap to play** on as well, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for you. Tap the video itself for full screen. Live videos and ads keep their own controls.
 
 **Cast button on feed videos**, right below it, puts a cast button in a feed video's top right corner. Facebook has no casting of its own anymore, so the button hands the video to a casting app you have, like Web Video Caster. It starts off.
+
+**Seek bar on feed videos**, right below that, runs a thin bar along the bottom of a feed video. Drag it and let go to jump to that point, and the time shows while you drag. It starts off. You won't see it while the video's bottom edge is off screen or covered by the tab bar, and the same goes for the strip at the very bottom of the screen that Android keeps for its home swipe. Scroll a little and it comes back. With Tap to play on, it needs Inline feed video controls on too.
 
 ### Blocking Reels
 
@@ -127,11 +129,12 @@ Each row says what the patch does, how its switch starts and which settings sect
 | `Hide seen posts` | Keeps posts you've already scrolled past out of the feed when it loads again, for 1, 3, 7, 30 or 90 days, so you see something new. The list stays on your phone. Starts off. Turn it on in Hushfacebook settings > News feed. |
 | `Hide Meta AI questions under posts` | Removes the row of Meta AI questions Facebook adds under some posts, for a cleaner feed. The post and its buttons stay. On by default. Turn it off in Hushfacebook settings > News feed. |
 | `Hide Meta AI comment summaries` | Removes Meta AI's summary of the comments from the top of the comment sheet and from under posts, so you read what people actually wrote. Starts off. Turn it on in Hushfacebook settings > Comments and writing. |
-| `Comment sheet options` | Small fixes for comments. Stop a long press on Like from opening reactions, hide the GIF and sticker buttons, show every reply without tapping View replies, load a whole reply thread as you scroll, open more replies with a tap anywhere on their row, hide the comments under feed posts, hide the thumbs-down on comments or turn it into a Block button, hide Like on comments, hide Related groups under group posts, hide comments with shop links or your words, hide who is typing and the new comments pop-up, hide the emoji row over the comment box, and hide the comment box under full-screen videos. Starts off. Turn on the parts you want in Hushfacebook settings > Comments and writing. |
+| `Comment sheet options` | Small fixes for comments. Stop a long press on Like from opening reactions, hide the GIF and sticker buttons, show every reply without tapping View replies, load a whole reply thread as you scroll, close an open reply thread with a Hide replies button, open more replies with a tap anywhere on their row, hide the comments under feed posts, hide the thumbs-down on comments or turn it into a Block button, hide Like on comments, hide Related groups under group posts, hide comments with shop links or your words, hide who is typing and the new comments pop-up, hide the emoji row over the comment box, and hide the comment box under full-screen videos. Starts off. Turn on the parts you want in Hushfacebook settings > Comments and writing. |
 | `Open comments at full height` | Opens the comment sheet at the full height of the screen instead of part way up, on posts, videos, reels and stories. On reels and videos, Comment opens that sheet instead of the split view. A second switch pauses a reel while its comments are open, and a third lets a tap on the reel above a half-open sheet play or pause it. All start off. Turn them on in Hushfacebook settings > Comments and writing. |
 | `Hide the Feeds header` | Takes the title row and the All, Favorites, Friends, Groups and Pages filters off the top of the Feeds tab, so it opens straight on posts. Starts off. Turn it on in Hushfacebook settings > News feed, then restart Facebook. |
 | `Keep post dates` | Keeps the date under the poster's name, so you can always tell how old a post is. Facebook's newer header can swap it for rotating details, and on some phones the line goes blank. On by default. Turn it off in Hushfacebook settings > News feed. |
 | `Show full post text` | Shows all of a post's text in the feed, so you don't have to tap See more. Starts off. Turn it on in Hushfacebook settings > News feed. |
+| `Translate posts` | Translates posts in another language through Google Translate, from a Translate line under the post or by themselves. Starts off. Turn it on in Hushfacebook settings > News feed. |
 | `See who shared` | Adds See who shared to a post's menu, which opens Facebook's list of the people who shared it. Starts off. Turn it on in Hushfacebook settings > News feed. |
 | `Turn off auto-translation` | Shows posts and reel captions in the language they were written in, instead of Facebook's automatic translation, so you read people's own words. See translation still works. Starts off. Turn it on in Hushfacebook settings > News feed. |
 | `Hide sponsored posts` | Removes sponsored and promoted posts from the news feed, with no gap left behind, so you see fewer ads. It also keeps the floating ad button off an ad's comments. On by default. Turn it off in Hushfacebook settings > News feed. |
@@ -331,7 +334,7 @@ A few rows hand a link to another app instead of going online themselves. **Send
 | Minimum Android version | Android 11 |
 | Download | [APKMirror](https://www.apkmirror.com/apk/facebook-2/facebook/) |
 
-There are 109 patches for `com.facebook.katana`, and a release only goes out once every one of them has applied to that build. Older Facebook versions like 584 and 583 aren't supported any more, so update Facebook before you patch. When a newer stable Facebook comes out, Hushfacebook moves to it and drops the one before. Meta's builds for Android 9 and 8 can't be patched at all, since their code sits in a compressed archive the patcher can't read. The 64-bit build is the 120-640dpi one because 585 has no 480-640dpi bundle for Android 11; it carries every screen density, so it fits any 64-bit phone.
+There are 110 patches for `com.facebook.katana`, and a release only goes out once every one of them has applied to that build. Older Facebook versions like 584 and 583 aren't supported any more, so update Facebook before you patch. When a newer stable Facebook comes out, Hushfacebook moves to it and drops the one before. Meta's builds for Android 9 and 8 can't be patched at all, since their code sits in a compressed archive the patcher can't read. The 64-bit build is the 120-640dpi one because 585 has no 480-640dpi bundle for Android 11; it carries every screen density, so it fits any 64-bit phone.
 
 SHA-256 of the .apkm files the patches are checked against:
 

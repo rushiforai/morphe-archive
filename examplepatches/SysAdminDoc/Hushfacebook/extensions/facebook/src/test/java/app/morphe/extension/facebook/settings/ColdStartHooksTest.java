@@ -350,6 +350,7 @@ public class ColdStartHooksTest {
         assertFalse("a lift's speed before the context was changed", ReelHoldForTests.putsBackTheSpeedBeforeAHold());
         assertFalse("a finger on a feed video before the context started a hold", FeedVideoHoldForTests.startsTiming());
         assertFalse("a 2x pill made before the context lost its lock hint", ReelHoldForTests.hidesTheLockHint());
+        assertFalse("a 2x pill drawn before the context drew nothing", ReelHoldForTests.hidesThePill());
         assertFalse("stories viewed before the context were kept off their viewer lists", StorySeenForTests.holdsABatch());
         assertFalse("a marked story viewed before the context went out alone", StorySeenForTests.sendsOnlyTheMarked());
         assertFalse("a story viewed before the context got the Mark as seen button", StorySeenForTests.pointsTheButton());
@@ -387,6 +388,8 @@ public class ColdStartHooksTest {
                 CommentSheetOptions.openReplyThreads(false));
         assertFalse("a reply thread opened before the context paged on by itself",
                 CommentSheetOptions.loadWholeReplyThreads(false));
+        assertFalse("an open thread drawn before the context got a Hide replies row",
+                CommentSheetOptions.drawsHideRepliesRow(true, false, null, null));
         assertTrue("a View more replies row drawn before the context took a tap anywhere",
                 CommentSheetOptions.viewMoreRepliesTextOnly(true));
         assertFalse("a post's comments drawn before the context lost Related groups",

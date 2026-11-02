@@ -1,6 +1,6 @@
 # AGENTS.md — how to work on this repo
 
-A Morphe/ReVanced patch bundle for **YouTube VR 1.89.09 and 1.88.10** on Quest 3 (`eureka`, Snapdragon XR2 Gen 2),
+A Morphe/ReVanced patch bundle for **YouTube VR 1.90.05 and 1.89.09** on Quest 3 (`eureka`, Snapdragon XR2 Gen 2),
 plus a Java extension injected into the app. Read this before touching anything; the traps in
 "Measured traps" have each cost a full build-install-device cycle.
 

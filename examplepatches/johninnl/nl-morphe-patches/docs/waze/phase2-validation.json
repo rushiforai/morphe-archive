@@ -1,0 +1,149 @@
+{
+  "target": "com.waze 5.26.90.901",
+  "apkm_sha256": "dd69b987ede38579bff7d0f3bc5ca6128730667f8f073c795e7f1c21db9dabe1",
+  "mpp_sha256": "9471dc65caf787507c7fce1f8dd049a00537a48457d72e4a55f814e83a1d91d4",
+  "patches": [
+    "Alert distances",
+    "All moods",
+    "Allow high refresh rate",
+    "Auto zoom",
+    "Average speed zone bar",
+    "Bigger alert pins",
+    "Bigger speedometer",
+    "Broadcast navigation data",
+    "Car alerts as notifications",
+    "Car reconnect grace period",
+    "Car traffic meter",
+    "Change app name",
+    "Extra map info",
+    "Flock cameras",
+    "Full black",
+    "Hide ads",
+    "Hide recent destinations",
+    "Lane guidance",
+    "Map skin",
+    "Native camera and hazard controls",
+    "Navigation distances",
+    "No AI reporting",
+    "No Google Assistant",
+    "Open without device location",
+    "Remove permissions",
+    "Remove sign-in prompts",
+    "Remove telemetry",
+    "Report speed limit",
+    "Share alerts with Maps",
+    "Skip consent screens",
+    "SoundCloud in Waze",
+    "Speed bump controls",
+    "Speed camera alerts",
+    "Speed camera sound at any speed",
+    "Speed cameras everywhere",
+    "Speed limit controls",
+    "Speed limit sign",
+    "Stay awake in the background",
+    "Support Gearslip",
+    "YT Music Morphe in Waze"
+  ],
+  "runs": 41,
+  "runtime_verified": false,
+  "date": "2026-11-01",
+  "candidate_bundle_version": "1.20.0 (local validation build; automation assigns the release version)",
+  "new_patches": [
+    "Native camera and hazard controls",
+    "Speed bump controls",
+    "Car reconnect grace period",
+    "Hide recent destinations",
+    "Allow high refresh rate"
+  ],
+  "option_cases": [
+    {
+      "case": "defaults",
+      "expected_success": true,
+      "passed": true
+    },
+    {
+      "case": "selective",
+      "expected_success": true,
+      "passed": true
+    },
+    {
+      "case": "map-only",
+      "expected_success": true,
+      "passed": true
+    },
+    {
+      "case": "lower-bounds",
+      "expected_success": true,
+      "passed": true
+    },
+    {
+      "case": "upper-bounds",
+      "expected_success": true,
+      "passed": true
+    },
+    {
+      "case": "bad-refresh-low",
+      "expected_success": false,
+      "passed": true
+    },
+    {
+      "case": "bad-refresh-high",
+      "expected_success": false,
+      "passed": true
+    },
+    {
+      "case": "bad-reconnect-low",
+      "expected_success": false,
+      "passed": true
+    },
+    {
+      "case": "bad-reconnect-high",
+      "expected_success": false,
+      "passed": true
+    },
+    {
+      "case": "empty-alerts",
+      "expected_success": false,
+      "passed": true
+    },
+    {
+      "case": "empty-bumps",
+      "expected_success": false,
+      "passed": true
+    }
+  ],
+  "bytecode_verification": {
+    "tool": "scripts/waze/WazePhaseTwoVerifier.java",
+    "recents_call_replacements": 1,
+    "unrelated_reader_branches_preserved": true,
+    "jni_declaration_preserved": true,
+    "enabled_recents_path": "empty payload; original native fetch not called",
+    "disabled_recents_path": "original native fetch and payload returned",
+    "display_wide_pair_preserved": true,
+    "display_other_control_flow_preserved": true,
+    "negative_control": "unpatched APK rejected"
+  },
+  "power_thermal_verified": false,
+  "tests": {
+    "waze": {
+      "tests": 26,
+      "failures": 0,
+      "skipped": 0
+    },
+    "medium-reader": {
+      "tests": 85,
+      "failures": 0,
+      "skipped": 5
+    },
+    "medium-privacy": {
+      "tests": 4,
+      "failures": 0,
+      "skipped": 0
+    },
+    "flitsmeister": {
+      "tests": 10,
+      "failures": 0,
+      "skipped": 0
+    }
+  }
+}

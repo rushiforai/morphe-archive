@@ -1,13 +1,14 @@
 package dev.twitchpatches.patches.twitch.reload
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.literal
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -20,14 +21,18 @@ internal data class NativeReloadUiHooks(
     val callbackUnit: FieldReference, val flowCollector: MethodReference, val stateValue: MethodReference,
 )
 
-internal fun BytecodePatchContext.resolveNativeReloadUi(all: List<Method>): NativeReloadUiHooks {
-    val volume = all.filter { method ->
-        AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" &&
-            method.parameterTypes.size == 4 && method.parameterTypes.first() == "Z" &&
-            method.parameterTypes.last() == "I" && method.code().any {
-                (it as? WideLiteralInstruction)?.wideLiteral == nativeMuteLabel
-            }
-    }.uniqueHook("native live volume renderer")
+private class VolumeRendererFingerprint(nativeMuteLabel: Long) : Fingerprint(
+    isStatic = true,
+    returnType = "V",
+    filters = listOf(literal(nativeMuteLabel)),
+)
+
+internal fun BytecodePatchContext.resolveNativeReloadUi(): NativeReloadUiHooks {
+    val volume = VolumeRendererFingerprint(nativeMuteLabel).originalMethod
+    require(volume.parameterTypes.size == 4 && volume.parameterTypes.first().toString() == "Z" &&
+        volume.parameterTypes.last().toString() == "I") {
+        "Reload stream: native volume renderer signature changed."
+    }
     val callback = volume.parameterTypes[1].toString()
     val composer = volume.parameterTypes[2].toString()
     val button = volume.references().filterIsInstance<MethodReference>().filter {
@@ -39,9 +44,8 @@ internal fun BytecodePatchContext.resolveNativeReloadUi(all: List<Method>): Nati
     val concrete = volume.code().filter { it.opcode == Opcode.CHECK_CAST }
         .mapNotNull { ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type }
         .uniqueHook("native volume concrete composer")
-    val callers = all.filter { method ->
+    val callers = classDefBy(volume.definingClass).methods.filter { method ->
         AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" &&
-            method.definingClass == volume.definingClass &&
             method.references().any { it.toString() == volume.reference }
     }
     if (callers.size != 2 || callers.any { it.parameterTypes.count { p -> p == callback } < 8 })
@@ -56,25 +60,21 @@ internal fun BytecodePatchContext.resolveNativeReloadUi(all: List<Method>): Nati
         (it as? ReferenceInstruction)?.reference as? MethodReference
     }.firstOrNull { it.definingClass == concrete && it.parameterTypes.isEmpty() && it.returnType == "V" }
         ?: throw PatchException("Reload stream: native composition group end missing.")
-    val fragmentMethods = classDefBy(NATIVE_FRAGMENT).methods.toList()
-    val controls = all.filter { method ->
-        method.hasStrings("mute_button", "go_to_classic_view", "player_settings_button") &&
-            fragmentMethods.any { it.parameterTypes.isEmpty() && it.returnType == method.definingClass }
-    }
-        .uniqueHook("native controls event owner")
-    val root = all.filter { method ->
-        method.definingClass == volume.definingClass && method.references().any { ref ->
+    val fragmentGetters = classDefBy(NATIVE_FRAGMENT).methods.filter { it.parameterTypes.isEmpty() }.map { it.returnType }.toSet()
+    val controls = fragmentGetters.mapNotNull { classDefByOrNull(it) }.flatMap { it.methods }.filter {
+        it.hasStrings("mute_button", "go_to_classic_view", "player_settings_button")
+    }.uniqueHook("native controls event owner")
+    val root = classDefBy(volume.definingClass).methods.filter { method ->
+        method.references().any { ref ->
             ref is TypeReference && ref.type == controls.definingClass
         } && method.hasStrings("No ViewModelStoreOwner was provided via LocalViewModelStoreOwner")
     }.uniqueHook("native controls composition root")
     val callbackConstructors = root.references().filterIsInstance<MethodReference>()
         .filter { it.name == "<init>" }.map { it.definingClass }.toSet()
-    val callbackTypes = mutableListOf<String>()
-    classDefForEach { type ->
-        if (type.type in callbackConstructors && callback in type.interfaces && type.fields.count { it.type == controls.definingClass } == 1 &&
-            type.methods.any { it.name == "<init>" && it.parameterTypes == listOf(controls.definingClass, "I") })
-            callbackTypes.add(type.type)
-    }
+    val callbackTypes = callbackConstructors.mapNotNull { classDefByOrNull(it) }.filter { type ->
+        callback in type.interfaces && type.fields.count { it.type == controls.definingClass } == 1 &&
+            type.methods.any { it.name == "<init>" && it.parameterTypes == listOf(controls.definingClass, "I") }
+    }.map { it.type }
     val callbackClass = classDefBy(callbackTypes.uniqueHook("native volume owner callback"))
     val owner = callbackClass.fields.filter { it.type == controls.definingClass }.uniqueHook("native callback owner field")
     val invoke = callbackClass.methods.filter { it.name == "invoke" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/Object;" }

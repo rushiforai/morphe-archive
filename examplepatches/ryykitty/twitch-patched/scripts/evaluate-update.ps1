@@ -48,7 +48,10 @@ $expectedSigner = '1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687a
 $identities = [Collections.Generic.List[object]]::new()
 $versionCode = $null
 foreach ($part in $parts) {
+    $prevEAP = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
     $signature = @(& $apksigner verify --print-certs $part.Path 2>&1)
+    $ErrorActionPreference = $prevEAP
     if ($LASTEXITCODE -ne 0) { throw "Invalid APK signature: $($part.Name)" }
     $certificates = @($signature | ForEach-Object {
         if ($_ -match '^Signer #\d+ certificate SHA-256 digest: ([0-9a-fA-F]{64})$') { $Matches[1].ToLowerInvariant() }

@@ -1,5 +1,7 @@
 package dev.twitchpatches.patches.twitch.promotions
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -7,13 +9,16 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resource.resourceId
+import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.*
-import com.android.tools.smali.dexlib2.iface.reference.*
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import dev.twitchpatches.patches.twitch.settings.resolveSettingsHooks
@@ -21,6 +26,36 @@ import dev.twitchpatches.patches.twitch.settings.settingsPatch
 import dev.twitchpatches.patches.twitch.shared.*
 
 private const val POLICY = "Ldev/twitchpatches/extension/promotions/PromotionSettings;"
+
+private object FollowingPageHeaderItemFingerprint : Fingerprint(
+    strings = listOf(string("FollowingPageHeaderItem(title=", StringComparisonType.STARTS_WITH)),
+)
+
+private object ProfileCardViewModelFingerprint : Fingerprint(
+    strings = listOf(string("ProfileCardViewModel(bannerImageUrl=", StringComparisonType.STARTS_WITH)),
+)
+
+private object VisibleIngressTypeFingerprint : Fingerprint(
+    strings = listOf(string("Visible(ingressType=")),
+)
+
+private object TurboErrorIngressFingerprint : Fingerprint(
+    name = "toString",
+    strings = listOf(string("Error(errorMessage=", StringComparisonType.STARTS_WITH)),
+)
+
+private class TurboAbsentIngressFingerprint(
+    parent: String,
+) : Fingerprint(
+    superclass = parent,
+    name = "<clinit>",
+    returnType = "V",
+)
+
+private object TurboSignupCallbackFingerprint : Fingerprint(
+    name = "<init>",
+    strings = listOf("maybeShowTurboSignupUpsell"),
+)
 
 @Suppress("unused")
 val hideTurboPromotionsPatch = bytecodePatch(
@@ -48,24 +83,24 @@ val hideTurboPromotionsPatch = bytecodePatch(
         val range = call.value as? RegisterRangeInstruction ?: throw PatchException("Turbo row needs a range invocation")
         if (call.value.opcode != Opcode.INVOKE_STATIC_RANGE || range.registerCount != 8)
             throw PatchException("Turbo row invocation contract changed")
-        val classes = mutableListOf<com.android.tools.smali.dexlib2.iface.ClassDef>().apply { classDefForEach { add(it) } }
-        val models = listOf("FollowingPageHeaderItem(title=", "ProfileCardViewModel(bannerImageUrl=").map { anchor ->
-            classes.filter { type -> type.methods.any { method -> method.references().filterIsInstance<StringReference>()
-                .any { it.string.startsWith(anchor) } } }.uniqueHook("Turbo UI model $anchor")
+        val models = listOf(FollowingPageHeaderItemFingerprint.originalClassDef, ProfileCardViewModelFingerprint.originalClassDef)
+        val ingress = VisibleIngressTypeFingerprint.originalClassDef.superclass
+            ?: throw PatchException("Turbo ingress state superclass missing")
+        require(models.first().fields.any { it.type == ingress }) {
+            "Turbo ingress state is not present in FollowingPageHeaderItem"
         }
-        val ingress = models.first().fields.map { it.type }.filter { type -> type.startsWith("L") &&
-            classes.any { candidate -> candidate.superclass == type && candidate.methods.any { it.hasStrings("Visible(ingressType=") } }
-        }.uniqueHook("Turbo ingress state")
-        val absentType = classes.filter { type -> classDefByOrNull(type.superclass ?: "")?.superclass == ingress &&
-            type.fields.any { it.type == type.type && AccessFlags.STATIC.isSet(it.accessFlags) } &&
-            type.fields.none { !AccessFlags.STATIC.isSet(it.accessFlags) }
-        }.uniqueHook("native hidden Turbo ingress")
-        val absent = absentType.fields.filter { it.type == absentType.type && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+        val errorMatch = TurboErrorIngressFingerprint.matchAllOrNull()
+            ?.map { it.originalClassDef }
+            ?.single { classDefByOrNull(it.superclass ?: "")?.superclass == ingress }
+            ?: throw PatchException("Turbo error ingress missing")
+        val ingressParent = errorMatch.superclass
+            ?: throw PatchException("Turbo ingress parent missing")
+        val resolvedAbsentType = TurboAbsentIngressFingerprint(ingressParent).originalClassDef
+        val absent = resolvedAbsentType.fields.filter { it.type == resolvedAbsentType.type && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
             AccessFlags.STATIC.isSet(it.accessFlags) }.uniqueHook("hidden Turbo ingress singleton")
         val constructors = models.map { model -> model.methods.filter { it.name == "<init>" &&
             it.parameterTypes.count { p -> p.toString() == ingress } == 1 }.uniqueHook("Turbo UI constructor") }
-        val callback = classes.filter { type -> type.methods.any { it.name == "<init>" && it.hasStrings("maybeShowTurboSignupUpsell") } }
-            .uniqueHook("Turbo signup callback")
+        val callback = TurboSignupCallbackFingerprint.originalClassDef
         val startupRef = callback.methods.flatMap { it.references().filterIsInstance<MethodReference>() }.filter {
             it.definingClass == "Ltv/twitch/android/feature/viewer/landing/ViewerLandingActivity;" &&
                 it.name != "<init>" && it.parameterTypes.isEmpty() && it.returnType == "V"

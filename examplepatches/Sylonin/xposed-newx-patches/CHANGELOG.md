@@ -1,3 +1,13 @@
+## [3.0.0](https://github.com/Sylonin/xposed-newx-patches/compare/v2.1.0...v3.0.0) (2026-11-01)
+
+### ⚠ BREAKING CHANGES
+
+* X 12.34.0 to 12.38.1 are no longer supported targets. Patch the 12.39.0-prod.01 APKM instead.
+
+### ✨ New Features
+
+* support X 12.39.0-prod.01 only ([f30938d](https://github.com/Sylonin/xposed-newx-patches/commit/f30938dc2f9ae516a7ed1446b3bfc8c177048b07))
+
 ## [2.1.0](https://github.com/Sylonin/xposed-newx-patches/compare/v2.0.1...v2.1.0) (2026-10-30)
 
 ### ✨ New Features

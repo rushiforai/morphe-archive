@@ -13,13 +13,13 @@ fun onCreate() {
     val preferences =
         context.getSharedPreferences("${context.packageName}_preferences", Context.MODE_PRIVATE)
 
-    if ("profile_info" !in preferences)
+    if ("profile_info" !in preferences) {
         preferences
             .edit()
             .apply {
                 putString("profile_info", "{}")
                 putString("session_id", SESSION_ID)
                 Utils.showToastShort("session_id: $SESSION_ID")
-            }
-            .apply()
+            }.apply()
+    }
 }

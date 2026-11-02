@@ -83,7 +83,7 @@ internal val postMenuPatch = bytecodePatch(
         // The actions' dialogs are shown on the activity: the menu only has the application context.
         MainActivityOnCreateFingerprint.method.addInstructions(
             0,
-            "invoke-static { p0 }, $EXTENSION_PACKAGE/MainActivity;->set(Landroid/app/Activity;)V",
+            "invoke-static/range { p0 .. p0 }, $EXTENSION_PACKAGE/MainActivity;->set(Landroid/app/Activity;)V",
         )
 
         val actionType = DidSelectOptionToStringFingerprint.classDef.fields.single().type

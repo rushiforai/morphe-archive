@@ -16,13 +16,29 @@ Check the package name before anything else.
 
 ## Route A — extract from your own headset (recommended)
 
-### 1. On-device APK backup tool (easiest)
+### 1. Morphe Manager's "Use installed app" (easiest, if Manager is on the headset)
+
+If YouTube VR is already installed from the store, Morphe Manager needs no extraction step at
+all: at the APK-selection step of the patch flow it offers **Use installed app**, which takes
+the installed APK itself — splits included — as the patching source (confirmed in the Manager
+source: `LocalApkSources.kt` reads the app's `sourceDir`/`splitSourceDirs`). With
+**Settings → Storage management → Keep original APKs** enabled, that copy is kept afterwards
+and can be exported or shared from the **Original APKs** list — that is your backup.
+
+Two caveats:
+
+- "Use installed app" patches whatever version the store installed — which is exactly the trap
+  the [version rule](#the-version-rule-this-is-the-one-that-bites) below describes. A just-updated
+  headset may hold a version the bundle does not list yet.
+- This gets you the *current* build only. For an older one, see Route B.
+
+### 2. On-device APK backup tool
 
 If you use an on-device utility such as **Quest Games Optimizer (QGO)**, you can back up the
 installed YouTube VR APK directly to the headset's storage. This requires no PC or USB cable, making
 it the easiest route — especially if you are patching directly on the Quest using Morphe Manager.
 
-### 2. Pull via ADB
+### 3. Pull via ADB
 
 Install YouTube VR from the Quest Store (it is free), connect adb, then:
 

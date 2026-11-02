@@ -39,6 +39,10 @@ private val VALID_ARRAY_ELEMENT_WIDTHS = setOf(1, 2, 4, 8)
  * The classes are made mutable by this call, which is also required for the patcher
  * to emit the patched copies.
  *
+ * Calling this for a class that an earlier patch already repaired is a no-op: the
+ * class is mutable, which means it went through this function (and therefore has no
+ * invalid payloads left). Several patches touch `MainActivity` in 7.3/7.4.
+ *
  * @return number of repaired methods across all [classTypes].
  */
 internal fun BytecodePatchContext.repairInvalidArrayPayloads(vararg classTypes: String): Int {
@@ -48,9 +52,8 @@ internal fun BytecodePatchContext.repairInvalidArrayPayloads(vararg classTypes: 
         // Read the original (DexBacked) class before it is replaced by a MutableClass
         // wrapper; the wrapper does not expose its source class.
         val originalClass = classDefBy(classType)
-        check(originalClass !is MutableClass) {
-            "Class $classType was made mutable before its invalid array-data payloads were repaired."
-        }
+        // Already made mutable (and repaired) by an earlier patch in this run.
+        if (originalClass is MutableClass) continue
 
         val dirtyMethods = originalClass.methods.mapNotNull { method ->
             val implementation = method.implementation ?: return@mapNotNull null

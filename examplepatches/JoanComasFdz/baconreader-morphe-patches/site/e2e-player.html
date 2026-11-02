@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="darkreader-lock" />
+    <meta name="robots" content="noindex" />
+    <title>BaconReader patches · e2e recording</title>
+    <!-- Plays one e2e recording MP4 with the browser's own video controls: …/e2e-player.html?v=pr-<n>-v<k>-<run>.mp4
+         from the prs-resources release. GitHub shows no player for a video it didn't store itself, so the PR comments
+         link here (docs/hosting.md, "E2E videos on pull requests"). The video's URL is built from v alone, which must be
+         such a name, so the page never plays a URL someone else chose. Plain HTML,
+         styles and script inline: nothing here can meet a cached copy of another deploy. -->
+    <style>
+        :root { --bg: #0a0d13; --panel: #111620; --line: #263046; --text: #e7eaf0; --muted: #8a94a8; --arc: #6fe3ff; --warn: #ffcf5a; }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; padding: 16px; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+        main { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        header { width: 100%; }
+        h1 { margin: 0; font-size: 18px; font-weight: 600; overflow-wrap: anywhere; }
+        .meta { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+        a { color: var(--arc); }
+        video { display: block; max-width: 100%; max-height: calc(100vh - 140px); background: #000; border: 1px solid var(--line); border-radius: 8px; }
+        .note { width: 100%; margin: 0; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; color: var(--warn); }
+        .note code { color: var(--text); overflow-wrap: anywhere; }
+        [hidden] { display: none !important; }
+    </style>
+</head>
+
+<body>
+    <main>
+        <header>
+            <h1 id="title">E2E recording</h1>
+            <p class="meta" id="meta"></p>
+        </header>
+        <video id="video" controls playsinline preload="metadata" hidden></video>
+        <p class="note" id="note" hidden></p>
+    </main>
+    <script>
+        (function () {
+            var repo = "JoanComasFdz/baconreader-morphe-patches";
+            var release = "prs-resources";
+            var name = /^pr-(\d+)-v(\d+)-([A-Za-z0-9-]+)\.mp4$/;
+            var screens = { phone: "📱 Phone", desktop: "🖥️ Desktop" };
+
+            var query = new URLSearchParams(location.search);
+            var asset = query.get("v") || "";
+            var parts = asset.match(name);
+            var video = document.getElementById("video");
+            var note = document.getElementById("note");
+
+            function say(text, code) {
+                note.textContent = text;
+                if (code) {
+                    var shown = document.createElement("code");
+                    shown.textContent = code;
+                    note.append(" ", shown);
+                }
+                note.hidden = false;
+            }
+
+            if (!parts) {
+                say(asset
+                    ? "This page plays only the e2e recordings named pr-<n>-v<k>-<run>.mp4, not:"
+                    : "No recording named: open this page from a pull request's e2e comment (…/e2e-player.html?v=pr-<n>-v<k>-<run>.mp4).",
+                    asset);
+                return;
+            }
+
+            var pr = parts[1], version = parts[2], run = parts[3];
+            var screen = run.match(/-(phone|desktop)$/);
+            var scenario = (screen ? run.slice(0, -screen[0].length) : run).replace(/-/g, " ");
+            document.getElementById("title").textContent = scenario.charAt(0).toUpperCase() + scenario.slice(1);
+            document.title = "BaconReader patches · " + scenario;
+
+            var meta = document.getElementById("meta");
+            var link = document.createElement("a");
+            link.href = "https://github.com/" + repo + "/pull/" + pr;
+            link.textContent = "PR #" + pr;
+            meta.append(link, " · V" + version + (screen ? " · " + screens[screen[1]] : "") + " · " + release);
+
+            video.addEventListener("error", function () {
+                video.hidden = true;
+                say("This recording can't be loaded. Closing a pull request keeps only its newest version's recordings, so an older "
+                    + "version's are gone:", asset);
+            });
+            video.src = "https://github.com/" + repo + "/releases/download/" + release + "/" + asset;
+            video.hidden = false;
+        })();
+    </script>
+</body>
+
+</html>

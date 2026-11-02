@@ -65,6 +65,17 @@ public final class NativeUpdatePolicy {
             requestConstructor.setAccessible(true);
             Object copy = requestConstructor.newInstance(nativeField(type, "f").get(request), method,
                     replacement, nativeField(type, "e").get(request), nativeField(type, "b").get(request));
+            // Connection: close alone can still borrow a previously pooled socket once.
+            // Give only this scoped Call an empty pool, preserving its original client/TLS/cookies.
+            Object client=nativeField(call.getClass(),"a").get(call);
+            Object pool=nativeField(client.getClass(),"h").get(client);
+            if(!"o.r8lambdaSKTp07BDug1dt6rTGFYR7p2Uyw".equals(pool.getClass().getName()))return;
+            Object fresh=pool.getClass().getDeclaredConstructor().newInstance();
+            Object delegate=nativeField(pool.getClass(),"b").get(fresh);
+            if(!"o.putFloatArray".equals(delegate.getClass().getName()))return;
+            // Zero idle slots closes HTTP/2 sockets too once the active response is released.
+            nativeField(delegate.getClass(),"a").setInt(delegate,0);
+            nativeField(call.getClass(),"c").set(call,delegate);
             target.set(call, copy);
         } catch (ReflectiveOperationException | RuntimeException ignored) {
             // Preserve native I/O if the verified request layout is unavailable.

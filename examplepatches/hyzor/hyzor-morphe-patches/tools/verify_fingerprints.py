@@ -25,6 +25,7 @@ MARKERS = {
     "Sleep as Android": "Lcom/urbandroid/sleep/",
     "SnoreLab": "Lcom/snorelab/",
     "NYT Games": "Lcom/nytimes/games/",
+    "Duolingo": "Lcom/duolingo/",
 }
 
 # App -> (class descriptor, method name) -> (return type, required, patch, description)
@@ -67,6 +68,43 @@ TARGETS = {
             ("Z", True, "Unlock Subscription", "isSubscribedForGames; only boolean read of NYTUserState.f"),
         ("Lcom/nytimes/games/designsystem/theme/ExtendedColorsKt;", "<clinit>"):
             ("V", True, "AMOLED Black", "static light/dark palette; dark greys rewritten to #000000"),
+    },
+    # Duolingo 6.104.3:
+    #   Most Duolingo fingerprints are structural (toString literals, field-usage shapes,
+    #   opcode windows) and are validated by building and applying the bundle, not by method
+    #   names here. The rows below are the pinned class/method anchors: the login request
+    #   constructor, both EnergyConfig constructors and the two RampUp timer states.
+    #   `Lss90`, `Lgo3`, `Lz22` and the other short names change with every obfuscation pass,
+    #   so they are deliberately not pinned here.
+    "Duolingo": {
+        ("Lcom/duolingo/data/signuplogin/LoginRequest$EmailLoginRequest;", "<init>"):
+            ("V", True, "Disable login integrity", "constructor whose signal parameter is replaced"),
+        ("Lcom/duolingo/core/energy/models/EnergyConfig;", "<init>"):
+            ("V", True, "Enable Premium", "primary and Kotlinx default-args constructors"),
+        ("Lcom/duolingo/data/session/state/RampupTimerState$Paused;", "<init>"):
+            ("V", True, "Unlimited RampUp time", "timer state keeps the remaining seconds"),
+        ("Lcom/duolingo/data/session/state/RampupTimerState$Tick;", "<init>"):
+            ("V", True, "Unlimited RampUp time", "per-second tick state"),
+    },
+}
+
+# App -> (class, method) -> parameter lists that must each be present.
+# Fingerprint `parameters` are matched with startswith(), so "L" pins any reference type.
+REQUIRED_PARAMS = {
+    "Duolingo": {
+        ("Lcom/duolingo/data/signuplogin/LoginRequest$EmailLoginRequest;", "<init>"): [
+            ["Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "L"],
+        ],
+        ("Lcom/duolingo/core/energy/models/EnergyConfig;", "<init>"): [
+            ["I", "I", "J", "J", "J", "I", "J", "Ljava/lang/Integer;"],
+            ["I", "I", "I", "J", "J", "J", "I", "J", "Ljava/lang/Integer;", "Z"],
+        ],
+        ("Lcom/duolingo/data/session/state/RampupTimerState$Paused;", "<init>"): [
+            ["I", "L"],
+        ],
+        ("Lcom/duolingo/data/session/state/RampupTimerState$Tick;", "<init>"): [
+            ["I"],
+        ],
     },
 }
 
@@ -142,7 +180,7 @@ def _dex_blobs(z):
 
 
 def scan(path):
-    """Return the set of class descriptors and the first method signature seen per (class, name)."""
+    """Return the class descriptors and every method signature seen per (class, name)."""
     classes = set()
     found = {}
     with zipfile.ZipFile(path) as z:
@@ -150,8 +188,32 @@ def scan(path):
             dex = Dex(blob)
             for cls, meth, (ret, params) in dex.methods():
                 classes.add(cls)
-                found.setdefault((cls, meth), (name, ret, params))
+                # The DEX method_ids table lists every referenced method, so the same declared
+                # method can appear many times (and in several DEX files); keep one entry per
+                # signature, remembering the first DEX that referenced it.
+                entry = (ret, tuple(params))
+                found.setdefault((cls, meth), {}).setdefault(entry, name)
     return classes, found
+
+
+def signature_matches(signature, expected):
+    """Whether a scanned signature matches an expected parameter list.
+
+    Parameter types are compared with `startswith`, mirroring Morphe's prefix matching, so a
+    short entry such as "L" pins any reference type without pinning the obfuscated class.
+    """
+    _dexname, _ret, params = signature
+    return len(params) == len(expected) and all(
+        actual.startswith(prefix) for actual, prefix in zip(params, expected)
+    )
+
+
+def required_signatures_present(signatures, required):
+    """Whether every expected parameter list is present among the scanned signatures."""
+    return all(
+        any(signature_matches(signature, expected) for signature in signatures)
+        for expected in required
+    )
 
 
 def main(path):
@@ -166,15 +228,19 @@ def main(path):
     for app in apps:
         print(f"[{app}]")
         for key, (ret, required, patch, why) in TARGETS[app].items():
-            hit = found.get(key)
-            status = "OK  " if hit else ("MISS" if required else "skip")
-            if hit:
-                dexname, fret, params = hit
-                sig = f"({''.join(params)}){fret}"
-                print(f"  {status} {key[0]:<46} {key[1]:<28} {sig:<34} {dexname:<12} {patch}: {why}")
-            else:
-                print(f"  {status} {key[0]:<46} {key[1]:<28} {'-':<34} {'-':<12} {patch}: {why}")
-            ok = ok and (bool(hit) or not required)
+            entries = found.get(key, {})
+            signatures = [
+                (dexname, ret, list(params)) for (ret, params), dexname in entries.items()
+            ]
+            expected = REQUIRED_PARAMS.get(app, {}).get(key)
+            matches = expected is None or required_signatures_present(signatures, expected)
+            status = "OK  " if signatures and matches else ("MISS" if required else "skip")
+            dexname = signatures[0][0] if signatures else "-"
+            sig = "; ".join(
+                f"({''.join(params)}){fret}" for _dexname, fret, params in signatures
+            ) or "-"
+            print(f"  {status} {key[0]:<46} {key[1]:<28} {sig:<34} {dexname:<12} {patch}: {why}")
+            ok = ok and (bool(signatures) and matches or not required)
         print()
 
     print("all required fingerprints resolved" if ok else "MISSING REQUIRED FINGERPRINTS")

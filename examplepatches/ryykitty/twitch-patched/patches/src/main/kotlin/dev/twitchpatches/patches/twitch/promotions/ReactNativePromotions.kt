@@ -5,9 +5,9 @@ import dev.twitchpatches.patches.twitch.shared.appendReactAdapter
 import dev.twitchpatches.patches.twitch.shared.reactNativeAssetsPatch
 import dev.twitchpatches.patches.twitch.shared.RN_ASSET
 import dev.twitchpatches.patches.twitch.shared.assetSource
-import dev.twitchpatches.patches.twitch.shared.hermes.HermesBundle
 import dev.twitchpatches.patches.twitch.shared.hermes.MetroExport
 import dev.twitchpatches.patches.twitch.shared.hermes.MetroExports
+import dev.twitchpatches.patches.twitch.shared.hermes.twitchBundle
 import dev.twitchpatches.patches.twitch.shared.hermes.MetroRegistrations
 import app.morphe.patcher.patch.ResourcePatchContext
 
@@ -21,7 +21,7 @@ internal val reactNativeTurboPatch = resourcePatch {
     execute {
         appendReactAdapter("TurboUpsellButton", setOf("useTurboUpsell", "useIntl"), 1)
         appendReactAdapter("TheatreSDAUpsell", setOf("useTurboUpsell", "onOpenTurboTray", "hasTurbo", "SDAUpsellOverlay"), 1)
-        val bundle = HermesBundle(get("assets/index.android.bundle").readBytes())
+        val bundle = twitchBundle()
         val exports = MetroExports(bundle)
         val highlight = exports.resolveDeferred("DropsHighlightRenderer", setOf("useDropsHighlightContext", "claimReward", "useTurboInfo"))
         MetroRegistrations(bundle).requireRenderer("DropsHighlightRenderer", "dropsHighlightRegistration")
@@ -37,7 +37,7 @@ internal val reactNativeSubscriptionBannersPatch = resourcePatch {
     execute {
         appendReactAdapter("TheatrePromoBanner", setOf("formatMessage"), 2)
         appendReactAdapter("PromotionalOfferBanner", setOf("promotionId", "offerId"), 2)
-        val bundle = HermesBundle(get("assets/index.android.bundle").readBytes())
+        val bundle = twitchBundle()
         val exports = MetroExports(bundle)
         val highlight = exports.resolveDeferred("PromotionHighlightRenderer", setOf("highlight", "expanded", "onDismiss"))
         MetroRegistrations(bundle).requireRenderer("PromotionHighlightRenderer", "promotionHighlightRegistration")

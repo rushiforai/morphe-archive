@@ -3,6 +3,7 @@ package dev.twitchpatches.extension.emotes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 final class EmoteTokens {
     static final class Match {
@@ -13,6 +14,10 @@ final class EmoteTokens {
     }
 
     static List<Match> find(CharSequence text, Map<String, Emote> catalog) {
+        return find(text, (Function<String, Emote>) catalog::get);
+    }
+
+    static List<Match> find(CharSequence text, Function<String, Emote> catalog) {
         List<Match> matches = new ArrayList<>();
         if (text.length() > 8192) return matches;
         int offset = 0;
@@ -21,7 +26,7 @@ final class EmoteTokens {
             int start = offset;
             while (offset < text.length() && !separator(text.charAt(offset))) offset++;
             if (offset > start && offset - start <= 128) {
-                Emote emote = catalog.get(text.subSequence(start, offset).toString());
+                Emote emote = catalog.apply(text.subSequence(start, offset).toString());
                 if (emote != null) matches.add(new Match(start, offset, emote));
             }
         }

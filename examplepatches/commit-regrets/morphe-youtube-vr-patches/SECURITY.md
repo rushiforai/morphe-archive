@@ -29,6 +29,6 @@ before there is a patch.
 ## Supported versions
 
 Only the [latest release](https://github.com/commit-regrets/morphe-youtube-vr-patches/releases)
-is supported. The bundle targets one app version at a time (currently YouTube VR 1.88.10);
+is supported. The bundle targets the latest two app versions (currently YouTube VR 1.90.05 and 1.89.09);
 a newer app build that the patches refuse to apply to is not a security issue — it is the
 next porting job.

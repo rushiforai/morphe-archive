@@ -34,19 +34,23 @@ val forceLandscapePlayerPatch = bytecodePatch(
     compatibleWith(ZONA_COMPATIBILITY)
 
     execute {
-        SetSensorLandscapeFingerprint.method.apply {
+        SetSensorLandscapeFingerprint.matchOrNull()?.method?.apply {
             val setterIndex = SetSensorLandscapeFingerprint.instructionMatches.single().index
             val setterInstruction = getInstruction<FiveRegisterInstruction>(setterIndex)
-            val literalIndex = (setterIndex - 1 downTo 0).first { index ->
+            val literalIndex = (setterIndex - 1 downTo 0).firstOrNull { index ->
                 val instruction = implementation!!.instructions[index]
                 instruction is NarrowLiteralInstruction &&
                     instruction is OneRegisterInstruction &&
-                    instruction.narrowLiteral == -1 &&
                     instruction.registerA == setterInstruction.registerD
             }
-            val orientationRegister = getInstruction<OneRegisterInstruction>(literalIndex).registerA
 
-            replaceInstruction(literalIndex, "const/4 v$orientationRegister, 0x6")
+            if (literalIndex != null) {
+                val instruction = getInstruction<NarrowLiteralInstruction>(literalIndex)
+                if (instruction.narrowLiteral != 6) {
+                    val orientationRegister = (instruction as OneRegisterInstruction).registerA
+                    replaceInstruction(literalIndex, "const/4 v$orientationRegister, 0x6")
+                }
+            }
         }
     }
 }

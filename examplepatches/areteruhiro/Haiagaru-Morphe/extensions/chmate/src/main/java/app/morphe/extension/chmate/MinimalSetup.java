@@ -19,7 +19,7 @@ final class MinimalSetup {
             +"・エッヂの記者ID表示＆NG\n・エッヂ過去ログ検索のツールバー\n・Kyodemo／必死チェッカーの専用ビューア\n"
             +"・過去ログ自動取得\n・広告削除\n・ビューア\n・URLサムネイル取得\n・過去ログ検索\n\n"
             +"ログ・認証情報・登録済みルールは削除しません。通信互換性の修正や安全対策は残ります。元のChMate標準機能は変更しません。"
-            +"ビューアなどは該当パッチの導入が必要です。あとから設定を個別に変更できます。");panel.addView(info);
+            +"ローカル自動バックアップの設定は維持します。ビューアなどは該当パッチの導入が必要です。あとから設定を個別に変更できます。");panel.addView(info);
         Switch on=new Switch(a);on.setText("最低限構成を有効にする");on.setChecked(false);panel.addView(on);
         new HaiagaruDialog.Builder(a).setTitle("Haiagaruの初期設定").setView(panel)
             .setNegativeButton("今は変更しない",(d,w)->SettingsProfiles.prefs(a).edit().putBoolean(PROMPT,true).apply())
@@ -28,7 +28,7 @@ final class MinimalSetup {
                 try{
                     SettingsProfiles.catalog(a);
                     if(!SettingsProfiles.apply(a,SettingsProfiles.minimalValues()))throw new IllegalStateException("設定の保存に失敗しました");
-                    for(String name:new String[]{PosterHighlight.PREFS,ProgrammableNgController.PREFS,"haiagaru.hidden-id-ng","haiagaru.local-auto-backup"})
+                    for(String name:new String[]{PosterHighlight.PREFS,ProgrammableNgController.PREFS,"haiagaru.hidden-id-ng"})
                         if(!a.getSharedPreferences(name,0).edit().putBoolean("enabled",false).commit())throw new IllegalStateException("追加機能の設定を保存できません");
                     if(!a.getSharedPreferences("haiagaru.mega-sync.options",0).edit().putBoolean("automatic",false).commit()
                         ||!a.getSharedPreferences("haiagaru_imgur_web",0).edit().putBoolean("enabled",false).commit()

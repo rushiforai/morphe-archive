@@ -11,6 +11,9 @@ final class PlaylistFuture extends FutureTask<Object> implements ListenableFutur
     private final List<Listener> listeners=new ArrayList<>();
     private final Future<?> upstream;
     PlaylistFuture(Callable<Object> task,Future<?> upstream){super(task);this.upstream=upstream;}
+    static Object await(Future<?> source)throws Exception{
+        try{return source.get();}catch(ExecutionException wrapped){Throwable cause=wrapped.getCause();if(cause instanceof Exception failure)throw failure;if(cause instanceof Error error)throw error;throw wrapped;}
+    }
     @Override public void addListener(Runnable listener,Executor executor){
         Objects.requireNonNull(listener);Objects.requireNonNull(executor);
         synchronized(listeners){if(!isDone()){listeners.add(new Listener(listener,executor));return;}}

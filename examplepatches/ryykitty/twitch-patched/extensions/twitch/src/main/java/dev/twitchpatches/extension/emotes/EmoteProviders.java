@@ -35,8 +35,8 @@ final class EmoteProviders {
             selected = room == null ? null : new JSONArray().put(room.opt("set"));
         }
         if (selected == null) return result;
-        for (int s = 0; s < Math.min(selected.length(), 64); s++) {
-            JSONObject set = sets.optJSONObject(selected.optString(s));
+        for (int setIndex = 0; setIndex < Math.min(selected.length(), 64); setIndex++) {
+            JSONObject set = sets.optJSONObject(selected.optString(setIndex));
             JSONArray entries = set == null ? null : set.optJSONArray("emoticons");
             if (entries == null) continue;
             for (int i = 0; i < Math.min(entries.length(), 2000); i++) {

@@ -12,6 +12,8 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContextWrapper;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -23,22 +25,54 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.shadows.ShadowAlertDialog;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
+import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
 
 /** The paging loop of Jump to the first message or a date (#246), and the long press that opens it. */
 @RunWith(RobolectricTestRunner.class)
 public class ChatPagerTest {
     @Rule public final SettingsContextRule settings = new SettingsContextRule();
+
+    /** An activity and a view that keep a message, as any of Instagram's might. */
+    public static final class HoldingActivity extends Activity {
+        Object held;
+    }
+
+    public static final class HoldingView extends View {
+        Object held;
+
+        HoldingView(android.content.Context context) {
+            super(context);
+        }
+    }
+
+    @Test public void aChatsReadStopsAtAnActivityOrAView() {
+        HoldingActivity activity = Robolectric.buildActivity(HoldingActivity.class).setup().get();
+        activity.held = new ChatHistoryTest.Msg("8", "stranger", "x", "1730000000000000", "TEXT", false);
+        HoldingView view = new HoldingView(activity);
+        view.held = new ChatHistoryTest.Msg("9", "stranger", "y", "1730000000000000", "TEXT", false);
+        List<Object> rows = new ArrayList<>();
+        rows.add(new ChatHistoryTest.Plain(activity));
+        rows.add(new ChatHistoryTest.Plain(view));
+        rows.add(new ChatHistoryTest.Row(new ChatHistoryTest.Msg("1", "them", "z", "1730000000000000", "TEXT", false)));
+        List<ChatHistory.Entry> entries = ChatHistory.read(new ChatHistoryTest.Adapter(rows), 3, ChatHistoryTest.READER);
+        assertEquals(1, entries.size());
+        assertEquals("1", entries.get(0).id);
+        assertEquals(2, entries.get(0).position);
+    }
 
     /** The chat screen the patch hands over: only its view is read, by name. */
     public static final class FakeChatScreen {
@@ -59,11 +93,11 @@ public class ChatPagerTest {
         final TextView name = new TextView(activity);
         final FrameLayout chat = new FrameLayout(activity);
         final FakeChatScreen fragment = new FakeChatScreen(chat);
+        final FrameLayout actionBar = new FrameLayout(activity);
 
         Screen() {
             LinearLayout column = new LinearLayout(activity);
             column.setOrientation(LinearLayout.VERTICAL);
-            FrameLayout actionBar = new FrameLayout(activity);
             name.setId(View.generateViewId());
             name.setText("mrp1900s");
             actionBar.addView(name);
@@ -74,6 +108,53 @@ public class ChatPagerTest {
             ids.put(ChatLocks.TITLES[0], name.getId());
             MessagesLock.idsForTests = ids;
         }
+
+        /** Puts the name in the clickable area Instagram's chat header has: the tap is on the area, nothing is on the name. */
+        LinearLayout nameArea(View.OnClickListener tap) {
+            LinearLayout area = new LinearLayout(activity);
+            area.setId(View.generateViewId());
+            area.setOnClickListener(tap);
+            actionBar.removeView(name);
+            area.addView(name);
+            actionBar.addView(area);
+            Map<String, Integer> ids = new HashMap<>(MessagesLock.idsForTests);
+            ids.put("header_title_subtitle_container", area.getId());
+            MessagesLock.idsForTests = ids;
+            return area;
+        }
+
+        /** The same area made the way 453 makes a chat's header: with a context that doesn't lead to an activity. */
+        LinearLayout nameAreaOnAPlainContext(View.OnClickListener tap) {
+            LinearLayout area = new LinearLayout(new ContextWrapper(RuntimeEnvironment.getApplication()));
+            area.setId(View.generateViewId());
+            area.setOnClickListener(tap);
+            actionBar.removeView(name);
+            area.addView(name);
+            actionBar.addView(area);
+            Map<String, Integer> ids = new HashMap<>(MessagesLock.idsForTests);
+            ids.put("header_title_subtitle_container", area.getId());
+            MessagesLock.idsForTests = ids;
+            return area;
+        }
+
+        /** Instagram building the header again: new views with the same ids. */
+        LinearLayout rebuilt(LinearLayout area) {
+            actionBar.removeView(area);
+            LinearLayout again = new LinearLayout(activity);
+            again.setId(area.getId());
+            TextView nameAgain = new TextView(activity);
+            nameAgain.setId(name.getId());
+            nameAgain.setText(name.getText());
+            again.addView(nameAgain);
+            actionBar.addView(again);
+            return again;
+        }
+    }
+
+    private static void assertMenuOpened() {
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull("no menu opened", dialog);
+        dialog.dismiss();
     }
 
     private Screen screen;
@@ -148,6 +229,223 @@ public class ChatPagerTest {
         ChatPager.opened(screen.fragment);
         assertFalse(screen.name.hasOnLongClickListeners());
     }
+
+    /**
+     * The name itself takes no touches on 453: the tap that opens the chat's details is on the area
+     * around the name and its subtitle. A listener on the name would swallow that tap (#246). The
+     * long press goes on the area, and the tap stays Instagram's.
+     */
+    @Test
+    public void theLongPressGoesOnTheAreaAroundTheNameAndATapStaysInstagrams() {
+        screen = new Screen();
+        int[] taps = new int[1];
+        LinearLayout area = screen.nameArea(v -> taps[0]++);
+        Settings.JUMP_IN_CHAT.save(true);
+
+        ChatPager.opened(screen.fragment);
+
+        assertFalse("the name would swallow the tap", screen.name.isLongClickable());
+        assertTrue(area.performLongClick());
+        assertMenuOpened();
+        assertTrue(area.performClick());
+        assertEquals(1, taps[0]);
+    }
+
+    /** Instagram can build the chat's header again after the chat comes up, and the new one gets the long press too. */
+    @Test
+    public void aHeaderBuiltAgainAfterTheChatOpensGetsTheLongPress() {
+        screen = new Screen();
+        LinearLayout area = screen.nameArea(v -> { });
+        Settings.JUMP_IN_CHAT.save(true);
+        ChatPager.opened(screen.fragment);
+
+        LinearLayout again = screen.rebuilt(area);
+        ShadowLooper.idleMainLooper(1, TimeUnit.SECONDS);
+
+        assertTrue(again.performLongClick());
+        assertMenuOpened();
+    }
+
+    /** A long press something cleared after the chat came up comes back. */
+    @Test
+    public void aLongPressThatWasClearedComesBack() {
+        screen = new Screen();
+        LinearLayout area = screen.nameArea(v -> { });
+        Settings.JUMP_IN_CHAT.save(true);
+        ChatPager.opened(screen.fragment);
+
+        area.setLongClickable(false);
+        ShadowLooper.idleMainLooper(1, TimeUnit.SECONDS);
+
+        assertTrue(area.isLongClickable());
+        assertTrue(area.performLongClick());
+        assertMenuOpened();
+    }
+
+    /**
+     * On 453 the chat's header is made with a context that leads to no activity. Asked of that context
+     * alone the menu had nothing to open over, so the long press answered false and the chat's details
+     * opened on release (#246).
+     */
+    @Test
+    public void aHeaderMadeOnAPlainContextStillOpensTheMenu() {
+        screen = new Screen();
+        int[] taps = new int[1];
+        LinearLayout area = screen.nameAreaOnAPlainContext(v -> taps[0]++);
+        Settings.JUMP_IN_CHAT.save(true);
+        ChatPager.opened(screen.fragment);
+
+        assertTrue("the long press fell through to the tap", area.performLongClick());
+
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull("no menu opened", dialog);
+        dialog.dismiss();
+        assertEquals(0, taps[0]);
+    }
+
+    /** With the whole header on a plain context, the menu opens over the activity HushGram last saw. */
+    @Test
+    public void aScreenWithNoActivityBehindItsParentsUsesTheActivityShowing() {
+        Activity original = Utils.getActivity();
+        try {
+            screen = new Screen();
+            FrameLayout plainBar = new FrameLayout(new ContextWrapper(RuntimeEnvironment.getApplication()));
+            LinearLayout area = new LinearLayout(new ContextWrapper(RuntimeEnvironment.getApplication()));
+            area.setId(View.generateViewId());
+            plainBar.addView(area);
+            Map<String, Integer> ids = new HashMap<>(MessagesLock.idsForTests);
+            ids.put("header_title_subtitle_container", area.getId());
+            MessagesLock.idsForTests = ids;
+            FakeChatScreen fragment = new FakeChatScreen(area);
+            Utils.setActivity(screen.activity);
+            Settings.JUMP_IN_CHAT.save(true);
+            ChatPager.opened(fragment);
+
+            assertTrue(area.performLongClick());
+            assertMenuOpened();
+            ChatPager.closed(fragment);
+        } finally {
+            Utils.setActivity(original);
+        }
+    }
+
+    /** Instagram clears the long press again after the header watch has stopped looking, and the next touch puts it back in time. */
+    @Test
+    public void aLongPressClearedAfterTheWatchStoppedComesBackWithTheNextTouch() {
+        screen = new Screen();
+        int[] taps = new int[1];
+        LinearLayout area = screen.nameArea(v -> taps[0]++);
+        Settings.JUMP_IN_CHAT.save(true);
+        ChatPager.opened(screen.fragment);
+        ShadowLooper.idleMainLooper(60, TimeUnit.SECONDS);
+
+        area.setOnLongClickListener(null);
+        area.setLongClickable(false);
+        MotionEvent down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 1, 1, 0);
+        MotionEvent cancel = MotionEvent.obtain(0, 0, MotionEvent.ACTION_CANCEL, 1, 1, 0);
+        area.dispatchTouchEvent(down);
+        area.dispatchTouchEvent(cancel);
+        down.recycle();
+        cancel.recycle();
+
+        assertTrue(area.isLongClickable());
+        assertTrue("the touch didn't put the listener back", area.hasOnLongClickListeners());
+        assertTrue(area.performLongClick());
+        assertMenuOpened();
+        assertEquals(0, taps[0]);
+    }
+
+    /** A touch with both switches off leaves the name's area as Instagram left it. */
+    @Test
+    public void aTouchWithTheSwitchesOffPutsNothingBack() {
+        screen = new Screen();
+        LinearLayout area = screen.nameArea(v -> { });
+        Settings.JUMP_IN_CHAT.save(true);
+        ChatPager.opened(screen.fragment);
+        Settings.JUMP_IN_CHAT.save(false);
+        area.setOnLongClickListener(null);
+        area.setLongClickable(false);
+
+        MotionEvent down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 1, 1, 0);
+        area.dispatchTouchEvent(down);
+        down.recycle();
+
+        assertFalse(area.isLongClickable());
+    }
+
+    /** An export is named after the chat even though the long press is on the area around the name, which holds no text. */
+    @Test
+    public void theExportsNameComesFromTheNameNotTheAreaThatWasPressed() {
+        screen = new Screen();
+        screen.nameArea(v -> { });
+        assertEquals("mrp1900s", ChatPager.nameIn(screen.chat));
+    }
+
+    /** A chat that comes back over the same header is a new screen, and the long press answers for that one. */
+    @Test
+    public void aChatOpenedAgainOverTheSameHeaderStillOpensTheMenu() {
+        screen = new Screen();
+        Settings.JUMP_IN_CHAT.save(true);
+        ChatPager.opened(screen.fragment);
+        ChatPager.closed(screen.fragment);
+        FakeChatScreen again = new FakeChatScreen(screen.chat);
+
+        ChatPager.opened(again);
+
+        assertTrue(screen.name.performLongClick());
+        assertMenuOpened();
+        ChatPager.closed(again);
+    }
+
+    /** A long press Instagram answers on the area stays Instagram's, however often the header is looked at. */
+    @Test
+    public void anAreaInstagramListensToKeepsItsOwnLongPress() {
+        screen = new Screen();
+        boolean[] instagrams = new boolean[1];
+        LinearLayout area = screen.nameArea(v -> { });
+        area.setOnLongClickListener(v -> instagrams[0] = true);
+        Settings.JUMP_IN_CHAT.save(true);
+
+        ChatPager.opened(screen.fragment);
+        ShadowLooper.idleMainLooper(1, TimeUnit.SECONDS);
+
+        assertFalse("the name would swallow the tap", screen.name.isLongClickable());
+        assertTrue(area.performLongClick());
+        assertTrue("Instagram's long press was replaced", instagrams[0]);
+        assertNull(ShadowAlertDialog.getLatestAlertDialog());
+    }
+
+    /** The diagnostics report says when the header never showed up, instead of a silent long press. */
+    @Test
+    public void aHeaderThatNeverComesIsReportedMissing() {
+        screen = new Screen();
+        MessagesLock.idsForTests = new HashMap<>();
+        Settings.JUMP_IN_CHAT.save(true);
+
+        ChatPager.opened(screen.fragment);
+        ShadowLooper.idleMainLooper(20, TimeUnit.SECONDS);
+
+        String missing = HookStatus.missing(FamilyNames.CHAT_HISTORY).toString();
+        assertTrue(missing, missing.contains("view id"));
+    }
+
+    /** A chat that leaves the screen stops being watched, and its header isn't touched afterwards. */
+    @Test
+    public void aClosedChatIsNoLongerWatched() {
+        screen = new Screen();
+        LinearLayout area = screen.nameArea(v -> { });
+        Settings.JUMP_IN_CHAT.save(true);
+        ChatPager.opened(screen.fragment);
+        ChatPager.closed(screen.fragment);
+
+        LinearLayout again = screen.rebuilt(area);
+        ShadowLooper.idleMainLooper(20, TimeUnit.SECONDS);
+
+        assertFalse(again.hasOnLongClickListeners());
+        String missing = HookStatus.missing(FamilyNames.CHAT_HISTORY).toString();
+        assertFalse(missing, missing.contains("view id"));
+    }
+
     /** A chat of [total] messages, one a day, of which a page more shows each time the list is scrolled to its end. */
     private static final class FakeChat implements ChatPager.Source {
         final int total;
@@ -155,6 +453,9 @@ public class ChatPagerTest {
         int shown;
         int scrolledToOldest;
         int scrolledTo = -2;
+        /** Looks a page takes to arrive once it's asked for. */
+        int looksPerPage;
+        private int looksSincePage;
 
         FakeChat(int total, int shown, int page) {
             this.total = total;
@@ -181,6 +482,8 @@ public class ChatPagerTest {
 
         @Override public void toOldest() {
             scrolledToOldest++;
+            if (++looksSincePage <= looksPerPage) return;
+            looksSincePage = 0;
             shown = Math.min(total, shown + page);
         }
 
@@ -278,6 +581,105 @@ public class ChatPagerTest {
         assertEquals(60, chat.entries().size());
         assertEquals("no jump to the first message", -2, chat.scrolledTo);
         assertEquals(1, chat.scrolledToNewest);
+    }
+
+    /** A page that takes ten seconds to come on a slow network isn't the end of the chat. */
+    @Test public void aSlowPageIsWaitedFor() {
+        FakeChat chat = new FakeChat(60, 20, 20);
+        chat.looksPerPage = 20;
+        run(new ChatPager.Loader(chat, 0, ChatPager.STALL_LOOKS, false));
+        assertEquals(60, chat.shown);
+    }
+
+    /**
+     * The chat's list by the rules of Instagram 453's own scroll listener, which pages only when a scroll
+     * reports movement toward the old end (dy below 0) with the last row on screen. A jump to a row reports
+     * none, and the list can't move past its old end. Rows and pixels are kept apart: {@link #off} is how
+     * far the top of the screen sits below the old end, in pixels.
+     */
+    public static final class ChatList extends View {
+        private static final int ROW = 100;
+        private final int total;
+        private final int page;
+        int rows;
+        int off;
+        int asked;
+
+        ChatList(int total, int rows, int page) {
+            super(RuntimeEnvironment.getApplication());
+            this.total = total;
+            this.rows = rows;
+            this.page = page;
+        }
+
+        @Override public void scrollBy(int x, int y) {
+            int to = Math.max(0, off + y);
+            int moved = to - off;
+            off = to;
+            if (moved >= 0 || off >= ROW) return;
+            asked++;
+            int more = Math.min(total, rows + page) - rows;
+            rows += more;
+            off += more * ROW;
+        }
+
+        public Rows getAdapter() {
+            return new Rows();
+        }
+
+        public Manager getLayoutManager() {
+            return new Manager();
+        }
+
+        public final class Rows {
+            public int getItemCount() {
+                return rows;
+            }
+        }
+
+        public final class Manager {
+            public boolean isLayoutReversed() {
+                return true;
+            }
+
+            public void scrollToPosition(int position) {
+                off = (rows - 1 - position) * ROW;
+            }
+        }
+    }
+
+    /**
+     * The Loading row sat at a chat's old end for minutes with nothing coming, because the pager only ever
+     * jumped there, so an export held 12 of a chat's 22 messages (#246).
+     */
+    @Test public void aChatIsLoadedByTheScrollInstagramPagesOn() {
+        ChatList list = new ChatList(60, 20, 20);
+        run(new ChatPager.Loader(new ChatPager.ListSource(list), 0, ChatPager.STALL_LOOKS, false));
+        assertEquals(60, list.rows);
+    }
+
+    /** Asking moves the list by nothing a reader could see, so a look at the old end ends up back at it. */
+    @Test public void askingForAPageLeavesTheListAtTheOldEnd() {
+        ChatList list = new ChatList(20, 20, 20);
+        ChatPager.ListSource source = new ChatPager.ListSource(list);
+        source.toOldest();
+        source.toOldest();
+        assertEquals(2, list.asked);
+        assertEquals(0, list.off);
+    }
+
+    /** Off the old end a scroll asks for nothing, so the first look only gets the list there. */
+    @Test public void aListAwayFromItsOldEndIsTakenThereFirst() {
+        ChatList list = new ChatList(60, 20, 20);
+        list.off = 1500;
+        ChatPager.ListSource source = new ChatPager.ListSource(list);
+        source.toOldest();
+        assertEquals(0, list.asked);
+        assertEquals(0, list.off);
+        source.toOldest();
+        assertEquals(1, list.asked);
+        assertEquals(40, list.rows);
+        assertEquals(0, list.off);
     }
 
     @Test public void aFinishedLoaderStaysFinished() {

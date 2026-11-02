@@ -129,6 +129,14 @@ internal val ConsentApprovedV2Fingerprint = Fingerprint(
     returnType = "Z",
 )
 
+/** 5.26.90.901: the same impl again, bi/b -> bl/b (i() still calls isPrivacyConsentApprovedNTV). */
+internal val ConsentApprovedV3Fingerprint = Fingerprint(
+    definingClass = "Lcom/waze/bl/b;",
+    name = "i",
+    parameters = listOf(),
+    returnType = "Z",
+)
+
 /** bg/b (privacy consent impl): j() = consent bump (policy update) applies. */
 internal val ConsentBumpFingerprint = Fingerprint(
     definingClass = "Lcom/waze/bg/b;",
@@ -140,6 +148,14 @@ internal val ConsentBumpFingerprint = Fingerprint(
 /** 5.25.90.900: consent bump moved with the impl, bg/b -> bi/b. */
 internal val ConsentBumpV2Fingerprint = Fingerprint(
     definingClass = "Lcom/waze/bi/b;",
+    name = "j",
+    parameters = listOf(),
+    returnType = "Z",
+)
+
+/** 5.26.90.901: consent bump moved with the impl, bi/b -> bl/b (j() reads GDPR_CONSENT_BUMP). */
+internal val ConsentBumpV3Fingerprint = Fingerprint(
+    definingClass = "Lcom/waze/bl/b;",
     name = "j",
     parameters = listOf(),
     returnType = "Z",
@@ -172,6 +188,22 @@ internal val Nd4cNeedsApprovalFingerprint = Fingerprint(
 /** 5.25.90.900: approval gate moved with the impl, az/a -> ba/a. */
 internal val Nd4cNeedsApprovalV2Fingerprint = Fingerprint(
     definingClass = "Lcom/waze/ba/a;",
+    name = "j",
+    parameters = listOf(),
+    returnType = "Z",
+)
+
+/** 5.26.90.901: the ND4C impl again, ba/a -> bc/a (i() reads SIGNUP_ND4C_ENABLED). */
+internal val Nd4cEnabledV3Fingerprint = Fingerprint(
+    definingClass = "Lcom/waze/bc/a;",
+    name = "i",
+    parameters = listOf(),
+    returnType = "Z",
+)
+
+/** 5.26.90.901: j() reads ND4C_APPROVED_VER - approval still pending. */
+internal val Nd4cNeedsApprovalV3Fingerprint = Fingerprint(
+    definingClass = "Lcom/waze/bc/a;",
     name = "j",
     parameters = listOf(),
     returnType = "Z",
@@ -268,15 +300,18 @@ val skipSignInPatch = bytecodePatch(
         // Consents: report approved, and never a pending bump or screen.
         resolveAnchor(
             "privacy consent approved", ConsentApprovedFingerprint, ConsentApprovedV2Fingerprint,
+            ConsentApprovedV3Fingerprint,
         ).addInstructions(0, TRUE_SNIPPET)
         resolveAnchor(
             "privacy consent bump", ConsentBumpFingerprint, ConsentBumpV2Fingerprint,
+            ConsentBumpV3Fingerprint,
         ).addInstructions(0, FALSE_SNIPPET)
         resolveAnchor(
-            "ND4C enabled", Nd4cEnabledFingerprint, Nd4cEnabledV2Fingerprint,
+            "ND4C enabled", Nd4cEnabledFingerprint, Nd4cEnabledV2Fingerprint, Nd4cEnabledV3Fingerprint,
         ).addInstructions(0, FALSE_SNIPPET)
         resolveAnchor(
             "ND4C needs approval", Nd4cNeedsApprovalFingerprint, Nd4cNeedsApprovalV2Fingerprint,
+            Nd4cNeedsApprovalV3Fingerprint,
         ).addInstructions(0, FALSE_SNIPPET)
         AgeConfirmedFingerprint.method.addInstructions(0, TRUE_SNIPPET)
         println("skipSignInPatch: birth date pinned to 01/01/2000, consents auto-accepted")

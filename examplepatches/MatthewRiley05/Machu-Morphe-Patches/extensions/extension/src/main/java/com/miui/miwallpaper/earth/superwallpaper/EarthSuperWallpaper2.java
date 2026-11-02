@@ -1,0 +1,9 @@
+package com.miui.miwallpaper.earth.superwallpaper;
+
+/**
+ * Position 2 variant of the official Earth wallpaper service. The position is
+ * derived from the class name by the patched position lookup.
+ */
+@SuppressWarnings("unused")
+public class EarthSuperWallpaper2 extends EarthSuperWallpaper {
+}

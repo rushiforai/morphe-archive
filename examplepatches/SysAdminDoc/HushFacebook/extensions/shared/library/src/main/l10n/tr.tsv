@@ -290,6 +290,8 @@ With the switch above on, your place stays however long you're away. Pull to ref
 Back leaves Home where it is	Geri, Ana Sayfa'yı olduğu yerde bırakır
 Pressing Back on a scrolled Home no longer jumps to the top and reloads the feed. Press Back again within two seconds to do that.	Kaydırılmış Ana Sayfa'da Geri'ye basmak artık başa atlayıp akışı yenilemez. Bunu yapmak için iki saniye içinde yeniden Geri'ye bas.
 Press Back again to go to the top	Başa gitmek için yeniden Geri'ye bas
+Hide the Back reminder	Geri hatırlatmasını gizle
+Back keeps your place without saying "Press Back again to go to the top".	Geri, “Başa gitmek için yeniden Geri'ye bas” demeden konumunu korur.
 A finished story stays on screen until you tap or swipe. Turn this off for Facebook's timing.	Biten bir hikaye, dokunana veya kaydırana kadar ekranda kalır. Facebook'un zamanlamasını kullanmak için bunu kapat.
 View stories anonymously	Hikayeleri anonim olarak izle
 Facebook isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you. Stories you watch to the end show as watched on this phone only, until that person posts a new one.	Facebook hangi hikayeleri izlediğini öğrenmez, bu yüzden izleyici listelerinde yer almazsın. Yanıt vermek veya tepki bırakmak yine de seni gösterir. Sonuna kadar izlediğin hikayeler, o kişi yenisini paylaşana kadar yalnızca bu telefonda izlenmiş görünür.
@@ -501,6 +503,9 @@ Comments show their replies right away, so there's no View replies to tap.	Yorum
 Load whole reply threads	Yanıt dizilerini tamamen yükle
 # context: summary of that switch; View more replies is the row Facebook shows under an open thread that has more replies to load
 An open reply thread keeps loading as you scroll, so there's no View more replies to tap.	Açık bir yanıt dizisi sen kaydırdıkça yüklenmeye devam eder, daha fazla yanıt için dokunman gerekmez.
+Hide replies button	Yanıtları gizle düğmesi
+An open reply thread gets a Hide replies button, so you can close it again after reading.	Açık bir yanıt dizisinde Yanıtları gizle düğmesi çıkar, böylece okuduktan sonra diziyi yeniden kapatabilirsin.
+Hide replies	Yanıtları gizle
 # context: switch title under Comments; View more replies is the row under an open reply thread that loads more replies, and this makes the whole row take the tap instead of only its words
 Tap anywhere on View more replies	Daha fazla yanıt gör satırının her yerine dokun
 # context: summary of that switch
@@ -848,6 +853,8 @@ Hold a feed video for 2x	2x için akıştaki videoya basılı tut
 # context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
 Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	Akışta veya Watch'ta bir videoya basılı tutmak, bırakana kadar onu iki kat hızda oynatır. Yukarıdaki anahtarlar olmadan da çalışır.
 Hide the pull down to lock hint	Kilitlemek için aşağı çek ipucunu gizle
+Hide the 2x popups	2x açılır pencerelerini gizle
+Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	Bir videoyu 2x için basılı tutunca hiçbir etiket görünmez, yani "Hız: 2x", "Kilitlemek için bırak" veya "2x hızda kilitlendi" olmaz. Basılı tutma ve kilitleme çalışmaya devam eder.
 # context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
 Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	2x için bir videoya basılı tutunca, "2x hızı kilitlemek için aşağı çek" ipucu olmadan yalnızca düz 2x etiketi görünür. Aşağı çekmek yine kilitler. Yukarıdaki anahtarlar olmadan da çalışır.
 Default playback quality	Varsayılan oynatma kalitesi
@@ -970,6 +977,22 @@ Keep post dates	Gönderi tarihlerini koru
 # context: description of that switch; the rotating details are the texts Facebook's newer post header takes turns showing on that line
 Shows the post's date under the poster's name instead of Facebook's rotating details, which can go blank on some phones.	Gönderi sahibinin adının altında, bazı telefonlarda boş kalabilen Facebook'un değişen ayrıntıları yerine gönderi tarihini gösterir.
 Show full post text	Gönderi metninin tamamını göster
+Translate	Çevir
+See original	Orijinali gör
+Translation	Çeviri
+Show original	Orijinali göster
+Show translation	Çeviriyi göster
+Translating...	Çevriliyor...
+Couldn't translate this. Check your connection and try again.	Bu çevrilemedi. Bağlantını kontrol edip tekrar dene.
+Add a Translate link to posts	Gönderilere Çevir bağlantısı ekle
+Translate posts by themselves	Gönderileri kendiliğinden çevir
+Posts in another language get a Translate link under their text. A tap sends that post's text to Google Translate.	Başka dildeki gönderilerin metninin altına Çevir bağlantısı eklenir. Dokununca o gönderinin metni Google Çeviri'ye gönderilir.
+Posts in another language show translated, with See original under them. Each post's text goes to Google Translate as it's drawn.	Başka dildeki gönderiler çevrilmiş görünür, altlarında Orijinali gör yazar. Her gönderinin metni gösterilirken Google Çeviri'ye gider.
+Translate to	Çevrilecek dil
+The phone's language	Telefonun dili
+Languages to leave alone	Çevrilmeyecek diller
+None picked. Posts in every language can be translated.	Seçilen yok. Her dildeki gönderiler çevrilebilir.
+Left alone: %s	Çevrilmeyecek: %s
 Posts in the feed show all of their text, so there's no See more to tap.	Akıştaki gönderiler metninin tamamını gösterir, Devamını gör'e dokunman gerekmez.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Kimlerin paylaştığını gör
@@ -987,7 +1010,9 @@ No "Are you interested in this reel?" prompt on reels. The reel plays as usual.	
 # context: switch title under News feed; affiliate product links are the shop links creators add to their posts to earn a commission
 Hide affiliate product links	Satış ortaklığı ürün bağlantılarını gizle
 # context: description of that switch; "Commission eligible" is Facebook's own label, so use Facebook's wording in your language if you know it
-Hides product cards from shopping links that creators add to posts, reels and comments. The "Commission eligible" label stays.	İçerik üreticilerin gönderilere, reellere ve yorumlara eklediği alışveriş bağlantılarının ürün kartlarını gizler. “Komisyona uygun” etiketi kalır.
+Hides product cards from shopping links that creators add to posts, reels and comments.	İçerik üreticilerin gönderilere, reellere ve yorumlara eklediği alışveriş bağlantılarının ürün kartlarını gizler.
+Hide the Commission eligible label	“Komisyona uygun” etiketini gizle
+Hides the "Commission eligible" label under the creator's name on reels.	Reellerde içerik üreticinin adının altındaki “Komisyona uygun” etiketini gizler.
 # context: The reel button and the video menu item while links are sent to another app (#41)
 Send to app	Uygulamaya gönder
 # context: Title of Android's app chooser when a video's link is sent
@@ -1769,6 +1794,8 @@ Takes the Save button off the side of reels. The buttons above it move down. A c
 Hide the speaker button on reels	Reels'te hoparlör düğmesini gizle
 # context: summary of that switch
 Takes the speaker button off the bottom of the side of reels. A change shows from the next reel.	Reels'in yanının altındaki hoparlör düğmesini kaldırır. Değişiklik bir sonraki reel'den itibaren görünür.
+Move the speaker above the three dots	Hoparlörü üç noktanın üstüne taşı
+Puts the speaker button in the side column of reels, right above the three dots. A change shows from the next reel.	Hoparlör düğmesini reels'in yan sütununa, üç noktanın hemen üstüne koyar. Değişiklik bir sonraki reel'den itibaren görünür.
 # context: switch title under News feed; the reaction preview is the stack of reaction icons and the line with the number of reactions under a post
 Hide the reaction preview on posts	Gönderilerdeki tepki önizlemesini gizle
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
@@ -2088,6 +2115,9 @@ Reels order will be set to %1$s.	Reels sırası %1$s olarak ayarlanacak.
 Cast button on feed videos	Akış videolarında yayınla düğmesi
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Akış videolarına bir yayınla düğmesi ekler. Videoyu, Web Video Caster gibi sende olan bir yayın uygulamasına verir, o da TV'ne gönderir. Facebook'un artık kendi yayınlama özelliği yok.
 Cast this video	Bu videoyu yayınla
+Seek bar on feed videos	Akış videolarında sarma çubuğu
+Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Akıştaki bir videonun altında bir çubuk gösterir. Sürükleyip bırakarak o noktaya atlayın. Canlı videolar ve reklamlar kendi denetimlerini korur. “Oynatmak için dokun” açıksa “Akış videosu denetimleri” de açık olmalıdır.
+Feed video position	Akış videosu konumu
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Rozet rengi
 # context: title of the row that holds a color code for the Facebook logo at the top of Home

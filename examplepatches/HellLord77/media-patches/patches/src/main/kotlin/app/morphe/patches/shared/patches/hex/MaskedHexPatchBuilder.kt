@@ -32,46 +32,48 @@ fun maskedHexPatch(
 
 @Suppress("JavaDefaultMethodsNotOverriddenByDelegation")
 class MaskedHexPatchBuilder
-internal constructor(private val replacements: MutableSet<MaskedReplacement> = mutableSetOf()) :
-    Set<MaskedReplacement> by replacements {
-    infix fun String.asPatternTo(replacementPattern: String) =
-        Triple(
-            byteArrayOf(getPattern()),
-            byteArrayOf(getMaskPattern()),
-            byteArrayOf(replacementPattern),
-        )
+    internal constructor(
+        private val replacements: MutableSet<MaskedReplacement> = mutableSetOf(),
+    ) : Set<MaskedReplacement> by replacements {
+        infix fun String.asPatternTo(replacementPattern: String) =
+            Triple(
+                byteArrayOf(getPattern()),
+                byteArrayOf(getMaskPattern()),
+                byteArrayOf(replacementPattern),
+            )
 
-    infix fun <T> Triple<T, T, T>.inFile(filePath: String) {
-        when (first) {
-            is String if second is String && third is String -> {
-                val first = (first as String).getPattern()
-                val second = (second as String).getMaskPattern()
-                val third = third as String
+        infix fun <T> Triple<T, T, T>.inFile(filePath: String) {
+            when (first) {
+                is String if second is String && third is String -> {
+                    val first = (first as String).getPattern()
+                    val second = (second as String).getMaskPattern()
+                    val third = third as String
 
-                replacements +=
-                    MaskedReplacement(
-                        first.toByteArray(),
-                        second.toByteArray(),
-                        third.toByteArray(),
-                        filePath,
+                    replacements +=
+                        MaskedReplacement(
+                            first.toByteArray(),
+                            second.toByteArray(),
+                            third.toByteArray(),
+                            filePath,
+                        )
+                }
+
+                is ByteArray if second is ByteArray && third is ByteArray -> {
+                    val first = first as ByteArray
+                    val second = second as ByteArray
+                    val third = third as ByteArray
+
+                    replacements += MaskedReplacement(first, second, third, filePath)
+                }
+
+                else -> {
+                    throw PatchException(
+                        "Unsupported types for pattern, mask and replacement: $first, $second, $third",
                     )
+                }
             }
-
-            is ByteArray if second is ByteArray && third is ByteArray -> {
-                val first = first as ByteArray
-                val second = second as ByteArray
-                val third = third as ByteArray
-
-                replacements += MaskedReplacement(first, second, third, filePath)
-            }
-
-            else ->
-                throw PatchException(
-                    "Unsupported types for pattern, mask and replacement: $first, $second, $third"
-                )
         }
     }
-}
 
 @Suppress("CanBeParameter")
 class MaskedReplacement(
@@ -82,7 +84,10 @@ class MaskedReplacement(
 ) {
     val replacementBytesPadded = replacementBytes + ByteArray(bytes.size - replacementBytes.size)
 
-    fun replacePattern(ignoreMissingReplacements: Boolean = false, targetFile: RandomAccessFile) {
+    fun replacePattern(
+        ignoreMissingReplacements: Boolean = false,
+        targetFile: RandomAccessFile,
+    ) {
         val startIndex = bytes.indexOfPatternIn(targetFile, maskBytes)
 
         if (startIndex == -1L) {
@@ -90,7 +95,7 @@ class MaskedReplacement(
             throw PatchException(
                 "Pattern and mask not found in target file: ${
                     bytes.joinToString(" ") { "%02x".format(it) }
-                }, ${maskBytes.joinToString(" ") { "%02x".format(it) }}"
+                }, ${maskBytes.joinToString(" ") { "%02x".format(it) }}",
             )
         }
 

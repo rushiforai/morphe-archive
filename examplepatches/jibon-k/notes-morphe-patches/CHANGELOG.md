@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/jibon-k/notes-morphe-patches/compare/v1.0.0...v1.0.1) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* target Samsung Notes 4.4.48.15 only ([6f319fb](https://github.com/jibon-k/notes-morphe-patches/commit/6f319fb06ec502faa2c66866e6e488b576e7cbf8))
+
 ## 1.0.0 (2026-10-30)
 
 ### 🐛 Bug Fixes

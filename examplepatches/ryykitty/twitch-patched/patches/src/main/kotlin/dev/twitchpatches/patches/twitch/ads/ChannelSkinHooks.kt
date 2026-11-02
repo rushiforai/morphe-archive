@@ -3,7 +3,6 @@ package dev.twitchpatches.patches.twitch.ads
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import dev.twitchpatches.patches.twitch.reload.nativeReloadMethod
@@ -25,8 +24,8 @@ internal fun channelSkinCapture(method: Method) = nativeReloadMethod(method.defi
         return-void
     """)
 
-internal fun BytecodePatchContext.blockChannelSkins(classes: List<ClassDef>) {
-    val contract = channelSkinContract(classes)
+internal fun BytecodePatchContext.blockChannelSkins() {
+    val contract = channelSkinContract()
     fun wrap(method: Method): String {
         require(method.parameterTypes.all { it.toString().startsWith("L") }) {
             "Channel sponsorship: renderer parameters changed."

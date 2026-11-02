@@ -916,7 +916,21 @@ object Constants {
 
     val COMPATIBILITY_CAPCUT_ALT = Compatibility(
         packageName = "com.lemon.lv",
-        name = "CapCut (Alt)",
+        name = "CapCut (Alt)
+
+    val COMPATIBILITY_THE_ATHLETIC = Compatibility(
+        packageName = "com.theathletic",
+        name = "The Athletic",
+        description = "The Athletic: Sports News, Stories, Scores, and Analysis by The New York Times Company",
+        appIconColor = 0x000000
+    )
+
+    val COMPATIBILITY_FOTMOB = Compatibility(
+        packageName = "com.mobilefootie.wc2010",
+        name = "FotMob",
+        description = "FotMob: Soccer and Football Live Scores, Stats, and News by FotMob",
+        appIconColor = 0x008000
+    )",
         description = "CapCut: Video Editor & Maker (Domestic / JianYing)",
         appIconColor = 0x000000
     )

@@ -1,5 +1,8 @@
 package dev.twitchpatches.patches.twitch.ui
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.literal
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
@@ -13,23 +16,23 @@ import dev.twitchpatches.patches.twitch.shared.*
 
 private const val VIEW = "Landroid/view/View;"
 
+private object FullscreenInsetListenerFingerprint : Fingerprint(
+    name = "onApplyWindowInsets",
+    filters = listOf(
+        literal(655),
+        literal(527),
+        methodCall(
+            definingClass = VIEW,
+            name = "setPadding",
+            parameters = listOf("I", "I", "I", "I"),
+        )
+    ),
+)
+
 internal fun BytecodePatchContext.injectUiFullscreenInsets() {
-    val matches = mutableListOf<Method>()
-    classDefForEach { type ->
-        type.methods.filterTo(matches) { method ->
-            method.name == "onApplyWindowInsets" && method.parameterTypes.size == 2 &&
-                method.parameterTypes[0].toString() == VIEW && method.returnType == method.parameterTypes[1].toString() &&
-                method.code().any { it.opcode == Opcode.IGET_BOOLEAN } &&
-                listOf(655, 527).all { mask -> method.code().any { (it as? NarrowLiteralInstruction)?.narrowLiteral == mask } } &&
-                method.references().filterIsInstance<MethodReference>().any {
-                    it.definingClass == VIEW && it.name == "setPadding" && it.parameterTypes.map(CharSequence::toString) == listOf("I", "I", "I", "I")
-                }
-        }
-    }
-    val target = matches.uniqueHook("fullscreen container inset listener")
+    val target = FullscreenInsetListenerFingerprint.originalMethod
     resolveUiInsetHooks(target)
-    val method = mutableClassDefBy(target.definingClass).methods.filter { it.reference == target.reference }
-        .uniqueHook("mutable fullscreen container inset listener")
+    val method = FullscreenInsetListenerFingerprint.method
     injectUiInsetFilter(method)
 }
 

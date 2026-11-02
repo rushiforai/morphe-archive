@@ -18,6 +18,13 @@ object HttpClientFactoryCreateFingerprint : Fingerprint(
 /**
  * The IVS player constructor the Twitch app uses.
  */
+object CorePlayerImplSetSurfaceFingerprint : Fingerprint(
+    definingClass = "Lcom/amazonaws/ivs/player/CorePlayerImpl;",
+    name = "setSurface",
+    returnType = "V",
+    parameters = listOf("Landroid/view/Surface;"),
+)
+
 object CorePlayerImplConstructorFingerprint : Fingerprint(
     definingClass = "Lcom/amazonaws/ivs/player/CorePlayerImpl;",
     name = "<init>",

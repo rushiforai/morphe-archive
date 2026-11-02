@@ -1,3 +1,34 @@
+## [1.3.1](https://github.com/amit-0i/myspoti-morphe-patches/compare/v1.3.0...v1.3.1) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **ui:** show export page option in immersive look & sync theme color in classic look ([27d681e](https://github.com/amit-0i/myspoti-morphe-patches/commit/27d681e8e1e1292055003fc0ea6c6bfbe2e5aeca))
+
+## [1.3.0](https://github.com/amit-0i/myspoti-morphe-patches/compare/v1.2.0...v1.3.0) (2026-11-01)
+
+### ✨ New Features
+
+* **playback:** prioritize local playback for downloaded songs ([2ec3219](https://github.com/amit-0i/myspoti-morphe-patches/commit/2ec32199a0ab9b6063299cf861d43936eb30fc28))
+
+## [1.2.0](https://github.com/amit-0i/myspoti-morphe-patches/compare/v1.1.0...v1.2.0) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **export:** prevent automatic sync when opening export settings ([b356824](https://github.com/amit-0i/myspoti-morphe-patches/commit/b3568241d1d9c36108f791d129d142dd10dfa74b))
+
+### ✨ New Features
+
+* **export:** prevent concurrent syncs and expose background status ([9250f1b](https://github.com/amit-0i/myspoti-morphe-patches/commit/9250f1babe291311c747dcde1179116c7adb44b2))
+* **export:** reorganize lyric exports and add sync controls ([e4cc1b7](https://github.com/amit-0i/myspoti-morphe-patches/commit/e4cc1b743d57aa2b7994f71742973d6354bfa58b))
+
+### 🚀 Updated App Support
+
+* addd support for MySpti v2.3.0 ([49a2b05](https://github.com/amit-0i/myspoti-morphe-patches/commit/49a2b0500b6e826e0bb3eae0c39daa1eb1135bf8))
+
+### 🔧 Improvements
+
+* **export:** optimize folder checks ([170a818](https://github.com/amit-0i/myspoti-morphe-patches/commit/170a81842b22f4d8023d4becbe8e97a38250a168))
+
 ## [1.1.0](https://github.com/amit-0i/myspoti-morphe-patches/compare/v1.0.1...v1.1.0) (2026-10-31)
 
 ### 🐛 Bug Fixes

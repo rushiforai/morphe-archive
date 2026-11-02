@@ -19,3 +19,5 @@ pluginManagement {
 plugins {
     id("app.morphe.patches") version "2.1.0-dev.1"
 }
+
+include(":stubs:earth")

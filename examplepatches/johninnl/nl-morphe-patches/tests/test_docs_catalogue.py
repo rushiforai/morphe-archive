@@ -31,7 +31,7 @@ class ReadmeSummaryTests(unittest.TestCase):
         text = self.generate(data)
         self.assertIn('| Navigation |', text)
 
-    def test_any_version_addon_has_no_missing_guide_link(self):
+    def test_any_version_waze_addon_links_to_waze_guide(self):
         data = fixture()
         data['patches'] = data['patches'][:1]
         data['patches'][0]['name'] = 'YT Music Morphe in Waze'
@@ -41,7 +41,7 @@ class ReadmeSummaryTests(unittest.TestCase):
         self.assertIn('Any', text)
         self.assertNotIn('| None |', text)
         self.assertIn('Home audio', text)
-        self.assertIn('/reference/catalogue/#waze', text)
+        self.assertIn('/apps/waze/', text)
 
     def generate(self, data=None):
         data = fixture() if data is None else data
@@ -91,7 +91,30 @@ class ReadmeSummaryTests(unittest.TestCase):
 
 
 class SiteCatalogueTests(unittest.TestCase):
-    def test_any_version_addon_links_to_catalogue_without_app_guide(self):
+    def test_repackaged_music_is_not_listed_as_a_separate_original(self):
+        data = fixture()
+        data['patches'] = data['patches'][:1]
+        patch = data['patches'][0]
+        patch['name'] = 'Gearslip music browser support'
+        original = patch['compatiblePackages'][0]
+        original.update(packageName='com.google.android.apps.youtube.music',
+                        name='YouTube Music', apkFileType='APKM', targets=[{'version': None}])
+        repackaged = dict(original, packageName='app.morphe.android.apps.youtube.music', apkFileType='APK')
+        patch['compatiblePackages'].append(repackaged)
+        snapshot = json.dumps(data, sort_keys=True)
+        for language in ('en', 'nl'):
+            home = self.module.render_home_apps(data, language)
+            self.assertEqual(home.count('<article '), 1)
+            self.assertEqual(home.count('<li>Gearslip music browser support '), 1)
+            self.assertIn('(apps/youtube-music.md)', home)
+            catalogue = self.module.render(data, language)
+            self.assertEqual(catalogue.count('## YouTube Music'), 1)
+            self.assertIn('`com.google.android.apps.youtube.music`', catalogue)
+            self.assertNotIn('app.morphe.android.apps.youtube.music', home + catalogue)
+            self.assertNotIn('youtube-music-morphe', home + catalogue)
+        self.assertEqual(json.dumps(data, sort_keys=True), snapshot)
+
+    def test_any_version_waze_addon_links_to_app_guide(self):
         data = fixture()
         data['patches'] = data['patches'][:1]
         package = data['patches'][0]['compatiblePackages'][0]
@@ -99,8 +122,7 @@ class SiteCatalogueTests(unittest.TestCase):
         for language, label in [('en', 'Any'), ('nl', 'Alle versies')]:
             text = self.module.render_home_apps(data, language)
             self.assertIn(label, text)
-            self.assertIn('reference/catalogue.md#waze', text)
-            self.assertNotIn('apps/waze.md', text)
+            self.assertIn('apps/waze.md', text)
 
     def test_gva_links_to_its_news_guide(self):
         self.assertEqual(self.module.app_page({'packageName': 'be.concentra.gva.MediaApp'}), ('gva', 'news'))
@@ -207,7 +229,7 @@ class SiteCatalogueTests(unittest.TestCase):
         unmapped = {package['packageName'] for patch in data['patches']
                     for package in patch.get('compatiblePackages') or []
                     if self.module.app_page(package)[0] is None}
-        self.assertTrue(unmapped <= {'com.waze'}, unmapped)
+        self.assertEqual(unmapped, set())
         for language in ('nl', 'en'):
             text = self.module.render_home_apps(data, language)
             self.assertEqual(text.count('<article '), len(targets))

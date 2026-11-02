@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="nl.johninnl.velaprobe.vela">
+    <uses-sdk android:minSdkVersion="34" android:targetSdkVersion="36" />
+    <application android:label="Vela read-only consumer probe" android:debuggable="true" />
+    <instrumentation android:name="nl.johninnl.velaprobe.VelaProbe" android:targetPackage="app.vela" android:functionalTest="true" />
+</manifest>

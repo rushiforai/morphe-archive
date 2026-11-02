@@ -1,7 +1,7 @@
 package app.morphe.patches.klikk.device
 
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patches.klikk.shared.Constants.COMPATIBILITY_KLIKK
+import app.morphe.patches.klikk.shared.Constants.COMPATIBILITY_KLIKK_LEGACY
 import app.morphe.patches.klikk.shared.patches.api.response.deviceCheckResponse.getResultPatch
 import app.morphe.patches.klikk.shared.patches.ui.activity.newDetailsAndDownloadActivity.deviceCheckFieldAccessPatch
 
@@ -12,7 +12,7 @@ val bypassDeviceCheckPatch =
         description = "Force device check to succeed.",
         default = true,
     ) {
-        compatibleWith(COMPATIBILITY_KLIKK)
+        compatibleWith(COMPATIBILITY_KLIKK_LEGACY)
 
         dependsOn(getResultPatch, deviceCheckFieldAccessPatch)
     }

@@ -2,7 +2,7 @@
 
 **Appversie:** 1.2 · **Build:** 19 · **Origineel bestand:** APK
 
-[Gebruik je eigen originele APK](../guides/downloads.md#local-original-inputs){ .md-button .md-button--primary }
+[Download originele app](https://buzzheavier.com/qalqg672rt8k){ .md-button .md-button--primary }
 
 ## Patches
 

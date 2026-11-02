@@ -59,10 +59,7 @@ public final class VoiceMessages {
     /** Called with the Uri the player is about to play. It's null when the download failed. */
     public static void played(Uri audio) {
         try {
-            if (audio == null || Build.VERSION.SDK_INT < 29 || !Settings.enabled(KEY)) return;
-            String scheme = audio.getScheme();
-            // Only a file already on the phone: a copy must never fetch anything itself.
-            if (!ContentResolver.SCHEME_FILE.equals(scheme) && !ContentResolver.SCHEME_CONTENT.equals(scheme)) return;
+            if (!onPhone(audio) || Build.VERSION.SDK_INT < 29 || !Settings.enabled(KEY)) return;
             Context context = Settings.appContext;
             if (context == null) return;
             copies.execute(() -> save(context, audio));
@@ -73,21 +70,38 @@ public final class VoiceMessages {
         }
     }
 
+    /** Only a file already on the phone: a copy must never fetch anything itself. */
+    static boolean onPhone(Uri audio) {
+        if (audio == null) return false;
+        String scheme = audio.getScheme();
+        return ContentResolver.SCHEME_FILE.equals(scheme) || ContentResolver.SCHEME_CONTENT.equals(scheme);
+    }
+
     static void save(Context context, Uri audio) {
+        keep(context, audio, false);
+    }
+
+    /**
+     * Copies the sound unless the library holds it already, and says whether it's there now. Asked by hand, it looks in the
+     * library even for a sound saved since Messenger started, since the file may have been deleted since.
+     */
+    static boolean keep(Context context, Uri audio, boolean byHand) {
         try {
             byte[] sound = read(context.getContentResolver(), audio);
-            if (sound == null) return;
+            if (sound == null) return false;
             Format format = Format.of(sound);
             if (format == null) {
                 android.util.Log.w("HushMessenger", "save_voice: the voice message isn't in a sound format Hush knows");
-                return;
+                return false;
             }
             String hash = hash(sound);
-            if (saved.contains(hash)) return;
+            if (!byHand && saved.contains(hash)) return true;
             if (!library.has(context, hash)) library.add(context, name(hash, format, new Date()), format.mime, sound);
             saved.add(hash);
+            return true;
         } catch (Throwable error) {
             Settings.hookFailedPrivately(KEY, "Can't save a voice message", error);
+            return false;
         }
     }
 

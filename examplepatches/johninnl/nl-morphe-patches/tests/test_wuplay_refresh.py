@@ -37,14 +37,16 @@ public void removeCallbacks(Runnable r){} public void postDelayed(Runnable r,lon
 public static int i(String t,String m){return 0;} public static int w(String t,String m){return 0;} }''',
             'nl/johninnl/wuplay/NativeCatalogs.java': '''package nl.johninnl.wuplay; import java.util.*;
 class NativeCatalogs {static int fetches; static Runnable duringFetch;
+static Set<String> home=new HashSet<>(Arrays.asList("a","b"));
 NativeCatalogs(android.app.Application app){} static class Definition {final String key;
 Definition(String key){this.key=key;}} static class Snapshot {String profileId="default";
-List<Definition> definitions=Arrays.asList(new Definition("a"),new Definition("b"));}
+List<Definition> definitions=new ArrayList<>();Snapshot(){for(String key:Arrays.asList("a","b"))if(home.contains(key))definitions.add(new Definition(key));}}
 Snapshot snapshot(){return new Snapshot();} void requireDefault(String p){}
+boolean isHome(String profile,String key){return home.contains(key);}
 List<?> fetch(Snapshot s,Definition d){fetches++;duringFetch.run();return Collections.emptyList();} }''',
             'nl/johninnl/wuplay/CatalogPublisher.java': '''package nl.johninnl.wuplay; import java.util.*;
-class CatalogPublisher {static int publications;CatalogPublisher(android.content.Context c){}
-void removeUnselected(Set<String> desired){} void publish(NativeCatalogs.Definition d,List<?> items){publications++;} }''',
+class CatalogPublisher {static int publications;static Set<String> lastDesired;CatalogPublisher(android.content.Context c){}
+void removeUnselected(Set<String> desired){lastDesired=new HashSet<>(desired);} void publish(NativeCatalogs.Definition d,List<?> items){publications++;} }''',
             'nl/johninnl/wuplay/RefreshProbe.java': '''package nl.johninnl.wuplay;
 import android.app.Application; import android.content.SharedPreferences; import java.util.*;
 public class RefreshProbe {static class Prefs implements SharedPreferences,SharedPreferences.Editor {
@@ -55,7 +57,14 @@ public Editor putLong(String k,long v){return this;}public void apply(){} }
 public static void main(String[] args){ Application app=new Application();Prefs prefs=new Prefs();app.prefs=prefs;
 NativeCatalogs.duringFetch=()->prefs.selected=Collections.emptySet();CatalogChannels.refresh(app);
 if(NativeCatalogs.fetches!=1)throw new AssertionError("Started "+NativeCatalogs.fetches+" requests after deselection");
-if(CatalogPublisher.publications!=0)throw new AssertionError("Published a deselected catalog");} }''',
+if(CatalogPublisher.publications!=0)throw new AssertionError("Published a deselected catalog");
+prefs.selected=new HashSet<>(Arrays.asList("a","b"));NativeCatalogs.home=new HashSet<>(Arrays.asList("a"));
+NativeCatalogs.fetches=CatalogPublisher.publications=0;NativeCatalogs.duringFetch=()->{};CatalogChannels.refresh(app);
+if(NativeCatalogs.fetches!=1||CatalogPublisher.publications!=1||!CatalogPublisher.lastDesired.equals(Set.of("a")))throw new AssertionError("Legacy non-Home selection was published or retained");
+NativeCatalogs.home=new HashSet<>(Arrays.asList("a","b"));NativeCatalogs.fetches=CatalogPublisher.publications=0;
+NativeCatalogs.duringFetch=()->NativeCatalogs.home.clear();CatalogChannels.refresh(app);
+if(NativeCatalogs.fetches!=1||CatalogPublisher.publications!=0||!CatalogPublisher.lastDesired.isEmpty())throw new AssertionError("Home visibility change during fetch was ignored");
+} }''',
         }
         with tempfile.TemporaryDirectory() as directory:
             out = Path(directory)

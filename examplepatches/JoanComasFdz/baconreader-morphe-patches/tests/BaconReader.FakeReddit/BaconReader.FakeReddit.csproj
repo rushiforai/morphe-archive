@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A fake Reddit server for the end-to-end tests: Kestrel on a real port, which the phone reaches through adb reverse,
+       answering BaconReader patched with "E2E fake Reddit" from an in-memory world the tests build. README.md. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Media/*" LogicalName="Media/%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="BaconReader.FakeReddit.Tests" />
+  </ItemGroup>
+</Project>

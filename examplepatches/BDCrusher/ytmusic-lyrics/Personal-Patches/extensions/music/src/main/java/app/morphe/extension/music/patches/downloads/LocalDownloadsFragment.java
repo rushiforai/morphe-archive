@@ -184,9 +184,11 @@ public final class LocalDownloadsFragment extends PreferenceFragment
                 && (file.getName().endsWith(".webm") || file.getName().endsWith(".m4a")));
         if (files == null) return;
 
-        for (File file : files) {
-            tracks.add(OfflineTrack.load(file));
-        }
+        // A new Opus download may coexist with a retained older AAC file.
+        // Show the preferred recording once without deleting the older audio.
+        java.util.Map<String,File> recordings=new java.util.LinkedHashMap<>();
+        for(File file:files){String name=file.getName(),id=name.substring(0,name.lastIndexOf('.'));File prior=recordings.get(id);if(prior==null||name.endsWith(".webm"))recordings.put(id,file);}
+        for(File file:recordings.values())tracks.add(OfflineTrack.load(file));
         tracks.sort(comparator());
     }
 
@@ -608,6 +610,9 @@ public final class LocalDownloadsFragment extends PreferenceFragment
     }
 
     private void deleteSidecars(String videoId) {
+        app.bdcrusher.ytmusic.playlists.NativeMediaCache.remove(videoId);
+        OfflineStorage.delete(new File(musicRoot, videoId + ".format.pb"));
+        OfflineStorage.delete(new File(musicRoot, videoId + ".chapters.json"));
         OfflineStorage.delete(new File(musicRoot, videoId + ".json"));
         OfflineStorage.delete(new File(musicRoot, videoId + ".jpg"));
         OfflineStorage.delete(new File(musicRoot, videoId + ".webm.part"));

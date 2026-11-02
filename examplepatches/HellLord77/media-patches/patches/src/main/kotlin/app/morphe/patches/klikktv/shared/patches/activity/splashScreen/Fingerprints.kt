@@ -14,6 +14,6 @@ internal object IsUpdateAvailableFieldAccessFingerprint :
                     name = "isUpdateAvailable",
                     type = Type.boolean,
                     opcode = Opcode.IGET_BOOLEAN,
-                )
-            )
+                ),
+            ),
     )

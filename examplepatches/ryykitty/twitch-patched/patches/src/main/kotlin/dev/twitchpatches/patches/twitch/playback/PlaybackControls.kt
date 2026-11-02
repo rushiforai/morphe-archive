@@ -1,33 +1,43 @@
 package dev.twitchpatches.patches.twitch.playback
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import dev.twitchpatches.patches.twitch.shared.*
 
+internal object StreamSettingsModelFingerprint : Fingerprint(
+    strings = listOf(
+        string("StreamSettingsModel(configurablePlayer=", StringComparisonType.STARTS_WITH),
+        string("applyDjRestrictions=", StringComparisonType.CONTAINS),
+    ),
+)
+
+private class PlaybackSettingsDjBuilderFingerprint(model: String) : Fingerprint(
+    filters = listOf(
+        methodCall(
+            definingClass = "Ltv/twitch/android/models/channel/ChannelModel;",
+            name = "isParticipatingDJ",
+            returnType = "Z",
+        ),
+        methodCall(
+            definingClass = model,
+            name = "<init>",
+        ),
+    )
+)
+
 internal fun BytecodePatchContext.restoreNativePlaybackControls() {
-    val models = mutableListOf<String>()
-    classDefForEach { type ->
-        if (type.methods.any { method ->
-            val strings = method.references().filterIsInstance<StringReference>().map { it.string }
-            strings.any { it.startsWith("StreamSettingsModel(configurablePlayer=") } &&
-                strings.any { it.contains("applyDjRestrictions=") }
-        }) models.add(type.type)
-    }
-    val model = models.uniqueHook("native playback settings model")
-    val builders = mutableListOf<com.android.tools.smali.dexlib2.iface.Method>()
-    classDefForEach { type ->
-        type.methods.filterTo(builders) { method ->
-            val calls = method.references().filterIsInstance<MethodReference>()
-            calls.any { it.definingClass == model && it.name == "<init>" } && calls.any(::isDjStatus)
-        }
-    }
-    val builder = builders.uniqueHook("native playback settings DJ status")
+    val model = StreamSettingsModelFingerprint.originalClassDef.type
+    val builderFingerprint = PlaybackSettingsDjBuilderFingerprint(model)
+    val builder = builderFingerprint.originalMethod
     val code = builder.code()
     val read = code.withIndex().filter {
         isDjStatus((it.value as? ReferenceInstruction)?.reference as? MethodReference)
@@ -37,8 +47,7 @@ internal fun BytecodePatchContext.restoreNativePlaybackControls() {
     require(code[read + 1].opcode == Opcode.MOVE_RESULT && result.registerA <= 255) {
         "Playback settings: DJ result contract changed."
     }
-    mutableClassDefBy(builder.definingClass).methods.single { it.reference == builder.reference }
-        .replaceInstruction(read + 1, "const/16 v${result.registerA}, 0x0")
+    builderFingerprint.method.replaceInstruction(read + 1, "const/16 v${result.registerA}, 0x0")
     restoreNativeBackgroundPlayback()
 }
 

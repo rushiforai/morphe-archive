@@ -33,7 +33,8 @@ import app.hushgram.extension.shared.settings.BooleanSetting;
  *       Instagram puts above a reel's author, a live badge or a state-controlled media label, have
  *       components of their own and stay.
  *   <li>{@link #hideSearchPill}, {@link #hideProductPills} and {@link #hidePollPills} in the renders
- *       of the suggested search terms, the product tag and shopping buttons, and the poll prompt.
+ *       of the suggested search terms and the related ads pivot beside them, the product tag, shop
+ *       lens and shopping buttons, and the poll prompt. The reel CTA's own product button asks too.
  *   <li>{@link #hideSocialFooter} in the inline comment preview and the row of friends who saw
  *       the reel, and in Instagram's check for putting the bubbles of friends' likes, comments and
  *       follows above the author, which then answers no. It's also asked first thing in the use
@@ -167,11 +168,16 @@ public final class ReelDeclutter {
         if (hide(Settings.HIDE_REEL_COMMENT_BAR_EVERYWHERE, "comment bar")) return true;
         if (!hide(Settings.HIDE_REEL_COMMENT_BAR, "comment bar")) return false;
         try {
-            return source instanceof Enum && REPOSTS.contains(((Enum<?>) source).name());
+            return opensRepost(source);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.REEL_DECLUTTER, "comment bar source", failure);
             return false;
         }
+    }
+
+    /** Whether [source], the viewer's ClipsViewerSource, is one of {@link #REPOSTS}. */
+    static boolean opensRepost(Object source) {
+        return source instanceof Enum && REPOSTS.contains(((Enum<?>) source).name());
     }
 
     /**

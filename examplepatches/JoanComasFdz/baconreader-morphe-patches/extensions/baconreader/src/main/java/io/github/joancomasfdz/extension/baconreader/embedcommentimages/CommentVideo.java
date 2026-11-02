@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
@@ -116,14 +115,13 @@ final class CommentVideo {
                 if (visibility != View.VISIBLE) pauseVideo(this);
             }
         };
-        LinearLayout.LayoutParams slotParams = new LinearLayout.LayoutParams(
-                fullWidth ? ViewGroup.LayoutParams.MATCH_PARENT : boxSize, ViewGroup.LayoutParams.WRAP_CONTENT);
-        slotParams.topMargin = dp(context, 4);
-        slot.setLayoutParams(slotParams);
+        slot.setLayoutParams(EmbedCommentImagesPatch.slotLayoutParams(
+                textView, fullWidth ? ViewGroup.LayoutParams.MATCH_PARENT : boxSize));
         slot.setTag(CommentVideo.class);
 
         final AspectRatioFrameLayout box = new AspectRatioFrameLayout(context, DEFAULT_RATIO,
                 fullWidth ? maxHeight : boxSize);
+        box.setId(EmbedCommentImagesPatch.resourceId("baconreader_patches_comment_video"));
         GradientDrawable background = new GradientDrawable();
         background.setColor(Color.BLACK);
         background.setCornerRadius(dp(context, 6));

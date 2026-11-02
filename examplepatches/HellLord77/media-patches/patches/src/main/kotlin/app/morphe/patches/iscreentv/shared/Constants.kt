@@ -3,6 +3,7 @@ package app.morphe.patches.iscreentv.shared
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import app.morphe.patcher.patch.FormFactor
 
 object Constants {
     val COMPATIBILITY_ISCREENTV =
@@ -10,7 +11,7 @@ object Constants {
             name = "IScreen Tv",
             packageName = "com.rockstreamer.iscreentv",
             apkFileType = ApkFileType.XAPK,
-            appIconColor = 0XE50019,
+            appIconColor = 0xF22E3E,
             signatures = setOf("b4fd5f9c2fb15414d0f909a66e511c1b40f4ef541c23e9c0077554b8c29505ad"),
             targets =
                 listOf(
@@ -21,5 +22,6 @@ object Constants {
                     AppTarget(version = "4.2.0", versionCode = 446, minSdk = 23),
                     AppTarget(version = "4.1.32", versionCode = 445, minSdk = 23),
                 ),
+            formFactor = FormFactor.TV,
         )
 }

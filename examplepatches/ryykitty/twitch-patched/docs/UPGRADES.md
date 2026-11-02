@@ -1,5 +1,8 @@
 # Twitch version upgrades
 
+Patches support the latest stable Twitch release and the latest beta. Start an
+upgrade when the stable release advances.
+
 Develop version upgrades on `dev`. Keep original APKs, recovery copies and build
 artifacts under `.local/`. Record supported versions and verification results in
 `config/compatibility.json`.
@@ -32,7 +35,7 @@ Create the source checkpoint after synchronization:
 $upgradeId = 'twitch-update-' + (Get-Date -Format 'yyyyMMdd-HHmmss')
 $checkpoint = Join-Path '.local/checkpoints' $upgradeId
 New-Item -ItemType Directory -Path $checkpoint | Out-Null
-git branch "codex/baseline-$upgradeId" HEAD
+git branch "baseline-$upgradeId" HEAD
 git bundle create "$checkpoint/source.bundle" --all
 git bundle verify "$checkpoint/source.bundle"
 ```
@@ -106,8 +109,8 @@ that default is not a full feature evaluation. Use the prepared original from
 `$preparedOriginal` is the recorded prepared-input path. `$selectedPatches` is
 the saved array of feature names. FULL DEX recompilation and the original-aware
 audit must pass before the resulting APK becomes a device candidate. Also check
-representative reduced patch selections and rebuild the previous supported
-version when shared hook code changes.
+representative reduced patch selections and rebuild the other supported target
+when shared hook code changes.
 
 Every modifying selection must include the shared settings, notification, theme
 and DJ playback fixes. An inspection-only selection must leave the app unchanged.

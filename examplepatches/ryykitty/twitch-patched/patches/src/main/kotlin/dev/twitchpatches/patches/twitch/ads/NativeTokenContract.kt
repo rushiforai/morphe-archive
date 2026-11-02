@@ -1,14 +1,45 @@
 package dev.twitchpatches.patches.twitch.ads
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.*
-import com.android.tools.smali.dexlib2.iface.reference.*
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import dev.twitchpatches.patches.twitch.shared.*
+
+private object StreamAccessTokenServiceFingerprint : Fingerprint(
+    isStatic = false,
+    returnType = "Ljava/lang/Object;",
+    strings = listOf(
+        "parseStreamAccessTokenResponse",
+        "call to 'resume' before 'invoke' with coroutine",
+    ),
+)
+
+private object SingleSubscriptionFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf(string("The RxJavaPlugins.onSubscribe hook returned a null SingleObserver.", StringComparisonType.STARTS_WITH)),
+)
+
+private class TokenSerializerFingerprint(playerField: FieldReference) : Fingerprint(
+    strings = listOf("platform", "playerType", "android"),
+    filters = listOf(fieldAccess(playerField))
+)
 
 internal data class NativeTokenContract(
     val service: ClassDef, val constructor: Method, val params: MethodReference, val absent: FieldReference,
@@ -20,12 +51,10 @@ internal data class NativeTokenContract(
 )
 
 internal fun BytecodePatchContext.resolveNativeTokens(): NativeTokenContract {
-    val classes = mutableListOf<ClassDef>().apply { classDefForEach { add(it) } }
-    val methods = classes.flatMap { it.methods }
-    val source = methods.filter { method -> method.hasStrings("parseStreamAccessTokenResponse") &&
-        method.parameterTypes.size == 3 && method.parameterTypes.first().toString() == "Ljava/lang/String;" &&
-        method.returnType == "Ljava/lang/Object;" && !AccessFlags.STATIC.isSet(method.accessFlags)
-    }.uniqueHook("native stream access-token service")
+    val source = StreamAccessTokenServiceFingerprint.originalMethod
+    if (source.parameterTypes.size != 3 || source.parameterTypes.first().toString() != "Ljava/lang/String;") {
+        throw PatchException("Native token service parameter contract changed")
+    }
     val service = classDefBy(source.definingClass)
     val code = source.code()
     val calls = code.withIndex().mapNotNull { (index, instruction) ->
@@ -70,10 +99,7 @@ internal fun BytecodePatchContext.resolveNativeTokens(): NativeTokenContract {
         AccessFlags.PUBLIC.isSet(it.accessFlags)
     }.uniqueHook("native token source lifetime")
     val queryFlags = source.literalBefore(graphqlCall.first, graphRegisters[3])
-    val subscribe = methods.filter { it.returnType == "V" && it.parameterTypes.size == 1 &&
-        it.references().filterIsInstance<StringReference>().any { ref ->
-            ref.string.startsWith("The RxJavaPlugins.onSubscribe hook returned a null SingleObserver.") }
-    }.uniqueHook("native Single subscription")
+    val subscribe = SingleSubscriptionFingerprint.originalMethod
     var parent: String? = graphqlCall.third.returnType
     val visited = mutableSetOf<String>()
     while (parent != null && parent != subscribe.definingClass && visited.add(parent)) parent = classDefBy(parent).superclass
@@ -91,9 +117,7 @@ internal fun BytecodePatchContext.resolveNativeTokens(): NativeTokenContract {
         ?: throw PatchException("Native token result wrapper not found")
     val playerField = classDefBy(params.definingClass).fields.filter { it.type == "Ljava/lang/String;" &&
         !AccessFlags.STATIC.isSet(it.accessFlags) }.uniqueHook("token player-type field")
-    val serializer = methods.filter { it.hasStrings("platform", "playerType", "android") &&
-        it.references().filterIsInstance<FieldReference>().any { ref -> ref.toString() == playerField.toString() }
-    }.uniqueHook("token parameter serializer")
+    val serializer = TokenSerializerFingerprint(playerField).originalMethod
     val serialCode = serializer.code()
     val cast = serialCode.withIndex().filter { (_, instruction) -> instruction.opcode == Opcode.CHECK_CAST &&
         ((instruction as? ReferenceInstruction)?.reference as? TypeReference)?.type == params.definingClass }
@@ -143,6 +167,5 @@ private fun Method.fieldBefore(index: Int, register: Int): FieldReference {
 }
 
 private fun writesRegister(instruction: Instruction, register: Int): Boolean {
-    if ((instruction as? OneRegisterInstruction)?.registerA != register) return false
-    return instruction.opcode.setsRegister()
+    return (instruction as? OneRegisterInstruction)?.registerA == register && instruction.opcode.setsRegister()
 }

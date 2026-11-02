@@ -30,6 +30,13 @@ private val RecentsReadFingerprint = Fingerprint(
     returnType = "Ljava/lang/Object;",
 )
 
+/** 5.26.90.901: the same generated dispatcher moved to a coroutine adapter class. */
+private val RecentsReadV2Fingerprint = Fingerprint(
+    definingClass = "Lcom/waze/main_screen/p/a/b/a/o;",
+    name = "invoke",
+    returnType = "Ljava/lang/Object;",
+)
+
 private const val FETCH_CALL = "Lcom/waze/places/PlacesNativeManager;->fetchRecentsNTV()[B"
 
 @Suppress("unused")
@@ -42,7 +49,9 @@ val noRecentDestinationsPatch = bytecodePatch(
     category("Privacy & Updates")
 
     execute {
-        val method = RecentsReadFingerprint.method
+        val method = resolveAnchor(
+            "recent history read", RecentsReadFingerprint, RecentsReadV2Fingerprint,
+        )
         val implementation = method.implementation
             ?: throw PatchException("noRecentDestinations: the recents bridge has no implementation")
 
@@ -52,7 +61,7 @@ val noRecentDestinationsPatch = bytecodePatch(
         }
         if (site < 0) {
             throw PatchException(
-                "noRecentDestinations: fetchRecentsNTV is no longer read from Lcom/waze/alerters/d;->a() - " +
+                "noRecentDestinations: fetchRecentsNTV is no longer read from the known dispatchers - " +
                     "Waze moved the history read; refusing to patch blind",
             )
         }

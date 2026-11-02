@@ -41,7 +41,7 @@ public final class ReadingPosition {
             Session old = SESSIONS.remove(fragment);
             if (old != null) old.close();
             View root = (View) fragment.getClass().getMethod("getView").invoke(fragment);
-            View list = FilterPosition.findList(root);
+            View list = FilterPosition.findListForBinding(root);
             XPostPreviewPosition.opening(list);
             if (!FeatureSwitches.enabled(ENABLED, true)) return;
             Activity activity = (Activity) fragment.getClass().getMethod("getActivity").invoke(fragment);
@@ -101,10 +101,6 @@ public final class ReadingPosition {
         Method target = value.getClass().getMethod(method, types);
         target.setAccessible(true);
         return target.invoke(value, args);
-    }
-
-    private static Object flow(Object model, String name, String accessor) throws Exception {
-        return call(ResponseArchiveEntry.field(model, name), accessor, new Class<?>[0]);
     }
 
     private static Object response(Object row) throws Exception {
@@ -183,15 +179,11 @@ public final class ReadingPosition {
                 Object post = response(item.invoke(adapter, index));
                 int no = number(post);
                 if (no < 1) continue;
-                Object board;
-                if (version.equals("0.8.10.191 dev")) board = ResponseArchiveEntry.field(owner, "W");
-                else {
-                    Object model = QuickFilterToolbar.findResponseViewModel(owner);
-                    board = version.equals("0.8.10.226 dev") ? flow(model, "d", "c") : flow(model, "r", "d");
-                }
+                Object board=NativeThreadContext.board(owner,version);
                 if (board == null) return null;
-                String method = version.equals("0.8.10.191 dev") ? "d" : version.equals("0.8.10.226 dev") ? "e" : "c";
-                URI uri = URI.create((String) call(board, method, new Class<?>[]{int.class}, 1));
+                String url=NativeThreadContext.url(board,version,1);
+                if(url==null)return null;
+                URI uri = URI.create(url);
                 String host = uri.getHost();
                 if (host == null) return null;
                 if (host.endsWith(".5ch.io") || host.endsWith(".5ch.net") || host.endsWith(".2ch.net")) host = "5ch";

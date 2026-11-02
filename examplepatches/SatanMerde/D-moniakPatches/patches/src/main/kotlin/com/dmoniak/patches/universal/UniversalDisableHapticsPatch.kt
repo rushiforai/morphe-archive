@@ -10,6 +10,7 @@ import java.util.logging.Logger
 val universalDisableHapticsPatch = bytecodePatch(
     name = "Universal Disable Haptics & Vibration (Experimental)",
     description = "⚠️ [Experimental / Untested] Silences haptic motor vibrations across any app, eliminating unnecessary vibration buzzes and conserving battery power.",
+    default = false,
 ) {
     // Universal patch: No compatibleWith() call. Applies to any app.
 

@@ -1,6 +1,6 @@
 [versions]
-morphe-patcher = "1.14.0"
-smali = "d92701d947"
+morphe-patcher = "2.0.0"
+smali = "4220ae75f7"
 guava = "33.6.0-jre"
 
 [libraries]

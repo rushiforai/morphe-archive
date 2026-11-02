@@ -37,11 +37,69 @@ final class GalleryPicker {
     /** Google Photos' provider. A pick of something already on the phone carries its MediaStore URI in its path. */
     static final String PHOTOS_PROVIDER = "com.google.android.apps.photos.contentprovider";
     private static final String[] MEDIA = {"image/*", "video/*"};
+    /** Messenger's folder for copies under each of its places. Its file provider refuses a file anywhere else. */
+    private static final String SECURE_FOLDER = "secure_shared";
+    /** What the last refused copy said, for the problem report. It's saved because a crash can follow it. */
+    static final String TEMP_FOLDER_NOTE = "gallery_temp_folder";
+    private static final String[] PLACE_NAMES = {"cache", "files", "external cache", "external files"};
     enum Outcome { NOT_USED, PICKER_MISSING, COMPONENT_MISSING, LAUNCH_FAILED, RESULT_INVALID, RESULT_REVOKED,
         RESULT_TIMEOUT, RESULT_BUSY, CANCELED, SELECTED }
     static volatile Outcome lastOutcome = Outcome.NOT_USED;
 
     private GalleryPicker() {}
+
+    /**
+     * A file for Messenger's copy of a pick after its folder refused one, in another of the places its file provider serves. Null
+     * with the switch off, or when every place refuses too. Internal storage goes first since it's the one a picked item
+     * can always be read back from, and cache first of those since Android can clear it.
+     */
+    static java.io.File spareTempFile(Context context, String prefix, String suffix, java.io.File folder, java.io.IOException refused) {
+        if (context == null || !Settings.enabled(KEY)) return null;
+        Settings.preferences.edit().putString(TEMP_FOLDER_NOTE, refusalNote(context, folder, refused)).commit();
+        for (java.io.File place : places(context)) {
+            if (place == null) continue;
+            java.io.File spare = new java.io.File(place, SECURE_FOLDER);
+            spare.mkdirs();
+            try {
+                return java.io.File.createTempFile(prefix, suffix, spare);
+            } catch (java.io.IOException tryNext) {
+                // This place refused too, and the next one may still take it.
+            }
+        }
+        return null;
+    }
+
+    private static java.io.File[] places(Context context) {
+        return new java.io.File[] {context.getCacheDir(), context.getFilesDir(), context.getExternalCacheDir(), context.getExternalFilesDir(null)};
+    }
+
+    /** The date, which of Messenger's places refused and why, in fixed words so no path reaches a report. */
+    private static String refusalNote(Context context, java.io.File folder, java.io.IOException refused) {
+        String reason = refused.getMessage();
+        if (reason == null || reason.length() > 60 || reason.indexOf('/') >= 0) reason = "unknown";
+        String date = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.ROOT).format(new java.util.Date());
+        return date + " " + placeName(context, folder) + " (" + reason + ")";
+    }
+
+    private static String placeName(Context context, java.io.File folder) {
+        try {
+            String path = folder == null ? "" : folder.getCanonicalPath();
+            java.io.File[] places = places(context);
+            for (int i = 0; i < places.length; i++) {
+                if (places[i] != null && (path + java.io.File.separator).startsWith(places[i].getCanonicalPath() + java.io.File.separator)) return PLACE_NAMES[i];
+            }
+        } catch (java.io.IOException unreadable) {
+            return "an unreadable folder";
+        }
+        return "none of the app's folders";
+    }
+
+    /** The gallery result for a problem report, with the last refused copy, which outlives the crash that resets the result. */
+    static String reportLine() {
+        android.content.SharedPreferences prefs = Settings.preferences;
+        String note = prefs == null ? null : prefs.getString(TEMP_FOLDER_NOTE, null);
+        return note == null ? lastOutcome.name() : lastOutcome.name() + ", copy refused on " + note;
+    }
 
     /**
      * A pick for photos and videos when some app on the phone answers it, otherwise null. Every app it asks about by name

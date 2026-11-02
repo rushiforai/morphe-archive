@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-FileCopyrightText: 2026 JoanComasFdz -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<!-- The .vsix's manifest (the e2e tool's pack-vsix zips it with the extension, as vsce would): keep its Id, Version,
+     Publisher, DisplayName and Engine in step with ../package.json (test/extension.test.js checks them). -->
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Language="en-US" Id="baconreader-morphe-e2e-recordings" Version="0.1.0" Publisher="joancomasfdz" />
+    <DisplayName>BaconReader Morphe e2e recordings</DisplayName>
+    <Description xml:space="preserve">Shows each e2e scenario's recordings of the BaconReader Morphe patches next to its code: a CodeLens, a play button and a panel that plays the MP4.</Description>
+    <Categories>Testing,Visualization</Categories>
+    <GalleryFlags>Public</GalleryFlags>
+    <Properties>
+      <Property Id="Microsoft.VisualStudio.Code.Engine" Value="^1.90.0" />
+      <Property Id="Microsoft.VisualStudio.Code.ExtensionKind" Value="workspace,web" />
+    </Properties>
+    <License>extension/LICENSE.txt</License>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Code" />
+  </Installation>
+  <Dependencies />
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true" />
+    <Asset Type="Microsoft.VisualStudio.Services.Content.Details" Path="extension/README.md" Addressable="true" />
+    <Asset Type="Microsoft.VisualStudio.Services.Content.License" Path="extension/LICENSE.txt" Addressable="true" />
+  </Assets>
+</PackageManifest>

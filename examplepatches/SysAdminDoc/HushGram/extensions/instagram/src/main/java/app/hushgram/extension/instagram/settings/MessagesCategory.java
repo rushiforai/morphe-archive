@@ -48,6 +48,8 @@ final class MessagesCategory {
                 messages.addPreference(toggle(context, Settings.HIDE_NOTES_ROW, L10n.t("Hide the notes row"),
                         L10n.t("Takes the row of notes off the top of your messages, the Map bubble in it too. "
                                 + "Your chats, search and requests stay.")));
+                messages.addPreference(toggle(context, Settings.HIDE_NOTES_MAP, L10n.t("Hide the Map bubble"),
+                        L10n.t("Takes only the Map bubble out of the row of notes. Your notes stay.")));
             }
             if (build.contains(PatchFamily.INBOX_SEARCH)) {
                 messages.addPreference(toggle(context, Settings.HIDE_INBOX_SEARCH,
@@ -133,11 +135,11 @@ final class MessagesCategory {
             }
             if (build.contains(PatchFamily.CHAT_HISTORY)) {
                 messages.addPreference(toggle(context, Settings.JUMP_IN_CHAT, L10n.t("Jump to the first message or a date"),
-                        L10n.t("Long press a chat's name and pick Jump to the first message or Jump to a date. The "
-                                + "chat loads its older messages on its own, with a count and a Cancel button.")));
+                        L10n.t("Open a chat, long press its name at the top and pick Jump to the first message or Jump "
+                                + "to a date. The chat loads its older messages on its own, with a count and a Cancel button.")));
                 messages.addPreference(toggle(context, Settings.EXPORT_CHAT, L10n.t("Export a chat as text"),
-                        L10n.t("Long press a chat's name and pick Export chat. The whole chat is saved as a text file "
-                                + "in Downloads, HushGram folder, one line per message.")));
+                        L10n.t("Open a chat, long press its name at the top and pick Export chat. The whole chat is saved "
+                                + "as a text file in Downloads, HushGram folder, one line per message.")));
             }
             if (build.contains(PatchFamily.ASK_BEFORE_CALL)) {
                 messages.addPreference(toggle(context, Settings.ASK_BEFORE_CALL, L10n.t("Ask before a call"),

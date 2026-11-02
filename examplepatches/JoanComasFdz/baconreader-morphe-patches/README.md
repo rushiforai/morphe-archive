@@ -6,7 +6,7 @@
 
 [![Morphe](https://img.shields.io/badge/Morphe-patches-ff4500?style=flat-square)](https://morphe.software)
 [![BaconReader](https://img.shields.io/badge/BaconReader-6.1.4-f57c00?style=flat-square)](#-install)
-[![Patches](https://img.shields.io/badge/patches-29-2ea44f?style=flat-square)](#-whats-inside)
+[![Patches](https://img.shields.io/badge/patches-30-2ea44f?style=flat-square)](#-whats-inside)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)](LICENSE)
 
 [**➕ Add to Morphe Manager**](https://morphe.software/add-source?github=JoanComasFdz/baconreader-morphe-patches)
@@ -37,6 +37,7 @@ Settings live in BaconReader → **Settings → Patches**.
 | Fix list thumbnails | Thumbnails are back; NSFW and spoilers are blurred |
 | Fix unread messages | The inbox envelope resets once you've read everything |
 | Fix lost post votes | Votes made while comments load stick |
+| Fix load more comments | "load more comments" loads the hidden comments again |
 | Fix meme templates | Meme templates load again |
 | Fix empty saved files | Saving media no longer leaves empty files |
 | Save videos with sound | Saved Reddit videos keep their audio |
@@ -74,6 +75,8 @@ Settings live in BaconReader → **Settings → Patches**.
 ## 🛠️ Development
 
 What each patch does: [docs/patches.md](docs/patches.md); its settings and differences from ReVanced: [docs/patcher-specific-patches.md](docs/patcher-specific-patches.md). Build and release: [patcher-specific-build.md](patcher-specific-build.md), [patcher-specific-release.md](patcher-specific-release.md). Code style and checks: [STYLE.md](STYLE.md), [patcher-specific-code.md](patcher-specific-code.md) and [AGENTS.md](AGENTS.md).
+
+End-to-end tests: [tests/BaconReader.E2E](tests/BaconReader.E2E/README.md), each a PR shows as GIFs. A VS Code extension plays their recordings next to their code; the repository's dev container (a Codespace) installs it: [tools/vscode-extension](tools/vscode-extension/README.md).
 
 ## 📜 License
 

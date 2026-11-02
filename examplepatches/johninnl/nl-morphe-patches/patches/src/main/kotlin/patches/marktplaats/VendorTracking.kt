@@ -43,8 +43,9 @@ internal fun suppressCoreMeasurement() {
     exact("Lc8h;", "a(Landroidx/fragment/app/w;Ljava/lang/String;)V", 9, 3, 5)
         .addInstructions(0, "return-void")
     val resume = exact("Lwg;", "onActivityResumed(Landroid/app/Activity;)V", 17, 13, 308)
-    val sliceStart = 150
-    val sliceEnd = 186
+    val belgian = context.packageMetadata.packageName == "be.tweedehands.m"
+    val sliceStart = if (belgian) 152 else 150
+    val sliceEnd = if (belgian) 188 else 186
     val first = resume.getInstruction(sliceStart)
     val successor = resume.getInstruction(sliceEnd)
     check(first.opcode == Opcode.SGET_OBJECT && (first as? ReferenceInstruction)?.reference.toString() == boundCode("Lc8h;->a:Lkotlin/Lazy;"))

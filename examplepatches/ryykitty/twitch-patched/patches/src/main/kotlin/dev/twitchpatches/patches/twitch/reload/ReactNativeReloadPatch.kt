@@ -2,13 +2,13 @@ package dev.twitchpatches.patches.twitch.reload
 
 import app.morphe.patcher.patch.resourcePatch
 import dev.twitchpatches.patches.twitch.shared.*
-import dev.twitchpatches.patches.twitch.shared.hermes.HermesBundle
 import dev.twitchpatches.patches.twitch.shared.hermes.MetroExports
+import dev.twitchpatches.patches.twitch.shared.hermes.twitchBundle
 
 internal val reactNativeReloadPatch = resourcePatch {
     dependsOn(reactNativeBridgePatch)
     execute {
-        val bundle = HermesBundle(get("assets/index.android.bundle").readBytes())
+        val bundle = twitchBundle()
         val exports = MetroExports(bundle)
         val screen = exports.resolve("TheatreScreen", setOf("useState"), 1)
         exports.requireFunctionContract("TheatreScreen", 1, setOf("TheatreStoreProvider", "PictureInPictureProvider"))

@@ -1,0 +1,52 @@
+name: Instagram version watch
+
+# Twice a day, checks APKPure for an Instagram release newer than the newest COMPATIBILITY_INSTAGRAM
+# target on dev, and opens one issue per new version. Detection only: nothing is downloaded or patched.
+
+on:
+  schedule:
+    - cron: '17 3,15 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: instagram-version-watch
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  watch:
+    name: Check for a new Instagram release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ISSUE_LABEL: instagram-version-watch
+    steps:
+      - name: Check out dev
+        uses: actions/checkout@v5
+        with:
+          ref: dev
+          persist-credentials: false
+
+      - name: Compare APKPure with the declared targets
+        id: watch
+        run: python3 .github/scripts/instagram-version-watch/version_watch.py --github-output "$GITHUB_OUTPUT"
+
+      - name: Open an issue for the new version
+        if: steps.watch.outputs.status == 'new'
+        env:
+          VERSION: ${{ steps.watch.outputs.version }}
+          APKMIRROR_URL: ${{ steps.watch.outputs.apkmirror_url }}
+        run: |
+          title="New version detected: $VERSION"
+          # Open or closed, one issue per version: closing it means it was seen.
+          if gh issue list --repo "$GITHUB_REPOSITORY" --state all --label "$ISSUE_LABEL" --limit 200 --json title --jq '.[].title' | grep -qxF "$title"; then
+            echo "An issue for $VERSION already exists."
+            exit 0
+          fi
+          gh label create "$ISSUE_LABEL" --repo "$GITHUB_REPOSITORY" --color 1D76DB --description "New Instagram releases" --force
+          gh issue create --repo "$GITHUB_REPOSITORY" --label "$ISSUE_LABEL" --title "$title" --body "$APKMIRROR_URL"

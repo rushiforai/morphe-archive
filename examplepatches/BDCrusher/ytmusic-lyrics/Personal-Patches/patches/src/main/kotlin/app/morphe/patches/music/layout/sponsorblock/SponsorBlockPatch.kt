@@ -37,6 +37,10 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 private const val EXTENSION_SEGMENT_PLAYBACK_CONTROLLER_CLASS =
     "Lapp/morphe/extension/music/sponsorblock/MusicSponsorBlockConfig;"
 
+private val savedChapterResources=app.morphe.patcher.patch.resourcePatch {
+    execute {this["assets/bdcrusher-features/sponsorblock.enabled"].apply {parentFile.mkdirs();writeText("1\n")}}
+}
+
 @Suppress("unused")
 val musicSponsorBlockPatch = bytecodePatch(
     name = "SponsorBlock",
@@ -45,6 +49,7 @@ val musicSponsorBlockPatch = bytecodePatch(
     category("Full Collection")
     dependsOn(app.bdcrusher.ytmusic.nativeentry.fullEditionGuard)
     dependsOn(
+        savedChapterResources,
         sharedExtensionPatch,
         musicVideoInformationPatch,
         settingsPatch,

@@ -85,7 +85,10 @@ public final class SoulHistoryActivity extends Activity {
         return page;
     }
 
-    /** One card row: who + when, tap = profile, long-press = copy, Chat pill. */
+    /** One card row: who + when, tap = profile, long-press = copy, Chat/Profile pill.
+     *  Honest UX: the pill says "Chat" only when a local channel exists (checked on
+     *  a worker thread); otherwise it says "Profile" and opens the profile — the
+     *  same place you complete the chat via the app's own button. No dead ends. */
     private View row(final PdbUi.SoulRow r) {
         LinearLayout row = PdbUi.themedCard(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
@@ -115,8 +118,8 @@ public final class SoulHistoryActivity extends Activity {
         tp.rightMargin = PdbUi.dp(this, 10);
         row.addView(textCol, tp);
 
-        TextView chat = new TextView(this);
-        chat.setText("Chat");
+        final TextView chat = new TextView(this);
+        chat.setText("Profile");
         chat.setTextSize(13);
         chat.setTypeface(chat.getTypeface(), Typeface.BOLD);
         chat.setTextColor(0xFFFFFFFF);
@@ -126,9 +129,22 @@ public final class SoulHistoryActivity extends Activity {
         pill.setColor(0xFF6C5CE7);
         pill.setCornerRadius(PdbUi.dp(this, 20));
         chat.setBackground(pill);
-        chat.setOnClickListener(v -> PdbTools.openChat(this, r.id));
+        final Runnable openChat = () -> PdbTools.openChat(this, r.id);
+        final Runnable openProfile = () ->
+            PdbNav.openLink(this, "pdb://pdb.app/u/" + r.id);
+        chat.setOnClickListener(v -> {
+            if ("Chat".contentEquals(chat.getText())) openChat.run();
+            else openProfile.run();
+        });
         row.addView(chat, new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        // Resolve the channel off the UI thread, then label the pill honestly.
+        PdbTools.DB_EXECUTOR.execute(() -> {
+            boolean hasChannel = PdbDatabase.channelForUser(this, r.id) != null;
+            if (hasChannel) {
+                runOnUiThread(() -> chat.setText("Chat"));
+            }
+        });
 
         row.setOnClickListener(v -> PdbNav.openLink(this, "pdb://pdb.app/u/" + r.id));
         row.setOnLongClickListener(v -> {

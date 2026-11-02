@@ -37,6 +37,18 @@ public class WuplayPolicyProbe {
     check(!CatalogPolicy.contentSource("hub"));check(!CatalogPolicy.contentSource("saved_collections"));
     check(!CatalogPolicy.contentSource("library"));check(!CatalogPolicy.contentSource("watchlist"));
     check(!CatalogPolicy.contentSource(null));
+    check(CatalogPolicy.homeCatalog("preset",true));
+    check(CatalogPolicy.homeCatalog("addon",true));
+    check(!CatalogPolicy.homeCatalog("preset",false));
+    check(!CatalogPolicy.homeCatalog("addon",false));
+    check(!CatalogPolicy.homeCatalog("hub",true));
+    check(!CatalogPolicy.homeCatalog("library",true));
+    check(CatalogPolicy.requestVisibility("app.wuplay.androidtv",a,"TYPE_PREVIEW",false,desired));
+    check(!CatalogPolicy.requestVisibility("other.app",a,"TYPE_PREVIEW",false,desired));
+    check(!CatalogPolicy.requestVisibility("app.wuplay.androidtv",a,"TYPE_PREVIEW",true,desired));
+    check(!CatalogPolicy.requestVisibility("app.wuplay.androidtv",a,"TYPE_OTHER",false,desired));
+    check(!CatalogPolicy.requestVisibility("app.wuplay.androidtv",a,"TYPE_PREVIEW",false,Collections.emptySet()));
+    check(!CatalogPolicy.requestVisibility("app.wuplay.androidtv",null,"TYPE_PREVIEW",false,desired));
     check(!CatalogPolicy.tileKey("movie","tt1").equals(CatalogPolicy.tileKey("series","tt1")));
     check(CatalogPolicy.tileKey("person","nm1")==null);
     check(CatalogPolicy.tileKey("movie","")==null);

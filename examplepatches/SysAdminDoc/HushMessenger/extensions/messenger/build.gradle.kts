@@ -20,7 +20,23 @@ android {
     lint { abortOnError = true }
 }
 
+// Compile-only copies of the Messenger classes the call recorder talks to. Messenger ships the real ones, so these stay
+// off the extension's runtime classpath and out of its dex.
+val messengerStubClasses = tasks.register<JavaCompile>("compileMessengerStubs") {
+    source(layout.projectDirectory.dir("src/stubs/java"))
+    classpath = files()
+    destinationDirectory.set(layout.buildDirectory.dir("messengerStubs/classes"))
+    options.release.set(11)
+}
+val messengerStubs = tasks.register<Jar>("messengerStubsJar") {
+    from(messengerStubClasses)
+    archiveFileName.set("messenger-stubs.jar")
+    destinationDirectory.set(layout.buildDirectory.dir("messengerStubs"))
+}
+
 dependencies {
+    compileOnly(files(messengerStubs))
+    testImplementation(files(messengerStubs))
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.17")
 }

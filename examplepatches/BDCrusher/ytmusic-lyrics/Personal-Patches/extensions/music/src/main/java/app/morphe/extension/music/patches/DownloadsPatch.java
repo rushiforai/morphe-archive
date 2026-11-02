@@ -50,6 +50,8 @@ public final class DownloadsPatch {
     private static volatile long lastFlyoutDownloadTime;
     private static volatile long lastMainPlayerDownloadTime;
     private static volatile long lastLocalDownloadsOpenTime;
+    private static String lastEncodedTarget="";
+    private static long lastEncodedTime;
     /** Browse id of the stock offline tab, which the local catalogue replaces. */
     private static final byte[] OFFLINE_BROWSE_ID =
             "FEmusic_offline".getBytes(StandardCharsets.US_ASCII);
@@ -249,6 +251,7 @@ public final class DownloadsPatch {
             if (!isActionButtonOverridden()) {
                 return false;
             }
+            if(routeEncodedDownload(endpoint,map))return true;
             Utils.verifyOnMainThread();
 
             if(endpoint!=null&&app.bdcrusher.ytmusic.playlists.PlaylistRuntime.endpoint(endpoint.toByteArray()))return true;
@@ -293,7 +296,7 @@ public final class DownloadsPatch {
             }
             Utils.verifyOnMainThread();
 
-            if (isDownloadSender(map)) {
+            if (isDownloadSender(map) && playerSender(map)) {
                 final long now = System.currentTimeMillis();
                 if (now - lastMainPlayerDownloadTime < IGNORE_DOUBLE_CLICK_DURATION_MS) {
                     return true;
@@ -318,7 +321,10 @@ public final class DownloadsPatch {
                     || p1 == null || map == null) {
                 return false;
             }
+            if(routeEncodedDownload(p1,map))return true;
             Utils.verifyOnMainThread();
+
+            if (app.bdcrusher.ytmusic.playlists.PlaylistRuntime.endpoint(p1.toByteArray())) return true;
 
             if (inAppDownloads()) {
                 byte[] commandBytes = p1.toByteArray();
@@ -422,5 +428,44 @@ public final class DownloadsPatch {
             Logger.printException(() -> "commandResolverOnClick failure", ex);
         }
         return false;
+    }
+
+    private static boolean routeEncodedDownload(ProtocolBufferFieldInterface command,@Nullable Map<Object,Object> map){
+        DownloadMode mode=Settings.DOWNLOAD_MODE.get();
+        if(mode==DownloadMode.DEFAULT||command==null||map==null)return false;
+        Object tag=map.get(app.bdcrusher.ytmusic.playlists.NativeDownloadContext.TAG),sender=map.get(ELEMENTS_SENDER_VIEW);
+        if(!(sender instanceof View)&&tag==null)return false;
+        byte[] bytes=command.toByteArray();boolean contextual=app.bdcrusher.ytmusic.playlists.DownloadCommand.contextual(bytes);
+        var encoded=app.bdcrusher.ytmusic.playlists.DownloadCommand.target(bytes);
+        var resolved=contextual?app.bdcrusher.ytmusic.playlists.NativeDownloadContext.target(tag):encoded;
+        final var target=resolved;
+        if(target==null){
+            if(!contextual)return false;
+            Logger.printDebug(()->"Native download action unresolved; mode="+mode+"; tag="+(tag==null?"none":tag.getClass().getName())+"; sender="+(sender==null?"none":sender.getClass().getName()));
+            Utils.runOnMainThread(()->Utils.showToastShort("Could not identify this download. Open the song or playlist page and try again."));
+            return true;
+        }
+        String key=(target.playlist()?"playlist:":"song:")+target.id();long now=android.os.SystemClock.uptimeMillis();
+        synchronized(DownloadsPatch.class){
+            if(key.equals(lastEncodedTarget)&&now-lastEncodedTime<IGNORE_DOUBLE_CLICK_DURATION_MS)return true;
+            lastEncodedTarget=key;lastEncodedTime=now;
+        }
+        // Native command mappings can dispatch on their executor. Consume the command
+        // there, then open the chosen downloader on the UI thread instead of falling through.
+        Utils.runOnMainThread(()->{
+            try{
+                if(target.playlist()){
+                    Activity activity=Utils.getActivity();if(activity==null)return;
+                    if(mode==DownloadMode.EXTERNAL){
+                        if(app.bdcrusher.ytmusic.common.PersonalRuntime.installed(activity,"playlists"))app.bdcrusher.ytmusic.playlists.PlaylistRuntime.external(target.id(),"");
+                        ExternalDownloaderPreference.launchExternalDownloader(target.id(),activity,app.bdcrusher.ytmusic.playlists.PlaylistRuntime.url(target.id()));
+                    }
+                    else if(app.bdcrusher.ytmusic.common.PersonalRuntime.installed(activity,"playlists"))app.bdcrusher.ytmusic.playlists.PlaylistRuntime.download(target.id(),"");
+                    else Utils.showToastShort("Select the Download playlist patch to download a whole playlist in-app");
+                }else startDownload(target.id(),mode==DownloadMode.EXTERNAL);
+            }catch(Exception failure){Logger.printException(()->"Configured download route failed",failure);Utils.showToastShort("Could not open the selected downloader. Check Downloads settings.");}
+        });
+        Logger.printDebug(()->"Native download "+(contextual?"action context":"parameters")+" routed to "+mode+"; playlist="+target.playlist()+"; tag="+(tag==null?"none":tag.getClass().getName()));
+        return true;
     }
 }

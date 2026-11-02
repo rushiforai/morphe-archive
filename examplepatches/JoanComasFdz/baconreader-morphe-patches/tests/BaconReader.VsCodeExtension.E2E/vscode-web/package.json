@@ -1,0 +1,12 @@
+{
+  "name": "baconreader-vscode-web",
+  "private": true,
+  "description": "Serves VS Code for the web with the extension under development, for the extension's e2e scenarios (tools/e2e/record.sh). vscodeCommit pins the VS Code build (1.142.0); its download is cached outside the repository.",
+  "config": {
+    "vscodeCommit": "6d62b1d5dace93a33b3a6d3eca1317bd5e15bcb1",
+    "vscodeVersion": "1.142.0"
+  },
+  "devDependencies": {
+    "@vscode/test-web": "0.0.81"
+  }
+}

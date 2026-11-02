@@ -29,8 +29,10 @@ public class MessageLogTest {
     private SoftwareVault softwareVault;
     private java.util.function.LongConsumer retryLater;
     private final List<Long> retries = new ArrayList<>();
+    private MessageLogExport.Shelf shelf;
 
     @Before public void reset() throws Exception {
+        shelf = MessageLogExport.shelf;
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
         Settings.activeAt.clear();
@@ -52,6 +54,7 @@ public class MessageLogTest {
     }
 
     @After public void tidy() {
+        MessageLogExport.shelf = shelf;
         MessageLog.retryLater = retryLater;
         MessageLog.vault = null;
         logFile().delete();
@@ -583,6 +586,117 @@ public class MessageLogTest {
         assertEquals(1, onDisk.size());
         assertEquals("fresh", onDisk.get(0).text);
         assertNull(Settings.hookErrors.get("message_log"));
+    }
+
+    /** Takes the copies the Save messages before they're removed switch makes, or refuses them when told to. */
+    private static final class FakeShelf implements MessageLogExport.Shelf {
+        final StringBuilder added = new StringBuilder();
+        int calls;
+        boolean broken;
+
+        @Override public void add(Context context, String name, String mime, byte[] content) throws java.io.IOException {
+            calls++;
+            if (broken) throw new java.io.IOException("no room");
+            assertEquals(MessageLogExport.monthlyName(System.currentTimeMillis()), name);
+            added.append(new String(content, java.nio.charset.StandardCharsets.UTF_8));
+        }
+    }
+
+    private FakeShelf seedForExpiry(boolean saveExpiring) throws Exception {
+        long now = System.currentTimeMillis();
+        List<MessageLog.Entry> seeded = new ArrayList<>();
+        seeded.add(new MessageLog.Entry(now - MessageLog.MAX_AGE_MS - 60_000, "t", "stale", "Ana", "", "mid.1", false));
+        seeded.add(new MessageLog.Entry(now, "t", "fresh", "Ana", "", "mid.2", false));
+        MessageLog.write(Settings.appContext, seeded);
+        Settings.preferences.edit().putBoolean(MessageLog.SAVE_EXPIRING, saveExpiring).commit();
+        FakeShelf fake = new FakeShelf();
+        MessageLogExport.shelf = fake;
+        return fake;
+    }
+
+    @Test @Config(sdk = 36) public void nothingLeavesTheEncryptedLogUntilTheSwitchIsOn() throws Exception {
+        FakeShelf shelf = seedForExpiry(false);
+        MessageLog.expireNow();
+        assertEquals(0, shelf.calls);
+        assertEquals(1, MessageLog.read(logFile()).size());
+    }
+
+    @Test @Config(sdk = 36) public void theSwitchCopiesWhatExpiresAndNothingElse() throws Exception {
+        FakeShelf shelf = seedForExpiry(true);
+        MessageLog.expireNow();
+        assertEquals(1, shelf.calls);
+        assertTrue(shelf.added.toString(), shelf.added.toString().contains("stale"));
+        assertFalse(shelf.added.toString(), shelf.added.toString().contains("fresh"));
+        List<MessageLog.Entry> onDisk = MessageLog.read(logFile());
+        assertEquals(1, onDisk.size());
+        assertEquals("fresh", onDisk.get(0).text);
+        // Gone from the log, so the next check has nothing to copy again.
+        MessageLog.expireNow();
+        assertEquals(1, shelf.calls);
+    }
+
+    @Test @Config(sdk = 36) public void theSwitchStillCopiesWithTheLogTurnedOff() throws Exception {
+        FakeShelf shelf = seedForExpiry(true);
+        Settings.preferences.edit().putBoolean("message_log", false).commit();
+        MessageLog.expireNow();
+        assertTrue(shelf.added.toString().contains("stale"));
+    }
+
+    @Test @Config(sdk = 36) public void aCopyThatFailsKeepsTheMessagesForTheNextCheck() throws Exception {
+        FakeShelf shelf = seedForExpiry(true);
+        shelf.broken = true;
+        MessageLog.expireNow();
+        assertEquals(2, MessageLog.read(logFile()).size());
+        assertNotNull(Settings.hookErrors.get("message_log"));
+        shelf.broken = false;
+        MessageLog.expireNow();
+        assertTrue(shelf.added.toString(), shelf.added.toString().contains("stale"));
+        assertEquals(1, MessageLog.read(logFile()).size());
+    }
+
+    @Test @Config(sdk = 36) public void aCopyThatFailsStillKeepsTheLogInsideItsLimits() throws Exception {
+        long now = System.currentTimeMillis();
+        List<MessageLog.Entry> seeded = new ArrayList<>();
+        for (int i = 0; i < MessageLog.MAX_ENTRIES + 3; i++) seeded.add(new MessageLog.Entry(now - 100_000 + i, "t", "m" + i));
+        MessageLog.write(Settings.appContext, seeded);
+        Settings.preferences.edit().putBoolean(MessageLog.SAVE_EXPIRING, true).commit();
+        FakeShelf shelf = new FakeShelf();
+        shelf.broken = true;
+        MessageLogExport.shelf = shelf;
+        MessageLog.expireNow();
+        List<MessageLog.Entry> onDisk = MessageLog.read(logFile());
+        assertEquals(MessageLog.MAX_ENTRIES, onDisk.size());
+        assertEquals("m3", onDisk.get(0).text);
+    }
+
+    @Test @Config(sdk = 36) public void aMessagePushedOutByTheCountLimitIsCopiedToo() throws Exception {
+        long now = System.currentTimeMillis();
+        List<MessageLog.Entry> seeded = new ArrayList<>();
+        for (int i = 0; i < MessageLog.MAX_ENTRIES + 2; i++) seeded.add(new MessageLog.Entry(now - 100_000 + i, "t", "m" + i));
+        MessageLog.write(Settings.appContext, seeded);
+        Settings.preferences.edit().putBoolean(MessageLog.SAVE_EXPIRING, true).commit();
+        FakeShelf shelf = new FakeShelf();
+        MessageLogExport.shelf = shelf;
+        MessageLog.expireNow();
+        String copied = shelf.added.toString();
+        assertTrue(copied, copied.contains("\nm0\n") && copied.contains("\nm1\n"));
+        assertFalse(copied, copied.contains("\nm2\n"));
+        assertEquals(MessageLog.MAX_ENTRIES, MessageLog.read(logFile()).size());
+    }
+
+    @Test @Config(sdk = 36) public void clearingTheLogNeverCopiesIt() throws Exception {
+        FakeShelf shelf = seedForExpiry(true);
+        assertTrue(MessageLog.clear());
+        assertEquals(0, shelf.calls);
+        assertFalse(logFile().exists());
+    }
+
+    /** Android 9 has no MediaStore Downloads, and the switch isn't shown there. A leftover true from a backup changes nothing. */
+    @Test @Config(sdk = 28) public void android9NeverCopies() throws Exception {
+        FakeShelf shelf = seedForExpiry(true);
+        MessageLog.expireNow();
+        assertEquals(0, shelf.calls);
+        assertEquals(1, MessageLog.read(logFile()).size());
     }
 
     @Test public void expiryDeletesTheFileOnceEverythingIsOld() throws Exception {

@@ -92,7 +92,7 @@ public final class TcpConnectRace {
                                 SLOTS.release();
                                 if (state.running == 0) return null;
                             }
-                            nextStart = now + 250000000L;
+                            nextStart = now + 50000000L;
                             continue;
                         } else if (state.running == 0) {
                             return null;

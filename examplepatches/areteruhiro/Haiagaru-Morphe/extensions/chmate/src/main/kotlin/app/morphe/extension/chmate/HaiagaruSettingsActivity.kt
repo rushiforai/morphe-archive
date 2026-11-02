@@ -23,6 +23,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -113,7 +115,12 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
         var matches by remember { mutableStateOf<List<Pair<SettingsGroup, BoundSetting>>>(emptyList()) }
         var searching by remember { mutableStateOf(false) }
         var indexedQuery by remember { mutableStateOf("") }
-        val list = rememberLazyListState()
+        // Home, search and category content have different item sets. Sharing a
+        // state (and resetting it on navigation) discarded the home position.
+        val homeList = rememberLazyListState()
+        val searchList = rememberLazyListState()
+        val categoryList = rememberLazyListState()
+        val list = if (selected >= 0) categoryList else if (query.isBlank()) homeList else searchList
         val scope = rememberCoroutineScope()
         val invalidation = revision
         // Snapshot native toggle values on every preference refresh, even while the
@@ -130,7 +137,7 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
             // Rebuild editors on navigation, so a toggle changed in the expert
             // projection cannot leave its ordinary-category control stale.
             bodies.clear()
-            list.scrollToItem(0)
+            if (selected >= 0) categoryList.scrollToItem(0)
             revision++
         }
         LaunchedEffect(query, invalidation) {
@@ -150,14 +157,14 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
             matches = found; indexedQuery = query; searching = false
         }
         Scaffold(topBar = {
-            if (selected < 0 && query.isBlank()) TopAppBar(title = { Text("Haiagaru") },
+            if (selected < 0 && query.isBlank()) TopAppBar(expandedHeight = 48.dp, title = { Text("Haiagaru") },
                 navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, if (english) "Back" else "戻る") } })
-            else TopAppBar(title = { Text(if (selected < 0) (if (english) "Find a setting" else "設定を検索") else groups[selected].title(english),
+            else TopAppBar(expandedHeight = 48.dp, title = { Text(if (selected < 0) (if (english) "Find a setting" else "設定を検索") else groups[selected].title(english),
                 maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
                 navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, if (english) "Back" else "戻る") } })
         }) { insets ->
             LazyColumn(state = list, modifier = Modifier.fillMaxSize().padding(insets).imePadding(),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (selected < 0) {
                     item { OutlinedTextField(query, { query = it }, placeholder = { Text(if (english) "Find a setting" else "設定を検索") },
                         leadingIcon = { Icon(Icons.Filled.Search, null) }, singleLine = true,
@@ -165,31 +172,32 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                     if (query.isBlank()) {
                         item {
                             SettingsHomeCard {
-                                SettingsHomeAction(if (english) "Share settings (.haiagaru)" else "設定を共有（.haiagaru）") { SettingsProfiles.share(this@HaiagaruSettingsActivity) }
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                                SettingsHomeAction(if (english) "Load settings file" else "設定ファイルを読み込む") { SettingsProfiles.open(this@HaiagaruSettingsActivity) }
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    SettingsHomeAction(if (english) "Share settings" else "設定を共有", Modifier.weight(1f)) { SettingsProfiles.share(this@HaiagaruSettingsActivity) }
+                                    SettingsHomeAction(if (english) "Load settings" else "設定を読み込む", Modifier.weight(1f)) { SettingsProfiles.open(this@HaiagaruSettingsActivity) }
+                                }
+                                Spacer(Modifier.height(6.dp))
                                 SettingsHomeAction(if (english) "Choose minimal setup again" else "最低限構成を選び直す") { MinimalSetup.show(this@HaiagaruSettingsActivity) }
-                                Text("共有するのは表示・動作設定です。認証情報、履歴、NG登録、標準ツールバー設定は含めません。",
-                                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
+
                             }
                         }
+                        item { Text(if (english) "Share display and behavior settings as a .haiagaru file. Authentication, history, NG rules and native toolbar settings are excluded."
+                            else ".haiagaru形式で表示・動作設定を共有します。認証情報、履歴、NG登録、標準ツールバー設定は含めません。",
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = .75f),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)) }
                         item { Text(if (english) "Saved automatically. Choose what you want to change." else "変更は自動で保存されます。変えたいことから選べます。",
-                            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 8.dp)) }
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)) }
                         items(groups, key = { it.id }) { group ->
                             SettingsHomeCard(onClick = { selected = groups.indexOf(group) }, padded = false) {
                                 ListItem(headlineContent = { Text(group.title(english), style = MaterialTheme.typography.titleMedium) },
-                                    supportingContent = { Text(if (english) group.enSummary else group.summary) },
-                                    leadingContent = { Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerLow,
-                                        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)) {
-                                        Box(Modifier.size(52.dp), contentAlignment = Alignment.Center) {
-                                            SettingsCategoryIcon(group.id, group.mark)
-                                        } } },
+                                    supportingContent = { Text(if (english) group.enSummary else group.summary, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                    leadingContent = { Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) {
+                                        SettingsCategoryIcon(group.id, group.mark)
+                                    } },
                                     trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null) },
                                     colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surface),
-                                    modifier = Modifier.heightIn(min = 88.dp))
+                                    modifier = Modifier.heightIn(min = 64.dp))
                             }
                         }
                         item { Text(if (english) "Toolbar buttons: change visibility in ChMate's toolbar editor. Search options are on the search screen."
@@ -266,24 +274,26 @@ private fun settingsGroups() = listOf(
 private fun SettingsHomeCard(onClick: (() -> Unit)? = null, padded: Boolean = true,
     content: @Composable ColumnScope.() -> Unit) {
     Surface(modifier = Modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
-        shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = .3f)),
-        shadowElevation = 2.dp) {
-        Column(if (padded) Modifier.padding(horizontal = 20.dp, vertical = 12.dp) else Modifier, content = content)
+        shadowElevation = 0.dp) {
+        Column(if (padded) Modifier.padding(horizontal = 12.dp, vertical = 10.dp) else Modifier, content = content)
     }
 }
 
 @Composable
-private fun SettingsHomeAction(title: String, onClick: () -> Unit) {
-    Box(Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 48.dp), contentAlignment = Alignment.CenterStart) {
-        Text(title, style = MaterialTheme.typography.bodyLarge)
+private fun SettingsHomeAction(title: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    OutlinedButton(onClick = onClick, modifier = modifier.fillMaxWidth().heightIn(min = 48.dp),
+        shape = RoundedCornerShape(8.dp), contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)) {
+        Text(title, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, modifier = Modifier.size(18.dp))
     }
 }
 
 @Composable
 private fun SettingsCategoryIcon(id: String, mark: String) {
     if (id == "reading") {
-        Text("Aa", style = MaterialTheme.typography.headlineMedium)
+        Text("Aa", style = MaterialTheme.typography.titleLarge)
     } else {
         // Vector paths avoid platform-dependent emoji and remain crisp at any density.
         val color = MaterialTheme.colorScheme.onSurface

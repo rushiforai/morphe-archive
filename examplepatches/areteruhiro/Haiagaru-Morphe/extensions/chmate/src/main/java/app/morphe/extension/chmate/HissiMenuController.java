@@ -218,7 +218,8 @@ public final class HissiMenuController extends ToolScreenController {
         // Resolve the checker first so OFF still preserves the selected service,
         // source board, ID/ﾜｯﾁｮｲ and custom-scheme links cached by ChMate.
         // Every entry point (including explicit launches) reaches this boundary.
-        if (!Haiagaru.dedicatedViewerEnabled()) {
+        if (!Haiagaru.dedicatedViewerEnabled()
+                || (!eddiArchiveMode && !Haiagaru.dedicatedCheckerViewerAvailable())) {
             Intent standardWeb = new Intent(Intent.ACTION_VIEW, Uri.parse(target));
             standardWeb.setClassName(this, "jp.syoboi.a2chMate.activity.WebViewActivity");
             startActivity(standardWeb);

@@ -92,3 +92,16 @@ GAS実配備: reviewPersonalNg/exportReviewedSharedNgの実行完了、毎時rev
 2026-10-30 エッヂscope修正・外部板共通対応: 利用者実機226のnative NGID scopeがbbs.eddibb.cc%2Fliveedge、boards tableにeddi/liveedge行0件を確認（NG値非出力）。native外部scopeのhost/pathを一度だけURL decodeし、明示host付きの形式から親serviceを直接解決する共通nativeBoardを追加。5ch/PINK/したらば旧新host/open2ch/Talk/2ch.sc/ぷにぷに/custom port/encoded URLをテスト。裸androidは引き続き登録済みboards照合、userinfo/二重decode/悪意のsuffixhostは誤判定しない。policy96/collector19成功。build/shared-ng-native-scope-build.logで通常build中、実機は未更新、GAS v5変更不要。
 
 2026-10-30 外部scope実機修正完了: native-scope226をMi Note10へ署名一致更新、実保存Edge key bbs.eddibb.cc%2Fliveedge→edge/all/名称エッヂ成功。ART15項目、host96/collector19成功。実個人NGの旧unknown取消→Edge upsertの2操作submitted/accepted/ack2、queue0（shared-ng-edge-real-send226.log）。配信GETでUnexpected end of JSON inputを検出、実read-only auditでInbox9行のうちINVALID_INBOX_ROW4確認。どの経緯で不正行が生じたかは未特定。ngParsedInboxCondition_/ngEmptyInboxRow_を追加し、不正行のraw値は残してrejected/invalid_inbox_rowへ隔離、正常行審査/exportは継続・完全空行は無視。監査は隔離行をwarningで可視化。不正行1件で正常feedが止まらずraw保持をserver136項目で検証。Inbox/Publish全文保存一致をclipboard確認し既存GASをv6へ12:49更新。公開GET revision3/3件（5ch ID・suffix、Edge ID各1票）成功、実226sync3件成功。証拠shared-ng-native-scope-gas-live.json、shared-ng-native-scope226-live-sync.log、shared-ng-gas-v6-deployed.png。新GAS監査の再実行は中断のため未実施、API復旧は実応答確認済み。191/242は外部encoding修正APK未適用。アプリRelease未公開。
+
+
+## 2026-11-01 種類別履歴・基本ルール承認
+
+- 禁止語辞書一致を承認条件から外し、形式・文字数・対応一致方式の検査を通る条件を1報告から承認。
+- 正規表現はJava Patternとして扱う。GASのJavaScript RegExpで構文を判定しない。受信アプリは不正なPatternだけ除外し、残りのfeedを保持する。旧アプリへregexは配信しない。
+- Inboxは未審査キュー。NG_ID／NG_Word／NG_Wacchoi／NG_Name／NG_Reporter／NG_Otherへ審査結果・理由・受信日時・元条件を移動。取り消し履歴も保持。
+- ID24時間／ワッチョイ7日の期限削除案は利用者の指示で撤回。条件・履歴の自動期限削除は実装しない。
+- ReviewTransferの退避記録と段階状態で、移動中の失敗を再試行可能にした。審査後の個人NGを再送しても重複票にしない。
+- 旧アプリ互換の一致方式判定はflags全体ではなく0x70のみを見る。連鎖などの表示flag18を持つ通常条件を配信から落とさない。
+- 20,000文字ごとの分割キャッシュでGASの100KB制限を回避。manifestは全片保存後に書き、欠損・破損時は再集計。審査変更でmanifestを無効化。
+- host: moderation53、lifecycle74、personal148、service40・legacy41、edge19成功。Java rules96、index10003、regex17成功。
+- Androidの通常ビルドは仮想メモリ不足で中断（Kotlin JVM起動失敗、再試行のR8中にホスト側OutOfMemory）。ビルド成功・端末確認・アプリ公開とは扱わない。必死viewer=falseの未完検証とフィルターパネル高さ調整、全機能版間確認は別途継続。

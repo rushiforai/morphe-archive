@@ -51,6 +51,8 @@ class HookInjectionReplayTest {
                         markReadSocketBuilder(markReadStub(), markReadRecipe!!)
                         markReadBuilder(markReadButtonStub(), markReadRecipe!!)
                     }
+                    // The voice message Save row also builds the extension's stubs from this build's recipe.
+                    if (key == SAVE_VOICE_MENU) for (id in SAVE_VOICE_MENU_STUBS) saveVoiceMenuBuilder(saveVoiceMenuStub(id), saveVoiceMenuRecipe!!)
                     // Auto reply also builds the extension's picture send from this build's media factory.
                     if (key == AUTO_REPLY) {
                         val recipe = autoReplyPictureRecipe ?: error("no picture recipe")

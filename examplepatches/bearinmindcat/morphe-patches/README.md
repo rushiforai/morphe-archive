@@ -14,7 +14,7 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v2.8.0](https://github.com/bearinmindcat/morphe-patches/releases/tag/v2.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;92 patches total
+> **[v2.8.5](https://github.com/bearinmindcat/morphe-patches/releases/tag/v2.8.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;123 patches total
 <details>
 <summary><img src="docs/icons/pin-google.png" width="20" height="20" align="top"> Google Maps&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/pin-ungoogled.png" width="20" height="20" align="top"> Ungoogled Maps&nbsp;&nbsp;•&nbsp;&nbsp;30 patches</summary>
 <br>
@@ -357,6 +357,426 @@ Select the app you want to patch inside Morphe Manager, follow all instructions 
 | Patch | Description | Options |
 |----------|----------------|-----------|
 | [Enable non-One UI ROM support](#enable-non-one-ui-rom-support) | Makes Samsung Weather usable on non-One UI ROMs. |  |
+
+</details>
+
+</blockquote>
+</details>
+
+<details>
+<summary>📱 Xiaomi Apps&nbsp;&nbsp;•&nbsp;&nbsp;9 apps&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
+<br>
+<blockquote>
+
+<details>
+<summary><img src="docs/icons/xiaomi-calendar.png" width="20" height="20" align="top"> Xiaomi Calendar&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/xiaomi-calendar.png" width="20" height="20" align="top"> Xiaomi Calendar&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 18.0.2.0
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-HyperOS ROM support](#enable-non-hyperos-rom-support) | Makes Xiaomi Calendar usable on non-Xiaomi ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/xiaomi-compass.png" width="20" height="20" align="top"> Xiaomi Compass&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/xiaomi-compass.png" width="20" height="20" align="top"> Xiaomi Compass&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 17.1.4.1
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-HyperOS ROM support](#enable-non-hyperos-rom-support) | Makes Xiaomi Compass usable on non-Xiaomi ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/xiaomi-gallery.png" width="20" height="20" align="top"> Xiaomi Gallery&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/xiaomi-gallery.png" width="20" height="20" align="top"> Xiaomi Gallery&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 4.3.1.15-global
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-HyperOS ROM support](#enable-non-hyperos-rom-support) | Makes Xiaomi Gallery installable and usable on non-Xiaomi ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/xiaomi-gallery-editor.png" width="20" height="20" align="top"> Xiaomi Gallery Editor&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/xiaomi-gallery-editor.png" width="20" height="20" align="top"> Xiaomi Gallery Editor&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 2.10.40.4.8-global
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-HyperOS ROM support](#enable-non-hyperos-rom-support) | Makes Xiaomi Gallery Editor installable and usable on non-Xiaomi ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/xiaomi-notes.png" width="20" height="20" align="top"> Xiaomi Notes&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/xiaomi-notes.png" width="20" height="20" align="top"> Xiaomi Notes&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 3.2.7.9
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-HyperOS ROM support](#enable-non-hyperos-rom-support) | Makes Xiaomi Notes installable and usable on non-Xiaomi ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/xiaomi-recorder.png" width="20" height="20" align="top"> Xiaomi Recorder&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/xiaomi-recorder.png" width="20" height="20" align="top"> Xiaomi Recorder&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 7.7.9
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-HyperOS ROM support](#enable-non-hyperos-rom-support) | Makes Xiaomi Recorder installable and usable on non-Xiaomi ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/xiaomi-scanner.png" width="20" height="20" align="top"> Xiaomi Scanner&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/xiaomi-scanner.png" width="20" height="20" align="top"> Xiaomi Scanner&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 15.9.78
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-HyperOS ROM support](#enable-non-hyperos-rom-support) | Makes Xiaomi Scanner usable on non-Xiaomi ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/xiaomi-screen-recorder.png" width="20" height="20" align="top"> Xiaomi Screen Recorder&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/xiaomi-screen-recorder.png" width="20" height="20" align="top"> Xiaomi Screen Recorder&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 4.16.2.9.1
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-HyperOS ROM support](#enable-non-hyperos-rom-support) | Makes Xiaomi Screen Recorder installable and usable on non-Xiaomi ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/xiaomi-weather.png" width="20" height="20" align="top"> Xiaomi Weather&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/xiaomi-weather.png" width="20" height="20" align="top"> Xiaomi Weather&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** G-17.0.3.26
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-HyperOS ROM support](#enable-non-hyperos-rom-support) | Makes Xiaomi Weather usable on non-Xiaomi ROMs. |  |
+
+</details>
+
+</blockquote>
+</details>
+
+<details>
+<summary>📱 Nothing Apps&nbsp;&nbsp;•&nbsp;&nbsp;2 apps&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+<blockquote>
+
+<details>
+<summary><img src="docs/icons/nothing-gallery.png" width="20" height="20" align="top"> Nothing Gallery&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/nothing-gallery.png" width="20" height="20" align="top"> Nothing Gallery&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 3.1.3.1019
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-Nothing OS ROM support](#enable-non-nothing-os-rom-support) | Makes Nothing Gallery usable on non-Nothing OS ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/nothing-recorder.png" width="20" height="20" align="top"> Nothing Recorder&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/nothing-recorder.png" width="20" height="20" align="top"> Nothing Recorder&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 4.0.0
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-Nothing OS ROM support](#enable-non-nothing-os-rom-support) | Makes Nothing Recorder installable and usable on non-Nothing OS ROMs. |  |
+
+</details>
+
+</blockquote>
+</details>
+
+<details>
+<summary>📱 Honor Apps&nbsp;&nbsp;•&nbsp;&nbsp;8 apps&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
+<br>
+<blockquote>
+
+<details>
+<summary><img src="docs/icons/honor-calculator.png" width="20" height="20" align="top"> Honor Calculator&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/honor-calculator.png" width="20" height="20" align="top"> Honor Calculator&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 12.0.1.217
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-MagicOS ROM support](#enable-non-magicos-rom-support) | Makes Honor Calculator usable on non-Honor ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/honor-calendar.png" width="20" height="20" align="top"> Honor Calendar&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/honor-calendar.png" width="20" height="20" align="top"> Honor Calendar&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 13.3.0.345
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-MagicOS ROM support](#enable-non-magicos-rom-support) | Makes Honor Calendar usable on non-Honor ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/honor-clock.png" width="20" height="20" align="top"> Honor Clock&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/honor-clock.png" width="20" height="20" align="top"> Honor Clock&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 12.0.1.196
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-MagicOS ROM support](#enable-non-magicos-rom-support) | Makes Honor Clock usable on non-Honor ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/honor-compass.png" width="20" height="20" align="top"> Honor Compass&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/honor-compass.png" width="20" height="20" align="top"> Honor Compass&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 14.0.1.174
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-MagicOS ROM support](#enable-non-magicos-rom-support) | Makes Honor Compass usable on non-Honor ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/honor-files.png" width="20" height="20" align="top"> Honor Files&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/honor-files.png" width="20" height="20" align="top"> Honor Files&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 10.0.0.641
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-MagicOS ROM support](#enable-non-magicos-rom-support) | Makes Honor Files usable on non-Honor ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/honor-notes.png" width="20" height="20" align="top"> Honor Notes&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/honor-notes.png" width="20" height="20" align="top"> Honor Notes&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 18.0.4.817
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-MagicOS ROM support](#enable-non-magicos-rom-support) | Makes Honor Notes usable on non-Honor ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/honor-recorder.png" width="20" height="20" align="top"> Honor Recorder&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/honor-recorder.png" width="20" height="20" align="top"> Honor Recorder&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 14.0.1.197
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-MagicOS ROM support](#enable-non-magicos-rom-support) | Makes Honor Recorder usable on non-Honor ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/honor-video-player.png" width="20" height="20" align="top"> Honor Video Player&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/honor-video-player.png" width="20" height="20" align="top"> Honor Video Player&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 8.0.0.032
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-MagicOS ROM support](#enable-non-magicos-rom-support) | Makes Honor Video Player installable and usable on non-Honor ROMs. |  |
+
+</details>
+
+</blockquote>
+</details>
+
+<details>
+<summary>📱 RedMagic Apps&nbsp;&nbsp;•&nbsp;&nbsp;1 app&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+<blockquote>
+
+<details>
+<summary><img src="docs/icons/redmagic-game-space.png" width="20" height="20" align="top"> RedMagic Game Space&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/redmagic-game-space.png" width="20" height="20" align="top"> RedMagic Game Space&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 15.0.000.001.2512060958
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-RedMagic ROM support](#enable-non-redmagic-rom-support) | Makes RedMagic Game Space usable on non-RedMagic ROMs. |  |
+
+</details>
+
+</blockquote>
+</details>
+
+<details>
+<summary>📱 LG Apps&nbsp;&nbsp;•&nbsp;&nbsp;2 apps&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+<blockquote>
+
+<details>
+<summary><img src="docs/icons/lg-health.png" width="20" height="20" align="top"> LG Health&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/lg-health.png" width="20" height="20" align="top"> LG Health&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 5.60.16
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Remove telemetry](#remove-telemetry) | Stops the Facebook SDK and Firebase Analytics from contacting their servers. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/lg-quickmemo.png" width="20" height="20" align="top"> LG QuickMemo+&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/lg-quickmemo.png" width="20" height="20" align="top"> LG QuickMemo+&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 10.0.30
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-LG ROM support](#enable-non-lg-rom-support) | Makes LG QuickMemo+ installable and usable on non-LG ROMs. |  |
+
+</details>
+
+</blockquote>
+</details>
+
+<details>
+<summary>📱 ColorOS Apps&nbsp;&nbsp;•&nbsp;&nbsp;9 apps&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
+<br>
+<blockquote>
+
+<details>
+<summary><img src="docs/icons/coloros-calculator.png" width="20" height="20" align="top"> OnePlus Calculator&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/coloros-calculator.png" width="20" height="20" align="top"> OnePlus Calculator&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 17.0.0
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-ColorOS ROM support](#enable-non-coloros-rom-support) | Makes OnePlus Calculator installable and usable on non-ColorOS ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/coloros-clock.png" width="20" height="20" align="top"> OnePlus Clock&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/coloros-clock.png" width="20" height="20" align="top"> OnePlus Clock&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 16.19.8
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-ColorOS ROM support](#enable-non-coloros-rom-support) | Makes OnePlus Clock installable and usable on non-ColorOS ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/coloros-compass.png" width="20" height="20" align="top"> OnePlus Compass&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/coloros-compass.png" width="20" height="20" align="top"> OnePlus Compass&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 17.0.0
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-ColorOS ROM support](#enable-non-coloros-rom-support) | Makes OnePlus Compass installable and usable on non-ColorOS ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/coloros-myfiles.png" width="20" height="20" align="top"> OnePlus My Files&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/coloros-myfiles.png" width="20" height="20" align="top"> OnePlus My Files&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 16.12.4
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-ColorOS ROM support](#enable-non-coloros-rom-support) | Makes OnePlus My Files installable and usable on non-ColorOS ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/coloros-notes.png" width="20" height="20" align="top"> OnePlus Notes&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/coloros-notes.png" width="20" height="20" align="top"> OnePlus Notes&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 16.6.14
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-ColorOS ROM support](#enable-non-coloros-rom-support) | Makes OnePlus Notes installable and usable on non-ColorOS ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/coloros-gallery.png" width="20" height="20" align="top"> OnePlus Photos&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/coloros-gallery.png" width="20" height="20" align="top"> OnePlus Photos&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 16.45.2
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-ColorOS ROM support](#enable-non-coloros-rom-support) | Makes OnePlus Photos installable and usable on non-ColorOS ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/coloros-recorder.png" width="20" height="20" align="top"> OnePlus Recorder&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/coloros-recorder.png" width="20" height="20" align="top"> OnePlus Recorder&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 16.17.6
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-ColorOS ROM support](#enable-non-coloros-rom-support) | Makes OnePlus Recorder installable and usable on non-ColorOS ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/coloros-screenrecorder.png" width="20" height="20" align="top"> OnePlus Screen Recording&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/coloros-screenrecorder.png" width="20" height="20" align="top"> OnePlus Screen Recording&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 16.5.12
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-ColorOS ROM support](#enable-non-coloros-rom-support) | Makes OnePlus Screen Recording installable and usable on non-ColorOS ROMs. |  |
+
+</details>
+
+<details>
+<summary><img src="docs/icons/coloros-weather.png" width="20" height="20" align="top"> OnePlus Weather&nbsp;&nbsp;-&gt;&nbsp;&nbsp;<img src="docs/icons/coloros-weather.png" width="20" height="20" align="top"> OnePlus Weather&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported version(s):** 17.6.30
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable non-ColorOS ROM support](#enable-non-coloros-rom-support) | Makes OnePlus Weather installable and usable on non-ColorOS ROMs. |  |
 
 </details>
 

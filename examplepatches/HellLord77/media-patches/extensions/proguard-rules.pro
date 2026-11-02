@@ -8,6 +8,6 @@
   *;
 }
 
--keep class kotlin.coroutines.** {
+-keep class kotlin.** {
   *;
 }

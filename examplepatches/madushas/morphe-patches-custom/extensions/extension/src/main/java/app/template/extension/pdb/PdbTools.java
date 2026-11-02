@@ -117,11 +117,11 @@ public final class PdbTools {
             return;
         }
         final Context app = ctx.getApplicationContext();
-        EXECUTOR.execute(new Runnable() {
+        DB_EXECUTOR.execute(new Runnable() {
             @Override public void run() {
                 String link = null;
                 try {
-                    java.util.concurrent.Future<String> f = EXECUTOR.submit(() -> {
+                    java.util.concurrent.Future<String> f = DB_EXECUTOR.submit(() -> {
                         String[] ch = PdbDatabase.channelForUser(app, id);
                         if (ch != null) return "pdb://pdb.app/chat/" + ch[0] + ":" + ch[1];
                         if (PdbDatabase.userExists(app, id)) return "pdb://pdb.app/u/" + id;
@@ -144,7 +144,7 @@ public final class PdbTools {
     }
 
     /** One worker for every DB-touching extension action; never the UI thread. */
-    private static final java.util.concurrent.ExecutorService EXECUTOR =
+    public static final java.util.concurrent.ExecutorService DB_EXECUTOR =
         java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
             Thread t = new Thread(r, "morphe-pdb-worker");
             t.setDaemon(true);

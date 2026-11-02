@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class EmotePickerRuntime {
-    private static final String PREFIX = "twitchpatches-picker:";
+    static final String PREFIX = "twitchpatches-picker:";
     private static final String[] PROVIDERS = {"BTTV", "7TV", "FrankerFaceZ"};
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static WeakReference<Object> presenter = new WeakReference<>(null);
@@ -47,16 +47,25 @@ public final class EmotePickerRuntime {
         original = Collections.emptyList();
         for (int index = 0; index < 3; index++) buttons[index] = null;
         EmotePickerImages.close();
+        FavoriteEmotePicker.close();
     }
 
     public static List<?> augment(List<?> sections, boolean visible) {
         original = sections;
         received = true;
         channelVisible = visible;
+        List<?> result = FavoriteEmotePicker.insert(withProviders(sections));
+        for (int provider = 0; provider < 3; provider++) {
+            if (positions[provider] >= 0) positions[provider] += FavoriteEmotePicker.insertedItems();
+        }
+        updateButtons();
+        return result;
+    }
+
+    private static List<?> withProviders(List<?> sections) {
         EmoteCatalog catalog = EmoteRuntime.catalog();
         if (catalog == null || presenter.get() == null || !EmoteRuntime.enabled()) {
             java.util.Arrays.fill(positions, -1);
-            updateButtons();
             return sections;
         }
         int insertion = EmotePickerBridge.insertionIndex(sections, EmoteRuntime.channelName(channel));
@@ -67,7 +76,6 @@ public final class EmotePickerRuntime {
         }
         result.addAll(sections.subList(insertion, sections.size()));
         for (int provider = 0; provider < 3; provider++) append(result, catalog, provider, null);
-        updateButtons();
         return result;
     }
 
@@ -98,26 +106,34 @@ public final class EmotePickerRuntime {
         root = new WeakReference<>(view);
         EmotePickerImages.open(view);
         LinearLayout bar = (LinearLayout) anchor.getParent();
+        FavoriteEmotePicker.bind(bar, anchor, position -> {
+            Object target = delegate.get();
+            View current = root.get();
+            if (target != null && current != null) EmotePickerBridge.scroll(target, current, position);
+        });
         for (int provider = 0; provider < 3; provider++) {
-            final int index = provider;
-            ImageView button = new ImageView(view.getContext());
-            int size = Math.round(44 * view.getResources().getDisplayMetrics().density);
-            int padding = Math.round(10 * view.getResources().getDisplayMetrics().density);
-            button.setLayoutParams(new LinearLayout.LayoutParams(size, bar.getLayoutParams().height));
-            button.setPadding(padding, padding, padding, padding);
-            button.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            button.setContentDescription(PROVIDERS[provider] + " emotes");
-            EmoteProviderIcons.bind(button, provider);
-            button.setOnClickListener(clicked -> {
-                Object target = delegate.get();
-                View current = root.get();
-                if (target != null && current != null && positions[index] >= 0)
-                    EmotePickerBridge.scroll(target, current, positions[index]);
-            });
-            bar.addView(button);
-            buttons[provider] = button;
+            buttons[provider] = providerButton(view, bar, provider);
+            bar.addView(buttons[provider]);
         }
         updateButtons();
+    }
+
+    private static ImageView providerButton(View view, LinearLayout bar, int provider) {
+        ImageView button = new ImageView(view.getContext());
+        int size = Math.round(44 * view.getResources().getDisplayMetrics().density);
+        int padding = Math.round(10 * view.getResources().getDisplayMetrics().density);
+        button.setLayoutParams(new LinearLayout.LayoutParams(size, bar.getLayoutParams().height));
+        button.setPadding(padding, padding, padding, padding);
+        button.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        button.setContentDescription(PROVIDERS[provider] + " emotes");
+        EmoteProviderIcons.bind(button, provider);
+        button.setOnClickListener(clicked -> {
+            Object target = delegate.get();
+            View current = root.get();
+            if (target != null && current != null && positions[provider] >= 0)
+                EmotePickerBridge.scroll(target, current, positions[provider]);
+        });
+        return button;
     }
 
     static void refresh(String changedChannel) {

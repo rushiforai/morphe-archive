@@ -7,7 +7,9 @@ import java.util.List;
 
 /** Only playlist shelves are entries. Section-list continuation usually loads recommendations. */
 public final class PlaylistPage {
-    public record Entry(String videoId,String title,String reason) {}
+    public record Entry(String videoId,String title,String reason,int seconds) {
+        public Entry(String videoId,String title,String reason){this(videoId,title,reason,0);}
+    }
     public final List<Entry> entries;
     public final String continuation;
     private PlaylistPage(List<Entry> entries,String continuation){this.entries=entries;this.continuation=continuation;}
@@ -43,7 +45,7 @@ public final class PlaylistPage {
             byte[] tap=optional(row,5),watch=tap==null?null:optional(tap,48687757);
             if(watch!=null)id=text(optional(watch,1));
             if(!id.matches("[A-Za-z0-9_-]{11}")){id="";reason="Unavailable or inaccessible track";}
-            entries.add(new Entry(id,title,reason));
+            entries.add(new Entry(id,title,reason,duration(formatted(optional(row,4)))));
             if(entries.size()>2000)throw new IllegalArgumentException("Playlist page is too large");
         }
         String token="";byte[] continuation=optional(shelf,10);
@@ -61,4 +63,5 @@ public final class PlaylistPage {
         }
         if(out.length()>4096)throw new IllegalArgumentException("Playlist title too long");return out.toString();
     }
+    private static int duration(String value){java.util.regex.Matcher matches=java.util.regex.Pattern.compile("(?<![0-9])(?:(\\d{1,2}):)?(\\d{1,2}):(\\d{2})(?![0-9])").matcher(value);int seconds=0;while(matches.find())try{int hours=matches.group(1)==null?0:Integer.parseInt(matches.group(1)),minutes=Integer.parseInt(matches.group(2)),last=Integer.parseInt(matches.group(3));if(last<60&&(matches.group(1)==null||minutes<60))seconds=hours*3600+minutes*60+last;}catch(NumberFormatException ignored){}return seconds;}
 }

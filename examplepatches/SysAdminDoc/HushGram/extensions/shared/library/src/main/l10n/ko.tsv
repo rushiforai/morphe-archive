@@ -47,8 +47,8 @@ Loading older messages.	이전 메시지를 불러오는 중입니다.
 Loading older messages. %1$d message so far.	이전 메시지를 불러오는 중입니다. 지금까지 %1$d개입니다.
 Loading older messages. %1$d messages so far.	이전 메시지를 불러오는 중입니다. 지금까지 %1$d개입니다.
 Lock these settings	이 설정 잠그기
-Long press a chat's name and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	채팅 이름을 길게 누르고 채팅 내보내기를 고르세요. 채팅 전체가 다운로드의 HushGram 폴더에 텍스트 파일로 저장되며, 메시지 한 개가 한 줄입니다.
-Long press a chat's name and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	채팅 이름을 길게 누르고 첫 메시지로 이동 또는 날짜로 이동을 고르세요. 채팅이 이전 메시지를 스스로 불러오며, 개수와 취소 버튼이 표시됩니다.
+Open a chat, long press its name at the top and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	채팅을 열고 위쪽의 이름을 길게 누른 뒤 채팅 내보내기를 고르세요. 채팅 전체가 다운로드의 HushGram 폴더에 텍스트 파일로 저장되며, 메시지 한 개가 한 줄입니다.
+Open a chat, long press its name at the top and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	채팅을 열고 위쪽의 이름을 길게 누른 뒤 첫 메시지로 이동 또는 날짜로 이동을 고르세요. 채팅이 이전 메시지를 스스로 불러오며, 개수와 취소 버튼이 표시됩니다.
 Mark a chat seen when you reply	답장하면 채팅을 읽음으로 표시
 No messages found to save.	저장할 메시지가 없어요.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	1~72시간 중 대기 시간을 고르세요. 잠기면 잠금 해제를 요청하고 대기 시간이 끝날 때까지 여기서 아무것도 바뀌지 않습니다.
@@ -198,7 +198,8 @@ Each video saves at the best quality Instagram offers for it.	각 동영상은 I
 Each video saves at its lowest quality, for the smallest file.	각 동영상은 가장 작은 파일 크기를 위해 최저 품질로 저장됩니다
 Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	각 동영상은 %1$s 또는 그보다 낮은 화질 중 가장 가까운 화질로 저장됩니다. 그 정도로 낮은 품질이 없는 동영상은 그보다 높은 화질 중 가장 가까운 화질로 저장됩니다
 Save folder	폴더 저장
-Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Movies 및 Pictures 폴더 아래에 사용할 폴더 이름을 입력하세요. 사용할 수 없는 문자는 밑줄로 변경됩니다. 비워 두면 기본 폴더인 %1$s를 사용합니다
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s. For an SD card or anywhere else, use Choose a folder.	Movies 및 Pictures 폴더 아래에 사용할 폴더 이름을 입력하세요. 사용할 수 없는 문자는 밑줄로 변경됩니다. 비워 두면 기본 폴더인 %1$s를 사용합니다 SD 카드나 다른 위치에는 폴더 선택을(를) 사용하세요.
+Use Choose a folder for a path or an SD card.	경로나 SD 카드는 폴더 선택을(를) 사용하세요.
 Save	저장
 Folder name	폴더 이름
 Folder set to %1$s.	폴더가 %1$s로 설정되었습니다
@@ -539,7 +540,7 @@ Group notifications	알림 묶기
 Hide shopping	쇼핑 숨기기
 Hide surveys	설문 숨기기
 Hide the caught up card	모두 확인했어요 카드 숨기기
-Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, the card stays. Pull down on Home to refresh after changing it.	팔로우하는 계정의 게시물 다음에 나오는, 최신 게시물을 모두 봤다는 카드와 이전 게시물 링크를 숨깁니다. 홈에 새 게시물이 하나도 없으면 카드는 그대로 둡니다. 바꾼 뒤에는 홈을 아래로 당겨 새로고침하세요.
+Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, only that line goes and the link stays. Pull down on Home to refresh after changing it.	팔로우하는 계정의 게시물 다음에 나오는, 최신 게시물을 모두 봤다는 카드와 이전 게시물 링크를 숨깁니다. 홈에 새 게시물이 하나도 없으면 그 문구만 숨기고 링크는 그대로 둡니다. 바꾼 뒤에는 홈을 아래로 당겨 새로고침하세요.
 Instagram is locked	Instagram이 잠겨 있습니다
 Instagram locks as soon as you leave it or the screen turns off.	Instagram을 나가거나 화면이 꺼지면 바로 잠깁니다.
 Instagram locks once you've been away from it for %1$s.	Instagram을 %1$s 동안 떠나 있으면 잠깁니다.
@@ -966,7 +967,6 @@ Queued. It starts once the post before it is saved.	대기 중입니다. 앞의 
 Not saved: %1$d posts are already waiting	저장 안 됨: 이미 게시물 %1$d개가 대기 중입니다
 Show all settings as a list	모든 설정을 목록으로 보기
 Show settings by category	카테고리별로 설정 보기
-Tab bar opacity	탭 바 불투명도
 Tab bar height	탭 바 높이
 Standard	기본
 Blur strength	흐림 강도
@@ -1496,3 +1496,29 @@ Instagram's reminder to review whether it can process your data for ads stops op
 Stop videos looping	동영상 반복 재생 중지
 # context: summary under that switch; auto scroll is Instagram's own Reels setting, worded as in Keep auto scroll on
 Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	피드 동영상과 릴스가 다시 재생되지 않고 마지막 장면에서 멈춥니다. 자동 스크롤이 켜져 있으면 다음 릴스로 넘어갈 수 있도록 릴스는 계속 반복됩니다.
+Not used while you've picked a folder. Saves go there.	폴더를 골라 둔 동안에는 사용되지 않아요. 고른 폴더에 저장돼요.
+All	전체
+Posts	게시물
+Nothing matches.	일치하는 항목이 없습니다.
+Couldn't open that one.	열 수 없습니다.
+Tap to see all %1$d, by kind or by search.	눌러서 %1$d개 전체를 종류별로 보거나 검색하세요.
+Instagram gradient on dark	어두운 배경의 Instagram 그라데이션
+Retro Instagram	레트로 Instagram
+Menu button on Home's header	홈 상단의 메뉴 버튼
+Adds a menu button at the top of Home with your viewing history, Ghost mode and HushGram settings. Restart Instagram to see the change.	홈 상단에 본 기록, 고스트 모드, HushGram 설정이 담긴 메뉴 버튼을 추가합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+HushGram menu	HushGram 메뉴
+Seek bar button on feed videos	피드 동영상 탐색 막대 버튼
+Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	피드 동영상 왼쪽 아래에 탐색 막대를 보이거나 숨기는 작은 버튼을 추가합니다. 피드 동영상 탐색 막대가 켜져 있어도 꺼져 있어도 작동합니다.
+Seek bar	탐색 막대
+Tint intensity	색조 강도
+Refraction intensity	굴절 강도
+Preview of the tab bar	탭 바 미리보기
+Keep stories playing while zooming	확대하는 동안 스토리 계속 재생
+A story keeps playing while you pinch to zoom it. Hold it still first and it stays paused while you zoom.	두 손가락으로 스토리를 확대하는 동안에도 계속 재생됩니다. 먼저 길게 눌러 두면 확대하는 동안 일시정지 상태로 유지됩니다.
+Follower history	팔로워 기록
+Nothing logged yet. Each time you scroll your own Followers list to the end, changes since the last time are added here.	아직 기록된 내용이 없습니다. 내 팔로워 목록을 끝까지 스크롤할 때마다 지난번 이후의 변경 사항이 여기에 추가됩니다.
+%1$s unfollowed you, %2$s	%1$s 님이 팔로우를 취소했습니다, %2$s
+%1$s followed you again, %2$s	%1$s 님이 다시 팔로우했습니다, %2$s
+%1$s started following you, %2$s	%1$s 님이 팔로우하기 시작했습니다, %2$s
+Hide the Map bubble	지도 버블 숨기기
+Takes only the Map bubble out of the row of notes. Your notes stay.	메모 목록에서 지도 버블만 숨깁니다. 메모는 그대로 유지됩니다.

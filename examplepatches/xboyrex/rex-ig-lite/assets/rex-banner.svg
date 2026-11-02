@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#07080C"/>
+      <stop offset="50%" stop-color="#0D1017"/>
+      <stop offset="100%" stop-color="#140B14"/>
+    </linearGradient>
+    <linearGradient id="primeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#EB4B64"/>
+      <stop offset="100%" stop-color="#FF758F"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1A1D26" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#101218" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="24" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="420" rx="28" fill="url(#bgGrad)" stroke="#232733" stroke-width="2"/>
+
+  <!-- Subtle Glow Circles -->
+  <circle cx="200" cy="80" r="140" fill="#EB4B64" opacity="0.10" filter="url(#glow)"/>
+  <circle cx="1020" cy="340" r="160" fill="#EB4B64" opacity="0.12" filter="url(#glow)"/>
+
+  <!-- Decorative Vector Hexagon Nut Left -->
+  <g transform="translate(86, 130) scale(3.2)" stroke="#EB4B64" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <path d="M12 2.5 L20.2 7.25 L20.2 16.75 L12 21.5 L3.8 16.75 L3.8 7.25 Z"/>
+    <circle cx="12" cy="12" r="3.2"/>
+  </g>
+
+  <!-- Decorative Vector Ghost Right -->
+  <g transform="translate(1036, 130) scale(3.2)" stroke="#FFFFFF" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+    <path d="M5 11 A7 7 0 0 1 19 11 L19 19.5 L16.5 17.5 L14.2 19.5 L12 17.5 L9.8 19.5 L7.5 17.5 L5 19.5 Z"/>
+    <circle cx="9.5" cy="10.5" r="1.2" fill="#EB4B64" stroke="none"/>
+    <circle cx="14.5" cy="10.5" r="1.2" fill="#EB4B64" stroke="none"/>
+  </g>
+
+  <!-- Top Pill Badge -->
+  <rect x="445" y="46" width="310" height="34" rx="17" fill="#181B24" stroke="#2E3344" stroke-width="1.2"/>
+  <text x="600" y="68" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13.5" font-weight="700" fill="#EB4B64" text-anchor="middle" letter-spacing="1.5">MORPHE PATCHES BUNDLE (.MPP)</text>
+
+  <!-- Main Two-Tone Brand Title: xboyrex -->
+  <text x="600" y="175" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="88" font-weight="900" text-anchor="middle" letter-spacing="-1.5">
+    <tspan fill="#FFFFFF">Rex</tspan><tspan fill="url(#primeGrad)">Prime</tspan>
+  </text>
+
+  <!-- Subtitle -->
+  <text x="600" y="218" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="21" font-weight="600" fill="#B5BCC9" text-anchor="middle">
+    Made with ❤️ By Mayank (@xboyrex) • Full Unified Instagram &amp; X Patch Suite
+  </text>
+
+  <!-- Feature Pills Row -->
+  <g transform="translate(140, 260)" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="14.5" font-weight="600" fill="#F2F4F8">
+    <rect x="0" y="0" width="168" height="42" rx="12" fill="url(#cardGrad)" stroke="#2A2F3D"/>
+    <text x="84" y="26" text-anchor="middle">👻 Ghost Mode</text>
+
+    <rect x="184" y="0" width="196" height="42" rx="12" fill="url(#cardGrad)" stroke="#2A2F3D"/>
+    <text x="282" y="26" text-anchor="middle">👑 Secret Profile View</text>
+
+    <rect x="396" y="0" width="176" height="42" rx="12" fill="url(#cardGrad)" stroke="#2A2F3D"/>
+    <text x="484" y="26" text-anchor="middle">📥 HD Downloader</text>
+
+    <rect x="588" y="0" width="166" height="42" rx="12" fill="url(#cardGrad)" stroke="#2A2F3D"/>
+    <text x="671" y="26" text-anchor="middle">🛡️ Anti-Delete DM</text>
+
+    <rect x="770" y="0" width="150" height="42" rx="12" fill="url(#cardGrad)" stroke="#2A2F3D"/>
+    <text x="845" y="26" text-anchor="middle">🎨 Vector UI/UX</text>
+  </g>
+
+  <!-- Footer Social Handle Bar -->
+  <text x="600" y="365" font-family="monospace, 'JetBrains Mono', Consolas, sans-serif" font-size="14" font-weight="500" fill="#7D8597" text-anchor="middle">
+    github.com/xboyrex/rex-ig-lite  •  t.me/MayankDroid7  •  t.me/OnyxHub7  •  @mayank.zx7
+  </text>
+</svg>

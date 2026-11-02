@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- End-to-end tests of BaconReader patched with this bundle, on an Android phone, with Appium.
+       Its own code rules: E2E-TEST-CODE-RULES.md. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- xUnit1026: a scenario's Screen parameter is read by BaseE2E, never by its body (E2E-TEST-CODE-RULES.md, rule a). -->
+    <NoWarn>$(NoWarn);xUnit1026</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="Appium.WebDriver" />
+    <PackageReference Include="JoanComasFdz.AssertingThat" />
+    <PackageReference Include="Dunet" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BaconReader.FakeReddit\BaconReader.FakeReddit.csproj" />
+    <ProjectReference Include="..\BaconReader.E2E.Shared\BaconReader.E2E.Shared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <!-- Gherkin, [TestDescription], Screen and [PlayOnPhone], ScenarioNaming (tests/BaconReader.E2E.Shared), and
+         BaseE2E: what every scenario uses. -->
+    <Using Include="BaconReader.E2E.Infrastructure" />
+    <Using Include="BaconReader.E2E.Shared" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

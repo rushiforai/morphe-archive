@@ -17,6 +17,16 @@ public final class MediaGalleryTest {
         eq(MediaGallery.threadStep(0,-100,48),1);eq(MediaGallery.threadStep(0,100,48),-1);
         eq(MediaGallery.threadStep(-100,5,48),1);eq(MediaGallery.threadStep(100,5,48),-1);
         eq(MediaGallery.threadStep(10,20,48),0);eq(MediaGallery.threadStep(100,100,48),0);
+        // Every native version uses four directions only for whole-thread paging.
+        for(boolean whole:new boolean[]{false,true}) {
+            eq(MediaGallery.gestureStep(0,-200,48,whole),whole?1:0);
+            eq(MediaGallery.gestureStep(0,200,48,whole),whole?-1:0);
+            eq(MediaGallery.gestureStep(-200,0,48,whole),1);
+            eq(MediaGallery.gestureStep(200,0,48,whole),-1);
+        }
+        eq(MediaGallery.gestureStep(10,20,48,true),0);
+        eq(MediaGallery.gestureStep(200,200,48,true),0);
+        eq(MediaGallery.gestureStep(0,-200,48,false),0);
         List<String> thread=new ArrayList<>();for(int i=0;i<500;i++)thread.add("https://example.org/"+i+".jpg");
         eq(MediaGallery.links(thread,thread.get(350),4096).size(),500);
         eq(MediaGallery.links(thread,thread.get(350)).size(),1);

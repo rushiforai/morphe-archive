@@ -5,6 +5,7 @@
 - **`michieldegroot-cmyk`** — contributions included in the imported source.
 - **`Pilotkosinus`** — original repackaged YouTube Music partner support used by the Waze audio add-on; retained under GPL-3.0.
 - **Saiesh Nitin Shirodkar** — original Projectivy Unlock Premium patch, adapted for 4.73 under GPL-3.0-or-later.
+- **bearinmindcat** — original Google Maps patch set and UI extension, imported from [bearinmind patches](https://github.com/bearinmindcat/morphe-patches) at `bd522fe` (v2.8.3), adapted for Maps 26.43.05.1002020710 with additional Waze and Flitsmeister telemetry. Retained under the upstream GPL-3.0 licence.
 - **Morphe contributors** — the upstream patch template and build ecosystem.
   The upstream licence and project-name restriction are retained in `LICENSE`
   and `NOTICE`.

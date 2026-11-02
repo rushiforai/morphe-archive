@@ -15,8 +15,8 @@ internal object DeviceCheckFieldAccessFingerprint :
                     name = "DeviceCheck",
                     type = Type.boolean,
                     opcode = Opcode.IGET_BOOLEAN,
-                )
-            )
+                ),
+            ),
     )
 
 internal object IsDownloadLimitExceededFingerprint :

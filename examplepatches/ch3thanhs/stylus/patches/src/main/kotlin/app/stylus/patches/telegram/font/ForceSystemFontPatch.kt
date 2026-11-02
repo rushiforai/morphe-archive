@@ -22,10 +22,8 @@ private const val EXTENSION_CLASS =
  * move more typography into XML resources.
  */
 private val forceSystemFontTelegramXmlPatch = resourcePatch(
-    name = "Force system font XML (Telegram)",
-    description =
-        "Replaces Telegram bundled @font XML font-family references with the " +
-            "Android system sans-serif family.",
+    name = "Force system font XML",
+    description = "Points bundled @font XML families at the system sans-serif font.",
     default = true,
 ) {
     compatibleWith(
@@ -142,9 +140,8 @@ private val forceSystemFontTelegramXmlPatch = resourcePatch(
 
 @Suppress("unused")
 val forceSystemFontTelegramPatch = bytecodePatch(
-    name = "Force system font (Telegram)",
-    description =
-        "Renders the app using the device's system font instead of Telegram's bundled font.",
+    name = "Force system font",
+    description = "Uses the device's system font for all app text.",
     default = true,
 ) {
     category("Font")

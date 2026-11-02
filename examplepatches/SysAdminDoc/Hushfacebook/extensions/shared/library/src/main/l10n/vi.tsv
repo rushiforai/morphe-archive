@@ -290,6 +290,8 @@ With the switch above on, your place stays however long you're away. Pull to ref
 Back leaves Home where it is	Nút Quay lại giữ nguyên Trang chủ
 Pressing Back on a scrolled Home no longer jumps to the top and reloads the feed. Press Back again within two seconds to do that.	Nhấn Quay lại khi đã cuộn Trang chủ xuống sẽ không còn nhảy lên đầu và tải lại bảng tin. Nhấn Quay lại lần nữa trong vòng hai giây để làm việc đó.
 Press Back again to go to the top	Nhấn Quay lại lần nữa để lên đầu
+Hide the Back reminder	Ẩn lời nhắc Quay lại
+Back keeps your place without saying "Press Back again to go to the top".	Quay lại giữ nguyên vị trí của bạn mà không hiện "Nhấn Quay lại lần nữa để lên đầu".
 A finished story stays on screen until you tap or swipe. Turn this off for Facebook's timing.	Tin đã phát xong vẫn ở trên màn hình cho đến khi bạn nhấn hoặc vuốt. Tắt mục này để dùng thời gian chuyển của Facebook.
 View stories anonymously	Xem tin ẩn danh
 Facebook isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you. Stories you watch to the end show as watched on this phone only, until that person posts a new one.	Facebook không được biết bạn xem tin nào, nên bạn không có tên trong danh sách người xem. Trả lời hoặc bày tỏ cảm xúc vẫn để lộ bạn. Tin bạn xem hết chỉ hiện là đã xem trên điện thoại này, cho đến khi người đó đăng tin mới.
@@ -501,6 +503,9 @@ Comments show their replies right away, so there's no View replies to tap.	Bình
 Load whole reply threads	Tải toàn bộ chuỗi phản hồi
 # context: summary of that switch; View more replies is the row Facebook shows under an open thread that has more replies to load
 An open reply thread keeps loading as you scroll, so there's no View more replies to tap.	Chuỗi phản hồi đang mở tiếp tục tải khi bạn cuộn, nên không cần nhấn Xem thêm phản hồi.
+Hide replies button	Nút Ẩn phản hồi
+An open reply thread gets a Hide replies button, so you can close it again after reading.	Chuỗi phản hồi đang mở sẽ có nút Ẩn phản hồi để bạn đóng lại sau khi đọc.
+Hide replies	Ẩn phản hồi
 # context: switch title under Comments; View more replies is the row under an open reply thread that loads more replies, and this makes the whole row take the tap instead of only its words
 Tap anywhere on View more replies	Nhấn bất kỳ đâu trên Xem thêm phản hồi
 # context: summary of that switch
@@ -848,6 +853,8 @@ Hold a feed video for 2x	Nhấn giữ video trên bảng tin để phát 2x
 # context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
 Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	Nhấn giữ video trên bảng tin hoặc trong Watch sẽ phát với tốc độ gấp đôi cho đến khi bạn thả tay. Không cần bật các công tắc phía trên.
 Hide the pull down to lock hint	Ẩn gợi ý kéo xuống để khóa
+Hide the 2x popups	Ẩn các thông báo 2x
+Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	Giữ video để xem 2x sẽ không hiện thông báo nào, không có "Tốc độ: 2x", "Thả để khóa" hay "Đã khóa ở tốc độ 2x". Giữ và khóa vẫn hoạt động.
 # context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
 Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	Nhấn giữ video để phát 2x chỉ hiện nhãn 2x thông thường, không có gợi ý "Kéo xuống để khóa tốc độ 2x". Kéo xuống vẫn khóa được. Không cần bật các công tắc phía trên.
 Default playback quality	Chất lượng phát mặc định
@@ -970,6 +977,22 @@ Keep post dates	Giữ ngày đăng bài
 # context: description of that switch; the rotating details are the texts Facebook's newer post header takes turns showing on that line
 Shows the post's date under the poster's name instead of Facebook's rotating details, which can go blank on some phones.	Hiện ngày đăng dưới tên người đăng thay cho thông tin luân phiên của Facebook, vốn có thể trống trên một số điện thoại.
 Show full post text	Hiện toàn bộ nội dung bài viết
+Translate	Dịch
+See original	Xem bản gốc
+Translation	Bản dịch
+Show original	Hiện bản gốc
+Show translation	Hiện bản dịch
+Translating...	Đang dịch...
+Couldn't translate this. Check your connection and try again.	Không dịch được. Hãy kiểm tra kết nối rồi thử lại.
+Add a Translate link to posts	Thêm liên kết Dịch vào bài viết
+Translate posts by themselves	Tự động dịch bài viết
+Posts in another language get a Translate link under their text. A tap sends that post's text to Google Translate.	Bài viết bằng ngôn ngữ khác có liên kết Dịch dưới nội dung. Khi chạm vào, nội dung bài viết đó được gửi đến Google Dịch.
+Posts in another language show translated, with See original under them. Each post's text goes to Google Translate as it's drawn.	Bài viết bằng ngôn ngữ khác hiện bản đã dịch, với Xem bản gốc ở dưới. Nội dung mỗi bài viết được gửi đến Google Dịch khi hiển thị.
+Translate to	Dịch sang
+The phone's language	Ngôn ngữ của điện thoại
+Languages to leave alone	Ngôn ngữ không dịch
+None picked. Posts in every language can be translated.	Chưa chọn ngôn ngữ nào. Bài viết bằng mọi ngôn ngữ đều có thể được dịch.
+Left alone: %s	Không dịch: %s
 Posts in the feed show all of their text, so there's no See more to tap.	Bài viết trong bảng feed hiện toàn bộ nội dung, nên không cần nhấn Xem thêm.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Xem ai đã chia sẻ
@@ -987,7 +1010,9 @@ No "Are you interested in this reel?" prompt on reels. The reel plays as usual.	
 # context: switch title under News feed; affiliate product links are the shop links creators add to their posts to earn a commission
 Hide affiliate product links	Ẩn liên kết sản phẩm tiếp thị liên kết
 # context: description of that switch; "Commission eligible" is Facebook's own label, so use Facebook's wording in your language if you know it
-Hides product cards from shopping links that creators add to posts, reels and comments. The "Commission eligible" label stays.	Ẩn thẻ sản phẩm từ liên kết mua sắm mà nhà sáng tạo thêm vào bài viết, reel và bình luận. Nhãn "Đủ điều kiện nhận hoa hồng" vẫn giữ nguyên.
+Hides product cards from shopping links that creators add to posts, reels and comments.	Ẩn thẻ sản phẩm từ liên kết mua sắm mà nhà sáng tạo thêm vào bài viết, reel và bình luận.
+Hide the Commission eligible label	Ẩn nhãn "Đủ điều kiện nhận hoa hồng"
+Hides the "Commission eligible" label under the creator's name on reels.	Ẩn nhãn "Đủ điều kiện nhận hoa hồng" dưới tên nhà sáng tạo trên reel.
 # context: The reel button and the video menu item while links are sent to another app (#41)
 Send to app	Gửi đến ứng dụng
 # context: Title of Android's app chooser when a video's link is sent
@@ -1769,6 +1794,8 @@ Takes the Save button off the side of reels. The buttons above it move down. A c
 Hide the speaker button on reels	Ẩn nút loa trên reel
 # context: summary of that switch
 Takes the speaker button off the bottom of the side of reels. A change shows from the next reel.	Bỏ nút loa ở dưới cùng cạnh reel. Thay đổi hiện từ reel tiếp theo.
+Move the speaker above the three dots	Chuyển loa lên trên ba chấm
+Puts the speaker button in the side column of reels, right above the three dots. A change shows from the next reel.	Đặt nút loa vào cột bên của reel, ngay trên ba chấm. Thay đổi hiện từ reel tiếp theo.
 # context: switch title under News feed; the reaction preview is the stack of reaction icons and the line with the number of reactions under a post
 Hide the reaction preview on posts	Ẩn bản xem trước biểu cảm trên bài viết
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
@@ -2088,6 +2115,9 @@ Reels order will be set to %1$s.	Thứ tự reel sẽ được đặt thành %1$
 Cast button on feed videos	Nút truyền trên video bảng tin
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Thêm nút truyền vào video trên bảng tin. Nút này chuyển video sang ứng dụng truyền bạn có, như Web Video Caster, để phát lên TV. Facebook không còn tính năng truyền riêng nữa.
 Cast this video	Truyền video này
+Seek bar on feed videos	Thanh tua trên video bảng tin
+Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Hiển thị một thanh dọc theo cạnh dưới của video bảng tin. Kéo rồi thả để nhảy đến điểm đó. Video trực tiếp và quảng cáo vẫn giữ điều khiển riêng. Khi Nhấn để phát bật, Nút điều khiển video trong bảng tin cũng phải bật.
+Feed video position	Vị trí video bảng tin
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Màu huy hiệu
 # context: title of the row that holds a color code for the Facebook logo at the top of Home

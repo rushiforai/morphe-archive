@@ -51,8 +51,8 @@ Loading older messages.	正在載入較舊的訊息。
 Loading older messages. %1$d message so far.	正在載入較舊的訊息。目前 %1$d 則。
 Loading older messages. %1$d messages so far.	正在載入較舊的訊息。目前 %1$d 則。
 Lock these settings	鎖定這些設定
-Long press a chat's name and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	長按聊天名稱，選擇「匯出聊天」。整個聊天會存成文字檔，放在「下載」的 HushGram 資料夾，每則訊息一行。
-Long press a chat's name and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	長按聊天名稱，選擇「跳到第一則訊息」或「跳到某個日期」。聊天會自動載入較舊的訊息，並顯示數量和取消按鈕。
+Open a chat, long press its name at the top and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	開啟聊天，長按上方的名稱，選擇「匯出聊天」。整個聊天會存成文字檔，放在「下載」的 HushGram 資料夾，每則訊息一行。
+Open a chat, long press its name at the top and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	開啟聊天，長按上方的名稱，選擇「跳到第一則訊息」或「跳到某個日期」。聊天會自動載入較舊的訊息，並顯示數量和取消按鈕。
 Mark a chat seen when you reply	回覆時將聊天標示為已讀
 No messages found to save.	沒有可儲存的訊息。
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	選擇 1 至 72 小時的等待時間。鎖定後，必須提出解鎖申請並等待時間結束，才能變更此處的設定。
@@ -202,7 +202,8 @@ Each video saves at the best quality Instagram offers for it.	每部影片皆以
 Each video saves at its lowest quality, for the smallest file.	每部影片皆以最低畫質儲存，讓檔案最小。
 Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	每部影片會以 %1$s 或最接近且較低的畫質儲存。若沒有這麼低的畫質，則使用最接近且較高的畫質。
 Save folder	儲存資料夾
-Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	選擇 Movies 與 Pictures 底下的資料夾名稱。無效字元會替換為底線。留空則使用預設資料夾 %1$s。
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s. For an SD card or anywhere else, use Choose a folder.	選擇 Movies 與 Pictures 底下的資料夾名稱。無效字元會替換為底線。留空則使用預設資料夾 %1$s。 若要存到 SD 卡或其他位置，請使用「選擇資料夾」。
+Use Choose a folder for a path or an SD card.	路徑或 SD 卡請使用「選擇資料夾」。
 Save	儲存
 Folder name	資料夾名稱
 Folder set to %1$s.	資料夾已設為 %1$s。
@@ -545,7 +546,7 @@ Group notifications	通知分組
 Hide shopping	隱藏購物內容
 Hide surveys	隱藏問卷
 Hide the caught up card	隱藏「已看完最新貼文」卡片
-Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, the card stays. Pull down on Home to refresh after changing it.	隱藏已追蹤帳號貼文之後的「已看完最新貼文」卡片與「較舊貼文」連結。若首頁完全沒有新貼文，仍會保留此卡片。變更後請下拉重新整理首頁。
+Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, only that line goes and the link stays. Pull down on Home to refresh after changing it.	隱藏已追蹤帳號貼文之後的「已看完最新貼文」卡片與「較舊貼文」連結。若首頁完全沒有新貼文，只會隱藏那行文字，連結仍會保留。變更後請下拉重新整理首頁。
 Instagram is locked	Instagram 已鎖定
 Instagram locks as soon as you leave it or the screen turns off.	離開 Instagram 或關閉螢幕後會立即鎖定。
 Instagram locks once you've been away from it for %1$s.	離開 Instagram %1$s 後會鎖定。
@@ -965,7 +966,6 @@ Queued. It starts once the post before it is saved.	已加入佇列，前一則�
 Not saved: %1$d posts are already waiting	未儲存：已有 %1$d 則貼文正在等待
 Show all settings as a list	以清單顯示所有設定
 Show settings by category	依分類顯示設定
-Tab bar opacity	分頁列不透明度
 Tab bar height	分頁列高度
 Standard	標準
 Blur strength	模糊強度
@@ -1500,3 +1500,29 @@ Instagram's reminder to review whether it can process your data for ads stops op
 Stop videos looping	影片不重複播放
 # context: summary under that switch; auto scroll is Instagram's own Reels setting, worded as in Keep auto scroll on
 Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	動態中的影片和 Reels 會停在最後一格，不再重新播放。開啟自動捲動時，Reels 仍會重複播放，好讓它能切換到下一則。
+Not used while you've picked a folder. Saves go there.	已選擇資料夾時不會使用這個名稱，檔案會存到該資料夾。
+All	全部
+Posts	貼文
+Nothing matches.	沒有符合的項目。
+Couldn't open that one.	無法開啟。
+Tap to see all %1$d, by kind or by search.	輕觸即可依類型或搜尋查看全部 %1$d 筆。
+Instagram gradient on dark	深色底的 Instagram 漸層
+Retro Instagram	復古 Instagram
+Menu button on Home's header	首頁頂端的選單按鈕
+Adds a menu button at the top of Home with your viewing history, Ghost mode and HushGram settings. Restart Instagram to see the change.	在首頁頂端加入選單按鈕，內含瀏覽紀錄、鬼魂模式與 HushGram 設定。請重新啟動 Instagram 以套用變更。
+HushGram menu	HushGram 選單
+Seek bar button on feed videos	動態影片拖曳列按鈕
+Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	在動態影片左下角加入小按鈕，可顯示或隱藏拖曳列。無論動態影片拖曳列開或關都能使用。
+Seek bar	拖曳列
+Tint intensity	染色強度
+Refraction intensity	折射強度
+Preview of the tab bar	分頁列預覽
+Keep stories playing while zooming	縮放時繼續播放限時動態
+A story keeps playing while you pinch to zoom it. Hold it still first and it stays paused while you zoom.	用兩指縮放限時動態時會繼續播放。若先按住不放，縮放時會維持暫停。
+Follower history	追蹤者紀錄
+Nothing logged yet. Each time you scroll your own Followers list to the end, changes since the last time are added here.	尚未記錄任何內容。每次你把自己的追蹤者清單捲到底，自上次以來的變動就會加到這裡。
+%1$s unfollowed you, %2$s	%1$s 已取消追蹤你，%2$s
+%1$s followed you again, %2$s	%1$s 再次追蹤你，%2$s
+%1$s started following you, %2$s	%1$s 開始追蹤你，%2$s
+Hide the Map bubble	隱藏地圖泡泡
+Takes only the Map bubble out of the row of notes. Your notes stay.	只移除筆記橫列中的地圖泡泡。筆記仍會保留。

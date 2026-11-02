@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:tag="transit_login_panel_en"
+    android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:paddingStart="16dp" android:paddingEnd="16dp" android:paddingTop="20dp" android:paddingBottom="12dp">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="Sign in for easier travel" android:textSize="18sp" android:textStyle="bold"
+        android:textColor="?android:attr/textColorPrimary" android:gravity="center"/>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="6dp" android:text="Free with a Yahoo! JAPAN ID" android:textSize="13sp"
+        android:textColor="?android:attr/textColorSecondary" android:gravity="center"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="18dp" android:orientation="horizontal" android:baselineAligned="false">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:orientation="vertical" android:gravity="center_horizontal" android:paddingHorizontal="4dp">
+            <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                android:src="@drawable/transit_lang_delay" android:contentDescription="@null" android:importantForAccessibility="no"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:gravity="center" android:text="Delay alerts" android:textSize="13sp"
+                android:textColor="?android:attr/textColorPrimary"/>
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:orientation="vertical" android:gravity="center_horizontal" android:paddingHorizontal="4dp">
+            <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                android:src="@drawable/transit_lang_pass" android:contentDescription="@null" android:importantForAccessibility="no"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:gravity="center" android:text="Pass-aware routes" android:textSize="13sp"
+                android:textColor="?android:attr/textColorPrimary"/>
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:orientation="vertical" android:gravity="center_horizontal" android:paddingHorizontal="4dp">
+            <ImageView android:layout_width="40dp" android:layout_height="40dp"
+                android:src="@drawable/transit_lang_stops" android:contentDescription="@null" android:importantForAccessibility="no"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:gravity="center" android:text="Save stops" android:textSize="13sp"
+                android:textColor="?android:attr/textColorPrimary"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

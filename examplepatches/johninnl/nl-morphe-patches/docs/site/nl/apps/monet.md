@@ -2,7 +2,7 @@
 
 **Appversie:** 1.1.0 · **Build:** 134 · **Origineel bestand:** APK
 
-[Gebruik je originele APK](../guides/downloads.md#local-original-inputs){ .md-button .md-button--primary }
+[Download originele app](https://buzzheavier.com/xk5uwpz9uobd){ .md-button .md-button--primary }
 
 Selecteer de originele Monet-launcher-APK in Morphe Manager.
 
@@ -18,7 +18,7 @@ Deze patch voegt Wuplay-inhoudskeuzes toe. Advertentie- en trackinginstellingen 
 
 ## Voor gebruik
 
-Gebruik eerst [Wuplay's cataloguspublicatie](wuplay.md): open **Wuplay TV channels**, kies catalogi van het standaardprofiel en druk op **Save and refresh**.
+Gebruik eerst [Wuplay's cataloguspublicatie](wuplay.md): open in Wuplay **Settings > Catalogs > TV channels**, kies Home-catalogi van het standaardprofiel en druk op **Save and refresh**. De optionele Android TV-toestemming via **Add to TV Home** is niet nodig om de kanalen in Monet te lezen.
 
 Maak in Monet een aangepaste mediarij, selecteer **Wuplay** en kies een catalogus bij **Content**. Herhaal dit voor elke gewenste catalogus. Monets gewone rijnamen, volgorde, indeling, kaartlimieten en opties om titels te verbergen blijven beschikbaar. De bestaande keuzes Continue Watching, Recommendations en de gecombineerde keuze blijven behouden.
 

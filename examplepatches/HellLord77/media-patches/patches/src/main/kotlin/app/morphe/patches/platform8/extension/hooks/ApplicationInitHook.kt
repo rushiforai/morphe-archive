@@ -10,5 +10,5 @@ internal val platform8ActivityOnCreateHook =
 
 internal val platform8ApplicationOnCreateHook =
     activityOnCreateExtensionHook(
-        activityClassType = "Lcom/digivive/nexgtv/application/NexgTvApplication;"
+        activityClassType = "Lcom/digivive/nexgtv/application/NexgTvApplication;",
     )

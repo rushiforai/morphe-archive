@@ -10,6 +10,7 @@ object Constants {
             name = "Toffee",
             packageName = "com.banglalink.toffee",
             apkFileType = ApkFileType.XAPK,
+            appIconColor = 0xF24194,
             signatures = setOf("9bcc96b08bb468c0b1be2910198fd5ee3f05f5a2089a65d2be596a96b552f8a6"),
             targets =
                 listOf(
@@ -18,7 +19,7 @@ object Constants {
                         versionCode = 235,
                         isExperimental = true,
                         minSdk = 25,
-                    )
+                    ),
                 ),
         )
 }

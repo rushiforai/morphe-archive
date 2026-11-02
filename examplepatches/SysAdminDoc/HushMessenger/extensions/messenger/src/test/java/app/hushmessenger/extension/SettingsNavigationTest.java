@@ -111,11 +111,11 @@ public class SettingsNavigationTest {
             android.widget.LinearLayout group = root.findViewWithTag("photos_videos");
             android.widget.LinearLayout heading = (android.widget.LinearLayout) group.getChildAt(0);
             assertEquals("PHOTOS AND VIDEOS", ((TextView) heading.getChildAt(0)).getText().toString());
-            for (String key : new String[] {"original_photo", "original_video", "xhe_audio", "recent_media", "save_voice", "share_story", "system_camera", "external_gallery", "gallery_to_chat"})
+            for (String key : new String[] {"original_photo", "original_video", "xhe_audio", "recent_media", "save_voice", "save_voice_menu", "share_story", "system_camera", "external_gallery", "gallery_to_chat"})
                 assertTrue(key + " should sit in Photos and videos", inside(root.findViewWithTag(key), group));
             assertFalse(inside(root.findViewWithTag("typing"), group));
             assertEquals(View.VISIBLE, group.getVisibility());
-            assertEquals("9",((TextView) heading.getChildAt(1)).getText().toString());
+            assertEquals("10",((TextView) heading.getChildAt(1)).getText().toString());
         }
     }
 

@@ -6,6 +6,7 @@ Each application has a version-specific README with tracking destinations, their
 
 | App | Status | Privacy README |
 | --- | --- | --- |
+| 2dehands | 16.19.0 / 633464; signed-in, incoming-push and checkout acceptance follows main publication | [Domains, data and patch effects](2dehands/README.md) |
 | Buienalarm | Published; see recorded device scope | [Domains, data and patch effects](buienalarm/README.md) |
 | Buienradar | Published; see recorded device scope | [Domains, data and patch effects](buienradar/README.md) |
 | Weeronline | Published; see recorded device scope | [Domains, data and patch effects](weeronline/README.md) |

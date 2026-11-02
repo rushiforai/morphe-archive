@@ -19,7 +19,7 @@ final class LightweightSetup {
         Map<String,Map<String,Object>> groups=new LinkedHashMap<>();
         groups.put(WacchoiSearchOptions.PREFS,SettingsProfiles.adsOnlyValues());
         for(String name:new String[]{PosterHighlight.PREFS,ProgrammableNgController.PREFS,
-                "haiagaru.hidden-id-ng","haiagaru.local-auto-backup","haiagaru_imgur_web",StringReplacement.PREFS})
+                "haiagaru.hidden-id-ng","haiagaru_imgur_web",StringReplacement.PREFS})
             groups.put(name,new LinkedHashMap<>(java.util.Collections.singletonMap("enabled",false)));
         groups.put("haiagaru.mega-sync.options",new LinkedHashMap<>(java.util.Collections.singletonMap("automatic",false)));
         Map<String,Object> hosts=new LinkedHashMap<>();hosts.put("imageHost","native");hosts.put("videoHost","native");
@@ -56,7 +56,7 @@ final class LightweightSetup {
     static void controls(Activity activity,LinearLayout root){
         Button apply=new Button(activity);apply.setText("広告だけの設定プリセットを適用（準備版）");root.addView(apply);
         TextView help=new TextView(activity);
-        help.setText("追加機能の設定をまとめてオフにします。元の設定へ戻せます。クラッシュ防止処理とChMate標準機能は残ります。再起動後に反映します。");root.addView(help);
+        help.setText("追加機能の設定をまとめてオフにします。元の設定へ戻せます。ローカル自動バックアップの設定は維持します。クラッシュ防止処理とChMate標準機能は残ります。再起動後に反映します。");root.addView(help);
         Button restore=new Button(activity);restore.setText("プリセット適用前の設定に戻す");root.addView(restore);
         restore.setEnabled(activity.getSharedPreferences(STORE,0).contains(SNAPSHOT));
         apply.setOnClickListener(v->new HaiagaruDialog.Builder(activity).setTitle("広告だけの設定に変更")
@@ -99,7 +99,11 @@ final class LightweightSetup {
         if(raw==null)return;
         JSONObject before=new JSONObject(raw);
         for(java.util.Iterator<String> names=before.keys();names.hasNext();){
-            String name=names.next();JSONObject values=before.getJSONObject(name);
+            String name=names.next();
+            // Old preset snapshots also contain backup.enabled. Restoring a UI
+            // preset must not replace the user's current backup choice either.
+            if(LocalAutoBackup.PREFS.equals(name))continue;
+            JSONObject values=before.getJSONObject(name);
             SharedPreferences.Editor editor=activity.getSharedPreferences(name,0).edit();
             for(java.util.Iterator<String> keys=values.keys();keys.hasNext();){String key=keys.next();write(editor,key,values.get(key));}
             if(!editor.commit())throw new IllegalStateException("設定を復元できませんでした。退避設定は保持しています。");

@@ -89,26 +89,45 @@ final class SharedNgRules {
     static String week(String text){String d=day(text);if(d.isEmpty())return "";Calendar value=date(d);value.add(Calendar.DAY_OF_MONTH,-((value.get(Calendar.DAY_OF_WEEK)-Calendar.THURSDAY+7)%7));return format(value);}
     static String wacchoi(String name){Matcher m=WACCHOI.matcher(name==null?"":name);return m.find()?m.group():"";}
     static final class Rule {
-        final String id,board,kind,value,period;final int votes,minLevel,minVotes;final boolean revoked;
+        final String id,board,kind,value,period;final int votes,minLevel,minVotes;final boolean revoked,regex;
+        private final Pattern expression;
         Rule(String id,String board,String kind,String value,String period,int votes,boolean revoked){
             this(id,board,kind,value,period,votes,revoked,1,0);
         }
         Rule(String id,String board,String kind,String value,String period,int votes,boolean revoked,int minLevel,int minVotes){
+            this(id,board,kind,value,period,votes,revoked,minLevel,minVotes,false);
+        }
+        Rule(String id,String board,String kind,String value,String period,int votes,boolean revoked,int minLevel,int minVotes,boolean regex){
             if(id==null||!id.matches("[a-f0-9]{64}")||board==null||!(board.equals("*")||board.matches("[a-z0-9.-]+(?::[0-9]+)?(?:/[A-Za-z0-9_.-]+)+"))||board.equals("unknown.invalid/unresolved")||board.length()>300||votes<0)throw new IllegalArgumentException("共有NG形式が不正です");
             if(!Arrays.asList("id","wacchoi","prefix","suffix","keyword","name","trip","reporter").contains(kind)||value==null||value.isEmpty()||value.length()>2000||period==null)throw new IllegalArgumentException("共有NG条件が不正です");
             if(kind.equals("keyword")&&(text(value).isEmpty()||!period.isEmpty()))throw new IllegalArgumentException("キーワードまたは有効期間が不正です");
-            if(kind.equals("id")&&!value.matches("[A-Za-z0-9+/!_.-]{1,100}"))throw new IllegalArgumentException("IDが不正です");
+            if(!regex&&kind.equals("id")&&!value.matches("[A-Za-z0-9+/!_.-]{1,100}"))throw new IllegalArgumentException("IDが不正です");
             if(kind.equals("reporter")&&(!"edge/all".equals(family(board))||!value.matches("[A-Za-z0-9+/!_.-]{1,100}")))throw new IllegalArgumentException("記者IDが不正です");
-            if(kind.equals("wacchoi")&&!WACCHOI.matcher(value).matches())throw new IllegalArgumentException("ワッチョイは全体を指定してください");
-            if(Arrays.asList("prefix","suffix").contains(kind)&&!value.matches("[A-Za-z0-9+/]{4}"))throw new IllegalArgumentException("4桁が不正です");
+            if(!regex&&kind.equals("wacchoi")&&!WACCHOI.matcher(value).matches())throw new IllegalArgumentException("ワッチョイは全体を指定してください");
+            if(!regex&&Arrays.asList("prefix","suffix").contains(kind)&&!value.matches("[A-Za-z0-9+/]{4}"))throw new IllegalArgumentException("4桁が不正です");
             if(minLevel<1||minLevel>5||minVotes<0)throw new IllegalArgumentException("禁止レベルが不正です");
-            this.minLevel=minLevel;this.minVotes=minVotes;this.id=id;this.board=family(board);this.kind=kind;this.value=kind.equals("keyword")?text(value):value;this.period="";this.votes=votes;this.revoked=revoked;
+            if(regex&&kind.equals("reporter"))throw new IllegalArgumentException("記者IDは完全一致で指定してください");
+            this.regex=regex;this.expression=regex?Pattern.compile(value):null;
+            this.minLevel=minLevel;this.minVotes=minVotes;this.id=id;this.board=family(board);this.kind=kind;this.value=!regex&&kind.equals("keyword")?text(value):value;this.period="";this.votes=votes;this.revoked=revoked;
+        }
+        boolean expressionMatches(String input){
+            if(expression==null||input==null)return false;
+            try{return expression.matcher(new TimedText(input,0,input.length(),System.nanoTime()+2_000_000L)).find();}
+            catch(RegexDeadline|StackOverflowError invalid){return false;}
         }
         boolean matches(String boardUrl,String responseId,String name,String date,String body,int threshold){
+            if(regex){
+                String current=SharedNgRules.board(boardUrl);
+                if(revoked||votes<Math.max(threshold,minVotes)||!(board.equals(current)||board.equals("*")&&!kind.equals("reporter")))return false;
+                String input=kind.equals("id")?responseId:kind.equals("keyword")?body:kind.equals("name")||kind.equals("trip")?name:wacchoi(name);
+                if((kind.equals("prefix")||kind.equals("suffix"))&&input.length()==9)input=kind.equals("prefix")?input.substring(0,4):input.substring(5);
+                return expressionMatches(input);
+            }
             return matchesPrepared(SharedNgRules.board(boardUrl),responseId,wacchoi(name),day(date),week(date),text(body),threshold);
         }
         boolean matchesPrepared(String currentBoard,String responseId,String currentWacchoi,String day,String week,String body,int threshold){
             if(revoked||votes<Math.max(threshold,minVotes)||!(board.equals(currentBoard)||board.equals("*")&&!kind.equals("reporter")))return false;
+            if(regex)return expressionMatches(kind.equals("id")?responseId:kind.equals("keyword")?body:currentWacchoi);
             switch(kind){case "id":return value.equals(responseId);
                 case "wacchoi":return value.equals(currentWacchoi);
                 case "prefix":return currentWacchoi.startsWith(value+"-");
@@ -116,5 +135,17 @@ final class SharedNgRules {
                 case "name":case "trip":case "reporter":return false;
                 default:return body.contains(value);}
         }
+    }
+    private static final class RegexDeadline extends RuntimeException {
+        @Override public synchronized Throwable fillInStackTrace(){return this;}
+    }
+    /** Shared regexes cannot monopolize a render/evaluation worker through backtracking. */
+    private static final class TimedText implements CharSequence {
+        final String text;final int start,end;final long deadline;
+        TimedText(String text,int start,int end,long deadline){this.text=text;this.start=start;this.end=end;this.deadline=deadline;}
+        public int length(){return end-start;}
+        public char charAt(int index){if(System.nanoTime()>deadline)throw new RegexDeadline();return text.charAt(start+index);}
+        public CharSequence subSequence(int from,int to){return new TimedText(text,start+from,start+to,deadline);}
+        @Override public String toString(){return text.substring(start,end);}
     }
 }

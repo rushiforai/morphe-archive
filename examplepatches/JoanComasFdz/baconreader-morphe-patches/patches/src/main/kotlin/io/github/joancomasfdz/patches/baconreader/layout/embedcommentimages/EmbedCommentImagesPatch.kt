@@ -9,6 +9,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import io.github.joancomasfdz.patches.baconreader.fix.imgur.fixImgurApiPatch
@@ -22,6 +23,31 @@ import io.github.joancomasfdz.patches.shared.Constants.COMPATIBILITY_BACONREADER
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "$EXTENSION_PACKAGE/embedcommentimages/EmbedCommentImagesPatch;"
 
+/**
+ * The views the images and videos are shown in are made in code: these ids, added to the app's ids, name them, a GIF's
+ * apart from an image's, and the full-screen viewer, so the e2e tests find them. The extension finds them by name.
+ */
+private val commentImageIdsResourcePatch = resourcePatch {
+    execute {
+        document("res/values/ids.xml").use { ids ->
+            val resources = ids.getElementsByTagName("resources").item(0)
+            listOf(
+                "baconreader_patches_comment_image",
+                "baconreader_patches_comment_gif",
+                "baconreader_patches_comment_video",
+                "baconreader_patches_image_viewer",
+            ).forEach { name ->
+                resources.appendChild(
+                    ids.createElement("item").apply {
+                        setAttribute("type", "id")
+                        setAttribute("name", name)
+                    },
+                )
+            }
+        }
+    }
+}
+
 @Suppress("unused")
 val embedCommentImagesPatch = bytecodePatch(
     name = "Embed comment images",
@@ -31,7 +57,7 @@ val embedCommentImagesPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_BACONREADER, COMPATIBILITY_BACONREADER_PREMIUM)
 
-    dependsOn(sharedExtensionPatch, settingsPatch, fixImgurApiPatch)
+    dependsOn(sharedExtensionPatch, settingsPatch, fixImgurApiPatch, commentImageIdsResourcePatch)
 
     execute {
         markPatchIncluded("embedCommentImages")

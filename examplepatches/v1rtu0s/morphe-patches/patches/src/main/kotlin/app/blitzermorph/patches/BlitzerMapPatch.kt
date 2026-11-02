@@ -1,6 +1,7 @@
 package app.blitzermorph.patches
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
@@ -35,7 +36,7 @@ val SpeedCamerasClassFingerprint = Fingerprint(
     name = "<clinit>",
     returnType = "V",
     parameters = listOf(),
-    filters = listOf()
+    filters = listOf(anyInstruction())
 )
 
 /**
@@ -46,7 +47,7 @@ val SpeedCamerasRefreshFingerprint = Fingerprint(
     name = "refresh",
     returnType = "V",
     parameters = listOf("Landroid/content/Context;"),
-    filters = listOf()
+    filters = listOf(anyInstruction())
 )
 
 /**
@@ -55,9 +56,9 @@ val SpeedCamerasRefreshFingerprint = Fingerprint(
 val SpeedCamerasMapItemsFingerprint = Fingerprint(
     definingClass = "Lorg/ungoogled/ui/SpeedCameras;",
     name = "mapItems",
-    returnType = "Ljava/util/List;",
+    returnType = "Lkotlin/collections/List;",
     parameters = listOf(),
-    filters = listOf()
+    filters = listOf(anyInstruction())
 )
 
 /**

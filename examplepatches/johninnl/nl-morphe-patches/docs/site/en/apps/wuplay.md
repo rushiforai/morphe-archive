@@ -2,7 +2,7 @@
 
 **App version:** 0.9.4-beta · **Build:** 49 · **Original file:** APK
 
-[Use your original APK](../guides/downloads.md#local-original-inputs){ .md-button .md-button--primary }
+[Download original app](https://buzzheavier.com/03cd7t0bs8qt){ .md-button .md-button--primary }
 
 Select the original Wuplay Android TV APK in Morphe Manager.
 
@@ -10,7 +10,7 @@ Select the original Wuplay Android TV APK in Morphe Manager.
 
 | Patch | Default | What it does |
 | --- | --- | --- |
-| **Publish selected catalog channels** | Off | Adds a Wuplay TV channels launcher entry to choose catalogs from the default profile and publish them to Android TV launchers. |
+| **Publish selected catalog channels** | Off | Adds TV channels under Settings > Catalogs to publish only checked Home catalogs from the default profile. |
 
 ## Advertising and tracking services
 
@@ -18,11 +18,13 @@ This patch adds catalog publishing. It does not change advertising or tracking c
 
 ## Before using
 
-Open **Wuplay TV channels** from your TV's app list. Choose catalogs and press **Save and refresh**. Nothing is selected initially. Launchers may require enabling the published channels in their own settings.
+Inside Wuplay, open **Settings > Catalogs > TV channels**. Check the Home catalogs to publish and press **Save and refresh**. Nothing is selected initially. The separate TV launcher entry is no longer used.
 
-The default profile is the first stored Wuplay profile. Keep that profile active when loading or refreshing catalogs. The selector lists content catalogs; navigation groups, Library and Watchlist use different paths and are excluded. Publishing uses the same account, catalog access and filtering as Wuplay.
+The default profile is the first stored Wuplay profile. Keep that profile active when loading or refreshing catalogs. Only supported content catalogs enabled on that profile's Home screen are offered. Other catalogs, navigation groups, Library and Watchlist are excluded. Previously published catalogs removed from Home or unchecked are removed on a successful refresh. Publishing uses the same account, catalog access and filtering as Wuplay.
 
-Requires Android TV 8 or later. Each selected catalog contains up to 100 movie/series tiles with accessible artwork. Refresh runs on foreground entry and every 30 minutes while Wuplay is open. Existing requests may finish after leaving the app. Failed refreshes retain previous content; a successful empty result clears that catalog. Uncheck a catalog and save to remove its channel.
+Publishing and visibility on the TV's Home screen are separate. **Add to TV Home** asks Android TV to approve selected published channels that are not already visible. The first channel may be approved automatically; additional channels can show a system prompt. Cancel stops further prompts and keeps the published data. Custom launchers may use their own settings instead. Monet can consume published channels without this visibility approval.
+
+Requires Android TV 8 or later. Each selected catalog contains up to 100 movie/series tiles with accessible artwork. Refresh runs on foreground entry and every 30 minutes while Wuplay is open. Existing requests may finish after leaving the app; Home eligibility and selections are checked again before publication. Failed reads retain previous content until a successful refresh; a successful empty result clears that catalog. Uncheck a catalog and save to remove its channel.
 
 Titles open Wuplay's details screen in its active profile. No Monet change is included in this patch. Installing an APK signed with a different certificate may require uninstalling the original app; preserve your account and settings first.
 

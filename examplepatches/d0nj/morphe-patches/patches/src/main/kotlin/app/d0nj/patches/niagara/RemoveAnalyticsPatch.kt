@@ -1,29 +1,20 @@
 package app.d0nj.patches.niagara
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
-import app.morphe.patcher.patch.bytecodePatch
+import app.d0nj.patches.niagara.Constants.COMPATIBILITY_NIAGARA
 import app.d0nj.patches.shared.clearBody
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 @Suppress("unused")
 val removeAnalyticsPatch = bytecodePatch(
     name = "Remove analytics",
-    description = "Disables all telemetry in Niagara Launcher: the weekly usage-report " +
-        "upload (app launches, notification metadata, survey responses), retention " +
-        "milestone events, GDPR consent sync, Singular attribution sessions and events " +
-        "(advertising ID, app set ID, install referrer, FCM token) and the runtime " +
-        "Firebase Analytics opt-in.",
+    description = "Stops usage reports, retention events and analytics sessions.",
     default = true,
 ) {
-    compatibleWith(
-        Compatibility(
-            packageName = "bitpit.launcher",
-            name = "Niagara Launcher",
-            appIconColor = 0x1E88E5,
-            targets = listOf(AppTarget(version = null)),
-        ),
-    )
+    compatibleWith(COMPATIBILITY_NIAGARA)
 
     execute {
         val successStub = successResultStub(SingularFirstSessionWorkFingerprint.method)
@@ -63,4 +54,24 @@ val removeAnalyticsPatch = bytecodePatch(
             addInstructions(0, "return-void")
         }
     }
+}
+
+/** The success `Result` factory the analytics workers return on completion. */
+private fun successResultStub(workMethod: MutableMethod): String {
+    val instructions = workMethod.implementation!!.instructions.toList()
+    for (i in 0 until instructions.size - 2) {
+        val reference = (instructions[i] as? ReferenceInstruction)?.reference as? MethodReference ?: continue
+        if (instructions[i].opcode.toString() != "INVOKE_STATIC") continue
+        if (reference.parameterTypes.isNotEmpty()) continue
+        val second = instructions[i + 1].opcode.toString()
+        val third = instructions[i + 2].opcode.toString()
+        if (second == "MOVE_RESULT_OBJECT" && third == "RETURN_OBJECT") {
+            val resultType = reference.returnType
+            check(resultType.startsWith("Lb/")) { "Unexpected success result type: $resultType" }
+            return "invoke-static {}, ${reference.definingClass}->${reference.name}()$resultType\n" +
+                "move-result-object v0\n" +
+                "return-object v0"
+        }
+    }
+    error("Could not discover the success Result factory in SingularFirstSessionReportWorker")
 }

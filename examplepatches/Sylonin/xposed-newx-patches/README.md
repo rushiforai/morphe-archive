@@ -11,13 +11,10 @@ the older X 12.19.1.
 Add this repository as a patch source in Morphe Manager:
 https://morphe.software/add-source?github=Sylonin/xposed-newx-patches
 
-Then patch the NewX APKM from APKMirror. The supported versions are the ones
-[piko-newx](https://github.com/crimera/piko-newx) supports: 12.34.0-prod.01, 12.35.0-prod.01,
-12.36.1-prod.01, 12.37.0-prod.01, 12.37.1-prod.01, 12.37.2-prod.01 and 12.38.1-prod.01. Only 12.37.2-prod.01
-has been tested. The patch finds X's code by its structure, not by its obfuscated names, and
-stops with an error instead of producing a broken app if something doesn't match.
-
-It works on its own and alongside piko-newx.
+Then patch the NewX 12.39.0-prod.01 APKM from APKMirror. This is the only supported version. It
+has been tested on its own and together with [piko-newx](https://github.com/crimera/piko-newx)
+3.73.0. The patch finds X's code by its structure, not by its obfuscated names, and stops with
+an error instead of producing a broken app if something doesn't match.
 
 ## Features
 
@@ -52,15 +49,15 @@ and what X reports about them is shared back. Your X session is never sent there
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.1.0](https://github.com/Sylonin/xposed-newx-patches/releases/tag/v2.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v3.0.0](https://github.com/Sylonin/xposed-newx-patches/releases/tag/v3.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 NewX&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 12.34.0-prod.01 | 12.35.0-prod.01 | 12.36.1-prod.01 | 12.37.0-prod.01 | 12.37.1-prod.01 | 12.37.2-prod.01 | 12.38.1-prod.01 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 12.39.0-prod.01 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

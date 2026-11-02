@@ -44,7 +44,7 @@ import app.morphe.extension.BuildConfig;
 import app.morphe.extension.shared.Utils;
 
 /**
- * The problem report: the "Maps Car report" screen ({@link ReportActivity}) and its row in Maps'
+ * The problem report: the "Report Maps Car" screen ({@link ReportActivity}) and its row in Maps'
  * Settings, after BYD battery. The user builds a report of Maps Car's own state and logs
  * ({@link ReportBuilder}), sees all of it, and only Send queues it for the developer's server
  * ({@link ReportUploader}). The screen lists queued and sent reports with their IDs and deletes them,
@@ -53,9 +53,9 @@ import app.morphe.extension.shared.Utils;
  * <p>
  * After a crash, a notification leads to the screen and the next start shows a toast once; the row
  * says so until a report with the crash is queued. No dialog opens over the map, because the app may
- * restart while driving. The main process also watches its main thread ({@link MainWatchdog}) and
- * looks for native crashes in the crash log ({@link NativeCrashes}); development builds get tests
- * ({@link DevTest}).
+ * restart while driving. The main process also watches its main thread ({@link MainWatchdog}), keeps
+ * its own logcat lines from the start ({@link StartLogcat}) and looks for native crashes in the crash
+ * log ({@link NativeCrashes}); development builds get tests ({@link DevTest}).
  */
 @SuppressWarnings("unused")
 public final class ReportPatch {
@@ -63,7 +63,7 @@ public final class ReportPatch {
     static final String URL = BuildConfig.MAPS_CAR_REPORT_URL, KEY = BuildConfig.MAPS_CAR_REPORT_KEY;
     private static final long CRASH_TOAST_DELAY_MS = 8000;
     private static final String[] REDACTION_KEYS = {"coordinates", "map_links", "url_queries", "send_to_car_extras",
-            "emails", "vins", "ip_addresses"};
+            "emails", "vins", "ip_addresses", "long_ids"};
     /** The open report screen's refresh, which a status dialog over it keeps running. */
     private static Runnable screenRefresh;
     /** Switches changed on the screen and not yet applied, so a refresh keeps them. */
@@ -78,7 +78,7 @@ public final class ReportPatch {
 
     /**
      * From Application.onCreate (CrashLogPatch), in the main process: the uploader, the native crash
-     * check, the main thread watchdog, a requested development test and the start notices.
+     * check, the main thread watchdog, the start log, a requested development test and the start notices.
      */
     static void onAppStart(Context context) {
         try {
@@ -86,6 +86,7 @@ public final class ReportPatch {
             if (configured()) ReportUploader.start(context);
             Utils.runOnBackgroundThread(() -> NativeCrashes.check(context, true));
             MainWatchdog.start();
+            StartLogcat.start(context);
             DevTest.runRequested(context);
             new Handler(Looper.getMainLooper()).postDelayed(() -> showStartNotice(context), CRASH_TOAST_DELAY_MS);
         } catch (RuntimeException error) {
@@ -104,11 +105,11 @@ public final class ReportPatch {
             } else if (SafeMode.automatic()) {
                 ReportStore.takeCrashToast(context);
                 ReportNotice.safeMode(context);
-                text = thai ? "Maps Car อยู่ใน safe mode ฟีเจอร์เสริมปิดอยู่ ดูที่ Maps Car report"
-                        : "Maps Car is in safe mode: extra features are off. See Maps Car report.";
+                text = thai ? "Maps Car อยู่ใน safe mode ฟีเจอร์เสริมปิดอยู่ ดูที่ Report Maps Car"
+                        : "Maps Car is in safe mode: extra features are off. See Report Maps Car.";
             } else if (ReportStore.takeCrashToast(context)) {
-                text = thai ? "Maps Car ปิดตัวผิดปกติครั้งก่อน ส่งรายงานได้ที่ Maps Car report"
-                        : "Maps Car closed unexpectedly last time. Send a report in Maps Car report.";
+                text = thai ? "Maps Car ปิดตัวผิดปกติครั้งก่อน ส่งรายงานได้ที่ Report Maps Car"
+                        : "Maps Car closed unexpectedly last time. Open Report Maps Car to send a report.";
             }
             if (text != null) Toast.makeText(context, text, Toast.LENGTH_LONG).show();
         } catch (RuntimeException error) {
@@ -463,6 +464,27 @@ public final class ReportPatch {
         logRow.setOnClickListener(view -> showLines(host, thai ? "บันทึกที่จะส่ง" : "Logs to send", strings(lines), thai));
         content.addView(logRow);
 
+        JSONObject mainLogcat = logs == null ? null : logs.optJSONObject("main_logcat");
+        if (mainLogcat != null) {
+            JSONArray systemLines = mainLogcat.optJSONArray("lines");
+            int systemCount = systemLines == null ? 0 : systemLines.length();
+            boolean now = "running".equals(mainLogcat.optString("source"));
+            TextView systemRow = views.action((thai ? "log ระบบของ Maps Car " + systemCount + " บรรทัด" : "Maps Car system log: " + systemCount + " lines")
+                    + (now ? (thai ? " (ตอนนี้)" : " (now)") : (thai ? " (ตอนเริ่มครั้งล่าสุด)" : " (from its last start)"))
+                    + (thai ? " · ดู" : " · view"));
+            systemRow.setOnClickListener(view -> showLines(host, thai ? "log ระบบของ Maps Car (คำเตือนและข้อผิดพลาด)"
+                    : "Maps Car system log (warnings and errors)", strings(systemLines), thai));
+            content.addView(systemRow);
+        }
+
+        JSONArray exits = draft.report.optJSONArray("exits");
+        if (exits != null && exits.length() > 0) {
+            TextView exitRow = views.action((thai ? "เหตุที่ปิดครั้งล่าสุด " + exits.length() + " รายการ" : "Why Maps Car closed: " + exits.length() + " entries")
+                    + (thai ? " · ดู" : " · view"));
+            exitRow.setOnClickListener(view -> showLines(host, thai ? "เหตุที่ Maps Car ปิด" : "Why Maps Car closed", exitLines(exits), thai));
+            content.addView(exitRow);
+        }
+
         JSONArray crashes = draft.crashes();
         if (crashes == null || crashes.length() == 0) {
             content.addView(views.paragraph(thai ? "ไม่มีไฟล์ crash" : "No crash files"));
@@ -562,7 +584,8 @@ public final class ReportPatch {
             if (text.length() > 0) text.append(" · ");
             text.append(redactionName(key, thai)).append(' ').append(count);
         }
-        if (text.length() == 0) return thai ? "ไม่พบตำแหน่ง ลิงก์แผนที่ อีเมล VIN หรือ IP ที่ต้องลบ" : "No locations, map links, e-mail addresses, VINs or IP addresses to remove.";
+        if (text.length() == 0) return thai ? "ไม่พบตำแหน่ง ลิงก์แผนที่ อีเมล VIN IP หรือเลขรหัสยาวที่ต้องลบ"
+                : "No locations, map links, e-mail addresses, VINs, IP addresses or long ID numbers to remove.";
         return (thai ? "ลบออกบนเครื่องนี้แล้ว: " : "Removed on this device: ") + text;
     }
 
@@ -574,35 +597,41 @@ public final class ReportPatch {
             case "send_to_car_extras": return thai ? "ข้อมูล Send to car" : "Send to car data";
             case "emails": return thai ? "อีเมล" : "e-mail addresses";
             case "vins": return "VIN";
+            case "long_ids": return thai ? "เลขรหัสยาว" : "long ID numbers";
             default: return "IP";
         }
     }
 
-    /** The consent text, version 2: Maps Car's feature settings added, deletion in Maps Car report. */
+    /** The consent text, version 5: version 4 with the main process's system log lines, page size, car platform and exits. */
     private static CharSequence consentText(boolean thai) {
         SpannableStringBuilder text = new SpannableStringBuilder();
         String heading = thai ? "ส่งรายงานปัญหาให้ผู้พัฒนา Maps Car" : "Send a problem report to the Maps Car developer";
         text.append(heading);
         text.setSpan(new StyleSpan(Typeface.BOLD), 0, heading.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         text.append('\n').append(thai
-                ? "ข้อมูลที่ส่ง: รุ่นแอปและแพตช์ รุ่นอุปกรณ์และ Android รหัสรุ่นและเวอร์ชันซอฟต์แวร์ของรถ BYD สถานะ BYD battery"
-                + " และหน้าจอ การตั้งค่าฟีเจอร์ของ Maps Car แอปที่อาจรบกวน (Maps, Google Play services)"
-                + " บันทึกการทำงานของ Maps Car ย้อนหลังไม่เกิน 3 วัน ไฟล์ crash (ถ้ามี) พร้อมบรรทัดคำเตือนและข้อผิดพลาด"
-                + "ใน log ระบบของ process ที่ crash (รวมของ Maps เอง) และข้อความที่คุณพิมพ์\n"
-                + "ตำแหน่ง พิกัด ลิงก์แผนที่ อีเมล VIN และ IP ถูกลบออกบนเครื่องนี้แล้วก่อนแสดงด้านบน\n"
+                ? "ข้อมูลที่ส่ง: รุ่นแอปและแพตช์ รุ่นอุปกรณ์และ Android ขนาด memory page ระบบรถของเครื่อง (Android Automotive,"
+                + " SDK ของรถ, system library) รหัสรุ่นและเวอร์ชันซอฟต์แวร์ของรถ BYD สถานะ BYD battery และหน้าจอ"
+                + " การตั้งค่าฟีเจอร์ของ Maps Car แอปที่อาจรบกวน (Maps, Google Play services) บันทึกการทำงานของ Maps Car"
+                + " ย้อนหลังไม่เกิน 3 วัน บรรทัดคำเตือนและข้อผิดพลาดใน log ระบบของ process หลักของ Maps Car (รวมของ Maps เอง"
+                + " แม้ไม่ crash) ไฟล์ crash (ถ้ามี) พร้อมบรรทัดแบบเดียวกันของ process ที่ crash เหตุที่ process ของ Maps Car"
+                + " ปิดครั้งล่าสุด (Android 11 ขึ้นไป) และข้อความที่คุณพิมพ์\n"
+                + "ตำแหน่ง พิกัด ลิงก์แผนที่ อีเมล VIN IP และเลขรหัสยาว ถูกลบออกบนเครื่องนี้แล้วก่อนแสดงด้านบน\n"
                 + "ใช้เพื่อแก้ปัญหาของ Maps Car เท่านั้น เก็บบน Cloudflare (อาจประมวลผลนอกประเทศไทย) 14 วันแล้วลบอัตโนมัติ"
                 + " ไม่บันทึก IP ไว้กับรายงาน\n"
-                + "ลบรายงานได้ทุกเมื่อที่ Maps Car report หรือแจ้งรหัสรายงานที่ GitHub Issues ของโปรเจกต์\n"
+                + "ลบรายงานได้ทุกเมื่อที่ Report Maps Car หรือแจ้งรหัสรายงานที่ GitHub Issues ของโปรเจกต์\n"
                 + "กด \"ส่ง\" เพื่อยินยอม"
-                : "Sent: app and patch versions, device and Android version, BYD model id and head unit software version,"
-                + " BYD battery and window state, Maps Car's feature settings, other apps that may interfere (Maps, Google"
-                + " Play services), Maps Car's own logs from the last 3 days at most, crash files (if any) with the warning"
-                + " and error lines the crashed process wrote to the system log (Maps' own included), and your comment.\n"
-                + "Locations, coordinates, map links, e-mail addresses, VINs and IP addresses were removed on this device"
-                + " before the preview above.\n"
+                : "Sent: app and patch versions, device and Android version, memory page size, the car platform (Android"
+                + " Automotive, car SDKs, system libraries), BYD model id and head unit software version, BYD battery and"
+                + " window state, Maps Car's feature settings, other apps that may interfere (Maps, Google Play services),"
+                + " Maps Car's own logs from the last 3 days at most, the warning and error lines Maps Car's main process"
+                + " wrote to the system log (Maps' own included, even without a crash), crash files (if any) with the same"
+                + " lines from the crashed process, why Maps Car's processes last closed (Android 11 and newer), and your"
+                + " comment.\n"
+                + "Locations, coordinates, map links, e-mail addresses, VINs, IP addresses and long ID numbers were removed"
+                + " on this device before the preview above.\n"
                 + "Used only to fix Maps Car. Stored on Cloudflare (possibly outside Thailand) for 14 days, then deleted"
                 + " automatically. Your IP address is not stored with the report.\n"
-                + "Delete it any time in Maps Car report, or send the report ID through the project's GitHub Issues.\n"
+                + "Delete it any time in Report Maps Car, or send the report ID through the project's GitHub Issues.\n"
                 + "Tap \"Send\" to agree.");
         return text;
     }
@@ -675,8 +704,8 @@ public final class ReportPatch {
             } else if (sent) {
                 status.setText(thai ? "ส่งแล้ว · รหัสรายงาน" : "Sent · report ID");
                 id.setText(entry.id);
-                note.setText(thai ? "แจ้งรหัสนี้เมื่อเปิด issue ที่ GitHub ดูหรือลบได้ที่ Maps Car report ลบอัตโนมัติใน 14 วัน"
-                        : "Give this ID when you open a GitHub issue. View or delete it in Maps Car report."
+                note.setText(thai ? "แจ้งรหัสนี้เมื่อเปิด issue ที่ GitHub ดูหรือลบได้ที่ Report Maps Car ลบอัตโนมัติใน 14 วัน"
+                        : "Give this ID when you open a GitHub issue. View or delete it in Report Maps Car."
                         + " It is deleted automatically after 14 days.");
             } else if (ReportStore.QUEUED.equals(entry.state)) {
                 status.setText(entry.attempts == 0 ? (thai ? "กำลังส่ง…" : "Sending…") : stateText(entry, thai));
@@ -748,6 +777,20 @@ public final class ReportPatch {
     private static List<String> strings(JSONArray array) {
         List<String> list = new ArrayList<>();
         if (array != null) for (int i = 0; i < array.length(); i++) list.add(array.optString(i));
+        return list;
+    }
+
+    // One line per exit, then its description and an ANR's main thread, indented.
+    private static List<String> exitLines(JSONArray exits) {
+        List<String> list = new ArrayList<>();
+        for (int i = 0; i < exits.length(); i++) {
+            JSONObject exit = exits.optJSONObject(i);
+            if (exit == null) continue;
+            list.add(exit.optString("at") + " " + exit.optString("process") + " " + exit.optString("reason")
+                    + " · status " + exit.optInt("status") + " · importance " + exit.optInt("importance"));
+            if (!exit.isNull("description")) list.add("  " + exit.optString("description"));
+            for (String line : strings(exit.optJSONArray("trace"))) list.add("  " + line);
+        }
         return list;
     }
 

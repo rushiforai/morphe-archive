@@ -19,6 +19,7 @@ val autoClaimChannelPointsPatch = bytecodePatch(
         val points = resolvePointsHooks()
         val player = resolvePlayerHooks()
         val ui = resolveUiHooks()
+        implementBonusClaimer(points)
         val claimBridge = pointsBridge(points)
         val configureBridge = playerConfigurationBridge(player)
         val stateBridge = playerStateBridge(player)

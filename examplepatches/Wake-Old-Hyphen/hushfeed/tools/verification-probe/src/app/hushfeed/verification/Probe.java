@@ -502,7 +502,7 @@ public final class Probe extends Instrumentation {
                         String aid = required(intent, "aid");
                         if (!aid.matches("[0-9]+")) throw new IllegalArgumentException("invalid public video id");
                         Intent video = new Intent(Intent.ACTION_VIEW,
-                                android.net.Uri.parse(deepLinkScheme(app) + "://aweme/detail/" + aid));
+                                android.net.Uri.parse("snssdk1233://aweme/detail/" + aid));
                         video.setPackage(app.getPackageName());
                         video.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         app.startActivity(video);
@@ -1209,7 +1209,7 @@ public final class Probe extends Instrumentation {
                         Object aid = optional(aweme, "getAid");
                         if (blank(aid)) throw new IllegalStateException("no current video");
                         android.content.Intent open = new android.content.Intent(android.content.Intent.ACTION_VIEW,
-                                android.net.Uri.parse(deepLinkScheme(context) + "://aweme/detail/" + aid));
+                                android.net.Uri.parse("snssdk1233://aweme/detail/" + aid));
                         open.setPackage(context.getPackageName());
                         open.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
                         context.startActivity(open);
@@ -1236,7 +1236,7 @@ public final class Probe extends Instrumentation {
                             }
                         }
                         try {
-                            Object feature = loader.loadClass("X.07So").getMethod("LIZIZ").invoke(null);
+                            Object feature = loader.loadClass("X.07Ty").getMethod("LIZIZ").invoke(null);
                             out.append(" under16=").append(feature.getClass().getMethod("LIZIZ").invoke(feature));
                         } catch (Throwable failure) {
                             out.append(" under16=?(").append(failure.getClass().getSimpleName()).append(')');
@@ -1258,16 +1258,16 @@ public final class Probe extends Instrumentation {
                             out.append(" privacy=?(").append(failure.getClass().getSimpleName()).append(": ").append(failure.getMessage()).append(')');
                         }
                         try {
-                            Object lazy = loader.loadClass("X.0mD8").getField("LIZ").get(null);
+                            Object lazy = loader.loadClass("X.0lsF").getField("LIZ").get(null);
                             out.append(" cooldownFlag=").append(lazy.getClass().getMethod("getValue").invoke(lazy));
                         } catch (Throwable failure) {
                             out.append(" cooldownFlag=?(").append(failure.getClass().getSimpleName()).append(')');
                         }
                         try {
-                            Object lazy = loader.loadClass("X.0mD7").getField("LIZIZ").get(null);
+                            Object lazy = loader.loadClass("X.0lt8").getField("LIZIZ").get(null);
                             Object config = lazy.getClass().getMethod("getValue").invoke(lazy);
                             Object cap = config == null ? null : config.getClass().getField("enabledMaxFollowers").get(config);
-                            Object me = loader.loadClass("X.02y0").getMethod("LIZ").invoke(null);
+                            Object me = loader.loadClass("X.02zE").getMethod("LIZ").invoke(null);
                             Object followers = me == null ? null : me.getClass().getField("historyMaxFollowerCount").get(me);
                             out.append(" followerCap=").append(cap == null ? "5000 (default)" : cap).append(" myHistoryMaxFollowers=").append(followers);
                         } catch (Throwable failure) {
@@ -1999,11 +1999,11 @@ public final class Probe extends Instrumentation {
                                 .getMethod("getActivity").invoke(null);
                         if (activity == null) throw new IllegalStateException("no current activity");
                         android.content.res.Resources resources = activity.getResources();
-                        // 47.5.3 names them dln and dlu (47.1.4 had dm5 and dmb): -e strip dm5 -e text dmb.
+                        // 47.6.3 names them dn7 and dnd (47.5.3 had dln and dlu, 47.1.4 dm5 and dmb): -e strip dln -e text dlu.
                         String stripName = intent.getStringExtra("strip");
                         String textName = intent.getStringExtra("text");
-                        if (stripName == null) stripName = "dln";
-                        if (textName == null) textName = "dlu";
+                        if (stripName == null) stripName = "dn7";
+                        if (textName == null) textName = "dnd";
                         int strip = resources.getIdentifier(stripName, "id", activity.getPackageName());
                         int text = resources.getIdentifier(textName, "id", activity.getPackageName());
                         StringBuilder out = new StringBuilder();
@@ -2172,8 +2172,8 @@ public final class Probe extends Instrumentation {
                         if (activity == null) throw new IllegalStateException("no current activity");
                         android.content.res.Resources resources = activity.getResources();
                         java.util.Map<Integer, String> wanted = new java.util.HashMap<>();
-                        // The 47.5.3 names: lke rail column, bqj anchor, lk3 search bar, g90 like button.
-                        for (String name : new String[]{"lke", "desc", "bqj", "lk3", "videomusiccoverblock", "g90"}) {
+                        // The 47.6.3 names: ljl rail column, bsb anchor, lj_ search bar, g9f like button.
+                        for (String name : new String[]{"ljl", "desc", "bsb", "lj_", "videomusiccoverblock", "g9f"}) {
                             int id = resources.getIdentifier(name, "id", activity.getPackageName());
                             if (id != 0) wanted.put(id, name);
                         }
@@ -2235,7 +2235,7 @@ public final class Probe extends Instrumentation {
                                 .getMethod("isClearDisplayNow");
                         android.content.res.Resources resources = activity.getResources();
                         int[] ids = new int[3];
-                        String[] names = {"lke", "bqj", "videomusiccoverblock"};
+                        String[] names = {"ljl", "bsb", "videomusiccoverblock"};
                         for (int i = 0; i < names.length; i++) {
                             ids[i] = resources.getIdentifier(names[i], "id", activity.getPackageName());
                         }
@@ -2301,8 +2301,8 @@ public final class Probe extends Instrumentation {
                         Method clearNow = loader.loadClass("app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch")
                                 .getMethod("isClearDisplayNow");
                         android.content.res.Resources resources = activity.getResources();
-                        int strip = resources.getIdentifier("dln", "id", activity.getPackageName());
-                        int drawn = resources.getIdentifier("dlu", "id", activity.getPackageName());
+                        int strip = resources.getIdentifier("dn7", "id", activity.getPackageName());
+                        int drawn = resources.getIdentifier("dnd", "id", activity.getPackageName());
                         int[] counts = new int[9];
                         android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
                         long start = android.os.SystemClock.uptimeMillis();
@@ -2569,12 +2569,12 @@ public final class Probe extends Instrumentation {
                         // Without it set to dark, TikTok stays light whatever the phone's night
                         // mode is (seen on the S22, 2026-10-16). Read through TikTok's own store
                         // factory, the static (int, Context, String) -> SharedPreferences method
-                        // TikTok reads it with (-e store X.02rD -e method LIZJ on 47.5.3), since
+                        // TikTok reads it with (-e store X.02sR -e method LIZJ on 47.6.3), since
                         // that one may route the store to Keva rather than a plain file; its
                         // sibling LIZIZ skips that. -e set N writes N, which the next start applies;
                         // -e set unset removes it.
                         String storeClass = intent.getStringExtra("store");
-                        if (storeClass == null) storeClass = "X.02rD";
+                        if (storeClass == null) storeClass = "X.02sR";
                         String storeMethod = intent.getStringExtra("method");
                         if (storeMethod == null) storeMethod = "LIZJ";
                         Method factory = loader.loadClass(storeClass)
@@ -3197,8 +3197,8 @@ public final class Probe extends Instrumentation {
                         int[] where = new int[2];
                         clickable.getLocationOnScreen(where);
                         // -e touch true: a press and release at the match's center through its own
-                        // window instead of performClick. PineDrama's comment count (cgg) answers
-                        // performClick with true and opens nothing; its sheet opens on a touch.
+                        // window instead of performClick. Some rows answer performClick with true
+                        // and open nothing; a touch opens them.
                         if ("true".equals(intent.getStringExtra("touch"))) {
                             int[] inWindow = new int[2];
                             target.getLocationInWindow(inWindow);
@@ -4193,7 +4193,7 @@ public final class Probe extends Instrumentation {
         /**
          * The video on screen. Hushfeed's own tracker answers when a patch feeds it (Block author
          * button binds it, and that patch is TikTok only), else the post the playback bridge's
-         * player has on screen (PineDrama's feed has no tracker hook), else the Aweme held by the
+         * player has on screen (a feed with no tracker hook), else the Aweme held by the
          * feed pager's on-screen cell.
          */
         private Object currentAweme() throws ReflectiveOperationException {
@@ -4237,8 +4237,8 @@ public final class Probe extends Instrumentation {
         }
 
         /**
-         * Every window's root view. PineDrama plays its feed in SplashActivity's window while
-         * Utils.getActivity() answers the MainActivity underneath it, whose pager stays empty.
+         * Every window's root view. A feed can play in another activity's window while
+         * Utils.getActivity() answers the one underneath it, whose pager stays empty.
          */
         private java.util.List<android.view.View> feedWindowRoots() throws ReflectiveOperationException {
             try {
@@ -4900,11 +4900,6 @@ public final class Probe extends Instrumentation {
             return value == null || String.valueOf(value).trim().isEmpty();
         }
 
-        /** The app's own deep-link scheme: PineDrama answers snssdk845221, TikTok snssdk1233. */
-        private static String deepLinkScheme(Context context) {
-            return "com.ss.android.ttmd.video".equals(context.getPackageName()) ? "snssdk845221" : "snssdk1233";
-        }
-
         /** Whether the author has a LIVE room open, from the room id their model carries. */
         private static Object authorLive(Object creator) {
             if (creator == null) return "unknown";
@@ -4981,9 +4976,9 @@ public final class Probe extends Instrumentation {
                 Class<?> register = loader.loadClass("com.ss.android.deviceregister.DeviceRegisterManager");
                 Log.i(TAG, "ok idreset before" + registeredIds(context, appLog, register));
                 if (readOnly) return;
-                // 47.5.3's reset callback: LIZ() when the timeout runs out, LIZIZ(installInfo)
+                // 47.6.3's reset callback: LIZ() when the timeout runs out, LIZIZ(installInfo)
                 // when new install info arrives.
-                Class<?> callbackType = loader.loadClass("X.0LRh");
+                Class<?> callbackType = loader.loadClass("X.0LOl");
                 final java.util.concurrent.CountDownLatch answered = new java.util.concurrent.CountDownLatch(1);
                 final String[] outcome = {"no answer"};
                 Object callback = java.lang.reflect.Proxy.newProxyInstance(loader, new Class<?>[]{callbackType},

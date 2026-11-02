@@ -1,0 +1,25 @@
+package org.ungoogled.patches.maps.account
+
+import app.morphe.patcher.patch.bytecodePatch
+import org.ungoogled.patches.maps.layout.hideLoginPromoPatch
+import org.ungoogled.patches.maps.search.removeSignInPromoPatch
+import org.ungoogled.patches.shared.Constants.COMPATIBILITY_MAPS
+
+/**
+ * Every sign-in prompt in one patch: these used to be five (Hide login promo, Remove
+ * sign-in promo, Hide sign-in button, Sign-in toast, Your profile toast). Kept as one
+ * unit on purpose. A build that signs in (Add microG-RE support) keeps the sign-in pill and the profile row
+ * as they are and loses only the two promos (issue #80).
+ */
+@Suppress("unused")
+val removeSignInPromptsPatch = bytecodePatch(
+    name = "Remove sign-in prompts",
+    description = "Removes Google's sign-in prompts: the first-launch \"Make it your map\" page, the search " +
+        "screen's \"Tired of typing?\" card and the account sheet's \"Sign in\" pill. Tapping \"Your profile\" " +
+        "(or the pill, where it still shows) answers with a \"Can't sign in\" toast instead of nothing. " +
+        "With Add microG-RE support, which signs in, only the first-launch page and the card go.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_MAPS)
+    dependsOn(hideLoginPromoPatch, removeSignInPromoPatch, hideSignInButtonPatch, signInToastPatch, profileToastPatch)
+}

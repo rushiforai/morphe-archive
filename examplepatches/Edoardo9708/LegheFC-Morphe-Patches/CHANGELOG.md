@@ -1,3 +1,9 @@
+## [1.9.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.8.0...v1.9.0) (2026-11-01)
+
+### ✨ New Features
+
+* **minigore:** configurable coin multiplier x1-x1000 and Android 17 fixes ([e08fed2](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/e08fed2af312fcc52960250c9e6ceefbed6a5aed))
+
 ## [1.8.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.7.0...v1.8.0) (2026-10-31)
 
 ### ✨ New Features

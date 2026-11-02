@@ -58,7 +58,7 @@
     if (features.experiments) selectModules([584, 1390, 1401]);
     if (features.hideAnything) selectModules([13092, 14973, 14974, 9115, 10028, 15371, 15465, 11935, 11942, 11946, 11956, 11957, 12854, 13425, 14827, 16467, 14279, 8525, 8775, 10533, 11997, 14206, 14212, 14143, 14216, 12364, 12365, 13418, 10614, 6882, 13402, 13181, 16466, 16575, 12208, 11864, 10515, 17567, 16074, 16577, 17499, 17487, 10748]);
     if (features.voiceOptions) { targetModules[584] = 1; targetModules[10982] = 1; targetModules[5889] = 1; }
-    const revision = "1.23.0";
+    const revision = "1.24.0";
     // The Discord build these patches are pinned to (DiscordPatches.kt compatibleWith); shown on the About page.
     const DISCORD_VERSION = "350.8";
     // Module 120 owns setUpDefaltReactNativeEnvironment in this exact asset.
@@ -5950,7 +5950,7 @@
         const width = ref.current ? ref.current.interpolate({inputRange:[0, 1], outputRange:["0%", "100%"]}) : Math.round(share * 100) + "%";
         return el(RN.View, {key:props.key, style:[s.track, {marginTop:8}], accessible:true, accessibilityRole:"progressbar",
             accessibilityValue:{min:0, max:100, now:Math.round(share * 100)}},
-            el(ref.current ? A.View : RN.View, {style:[s.fill, {width}]}));
+            el(ref.current ? A.View : RN.View, {style:[s.fill, {width}, props.color ? {backgroundColor:props.color} : null]}));
     }
     // A rounded card with live status, in the theme's card colors. extra: {title, IconComponent, leading}.
     function statusCard(key,text,extra) {
@@ -7910,7 +7910,18 @@
         if (!response || !response.ok) throw new Error("Download failed (HTTP " + (response && response.status || "unknown") + ")");
         const declared = Number(response.headers && response.headers.get && response.headers.get("content-length"));
         if (declared > remaining) throw new Error("Download is too large");
-        const buffer = await response.arrayBuffer(), bytes = new Uint8Array(buffer);
+        let buffer;
+        if (typeof response.arrayBuffer === "function") buffer = await response.arrayBuffer();
+        else if (typeof response.blob === "function" && typeof global.FileReader === "function") {
+            const blob = await response.blob();
+            buffer = await new Promise((resolve, reject) => {
+                const reader = new global.FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error || new Error("Download failed"));
+                reader.readAsArrayBuffer(blob);
+            });
+        } else throw new Error("Binary image downloads are unavailable");
+        const bytes = new Uint8Array(buffer);
         if (!bytes.length || bytes.length > remaining) throw new Error("Download is empty or too large");
         return bytes;
     }
@@ -7924,13 +7935,14 @@
     async function serverMediaSave(name, bytes, mimeType) {
         const store = serverMediaCache(), safe = name.replace(/[^a-z0-9_.-]+/gi, "_");
         const file = "cordly-" + Date.now() + "-" + Math.floor(Math.random() * 100000) + "-" + safe;
-        const path = store.dir.replace(/\/$/, "") + "/" + file;
+        let path = store.dir.replace(/\/$/, "") + "/" + file;
         try {
             // Discord's FileModule supports encoding its written file bytes as base64.
-            await files.writeFile("cache", file, serverMediaBinary(bytes), "base64");
+            const written = await files.writeFile("cache", file, serverMediaBinary(bytes), "base64");
+            if (typeof written === "string" && written) path = written.replace(/^file:\/\//, "");
             if (typeof files.getSize === "function") {
                 const n = Number(await files.getSize("file://" + path));
-                if (Number.isFinite(n) && n !== bytes.length) throw new Error("This Discord build cannot save binary media files");
+                if (!Number.isFinite(n) || n !== bytes.length) throw new Error("This Discord build cannot save binary media files");
             }
             const result = await store.save({sourceUris:["file://" + path], fileName:safe, mimeType});
             const first = Array.isArray(result) ? result[0] : result;
@@ -7971,6 +7983,8 @@
         const centralAt = at;
         entries.forEach(e => { w32(0x02014b50); w16(20); w16(20); w16(0); w16(0); w16(0); w16(0); w32(e.crc); w32(e.bytes.length); w32(e.bytes.length); w16(e.name.length); w16(0); w16(0); w16(0); w16(0); w32(0); w32(e.offset); text(e.name); });
         w32(0x06054b50); w16(0); w16(0); w16(entries.length); w16(entries.length); w32(central); w32(centralAt); w16(0);
+        if (!entries.length || at !== out.length || v.getUint16(out.length - 12, true) !== entries.length)
+            throw new Error("Archive contains no media or is incomplete");
         return out;
     }
     function serverGuildEmojis(guildId) {
@@ -7999,6 +8013,9 @@
     }
     function serverItemFormat(item, type) { return type === "stickers" ? serverStickerFormat(item) : item.animated ? "gif" : "png"; }
     function serverItemUrl(item, type) { return type === "stickers" ? serverStickerUrl(item) : serverEmojiUrl(item); }
+    function serverItemPreviewUrl(item, type) {
+        return type === "stickers" && item.format === 3 ? "https://cdn.discordapp.com/stickers/" + item.id + ".png" : serverItemUrl(item, type);
+    }
     function serverItemBadge(item, type) {
         return type === "stickers" ? item.format === 2 ? "APNG" : item.format === 3 ? "LOTTIE" : item.format === 4 ? "GIF" : "PNG" :
             item.animated ? "GIF" : "";
@@ -8050,7 +8067,7 @@
         serverMedia.busy = true;
         try {
             serverMediaCache();
-            const entries = [], seen = new Set(); let remaining = SERVER_MEDIA_LIMIT, failed = 0;
+            const entries = [], seen = new Set(); let remaining = SERVER_MEDIA_LIMIT, failed = 0, firstError = null;
             for (const item of items) {
                 if (!remaining) { failed += items.length - entries.length - failed; break; }
                 try {
@@ -8061,9 +8078,9 @@
                     const name = stem + "-" + item.id + "." + ext;
                     if (seen.has(name)) continue;
                     seen.add(name); entries.push({name, bytes});
-                } catch (_) { failed++; }
+                } catch (error) { failed++; if (!firstError) firstError = error; }
             }
-            if (!entries.length) throw new Error("No " + type + " could be downloaded");
+            if (!entries.length) throw firstError || new Error("No " + type + " could be downloaded");
             const bytes = serverMediaZip(entries);
             await serverMediaSave(serverMediaName(guildName + "-" + type, "zip"), bytes, "application/zip");
             reviewToast(reviewUI(), failed ? "Saved " + entries.length + " " + type + "; " + failed + " unavailable or too large" :
@@ -8312,6 +8329,27 @@
     function serverBoostIcon(level) {
         return level >= 3 ? venusIcon(13820, "BoostTier3Icon") : level === 2 ? venusIcon(16663, "BoostTier2Icon") : venusIcon(12325, "BoostTier1Icon");
     }
+    function ServerMediaImage(props) {
+        const Download = venusIcon(5044, "DownloadIcon");
+        return el(RN.View, {style:[{position:"relative", overflow:"hidden", borderRadius:16}, props.style]},
+            el(RN.Pressable, {accessibilityRole:"button", accessibilityLabel:props.name,
+                onPress:props.focused ? undefined : () => openServerImage(props.url, props.name), style:{flex:1}},
+                el(RN.Image, {source:{uri:props.url}, resizeMode:props.focused ? "contain" : "cover", style:{width:"100%", height:"100%"}})),
+            el(RN.Pressable, {accessibilityRole:"button", accessibilityLabel:tr("Save"),
+                onPress:() => serverDownloadImage(props.downloadUrl || props.url, props.name), hitSlop:8,
+                style:{position:"absolute", right:6, bottom:6, width:32, height:32, borderRadius:16,
+                    backgroundColor:"#16171bd9", alignItems:"center", justifyContent:"center"}},
+                el(Download, {size:"sm", color:"#ffffff"})));
+    }
+    function openServerImage(url, name, downloadUrl) {
+        const ui = reviewUI();
+        if (!serverMediaUrl(url) || !ui.showSheet || !RN.Image) return;
+        const key = "CordlyMediaPreview:" + name;
+        const header = ui.Header ? el(ui.Header, {title:name,
+            trailing:ui.Close ? el(ui.Close, {onPress:() => hideReviewSheet(ui, key)}) : undefined}) : undefined;
+        ui.showSheet({key, stackingBehavior:"stack", content:el(ui.ActionSheet || RN.View, {header},
+            el(ServerMediaImage, {url, name, downloadUrl, focused:true, style:{height:320, margin:16, backgroundColor:"#111214"}}))});
+    }
     // The top of the sheet: banner, the server's icon over it, name, badges, description and who's online.
     function serverHero(s, snap) {
         const icon = serverIconUri(snap.guild, 160), banner = serverBannerUri(snap.guild) || serverSplashUri(snap.guild);
@@ -8321,21 +8359,13 @@
             serverText(label, "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:14}));
         // A server without a banner starts with its icon, not an empty grey block.
         const art = banner && RN.Image;
-        const download = (key, url, label, where) => url && RN.Pressable ? el(RN.Pressable, {
-            key, onPress:() => serverDownloadImage(url, snap.name + "-" + where),
-            accessibilityRole:"button", accessibilityLabel:tr("Download " + label),
-            style:{padding:8, borderRadius:12, backgroundColor:"#16171bbd", alignItems:"center", justifyContent:"center"}},
-            el(venusIcon(5044, "DownloadIcon"), {size:"md", color:"#ffffff"})) : null;
         return el(RN.View, {key:"hero"},
-            art ? el(RN.View, {style:[s.banner, {borderRadius:16, overflow:"hidden"}]},
-                el(RN.Image, {source:{uri:banner}, style:{width:"100%", height:"100%"}, resizeMode:"cover"}),
-                el(RN.View, {style:{position:"absolute", right:8, top:8}}, download("banner-save", banner, bannerKind === "banner" ? "server banner" : "invite splash", bannerKind))) : null,
+            art ? el(ServerMediaImage, {url:banner, name:snap.name + "-" + bannerKind, style:[s.banner, {borderRadius:16}]}) : null,
             el(RN.View, {style:{paddingHorizontal:art ? 16 : 4, marginTop:art ? -40 : 0, gap:8}},
                 popIn("icon:" + snap.id, el(RN.View, {style:[s.ring, {width:84, height:84, borderRadius:28, borderWidth:4, overflow:"hidden", alignItems:"center", justifyContent:"center"}]},
-                    icon && RN.Image ? el(RN.Image, {source:{uri:icon}, style:{width:76, height:76}}) :
+                    icon && RN.Image ? el(ServerMediaImage, {url:serverIconUri(snap.guild, 1024), name:snap.name + "-icon", style:{width:76, height:76}}) :
                         el(RN.View, {style:[s.acronym, {width:76, height:76, alignItems:"center", justifyContent:"center"}]},
                             el(RN.Text, {style:{color:"#ffffff", fontSize:24, fontWeight:"700"}}, serverAcronym(snap.name))))),
-                icon ? el(RN.View, {style:{position:"absolute", left:100, top:art ? 12 : 18}}, download("icon-save", icon, "server icon", "icon")) : null,
                 serverText(snap.name, "heading-xl/bold", "text-strong", {color:"#f2f3f5", fontSize:22, fontWeight:"700"}, {numberOfLines:2, selectable:true}),
                 snap.badges.length ? el(RN.View, {style:{flexDirection:"row", flexWrap:"wrap", gap:6}}, snap.badges.map(label =>
                     el(RN.View, {key:label, style:s.chip}, el(venusIcon(6868, "CircleCheckIcon"), {size:"xxs"}),
@@ -8348,7 +8378,8 @@
     // A grid of what's in the server; parts Discord hasn't loaded are left out rather than shown as zero. Boosts have
     // their own card below, with the level and a bar.
     function serverTiles(s, snap) {
-        const tile = (key, Icon, value, label, sub) => el(RN.View, {key, style:s.tile, accessible:true, accessibilityLabel:label + ": " + serverNumber(value)},
+        const tile = (key, Icon, value, label, sub) => el(key === "emojis" || key === "stickers" ? RN.Pressable : RN.View, {key, style:s.tile, accessible:true, accessibilityLabel:label + ": " + serverNumber(value),
+            onPress:key === "emojis" || key === "stickers" ? () => openServerMediaBrowser(snap.id, key) : undefined},
             el(Icon, {size:"sm"}),
             serverText(serverNumber(value), "heading-lg/bold", "text-strong", {color:"#f2f3f5", fontSize:20, fontWeight:"700"}),
             serverText(label, "text-xs/medium", "text-muted", {color:"#949ba4", fontSize:12}, {numberOfLines:1}),
@@ -8364,13 +8395,13 @@
     // Boost level, with a bar to the next one.
     function serverBoostCard(s, snap) {
         const b = snap.boost, Icon = serverBoostIcon(b.level);
-        return el(RN.View, {key:"boost", style:s.card, accessible:true},
+        return el(RN.View, {key:"boost", style:[s.card, {borderWidth:1, borderColor:"#ff73fa55", backgroundColor:"#ff73fa12"}], accessible:true},
             el(RN.View, {style:{flexDirection:"row", alignItems:"center", gap:12}},
-                el(Icon, {size:"md"}),
+                el(Icon, {size:"md", color:"#ff73fa"}),
                 el(RN.View, {style:{flex:1, gap:2}},
                     serverText(b.level ? tr("Level {level}", {level:b.level}) : tr("No boost level yet"), "text-md/semibold", "text-strong", {color:"#f2f3f5", fontSize:16, fontWeight:"600"}),
                     serverText(serverCount(b.boosts, "{n} boost", "{n} boosts"), "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:14}))),
-            el(CordlyProgress, {key:"bar", value:b.share}),
+            el(CordlyProgress, {key:"bar", value:b.share, color:"#ff73fa"}),
             serverText(b.next ? pl(b.need, "{n} more boost for Level {level}", "{n} more boosts for Level {level}", {level:b.next}) : tr("Highest level reached"),
                 "text-xs/medium", "text-muted", {color:"#949ba4", fontSize:12}));
     }
@@ -8393,11 +8424,28 @@
             el(venusIcon(icon, icon === 5044 ? "DownloadIcon" : "CircleCheckIcon"), {size:"sm", color:"#ffffff"}),
             serverText(label, "text-sm/semibold", "text-strong", {color:"#ffffff", fontWeight:"600", fontSize:13})) : null;
         const body = el(RN.View, {style:{paddingHorizontal:14, paddingBottom:32, gap:14}},
-            serverText(stickers ? tr("Tap stickers to select them. Hold one to save it. Lottie files save as JSON.") :
-                tr("Tap emojis to select them. Hold one to download it directly."), "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:13}),
             RN.TextInput ? el(RN.TextInput, {value:query, onChangeText:value => { setQuery(value); setVisible(80); }, placeholder:stickers ? tr("Search server stickers") : tr("Search server emojis"),
                 placeholderTextColor:"#949ba4", autoCorrect:false, style:{borderRadius:12, backgroundColor:"#33343a", paddingHorizontal:14,
                     paddingVertical:10, color:"#ffffff", fontSize:15}}) : null,
+            el(RN.View, {style:{flexDirection:"row", gap:8}},
+                action(tr("Download selected ({n})", {n:selected.length}), () => serverDownloadItems(guildId, snap && snap.name || guildId, selected, type), 5044, !selected.length),
+                action(tr("Download all ({n})", {n:items.length}), () => serverDownloadItems(guildId, snap && snap.name || guildId, items, type), 5044, !items.length)),
+            serverText(stickers ? tr("{n} stickers shown", {n:matching.length}) : tr("{n} emojis shown", {n:matching.length}), "text-xs/medium", "text-muted", {color:"#949ba4", fontSize:12}),
+            el(RN.View, {style:{flexDirection:"row", flexWrap:"wrap", gap:8}},
+                matching.slice(0, visible).map(item => el(RN.Pressable, {key:item.id, onPress:() => picked.length ? setPicked(prev => prev.includes(item.id) ? prev.filter(id => id !== item.id) : prev.concat(item.id)) : openServerImage(serverItemPreviewUrl(item, type), item.name, serverItemUrl(item, type)),
+                    onLongPress:() => setPicked(prev => prev.includes(item.id) ? prev : prev.concat(item.id)), delayLongPress:350,
+                    accessibilityState:{selected:active.has(item.id)},
+                    accessibilityRole:"button", accessibilityLabel:item.name,
+                    style:{width:"22%", minWidth:65, borderRadius:12, backgroundColor:active.has(item.id) ? "#5865f244" : "#33343a",
+                        borderWidth:active.has(item.id) ? 2 : 1, borderColor:active.has(item.id) ? "#5865f2" : "#ffffff14",
+                        padding:6, alignItems:"center", gap:5}},
+                    RN.Image ? el(RN.Image, {source:{uri:serverItemPreviewUrl(item, type)}, resizeMode:"contain", style:{width:42, height:42}}) :
+                        serverText(item.name.slice(0, 1).toUpperCase(), "text-md/semibold", "text-strong", {fontSize:25}),
+                    serverText(item.name, "text-xxs/medium", "text-muted", {fontSize:10, color:"#c7c8ce", textAlign:"center"}, {numberOfLines:1}),
+                    serverItemBadge(item, type) ? serverText(serverItemBadge(item, type), "text-xxs/medium", "text-muted", {fontSize:9, color:"#abb2f7"}) : null))),
+            matching.length > visible && RN.Pressable ? el(RN.Pressable, {accessibilityRole:"button", onPress:() => setVisible(v => v + 80),
+                style:{padding:14, alignItems:"center", borderRadius:12, backgroundColor:"#33343a"}},
+                serverText(tr("Show more ({n} remaining)", {n:matching.length - visible}), "text-sm/semibold", "text-strong", {color:"#ffffff", fontSize:14})) : null,
             Row ? el(Group, {title:tr("Filter")},
                 el(Row, {label:tr("Media type"), icon:rowIcon(8956,"ReactionIcon"),
                     subLabel:mediaFilter === "all" ? tr("All") : mediaFilter === "animated" ? tr("Animated only") : tr("Static only"),
@@ -8415,25 +8463,7 @@
                     onPress:() => selected.length && serverCopy(serverMediaLinks(selected, type), "Media links copied")}),
                 !stickers ? el(Row, {label:tr("Copy selected emoji codes"), subLabel:tr("{n} selected", {n:selected.length}),
                     icon:rowIcon(5042,"CopyIcon"), disabled:!selected.length,
-                    onPress:() => selected.length && serverCopy(serverEmojiCodes(selected), "Emoji codes copied")}) : null) : null,
-            el(RN.View, {style:{flexDirection:"row", gap:8}},
-                action(tr("Download selected ({n})", {n:selected.length}), () => serverDownloadItems(guildId, snap && snap.name || guildId, selected, type), 5044, !selected.length),
-                action(tr("Download all ({n})", {n:items.length}), () => serverDownloadItems(guildId, snap && snap.name || guildId, items, type), 5044, !items.length)),
-            serverText(stickers ? tr("{n} stickers shown", {n:matching.length}) : tr("{n} emojis shown", {n:matching.length}), "text-xs/medium", "text-muted", {color:"#949ba4", fontSize:12}),
-            el(RN.View, {style:{flexDirection:"row", flexWrap:"wrap", gap:8}},
-                matching.slice(0, visible).map(item => el(RN.Pressable, {key:item.id, onPress:() => setPicked(prev => prev.includes(item.id) ? prev.filter(id => id !== item.id) : prev.concat(item.id)),
-                    onLongPress:() => serverDownloadImage(serverItemUrl(item, type), item.name + "-" + item.id), delayLongPress:400,
-                    accessibilityRole:"button", accessibilityLabel:item.name + (active.has(item.id) ? ", selected" : ", not selected"),
-                    style:{width:"22%", minWidth:65, borderRadius:12, backgroundColor:active.has(item.id) ? "#5865f244" : "#33343a",
-                        borderWidth:active.has(item.id) ? 2 : 1, borderColor:active.has(item.id) ? "#5865f2" : "#ffffff14",
-                        padding:6, alignItems:"center", gap:5}},
-                    RN.Image && (!stickers || item.format !== 3) ? el(RN.Image, {source:{uri:serverItemUrl(item, type)}, resizeMode:"contain", style:{width:42, height:42}}) :
-                        serverText(item.name.slice(0, 1).toUpperCase(), "text-md/semibold", "text-strong", {fontSize:25}),
-                    serverText(item.name, "text-xxs/medium", "text-muted", {fontSize:10, color:"#c7c8ce", textAlign:"center"}, {numberOfLines:1}),
-                    serverItemBadge(item, type) ? serverText(serverItemBadge(item, type), "text-xxs/medium", "text-muted", {fontSize:9, color:"#abb2f7"}) : null))),
-            matching.length > visible && RN.Pressable ? el(RN.Pressable, {accessibilityRole:"button", onPress:() => setVisible(v => v + 80),
-                style:{padding:14, alignItems:"center", borderRadius:12, backgroundColor:"#33343a"}},
-                serverText(tr("Show more ({n} remaining)", {n:matching.length - visible}), "text-sm/semibold", "text-strong", {color:"#ffffff", fontSize:14})) : null);
+                    onPress:() => selected.length && serverCopy(serverEmojiCodes(selected), "Emoji codes copied")}) : null) : null);
         return Scroll ? el(ui.ActionSheet || RN.View, {header, scrollable:true}, el(Scroll, null, body)) :
             el(ui.ActionSheet || RN.View, {header}, RN.ScrollView ? el(RN.ScrollView, null, body) : body);
     }
@@ -8472,26 +8502,6 @@
         const body = [
             serverHero(s, snap),
             serverTiles(s, snap),
-            Row ? el(Group, {key:"media", title:tr("Server media")},
-                serverArtwork(snap.guild).length ? el(Row, {key:"all-artwork", label:tr("Download all server artwork"),
-                    subLabel:tr("Save icon, banner and splash images in one ZIP"), icon:rowIcon(5044,"DownloadIcon"),
-                    onPress:() => serverDownloadArtwork(snap.guild, snap.name)}) : null,
-                el(Row, {key:"emojis", label:tr("Browse and download emojis"), subLabel:tr("Select individual emojis or save all in a ZIP"),
-                    icon:rowIcon(8956,"ReactionIcon"), arrow:true, onPress:() => openServerMediaBrowser(guildId, "emojis")}),
-                el(Row, {key:"stickers", label:tr("Browse and download stickers"), subLabel:tr("Save PNG, APNG, GIF and Lottie stickers"),
-                    icon:rowIcon(12274,"StickerIcon"), arrow:true, onPress:() => openServerMediaBrowser(guildId, "stickers")}),
-                serverBannerUri(snap.guild) ? el(Row, {key:"banner", label:tr("Download server banner"), icon:rowIcon(5044,"DownloadIcon"),
-                    onPress:() => serverDownloadImage(serverBannerUri(snap.guild), snap.name + "-banner")}) : null,
-                serverSplashUri(snap.guild) ? el(Row, {key:"splash", label:tr("Download invite splash"), icon:rowIcon(5044,"DownloadIcon"),
-                    onPress:() => serverDownloadImage(serverSplashUri(snap.guild), snap.name + "-invite-splash")}) : null,
-                serverDiscoverySplashUri(snap.guild) ? el(Row, {key:"discovery-splash", label:tr("Download discovery splash"), icon:rowIcon(5044,"DownloadIcon"),
-                    onPress:() => serverDownloadImage(serverDiscoverySplashUri(snap.guild), snap.name + "-discovery-splash")}) : null,
-                serverIconUri(snap.guild, 1024) ? el(Row, {key:"icon", label:tr("Download server icon"), icon:rowIcon(5044,"DownloadIcon"),
-                    onPress:() => serverDownloadImage(serverIconUri(snap.guild, 1024), snap.name + "-icon")}) : null,
-                serverIconUri(snap.guild, 1024) ? el(Row, {key:"icon-link", label:tr("Copy icon image URL"), icon:rowIcon(5042,"CopyIcon"),
-                    onPress:() => serverCopy(serverIconUri(snap.guild, 1024), "Icon link copied")}) : null,
-                serverBannerUri(snap.guild) ? el(Row, {key:"banner-link", label:tr("Copy banner image URL"), icon:rowIcon(5042,"CopyIcon"),
-                    onPress:() => serverCopy(serverBannerUri(snap.guild), "Banner link copied")}) : null) : null,
             serverBoostCard(s, snap),
             // With friends here, the title counts them and the rows are them; the summary row only stays to say there are none.
             el(Group, {key:"friends", title:friends.length ? friendsTitle : tr("Friends")},

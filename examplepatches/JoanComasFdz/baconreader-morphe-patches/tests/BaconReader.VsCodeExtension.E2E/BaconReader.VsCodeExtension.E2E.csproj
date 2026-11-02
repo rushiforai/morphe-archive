@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- End-to-end tests of the VS Code extension (tools/vscode-extension), played in VS Code for the web in a real
+       browser. Its own code rules: E2E-TEST-CODE-RULES.md. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- xUnit1026: a scenario's Screen parameter is read by BaseE2E, never by its body (E2E-TEST-CODE-RULES.md). -->
+    <NoWarn>$(NoWarn);xUnit1026</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Playwright" />
+    <PackageReference Include="JoanComasFdz.AssertingThat" />
+    <PackageReference Include="Dunet" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BaconReader.E2E.Shared\BaconReader.E2E.Shared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="BaconReader.E2E.Shared" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The folder VS Code for the web opens (record.sh serves it): its scenario files are fixtures, never compiled. -->
+    <Compile Remove="Workspace/**" />
+    <None Remove="vscode-web/node_modules/**" />
+    <None Include="Infrastructure/Fakes/Media/*" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

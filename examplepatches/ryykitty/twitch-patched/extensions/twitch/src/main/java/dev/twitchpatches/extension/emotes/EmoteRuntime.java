@@ -23,6 +23,7 @@ public final class EmoteRuntime implements Application.ActivityLifecycleCallback
     private final EmoteImages images = new EmoteImages(url -> main.post(() -> refresh(null, url)));
     private final NativeEmotePreview preview = new NativeEmotePreview();
     private volatile int providerMask;
+    private volatile boolean inlineEmotes;
     private volatile String channel;
     private volatile String channelName;
     private int resumed;
@@ -31,6 +32,7 @@ public final class EmoteRuntime implements Application.ActivityLifecycleCallback
     private EmoteRuntime(Application application) {
         preferences = application.getSharedPreferences("twitch_patches_emotes", 0);
         providerMask = EmotePolicy.restore(preferences.getBoolean("enabled", true), preferences.getInt("provider_mask", -1));
+        inlineEmotes = preferences.getBoolean("inline_emotes", true);
         catalog.setProviderMask(providerMask);
         application.registerActivityLifecycleCallbacks(this);
     }
@@ -46,6 +48,7 @@ public final class EmoteRuntime implements Application.ActivityLifecycleCallback
     public static boolean enabled() { return providerMask() != 0; }
     public static int providerMask() { return instance == null ? 0 : instance.providerMask; }
     public static boolean providerEnabled(int provider) { return EmotePolicy.includes(providerMask(), provider); }
+    public static boolean inlineEnabled() { return instance != null && instance.inlineEmotes; }
 
     static EmoteCatalog catalog() { return instance == null ? null : instance.catalog; }
     static EmoteImages images() { return instance == null ? null : instance.images; }
@@ -59,6 +62,15 @@ public final class EmoteRuntime implements Application.ActivityLifecycleCallback
 
     public static void setProviderEnabled(int provider, boolean value) {
         setProviderMask(EmotePolicy.select(providerMask(), provider, value));
+    }
+
+    public static void setInlineEnabled(boolean value) {
+        EmoteRuntime runtime = instance;
+        if (runtime == null) return;
+        runtime.inlineEmotes = value;
+        runtime.preferences.edit().putBoolean("inline_emotes", value).apply();
+        ReactNativeRuntime.refresh();
+        runtime.main.post(() -> EmoteDraftRuntime.refresh(null));
     }
 
     private static void setProviderMask(int mask) {

@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.FormFactor
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.getFreeRegisterProvider
@@ -34,6 +35,8 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.jar.JarFile
 import java.util.logging.Logger
 
@@ -44,8 +47,9 @@ import java.util.logging.Logger
 // Own app label, Google TTS warm-up (ported from the phone patch).
 // Remaining API 30 call sites (CloseGuard, NumberFormatter percent, InstallSourceInfo) and
 // Car.createCar without android.car. UI density chosen in Maps' Settings instead of a patch option.
+// Cronet telemetry off (its logger uses the API 30 StatsEvent).
 // Report a problem (ReportPatch in the extension): a Settings row and its own screen outside Maps,
-// with safe mode and the feature switches (SafeMode).
+// with safe mode and the feature switches (SafeMode), and a launcher icon of its own.
 // Separate patches that depend on this one: BYD battery (BydBatteryPatch.kt), Send to car
 // (SendToCarPatch.kt) and the BYD location flicker fix (LocationLockoutPatch.kt).
 
@@ -67,6 +71,8 @@ private const val INPUT_MIN_SDK = "30"
 private const val OUTPUT_MIN_SDK = "29"
 private const val AUTOMOTIVE_FEATURE = "android.hardware.type.automotive"
 private const val GMS_VERSION_METADATA = "com.google.android.gms.version"
+private const val CRONET_METADATA_HOLDER = "android.net.http.MetaDataHolder"
+private const val CRONET_TELEMETRY_METADATA = "android.net.http.EnableTelemetry"
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;"
 private const val UTILS_CLASS = "Lapp/morphe/extension/shared/Utils;"
 private const val CRASH_LOG_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/CrashLogPatch;"
@@ -78,7 +84,19 @@ internal const val SAFE_MODE_CLASS = "Lapp/morphe/extension/mapsautomotive/patch
 private const val REPORT_ACTIVITY = "app.morphe.extension.mapsautomotive.patches.ReportActivity"
 private const val REPORT_LAUNCHER = "app.morphe.extension.mapsautomotive.patches.ReportLauncher"
 private const val REPORT_PROCESS = ":morphe_report"
-private const val REPORT_LABEL = "Maps Car report"
+// "Report" first, so a launcher that shortens the label still tells it apart from Maps Car.
+private const val REPORT_LABEL = "Report Maps Car"
+// The report's launcher icon and its layers, bundled under report-icon/ and added to the APK's
+// resources, so the entry does not show the Maps icon: a white speech bubble with a red "!" on red,
+// scaled into the 72dp a launcher shows. The files carry no XML comments: the patcher would encode
+// one as a text node before the root element, which aapt2 cannot read.
+private const val REPORT_ICON = "maps_car_report_icon"
+private const val REPORT_ICON_SOURCE = "report-icon"
+private val REPORT_ICON_FILES = listOf(
+    "mipmap-anydpi/$REPORT_ICON.xml",
+    "drawable/${REPORT_ICON}_background.xml",
+    "drawable/${REPORT_ICON}_foreground.xml",
+)
 private const val LOCATION_SERVICE_CLASS =
     "Lapp/morphe/extension/mapsautomotive/patches/LocationServicePatch;"
 private const val LOCATION_SERVICE_ACTION =
@@ -113,6 +131,7 @@ internal val compatibility = Compatibility(
 
 internal val manifestPatch = resourcePatch {
     execute {
+        addReportIcon()
         document("AndroidManifest.xml").use { document ->
             patchManifest(document)
         }
@@ -134,7 +153,7 @@ internal object IncludedFeatures {
 @Suppress("unused")
 val automotiveMicroGPatch = bytecodePatch(
     name = "Google Maps Automotive for MicroG-RE",
-    description = "Runs Google Maps for Android Automotive on Android 10 as \"$APP_LABEL\" with MicroG-RE 7.2.2. " +
+    description = "Runs Google Maps for Android Automotive on Android 10 as \"$APP_LABEL\" with MicroG-RE 7.3.0. " +
         "Adds a UI density setting, a problem report and a safe mode.",
     default = true,
 ) {
@@ -191,13 +210,50 @@ private fun patchManifest(document: Document) {
     logger.info("Set $renamedLabels app and chooser labels to \"$APP_LABEL\"")
     ensureQueryPackage(document, manifest)
     ensureSpoofMetadata(document)
+    disableCronetTelemetry(document)
     addReportActivity(document, manifest)
 }
 
-// The report screen and its launcher entry "Maps Car report", reachable when Maps' Settings or Maps
-// itself crashes. The activity runs in its own process (injectExtensionContext skips Maps' start
-// there) and its own task; launch mode and configuration changes are copied from MapsActivity, so
-// they are encoded as Maps' own are.
+// Maps turns Cronet telemetry on in its manifest. Cronet's logger then writes android.util.StatsEvent
+// (API 30) whenever an engine builder is created, and R8 dropped its SDK check, so on Android 10 every
+// CronetEngine.Builder(Context) throws NoClassDefFoundError (Maps' network voice is one caller).
+// Cronet's opt-out meta-data makes it use its no-op logger. The value must stay a boolean.
+private fun disableCronetTelemetry(document: Document) {
+    val application = document.getElementsByTagName("application").item(0) as Element
+    val holder = application.directChildren("service").firstOrNull {
+        it.getAttribute("android:name") == CRONET_METADATA_HOLDER
+    } ?: document.createElement("service").also { service ->
+        service.setAttribute("android:name", CRONET_METADATA_HOLDER)
+        service.setAttribute("android:enabled", "false")
+        service.setAttribute("android:exported", "false")
+        application.appendChild(service)
+    }
+
+    holder.setMetadata(document, CRONET_TELEMETRY_METADATA, "false")
+    logger.info("Set $CRONET_TELEMETRY_METADATA to false on $CRONET_METADATA_HOLDER")
+}
+
+// Adds the report icon's files to res/. They are new resources, so none of their names may exist.
+private fun ResourcePatchContext.addReportIcon() {
+    val taken = listDecodableFiles("res/**/$REPORT_ICON*")
+    if (taken.isNotEmpty()) throw PatchException("Resources already present: ${taken.joinToString()}")
+
+    REPORT_ICON_FILES.forEach { path ->
+        val source = "$REPORT_ICON_SOURCE/$path"
+        val stream = IncludedFeatures::class.java.classLoader.getResourceAsStream(source)
+            ?: throw PatchException("Missing bundled resource $source")
+        val target = get("res/$path", false)
+        target.parentFile.mkdirs()
+        stream.use { Files.copy(it, target.toPath(), StandardCopyOption.REPLACE_EXISTING) }
+    }
+    logger.info("Added the report icon @mipmap/$REPORT_ICON (${REPORT_ICON_FILES.size} files)")
+}
+
+// The report screen and its launcher entry "Report Maps Car" with its own icon, reachable when Maps'
+// Settings or Maps itself crashes. The activity runs in its own process (injectExtensionContext skips
+// Maps' start there) and its own task; launch mode and configuration changes are copied from
+// MapsActivity, so they are encoded as Maps' own are. Both carry the icon, so recents shows it too,
+// and roundIcon as well, for a launcher that prefers round icons.
 private fun addReportActivity(document: Document, manifest: Element) {
     val application = manifest.directChildren("application").single()
     val components = application.directChildren("activity") + application.directChildren("activity-alias")
@@ -220,6 +276,8 @@ private fun addReportActivity(document: Document, manifest: Element) {
             setAttribute("android:launchMode", launchMode)
             setAttribute("android:configChanges", configChanges)
             setAttribute("android:label", REPORT_LABEL)
+            setAttribute("android:icon", "@mipmap/$REPORT_ICON")
+            setAttribute("android:roundIcon", "@mipmap/$REPORT_ICON")
         },
     )
     // An alias must follow its target activity.
@@ -229,6 +287,8 @@ private fun addReportActivity(document: Document, manifest: Element) {
             setAttribute("android:targetActivity", REPORT_ACTIVITY)
             setAttribute("android:exported", "true")
             setAttribute("android:label", REPORT_LABEL)
+            setAttribute("android:icon", "@mipmap/$REPORT_ICON")
+            setAttribute("android:roundIcon", "@mipmap/$REPORT_ICON")
             appendChild(
                 document.createElement("intent-filter").apply {
                     appendChild(document.createElement("action").apply { setAttribute("android:name", "android.intent.action.MAIN") })
@@ -247,7 +307,10 @@ private fun addReportActivity(document: Document, manifest: Element) {
             }
     }
     if (launchers != 1) throw PatchException("Expected one launcher entry for $REPORT_ACTIVITY, found $launchers")
-    logger.info("Added $REPORT_ACTIVITY in $REPORT_PROCESS and the launcher entry \"$REPORT_LABEL\" (launchMode $launchMode)")
+    logger.info(
+        "Added $REPORT_ACTIVITY in $REPORT_PROCESS and the launcher entry \"$REPORT_LABEL\" with @mipmap/$REPORT_ICON " +
+            "(launchMode $launchMode)",
+    )
 }
 
 private fun requireAutomotiveInput(manifest: Element): Element {

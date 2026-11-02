@@ -1,0 +1,9 @@
+// Emulator-only fixtures; native gesture preferences restored by the runner.
+
+let backSaved;
+rpc.exports.configureBack=function(code){return main(()=>{const a=current(),p=Java.use('android.preference.PreferenceManager').getDefaultSharedPreferences(a);if(!backSaved)backSaved=['gesture','gestureBack','gestureLength'].map(k=>({k,had:p.contains(k),v:k==='gesture'?p.getBoolean(k,true):p.getInt(k,0)}));p.edit().putBoolean('gesture',true).putInt('gestureLength',40).putInt('gestureBack',code).commit();const i=a.getIntent();i.putExtra('haiagaru.media.thread',true);prefs.edit().putBoolean('mediaSwipeWholeThread',true).commit();return {recognizer:String(Java.use(P+'VideoViewerGestures').recognizerClassName()),back:code};});};
+rpc.exports.fullSwipe=function(dx,dy){return main(()=>{const a=current(),r=area(a),t=Number(Java.use('android.os.SystemClock').uptimeMillis());if(String(a.getClass().getName()).endsWith('ImagesViewer2Activity')){r.x+=r.width*.20;r.y-=r.height*.15;}for(const f of [[0,0,0],[2,dx*.4,dy*.4],[2,dx*.8,dy*.8],[1,dx,dy]])touch(a,f[0],r.x+f[1],r.y+f[2],t);return true;});};
+rpc.exports.backPath=function(dy){return main(()=>{const a=current(),r=area(a),t=Number(Java.use('android.os.SystemClock').uptimeMillis());r.x+=r.width*.20;r.y-=r.height*.15;for(const f of [[0,0,0],[2,-120,0],[2,-240,0],[2,-240,dy*.6],[1,-240,dy]])touch(a,f[0],r.x+f[1],r.y+f[2],t);return true;});};
+rpc.exports.restoreBack=function(){return main(()=>{if(!backSaved)return;const p=Java.use('android.preference.PreferenceManager').getDefaultSharedPreferences(app()),e=p.edit();for(const s of backSaved)s.had?(s.k==='gesture'?e.putBoolean(s.k,s.v):e.putInt(s.k,s.v)):e.remove(s.k);e.commit();});};
+
+rpc.exports.resetViewers=function(){return main(()=>{for(const a of activities()){const n=String(a.getClass().getName());if(n.endsWith('GifViewerActivity')||n.endsWith('VideoViewerActivity')||n.endsWith('ImagesViewer2Activity'))a.finish();}return true;});};

@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 
 /**
- * The problem report's own screen: "Maps Car report" in the launcher, also opened from the row in
+ * The problem report's own screen: "Report Maps Car" in the launcher, also opened from the row in
  * Maps' Settings and from the crash and safe-mode notifications. It runs in its own process
  * (":morphe_report"), where the patch skips Maps' start, so it opens even when Maps crashes while
  * starting or in Settings. It shows {@link ReportPatch}'s report list and the feature switches.
@@ -30,7 +30,7 @@ public final class ReportActivity extends Activity {
         // The manifest gives no theme, so the window would take Maps' application theme.
         setTheme(android.R.style.Theme_DeviceDefault);
         super.onCreate(savedInstanceState);
-        setTitle(UiDensityPatch.isThai(this) ? "รายงานปัญหา Maps Car" : "Maps Car report");
+        setTitle(UiDensityPatch.isThai(this) ? "รายงานปัญหา Maps Car" : "Report Maps Car");
         ActionBar bar = getActionBar();
         if (bar != null) bar.setDisplayHomeAsUpEnabled(true);
         ReportUploader.start(getApplicationContext());

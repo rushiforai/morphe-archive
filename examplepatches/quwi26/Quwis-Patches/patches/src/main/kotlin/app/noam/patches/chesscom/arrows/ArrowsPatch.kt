@@ -3,15 +3,14 @@ package app.noam.patches.chesscom.arrows
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patcher.util.smali.ExternalLabel
-import app.noam.patches.chesscom.arcade.StandardAnimationsToStringFingerprint
 import app.noam.patches.chesscom.misc.settings.settingsPatch
 import app.noam.patches.chesscom.shared.Constants
+import app.noam.patches.chesscom.shared.addArrowsBarButtons
+import app.noam.patches.chesscom.shared.composeBarButton
 import app.noam.patches.chesscom.shared.markFeaturePatched
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -22,14 +21,11 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
-private const val ARROWS = "${Constants.EXTENSION_PACKAGE}/arrows/Arrows;"
 private const val ARROWS_BAR = "${Constants.EXTENSION_PACKAGE}/arrows/ArrowsBar;"
 private const val ARROWS_CHIP = "${Constants.EXTENSION_PACKAGE}/arrows/ArrowsChip;"
-private const val BOARD_VIEWS = "${Constants.EXTENSION_PACKAGE}/board/BoardViews;"
-private const val BOARD = "Lcom/chess/chessboard/view/ChessBoardView;"
-private const val V2_BOARD = "Lcom/chess/chessboard/v2/ChessBoardView;"
 
 private const val BUTTON_CLASS = "app.noam.extension.chesscom.arrows.ArrowsButton"
+private const val BOT_GAME_PACKAGE = "Lcom/chess/features/versusbots/"
 /** Compose game screens whose bottom bar gets Arrows and Clear: bots, guided coach games. */
 private val COMPOSE_GAME_BARS = listOf(
     "Lcom/chess/features/versusbots/ui/game/BotGameActivityContentKt;",
@@ -53,7 +49,7 @@ internal object BottomButtonFingerprint : Fingerprint(
     strings = listOf("com.chess.palette.components.BottomButton (BottomActionsBar.kt:128)"),
 )
 
-private fun Document.elementWithId(id: String): Element {
+internal fun Document.elementWithId(id: String): Element {
     val all = getElementsByTagName("*")
     for (i in 0 until all.length) {
         val element = all.item(i) as Element
@@ -62,7 +58,7 @@ private fun Document.elementWithId(id: String): Element {
     throw PatchException("$id was not found")
 }
 
-private fun Document.addString(name: String, value: String) {
+internal fun Document.addString(name: String, value: String) {
     val resources = documentElement
     val strings = resources.getElementsByTagName("string")
     if ((0 until strings.length).any { (strings.item(it) as Element).getAttribute("name") == name }) return
@@ -134,90 +130,60 @@ val arrowsPatch = bytecodePatch(
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
-    dependsOn(settingsPatch, arrowsResourcePatch)
+    dependsOn(settingsPatch, arrowsResourcePatch, arrowsCorePatch)
 
     execute {
         markFeaturePatched("arrowsPatched")
 
-        // The boards' touches go to the drawing first while Arrows is on (both boards: the older
-        // one and the newer v2 one some screens use).
-        listOf(BOARD, V2_BOARD).forEach { board ->
-            mutableClassDefBy(board).methods.single {
-                it.name == "onTouchEvent" && it.parameterTypes.map { type -> type.toString() } == listOf("Landroid/view/MotionEvent;")
-            }.apply {
-                addInstructionsWithLabels(
-                    0,
-                    """
-                        invoke-static/range { p0 .. p1 }, $ARROWS->onTouch(Landroid/view/View;Landroid/view/MotionEvent;)Z
-                        move-result v0
-                        if-eqz v0, :morphe_board_touch
-                        return v0
-                    """,
-                    ExternalLabel("morphe_board_touch", getInstruction(0)),
-                )
-            }
-        }
-
-        // The v2 board: the marks layers once it has built its piece view, and its orientation,
-        // which it reports only through this setter (its getter is obfuscated).
-        // 4.10.18 has v2/PiecesView; 4.10.23 keeps the piece layer in an obfuscated ViewGroup.
-        val v2Pieces = classDefByOrNull { classDef ->
-            classDef.type.startsWith("Lcom/chess/chessboard/v2/") &&
-                classDef.superclass == "Landroid/view/ViewGroup;" &&
-                classDef.methods.any { method -> method.name == "setPiecesGraphics" }
-        }?.type ?: throw PatchException("The v2 piece layer was not found")
-        mutableClassDefBy(V2_BOARD).methods.apply {
-            val constructors = filter {
-                it.name == "<init>" && it.implementation?.instructions?.any { instruction ->
-                    ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.let { reference ->
-                        reference.name == "<init>" && reference.definingClass == v2Pieces
+        // 4.10.23's Compose bars are out of reach for the older fingerprint; the bot bar is a row
+        // of the app's own buttons, so Arrows and Clear go in as two more of them.
+        var barInjected = false
+        if (BottomButtonFingerprint.matchOrNull() == null) {
+            var barType: String? = null
+            var barMethod: String? = null
+            classDefForEach { classDef ->
+                if (barType != null || !classDef.type.startsWith(BOT_GAME_PACKAGE)) return@classDefForEach
+                val method = classDef.methods.firstOrNull { candidate ->
+                    candidate.composeBarButton() != null && candidate.implementation?.instructions?.any {
+                        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "\$this\$BottomActionsBar"
                     } == true
-                } == true
+                } ?: return@classDefForEach
+                barType = classDef.type
+                barMethod = method.name + "(" + method.parameterTypes.joinToString("") + ")" + method.returnType
             }
-            if (constructors.size != 1) throw PatchException("Expected one v2 board constructor building its pieces, found ${constructors.size}")
-            constructors.single().apply {
-                instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
-                    .reversed().forEach {
-                        addInstructions(it, "invoke-static/range { p0 .. p0 }, $ARROWS->attachBoard(Landroid/view/ViewGroup;)V")
+            val type = barType
+            val key = barMethod
+            if (type != null && key != null) {
+                mutableClassDefBy(type).methods.first {
+                    it.name + "(" + it.parameterTypes.joinToString("") + ")" + it.returnType == key
+                }.addArrowsBarButtons("show")
+                barInjected = true
+            }
+        }
+
+        // The chip stays for screens without a bar we can reach.
+        if (!barInjected && BottomButtonFingerprint.matchOrNull() == null) {
+            val chipActivity = "Lcom/chess/features/versusbots/game/BotGameActivityV2;"
+            run {
+                val type = mutableClassDefByOrNull(chipActivity) ?: return@run
+                val resume = type.methods.firstOrNull { it.name == "onResume" && it.parameterTypes.isEmpty() }
+                if (resume != null) {
+                    resume.addInstructions(0, "invoke-static/range { p0 .. p0 }, $ARROWS_CHIP->attach(Landroid/app/Activity;)V")
+                } else {
+                    type.methods.firstOrNull { it.name == "onCreate" }?.apply {
+                        instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
+                            .sortedDescending()
+                            .forEach { index ->
+                                addInstructions(index, "invoke-static/range { p0 .. p0 }, $ARROWS_CHIP->attach(Landroid/app/Activity;)V")
+                            }
                     }
-            }
-            single { it.name == "setBoardFlipped" && it.parameterTypes.map { type -> type.toString() } == listOf("Z") }
-                .addInstructions(0, "invoke-static { p0, p1 }, $BOARD_VIEWS->onFlipped(Landroid/view/View;Z)V")
-        }
-
-        // Once a board's piece layer has built its children, add the arrow layers:
-        // PieceView.init(standardAnimations, dragSettings).
-        val standardAnimations = StandardAnimationsToStringFingerprint.originalClassDef.type
-        mutableClassDefBy("Lcom/chess/chessboard/view/viewlayers/PieceView;").methods.single {
-            it.returnType == "V" && it.parameterTypes.size == 2 && it.parameterTypes.first().toString() == standardAnimations
-        }.apply {
-            instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
-                .reversed().forEach {
-                    addInstructions(it, "invoke-static/range { p0 .. p0 }, $ARROWS->attach(Landroid/view/ViewGroup;)V")
-                }
-        }
-
-        // 4.10.23's bot bar is a Compose bar we cannot add buttons to; a small chip over the
-        // board toggles Arrows and clears the marks instead.
-        val chipActivity = "Lcom/chess/features/versusbots/game/BotGameActivityV2;"
-        run {
-            val type = mutableClassDefByOrNull(chipActivity) ?: return@run
-            val resume = type.methods.firstOrNull { it.name == "onResume" && it.parameterTypes.isEmpty() }
-            if (resume != null) {
-                resume.addInstructions(0, "invoke-static/range { p0 .. p0 }, $ARROWS_CHIP->attach(Landroid/app/Activity;)V")
-            } else {
-                type.methods.firstOrNull { it.name == "onCreate" }?.apply {
-                    instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
-                        .sortedDescending()
-                        .forEach { index ->
-                            addInstructions(index, "invoke-static/range { p0 .. p0 }, $ARROWS_CHIP->attach(Landroid/app/Activity;)V")
-                        }
                 }
             }
         }
 
-        // 4.10.23's Compose bars are out of reach for now; the older boards still get arrows.
+        // The older boards: Arrows and Clear go into their Compose bar buttons.
         BottomButtonFingerprint.matchOrNull()?.let { match ->
+            barInjected = true
             // Bot and coach games have Compose bars: Arrows and Clear go in as two more of chess.com's bar
             // buttons. They read a state of ours, so the bar redraws them when the arrows change.
             val button = match.method

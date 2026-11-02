@@ -36,7 +36,12 @@ public final class ArrowsBar {
     private ArrowsBar() {}
 
     public static boolean show() {
-        return Arrows.enabled();
+        return Arrows.gamesEnabled();
+    }
+
+    /** The new Analysis screen's Compose bar: its buttons follow the review switch. */
+    public static boolean reviewsShow() {
+        return Arrows.reviewsEnabled();
     }
 
     public static boolean needsState() {

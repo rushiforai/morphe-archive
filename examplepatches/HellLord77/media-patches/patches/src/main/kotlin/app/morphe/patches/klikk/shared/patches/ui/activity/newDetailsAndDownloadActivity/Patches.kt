@@ -11,25 +11,27 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11n
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
-val deviceCheckFieldAccessPatch = bytecodePatch {
-    execute {
-        DeviceCheckFieldAccessFingerprint.matchAllMethodIndicesForEach {
-            val instruction = getInstruction<TwoRegisterInstruction>(it)
+val deviceCheckFieldAccessPatch =
+    bytecodePatch {
+        execute {
+            DeviceCheckFieldAccessFingerprint.matchAllMethodIndicesForEach {
+                val instruction = getInstruction<TwoRegisterInstruction>(it)
 
-            replaceInstruction(
-                it,
-                BuilderInstruction11n(
-                    Opcode.CONST_4,
-                    instruction.registerA,
-                    true.toInt(),
-                ),
-            )
+                replaceInstruction(
+                    it,
+                    BuilderInstruction11n(
+                        Opcode.CONST_4,
+                        instruction.registerA,
+                        true.toInt(),
+                    ),
+                )
+            }
         }
     }
-}
 
-val isDownloadLimitExceededPatch = bytecodePatch {
-    execute {
-        IsDownloadLimitExceededFingerprint.matchSingle().method.returnEarly(false)
+val isDownloadLimitExceededPatch =
+    bytecodePatch {
+        execute {
+            IsDownloadLimitExceededFingerprint.matchSingle().method.returnEarly(false)
+        }
     }
-}

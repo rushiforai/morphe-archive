@@ -1,16 +1,26 @@
 package app.hushmessenger.extension;
 
+import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.io.IOException;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * The message log's buttons under its switch, the sheet that shows the log, and Clear with its Undo. One per settings page.
@@ -42,6 +52,17 @@ final class MessageLogSheet {
     private boolean messageLogUndo;
     /** The open log shows only the messages their senders unsent. */
     private boolean messageLogUnsentOnly;
+    /** The search box's words, and the chat the open log is narrowed to, or null for all of them. */
+    private String messageLogQuery = "";
+    private String messageLogThread;
+    /** The open log lists chats to pick from instead of messages. */
+    private boolean messageLogByChat;
+    /** The loaded messages the search and filters choose from, and the column that shows what they leave. */
+    private MessageLogSearch.Index messageLogIndex;
+    private LinearLayout messageLogResults;
+    private Button messageLogSaveText, messageLogSaveCsv;
+    /** The format of the file picker that's open, 0 when none is. */
+    private int messageLogSaving;
 
     MessageLogSheet(SettingsActivity page) {
         this.page = page;
@@ -49,11 +70,22 @@ final class MessageLogSheet {
 
     void restoreState(Bundle state) {
         messageLogClearFailed = state.getBoolean("message_log_clear_failed");
+        messageLogSaving = state.getInt("message_log_saving");
+        messageLogQuery = state.getString("message_log_query", "");
+        messageLogThread = state.getString("message_log_thread");
+        messageLogUnsentOnly = state.getBoolean("message_log_unsent");
+        messageLogByChat = state.getBoolean("message_log_by_chat");
     }
 
     void saveState(Bundle state) {
         state.putBoolean("message_log_open", messageLogDialog != null && messageLogDialog.isShowing());
         state.putBoolean("message_log_clear_failed", messageLogClearFailed);
+        // A picker's result can land on a new page, and it saves what this page was showing.
+        state.putInt("message_log_saving", messageLogSaving);
+        state.putString("message_log_query", messageLogQuery);
+        state.putString("message_log_thread", messageLogThread);
+        state.putBoolean("message_log_unsent", messageLogUnsentOnly);
+        state.putBoolean("message_log_by_chat", messageLogByChat);
     }
 
     /** Takes over a Clear the page before this one started, and reports it if it finished in between. */
@@ -126,6 +158,13 @@ final class MessageLogSheet {
                 messageLogMore = null;
                 messageLogClear = null;
                 messageLogUnsentOnly = false;
+                messageLogQuery = "";
+                messageLogThread = null;
+                messageLogByChat = false;
+                messageLogIndex = null;
+                messageLogResults = null;
+                messageLogSaveText = null;
+                messageLogSaveCsv = null;
                 messageLogGeneration++;
             }
         });
@@ -177,6 +216,8 @@ final class MessageLogSheet {
         if (list == null) return;
         final long generation = ++messageLogGeneration;
         messageLogMore = null;
+        messageLogResults = null;
+        messageLogIndex = null;
         list.removeAllViews();
         SettingsUi ui = page.ui;
         SettingsText text = page.text;
@@ -187,6 +228,7 @@ final class MessageLogSheet {
         if (messageLogClearJob != null && !messageLogClearJob.finished) return;
         new Thread(() -> {
             final MessageLog.LoadResult result = MessageLog.loadResult();
+            final MessageLogSearch.Index index = new MessageLogSearch.Index(result.entries);
             page.runOnUiThread(() -> {
                 if (messageLogList != list || generation != messageLogGeneration) return;
                 list.removeAllViews();
@@ -235,32 +277,122 @@ final class MessageLogSheet {
                         ui.add(list, empty, result.setAside ? 12 : 0);
                     }
                 }
-                if (!result.entries.isEmpty()) ui.add(list, ui.text(text.get("message_log_retention"), 13, ui.muted, false), list.getChildCount() > 0 ? 12 : 0);
-                List<MessageLog.Entry> shown = result.entries;
-                List<MessageLog.Entry> unsent = new java.util.ArrayList<>();
-                for (MessageLog.Entry entry : result.entries) if (entry.unsent) unsent.add(entry);
-                // Only a log with unsent messages in it gets the filter.
-                if (!unsent.isEmpty()) {
-                    Button filter = ui.button(text.get(messageLogUnsentOnly ? "message_log_show_all" : "message_log_unsent_only"));
-                    filter.setTag("message_log_unsent_only");
-                    filter.setOnClickListener(view -> {
-                        messageLogUnsentOnly = !messageLogUnsentOnly;
-                        loadMessageLog();
-                    });
-                    ui.add(list, filter, 12);
-                    if (messageLogUnsentOnly) shown = unsent;
+                if (!result.entries.isEmpty()) {
+                    ui.add(list, ui.text(text.get("message_log_retention"), 13, ui.muted, false), list.getChildCount() > 0 ? 12 : 0);
+                    addMessageLogTools(list, index);
+                    showMessageLogResults();
                 }
-                showMessageLogPage(list, generation, shown, 0);
             });
         }, "HushMessageLogView").start();
     }
 
-    private void showMessageLogPage(LinearLayout list, long generation, List<MessageLog.Entry> entries, int from) {
+    /** The search box, the two ways to narrow the log and the two ways to save it, with the results column under them. */
+    private void addMessageLogTools(LinearLayout list, MessageLogSearch.Index index) {
+        SettingsUi ui = page.ui;
+        SettingsText text = page.text;
+        messageLogIndex = index;
+        EditText search = ui.field(text.get("message_log_search"), 200, true);
+        search.setTag("message_log_search");
+        search.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
+        search.setText(messageLogQuery);
+        // Results sit in their own column, so the box keeps its focus and its keyboard while they change.
+        search.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence typed, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence typed, int start, int before, int count) {}
+            @Override public void afterTextChanged(Editable typed) {
+                messageLogQuery = typed.toString();
+                showMessageLogResults();
+            }
+        });
+        ui.add(list, search, 12);
+
+        LinearLayout views = ui.row();
+        Button byChat = ui.button(text.get(messageLogByChat ? "message_log_by_date" : "message_log_by_chat"));
+        byChat.setTag("message_log_by_chat");
+        byChat.setOnClickListener(view -> {
+            messageLogByChat = !messageLogByChat;
+            messageLogThread = null;
+            byChat.setText(text.get(messageLogByChat ? "message_log_by_date" : "message_log_by_chat"));
+            showMessageLogResults();
+        });
+        views.addView(byChat, new LinearLayout.LayoutParams(0, -2, 1));
+        // Only a log with unsent messages in it gets the filter.
+        if (index.hasUnsent) {
+            Button filter = ui.button(text.get(messageLogUnsentOnly ? "message_log_show_all" : "message_log_unsent_only"));
+            filter.setTag("message_log_unsent_only");
+            filter.setOnClickListener(view -> {
+                messageLogUnsentOnly = !messageLogUnsentOnly;
+                filter.setText(text.get(messageLogUnsentOnly ? "message_log_show_all" : "message_log_unsent_only"));
+                showMessageLogResults();
+            });
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -2, 1);
+            params.setMarginStart(ui.dp(8));
+            views.addView(filter, params);
+        }
+        ui.add(list, views, 8);
+
+        LinearLayout saves = ui.row();
+        messageLogSaveText = ui.button(text.get("message_log_save_text"));
+        messageLogSaveText.setTag("message_log_save_text");
+        messageLogSaveText.setOnClickListener(view -> pickSaveFile(MessageLogExport.TEXT));
+        saves.addView(messageLogSaveText, new LinearLayout.LayoutParams(0, -2, 1));
+        messageLogSaveCsv = ui.button(text.get("message_log_save_csv"));
+        messageLogSaveCsv.setTag("message_log_save_csv");
+        messageLogSaveCsv.setOnClickListener(view -> pickSaveFile(MessageLogExport.CSV));
+        LinearLayout.LayoutParams csvParams = new LinearLayout.LayoutParams(0, -2, 1);
+        csvParams.setMarginStart(ui.dp(8));
+        saves.addView(messageLogSaveCsv, csvParams);
+        ui.add(list, saves, 8);
+        ui.add(list, ui.text(text.get("message_log_save_help"), 13, ui.muted, false), 4);
+
+        messageLogResults = ui.column();
+        messageLogResults.setTag("message_log_results");
+        list.addView(messageLogResults, new LinearLayout.LayoutParams(-1, -2));
+    }
+
+    /** What the search and the filters leave, from memory, so a typed letter doesn't read the file again. */
+    private void showMessageLogResults() {
+        LinearLayout results = messageLogResults;
+        MessageLogSearch.Index index = messageLogIndex;
+        if (results == null || index == null) return;
+        SettingsUi ui = page.ui;
+        SettingsText text = page.text;
+        long generation = ++messageLogGeneration;
         messageLogMore = null;
-        if (messageLogList != list || generation != messageLogGeneration) return;
-        int to = Math.min(entries.size(), from + MESSAGE_LOG_PAGE);
-        for (int i = from; i < to; i++) list.addView(messageLogEntry(entries.get(i)));
-        if (to < entries.size()) messageLogMore = () -> showMessageLogPage(list, generation, entries, to);
+        results.removeAllViews();
+        List<MessageLog.Entry> found = index.find(messageLogQuery, messageLogThread, messageLogUnsentOnly && index.hasUnsent);
+        messageLogSaveText.setEnabled(!found.isEmpty());
+        messageLogSaveCsv.setEnabled(!found.isEmpty());
+        if (messageLogThread != null) {
+            Button all = ui.button(text.get("message_log_all_chats"));
+            all.setTag("message_log_all_chats");
+            all.setOnClickListener(view -> openMessageLogChat(null));
+            ui.add(results, all, 12);
+        }
+        if (found.isEmpty()) {
+            TextView none = ui.text(text.get("message_log_no_match"), 14, ui.muted, false);
+            none.setTag("message_log_no_match");
+            none.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+            ui.add(results, none, 12);
+        } else if (messageLogByChat && messageLogThread == null) {
+            showMessageLogPage(results, generation, MessageLogSearch.chats(found), 0, this::messageLogChat);
+        } else {
+            showMessageLogPage(results, generation, found, 0, this::messageLogEntry);
+        }
+    }
+
+    private void openMessageLogChat(String thread) {
+        messageLogThread = thread;
+        showMessageLogResults();
+        if (messageLogScroll != null) messageLogScroll.scrollTo(0, 0);
+    }
+
+    private <T> void showMessageLogPage(LinearLayout results, long generation, List<T> items, int from, Function<T, View> card) {
+        messageLogMore = null;
+        if (messageLogResults != results || generation != messageLogGeneration) return;
+        int to = Math.min(items.size(), from + MESSAGE_LOG_PAGE);
+        for (int i = from; i < to; i++) results.addView(card.apply(items.get(i)));
+        if (to < items.size()) messageLogMore = () -> showMessageLogPage(results, generation, items, to, card);
     }
 
     /**
@@ -315,6 +447,67 @@ final class MessageLogSheet {
         params.topMargin = ui.dp(8);
         card.setLayoutParams(params);
         return card;
+    }
+
+    /** One chat in the by-chat view. Tapping it narrows the log to that chat. */
+    private View messageLogChat(MessageLogSearch.Chat chat) {
+        SettingsUi ui = page.ui;
+        SettingsText text = page.text;
+        LinearLayout card = ui.column();
+        card.setTag("message_log_chat");
+        card.setBackground(ui.interactive(ui.surface, ui.line, 12));
+        card.setPadding(ui.dp(16), ui.dp(16), ui.dp(16), ui.dp(16));
+        card.addView(ui.title(chat.name.isEmpty() ? text.get("message_log_unknown_thread") : chat.name, 15));
+        ui.add(card, ui.text(text.get("message_log_chat_count", String.valueOf(chat.count)) + "  ·  " +
+            page.formatSince(chat.latest, "message_log_now", "message_log_ago"), 12, ui.muted, true), 4);
+        card.setFocusable(true);
+        card.setOnClickListener(view -> openMessageLogChat(chat.thread));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.topMargin = ui.dp(8);
+        card.setLayoutParams(params);
+        return card;
+    }
+
+    private void pickSaveFile(int format) {
+        if (messageLogSaving != 0) return;
+        messageLogSaving = format;
+        Intent picker = new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
+            .setType(MessageLogExport.mime(format)).putExtra(Intent.EXTRA_TITLE, MessageLogExport.fileName(format, System.currentTimeMillis()));
+        try { page.startActivityForResult(picker, SettingsActivity.SAVE_MESSAGE_LOG); }
+        catch (android.content.ActivityNotFoundException | SecurityException unavailable) {
+            messageLogSaving = 0;
+            page.feedback(page.text.get("message_log_save_failed"), Toast.LENGTH_LONG);
+        }
+    }
+
+    /** The picker's answer. It reads the log again rather than holding chat text across another app. */
+    void saveResult(int result, Intent data) {
+        int format = messageLogSaving;
+        messageLogSaving = 0;
+        // Cancelled: nothing to do and nothing to say.
+        if (result != Activity.RESULT_OK || format == 0 || data == null || data.getData() == null) return;
+        Uri document = data.getData();
+        if (!"content".equals(document.getScheme())) {
+            page.feedback(page.text.get("message_log_save_failed"), Toast.LENGTH_LONG);
+            return;
+        }
+        String query = messageLogQuery, thread = messageLogThread;
+        boolean unsentOnly = messageLogUnsentOnly;
+        Context context = page.getApplicationContext();
+        MessageLogExport.Labels labels = new MessageLogExport.Labels(page.text);
+        MESSAGE_LOG_WORK.execute(() -> {
+            int saved = -1;
+            try {
+                saved = MessageLogExport.save(context, document, format, query, thread, unsentOnly, labels);
+            } catch (IOException | RuntimeException failure) {
+                Settings.hookFailedPrivately(MessageLog.KEY, "Can't save the message log", failure);
+            }
+            int count = saved;
+            page.runOnUiThread(() -> {
+                if (page.isFinishing() || page.isDestroyed()) return;
+                page.feedback(count < 0 ? page.text.get("message_log_save_failed") : page.text.get("message_log_saved", String.valueOf(count)), Toast.LENGTH_LONG);
+            });
+        });
     }
 
     private void clearMessageLog() {

@@ -77,4 +77,10 @@ class UiCompositionHooksTest {
         assertEquals(3, range.registerCount)
         assertEquals(original.reference, (caller.code()[3] as ReferenceInstruction).reference.toString())
     }
+
+    @Test(expected = IllegalArgumentException::class) fun wrapperCannotBecomeItsOwnCaller() {
+        val wrapper = ImmutableMethod.of(nativeReloadMethod("Lfixture/Bridge;", "share", emptyList(), "V", 0,
+            "return-void", static = true))
+        rewriteUiCalls(listOf(wrapper), "Lfixture/Original;->share()V", wrapper) { wrapper.toMutable() }
+    }
 }

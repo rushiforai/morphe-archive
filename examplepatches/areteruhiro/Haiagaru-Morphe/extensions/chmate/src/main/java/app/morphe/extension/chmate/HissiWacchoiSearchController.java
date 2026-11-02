@@ -1518,24 +1518,23 @@ public final class HissiWacchoiSearchController extends ToolScreenController {
         openFromToolbar(activity, null, upper);
     }
     public static void openFromToolbar(Activity activity, Object fragment, boolean upper) {
+        Intent intent=toolbarIntent(activity,fragment,upper);
+        if(!NativeToolTabs.open(activity,"search",intent))activity.startActivity(intent);
+    }
+    static Intent toolbarIntent(Activity activity,Object fragment,boolean upper) {
         Intent intent = new Intent(activity, HissiWacchoiSearchActivity.class);
         intent.putExtra(EXTRA_HALF, upper ? HALF_UPPER : "lower");
         if (fragment != null) try {
             String version = activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
-            Object board;
-            if ("0.8.10.191 dev".equals(version)) board = ResponseArchiveEntry.field(fragment,"W");
-            else {
-                Object model = QuickFilterToolbar.findResponseViewModel(fragment);
-                Object flow = ResponseArchiveEntry.field(model,"0.8.10.226 dev".equals(version)?"d":"r");
-                board = flow.getClass().getMethod("0.8.10.226 dev".equals(version)?"c":"d").invoke(flow);
-            }
-            String accessor = "0.8.10.191 dev".equals(version)?"d":"0.8.10.226 dev".equals(version)?"e":"c";
-            Uri uri = Uri.parse((String)board.getClass().getMethod(accessor,int.class).invoke(board,1));
+            Object board=NativeThreadContext.board(fragment,version);
+            String url=NativeThreadContext.url(board,version,1);
+            if(url==null)return intent;
+            Uri uri = Uri.parse(url);
             List<String> path = uri.getPathSegments();
             if (path.size() >= 3 && "test".equals(path.get(0)) && "read.cgi".equals(path.get(1)))
                 intent.putExtra("haiagaru.wacchoi.host",uri.getHost()).putExtra("haiagaru.wacchoi.board",path.get(2));
         } catch (Exception error) { android.util.Log.w("Haiagaru","Search toolbar board context",error); }
-        if(!NativeToolTabs.open(activity,"search",intent))activity.startActivity(intent);
+        return intent;
     }
 
     private void resumeSearch() {

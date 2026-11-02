@@ -26,7 +26,7 @@ fun renameClassPatch(
                     Rewriter<String> {
                         classMap[it] ?: it
                     }
-            }
+            },
         )
 
     finalize {
@@ -64,5 +64,5 @@ fun obfuscateExtensionClassPatch(vararg classes: Pair<String, Fingerprint>) =
     obfuscateExtensionClassBlockPatch(
         classes.associate { (classDescriptor, fingerprint) ->
             classDescriptor to { fingerprint.matchSingle().originalClassDef.type }
-        }
+        },
     )

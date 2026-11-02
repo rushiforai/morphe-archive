@@ -45,10 +45,10 @@ public final class WuplayProbe extends Instrumentation {
             }
             JSONArray channels = new JSONArray(), programs = new JSONArray();
             try (Cursor cursor = context.getContentResolver().query(Uri.parse("content://android.media.tv/channel"),
-                    new String[]{"_id", "package_name", "internal_provider_id", "display_name"}, null, null, null)) {
+                    new String[]{"_id", "package_name", "internal_provider_id", "display_name", "browsable"}, null, null, null)) {
                 if (cursor == null) throw new AssertionError("Null channel cursor");
                 while (cursor.moveToNext()) if (context.getPackageName().equals(cursor.getString(1))) {
-                    JSONObject row = new JSONObject(); row.put("id",cursor.getLong(0)); row.put("key",cursor.getString(2)); row.put("name",cursor.getString(3)); channels.put(row);
+                    JSONObject row = new JSONObject(); row.put("id",cursor.getLong(0)); row.put("key",cursor.getString(2)); row.put("name",cursor.getString(3)); row.put("browsable",cursor.getInt(4)); channels.put(row);
                 }
             }
             try (Cursor cursor = context.getContentResolver().query(Uri.parse("content://android.media.tv/preview_program"),

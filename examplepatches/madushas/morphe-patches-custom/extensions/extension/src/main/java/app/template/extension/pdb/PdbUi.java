@@ -251,7 +251,8 @@ public final class PdbUi {
     public static java.util.List<SoulRow> soulHistory() {
         java.util.List<SoulRow> out = new java.util.ArrayList<>();
         org.json.JSONArray arr = readHistory();
-        for (int i = 0; i < arr.length(); i++) {
+        // Array is oldest→newest (recordSoul appends); render newest first.
+        for (int i = arr.length() - 1; i >= 0; i--) {
             org.json.JSONObject o = arr.optJSONObject(i);
             if (o == null) continue;
             out.add(new SoulRow(o.optString("a", "seen"),

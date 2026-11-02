@@ -784,6 +784,9 @@ public class DownloadSettingsTest {
                     String.valueOf(chooseRow.getSummary()));
             assertTrue(chooseRow.isEnabled());
             assertTrue(galleryRow.isEnabled());
+            Preference nameRow = page.findPreference(Settings.SAVE_FOLDER.key);
+            assertEquals("the name row still says saves go to Movies and Pictures",
+                    "Not used while you've picked a folder. Saves go there.", String.valueOf(nameRow.getSummary()));
 
             assertFalse(ConfigurationBackup.eligible().containsKey(Settings.SAVE_TREE.key));
             String exported = new String(ConfigurationBackup.export(), StandardCharsets.UTF_8);
@@ -803,6 +806,7 @@ public class DownloadSettingsTest {
             assertEquals("Saves go to Movies and Pictures again.", ShadowToast.getTextOfLatestToast());
             assertFalse(galleryRow.isEnabled());
             assertTrue(String.valueOf(chooseRow.getSummary()).startsWith("Saves go to Movies and Pictures."));
+            assertEquals(HushgramPreferenceFragment.folderSummary("Instagram"), String.valueOf(nameRow.getSummary()));
         } finally {
             SaveTree.forget(RuntimeEnvironment.getApplication());
         }
@@ -818,9 +822,12 @@ public class DownloadSettingsTest {
                 Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.VIDEO_DOWNLOAD);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
-            Preference row = pageIn(controller).findPreference(Settings.SAVE_TREE.key);
+            HushgramPreferenceFragment page = pageIn(controller);
+            Preference row = page.findPreference(Settings.SAVE_TREE.key);
             assertEquals(L10n.f("HushGram can't reach %1$s anymore, so saves go to Movies and Pictures. Pick the folder again.",
                     L10n.isolate("Download/.Insta")), String.valueOf(row.getSummary()));
+            assertEquals("the name is what saves use now", HushgramPreferenceFragment.folderSummary("Instagram"),
+                    String.valueOf(page.findPreference(Settings.SAVE_FOLDER.key).getSummary()));
         } finally {
             SaveTree.forget(context);
         }
@@ -841,6 +848,8 @@ public class DownloadSettingsTest {
                     L10n.isolate("Download/.Insta")), String.valueOf(row.getSummary()));
             assertTrue("Use Movies and Pictures can't be tapped for a deleted folder",
                     page.findPreference(HushgramPreferenceFragment.GALLERY_FOLDERS).isEnabled());
+            assertEquals("the name is what saves use now", HushgramPreferenceFragment.folderSummary("Instagram"),
+                    String.valueOf(page.findPreference(Settings.SAVE_FOLDER.key).getSummary()));
         } finally {
             SaveTree.forget(context);
         }
@@ -958,7 +967,7 @@ public class DownloadSettingsTest {
 
             // What's typed reaches the row's check the way the dialog's OK sends it.
             Preference.OnPreferenceChangeListener ok = folder.getOnPreferenceChangeListener();
-            assertFalse("a path was kept as typed", ok.onPreferenceChange(folder, "../My/Clips"));
+            assertFalse("a bad character was kept as typed", ok.onPreferenceChange(folder, "My:Clips"));
             ShadowLooper.idleMainLooper();
             assertEquals("My_Clips", folder.getText());
             assertEquals("My_Clips", Settings.SAVE_FOLDER.savedValue());
@@ -974,6 +983,31 @@ public class DownloadSettingsTest {
             ShadowLooper.idleMainLooper();
             assertEquals("Instagram", folder.getText());
             assertEquals("Instagram", Settings.SAVE_FOLDER.savedValue());
+        }
+    }
+
+    @Test
+    public void aPathInTheFolderRowIsSentToChooseAFolder() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.REEL_DOWNLOAD);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushgramPreferenceFragment.FolderRow folder = (HushgramPreferenceFragment.FolderRow)
+                    pageIn(controller).findPreference(Settings.SAVE_FOLDER.key);
+            Preference.OnPreferenceChangeListener ok = folder.getOnPreferenceChangeListener();
+            assertTrue(ok.onPreferenceChange(folder, "Clips"));
+            folder.setText("Clips");
+            ShadowLooper.idleMainLooper();
+
+            // Cleaned, this card path was a folder named after it under Movies on internal storage.
+            for (String path : new String[] {"/storage/F929-FA97/Movies/Instagram", "../My/Clips", "My\\Clips"}) {
+                assertFalse(path + " was kept", ok.onPreferenceChange(folder, path));
+                ShadowLooper.idleMainLooper();
+                assertEquals(path + " changed the row", "Clips", folder.getText());
+                assertEquals(path + " changed the folder", "Clips", Settings.SAVE_FOLDER.savedValue());
+                assertEquals("Use Choose a folder for a path or an SD card.", ShadowToast.getTextOfLatestToast());
+            }
+
+            assertTrue("the dialog doesn't say where a card goes",
+                    String.valueOf(folder.getDialogMessage()).endsWith("use Choose a folder."));
         }
     }
 

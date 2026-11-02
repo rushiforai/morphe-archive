@@ -63,15 +63,38 @@ public final class ExtraQuickFilters {
         return Math.max(0,decor.getHeight()-visible.bottom);
     }
     /** Same controls for the transient popup and the non-modal, persistent panel. */
-    private static final class BottomControls extends GridLayout {
+    private static final class BottomControls extends LinearLayout {
         final Object adapter;final ToggleButton[] buttons=new ToggleButton[7];
+        final Activity activity;final TextView handle;final ScrollView scroll;Runnable resized=()->{};
+        int liveHeight;float startY;int startHeight;boolean dragging;
         BottomControls(Activity activity,Object adapter,Runnable beforeImage){
-            super(activity);this.adapter=adapter;setColumnCount(4);
-            int pad=Math.round(8*getResources().getDisplayMetrics().density);setPadding(pad,pad,pad,pad);
+            super(activity);this.activity=activity;this.adapter=adapter;setOrientation(VERTICAL);
+            GridLayout grid=new GridLayout(activity);grid.setColumnCount(4);
+            int pad=Math.round(8*getResources().getDisplayMetrics().density);grid.setPadding(pad,pad,pad,pad);
+            handle=new TextView(activity);handle.setText("━━");handle.setGravity(android.view.Gravity.CENTER);handle.setTextSize(16);
+            handle.setContentDescription("フィルターパネルの高さを調整");handle.setTag("haiagaru.bottomFilterResizeHandle");
+            addView(handle,new LinearLayout.LayoutParams(-1,dp(28)));
+            scroll=new ScrollView(activity);scroll.setFillViewport(false);scroll.addView(grid,new ScrollView.LayoutParams(-1,-2));
+            addView(scroll,new LinearLayout.LayoutParams(-1,-2,1));
+            handle.setOnTouchListener((v,event)->{
+                switch(event.getActionMasked()){
+                    case android.view.MotionEvent.ACTION_DOWN:
+                        startY=event.getRawY();startHeight=getHeight();dragging=true;v.getParent().requestDisallowInterceptTouchEvent(true);return true;
+                    case android.view.MotionEvent.ACTION_MOVE:
+                        if(!dragging)return false;liveHeight=clamp(startHeight+Math.round(startY-event.getRawY()));requestLayout();resized.run();return true;
+                    case android.view.MotionEvent.ACTION_UP:
+                        if(!dragging)return false;dragging=false;
+                        if(liveHeight>0)activity.getSharedPreferences(WacchoiSearchOptions.PREFS,0).edit().putInt(QuickFilterOptions.HEIGHT,Math.max(1,Math.round(liveHeight/getResources().getDisplayMetrics().density))).apply();
+                        liveHeight=0;v.getParent().requestDisallowInterceptTouchEvent(false);v.performClick();requestLayout();resized.run();return true;
+                    case android.view.MotionEvent.ACTION_CANCEL:
+                        dragging=false;liveHeight=0;v.getParent().requestDisallowInterceptTouchEvent(false);requestLayout();resized.run();return true;
+                    default:return false;
+                }
+            });
             setBackgroundColor(themeColor(activity,android.R.attr.colorBackground,android.graphics.Color.DKGRAY));
             for(int i=0;i<buttons.length;i++){
                 final int index=i;ToggleButton button=new ToggleButton(activity);buttons[i]=button;button.setAllCaps(false);button.setTextSize(13);styleButton(button);
-                button.setMinimumHeight(pad*8);GridLayout.LayoutParams params=new GridLayout.LayoutParams(GridLayout.spec(i/4),GridLayout.spec(i%4,1f));params.width=0;params.height=-2;params.setMargins(pad/2,pad/2,pad/2,pad/2);addView(button,params);
+                button.setMinimumHeight(pad*8);GridLayout.LayoutParams params=new GridLayout.LayoutParams(GridLayout.spec(i/4),GridLayout.spec(i%4,1f));params.width=0;params.height=-2;params.setMargins(pad/2,pad/2,pad/2,pad/2);grid.addView(button,params);
                 button.setOnClickListener(v->{try{
                     boolean requested=button.isChecked();toggle(adapter,index,false,true);
                     if(index<4&&!(index==0&&PopularReplies.enabledFor(activity))){State state=state(adapter);state.pendingFilters[index]=requested;state.pendingFilterMask|=1<<index;}
@@ -86,7 +109,20 @@ public final class ExtraQuickFilters {
             }
             redraw();
         }
+        int dp(int value){return Math.round(value*getResources().getDisplayMetrics().density);}
+        int clamp(int value){
+            android.graphics.Rect visible=new android.graphics.Rect();activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(visible);
+            int available=visible.height();if(available<=0)available=getResources().getDisplayMetrics().heightPixels;
+            return Math.max(Math.min(dp(88),available),Math.min(value,Math.max(dp(88),available*3/5)));
+        }
+        @Override protected void onMeasure(int width,int height){
+            int saved=activity.getSharedPreferences(WacchoiSearchOptions.PREFS,0).getInt(QuickFilterOptions.HEIGHT,0);
+            int requested=liveHeight>0?liveHeight:saved>0?dp(saved):0;
+            // Bound both modes to the available pane. The ScrollView keeps every filter reachable.
+            super.onMeasure(width,View.MeasureSpec.makeMeasureSpec(clamp(requested>0?requested:Integer.MAX_VALUE),requested>0?View.MeasureSpec.EXACTLY:View.MeasureSpec.AT_MOST));
+        }
         void redraw(){try{
+            int handleVisibility=QuickFilterOptions.resizeHandle()?View.VISIBLE:View.GONE;if(handle.getVisibility()!=handleVisibility)handle.setVisibility(handleVisibility);
             boolean[] on=selected(adapter);String[] names=labels(adapter);
             for(int i=0;i<buttons.length;i++){
                 ToggleButton button=buttons[i];
@@ -101,6 +137,7 @@ public final class ExtraQuickFilters {
         int pad=Math.round(8*activity.getResources().getDisplayMetrics().density);
         PopupWindow popup=new PopupWindow();BottomControls grid=new BottomControls(activity,a,popup::dismiss);
         popup.setContentView(grid);popup.setWidth(-1);popup.setHeight(-2);popup.setFocusable(true);popup.setOutsideTouchable(true);
+        grid.resized=()->{if(!popup.isShowing())return;grid.measure(View.MeasureSpec.makeMeasureSpec(activity.getWindow().getDecorView().getWidth(),View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));popup.update(0,bottomInset(activity)+pad,-1,grid.getMeasuredHeight());};
         popup.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(themeColor(activity,android.R.attr.colorBackground,android.graphics.Color.DKGRAY)));popup.setElevation(pad*2);
         android.os.Handler handler=new android.os.Handler(android.os.Looper.getMainLooper());
         Runnable sync=new Runnable(){public void run(){if(!popup.isShowing())return;grid.redraw();handler.postDelayed(this,150);}};
@@ -146,7 +183,7 @@ public final class ExtraQuickFilters {
                 if(list.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)
                     originalMargin=((ViewGroup.MarginLayoutParams)list.getLayoutParams()).bottomMargin;
                 collect(a,PopularReplies.fullList(field(a,legacy(a)?"K":middle(a)?"J":"o")));
-                panel=new BottomControls(activity,a,()->{});panel.setTag("haiagaru.persistentBottomFilters");
+                panel=new BottomControls(activity,a,()->{});panel.resized=this::schedule;panel.setTag("haiagaru.persistentBottomFilters");
                 panel.setElevation(8*root.getResources().getDisplayMetrics().density);panel.setVisibility(View.GONE);
                 host.addView(panel,new FrameLayout.LayoutParams(-1,-2));
                 int width=list.getWidth();if(width<=0)width=root.getWidth();

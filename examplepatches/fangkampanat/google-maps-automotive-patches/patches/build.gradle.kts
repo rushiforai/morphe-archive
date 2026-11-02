@@ -6,7 +6,7 @@ group = "app.morphe"
 patches {
     about {
         name = "Maps Automotive Patches"
-        description = "Google Maps Automotive for MicroG-RE 7.2.2 on BYD DiLink 3 (Android 10), applied with Morphe Desktop"
+        description = "Google Maps Automotive for MicroG-RE 7.3.0 on BYD DiLink 3 (Android 10), applied with Morphe Desktop"
         source = "https://github.com/fangkampanat/google-maps-automotive-patches"
         author = "fangkampanat"
         contact = "https://github.com/fangkampanat/google-maps-automotive-patches/issues"

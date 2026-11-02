@@ -27,6 +27,18 @@ final class CatalogPublisher {
     private final ContentResolver resolver;
     CatalogPublisher(Context context) { this.context = context; resolver = context.getContentResolver(); }
 
+    List<Long> pendingBrowsable(Set<String> selectedHomeCatalogs) {
+        List<Long> result = new ArrayList<>();
+        try (Cursor cursor = resolver.query(CHANNELS,
+                new String[]{"_id", "package_name", "internal_provider_id", "type", "browsable"}, null, null, null)) {
+            if (cursor == null) throw new IllegalStateException("TV channel provider unavailable");
+            while (cursor.moveToNext()) if (CatalogPolicy.requestVisibility(cursor.getString(1), cursor.getString(2),
+                    cursor.getString(3), cursor.getInt(4) != 0, selectedHomeCatalogs))
+                result.add(cursor.getLong(0));
+        }
+        return result;
+    }
+
     void removeUnselected(Set<String> desired) throws Exception {
         List<Long> remove = new ArrayList<>();
         try (Cursor cursor = resolver.query(CHANNELS, new String[]{"_id", "package_name", "internal_provider_id"}, null, null, null)) {

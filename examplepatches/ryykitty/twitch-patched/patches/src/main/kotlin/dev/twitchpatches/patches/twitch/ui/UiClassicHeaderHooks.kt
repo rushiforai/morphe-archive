@@ -1,23 +1,52 @@
 package dev.twitchpatches.patches.twitch.ui
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import dev.twitchpatches.patches.twitch.reload.nativeReloadMethod
 import dev.twitchpatches.patches.twitch.shared.*
 
 private const val BRIDGE = "Ldev/twitchpatches/extension/ui/UiComposeBridge;"
 
-internal fun BytecodePatchContext.injectClassicHeader(all: List<Method>, owner: MutableClass, row: UiClassicActionContract) {
-    val visible = all.filter { it.name == "toString" && it.hasStrings("Visible(channelInfo=", ", chatHeaderUiModel=") }
-        .uniqueHook("UI native visible chat header")
-    val ui = all.filter { it.name == "toString" && it.hasStrings("ChatHeaderUiModel(chatName=") }
-        .uniqueHook("UI native chat header model")
+private object VisibleChatHeaderFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    strings = listOf(
+        string("Visible(channelInfo="),
+        string(", chatHeaderUiModel="),
+    ),
+)
+
+private object ChatHeaderUiModelFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    strings = listOf(
+        string("ChatHeaderUiModel(chatName="),
+    ),
+)
+
+private class ChatHeaderBindingFingerprint(uiField: FieldReference) : Fingerprint(
+    parameters = listOf("Ltv/twitch/android/core/mvp/viewdelegate/ViewDelegateState;"),
+    returnType = "V",
+    filters = listOf(fieldAccess(definingClass = uiField.definingClass, name = uiField.name)),
+)
+
+private class HiddenChatActionsFingerprint(buttonsBase: String) : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    superclass = buttonsBase,
+    strings = listOf(string("Hidden")),
+)
+
+internal fun BytecodePatchContext.injectClassicHeader(owner: MutableClass, row: UiClassicActionContract) {
+    val visible = VisibleChatHeaderFingerprint.originalMethod
+    val ui = ChatHeaderUiModelFingerprint.originalMethod
     val uiField = classDefBy(visible.definingClass).fields.filter { it.type == ui.definingClass }.uniqueHook("UI header model field")
-    val bind = all.filter { it.isInstance(listOf("Ltv/twitch/android/core/mvp/viewdelegate/ViewDelegateState;"), "V") &&
-        it.references().any { ref -> ref.toString() == uiField.toString() } }.uniqueHook("UI native chat header binding")
+    val bind = ChatHeaderBindingFingerprint(uiField).originalMethod
     val root = bind.references().filterIsInstance<FieldReference>().filter { it.type == "Landroid/view/View;" &&
         it.definingClass != bind.definingClass }.distinctBy { it.toString() }.uniqueHook("UI native chat header view")
     val fields = classDefBy(ui.definingClass).fields
@@ -25,8 +54,7 @@ internal fun BytecodePatchContext.injectClassicHeader(all: List<Method>, owner: 
     val extensions = fields.filter { it.type == "Z" }.uniqueHook("UI chat header extension availability")
     val buttonsBase = requireNotNull(classDefBy(row.renderer.parameterTypes[0].toString()).superclass)
     val buttons = fields.filter { it.type == buttonsBase }.uniqueHook("UI chat header action state")
-    val hidden = all.filter { it.name == "toString" && it.hasStrings("Hidden") &&
-        classDefBy(it.definingClass).superclass == buttonsBase }.uniqueHook("UI hidden chat actions")
+    val hidden = HiddenChatActionsFingerprint(buttonsBase).originalMethod
     val leaderboard = fields.filter { it.type.startsWith("L") && classDefBy(it.type).methods.any { method ->
         method.name == "isVisible" && method.isInstance(emptyList(), "Z")
     } }.uniqueHook("UI native leaderboard availability")

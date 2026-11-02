@@ -1,0 +1,6 @@
+package e.e.a;
+import android.app.*;import android.content.*;import android.view.*;
+/** Intercept native previous/next touch only while a tab-owned queue is bound. */
+public final class QueueButtons110 {
+ public static void bind(View root,Object explicit){if(root==null)return;for(String name:new String[]{"prevbutton","nextbutton"}){int id=root.getResources().getIdentifier(name,"id",root.getContext().getPackageName());View button=id==0?null:root.findViewById(id);if(button==null)continue;final boolean forward=name.equals("nextbutton");button.setOnTouchListener(new View.OnTouchListener(){boolean claimed;Object owner;boolean popup;public boolean onTouch(View v,MotionEvent e){if(e.getActionMasked()==0){owner=explicit;popup=owner instanceof Service;if(owner==null)try{Context c=UiDialogs.owner(v.getContext());if(c instanceof Activity)owner=Playback214.get(c,"v");}catch(Exception ignored){}TabPlayback110.Queue q=TabPlayback110.active;try{claimed=q!=null&&owner!=null&&Playback214.get(owner,popup?"O":"C1")==q.rows;}catch(Exception ignored){claimed=false;}return claimed;}if(!claimed)return false;if(e.getActionMasked()==1){claimed=false;if(e.getPointerCount()==1&&e.getX()>=0&&e.getY()>=0&&e.getX()<v.getWidth()&&e.getY()<v.getHeight())TabPlayback110.move(owner,forward,popup);}else if(e.getActionMasked()==3||e.getPointerCount()>1)claimed=false;return true;}});}}
+}

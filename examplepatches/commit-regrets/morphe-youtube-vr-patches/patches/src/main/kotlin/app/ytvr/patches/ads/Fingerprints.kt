@@ -120,52 +120,64 @@ object CuePointListFingerprint : Fingerprint(
 )
 
 /**
- * The two accessors that hand the ad-slot list of a player response to every other reader.
+ * The two accessors that hand the ad-slot list to every other reader.
  *
- * Found by cross-referencing the field `Lzjp;->n:Lwxq;` over the stock 1.88.10 dex: five sites read
- * it, and only these two were left uncovered by the four hooks in [app.ytvr.patches.ads.hideAdsPatch]
- * (`mkz.a` is neutered as the layout bootstrap, `oqm.K` has no callers at all -- and `mqx.r`, the
- * ad-break list builder, is *not* hooked: it is one of the readers this pair now covers). `d` is the
- * one every other reader calls -- the neutered `mkz.a` and the unhooked `mqx.r` three times each --
- * and `c` is its single-type shorthand.
+ * Found in 1.88.10 by cross-referencing the field `Lzjp;->n:Lwxq;`: five sites read it, and only
+ * these two were left uncovered by the four hooks in [app.ytvr.patches.ads.hideAdsPatch] (`mkz.a`
+ * is neutered as the layout bootstrap, `oqm.K` has no callers at all -- and `mqx.r`, the ad-break
+ * list builder, is *not* hooked: it is one of the readers this pair now covers). `d` is the one
+ * every other reader calls -- the neutered `mkz.a` and the unhooked `mqx.r` three times each -- and
+ * `c` is its single-type shorthand.
  *
  * Measured 2026-10-13 on the forced-fallback build: with all four of those hooks neutered and the
  * Louvre VR180 video playing, the app still fetched a doubleclick impression and a `pagead/adview`
  * creative, and the two accessors were reached four times around it. That is what makes them the
  * delivery path rather than the consumers above them.
  *
- * The class and method names are obfuscated and expected to change between versions, so both
- * fingerprints pin the *whole shape* -- static, the response (plus, for `d`, the slot-type list), and
- * a reference return -- and a rename fails the patch loudly at patch time instead of hooking a wrong
- * method silently. The injected `check-cast` reads its type from the method's own return type, so no
- * obfuscated name is written into the bytecode.
+ * 1.90.05 moved the placements from the player response onto StreamingData. That branch is
+ * `Lmit;->c(Lzlo;)Lvpn;` and `Lmit;->d(Lzlo;Ljava/util/List;)Lvpn;`, and both read
+ * `Lzlo;->n:Lwzv;`. They live in the ad-scheduling utility class whose `g(Lzlo;, List)` helper
+ * the hooked CISA detector calls. The caller pattern is unchanged: `d` is called 3x by the
+ * neutered layout bootstrap (`mnd.a`) and 3x by this build's unhooked reader (`mtb.r`); `c` is
+ * the shorthand (`fcf.A`, `gsl.a`, `mit.e`). Measured: exactly one static method app-wide per
+ * shape. The 1.89.09 branch is still `Lmht;->k(Lzmj;)Lvpr;` and
+ * `Lmht;->l(Lzmj;Ljava/util/List;)Lvpr;`, reading `Lzmj;->n:Lxau;`. 1.88.10 read
+ * `Lzjp;->n:Lwxq;` off the player response and is no longer a supported target.
+ *
+ * The class and method names are obfuscated and expected to change between versions, so each
+ * supported version gets an explicit branch and a rename fails the patch loudly at patch time
+ * instead of hooking a wrong method silently. The early return is the renderer's own empty-list
+ * singleton, read out of that method and returned with `sget-object`: the injected bytecode
+ * carries no obfuscated name of its own -- the field reference is the renderer's, mined at patch
+ * time, so an R8 rename cannot strand it. The singleton's type is already the accessor's return
+ * type.
  */
 object AdSlotAccessorFingerprint : Fingerprint(
     custom = { method, _ ->
         val params = method.parameterTypes.map { it.toString() }
-        val is18810 = method.definingClass == "Lmgn;" &&
+        val is19005 = method.definingClass == "Lmit;" &&
             method.name == "c" &&
-            params == listOf("Lzjp;") &&
-            method.returnType == "Lvmo;"
+            params == listOf("Lzlo;") &&
+            method.returnType == "Lvpn;"
         val is18909 = method.definingClass == "Lmht;" &&
             method.name == "k" &&
             params == listOf("Lzmj;") &&
             method.returnType == "Lvpr;"
-        is18810 || is18909
+        is19005 || is18909
     },
 )
 
 object AdSlotTypedAccessorFingerprint : Fingerprint(
     custom = { method, _ ->
         val params = method.parameterTypes.map { it.toString() }
-        val is18810 = method.definingClass == "Lmgn;" &&
+        val is19005 = method.definingClass == "Lmit;" &&
             method.name == "d" &&
-            params == listOf("Lzjp;", "Ljava/util/List;") &&
-            method.returnType == "Lvmo;"
+            params == listOf("Lzlo;", "Ljava/util/List;") &&
+            method.returnType == "Lvpn;"
         val is18909 = method.definingClass == "Lmht;" &&
             method.name == "l" &&
             params == listOf("Lzmj;", "Ljava/util/List;") &&
             method.returnType == "Lvpr;"
-        is18810 || is18909
+        is19005 || is18909
     },
 )

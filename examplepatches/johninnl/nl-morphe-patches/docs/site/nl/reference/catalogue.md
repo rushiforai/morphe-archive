@@ -1,8 +1,21 @@
 # Patchcatalogus
 
-**Patchbundel: 1.12.0**
+**Patchbundel: 1.26.0**
 
 Controleer per patch de ondersteunde app-versies en de standaardinstelling. De app-pagina legt uit wat de patch voor het gebruik verandert.
+
+## 2dehands
+
+[Wat veranderen de patches?](../apps/2dehands.md)
+
+`be.tweedehands.m`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Disable ThreatMetrix | Aan | 16.19.0 |
+| Disable tracking | Aan | 16.19.0 |
+| Hide ads | Aan | 16.19.0 |
+| Skip consent screens | Aan | 16.19.0 |
 
 ## 9292
 
@@ -161,9 +174,11 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 
 | Patch | Standaard | App-versies |
 | --- | --- | --- |
+| Broadcast navigation data | Aan | 14.17 |
 | Disable partner services | Aan | 14.17 |
 | Disable tracking | Aan | 14.17 |
 | Fix PairIP startup | Aan | 14.17 |
+| Guest mode | Aan | 14.17 |
 | Hide Pro notices | Aan | 14.17 |
 | Hide ads | Aan | 14.17 |
 | Unlock Pro | Aan | 14.17 |
@@ -181,6 +196,57 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Hide ads | Aan | 2.6.8 |
 | Read full articles | Aan | 2.6.8 |
 | Skip consent screens | Aan | 2.6.8 |
+
+## Gearslip
+
+[Wat veranderen de patches?](../apps/gearslip.md)
+
+`app.seb3thehacker.gearslip`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Control car display density | Aan | 0.3.31-alpha |
+| Hide apps from drawer | Aan | 0.3.12-alpha, 0.3.31-alpha |
+| Keep music player entries | Aan | 0.3.12-alpha, 0.3.31-alpha |
+
+## Google Maps
+
+[Wat veranderen de patches?](../apps/google-maps.md)
+
+`com.google.android.apps.maps`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| 120 refresh rate | Aan | 26.43.05.1002020710 |
+| Account sheet cleanup | Aan | 26.43.05.1002020710 |
+| Add microG-RE support | Uit | 26.43.05.1002020710 |
+| Add original microG support | Uit | 26.43.05.1002020710 |
+| Any media app | Aan | 26.43.05.1002020710 |
+| Avoid Flock cameras | Aan | 26.43.05.1002020710 |
+| Better offline maps | Aan | 26.43.05.1002020710 |
+| Black theme | Aan | 26.43.05.1002020710 |
+| Blue pin | Aan | 26.43.05.1002020710 |
+| Bypass Play Services checks | Aan | 26.43.05.1002020710 |
+| Change app name | Aan | 26.43.05.1002020710 |
+| Change package name | Aan | 26.43.05.1002020710 |
+| Customization screen | Aan | 26.43.05.1002020710 |
+| Flock cameras | Aan | 26.43.05.1002020710 |
+| Follow playing media | Uit | 26.43.05.1002020710 |
+| Hide ads and clutter | Aan | 26.43.05.1002020710 |
+| Legacy icon | Aan | 26.43.05.1002020710 |
+| Location provider toggle | Aan | 26.43.05.1002020710 |
+| Offline saved places | Aan | 26.43.05.1002020710 |
+| Power saving mode | Aan | 26.43.05.1002020710 |
+| Proxy | Aan | 26.43.05.1002020710 |
+| Rectangle shapes | Aan | 26.43.05.1002020710 |
+| Remove permissions | Aan | 26.43.05.1002020710 |
+| Remove sign-in prompts | Aan | 26.43.05.1002020710 |
+| Remove telemetry | Aan | 26.43.05.1002020710 |
+| Speed cameras | Aan | 26.43.05.1002020710 |
+| Speeding chime | Aan | 26.43.05.1002020710 |
+| Trim account menu | Aan | 26.43.05.1002020710 |
+| Waze alerts | Aan | 26.43.05.1002020710 |
+| Zoom controls in navigation | Aan | 26.43.05.1002020710 |
 
 ## GVA
 
@@ -435,6 +501,24 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Disable tracking | Aan | 4.73 |
 | Unlock Premium | Aan | 4.73 |
 
+## RainViewer
+
+[Wat veranderen de patches?](../apps/rainviewer.md)
+
+`com.lucky_apps.RainViewer`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Disable tracking | Aan | 8.4.1 |
+| Enable local Pro features | Aan | 8.4.1 |
+| Fix Google services | Aan | 8.4.1 |
+| Fix integrity | Aan | 8.4.1 |
+| Hide AI insights | Aan | 8.4.1 |
+| Hide ads | Aan | 8.4.1 |
+| Hide weather warnings overlay | Aan | 8.4.1 |
+| Skip consent screens | Aan | 8.4.1 |
+| Skip subscription screens | Aan | 8.4.1 |
+
 ## Rollerbank
 
 [Wat veranderen de patches?](../apps/rollerbank.md)
@@ -503,6 +587,16 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Hide ads | Aan | 7.0.16 |
 | Skip consent screens | Aan | 7.0.16 |
 
+## Vela Maps
+
+[Wat veranderen de patches?](../apps/vela.md)
+
+`app.vela`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| External speed controls | Aan | 0.5.2621 |
+
 ## Videoland Android
 
 [Wat veranderen de patches?](../apps/videoland.md)
@@ -556,11 +650,51 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 
 ## Waze
 
+[Wat veranderen de patches?](../apps/waze.md)
+
 `com.waze`
 
 | Patch | Standaard | App-versies |
 | --- | --- | --- |
+| Alert distances | Aan | 5.26.90.901 |
+| All moods | Uit | 5.26.90.901 |
+| Allow high refresh rate | Uit | 5.26.90.901 |
+| Auto zoom | Uit | 5.26.90.901 |
+| Average speed zone bar | Aan | 5.26.90.901 |
+| Bigger alert pins | Uit | 5.26.90.901 |
+| Bigger speedometer | Aan | 5.26.90.901 |
+| Broadcast navigation data | Aan | 5.26.90.901 |
+| Car alerts as notifications | Uit | 5.26.90.901 |
+| Car reconnect grace period | Uit | 5.26.90.901 |
+| Car traffic meter | Uit | 5.26.90.901 |
+| Change app name | Aan | 5.26.90.901 |
+| Extra map info | Uit | 5.26.90.901 |
+| Flock cameras | Aan | 5.26.90.901 |
+| Full black | Aan | 5.26.90.901 |
+| Hide ads | Aan | 5.26.90.901 |
+| Hide recent destinations | Uit | 5.26.90.901 |
+| Lane guidance | Uit | 5.26.90.901 |
+| Map skin | Aan | 5.26.90.901 |
+| Native camera and hazard controls | Uit | 5.26.90.901 |
+| Navigation distances | Uit | 5.26.90.901 |
+| No AI reporting | Uit | 5.26.90.901 |
+| No Google Assistant | Uit | 5.26.90.901 |
+| Open without device location | Uit | 5.26.90.901 |
+| Remove permissions | Aan | 5.26.90.901 |
+| Remove sign-in prompts | Aan | 5.26.90.901 |
+| Remove telemetry | Aan | 5.26.90.901 |
+| Report speed limit | Uit | 5.26.90.901 |
+| Share alerts with Maps | Aan | 5.26.90.901 |
+| Skip consent screens | Aan | 5.26.90.901 |
 | SoundCloud in Waze | Aan | Alle versies |
+| Speed bump controls | Uit | 5.26.90.901 |
+| Speed camera alerts | Aan | 5.26.90.901 |
+| Speed camera sound at any speed | Aan | 5.26.90.901 |
+| Speed cameras everywhere | Uit | 5.26.90.901 |
+| Speed limit controls | Uit | 5.26.90.901 |
+| Speed limit sign | Uit | 5.26.90.901 |
+| Stay awake in the background | Uit | 5.26.90.901 |
+| Support Gearslip | Aan | 5.26.90.901 |
 | YT Music Morphe in Waze | Aan | Alle versies |
 
 ## Weeronline
@@ -600,5 +734,15 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Patch | Standaard | App-versies |
 | --- | --- | --- |
 | Publish selected catalog channels | Uit | 0.9.4-beta |
+
+## YouTube Music
+
+[Wat veranderen de patches?](../apps/youtube-music.md)
+
+`com.google.android.apps.youtube.music`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Gearslip music browser support | Aan | Alle versies |
 
 [Releases](https://github.com/johninnl/nl-morphe-patches/releases)

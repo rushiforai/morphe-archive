@@ -9,8 +9,8 @@ private const val EXTENSION_CLASS =
     "Lapp/stylus/extension/github/patches/ForceSystemFontPatch;"
 
 private val forceSystemFontGithubUiMonospaceCssPatch = resourcePatch(
-    name = "Force system font ui monospace web content (GitHub)",
-    description = "Internal dependency patch for webview CSS override used by Force system font (UI monospace).",
+    name = "Force system font ui monospace web content",
+    description = "Internal webview CSS override for UI monospace.",
     default = true,
 ) {
     
@@ -42,8 +42,8 @@ samp {
 
 @Suppress("unused")
 val forceSystemFontGithubUiMonospacePatch = bytecodePatch(
-    name = "Force system font (including monospace) (GitHub)",
-    description = "Renders GitHub UI and monospace text using the device system UI font.",
+    name = "Force system font (including monospace)",
+    description = "Uses the device's system font for UI and monospace text.",
     default = false,
 ) {
     category("Font")

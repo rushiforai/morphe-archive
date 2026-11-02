@@ -23,20 +23,17 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 private const val FIELD = "LX/A1k;"
-internal const val SYNTHETIC_TEXT_FIELD_FOCUS = "$FIELD->onFocusChanged(ZILandroid/graphics/Rect;)V"
+internal const val SYNTHETIC_TEXT_FIELD_SELECTION = "$FIELD->onSelectionChanged(II)V"
 private const val TEXT_FIELD_CHANGED = "$FIELD->onTextChanged(Ljava/lang/CharSequence;III)V"
-private const val ANDROID_FOCUS = "Landroid/widget/TextView;->onFocusChanged(ZILandroid/graphics/Rect;)V"
+private const val ANDROID_SELECTION = "Landroid/widget/TextView;->onSelectionChanged(II)V"
 
-/** The focus change as Messenger writes it: a trace mark, Android's own, then the input's focus listener. p0 is v3. */
-private val FOCUS_BODY = """
-    const v0, 0x1a2b
-    invoke-static {v0}, LX/06O;->A06(I)I
-    move-result v0
-    invoke-super {p0, p1, p2, p3}, $ANDROID_FOCUS
-    iget-object v1, p0, $FIELD->A06:LX/52J;
+/** The selection change as Messenger writes it: Android's own, then the input's selection listener. p0 is v2. */
+private val SELECTION_BODY = """
+    invoke-super {p0, p1, p2}, $ANDROID_SELECTION
+    iget-object v1, p0, $FIELD->A09:LX/515;
     if-eqz v1, :done
-    const/4 v2, 0x0
-    invoke-virtual {v1, v2}, LX/52J;->A00(Ljava/lang/Object;)Ljava/lang/Object;
+    const/4 v0, 0x0
+    invoke-virtual {v1, v0}, LX/515;->A00(Ljava/lang/Object;)Ljava/lang/Object;
     :done
     return-void
 """.trimIndent()
@@ -47,26 +44,26 @@ private val TEXT_CHANGED_BODY = """
     return-void
 """.trimIndent()
 
-private fun focus(body: String = FOCUS_BODY, owner: String = FIELD, flags: Int = AccessFlags.PUBLIC.value) =
-    fixtureMethod(SYNTHETIC_TEXT_FIELD_FOCUS.replace(FIELD, owner), body.replace(FIELD, owner), registers = 7, flags = flags)
+private fun selection(body: String = SELECTION_BODY, owner: String = FIELD, flags: Int = AccessFlags.PUBLIC.value) =
+    fixtureMethod(SYNTHETIC_TEXT_FIELD_SELECTION.replace(FIELD, owner), body.replace(FIELD, owner), registers = 5, flags = flags)
 
 private fun textChanged(owner: String = FIELD, id: String = TEXT_FIELD_CHANGED) =
     fixtureMethod(id.replace(FIELD, owner), TEXT_CHANGED_BODY, registers = 6)
 
 /**
- * The Litho text input with its focus change and the onTextChanged that names its remeasure, the Litho spec that names
- * the same remeasure but isn't a view, and another EditText with a focus change of its own.
+ * The Litho text input with its selection change and the onTextChanged that names its remeasure, the Litho spec that
+ * names the same remeasure but isn't a view, and another EditText with a selection change of its own.
  */
 internal fun textFieldFixture(
-    focusMethod: MutableMethod? = focus(),
+    selectionMethod: MutableMethod? = selection(),
     changedMethod: MutableMethod? = textChanged(),
     superclass: String = EDIT_TEXT,
 ): List<MutableClass> = listOf(
-    fixtureClass(FIELD, listOfNotNull(focusMethod, changedMethod), superclass = superclass),
+    fixtureClass(FIELD, listOfNotNull(selectionMethod, changedMethod), superclass = superclass),
     fixtureClass("LX/5QA;", listOf(fixtureMethod("LX/5QA;->A0v(LX/1Su;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;",
         "const-string v0, \"$TEXT_INPUT_REMEASURE\"\nconst/4 v0, 0x0\nreturn-object v0",
         flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)), superclass = "LX/1QA;"),
-    fixtureClass("LX/Zq1;", listOf(focus(owner = "LX/Zq1;")), superclass = EDIT_TEXT),
+    fixtureClass("LX/Zq1;", listOf(selection(owner = "LX/Zq1;")), superclass = EDIT_TEXT),
 )
 
 private fun Method.code() = implementation!!.instructions.toList()
@@ -112,15 +109,15 @@ class TextStyleTest {
             assertTrue("\"$name\"" in source, name)
         }
         assertTrue("static final String KEY = \"$TEXT_STYLE\";" in source)
-        assertEquals("L${TEXT_STYLE_ACTIVITY.replace('.', '/')};->textFieldFocused(Landroid/view/View;)V", TEXT_FIELD_FOCUSED)
-        assertTrue("public static void textFieldFocused(View field)" in source)
+        assertEquals("L${TEXT_STYLE_ACTIVITY.replace('.', '/')};->textFieldSelected(Landroid/view/View;)V", TEXT_FIELD_SELECTED)
+        assertTrue("public static void textFieldSelected(View field)" in source)
     }
 
-    @Test fun theHookIsTheFocusChangeOfTheOneEditTextThatNamesTheRemeasure() {
-        assertEquals(setOf(SYNTHETIC_TEXT_FIELD_FOCUS), found(textFieldFixture()))
+    @Test fun theHookIsTheSelectionChangeOfTheOneEditTextThatNamesTheRemeasure() {
+        assertEquals(setOf(SYNTHETIC_TEXT_FIELD_SELECTION), found(textFieldFixture()))
         for (profile in listOf(SYNTHETIC_PROFILE, BASE_PROFILE)) {
             assertEquals(1, profile.hooks.getValue(TEXT_STYLE).size)
-            assertTrue(profile.hooks.getValue(TEXT_STYLE).single().endsWith(";->onFocusChanged(ZILandroid/graphics/Rect;)V"))
+            assertTrue(profile.hooks.getValue(TEXT_STYLE).single().endsWith(";->onSelectionChanged(II)V"))
         }
         validateControls(mirroredControls(textFieldFixture()), setOf(TEXT_STYLE))
     }
@@ -131,13 +128,13 @@ class TextStyleTest {
             "not an EditText" to textFieldFixture(superclass = "Landroid/widget/TextView;"),
             "the remeasure outside onTextChanged" to textFieldFixture(changedMethod = textChanged(id = "$FIELD->A00(Ljava/lang/CharSequence;III)V")),
             "two EditTexts name it" to textFieldFixture() + fixtureClass("LX/Zq2;", listOf(textChanged(owner = "LX/Zq2;")), superclass = EDIT_TEXT),
-            "no focus change" to textFieldFixture(focusMethod = null),
-            "a focus change without Android's own" to textFieldFixture(focusMethod = focus(FOCUS_BODY.replace("invoke-super {p0, p1, p2, p3}, $ANDROID_FOCUS\n", ""))),
-            "Android's own on another view" to textFieldFixture(focusMethod = focus(FOCUS_BODY.replace("invoke-super {p0,", "invoke-super {v1,"))),
-            "Android's own twice" to textFieldFixture(focusMethod = focus(FOCUS_BODY.replace("move-result v0\n",
-                "move-result v0\ninvoke-super {p0, p1, p2, p3}, $ANDROID_FOCUS\n"))),
+            "no selection change" to textFieldFixture(selectionMethod = null),
+            "a selection change without Android's own" to textFieldFixture(selectionMethod = selection(SELECTION_BODY.replace("invoke-super {p0, p1, p2}, $ANDROID_SELECTION\n", ""))),
+            "Android's own on another view" to textFieldFixture(selectionMethod = selection(SELECTION_BODY.replace("invoke-super {p0,", "invoke-super {v1,"))),
+            "Android's own twice" to textFieldFixture(selectionMethod = selection(SELECTION_BODY.replace("iget-object v1",
+                "invoke-super {p0, p1, p2}, $ANDROID_SELECTION\niget-object v1"))),
             // Static, p0 is the first parameter and not a view.
-            "a static focus change" to textFieldFixture(focusMethod = focus("invoke-super {p0, p1, p2, v0}, $ANDROID_FOCUS\nreturn-void",
+            "a static selection change" to textFieldFixture(selectionMethod = selection("invoke-super {p0, p1, v0}, $ANDROID_SELECTION\nreturn-void",
                 flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)),
         )
         for ((case, classes) in cases) {
@@ -146,23 +143,23 @@ class TextStyleTest {
         }
     }
 
-    @Test fun theFocusChangeHandsTheFieldToTheExtensionBeforeAnythingElse() {
-        val method = focus()
+    @Test fun theSelectionChangeHandsTheFieldToTheExtensionBeforeAnythingElse() {
+        val method = selection()
         val before = method.code()
         injectControl(TEXT_STYLE, mapOf(TEXT_STYLE to listOf(method)))
         val code = method.code()
         val call = code[0] as FiveRegisterInstruction
         assertEquals(Opcode.INVOKE_STATIC, call.opcode)
-        assertEquals(TEXT_FIELD_FOCUSED, (call as ReferenceInstruction).reference.toString())
-        assertEquals(listOf(1, 3), listOf(call.registerCount, call.registerC), "this, which is p0")
-        // Messenger's own focus change follows unchanged, and Off and Pause run only that.
+        assertEquals(TEXT_FIELD_SELECTED, (call as ReferenceInstruction).reference.toString())
+        assertEquals(listOf(1, 2), listOf(call.registerCount, call.registerC), "this, which is p0")
+        // Messenger's own selection change follows unchanged, and Off and Pause run only that.
         assertEquals(before, code.drop(1))
     }
 
     @Test fun anUnusableMethodRefusesTheSwitchBeforeAnyEdit() {
         val cases = mapOf(
-            "no call to Android's own" to focus(FOCUS_BODY.replace("invoke-super {p0, p1, p2, p3}, $ANDROID_FOCUS\n", "")),
-            "Android's own on another view" to focus(FOCUS_BODY.replace("invoke-super {p0,", "invoke-super {v1,")),
+            "no call to Android's own" to selection(SELECTION_BODY.replace("invoke-super {p0, p1, p2}, $ANDROID_SELECTION\n", "")),
+            "Android's own on another view" to selection(SELECTION_BODY.replace("invoke-super {p0,", "invoke-super {v1,")),
             "another method" to textChanged(),
         )
         for ((case, bad) in cases) {
@@ -172,7 +169,7 @@ class TextStyleTest {
         }
     }
 
-    @Test fun everySupportedBuildHooksItsTextInputsFocusChange() {
+    @Test fun everySupportedBuildHooksItsTextInputsSelectionChange() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
         val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
@@ -188,7 +185,7 @@ class TextStyleTest {
             val before = method.code().map { it.opcode }
             method.injectTextStyleField()
             val call = method.code()[0]
-            assertEquals(TEXT_FIELD_FOCUSED, (call as ReferenceInstruction).reference.toString(), code)
+            assertEquals(TEXT_FIELD_SELECTED, (call as ReferenceInstruction).reference.toString(), code)
             assertEquals(method.parameterRegister(0), (call as FiveRegisterInstruction).registerC, code)
             assertEquals(before, method.code().drop(1).map { it.opcode }, code)
         }

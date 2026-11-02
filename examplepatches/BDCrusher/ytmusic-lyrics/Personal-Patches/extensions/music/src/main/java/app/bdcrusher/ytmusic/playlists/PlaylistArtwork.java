@@ -26,6 +26,15 @@ public final class PlaylistArtwork {
     private static final Set<Integer> WRAPPERS=Set.of(9,10,58173949,1,58174010,4,49399797,175617300,3,13,361650780,2,153515154,172660663,168777401,5);
     private PlaylistArtwork(){}
     private static File directory(){return new File(Utils.getContext().getFilesDir(),"bdcrusher-playlist-artwork");}
+    /** Register the already saved static cover for native player/playlist thumbnail URLs offline. */
+    public static void downloaded(String id,File jpeg,app.morphe.extension.shared.innertube.PlayerResponseOuterClass.VideoDetails details){
+        if(!id.matches("[A-Za-z0-9_-]{11}")||!jpeg.isFile()||jpeg.length()>4*1024*1024)return;
+        try{IO.execute(()->{try{Set<String> seen=new HashSet<>();Thumbnail best=null;for(var image:details.getThumbnail().getThumbnailsList()){
+            String normalized=key(image.getUrl());if(normalized==null||!seen.add(normalized))continue;File target=new File(directory(),hash(normalized)+".jpg");if(!directory().isDirectory()&&!directory().mkdirs())throw new IOException("Cover directory");
+            synchronized(PlaylistArtwork.class){if(!target.isFile()){AtomicFile atomic=new AtomicFile(target);FileOutputStream out=null;try(InputStream in=new FileInputStream(jpeg)){out=atomic.startWrite();byte[] buffer=new byte[8192];int n;while((n=in.read(buffer))!=-1)out.write(buffer,0,n);atomic.finishWrite(out);}catch(Exception failure){if(out!=null)atomic.failWrite(out);throw failure;}}}
+            Thumbnail candidate=new Thumbnail(image.getUrl(),image.getWidth());if(best==null||candidate.width>best.width)best=candidate;
+        }if(best!=null){metadata(id,best);covers.put(id,new File(directory(),hash(key(best.url))+".jpg"));}}catch(Exception failure){FeatureDiagnostics.record("Download-artwork","Static cover kept; native thumbnail registration pending");}});}catch(RejectedExecutionException busy){FeatureDiagnostics.record("Download-artwork","Artwork queue busy; saved JPEG retained");}
+    }
     private static String hash(String text){try{StringBuilder out=new StringBuilder(64);for(byte b:MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)))out.append(Character.forDigit((b>>4)&15,16)).append(Character.forDigit(b&15,16));return out.toString();}catch(Exception impossible){throw new AssertionError(impossible);}}
     private static String key(String url){
         try{URI uri=new URI(url);String host=uri.getHost();if(!"https".equals(uri.getScheme())||uri.getRawUserInfo()!=null||uri.getPort()!=-1||host==null)return null;

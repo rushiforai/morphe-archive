@@ -22,6 +22,9 @@ internal const val MARK_READ_BUTTON = "mark_read_button"
 internal const val MARK_READ_BAR = "mark_read_bar"
 /** The shared top bar listener the button's tap goes through. */
 internal const val MARK_READ_CLICK = "mark_read_click"
+internal const val HIDE_CALL_BUTTONS = "hide_call_buttons"
+/** The same two top bar methods as [MARK_READ_BAR]. Hide call buttons works through the calls that seam makes. */
+internal const val HIDE_CALL_BAR = "hide_call_bar"
 internal const val MARK_READ = "Lapp/hushmessenger/extension/MarkReadButton;"
 internal const val MARK_READ_ADD = "$MARK_READ->add(Ljava/util/List;Ljava/lang/Object;)V"
 internal const val MARK_READ_ADD_TO = "$MARK_READ->addTo(Ljava/util/List;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/List;"
@@ -29,6 +32,8 @@ internal const val MARK_READ_BUILD = "$MARK_READ->build(Ljava/lang/Object;)Ljava
 internal const val MARK_READ_BUTTON_BUILD = "$MARK_READ->button(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
 /** MarkReadButton.DETAILS_TAG, the chat details button's test tag, which both top bars' details builder sets. */
 internal const val MARK_READ_DETAILS_TAG = "settings_button"
+/** The two everyday MarkReadButton.CALL_TAGS, which the older top bar names, so a build that renames them is refused. */
+internal val MARK_READ_CALL_TAGS = listOf("audio_call_button", "video_call_button")
 internal const val MARK_READ_CLICKED = "$MARK_READ->clicked(Ljava/lang/Object;Landroid/view/View;)Z"
 internal const val MARK_READ_TAG = "$MARK_READ->tag(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
 internal const val MARK_READ_LABEL = "$MARK_READ->label()Ljava/lang/String;"
@@ -98,7 +103,10 @@ internal data class MarkReadRecipe(
     val factorySite: MarkReadFactory,
     /** The details button's builder, which both bars call. */
     val details: String,
-)
+) {
+    /** The top bar methods whose seam is in. Two controls share it, and whichever comes first writes it. */
+    val seamWritten = mutableSetOf<String>()
+}
 
 internal var markReadRecipe: MarkReadRecipe? = null
 
@@ -390,6 +398,8 @@ internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>): MarkReadRecipe?
     val site = bar.markReadSite(list, pluginRead.registerB, socketType) ?: return null
     if (!bar.markReadCapMatches()) return null
     val tag = tagField ?: return null
+    // The extension leaves a full bar's call buttons in place by these tags.
+    if (MARK_READ_CALL_TAGS.any { name -> c.none { (it.markRef() as? StringReference)?.string == name } }) return null
     // The chat details button's builder: the bar's one call that takes the chat colors last and returns a button.
     val detailsRef = c.mapNotNull { insn ->
         (insn.markRef() as? MethodReference)?.takeIf { insn.opcode == Opcode.INVOKE_VIRTUAL && it.returnType == specType && it.params().lastOrNull() == MIG_SCHEME }
@@ -440,7 +450,9 @@ private fun markReadRequire(condition: Boolean, detail: String) {
 internal fun MutableMethod.validateMarkReadBar(): MarkReadRecipe {
     val recipe = markReadRecipe
     markReadRequire(recipe != null && (recipe.bar.hookId() == hookId() || recipe.factory.hookId() == hookId()), "no button recipe")
-    if (recipe!!.factory.hookId() == hookId()) {
+    // Written already, by the other control, so the method no longer reads as stock.
+    if (hookId() in recipe!!.seamWritten) return recipe
+    if (recipe.factory.hookId() == hookId()) {
         markReadRequire(markReadFactorySite(recipe.details) { it.markRef()?.toString() == recipe.factorySite.build } == recipe.factorySite,
             "button list return")
         return recipe
@@ -452,6 +464,7 @@ internal fun MutableMethod.validateMarkReadBar(): MarkReadRecipe {
 
 internal fun MutableMethod.injectMarkReadBar() {
     val recipe = validateMarkReadBar()
+    if (!recipe.seamWritten.add(hookId())) return
     if (recipe.factory.hookId() != hookId()) {
         addInstructions(recipe.site, "invoke-static {v${recipe.list}, v${recipe.socket}}, $MARK_READ_ADD")
         return
@@ -500,7 +513,7 @@ internal fun MutableMethod.validateMarkReadStub(id: String) {
         throw PatchException("Messenger controls: the Mark as read button's extension stub changed")
 }
 
-private fun MutableMethod.emptyCopy(registers: Int) = MutableMethod(ImmutableMethod(definingClass, name, parameters, returnType, accessFlags,
+internal fun MutableMethod.emptyCopy(registers: Int) = MutableMethod(ImmutableMethod(definingClass, name, parameters, returnType, accessFlags,
     annotations, hiddenApiRestrictions, ImmutableMethodImplementation(registers, emptyList(), emptyList(), emptyList())))
 
 /** The build(socket) stub's replacement for the older bar: reads the chat, account and colors from the socket for button(). */

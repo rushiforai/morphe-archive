@@ -1,3 +1,17 @@
+## [1.20.1](https://gitlab.com/Paresh-Maheshwari/paresh-patches/compare/v1.20.0...v1.20.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* **ticktick:** restore timed reminders on Premium patch ([edc96c7](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/edc96c7ebb991e07fb4ad2114e38274674f84931))
+
+## [1.20.1-dev.1](https://gitlab.com/Paresh-Maheshwari/paresh-patches/compare/v1.20.0...v1.20.1-dev.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* **ticktick:** restore timed reminders on Premium patch ([edc96c7](https://gitlab.com/Paresh-Maheshwari/paresh-patches/commit/edc96c7ebb991e07fb4ad2114e38274674f84931))
+
 # [1.20.0](https://gitlab.com/Paresh-Maheshwari/paresh-patches/compare/v1.19.0...v1.20.0) (2026-09-01)
 
 

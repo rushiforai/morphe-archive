@@ -12,6 +12,6 @@
 ## Project workflow
 
 - Publish stable releases only from `main`; `dev` publishes development prereleases. Promote unapproved app changes to `main` only after user confirmation. `.releaserc` owns release version selection and generated release files. Do not manually bump release versions.
-- Preserve the source-based release-note and Morphe app-scope guards. Declare affected apps with `Release-Apps` when shared patch changes require it.
+- Preserve the source-based release-note and Morphe app-scope guards. Declare affected apps with `Release-Apps` when shared patch changes require it. Declare `Unchanged-Apps` only when a commit edits an app's files without changing what its patches produce, because every release bullet naming an app badges it for repatching in Morphe. A commit editing several apps' patch folders must declare each of them in one of the two trailers.
 - Run `node --test tests/test_release_branding.cjs tests/test_preview_release.cjs tests/test_identity.cjs` after release automation changes. Run `python3 -m unittest discover -s tests` for Python regression checks; use the release workflow's Gradle checks for Android changes.
 - CI audits checked-out history; release automation also verifies the token owner and effective Git identities before publishing. These checks do not enforce local operations unless run, and cannot stop an already-authorized direct push before it reaches GitHub. Follow the identity requirements for every operation.

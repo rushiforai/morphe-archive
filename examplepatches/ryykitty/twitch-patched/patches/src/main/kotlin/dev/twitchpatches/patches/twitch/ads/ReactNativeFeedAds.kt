@@ -3,13 +3,13 @@ package dev.twitchpatches.patches.twitch.ads
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.resourcePatch
 import dev.twitchpatches.patches.twitch.shared.*
-import dev.twitchpatches.patches.twitch.shared.hermes.HermesBundle
 import dev.twitchpatches.patches.twitch.shared.hermes.MetroExports
+import dev.twitchpatches.patches.twitch.shared.hermes.twitchBundle
 
 internal val reactNativeFeedAdsPatch = resourcePatch {
     dependsOn(reactNativeAssetsPatch)
     execute {
-        val bundle = HermesBundle(get("assets/index.android.bundle").readBytes())
+        val bundle = twitchBundle()
         val exports = MetroExports(bundle)
         val target = exports.resolveAsync("requestInFeedAd",
             setOf("fetchImpl", "parseVast", "urlParams", "adPlacementId", "adType", "adjacentItems", "adEdgeRequestInit"),
@@ -32,18 +32,19 @@ internal val reactNativeFeedAdsPatch = resourcePatch {
             setOf("enabled", "sdaState", "pushdownSlotAvailable", "leftStripAvailable", "StreamDisplayAdCreative"))
         val item = exports.resolveMemo("FeedAdItem", "FeedAdItemComponent",
             setOf("node", "active", "DisplayAdRenderer", "VideoAdRenderer", "freeScroll"))
+        val coordinator = exports.resolve("useFeedAdCoordinator", setOf("edges", "feedSessionID", "requestAd", "onAdRemoved", "interactive"))
+        exports.requireFunctionContract("extractAdSlots", 2, setOf("node", "__typename", "FeedAd", "id", "adSessionID"))
         get(RN_ASSET).appendText("\n" + assetSource("display-ad-surfaces.js")
             .replace("__TWITCH_STREAM_DISPLAY_MODULE__", stream.module.toString())
+            .replace("__TWITCH_FEED_COORDINATOR_MODULE__", coordinator.module.toString())
             .replace("__TWITCH_FEED_AD_ITEM_MODULE__", item.module.toString()))
         appendChannelSkins(exports)
-        if (bundle.functions.any { bundle.strings[it.name] == "useSkylineBannerSlot" }) {
-            val slot = exports.resolve("useSkylineBannerSlot",
-                setOf("sdaState", "skylineBannerSlotAvailable", "useControllerState", "skylineBannerSize"), params = 5)
-            exports.requireFunctionContract("skylineBannerSlotAvailable", 2,
-                setOf("enabled", "chromeActive", "splitLayout", "isTheatreDocked", "pipSettled", "adIsPlaying"))
-            get(RN_ASSET).appendText("\n" + assetSource("skyline-banner.js")
-                .replace("__TWITCH_SKYLINE_BANNER_SLOT_MODULE__", slot.module.toString()))
-        }
+        val slot = exports.resolve("useSkylineBannerSlot",
+            setOf("sdaState", "skylineBannerSlotAvailable", "useControllerState", "skylineBannerSize"), params = 5)
+        exports.requireFunctionContract("skylineBannerSlotAvailable", 2,
+            setOf("enabled", "chromeActive", "splitLayout", "isTheatreDocked", "pipSettled", "adIsPlaying"))
+        get(RN_ASSET).appendText("\n" + assetSource("skyline-banner.js")
+            .replace("__TWITCH_SKYLINE_BANNER_SLOT_MODULE__", slot.module.toString()))
     }
 }
 

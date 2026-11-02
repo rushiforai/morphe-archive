@@ -1,8 +1,8 @@
 (function (runtime) {
     'use strict';
     var providers = ['bttv', '7tv', 'ffz'], names = ['BTTV', '7TV', 'FrankerFaceZ'];
-    function sections(catalog, provider) {
-        return catalog.filter(function (group) { return !provider || group.provider === provider; }).map(function (group) {
+    function sections(catalog) {
+        return catalog.map(function (group) {
             return {id: 'twitchpatches-' + group.provider + (group.channel ? '-channel' : '-global'), category: 'global',
                 title: names[providers.indexOf(group.provider)] + (group.channel ? ' Channel Emotes' : ' Global Emotes'),
                 emotes: group.emotes.map(function (emote) {
@@ -12,8 +12,8 @@
         });
     }
     function arrange(native, catalog) {
-        var channel = sections(catalog.filter(function (group) { return group.channel; }), null);
-        var global = sections(catalog.filter(function (group) { return !group.channel; }), null);
+        var channel = sections(catalog.filter(function (group) { return group.channel; }));
+        var global = sections(catalog.filter(function (group) { return !group.channel; }));
         var insertion = 0;
         native.forEach(function (section, index) { if (section.category === 'current_channel') insertion = index + 1; });
         return native.slice(0, insertion).concat(channel, native.slice(insertion), global);
@@ -72,13 +72,22 @@
             React.useEffect(function () { select(null); }, [props.channelID]);
             var active = enabled && provider && (mask & (1 << providers.indexOf(provider))) ? provider : null;
             var merged = React.useMemo(function () {
-                if (!enabled) return props.sections || [];
-                return active ? sections(catalog, active) : arrange(props.sections || [], catalog);
-            }, [props.sections, catalog, enabled, active]);
+                return enabled ? arrange(props.sections || [], catalog) : props.sections || [];
+            }, [props.sections, catalog, enabled]);
             var tree = original(Object.assign({}, props, {sections: merged,
                 isLoading: merged.length ? false : props.isLoading, isError: merged.length ? false : props.isError}));
+            var grid = null;
+            function scrollToProvider(value) {
+                select(value);
+                var list = grid && grid.props.ref && grid.props.ref.current;
+                var index = grid ? (grid.props.sections || []).findIndex(function (section) {
+                    return String(section.key).indexOf('twitchpatches-' + value + '-') === 0;
+                }) : -1;
+                if (list && index >= 0) list.scrollToLocation({sectionIndex: index, itemIndex: 0, viewOffset: 0});
+            }
             function footer(node, depth) {
                 if (!React.isValidElement(node) || depth > 16) return node;
+                if (node.props.testID === 'emote-grid-list') grid = node;
                 if (node.props.testID === 'emote-nav-tablist') {
                     var tabs = React.Children.toArray(node.props.children), template = tabs[0];
                     if (!React.isValidElement(template)) return node;
@@ -91,7 +100,8 @@
                     if (enabled) providers.forEach(function (value, index) {
                         if (!(mask & (1 << index))) return;
                         native.push(React.createElement(ProviderTab, {key: 'twitchpatches-' + value, provider: value,
-                            label: names[index] + ' emotes', template: template, active: active === value, onPress: function () { select(value); }}));
+                            label: names[index] + ' emotes', template: template, active: active === value,
+                            onPress: function () { scrollToProvider(value); }}));
                     });
                     if (!logged && enabled) { logged = true; runtime.log('emotes picker footer bound'); }
                     return React.cloneElement(node, {}, native);

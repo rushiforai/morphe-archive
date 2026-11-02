@@ -105,6 +105,10 @@ The ports follow ReVanced's BaconReader merge requests !6989 and !6998 closely: 
 - **User agent.** Avatar images and the audio of saved videos are downloaded with the user agent `android:com.onelouder.baconreader (Morphe)`.
 - **List thumbnails.** For Imgur posts, BaconReader writes the image's URL into the register of the post, which the thumbnail loader then got instead of the post. The port does the app's Imgur step in the extension (`imgurThumbnail`), so the loader gets the post.
 - **Fix unread messages.** While Reddit chat keeps chat messages apart from the inbox, the unread check asks for up to 100 messages and leaves the chat ones out.
+- **Tables and accessibility.** ReVanced draws a table on one character of the text, so TalkBack and UI tests see nothing of it. Here each cell and the "↔ Expand" / "Fit to screen" button are virtual views of the text, with their text and where they show, and the button and the cells with a link can be clicked.
+- **Links in spoilers.** In ReVanced, a tap on a link in a hidden spoiler opens the link without showing the spoiler: the app's touch handler takes the link first. Here the link waits until the spoiler shows.
+- **Hidden spoilers and accessibility.** ReVanced only paints a hidden spoiler over, so TalkBack reads it aloud. Here, while a spoiler is hidden, the text's description reads it as "spoiler".
+- **Comment search buttons.** ReVanced's find bar names only its text field and its filter button. Here its arrows and its close button are named too: "Previous match", "Next match" and "Close search".
 - **Not from ReVanced:**
   - Reddit chat, ported from baconreader-reseam-patches;
   - Video autoplay in detail view, ported from baconreader-reseam-patches;

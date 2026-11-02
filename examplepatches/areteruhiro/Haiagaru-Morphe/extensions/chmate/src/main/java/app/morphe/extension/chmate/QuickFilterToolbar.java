@@ -535,7 +535,8 @@ public final class QuickFilterToolbar {
                 provider.setAccessible(true);
                 Object lazy = provider.getType().getName().equals("o.trN") ? provider.get(fragment) : null;
                 if (lazy != null) {
-                    Object model = lazy.getClass().getMethod("e").invoke(lazy);
+                    Method getter=lazy.getClass().getMethod("e");getter.setAccessible(true);
+                    Object model = getter.invoke(lazy);
                     if (model != null && model.getClass().getName().equals("o.getImgAcceptedHeight")) return model;
                 }
             } catch (ReflectiveOperationException ignored) {}

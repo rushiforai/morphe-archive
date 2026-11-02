@@ -536,15 +536,26 @@ val lichessPuzzlesPatch = bytecodePatch(
         val ratingValue = "invoke-static { }, $PUZZLES->rating()I\nmove-result v0\nreturn v0"
         val pathStats = mutableClassDefByOrNull(PATH_STATS)
             ?: mutableClassDefBy("Lcom/chess/features/path/ui/o2;")
+        val pathStatsConstructor = pathStats.methods.first { method ->
+            method.name == "<init>" && method.parameterTypes.size == 12 &&
+                method.parameterTypes[1].toString() == "I"
+        }
+        // The app reads userRating straight from this field, so the empty stats need its name.
+        val userRatingField = pathStatsConstructor.implementation!!.instructions.firstNotNullOfOrNull { instruction ->
+            if (instruction.opcode != Opcode.IPUT) return@firstNotNullOfOrNull null
+            val reference = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+            if (reference == null || reference.type != "I") return@firstNotNullOfOrNull null
+            val register = (instruction as? OneRegisterInstruction)?.registerA ?: return@firstNotNullOfOrNull null
+            if (register == pathStatsConstructor.implementation!!.registerCount - pathStatsConstructor.parameterTypes.size + 1) reference.name else null
+        } ?: throw PatchException("The path stats' rating field was not found")
+        mutableClassDefBy(PUZZLES).methods.first { it.name == "userRatingField" }.returnString(userRatingField)
+
         val userRating = runCatching { pathStats.getterForLabel(", userRating=") }.getOrNull()
         if (userRating != null) {
             userRating.whileSession(ratingValue)
         } else {
             // 4.10.23 inlines the getter; userRating is the second constructor parameter.
-            pathStats.methods.first { method ->
-                method.name == "<init>" && method.parameterTypes.size == 12 &&
-                    method.parameterTypes[1].toString() == "I"
-            }.apply {
+            pathStatsConstructor.apply {
                 addInstructionsWithLabels(
                     0,
                     """
@@ -574,6 +585,9 @@ val lichessPuzzlesPatch = bytecodePatch(
                 if-nez p1, :morphe_stats
                 new-instance v0, ${pathStats.type}
                 invoke-direct { v0 }, ${pathStats.type}-><init>()V
+                invoke-static { v0 }, $PUZZLES->withRating(Ljava/lang/Object;)Ljava/lang/Object;
+                move-result-object v0
+                check-cast v0, ${pathStats.type}
                 return-object v0
             """,
             ExternalLabel("morphe_stats", withStats.getInstruction(0)),
@@ -628,6 +642,51 @@ val lichessPuzzlesPatch = bytecodePatch(
             ExternalLabel("morphe_rating_stats", ratingStats.getInstruction(0)),
         )
         }
+        // The rating chip in 4.10.23 is fed by the review state's own Integer, which the guest flow
+        // leaves null; keeping it in step with the Lichess rating is enough for the chip.
+        val ratingState = mutableClassDefByOrNull { classDef ->
+            classDef.methods.any { method ->
+                method.name == "<init>" &&
+                    method.parameterTypes.map(CharSequence::toString) ==
+                    listOf("Ljava/lang/Integer;", "Ljava/util/List;", "I", "Z")
+            }
+        } ?: throw PatchException("The puzzle rating state was not found")
+        val ratingField = ratingState.methods.singleOrNull { method ->
+            method.parameterTypes.isEmpty() && method.returnType == "Ljava/lang/Integer;"
+        } ?: throw PatchException("The puzzle rating state's rating was not found")
+        ratingField.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static { }, $PUZZLES->session()Z
+                move-result v0
+                if-eqz v0, :morphe_rating_state
+                invoke-static { }, $PUZZLES->ratingBox()Ljava/lang/Integer;
+                move-result-object v0
+                return-object v0
+            """,
+            ExternalLabel("morphe_rating_state", ratingField.getInstruction(0)),
+        )
+
+        // The next button: chess.com would fetch a rated puzzle from its server and hit the free
+        // daily limit; during a session the extension reopens the Lichess flow instead.
+        val onNext = mutableClassDefBy(VIEW_MODEL).methods.singleOrNull { method ->
+            method.parameterTypes.map(CharSequence::toString) == listOf("J") && method.returnType == "V" &&
+                method.implementation?.instructions?.any { instruction ->
+                    ((instruction as? ReferenceInstruction)?.reference as? TypeReference)?.type
+                        ?.contains("onNextClicked\$2") == true
+                } == true
+        } ?: throw PatchException("The puzzle next button was not found")
+        onNext.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static { }, $PUZZLES->onNext()Z
+                move-result v0
+                if-eqz v0, :morphe_next
+                return-void
+            """,
+            ExternalLabel("morphe_next", onNext.getInstruction(0)),
+        )
+
         // The Puzzles tab's menu is PathRootMenuState(expanded, big button text, button above it,
         // buttons, ...). The button above is empty unless there is a next lesson. Ours takes the big
         // button and Solve Puzzles goes above it, or first in the menu's list when Next Lesson has the spot.

@@ -46,8 +46,8 @@ Loading older messages.	Memuat pesan lama.
 Loading older messages. %1$d message so far.	Memuat pesan lama. Sejauh ini %1$d pesan.
 Loading older messages. %1$d messages so far.	Memuat pesan lama. Sejauh ini %1$d pesan.
 Lock these settings	Kunci pengaturan ini
-Long press a chat's name and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Tekan lama nama obrolan lalu pilih Ekspor obrolan. Seluruh obrolan disimpan sebagai berkas teks di Download, folder HushGram, satu baris per pesan.
-Long press a chat's name and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Tekan lama nama obrolan lalu pilih Lompat ke pesan pertama atau Lompat ke tanggal. Obrolan memuat pesan lamanya sendiri, dengan hitungan dan tombol Batal.
+Open a chat, long press its name at the top and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Buka obrolan, tekan lama namanya di bagian atas lalu pilih Ekspor obrolan. Seluruh obrolan disimpan sebagai berkas teks di Download, folder HushGram, satu baris per pesan.
+Open a chat, long press its name at the top and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Buka obrolan, tekan lama namanya di bagian atas lalu pilih Lompat ke pesan pertama atau Lompat ke tanggal. Obrolan memuat pesan lamanya sendiri, dengan hitungan dan tombol Batal.
 Mark a chat seen when you reply	Tandai obrolan sudah dilihat saat kamu membalas
 No messages found to save.	Tidak ada pesan untuk disimpan.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	Pilih waktu tunggu 1 sampai 72 jam. Saat terkunci, tidak ada yang berubah di sini sampai kamu meminta buka kunci dan waktu tunggunya selesai.
@@ -197,7 +197,8 @@ Each video saves at the best quality Instagram offers for it.	Setiap video disim
 Each video saves at its lowest quality, for the smallest file.	Setiap video disimpan dengan kualitas terendahnya, agar ukuran filenya sekecil mungkin.
 Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	Setiap video disimpan dalam %1$s atau kualitas terdekat di bawahnya. Video yang tidak memiliki kualitas serendah itu disimpan dalam kualitas terdekat di atasnya.
 Save folder	Folder simpan
-Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Pilih nama folder di Movies dan Pictures. Karakter yang tidak valid menjadi garis bawah. Kosongkan untuk memakai folder bawaan, %1$s.
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s. For an SD card or anywhere else, use Choose a folder.	Pilih nama folder di Movies dan Pictures. Karakter yang tidak valid menjadi garis bawah. Kosongkan untuk memakai folder bawaan, %1$s. Untuk kartu SD atau tempat lain, gunakan Pilih folder.
+Use Choose a folder for a path or an SD card.	Untuk jalur atau kartu SD: Pilih folder.
 Save	Simpan
 Folder name	Nama folder
 Folder set to %1$s.	Folder diatur menjadi %1$s.
@@ -540,7 +541,7 @@ Group notifications	Kelompokkan notifikasi
 Hide shopping	Sembunyikan belanja
 Hide surveys	Sembunyikan survei
 Hide the caught up card	Sembunyikan kartu sudah melihat semua
-Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, the card stays. Pull down on Home to refresh after changing it.	Menyembunyikan kartu setelah postingan dari akun yang kamu ikuti yang bilang kamu sudah melihat yang terbaru, beserta tautan Postingan lama. Kalau Beranda sama sekali tidak punya postingan baru, kartunya tetap ada. Tarik Beranda ke bawah untuk menyegarkan setelah mengubahnya.
+Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, only that line goes and the link stays. Pull down on Home to refresh after changing it.	Menyembunyikan kartu setelah postingan dari akun yang kamu ikuti yang bilang kamu sudah melihat yang terbaru, beserta tautan Postingan lama. Kalau Beranda sama sekali tidak punya postingan baru, hanya kalimat itu yang hilang dan tautannya tetap ada. Tarik Beranda ke bawah untuk menyegarkan setelah mengubahnya.
 Instagram is locked	Instagram terkunci
 Instagram locks as soon as you leave it or the screen turns off.	Instagram terkunci begitu Anda meninggalkannya atau layar mati.
 Instagram locks once you've been away from it for %1$s.	Instagram terkunci setelah Anda meninggalkannya selama %1$s.
@@ -967,7 +968,6 @@ Queued. It starts once the post before it is saved.	Dalam antrean. Dimulai setel
 Not saved: %1$d posts are already waiting	Tidak disimpan: sudah ada %1$d postingan yang menunggu
 Show all settings as a list	Tampilkan semua pengaturan sebagai daftar
 Show settings by category	Tampilkan pengaturan menurut kategori
-Tab bar opacity	Opasitas bilah tab
 Tab bar height	Tinggi bilah tab
 Standard	Standar
 Blur strength	Kekuatan blur
@@ -1497,3 +1497,29 @@ Instagram's reminder to review whether it can process your data for ads stops op
 Stop videos looping	Jangan ulangi video
 # context: summary under that switch; auto scroll is Instagram's own Reels setting, worded as in Keep auto scroll on
 Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on.	Video di feed dan reel berhenti di bingkai terakhirnya, tidak diputar lagi. Reel tetap diulang selama gulir otomatis aktif, agar bisa lanjut ke berikutnya.
+Not used while you've picked a folder. Saves go there.	Tidak dipakai selama kamu sudah memilih folder. Semua disimpan di sana.
+All	Semua
+Posts	Postingan
+Nothing matches.	Tidak ada yang cocok.
+Couldn't open that one.	Tidak bisa dibuka.
+Tap to see all %1$d, by kind or by search.	Ketuk untuk melihat semua %1$d, per jenis atau lewat pencarian.
+Instagram gradient on dark	Gradien Instagram di atas gelap
+Retro Instagram	Instagram retro
+Menu button on Home's header	Tombol menu di header Beranda
+Adds a menu button at the top of Home with your viewing history, Ghost mode and HushGram settings. Restart Instagram to see the change.	Menambahkan tombol menu di bagian atas Beranda dengan riwayat tontonan, mode hantu, dan pengaturan HushGram. Mulai ulang Instagram untuk melihat perubahannya.
+HushGram menu	Menu HushGram
+Seek bar button on feed videos	Tombol bilah geser di video feed
+Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	Menambahkan tombol kecil di kiri bawah video feed yang menampilkan atau menyembunyikan bilah gesernya. Berfungsi saat Bilah geser di video feed aktif maupun mati.
+Seek bar	Bilah geser
+Tint intensity	Intensitas warna
+Refraction intensity	Intensitas pembiasan
+Preview of the tab bar	Pratinjau bilah tab
+Keep stories playing while zooming	Putar cerita terus saat di-zoom
+A story keeps playing while you pinch to zoom it. Hold it still first and it stays paused while you zoom.	Cerita tetap diputar saat Anda mencubit untuk zoom. Tahan dulu, maka cerita tetap dijeda selama Anda zoom.
+Follower history	Riwayat pengikut
+Nothing logged yet. Each time you scroll your own Followers list to the end, changes since the last time are added here.	Belum ada yang tercatat. Setiap kali Anda menggulir daftar pengikut Anda sampai akhir, perubahan sejak terakhir kali ditambahkan di sini.
+%1$s unfollowed you, %2$s	%1$s berhenti mengikuti Anda, %2$s
+%1$s followed you again, %2$s	%1$s mengikuti Anda lagi, %2$s
+%1$s started following you, %2$s	%1$s mulai mengikuti Anda, %2$s
+Hide the Map bubble	Sembunyikan gelembung Peta
+Takes only the Map bubble out of the row of notes. Your notes stay.	Hanya menghapus gelembung Peta dari baris catatan. Catatanmu tetap ada.

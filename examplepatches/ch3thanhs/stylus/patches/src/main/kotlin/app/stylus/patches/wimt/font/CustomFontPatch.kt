@@ -232,8 +232,8 @@ private val customFontFileOption = stringOption(
     key = "customFontFile",
     default = null,
     title = "Custom font",
-    description = "The file path to your font file. Tap the file picker and select it. " +
-        "The font file must be in TTF or OTF format. " +
+    description = "The file path to your font. Tap the file picker and select it. " +
+        "The font must be in TTF or OTF format. " +
         "A variable font is recommended so heading and body text keep their different weights.",
     required = true,
 )
@@ -255,8 +255,8 @@ private val fontFeatureSettingsOption = stringOption(
  * handles the font files, View styles, and Material 3 feature string.
  */
 private val customFontResourcesWimtPatch = resourcePatch(
-    name = "Custom font resources (Where is my Train)",
-    description = "Internal resource patch for the custom font patch.",
+    name = "Custom font resources",
+    description = "Internal font resource replacement.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WIMT)
@@ -361,10 +361,9 @@ private val customFontResourcesWimtPatch = resourcePatch(
 
 @Suppress("unused")
 val customFontWimtPatch = bytecodePatch(
-    name = "Custom font (Where is my Train)",
-    description = "Replaces Where is my Train's bundled Google Sans, Nunito Sans, and Roboto UI fonts " +
-        "with a custom font file. Optional OpenType feature settings can enable alternate digits " +
-        "such as Inter's ss01 open-style numbers.",
+    name = "Custom font",
+    description = "Replaces the bundled Google Sans, Nunito Sans, and Roboto UI fonts with " +
+        "your own font.",
     default = false,
 ) {
     category("Font")

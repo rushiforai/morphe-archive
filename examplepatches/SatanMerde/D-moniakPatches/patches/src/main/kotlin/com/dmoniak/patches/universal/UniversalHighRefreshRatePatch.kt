@@ -12,6 +12,7 @@ import java.util.logging.Logger
 val universalHighRefreshRatePatch = bytecodePatch(
     name = "Force 120Hz High Refresh Rate (Universal)",
     description = "Forces 120Hz display refresh rate on supported devices by configuring WindowManager.LayoutParams.preferredRefreshRate and overriding internal frame rate throttles to 120 FPS.",
+    default = false,
 ) {
     execute {
         val logger = Logger.getLogger(this::class.java.name)

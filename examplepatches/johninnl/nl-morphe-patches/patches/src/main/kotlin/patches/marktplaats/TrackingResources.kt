@@ -5,8 +5,12 @@ import org.w3c.dom.Element
 
 internal val trackingResources = resourcePatch {
     dependsOn(originalInput)
-    execute {
-        document("AndroidManifest.xml").use { doc ->
+    execute { suppressTrackingResources() }
+}
+
+context(context: app.morphe.patcher.patch.ResourcePatchContext)
+internal fun suppressTrackingResources() {
+        context.document("AndroidManifest.xml").use { doc ->
             val namespace = "http://schemas.android.com/apk/res/android"
             val nodes = doc.getElementsByTagName("*").let { all ->
                 (0 until all.length).map { all.item(it) as Element }
@@ -63,5 +67,4 @@ internal val trackingResources = resourcePatch {
             }
             removed.forEach { doc.documentElement.removeChild(it) }
         }
-    }
 }

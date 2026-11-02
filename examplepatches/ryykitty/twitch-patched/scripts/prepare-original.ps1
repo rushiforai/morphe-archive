@@ -28,8 +28,14 @@ if (Test-Path -LiteralPath $metadataPath) {
     Write-Output $output
     return
 }
-& java '-Xmx4g' '--class-path' $morphe (Join-Path $PSScriptRoot 'verification/MergeOriginal.java') $inputPath $basePath $output 2>&1 |
-    Tee-Object -FilePath (Join-Path $directory 'merge.log') | Out-Host
+$prevEAP = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    & java '-Xmx4g' '--class-path' $morphe (Join-Path $PSScriptRoot 'verification/MergeOriginal.java') $inputPath $basePath $output 2>&1 |
+        Tee-Object -FilePath (Join-Path $directory 'merge.log') | Out-Host
+} finally {
+    $ErrorActionPreference = $prevEAP
+}
 if ($LASTEXITCODE -ne 0) { throw 'Preparing the original failed; no cache metadata was accepted.' }
 [ordered]@{
     inputSha256 = $inputHash

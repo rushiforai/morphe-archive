@@ -10,10 +10,11 @@ object Constants {
             name = "Klikk",
             packageName = "com.angel.klikk",
             apkFileType = ApkFileType.XAPK,
-            appIconColor = 0XFD000D,
+            appIconColor = 0xF20519,
             signatures = setOf("38a6da45b9097c0286b962a804d3c3d65511685fef6ead76cdcfa1690c3bb592"),
             targets =
                 listOf(
+                    AppTarget(version = "3.7.10", versionCode = 162, minSdk = 23),
                     AppTarget(version = "3.6.3", versionCode = 150, minSdk = 23),
                     AppTarget(version = "3.5.6", versionCode = 146, minSdk = 23),
                     AppTarget(version = "3.5.4", versionCode = 144, minSdk = 23),
@@ -23,4 +24,6 @@ object Constants {
                     AppTarget(version = "3.3.3", versionCode = 133, minSdk = 23),
                 ),
         )
+
+    val COMPATIBILITY_KLIKK_LEGACY = COMPATIBILITY_KLIKK.excluding("3.7.10")
 }

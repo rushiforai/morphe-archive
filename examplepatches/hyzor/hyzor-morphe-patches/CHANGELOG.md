@@ -1,3 +1,35 @@
+## [1.4.1](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.4.0...v1.4.1) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **chesscom:** stop making every class mutable while patching ([10ce39b](https://github.com/hyzor/hyzor-morphe-patches/commit/10ce39b4891f16e13729ca1ffc1b2a0949b16115)), closes [#7](https://github.com/hyzor/hyzor-morphe-patches/issues/7)
+
+## [1.4.1-dev.1](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.4.0...v1.4.1-dev.1) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **chesscom:** stop making every class mutable while patching ([10ce39b](https://github.com/hyzor/hyzor-morphe-patches/commit/10ce39b4891f16e13729ca1ffc1b2a0949b16115)), closes [#7](https://github.com/hyzor/hyzor-morphe-patches/issues/7)
+
+## [1.4.0](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.3.1...v1.4.0) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **duolingo:** harden the patch set after review ([46aa61d](https://github.com/hyzor/hyzor-morphe-patches/commit/46aa61d97dd863ff7a24068625413d1e39eea9f5))
+
+### ✨ New Features
+
+* **duolingo:** add the Duolingo patch set with 6.104.3 support ([eb87e41](https://github.com/hyzor/hyzor-morphe-patches/commit/eb87e41a73f1059409a5e72463541d5b9498a634))
+
+## [1.4.0-dev.1](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.3.1...v1.4.0-dev.1) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **duolingo:** harden the patch set after review ([46aa61d](https://github.com/hyzor/hyzor-morphe-patches/commit/46aa61d97dd863ff7a24068625413d1e39eea9f5))
+
+### ✨ New Features
+
+* **duolingo:** add the Duolingo patch set with 6.104.3 support ([eb87e41](https://github.com/hyzor/hyzor-morphe-patches/commit/eb87e41a73f1059409a5e72463541d5b9498a634))
+
 ## [1.3.1](https://github.com/hyzor/hyzor-morphe-patches/compare/v1.3.0...v1.3.1) (2026-10-31)
 
 ### 🐛 Bug Fixes

@@ -52,5 +52,5 @@ settings {
 include(":patches:stub")
 
 // No composite builds: the sibling ../morphe-patcher and ../morphe-patches-library checkouts stay
-// on 1.5.2/1.4.1 for phone Maps. This project uses the published patcher/library 2.0.1 artifacts
+// on 1.5.2/1.4.1 for phone Maps. This project uses the published patcher/library 2.1.0 artifacts
 // (plugin 2.0.0) from GitHub Packages.
