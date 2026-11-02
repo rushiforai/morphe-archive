@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-11-02 04:27 UTC",
+  "generatedAt": "2026-11-02 05:02 UTC",
   "configFile": "morphe_archive_config_v93.json",
   "configVersion": 93,
   "repoCount": 497,
   "appCount": 1498,
-  "patchCount": 11587,
+  "patchCount": 11592,
   "universalPatchCount": 517,
   "hostCounts": {
     "github.com": 491,
@@ -14,7 +14,7 @@
     "today": 5,
     "yesterday": 14,
     "total": 1116,
-    "online": 2
+    "online": 0
   },
   "repos": [
     {
@@ -27797,32 +27797,12 @@
       "createdDate": "2026-11-01",
       "updatedDate": "2026-11-01",
       "latestChanges": {
-        "title": "1.0.2 (2026-10-31)",
-        "date": "2026-10-31",
+        "title": "1.0.5 (2026-11-02)",
+        "date": "2026-11-02",
         "items": [
           {
-            "category": "Features",
-            "text": "add carrier presets to Spoof carrier"
-          },
-          {
-            "category": "Features",
-            "text": "add Spoof carrier"
-          },
-          {
-            "category": "Features",
-            "text": "enable the shared patches for ESPN, NFL and NBA"
-          },
-          {
-            "category": "Features",
-            "text": "**espn:** add ESPN Skip ads and Block analytics"
-          },
-          {
-            "category": "Features",
-            "text": "**nba:** add NBA Skip ads, Disable Ask NBA AI and Block analytics"
-          },
-          {
-            "category": "Features",
-            "text": "**nfl:** add NFL Skip ads and Block analytics"
+            "category": "Bug Fixes",
+            "text": "limit the store-tracking privacy patches to the shopping apps"
           }
         ]
       },
@@ -29328,7 +29308,7 @@
       "webUrl": "https://github.com/SysAdminDoc/HushGram",
       "addUrl": "https://morphe.software/add-source?github=SysAdminDoc/HushGram",
       "avatarUrl": "https://github.com/SysAdminDoc.png?size=96",
-      "patchCount": 141,
+      "patchCount": 145,
       "appCount": 1,
       "createdAt": 1790915353909,
       "updatedAt": 1790915353909,
@@ -29338,6 +29318,18 @@
         "title": "Unreleased",
         "date": "",
         "items": [
+          {
+            "category": "Features",
+            "text": "**Instagram:** Glass in chats is a new patch. Under Messages, one switch gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It starts off. Asked for in #449."
+          },
+          {
+            "category": "Features",
+            "text": "**Instagram:** Chat plus menu is a new patch. Under Messages you can take Saved, AI images and Draw off the plus menu in a chat's message bar, each with its own switch, and move the gallery and microphone buttons into that menu. All four start off. Asked for in #448."
+          },
+          {
+            "category": "Features",
+            "text": "**Instagram:** Pick the app icon gets a Custom app icon row under Layout. Pick a picture from your phone, drag and zoom it into the frame, and it's added to your home screen as an icon that opens Instagram. Asked for in #442."
+          },
           {
             "category": "Features",
             "text": "**Instagram:** HushGram's settings now come in Vietnamese. Asked for in #439."
@@ -29357,18 +29349,6 @@
           {
             "category": "Features",
             "text": "**Instagram:** Keep stories playing while zooming is a new patch. With its switch on under Stories, a story keeps playing while you pinch to zoom it. Hold it still first and it stays paused. It starts off. Asked for in #382."
-          },
-          {
-            "category": "Features",
-            "text": "**Instagram:** Skip the ad data reminder is a new patch under Ads and privacy. Instagram's reminder to review how it uses your data for ads stops opening by itself. Your ad choice doesn't change. It starts off. Asked for in #331."
-          },
-          {
-            "category": "Improvements",
-            "text": "**Instagram:** Hide the Map bubble is a new switch under Messages. It takes only the Map bubble out of the row of notes, and your notes stay. It starts off. Asked for in #432."
-          },
-          {
-            "category": "Improvements",
-            "text": "**Instagram:** Glass tab bar has a Refraction intensity slider for how hard the liquid pill bends what's behind its edge, and a preview that changes as you drag. The opacity slider is now Tint intensity. Asked for in #391."
           }
         ]
       },
@@ -29376,7 +29356,7 @@
         {
           "name": "com.instagram.android",
           "packageName": "com.instagram.android",
-          "patchCount": 141,
+          "patchCount": 145,
           "iconUrl": "https://play-lh.googleusercontent.com/yHi59jmO_lVamcyJ1i3rM1_E8bAiAspShnGjjURq05ipQQSUksO3QVEsXTegRSqul038-4YNA7O644XAcx251Q",
           "iconColor": ""
         }
@@ -29392,7 +29372,7 @@
       "webUrl": "https://github.com/SysAdminDoc/HushMessenger",
       "addUrl": "https://morphe.software/add-source?github=SysAdminDoc/HushMessenger",
       "avatarUrl": "https://github.com/SysAdminDoc.png?size=96",
-      "patchCount": 76,
+      "patchCount": 77,
       "appCount": 1,
       "createdAt": 1790567709268,
       "updatedAt": 1790567709268,
@@ -29408,7 +29388,7 @@
           },
           {
             "category": "New",
-            "text": "Record calls is a new switch under Conversations. During a call it puts a Record button over Messenger, and the call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. It needs Android 10 or newer, it's experimental and it starts off. Refs #105."
+            "text": "Record calls is a new switch under Conversations. During a call it puts a Record button over Messenger, and the call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it. Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. It needs Android 10 or newer, it's experimental and it starts off. Refs #105."
           },
           {
             "category": "New",
@@ -29423,16 +29403,16 @@
             "text": "The message log got easier to get around in. There's a search box that looks through words and names and doesn't care about accents, and Group by chat lists your chats so you can open one. Save as text and Save as CSV write what's showing to a file you pick, and Save messages before they're removed adds each message to a text file in Download/Messenger just before the log drops it, one file a month. Saved files aren't encrypted, so that switch starts off, and it needs Android 10 or newer. Refs #127."
           },
           {
+            "category": "New",
+            "text": "Keep the search bar is a new switch under Inbox. Some accounts lost the search bar above their chats when Messenger moved search behind an icon, and this brings the bar back and drops the icon. Messenger needs a restart after you change it. Accounts that never got the icon see no change. It's experimental and it starts off. Refs #128."
+          },
+          {
             "category": "Fixed",
             "text": "Pin more chats works now. A fourth pin used to end in Messenger's \"Can't pin chat\", because the limit lives on Meta's servers and nothing on the phone can talk them out of it. Pins past the limit now stay on your phone instead: they go to the top with the pin mark, survive a restart and unpin like any other, but they won't show on your other devices. Chats that don't offer Pin at all get it back the same way. Turn the switch off or pause HushMessenger and those pins step aside until you turn it back on. Refs #56, #60, #47."
           },
           {
             "category": "Fixed",
             "text": "New messages pop up at the top of the screen again on a phone where they'd stopped. While chat heads were on, Messenger lowered its Chats notification channel for good, and only Meta's server flags ever raised it back, so the pop-ups stayed gone even with chat heads turned off. **Keep chat pop-ups** is a new patch with no switch that stops the lowering and raises the channel at the next start. It leaves the channel alone if you changed it yourself in Android's settings, and picking Chat heads under Allow chat bubbles keeps Messenger's own behavior. Refs #126."
-          },
-          {
-            "category": "Fixed",
-            "text": "Mark as read button now shows up in chats whose top bar was full with no chat details button to replace, like a chat with an Add friend button. It takes the place of a button that isn't for calls there, so the call buttons still stay put. Refs #122."
           }
         ]
       },
@@ -29440,7 +29420,7 @@
         {
           "name": "Messenger",
           "packageName": "com.facebook.orca",
-          "patchCount": 76,
+          "patchCount": 77,
           "iconUrl": "https://play-lh.googleusercontent.com/cuRpiGqvAMkcbAOibD-AKCBagAunUkspQUWC_jVZF2Hob_ODdmkefnZeqkofW1idFQHhgZgnLIjsqT-2v7JKBw",
           "iconColor": "#0084FF"
         }
@@ -46919,8 +46899,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -46928,12 +46908,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Enables locally enforced premium features and saves the premium preference on launcher startup."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all AT4K premium features by forcing the premium status to true."
         }
       ],
       "versions": [
@@ -56856,8 +56836,8 @@
       "patches": [
         "AMOLED dark theme",
         "Disable tracking",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -56869,12 +56849,12 @@
           "description": "Stops the Google Mobile Ads SDK from starting and reading the advertising ID."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks the HalfBlur effect."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlock Premium Features in app."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks the HalfBlur effect."
         }
       ],
       "versions": [
@@ -86578,8 +86558,8 @@
         "Allow Screenshots",
         "Allow screenshots and Circle to Search",
         "Always @handle \u00b7 region \u00b7 post time",
-        "Always Show Publish Date",
         "Always show publish date",
+        "Always Show Publish Date",
         "Always upload in HD",
         "AMOLED dark theme",
         "Animated profile covers",
@@ -86591,8 +86571,8 @@
         "Block author button",
         "Block contact list access",
         "Block installed app scanning",
-        "Block P2P video relay",
         "Block P2P Video Relay",
+        "Block P2P video relay",
         "Block popups",
         "Block Popups & Prompts",
         "Block suggested video notifications",
@@ -86699,8 +86679,8 @@
         "Hide the risk control CAPTCHA",
         "Hide video overlays",
         "Hold-and-slide 2x lock",
-        "In-app browser privacy guard",
         "In-App Browser Privacy Guard",
+        "In-app browser privacy guard",
         "Inbox activity search",
         "Instant Launch",
         "Keep a streak going",
@@ -86755,8 +86735,8 @@
         "Remove LIVE extras",
         "Remove Live Stream Files",
         "Remove unused language packs",
-        "Remove Voice Tools",
         "Remove voice tools",
+        "Remove Voice Tools",
         "Report a newer phone to effects",
         "Repost diagnostics",
         "Resource and battery governor",
@@ -86771,8 +86751,8 @@
         "Share sheet modification",
         "Share sheet tools",
         "Show all friends in share panel",
-        "Show author region",
         "Show Author Region",
+        "Show author region",
         "Show commenter handle and region",
         "Show engagement rate",
         "Show Exact Counts",
@@ -86798,8 +86778,8 @@
         "Stop recording watch history",
         "Stop saving search history",
         "Stop search autoplay",
-        "Stop video looping",
         "Stop Video Looping",
+        "Stop video looping",
         "Story controls",
         "Strip Sensitive Permissions",
         "Subtitle tools",
@@ -86846,12 +86826,12 @@
           "description": "Shows the @handle, the region and the post time on feed videos and comments, including a video shared into a chat. Each surface and each part has a switch in Tweaks."
         },
         {
-          "name": "Always Show Publish Date",
-          "description": "Shows the upload date on all videos."
-        },
-        {
           "name": "Always show publish date",
           "description": "Always shows the publish date in video author information. Thanks to lyyako for the original implementation."
+        },
+        {
+          "name": "Always Show Publish Date",
+          "description": "Shows the upload date on all videos."
         },
         {
           "name": "Always upload in HD",
@@ -86898,12 +86878,12 @@
           "description": "Gives TikTok an empty list when it asks which apps are on your phone, so it learns less about you. Opening another app from TikTok still works. Starts off. Turn it on in Hushfeed settings > Privacy."
         },
         {
-          "name": "Block P2P video relay",
-          "description": "Removes the files TikTok uses to pass videos on to other viewers through your phone's internet connection. The app gets about 3.5 MB smaller. It's built in while patching, so only patching again without it brings them back."
-        },
-        {
           "name": "Block P2P Video Relay",
           "description": "Stops your device from uploading videos to other users."
+        },
+        {
+          "name": "Block P2P video relay",
+          "description": "Removes the files TikTok uses to pass videos on to other viewers through your phone's internet connection. The app gets about 3.5 MB smaller. It's built in while patching, so only patching again without it brings them back."
         },
         {
           "name": "Block popups",
@@ -87330,12 +87310,12 @@
           "description": "Enables TikTok's native hold, slide down, and release gesture to lock 2x speed."
         },
         {
-          "name": "In-app browser privacy guard",
-          "description": "Stops websites you open in TikTok's built-in browser from reaching into the TikTok app. TikTok's own pages, like Watch history and checkout, keep working. Starts off. Turn it on in Hushfeed settings > Privacy."
-        },
-        {
           "name": "In-App Browser Privacy Guard",
           "description": "Opens web links in your browser and blocks tracking in the remaining web views."
+        },
+        {
+          "name": "In-app browser privacy guard",
+          "description": "Stops websites you open in TikTok's built-in browser from reaching into the TikTok app. TikTok's own pages, like Watch history and checkout, keep working. Starts off. Turn it on in Hushfeed settings > Privacy."
         },
         {
           "name": "Inbox activity search",
@@ -87554,12 +87534,12 @@
           "description": "Removes the app languages you don't list in this patch's options, saving up to about 26 MB of storage. English is always kept. With no list it keeps them all. Only patching again brings removed ones back."
         },
         {
-          "name": "Remove Voice Tools",
-          "description": "Removes voice search and text-to-speech to save space. Breaks voice features."
-        },
-        {
           "name": "Remove voice tools",
           "description": "Removes TikTok's speech recognition files, saving about 16 MB of storage. The catch: voice search, naming a song by listening, talking to TikTok's AI assistant and TikTok's music check on videos you post all stop working. Only patching again without it brings them back."
+        },
+        {
+          "name": "Remove Voice Tools",
+          "description": "Removes voice search and text-to-speech to save space. Breaks voice features."
         },
         {
           "name": "Report a newer phone to effects",
@@ -87618,12 +87598,12 @@
           "description": "Shows everyone you follow or who follows you in the share panel, including contacts TikTok hides based on follow or share status."
         },
         {
-          "name": "Show author region",
-          "description": "Shows the country a video was posted from next to the creator's name. Starts off. Turn it on in Hushfeed settings > Feed screen."
-        },
-        {
           "name": "Show Author Region",
           "description": "Displays the creator's country code next to their username."
+        },
+        {
+          "name": "Show author region",
+          "description": "Shows the country a video was posted from next to the creator's name. Starts off. Turn it on in Hushfeed settings > Feed screen."
         },
         {
           "name": "Show commenter handle and region",
@@ -87726,12 +87706,12 @@
           "description": "Stops videos in search results from playing by themselves. Each one shows its cover until you open it, so searching stays quiet. Starts off. Turn it on in Hushfeed settings > App."
         },
         {
-          "name": "Stop video looping",
-          "description": "Stops videos at the end instead of replaying them."
-        },
-        {
           "name": "Stop Video Looping",
           "description": "Stops videos at the end instead of replaying them in an infinite loop."
+        },
+        {
+          "name": "Stop video looping",
+          "description": "Stops videos at the end instead of replaying them."
         },
         {
           "name": "Story controls",
@@ -123900,6 +123880,18 @@
             "items": [
               {
                 "category": "Features",
+                "text": "**Instagram:** Glass in chats is a new patch. Under Messages, one switch gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It starts off. Asked for in #449."
+              },
+              {
+                "category": "Features",
+                "text": "**Instagram:** Chat plus menu is a new patch. Under Messages you can take Saved, AI images and Draw off the plus menu in a chat's message bar, each with its own switch, and move the gallery and microphone buttons into that menu. All four start off. Asked for in #448."
+              },
+              {
+                "category": "Features",
+                "text": "**Instagram:** Pick the app icon gets a Custom app icon row under Layout. Pick a picture from your phone, drag and zoom it into the frame, and it's added to your home screen as an icon that opens Instagram. Asked for in #442."
+              },
+              {
+                "category": "Features",
                 "text": "**Instagram:** HushGram's settings now come in Vietnamese. Asked for in #439."
               },
               {
@@ -123917,18 +123909,6 @@
               {
                 "category": "Features",
                 "text": "**Instagram:** Keep stories playing while zooming is a new patch. With its switch on under Stories, a story keeps playing while you pinch to zoom it. Hold it still first and it stays paused. It starts off. Asked for in #382."
-              },
-              {
-                "category": "Features",
-                "text": "**Instagram:** Skip the ad data reminder is a new patch under Ads and privacy. Instagram's reminder to review how it uses your data for ads stops opening by itself. Your ad choice doesn't change. It starts off. Asked for in #331."
-              },
-              {
-                "category": "Improvements",
-                "text": "**Instagram:** Hide the Map bubble is a new switch under Messages. It takes only the Map bubble out of the row of notes, and your notes stay. It starts off. Asked for in #432."
-              },
-              {
-                "category": "Improvements",
-                "text": "**Instagram:** Glass tab bar has a Refraction intensity slider for how hard the liquid pill bends what's behind its edge, and a preview that changes as you drag. The opacity slider is now Tint intensity. Asked for in #391."
               }
             ]
           },
@@ -123991,6 +123971,10 @@
             {
               "name": "Chat history tools",
               "description": "Long press a chat's name to jump to its first message or to a date, or to save the chat as a text file. The chat loads its older messages on its own, with a count and a Cancel button. Both start off. Turn them on in HushGram settings > Messages."
+            },
+            {
+              "name": "Chat plus menu",
+              "description": "Lets you take Saved, AI images and Draw off the plus menu in a chat's message bar, and move the gallery and microphone buttons into that menu. Starts with every switch off. Turn them on in HushGram settings > Messages."
             },
             {
               "name": "Clean up Reels",
@@ -124069,6 +124053,10 @@
               "description": "Hides the status bar and the navigation bar while Reels shows, and optionally while Home or your messages do. Swipe in from the edge to bring them back for a moment. Back and the keyboard work as usual. Starts off. Turn it on in HushGram settings > Reels (Full screen Reels), Feed (Full screen Home) and Messages (Full screen Messages)."
             },
             {
+              "name": "Glass in chats",
+              "description": "Gives a chat's top bar frosted glass that blurs the messages under it (Android 12 and newer) and puts the back, call and video buttons on round glass circles. Starts off. Turn it on in HushGram settings > Messages."
+            },
+            {
               "name": "Glass tab bar",
               "description": "Draws the tab bar as a floating, rounded pill of frosted glass that blurs what's behind it (Android 12 and newer), with a highlight on the tab you're on. Content can optionally run down behind it. Starts off. Turn it on in HushGram settings > Tab bar, then restart Instagram."
             },
@@ -124137,6 +124125,10 @@
               "description": "Removes the rows of suggested reels from your home feed. A reel posted by someone you follow stays. Starts off. Turn it on in HushGram settings > Reels."
             },
             {
+              "name": "Hide reels with few views",
+              "description": "Leaves out reels in the Reels tab that fewer people have watched than a number you pick. Accounts you follow stay. Starts off. Turn it on in HushGram settings > Reels."
+            },
+            {
               "name": "Hide rows in Instagram's settings",
               "description": "Lets you take the rows you don't use off Instagram's own Settings and activity screen. Open that screen once, then untick rows in HushGram settings > Layout > Rows in Instagram's settings. Every row shows to start."
             },
@@ -124150,7 +124142,7 @@
             },
             {
               "name": "Hide suggested people on profiles",
-              "description": "Takes Suggested for you and the Discover people button off profiles. Bios, counts and posts stay. More switches take Suggested for you off the follow lists and their Suggested tab, the Complete your profile cards off your own profile, and People you don't follow back, suggested threads and people, and the Featured section off your notifications. Starts off. Turn it on in HushGram settings > Profiles."
+              "description": "Takes Suggested for you and the Discover people button off profiles. Bios, counts and posts stay. More switches take Suggested for you off the follow lists, their Suggested tab and the Follow requests screen, the Complete your profile cards off your own profile, and People you don't follow back, suggested threads and people, and the Featured section off your notifications. Starts off. Turn it on in HushGram settings > Profiles."
             },
             {
               "name": "Hide suggested posts",
@@ -124182,7 +124174,7 @@
             },
             {
               "name": "Hide the Reels tab",
-              "description": "Takes the Reels tab off the tab bar. Reels in your feed and reels people send you still open. A second switch, Show the Reels tab, puts it back after Home when Instagram built your bar without one, and Hide wins if both are on. Restart Instagram to see the change. Starts off. Turn it on in HushGram settings > Reels. Under Tab bar, switches do the same for Home, Search, Create, Messages and Profile, two put Messages or Activity on the bar when Instagram left them off, switches take the Create and notifications buttons off Home's header, others add a Search, Messages or Ghost mode button to it or put Instagram's logo in its middle, two center the name at the top of profiles and the title on other screens, a list puts the tabs in your order, and another picks the tab Instagram opens on."
+              "description": "Takes the Reels tab off the tab bar. Reels in your feed and reels people send you still open. A second switch, Show the Reels tab, puts it back after Home when Instagram built your bar without one, and Hide wins if both are on. Restart Instagram to see the change. Starts off. Turn it on in HushGram settings > Reels. Under Tab bar, switches do the same for Home, Search, Create, Messages and Profile, two put Messages or Activity on the bar when Instagram left them off, switches take the Create and notifications buttons off Home's header, others add a Search, Messages, Ghost mode or menu button to it or put Instagram's logo in its middle, two center the name at the top of profiles and the title on other screens, a list puts the tabs in your order, and another picks the tab Instagram opens on."
             },
             {
               "name": "Hide the Repost button",
@@ -124342,7 +124334,7 @@
             },
             {
               "name": "Seek bar on feed videos",
-              "description": "Shows a bar along the bottom of the video playing in your feed that you can drag to jump to any point in it. Starts off. Turn it on in HushGram settings > Feed."
+              "description": "Shows a bar along the bottom of the video playing in your feed that you can drag to jump to any point in it. Starts off. Turn it on in HushGram settings > Feed. Another switch there adds a small button on the video that shows or hides the bar."
             },
             {
               "name": "Seek bar on stories",
@@ -124370,7 +124362,7 @@
             },
             {
               "name": "Show if a profile follows you",
-              "description": "Adds Follows you or Doesn't follow you beside the name on someone's profile. Other switches add a chip and mark accounts on your Following list that don't follow you back, and Recent unfollowers shows who left your Followers list. The chip is blue for Follows you, green for Following each other and red for Doesn't follow you, and it can go small under the profile picture. On by default. Turn it off in HushGram settings > Profiles."
+              "description": "Adds Follows you or Doesn't follow you beside the name on someone's profile. Other switches add a chip and mark accounts on your Following list that don't follow you back, and Recent unfollowers shows who left your Followers list, with a Follower history of who left, came back or is new. The chip is blue for Follows you, green for Following each other and red for Doesn't follow you, and it can go small under the profile picture. On by default. Turn it off in HushGram settings > Profiles."
             },
             {
               "name": "Show when someone was last active",
@@ -124443,6 +124435,10 @@
             {
               "name": "Stop videos looping",
               "description": "Feed videos and reels stop at their last frame instead of playing again. Reels still loop while auto scroll is on, so it can move on. Starts off. Turn it on in HushGram settings > Playback."
+            },
+            {
+              "name": "Stories priority",
+              "description": "Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched. Starts off. Turn it on and type the accounts in HushGram settings > Stories."
             },
             {
               "name": "Story ring size",
@@ -125155,6 +125151,7 @@
         "Change version code - Instagram (Experimental)",
         "Chat history tools",
         "Chat only",
+        "Chat plus menu",
         "Clean share links",
         "Clean up Reels",
         "Clear the media cache",
@@ -125239,6 +125236,7 @@
         "Full screen Reels and Home",
         "Ghost mode",
         "Ghost Privacy Mode: Anonymous DMs & Stories - Instagram (Experimental)",
+        "Glass in chats",
         "Glass tab bar",
         "Group Instagram's notifications",
         "Hide ads",
@@ -125269,6 +125267,7 @@
         "Hide Reels follow button",
         "Hide Reels in the feed",
         "Hide Reels save button",
+        "Hide reels with few views",
         "Hide reshare button",
         "Hide reshare button - Instagram (Experimental)",
         "Hide rows in Instagram's settings",
@@ -125402,6 +125401,7 @@
         "Stop videos looping",
         "Stories audio autoplay",
         "Stories audio autoplay - Instagram (Experimental)",
+        "Stories priority",
         "Story mention indicator",
         "Story ring size",
         "Story text fonts",
@@ -125558,6 +125558,10 @@
         {
           "name": "Chat only",
           "description": "Turns Instagram into a chat-only messenger: opens Direct instead of the feed and removes the home feed, Reels, Explore, ads and suggestions, while the Stories tray stays visible. Long-press any bottom tab (or the Direct title) to open the Feurstagram settings."
+        },
+        {
+          "name": "Chat plus menu",
+          "description": "Lets you take Saved, AI images and Draw off the plus menu in a chat's message bar, and move the gallery and microphone buttons into that menu. Starts with every switch off. Turn them on in HushGram settings > Messages."
         },
         {
           "name": "Clean share links",
@@ -125896,6 +125900,10 @@
           "description": "\u26a0\ufe0f [Experimental / Untested] Disables 'Seen' receipts in Direct Messages, hides story viewed tracking, silences live stream join broadcasts, and hides DM typing indicator."
         },
         {
+          "name": "Glass in chats",
+          "description": "Gives a chat's top bar frosted glass that blurs the messages under it (Android 12 and newer) and puts the back, call and video buttons on round glass circles. Starts off. Turn it on in HushGram settings > Messages."
+        },
+        {
           "name": "Glass tab bar",
           "description": "Draws the tab bar as a floating, rounded pill of frosted glass that blurs what's behind it (Android 12 and newer), with a highlight on the tab you're on. Content can optionally run down behind it. Starts off. Turn it on in TADa settings > Tab bar, then restart Instagram."
         },
@@ -126014,6 +126022,10 @@
         {
           "name": "Hide Reels save button",
           "description": ""
+        },
+        {
+          "name": "Hide reels with few views",
+          "description": "Leaves out reels in the Reels tab that fewer people have watched than a number you pick. Accounts you follow stay. Starts off. Turn it on in HushGram settings > Reels."
         },
         {
           "name": "Hide reshare button",
@@ -126429,7 +126441,7 @@
         },
         {
           "name": "Seek bar on feed videos",
-          "description": "Shows a bar along the bottom of the video playing in your feed that you can drag to jump to any point in it. Starts off. Turn it on in HushGram settings > Feed."
+          "description": "Shows a bar along the bottom of the video playing in your feed that you can drag to jump to any point in it. Starts off. Turn it on in HushGram settings > Feed. Another switch there adds a small button on the video that shows or hides the bar."
         },
         {
           "name": "Seek bar on stories",
@@ -126546,6 +126558,10 @@
         {
           "name": "Stories audio autoplay - Instagram (Experimental)",
           "description": "\u26a0\ufe0f [En cours de d\u00e9veloppement / Non test\u00e9] Enhances application behavior and unlocks additional user controls."
+        },
+        {
+          "name": "Stories priority",
+          "description": "Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched. Starts off. Turn it on and type the accounts in HushGram settings > Stories."
         },
         {
           "name": "Story mention indicator",
@@ -143963,7 +143979,7 @@
               },
               {
                 "category": "New",
-                "text": "Record calls is a new switch under Conversations. During a call it puts a Record button over Messenger, and the call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. It needs Android 10 or newer, it's experimental and it starts off. Refs #105."
+                "text": "Record calls is a new switch under Conversations. During a call it puts a Record button over Messenger, and the call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it. Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. It needs Android 10 or newer, it's experimental and it starts off. Refs #105."
               },
               {
                 "category": "New",
@@ -143978,16 +143994,16 @@
                 "text": "The message log got easier to get around in. There's a search box that looks through words and names and doesn't care about accents, and Group by chat lists your chats so you can open one. Save as text and Save as CSV write what's showing to a file you pick, and Save messages before they're removed adds each message to a text file in Download/Messenger just before the log drops it, one file a month. Saved files aren't encrypted, so that switch starts off, and it needs Android 10 or newer. Refs #127."
               },
               {
+                "category": "New",
+                "text": "Keep the search bar is a new switch under Inbox. Some accounts lost the search bar above their chats when Messenger moved search behind an icon, and this brings the bar back and drops the icon. Messenger needs a restart after you change it. Accounts that never got the icon see no change. It's experimental and it starts off. Refs #128."
+              },
+              {
                 "category": "Fixed",
                 "text": "Pin more chats works now. A fourth pin used to end in Messenger's \"Can't pin chat\", because the limit lives on Meta's servers and nothing on the phone can talk them out of it. Pins past the limit now stay on your phone instead: they go to the top with the pin mark, survive a restart and unpin like any other, but they won't show on your other devices. Chats that don't offer Pin at all get it back the same way. Turn the switch off or pause HushMessenger and those pins step aside until you turn it back on. Refs #56, #60, #47."
               },
               {
                 "category": "Fixed",
                 "text": "New messages pop up at the top of the screen again on a phone where they'd stopped. While chat heads were on, Messenger lowered its Chats notification channel for good, and only Meta's server flags ever raised it back, so the pop-ups stayed gone even with chat heads turned off. **Keep chat pop-ups** is a new patch with no switch that stops the lowering and raises the channel at the next start. It leaves the channel alone if you changed it yourself in Android's settings, and picking Chat heads under Allow chat bubbles keeps Messenger's own behavior. Refs #126."
-              },
-              {
-                "category": "Fixed",
-                "text": "Mark as read button now shows up in chats whose top bar was full with no chat details button to replace, like a chat with an Add friend button. It takes the place of a button that isn't for calls there, so the call buttons still stay put. Refs #122."
               }
             ]
           },
@@ -144176,6 +144192,10 @@
               "description": "Typing while the emoji keyboard is open no longer jumps to sticker search. The keyboard stays on emoji. Starts off. Turn it on in HushMessenger settings > Controls."
             },
             {
+              "name": "Keep the search bar",
+              "description": "Brings back the search bar at the top of your chat list when Messenger has swapped it for a search icon. Restart Messenger after changing it. If Messenger never gave you the icon, nothing changes. Starts off. Turn it on in HushMessenger settings > Controls."
+            },
+            {
               "name": "Keep unsent messages",
               "description": "Keeps messages on screen after someone unsends them, in chats where it works. In end-to-end encrypted chats the message stays in its notification instead, since the chat itself can't keep it. Group chats aren't tested. Starts off. Turn it on in HushMessenger settings > Controls."
             },
@@ -144213,7 +144233,7 @@
             },
             {
               "name": "Record calls",
-              "description": "Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. Starts off. Turn it on in HushMessenger settings > Controls."
+              "description": "Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it. Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. Starts off. Turn it on in HushMessenger settings > Controls."
             },
             {
               "name": "Restore old emoji drawer",
@@ -144475,6 +144495,7 @@
         "Keep a message log",
         "Keep chat pop-ups",
         "Keep emoji search on emoji",
+        "Keep the search bar",
         "Keep unsent messages",
         "Mark as read button",
         "Material You theme",
@@ -144728,6 +144749,10 @@
           "description": "Typing while the emoji keyboard is open no longer jumps to sticker search. The keyboard stays on emoji. Starts off. Turn it on in HushMessenger settings > Controls."
         },
         {
+          "name": "Keep the search bar",
+          "description": "Brings back the search bar at the top of your chat list when Messenger has swapped it for a search icon. Restart Messenger after changing it. If Messenger never gave you the icon, nothing changes. Starts off. Turn it on in HushMessenger settings > Controls."
+        },
+        {
           "name": "Keep unsent messages",
           "description": "Keeps messages on screen after someone unsends them, in chats where it works. In end-to-end encrypted chats the message stays in its notification instead, since the chat itself can't keep it. Group chats aren't tested. Starts off. Turn it on in HushMessenger settings > Controls."
         },
@@ -144769,7 +144794,7 @@
         },
         {
           "name": "Record calls",
-          "description": "Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. Starts off. Turn it on in HushMessenger settings > Controls."
+          "description": "Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it. Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. Starts off. Turn it on in HushMessenger settings > Controls."
         },
         {
           "name": "Remove Meta AI",
@@ -148868,8 +148893,8 @@
       "patches": [
         "Block Telemetry & Trackers",
         "Fix Google Maps",
-        "Remove Ads",
         "Remove ads",
+        "Remove Ads",
         "Suppress Paywalls",
         "Unlock Moovit+",
         "Use Places API (New)",
@@ -148885,12 +148910,12 @@
           "description": "Restores Google Maps rendering by spoofing the original package signature to Google Play Services."
         },
         {
-          "name": "Remove Ads",
-          "description": "Hides banner and inline ads and neutralizes ad unit ID lookups."
-        },
-        {
           "name": "Remove ads",
           "description": "Removes the ads Moovit shows around the map and search and between screens."
+        },
+        {
+          "name": "Remove Ads",
+          "description": "Hides banner and inline ads and neutralizes ad unit ID lookups."
         },
         {
           "name": "Suppress Paywalls",
@@ -176606,8 +176631,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -176615,12 +176640,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all premium features."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Unlocks premium features by bypassing the native check and keeping the app's premium feature gates unlocked."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all premium features."
         }
       ],
       "versions": [
@@ -178797,17 +178822,17 @@
         }
       ],
       "patches": [
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
-          "name": "Unlock premium",
-          "description": "Unlocks all regions. Removes ads and the upgrade button."
-        },
-        {
           "name": "Unlock Premium",
           "description": "Forces the subscription gate to report an unlimited subscription, removing ads and the upgrade prompt. Constructs a minimal fake Purchase to prevent NPE/IOOB in call sites that dereference getProducts().get(0)."
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks all regions. Removes ads and the upgrade button."
         }
       ],
       "versions": [
@@ -184680,8 +184705,8 @@
         "Force system font",
         "Force system font - Reddit (Experimental)",
         "Full width feed media",
-        "Hide Ads",
         "Hide ads",
+        "Hide Ads",
         "Hide ads - Reddit (Experimental)",
         "Hide Ask button",
         "Hide Ask button - Reddit (Experimental)",
@@ -184694,8 +184719,8 @@
         "Hide community menu badge",
         "Hide crosspost",
         "Hide media viewer components",
-        "Hide navigation buttons",
         "Hide Navigation Buttons",
+        "Hide navigation buttons",
         "Hide navigation buttons - Reddit (Experimental)",
         "Hide permanent ban banner",
         "Hide post view counts",
@@ -184710,8 +184735,8 @@
         "Hide sidebar components",
         "Hide sidebar components - Reddit (Experimental)",
         "Hide suspended account banner",
-        "Hide Trending shelves",
         "Hide Trending Shelves",
+        "Hide Trending shelves",
         "Hide Trending shelves - Reddit (Experimental)",
         "Hide upvote scores",
         "Hide user community badges",
@@ -184746,8 +184771,8 @@
         "Sanitize Links & Open Externally - Reddit (Experimental)",
         "Sanitize Reddit share links",
         "Sanitize share links",
-        "Sanitize sharing links",
         "Sanitize Sharing Links",
+        "Sanitize sharing links",
         "Sanitize sharing links - Reddit (Experimental)",
         "Show flairs in home feed",
         "Show view count",
@@ -184897,12 +184922,12 @@
           "description": "Adds an option to show images and videos edge to edge in the feed and post details, without side padding and rounded corners."
         },
         {
-          "name": "Hide Ads",
-          "description": "Removes promoted posts and comment ads without requiring Reddit Premium unlock."
-        },
-        {
           "name": "Hide ads",
           "description": "Adds options to hide ads."
+        },
+        {
+          "name": "Hide Ads",
+          "description": "Removes promoted posts and comment ads without requiring Reddit Premium unlock."
         },
         {
           "name": "Hide ads - Reddit (Experimental)",
@@ -184953,12 +184978,12 @@
           "description": "Adds options to hide the \"See the conversation\" button and the title, buttons and video controls of the media viewer. Hiding the title, buttons and video controls requires Reddit 2026.38.0 or newer."
         },
         {
-          "name": "Hide navigation buttons",
-          "description": "Adds options to hide buttons in the navigation bar."
-        },
-        {
           "name": "Hide Navigation Buttons",
           "description": "Removes the Create Post button from the bottom navigation bar."
+        },
+        {
+          "name": "Hide navigation buttons",
+          "description": "Adds options to hide buttons in the navigation bar."
         },
         {
           "name": "Hide navigation buttons - Reddit (Experimental)",
@@ -185017,12 +185042,12 @@
           "description": "Hides the red suspended/locked account banner on the Home and Inbox screens."
         },
         {
-          "name": "Hide Trending shelves",
-          "description": "Adds an option to hide the Trending shelves from feed and search suggestions."
-        },
-        {
           "name": "Hide Trending Shelves",
           "description": "Removes Trending Today from the feed and trending searches from the search screen."
+        },
+        {
+          "name": "Hide Trending shelves",
+          "description": "Adds an option to hide the Trending shelves from feed and search suggestions."
         },
         {
           "name": "Hide Trending shelves - Reddit (Experimental)",
@@ -185161,12 +185186,12 @@
           "description": "Unshortens and removes the tracking query parameters from shared links."
         },
         {
-          "name": "Sanitize sharing links",
-          "description": "Adds an option to sanitize sharing links by removing tracking query parameters."
-        },
-        {
           "name": "Sanitize Sharing Links",
           "description": "Returns the raw permalink before UTM tracking parameters are appended to shared Reddit URLs."
+        },
+        {
+          "name": "Sanitize sharing links",
+          "description": "Adds an option to sanitize sharing links by removing tracking query parameters."
         },
         {
           "name": "Sanitize sharing links - Reddit (Experimental)",
@@ -207551,8 +207576,8 @@
       "patches": [
         "Disable Symfonium beta expiry",
         "Disable Symfonium trial expiry",
-        "Unlock Premium",
         "Unlock premium",
+        "Unlock Premium",
         "Unlock Symfonium"
       ],
       "patchDetails": [
@@ -207565,12 +207590,12 @@
           "description": "Neutralises the expired-trial block screen. The welcome screen gates entry with a single `state instanceof ExpiredTrial` check; this forces that check to false, so the app proceeds on every launch (online, offline, or with a server-expired trial). The server handshake, billing/licence machinery and the offline fail-open path are left untouched. Validated on 15.0.1 (versionCode 127798)."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial, so this also prevents the expired-beta screen. The license is checked locally and the unlock does not require an account. Connecting Plex, Jellyfin and other media servers is untouched."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all premium features."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial, so this also prevents the expired-beta screen. The license is checked locally and the unlock does not require an account. Connecting Plex, Jellyfin and other media servers is untouched."
         },
         {
           "name": "Unlock Symfonium",
@@ -216379,8 +216404,8 @@
         "Hide Leagues tab sections",
         "Hide Scorecast blocks",
         "Keep classic game screen",
-        "Remove Ads",
-        "Remove ads"
+        "Remove ads",
+        "Remove Ads"
       ],
       "patchDetails": [
         {
@@ -216404,12 +216429,12 @@
           "description": "Adds an option in Morphe Settings (on by default) to keep the classic game screen if theScore turns on its redesigned one, so the game tab and Scorecast patches keep working."
         },
         {
-          "name": "Remove Ads",
-          "description": "Bypasses startup delays and collapses all ad containers."
-        },
-        {
           "name": "Remove ads",
           "description": "Removes ads everywhere: the startup splash, banners and large ads on every screen, sponsor ads, full-screen ads and video ads."
+        },
+        {
+          "name": "Remove Ads",
+          "description": "Bypasses startup delays and collapses all ad containers."
         }
       ],
       "versions": [
@@ -229221,8 +229246,8 @@
       ],
       "patches": [
         "Disable rating prompt",
-        "Unlock premium",
-        "Unlock Premium"
+        "Unlock Premium",
+        "Unlock premium"
       ],
       "patchDetails": [
         {
@@ -229230,12 +229255,12 @@
           "description": "Stops the Google Play rating prompt from appearing."
         },
         {
-          "name": "Unlock premium",
-          "description": "Unlocks premium, removes ads and the free session time limit."
-        },
-        {
           "name": "Unlock Premium",
           "description": ""
+        },
+        {
+          "name": "Unlock premium",
+          "description": "Unlocks premium, removes ads and the free session time limit."
         }
       ],
       "versions": [
@@ -260232,32 +260257,12 @@
       "createdDate": "2026-11-01",
       "updatedDate": "2026-11-01",
       "latestChanges": {
-        "title": "1.0.2 (2026-10-31)",
-        "date": "2026-10-31",
+        "title": "1.0.5 (2026-11-02)",
+        "date": "2026-11-02",
         "items": [
           {
-            "category": "Features",
-            "text": "add carrier presets to Spoof carrier"
-          },
-          {
-            "category": "Features",
-            "text": "add Spoof carrier"
-          },
-          {
-            "category": "Features",
-            "text": "enable the shared patches for ESPN, NFL and NBA"
-          },
-          {
-            "category": "Features",
-            "text": "**espn:** add ESPN Skip ads and Block analytics"
-          },
-          {
-            "category": "Features",
-            "text": "**nba:** add NBA Skip ads, Disable Ask NBA AI and Block analytics"
-          },
-          {
-            "category": "Features",
-            "text": "**nfl:** add NFL Skip ads and Block analytics"
+            "category": "Bug Fixes",
+            "text": "limit the store-tracking privacy patches to the shopping apps"
           }
         ]
       },
