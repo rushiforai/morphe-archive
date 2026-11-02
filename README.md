@@ -2,7 +2,7 @@
 
 An auto-generated, continuously updated index of every GitHub or GitLab repository that publishes a [Morphe](https://morphe.software) (`.mpp`) patch bundle.
 
-![Repos tracked](https://img.shields.io/badge/repos%20tracked-498-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-11-02%2004:21%20UTC-555)
+![Repos tracked](https://img.shields.io/badge/repos%20tracked-498-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-11-02%2004:59%20UTC-555)
 
 ---
 
@@ -475,8 +475,8 @@ Use this archive at your own risk. I do not verify every repository listed here,
 | 421 | `Supperelias2/sbs-tv-morphe-patches` | [Open](https://github.com/Supperelias2/sbs-tv-morphe-patches) | [Add Source](https://morphe.software/add-source?github=Supperelias2/sbs-tv-morphe-patches) |
 | 422 | `sushruth/imgur-patches` | [Open](https://github.com/sushruth/imgur-patches) | [Add Source](https://morphe.software/add-source?github=sushruth/imgur-patches) |
 | 423 | `Sylonin/xposed-newx-patches` | [Open](https://github.com/Sylonin/xposed-newx-patches) | [Add Source](https://morphe.software/add-source?github=Sylonin/xposed-newx-patches) |
-| 424 | `SysAdminDoc/Hushfacebook` | [Open](https://github.com/SysAdminDoc/Hushfacebook) | [Add Source](https://morphe.software/add-source?github=SysAdminDoc/Hushfacebook) |
-| 425 | `SysAdminDoc/HushFacebook` | [Open](https://github.com/SysAdminDoc/HushFacebook) | [Add Source](https://morphe.software/add-source?github=SysAdminDoc/HushFacebook) |
+| 424 | `SysAdminDoc/HushFacebook` | [Open](https://github.com/SysAdminDoc/HushFacebook) | [Add Source](https://morphe.software/add-source?github=SysAdminDoc/HushFacebook) |
+| 425 | `SysAdminDoc/Hushfacebook` | [Open](https://github.com/SysAdminDoc/Hushfacebook) | [Add Source](https://morphe.software/add-source?github=SysAdminDoc/Hushfacebook) |
 | 426 | `SysAdminDoc/HushFeed` | [Open](https://github.com/SysAdminDoc/HushFeed) | [Add Source](https://morphe.software/add-source?github=SysAdminDoc/HushFeed) |
 | 427 | `SysAdminDoc/hushfeed` | [Open](https://github.com/SysAdminDoc/hushfeed) | [Add Source](https://morphe.software/add-source?github=SysAdminDoc/hushfeed) |
 | 428 | `SysAdminDoc/HushGram` | [Open](https://github.com/SysAdminDoc/HushGram) | [Add Source](https://morphe.software/add-source?github=SysAdminDoc/HushGram) |
@@ -561,4 +561,4 @@ Use `owner/repo` for GitHub, or `gitlab.com/group/project` for GitLab.
 
 84 approved repo entries were hidden because their bundle URL is currently invalid.
 
-*Last generated: 2026-11-02 04:21 UTC*
+*Last generated: 2026-11-02 04:59 UTC*
