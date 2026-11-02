@@ -1,10 +1,6 @@
-# Repos reported by the last notification (9)
-Kirkland-Pickles/Gboard-offline-morphe
-VenusIsJaded/Prathxm-Patches
-amfakh/fakh-patches
-c-ardinal/Gboard-patches-jp
-johninnl/nl-morphe-patches
-junksidetm/Gboard-patches
-lildanlid1/Cordly
-quwi26/Quwis-Patches
-sarvottam99/SARVO-Patches
+# Repos reported by the last notification (5)
+MegaTheLEGEND/Facebook-Marketplace
+MohuttTT/yahoo-transit-patches
+VexingVertigo/spicetify-sandbox
+v1rtu0s/morphe-patches
+xboyrex/rex-ig-lite
