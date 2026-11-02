@@ -348,6 +348,7 @@ markpaul099/gboard-gifs-extended
 matthewclso/chrome-morphe
 MatthewRiley05/Machu-Morphe-Patches
 MauroGamerVN/Morphe-Patches
+MegaTheLEGEND/Facebook-Marketplace
 meridianfresco/morphe-meta-patches
 mian196/GPhotos-custom-branding
 mich-de/openlauncher
@@ -356,6 +357,7 @@ MiguelNinja19/miguel-morphe-patches
 miketweaver/friendsturner-patches
 mohamedamrnady/anghami-patches
 MohamedElnaggar00/morphe-patches-tiktok-lite-only
+MohuttTT/yahoo-transit-patches
 MoonShadowKeeper/Telegram-patchesMorphe
 mormislaw/zeekr-adapt-morphe-patches
 MorpheApp/morphe-patches
@@ -440,8 +442,8 @@ RookieEnough/De-Vanced
 Rosaldivo/rosaldivo-morphe-patches
 RoundSalmon4/morphe-patches-template
 rufusin/revanced-patches
-rushiranpise/Ri-Vanced-Universal-Morphe-Patches
 rushiranpise/RI-Vanced-Universal-Morphe-Patches
+rushiranpise/Ri-Vanced-Universal-Morphe-Patches
 ryuya0124/gemini-microg-patches
 ryykitty/twitch-patched
 sabbirexist/kodex-patches
@@ -488,8 +490,8 @@ Supperelias2/sbs-morphe-patches
 Supperelias2/sbs-tv-morphe-patches
 sushruth/imgur-patches
 Sylonin/xposed-newx-patches
-SysAdminDoc/HushFacebook
 SysAdminDoc/Hushfacebook
+SysAdminDoc/HushFacebook
 SysAdminDoc/HushFeed
 SysAdminDoc/hushfeed
 SysAdminDoc/HushGram
@@ -535,6 +537,7 @@ Vakarux12/raid-judu-patches
 variablenine/morphe-patches
 VenusIsJaded/Prathxm-Patches
 VenusIsJaded/Venus-Patches
+VexingVertigo/spicetify-sandbox
 VipinVIP/railone-patches
 virzak/morphe-patches
 vitorhubdev/vanta-surf-morphe-patches
@@ -554,6 +557,7 @@ wouter075/buienradar-patches
 WZSE/aapam-patches
 WZSE/morphe-patches
 XBadFellaX/BadFella-Patches
+xboyrex/rex-ig-lite
 Xhehab/Xhehab-Patches
 Xisrr1/Revancify-Xisr
 Xittered/xitter-morphe

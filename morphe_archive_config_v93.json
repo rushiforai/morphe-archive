@@ -1891,14 +1891,6 @@
                 "updatedAt": 1790220036818
             },
             {
-                "name": "morphe-patches",
-                "source": "https://gitlab.com/dhl0/morphe-patches/-/raw/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 259,
-                "createdAt": 1790220037096,
-                "updatedAt": 1790220037096
-            },
-            {
                 "name": "headboy-morphe-patches",
                 "source": "https://raw.githubusercontent.com/headboy99/headboy-morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -3993,6 +3985,46 @@
                 "sortOrder": 550,
                 "createdAt": 1793508090387,
                 "updatedAt": 1793508090387
+            },
+            {
+                "name": "Facebook-Marketplace",
+                "source": "https://raw.githubusercontent.com/MegaTheLEGEND/Facebook-Marketplace/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 551,
+                "createdAt": 1793593472243,
+                "updatedAt": 1793593472243
+            },
+            {
+                "name": "yahoo-transit-patches",
+                "source": "https://raw.githubusercontent.com/MohuttTT/yahoo-transit-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 552,
+                "createdAt": 1793593472986,
+                "updatedAt": 1793593472986
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/v1rtu0s/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 553,
+                "createdAt": 1793593477575,
+                "updatedAt": 1793593477575
+            },
+            {
+                "name": "spicetify-sandbox",
+                "source": "https://raw.githubusercontent.com/VexingVertigo/spicetify-sandbox/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 554,
+                "createdAt": 1793593478109,
+                "updatedAt": 1793593478109
+            },
+            {
+                "name": "rex-ig-lite",
+                "source": "https://raw.githubusercontent.com/xboyrex/rex-ig-lite/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 555,
+                "createdAt": 1793593479213,
+                "updatedAt": 1793593479213
             }
         ]
     }
