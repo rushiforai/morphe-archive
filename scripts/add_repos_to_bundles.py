@@ -6,8 +6,9 @@ Plain "owner/repo" entries are treated as GitHub repos. GitLab repos can be
 listed as "gitlab.com/owner/repo" or "https://gitlab.com/owner/repo". For each
 repo, checks whether patches-bundle.json exists on the `main` branch, falling
 back to `master` if not found. A bundle is only accepted when the URL is
-reachable, the response is valid JSON, and the JSON contains at least one .mpp
-reference. Repos already present (matched by source URL, case-insensitive) are
+reachable, the response is valid JSON, the JSON contains at least one .mpp
+reference, and the manifest carries the version, download_url and created_at
+that Morphe Manager reads before it can show metadata for a source. Repos already present (matched by source URL, case-insensitive) are
 skipped so the script is safe to re-run.
 
 Existing customBundles are also pruned when their source URL no longer
@@ -33,6 +34,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 
 BUNDLE_PATH = "patches-bundle.json"
@@ -207,6 +209,67 @@ def classify_fetch_error(error):
     return f"transient: {error}"
 
 
+def _normalize_fraction(value):
+    """Trim or pad fractional seconds to the six digits datetime accepts."""
+    head, separator, tail = value.partition(".")
+    if not separator:
+        return value
+    digits = ""
+    rest = tail
+    while rest and rest[0].isdigit():
+        digits += rest[0]
+        rest = rest[1:]
+    if not digits:
+        return value
+    return head + "." + digits[:6].ljust(6, "0") + rest
+
+
+def parse_manager_timestamp(value):
+    """Parse created_at the way MorpheAPI.parseTimestamp does.
+
+    Manager assumes UTC when the timestamp carries no zone, then parses it as
+    an instant; a value that fails there fails the whole metadata refresh and
+    leaves the source showing "Metadata N/A".
+    """
+    if not isinstance(value, str):
+        return None
+    stamp = value.strip()
+    if not stamp:
+        return None
+    if stamp.endswith(("Z", "z")) or "+" in stamp or ("T" in stamp and stamp.rfind("-") > 10):
+        normalized = stamp
+    else:
+        normalized = stamp + "Z"
+    normalized = _normalize_fraction(normalized)
+    try:
+        return datetime.fromisoformat(normalized.replace("Z", "+00:00").replace("z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def manager_manifest_error(bundle_json):
+    """Return why Morphe Manager cannot read this manifest, or None.
+
+    Manager maps a manifest to a release through version, download_url and
+    created_at (MorpheAPI.mapPatchesJsonToAsset). A manifest that lacks any of
+    them still installs, but every refresh fails, so the source stays at
+    "Metadata N/A" with auto-update off. Rejecting it here keeps such sources
+    out of the archived config instead of shipping a badge to every user.
+    """
+    if not isinstance(bundle_json, dict):
+        return "manifest is not an object"
+    version = bundle_json.get("version")
+    if not isinstance(version, str) or not version.strip():
+        return "manifest has no version"
+    download_url = bundle_json.get("download_url")
+    if not isinstance(download_url, str) or not is_mpp_reference(download_url):
+        return "manifest download_url is not a .mpp"
+    created_at = bundle_json.get("created_at")
+    if parse_manager_timestamp(created_at) is None:
+        return f"manifest created_at is not a timestamp: {created_at!r}"
+    return None
+
+
 def validate_bundle_url(url):
     """Validate a patches-bundle.json URL and (deep) its .mpp asset.
 
@@ -217,6 +280,9 @@ def validate_bundle_url(url):
     bundle_json, error = fetch_json(url)
     if error:
         return False, classify_fetch_error(error)
+    manifest_problem = manager_manifest_error(bundle_json)
+    if manifest_problem:
+        return False, manifest_problem
     mpp_url = find_mpp_reference(bundle_json)
     if not mpp_url:
         return False, "no .mpp reference"
